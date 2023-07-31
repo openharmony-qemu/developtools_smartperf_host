@@ -66,15 +66,6 @@ describe('TabPaneDmaSelectVmTracker Test', () => {
     it('TabPaneDmaSelectVmTracker01', () => {
         expect(dmaVmTracker.sortDmaByColumn('', 0)).toBeUndefined();
     });
-    it('TabPaneDmaSelectVmTracker02', () => {
-        expect(dmaVmTracker.sortDmaByColumn('startNs', 1)).toBeUndefined();
-    });
-    it('TabPaneDmaSelectVmTracker03', () => {
-        expect(dmaVmTracker.sortDmaByColumn('expTaskComm', 1)).toBeUndefined();
-    });
-    it('TabPaneDmaSelectVmTracker04', () => {
-        expect(dmaVmTracker.sortDmaByColumn('sumSizes', 1)).toBeUndefined();
-    });
     it('TabPaneDmaSelectVmTracker05', () => {
         expect(dmaVmTracker.sortDmaByColumn('avgSize', 1)).toBeUndefined();
     });

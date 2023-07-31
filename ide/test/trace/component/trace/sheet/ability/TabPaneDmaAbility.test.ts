@@ -116,7 +116,13 @@ describe('TabPaneDmaAbility Test', () => {
         statisticsSelectData:undefined,
 
     };
-
+    let val = [
+        {
+            leftNs: 0,
+            rightNs: 1000,
+        }
+    ];
+    tabPaneDmaAbility.init = jest.fn(() => true);
     it('TabPaneDmaAbilityTest01', function () {
         expect(tabPaneDmaAbility.sortDmaByColumn('process',1)).toBeUndefined();
     });
@@ -134,5 +140,11 @@ describe('TabPaneDmaAbility Test', () => {
     });
     it('TabPaneDmaAbilityTest06', function () {
         expect(tabPaneDmaAbility.sortDmaByColumn('maxSize',1)).toBeUndefined();
+    });
+    it('TabPaneDmaAbilityTest07', function () {
+        expect(tabPaneDmaAbility.queryDataByDB(val)).toBeUndefined();
+    });
+    it('TabPaneDmaAbilityTest08', function () {
+        expect(tabPaneDmaAbility.sortDmaByColumn('',0)).toBeUndefined();
     });
 })

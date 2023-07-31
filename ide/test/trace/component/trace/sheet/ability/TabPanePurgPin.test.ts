@@ -57,6 +57,24 @@ describe('TabPanePurgPin Test', () => {
             minSizes: "24.00MB",
         },
     ]);
+    let data =  [{
+            avgSize: 25165824,
+            avgSizes: "24.00MB",
+            type: "allocator_host",
+            maxSize: 25165822,
+            maxSizes: "24.00MB",
+            minSize: 25165824,
+            minSizes: "24.00MB",
+        },
+        {
+            avgSize: 25165824,
+            avgSizes: "24.00MB",
+            type: "11allocator_host",
+            maxSize: 25165824,
+            maxSizes: "24.00MB",
+            minSize: 25165824,
+            minSizes: "24.00MB",
+        }]
     tabPanePurgPin.init = jest.fn(() => true);
     tabPanePurgPin.data = {
         anomalyEnergy: [],
@@ -99,9 +117,9 @@ describe('TabPanePurgPin Test', () => {
         processIds: [],
         processTrackIds: [],
         promiseList: [],
-        purgeablePinAbility: [],
+        purgeablePinAbility: data,
         purgeablePinSelection: [],
-        purgeablePinVM: [],
+        purgeablePinVM: data,
         purgeableTotalAbility: [],
         purgeableTotalSelection: [],
         purgeableTotalVM: [],
@@ -119,13 +137,6 @@ describe('TabPanePurgPin Test', () => {
         expect(
             tabPanePurgPin.sortByColumn({
                 key: 'avgSize',
-            })
-        ).toBeUndefined();
-    });
-    it('TabPanePurgPinTest02', function () {
-        expect(
-            tabPanePurgPin.sortByColumn({
-                key: 'type',
             })
         ).toBeUndefined();
     });

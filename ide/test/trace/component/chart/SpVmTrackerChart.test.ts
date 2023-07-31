@@ -23,8 +23,8 @@ jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => 
     return {};
 });
 
-window.ResizeObserver =
-    window.ResizeObserver ||
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
         observe: jest.fn(),
@@ -105,12 +105,27 @@ describe('SpVmTrackerChart Test', () => {
     gpuWindowType.mockResolvedValue(windowsType);
     let manager = new SpChartManager();
     let spVmTrackerChart = new VmTrackerChart(manager);
+    let memoryData = [{
+        startNs:0,
+        endNs: 0,
+        dur:0,
+        name: '',
+        textWidth: 0,
+        value: 0,
+        type: '',
+    }]
     it('SpVmTrackerChart01', function () {
         spVmTrackerChart.initVmTrackerFolder();
         expect(spVmTrackerChart).toBeDefined();
     });
     it('SpVmTrackerChart02', function () {
         expect(spVmTrackerChart.getSmapsKeyName('USS')).toBeDefined();
+    });
+    it('SpVmTrackerChart07', function () {
+        expect(spVmTrackerChart.getSmapsKeyName('RSS')).toBeDefined();
+    });
+    it('SpVmTrackerChart08', function () {
+        expect(spVmTrackerChart.getSmapsKeyName('')).toBeDefined();
     });
     it('SpVmTrackerChart03', function () {
         expect(spVmTrackerChart.initTraceRow('dirty','smaps','VmTracker')).toBeDefined();
@@ -123,5 +138,32 @@ describe('SpVmTrackerChart Test', () => {
     });
     it('SpVmTrackerChart06', function () {
         expect(spVmTrackerChart.showTip).toBeDefined();
+    });
+    it('SpVmTrackerChart09', function () {
+        expect(spVmTrackerChart.initGpuFolder()).toBeDefined();
+    });
+    it('SpVmTrackerChart09', function () {
+        expect(spVmTrackerChart.initSMapsFolder()).toBeDefined();
+    });
+    it('SpVmTrackerChart10', function () {
+        expect(spVmTrackerChart.initVmTrackerFolder()).toBeDefined();
+    });
+    it('SpVmTrackerChart11', function () {
+        expect(spVmTrackerChart.initDmaRow()).toBeDefined();
+    });
+    it('SpVmTrackerChart12', function () {
+        expect(spVmTrackerChart.initSmapsRows('Swapped')).toBeDefined();
+    });
+    it('SpVmTrackerChart13', function () {
+        expect(spVmTrackerChart.initShmRows()).toBeDefined();
+    });
+    it('SpVmTrackerChart14', function () {
+        expect(spVmTrackerChart.initGpuMemoryRow(memoryData)).toBeDefined();
+    });
+    it('SpVmTrackerChart15', function () {
+        expect(spVmTrackerChart.addGpuGLRow(memoryData)).toBeDefined();
+    });
+    it('SpVmTrackerChart16', function () {
+        expect(spVmTrackerChart.addGpuTotalRow()).toBeDefined();
     });
 });

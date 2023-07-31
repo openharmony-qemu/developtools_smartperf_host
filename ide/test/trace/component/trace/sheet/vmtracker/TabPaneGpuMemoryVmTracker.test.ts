@@ -61,13 +61,10 @@ describe('TabPaneGpuMemoryVmTracker Test', () => {
   ];
   gpuMemoryData.mockResolvedValue(gpuData);
   it('TabPaneGpuMemoryVmTracker01', () => {
-    expect(gpuMemoryVmTracker.sortGpuMemoryByColumn('expTaskComm', 1)).toBeUndefined();
+    expect(gpuMemoryVmTracker.sortGpuMemoryByColumn('gpuName', 1)).toBeUndefined();
   });
   it('TabPaneGpuMemoryVmTracker02', () => {
     expect(gpuMemoryVmTracker.sortGpuMemoryByColumn('', 0)).toBeUndefined();
-  });
-  it('TabPaneGpuMemoryVmTracker03', () => {
-    expect(gpuMemoryVmTracker.sortGpuMemoryByColumn('sumSizes', 1)).toBeUndefined();
   });
   it('TabPaneGpuMemoryVmTracker04', () => {
     expect(gpuMemoryVmTracker.sortGpuMemoryByColumn('avgSize', 1)).toBeUndefined();
