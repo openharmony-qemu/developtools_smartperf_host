@@ -101,6 +101,7 @@ import { TabPaneGpuMemoryVmTracker } from '../sheet/vmtracker/TabPaneGpuMemoryVm
 import { TabPaneGpuMemorySelectAbility } from '../sheet/ability/TabPaneGpuMemorySelectAbility.js';
 import { TabPaneGpuMemorySelectVmTracker } from '../sheet/vmtracker/TabPaneGpuMemorySelectVmTracker.js';
 import { TabPaneDmaSelectVmTracker } from '../sheet/vmtracker/TabPaneDmaSelectVmTracker.js';
+import { TabpanePerfBottomUp } from '../sheet/hiperf/TabPerfBottomUp.js';
 
 export let tabConfig: any = {
   'tabpane-current': {
@@ -235,6 +236,11 @@ export let tabConfig: any = {
   'box-perf-analysis': {
     title: 'Analysis',
     type: TabPanePerfAnalysis,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-bottom-up': {
+    title: 'Bottom Up',
+    type: TabpanePerfBottomUp,
     require: (param: SelectionParam) => param.perfSampleIds.length > 0,
   },
   'box-perf-profile': {
