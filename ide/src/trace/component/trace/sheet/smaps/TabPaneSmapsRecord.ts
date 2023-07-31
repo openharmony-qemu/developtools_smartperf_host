@@ -30,6 +30,7 @@ export class TabPaneSmapsRecord extends BaseElement {
   private isClick = false;
   private tabTitle: HTMLDivElement | undefined | null;
   set data(valSmapsRecord: SelectionParam) {
+    this.parentElement!.style.overflow = 'unset';
     this.isClick = valSmapsRecord.smapsType.length === 0;
     this.init();
     this.tblSmapsRecord!.loading = true;

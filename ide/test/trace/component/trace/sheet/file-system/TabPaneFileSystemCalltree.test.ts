@@ -22,6 +22,13 @@ import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/shee
 import { FrameChart } from '../../../../../../dist/trace/component/chart/FrameChart.js';
 // @ts-ignore
 import { NativeHookStatisticsTableData } from '../../../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js';
+
+jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+  return {};
+});
+jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+  return {};
+});
 jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js', () => {
   return {
     cpuCount: 1,

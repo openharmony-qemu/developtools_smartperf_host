@@ -314,6 +314,8 @@ describe('spApplication Test', () => {
         
         :host([chart_filter]) .chart-filter {
             display: grid;
+            grid-template-rows: min-content min-content min-content max-content auto;
+            overflow-y: clip;
             height: 99%;
             visibility: visible;
             position: absolute;

@@ -62,7 +62,7 @@ describe('TabPaneSmapsRecord Test', () => {
       swap_pss: 2,
     },
   ]);
-  //
+
   let tabPaneSmapsRecord = new TabPaneSmapsRecord();
   tabPaneSmapsRecord.init = jest.fn(() => true);
   let smaps = new Smaps();
@@ -104,7 +104,6 @@ describe('TabPaneSmapsRecord Test', () => {
       })
     ).toBeUndefined();
   });
-
   it('tabPaneSmapsRecord02', () => {
     expect(tabPaneSmapsRecord.initElements()).toBeUndefined();
   });

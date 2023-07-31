@@ -105,7 +105,12 @@ describe('TabPaneGpuMemoryAbility Test', () => {
         staticInit:false,
         statisticsSelectData:undefined,
     };
-
+    let val = [
+        {
+            leftNs: 0,
+            rightNs: 1000,
+        }
+    ];
     it('TabPaneGpuMemoryAbilityTest01', function () {
         expect(tabPaneGpuMemoryAbility.sortGpuMemoryByColumn('process',1)).toBeUndefined();
     });
@@ -126,5 +131,11 @@ describe('TabPaneGpuMemoryAbility Test', () => {
     });
     it('TabPaneGpuMemoryAbilityTest06', function () {
         expect(tabPaneGpuMemoryAbility.sortGpuMemoryByColumn('maxSize',1)).toBeUndefined();
+    });
+    it('TabPaneGpuMemoryAbilityTest07', function () {
+        expect(tabPaneGpuMemoryAbility.queryDataByDB(val)).toBeUndefined();
+    });
+    it('TabPaneGpuMemoryAbilityTest08', function () {
+        expect(tabPaneGpuMemoryAbility.sortGpuMemoryByColumn('',0)).toBeUndefined();
     });
 })

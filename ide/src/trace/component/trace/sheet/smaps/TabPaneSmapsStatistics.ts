@@ -38,6 +38,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
   private totalTree: Array<any> = [];
   private tabTitle: HTMLDivElement | undefined | null;
   set data(valSmapsStatistics: SelectionParam) {
+    this.parentElement!.style.overflow = 'unset';
     this.currentSelection = valSmapsStatistics;
     this.isClick = valSmapsStatistics.smapsType.length === 0;
     this.init();

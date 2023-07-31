@@ -77,6 +77,7 @@ export class LitCheckBox extends BaseElement {
             cursor:pointer;
             display:flex;
             align-items:center;
+            gap: 12px;
         }
         .chekebox{
             position:relative;

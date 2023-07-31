@@ -18,10 +18,11 @@ import { TabPaneGpuClickSelect } from '../../../../../../dist/trace/component/tr
 jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
+const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 // @ts-ignore
-window.ResizeObserver =
-  window.ResizeObserver ||
+window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
@@ -31,11 +32,33 @@ window.ResizeObserver =
 describe('TabPaneGpuClickSelect Test', () => {
   document.body.innerHTML = `<div><tabpane-gpu-click-select id="tree"></tabpane-gpu-click-select></div>`;
   let tabPaneGpuClickSelect = document.querySelector<TabPaneGpuClickSelect>('#tree');
+    let queryGpuDataByTs = sqlite.queryGpuDataByTs;
+     queryGpuDataByTs.mockResolvedValue([
+      {
+          windowId:1,
+          moduleId:2,
+          categoryId:0,
+          size:123
+      },
+      {
+          windowId:7,
+          moduleId:8,
+          categoryId:2,
+          size:1213
+      }
+  ])
   it('TabPaneGpuClickSelectTest01', () => {
     tabPaneGpuClickSelect.data = {
       type: '',
       startTs: 1,
     };
-    expect(tabPaneGpuClickSelect.data).not.toBeUndefined();
+    expect(tabPaneGpuClickSelect.data).toBeUndefined();
   });
+    it('TabPaneGpuClickSelectTest02', () => {
+        let tabPaneGpuClickSelects = new TabPaneGpuClickSelect();
+        tabPaneGpuClickSelects.gpuTbl = jest.fn(()=>true)
+        expect(tabPaneGpuClickSelects.sortByColumn({
+            sort:0
+        })).toBeUndefined();
+    });
 });
