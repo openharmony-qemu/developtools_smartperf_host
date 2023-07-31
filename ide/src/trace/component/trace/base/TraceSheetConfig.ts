@@ -253,6 +253,7 @@ export let tabConfig: any = {
     type: TabPanePerfSample,
     require: (param: SelectionParam) => param.perfSampleIds.length > 0,
   },
+
   'box-live-processes-child': {
     title: 'Live Processes',
     type: TabPaneLiveProcesses,
