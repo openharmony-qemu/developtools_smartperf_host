@@ -14,8 +14,6 @@
  */
 
 #include "animation_filter.h"
-#include <optional>
-#include <regex>
 #include "string_help.h"
 #include "string_to_numerical.h"
 
@@ -88,8 +86,6 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t cal
         if (depth >= DYNAMIC_STACK_DEPTH_MIN && parentId.has_value()) {
             const std::string& curStackName =
                 traceDataCache_->GetDataFromDict(callStackSlice->NamesData()[callStackRow]);
-            const std::string& parentStackName =
-                traceDataCache_->GetDataFromDict(callStackSlice->NamesData()[parentId.value()]);
             // get name 'xxx' from [xxx], eg:H:RSUniRender::Process:[xxx]
             auto nameSize = point.funcPrefix_.size() - rsUniProcessCmd_.size() - 1;
             if (nameSize <= 0) {
@@ -100,15 +96,6 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t cal
                 auto dynamicFramRow = traceDataCache_->GetDynamicFrame()->AppendDynamicFrame(nameIndex);
                 callStackRowMap_.emplace(callStackRow, dynamicFramRow);
                 return true;
-            } else if (StartWith(parentStackName, leashWindowCmd_)) {
-                auto iter = callStackRowMap_.find(parentId.value());
-                if (iter != callStackRowMap_.end()) {
-                    auto dynamicFramRow = iter->second;
-                    traceDataCache_->GetDynamicFrame()->UpdateNameIndex(dynamicFramRow, nameIndex);
-                    return true;
-                } else {
-                    TS_LOGE("Can't find the dynamicFramRow from callStackRowMap_");
-                }
             }
         }
     }

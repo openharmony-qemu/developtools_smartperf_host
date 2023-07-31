@@ -40,7 +40,7 @@ uint32_t TaskPoolFilter::GetIpId(uint32_t index)
     return thread->internalPid_;
 }
 
-uint32_t TaskPoolFilter::CheckTheSameTask(int32_t executeId, uint32_t index)
+uint32_t TaskPoolFilter::CheckTheSameTask(uint32_t executeId, uint32_t index)
 {
     return IpidExecuteMap_.Find(GetIpId(index), executeId);
 }
@@ -62,10 +62,10 @@ void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,
     }
 }
 
-bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, int32_t index)
+bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, uint32_t index)
 {
     std::string targetStr = "H:Task ";
-    if (!taskPoolStr.compare(0, targetStr.length(), targetStr)) {
+    if (StartWith(taskPoolStr, targetStr)) {
         std::unordered_map<std::string, std::string> args;
         std::string allocationStr = "H:Task Allocation: ";
         if (StartWith(taskPoolStr, allocationStr)) {
@@ -86,64 +86,76 @@ bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, int32_t index
             return UpdateReturnData(args, index);
         }
     }
+    std::string timeoutStr = "H:Thread Timeout Exit";
+    if (StartWith(taskPoolStr, timeoutStr)) {
+        return AppendTimeoutRow(index);
+    }
     return false;
 }
 
-bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std::string>& args, int32_t index)
+bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;
     }
     auto allocItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
-    auto executeId = base::StrToInt<int32_t>(args.at(" executeId "));
+    auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
     auto priority = base::StrToInt<uint32_t>(args.at(" priority "));
     auto executeState = base::StrToInt<uint32_t>(args.at(" executeState "));
 
-    int32_t returnValue = CheckTheSameTask(executeId.value(), index);
+    uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {
-        int32_t taskIndex = traceDataCache_->GetTaskPoolData()->AppendAllocationTaskData(
+        uint32_t taskIndex = traceDataCache_->GetTaskPoolData()->AppendAllocationTaskData(
             index, allocItid, executeId.value(), priority.value(), executeState.value());
         IpidExecuteMap_.Insert(GetIpId(index), executeId.value(), taskIndex);
     } else {
-        traceDataCache_->GetTaskPoolData()->UpdateAllocationTaskData(returnValue, index, allocItid,
-                                                                     priority.value(), executeState.value());
+        traceDataCache_->GetTaskPoolData()->UpdateAllocationTaskData(returnValue, index, allocItid, priority.value(),
+                                                                     executeState.value());
     }
     return true;
 }
 
-bool TaskPoolFilter::UpdateExecuteData(const std::unordered_map<std::string, std::string>& args, int32_t index)
+bool TaskPoolFilter::UpdateExecuteData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;
     }
     auto executeItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
-    auto executeId = base::StrToInt<int32_t>(args.at(" executeId "));
+    auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
 
-    int32_t returnValue = CheckTheSameTask(executeId.value(), index);
+    uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {
-        int32_t taskIndex =
+        uint32_t taskIndex =
             traceDataCache_->GetTaskPoolData()->AppendExecuteTaskData(index, executeItid, executeId.value());
         IpidExecuteMap_.Insert(GetIpId(index), executeId.value(), taskIndex);
+        timeoutMap_.emplace(executeItid, taskIndex);
+        if (timeoutMap_.at(executeItid) < taskIndex) {
+            timeoutMap_.at(executeItid) = taskIndex;
+        }
     } else {
         traceDataCache_->GetTaskPoolData()->UpdateExecuteTaskData(returnValue, index, executeItid);
+        timeoutMap_.emplace(executeItid, returnValue);
+        if (timeoutMap_.at(executeItid) < returnValue) {
+            timeoutMap_.at(executeItid) = returnValue;
+        }
     }
     return true;
 }
 
-bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std::string>& args, int32_t index)
+bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;
     }
     auto returnItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
-    auto executeId = base::StrToInt<int32_t>(args.at(" executeId "));
+    auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
     auto returnStr = std::string_view(args.at(" performResult "));
-    int32_t returnState = returnStr.compare(" Successful") ? 0 : 1;
+    uint32_t returnState = returnStr.compare(" Successful") ? 0 : 1;
 
-    int32_t returnValue = CheckTheSameTask(executeId.value(), index);
+    uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {
-        int32_t taskIndex = traceDataCache_->GetTaskPoolData()->AppendReturnTaskData(index, returnItid,
-                                                                                     executeId.value(), returnState);
+        uint32_t taskIndex =
+            traceDataCache_->GetTaskPoolData()->AppendReturnTaskData(index, returnItid, executeId.value(), returnState);
         IpidExecuteMap_.Insert(GetIpId(index), executeId.value(), taskIndex);
     } else {
         traceDataCache_->GetTaskPoolData()->UpdateReturnTaskData(returnValue, index, returnItid, returnState);
@@ -151,5 +163,14 @@ bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std:
     return true;
 }
 
+bool TaskPoolFilter::AppendTimeoutRow(uint32_t index)
+{
+    if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
+        return false;
+    }
+    auto timeoutItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
+    traceDataCache_->GetTaskPoolData()->AppendTimeoutRow(timeoutMap_.at(timeoutItid), index);
+    return true;
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

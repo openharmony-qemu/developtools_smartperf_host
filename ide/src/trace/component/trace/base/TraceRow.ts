@@ -614,6 +614,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     });
     this.rowSettingTree!.onChange = (e: any) => {
+      // @ts-ignore
+      this.rowSettingPop!.visible = false;
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
   }

@@ -141,10 +141,7 @@ export class LitTreeNode extends BaseElement {
     }
     this.checkboxElement!.onchange = (e: any) => {
       e.stopPropagation();
-      this.checked = e.detail.checked;
-      this.data!.checked = e.detail.checked;
-      this.checkHandler();
-      this.dispatchEvent(new CustomEvent('change', {detail: e.detail.checked}))
+      this.onChange(e.detail.checked);
       return false;
     }
     //这里需要给checkbox 添加onclick时间 并停止冒泡，不然onchange事件会触发父节点中的 onclick事件
@@ -152,7 +149,16 @@ export class LitTreeNode extends BaseElement {
       e.stopPropagation();
     };
     this.itemElement!.onclick = (e) => {
+      e.stopPropagation();
+      this.onChange(!this.data?.checked);
     };
+  }
+
+  onChange(checked: boolean) {
+    this.checked = checked;
+    this.data!.checked = checked;
+    this.checkHandler();
+    this.dispatchEvent(new CustomEvent('change', {detail: checked}));
   }
 
   initHtml(): string {
