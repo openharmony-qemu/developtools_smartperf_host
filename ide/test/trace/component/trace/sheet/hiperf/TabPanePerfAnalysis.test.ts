@@ -27,6 +27,8 @@ window.ResizeObserver = window.ResizeObserver ||
         unobserve: jest.fn(),
     }));
 
+jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+
 Object.defineProperty(global.self, 'crypto', {
     value: {
         getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),

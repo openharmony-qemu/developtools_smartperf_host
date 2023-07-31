@@ -19,8 +19,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "../../third_party/protogen/types/plugins/memory_data/memory_plugin_result.pb.h"
 #include "htrace_mem_parser.h"
-#include "memory_plugin_result.pb.h"
 #include "memory_plugin_result.pbreader.h"
 #include "parser/common_types.h"
 #include "trace_streamer_selector.h"
@@ -46,7 +46,7 @@ public:
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
-    const std::string dbPath_ = "../../../data/resource/out.db";
+    const std::string dbPath_ = "../../test/resource/out.db";
 };
 
 /**
@@ -138,10 +138,10 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
     EXPECT_TRUE(1 == eventCount);
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessData(1).pid_ == pid);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_MAX * 1);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstProcessMeasureData().Size(), MEM_PURG_SUM * 1);
     EXPECT_EQ(stream_.traceDataCache_->GetConstProcessData().size(), 2);
 
-    for (auto i = 0; i < MEM_MAX; i++) {
+    for (auto i = 0; i < MEM_PURG_SUM; i++) {
         if (stream_.traceDataCache_->GetConstProcessMeasureData().filterIdDeque_[i] ==
             memParser->memNameDictMap_.at(MEM_VM_SIZE)) {
             EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().valuesDeque_[i] == memKb);
@@ -262,7 +262,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
 
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_MAX * 2);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_PURG_SUM * 2);
 }
 
 /**
@@ -298,6 +298,183 @@ HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(0 == eventCount);
+}
+
+/**
+ * @tc.name: ParseAshmemInfo
+ * @tc.desc: Parse Ashmem Info
+ * @tc.type: FUNC
+ */
+HWTEST_F(HtraceMemParserTest, ParseAshmemInfo, TestSize.Level1)
+{
+    TS_LOGI("test16-6");
+    HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+
+    MemoryData tracePacket;
+    AshmemInfo* ashmemInfo = tracePacket.add_ashmeminfo();
+    EXPECT_TRUE(ashmemInfo != nullptr);
+    int32_t size = tracePacket.ashmeminfo_size();
+    EXPECT_TRUE(size == 1);
+
+    int32_t id = 0;
+    int64_t time = 1616439852302;
+    int32_t pid = 6;
+    int32_t adj = 6;
+    int32_t fd = 6;
+    int64_t purged = 6;
+    uint64_t setSize = 6;
+    int64_t refCount = 6;
+    ashmemInfo->set_id(id);
+    ashmemInfo->set_time(time);
+    ashmemInfo->set_pid(pid);
+    ashmemInfo->set_adj(adj);
+    ashmemInfo->set_fd(fd);
+    ashmemInfo->set_purged(purged);
+    ashmemInfo->set_size(setSize);
+    ashmemInfo->set_ref_count(refCount);
+
+    HtraceDataSegment dataSeg;
+    dataSeg.dataType = DATA_SOURCE_TYPE_MEM;
+    dataSeg.clockId = TS_CLOCK_REALTIME;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+    dataSeg.timeStamp = 1616439852302;
+
+    std::string memStrMsg = "";
+    tracePacket.SerializeToString(&memStrMsg);
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    dataSeg.protoData = memBytesView;
+
+    memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
+    memParser->Finish();
+    stream_.traceDataCache_->ExportDatabase(dbPath_);
+
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
+    tracePacket.clear_processesinfo();
+    delete memParser;
+    EXPECT_EQ(stream_.traceDataCache_->GetConstAshMemData().ids_[0], id);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstAshMemData().adjs_[0], adj);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstAshMemData().times_[0], time);
+}
+
+/**
+ * @tc.name: ParseDmaMemInfo
+ * @tc.desc: Parse DmaMem Info
+ * @tc.type: FUNC
+ */
+HWTEST_F(HtraceMemParserTest, ParseDmaMemInfo, TestSize.Level1)
+{
+    TS_LOGI("test16-7");
+    HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+
+    MemoryData tracePacket;
+    DmaInfo* dmaInfo = tracePacket.add_dmainfo();
+    EXPECT_TRUE(dmaInfo != nullptr);
+    int32_t size = tracePacket.dmainfo_size();
+    EXPECT_TRUE(size == 1);
+
+    uint64_t setSize = 7;
+    int32_t pid = 7;
+    int32_t ino = 7;
+    int32_t fd = 7;
+    int64_t expPid = 7;
+    dmaInfo->set_size(setSize);
+    dmaInfo->set_pid(pid);
+    dmaInfo->set_ino(ino);
+    dmaInfo->set_fd(fd);
+    dmaInfo->set_exp_pid(expPid);
+
+    HtraceDataSegment dataSeg;
+    dataSeg.dataType = DATA_SOURCE_TYPE_MEM;
+    dataSeg.clockId = TS_CLOCK_REALTIME;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+    dataSeg.timeStamp = 1616439852302;
+
+    std::string memStrMsg = "";
+    tracePacket.SerializeToString(&memStrMsg);
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    dataSeg.protoData = memBytesView;
+
+    memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
+    memParser->Finish();
+    stream_.traceDataCache_->ExportDatabase(dbPath_);
+
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
+    tracePacket.clear_processesinfo();
+    delete memParser;
+    EXPECT_EQ(stream_.traceDataCache_->GetConstDmaMemData().inos_[0], ino);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstDmaMemData().fds_[0], fd);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstDmaMemData().expPids_[0], expPid);
+}
+
+/**
+ * @tc.name: ParseGpuProcessMemInfo
+ * @tc.desc: Parse GpuProcessMem Info
+ * @tc.type: FUNC
+ */
+HWTEST_F(HtraceMemParserTest, ParseGpuProcessMemInfo, TestSize.Level1)
+{
+    TS_LOGI("test16-8");
+    HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+
+    MemoryData tracePacket;
+    GpuMemoryInfo* gpuMemoryInfo = tracePacket.add_gpumemoryinfo();
+
+    int32_t allGpuSize = 0;
+    gpuMemoryInfo->set_all_gpu_size(allGpuSize);
+
+    HtraceDataSegment dataSeg;
+    dataSeg.dataType = DATA_SOURCE_TYPE_MEM;
+    dataSeg.clockId = TS_CLOCK_REALTIME;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+    dataSeg.timeStamp = 1616439852302;
+
+    std::string memStrMsg = "";
+    tracePacket.SerializeToString(&memStrMsg);
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    dataSeg.protoData = memBytesView;
+
+    memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
+    memParser->Finish();
+    stream_.traceDataCache_->ExportDatabase(dbPath_);
+
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
+    tracePacket.clear_processesinfo();
+    delete memParser;
+    EXPECT_EQ(stream_.traceDataCache_->GetConstGpuProcessMemData().AllGpuSizes()[0], allGpuSize);
+}
+
+/**
+ * @tc.name: ParseGpuWindowMemInfo
+ * @tc.desc: Parse GpuWindowMem Info
+ * @tc.type: FUNC
+ */
+HWTEST_F(HtraceMemParserTest, ParseGpuWindowMemInfo, TestSize.Level1)
+{
+    TS_LOGI("test16-9");
+    HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+
+    MemoryData tracePacket;
+    GpuDumpInfo* gpuDumpInfo = tracePacket.add_gpudumpinfo();
+
+    HtraceDataSegment dataSeg;
+    dataSeg.dataType = DATA_SOURCE_TYPE_MEM;
+    dataSeg.clockId = TS_CLOCK_REALTIME;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+    dataSeg.timeStamp = 1616439852302;
+
+    std::string memStrMsg = "";
+    tracePacket.SerializeToString(&memStrMsg);
+    ProtoReader::BytesView memBytesView(reinterpret_cast<const uint8_t*>(memStrMsg.data()), memStrMsg.size());
+    dataSeg.protoData = memBytesView;
+
+    memParser->Parse(dataSeg, dataSeg.timeStamp, dataSeg.clockId);
+    memParser->Finish();
+    stream_.traceDataCache_->ExportDatabase(dbPath_);
+
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
+    tracePacket.clear_processesinfo();
+    delete memParser;
+    EXPECT_EQ(stream_.traceDataCache_->GetConstGpuWindowMemData().Size(), 0);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -54,6 +54,15 @@ import { JsCpuProfilerChartFrame } from '../../../bean/JsStruct.js';
 import { TabPaneJsCpuTopDown } from '../sheet/ark-ts/TabPaneJsCpuCallTree.js';
 import { TabPaneComparison } from '../sheet/ark-ts/TabPaneComparison.js';
 import { TabPaneSummary } from '../sheet/ark-ts/TabPaneSummary.js';
+import { TabPaneGpuClickSelect } from '../sheet/gpu/TabPaneGpuClickSelect.js';
+import { TabPanePurgTotalSelection } from '../sheet/ability/TabPanePurgTotalSelection.js';
+import { TabPanePurgPinSelection } from '../sheet/ability/TabPanePurgPinSelection.js';
+import { TabPaneVmTrackerShmSelection } from '../sheet/vmtracker/TabPaneVmTrackerShmSelection.js';
+import { TabPaneSmapsStatistics } from '../sheet/smaps/TabPaneSmapsStatistics.js';
+import { SnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerSnapshot.js';
+import { TabPaneDmaSelectAbility } from '../sheet/ability/TabPaneDmaSelectAbility.js';
+import { TabPaneGpuMemorySelectAbility } from '../sheet/ability/TabPaneGpuMemorySelectAbility.js';
+import { TabPaneDmaSelectVmTracker } from '../sheet/vmtracker/TabPaneDmaSelectVmTracker.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -363,9 +372,17 @@ export class TraceSheet extends BaseElement {
   displayThreadData = (
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
-    scrollWakeUp: (d: any) => void | undefined
-  ): void =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(data, scrollCallback, scrollWakeUp);
+    scrollWakeUp: (d: any) => void | undefined,
+    scrollPreviousData: (d: ThreadStruct) => void,
+    scrollNextData: (d: ThreadStruct) => void
+  ) =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
+      data,
+      scrollCallback,
+      scrollWakeUp,
+      scrollPreviousData,
+      scrollNextData
+    );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayClockData = (data: ClockStruct): void =>
@@ -388,6 +405,13 @@ export class TraceSheet extends BaseElement {
     this.showUploadSoBt(val);
   };
 
+  displayGpuSelectedData = (type: string, startTs: number) => {
+    this.displayTab<TabPaneGpuClickSelect>('gpu-click-select').data = {
+      type: type,
+      startTs: startTs,
+    };
+  };
+
   displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback);
   displayCpuData = (
@@ -399,7 +423,21 @@ export class TraceSheet extends BaseElement {
     data: JankStruct,
     callback: ((data: Array<any>) => void) | undefined = undefined,
     scrollCallback: ((e: JankStruct) => void) | undefined
-  ): void => this.displayTab<TabPaneCurrentSelection>('current-selection').setJankData(data, callback, scrollCallback);
+  ) => this.displayTab<TabPaneCurrentSelection>('current-selection').setJankData(data, callback, scrollCallback);
+  displayShmData = (data: SnapshotStruct, dataList: Array<SnapshotStruct>) => {
+    this.displayTab<TabPaneVmTrackerShmSelection>(
+      'box-vmtracker-shm-selection',
+      'box-vmtracker-shm-comparison'
+    ).setShmData(data, dataList);
+  };
+  displaySmapsData = (data: SnapshotStruct, dataList: Array<SnapshotStruct>) => {
+    let val = new SelectionParam();
+    val.smapsType = [];
+    val.rightNs = data.startNs;
+    this.selection = val;
+    val.smapsType = [];
+    this.displayTab<TabPaneSmapsStatistics>('box-smaps-statistics', 'box-smaps-record').data = val;
+  };
   displaySnapshotData = (
     data: HeapSnapshotStruct,
     dataList: Array<HeapSnapshotStruct>,
@@ -447,6 +485,34 @@ export class TraceSheet extends BaseElement {
       'box-js-Profiler-top-down',
       'box-js-Profiler-bottom-up'
     ).data = data;
+  };
+  displayPurgTotalAbilityData = (data: SnapshotStruct) => {
+    data.type = 'ability';
+    this.displayTab<TabPanePurgTotalSelection>('box-purgeable-total-selection').data = data;
+  };
+  displayPurgPinAbilityData = (data: SnapshotStruct) => {
+    data.type = 'ability';
+    this.displayTab<TabPanePurgPinSelection>('box-purgeable-pin-selection').data = data;
+  };
+  displayPurgTotalVMData = (data: SnapshotStruct) => {
+    data.type = 'VM';
+    this.displayTab<TabPanePurgTotalSelection>('box-purgeable-total-selection').data = data;
+  };
+  displayPurgPinVMData = (data: SnapshotStruct) => {
+    data.type = 'VM';
+    this.displayTab<TabPanePurgPinSelection>('box-purgeable-pin-selection').data = data;
+  };
+  displayDmaAbility = (data: number) => {
+    this.displayTab<TabPaneDmaSelectAbility>('box-dma-selection-ability').queryDmaClickDataByDB(data);
+  };
+  displayDmaVmTracker = (data: number) => {
+    this.displayTab<TabPaneDmaSelectVmTracker>('box-dma-selection-vmTracker').data = data;
+  };
+  displayGpuMemoryAbility = (data: number) => {
+    this.displayTab<TabPaneGpuMemorySelectAbility>('box-gpu-memory-selection-ability').data = data;
+  };
+  displayGpuMemoryVmTracker = (data: number) => {
+    this.displayTab<TabPaneDmaSelectVmTracker>('box-gpu-memory-selection-vmTracker').data = data;
   };
 
   rangeSelect(selection: SelectionParam, restore = false): boolean {

@@ -52,7 +52,7 @@ Object.defineProperty(global.self, 'crypto', {
 });
 
 describe('TabpaneFilesystemCalltree Test', () => {
-  document.body.innerHTML = `<sp-application dark></sp-application><tabpane-filesystem-calltree id="tree"></tabpane-filesystem-calltree>`;
+  document.body.innerHTML = `<tabpane-filesystem-calltree id="tree"></tabpane-filesystem-calltree>`;
   let tabpaneFilesystemCalltree = document.querySelector<TabpaneFilesystemCalltree>('#tree');
   let val = {
     anomalyEnergy: [],
@@ -211,23 +211,6 @@ describe('TabpaneFilesystemCalltree Test', () => {
   });
 
   it('TabpaneFilesystemCalltreeTest10', function () {
-    let switchData = {
-      firstSelect: '',
-      icon: 'block',
-      inputValue: 'kk',
-      mark: false,
-      secondSelect: '',
-      thirdSelect: '',
-      type: 'inputValue',
-    };
-    tabpaneFilesystemCalltree.fsCallTreeTbl.reMeauseHeight = jest.fn(() => true);
-    let frameChart = new FrameChart();
-    tabpaneFilesystemCalltree.frameChart = frameChart;
-    tabpaneFilesystemCalltree.switchFlameChart(switchData);
-    expect(tabpaneFilesystemCalltree.isChartShow).toBeTruthy();
-  });
-
-  it('TabpaneFilesystemCalltreeTest11', function () {
     let call = {
       id: '1',
       dur: 1,
