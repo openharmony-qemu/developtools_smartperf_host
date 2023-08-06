@@ -2481,7 +2481,7 @@ public:
     const std::deque<uint32_t>& TimeoutRows() const;
     void Clear() override
     {
-        TaskPoolInfo::Clear();
+        CacheBase::Clear();
         allocationTaskRows_.clear();
         executeTaskRows_.clear();
         returnTaskRows_.clear();
@@ -2528,9 +2528,9 @@ private:
 };
 class DeviceInfo {
 public:
-    const uint32_t PhysicalWidth() const;
-    const uint32_t PhysicalHeight() const;
-    const uint32_t PhysicalFrameRate() const;
+    uint32_t PhysicalWidth() const;
+    uint32_t PhysicalHeight() const;
+    uint32_t PhysicalFrameRate() const;
     void UpdateWidthAndHeight(const std::smatch& matcheLine);
     void UpdateFrameRate(uint32_t frameRate);
 

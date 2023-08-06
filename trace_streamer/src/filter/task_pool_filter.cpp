@@ -19,7 +19,6 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-const uint32_t EXECUTE_DATA_FLAG = 2;
 
 TaskPoolFilter::TaskPoolFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
     : FilterBase(dataCache, filter), IpidExecuteMap_(INVALID_INT32)
@@ -64,30 +63,25 @@ void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,
 
 bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, uint32_t index)
 {
-    std::string targetStr = "H:Task ";
-    if (StartWith(taskPoolStr, targetStr)) {
+    if (StartWith(taskPoolStr, targetStr_)) {
         std::unordered_map<std::string, std::string> args;
-        std::string allocationStr = "H:Task Allocation: ";
-        if (StartWith(taskPoolStr, allocationStr)) {
-            allocationStr = taskPoolStr.substr(allocationStr.length(), taskPoolStr.length());
-            TaskPoolFieldSegmentation(allocationStr, args);
+        if (StartWith(taskPoolStr, allocationStr_)) {
+            const auto& infoStr = taskPoolStr.substr(allocationStr_.length(), taskPoolStr.length());
+            TaskPoolFieldSegmentation(infoStr, args);
             return UpdateAssignData(args, index);
         }
-        std::string executeStr = "H:Task Perform: ";
-        if (StartWith(taskPoolStr, executeStr)) {
-            executeStr = taskPoolStr.substr(executeStr.length(), taskPoolStr.length());
-            TaskPoolFieldSegmentation(executeStr, args);
+        if (StartWith(taskPoolStr, executeStr_)) {
+            const auto& infoStr = taskPoolStr.substr(executeStr_.length(), taskPoolStr.length());
+            TaskPoolFieldSegmentation(infoStr, args);
             return UpdateExecuteData(args, index);
         }
-        std::string returnStr = "H:Task PerformTask End: ";
-        if (StartWith(taskPoolStr, returnStr)) {
-            returnStr = taskPoolStr.substr(returnStr.length(), taskPoolStr.length());
-            TaskPoolFieldSegmentation(returnStr, args);
+        if (StartWith(taskPoolStr, returnStr_)) {
+            const auto& infoStr = taskPoolStr.substr(returnStr_.length(), taskPoolStr.length());
+            TaskPoolFieldSegmentation(infoStr, args);
             return UpdateReturnData(args, index);
         }
     }
-    std::string timeoutStr = "H:Thread Timeout Exit";
-    if (StartWith(taskPoolStr, timeoutStr)) {
+    if (StartWith(taskPoolStr, timeoutStr_)) {
         return AppendTimeoutRow(index);
     }
     return false;
@@ -149,8 +143,8 @@ bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std:
     }
     auto returnItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
     auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
-    auto returnStr = std::string_view(args.at(" performResult "));
-    uint32_t returnState = returnStr.compare(" Successful") ? 0 : 1;
+    auto returnStr_ = std::string_view(args.at(" performResult "));
+    uint32_t returnState = returnStr_.compare(" Successful") ? 0 : 1;
 
     uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {

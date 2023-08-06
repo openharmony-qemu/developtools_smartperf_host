@@ -162,9 +162,9 @@ HWTEST_F(AnimationFilterTest, UpdateDeviceFps, TestSize.Level1)
     BytraceLine line;
 
     std::string validName{"H:GenerateVsyncCount:1"};
-    auto timeDiffFps60 = (1000 * ONE_MILLION_NANOSECONDS) / FPS_60;
+    auto timeDiffFps60 = BILLION_NANOSECONDS / FPS_60;
     line.ts = 59557002299000;
-    for (size_t i = 0; i < GENERATE_VSYNC_EVENT_MAX; i++) {
+    for (uint8_t i = 0; i < GENERATE_VSYNC_EVENT_MAX; i++) {
         point.name_ = validName;
         point.funcPrefixId_ = stream_.traceDataCache_->GetDataIndex(point.name_);
         line.ts += timeDiffFps60;
@@ -176,8 +176,8 @@ HWTEST_F(AnimationFilterTest, UpdateDeviceFps, TestSize.Level1)
 
     stream_.traceDataCache_->GetDeviceInfo()->Clear();
     stream_.streamFilters_->animationFilter_->Clear();
-    auto timeDiffFps90 = (1000 * ONE_MILLION_NANOSECONDS) / FPS_90;
-    for (size_t i = 0; i < GENERATE_VSYNC_EVENT_MAX; i++) {
+    auto timeDiffFps90 = BILLION_NANOSECONDS / FPS_90;
+    for (uint8_t i = 0; i < GENERATE_VSYNC_EVENT_MAX; i++) {
         point.name_ = validName;
         point.funcPrefixId_ = stream_.traceDataCache_->GetDataIndex(point.name_);
         line.ts += timeDiffFps90;
@@ -189,8 +189,8 @@ HWTEST_F(AnimationFilterTest, UpdateDeviceFps, TestSize.Level1)
 
     stream_.traceDataCache_->GetDeviceInfo()->Clear();
     stream_.streamFilters_->animationFilter_->Clear();
-    auto timeDiffFps120 = (1000 * ONE_MILLION_NANOSECONDS) / FPS_120;
-    for (size_t i = 0; i < GENERATE_VSYNC_EVENT_MAX; i++) {
+    auto timeDiffFps120 = BILLION_NANOSECONDS / FPS_120;
+    for (uint8_t i = 0; i < GENERATE_VSYNC_EVENT_MAX; i++) {
         point.name_ = validName;
         point.funcPrefixId_ = stream_.traceDataCache_->GetDataIndex(point.name_);
         line.ts += timeDiffFps120;
