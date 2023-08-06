@@ -17,6 +17,8 @@
 import { FrameChart } from '../../../../dist/trace/component/chart/FrameChart.js';
 // @ts-ignore
 import {TraceRow} from '../../../../dist/trace/component/trace/base/TraceRow.js';
+// @ts-ignore
+import {ChartMode} from "../../../../dist/trace/bean/FrameChartStruct.js";
 
 jest.mock('../../../../dist/trace/component/SpSystemTrace.js', () => {
     return {};
@@ -269,4 +271,22 @@ describe('FrameChart Test', () => {
   it('FrameChartTest41', function () {
     expect(frameChart.drawDataSet(node, true)).toBeUndefined();
   });
+  it('FrameChartTest42', function () {
+        let frameChart = new FrameChart();
+        frameChart._mode = ChartMode.Byte;
+        frameChart.drawScale = jest.fn(() => true);
+        expect(frameChart.calculateChartData()).not.toBeUndefined();
+    });
+  it('FrameChartTest44', function () {
+        let frameChart = new FrameChart();
+        frameChart._mode = ChartMode.Count;
+        frameChart.drawScale = jest.fn(() => true);
+        expect(frameChart.calculateChartData()).not.toBeUndefined();
+    });
+  it('FrameChartTest45', function () {
+        let frameChart = new FrameChart();
+        frameChart._mode = ChartMode.Duration;
+        frameChart.drawScale = jest.fn(() => true);
+        expect(frameChart.calculateChartData()).not.toBeUndefined();
+    });
 });

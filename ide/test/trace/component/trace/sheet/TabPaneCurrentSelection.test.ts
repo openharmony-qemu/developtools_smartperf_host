@@ -350,9 +350,6 @@ describe('TabPaneCurrentSelection Test', () => {
         expect(tabPaneCurrentSelection.transferString(str)).toBe('');
     });
 
-    it('TabPaneCurrentSelectionTest15', function () {
-        expect(tabPaneCurrentSelection.transferString('&amp;')).not.toBeUndefined();
-    });
 
     it('TabPaneCurrentSelectionTest16', function () {
         expect(tabPaneCurrentSelection.drawRight(null)).toBeUndefined();
@@ -419,9 +416,6 @@ describe('TabPaneCurrentSelection Test', () => {
         expect(tabPaneCurrentSelection.transferString(str)).toBe('');
     });
 
-    it('TabPaneCurrentSelectionTest15', function () {
-        expect(tabPaneCurrentSelection.transferString('&amp;')).not.toBeUndefined();
-    });
 
     it('TabPaneCurrentSelectionTest16', function () {
         expect(tabPaneCurrentSelection.drawRight(null)).toBeUndefined();
@@ -530,10 +524,6 @@ describe('TabPaneCurrentSelection Test', () => {
         expect(result).toBeUndefined();
     });
 
-    it('TabPaneCurrentSelectionTest15', function () {
-        let result = tabPaneCurrentSelection.setThreadData(threadData, undefined, 1);
-        expect(result).toBeUndefined();
-    });
 
     it('TabPaneCurrentSelectionTest16', function () {
         let result = tabPaneCurrentSelection.setClockData(clockData);
@@ -542,6 +532,23 @@ describe('TabPaneCurrentSelection Test', () => {
 
     it('TabPaneCurrentSelectionTest17', function () {
         let result = tabPaneCurrentSelection.setFunctionData(functionDataTest);
+        expect(result).toBeUndefined();
+    });
+    it('TabPaneCurrentSelectionTest18', function () {
+        let result = tabPaneCurrentSelection.setStartupData(irqData,1);
+        expect(result).toBeUndefined();
+    });
+    it('TabPaneCurrentSelectionTest19', function () {
+        let result = tabPaneCurrentSelection.setStaticInitData(irqData,1);
+        expect(result).toBeUndefined();
+    });
+    it('TabPaneCurrentSelectionTest20', function () {
+        let list: never[] = [];
+        let data =[{
+            jank_tag:1,
+            frame_type:'render_service',
+        }]
+        let result = tabPaneCurrentSelection.setJankType(data,list);
         expect(result).toBeUndefined();
     });
 });

@@ -39,7 +39,8 @@ const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 // @ts-ignore
-window.ResizeObserver =  window.ResizeObserver ||
+window.ResizeObserver =
+  window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
@@ -53,33 +54,33 @@ describe('TabPaneVmTrackerShmSelection Test', () => {
   queryVmTrackerShmSelectionData.mockResolvedValue([
     {
       startNs: 0,
-      ipid:1,
-      fd:123,
-      size:12,
+      ipid: 1,
+      fd: 123,
+      size: 12,
       adj: 3,
-      name:'NAME',
-      id:1,
-      time:12333,
-      purged:6,
-      count:3,
-      flag:0
-    }
-  ])
+      name: 'NAME',
+      id: 1,
+      time: 12333,
+      purged: 6,
+      count: 3,
+      flag: 0,
+    },
+  ]);
   let data = {
     startNs: 0,
     endNs: 0,
-    dur:0,
-    name:'',
+    dur: 0,
+    name: '',
     textWidth: 0,
     value: 0,
     type: '',
-  }
+  };
   let dataList = [
     {
       startNs: 0,
       endNs: 0,
-      dur:0,
-      name:'',
+      dur: 0,
+      name: '',
       textWidth: 0,
       value: 0,
       type: '',
@@ -87,13 +88,13 @@ describe('TabPaneVmTrackerShmSelection Test', () => {
     {
       startNs: 1,
       endNs: 2,
-      dur:1,
-      name:'a',
+      dur: 1,
+      name: 'a',
       textWidth: 0,
       value: 0,
       type: 'a',
-    }
-  ]
+    },
+  ];
   it('TabPaneVmTrackerShmSelection01', () => {
     expect(tabPaneVmTrackerShmSelection.sortByColumn('ts', 1)).toBeUndefined();
   });
@@ -134,7 +135,7 @@ describe('TabPaneVmTrackerShmSelection Test', () => {
     tabPaneVmTrackerShmSelection.init = jest.fn(() => true);
     tabPaneVmTrackerShmSelection.clear = jest.fn(() => true);
     tabPaneVmTrackerShmSelection.queryDataByDB = jest.fn(() => true);
-    expect(tabPaneVmTrackerShmSelection.setShmData(data,dataList)).toBeUndefined();
+    expect(tabPaneVmTrackerShmSelection.setShmData(data, dataList)).toBeUndefined();
   });
   it('TabPaneVmTrackerShmSelection14', () => {
     expect(tabPaneVmTrackerShmSelection.queryDataByDB(data)).toBe(true);

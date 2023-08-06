@@ -178,7 +178,57 @@ describe('ProcedureWorkerHiPerfReport Test', () => {
 
   it('ProcedureWorkerHiPerfReportTest06', function () {
     expect(HiPerfReportStruct.reportGroupBy10MS([{ ps: 1 }, { coX: '1' }], 10)).toEqual([
-      { dur: 10000000, height: NaN, startNS: NaN, sum:NaN},
+      { dur: 10000000, height: NaN, startNS: NaN, sum: NaN },
     ]);
+  });
+  it('ProcedureWorkerHiPerfProcessTest05', function () {
+    let hiperfReportRender = new HiperfReportRender();
+    let req = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 1,
+      endNS: 1,
+      totalNS: 1,
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      useCache: false,
+      range: {
+        refresh: '',
+      },
+      canvas: 'a',
+      context: {
+        font: '11px sans-serif',
+        fillStyle: '#ec407a',
+        globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+        fill: jest.fn(() => true),
+      },
+      lineColor: '',
+      isHover: '',
+      hoverX: 1,
+      params: '',
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 3,
+      id: 1,
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+      scale: 100_000_001,
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(hiperfReportRender.render(req, [], [], [])).toBeUndefined();
   });
 });

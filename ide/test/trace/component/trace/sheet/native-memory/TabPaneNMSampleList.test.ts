@@ -27,7 +27,7 @@ const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-  return {}
+  return {};
 });
 
 window.ResizeObserver =
@@ -94,7 +94,6 @@ describe('TabPaneNMSampleList Test', () => {
 
   MockNativeHookSnapshotTypes.mockResolvedValue([new NativeHookSampleQueryInfo()]);
 
-
   let samplerInfo = [
     {
       current: '',
@@ -129,7 +128,7 @@ describe('TabPaneNMSampleList Test', () => {
       eventId: -1,
       threadId: 0,
       threadName: '',
-    }
+    },
   ];
 
   tabPaneNMSampleList.data = dat;
@@ -284,114 +283,122 @@ describe('TabPaneNMSampleList Test', () => {
   });
 
   it('TabPaneNMSampleListTest13', function () {
-    TabPaneNMSampleList.samplerInfoSource = [{
-      current:  '',
-      currentSize:  0,
-      startTs:  0,
-      heapSize:  0,
-      snapshot:  '',
-      growth:  '',
-      total:  0,
-      totalGrowth:  '',
-      existing:  0,
-      children: samplerInfo,
-      tempList: samplerInfo,
-      timestamp:  '',
-      eventId:  -1,
-      threadId:  0,
-      threadName:  '',
-    }]
+    TabPaneNMSampleList.samplerInfoSource = [
+      {
+        current: '',
+        currentSize: 0,
+        startTs: 0,
+        heapSize: 0,
+        snapshot: '',
+        growth: '',
+        total: 0,
+        totalGrowth: '',
+        existing: 0,
+        children: samplerInfo,
+        tempList: samplerInfo,
+        timestamp: '',
+        eventId: -1,
+        threadId: 0,
+        threadName: '',
+      },
+    ];
     TabPaneNMSampleList.filterSelect = '0';
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
   it('TabPaneNMSampleListTest14', function () {
-    TabPaneNMSampleList.samplerInfoSource = [{
-      current:  '',
-      currentSize:  0,
-      startTs:  0,
-      heapSize:  0,
-      snapshot:  '',
-      growth:  '',
-      total:  0,
-      totalGrowth:  '',
-      existing:  0,
-      children: samplerInfo,
-      tempList: samplerInfo,
-      timestamp:  '',
-      eventId:  -1,
-      threadId:  0,
-      threadName:  '',
-    }]
+    TabPaneNMSampleList.samplerInfoSource = [
+      {
+        current: '',
+        currentSize: 0,
+        startTs: 0,
+        heapSize: 0,
+        snapshot: '',
+        growth: '',
+        total: 0,
+        totalGrowth: '',
+        existing: 0,
+        children: samplerInfo,
+        tempList: samplerInfo,
+        timestamp: '',
+        eventId: -1,
+        threadId: 0,
+        threadName: '',
+      },
+    ];
     TabPaneNMSampleList.filterSelect = '1';
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
   it('TabPaneNMSampleListTest15', function () {
-    TabPaneNMSampleList.samplerInfoSource = [{
-      current:  '',
-      currentSize:  0,
-      startTs:  0,
-      heapSize:  0,
-      snapshot:  '',
-      growth:  '',
-      total:  0,
-      totalGrowth:  '',
-      existing:  0,
-      children: [],
-      tempList: [],
-      timestamp:  '',
-      eventId:  -1,
-      threadId:  0,
-      threadName:  '',
-    }]
+    TabPaneNMSampleList.samplerInfoSource = [
+      {
+        current: '',
+        currentSize: 0,
+        startTs: 0,
+        heapSize: 0,
+        snapshot: '',
+        growth: '',
+        total: 0,
+        totalGrowth: '',
+        existing: 0,
+        children: [],
+        tempList: [],
+        timestamp: '',
+        eventId: -1,
+        threadId: 0,
+        threadName: '',
+      },
+    ];
     TabPaneNMSampleList.filterSelect = '1';
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
   it('TabPaneNMSampleListTest16', function () {
-    TabPaneNMSampleList.samplerInfoSource = [{
-      current:  '',
-      currentSize:  0,
-      startTs:  0,
-      heapSize:  0,
-      snapshot:  '',
-      growth:  '',
-      total:  0,
-      totalGrowth:  '',
-      existing:  0,
-      children: samplerInfo,
-      tempList: samplerInfo,
-      timestamp:  '',
-      eventId:  -1,
-      threadId:  0,
-      threadName:  '',
-    }]
+    TabPaneNMSampleList.samplerInfoSource = [
+      {
+        current: '',
+        currentSize: 0,
+        startTs: 0,
+        heapSize: 0,
+        snapshot: '',
+        growth: '',
+        total: 0,
+        totalGrowth: '',
+        existing: 0,
+        children: samplerInfo,
+        tempList: samplerInfo,
+        timestamp: '',
+        eventId: -1,
+        threadId: 0,
+        threadName: '',
+      },
+    ];
     TabPaneNMSampleList.filterSelect = '2';
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
   it('TabPaneNMSampleListTest17', function () {
-    TabPaneNMSampleList.samplerInfoSource = [{
-      current:  '',
-      currentSize:  0,
-      startTs:  0,
-      heapSize:  0,
-      snapshot:  '',
-      growth:  '',
-      total:  0,
-      totalGrowth:  '',
-      existing:  0,
-      children: [],
-      tempList: [],
-      timestamp:  '',
-      eventId:  -1,
-      threadId:  0,
-      threadName:  '',
-    }]
+    TabPaneNMSampleList.samplerInfoSource = [
+      {
+        current: '',
+        currentSize: 0,
+        startTs: 0,
+        heapSize: 0,
+        snapshot: '',
+        growth: '',
+        total: 0,
+        totalGrowth: '',
+        existing: 0,
+        children: [],
+        tempList: [],
+        timestamp: '',
+        eventId: -1,
+        threadId: 0,
+        threadName: '',
+      },
+    ];
     TabPaneNMSampleList.filterSelect = '2';
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
-
-
 });

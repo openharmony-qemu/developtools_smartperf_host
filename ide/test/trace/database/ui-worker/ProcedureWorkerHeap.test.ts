@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
-
 // @ts-ignore
 import {
   heap,
@@ -127,11 +128,18 @@ describe(' Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'a',
       context: {
         font: '11px sans-serif',
         fillStyle: '#ec407a',
         globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
       },
       lineColor: '',
       isHover: '',
@@ -177,5 +185,18 @@ describe(' Test', () => {
       value: 50,
     };
     expect(HeapStruct.setFrame(node, 2, 1, 5, 4, data)).toBeUndefined();
+  });
+  it('HeapTest07', function () {
+    let nativeMemoryRender = new HeapRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(nativeMemoryRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

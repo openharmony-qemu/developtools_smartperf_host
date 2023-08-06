@@ -25,7 +25,9 @@ jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () 
 });
 
 jest.mock('../../../../../dist/trace/component/SpSystemTrace.js', () => {
-  return {};
+  return {
+    CurrentSlicesTime:() => {},
+  };
 });
 
 // @ts-ignore

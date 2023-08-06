@@ -144,6 +144,7 @@ describe('LitSwitch Test', () => {
             width:100%;
             height:100%;
             flex-shrink:0;
+            overflow: auto;
         }
         .nav-item{
             display: inline-flex;

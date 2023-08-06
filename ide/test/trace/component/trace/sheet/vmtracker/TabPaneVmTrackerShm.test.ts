@@ -61,7 +61,7 @@ describe('TabPaneVmTrackerShm Test', () => {
   let val = [
     {
       leftNs: 0,
-      rightNs: 1000
+      rightNs: 1000,
     },
   ];
   it('TabPaneVmTrackerShm01', () => {

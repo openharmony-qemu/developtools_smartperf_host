@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
 
@@ -96,5 +99,18 @@ describe('ProcedureWorkerNetworkAbility Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(networkAbilityRender.render(req, [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerNetworkAbilityTest03', function () {
+    let networkAbilityRender = new NetworkAbilityRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(networkAbilityRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

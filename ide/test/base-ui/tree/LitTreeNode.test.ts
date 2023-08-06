@@ -15,6 +15,9 @@
 
 // @ts-ignore
 import { LitTreeNode } from '../../../dist/base-ui/tree/LitTreeNode.js';
+jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+    return {};
+});
 
 describe('LitTreeNode Test', () => {
     let litTreeNode = new LitTreeNode();
@@ -82,5 +85,8 @@ describe('LitTreeNode Test', () => {
     });
     it('LitTreeNodeTest16', () => {
         expect(litTreeNode.drawLine('bottom-right')).toBeUndefined();
+    });
+    it('LitTreeNodeTest17', () => {
+        expect(litTreeNode.collapse()).toBeUndefined();
     });
 });

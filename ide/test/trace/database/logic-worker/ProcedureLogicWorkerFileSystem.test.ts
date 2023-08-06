@@ -23,6 +23,7 @@ import {
   FileMerageBean,
   IoCompletionTimes,
   VirtualMemoryEvent,
+  FileAnalysisSample,
   //@ts-ignore
 } from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 
@@ -415,5 +416,85 @@ describe('ProcedureLogicWorkerFileSystem Test', () => {
   it('procedureLogicWorkerFileSystemTest50', function () {
     let procedureLogicWorkerFileSystem   = new ProcedureLogicWorkerFileSystem ();
     expect(procedureLogicWorkerFileSystem.queryIOEvents(1,0,[1])).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest51', function () {
+    let procedureLogicWorkerFileSystem = new ProcedureLogicWorkerFileSystem();
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      type: 'fileSystem-queryIoSamples',
+      params: {
+        list: [],
+      },
+    };
+    expect(procedureLogicWorkerF.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest52', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      type: 'fileSystem-queryVirtualMemorySamples',
+      params: {
+        list: [],
+      },
+    };
+    expect(procedureLogicWorkerF.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest53', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      type: 'fileSystem-queryVMEvents',
+      params: {
+        list: [],
+      },
+    };
+    expect(procedureLogicWorkerF.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest54', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      type: 'fileSystem-queryIOEvents',
+      params: {
+        list: [],
+      },
+    };
+    expect(procedureLogicWorkerF.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest55', function () {
+    let procedureLogicWorkerFileSystem   = new ProcedureLogicWorkerFileSystem ();
+    expect(procedureLogicWorkerFileSystem.clearAll()).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest56', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('fileSystem');
+    let selectionParam = {
+      diskIOipids: {
+        length: 1,
+        join: jest.fn(() => true),
+      },
+      fileSystemType: {
+        length: 1,
+        join: jest.fn(() => true),
+      },
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.queryCallChainsSamples(selectionParam)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest57', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('fileSystem');
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.clear()).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest59', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('fileSystem');
+    let selectionParam = {
+      diskIOipids: {
+        length: 1,
+        join: jest.fn(() => true),
+      },
+      fileSystemType: {
+        length: 1,
+        join: jest.fn(() => true),
+      },
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.queryPageFaultSamples(selectionParam)).toBeUndefined();
   });
 });

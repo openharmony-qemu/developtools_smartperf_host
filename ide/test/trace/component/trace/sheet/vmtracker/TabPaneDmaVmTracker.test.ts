@@ -19,63 +19,63 @@ import { TabPaneDmaVmTracker } from '../../../../../../dist/trace/component/trac
 jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 
 jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
-    return {};
+  return {};
 });
 
 jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
-    return {};
+  return {};
 });
 jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-    return {};
+  return {};
 });
 jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
-    return {};
+  return {};
 });
 const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
-
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('TabPaneDmaSelectVmTracker Test', () => {
-    let dmaVmTracker = new TabPaneDmaVmTracker();
-    let val = [
-        {
-            leftNs: 0,
-            rightNs: 1000,
-            startNs:0,
-        },
-    ];
-    let dmaData = sqlite.getTabDmaVmTrackerData;
-    let data = [
-        {
-            startNs: 0,
-            expTaskComm: 'aaa',
-            sumSize: 100,
-            maxSize: 100,
-            minSize: 10,
-            avgSize: 'aaa',
-        },
-    ];
-    dmaData.mockResolvedValue(data);
-    it('TabPaneDmaSelectVmTracker01', () => {
-        expect(dmaVmTracker.sortDmaByColumn('', 0)).toBeUndefined();
-    });
-    it('TabPaneDmaSelectVmTracker05', () => {
-        expect(dmaVmTracker.sortDmaByColumn('avgSize', 1)).toBeUndefined();
-    });
-    it('TabPaneDmaSelectVmTracker06', () => {
-        expect(dmaVmTracker.sortDmaByColumn('minSize', 1)).toBeUndefined();
-    });
-    it('TabPaneDmaSelectVmTracker07', () => {
-        expect(dmaVmTracker.sortDmaByColumn('maxSize', 1)).toBeUndefined();
-    });
-    it('TabPaneDmaSelectVmTracker08', () => {
-        expect(dmaVmTracker.queryDataByDB(val)).toBeUndefined();
-    });
-})
+  let dmaVmTracker = new TabPaneDmaVmTracker();
+  let val = [
+    {
+      leftNs: 0,
+      rightNs: 1000,
+      startNs: 0,
+    },
+  ];
+  let dmaData = sqlite.getTabDmaVmTrackerData;
+  let data = [
+    {
+      startNs: 0,
+      expTaskComm: 'aaa',
+      sumSize: 100,
+      maxSize: 100,
+      minSize: 10,
+      avgSize: 'aaa',
+    },
+  ];
+  dmaData.mockResolvedValue(data);
+  it('TabPaneDmaSelectVmTracker01', () => {
+    expect(dmaVmTracker.sortDmaByColumn('', 0)).toBeUndefined();
+  });
+  it('TabPaneDmaSelectVmTracker05', () => {
+    expect(dmaVmTracker.sortDmaByColumn('avgSize', 1)).toBeUndefined();
+  });
+  it('TabPaneDmaSelectVmTracker06', () => {
+    expect(dmaVmTracker.sortDmaByColumn('minSize', 1)).toBeUndefined();
+  });
+  it('TabPaneDmaSelectVmTracker07', () => {
+    expect(dmaVmTracker.sortDmaByColumn('maxSize', 1)).toBeUndefined();
+  });
+  it('TabPaneDmaSelectVmTracker08', () => {
+    expect(dmaVmTracker.queryDataByDB(val)).toBeUndefined();
+  });
+});

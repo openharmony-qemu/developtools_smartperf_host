@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
-
 // @ts-ignore
 import { CpuFreqStruct, FreqRender, freq } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFreq.js';
 // @ts-ignore
@@ -58,5 +60,17 @@ describe('freqTest', () => {
       value: 50,
     };
     expect(CpuFreqStruct.draw(ctx, Sourcedata)).toBeUndefined();
+  });
+  it('freqTest03', () => {
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    let freqRender = new FreqRender();
+    expect(freqRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

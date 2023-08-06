@@ -65,6 +65,7 @@ describe('TabPaneGpuMemorySelectAbility Test', () => {
         expect(tabPaneGpuMemorySelectAbility.sortGpuMemoryByColumn('size',1)).toBeUndefined();
     });
     it('TabPaneGpuMemorySelectAbility06', function () {
-        expect(tabPaneGpuMemorySelectAbility.queryDataByDB(val)).toBeUndefined();
+        tabPaneGpuMemorySelectAbility.init = jest.fn(()=>true)
+        expect(tabPaneGpuMemorySelectAbility.queryGpuMemoryClickDataByDB(val)).toBeUndefined();
     });
 })

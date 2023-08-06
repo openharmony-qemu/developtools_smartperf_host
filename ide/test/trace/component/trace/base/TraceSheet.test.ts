@@ -126,4 +126,8 @@ describe('TraceSheet Test', () => {
             </div>"
 `);
   });
+  it('TraceSheet Test10', () => {
+    let traceSheet = new TraceSheet();
+    expect(traceSheet.updateRangeSelect()).toBeFalsy();
+  });
 });
