@@ -947,10 +947,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (data.status === 'Completion delay') {
       let result = await queryAnimationFrameFps(dataTs, dataTs + data.dur);
       if (result.length > 0) {
-        let percentageNumber: number = 1;
         let fixedNumber: number = 2;
-        let fpsValue: number = percentageNumber / result[0].fps;
-        list.push({ name: 'Frame', value: `${ fpsValue.toFixed(fixedNumber) || 0 } fps` });
+        let fpsValue: number = result[0].fps / (data.dur / 1000_000_000) ;
+        list.push({ name: 'FPS', value: `${ fpsValue.toFixed(fixedNumber) || 0 }` });
       }
     }
     this.currentSelectionTbl!.dataSource = list;

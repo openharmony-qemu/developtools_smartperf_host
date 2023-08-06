@@ -2198,19 +2198,19 @@ export class SpSystemTrace extends BaseElement {
     ],
     [
       TraceRow.ROW_TYPE_DMA_ABILITY,
-      () => SnapshotStruct.selectSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
+      () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_DMA_VMTRACKER,
-      () => SnapshotStruct.selectSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
+      () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY,
-      () => SnapshotStruct.selectSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
+      () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER,
-      () => SnapshotStruct.selectSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
+      () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_VMTRACKER_SHM,
@@ -2513,12 +2513,26 @@ export class SpSystemTrace extends BaseElement {
       this.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuDumpTotalRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='Skia Gpu Dump Total']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayGpuSelectedData('total', SnapshotStruct.selectSnapshotStruct.startNs);
+      this.traceSheetEL?.displayGpuSelectedData(
+        'total',
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuDumpTotalRow!.dataList
+      );
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuDumpWindowRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='Skia Gpu Dump Window']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayGpuSelectedData('window', SnapshotStruct.selectSnapshotStruct.startNs);
+      this.traceSheetEL?.displayGpuSelectedData(
+        'window',
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuDumpWindowRow!.dataList
+      );
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_IRQ && IrqStruct.hoverIrqStruct) {
       IrqStruct.selectIrqStruct = IrqStruct.hoverIrqStruct;
@@ -2656,29 +2670,55 @@ export class SpSystemTrace extends BaseElement {
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
       this.traceSheetEL?.displayShmData(SnapshotStruct.selectSnapshotStruct!, shmRow!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let totalAbilityRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='System Purgeable Total']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayPurgTotalAbilityData(SnapshotStruct.hoverSnapshotStruct);
+      this.traceSheetEL?.displayPurgTotalAbilityData(SnapshotStruct.hoverSnapshotStruct, totalAbilityRow!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let pinAbilityRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='System Purgeable Pin']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayPurgPinAbilityData(SnapshotStruct.hoverSnapshotStruct);
+      this.traceSheetEL?.displayPurgPinAbilityData(SnapshotStruct.hoverSnapshotStruct, pinAbilityRow!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM && SnapshotStruct.hoverSnapshotStruct) {
+      let totalVMRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Purgeable Total']`);
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayPurgTotalVMData(SnapshotStruct.hoverSnapshotStruct);
+      this.traceSheetEL?.displayPurgTotalVMData(SnapshotStruct.hoverSnapshotStruct, totalVMRow!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM && SnapshotStruct.hoverSnapshotStruct) {
+      let pinVMRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Purgeable Pin']`);
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayPurgPinVMData(SnapshotStruct.hoverSnapshotStruct);
+      this.traceSheetEL?.displayPurgPinVMData(SnapshotStruct.hoverSnapshotStruct, pinVMRow!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_DMA_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let dmaAbilityRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='abilityMonitorDma']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayDmaAbility(SnapshotStruct.selectSnapshotStruct.startNs);
+      this.traceSheetEL?.displayDmaAbility(SnapshotStruct.selectSnapshotStruct.startNs, dmaAbilityRow!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_DMA_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
+      let dmaVmTracker = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-type='dma-vmTracker']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayDmaVmTracker(SnapshotStruct.selectSnapshotStruct.startNs);
+      this.traceSheetEL?.displayDmaVmTracker(SnapshotStruct.selectSnapshotStruct.startNs, dmaVmTracker!.dataList);
     } else if (clickRowType === TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuMemoryAbilityMonitor = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='abilityMonitorGpuMemory']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayGpuMemoryAbility(SnapshotStruct.selectSnapshotStruct.startNs);
+      this.traceSheetEL?.displayGpuMemoryAbility(
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuMemoryAbilityMonitor!.dataList
+      );
     } else if (clickRowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuMemoryVmTracker = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='Skia Gpu Memory']`
+      );
       SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      this.traceSheetEL?.displayGpuMemoryVmTracker(SnapshotStruct.selectSnapshotStruct.startNs);
+      this.traceSheetEL?.displayGpuMemoryVmTracker(
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuMemoryVmTracker!.dataList
+      );
     } else {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         this.removeLinkLinesByBusinessType('janks');

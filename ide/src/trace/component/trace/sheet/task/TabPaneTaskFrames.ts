@@ -319,22 +319,29 @@ export class TabPaneTaskFrames extends BaseElement {
       selectStartTime = framesParam.recordStartNs + framesParam.leftNs;
       selectEndTime = framesParam.recordStartNs + framesParam.rightNs;
     }
-    let maxConcurrency = 0;
     let res = await Promise.all([
       queryTaskPoolTotalNum(selectFuncStruct!.itid!),
       queryConcurrencyTask(selectFuncStruct!.itid!, selectStartTime, selectEndTime),
     ]);
-    let currentConcurrency = 0;
     let tasks: Array<TaskTabStruct> = res[1];
+    let maxConcurrency = 0;
+    let timePointArray: { time: number, isStart: boolean }[] = [];
     for (let i = 0 ; i < tasks.length ; i++) {
-      const task = tasks[i];
-      const endTime = task!.startTs! + task!.dur!;
-      currentConcurrency++;
-      for (let j = i + 1 ; j < tasks.length ; j++) {
-        const nextTask = tasks[j];
-        if (nextTask.startTs! < endTime) {
-          currentConcurrency++;
-        }
+      timePointArray.push({ time: tasks[i].startTs!, isStart: true });
+      timePointArray.push({ time: tasks[i].startTs! + tasks[i].dur!, isStart: false });
+    }
+    timePointArray.sort((timePointA, timePointB) => {
+      if (timePointA.time === timePointB.time) {
+        return timePointA.isStart ? -1 : 1;
+      }
+      return timePointA.time - timePointB.time;
+    });
+    let currentConcurrency = 0;
+    for (let i = 0; i < timePointArray.length; i++) {
+      if (timePointArray[i].isStart) {
+        currentConcurrency++;
+      } else {
+        currentConcurrency--;
       }
       if (currentConcurrency > maxConcurrency) {
         maxConcurrency = currentConcurrency;
@@ -342,7 +349,6 @@ export class TabPaneTaskFrames extends BaseElement {
           break;
         }
       }
-      currentConcurrency = 0;
     }
     for (const item of res[1]) {
       this.pushTaskToList(item, tableList);
