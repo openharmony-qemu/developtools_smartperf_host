@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-  return {};
-});
+// @ts-ignore
+import {TraceRow} from "../../../../dist/trace/component/trace/base/TraceRow.js";
+
 
 // @ts-ignore
 import {
@@ -28,6 +28,10 @@ import {
 // @ts-ignore
 import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 
+jest.mock('../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js', () => {
+  return {
+  };
+});
 jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
@@ -211,8 +215,16 @@ describe(' Test', () => {
         width: 100,
         height: 100,
       },
-      canvas: '',
-      context: {},
+      canvas: 'a',
+      context: {
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+      },
       lineColor: '',
       isHover: '',
       hoverX: 1,
@@ -249,11 +261,18 @@ describe(' Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'a',
       context: {
         font: '11px sans-serif',
         fillStyle: '#ec407a',
         globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
       },
       lineColor: '',
       isHover: '',
@@ -271,5 +290,18 @@ describe(' Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(cpuRender.render(req, [], [])).toBeUndefined();
+  });
+  it('CPUTest12', function () {
+    let emptyRender = new EmptyRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(emptyRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

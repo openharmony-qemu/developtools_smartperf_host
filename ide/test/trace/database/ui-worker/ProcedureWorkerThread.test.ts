@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
 
@@ -86,7 +89,7 @@ describe('ProcedureWorkerThread Test', () => {
       value: 50,
       state: 'R',
     };
-    expect(ThreadStruct.draw(ctx, data)).toBeUndefined();
+    expect(ThreadStruct.drawThread(ctx, data)).toBeUndefined();
   });
 
   it('ProcedureWorkerThreadTest04', () => {
@@ -106,7 +109,7 @@ describe('ProcedureWorkerThread Test', () => {
       value: 50,
       state: 'D',
     };
-    expect(ThreadStruct.draw(ctx, data)).toBeUndefined();
+    expect(ThreadStruct.drawThread(ctx, data)).toBeUndefined();
   });
 
   it('ProcedureWorkerThreadTest05', () => {
@@ -126,7 +129,7 @@ describe('ProcedureWorkerThread Test', () => {
       value: 50,
       state: 'Running',
     };
-    expect(ThreadStruct.draw(ctx, data)).toBeUndefined();
+    expect(ThreadStruct.drawThread(ctx, data)).toBeUndefined();
   });
 
   it('ProcedureWorkerThreadTest06', () => {
@@ -207,5 +210,18 @@ describe('ProcedureWorkerThread Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(threadRender.render(req, [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerThreadTest08', function () {
+    let threadRender = new ThreadRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(threadRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

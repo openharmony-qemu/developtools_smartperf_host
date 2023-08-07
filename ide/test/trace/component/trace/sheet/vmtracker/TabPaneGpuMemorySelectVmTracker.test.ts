@@ -19,60 +19,61 @@ import { TabPaneGpuMemorySelectVmTracker } from '../../../../../../dist/trace/co
 jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 
 jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
-    return {};
+  return {};
 });
 jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-    return {};
+  return {};
 });
 jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
-    return {};
+  return {};
 });
 const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 // @ts-ignore
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('TabPaneGpuMemorySelectVmTracker Test', () => {
-    let tabPaneGpuMemorySelectVmTracker = new TabPaneGpuMemorySelectVmTracker();
-    let val = [
-        {
-            leftNs: 0,
-            rightNs: 1000,
-        },
-    ];
-    let gpuMemoryVMData = sqlite.getTabGpuMemoryVMTrackerClickData;
-    let gpuVMData = [
-        {
-            startNs: 0,
-            size: 1,
-            threadId: 1,
-            threadName: 'bb',
-            gpuName: 'aa',
-        },
-    ];
-    gpuMemoryVMData.mockResolvedValue(gpuVMData);
-    it('TabPaneGpuMemorySelectVmTracker01', () => {
-        expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('', 0)).toBeUndefined();
-    });
-    it('TabPaneGpuMemorySelectVmTracker02', () => {
-        expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('startNs', 1)).toBeUndefined();
-    });
-    it('TabPaneGpuMemorySelectVmTracker03', () => {
-        expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('gpuName', 1)).toBeUndefined();
-    });
-    it('TabPaneGpuMemorySelectVmTracker04', () => {
-        expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('size', 1)).toBeUndefined();
-    });
-    it('TabPaneGpuMemorySelectVmTracker05', () => {
-        expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('thread', 1)).toBeUndefined();
-    });
-    it('TabPaneGpuMemorySelectVmTracker06', () => {
-        expect(tabPaneGpuMemorySelectVmTracker.queryDataByDB(val)).toBeUndefined();
-    });
-})
+  let tabPaneGpuMemorySelectVmTracker = new TabPaneGpuMemorySelectVmTracker();
+  let val = [
+    {
+      leftNs: 0,
+      rightNs: 1000,
+    },
+  ];
+  let gpuMemoryVMData = sqlite.getTabGpuMemoryVMTrackerClickData;
+  let gpuVMData = [
+    {
+      startNs: 0,
+      size: 1,
+      threadId: 1,
+      threadName: 'bb',
+      gpuName: 'aa',
+    },
+  ];
+  gpuMemoryVMData.mockResolvedValue(gpuVMData);
+  it('TabPaneGpuMemorySelectVmTracker01', () => {
+    expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('', 0)).toBeUndefined();
+  });
+  it('TabPaneGpuMemorySelectVmTracker02', () => {
+    expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('startNs', 1)).toBeUndefined();
+  });
+  it('TabPaneGpuMemorySelectVmTracker03', () => {
+    expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('gpuName', 1)).toBeUndefined();
+  });
+  it('TabPaneGpuMemorySelectVmTracker04', () => {
+    expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('size', 1)).toBeUndefined();
+  });
+  it('TabPaneGpuMemorySelectVmTracker05', () => {
+    expect(tabPaneGpuMemorySelectVmTracker.sortGpuMemoryByColumn('thread', 1)).toBeUndefined();
+  });
+  it('TabPaneGpuMemorySelectVmTracker06', () => {
+    tabPaneGpuMemorySelectVmTracker.init = jest.fn(() => true);
+    expect(tabPaneGpuMemorySelectVmTracker.queryGpuMemoryVmTrackerClickDataByDB(val)).toBeUndefined();
+  });
+});

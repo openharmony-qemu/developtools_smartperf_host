@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
 // @ts-ignore
@@ -126,5 +128,18 @@ describe('CpuAbilityMonitorStruct Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(cpuAbilityRender.render(req, [], [])).toBeUndefined();
+  });
+  it('CpuAbilityMonitorStructTest07', function () {
+    let cpuAbilityRender = new CpuAbilityRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(cpuAbilityRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

@@ -18,7 +18,7 @@ jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
 });
 
 // @ts-ignore
-import {  ProcessMemStruct, MemRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerMem.js';
+import { ProcessMemStruct, MemRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerMem.js';
 // @ts-ignore
 import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 // @ts-ignore
@@ -100,11 +100,18 @@ describe(' Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'a',
       context: {
         font: '11px sans-serif',
         fillStyle: '#ec407a',
         globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
       },
       lineColor: '',
       isHover: '',

@@ -186,11 +186,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     let threads = selectionParam.perfAll ? [] : selectionParam.perfThread;
     let sql = '';
     if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
-      let arg1 = cpus.length > 0 ? `or s.cpu_id in (${ cpus.join(',') }) ` : '';
-      let arg2 = processes.length > 0 ? `or thread.process_id in (${ processes.join(',') }) ` : '';
-      let arg3 = threads.length > 0 ? `or s.thread_id in (${ threads.join(',') })` : '';
-      let arg = `${ arg1 }${ arg2 }${ arg3 }`.substring(3);
-      sql = ` and (${ arg })`;
+      let arg1 = cpus.length > 0 ? `or s.cpu_id in (${cpus.join(',')}) ` : '';
+      let arg2 = processes.length > 0 ? `or thread.process_id in (${processes.join(',')}) ` : '';
+      let arg3 = threads.length > 0 ? `or s.thread_id in (${threads.join(',')})` : '';
+      let arg = `${arg1}${arg2}${arg3}`.substring(3);
+      sql = ` and (${arg})`;
     }
     this.queryData(
       this.currentEventId,
@@ -209,7 +209,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
                 where timestamp_trace between $startTime + t.start_ts
                   and $endTime + t.start_ts
                   and callchain_id != -1
-                  and s.thread_id != 0 ${ sql }
+                  and s.thread_id != 0 ${sql}
                 group by callchain_id, s.thread_id, thread_state, process_id) p`,
       {
         $startTime: selectionParam.leftNs,
@@ -288,7 +288,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     threadCallChain.depth = 0;
     PerfCallChain.merageCallChain(threadCallChain, callChain);
     threadCallChain.canCharge = false;
-    threadCallChain.name = this.threadData[callChain.tid].threadName || 'Thread' + '(' + callChain.tid + ')';
+    threadCallChain.name = (this.threadData[callChain.tid].threadName || 'Thread') + '(' + callChain.tid + ')';
     let threadStateCallChain = new PerfCallChain(); //新增的线程状态数据
     PerfCallChain.merageCallChain(threadStateCallChain, callChain);
     threadStateCallChain.name = callChain.threadState || 'Unknown State';
@@ -322,11 +322,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     let threadCallChain = new PerfCallChain(); //新增的线程数据
     threadCallChain.tid = countSample.tid;
     threadCallChain.canCharge = false;
-    threadCallChain.name = this.threadData[countSample.tid].threadName || 'Thead' + '(' + countSample.tid + ')';
+    threadCallChain.name = this.threadData[countSample.tid].threadName || 'Thread' + '(' + countSample.tid + ')';
     let threadStateCallChain = new PerfCallChain(); //新增的线程状态数据
     threadStateCallChain.tid = countSample.tid;
-    threadStateCallChain.name = countSample.threadState || 'Unkown State';
-    threadStateCallChain.fileName = threadStateCallChain.name == '-' ? 'Unkown Thead State' : '';
+    threadStateCallChain.name = countSample.threadState || 'Unknown State';
+    threadStateCallChain.fileName = threadStateCallChain.name == '-' ? 'Unknown Thread State' : '';
     threadStateCallChain.canCharge = false;
     list.unshift(threadCallChain, threadStateCallChain);
   }
@@ -359,7 +359,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       if (rootMerageMap[merageData.pid] == undefined) {
         let processMerageData = new PerfCallChainMerageData(); //新增进程的节点数据
         processMerageData.canCharge = false;
-        processMerageData.symbolName = this.threadData[merageData.tid].processName || `Process(${ merageData.pid })`;
+        processMerageData.symbolName =
+          (this.threadData[merageData.tid].processName || 'Process') + `(${merageData.pid})`;
         processMerageData.symbol = processMerageData.symbolName;
         processMerageData.tid = merageData.tid;
         processMerageData.children.push(merageData);
@@ -429,7 +430,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   groupNewTreeNoId(sampleIds: string[], isTopDown: boolean): any[] {
     this.currentTreeMapData = {};
     this.currentTreeList = [];
-    for (let i = 0 ; i < sampleIds.length ; i++) {
+    for (let i = 0; i < sampleIds.length; i++) {
       let callChains = this.callChainData[sampleIds[i]];
       if (callChains == undefined) continue;
       let topIndex = isTopDown ? 0 : callChains.length - 1;
@@ -450,7 +451,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       if (rootMerageMap[merageData.pid] == undefined) {
         let processMerageData = new PerfCallChainMerageData(); //新增进程的节点数据
         processMerageData.canCharge = false;
-        processMerageData.symbolName = this.threadData[merageData.tid].processName || `Process(${ merageData.pid })`;
+        processMerageData.symbolName = this.threadData[merageData.tid].processName || `Process(${merageData.pid})`;
         processMerageData.symbol = processMerageData.symbolName;
         processMerageData.tid = merageData.tid;
         processMerageData.children.push(merageData);
@@ -552,7 +553,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   recursionPruneTree(sample: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
     if ((isSymbol && sample.symbolName == symbolName) || (!isSymbol && sample.libName == symbolName)) {
       sample.currentTreeParentNode &&
-      sample.currentTreeParentNode.children.splice(sample.currentTreeParentNode.children.indexOf(sample), 1);
+        sample.currentTreeParentNode.children.splice(sample.currentTreeParentNode.children.indexOf(sample), 1);
     } else {
       sample.children.forEach((child) => {
         this.recursionPruneTree(child, symbolName, isSymbol);
@@ -760,7 +761,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     for (let sample of this.samplesData) {
       let callChains = [...this.callChainData[sample.sampleId]];
       const lastCallChain = callChains[callChains.length - 1];
-      const threadName = this.threadData[sample.tid].threadName || 'Thead';
+      const threadName = this.threadData[sample.tid].threadName || 'Thread';
       const processName = this.threadData[sample.pid].threadName || 'Process';
       let analysisSample = new PerfAnalysisSample(
         threadName,
@@ -789,12 +790,14 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     for (let sample of this.samplesData) {
       let currentNode = topUp;
       let callChains = this.callChainData[sample.sampleId];
-      for (let i = 0 ; i < callChains.length ; i++) {
+      for (let i = 0; i < callChains.length; i++) {
         if (i === 0) {
           currentNode = topUp;
         }
         let item = callChains[i];
-        const existingNode = currentNode.children.find(child => child.symbolName === item.name + '(' + item.fileName + ')');
+        const existingNode = currentNode.children.find(
+          (child) => child.symbolName === item.name + '(' + item.fileName + ')'
+        );
         if (existingNode) {
           currentNode = existingNode;
           existingNode.totalTime += perfTime * sample.count;
@@ -810,7 +813,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         }
       }
     }
-    topUp.children.forEach(child => {
+    topUp.children.forEach((child) => {
       child.parentNode = undefined;
     });
 
@@ -825,9 +828,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     let reverseTreeArray: Array<PerfBottomUpStruct> = [];
     const recursionTree = (perfBottomUpStruct: PerfBottomUpStruct) => {
       if (perfBottomUpStruct.selfTime > 0) {
-        const clonePerfBottomUpStruct = new PerfBottomUpStruct(
-          perfBottomUpStruct.symbolName,
-        );
+        const clonePerfBottomUpStruct = new PerfBottomUpStruct(perfBottomUpStruct.symbolName);
         clonePerfBottomUpStruct.selfTime = perfBottomUpStruct.selfTime;
         clonePerfBottomUpStruct.totalTime = perfBottomUpStruct.totalTime;
         reverseTreeArray.push(clonePerfBottomUpStruct);
@@ -885,16 +886,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-
   /**
    * copy整体调用链，从栈顶函数一直copy到栈底函数，
    * 给Parent设置selfTime，totalTime设置为children的selfTime,totalTime
    *  */
   private copyParentNode(perfBottomUpStruct: PerfBottomUpStruct, bottomUpStruct: PerfBottomUpStruct): void {
     if (bottomUpStruct.parentNode) {
-      const copyParent = new PerfBottomUpStruct(
-        bottomUpStruct.parentNode.symbolName,
-      );
+      const copyParent = new PerfBottomUpStruct(bottomUpStruct.parentNode.symbolName);
       copyParent.selfTime = perfBottomUpStruct.selfTime;
       copyParent.totalTime = perfBottomUpStruct.totalTime;
       perfBottomUpStruct.addChildren(copyParent);
@@ -1022,8 +1020,8 @@ export class PerfCallChainMerageData extends ChartStruct {
 
   set total(data: number) {
     this.#total = data;
-    this.weight = `${ timeMsFormat2p(this.dur * (DataCache.getInstance().perfCountToMs || 1)) }`;
-    this.weightPercent = `${ ((this.dur / data) * 100).toFixed(1) }%`;
+    this.weight = `${timeMsFormat2p(this.dur * (DataCache.getInstance().perfCountToMs || 1))}`;
+    this.weightPercent = `${((this.dur / data) * 100).toFixed(1)}%`;
   }
 
   get total() {
@@ -1032,13 +1030,13 @@ export class PerfCallChainMerageData extends ChartStruct {
 
   static merageCallChain(currentNode: PerfCallChainMerageData, callChain: PerfCallChain, isTopDown: boolean) {
     if (currentNode.symbolName == '') {
-      currentNode.symbol = `${ callChain.name }  ${ callChain.fileName ? `(${ callChain.fileName })` : '' }`;
+      currentNode.symbol = `${callChain.name}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
       currentNode.symbolName = callChain.name;
       currentNode.pid = callChain.pid;
       currentNode.tid = callChain.tid;
       currentNode.libName = callChain.fileName;
       currentNode.vaddrInFile = callChain.vaddrInFile;
-      currentNode.addr = `${ '0x' }${ callChain.vaddrInFile.toString(16) }`;
+      currentNode.addr = `${'0x'}${callChain.vaddrInFile.toString(16)}`;
       currentNode.lib = currentNode.libName;
       currentNode.canCharge = callChain.canCharge;
       if (callChain.path) {
@@ -1060,14 +1058,14 @@ export class PerfCallChainMerageData extends ChartStruct {
     isEnd: boolean
   ) {
     if (currentNode.symbolName == '') {
-      currentNode.symbol = `${ callChain.name }  ${ callChain.fileName ? `(${ callChain.fileName })` : '' }`;
+      currentNode.symbol = `${callChain.name}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
       currentNode.symbolName = callChain.name;
       currentNode.pid = sample.pid;
       currentNode.tid = sample.tid;
       currentNode.libName = callChain.fileName;
       currentNode.vaddrInFile = callChain.vaddrInFile;
       currentNode.lib = callChain.fileName;
-      currentNode.addr = `${ '0x' }${ callChain.vaddrInFile.toString(16) }`;
+      currentNode.addr = `${'0x'}${callChain.vaddrInFile.toString(16)}`;
       currentNode.canCharge = callChain.canCharge;
       if (callChain.path) {
         currentNode.path = callChain.path;
@@ -1102,7 +1100,6 @@ export class PerfStack {
 export class PerfCmdLine {
   report_value: string = '';
 }
-
 
 class PerfAnalysisSample extends PerfCountSample {
   threadName: string;

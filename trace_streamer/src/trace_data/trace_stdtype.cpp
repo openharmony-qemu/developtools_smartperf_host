@@ -3120,15 +3120,15 @@ void Animation::Clear()
     endPoins_.clear();
     ids_.clear();
 }
-const uint32_t DeviceInfo::PhysicalWidth() const
+uint32_t DeviceInfo::PhysicalWidth() const
 {
     return physicalWidth_;
 }
-const uint32_t DeviceInfo::PhysicalHeight() const
+uint32_t DeviceInfo::PhysicalHeight() const
 {
     return physicalHeight_;
 }
-const uint32_t DeviceInfo::PhysicalFrameRate() const
+uint32_t DeviceInfo::PhysicalFrameRate() const
 {
     return physicalFrameRate_;
 }

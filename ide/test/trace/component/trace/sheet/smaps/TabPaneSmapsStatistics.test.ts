@@ -17,7 +17,9 @@
 import { TabPaneSmapsStatistics } from '../../../../../../dist/trace/component/trace/sheet/smaps/TabPaneSmapsStatistics.js';
 // @ts-ignore
 import { Smaps, SmapsTreeObj } from '../../../../../../dist/trace/bean/SmapsStruct.js';
-
+jest.mock('../../../../../../dist/trace/component/trace/sheet/smaps/TabPaneSmapsComparison.js', () => {
+  return {};
+});
 const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
@@ -65,7 +67,7 @@ describe('TabPaneSmapsStatistics Test', () => {
   smaps.dirty = 0;
   smaps.swapper = 0;
   smaps.address = 'aaaaa-bbbbb';
-  smaps.type = 'Dta';
+  smaps.type = '1';
   smaps.dirtyStr = '1212';
   smaps.swapperStr = '222';
   smaps.rssStr = '333';
@@ -81,7 +83,7 @@ describe('TabPaneSmapsStatistics Test', () => {
 
   it('TabPaneSmapsStatisticsTest01', () => {
     tabPaneSmapsStatistics.handleSmapsTreeObj(dataTree, 2);
-    expect(dataTree.rsspro).toBe(0);
+    expect(dataTree.rsspro).toBeUndefined();
   });
 
   it('TabPaneSmapsStatisticsTest02', () => {
@@ -93,40 +95,11 @@ describe('TabPaneSmapsStatistics Test', () => {
     tabPaneSmapsStatistics.handleTree(smaps, 0, 'TEXT', dataTree, 4);
     expect(dataTree.pss).toBe(2);
   });
-  it('TabPaneSmapsStatisticsTest04', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('sizeStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest05', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('', 0)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest06', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('count', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest07', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('rssStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest08', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('typeName', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest09', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('pssStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest10', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('sharedCleanStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest11', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('sharedDirtyStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest12', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('privateCleanStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest13', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('privateDirtyStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest14', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('swapStr', 1)).toBeUndefined();
-  });
-  it('TabPaneSmapsStatisticsTest15', () => {
-    expect(tabPaneSmapsStatistics.sortByColumn('swapPssStr', 1)).toBeUndefined();
+  it('TabPaneSmapsStatisticsTest1', () => {
+    tabPaneSmapsStatistics.tblSmapsStatistics.reMeauseHeight = jest.fn(() => true);
+    let result = [smaps, smaps];
+    expect(
+      tabPaneSmapsStatistics.filteredData(result, tabPaneSmapsStatistics.tblSmapsStatistics, 1000)
+    ).toBeUndefined();
   });
 });

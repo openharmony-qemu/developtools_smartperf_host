@@ -53,7 +53,7 @@ describe('FrameAnimation Test', () => {
       status: 'Completion delay',
       textMetricsWidth: 133.0703125,
       ts: 4091445476,
-    }
+    },
   ];
   TraceRow.range = {
     startNS: 0,
@@ -62,11 +62,15 @@ describe('FrameAnimation Test', () => {
   };
 
   it('FrameAnimationTest01', function () {
-    frameAnimationRender.frameAnimation(dataList, [],  TraceRow.range.startNS,
+    frameAnimationRender.frameAnimation(
+      dataList,
+      [],
+      TraceRow.range.startNS,
       TraceRow.range.endNS,
       TraceRow.range.totalNS,
       TraceRow.skeleton(),
-      false);
+      false
+    );
     let node = {
       animationId: 1,
       dur: 0,

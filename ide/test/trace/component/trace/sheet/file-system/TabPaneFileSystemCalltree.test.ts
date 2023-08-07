@@ -33,7 +33,7 @@ jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js
   return {
     cpuCount: 1,
     CpuRender: Object,
-    EmptyRender: Object
+    EmptyRender: Object,
   };
 });
 

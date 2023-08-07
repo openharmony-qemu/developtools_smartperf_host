@@ -26,16 +26,16 @@ const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-  return {}
+  return {};
 });
 
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneNMCallTree Test', () => {
   document.body.innerHTML = '<div><tabpane-nm-calltree id="ddd"></tabpane-nm-calltree></div>';
@@ -223,16 +223,30 @@ describe('TabPaneNMCallTree Test', () => {
   });
   it('TabPaneNMCallTreeTest11', function () {
     let data = [
-      { callTreeConstraints:{
-          inputs:[1]
-        }
-        , dataMining: 20, callTree: [] ,icon : 'block'},
-      { callTreeConstraints:{
-          inputs:[1]
-        }, dataMining: 21, callTree: [] ,icon : 'block'},
-      { callTreeConstraints:{
-          inputs:[1]
-        }, dataMining: 31, callTree: [] ,icon : 'block'},
+      {
+        callTreeConstraints: {
+          inputs: [1],
+        },
+        dataMining: 20,
+        callTree: [],
+        icon: 'block',
+      },
+      {
+        callTreeConstraints: {
+          inputs: [1],
+        },
+        dataMining: 21,
+        callTree: [],
+        icon: 'block',
+      },
+      {
+        callTreeConstraints: {
+          inputs: [1],
+        },
+        dataMining: 31,
+        callTree: [],
+        icon: 'block',
+      },
     ];
     expect(tabPaneNMCallTree.switchFlameChart(data)).toBeUndefined();
   });
@@ -248,21 +262,35 @@ describe('TabPaneNMCallTree Test', () => {
     expect(tabPaneNMCallTree.setRightTableData(data)).toBeTruthy();
   });
   it('TabPaneNMCallTreeTest14', function () {
-    expect(tabPaneNMCallTree.getDataByWorkerQuery({},{})).toBeUndefined();
+    expect(tabPaneNMCallTree.getDataByWorkerQuery({}, {})).toBeUndefined();
   });
 
   it('TabPaneNMCallTreeTest15', function () {
     let data = [
-      { callTreeConstraints:{
-          inputs:[1]
-        }
-        , dataMining: 20, callTree: [] ,icon : 'tree'},
-      { callTreeConstraints:{
-          inputs:[1]
-        }, dataMining: 21, callTree: [] ,icon : 'tree'},
-      { callTreeConstraints:{
-          inputs:[1]
-        }, dataMining: 31, callTree: [] ,icon : 'tree'},
+      {
+        callTreeConstraints: {
+          inputs: [1],
+        },
+        dataMining: 20,
+        callTree: [],
+        icon: 'tree',
+      },
+      {
+        callTreeConstraints: {
+          inputs: [1],
+        },
+        dataMining: 21,
+        callTree: [],
+        icon: 'tree',
+      },
+      {
+        callTreeConstraints: {
+          inputs: [1],
+        },
+        dataMining: 31,
+        callTree: [],
+        icon: 'tree',
+      },
     ];
     expect(tabPaneNMCallTree.switchFlameChart(data)).toBeUndefined();
   });

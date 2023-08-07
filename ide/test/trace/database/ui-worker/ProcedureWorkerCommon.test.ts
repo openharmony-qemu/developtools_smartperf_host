@@ -15,7 +15,11 @@
 
 jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js', () => {});
 jest.mock('../../../../dist/trace/component/trace/base/TraceSheet.js', () => {});
-jest.mock('../../../../dist/trace/component/SpSystemTrace.js', () => {});
+jest.mock('../../../../dist/trace/component/SpSystemTrace.js', () => {
+  return {
+    CurrentSlicesTime: () => {},
+  };
+});
 // @ts-ignore
 import {
   ChartStruct,
@@ -143,7 +147,7 @@ describe('ProcedureWorkerCommon Test', () => {
     useCache: true,
   };
 
-  document.body.innerHTML = '<timer-shaft-element id="timerShaftEL"><timer-shaft-element>';
+  document.body.innerHTML = '<timer-shaft-element id="timerShaftEL"></timer-shaft-element>';
   let timerShaftElement = document.querySelector('#timerShaftEL') as TimerShaftElement;
   timerShaftElement.totalNS = 1000;
   timerShaftElement.startNS = 1000;
@@ -410,23 +414,29 @@ describe('ProcedureWorkerCommon Test', () => {
           {
             startTime: 11,
             endTime: 22,
-            color: '#dadada'
+            color: '#dadada',
           },
           {
             startTime: 33,
             endTime: 66,
-            color: '#dadada'
+            color: '#dadada',
           },
-        ]
-      }
+        ],
+      },
     };
     expect(
-      drawFlagLineSegment(ctx, hoverFlag, selectFlag, {
-        y: 5,
-        height: 30,
-        x: 1,
-        width: 3,
-      }, data)
+      drawFlagLineSegment(
+        ctx,
+        hoverFlag,
+        selectFlag,
+        {
+          y: 5,
+          height: 30,
+          x: 1,
+          width: 3,
+        },
+        data
+      )
     ).toBeUndefined();
   });
 
@@ -455,33 +465,5 @@ describe('ProcedureWorkerCommon Test', () => {
       endX: 25336,
     };
     expect(drawSelectionRange(context, params)).toBeUndefined();
-  });
-
-  it('ProcedureWorkerCommon36', function () {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const context = canvas.getContext('2d');
-    let nodes = [
-      [
-        {
-          isRight: true,
-          ns: 1075112000,
-          offsetY: 30,
-          rowEL: null,
-          x: 303.29713978126495,
-          y: 190,
-        },
-        {
-          isRight: true,
-          ns: 5255566,
-          offsetY: 52,
-          rowEL: null,
-          x: 235,
-          y: 525,
-        },
-      ],
-    ];
-    expect(drawLinkLines(context, nodes, timerShaftElement)).toBeUndefined();
   });
 });

@@ -84,7 +84,7 @@ describe(' ProcedureWorkerFuncTest', () => {
       startNS: 200,
       value: 50,
       dur: undefined || null || 0,
-      funName: ''
+      funName: '',
     };
     expect(FuncStruct.draw(ctx, data)).toBeUndefined();
   });
@@ -105,7 +105,7 @@ describe(' ProcedureWorkerFuncTest', () => {
       startNS: 200,
       value: 50,
       dur: 10,
-      funName: 'H:Task PerformTask End: taskId : 1, executeId : 1, performResult : IsCanceled'
+      funName: 'H:Task PerformTask End: taskId : 1, executeId : 1, performResult : IsCanceled',
     };
     expect(FuncStruct.draw(ctx, data)).toBeUndefined();
   });

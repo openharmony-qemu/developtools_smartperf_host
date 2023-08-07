@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
-
 // @ts-ignore
 import {
   CpuStateRender,
@@ -159,5 +161,110 @@ describe('ProcedureWorkerCpuState Test', () => {
       height: 100,
     };
     expect(cpuStateRender.cpuState([], dataList, '', res, 1, 6, 5, frame, true)).toBeUndefined();
+  });
+  it('ProcedureWorkerCpuStateTest05', function () {
+    let res = [
+      {
+        frame: {
+          x: 20,
+          y: 20,
+          width: 100,
+          height: 100,
+        },
+        startNS: 10,
+        length: 1,
+        height: 2,
+        dur: 1,
+      },
+    ];
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    let path = new Path2D();
+    expect(CpuStateStruct.draw(ctx, path, res)).toBeUndefined();
+  });
+  it('ProcedureWorkerCpuStateTest06', function () {
+    let node = {
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      startNS: 200,
+      value: 50,
+      startTs: 3,
+      dur: 1,
+      height: 2,
+    };
+    let frame = {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    };
+    expect(CpuStateStruct.setCpuFrame(node, 2, 2, 6, frame)).toBeUndefined();
+  });
+  it('ProcedureWorkerCpuStateTest07', function () {
+    let req = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 1,
+      endNS: 1,
+      totalNS: 1,
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      useCache: false,
+      range: {
+        refresh: '',
+      },
+      canvas: 'a',
+      context: {
+        font: '11px sans-serif',
+        fillStyle: '#ec407a',
+        globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fill: jest.fn(() => true),
+      },
+      lineColor: '',
+      isHover: '',
+      hoverX: 1,
+      params: '',
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 3,
+      id: 1,
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    };
+    let cpuStateRender = new CpuStateRender();
+    window.postMessage = jest.fn(() => true);
+    expect(cpuStateRender.render(req, [], [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerCpuStateTest07', function () {
+    let cpuStateRender = new CpuStateRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(cpuStateRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

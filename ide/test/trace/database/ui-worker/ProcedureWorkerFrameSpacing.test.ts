@@ -20,7 +20,10 @@ jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => 
 // @ts-ignore
 import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 // @ts-ignore
-import { FrameSpacingRender, FrameSpacingStruct } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFrameSpacing.js';
+import {
+  FrameSpacingRender,
+  FrameSpacingStruct,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFrameSpacing.js';
 // @ts-ignore
 import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 

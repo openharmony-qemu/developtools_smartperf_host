@@ -16,38 +16,39 @@
 import { TabPaneGpuGL } from '../../../../../../dist/trace/component/trace/sheet/gpu/TabPaneGpuGL.js';
 
 jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
-    return {};
+  return {};
 });
 const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-        disconnect: jest.fn(),
-        observe: jest.fn(),
-        unobserve: jest.fn(),
-    }));
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneGpuGL Test', () => {
-    document.body.innerHTML = `<div><tabpane-gpu-gl id="tree"></tabpane-gpu-gl></div>`;
-    let tabPaneGpuGL = document.querySelector<TabPaneGpuGL>('#tree');
-    let queryGpuGLDataByRange = sqlite.queryGpuGLDataByRange;
-    queryGpuGLDataByRange.mockResolvedValue([
-        {
-            startTs: 23,
-            size:10,
-        },
-        {
-            startTs: 213,
-            size:110,
-        }
-    ])
-    it('TabPaneGpuGLTest01', () => {
-        tabPaneGpuGL.data = {
-            leftNs: 0,
-            rightNs:1,
-        };
-        expect(tabPaneGpuGL.data).toStrictEqual({"leftNs": 0, "rightNs": 1});
-    });
+  document.body.innerHTML = `<div><tabpane-gpu-gl id="tree"></tabpane-gpu-gl></div>`;
+  let tabPaneGpuGL = document.querySelector<TabPaneGpuGL>('#tree');
+  let queryGpuGLDataByRange = sqlite.queryGpuGLDataByRange;
+  queryGpuGLDataByRange.mockResolvedValue([
+    {
+      startTs: 23,
+      size: 10,
+    },
+    {
+      startTs: 213,
+      size: 110,
+    },
+  ]);
+  it('TabPaneGpuGLTest01', () => {
+    tabPaneGpuGL.data = {
+      leftNs: 0,
+      rightNs: 1,
+    };
+    expect(tabPaneGpuGL.data).toStrictEqual({ leftNs: 0, rightNs: 1 });
+  });
 });

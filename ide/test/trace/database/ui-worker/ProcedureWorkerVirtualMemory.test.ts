@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
 
@@ -101,11 +104,17 @@ describe('ProcedureWorkerVirtualMemory Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'a',
       context: {
         font: '11px sans-serif',
         fillStyle: '#ec407a',
         globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
       },
       lineColor: '',
       isHover: '',
@@ -123,5 +132,18 @@ describe('ProcedureWorkerVirtualMemory Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(virtualMemoryRender.render(req, [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerVirtualMemoryTest05', function () {
+    let virtualMemoryRender = new VirtualMemoryRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(virtualMemoryRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

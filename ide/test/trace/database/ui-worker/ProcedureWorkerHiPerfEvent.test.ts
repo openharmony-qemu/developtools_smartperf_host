@@ -18,11 +18,16 @@ import {
   HiperfEventRender,
 } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHiPerfEvent.js';
 // @ts-ignore
-import { Rect } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon';
+import { hiPerf } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
+// @ts-ignore
 import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
+});
+jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+  return {
+    TraceRow: () => {},
+  };
 });
 
 describe('ProcedureWorkerHiPerfEvent Test', () => {
@@ -93,7 +98,68 @@ describe('ProcedureWorkerHiPerfEvent Test', () => {
 
   it('ProcedureWorkerHiPerfEventTest06', function () {
     expect(HiPerfEventStruct.eventGroupBy10MS([{ ps: 1 }, { coX: '1' }], 10, '')).toEqual([
-      { dur: 10000000, height: NaN, startNS: NaN,max: 0,sum:NaN},
+      { dur: 10000000, height: NaN, startNS: NaN, max: 0, sum: NaN },
     ]);
+  });
+  it('ProcedureWorkerHiPerfProcessTest08', function () {
+    let hiperfEventRender = new HiperfEventRender();
+    let req = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 1,
+      endNS: 1,
+      totalNS: 1,
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      useCache: false,
+      range: {
+        refresh: '',
+      },
+      canvas: 'a',
+      context: {
+        font: '11px sans-serif',
+        fillStyle: '#ec407a',
+        globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+        fill: jest.fn(() => true),
+      },
+      lineColor: '',
+      isHover: '',
+      hoverX: 1,
+      params: '',
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 3,
+      id: 1,
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+      scale: 100_000_001,
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(hiperfEventRender.render(req, [], [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerHiPerfEventTest09', function () {
+    let dataList = new Array();
+    dataList.push({
+      startNS: 0,
+      dur: 10,
+      length: 1,
+      frame: { x: 0, y: 9, width: 10, height: 10 },
+    });
+    dataList.push({ startNS: 1, dur: 2, length: 1 });
+    hiPerf(dataList, [{ length: 0 }], dataList, 8, 3, '', false, 1, false);
   });
 });

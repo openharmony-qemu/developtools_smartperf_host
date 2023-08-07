@@ -17,100 +17,104 @@ import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.j
 // @ts-ignore
 import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
 // @ts-ignore
-import { jsCpuProfiler, JsCpuProfilerRender, JsCpuProfilerStruct} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuProfiler.js';
+import {
+  jsCpuProfiler,
+  JsCpuProfilerRender,
+  JsCpuProfilerStruct,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuProfiler.js';
 
 jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
-    return {};
+  return {};
 });
 
 describe('ProcedureWorkerCpuProfiler Test', () => {
-    let jsCpuProfilerRender = new JsCpuProfilerRender();
+  let jsCpuProfilerRender = new JsCpuProfilerRender();
+  let traceRow = new TraceRow();
+  traceRow.frame = { height: 40, width: 1407, x: 0, y: 0 };
+  it('jsCpuProfilerTest', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
     let traceRow = new TraceRow();
     traceRow.frame = { height: 40, width: 1407, x: 0, y: 0 };
-    it('jsCpuProfilerTest', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow();
-        traceRow.frame = { height: 40, width: 1407, x: 0, y: 0 };
-        let rect = new Rect(0, 10, 10, 10);
-        let filter = [
-            {
-                startTime: 50,
-                endTime: 1520000,
-                name: 'Snapshot0',
-                frame: { x: 0, y: 0, width: 25, height: 40 },
-                id: 0,
-                depth: 1,
-                selfTime: 0,
-                url:'',
-                totalTime: 88473061693464,
-                parentId: 123,
-                children:[],
-                isSelect: true,
-            },
-        ];
-        let list = [
-            {
-                startTime: 50,
-                endTime: 1520000,
-                name: 'Snapshot0',
-                frame: { x: 0, y: 0, width: 25, height: 40 },
-                id: 0,
-                depth: 1,
-                selfTime: 0,
-                url:'',
-                totalTime: 88473061693464,
-                parentId: 123,
-                children:[],
-                isSelect: true,
-            },
-        ];
-        jsCpuProfiler(list, filter, 100254, 100254, rect, traceRow.frame,true);
-    });
+    let rect = new Rect(0, 10, 10, 10);
+    let filter = [
+      {
+        startTime: 50,
+        endTime: 1520000,
+        name: 'Snapshot0',
+        frame: { x: 0, y: 0, width: 25, height: 40 },
+        id: 0,
+        depth: 1,
+        selfTime: 0,
+        url: '',
+        totalTime: 88473061693464,
+        parentId: 123,
+        children: [],
+        isSelect: true,
+      },
+    ];
+    let list = [
+      {
+        startTime: 50,
+        endTime: 1520000,
+        name: 'Snapshot0',
+        frame: { x: 0, y: 0, width: 25, height: 40 },
+        id: 0,
+        depth: 1,
+        selfTime: 0,
+        url: '',
+        totalTime: 88473061693464,
+        parentId: 123,
+        children: [],
+        isSelect: true,
+      },
+    ];
+    jsCpuProfiler(list, filter, 100254, 100254, rect, traceRow.frame, true);
+  });
 
-    it('JsCpuProfilerStructTest01', () => {
-        const data = {
-            cpu: 1,
-            startNs: 1,
-            value: 1,
-            frame: {
-                x: 20,
-                y: 20,
-                width: 100,
-                height: 100,
-            },
-            maxValue: undefined,
-            startTime: 1,
-            filterID: 2,
-            size: 102
-        };
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        expect(JsCpuProfilerStruct.draw(ctx, data)).toBeUndefined();
-    });
+  it('JsCpuProfilerStructTest01', () => {
+    const data = {
+      cpu: 1,
+      startNs: 1,
+      value: 1,
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      maxValue: undefined,
+      startTime: 1,
+      filterID: 2,
+      size: 102,
+    };
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    expect(JsCpuProfilerStruct.draw(ctx, data)).toBeUndefined();
+  });
 
-    it('JsCpuProfilerStructTest02', () => {
-        let node = {
-            startTime: 50,
-            endTime: 1520000,
-            name: 'Snapshot0',
-            frame: { x: 0, y: 0, width: 25, height: 40 },
-            id: 0,
-            depth: 1,
-            selfTime: 0,
-            url:'',
-            totalTime: 88473061693464,
-            parentId: 123,
-            children:[],
-            isSelect: true,
-        };
-        expect(JsCpuProfilerStruct.setJsCpuProfilerFrame(node, 0, 1, 2, traceRow.frame)).toBeUndefined();
-    });
-    it('JsCpuProfilerStructTest04', () => {
-        expect(JsCpuProfilerStruct).not.toBeUndefined();
-    });
+  it('JsCpuProfilerStructTest02', () => {
+    let node = {
+      startTime: 50,
+      endTime: 1520000,
+      name: 'Snapshot0',
+      frame: { x: 0, y: 0, width: 25, height: 40 },
+      id: 0,
+      depth: 1,
+      selfTime: 0,
+      url: '',
+      totalTime: 88473061693464,
+      parentId: 123,
+      children: [],
+      isSelect: true,
+    };
+    expect(JsCpuProfilerStruct.setJsCpuProfilerFrame(node, 0, 1, 2, traceRow.frame)).toBeUndefined();
+  });
+  it('JsCpuProfilerStructTest04', () => {
+    expect(JsCpuProfilerStruct).not.toBeUndefined();
+  });
 });

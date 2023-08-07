@@ -31,7 +31,7 @@ window.ResizeObserver =
   }));
 
 jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-  return {}
+  return {};
 });
 
 describe('TabPaneNMStatstics Test', () => {
@@ -404,5 +404,25 @@ describe('TabPaneNMStatstics Test', () => {
     expect(
       tabPaneNMStatstics.setMemoryTypeData(valData, nativeHookStatistics, nativeHookStatisticsTableData)
     ).toBeUndefined();
+  });
+  it('TabPaneNMStatsticsTest11', function () {
+    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
+    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
+    expect(tabPaneNMStatstics.sortByColumn('', 0)).toBeUndefined();
+  });
+  it('TabPaneNMStatsticsTest12', function () {
+    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
+    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
+    expect(tabPaneNMStatstics.sortByColumn('existingString', 1)).toBeUndefined();
+  });
+  it('TabPaneNMStatsticsTest13', function () {
+    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
+    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
+    expect(tabPaneNMStatstics.sortByColumn('allocCount', 1)).toBeUndefined();
+  });
+  it('TabPaneNMStatsticsTest14', function () {
+    tabPaneNMStatstics.nativeStatisticsTbl = jest.fn(() => true);
+    tabPaneNMStatstics.nativeStatisticsTbl.recycleDataSource = jest.fn(() => true);
+    expect(tabPaneNMStatstics.sortByColumn('freeByteString', 1)).toBeUndefined();
   });
 });

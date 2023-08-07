@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
-
 // @ts-ignore
-import { ClockStruct } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerClock.js';
+import { ClockStruct, ClockRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerClock.js';
 
 describe('ProcedureWorkerClock Test', () => {
   it('ProcedureWorkerClock01', () => {
@@ -41,5 +43,17 @@ describe('ProcedureWorkerClock Test', () => {
       delta: 125,
     };
     expect(ClockStruct.draw(ctx!, data, 2)).toBeUndefined();
+  });
+  it('ProcedureWorkerClock02', () => {
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    let clockRender = new ClockRender();
+    expect(clockRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

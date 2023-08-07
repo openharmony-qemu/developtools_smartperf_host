@@ -942,4 +942,13 @@ describe('TraceRow Test', () => {
     });
     expect(traceRow.getTransferArray()).toStrictEqual([undefined]);
   });
+  it('TraceRow Test67', () => {
+    let traceRow = new TraceRow<any>({
+      canvasNumber: 1,
+      alpha: true,
+      contextId: '2d',
+      isOffScreen: true,
+    });
+    expect(traceRow.clearMemory()).toBeUndefined();
+  });
 });

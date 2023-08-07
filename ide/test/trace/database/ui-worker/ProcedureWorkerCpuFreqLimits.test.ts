@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
-
 // @ts-ignore
 import {
   CpuFreqLimitRender,
@@ -101,8 +103,16 @@ describe('ProcedureWorkerCpuFreqLimits Test', () => {
         width: 100,
         height: 100,
       },
-      canvas: '',
-      context: {},
+      canvas: 'a',
+      context: {
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+      },
       lineColor: '',
       isHover: '',
       hoverX: 1,
@@ -119,5 +129,18 @@ describe('ProcedureWorkerCpuFreqLimits Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(cpuFreqLimitRender.render(req, [], [])).toBeUndefined();
+  });
+  it('Test05', function () {
+    let cpuFreqLimitRender = new CpuFreqLimitRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(cpuFreqLimitRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

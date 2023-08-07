@@ -34,7 +34,7 @@ describe('SpFileSystemChart Test', () => {
     {
       fsCount: 2,
       vmCount: 2,
-      ioCount: 0,
+      ioCount: 2,
     },
   ]);
 

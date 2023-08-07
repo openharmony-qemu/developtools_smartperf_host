@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-  return {};
-});
-
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 // @ts-ignore
 import { SdkSliceRender, SdkSliceStruct } from '../../../../dist/trace/database/ui-worker/ProduceWorkerSdkSlice.js';
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+  return {};
+});
 
 describe('ProduceWorkerSdkSlice Test', () => {
   it('ProduceWorkerSdkSliceTest01', function () {
@@ -146,11 +147,18 @@ describe('ProduceWorkerSdkSlice Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'a',
       context: {
         font: '11px sans-serif',
         fillStyle: '#ec407a',
         globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
       },
       lineColor: '',
       isHover: '',
@@ -168,5 +176,18 @@ describe('ProduceWorkerSdkSlice Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(sdkSliceRender.render(req, [], [])).toBeUndefined();
+  });
+  it('ProduceWorkerSdkSliceTest07', function () {
+    let sdkSliceRender = new SdkSliceRender();
+    window.postMessage = jest.fn(() => true);
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    expect(sdkSliceRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

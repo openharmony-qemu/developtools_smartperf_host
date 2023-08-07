@@ -19,11 +19,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "../../third_party/protogen/types/plugins/memory_data/memory_plugin_result.pb.h"
+#include "memory_plugin_result.pb.h"
 #include "htrace_mem_parser.h"
 #include "memory_plugin_result.pbreader.h"
 #include "parser/common_types.h"
 #include "trace_streamer_selector.h"
+#include "process_filter.h"
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
@@ -476,5 +477,125 @@ HWTEST_F(HtraceMemParserTest, ParseGpuWindowMemInfo, TestSize.Level1)
     delete memParser;
     EXPECT_EQ(stream_.traceDataCache_->GetConstGpuWindowMemData().Size(), 0);
 }
+
+/**
+ * @tc.name: AshMemDeduplicateTest
+ * @tc.desc: AshMem Deduplicate Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(HtraceMemParserTest, AshMemDeduplicateTest, TestSize.Level1)
+{
+    TS_LOGI("test16-10");
+
+    HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    uint32_t adj = 6;
+    uint32_t fd = 6;
+    DataIndex ashmemNameId = stream_.traceDataCache_->GetDataIndex("xxx");
+    uint64_t size = 222;
+    uint64_t refCount = 3;
+    uint64_t purged = 1;
+    uint32_t flag = 0;
+    uint64_t pss = 0;
+
+    struct DeduplicateVar {
+        uint64_t timeStamp;
+        uint64_t pid;
+        std::string_view pidName;
+        uint32_t ashmemId;
+        uint64_t time;
+    };
+    vector<DeduplicateVar> stubVars = {
+        {1616439852302, 1, "aaa", 1, 1}, {1616439852302, 1, "aaa", 1, 1}, {1616439852302, 1, "aaa", 2, 2},
+        {1616439852302, 2, "bbb", 1, 1}, {1616439852302, 2, "bbb", 2, 2}, {1616439852302, 3, "ccc", 1, 1},
+        {1616439852302, 3, "ccc", 2, 2}, {1616439852302, 3, "ccc", 2, 2},
+
+        {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 1, "aaa", 1, 1}, {1616439855302, 2, "bbb", 2, 2},
+        {1616439855302, 3, "ccc", 2, 2},
+    };
+    for (auto& m : stubVars) {
+        auto ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
+        stream_.traceDataCache_->GetAshMemData()->AppendNewData(ipid, m.timeStamp, adj, fd, ashmemNameId, size, pss,
+                                                                m.ashmemId, m.time, refCount, purged, flag);
+    }
+
+    memParser->AshMemDeduplicate();
+
+    auto ashMemData = stream_.traceDataCache_->GetConstAshMemData();
+    EXPECT_EQ(ashMemData.Flags()[0], 0);
+    EXPECT_EQ(ashMemData.Flags()[1], 1);
+    EXPECT_EQ(ashMemData.Flags()[2], 0);
+    EXPECT_EQ(ashMemData.Flags()[3], 2);
+    EXPECT_EQ(ashMemData.Flags()[4], 2);
+    EXPECT_EQ(ashMemData.Flags()[5], 2);
+    EXPECT_EQ(ashMemData.Flags()[6], 2);
+    EXPECT_EQ(ashMemData.Flags()[7], 1);
+    EXPECT_EQ(ashMemData.Flags()[8], 0);
+    EXPECT_EQ(ashMemData.Flags()[9], 1);
+    EXPECT_EQ(ashMemData.Flags()[10], 0);
+    EXPECT_EQ(ashMemData.Flags()[11], 2);
+}
+
+/**
+ * @tc.name: DmaMemDeduplicateTest
+ * @tc.desc: DmaMem Deduplicate Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(HtraceMemParserTest, DmaMemDeduplicateTest, TestSize.Level1)
+{
+    TS_LOGI("test16-11");
+
+    HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    uint32_t fd = 6;
+    uint64_t size = 222;
+    uint32_t flag = 0;
+    uint64_t expPid = 5;
+    DataIndex expTaskCommId = stream_.traceDataCache_->GetDataIndex("aaa");
+    DataIndex bufNameId = stream_.traceDataCache_->GetDataIndex("bbb");
+    DataIndex expNameId = stream_.traceDataCache_->GetDataIndex("ccc");
+
+    struct DeduplicateVar {
+        uint64_t timeStamp;
+        uint64_t pid;
+        std::string_view pidName;
+        uint32_t ino;
+    };
+    vector<DeduplicateVar> stubVars = {
+        {1616439852302, 1, "render_service", 1},
+        {1616439852302, 1, "render_service", 1},
+        {1616439852302, 1, "render_service", 2},
+        {1616439852302, 2, "app", 1},
+        {1616439852302, 2, "app", 2},
+        {1616439852302, 3, "composer_host", 1},
+        {1616439852302, 3, "composer_host", 2},
+        {1616439852302, 3, "composer_host", 2},
+
+        {1616439855302, 1, "render_service", 1},
+        {1616439855302, 1, "render_service", 2},
+        {1616439855302, 3, "composer_host", 2},
+        {1616439855302, 3, "composer_host", 2},
+    };
+    for (auto& m : stubVars) {
+        auto ipid = stream_.streamFilters_->processFilter_->UpdateOrCreateProcessWithName(m.pid, m.pidName);
+        stream_.traceDataCache_->GetDmaMemData()->AppendNewData(ipid, m.timeStamp, fd, size, m.ino, expPid,
+                                                                expTaskCommId, bufNameId, expNameId, flag);
+    }
+
+    memParser->DmaMemDeduplicate();
+
+    auto DmaData = stream_.traceDataCache_->GetConstDmaMemData();
+    EXPECT_EQ(DmaData.Flags()[0], 2);
+    EXPECT_EQ(DmaData.Flags()[1], 1);
+    EXPECT_EQ(DmaData.Flags()[2], 2);
+    EXPECT_EQ(DmaData.Flags()[3], 0);
+    EXPECT_EQ(DmaData.Flags()[4], 0);
+    EXPECT_EQ(DmaData.Flags()[5], 2);
+    EXPECT_EQ(DmaData.Flags()[6], 2);
+    EXPECT_EQ(DmaData.Flags()[7], 1);
+    EXPECT_EQ(DmaData.Flags()[8], 0);
+    EXPECT_EQ(DmaData.Flags()[9], 0);
+    EXPECT_EQ(DmaData.Flags()[10], 2);
+    EXPECT_EQ(DmaData.Flags()[11], 1);
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning

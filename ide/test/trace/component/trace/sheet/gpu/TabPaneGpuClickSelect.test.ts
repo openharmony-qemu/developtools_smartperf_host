@@ -16,6 +16,9 @@
 import { TabPaneGpuClickSelect } from '../../../../../../dist/trace/component/trace/sheet/gpu/TabPaneGpuClickSelect.js';
 
 jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+    return {};
+});
+jest.mock('../../../../../../dist/trace/component/trace/sheet/gpu/TabPaneGpuClickSelectComparison.js', () => {
   return {};
 });
 const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
@@ -52,7 +55,7 @@ describe('TabPaneGpuClickSelect Test', () => {
       type: '',
       startTs: 1,
     };
-    expect(tabPaneGpuClickSelect.data).toBeUndefined();
+    expect(tabPaneGpuClickSelect.data).toBeTruthy();
   });
     it('TabPaneGpuClickSelectTest02', () => {
         let tabPaneGpuClickSelects = new TabPaneGpuClickSelect();

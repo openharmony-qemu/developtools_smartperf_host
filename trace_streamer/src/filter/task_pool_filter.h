@@ -43,6 +43,11 @@ public:
     bool AppendTimeoutRow(uint32_t index);
 
 private:
+    const std::string targetStr_ = "H:Task ";
+    const std::string allocationStr_ = "H:Task Allocation: ";
+    const std::string executeStr_ = "H:Task Perform: ";
+    const std::string returnStr_ = "H:Task PerformTask End: ";
+    const std::string timeoutStr_ = "H:Thread Timeout Exit";
     DoubleMap<InternalPid, uint32_t, uint32_t> IpidExecuteMap_;
     std::unordered_map<uint32_t, uint32_t> timeoutMap_;
 };

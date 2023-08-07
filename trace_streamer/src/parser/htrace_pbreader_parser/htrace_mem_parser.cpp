@@ -1068,7 +1068,7 @@ void HtraceMemParser::AshMemDeduplicate() const
 {
     auto ashMemData = traceDataCache_->GetAshMemData();
     auto ashMemCount = ashMemData->Size();
-    if (ashMemCount == 0) {
+    if (ashMemCount <= 1) {
         return;
     }
 
@@ -1086,44 +1086,30 @@ void HtraceMemParser::AshMemDeduplicate() const
     dataByTs.emplace_back(std::make_pair(start, ashMemCount - 1));
 
     for (const auto& iterator : dataByTs) {
-        std::multimap<std::pair<uint32_t, uint64_t>, std::pair<uint64_t, mem_process_type>> AshMemMap;
-        std::map<std::pair<uint32_t, uint64_t>, mem_process_type> processTypeMap;
+        /* L1 map (key = id+time, value = L2 map)
+           L2 map (key = ipid, value = index) */
+        std::map<std::pair<uint32_t, uint64_t>, std::map<uint64_t, uint64_t>> AshMemMap;
         for (auto i = iterator.first; i <= iterator.second; ++i) {
             auto ashmemId = ashMemData->AshmemIds()[i];
             auto time = ashMemData->Times()[i];
             auto key = std::make_pair(ashmemId, time);
             auto ipid = ashMemData->Ipids()[i];
-            auto count = AshMemMap.count(key);
-            auto iter = AshMemMap.find(key);
-            bool needInert = true;
-            for (auto j = 0; j < count; j++, iter++) {
-                if (ashMemData->Ipids()[iter->second.first] == ipid) {
-                    ashMemData->SetFlag(i, MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
-                    needInert = false;
-                    break;
-                }
-            }
-            if (needInert) {
-                auto processType = GetMemProcessType(ipid);
-                AshMemMap.emplace(key, std::make_pair(i, processType));
-                if (processTypeMap.count(key) == 0) {
-                    processTypeMap.emplace(key, processType);
-                } else if (processTypeMap[key] < processType) {
-                    processTypeMap[key] = processType;
-                }
+            auto& pidMap = AshMemMap[key];
+            if (pidMap.find(ipid) == pidMap.end()) {
+                pidMap.emplace(ipid, i);
+            } else {
+                ashMemData->SetFlag(i, MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
             }
         }
 
-        for (auto iter = AshMemMap.begin(); iter != AshMemMap.end(); iter = AshMemMap.upper_bound(iter->first)) {
-            auto maxPidType = processTypeMap[iter->first];
-            auto count = AshMemMap.count(iter->first);
-            auto it = AshMemMap.find(iter->first);
-            for (auto j = 0; j < count; j++, it++) {
-                auto rowId = it->second.first;
-                auto processType = it->second.second;
-                if (processType < maxPidType) {
-                    ashMemData->SetFlag(rowId, MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
-                }
+        for (const auto& item : AshMemMap) {
+            auto& pidMap = item.second;
+            auto iter = pidMap.begin();
+            if (iter == pidMap.end()) {
+                continue;
+            }
+            for (++iter; iter != pidMap.end(); ++iter) {
+                ashMemData->SetFlag(iter->second, MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
             }
         }
     }
@@ -1166,7 +1152,7 @@ void HtraceMemParser::DmaMemDeduplicate() const
 {
     auto dmaMemData = traceDataCache_->GetDmaMemData();
     auto dmaCount = dmaMemData->Size();
-    if (dmaCount == 0) {
+    if (dmaCount <= 1) {
         return;
     }
 
@@ -1184,42 +1170,31 @@ void HtraceMemParser::DmaMemDeduplicate() const
     dataByTs.emplace_back(std::make_pair(start, dmaCount - 1));
 
     for (const auto& iterator : dataByTs) {
-        std::multimap<uint32_t, std::pair<uint64_t, mem_process_type>> inoMap;
-        std::map<uint32_t, mem_process_type> processTypeMap;
+        /* L1 map (key = ino, value = L2 map)
+           L2 map (key = ipid, value = pair(index, mem_process_type)) */
+        std::map<uint32_t, std::map<uint64_t, std::pair<uint64_t, mem_process_type>>> inoMap;
+        std::map<uint32_t /*ino*/, mem_process_type> processTypeMap;
         for (auto i = iterator.first; i <= iterator.second; ++i) {
             auto ino = dmaMemData->Inos()[i];
             auto ipid = dmaMemData->Ipids()[i];
-            auto count = inoMap.count(ino);
-            auto iter = inoMap.find(ino);
-            bool needInert = true;
-            for (auto j = 0; j < count; j++, iter++) {
-                if (dmaMemData->Ipids()[iter->second.first] == ipid) {
-                    dmaMemData->SetFlag(i, MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
-                    needInert = false;
-                    break;
-                }
-            }
-            if (needInert) {
+            auto& pidMap = inoMap[ino];
+            if (pidMap.find(ipid) != pidMap.end()) {
+                dmaMemData->SetFlag(i, MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
+            } else {
                 auto processType = GetMemProcessType(ipid);
-                inoMap.emplace(ino, std::make_pair(i, processType));
-                if (processTypeMap.count(ino) == 0) {
-                    processTypeMap.emplace(ino, processType);
-                } else if (processTypeMap[ino] < processType) {
+                pidMap.emplace(ipid, std::make_pair(i, processType));
+                if (processTypeMap[ino] < processType) {
                     processTypeMap[ino] = processType;
                 }
             }
         }
 
-        for (auto iter = inoMap.begin(); iter != inoMap.end(); iter = inoMap.upper_bound(iter->first)) {
-            auto ino = iter->first;
-            auto maxPidType = processTypeMap[ino];
-            auto count = inoMap.count(iter->first);
-            auto it = inoMap.find(iter->first);
-            for (auto j = 0; j < count; j++, it++) {
-                auto rowId = it->second.first;
-                auto processType = it->second.second;
-                if (processType < maxPidType) {
-                    dmaMemData->SetFlag(rowId, MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
+        for (const auto& item : inoMap) {
+            auto maxPidType = processTypeMap[item.first];
+            auto& pidMap = item.second;
+            for (const auto& pidItem : pidMap) {
+                if (pidItem.second.second < maxPidType) {
+                    dmaMemData->SetFlag(pidItem.second.first, MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
                 }
             }
         }

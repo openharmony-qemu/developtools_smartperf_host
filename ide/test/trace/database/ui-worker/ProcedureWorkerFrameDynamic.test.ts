@@ -82,7 +82,7 @@ describe('FrameDynamic Test', () => {
     useCache: false,
     context: ctx,
     type: 'dynamicEffectCurve',
-    animationRanges: [{start: 4091445476, end: 4774481414}],
+    animationRanges: [{ start: 4091445476, end: 4774481414 }],
   };
   TraceRow.range = {
     startNS: 0,
@@ -90,7 +90,7 @@ describe('FrameDynamic Test', () => {
     totalNS: 16868000000,
   };
 
-  let animationRanges = [{start: 4091445476, end: 4774481414}];
+  let animationRanges = [{ start: 4091445476, end: 4774481414 }];
   frameDynamicRender.frameDynamic(dataList, [], TraceRow.skeleton(), animationRanges, false);
 
   it('FrameDynamicTest01', function () {

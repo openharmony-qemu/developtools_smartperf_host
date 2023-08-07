@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
 });
-
 //@ts-ignore
 import {
   memoryAbility,
@@ -90,11 +90,18 @@ describe('ProcedureWorkerMemoryAbility Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'a',
       context: {
         font: '11px sans-serif',
         fillStyle: '#ec407a',
         globalAlpha: 0.6,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
       },
       lineColor: '',
       isHover: '',
@@ -112,5 +119,18 @@ describe('ProcedureWorkerMemoryAbility Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(memoryAbilityRender.render(req, [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerMemoryAbilityTest04', function () {
+    let memoryAbilityRender = new MemoryAbilityRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(memoryAbilityRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

@@ -62,4 +62,27 @@ describe('ProcedureWorkerHeapTimeline Test', () => {
     const ctx = canvas.getContext('2d');
     expect(HeapTimelineStruct.draw(ctx, data)).toBeUndefined();
   });
+  it('HeapTimelineStructTest02', () => {
+    const data = {
+      cpu: 1,
+      startNs: 1,
+      value: 1,
+      frame: {
+        x: 20,
+        y: 20,
+        width: 100,
+        height: 100,
+      },
+      maxValue: undefined,
+      startTime: 1,
+      filterID: 2,
+    };
+    let frame = {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    };
+    expect(HeapTimelineStruct.setFrame(1, 2, 1, data, 0, 2, 2, frame)).toBeUndefined();
+  });
 });
