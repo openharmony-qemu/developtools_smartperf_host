@@ -127,9 +127,10 @@ void NativeHookFilter::CompressStackAndFrames(ProtoReader::RepeatedDataAreaItera
         if (!frameHashToFrameInfoMap_.count(frameHash)) {
             // the frame compression is completed and the frame is parsed.
             auto frameInfo = ParseFrame(itor.GetDataArea());
-            if (frameInfo != nullptr) {
-                frameHashToFrameInfoMap_.emplace(std::make_pair(frameHash, std::move(frameInfo)));
+            if (!frameInfo) {
+                continue;
             }
+            frameHashToFrameInfoMap_.emplace(std::make_pair(frameHash, std::move(frameInfo)));
         }
         framesHash.emplace_back(frameHash);
         framesHashStr.append("+");

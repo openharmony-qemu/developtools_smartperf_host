@@ -149,6 +149,21 @@ HWTEST_F(AnimationFilterTest, UpdateDevicePos, TestSize.Level1)
         auto res = stream_.streamFilters_->animationFilter_->UpdateDeviceInfoEvent(point, line);
         EXPECT_FALSE(res);
     }
+
+    std::vector<std::string> validFuncArgs{
+        "(0, 0, 1024, 1920)",
+        "(0,0, 628, 720)",
+        "(0,0, 628, 720)",
+    };
+    for (size_t i = 0; i < validFuncArgs.size(); i++) {
+        stream_.traceDataCache_->GetDeviceInfo()->Clear();
+        point.funcPrefix_ = validFuncPrefix;
+        point.funcArgs_ = validFuncArgs[i];
+        point.name_ = point.funcPrefix_ + " " + point.funcArgs_;
+        point.funcPrefixId_ = stream_.traceDataCache_->GetDataIndex(point.funcPrefix_);
+        auto res = stream_.streamFilters_->animationFilter_->UpdateDeviceInfoEvent(point, line);
+        EXPECT_TRUE(res);
+    }
 }
 /**
  * @tc.name: UpdateDeviceFps

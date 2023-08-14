@@ -540,33 +540,33 @@ void HtraceParser::ParseJSMemoryConfig(HtraceDataSegment& dataSeg)
 int32_t HtraceParser::GetNextSegment()
 {
     int32_t head;
-    dataSegMux_.lock();
+    htraceDataSegMux_.lock();
     head = parseHead_;
-    HtraceDataSegment& seg = dataSegArray_[head];
-    if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {
+    HtraceDataSegment& htraceDataSegmentSeg = dataSegArray_[head];
+    if (htraceDataSegmentSeg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
             TS_LOGI("exiting parser, parserThread Count:%d\n", parserThreadCount_);
             TS_LOGD("seprateHead_x:\t%d, parseHead_:\t%d, filterHead_:\t%d status:%d\n", rawDataHead_, parseHead_,
-                    filterHead_, seg.status.load());
-            dataSegMux_.unlock();
+                    filterHead_, htraceDataSegmentSeg.status.load());
+            htraceDataSegMux_.unlock();
             if (!parserThreadCount_ && !filterThreadStarted_) {
                 exited_ = true;
             }
             return ERROR_CODE_EXIT;
         }
-        if (seg.status.load() == TS_PARSE_STATUS_PARSING) {
-            dataSegMux_.unlock();
+        if (htraceDataSegmentSeg.status.load() == TS_PARSE_STATUS_PARSING) {
+            htraceDataSegMux_.unlock();
             usleep(sleepDur_);
             return ERROR_CODE_NODATA;
         }
-        dataSegMux_.unlock();
+        htraceDataSegMux_.unlock();
         usleep(sleepDur_);
         return ERROR_CODE_NODATA;
     }
     parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
-    seg.status = TS_PARSE_STATUS_PARSING;
-    dataSegMux_.unlock();
+    htraceDataSegmentSeg.status = TS_PARSE_STATUS_PARSING;
+    htraceDataSegMux_.unlock();
     return head;
 }
 bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)

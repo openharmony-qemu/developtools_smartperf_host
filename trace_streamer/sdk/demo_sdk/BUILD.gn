@@ -115,6 +115,7 @@ ohos_source_set("trace_streamer_sdk") {
   }
   deps = [
     "${SRC}/base:base",
+    "${THIRD_PARTY}/bounds_checking_function:libsec_static",
     "${THIRD_PARTY}/sqlite:sqlite",
     "plugin:sdk_plugin",
   ]
