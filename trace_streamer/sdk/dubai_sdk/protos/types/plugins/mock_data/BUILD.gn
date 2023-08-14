@@ -83,8 +83,8 @@ action("mock_data_cpp_gen") {
 ohos_source_set("mock_data_cpp") {
   deps = [ ":mock_data_cpp_gen" ]
   public_deps = [
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite_static",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_static",
   ]
   include_dirs = [ "$proto_out_dir" ]
   public_configs = [ ":cpu_include_config" ]
@@ -94,8 +94,8 @@ ohos_source_set("mock_data_cpp") {
 ohos_source_set("mock_data_cpp_standard") {
   deps = [ ":mock_data_cpp_gen" ]
   public_deps = [
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite_static",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_static",
   ]
   include_dirs = [ "$proto_out_dir" ]
   public_configs = [ ":cpu_include_config" ]
@@ -105,8 +105,8 @@ ohos_source_set("mock_data_cpp_standard") {
 ohos_source_set("mock_plugin_config_cpp_standard") {
   deps = [ ":mock_data_cpp_gen" ]
   public_deps = [
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite_static",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_static",
   ]
   include_dirs = [ "$proto_out_dir" ]
   public_configs = [ ":cpu_include_config" ]

@@ -32,6 +32,7 @@ ohos_fuzztest("ts_htrace_fuzz_test") {
     "../../../src/cfg",
     "${THIRD_PARTY}/sqlite/include",
     "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/bounds_checking_function/include",
   ]
   cflags = [
     "-g",
@@ -46,8 +47,8 @@ ohos_fuzztest("ts_htrace_fuzz_test") {
     "--coverage",
   ]
   deps = [
-    "${THIRD_PARTY}/protobuf:protobuf",
-    "${THIRD_PARTY}/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/protobuf:protobuf_lite_static",
+    "${THIRD_PARTY}/protobuf:protobuf_static",
     "../../../src:trace_streamer_source",
     "../../../src/proto_reader:proto_reader",
   ]

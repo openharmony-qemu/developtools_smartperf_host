@@ -21,8 +21,8 @@ if (target == "sdkdemotest") {
     deps = [
       "${THIRD_PARTY}/googletest:gtest",
       "${THIRD_PARTY}/googletest:gtest_main",
-      "${THIRD_PARTY}/protobuf:protobuf",
-      "${THIRD_PARTY}/protobuf:protobuf_lite",
+      "${THIRD_PARTY}/protobuf:protobuf_lite_static",
+      "${THIRD_PARTY}/protobuf:protobuf_static",
       "${THIRD_PARTY}/sqlite:sqlite",
       "../:trace_streamer_sdk",
     ]

@@ -103,7 +103,7 @@ HWTEST_F(SmapsParserTest, ParseSmapsParseTestMeasureDataSize, TestSize.Level1)
     uint64_t vartualSize = 128;
     uint64_t rss = 112;
     uint64_t pss = 112;
-    uint64_t reside = 87.5;
+    double reside = 87.5;
     SmapsInfo->set_start_addr(startAddr);
     SmapsInfo->set_end_addr(endAddr);
     SmapsInfo->set_permission(permission);
@@ -166,7 +166,7 @@ HWTEST_F(SmapsParserTest, ParseSmapsParseTestMutiMeasureData, TestSize.Level1)
     uint64_t vartualSize0 = 128;
     uint64_t rss0 = 112;
     uint64_t pss0 = 112;
-    uint64_t reside0 = 87.5;
+    double reside0 = 87.5;
     smapsInfo0->set_start_addr(startAddr0);
     smapsInfo0->set_end_addr(endAddr0);
     smapsInfo0->set_permission(permission0);
