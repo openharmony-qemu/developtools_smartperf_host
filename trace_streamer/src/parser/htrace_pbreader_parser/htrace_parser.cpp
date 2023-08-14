@@ -695,7 +695,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
     }
     auto ret = memcpy_s(&profilerTraceFileHeader_, sizeof(profilerTraceFileHeader_), buffer, PACKET_HEADER_LENGTH);
     if (ret == -1 || profilerTraceFileHeader_.data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
-        TS_LOGE("Get profiler trace file header failed! ret = %d, magic = %llx", ret,
+        TS_LOGE("Get profiler trace file header failed! ret = %d, magic = %" PRIx64 "", ret,
                 profilerTraceFileHeader_.data.magic);
         return false;
     }
@@ -703,7 +703,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
         TS_LOGE("Profiler Trace data is truncated!!!");
         return false;
     }
-    TS_LOGI("magic = %llx, length = %" PRIu64 ", dataType = %x, boottime = %" PRIu64 "",
+    TS_LOGI("magic = %" PRIx64 ", length = %" PRIu64 ", dataType = %x, boottime = %" PRIu64 "",
             profilerTraceFileHeader_.data.magic, profilerTraceFileHeader_.data.length,
             profilerTraceFileHeader_.data.dataType, profilerTraceFileHeader_.data.boottime);
 #if IS_WASM

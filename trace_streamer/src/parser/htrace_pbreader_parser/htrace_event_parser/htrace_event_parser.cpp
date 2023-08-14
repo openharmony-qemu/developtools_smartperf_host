@@ -14,6 +14,7 @@
  */
 #include "htrace_event_parser.h"
 #include <string>
+#include <cinttypes>
 #include "app_start_filter.h"
 #include "binder_filter.h"
 #include "binder.pbreader.h"
@@ -164,7 +165,7 @@ void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClo
                 lastOverwrite_ = msg.overwrite();
             }
             if (lastOverwrite_ != msg.overwrite()) {
-                TS_LOGW("lost events:%lu", msg.overwrite() - lastOverwrite_);
+                TS_LOGW("lost events:%" PRIu64 "", msg.overwrite() - lastOverwrite_);
                 lastOverwrite_ = msg.overwrite();
             }
             streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);

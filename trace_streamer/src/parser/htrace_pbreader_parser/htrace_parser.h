@@ -119,7 +119,7 @@ private:
     std::unique_ptr<EbpfDataParser> ebpfDataParser_;
     std::atomic<bool> filterThreadStarted_{false};
     const int32_t MAX_SEG_ARRAY_SIZE = 10000;
-    std::shared_ptr<HtraceDataSegment[]> dataSegArray_;
+    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     int32_t rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;

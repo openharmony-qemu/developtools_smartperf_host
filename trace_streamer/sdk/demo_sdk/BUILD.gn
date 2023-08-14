@@ -34,8 +34,8 @@ ohos_source_set("lib") {
   ]
   deps = [
     ":trace_streamer_sdk",
-    "${THIRD_PARTY}/protobuf:protobuf",
-    "${THIRD_PARTY}/protobuf:protobuf_lite",
+    "${THIRD_PARTY}/protobuf:protobuf_lite_static",
+    "${THIRD_PARTY}/protobuf:protobuf_static",
   ]
   include_dirs = [
     "${SRC}/base",
