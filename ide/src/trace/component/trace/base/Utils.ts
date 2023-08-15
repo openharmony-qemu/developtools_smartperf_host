@@ -43,6 +43,7 @@ export class Utils {
     Utils.statusMap.set('R', 'Runnable');
     Utils.statusMap.set('Running', 'Running');
     Utils.statusMap.set('R+', 'Runnable (Preempted)');
+    Utils.statusMap.set('R-B', 'Runnable (Binder)')
     Utils.statusMap.set('I', 'Task Dead');
     Utils.statusMap.set('T', 'Traced');
     Utils.statusMap.set('t', 'Traced');
@@ -85,6 +86,8 @@ export class Utils {
       return '#f19b38';
     } else if (state == 'R' || state == 'R+') {
       return '#a0b84d';
+    } else if (state == 'R-B') {
+      return '#87CEFA';
     } else if (state == 'I') {
       return '#673ab7';
     } else if (state == 'Running') {

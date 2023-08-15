@@ -17,3 +17,4 @@ build-*
 *.pro.use*
 .DS_Store
 ._.DS_Store
+.history
