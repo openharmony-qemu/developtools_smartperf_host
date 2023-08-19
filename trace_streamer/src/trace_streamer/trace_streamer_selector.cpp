@@ -301,9 +301,5 @@ void TraceStreamerSelector::UpdateAppStartTraceStatus(bool status)
 {
     traceDataCache_->UpdateAppStartTraceStatus(status);
 }
-void TraceStreamerSelector::UpdateBinderRunnableTraceStatus(bool status)
-{
-    traceDataCache_->UpdateBinderRunnableTraceStatus(status);
-}
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -72,7 +72,7 @@ if (target == "sdkdemotest") {
       "-fno-use-cxa-atexit",
       "-DIS_UT",
     ]
-    if (is_macx) {
+    if (is_mac) {
       lib_dirs = [ "/usr/local/opt/llvm/lib" ]
     }
     libs = [ "LLVMCore" ]

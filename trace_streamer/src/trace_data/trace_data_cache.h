@@ -37,8 +37,6 @@ public:
     void UpdateTaskPoolTraceStatus(bool status);
     bool AppStartTraceEnabled();
     void UpdateAppStartTraceStatus(bool status);
-    bool BinderRunnableTraceEnabled();
-    void UpdateBinderRunnableTraceStatus(bool status);
 
 private:
     void InitDB() override;
@@ -46,7 +44,6 @@ private:
     bool animationTraceEnabled_ = false;
     bool taskPoolTraceEnabled_ = false;
     bool appStartTraceEnabled_ = false;
-    bool binderRunnableTraceEnabled_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

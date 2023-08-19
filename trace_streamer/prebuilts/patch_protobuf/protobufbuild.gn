@@ -193,7 +193,7 @@ if (use_wasm) {
     ]
 
     ldflags = [ "-fstack-protector" ]
-    if (!is_macx) {
+    if (!is_mac) {
       ldflags += [
         "-fuse-ld=gold",
         "-Wl,--gc-sections",

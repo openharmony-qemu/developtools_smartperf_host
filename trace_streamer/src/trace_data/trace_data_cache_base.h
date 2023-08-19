@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 #include "trace_stdtype.h"
-#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -68,8 +67,8 @@ public:
                                                      {TASK_UNINTERRUPTIBLE_IO, "D-IO"},
                                                      {TASK_UNINTERRUPTIBLE_NIO, "D-NIO"},
                                                      {TASK_RUNNING, "Running"},
-                                                     {TASK_INTERRUPTED, "I"},
-                                                     {TASK_TRACED, "T"},
+                                                     {TASK_INTERRUPTED, "T"},
+                                                     {TASK_TRACED, "t"},
                                                      {TASK_EXIT_DEAD, "X"},
                                                      {TASK_ZOMBIE, "Z"},
                                                      {TASK_CLONE, "I"},
@@ -78,10 +77,9 @@ public:
                                                      {TASK_DK_IO, "DK-IO"},
                                                      {TASK_DK_NIO, "DK-NIO"},
                                                      {TASK_TRACED_KILL, "TK"},
-                                                     {TASK_WAKEKILL, "R"},
+                                                     {TASK_WAKEKILL, "K"},
                                                      {TASK_PARKED, "P"},
                                                      {TASK_FOREGROUND, "R+"},
-                                                     {TASK_RUNNABLE_BINDER, "R-B"},
                                                      {TASK_MAX, "S"},
                                                      {TASK_INVALID, "U"}};
     std::map<std::string, uint64_t> threadStatus2Value_ = {};
