@@ -84,21 +84,12 @@ config("default") {
         "-fstack-protector-strong",
         "-fstack-protector-all",
         "-D_FORTIFY_SOURCE=2 -O2",
-
-        # "-D SUPPORTTHREAD",  # if support thread
-
-        # "-D HAVE_ELF_H",
         "-D target_cpu_x64",
         "-D target_cpu_x86_64",
-
-        # "-D HAVE_LINK_H",
-        # "-D_GNU_SOURCE",
         "-DHAVE_CONFIG_H",
         "-DCC_IS_CLANG",
       ]
       libs += [ "z" ]
-
-      # with_libunwind = true
     }
     if (!use_wasm && !is_win && !is_mac && !is_test && !is_mingw) {
       cflags += [ "-D HAVE_LIBUNWIND" ]
@@ -109,8 +100,6 @@ config("default") {
       cflags += [
         "-D IS_WASM",
         "-D GOOGLE_PROTOBUF_NO_RDTSC",
-
-        #  "-D HAVE_LIBUNWIND",
         "-D target_cpu_x64",
         "-D target_cpu_x86_64",
         "-DHAVE_CONFIG_H",

@@ -107,9 +107,6 @@ set_defaults("ohos_source_set") {
   configs = default_configs
 }
 
-# set_defaults("ohos_source_hiperf") {
-#   configs = hiperf_default_configs
-# }
 set_defaults("ohos_shared_library") {
   configs = default_configs
 }
