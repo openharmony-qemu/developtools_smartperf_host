@@ -357,4 +357,12 @@ describe('HeapLoader Test', () => {
         }
         expect(heapLoader.processNode(datas,node,1)).toBeUndefined();
     });
+    it('HeapLoaderTest22', () => {
+        let heapLoader = new HeapLoader(data);
+        expect(heapLoader.allocation).toBeTruthy();
+    });
+    it('HeapLoaderTest23', () => {
+        let heapLoader = new HeapLoader(data);
+        expect(heapLoader.getAllocation()).toBeTruthy();
+    });
 });

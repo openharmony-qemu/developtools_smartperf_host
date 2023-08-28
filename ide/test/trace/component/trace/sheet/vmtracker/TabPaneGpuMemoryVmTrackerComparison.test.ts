@@ -18,6 +18,7 @@ jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
   return {};
 });
+jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
   return {
     snapshotDataSource: () => {},
@@ -25,11 +26,12 @@ jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
   };
 });
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+  window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
-    observe: jest.fn(),
     unobserve: jest.fn(),
+    observe: jest.fn(),
   }));
 
 describe('TabPaneGpuMemoryVmTrackerComparison Test', () => {
@@ -64,9 +66,9 @@ describe('TabPaneGpuMemoryVmTrackerComparison Test', () => {
     expect(tabPaneGpuMemoryVmTrackerComparison.getComparisonData(10)).toBeTruthy();
   });
   it('TabPaneGpuMemoryVmTrackerComparison03', function () {
-    expect(tabPaneGpuMemoryVmTrackerComparison.comparisonDataByDB(10, datalist)).toBeTruthy();
+    expect(tabPaneGpuMemoryVmTrackerComparison.sortGpuMemoryByColumn(0, '')).toBeUndefined();
   });
   it('TabPaneGpuMemoryVmTrackerComparison04', function () {
-    expect(tabPaneGpuMemoryVmTrackerComparison.selectStamps(datalist)).toBeUndefined();
+    expect(tabPaneGpuMemoryVmTrackerComparison.sortGpuMemoryByColumn(1, 'thread')).toBeUndefined();
   });
 });

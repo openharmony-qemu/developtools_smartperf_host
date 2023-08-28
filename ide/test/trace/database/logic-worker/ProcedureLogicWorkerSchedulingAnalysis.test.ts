@@ -445,4 +445,19 @@ describe('ProcedureLogicWorkerSchedulingAnalysis Test', () => {
     window.postMessage = jest.fn(() => true);
     expect(procedureLogicWorkerSchedulingAnalysis.handle(data)).toBeUndefined();
   });
+  it('ProcedureLogicWorkerSchedulingAnalysisTest43', function () {
+    let procedureLogicWorkerSchedulingAnalysis = new ProcedureLogicWorkerSchedulingAnalysis();
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerSchedulingAnalysis.groupIrgDataByCpu([])).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerSchedulingAnalysisTest44', function () {
+    let procedureLogicWorkerSchedulingAnalysis = new ProcedureLogicWorkerSchedulingAnalysis();
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerSchedulingAnalysis.computeCpuMeasureDur([], 1)).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerSchedulingAnalysisTest45', function () {
+    let procedureLogicWorkerSchedulingAnalysis = new ProcedureLogicWorkerSchedulingAnalysis();
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerSchedulingAnalysis.handlerThreadCpuUsageData([])).toBeTruthy();
+  });
 });

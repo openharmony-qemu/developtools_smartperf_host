@@ -44,7 +44,8 @@ window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverM
 
 import crypto from 'crypto';
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+  window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     observe: jest.fn(),
   }));
@@ -60,21 +61,21 @@ describe('TabpaneFilesystemCalltree Test', () => {
   let val = {
     anomalyEnergy: [],
     clockMapData: { size: 16 },
-    cpuAbilityIds: [12,155,223],
-    cpuFreqFilterIds: [52,122,22],
+    cpuAbilityIds: [12, 155, 223],
+    cpuFreqFilterIds: [52, 122, 22],
     cpuFreqLimitDatas: [],
-    cpuStateFilterIds: [52,566,115],
-    cpus: [1,2],
-    diskAbilityIds: [451,22],
+    cpuStateFilterIds: [52, 566, 115],
+    cpus: [1, 2],
+    diskAbilityIds: [451, 22],
     diskIOLatency: false,
     diskIOReadIds: [522, 4, 5, 6],
     diskIOWriteIds: [2, 5621, 5, 6],
-    diskIOipids: [2,120, 5, 6],
+    diskIOipids: [2, 120, 5, 6],
     fileSysVirtualMemory: true,
     fileSystemType: [],
     fsCount: 32,
     funAsync: [],
-    funTids: [120,55],
+    funTids: [120, 55],
     hasFps: false,
     irqMapData: { size: 85 },
     jsMemory: [],
@@ -84,21 +85,21 @@ describe('TabpaneFilesystemCalltree Test', () => {
     nativeMemoryStatistic: [],
     networkAbilityIds: [],
     perfAll: true,
-    perfCpus: [1,2],
+    perfCpus: [1, 2],
     perfProcess: [],
     perfSampleIds: [],
-    perfThread: ['hiprofiler_cmd',''],
+    perfThread: ['hiprofiler_cmd', ''],
     powerEnergy: [],
-    processTrackIds: [552,123],
+    processTrackIds: [552, 123],
     promiseList: [],
     recordStartNs: 780423789228,
     rightNs: 966666666,
-    sdkCounterIds: [120,451,52],
+    sdkCounterIds: [120, 451, 52],
     sdkSliceIds: [154],
     smapsType: [],
     systemEnergy: [],
-    threadIds: [101,2122,4],
-    virtualTrackIds: [412,85],
+    threadIds: [101, 2122, 4],
+    virtualTrackIds: [412, 85],
     vmCount: 3,
   };
 
@@ -220,5 +221,17 @@ describe('TabpaneFilesystemCalltree Test', () => {
       children: [],
     };
     expect(tabpaneFilesystemCalltree.setRightTableData(call)).toBeUndefined();
+  });
+  it('TabpaneFilesystemCalltreeTest11', function () {
+    let filterData = {
+      callTree: [{}, {}],
+      dataMining: {
+        concat: jest.fn(() => true),
+      },
+      callTreeConstraints: {
+        checked: false,
+      },
+    };
+    expect(tabpaneFilesystemCalltree.refreshAllNode(filterData)).toBeUndefined();
   });
 });

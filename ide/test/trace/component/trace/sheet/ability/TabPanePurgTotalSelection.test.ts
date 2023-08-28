@@ -120,4 +120,10 @@ describe('TabPanePurgTotalSelection Test', () => {
     it('TabPanePurgTotalSelectionTest01', function () {
         expect(tabPanePurgTotalSelection.data).toBeUndefined();
     });
+    it('TabPanePurgTotalSelectionTest02', function () {
+        expect(tabPanePurgTotalSelection.queryTableData('ability',21)).toBeTruthy();
+    });
+    it('TabPanePurgTotalSelectionTest03', function () {
+        expect(tabPanePurgTotalSelection.queryTableData('VM',21)).toBeTruthy();
+    });
 })

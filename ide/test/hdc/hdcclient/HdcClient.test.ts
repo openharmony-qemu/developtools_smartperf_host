@@ -25,10 +25,6 @@ describe('HdcClient Test', () => {
     let hdcClient = new HdcClient();
     expect(hdcClient.bindStream()).toBeUndefined();
   });
-  it('HdcClientTest03', function () {
-    let hdcClient = new HdcClient();
-    expect(hdcClient.bindStopStream()).toBeUndefined();
-  });
   it('HdcClientTest04', function () {
     let hdcClient = new HdcClient();
     expect(hdcClient.unbindStream()).toBeTruthy();

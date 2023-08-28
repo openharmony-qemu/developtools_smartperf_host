@@ -44,7 +44,8 @@ describe('Top20ThreadRunTime Test', () => {
   it('Top20ThreadRunTimeTest04', () => {
     let top20ThreadRunTime = new Top20ThreadRunTime();
     top20ThreadRunTime.queryLogicWorker = jest.fn();
-    top20ThreadRunTime.init = jest.fn();
+    top20ThreadRunTime.threadRunTimeTbl = jest.fn();
+    top20ThreadRunTime.threadRunTimeTbl.recycleDataSource = jest.fn();
     expect(top20ThreadRunTime.init()).toBeUndefined();
   });
 });

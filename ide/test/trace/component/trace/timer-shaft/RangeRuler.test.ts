@@ -23,7 +23,6 @@ jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () 
   return {};
 });
 
-
 describe('RangeRuler Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 1;
@@ -283,6 +282,12 @@ describe('RangeRuler Test', () => {
     expect(rangeRuler.keyPressF()).toBeUndefined();
   });
   it('RangeRulerTest27', function () {
-    expect(rangeRuler.zoomFit('100','200')).toBeUndefined();
+    expect(rangeRuler.zoomFit('100', '200')).toBeUndefined();
+  });
+  it('RangeRulerTest28', function () {
+    expect(Mark.draw).toBeUndefined();
+  });
+  it('RangeRulerTest29', function () {
+    expect(rangeRuler.drawSelectionRange()).toBeUndefined();
   });
 });

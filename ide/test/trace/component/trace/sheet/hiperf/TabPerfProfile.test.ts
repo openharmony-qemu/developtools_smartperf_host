@@ -108,4 +108,16 @@ describe('TabPerfProfile Test', () => {
     ];
     expect(tabpanePerfProfile.data).toBeUndefined();
   });
+  it('TabpanePerfProfileTest12 ', function () {
+    let filterData = {
+      callTree: [{}, {}],
+      dataMining: {
+        concat: jest.fn(() => true),
+      },
+      callTreeConstraints: {
+        checked: false,
+      },
+    };
+    expect(tabpanePerfProfile.refreshAllNode(filterData)).toBeUndefined();
+  });
 });

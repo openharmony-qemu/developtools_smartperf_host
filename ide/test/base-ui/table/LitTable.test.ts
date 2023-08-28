@@ -21,6 +21,7 @@ import { LitTableColumn } from '../../../dist/base-ui/table/lit-table-column.js'
 import { TableRowObject } from '../../../dist/base-ui/table/TableRowObject.js';
 // @ts-ignore
 import { LitProgressBar } from '../../../dist/base-ui/progress-bar/LitProgressBar.js';
+import { LitIcon } from '../../../src/base-ui/icon/LitIcon.js';
 describe('LitTable Test', () => {
   window.ResizeObserver =
     window.ResizeObserver ||
@@ -480,6 +481,17 @@ describe('LitTable Test', () => {
     litTable.treeElement = document.createElement('div');
     litTable.tableElement = document.createElement('div');
     litTable.setAttribute('selectable', '123');
+    litTable.setAttribute('tree', '');
+    litTable.recycleDataSource = [
+      {
+        id: 1,
+        name: 'name',
+      },
+      {
+        id: 2,
+        name: 'nameValue',
+      },
+    ];
     let tableColmn = document.createElement('lit-table-column') as LitTableColumn;
     tableColmn.setAttribute('title', '6');
     tableColmn.setAttribute('data-index', '22');
@@ -621,9 +633,15 @@ describe('LitTable Test', () => {
     expect(litTable.mouseOut()).toBeUndefined();
   });
   it('LitTableTest49', () => {
+    litTable.isRecycleList = true;
     expect(litTable.setCurrentHover({})).toBeUndefined();
   });
   it('LitTableTest50', () => {
     expect(litTable.clearAllHover({})).toBeUndefined();
+  });
+  it('LitTableTest52', () => {
+    let tableIcon = document.createElement('lit-icon') as LitIcon;
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ movementX: 1, movementY: 2 });
+    tableIcon.dispatchEvent(mouseClickEvent);
   });
 });

@@ -130,4 +130,8 @@ describe('SpHiPerf Test', () => {
     spHiPerf.init();
     expect(spHiPerf).toBeDefined();
   });
+  it('SpHiPerf02', function () {
+    ss.displayTip = jest.fn(()=>true);
+    expect(spHiPerf.hoverTip()).toBeUndefined();
+  });
 });

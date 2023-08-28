@@ -23,6 +23,8 @@ jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => 
 });
 const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -152,5 +154,9 @@ describe('SpAbilityMonitorChart Test', () => {
   it('SpAbilityMonitorChart01', function () {
     trace.init();
     expect(trace).toBeDefined();
+  });
+  it('SpAbilityMonitorChart02', function () {
+    let traceRow = new TraceRow();
+    expect(trace.initNetworkAbility(traceRow)).toBeDefined();
   });
 });

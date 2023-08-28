@@ -185,4 +185,32 @@ describe('TabPaneCpuUsage Test', () => {
     let tabPaneCpuUsage = document.querySelector('#CpuUsage') as TabPaneCpuUsage;
     expect(tabPaneCpuUsage.sortFreq).toBe(undefined);
   });
+  it('TabPaneCpuUsageTest12', function () {
+    document.body.innerHTML = `<div id="CpuUsage"></div>`;
+    let tabPaneCpuUsage = document.querySelector('#CpuUsage') as TabPaneCpuUsage;
+    tabPaneCpuUsage.data = [
+      {
+        cpus: [2],
+        threadIds: [],
+        trackIds: [12, 4],
+        funTids: [56, 345],
+        heapIds: [],
+        nativeMemory: [],
+        cpuAbilityIds: [10, 32, 1],
+        memoryAbilityIds: [],
+        diskAbilityIds: [12, 76],
+        networkAbilityIds: [],
+        leftNs: 77,
+        rightNs: 987,
+        hasFps: false,
+        statisticsSelectData: undefined,
+        perfSampleIds: [],
+        perfCpus: [0, 9],
+        perfProcess: [],
+        perfThread: [],
+        perfAll: true,
+      },
+    ];
+    expect(tabPaneCpuUsage).toBeTruthy();
+  });
 });

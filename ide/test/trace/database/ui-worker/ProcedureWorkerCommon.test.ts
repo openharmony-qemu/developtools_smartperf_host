@@ -40,6 +40,9 @@ import {
   drawFlagLineSegment,
   drawSelectionRange,
   drawLinkLines,
+  drawBezierCurve,
+  drawString2Line,
+  drawWakeUpList,
   // @ts-ignore
 } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
 // @ts-ignore
@@ -459,5 +462,37 @@ describe('ProcedureWorkerCommon Test', () => {
       endX: 25226,
     };
     expect(drawSelectionRange(context, params)).toBeUndefined();
+  });
+  it('ProcedureWorkerCommon36', function () {
+    expect(FilterConfig).toBeUndefined();
+  });
+  it('ProcedureWorkerCommon37', function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d');
+    let tm = {
+      getRange:jest.fn(()=>true),
+      getBoundingClientRect:jest.fn(()=>true),
+    };
+    expect(drawLinkLines(context,[],tm,true)).toBeUndefined();
+  });
+  it('ProcedureWorkerCommon38', function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d');
+    expect(drawString2Line(context,[],[],2,[],[])).toBeUndefined();
+  });
+  it('ProcedureWorkerCommon39', function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d');
+    let wake = {
+      wakeupTime:23,
+    };
+    let frame = new Rect(20, 30, 10, 30);
+    expect(drawWakeUpList(context,wake,0,1000,1000,frame,true,undefined,false)).toBeUndefined();
   });
 });

@@ -15,6 +15,15 @@
 
 // @ts-ignore
 import { SpInfoAndStats } from '../../../dist/trace/component/SpInfoAndStas.js';
+const sqlit = require('../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../dist/trace/database/SqlLite.js');
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('SpInfoAndStasTest', () => {
   document.body.innerHTML = `<sp-info-and-stats id="ddd"></sp-info-and-stats>`;
@@ -22,11 +31,6 @@ describe('SpInfoAndStasTest', () => {
   it('SpInfoAndStasTest01', function () {
     let spInfoAndStats = new SpInfoAndStats();
     expect(spInfoAndStats.initElements()).toBeUndefined();
-  });
-
-  it('SpInfoAndStasTest03', function () {
-    spInfoAndStats.initMetricItemData = jest.fn(() => true);
-    expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
   });
 
   it('SpInfoAndStasTest04', function () {
@@ -57,10 +61,30 @@ describe('SpInfoAndStasTest', () => {
     expect(spInfoAndStats.attributeChangedCallback([], [], [])).toBeUndefined();
   });
 
-  it('SpInfoAndStasTest9', function () {
+  it('SpInfoAndStasTest10', function () {
+    let traceMetaData = sqlit.queryTraceMetaData;
+    let data = [
+      {
+        name: 'a',
+        valueText: '',
+      },
+    ];
+    traceMetaData.mockResolvedValue(data);
+    let selectTraceMetaData = sqlit.querySelectTraceStats;
+    let selectData = [
+      {
+        event_name: '',
+        stat_type: '',
+        count: 1,
+        source: 10,
+        serverity: 23,
+      },
+    ];
+    selectTraceMetaData.mockResolvedValue(selectData);
+    let spInfoAndStats = new SpInfoAndStats();
     expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
   });
-  it('SpInfoAndStasTest10', function () {
-    expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
+  it('SpInfoAndStasTest11', function () {
+    expect(spInfoAndStats.initInfoAndStatsData()).toBeUndefined();
   });
 });

@@ -14,19 +14,19 @@
  */
 
 // @ts-ignore
-import { FrameChart } from '../../../../dist/trace/component/chart/FrameChart.js';
+import { FrameChart, Module } from '../../../../dist/trace/component/chart/FrameChart.js';
 // @ts-ignore
-import {TraceRow} from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 // @ts-ignore
-import {ChartMode} from "../../../../dist/trace/bean/FrameChartStruct.js";
+import { ChartMode, ChartStruct } from '../../../../dist/trace/bean/FrameChartStruct.js';
 
 jest.mock('../../../../dist/trace/component/SpSystemTrace.js', () => {
-    return {};
+  return {};
 });
 jest.mock('../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 
 const intersectionObserverMock = () => ({
-    observe: () => null,
+  observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
@@ -39,221 +39,231 @@ window.ResizeObserver =
   }));
 
 jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
-    return {}
+  return {};
 });
 
 describe('FrameChart Test', () => {
-    let node = [{ children: '' }, { children: { length: 0 } }];
-    let node1 = [{ children: '' }, { children: { length: 10 } }];
-    let selectData = [(length = 1)];
-    document.body.innerHTML = '<tab-framechart id="ccc"></tab-framechart>';
-    let frameChart = document.querySelector('#ccc') as FrameChart;
-    it('FrameChartTest01', function () {
-        frameChart.tabPaneScrollTop = false;
-        expect(frameChart.tabPaneScrollTop).toBeFalsy();
-    });
+  let node = [{ children: '' }, { children: { length: 0 } }];
+  let node1 = [{ children: '' }, { children: { length: 10 } }];
+  let selectData = [(length = 1)];
+  document.body.innerHTML = '<sp-application><tab-framechart id="ccc"></tab-framechart></sp-application>';
+  let frameChart = new FrameChart();
+  frameChart.data = [{
+    isDraw : false,
+    depth:  0,
+    symbol:  '',
+    lib: '',
+    size:  0,
+    count: 0,
+    dur:  0,
+    searchSize:  0,
+    searchCount: 0,
+    searchDur: 0,
+    drawSize:  0,
+    drawCount: 0,
+    drawDur:  0,
+    parent:  undefined,
+    children:  [],
+    percent:  0,
+    addr: '',
+    isSearch: false,
+    isChartSelect: false,
+    isChartSelectParent: false
+  }]
+  it('FrameChartTest01', function () {
+    frameChart.tabPaneScrollTop = false;
+    expect(frameChart.tabPaneScrollTop).toBeFalsy();
+  });
 
-    it('FrameChartTest02', function () {
-        expect(frameChart.updateFloatHint()).toBeUndefined();
-    });
+  it('FrameChartTest02', function () {
+    frameChart.createRootNode();
+    let index = frameChart.scale(2);
+    expect(index).toBe(undefined);
+  });
 
-    it('FrameChartTest03', function () {
-        frameChart.calculateChartData = jest.fn(() => true);
-        frameChart.calMaxDepth = jest.fn(() => true);
-        expect(frameChart.redrawChart(selectData)).toBeUndefined();
-    });
+  it('FrameChartTest03', function () {
+    frameChart.translationDraw = jest.fn(() => true);
+    expect(frameChart.translation()).toBeUndefined();
+  });
 
-    it('FrameChartTest05', function () {
-        let index = frameChart.scale(2);
-        expect(index).toBe(undefined);
-    });
+  it('FrameChartTest04', function () {
+    frameChart.translationDraw = jest.fn(() => true);
+    expect(frameChart.translation(-1)).toBeUndefined();
+  });
 
-    it('FrameChartTest08', function () {
-        frameChart.translationDraw = jest.fn(() => true);
-        expect(frameChart.translation()).toBeUndefined();
-    });
+  it('FrameChartTest05', function () {
+    frameChart.selectTotalCount = false;
+    expect(frameChart.selectTotalCount).toBeFalsy();
+  });
 
-    it('FrameChartTest14', function () {
-        let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(() => true);
-        expect(frameChart.translation(-1)).toBeUndefined();
-    });
+  it('FrameChartTest06', function () {
+    frameChart._mode = 1;
+    frameChart.drawScale = jest.fn(() => true);
+    expect(frameChart.calculateChartData()).not.toBeUndefined();
+  });
 
-    it('FrameChartTest09', function () {
-        frameChart.selectTotalCount = false;
-        expect(frameChart.selectTotalCount).toBeFalsy();
-    });
+  it('FrameChartTest07', function () {
+    expect(frameChart.updateCanvas()).toBeUndefined();
+  });
 
-    it('FrameChartTest11', function () {
-        let frameChart = new FrameChart();
-        frameChart._mode = 1;
-        frameChart.drawScale = jest.fn(() => true);
-        expect(frameChart.calculateChartData()).not.toBeUndefined();
-    });
+  it('FrameChartTest08', function () {
+    frameChart.translationDraw = jest.fn(() => true);
+    frameChart.lastCanvasXInScale = 0;
+    expect(frameChart.translationByScale()).toBe(undefined);
+  });
 
-    it('FrameChartTest12', function () {
-        expect(frameChart.updateCanvas()).toBeUndefined();
-    });
+  it('FrameChartTest09', function () {
+    frameChart.translationDraw = jest.fn(() => true);
+    frameChart.canvasX = 4;
+    frameChart.lastCanvasXInScale = 1;
+    expect(frameChart.translationByScale()).toBe(undefined);
+  });
 
-    it('FrameChartTest13', function () {
-        let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(() => true);
-        frameChart.lastCanvasXInScale = 0;
-        expect(frameChart.translationByScale()).toBe(undefined);
-    });
+  it('FrameChartTest10', function () {
+    frameChart.translationDraw = jest.fn(() => true);
+    expect(frameChart.translationByScale(1)).toBe(undefined);
+  });
 
-    it('FrameChartTest21', function () {
-        let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(() => true);
-        frameChart.canvasX = 4;
-        frameChart.lastCanvasXInScale = 1;
-        expect(frameChart.translationByScale()).toBe(undefined);
-    });
+  it('FrameChartTest11', function () {
+    frameChart.calculateChartData = jest.fn(() => true);
+    frameChart.xPoint = 1;
+    frameChart.createRootNode();
+    expect(frameChart.translationDraw()).toBeTruthy();
+  });
 
-    it('FrameChartTest22', function () {
-        let frameChart = new FrameChart();
-        frameChart.translationDraw = jest.fn(() => true);
-        expect(frameChart.translationByScale(1)).toBe(undefined);
-    });
-    it('FrameChartTest23', function () {
-        expect(frameChart.searchData([], 2, 2)).toBeNull();
-    });
+  it('FrameChartTest12', function () {
+    expect(frameChart.onMouseClick({ button: 0 })).toBeUndefined();
+  });
 
-    it('FrameChartTest15', function () {
-        let frameChart = new FrameChart();
-        frameChart.calculateChartData = jest.fn(() => true);
-        frameChart.xPoint = 1;
-        expect(frameChart.translationDraw()).toBe(undefined);
-    });
-
-    it('FrameChartTest16', function () {
-        expect(frameChart.onMouseClick({ button: 0 })).toBeUndefined();
-    });
-
-
-  it('FrameChartTest18', function () {
-    let frameChart = new FrameChart();
+  it('FrameChartTest13', function () {
     expect(frameChart.drawFrameChart(node)).toBeUndefined();
   });
 
-  it('FrameChartTest20', function () {
-    expect(frameChart.searchData([], 1, 1)).toBeNull();
-  });
 
-  it('FrameChartTest23', function () {
+  it('FrameChartTest14', function () {
     expect(frameChart.onMouseClick({ button: 2 })).toBeUndefined();
   });
 
-  it('FrameChartTest24', function () {
-    document.body.innerHTML = `<sp-application></sp-application>`;
-    expect(frameChart.drawScale()).toBeUndefined();
-  });
-
-  it('FrameChartTest25', function () {
-    let frameChart = new FrameChart();
-    frameChart.selectTotalSize = false;
-    expect(frameChart.selectTotalSize).toBeFalsy();
-  });
-
-  it('FrameChartTest26', function () {
-    let frameChart = new FrameChart();
-    frameChart.maxDepth = false;
-    expect(frameChart.maxDepth).toBeFalsy();
-  });
-
-  it('FrameChartTest27 ', function () {
-    let frameChart = new FrameChart();
-    expect(frameChart.calMaxDepth(node, 1)).toBeUndefined();
-  });
-
-  it('FrameChartTest28 ', function () {
-    let frameChart = new FrameChart();
+  it('FrameChartTest15 ', function () {
     expect(frameChart.mode).toBeUndefined();
   });
 
-  it('FrameChartTest29', function () {
-    let frameChart = new FrameChart();
+  it('FrameChartTest16', function () {
     frameChart.mode = false;
     expect(frameChart.mode).toBeFalsy();
   });
 
-  it('FrameChartTest30', function () {
+  it('FrameChartTest17', function () {
     frameChart.caldrawArgs = jest.fn(() => true);
     expect(frameChart.caldrawArgs()).toBeTruthy();
   });
 
-  it('FrameChartTest31', function () {
-    let frameChart = new FrameChart();
-    frameChart.data = [];
+  it('FrameChartTest18', function () {
     expect(frameChart.data).toBeFalsy();
   });
 
-  it('FrameChartTest32', function () {
-    let frameChart = new FrameChart();
+  it('FrameChartTest19', function () {
     expect(frameChart.addChartClickListener(() => {})).toBeUndefined();
   });
 
-  it('FrameChartTest33', function () {
-    let frameChart = new FrameChart();
+  it('FrameChartTest20', function () {
     expect(frameChart.removeChartClickListener(() => {})).toBeUndefined();
   });
 
-  it('FrameChartTest34', function () {
-    let frameChart = new FrameChart();
-    expect(frameChart.calMaxDepth(node1, 10)).toBeUndefined();
-  });
-
-  it('FrameChartTest35', function () {
-    let frameChart = new FrameChart();
-    frameChart.drawTriangleOnScale = jest.fn(() => true);
-    expect(frameChart.drawTriangleOnScale()).toBeTruthy();
-  });
-
-  it('FrameChartTest36', function () {
+  it('FrameChartTest21', function () {
     frameChart._mode = 1;
     frameChart.drawScale = jest.fn(() => true);
     expect(frameChart.drawScale()).toBeTruthy();
   });
 
-  it('FrameChartTest37', function () {
+  it('FrameChartTest22', function () {
     frameChart._mode = 2;
     frameChart.drawScale = jest.fn(() => true);
     expect(frameChart.drawScale()).toBeTruthy();
   });
 
-  it('FrameChartTest38', function () {
+  it('FrameChartTest23', function () {
     frameChart._mode = 3;
     frameChart.drawScale = jest.fn(() => true);
     expect(frameChart.drawScale()).toBeTruthy();
   });
 
-  it('FrameChartTest39', function () {
+  it('FrameChartTest24', function () {
     expect(frameChart.resetTrans()).toBeUndefined();
   });
 
-  it('FrameChartTest40', function () {
+  it('FrameChartTest25', function () {
     expect(frameChart.onMouseClick({ button: 2 })).toBeUndefined();
   });
 
-  it('FrameChartTest41', function () {
-    expect(frameChart.drawDataSet(node, true)).toBeUndefined();
+  it('FrameChartTest26', function () {
+    frameChart._mode = ChartMode.Byte;
+    frameChart.drawScale = jest.fn(() => true);
+    frameChart.currentData = [
+      {
+        drawSize: 10,
+        size: 20,
+        frame: {
+          x: 10,
+          y: 40,
+          width: 9,
+          height: 3,
+        },
+      },
+    ];
+    expect(frameChart.calculateChartData()).not.toBeUndefined();
   });
-  it('FrameChartTest42', function () {
-        let frameChart = new FrameChart();
-        frameChart._mode = ChartMode.Byte;
-        frameChart.drawScale = jest.fn(() => true);
-        expect(frameChart.calculateChartData()).not.toBeUndefined();
-    });
-  it('FrameChartTest44', function () {
-        let frameChart = new FrameChart();
-        frameChart._mode = ChartMode.Count;
-        frameChart.drawScale = jest.fn(() => true);
-        expect(frameChart.calculateChartData()).not.toBeUndefined();
-    });
-  it('FrameChartTest45', function () {
-        let frameChart = new FrameChart();
-        frameChart._mode = ChartMode.Duration;
-        frameChart.drawScale = jest.fn(() => true);
-        expect(frameChart.calculateChartData()).not.toBeUndefined();
-    });
+  it('FrameChartTest27', function () {
+    frameChart._mode = ChartMode.Count;
+    frameChart.drawScale = jest.fn(() => true);
+    frameChart.currentData = [
+      {
+        drawSize: 23,
+        size: 12,
+        frame: {
+          x: 29,
+          y: 40,
+          width: 56,
+          height: 3,
+        },
+      },
+    ];
+    expect(frameChart.calculateChartData()).not.toBeUndefined();
+  });
+  it('FrameChartTest28', function () {
+    frameChart._mode = ChartMode.Duration;
+    frameChart.drawScale = jest.fn(() => true);
+    frameChart.currentData = [
+      {
+        drawSize: 78,
+        size: 12,
+        frame: {
+          x: 29,
+          y: 50,
+          width: 56,
+          height: 12,
+        },
+      },
+    ];
+    expect(frameChart.calculateChartData()).not.toBeUndefined();
+  });
+  it('FrameChartTest29 ', function () {
+    let node = [
+      {
+        parent: [
+          {
+            drawCount: 23,
+            drawDur: 12,
+            drawSize: 45,
+          },
+        ],
+      },
+    ];
+    let module = [{
+      drawCount: 0,
+      drawDur: 78,
+      drawSize: 9,
+    }]
+    expect(frameChart.setParentDisplayInfo(node, module)).toBeUndefined();
+  });
 });

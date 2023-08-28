@@ -15,6 +15,10 @@
 
 // @ts-ignore
 import { TabPaneCpuByProcess } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuByProcess.js';
+// @ts-ignore
+import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
+// @ts-ignore
+import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
 
 window.ResizeObserver =
   window.ResizeObserver ||

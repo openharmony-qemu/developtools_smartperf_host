@@ -94,4 +94,10 @@ describe('TabPaneNMemory Test', () => {
   it('TabPaneNMemoryTest20', function () {
     expect(tabPaneNMemory.startWorker({}, {})).toBeTruthy();
   });
+  it('TabPaneNMemoryTest21', function () {
+    expect(tabPaneNMemory.getDataByNativeMemoryWorker([], false)).toBeUndefined();
+  });
+  it('TabPaneNMemoryTest22', function () {
+    expect(tabPaneNMemory.resetFilter()).toBeUndefined();
+  });
 });

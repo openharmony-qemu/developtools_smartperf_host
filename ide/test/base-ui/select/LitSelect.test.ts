@@ -193,4 +193,11 @@ describe('LitSelect Test', () => {
     let select = document.querySelector('#litSelect') as LitSelect;
     expect(select.reset()).toBeUndefined();
   });
+  it('LitSelectTest31', function () {
+    document.body.innerHTML = `<lit-select id="litSelect"  adaptive-expansion></lit-select>`;
+    let select = document.querySelector('#litSelect') as LitSelect;
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ movementX: 1, movementY: 2 });
+    select.isMultiple = jest.fn(() => true);
+    select.selectClearEl.dispatchEvent(mouseClickEvent);
+  });
 });

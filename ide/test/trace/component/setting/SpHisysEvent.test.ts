@@ -12,24 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 // @ts-ignore
-import { initSysCallsTopStrategy } from '../../../../dist/trace/component/metrics/SysCallsTopStrategy.js';
+import { SpHisysEvent } from '../../../../dist/trace/component/setting/SpHisysEvent.js';
 
-describe('SysCallsTopStrategy Test', () => {
-  const metricData = [
-    {
-      length: 1,
-      pid: 'pi',
-      tid: 'ti',
-      process_name: '',
-      maxDur: 'name',
-      minDur: '',
-      avgDur: '',
-      funName: '',
-    },
-  ];
-
-  it('initSysCallsTopStrategyTest01', () => {
-    expect(initSysCallsTopStrategy(metricData)).toBeTruthy();
-  });
-});
+describe('SpHisysEvent Test', () => {
+    let spHisysEvent = new SpHisysEvent();
+    it('SpHisysEventTest01', function () {
+        expect(spHisysEvent.startSamp).toBeFalsy();
+    });
+    it('SpHisysEventTest02', function () {
+        expect(spHisysEvent.process).toBeFalsy();
+    });
+})

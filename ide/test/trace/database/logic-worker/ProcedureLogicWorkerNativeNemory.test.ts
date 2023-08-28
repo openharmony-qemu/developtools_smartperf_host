@@ -493,4 +493,324 @@ describe('ProcedureLogicWorkerNativeNemory Test', () => {
       },
     ]);
   });
+  it('procedureLogicWorkerFileSystemTest56', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      params: {
+        list: '',
+        get: jest.fn(() => true),
+      },
+      action: '',
+      id: 2,
+      type: 'native-memory-queryNativeHookEvent',
+    };
+    procedureLogicWorkerNativeMemory.clearAll = jest.fn(() => true);
+    procedureLogicWorkerNativeMemory.initDataDict = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest57', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      params: {
+        list: '',
+        types: {
+          join: jest.fn(() => true),
+        },
+      },
+      action: '',
+      id: 4,
+      type: 'native-memory-queryAnalysis',
+    };
+    procedureLogicWorkerNativeMemory.clearAll = jest.fn(() => true);
+    procedureLogicWorkerNativeMemory.initDataDict = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest58', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      params: {
+        list: '',
+        types: {
+          join: jest.fn(() => true),
+        },
+      },
+      action: 'c',
+      id: 4,
+      type: 'native-memory-queryStatisticCallchainsSamples',
+    };
+    procedureLogicWorkerNativeMemory.clearAll = jest.fn(() => true);
+    procedureLogicWorkerNativeMemory.initDataDict = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest59', function () {
+    window.postMessage = jest.fn(() => true);
+    let data = {
+      params: {
+        types: {
+          join: jest.fn(() => true),
+        },
+        list: '',
+      },
+      action: '',
+      id: 4,
+      type: 'native-memory-queryCallchainsSamples',
+    };
+    procedureLogicWorkerNativeMemory.clearAll = jest.fn(() => true);
+    procedureLogicWorkerNativeMemory.initDataDict = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.handle(data)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest60', function () {
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.supplementNativeHoodData()).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest61', function () {
+    window.postMessage = jest.fn(() => true);
+    let memory = {
+      subTypeId: '',
+    };
+    expect(procedureLogicWorkerNativeMemory.fillNativeHook(memory)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest62', function () {
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.initNMFrameData()).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest63', function () {
+    window.postMessage = jest.fn(() => true);
+    let paramMap = {
+      get: jest.fn(() => true),
+    };
+    expect(procedureLogicWorkerNativeMemory.resolvingAction(paramMap)).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest64', function () {
+    window.postMessage = jest.fn(() => true);
+    let paramMap = {
+      get: jest.fn(() => true),
+    };
+    expect(procedureLogicWorkerNativeMemory.resolvingActionNativeMemoryStack(paramMap)).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest65', function () {
+    window.postMessage = jest.fn(() => true);
+    let paramMap = {
+      get: jest.fn(() => true),
+    };
+    expect(procedureLogicWorkerNativeMemory.resolvingActionNativeMemory(paramMap)).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest66', function () {
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.sortByNativeMemoryColumn('', 0, [])).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest67', function () {
+    window.postMessage = jest.fn(() => true);
+    let arr = {
+      isRelease: true,
+      startTs: 31,
+      endTs: 61,
+      addr: '',
+    };
+    expect(procedureLogicWorkerNativeMemory.setApplyIsRelease([], arr)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest68', function () {
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.freshCurrentCallchains([], true)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest69', function () {
+    window.postMessage = jest.fn(() => true);
+    let paramMap = {
+      get: jest.fn(() => true),
+    };
+    expect(procedureLogicWorkerNativeMemory.groupCallchainSample(paramMap)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest70', function () {
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerNativeMemory.createThreadSample([])).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest71', function () {
+    window.postMessage = jest.fn(() => true);
+    let currentNode = {
+      initChildren: {
+        filter: jest.fn(() => true),
+      },
+    };
+    expect(procedureLogicWorkerNativeMemory.merageChildrenByIndex(currentNode, [], 21, [], true)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest72', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 1,
+        funcName: 'groupCallchainSample',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest73', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 1,
+        funcName: 'getCallChainsBySampleIds',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest74', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 1,
+        funcName: 'hideSystemLibrary',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest75', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 1,
+        funcName: 'hideNumMaxAndMin',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest76', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 1,
+        funcName: 'splitAllProcess',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+            forEach: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest77', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 2,
+        funcName: 'resetAllNode',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest78', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 2,
+        funcName: 'resotreAllNode',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+            forEach: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest79', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 2,
+        funcName: 'splitTree',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest80', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 2,
+        funcName: 'setSearchValue',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest81', function () {
+    window.postMessage = jest.fn(() => true);
+    let params = [
+      {
+        length: 2,
+        funcName: 'clearSplitMapData',
+        funcArgs: [
+          {
+            get: jest.fn(() => true),
+          },
+        ],
+      },
+    ];
+    expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest83', function () {
+    window.postMessage = jest.fn(() => true);
+    let nativeHookCallInfo = new NativeHookCallInfo();
+    expect(nativeHookCallInfo.totalCount).toEqual(0);
+  });
+  it('procedureLogicWorkerFileSystemTest84', function () {
+    window.postMessage = jest.fn(() => true);
+    let nativeHookCallInfo = new NativeHookCallInfo();
+    expect(nativeHookCallInfo.totalSize).toEqual(0);
+  });
+  it('procedureLogicWorkerFileSystemTest85', function () {
+    window.postMessage = jest.fn(() => true);
+    let nativeHookCallInfo = new NativeHookCallInfo();
+    nativeHookCallInfo.totalCount = true;
+    expect(nativeHookCallInfo).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest86', function () {
+    window.postMessage = jest.fn(() => true);
+    let nativeHookCallInfo = new NativeHookCallInfo();
+    nativeHookCallInfo.totalSize = true;
+    expect(nativeHookCallInfo).toBeTruthy();
+  });
+  it('procedureLogicWorkerFileSystemTest87', function () {
+    let currentNode = {
+      symbol: '',
+    };
+    expect(NativeHookCallInfo.merageCallChainSample(currentNode, [], []));
+  });
 });

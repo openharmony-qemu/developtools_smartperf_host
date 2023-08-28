@@ -45,4 +45,7 @@ describe('TabPanePerfBottomUp Test', () => {
     tabPanePerfBottomUp.data = data;
     expect(tabPanePerfBottomUp.data).toBeUndefined();
   });
+  it('TabPanePerfBottomUp03 ', function () {
+    expect(tabPanePerfBottomUp.setBottomUpTableData([])).toBeUndefined();
+  });
 });

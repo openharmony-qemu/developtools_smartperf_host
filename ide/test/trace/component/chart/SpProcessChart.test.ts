@@ -26,13 +26,14 @@ const intersectionObserverMock = () => ({
   observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+// @ts-ignore
 import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-    disconnect: jest.fn(),
-  }));
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
 
 describe('SpProcessChart Test', () => {
   let manager = new SpChartManager();
@@ -66,16 +67,7 @@ describe('SpProcessChart Test', () => {
     },
   ]);
   let queryProcessThreads = sqlit.queryProcessThreads;
-  queryProcessThreads.mockResolvedValue([
-    {
-      utid: 1,
-      hasSched: 0,
-      pid: 1,
-      tid: 4,
-      processName: 'process',
-      threadName: 'thread',
-    },
-  ]);
+  queryProcessThreads.mockResolvedValue([]);
   let queryProcessThreadsByTable = sqlit.queryProcessThreadsByTable;
   queryProcessThreadsByTable.mockResolvedValue([
     {
@@ -83,13 +75,6 @@ describe('SpProcessChart Test', () => {
       tid: 0,
       processName: 'process',
       threadName: 'thread',
-    },
-  ]);
-  let getAsyncEvents = sqlit.getAsyncEvents;
-  getAsyncEvents.mockResolvedValue([
-    {
-      pid: 1,
-      startTime: 100000,
     },
   ]);
   let queryProcessMem = sqlit.queryProcessMem;
@@ -524,11 +509,36 @@ describe('SpProcessChart Test', () => {
       }
     }
   ]);
+  let processData = sqlit.queryProcessData;
+  processData.mockResolvedValue([
+    {
+      cpu: 0, dur: 199000, startTime: 259730000
+    },
+    {
+      cpu: 2, dur: 147000, startTime: 307742000
+    }
+  ]);
+  let processMemData = sqlit.queryProcessMemData;
+  processMemData.mockResolvedValue([
+    {
+      startTime: 593015789,
+      track_id : 153,
+      ts : 30150767408970,
+      type : "measure",
+      value : 0
+    },
+    {
+      startTime: 593360060,
+      track_id : 153,
+      ts : 30150767753241,
+      type : "measure",
+      value : 1
+    }
+  ]);
 
   spProcessChart.setAttribute = jest.fn();
   spProcessChart.addChildTraceRow = jest.fn();
   it('SpProcessChart01', function () {
-    spProcessChart.initAsyncFuncData();
     spProcessChart.init();
     expect(spProcessChart).toBeDefined();
   });

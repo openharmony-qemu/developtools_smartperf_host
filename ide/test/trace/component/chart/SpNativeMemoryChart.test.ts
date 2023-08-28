@@ -79,4 +79,10 @@ describe('SpNativeMemoryChart Test', () => {
   it('SpNativeMemoryChart01', function () {
     expect(spNativeMemoryChart.initChart()).toBeDefined();
   });
+  it('SpNativeMemoryChart02', function () {
+    expect(spNativeMemoryChart.getNativeMemoryStatisticByChartType()).toBeDefined();
+  });
+  it('SpNativeMemoryChart03', function () {
+    expect(spNativeMemoryChart.getNativeMemoryDataByChartType()).toBeDefined();
+  });
 });

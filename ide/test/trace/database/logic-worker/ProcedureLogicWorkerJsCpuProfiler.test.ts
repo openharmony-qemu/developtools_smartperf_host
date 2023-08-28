@@ -14,7 +14,10 @@
  */
 
 //@ts-ignore
-import { ProcedureLogicWorkerJsCpuProfiler } from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerJsCpuProfiler.js';
+import {
+  ProcedureLogicWorkerJsCpuProfiler,
+  JsCpuProfilerSample,
+} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerJsCpuProfiler.js';
 
 describe('ProcedureLogicWorkerJsCpuProfiler Test', () => {
   it('ProcedureLogicWorkerJsCpuProfiler01', function () {
@@ -113,5 +116,41 @@ describe('ProcedureLogicWorkerJsCpuProfiler Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(procedureLogicWorkerJsCpuProfiler.handle(data)).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler09', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    let chartFrame = {
+      parent: true,
+    };
+    expect(procedureLogicWorkerJsCpuProfiler.copyParent([], chartFrame)).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler10', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    expect(procedureLogicWorkerJsCpuProfiler.calStatistic([], 11, 43)).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler11', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    procedureLogicWorkerJsCpuProfiler.dataCache = jest.fn(() => true);
+    procedureLogicWorkerJsCpuProfiler.dataCache.clearAll = jest.fn(() => true);
+    expect(procedureLogicWorkerJsCpuProfiler.clearAll()).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler12', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    expect(procedureLogicWorkerJsCpuProfiler.getFullCallChainOfNode([])).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler13', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    expect(procedureLogicWorkerJsCpuProfiler.symbolToChartFrame([], [])).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler14', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    expect(procedureLogicWorkerJsCpuProfiler.chartFrameToTabStruct([], [])).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler15', function () {
+    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
+    expect(procedureLogicWorkerJsCpuProfiler.isSymbolEqual([], [])).toBeTruthy();
+  });
+  it('ProcedureLogicWorkerJsCpuProfiler16', function () {
+    expect(JsCpuProfilerSample).toBeUndefined();
   });
 });

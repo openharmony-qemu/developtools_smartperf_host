@@ -15,6 +15,8 @@
 
 // @ts-ignore
 import { TraceSheet } from '../../../../../dist/trace/component/trace/base/TraceSheet.js';
+const sqlit = require('../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -91,5 +93,26 @@ describe('TraceSheet Test', () => {
   it('TraceSheet Test10', () => {
     let traceSheet = new TraceSheet();
     expect(traceSheet.updateRangeSelect()).toBeFalsy();
+  });
+  it('TraceSheet Test11', () => {
+    let traceSheet = new TraceSheet();
+    expect(traceSheet.constructor()).toBeTruthy();
+  });
+  it('TraceSheet Test13', () => {
+    let nativeHookResponseTypes = sqlit.queryNativeHookResponseTypes;
+    let hookTypeData = [
+      {
+        lastLibId:33,
+        value:'bc'
+      },
+    ];
+    nativeHookResponseTypes.mockResolvedValue(hookTypeData);
+    let traceSheet = new TraceSheet();
+    let param = {
+      leftNs: 0,
+      rightNs: 1000,
+      nativeMemory: ['All Heap & Anonymous VM', 'All Heap', 'Heap'],
+    };
+    expect(traceSheet.initFilterLibList(param)).toBeUndefined();
   });
 });

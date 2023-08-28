@@ -20,7 +20,9 @@ import crypto from 'crypto';
 import { queryHiPerfProcessCount } from '../../../../../../dist/trace/database/SqlLite.js';
 
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
     unobserve: jest.fn(),
@@ -542,5 +544,44 @@ describe('TabPanePerfAnalysis Test', () => {
     tabPanePerfAnalysis.perfTableSo.reMeauseHeight = jest.fn(() => true);
     tabPanePerfAnalysis.data = jest.fn(() => true);
     expect(tabPanePerfAnalysis).toBeTruthy();
+  });
+  it('TabPanePerfAnalysisTest14', function () {
+    document.body.innerHTML = `
+        <tabpane-perf-analysis id="slc"></tabpane-perf-analysis>`;
+    let tabPanePerfAnalysis = document.getElementById('slc') as TabPanePerfAnalysis;
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    tabPanePerfAnalysis.perfAnalysisPie = jest.fn(() => true);
+    tabPanePerfAnalysis.perfAnalysisPie.hideTip = jest.fn(() => true);
+    expect(tabPanePerfAnalysis.perfProcessLevelClickEvent(it, [])).toBeUndefined();
+  });
+  it('TabPanePerfAnalysisTest15', function () {
+    document.body.innerHTML = `
+        <tabpane-perf-analysis id="slc"></tabpane-perf-analysis>`;
+    let tabPanePerfAnalysis = document.getElementById('slc') as TabPanePerfAnalysis;
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    tabPanePerfAnalysis.perfAnalysisPie = jest.fn(() => true);
+    tabPanePerfAnalysis.perfAnalysisPie.hideTip = jest.fn(() => true);
+    expect(tabPanePerfAnalysis.perfThreadLevelClickEvent(it, [])).toBeUndefined();
+  });
+  it('TabPanePerfAnalysisTest16', function () {
+    document.body.innerHTML = `
+        <tabpane-perf-analysis id="slc"></tabpane-perf-analysis>`;
+    let tabPanePerfAnalysis = document.getElementById('slc') as TabPanePerfAnalysis;
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    tabPanePerfAnalysis.perfAnalysisPie = jest.fn(() => true);
+    tabPanePerfAnalysis.perfAnalysisPie.hideTip = jest.fn(() => true);
+    expect(tabPanePerfAnalysis.perfSoLevelClickEvent(it, [])).toBeUndefined();
   });
 });

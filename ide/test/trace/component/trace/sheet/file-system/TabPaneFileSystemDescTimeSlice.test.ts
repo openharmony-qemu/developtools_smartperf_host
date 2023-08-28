@@ -140,7 +140,7 @@ describe('TabPaneFileSystemDescTimeSlice Test', () => {
     tabPane.loadingList = [];
     tabPane.data = param;
     tabPane.source = filterSource;
-    expect(tabPane.sortFsDescTimeSliceTable('startTsStr', 1)).toBeUndefined();
+    expect(tabPane.sortFsDescTimeSliceTable('startTsStr', 0)).toBeUndefined();
   });
 
   it('descTimeSliceTest03', function () {
