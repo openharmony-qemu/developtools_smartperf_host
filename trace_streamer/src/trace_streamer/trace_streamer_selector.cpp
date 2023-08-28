@@ -88,6 +88,12 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     if (std::regex_search(bytraceMode, matcheLine, bytraceMatcher)) {
         return TRACE_FILETYPE_BY_TRACE;
     }
+
+    const std::regex hilogMatcher = std::regex(R"( *(\w+ )?([\-\d: ]+\.\d+) +(\d+) +(\d+) +([FEWID]) +(.+?): +(.+))");
+    if (std::regex_search(bytraceMode, matcheLine, hilogMatcher)) {
+        return TRACE_FILETYPE_HILOG;
+    }
+
     return TRACE_FILETYPE_UN_KNOW;
 }
 } // namespace
@@ -157,7 +163,7 @@ void TraceStreamerSelector::WaitForParserEnd()
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         htraceParser_->WaitForParserEnd();
     }
-    if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
+    if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HILOG) {
         bytraceParser_->WaitForParserEnd();
     }
     if (fileType_ == TRACE_FILETYPE_PERF) {
@@ -194,8 +200,9 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
             htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
             htraceParser_->EnableFileSeparate(enableFileSeparate_);
-        } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
-            bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
+        } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT ||
+                   fileType_ == TRACE_FILETYPE_HILOG) {
+            bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get(), fileType_);
             bytraceParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
         }
         if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
@@ -209,7 +216,8 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     }
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         htraceParser_->ParseTraceDataSegment(std::move(data), size);
-    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
+    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT ||
+               fileType_ == TRACE_FILETYPE_HILOG) {
         bytraceParser_->ParseTraceDataSegment(std::move(data), size);
     } else if (fileType_ == TRACE_FILETYPE_PERF) {
         htraceParser_->StoreTraceDataSegment(std::move(data), size);

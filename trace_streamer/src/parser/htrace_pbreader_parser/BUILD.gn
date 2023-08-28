@@ -67,7 +67,7 @@ ohos_source_set("htrace_pbreader_parser_src") {
     "${THIRD_PARTY}/perf_include/linux",
     "../hiperf_parser",
     "../hiperf_parser/include",
-    "../../../commonlibrary/c_utils/base/include",
+    "//commonlibrary/c_utils/base/include",
     "../../include/dummy/musl",
   ]
   if (is_mingw || is_mac) {
