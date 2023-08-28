@@ -74,7 +74,7 @@ export class FrameChart extends BaseElement {
     ChartStruct.lastSelectFuncStruct = undefined;
     this.setSelectStatusRecursive(ChartStruct.selectFuncStruct, true);
     ChartStruct.selectFuncStruct = undefined;
-
+    this.isClickMode = false;
     this.currentData = val;
     this.resetTrans();
     this.calDrawArgs(true);
@@ -446,7 +446,7 @@ export class FrameChart extends BaseElement {
       if (children.frame!.width >= filterPixel) {
         effectChildList.push(children);
       } else {
-        if (node.isChartSelect || node.isSearch) {
+        if (node.isChartSelect || this.isSearch(node)) {
           ignore.size += children.drawSize;
           ignore.count += children.drawCount;
           ignore.dur += children.drawDur;
@@ -467,6 +467,16 @@ export class FrameChart extends BaseElement {
     }
   }
 
+  private isSearch(node: ChartStruct): boolean {
+    switch (this._mode) {
+      case ChartMode.Byte:
+        return node.searchSize > 0;
+      case ChartMode.Count:
+        return node.searchCount > 0;
+      case ChartMode.Duration:
+        return node.searchDur > 0;
+    }
+  }
   /**
    * 绘制每个函数色块
    * @param node 函数块
@@ -790,7 +800,7 @@ export class FrameChart extends BaseElement {
                     <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
                     <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
-                    <span class="bold">Duration: </span> <span>${duration} (${percent}%)<</span>`;
+                    <span class="bold">Duration: </span> <span>${duration} (${percent}%)</span>`;
         break;
     }
   }

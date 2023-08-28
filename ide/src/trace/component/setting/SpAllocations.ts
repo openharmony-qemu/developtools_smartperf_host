@@ -132,6 +132,10 @@ export class SpAllocations extends BaseElement {
     });
     input.addEventListener('inputClick', () => {
       allocationProcessData = [];
+      if (this.startup_mode) {
+        this.processId!.processData = [];
+        return;
+      }
       if (SpRecordTrace.serialNumber != '') {
         Cmd.getProcess().then((processList) => {
           this.processId!.processData = processList;
@@ -239,6 +243,15 @@ export class SpAllocations extends BaseElement {
         intervalResultInput.value = stepValue[index] + '';
         this.recordStatisticsResult!.setAttribute('percentValue', stepValue[index] + '');
       });
+    });
+    this.startupMode.addEventListener('change', (evt) => {
+      if (this.startup_mode) {
+        this.processId!.value = '';
+        this.processId!.placeholder = 'please input process';
+      } else {
+        this.processId!.value = '';
+        this.processId!.placeholder = 'please select process';
+      }
     });
   }
 

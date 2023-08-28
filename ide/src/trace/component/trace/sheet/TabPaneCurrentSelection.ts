@@ -227,7 +227,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let isBinder = FuncStruct.isBinder(data);
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
     if (data.argsetid !== undefined && data.argsetid !== null) {
-      this.setTableHeight('550px');
+      this.setTableHeight('700px');
       if (isAsyncBinder) {
         Promise.all([
           queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
@@ -995,7 +995,6 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'StartTime(Absolute)',
       value: ((data.ts || 0) + (window as any).recordStartNS) / 1000000000,
     });
-    list.push({ name: 'Absolute Time', value: ((window as any).recordStartNS + data.ts) / 1000000000 });
     list.push({ name: 'Duration', value: data.dur ? getTimeString(data.dur) : ' ' });
     if (data.frame_type !== 'frameTime') {
       list.push({ name: 'Process', value: data.cmdline + ' ' + data.pid });

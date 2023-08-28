@@ -151,9 +151,10 @@ export class LitPageTable extends BaseElement {
       }
     }
     this.jumpDiv!.onclick= () => {
+      let value = this.targetPageInput!.value;
       let reg = /^[0-9]*$/;
-      if (reg.test(this.targetPageInput!.value)) {
-        let target = parseInt(this.targetPageInput!.value);
+      if (value.length > 0 && reg.test(value)) {
+        let target = parseInt(value);
         if (target < 1) {
           target = 1;
         }

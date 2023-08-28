@@ -495,7 +495,7 @@ export class TabpanePerfProfile extends BaseElement {
       this.isChartShow = true;
       this.perfProfilerFilter!.disabledMining = true;
       showButtonMenu(this.perfProfilerFilter, this.needShowMenu);
-      if (!data){
+      if (!data) {
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       }
       this.perfProfileFrameChart?.calculateChartData();
@@ -579,16 +579,12 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   getDataByWorker(args: any[], handler: Function) {
-    this.perfProfileLoadingList.push(1);
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
     procedurePool.submitWithName('logic0', 'perf-action', args, undefined, (results: any) => {
       handler(results);
-      this.perfProfileLoadingList.splice(0, 1);
-      if (this.perfProfileLoadingList.length == 0) {
-        this.perfProfileProgressEL!.loading = false;
-        this.perfProfileLoadingPage.style.visibility = 'hidden';
-      }
+      this.perfProfileProgressEL!.loading = false;
+      this.perfProfileLoadingPage.style.visibility = 'hidden';
     });
   }
 

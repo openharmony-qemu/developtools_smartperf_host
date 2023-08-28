@@ -18,6 +18,7 @@ import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct.js';
 
 const systemRuleName = '/system/';
 const numRuleName = '/max/min/';
+const maxDepth = 128;
 
 export class ProcedureLogicWorkerPerf extends LogicHandler {
   filesData: any = {};
@@ -309,8 +310,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   addPerfGroupData(callChain: PerfCallChain) {
-    this.callChainData[callChain.sampleId] = this.callChainData[callChain.sampleId] || [];
-    this.callChainData[callChain.sampleId].push(callChain);
+    const currentCallChain = this.callChainData[callChain.sampleId] || [];
+    this.callChainData[callChain.sampleId] = currentCallChain;
+    if (currentCallChain.length > maxDepth){
+      currentCallChain.splice(0,1);
+    }
+    currentCallChain.push(callChain);
   }
 
   getPerfCallChainsBySampleIds(sampleIds: string[], isTopDown: boolean) {

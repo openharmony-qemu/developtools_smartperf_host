@@ -483,6 +483,9 @@ export class LitTable extends HTMLElement {
   }
 
   setStatus(list: any, status: boolean) {
+    if (!status) {
+      this.tableElement!.scrollTop = 0;
+    }
     for (let item of list) {
       item.status = status;
       if (item.children != undefined && item.children.length > 0) {
@@ -1213,14 +1216,6 @@ export class LitTable extends HTMLElement {
             (this.treeElement?.lastChild as HTMLElement).style.height = tableRowObject.height + 'px';
           }
           this.currentRecycleList.push(newTableElement);
-        }
-        // 当滚动高度大于数据全部收起的高度时点击一键收起，滚动条位置偏下，需要向上滚动才能看到数据，
-        // 为了查看数据方便，直接将滚动条滚动到最上面
-        if (
-          this.tableElement!.scrollTop >= this.value.length * tableRowObject.height &&
-          this.currentRecycleList.length === 0
-        ) {
-          this.tableElement!.scrollTop = 0;
         }
         totalHeight += tableRowObject.height;
         visibleObjects.push(tableRowObject);

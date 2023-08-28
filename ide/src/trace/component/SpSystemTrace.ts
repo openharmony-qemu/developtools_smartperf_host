@@ -1980,7 +1980,7 @@ export class SpSystemTrace extends BaseElement {
     if (this.timerShaftEL?.isScaling()) {
       return;
     }
-    this.timerShaftEL?.documentOnMouseMove(ev);
+    this.timerShaftEL?.documentOnMouseMove(ev, this);
     if (isMouseInTimeShaft) {
       return;
     }
@@ -3266,10 +3266,6 @@ export class SpSystemTrace extends BaseElement {
       (e) => {
         if (e.ctrlKey) {
           e.preventDefault();
-          this.removeEventListener('mousemove', this.documentOnMouseMove);
-          this.removeEventListener('click', this.documentOnClick);
-          this.removeEventListener('mousedown', this.documentOnMouseDown);
-          this.removeEventListener('mouseup', this.documentOnMouseUp);
           this.style.cursor = 'move';
           SpSystemTrace.moveable = true;
           SpSystemTrace.mouseCurrentPosition = e.clientX;
@@ -3291,10 +3287,6 @@ export class SpSystemTrace extends BaseElement {
           SpSystemTrace.mouseCurrentPosition = 0;
           SpSystemTrace.moveable = false;
           this.style.cursor = 'default';
-          this.addEventListener('mousemove', this.documentOnMouseMove);
-          this.addEventListener('click', this.documentOnClick);
-          this.addEventListener('mousedown', this.documentOnMouseDown);
-          this.addEventListener('mouseup', this.documentOnMouseUp);
         }
       },
       { passive: false }
