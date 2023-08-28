@@ -228,10 +228,28 @@ export class HdcDeviceManager {
             }
           }
         } else {
-          hdcShellStream.DoCommand(keyboardEvent);
+          hdcShellStream.DoCommand(HdcDeviceManager.processCommand(keyboardEvent));
         }
       };
     }
+  }
+
+  private static processCommand(command: string): string {
+    if (command.indexOf('\\') === -1) {
+      return command;
+    }
+    const lines = command.split('\r\n');
+    let processedCommand = '';
+    lines.forEach(line => {
+      if (line.endsWith('\\')) {
+        line = line.slice(0, -1);
+        processedCommand += line;
+      } else {
+        processedCommand += line;
+        processedCommand += '\n';
+      }
+    });
+    return processedCommand;
   }
 
   /**

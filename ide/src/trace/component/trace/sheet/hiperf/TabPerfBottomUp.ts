@@ -273,7 +273,7 @@ export class TabpanePerfBottomUp extends BaseElement {
         <div id="left_table" style="width: 65%">
             <lit-table id="callTreeTable" style="height: 100%" tree>
                 <lit-table-column width="60%" title="Symbol" data-index="symbolName" key="symbolName"  
-                align="flex-start" order></lit-table-column>
+                align="flex-start" order isExpand></lit-table-column>
                 <lit-table-column width="1fr" title="Local" data-index="selfTimeStr" key="selfTimeStr" 
                 align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="%" data-index="selfTimePercent" key="selfTimePercent"  

@@ -638,7 +638,7 @@ export class TabpanePerfProfile extends BaseElement {
         <div id="left_table" style="width: 65%">
             <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-perf-profile" style="height: auto" tree>
-                <lit-table-column width="70%" title="Call Stack" data-index="symbol" key="symbol"  align="flex-start" ></lit-table-column>
+                <lit-table-column width="70%" title="Call Stack" data-index="symbol" key="symbol"  align="flex-start" isExpand></lit-table-column>
                 <lit-table-column width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>
