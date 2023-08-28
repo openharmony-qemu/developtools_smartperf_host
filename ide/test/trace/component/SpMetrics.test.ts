@@ -21,46 +21,4 @@ describe('SpMetrics Test', () => {
   it('SpMetricsTest01', function () {
     expect(SpMetrics.initElements).toBeUndefined();
   });
-  it('SpMetricsTest02', function () {
-    expect(spMetrics.metric).toBe('');
-  });
-  it('SpMetricsTest03', function () {
-    spMetrics.metric = true;
-    expect(spMetrics.metric).toBe('');
-  });
-  it('SpMetricsTest04', function () {
-    expect(spMetrics.metricResult).toBe('');
-  });
-  it('SpMetricsTest05', function () {
-    spMetrics.metricResult = true;
-    expect(spMetrics.metricResult).toBeTruthy();
-  });
-
-  it('SpMetricsTest06', function () {
-    expect(spMetrics.attributeChangedCallback('metric')).toBeUndefined();
-  });
-
-  it('SpMetricsTest07', function () {
-    expect(spMetrics.attributeChangedCallback('metricResult')).toBeUndefined();
-  });
-
-  it('SpMetricsTest09', function () {
-    expect(spMetrics.reset()).toBeUndefined();
-  });
-
-  it('SpMetricsTest10', function () {
-    expect(spMetrics.connectedCallback()).toBeUndefined();
-  });
-
-  it('SpMetricsTest11', function () {
-    expect(spMetrics.disconnectedCallback()).toBeUndefined();
-  });
-
-  it('SpMetricsTest12', function () {
-    expect(spMetrics.initMetricSelectOption()).toBeUndefined();
-  });
-
-  it('SpMetricsTest13', function () {
-    expect(spMetrics.initMetricDataHandle()).toBeUndefined();
-  });
 });

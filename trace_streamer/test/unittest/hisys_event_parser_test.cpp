@@ -15,7 +15,7 @@
 
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
-
+#include "hi_sysevent_measure_filter.h"
 #include "htrace_hisysevent_parser.h"
 #include "string_to_numerical.h"
 #include "trace_streamer_selector.h"
@@ -53,8 +53,8 @@ HWTEST_F(HtraceHisysEventParserTest, ParseNoArray, TestSize.Level1)
         "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"
         "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","
         "\"id_\":\"16494176919818340149\",\"info_\":\"\"}";
-    HtraceHisyseventParser::json jMessage;
-    HtraceHisyseventParser::JsonData jData;
+    json jMessage;
+    JsonData jData;
     size_t maxArraySize = 0;
     uint64_t serial = 1;
     std::vector<size_t> noArrayIndex;
@@ -63,7 +63,8 @@ HWTEST_F(HtraceHisysEventParserTest, ParseNoArray, TestSize.Level1)
     ss << jsMessage;
     ss >> jMessage;
     HtraceHisyseventParser HisysEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    (void)HisysEvent.JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex);
+    (void)stream_.streamFilters_->hiSysEventMeasureFilter_->JGetData(jMessage, jData, maxArraySize, noArrayIndex,
+                                                                     arrayIndex);
     EXPECT_TRUE(jData.eventSource == "POWER_IDE_BATTERY");
     EXPECT_EQ(jData.timeStamp, 22611696002);
     EXPECT_EQ(maxArraySize, 0);
@@ -94,8 +95,8 @@ HWTEST_F(HtraceHisysEventParserTest, ParseHaveArrayData, TestSize.Level1)
         "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"
         "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"
         "\"17560016619580787102\",\"info_\":\"\"}";
-    HtraceHisyseventParser::json jMessage;
-    HtraceHisyseventParser::JsonData jData;
+    json jMessage;
+    JsonData jData;
     size_t maxArraySize = 0;
     uint64_t serial = 1;
     std::vector<size_t> noArrayIndex;
@@ -104,7 +105,8 @@ HWTEST_F(HtraceHisysEventParserTest, ParseHaveArrayData, TestSize.Level1)
     ss << jsMessage;
     ss >> jMessage;
     HtraceHisyseventParser HisysEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    (void)HisysEvent.JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex);
+    (void)stream_.streamFilters_->hiSysEventMeasureFilter_->JGetData(jMessage, jData, maxArraySize, noArrayIndex,
+                                                                     arrayIndex);
     EXPECT_TRUE(jData.eventSource == "POWER_IDE_WIFISCAN");
     EXPECT_EQ(jData.timeStamp, 16611696002);
     EXPECT_EQ(maxArraySize, 3);
@@ -144,8 +146,8 @@ HWTEST_F(HtraceHisysEventParserTest, MixedDataAnalysis, TestSize.Level1)
     jsMessage.push_back(jsMessage2);
     uint64_t serial = 1;
     for (auto i = jsMessage.begin(); i != jsMessage.end(); i++) {
-        HtraceHisyseventParser::json jMessage;
-        HtraceHisyseventParser::JsonData jData;
+        json jMessage;
+        JsonData jData;
         size_t maxArraySize = 0;
         std::vector<size_t> noArrayIndex;
         std::vector<size_t> arrayIndex;
@@ -153,7 +155,8 @@ HWTEST_F(HtraceHisysEventParserTest, MixedDataAnalysis, TestSize.Level1)
         ss << *i;
         ss >> jMessage;
         HtraceHisyseventParser HisysEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-        (void)HisysEvent.JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex);
+        (void)stream_.streamFilters_->hiSysEventMeasureFilter_->JGetData(jMessage, jData, maxArraySize, noArrayIndex,
+                                                                         arrayIndex);
         if (jData.eventSource == "POWER_IDE_WIFISCAN") {
             EXPECT_TRUE(jData.eventSource == "POWER_IDE_WIFISCAN");
             EXPECT_EQ(jData.timeStamp, 16611696002);

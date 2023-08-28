@@ -34,9 +34,9 @@ beforeAll(() => {
   jest.spyOn(document.documentElement, 'scrollTop', 'get').mockImplementation(() => fakeWindow.scrollTop);
 });
 
-window.ResizeObserver
-  = window.ResizeObserver
-  || jest.fn().mockImplementation(() => ({
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
     unobserve: jest.fn(),
@@ -535,5 +535,11 @@ describe('litChartPie Test', () => {
 
     let mouseMoveEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ movementX: 1, movementY: 2 });
     clo.canvas.dispatchEvent(mouseMoveEvent);
+  });
+  it('litChartPieTest06', function () {
+    let litChartPie = new LitChartPie();
+    litChartPie.pieTipEL = jest.fn(() => true);
+    litChartPie.pieTipEL.style = jest.fn(() => true);
+    expect(litChartPie.showTip(1, 4, 'ab')).toBeUndefined();
   });
 });

@@ -377,4 +377,68 @@ describe('TabPaneNMStatisticAnalysis Test', () => {
     };
     expect(tabStatisticAnalysis.getNMEventTypeSize(val)).toBeUndefined();
   });
+  it('statisticAnalysis18', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    tabStatisticAnalysis.totalData = jest.fn(() => true);
+    tabStatisticAnalysis.pie = jest.fn(() => true);
+    tabStatisticAnalysis.pie.hideTip = jest.fn(() => true);
+    expect(tabStatisticAnalysis.nativeProcessLevelClickEvent(it)).toBeUndefined();
+  });
+  it('statisticAnalysis19', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    tabStatisticAnalysis.totalData = jest.fn(() => true);
+    tabStatisticAnalysis.pie = jest.fn(() => true);
+    tabStatisticAnalysis.pie.hideTip = jest.fn(() => true);
+    expect(tabStatisticAnalysis.nativeSoLevelClickEvent(it)).toBeUndefined();
+  });
+  it('statisticAnalysis20', function () {
+    expect(tabStatisticAnalysis.calPercent([])).toBeUndefined();
+  });
+  it('statisticAnalysis21', function () {
+    expect(tabStatisticAnalysis.calSizeObj([])).toBeTruthy();
+  });
+  it('statisticAnalysis23', function () {
+    tabStatisticAnalysis.threadUsageTbl = jest.fn(() => true);
+    tabStatisticAnalysis.threadUsageTbl.reMeauseHeight = jest.fn(() => true);
+    tabStatisticAnalysis.threadUsageTbl.addEventListener = jest.fn(() => true);
+    expect(tabStatisticAnalysis.getNMThreadSize(dataArray, select)).toBeUndefined();
+  });
+  it('statisticAnalysis24', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabStatisticAnalysis.tabName!.textContent = 'Statistic By Library Existing';
+    tabStatisticAnalysis.typeStatisticsData = jest.fn(() => true);
+    tabStatisticAnalysis.typeStatisticsData.allDuration = jest.fn(() => true);
+    tabStatisticAnalysis.eventTypeData = [{}, {}];
+    tabStatisticAnalysis.back!.dispatchEvent(itemClick);
+    expect(tabStatisticAnalysis.getBack()).toBeUndefined();
+  });
+  it('statisticAnalysis25', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabStatisticAnalysis.tabName!.textContent = 'Statistic By Function Existing';
+    tabStatisticAnalysis.libStatisticsData = jest.fn(() => true);
+    tabStatisticAnalysis.libStatisticsData.allDuration = jest.fn(() => true);
+    tabStatisticAnalysis.soData = [{}, {}];
+    tabStatisticAnalysis.back!.dispatchEvent(itemClick);
+    expect(tabStatisticAnalysis.getBack()).toBeUndefined();
+  });
 });

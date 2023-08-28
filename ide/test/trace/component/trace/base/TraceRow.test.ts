@@ -197,6 +197,7 @@ describe('TraceRow Test', () => {
 
   it('TraceRow Test27', () => {
     traceRow.tip = true;
+    traceRow.tipEL = true;
     expect(traceRow.tip).toBeUndefined();
   });
 
@@ -247,6 +248,8 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test36', () => {
+    traceRow.tipEL = jest.fn(()=>true);
+    traceRow.tipEL.style = jest.fn(()=>true);
     expect(traceRow.onMouseHover()).toBeFalsy();
   });
 
@@ -364,5 +367,84 @@ describe('TraceRow Test', () => {
   });
   it('TraceRow Test67', () => {
     expect(traceRow.clearMemory()).toBeUndefined();
+  });
+  it('TraceRow Test68', () => {
+    expect(traceRow.rowSetting).toBeTruthy();
+  });
+  it('TraceRow Test69', () => {
+    expect(traceRow.rowSettingPopoverDirection).toBeTruthy();
+  });
+  it('TraceRow Test71', () => {
+    traceRow.rowSettingPopoverDirection = true;
+    expect(traceRow.rowSettingPopoverDirection).toBeTruthy();
+  });
+  it('TraceRow Test70', () => {
+    expect(traceRow.rowSettingList).toBeUndefined();
+  });
+  it('TraceRow Test72', () => {
+    traceRow.expansion = false;
+    expect(traceRow.expansion).toBeFalsy();
+  });
+  it('TraceRow Test73', () => {
+    expect(traceRow.replaceTraceRow([],[])).toBeUndefined();
+  });
+  it('TraceRow Test74', () => {
+    let child = [{
+      parentRowEl:[],
+    }];
+    // @ts-ignore
+    child.setAttribute = jest.fn();
+    expect(traceRow.addChildTraceRowSpecifyLocation(child,[])).toBeUndefined();
+  });
+  it('TraceRow Test75', () => {
+    expect(traceRow.drawLine(false,'top')).toBeUndefined();
+  });
+  it('TraceRow Test76', () => {
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.setCheckBox = jest.fn(()=>true);
+    traceRow.checkBoxEL.dispatchEvent(mouseChangeEvent);
+  });
+  it('TraceRow Test77', () => {
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.isComplete = true;
+    traceRow.collectEL.dispatchEvent(mouseClickEvent);
+  });
+  it('TraceRow Test78', () => {
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.rowSettingTree.dispatchEvent(mouseChangeEvent);
+  });
+  it('TraceRow Test80', () => {
+    let mouseDragOverEvent: MouseEvent = new MouseEvent('dragover', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.describeEl.dispatchEvent(mouseDragOverEvent);
+  });
+  it('TraceRow Test81', () => {
+    let mouseDragendEvent: MouseEvent = new MouseEvent('dragend', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.describeEl.dispatchEvent(mouseDragendEvent);
+  });
+  it('TraceRow Test82', () => {
+    let mouseDragLeaveEvent: MouseEvent = new MouseEvent('dragleave', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.describeEl.dispatchEvent(mouseDragLeaveEvent);
+  });
+  it('TraceRow Test83', () => {
+    let mouseDragStartEvent: MouseEvent = new MouseEvent('dragstart', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.describeEl.dispatchEvent(mouseDragStartEvent);
+  });
+  it('TraceRow Test84', () => {
+    traceRow.online = true;
+    expect(traceRow.draw(false)).toBeFalsy();
+  });
+  it('TraceRow Test85', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 34;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    expect(traceRow.canvasSave(ctx)).toBeUndefined();
+  });
+  it('TraceRow Test86', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 8;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    expect(traceRow.canvasRestore(ctx)).toBeUndefined();
   });
 });

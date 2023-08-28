@@ -589,7 +589,9 @@ export class TabpaneNMCalltree extends BaseElement {
       this.isChartShow = true;
       this.nmCallTreeFilter!.disabledMining = true;
       this.showBottomMenu(this.needShowMenu);
-      this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+      if (!flameChartData){
+        this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+      }
       this.nmCallTreeFrameChart?.calculateChartData();
     } else if (flameChartData.icon == 'tree') {
       nmCallTreePageChart?.setAttribute('class', '');
@@ -794,7 +796,7 @@ export class TabpaneNMCalltree extends BaseElement {
         <div id="left_table" style="width: 65%">
             <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
-                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start">
+                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start" isExpand>
                 </lit-table-column>
                 <lit-table-column class="nm-call-tree-column" width="1fr" title="Size" data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
                 </lit-table-column>

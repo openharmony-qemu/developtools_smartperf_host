@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-    }));
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 // @ts-ignore
 import { TabPaneIOTierStatisticsAnalysis } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneIOTierStatisticsAnalysis.js';
 import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneIOTierStatisticsAnalysis.js';
@@ -39,12 +40,12 @@ describe('TabPaneIOTierStatisticsAnalysis Test', () => {
   let param = {
     anomalyEnergy: [],
     clockMapData: { size: 985 },
-    cpuAbilityIds: [12,45,7],
-    cpuFreqFilterIds: [10,67,9],
+    cpuAbilityIds: [12, 45, 7],
+    cpuFreqFilterIds: [10, 67, 9],
     cpuFreqLimitDatas: [],
-    cpuStateFilterIds: [23,4],
+    cpuStateFilterIds: [23, 4],
     cpus: [],
-    diskAbilityIds: [43,45,4],
+    diskAbilityIds: [43, 45, 4],
     diskIOLatency: false,
     diskIOReadIds: [24, 17, 71],
     diskIOWriteIds: [2, 14, 5, 36],
@@ -53,30 +54,30 @@ describe('TabPaneIOTierStatisticsAnalysis Test', () => {
     fileSystemType: [],
     fsCount: 44,
     funAsync: [],
-    funTids: [23,78],
+    funTids: [23, 78],
     hasFps: false,
     irqMapData: { size: 966 },
     jsMemory: [],
     leftNs: 964696659,
-    memoryAbilityIds: [65,67,89,11],
+    memoryAbilityIds: [65, 67, 89, 11],
     nativeMemory: [],
     nativeMemoryStatistic: [],
-    networkAbilityIds: [12,56,88],
+    networkAbilityIds: [12, 56, 88],
     perfAll: false,
-    perfCpus: [0,2],
+    perfCpus: [0, 2],
     perfProcess: [],
-    perfSampleIds: [11,53,110],
+    perfSampleIds: [11, 53, 110],
     perfThread: [],
     powerEnergy: [],
-    processTrackIds: [12,110,889],
+    processTrackIds: [12, 110, 889],
     promiseList: [],
     recordStartNs: 780423782222,
     rightNs: 24267332224,
-    sdkCounterIds: [12,4,55,1],
-    sdkSliceIds: [45,12],
+    sdkCounterIds: [12, 4, 55, 1],
+    sdkSliceIds: [45, 12],
     smapsType: [],
     systemEnergy: [],
-    threadIds: [66,3,10],
+    threadIds: [66, 3, 10],
     virtualTrackIds: [],
     vmCount: 17,
   };
@@ -263,5 +264,97 @@ describe('TabPaneIOTierStatisticsAnalysis Test', () => {
     expect(tabPane.sortByColumn('durFormat', 1)).toBeUndefined();
     tabPane.currentLevel = 4;
     expect(tabPane.sortByColumn('durFormat', 1)).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis14', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.ioTierProcessLevelClickEvent(it)).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis15', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.ioTierTypeLevelClickEvent(it)).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis16', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.ioTierThreadLevelClickEvent(it)).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis17', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.ioTierSoLevelClickEvent(it)).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis18', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By type AllDuration';
+    tabPane.processStatisticsData = jest.fn(() => true);
+    tabPane.processStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.pidData = [{}, {}];
+    tabPane.iOTierStatisticsAnalysisBack!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis19', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By Thread AllDuration';
+    tabPane.typeStatisticsData = jest.fn(() => true);
+    tabPane.typeStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.typeData = [{}, {}];
+    tabPane.iOTierStatisticsAnalysisBack!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis20', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By Library AllDuration';
+    tabPane.threadStatisticsData = jest.fn(() => true);
+    tabPane.threadStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.threadData = [{}, {}];
+    tabPane.iOTierStatisticsAnalysisBack!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
+  });
+  it('tabPaneIOTierStatisticsAnalysis21', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By Function AllDuration';
+    tabPane.libStatisticsData = jest.fn(() => true);
+    tabPane.libStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.soData = [{}, {}];
+    tabPane.iOTierStatisticsAnalysisBack!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
   });
 });

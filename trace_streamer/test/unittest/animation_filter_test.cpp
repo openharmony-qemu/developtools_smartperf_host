@@ -132,9 +132,7 @@ HWTEST_F(AnimationFilterTest, UpdateDevicePos, TestSize.Level1)
     TS_LOGI("test36-3");
     TracePoint point;
     BytraceLine line;
-
     std::string validFuncPrefix{"H:RSUniRender::Process:[EntryView]"};
-
     std::vector<std::string> invalidFuncArgs{
         "()",
         "(1,)",
@@ -149,7 +147,6 @@ HWTEST_F(AnimationFilterTest, UpdateDevicePos, TestSize.Level1)
         auto res = stream_.streamFilters_->animationFilter_->UpdateDeviceInfoEvent(point, line);
         EXPECT_FALSE(res);
     }
-
     std::vector<std::string> validFuncArgs{
         "(0, 0, 1024, 1920)",
         "(0,0, 628, 720)",
@@ -175,7 +172,6 @@ HWTEST_F(AnimationFilterTest, UpdateDeviceFps, TestSize.Level1)
     TS_LOGI("test36-4");
     TracePoint point;
     BytraceLine line;
-
     std::string validName{"H:GenerateVsyncCount:1"};
     auto timeDiffFps60 = BILLION_NANOSECONDS / FPS_60;
     line.ts = 59557002299000;
@@ -224,7 +220,6 @@ HWTEST_F(AnimationFilterTest, UpdateDynamicFrameInfo, TestSize.Level1)
 {
     TS_LOGI("test36-5");
     TracePoint point;
-
     CallStack* callStackSlice = stream_.traceDataCache_->GetInternalSlicesData();
     std::vector<DataIndex> callStackNames{
         stream_.traceDataCache_->GetDataIndex("H:RSMainThread::OnVsync"),

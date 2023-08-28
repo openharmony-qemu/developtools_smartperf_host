@@ -41,4 +41,11 @@ describe('Top20ProcessSwitchCount Test', () => {
     top20ProcessThreadCount.queryLogicWorker = jest.fn();
     expect(top20ProcessThreadCount.queryLogicWorker('', '', {})).toBeUndefined();
   });
+    it('Top20ProcessSwitchCountTest04', () => {
+        let top20ProcessThreadCount = new Top20ProcessThreadCount();
+        top20ProcessThreadCount.queryLogicWorker = jest.fn();
+        top20ProcessThreadCount.processThreadCountTbl = jest.fn();
+        top20ProcessThreadCount.processThreadCountTbl.recycleDataSource = jest.fn();
+        expect(top20ProcessThreadCount.init()).toBeUndefined();
+    });
 });

@@ -174,4 +174,34 @@ describe('SpFrameTimeChart Test', () => {
     );
     expect(spFrameTimeChart.flagConfig?.AnimationAnalysis).toEqual('Enabled');
   });
+  it('TabPaneFramesTest03', function () {
+    expect(spFrameTimeChart.frameNoExpandTimeOut()).toBeTruthy();
+  });
+  it('TabPaneFramesTest04', function () {
+    expect(spFrameTimeChart.frameExpandTimeOut()).toBeTruthy();
+  });
+  it('TabPaneFramesTest05', function () {
+    let frameData = [{
+      currentTs:23,
+      currentFrameWidth:9,
+      currentFrameHeight:5,
+      x:2,
+      y:78,
+    },
+      {
+        currentTs:12,
+        currentFrameWidth:9,
+        currentFrameHeight:5,
+        x:21,
+        y:78,
+      },
+    ];
+    let deviceStruct = [{
+      physicalWidth:40,
+      physicalHeight:41,
+    }];
+    spFrameTimeChart.flagConfig = jest.fn(()=>true);
+    spFrameTimeChart.flagConfig.physicalWidth = jest.fn(()=>true);
+    expect(spFrameTimeChart.dataProcessing(frameData,deviceStruct)).toBeUndefined();
+  });
 });

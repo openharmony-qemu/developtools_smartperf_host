@@ -497,4 +497,75 @@ describe('ProcedureLogicWorkerFileSystem Test', () => {
     window.postMessage = jest.fn(() => true);
     expect(handlerMap.queryPageFaultSamples(selectionParam)).toBeUndefined();
   });
+  it('procedureLogicWorkerFileSystemTest60', function () {
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerF.fileSystemAnalysis([], [])).toEqual([]);
+  });
+  it('procedureLogicWorkerFileSystemTest61', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('fileSystem');
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.setEventId([])).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest62', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('fileSystem');
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.setEventId([])).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest63', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('io');
+    let selectionParam = {
+      diskIOipids: {
+        length: 2,
+        join: jest.fn(() => true),
+      },
+      diskIOReadIds: {
+        length: 2,
+        join: jest.fn(() => true),
+      },
+      diskIOWriteIds: {
+        length: 2,
+        join: jest.fn(() => true),
+      },
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.queryCallChainsSamples(selectionParam)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest64', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('virtualMemory');
+    let selectionParam = {
+      diskIOipids: {
+        length: 3,
+        join: jest.fn(() => true),
+      },
+      diskIOReadIds: {
+        length: 3,
+        join: jest.fn(() => true),
+      },
+      diskIOWriteIds: {
+        length: 3,
+        join: jest.fn(() => true),
+      },
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.queryCallChainsSamples(selectionParam)).toBeUndefined();
+  });
+  it('procedureLogicWorkerFileSystemTest65', function () {
+    let handlerMap = procedureLogicWorkerF.handlerMap.get('io');
+    let selectionParam = {
+      diskIOipids: {
+        length: 3,
+        join: jest.fn(() => true),
+      },
+      diskIOReadIds: {
+        length: 3,
+        join: jest.fn(() => true),
+      },
+      diskIOWriteIds: {
+        length: 3,
+        join: jest.fn(() => true),
+      },
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(handlerMap.queryIOSamples(selectionParam)).toBeUndefined();
+  });
 });

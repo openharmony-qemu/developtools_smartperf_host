@@ -18,7 +18,7 @@ import { Rect } from './Rect.js';
 import { ns2s, ns2UnitS, TimerShaftElement } from '../TimerShaftElement.js';
 import { ColorUtils } from '../base/ColorUtils.js';
 import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
-import { CurrentSlicesTime } from '../../SpSystemTrace.js';
+import {CurrentSlicesTime, SpSystemTrace} from '../../SpSystemTrace.js';
 
 const MarkPadding = 5;
 const FIT_TOTALX_MIN: number = 280;
@@ -306,7 +306,7 @@ export class RangeRuler extends Graph {
     this.movingMark = null;
   }
 
-  mouseMove(ev: MouseEvent) {
+  mouseMove(ev: MouseEvent, trace: SpSystemTrace) {
     this.range.refresh = false;
     let move_x = ev.offsetX - (this.canvas?.offsetLeft || 0);
     let move_y = ev.offsetY - (this.canvas?.offsetTop || 0);
@@ -342,11 +342,13 @@ export class RangeRuler extends Graph {
         this.delayDraw();
       });
     } else if (this.rangeRect.containsWithPadding(move_x, move_y, MarkPadding, 0)) {
+      trace.style.cursor = 'move';
       document.body.style.cursor = 'move';
     } else if (
       this.frame.containsWithMargin(move_x, move_y, 20, 0, 0, 0) &&
       !this.rangeRect.containsWithMargin(move_x, move_y, 0, MarkPadding, 0, MarkPadding)
     ) {
+      trace.style.cursor = 'crosshair';
       document.body.style.cursor = 'crosshair';
     }
     if (this.isMovingRange && this.isMouseDown) {

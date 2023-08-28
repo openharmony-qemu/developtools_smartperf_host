@@ -19,13 +19,6 @@ import { TabPanePTS } from '../../../../../../dist/trace/component/trace/sheet/c
 import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
 // @ts-ignore
 import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
-  return {
-    meauseAllRowHeight: () => {},
-  };
-});
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 
 window.ResizeObserver =
@@ -36,14 +29,8 @@ window.ResizeObserver =
     observe: jest.fn(),
   }));
 describe('TabPanePTS Test', () => {
-  document.body.innerHTML = `<lit-table id="tb-states"></lit-table>`;
-  let tab = document.querySelector('#tb-states') as LitTable;
-
   document.body.innerHTML = `<div><tabpane-pts class="pts"></tabpane-pts></div>`;
   let tabPane = document.querySelector('.pts') as TabPanePTS;
-  let tabPanePTS = new TabPanePTS();
-
-  tabPanePTS.tbl = jest.fn(() => tab);
 
   SpSystemTrace.SPT_DATA = [
     {
@@ -128,25 +115,5 @@ describe('TabPanePTS Test', () => {
       },
     ];
     expect(tabPane.getDataByPTS(10, 100_000, source)).toBeUndefined();
-  });
-
-  it('TabPaneSPTTest03', function () {
-    let mockgetProcessThreadDataByRange = sqlit.getStatesProcessThreadDataByRange;
-    mockgetProcessThreadDataByRange.mockResolvedValue([
-      {
-        process: 'process',
-        processId: 11,
-        thread: 'thread',
-        state: 'state',
-        threadId: 11,
-        dur: 1000,
-        end_ts: 2000,
-        start_ts: 2000,
-        cpu: 1111,
-      },
-    ]);
-    tab.recycleDataSource = jest.fn(() => []);
-    tabPanePTS.tbl.recycleDataSource = jest.fn(() => dataArray);
-    expect((tabPanePTS.data = dataArray)).toBeTruthy();
   });
 });

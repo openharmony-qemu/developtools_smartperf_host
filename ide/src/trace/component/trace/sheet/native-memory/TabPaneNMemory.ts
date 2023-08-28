@@ -15,6 +15,8 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { LitPageTable } from '../../../../../base-ui/table/LitPageTable.js';
+import '../../../../../base-ui/table/LitPageTable.js';
 import '../../../../../base-ui/slicer/lit-slicer.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { NativeMemory, NativeHookCallInfo } from '../../../../bean/NativeHook.js';
@@ -34,13 +36,13 @@ import { Utils } from '../../base/Utils.js';
 @element('tabpane-native-memory')
 export class TabPaneNMemory extends BaseElement {
   private defaultNativeTypes = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
-  private memoryTbl: LitTable | null | undefined;
+  private memoryTbl: LitPageTable | null | undefined;
   private filter: TabPaneFilter | null | undefined;
   private tblData: LitTable | null | undefined;
   private progressEL: LitProgressBar | null | undefined;
   private nmMemoryLoadingList: number[] = [];
   private loadingPage: any;
-  private memorySource: Array<NativeMemory> = [];
+  private memorySource: Array<any> = [];
   private native_type: Array<string> = [...this.defaultNativeTypes];
   private statsticsSelection: Array<any> = [];
   private filterAllocationType: string = '0';
@@ -242,7 +244,7 @@ export class TabPaneNMemory extends BaseElement {
   initElements(): void {
     this.loadingPage = this.shadowRoot?.querySelector('.loading');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.memoryTbl = this.shadowRoot?.querySelector<LitTable>('#tb-native-memory');
+    this.memoryTbl = this.shadowRoot?.querySelector<LitPageTable>('#tb-native-memory');
     this.tblData = this.shadowRoot?.querySelector<LitTable>('#tb-native-data');
     this.filter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.memoryTbl!.addEventListener('row-click', (e) => {
@@ -396,7 +398,7 @@ export class TabPaneNMemory extends BaseElement {
             <div style="display: flex;flex-direction: row">
                 <lit-slicer style="width:100%">
                     <div style="width: 65%">
-                        <lit-table id="tb-native-memory" style="height: auto">
+                        <lit-page-table id="tb-native-memory" style="height: auto">
                             <lit-table-column class="nm-memory-column" width="60px" title="#" data-index="index" key="index"  align="flex-start" order>
                             </lit-table-column>
                             <lit-table-column class="nm-memory-column" width="1fr" title="Address" data-index="addr" key="addr"  align="flex-start" order>
@@ -413,7 +415,7 @@ export class TabPaneNMemory extends BaseElement {
                             </lit-table-column>
                             <lit-table-column class="nm-memory-column" width="20%" title="Responsible Caller" data-index="symbol" key="symbol"  align="flex-start">
                             </lit-table-column>
-                        </lit-table>
+                        </lit-page-table>
                     </div>
                     <lit-slicer-track></lit-slicer-track>
                     <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>

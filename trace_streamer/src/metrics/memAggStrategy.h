@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,24 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { initSysCallsTopStrategy } from '../../../../dist/trace/component/metrics/SysCallsTopStrategy.js';
 
-describe('SysCallsTopStrategy Test', () => {
-  const metricData = [
-    {
-      length: 1,
-      pid: 'pi',
-      tid: 'ti',
-      process_name: '',
-      maxDur: 'name',
-      minDur: '',
-      avgDur: '',
-      funName: '',
-    },
-  ];
+#ifndef MEM_AGG_STRATEGY_H
+#define MEM_AGG_STRATEGY_H
+#include <map>
+#include <string>
+#include <vector>
 
-  it('initSysCallsTopStrategyTest01', () => {
-    expect(initSysCallsTopStrategy(metricData)).toBeTruthy();
-  });
-});
+namespace SysTuning {
+namespace TraceStreamer {
+struct TypeItem {
+    uint64_t ts;
+    uint32_t oom_score;
+    uint32_t value;
+};
+
+struct ProcessValuesItem {
+    std::string processName;
+    TypeItem anonRss;
+    TypeItem swap;
+    TypeItem fileRss;
+    TypeItem anonAndSwap;
+};
+} // namespace TraceStreamer
+} // namespace SysTuning
+
+#endif // MEM_AGG_STRATEGY_H

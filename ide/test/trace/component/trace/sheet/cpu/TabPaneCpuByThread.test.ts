@@ -29,6 +29,7 @@ jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 describe('TabPaneCpuByThread Test', () => {
   let tabPaneCpuByThread = new TabPaneCpuByThread();
+  tabPaneCpuByThread.cpuByThreadTbl.injectColumns = jest.fn(()=> true)
 
   it('TabPaneCpuByThreadTest01', function () {
     expect(

@@ -175,4 +175,56 @@ describe('TabPaneCallTree Test', () => {
     calltree.setLTableData(resultData);
     expect(calltree.callTreeDataSource.length).toEqual(1);
   });
+  it('TabPaneCallTreeTest05', function () {
+    document.body.innerHTML = `<tabpane-calltree id="calltree"></tabpane-calltree>`;
+    let calltree = document.querySelector<TabPaneCallTree>('#calltree');
+    let switchData = {
+      firstSelect: '',
+      icon: 'tree',
+      inputValue: 'kk',
+      mark: false,
+      secondSelect: '',
+      thirdSelect: '',
+      type: 'inputValue',
+    };
+    expect(calltree.switchFlameChart(switchData)).toBeUndefined();
+  });
+  it('TabPaneCallTreeTest06', function () {
+    document.body.innerHTML = `<tabpane-calltree id="calltree"></tabpane-calltree>`;
+    let calltree = document.querySelector<TabPaneCallTree>('#calltree');
+    let filterData = {
+      callTree: [{}, {}],
+      dataMining: {
+        concat: jest.fn(() => true),
+      },
+      callTreeConstraints: {
+        checked: false,
+      },
+    };
+    expect(calltree.refreshAllNode(filterData)).toBeUndefined();
+  });
+  it('TabPaneCallTreeTest07', function () {
+    document.body.innerHTML = `<tabpane-calltree id="calltree"></tabpane-calltree>`;
+    let calltree = document.querySelector<TabPaneCallTree>('#calltree');
+    let call = {
+      id: '3',
+      children: [],
+    };
+    let target = {
+      id: '3',
+    };
+    expect(calltree.getParentTree([call], { target }, [])).toBeFalsy();
+  });
+  it('TabPaneCallTreeTest08', function () {
+    document.body.innerHTML = `<tabpane-calltree id="calltree"></tabpane-calltree>`;
+    let calltree = document.querySelector<TabPaneCallTree>('#calltree');
+    let call = {
+      id: '4',
+      children: [],
+    };
+    let target = {
+      id: '4',
+    };
+    expect(calltree.getChildTree([call], { target }, [])).toBeFalsy();
+  });
 });

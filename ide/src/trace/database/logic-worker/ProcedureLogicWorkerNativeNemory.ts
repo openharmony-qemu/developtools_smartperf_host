@@ -45,7 +45,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   isStatistic: boolean = false;
   boxRangeNativeHook: Array<NativeMemory> = [];
   clearBoxSelectionData: boolean = false;
-  nativeMemoryArgs?: Map<string, any>
+  nativeMemoryArgs?: Map<string, any>;
   private dataCache = DataCache.getInstance();
 
   handle(data: any): void {
@@ -153,7 +153,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
                 this.clearBoxSelectionData = this.boxRangeNativeHook.length > 100_0000;
               }
               this.supplementNativeHoodData();
-              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 100_0000);
+              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 50_0000);
               if (this.clearBoxSelectionData) {
                 this.boxRangeNativeHook = [];
               }
@@ -166,7 +166,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
               this.queryNativeHookEvent(leftNs, rightNs, types);
             } else {
               this.nativeMemoryArgs = data.params;
-              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 100_0000);
+              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 50_0000);
               if (this.clearBoxSelectionData) {
                 this.boxRangeNativeHook = [];
               }
@@ -277,12 +277,15 @@ where ts between start_ts and end_ts ${condition};
   }
 
   queryNativeHookEvent(leftNs: number, rightNs: number, types: Array<string>) {
-    let condition = types.length === 1 ? `and A.event_type = ${types[0]}` : `and (A.event_type = 'AllocEvent' or A.event_type = 'MmapEvent')`;
+    let condition =
+      types.length === 1
+        ? `and A.event_type = ${types[0]}`
+        : `and (A.event_type = 'AllocEvent' or A.event_type = 'MmapEvent')`;
     let libId = this.nativeMemoryArgs?.get('filterResponseType');
     let allocType = this.nativeMemoryArgs?.get('filterAllocType');
     let eventType = this.nativeMemoryArgs?.get('filterEventType');
     if (libId !== undefined && libId !== -1) {
-      condition = `${condition} and last_lib_id = ${libId}`;// filter lib
+      condition = `${condition} and last_lib_id = ${libId}`; // filter lib
     }
     if (eventType === '1') {
       condition = `${condition} and event_type = 'AllocEvent'`;
@@ -322,7 +325,7 @@ where ts between start_ts and end_ts ${condition};
 
   supplementNativeHoodData() {
     let len = this.boxRangeNativeHook.length;
-    for(let i = 0, j = len -1; i <= j; i++, j--){
+    for (let i = 0, j = len - 1; i <= j; i++, j--) {
       this.fillNativeHook(this.boxRangeNativeHook[i], i);
       if (i !== j) {
         this.fillNativeHook(this.boxRangeNativeHook[j], j);
@@ -349,10 +352,7 @@ where ts between start_ts and end_ts ${condition};
     }
     if (frame !== null && frame !== undefined) {
       memory.symbol = this.groupCutFilePath(frame.symbolId, this.dataCache.dataDict.get(frame.symbolId) || '');
-      memory.library = this.groupCutFilePath(
-        frame.fileId,
-        this.dataCache.dataDict.get(frame.fileId) || 'Unknown Path'
-      );
+      memory.library = this.groupCutFilePath(frame.fileId, this.dataCache.dataDict.get(frame.fileId) || 'Unknown Path');
     } else {
       memory.symbol = '-';
       memory.library = '-';
@@ -622,16 +622,14 @@ where ts between start_ts and end_ts ${condition};
     let sortType = paramMap.get('sortType');
     let statisticsSelection = paramMap.get('statisticsSelection');
     let filter = this.boxRangeNativeHook;
-    if ((filterAllocType !== undefined && filterAllocType !== 0) ||
+    if (
+      (filterAllocType !== undefined && filterAllocType !== 0) ||
       (filterEventType !== undefined && filterEventType !== 0) ||
       (filterResponseType !== undefined && filterResponseType !== -1)
     ) {
       filter = this.boxRangeNativeHook.filter((item) => {
         let filterAllocation = true;
-        let freed = item.endTs > leftNs &&
-          item.endTs <= rightNs &&
-          item.endTs !== 0 &&
-          item.endTs !== null;
+        let freed = item.endTs > leftNs && item.endTs <= rightNs && item.endTs !== 0 && item.endTs !== null;
         if (filterAllocType === '1') {
           filterAllocation = !freed;
         } else if (filterAllocType == '2') {
@@ -836,11 +834,11 @@ where ts between start_ts and end_ts ${condition};
     );
   }
 
-  combineStatisticAndCallChain(samples: NativeHookStatistics[]) {
+  combineStatisticAndCallChain(samples: NativeHookStatistics[]): Array<AnalysisSample> {
     samples.sort((a, b) => a.id - b.id);
-    const analysisSampleList = new Array<AnalysisSample>();
-    const applyAllocSamples = new Array<AnalysisSample>();
-    const applyMmapSamples = new Array<AnalysisSample>();
+    const analysisSampleList: Array<AnalysisSample> = [];
+    const applyAllocSamples: Array<AnalysisSample> = [];
+    const applyMmapSamples: Array<AnalysisSample> = [];
 
     for (const sample of samples) {
       const count = this.isStatistic ? sample.count : 1;
@@ -890,7 +888,12 @@ where ts between start_ts and end_ts ${condition};
 
       const callChains = this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
       if (!callChains || callChains.length === 0) {
-        return;
+        analysisSample.libId = -1;
+        analysisSample.libName = 'Unknown';
+        analysisSample.symbolId = -1;
+        analysisSample.symbolName = 'Unknown';
+        analysisSampleList.push(analysisSample);
+        continue;
       }
       let index = callChains.length - 1;
       let lastFilterCallChain: HeapTreeDataBean | undefined | null;
@@ -959,13 +962,21 @@ where ts between start_ts and end_ts ${condition};
       if (callChains.length > 0) {
         let root =
           this.currentTreeMapData[
-            nativeHookSample.tid + '-' + (callChains[topIndex].symbolId || '') + '-' + (callChains[topIndex].fileId || '')
+            nativeHookSample.tid +
+              '-' +
+              (callChains[topIndex].symbolId || '') +
+              '-' +
+              (callChains[topIndex].fileId || '')
           ];
         if (root == undefined) {
           root = new NativeHookCallInfo();
           root.threadName = nativeHookSample.threadName;
           this.currentTreeMapData[
-            nativeHookSample.tid + '-' + (callChains[topIndex].symbolId || '') + '-' + (callChains[topIndex].fileId || '')
+            nativeHookSample.tid +
+              '-' +
+              (callChains[topIndex].symbolId || '') +
+              '-' +
+              (callChains[topIndex].fileId || '')
           ] = root;
           this.currentTreeList.push(root);
         }

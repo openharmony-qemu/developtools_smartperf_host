@@ -420,7 +420,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
         </style>
         <div style="overflow: auto;" class="d-box">
             <lit-table id="tb-smaps-statistics" class="smaps-statistics-table" style="height: auto;" tree>
-                <lit-table-column width="250px" title="Type" data-index="typeName" key="typeName" align="flex-start" order>
+                <lit-table-column width="250px" title="Type" data-index="typeName" key="typeName" align="flex-start" order isExpand>
                 </lit-table-column>
                 <lit-table-column width="150px" title="Path" data-index="path" key="path" align="flex-start">
                 </lit-table-column>

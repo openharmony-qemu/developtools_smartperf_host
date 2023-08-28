@@ -19,7 +19,11 @@ import { SpFileSystemChart } from '../../../../dist/trace/component/chart/SpFile
 import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
 const sqlit = require('../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../dist/trace/database/SqlLite.js');
-
+// @ts-ignore
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+// @ts-ignore
+import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
+jest.mock('../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -44,5 +48,9 @@ describe('SpFileSystemChart Test', () => {
   it('SpMpsChart01', function () {
     spFileSystemChart.init();
     expect(spFileSystemChart).toBeDefined();
+  });
+  it('SpMpsChart02', function () {
+    ss.displayTip = jest.fn(() => true);
+    expect(spFileSystemChart.focusHandler(TraceRow)).toBeUndefined();
   });
 });

@@ -41,6 +41,7 @@ import {
   drawFlagLineSegment,
   drawLines,
   drawLinkLines,
+  drawLogsLineSegment,
   drawWakeUp,
   drawWakeUpList,
   isFrameContainPoint,
@@ -94,6 +95,7 @@ import { JsCpuProfilerChartFrame } from '../bean/JsStruct.js';
 import { FileInfo } from '../../js-heap/model/UiStruct.js';
 import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot.js';
 import { setSelectState, intersectData } from './Utils.js';
+import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -1024,11 +1026,13 @@ export class SpSystemTrace extends BaseElement {
             if (sample.timestamp * 1000 <= startNS!) {
               minNodeId = sample.lastAssignedId;
             }
-            if (sample.timestamp * 1000 >= endNS!) {
-              if (maxNodeId === undefined) {
-                maxNodeId = sample.lastAssignedId;
+            // 个别文件的sample的最大timestamp小于时间的框选结束时间，不能给maxNodeId赋值
+            // 所以加上此条件：sample.timestamp === it.dataList[it.dataList.length -1].timestamp
+            if (sample.timestamp * 1000 >= endNS! || sample.timestamp === it.dataList[it.dataList.length -1].timestamp) {
+                if (maxNodeId === undefined) {
+                  maxNodeId = sample.lastAssignedId;
+                }
               }
-            }
           }
 
           // If the start time range of the selected box is greater than the end time of the sampled data
@@ -1108,6 +1112,14 @@ export class SpSystemTrace extends BaseElement {
           selection.purgeableTotalVM.push(...intersectData(it));
         } else if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
           selection.purgeablePinVM.push(...intersectData(it));
+        } else if (it.rowType === TraceRow.ROW_TYPE_LOGS) {
+          let systemLogs: LogStruct[] = it.dataList.filter(
+            (logStruct: LogStruct) =>
+              (logStruct.startTs ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              (logStruct.startTs ?? 0) <= TraceRow.rangeSelectObject!.endNS!
+          );
+          selection.hiLogs.push(...systemLogs);
+          selection.hiLogSummary.push(...systemLogs);
         }
         if (this.rangeTraceRow!.length !== rows.length) {
           let event = this.createPointEvent(it);
@@ -1593,6 +1605,31 @@ export class SpSystemTrace extends BaseElement {
         } as Rect
       );
     }
+    //draw system logs line segment for canvas
+    drawLogsLineSegment(
+      this.canvasPanelCtx,
+      this.traceSheetEL?.systemLogFlag,
+      {
+        x: 0,
+        y: 0,
+        width: this.timerShaftEL?.canvas?.clientWidth,
+        height: this.canvasPanel?.clientHeight,
+      },
+      this.timerShaftEL!
+    );
+    //draw system logs line segment for favorite canvas
+    drawLogsLineSegment(
+      this.canvasFavoritePanelCtx,
+      this.traceSheetEL?.systemLogFlag,
+      {
+        x: 0,
+        y: 0,
+        width: this.timerShaftEL?.canvas?.clientWidth,
+        height: this.canvasFavoritePanel?.clientHeight,
+      },
+      this.timerShaftEL!
+    );
+
     // Draw the connection curve
     if (this.linkNodes) {
       drawLinkLines(this.canvasPanelCtx!, this.linkNodes, this.timerShaftEL!, false);
@@ -1943,7 +1980,7 @@ export class SpSystemTrace extends BaseElement {
     if (this.timerShaftEL?.isScaling()) {
       return;
     }
-    this.timerShaftEL?.documentOnMouseMove(ev);
+    this.timerShaftEL?.documentOnMouseMove(ev, this);
     if (isMouseInTimeShaft) {
       return;
     }
@@ -2220,6 +2257,7 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_VM_TRACKER_SMAPS,
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
+    [TraceRow.ROW_TYPE_LOGS, () => LogStruct.hoverLogStruct !== null && LogStruct.hoverLogStruct !== undefined],
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {
@@ -2370,7 +2408,7 @@ export class SpSystemTrace extends BaseElement {
       this.observerScrollHeightEnable = true;
       let jankRowParent: any;
       if (d.rowId === 'actual frameTime') {
-        jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='frameTime']`);
+        jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
       } else {
         jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='${d.pid}']`);
       }
@@ -3228,10 +3266,6 @@ export class SpSystemTrace extends BaseElement {
       (e) => {
         if (e.ctrlKey) {
           e.preventDefault();
-          this.removeEventListener('mousemove', this.documentOnMouseMove);
-          this.removeEventListener('click', this.documentOnClick);
-          this.removeEventListener('mousedown', this.documentOnMouseDown);
-          this.removeEventListener('mouseup', this.documentOnMouseUp);
           this.style.cursor = 'move';
           SpSystemTrace.moveable = true;
           SpSystemTrace.mouseCurrentPosition = e.clientX;
@@ -3253,10 +3287,6 @@ export class SpSystemTrace extends BaseElement {
           SpSystemTrace.mouseCurrentPosition = 0;
           SpSystemTrace.moveable = false;
           this.style.cursor = 'default';
-          this.addEventListener('mousemove', this.documentOnMouseMove);
-          this.addEventListener('click', this.documentOnClick);
-          this.addEventListener('mousedown', this.documentOnMouseDown);
-          this.addEventListener('mouseup', this.documentOnMouseUp);
         }
       },
       { passive: false }
@@ -4045,6 +4075,9 @@ export class SpSystemTrace extends BaseElement {
           }, 360);
         });
       }
+      if (this.loadTraceCompleted) {
+        this.traceSheetEL?.displaySystemLogsData();
+      }
       this.intersectionObserver?.observe(it);
     });
     return { status: true, msg: 'success' };
@@ -4099,6 +4132,7 @@ export class SpSystemTrace extends BaseElement {
   queryCPUWakeUpList(data: WakeupBean) {
     TabPaneCurrentSelection.queryCPUWakeUpListFromBean(data).then((a: any) => {
       if (a === null) {
+        window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
         return null;
       }
       SpSystemTrace.wakeupList.push(a);

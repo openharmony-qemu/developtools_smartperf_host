@@ -86,4 +86,16 @@ describe('TabPaneGpuClickSelectComparison Test', () => {
     let tabPaneGpuClickSelectComparison = new TabPaneGpuClickSelectComparison();
     expect(tabPaneGpuClickSelectComparison.selectStamps(dataList, type)).toBeUndefined();
   });
+  it('TabPaneGpuClickSelectComparisonTest04', () => {
+    let tabPaneGpuClickSelectComparison = new TabPaneGpuClickSelectComparison();
+    expect(tabPaneGpuClickSelectComparison.sortGpuByColumn(0, '')).toBeUndefined();
+  });
+  it('TabPaneGpuClickSelectComparisonTest05', () => {
+    let tabPaneGpuClickSelectComparison = new TabPaneGpuClickSelectComparison();
+    expect(tabPaneGpuClickSelectComparison.sortGpuByColumn(1, 'name')).toBeUndefined();
+  });
+  it('TabPaneGpuClickSelectComparisonTest06', () => {
+    let tabPaneGpuClickSelectComparison = new TabPaneGpuClickSelectComparison();
+    expect(tabPaneGpuClickSelectComparison.sortGpuByColumn(1, 'sizeDelta')).toBeUndefined();
+  });
 });

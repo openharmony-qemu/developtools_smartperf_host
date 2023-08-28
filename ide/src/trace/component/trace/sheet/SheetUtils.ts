@@ -18,7 +18,7 @@ import { LitTable } from '../../../../base-ui/table/lit-table.js';
 export function resizeObserver(
   parentEl: HTMLElement,
   tableEl: LitTable,
-  tblOffsetHeight: number = 45,
+  tblOffsetHeight: number = 50,
   loadingPage?: HTMLElement,
   loadingPageOffsetHeight: number = 24
 ) {
@@ -46,14 +46,14 @@ export function resizeObserverFromMemory(
       // @ts-ignore
       tableEl?.shadowRoot.querySelector('.table').style.height = parentElement.clientHeight - tblOffsetHeight + 'px';
       tableEl?.reMeauseHeight();
-      if (filterEl!.clientHeight > 0) {
-        filterHeight = filterEl!.clientHeight;
-      }
-      if (parentElement!.clientHeight > filterHeight) {
-        filterEl!.style.display = 'flex';
-      } else {
-        filterEl!.style.display = 'none';
-      }
+    }
+    if (filterEl!.clientHeight > 0) {
+      filterHeight = filterEl!.clientHeight;
+    }
+    if (parentElement!.clientHeight > filterHeight) {
+      filterEl!.style.display = 'flex';
+    } else {
+      filterEl!.style.display = 'none';
     }
   }).observe(parentElement);
 }

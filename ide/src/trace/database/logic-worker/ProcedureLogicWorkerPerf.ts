@@ -18,6 +18,7 @@ import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct.js';
 
 const systemRuleName = '/system/';
 const numRuleName = '/max/min/';
+const maxDepth = 128;
 
 export class ProcedureLogicWorkerPerf extends LogicHandler {
   filesData: any = {};
@@ -309,8 +310,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   addPerfGroupData(callChain: PerfCallChain) {
-    this.callChainData[callChain.sampleId] = this.callChainData[callChain.sampleId] || [];
-    this.callChainData[callChain.sampleId].push(callChain);
+    const currentCallChain = this.callChainData[callChain.sampleId] || [];
+    this.callChainData[callChain.sampleId] = currentCallChain;
+    if (currentCallChain.length > maxDepth){
+      currentCallChain.splice(0,1);
+    }
+    currentCallChain.push(callChain);
   }
 
   getPerfCallChainsBySampleIds(sampleIds: string[], isTopDown: boolean) {
@@ -552,8 +557,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   //symbol lib prune
   recursionPruneTree(sample: PerfCallChainMerageData, symbolName: string, isSymbol: boolean) {
     if ((isSymbol && sample.symbolName == symbolName) || (!isSymbol && sample.libName == symbolName)) {
-      sample.currentTreeParentNode &&
-        sample.currentTreeParentNode.children.splice(sample.currentTreeParentNode.children.indexOf(sample), 1);
+      sample.parent && sample.parent.children.splice(sample.parent.children.indexOf(sample), 1);
     } else {
       sample.children.forEach((child) => {
         this.recursionPruneTree(child, symbolName, isSymbol);
@@ -663,11 +667,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     sampleArray.forEach((sample) => {
       if ((sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) || parentSearch) {
         sample.searchShow = true;
-        let parentNode = sample.currentTreeParentNode;
+        let parentNode = sample.parent;
         sample.isSearch = sample.symbol != undefined && sample.symbol.toLocaleLowerCase().includes(search);
         while (parentNode != undefined && !parentNode.searchShow) {
           parentNode.searchShow = true;
-          parentNode = parentNode.currentTreeParentNode;
+          parentNode = parentNode.parent;
         }
       } else {
         sample.searchShow = false;
@@ -988,7 +992,7 @@ export class PerfCallChainMerageData extends ChartStruct {
   #total = 0;
   id: string = '';
   parentId: string = '';
-  currentTreeParentNode: PerfCallChainMerageData | undefined = undefined;
+  parent: PerfCallChainMerageData | undefined = undefined;
   symbolName: string = '';
   symbol: string = '';
   libName: string = '';
@@ -1010,7 +1014,7 @@ export class PerfCallChainMerageData extends ChartStruct {
   searchShow: boolean = true;
   isSearch: boolean = false;
   set parentNode(data: PerfCallChainMerageData | undefined) {
-    this.currentTreeParentNode = data;
+    this.parent = data;
     this.#parentNode = data;
   }
 

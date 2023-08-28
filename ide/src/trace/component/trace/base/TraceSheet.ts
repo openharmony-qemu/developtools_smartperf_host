@@ -76,9 +76,12 @@ import { TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneG
 import { TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison.js';
 import { TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.js';
 import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
+import { Utils } from './Utils.js';
+import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
+  systemLogFlag: Flag | undefined | null;
   private litTabs: LitTabs | undefined | null;
   private importDiv: HTMLDivElement | undefined | null;
   private nav: HTMLDivElement | undefined | null;
@@ -180,6 +183,7 @@ export class TraceSheet extends BaseElement {
       }
     });
   }
+
   connectedCallback(): void {
     this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-container');
     let tabs: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#tabs');
@@ -588,6 +592,17 @@ export class TraceSheet extends BaseElement {
     }
   };
 
+  displaySystemLogsData = (): void => {
+    let tblHiLogPanel = this.shadowRoot?.querySelector<LitTabpane>('lit-tabpane[id=\'box-hilogs\']');
+    if (tblHiLogPanel) {
+      let tblHiLog = tblHiLogPanel.querySelector<TabPaneHiLogs>('tab-hi-log');
+      if (tblHiLog) {
+        tblHiLog.parentElement!.style.overflow = 'hidden';
+        tblHiLog.initTabSheetEl(tblHiLog.parentElement!, this);
+      }
+    }
+  };
+
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
     this.showUploadSoBt(selection);
@@ -703,13 +718,14 @@ export class TraceSheet extends BaseElement {
     pane.closeable = true;
     pane.hidden = false;
     this.litTabs!.activeByKey(pane.key);
-    pane.tab = e.detail.title;
+    pane.tab = Utils.transferPTSTitle(e.detail.title);
     let param = new BoxJumpParam();
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
+    param.cpus = this.selection!.cpus;
     param.state = e.detail.state;
-    param.threadId = e.detail.threadId;
-    param.processId = e.detail.processId;
+    param.processId = e.detail.pid;
+    param.threadId = e.detail.tid;
     (pane.children.item(0) as TabPaneBoxChild).data = param;
   }
 

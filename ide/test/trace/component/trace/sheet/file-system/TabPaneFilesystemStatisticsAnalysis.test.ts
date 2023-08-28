@@ -22,7 +22,8 @@ import crypto from 'crypto';
 // @ts-ignore
 import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
+window.ResizeObserver =
+  window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     unobserve: jest.fn(),
@@ -41,14 +42,14 @@ describe('TabPaneFilesystemStatisticsAnalysis Test', () => {
   let param = {
     anomalyEnergy: [],
     clockMapData: { size: 193 },
-    cpuAbilityIds: [10,8],
+    cpuAbilityIds: [10, 8],
     cpuFreqFilterIds: [56],
     cpuFreqLimitDatas: [],
-    cpuStateFilterIds: [12,98],
+    cpuStateFilterIds: [12, 98],
     cpus: [],
     diskAbilityIds: [],
     diskIOLatency: false,
-    diskIOReadIds: [2,33],
+    diskIOReadIds: [2, 33],
     diskIOWriteIds: [54, 4, 54, 6],
     diskIOipids: [2, 17, 45, 5, 16],
     fileSysVirtualMemory: false,
@@ -60,25 +61,25 @@ describe('TabPaneFilesystemStatisticsAnalysis Test', () => {
     irqMapData: { size: 996 },
     jsMemory: [],
     leftNs: 964699125,
-    memoryAbilityIds: [12,34],
+    memoryAbilityIds: [12, 34],
     nativeMemory: [],
     nativeMemoryStatistic: [],
-    networkAbilityIds: [34,87],
+    networkAbilityIds: [34, 87],
     perfAll: false,
     perfCpus: [],
     perfProcess: [],
-    perfSampleIds: [67,33],
+    perfSampleIds: [67, 33],
     perfThread: [],
     powerEnergy: [],
-    processTrackIds: [122,34],
+    processTrackIds: [122, 34],
     promiseList: [],
     recordStartNs: 780423788588,
     rightNs: 69267555654,
-    sdkCounterIds: [34,22,12],
+    sdkCounterIds: [34, 22, 12],
     sdkSliceIds: [221],
     smapsType: [],
     systemEnergy: [],
-    threadIds: [12,45],
+    threadIds: [12, 45],
     virtualTrackIds: [],
     vmCount: 850,
   };
@@ -271,5 +272,97 @@ describe('TabPaneFilesystemStatisticsAnalysis Test', () => {
     expect(tabPane.sortByColumn('durFormat', 1)).toBeUndefined();
     tabPane.currentLevel = 4;
     expect(tabPane.sortByColumn('durFormat', 1)).toBeUndefined();
+  });
+  it('systemStatisticsAnalysis13', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.fileProcessLevelClickEvent(it)).toBeUndefined();
+  });
+  it('systemStatisticsAnalysis14', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.fileTypeLevelClickEvent(it)).toBeUndefined();
+  });
+  it('systemStatisticsAnalysis15', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.fileThreadLevelClickEvent(it)).toBeUndefined();
+  });
+  it('systemStatisticsAnalysis16', function () {
+    let it = [
+      {
+        tabName: '',
+      },
+    ];
+    expect(tabPane.fileSoLevelClickEvent(it)).toBeUndefined();
+  });
+  it('TabPanePerfAnalysisTest17 ', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By type AllDuration';
+    tabPane.processStatisticsData = jest.fn(() => true);
+    tabPane.processStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.fileStatisticsAnalysisPidData = [{}, {}];
+    tabPane.back!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
+  });
+  it('TabPanePerfAnalysisTest18 ', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By Library AllDuration';
+    tabPane.threadStatisticsData = jest.fn(() => true);
+    tabPane.threadStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.fileStatisticsAnalysisThreadData = [{}, {}];
+    tabPane.back!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
+  });
+  it('TabPanePerfAnalysisTest19 ', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By Function AllDuration';
+    tabPane.libStatisticsData = jest.fn(() => true);
+    tabPane.libStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.fileStatisticsAnalysisSoData = [{}, {}];
+    tabPane.back!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
+  });
+  it('TabPanePerfAnalysisTest20 ', function () {
+    let itemClick = new CustomEvent('click', <CustomEventInit>{
+      detail: {
+        ...{},
+        data: {},
+      },
+      composed: true,
+    });
+    tabPane.tabName!.textContent = 'Statistic By Thread AllDuration';
+    tabPane.typeStatisticsData = jest.fn(() => true);
+    tabPane.typeStatisticsData.allDuration = jest.fn(() => true);
+    tabPane.fileStatisticsAnalysisTypeData = [{}, {}];
+    tabPane.back!.dispatchEvent(itemClick);
+    expect(tabPane.goBack()).toBeUndefined();
   });
 });

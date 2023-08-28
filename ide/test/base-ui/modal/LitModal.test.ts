@@ -60,14 +60,15 @@ describe('LitModal Test', () => {
             <lit-modal resizeable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
         </div> `;
     let litmode = document.getElementById('lit-modal') as LitModal;
+    litmode.resizing = true;
     let mouseOutEvent: MouseEvent = new MouseEvent('mousemove', <MouseEventInit>{ movementX: 1, movementY: 2 });
     litmode.dispatchEvent(mouseOutEvent);
   });
 
-  it('LitModalTest06', function () {
+  it('LitModalTest19', function () {
     document.body.innerHTML = `
         <div>
-            <lit-modal moveable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
+            <lit-modal resizeable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
         </div> `;
     let litmode = document.getElementById('lit-modal') as LitModal;
 
@@ -112,12 +113,17 @@ describe('LitModal Test', () => {
   });
   it('LitModalTest11', function () {
     let litModal = new LitModal();
-    litModal.visible = false;
+    litModal.visible = 'visible';
     expect(litModal).not.toBeUndefined();
   });
   it('LitModalTest12', function () {
     let litModal = new LitModal();
     litModal.visible = true;
+    expect(litModal).not.toBeUndefined();
+  });
+  it('LitModalTest17', function () {
+    let litModal = new LitModal();
+    litModal.visible = false;
     expect(litModal).not.toBeUndefined();
   });
   it('LitModalTest13', function () {
@@ -128,5 +134,54 @@ describe('LitModal Test', () => {
   it('LitModalTest14', function () {
     let litModal = new LitModal();
     expect(litModal.adoptedCallback()).toBeUndefined();
+  });
+  it('LitModalTest15', function () {
+    let litModal = new LitModal();
+    litModal.addEventListener = jest.fn(() => true);
+    litModal.onOk = true;
+    expect(litModal).toBeTruthy();
+  });
+  it('LitModalTest18', function () {
+    let litModal = new LitModal();
+    litModal.addEventListener = jest.fn(() => true);
+    litModal.onCancel = true;
+    expect(litModal).toBeTruthy();
+  });
+  it('LitModalTest19', function () {
+    document.body.innerHTML = `
+        <div>
+            <lit-modal moveable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
+        </div> `;
+    let litmode = document.getElementById('lit-modal') as LitModal;
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    litmode.resizeable = false;
+    litmode.dispatchEvent(mouseClickEvent);
+  });
+  it('LitModalTest20', function () {
+    document.body.innerHTML = `
+        <div>
+            <lit-modal moveable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
+        </div> `;
+    let litmode = document.getElementById('lit-modal') as LitModal;
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    litmode.cancelElement.dispatchEvent(mouseClickEvent);
+  });
+  it('LitModalTest21', function () {
+    document.body.innerHTML = `
+        <div>
+            <lit-modal moveable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
+        </div> `;
+    let litmode = document.getElementById('lit-modal') as LitModal;
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    litmode.okElement.dispatchEvent(mouseClickEvent);
+  });
+  it('LitModalTest22', function () {
+    document.body.innerHTML = `
+        <div>
+            <lit-modal moveable="true" style='width:100px height:100px ' id='lit-modal'></lit-modal>
+        </div> `;
+    let litmode = document.getElementById('lit-modal') as LitModal;
+    let mouseDownEvent: MouseEvent = new MouseEvent('mousedown', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    litmode.dispatchEvent(mouseDownEvent);
   });
 });

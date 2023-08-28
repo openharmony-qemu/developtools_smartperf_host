@@ -128,6 +128,7 @@ export class SpQuerySQL extends BaseElement {
       this.keyList = [];
       this.response!.innerHTML = '';
       this.queryTableEl!.innerHTML = '';
+      this.pagination!.style.display = 'none';
       if (this.isSupportSql) {
         this.progressLoad!.loading = true;
         queryCustomizeSelect(this.selector!.value).then((resultList): void => {
@@ -159,6 +160,7 @@ export class SpQuerySQL extends BaseElement {
     setTimeout(() => {
       let total = this.statDataArray.length;
       if (total > maxPageSize) {
+        that.pagination!.style.display = 'block';
         that.pagination!.style.opacity = '1';
         new PageNation(this.pagination, {
           current: 1,

@@ -77,6 +77,17 @@ export class LitAllocationSelect extends BaseElement {
     this.setAttribute('list-height', value);
   }
 
+  attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+    switch (name) {
+      case 'value':
+        this.selectAllocationInputEl!.value = newValue;
+        break;
+      case 'placeholder':
+        this.selectAllocationInputEl!.placeholder = newValue;
+        break;
+    }
+  }
+
   initElements(): void {
     this.selectAllocationInputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
     this.addEventListener('click', () => {

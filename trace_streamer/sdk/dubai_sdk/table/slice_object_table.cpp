@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { SLICE_ID = 0, SLICE_NAME = 1 };
+enum class Index : int32_t { SLICE_ID = 0, SLICE_NAME = 1 };
 }
 SliceObjectTable::SliceObjectTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -45,12 +45,12 @@ SliceObjectTable::Cursor::~Cursor() {}
 
 int32_t SliceObjectTable::Cursor::Column(int32_t column) const
 {
-    switch (column) {
-        case SLICE_ID: {
+    switch (static_cast<Index>(column)) {
+        case Index::SLICE_ID: {
             sqlite3_result_int64(context_, static_cast<int64_t>(sliceObjectDataObj_.SliceId()[CurrentRow()]));
             break;
         }
-        case SLICE_NAME: {
+        case Index::SLICE_NAME: {
             sqlite3_result_text(context_, sliceObjectDataObj_.SliceName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
                                 nullptr);
             break;

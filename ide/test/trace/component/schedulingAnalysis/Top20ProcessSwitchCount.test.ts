@@ -41,4 +41,11 @@ describe('Top20ProcessSwitchCount Test', () => {
     top20ProcessSwitchCount.queryLogicWorker = jest.fn();
     expect(top20ProcessSwitchCount.queryLogicWorker('', '', {})).toBeUndefined();
   });
+  it('Top20ProcessSwitchCountTest04', () => {
+      let top20ProcessSwitchCount = new Top20ProcessSwitchCount();
+      top20ProcessSwitchCount.queryLogicWorker = jest.fn();
+      top20ProcessSwitchCount.processSwitchCountTbl = jest.fn();
+      top20ProcessSwitchCount.processSwitchCountTbl.recycleDataSource = jest.fn();
+      expect(top20ProcessSwitchCount.init()).toBeUndefined();
+    });
 });

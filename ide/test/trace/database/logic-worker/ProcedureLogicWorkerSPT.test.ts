@@ -14,32 +14,12 @@
  */
 
 //@ts-ignore
-import {
-  ProcedureLogicWorkerSPT,
-  ThreadState,
-  ThreadProcess,
-  SPT,
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerSPT.js';
+import { ProcedureLogicWorkerSPT, SPT,} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerSPT.js';
 
 describe('ProcedureLogicWorkerSPT Test', () => {
   it('ProcedureLogicWorkerSPTTest01', function () {
     let procedureLogicWorkerSPT = new ProcedureLogicWorkerSPT();
     expect(procedureLogicWorkerSPT).not.toBeUndefined();
-  });
-
-  it('ProcedureLogicWorkerSPTTest03', function () {
-    let threadState = new ThreadState();
-    expect(threadState).not.toBeUndefined();
-  });
-
-  it('ProcedureLogicWorkerSPTTest04', function () {
-    let threadProcess = new ThreadProcess();
-    expect(threadProcess).not.toBeUndefined();
-  });
-
-  it('ProcedureLogicWorkerSPTTest05', function () {
-    let sPT = new SPT();
-    expect(sPT).not.toBeUndefined();
   });
 
   it('ProcedureLogicWorkerSPTTest06', function () {
@@ -96,19 +76,19 @@ describe('ProcedureLogicWorkerSPT Test', () => {
     window.postMessage = jest.fn(() => true);
     expect(procedureLogicWorkerSPT.getThreadState()).toBeUndefined();
   });
-  it('ProcedureLogicWorkerSPTTest11', function () {
-    let procedureLogicWorkerSPT = new ProcedureLogicWorkerSPT();
-    window.postMessage = jest.fn(() => true);
-    expect(procedureLogicWorkerSPT.getThreadProcessData()).toBeUndefined();
-  });
   it('ProcedureLogicWorkerSPTTest12', function () {
     let procedureLogicWorkerSPT = new ProcedureLogicWorkerSPT();
     window.postMessage = jest.fn(() => true);
     expect(procedureLogicWorkerSPT.getSPTData()).toBeTruthy();
   });
-  it('ProcedureLogicWorkerSPTTest13', function () {
+  it('ProcedureLogicWorkerSPTTest14', function () {
     let procedureLogicWorkerSPT = new ProcedureLogicWorkerSPT();
     window.postMessage = jest.fn(() => true);
-    expect(procedureLogicWorkerSPT.initProcessThreadStateData()).toBeUndefined();
+    expect(procedureLogicWorkerSPT.clearAll()).toBeUndefined();
+  });
+  it('ProcedureLogicWorkerSPTTest15', function () {
+    let procedureLogicWorkerSPT = new ProcedureLogicWorkerSPT();
+    window.postMessage = jest.fn(() => true);
+    expect(procedureLogicWorkerSPT.getPTSData()).toBeTruthy();
   });
 });

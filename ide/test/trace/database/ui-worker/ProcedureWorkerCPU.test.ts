@@ -14,8 +14,7 @@
  */
 
 // @ts-ignore
-import {TraceRow} from "../../../../dist/trace/component/trace/base/TraceRow.js";
-
+import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
 
 // @ts-ignore
 import {
@@ -27,10 +26,10 @@ import {
 } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js';
 // @ts-ignore
 import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+import { drawWakeUp } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon';
 
 jest.mock('../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js', () => {
-  return {
-  };
+  return {};
 });
 jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
   return {};
@@ -215,7 +214,7 @@ describe(' Test', () => {
         width: 75,
         height: 90,
       },
-      canvas: '',
+      canvas: 'abc',
       context: {
         measureText: jest.fn(() => true),
         clearRect: jest.fn(() => true),

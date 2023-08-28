@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,19 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { initMetaDataStrategy } from '../../../../dist/trace/component/metrics/MetaDataStrategy.js';
 
-describe('MetaDataStrategy Test', () => {
-  const metricData = [
-    {
-      length: 1,
-      name: 'name',
-      valueText: '',
-    },
-  ];
+#ifndef TRACE_TASK_STRATEGY_H
+#define TRACE_TASK_STRATEGY_H
+#include <any>
+#include <map>
+#include <string>
+#include <vector>
 
-  it('initMetaDataStrategyTest01', () => {
-    expect(initMetaDataStrategy(metricData)).toBeTruthy();
-  });
-});
+namespace SysTuning {
+namespace TraceStreamer {
+struct TaskProcessItem {
+    uint32_t pid;
+    std::string processName;
+    std::vector<std::string> threadName;
+};
+} // namespace TraceStreamer
+} // namespace SysTuning
+
+#endif // TRACE_TASK_STRATEGY_H

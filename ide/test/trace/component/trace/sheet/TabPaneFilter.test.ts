@@ -85,4 +85,31 @@ describe('TabPaneFilter Test', () => {
     tabPaneFilter.disabledMining = true;
     expect(tabPaneFilter.disabledMining).toBeTruthy();
   });
+  it('TabPaneFilterTest15', function () {
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    tabPaneFilter.iconEL.name = 'statistics';
+    tabPaneFilter.iconEL.dispatchEvent(mouseClickEvent);
+  });
+  it('TabPaneFilterTest16', function () {
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    tabPaneFilter.iconEL.name = 'menu';
+    tabPaneFilter.iconEL.dispatchEvent(mouseClickEvent);
+  });
+  it('TabPaneFilterTest17', function () {
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    tabPaneFilter.getFilter = jest.fn(()=>true);
+    tabPaneFilter.markButtonEL.dispatchEvent(mouseClickEvent);
+  });
+  it('TabPaneFilterTest18', function () {
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    tabPaneFilter.firstSelectEL.dispatchEvent(mouseChangeEvent);
+  });
+  it('TabPaneFilterTest19', function () {
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    tabPaneFilter.secondSelectEL.dispatchEvent(mouseChangeEvent);
+  });
+  it('TabPaneFilterTest20', function () {
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    tabPaneFilter.thirdSelectEL.dispatchEvent(mouseChangeEvent);
+  });
 });

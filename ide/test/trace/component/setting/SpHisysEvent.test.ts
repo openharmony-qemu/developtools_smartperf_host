@@ -12,19 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { initTraceTaskStrategy } from '../../../../dist/trace/component/metrics/TraceTaskStrategy.js';
 
-describe('TraceTaskStrategy Test', () => {
-  let metricData = [
-    {
-      length: 1,
-      process_name: '',
-      thread_name: '',
-      pid: 3,
-    },
-  ];
-  it('initTraceTaskStrategyTest01', () => {
-    expect(initTraceTaskStrategy(metricData)).toBeTruthy();
-  });
-});
+// @ts-ignore
+import { SpHisysEvent } from '../../../../dist/trace/component/setting/SpHisysEvent.js';
+
+describe('SpHisysEvent Test', () => {
+    let spHisysEvent = new SpHisysEvent();
+    it('SpHisysEventTest01', function () {
+        expect(spHisysEvent.startSamp).toBeFalsy();
+    });
+    it('SpHisysEventTest02', function () {
+        expect(spHisysEvent.process).toBeFalsy();
+    });
+})

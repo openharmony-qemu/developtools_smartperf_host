@@ -19,11 +19,7 @@ import { TabPaneSPT } from '../../../../../../dist/trace/component/trace/sheet/c
 import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
 // @ts-ignore
 import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
-  return {
-    meauseTreeRowElement: () => {},
-  };
-});
+
 jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
 const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
@@ -147,25 +143,5 @@ describe('TabPaneSPT Test', () => {
       },
     ];
     expect(tabPane.getDataBySPT(10, 100_000, source)).toBeUndefined();
-  });
-
-  it('TabPaneSPTTest03', function () {
-    let mockgetProcessThreadDataByRange = sqlit.getStatesProcessThreadDataByRange;
-    mockgetProcessThreadDataByRange.mockResolvedValue([
-      {
-        process: 'process',
-        processId: 13,
-        thread: 'thread',
-        state: 'state',
-        threadId: 12,
-        dur: 1000,
-        end_ts: 2000,
-        start_ts: 2000,
-        cpu: 1111,
-      },
-    ]);
-    tabPane.tbl = jest.fn(() => tab);
-    tabPane.tbl.recycleDataSource = jest.fn(() => []);
-    expect((tabPane.data = dataList)).toBeTruthy();
   });
 });

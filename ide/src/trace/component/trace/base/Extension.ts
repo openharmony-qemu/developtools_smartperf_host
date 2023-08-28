@@ -52,6 +52,9 @@ declare global {
         Loading: string; // Upload so file
         Error: string; // load error
         CheckALL: string; // Check all child chart
+        WakeupList: string; //show wakeup list table
+        DeviceConnect: string;
+        DeviceDisConnect: string;
       };
     };
 
@@ -101,6 +104,9 @@ window.SmartEvent = {
     Loading: 'SmartEvent-UI-Loading',
     Error: 'SmartEvent-UI-Error',
     CheckALL: 'SmartEvent-UI-CheckALL',
+    WakeupList: 'SmartEvent-UI-WakeupList',
+    DeviceConnect: 'SmartEvent-DEVICE_CONNECT',
+    DeviceDisConnect: 'SmartEvent-DEVICE_DISCONNECT',
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

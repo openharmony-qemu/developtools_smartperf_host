@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,20 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { initTraceStateStrategy } from '../../../../dist/trace/component/metrics/TraceStatsStrategy.js';
 
-describe('TraceTaskStrategy Test', () => {
-  let metricData = [
-    {
-      length: 1,
-      event_name: 'name',
-      count: 1,
-      source: 1,
-      serverity: 0,
-    },
-  ];
-  it('initTraceStateStrategyTest01', () => {
-    expect(initTraceStateStrategy(metricData)).toBeTruthy();
-  });
-});
+#ifndef MEM_STRATEGY_H
+#define MEM_STRATEGY_H
+#include <map>
+#include <string>
+#include <vector>
+
+namespace SysTuning {
+namespace TraceStreamer {
+struct TypeInfoItem {
+    uint32_t min;
+    uint32_t max;
+    uint32_t avg;
+};
+
+struct ProcessMetricsItems {
+    std::string processName;
+    TypeInfoItem overallCounters;
+};
+
+} // namespace TraceStreamer
+} // namespace SysTuning
+
+#endif // MEM_STRATEGY_H

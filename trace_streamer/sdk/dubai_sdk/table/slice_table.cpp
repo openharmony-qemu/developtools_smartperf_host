@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { TS = 0, ENDTS = 1, ST = 2, ET = 3, VALUE = 4, SLICE_ID = 5 };
+enum class Index : int32_t { TS = 0, ENDTS = 1, ST = 2, ET = 3, VALUE = 4, SLICE_ID = 5 };
 }
 SliceTable::SliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -50,28 +50,28 @@ SliceTable::Cursor::~Cursor() {}
 
 int32_t SliceTable::Cursor::Column(int32_t column) const
 {
-    switch (column) {
-        case TS: {
+    switch (static_cast<Index>(column)) {
+        case Index::TS: {
             sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.TimeStamp()[CurrentRow()]));
             break;
         }
-        case ENDTS: {
+        case Index::ENDTS: {
             sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.EndTs()[CurrentRow()]));
             break;
         }
-        case ST: {
+        case Index::ST: {
             sqlite3_result_text(context_, sliceDataObj_.StartTime()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
-        case ET: {
+        case Index::ET: {
             sqlite3_result_text(context_, sliceDataObj_.EndTime()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
-        case VALUE: {
+        case Index::VALUE: {
             sqlite3_result_double(context_, static_cast<double>(sliceDataObj_.Value()[CurrentRow()]));
             break;
         }
-        case SLICE_ID: {
+        case Index::SLICE_ID: {
             sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.SliceId()[CurrentRow()]));
             break;
         }

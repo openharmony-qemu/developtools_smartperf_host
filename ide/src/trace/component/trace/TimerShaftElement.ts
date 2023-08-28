@@ -327,13 +327,14 @@ export class TimerShaftElement extends BaseElement {
     this.sportRuler?.mouseUp(ev);
   };
 
-  documentOnMouseMove = (ev: MouseEvent) => {
+  documentOnMouseMove = (ev: MouseEvent, trace: SpSystemTrace) => {
+    trace.style.cursor = 'default';
     let x = ev.offsetX - (this.canvas?.offsetLeft || 0);  // 鼠标的x轴坐标
     let y = ev.offsetY; // 鼠标的y轴坐标
     let findSlicestime = this.sportRuler?.findSlicesTime(x, y); // 查找帽子
     if (!findSlicestime) { // 如果在该位置没有找到一个“帽子”，则可以显示一个旗子。
       this.sportRuler?.showHoverFlag();
-      this.rangeRuler?.mouseMove(ev);
+      this.rangeRuler?.mouseMove(ev, trace);
       if (this.sportRuler?.edgeDetection(ev)) {
         this.sportRuler?.mouseMove(ev);
       } else {

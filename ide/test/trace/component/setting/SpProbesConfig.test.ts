@@ -32,4 +32,8 @@ describe('SpProbesConfig Test', () => {
     expect(spEle.traceEvents.length).toEqual(24);
     expect(spEle.memoryConfig).toEqual([]);
   });
+  it('new SpProbesConfig02', function () {
+    let spEle = document.querySelector('#spconfig') as SpProbesConfig;
+    expect(spEle.recordAbility).toBeFalsy();
+  });
 });

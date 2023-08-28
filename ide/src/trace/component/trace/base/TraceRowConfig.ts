@@ -54,7 +54,7 @@ export class TraceRowConfig extends BaseElement {
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
     this.traceRowList =
       this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows-pane]')!.querySelectorAll<TraceRow<BaseStruct>>(
-        'trace-row[row-parent-id=\'\']'
+          'trace-row[row-parent-id=\'\']'
       );
     let allowSceneList: Array<string> = [];
     TraceRowConfig.allTraceRowList.push(...this.traceRowList!);
@@ -83,6 +83,7 @@ export class TraceRowConfig extends BaseElement {
     optionCheckBox.style.height = '100%';
     optionCheckBox.title = item;
     optionCheckBox.addEventListener('change', () => {
+      this.clearLines(optionCheckBox.title);
       if (optionCheckBox.checked) {
         this.selectTypeList!.push(item);
       } else {
@@ -102,10 +103,18 @@ export class TraceRowConfig extends BaseElement {
     this.sceneTable?.appendChild(htmlDivElement);
   }
 
+  clearLines(type: string) {
+    if (type === 'FrameTimeline' || type === 'AppStartup') {
+      this.spSystemTrace?.removeLinkLinesByBusinessType('janks');
+    } else if (type === 'Task Pool') {
+      this.spSystemTrace?.removeLinkLinesByBusinessType('task');
+    }
+  }
+
   initConfigChartTable(row: TraceRow<BaseStruct>): void {
     let templateType = '';
     if (row.templateType.length > 0) {
-      templateType = row.templateType.reduce((pre, cur) => `${pre  }:${  cur}`);
+      templateType = row.templateType.reduce((pre, cur) => `${pre}:${cur}`);
     }
     let div = document.createElement('div');
     div.className = 'chart-option-div chart-item';
@@ -190,6 +199,7 @@ export class TraceRowConfig extends BaseElement {
               break;
             }
           }
+          traceRow.expansion = false;
           if (isShowRow) {
             if (traceRow.templateType.length > 0) {
               traceRow.removeAttribute('row-hidden');
@@ -197,7 +207,6 @@ export class TraceRowConfig extends BaseElement {
               if (traceRow.childrenList && traceRow.childrenList.length > 0) {
                 this.refreshChildRow(traceRow.childrenList, isShowRow);
               }
-              traceRow.expansion = false;
             }
           } else {
             traceRow.removeAttribute('scene');
@@ -206,26 +215,31 @@ export class TraceRowConfig extends BaseElement {
           }
         }
       });
-      this.spSystemTrace?.collectRows.forEach(favoriteRow => {
+      this.spSystemTrace?.collectRows.forEach((favoriteRow) => {
         let isShowRow: boolean = false;
-        if (favoriteRow.parentRowEl) {
-          favoriteRow.parentRowEl.expansion = false;
-        }
         if (this.selectTypeList!.length === 0) {
           favoriteRow.removeAttribute('row-hidden');
           favoriteRow.setAttribute('scene', '');
         } else {
-          for (let index = 0; index < favoriteRow.templateType!.length; index++) {
-            if (this.selectTypeList!.indexOf(favoriteRow.templateType![index]) >= 0) {
-              isShowRow = true;
-              break;
+          if (favoriteRow.parentRowEl) {
+            favoriteRow.parentRowEl.expansion = false;
+            for (let index = 0; index < favoriteRow.parentRowEl!.templateType!.length; index++) {
+              if (this.selectTypeList!.indexOf(favoriteRow.parentRowEl!.templateType![index]) >= 0) {
+                isShowRow = true;
+                break;
+              }
+            }
+          } else {
+            for (let index = 0; index < favoriteRow.templateType!.length; index++) {
+              if (this.selectTypeList!.indexOf(favoriteRow.templateType![index]) >= 0) {
+                isShowRow = true;
+                break;
+              }
             }
           }
           if (isShowRow) {
-            if (favoriteRow.templateType.length > 0) {
-              favoriteRow.removeAttribute('row-hidden');
-              favoriteRow.setAttribute('scene', '');
-            }
+            favoriteRow.removeAttribute('row-hidden');
+            favoriteRow.setAttribute('scene', '');
           } else {
             favoriteRow.removeAttribute('scene');
             favoriteRow.setAttribute('row-hidden', '');
@@ -236,8 +250,8 @@ export class TraceRowConfig extends BaseElement {
     }
   }
 
-  refreshChildRow(childRows: Array<TraceRow<BaseStruct>>, isShowScene: boolean = false): void{
-    childRows.forEach(row => {
+  refreshChildRow(childRows: Array<TraceRow<BaseStruct>>, isShowScene: boolean = false): void {
+    childRows.forEach((row) => {
       if (isShowScene) {
         row.setAttribute('scene', '');
         if (row.childrenList && row.childrenList.length > 0) {

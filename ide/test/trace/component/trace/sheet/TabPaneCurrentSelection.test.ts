@@ -410,4 +410,16 @@ describe('TabPaneCurrentSelection Test', () => {
     let result = tabPaneCurrentSelection.setJankType(data, list);
     expect(result).toBeUndefined();
   });
+  it('TabPaneCurrentSelectionTest21', function () {
+    let data = [{
+      startTime:22,
+    }]
+    let result = tabPaneCurrentSelection.setFrameAnimationData(data)
+    expect(result).toBeTruthy();
+  });
+  it('TabPaneCurrentSelectionTest22', function () {
+    let data = [{}]
+    let result = tabPaneCurrentSelection.queryCPUWakeUpFromData(data)
+    expect(result).toBeTruthy();
+  });
 });

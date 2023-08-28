@@ -31,7 +31,7 @@ describe('ProcedureWorkerAppStartup Test', () => {
       frame: {
         x: 20,
         y: 20,
-        width: 6,
+        width: 9,
         height: 3,
       },
       dur: 1,

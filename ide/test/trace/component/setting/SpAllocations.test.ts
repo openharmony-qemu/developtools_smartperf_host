@@ -104,4 +104,24 @@ describe('SpAllocations Test', () => {
     let spAllocations = document.querySelector('#sp') as SpAllocations;
     expect(spAllocations.fp_unwind).toBeTruthy();
   });
+  it('SpAllocations test10', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.record_accurately).toBeTruthy();
+  });
+  it('SpAllocations test11', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.offline_symbolization).toBeTruthy();
+  });
+  it('SpAllocations test12', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.record_statistics).toBeTruthy();
+  });
+  it('SpAllocations test13', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.statistics_interval).toBeTruthy();
+  });
+  it('SpAllocations test14', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.startup_mode).toBeFalsy();
+  });
 });

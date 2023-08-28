@@ -54,7 +54,6 @@ export class LitSearch extends BaseElement {
   set total(value: number) {
     value > 0 ? this.setAttribute('show-search-info', '') : this.removeAttribute('show-search-info');
     this._total = value;
-    this.indexEL!.textContent = '0';
     this.totalEL!.textContent = value.toString();
   }
 

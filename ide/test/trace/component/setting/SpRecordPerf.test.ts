@@ -62,4 +62,10 @@ describe('SpRecordPerf Test', () => {
     spRecordPerf.startSamp = true;
     expect(spRecordPerf.startSamp).toBeTruthy();
   });
+  it('SpRecordPerfTest011', function () {
+    expect(spRecordPerf.getPerfConfig()).toBeTruthy();
+  });
+  it('SpRecordPerfTest012', function () {
+    expect(spRecordPerf.parseEvent('adfger')).toBeTruthy();
+  });
 });

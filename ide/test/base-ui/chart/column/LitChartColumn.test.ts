@@ -15,11 +15,10 @@
 
 // @ts-ignore
 import { LitChartColumn } from '../../../../dist/base-ui/chart/column/LitChartColumn.js';
+import '../../../../dist/base-ui/chart/column/LitChartColumn.js';
 // @ts-ignore
 import { getProbablyTime } from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerCommon.js';
 
-// @ts-ignore
-jest.mock('../../../../dist/base-ui/chart/column/LitChartColumn.js');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -118,5 +117,35 @@ describe('litChartColumn Test', () => {
       },
     ];
     expect(clo.data[0].obj.pid).toBe(2);
+  });
+  it('litChartColumnTest04', function () {
+    let litChartColumn = new LitChartColumn();
+    litChartColumn.litChartColumnTipEL = jest.fn(() => true);
+    litChartColumn.litChartColumnTipEL.style = jest.fn(() => true);
+    expect(litChartColumn.showTip(14, 5, 't')).toBeUndefined();
+  });
+  it('litChartColumnTest05', function () {
+    let litChartColumn = new LitChartColumn();
+    litChartColumn.litChartColumnTipEL = jest.fn(() => true);
+    litChartColumn.litChartColumnTipEL.style = jest.fn(() => true);
+    expect(litChartColumn.hideTip()).toBeUndefined();
+  });
+  it('litChartColumnTest06', function () {
+    document.body.innerHTML = `
+        <div>
+            <lit-chart-column id='chart-cloumn'>小按钮</lit-chart-column>
+        </div> `;
+    let clo = document.getElementById('chart-cloumn') as LitChartColumn;
+    let mouseOutEvent: MouseEvent = new MouseEvent('mouseout', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    clo.litChartColumnCanvas.dispatchEvent(mouseOutEvent);
+  });
+  it('litChartColumnTest07', function () {
+    document.body.innerHTML = `
+        <div>
+            <lit-chart-column id='chart-cloumn'>小按钮</lit-chart-column>
+        </div> `;
+    let clo = document.getElementById('chart-cloumn') as LitChartColumn;
+    let mouseOutEvent: MouseEvent = new MouseEvent('mousemove', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    clo.litChartColumnCanvas.dispatchEvent(mouseOutEvent);
   });
 });

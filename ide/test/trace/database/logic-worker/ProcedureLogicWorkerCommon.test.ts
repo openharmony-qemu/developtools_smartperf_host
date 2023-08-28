@@ -24,6 +24,8 @@ import {
   timeMsFormat2p,
   getProbablyTime,
   convertJSON,
+  JsProfilerSymbol,
+  DataCache,
   //@ts-ignore
 } from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerCommon.js';
 describe('ProcedureLogicWorkerCommon Test', () => {
@@ -75,28 +77,6 @@ describe('ProcedureLogicWorkerCommon Test', () => {
     merageBeanDataSplit.recursionPruneInitTree = jest.fn(() => true);
     merageBeanDataSplit.resetAllNode = jest.fn(() => true);
     expect(merageBeanDataSplit.splitTree('', [{ children: [] }], '', false, [''], '')).toBeUndefined();
-  });
-
-  it('MerageBeanTest07', function () {
-    merageBeanDataSplit.recursionChargeInitTree = jest.fn(() => true);
-    let node = {
-      symbolName: '',
-      libName: '',
-    };
-    expect(merageBeanDataSplit.recursionChargeInitTree('', node, '', true)).toBeTruthy();
-  });
-
-  it('MerageBeanTest47', function () {
-    merageBeanDataSplit.recursionChargeInitTree = jest.fn(() => undefined);
-    merageBeanDataSplit.resetAllNode = jest.fn(() => true);
-    let node = {
-      symbolName: '',
-      libName: '',
-      initChildren: {
-        length: 1,
-      },
-    };
-    expect(merageBeanDataSplit.recursionChargeInitTree('', node, [], true)).toBeUndefined();
   });
 
   it('MerageBeanTest30', function () {
@@ -203,54 +183,6 @@ describe('ProcedureLogicWorkerCommon Test', () => {
     expect(merageBeanDataSplit.recursionChargeTree(node, '', true)).toBeTruthy();
   });
 
-  it('MerageBeanTest18', function () {
-    merageBeanDataSplit.recursionPruneInitTree = jest.fn(() => true);
-    let node = [
-      {
-        initChildren: {
-          length: 1,
-        },
-      },
-    ];
-    expect(merageBeanDataSplit.recursionPruneInitTree('', node, '', true)).toBeTruthy();
-  });
-
-  it('MerageBeanTest19', function () {
-    merageBeanDataSplit.recursionPruneTree = jest.fn(() => true);
-    let node = [
-      {
-        initChildren: {
-          length: 1,
-        },
-      },
-    ];
-    expect(merageBeanDataSplit.recursionPruneTree(node, '', true)).toBeTruthy();
-  });
-
-  it('MerageBeanTest20', function () {
-    merageBeanDataSplit.recursionChargeByRule = jest.fn(() => true);
-    let node = [
-      {
-        initChildren: {
-          length: 1,
-        },
-      },
-    ];
-    expect(merageBeanDataSplit.recursionChargeByRule('', node, '', true)).toBeTruthy();
-  });
-
-  it('MerageBeanTest21', function () {
-    merageBeanDataSplit.pruneChildren = jest.fn(() => true);
-    let node = [
-      {
-        initChildren: {
-          length: 1,
-        },
-      },
-    ];
-    expect(merageBeanDataSplit.pruneChildren('', node, '')).toBeTruthy();
-  });
-
   it('MerageBeanTest22', function () {
     merageBeanDataSplit.hideSystemLibrary = jest.fn(() => true);
     expect(merageBeanDataSplit.hideSystemLibrary('', '')).toBeTruthy();
@@ -289,5 +221,67 @@ describe('ProcedureLogicWorkerCommon Test', () => {
   it('MerageBeanTest29', function () {
     merageBeanDataSplit.splitAllProcess = jest.fn(() => true);
     expect(merageBeanDataSplit.splitAllProcess('', '', [])).toBeTruthy();
+  });
+  it('MerageBeanTest32', function () {
+    let node = {
+      initChildren: {
+        length: 10,
+        forEach: jest.fn(() => true),
+      },
+    };
+    expect(merageBeanDataSplit.recursionChargeInitTree([], node, [], true)).toBeTruthy();
+  });
+  it('MerageBeanTest3', function () {
+    let node = {
+      initChildren: {
+        length: 10,
+        forEach: jest.fn(() => true),
+      },
+    };
+    expect(merageBeanDataSplit.recursionPruneInitTree([], node, [], true)).toBeTruthy();
+  });
+  it('MerageBeanTest45', function () {
+    let node = {
+      initChildren: {
+        length: 10,
+        forEach: jest.fn(() => true),
+      },
+    };
+    expect(merageBeanDataSplit.recursionChargeByRule([], node, [], true)).toBeUndefined();
+  });
+  it('MerageBeanTest46', function () {
+    let node = {
+      children: {
+        forEach: jest.fn(() => true),
+      },
+    };
+    expect(merageBeanDataSplit.recursionPruneTree(node, [], true)).toBeUndefined();
+  });
+  it('MerageBeanTest48', function () {
+    let node = {
+      initChildren: {
+        length: 10,
+        forEach: jest.fn(() => true),
+      },
+    };
+    expect(merageBeanDataSplit.pruneChildren([], node, true)).toBeUndefined();
+  });
+  it('MerageBeanTest49', function () {
+    let search = {
+      toLocaleLowerCase: jest.fn(() => true),
+    };
+    expect(merageBeanDataSplit.findSearchNode([], search, [])).toBeUndefined();
+  });
+  it('MerageBeanTest50', function () {
+    let jsProfilerSymbol = new JsProfilerSymbol();
+    expect(jsProfilerSymbol).not.toBeUndefined();
+  });
+  it('MerageBeanTest51', function () {
+    let jsProfilerSymbol = new JsProfilerSymbol();
+    expect(jsProfilerSymbol.clone()).not.toBeUndefined();
+  });
+  it('MerageBeanTest52', function () {
+    let dataCache = new DataCache();
+    expect(dataCache.clearAll()).toBeUndefined();
   });
 });

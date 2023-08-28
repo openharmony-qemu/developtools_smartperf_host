@@ -443,18 +443,19 @@ export class TabPaneCallTree extends BaseElement {
     });
   }
 
-  switchFlameChart(data?: any) {
+  switchFlameChart(data?: any): void {
     let callTreePageTab = this.shadowRoot?.querySelector('#show_table');
     let callTreePageChart = this.shadowRoot?.querySelector('#show_chart');
-    if (!data || data.icon == 'block') {
+    if (!data || data.icon === 'block') {
       callTreePageChart?.setAttribute('class', 'show');
       callTreePageTab?.setAttribute('class', '');
       this.isChartShow = true;
       this.callTreeFilter!.disabledMining = true;
       showButtonMenu(this.callTreeFilter, this.needShowMenu);
+      if (!data)
       this.frameChart!.data = this.callTreeDataSource;
       this.frameChart?.calculateChartData();
-    } else if (data.icon == 'tree') {
+    } else if (data.icon === 'tree') {
       callTreePageChart?.setAttribute('class', '');
       callTreePageTab?.setAttribute('class', 'show');
       showButtonMenu(this.callTreeFilter, true);
@@ -598,7 +599,7 @@ export class TabPaneCallTree extends BaseElement {
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
             <lit-table id="tb-calltree" style="height: auto" tree>
-                <lit-table-column class="call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start" ></lit-table-column>
+                <lit-table-column class="call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start" isExpand></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>

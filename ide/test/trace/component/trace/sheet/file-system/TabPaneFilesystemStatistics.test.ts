@@ -28,7 +28,8 @@ import '../../../../../../dist/base-ui/table/lit-table.js';
 // @ts-ignore
 import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
 import '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 Object.defineProperty(global.self, 'crypto', {
   value: {
     getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),
@@ -36,10 +37,12 @@ Object.defineProperty(global.self, 'crypto', {
 });
 // @ts-ignore
 window.ResizeObserver =
-    window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(), observe: jest.fn(), unobserve: jest.fn(),
-    }));
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('TabPaneFileStatistics Test', () => {
   document.body.innerHTML = `<div><tabpane-file-statistics id="statistics"></tabpane-file-statistics></div>`;
@@ -47,45 +50,45 @@ describe('TabPaneFileStatistics Test', () => {
   let param = {
     anomalyEnergy: [],
     clockMapData: { size: 50 },
-    cpuAbilityIds: [23,25],
-    cpuFreqFilterIds: [34,66],
+    cpuAbilityIds: [23, 25],
+    cpuFreqFilterIds: [34, 66],
     cpuFreqLimitDatas: [],
-    cpuStateFilterIds: [77,96],
+    cpuStateFilterIds: [77, 96],
     cpus: [0],
-    diskAbilityIds: [10,34],
+    diskAbilityIds: [10, 34],
     diskIOLatency: false,
-    diskIOReadIds: [2,11, 4, 12],
+    diskIOReadIds: [2, 11, 4, 12],
     diskIOWriteIds: [2, 54, 64],
     diskIOipids: [25, 7, 58, 6],
     fileSysVirtualMemory: true,
     fileSystemType: [],
     fsCount: 30,
     funAsync: [],
-    funTids: [45,22],
+    funTids: [45, 22],
     hasFps: false,
     irqMapData: { size: 32 },
     jsMemory: [],
     leftNs: 964667689,
-    memoryAbilityIds: [23,78,9],
+    memoryAbilityIds: [23, 78, 9],
     nativeMemory: [],
     nativeMemoryStatistic: [],
-    networkAbilityIds: [10,154,55],
+    networkAbilityIds: [10, 154, 55],
     perfAll: false,
     perfCpus: [1],
     perfProcess: [],
-    perfSampleIds: [233,120,4],
+    perfSampleIds: [233, 120, 4],
     perfThread: [],
     powerEnergy: [],
-    processTrackIds: [34,21],
+    processTrackIds: [34, 21],
     promiseList: [],
     recordStartNs: 780423722428,
     rightNs: 33236556624,
-    sdkCounterIds: [12,56],
-    sdkSliceIds: [45,98],
+    sdkCounterIds: [12, 56],
+    sdkSliceIds: [45, 98],
     smapsType: [],
     systemEnergy: [],
-    threadIds: [88,12],
-    virtualTrackIds: [34,87],
+    threadIds: [88, 12],
+    virtualTrackIds: [34, 87],
     vmCount: 31,
   };
 
@@ -167,5 +170,29 @@ describe('TabPaneFileStatistics Test', () => {
       children: [],
     };
     expect(FileStatistics.sortTable(node, '')).toBeUndefined();
+  });
+  it('TabPaneFileStatisticsTest10', function () {
+    let FileStatistics = new TabPaneFileStatistics();
+    let tabPaneFilesystemStatistics = sqlit.getTabPaneFilesystemStatistics;
+    let result = [
+      {
+        pid: 1,
+        name: '',
+        type: 1,
+        count: 34,
+        size: 22,
+        logicalReads: 32,
+        logicalWrites: 12,
+        otherFile: 55,
+        allDuration: 12,
+        minDuration: 1,
+        maxDuration: 7,
+        avgDuration: 2,
+      },
+    ];
+    FileStatistics.fileStatisticsTbl = jest.fn(() => true);
+    FileStatistics.fileStatisticsTbl.recycleDataSource = jest.fn(() => true);
+    tabPaneFilesystemStatistics.mockResolvedValue(result);
+    expect(FileStatistics.queryDataByDB(param)).toBeUndefined();
   });
 });

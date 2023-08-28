@@ -131,7 +131,7 @@ describe('ProcedureWorkerEnergyState Test', () => {
       range: {
         refresh: '',
       },
-      canvas: '',
+      canvas: 'bc',
       context: {
         font: '14px sans-serif',
         fillStyle: '#151212',
@@ -148,6 +148,10 @@ describe('ProcedureWorkerEnergyState Test', () => {
         stroke: jest.fn(() => true),
         closePath: jest.fn(() => true),
         beginPath: jest.fn(() => true),
+        arc:jest.fn(() => true),
+        fill:jest.fn(() => true),
+        moveTo:jest.fn(() => true),
+        lineTo:jest.fn(() => true),
       },
       lineColor: '#1a4dff',
       isHover: '',

@@ -16,7 +16,8 @@
 // @ts-ignore
 // import { it } from "mocha"
 import { TabPaneBoxChild } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneBoxChild.js';
-import { getTabBoxChildData } from '../../../../../../src/trace/database/SqlLite';
+const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../dist/trace/database/SqlLite.js');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -32,6 +33,21 @@ describe('TabPaneBoxChild Test', () => {
   let tabPaneBoxChild = new TabPaneBoxChild();
   element.appendChild(tabPaneBoxChild);
   tabPaneBoxChild.loadDataInCache = true;
+  let getTabBox = sqlit.getTabBoxChildData;
+  let data = [
+    {
+      process: '',
+      processId: 12,
+      thread: '',
+      state: 2,
+      threadId: 3,
+      duration: 1,
+      startNs: 17,
+      cpu: 2,
+      priority: 1,
+    },
+  ];
+  getTabBox.mockResolvedValue(data);
   tabPaneBoxChild.data = {
     cpus: [],
     threadIds: [],
@@ -39,16 +55,13 @@ describe('TabPaneBoxChild Test', () => {
     funTids: [],
     heapIds: [],
     leftNs: 0,
-    rightNs: 0,
+    rightNs: 233,
     hasFps: false,
+    state:'',
+    processId:0,
+    threadId: 0
   };
-  let val = {
-    leftNs: 2,
-    rightNs: 1,
-    state: '1',
-    processId: 0,
-    threadId: 1,
-  };
+
 
   it('TabPaneBoxChildTest01', function () {
     expect(
@@ -64,5 +77,17 @@ describe('TabPaneBoxChild Test', () => {
         sort: () => {},
       })
     ).toBeUndefined();
+  });
+  it('TabPaneCounterTest03', function () {
+    let val = [
+      {
+        leftNs: 11,
+        rightNs: 34,
+        state: true,
+        processId: 3,
+        threadId: 1,
+      },
+    ];
+    expect(tabPaneBoxChild.getDataByDB(val)).toBeUndefined();
   });
 });

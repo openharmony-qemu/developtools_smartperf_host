@@ -22,6 +22,7 @@ import { ExcelFormater } from '../utils/ExcelFormater.js';
 import { JSONToCSV } from '../utils/CSVFormater.js';
 import { NodeType } from '../../js-heap/model/DatabaseStruct.js';
 import { ConstructorType } from '../../js-heap/model/UiStruct.js';
+import { LitIcon } from '../icon/LitIcon.js';
 
 @element('lit-table')
 export class LitTable extends HTMLElement {
@@ -30,7 +31,7 @@ export class LitTable extends HTMLElement {
   currentTreeDivList: HTMLDivElement[] = [];
   public rememberScrollTop = false;
   public getItemTextColor?: (data: any) => string;
-  public itemTextHandleMap: Map<string,(value: any) => string> = new Map<string, (value: any) => string>();
+  public itemTextHandleMap: Map<string, (value: any) => string> = new Map<string, (value: any) => string>();
   private ds: Array<any> = [];
   public recycleDs: Array<any> = [];
   private normalDs: Array<any> = [];
@@ -50,6 +51,8 @@ export class LitTable extends HTMLElement {
   private isScrollXOutSide: boolean = false;
   private exportLoading: boolean = false;
   private _loading: boolean = false;
+  private value: any;
+  private _mode = TableMode.Expand;
 
   constructor() {
     super();
@@ -85,7 +88,7 @@ export class LitTable extends HTMLElement {
         }
         .td{
             box-sizing: border-box;
-            padding: 3px;
+            padding: 4.5px;
             display: flex;
             justify-content: flex-start;
             align-items: center;
@@ -263,7 +266,20 @@ export class LitTable extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['scroll-y', 'selectable', 'no-head', 'grid-line', 'defaultOrderColumn', 'hideDownload', 'loading'];
+    return [
+      'scroll-y',
+      'selectable',
+      'no-head',
+      'grid-line',
+      'defaultOrderColumn',
+      'hideDownload',
+      'loading',
+      'expand',
+    ];
+  }
+
+  set mode(mode: TableMode) {
+    this._mode = mode;
   }
 
   set loading(value: boolean) {
@@ -334,7 +350,8 @@ export class LitTable extends HTMLElement {
       this.tableElement!.scrollLeft = 0;
     }
     if (this.hasAttribute('tree')) {
-      this.recycleDs = this.meauseTreeRowElement(value);
+      this.value = value;
+      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Expand);
     } else {
       this.recycleDs = this.meauseAllRowHeight(value);
     }
@@ -347,7 +364,7 @@ export class LitTable extends HTMLElement {
   set snapshotDataSource(value) {
     this.ds = value;
     if (this.hasAttribute('tree')) {
-      this.recycleDs = this.meauseTreeRowElement(value);
+      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Default);
     } else {
       this.recycleDs = this.meauseAllRowHeight(value);
     }
@@ -461,6 +478,22 @@ export class LitTable extends HTMLElement {
     return concatStr;
   }
 
+  injectColumns() {
+    this.columns = this.st!.assignedElements();
+  }
+
+  setStatus(list: any, status: boolean) {
+    if (!status) {
+      this.tableElement!.scrollTop = 0;
+    }
+    for (let item of list) {
+      item.status = status;
+      if (item.children != undefined && item.children.length > 0) {
+        this.setStatus(item.children, status);
+      }
+    }
+  }
+
   //当 custom element首次被插入文档DOM时，被调用。
   connectedCallback() {
     this.st = this.shadowRoot?.querySelector('#slot');
@@ -553,6 +586,40 @@ export class LitTable extends HTMLElement {
               x++;
               let h: any = document.createElement('div');
               h.classList.add('td');
+              if (a.hasAttribute('isExpand')) {
+                let expand = document.createElement('div');
+                expand.classList.add('expand');
+                expand.style.display = 'grid';
+                h.append(expand);
+                let bottom = document.createElement('lit-icon') as LitIcon;
+                bottom.classList.add('down');
+                bottom.name = 'down';
+                expand.append(bottom);
+                let top = document.createElement('lit-icon') as LitIcon;
+                top.classList.add('top');
+                top.name = 'up';
+                expand.append(top);
+                if (a.hasAttribute('retract')) {
+                  top.name = 'down';
+                  bottom.name = 'up';
+                }
+                expand.addEventListener('click', (e) => {
+                  if (top.name !== 'up' && bottom.name !== 'down') {
+                    top.name = 'up';
+                    bottom.name = 'down';
+                    // 一键展开
+                    this.setStatus(this.value, true);
+                    this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Expand);
+                  } else {
+                    top.name = 'down';
+                    bottom.name = 'up';
+                    // 一键收起
+                    this.setStatus(this.value, false);
+                    this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
+                  }
+                  e.stopPropagation();
+                });
+              }
               if (a.hasAttribute('order')) {
                 h.sortType = 0;
                 h.classList.add('td-order');
@@ -638,9 +705,52 @@ export class LitTable extends HTMLElement {
               h.style.justifyContent = a.getAttribute('align');
               gridTemplateColumns.push(a.getAttribute('width') || '1fr');
               h.style.gridArea = key;
-              let titleLabel = document.createElement('label');
-              titleLabel.textContent = a.title;
-              h.appendChild(titleLabel);
+              //   根据进程、线程、状态、优先级展开
+              if (
+                a.title === 'State/Process/Thread' ||
+                a.title === 'Process/Thread/State' ||
+                a.title === 'Priority/State'
+              ) {
+                let labelArr = a.title.split('/');
+                for (let i = 0; i < labelArr.length; i++) {
+                  let titleLabel = document.createElement('label');
+                  titleLabel.style.cursor = 'pointer';
+                  i == 0 ? (titleLabel.textContent = labelArr[i]) : (titleLabel.textContent = '/' + labelArr[i]);
+                  h.appendChild(titleLabel);
+                  titleLabel.addEventListener('click', (e) => {
+                    if (
+                      (titleLabel.textContent?.includes('State') && i === 0) ||
+                      (titleLabel.textContent?.includes('Process') && i === 0) ||
+                      (titleLabel.textContent?.includes('Priority') && i === 0)
+                    ) {
+                      this.setStatus(this.value, false);
+                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
+                    } else if (
+                      (titleLabel.textContent?.includes('Process') && i === 1) ||
+                      (titleLabel.textContent?.includes('Thread') && i === 1)
+                    ) {
+                      for (let item of this.value) {
+                        item.status = true;
+                        if (item.children != undefined && item.children.length > 0) {
+                          this.setStatus(item.children, false);
+                        }
+                      }
+                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
+                    } else if (
+                      (titleLabel.textContent?.includes('Thread') && i === 2) ||
+                      (titleLabel.textContent?.includes('State') && i === 2) ||
+                      (titleLabel.textContent?.includes('State') && i === 1)
+                    ) {
+                      this.setStatus(this.value, true);
+                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Expand);
+                    }
+                  });
+                }
+              } else {
+                let titleLabel = document.createElement('label');
+                titleLabel.textContent = a.title;
+                h.appendChild(titleLabel);
+              }
               if (a.hasAttribute('fixed')) {
                 this.fixed(h, a.getAttribute('fixed'), '#42b983');
               }
@@ -724,6 +834,7 @@ export class LitTable extends HTMLElement {
             tblRowElement.removeAttribute('checked');
           }
         };
+        this.getWheelStatus(tblBox);
         tblBox.appendChild(checkbox);
         tblRowElement.appendChild(tblBox);
       }
@@ -742,6 +853,7 @@ export class LitTable extends HTMLElement {
           if (tblColumn.hasAttribute('fixed')) {
             this.fixed(tblCustomDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
           }
+          this.getWheelStatus(tblCustomDiv);
           tblCustomDiv.append(cloneNode);
           tblRowElement.append(tblCustomDiv);
         } else {
@@ -754,6 +866,7 @@ export class LitTable extends HTMLElement {
           if (tblColumn.hasAttribute('fixed')) {
             this.fixed(tblDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
           }
+          this.getWheelStatus(tblDiv);
           tblDiv.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
           tblRowElement.append(tblDiv);
         }
@@ -841,6 +954,7 @@ export class LitTable extends HTMLElement {
             };
             changeChildNode(treeTblRowElement, e.detail.checked);
           };
+          this.getWheelStatus(treeTblDiv);
           treeTblDiv.appendChild(checkbox);
           treeTblRowElement.appendChild(treeTblDiv);
         }
@@ -859,6 +973,7 @@ export class LitTable extends HTMLElement {
               if (treeTblColumn.hasAttribute('fixed')) {
                 this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
               }
+              this.getWheelStatus(treeTblEl);
               treeTblEl.append(cloneNode);
             } else {
               treeTblEl = document.createElement('div');
@@ -871,6 +986,7 @@ export class LitTable extends HTMLElement {
               // @ts-ignore
               treeTblEl.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
             }
+            this.getWheelStatus(treeTblEl);
             treeTblRowElement.append(treeTblEl);
           } else {
             this.treeElement!.style.width = treeTblColumn.getAttribute('width') || '260px';
@@ -885,6 +1001,7 @@ export class LitTable extends HTMLElement {
               if (treeTblColumn.hasAttribute('fixed')) {
                 this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
               }
+              this.getWheelStatus(treeTblEl);
               treeTblEl.append(firstCloneNode);
             } else {
               treeTblEl = document.createElement('div');
@@ -893,6 +1010,7 @@ export class LitTable extends HTMLElement {
               if (treeTblColumn.hasAttribute('fixed')) {
                 this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
               }
+              this.getWheelStatus(treeTblEl);
               // @ts-ignore
               treeTblEl.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
             }
@@ -966,8 +1084,6 @@ export class LitTable extends HTMLElement {
     return 27;
   }
 
-
-
   meauseAllRowHeight(list: any[]): TableRowObject[] {
     this.tbodyElement!.innerHTML = '';
     this.meauseRowElement = undefined;
@@ -999,7 +1115,7 @@ export class LitTable extends HTMLElement {
       }
       totalHeight += height;
       visibleObjects.push(tableRowObject);
-    }
+    };
     let realIndex = 0;
     list.forEach((item, index) => {
       if (Array.isArray(item)) {
@@ -1047,7 +1163,19 @@ export class LitTable extends HTMLElement {
     return visibleObjects;
   }
 
-  meauseTreeRowElement(list: any[]): TableRowObject[] {
+  newTableRowObject(item: any, totalHeight: number, depth: number, parentNode?: TableRowObject) {
+    let tableRowObject = new TableRowObject();
+    tableRowObject.depth = depth;
+    tableRowObject.data = item;
+    tableRowObject.top = totalHeight;
+    tableRowObject.height = this.meauseTreeElementHeight(tableRowObject, depth);
+    if (parentNode) {
+      parentNode!.children.push(tableRowObject);
+    }
+    return tableRowObject;
+  }
+
+  meauseTreeRowElement(list: any[], form?: RedrawTreeForm): TableRowObject[] {
     this.meauseRowElement = undefined;
     this.tbodyElement!.innerHTML = '';
     this.treeElement!.innerHTML = '';
@@ -1058,13 +1186,21 @@ export class LitTable extends HTMLElement {
     this.currentTreeDivList = [];
     let resetAllHeight = (list: any[], depth: number, parentNode?: TableRowObject) => {
       list.forEach((item) => {
-        let tableRowObject = new TableRowObject();
-        tableRowObject.depth = depth;
-        tableRowObject.data = item;
-        tableRowObject.top = totalHeight;
-        tableRowObject.height = this.meauseTreeElementHeight(tableRowObject, depth);
-        if (parentNode != undefined) {
-          parentNode.children.push(tableRowObject);
+        let tableRowObject = this.newTableRowObject(item, totalHeight, depth, parentNode);
+        if (this._mode === TableMode.Expand && form === RedrawTreeForm.Retract && !item.status) {
+          tableRowObject.expanded = false;
+        } else if (this._mode === TableMode.Expand && form === RedrawTreeForm.Default) {
+          tableRowObject.expanded = true;
+        }
+
+        if (
+          (this._mode === TableMode.Retract && !item.status) ||
+          (this._mode === TableMode.Expand && !item.status && form !== RedrawTreeForm.Expand)
+        ) {
+          tableRowObject.expanded = false;
+          if (item.children != undefined && item.children.length > 0) {
+            this.newTableRowObject(item, totalHeight, depth, tableRowObject);
+          }
         }
         if (
           Math.max(totalHeight, this.tableElement!.scrollTop) <=
@@ -1084,13 +1220,23 @@ export class LitTable extends HTMLElement {
         totalHeight += tableRowObject.height;
         visibleObjects.push(tableRowObject);
         if (item.hasNext) {
+          // js memory的表格
           if (item.parents != undefined && item.parents.length > 0 && item.status) {
             resetAllHeight(item.parents, depth + 1, tableRowObject);
           } else if (item.children != undefined && item.children.length > 0 && item.status) {
             resetAllHeight(item.children, depth + 1, tableRowObject);
           }
         } else {
-          if (item.children != undefined && item.children.length > 0) {
+          // 其他数据
+          if (
+            item.children != undefined &&
+            item.children.length > 0 &&
+            form === RedrawTreeForm.Expand &&
+            this._mode === TableMode.Expand
+          ) {
+            item.status = true;
+            resetAllHeight(item.children, depth + 1, tableRowObject);
+          } else if (item.children != undefined && item.children.length > 0 && item.status) {
             resetAllHeight(item.children, depth + 1, tableRowObject);
           }
         }
@@ -1112,6 +1258,19 @@ export class LitTable extends HTMLElement {
             skip = index;
             break;
           }
+        }
+        // 如果滚动高度大于数据全部收起的高度，并且this.currentRecycleList数组长度为0要给this.currentRecycleList赋值，不然tab页没有数据
+        if (
+          visibleObjects[0] &&
+          this.tableElement!.scrollTop >= this.value.length * visibleObjects[0].height &&
+          this.currentRecycleList.length === 0
+        ) {
+          let newTableElement = this.createNewTreeTableElement(visibleObjects[skip]);
+          this.tbodyElement?.append(newTableElement);
+          if (this.treeElement?.lastChild) {
+            (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjects[skip].height + 'px';
+          }
+          this.currentRecycleList.push(newTableElement);
         }
         let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
         if (reduce == 0) {
@@ -1171,7 +1330,7 @@ export class LitTable extends HTMLElement {
         }
         td.style.paddingLeft = rowData.depth * 15 + 'px';
         if (!rowData.data.children || rowData.data.children.length === 0) {
-          td.style.paddingLeft = (15 * rowData.depth + 16) + 'px';
+          td.style.paddingLeft = 15 * rowData.depth + 16 + 'px';
         }
         if (rowData.data.rowName === 'js-memory') {
           let nodeText = document.createElement('text');
@@ -1259,6 +1418,7 @@ export class LitTable extends HTMLElement {
         } else {
           td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
         }
+        this.getWheelStatus(td);
         newTableElement.append(td);
       }
     });
@@ -1363,10 +1523,37 @@ export class LitTable extends HTMLElement {
         }
       };
 
-      if (rowData.expanded) {
+      if (rowData.expanded && this._mode === TableMode.Retract) {
+        rowData.data.status = false;
         rowData.expanded = false;
         resetNodeHidden(true, rowData);
-      } else {
+      } else if (!rowData.expanded && this._mode === TableMode.Retract) {
+        rowData.expanded = true;
+        rowData.data.status = true;
+        this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
+        resetNodeHidden(false, rowData);
+      }
+
+      if (this._mode === TableMode.Expand && rowData.expanded) {
+        // 点击收起的时候将点击的那条数据的status改为false
+        setChildrenStatus(this.value);
+        function setChildrenStatus(data: any) {
+          for (let d of data) {
+            if (rowData.data === d) {
+              d.status = false;
+            }
+            if (d.children != undefined && d.children.length > 0) {
+              setChildrenStatus(d.children);
+            }
+          }
+        }
+        rowData.expanded = false;
+        resetNodeHidden(true, rowData);
+      } else if (this._mode === TableMode.Expand && !rowData.expanded) {
+        if (rowData.data.children) {
+          rowData.data.status = true;
+        }
+        this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Default);
         rowData.expanded = true;
         resetNodeHidden(false, rowData);
       }
@@ -1460,6 +1647,7 @@ export class LitTable extends HTMLElement {
       } else {
         td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
       }
+      this.getWheelStatus(td);
       newTableElement.append(td);
     });
     newTableElement.onclick = () => {
@@ -1877,4 +2065,26 @@ export class LitTable extends HTMLElement {
     }
     divElement.title = rowData.data.symbolName;
   }
+
+  getWheelStatus(element: any) {
+    element.addEventListener('wheel', (event: WheelEvent) => {
+      if (element.scrollWidth !== element.offsetWidth) {
+        event.preventDefault();
+      }
+      element.scrollLeft += event.deltaY;
+    });
+  }
+}
+
+// 表格默认是展开还是收起的
+export enum TableMode {
+  Expand, // 默认展开
+  Retract, // 默认收起
+}
+
+// 重绘的表格是要全部展开，全部收起，还是一层一层手动打开
+export enum RedrawTreeForm {
+  Expand, // 一键展开
+  Retract, // 一键收起
+  Default, //点击加号，逐层展开
 }

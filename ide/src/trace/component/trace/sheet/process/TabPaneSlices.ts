@@ -17,6 +17,9 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabSlices, getTabSlicesAsyncFunc } from '../../../../database/SqlLite.js';
+import { SpAllocations } from '../../../setting/SpAllocations.js';
+import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { LitSearch } from '../../search/Search.js';
 import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-slices')
@@ -75,6 +78,30 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
+    });
+    this.slicesTbl!.addEventListener('row-click', async (evt) => {
+      // @ts-ignore
+      let data = evt.detail.data;
+      let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+      let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+        'div > div.content > sp-system-trace'
+      ) as SpSystemTrace;
+      let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
+      let input = search.shadowRoot?.querySelector('input') as HTMLInputElement;
+      let indexEL = search.shadowRoot!.querySelector<HTMLSpanElement>('#index');
+      spSystemTrace?.visibleRows.forEach((it) => {
+        it.highlight = false;
+        it.draw();
+      });
+      spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+      input.value = data.name;
+      let list = spSystemTrace!.searchCPU(data.name);
+      await spSystemTrace!.searchFunction(list, data.name).then((mixedResults) => {
+        search.list = spSystemTrace!.searchSdk(mixedResults, data.name);
+      });
+      search.index = spSystemTrace!.showStruct(true, 1, search.list);
+      search.valueChangeHandler!(data.name);
+      indexEL!.textContent = '1';
     });
   }
 

@@ -113,6 +113,9 @@ import { TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneG
 import { TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison.js';
 import { TabPaneSmapsComparison } from '../sheet/smaps/TabPaneSmapsComparison.js';
 import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
+import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
+import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
+import { TabPaneSchedPriority } from '../sheet/cpu/TabPaneSchedPriority.js';
 
 export let tabConfig: any = {
   'tabpane-current': {
@@ -597,5 +600,20 @@ export let tabConfig: any = {
   'gpu-click-select-comparison': {
     title: 'Gpu Dump Comparison',
     type: TabPaneGpuClickSelectComparison,
+  },
+  'box-hilogs': {
+    title: 'Hilogs',
+    type: TabPaneHiLogs,
+    require: (param: SelectionParam) => param.hiLogs.length > 0,
+  },
+  'box-hilogs-summary': {
+    title: 'Summary',
+    type: TabPaneHiLogSummary,
+    require: (param: SelectionParam) => param.hiLogSummary.length > 0,
+  },
+  'box-sched-priority': {
+    title: 'Sched Priority',
+    type: TabPaneSchedPriority,
+    require: (param: SelectionParam) => param.cpus.length > 0,
   },
 };
