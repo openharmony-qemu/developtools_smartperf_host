@@ -18,7 +18,7 @@ import './sql-wasm.js';
 import { Counter, Fps, SelectionData } from '../bean/BoxSelection.js';
 import { WakeupBean } from '../bean/WakeupBean.js';
 import { BinderArgBean } from '../bean/BinderArgBean.js';
-import { SPT, SPTChild } from '../bean/StateProcessThread.js';
+import { SPTChild } from '../bean/StateProcessThread.js';
 import { CpuUsage, Freq } from '../bean/CpuUsage.js';
 
 import {
@@ -568,44 +568,19 @@ where c.ts not null and c.cookie is null group by tid,ipid`,
     {}
   );
 
-export const getStatesProcessThreadDataByRange = (leftNs: number, rightNs: number): Promise<Array<SPT>> =>
-  query<SPT>(
-    'getStatesProcessThreadDataByRange',
-    `
-    select
-      IP.name as process,
-      IP.pid as processId,
-      A.name as thread,
-      B.state as state,
-      A.tid as threadId,
-      B.dur,
-      (B.ts - TR.start_ts + B.dur) as end_ts,
-      (B.ts - TR.start_ts) as start_ts,
-      B.cpu
-    from
-      thread_state as B 
-    left join thread as A on B.itid = A.id
-    left join process as IP on A.ipid = IP.id
-    left join trace_range as TR
-    where B.dur > 0
-    and IP.pid not null
-    and (B.ts - TR.start_ts) >= $leftNs 
-    and (B.ts - TR.start_ts + B.dur) <= $rightNs
-`,
-    { $leftNs: leftNs, $rightNs: rightNs }
-  );
-
 export const getTabBoxChildData = (
   leftNs: number,
   rightNs: number,
   state: string | undefined,
   processId: number | undefined,
   threadId: number | undefined
-): Promise<Array<SPTChild>> =>
-  query<SPTChild>(
-    'getTabBoxChildData',
-    `
-    select
+): Promise<Array<SPTChild>> => {
+  let condition = `
+      ${state != undefined && state != '' ? `and B.state = '${state}'` : ''}
+      ${processId != undefined && processId != -1 ? `and IP.pid = ${processId}` : ''}
+      ${threadId != undefined && threadId != -1 ? `and A.tid = ${threadId}` : ''}
+  `;
+  let sql = `select
       IP.name as process,
       IP.pid as processId,
       A.name as thread,
@@ -620,11 +595,11 @@ export const getTabBoxChildData = (
     left join
       thread as A
     on
-      B.itid = A.id
+      B.itid = A.itid
     left join
       process AS IP
     on
-      A.ipid = IP.id
+      A.ipid = IP.ipid
     left join
       trace_range AS TR
     left join
@@ -638,19 +613,10 @@ export const getTabBoxChildData = (
     and
       IP.pid not null
     and
-      not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS))
-      ${state != undefined && state != '' ? 'and B.state = $state' : ''}
-      ${processId != undefined && processId != -1 ? 'and IP.pid = $processID' : ''}
-      ${threadId != undefined && threadId != -1 ? 'and A.tid = $threadID' : ''}
-    `,
-    {
-      $leftNS: leftNs,
-      $rightNS: rightNs,
-      $state: state,
-      $processID: processId,
-      $threadID: threadId,
-    }
-  );
+      not ((B.ts - TR.start_ts + B.dur < ${leftNs}) or (B.ts - TR.start_ts > ${rightNs})) ${condition};
+  `
+  return query('getTabBoxChildData', sql, {});
+}
 
 export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number): Promise<Array<CpuUsage>> =>
   query<CpuUsage>(

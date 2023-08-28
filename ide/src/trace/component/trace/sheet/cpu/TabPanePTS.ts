@@ -16,16 +16,15 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getStatesProcessThreadDataByRange } from '../../../../database/SqlLite.js';
-import { SPT, StateProcessThread } from '../../../../bean/StateProcessThread.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { procedurePool } from '../../../../database/Procedure.js';
+import { Utils } from '../../base/Utils.js';
+import { SliceGroup } from '../../../../bean/StateProcessThread.js';
 
 @element('tabpane-pts')
 export class TabPanePTS extends BaseElement {
   private ptsTbl: LitTable | null | undefined;
   private ptsRange: HTMLLabelElement | null | undefined;
-  private loadDataInCache: boolean = true;
   private selectionParam: SelectionParam | null | undefined;
 
   set data(ptsValue: SelectionParam | any) {
@@ -35,28 +34,19 @@ export class TabPanePTS extends BaseElement {
     this.selectionParam = ptsValue;
     this.ptsRange!.textContent =
       'Selected range: ' + parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    if (this.loadDataInCache) {
-      this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, []);
-    } else {
-      this.queryDataByDB(ptsValue);
-    }
+    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs);
   }
 
   initElements(): void {
     this.ptsTbl = this.shadowRoot?.querySelector<LitTable>('#pts-tbl');
     this.ptsRange = this.shadowRoot?.querySelector('#pts-time-range');
+    this.ptsTbl!.itemTextHandleMap.set('title', Utils.transferPTSTitle);
   }
 
-  queryDataByDB(ptsVal: SelectionParam | any) {
-    getStatesProcessThreadDataByRange(ptsVal.leftNs, ptsVal.rightNs).then((result) => {
-      this.getDataByPTS(ptsVal.leftNs, ptsVal.rightNs, result);
-    });
-  }
-
-  getDataByPTS(ptsLeftNs: number, ptsRightNs: number, ptsSource: Array<SPT>) {
+  getDataByPTS(ptsLeftNs: number, ptsRightNs: number) {
     this.ptsTbl!.loading = true;
     procedurePool.submitWithName('logic1', 'spt-getPTS', {leftNs:ptsLeftNs,rightNs: ptsRightNs}, undefined,
-      (res: Array<StateProcessThread>) => {
+      (res: Array<SliceGroup>) => {
         this.ptsTbl!.loading = false;
         this.ptsTbl!.recycleDataSource = res;
     });

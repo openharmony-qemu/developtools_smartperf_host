@@ -16,16 +16,16 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getStatesProcessThreadDataByRange } from '../../../../database/SqlLite.js';
-import { SPT, StateProcessThread } from '../../../../bean/StateProcessThread.js';
+import { SliceGroup } from '../../../../bean/StateProcessThread.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { procedurePool } from '../../../../database/Procedure.js';
+import { Utils } from '../../base/Utils.js';
+
 
 @element('tabpane-spt')
 export class TabPaneSPT extends BaseElement {
   private sptTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
-  private loadDataInCache: boolean = true;
   private selectionParam: SelectionParam | null | undefined;
 
   set data(sptValue: SelectionParam | any) {
@@ -37,16 +37,13 @@ export class TabPaneSPT extends BaseElement {
     this.sptTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
       'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    if (this.loadDataInCache) {
-      this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, []);
-    } else {
-      this.queryDataByDB(sptValue);
-    }
+    this.getDataBySPT(sptValue.leftNs, sptValue.rightNs);
   }
 
   initElements(): void {
     this.sptTbl = this.shadowRoot?.querySelector<LitTable>('#spt-tbl');
     this.range = this.shadowRoot?.querySelector('#spt-time-range');
+    this.sptTbl!.itemTextHandleMap.set('title', Utils.transferPTSTitle);
   }
 
   connectedCallback() {
@@ -54,24 +51,18 @@ export class TabPaneSPT extends BaseElement {
     resizeObserver(this.parentElement!, this.sptTbl!);
   }
 
-  getDataBySPT(leftNs: number, rightNs: number, source: Array<SPT>) {
+  getDataBySPT(leftNs: number, rightNs: number) {
     this.sptTbl!.loading = true;
     procedurePool.submitWithName(
       'logic1',
       'spt-getSPT',
       { leftNs: leftNs, rightNs: rightNs },
       undefined,
-      (res: Array<StateProcessThread>) => {
+      (res: Array<SliceGroup>) => {
         this.sptTbl!.loading = false;
         this.sptTbl!.recycleDataSource = res;
       }
     );
-  }
-
-  queryDataByDB(sptParam: SelectionParam | any) {
-    getStatesProcessThreadDataByRange(sptParam.leftNs, sptParam.rightNs).then((result) => {
-      this.getDataBySPT(sptParam.leftNs, sptParam.rightNs, result);
-    });
   }
 
   initHtml(): string {

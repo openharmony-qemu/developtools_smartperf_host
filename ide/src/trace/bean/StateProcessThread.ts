@@ -13,22 +13,17 @@
  * limitations under the License.
  */
 
-export class StateProcessThread {
-  id: string = '';
-  pid: string = '';
+export class SliceGroup {
   title: string | null | undefined = '';
-  children: Array<StateProcessThread> = [];
-  process: string = '';
-  processId: number = -1;
-  thread: string = '';
-  threadId: number = -1;
-  state: string = '';
-  wallDuration: number = 0;
-  avgDuration: string = '';
   count: number = 0;
+  state?: string;
+  tid?: number;
+  pid?: number;
   minDuration: number = 0;
   maxDuration: number = 0;
-  stdDuration: string = '';
+  wallDuration: number = 0;
+  avgDuration: string = '';
+  children?: Array<SliceGroup>
 }
 
 export class SPTChild {
@@ -48,18 +43,4 @@ export class SPTChild {
   priority: number = 0;
   prior: string = '';
   note: string = '-';
-}
-
-export class SPT {
-  start_ts: number = 0;
-  end_ts: number = 0;
-  state: string = '';
-  dur: number = 0;
-  cpu: number = 0;
-  priority: string = '-';
-  note: string = '-';
-  process: string = '';
-  processId: number = 0;
-  thread: string = '';
-  threadId: number = 0;
 }

@@ -153,7 +153,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
                 this.clearBoxSelectionData = this.boxRangeNativeHook.length > 100_0000;
               }
               this.supplementNativeHoodData();
-              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 100_0000);
+              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 50_0000);
               if (this.clearBoxSelectionData) {
                 this.boxRangeNativeHook = [];
               }
@@ -166,7 +166,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
               this.queryNativeHookEvent(leftNs, rightNs, types);
             } else {
               this.nativeMemoryArgs = data.params;
-              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 100_0000);
+              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 50_0000);
               if (this.clearBoxSelectionData) {
                 this.boxRangeNativeHook = [];
               }

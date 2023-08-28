@@ -76,6 +76,7 @@ import { TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneG
 import { TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison.js';
 import { TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.js';
 import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
+import { Utils } from './Utils.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -703,13 +704,13 @@ export class TraceSheet extends BaseElement {
     pane.closeable = true;
     pane.hidden = false;
     this.litTabs!.activeByKey(pane.key);
-    pane.tab = e.detail.title;
+    pane.tab = Utils.transferPTSTitle(e.detail.title);
     let param = new BoxJumpParam();
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
     param.state = e.detail.state;
-    param.threadId = e.detail.threadId;
-    param.processId = e.detail.processId;
+    param.processId = e.detail.pid;
+    param.threadId = e.detail.tid;
     (pane.children.item(0) as TabPaneBoxChild).data = param;
   }
 
