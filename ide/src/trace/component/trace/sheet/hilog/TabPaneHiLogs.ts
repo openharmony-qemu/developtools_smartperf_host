@@ -271,10 +271,14 @@ export class TabPaneHiLogs extends BaseElement {
         this.logTableTitle!.textContent = 'Hilogs [0, 0] / 0';
       } else {
         this.logTable.style.height = `${this.filterData.length * tableRowHeight}px`;
-        let totalLength = Math.floor(tableHeight / tableRowHeight);
+        let totalLength = Math.ceil(tableHeight / tableRowHeight);
         this.endDataIndex = this.startDataIndex + totalLength;
-        if (this.filterData.length > this.endDataIndex - this.startDataIndex) {
-          this.visibleData = this.filterData.slice(this.startDataIndex, this.endDataIndex);
+        if (this.filterData.length >= this.endDataIndex - this.startDataIndex) {
+          if (this.endDataIndex >= this.filterData.length) {
+            this.visibleData = this.filterData.slice(this.filterData.length - totalLength, this.filterData.length);
+          } else {
+            this.visibleData = this.filterData.slice(this.startDataIndex, this.endDataIndex);
+          }
         } else {
           this.visibleData = this.filterData;
         }

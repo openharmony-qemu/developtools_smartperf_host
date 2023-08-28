@@ -1359,6 +1359,9 @@ select pid id,name,'p' type from process;`,
 export const queryThreadStateArgs = (argset: number): Promise<Array<BinderArgBean>> =>
   query('queryThreadStateArgs', ` select args_view.* from args_view where argset = ${argset}`, {});
 
+export const queryThreadStateArgsByName = (key: string): Promise<Array<{argset: number, strValue: string}>> =>
+query('queryThreadStateArgsByName', ` select strValue, argset from args_view where keyName = $key`, {$key: key});
+
 export const queryWakeUpThread_Desc = (): Promise<Array<any>> =>
   query(
     'queryWakeUpThread_Desc',
@@ -2672,7 +2675,7 @@ export const queryPerfSampleCallChain = (sampleId: number): Promise<Array<PerfSt
     symbol_id as symbolId,
     vaddr_in_file as vaddrInFile,
     name as symbol
-from perf_callchain where callchain_id = $sampleId and symbol_id != -1 and vaddr_in_file != 0;
+from perf_callchain where callchain_id = $sampleId;
     `,
     { $sampleId: sampleId }
   );

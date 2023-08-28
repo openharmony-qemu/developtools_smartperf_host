@@ -88,7 +88,7 @@ export class LitTable extends HTMLElement {
         }
         .td{
             box-sizing: border-box;
-            padding: 3px;
+            padding: 4.5px;
             display: flex;
             justify-content: flex-start;
             align-items: center;
@@ -1198,11 +1198,13 @@ export class LitTable extends HTMLElement {
 
         if (
           Math.max(totalHeight, this.tableElement!.scrollTop) <=
-          Math.min(
-            totalHeight + tableRowObject.height,
-            this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight
-          )
+            Math.min(
+              totalHeight + tableRowObject.height,
+              this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight
+            ) ||
+          this.tableElement!.scrollTop >= this.value.length * 27
         ) {
+          this.tableElement!.scrollTop = 0;
           let newTableElement = this.createNewTreeTableElement(tableRowObject);
           newTableElement.style.transform = `translateY(${totalHeight}px)`;
           this.tbodyElement?.append(newTableElement);

@@ -61,6 +61,13 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
             results: this.getSPTData(data.params.leftNs, data.params.rightNs),
           });
           break;
+          case 'spt-getCpuPriority':
+            self.postMessage({
+              id: this.currentEventId,
+              action: 'spt-getCpuPriority',
+              results: this.threadSlice,
+            });
+            break;
       }
     }
   }
@@ -83,8 +90,11 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
        state,
        dur,
        (ts - start_ts) as startTs,
+       (ts - start_ts + dur) as endTs,
        cpu,
        tid,
+       itid as itId,
+       arg_setid as argSetID,
        pid
 from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
 `,
@@ -253,7 +263,13 @@ export class ThreadSlice {
   state?: string;
   dur?: number;
   startTs?: number;
+  endTs?: number;
   cpu?: number | null;
   tid?: number;
   pid?: number;
+  itId?: number;
+  priorityType?: string;
+  end_state?: string;
+  priority?: number;
+	argSetID?: number;
 }

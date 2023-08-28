@@ -44,3 +44,11 @@ export class SPTChild {
   prior: string = '';
   note: string = '-';
 }
+
+export class Priority extends SliceGroup {
+  iTid: number = 0;
+  priorityType: string = '-';
+  endState: string = '';
+  dur: number = 0;
+  priority: number = 0;
+}
