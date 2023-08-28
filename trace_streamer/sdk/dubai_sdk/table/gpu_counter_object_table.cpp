@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { COUNTER_ID = 0, COUNTER_NAME = 1 };
+enum class Index : int32_t { COUNTER_ID = 0, COUNTER_NAME = 1 };
 }
 GpuCounterObjectTable::GpuCounterObjectTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -45,12 +45,12 @@ GpuCounterObjectTable::Cursor::~Cursor() {}
 
 int32_t GpuCounterObjectTable::Cursor::Column(int32_t column) const
 {
-    switch (column) {
-        case COUNTER_ID: {
+    switch (static_cast<Index>(column)) {
+        case Index::COUNTER_ID: {
             sqlite3_result_int64(context_, static_cast<int64_t>(gpuCounterObjectDataObj_.CounterId()[CurrentRow()]));
             break;
         }
-        case COUNTER_NAME: {
+        case Index::COUNTER_NAME: {
             sqlite3_result_text(context_, gpuCounterObjectDataObj_.CounterName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
                                 nullptr);
             break;

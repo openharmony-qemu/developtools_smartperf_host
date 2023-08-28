@@ -15,11 +15,10 @@
 
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
-
+#include "hi_sysevent_measure_filter.h"
 #include "htrace_hisysevent_parser.h"
 #include "string_to_numerical.h"
 #include "trace_streamer_selector.h"
-#include "hi_sysevent_measure_filter.h"
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;

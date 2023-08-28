@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { NAMEINDEX = 0, VALUE };
+enum class Index : int32_t { NAMEINDEX = 0, VALUE };
 }
 MetaTable::MetaTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -44,12 +44,12 @@ MetaTable::Cursor::~Cursor() {}
 
 int32_t MetaTable::Cursor::Column(int32_t column) const
 {
-    switch (column) {
-        case NAMEINDEX:
+    switch (static_cast<Index>(column)) {
+        case Index::NAMEINDEX:
             sqlite3_result_text(context_, dataCache_->GetConstMetaData().Name(CurrentRow()).c_str(), STR_DEFAULT_LEN,
                                 nullptr);
             break;
-        case VALUE:
+        case Index::VALUE:
             sqlite3_result_text(context_, dataCache_->GetConstMetaData().Value(CurrentRow()).c_str(), STR_DEFAULT_LEN,
                                 nullptr);
             break;

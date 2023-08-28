@@ -78,7 +78,7 @@ private:
     const uint32_t maxPointLength_;
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
-    const DataIndex rsOnVsyncEvent_ = traceDataCache_->GetDataIndex("H:RSMainThread::OnVsync");
+    const DataIndex rsOnVsyncEvent_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
     const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";
     const std::string onLauncherVsyncEvent_ = "launcher";
     const DataIndex marshRwTransactionData_ = traceDataCache_->GetDataIndex("H:MarshRSTransactionData");
