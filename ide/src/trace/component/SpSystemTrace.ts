@@ -1026,11 +1026,13 @@ export class SpSystemTrace extends BaseElement {
             if (sample.timestamp * 1000 <= startNS!) {
               minNodeId = sample.lastAssignedId;
             }
-            if (sample.timestamp * 1000 >= endNS!) {
-              if (maxNodeId === undefined) {
-                maxNodeId = sample.lastAssignedId;
+            // 个别文件的sample的最大timestamp小于时间的框选结束时间，不能给maxNodeId赋值
+            // 所以加上此条件：sample.timestamp === it.dataList[it.dataList.length -1].timestamp
+            if (sample.timestamp * 1000 >= endNS! || sample.timestamp === it.dataList[it.dataList.length -1].timestamp) {
+                if (maxNodeId === undefined) {
+                  maxNodeId = sample.lastAssignedId;
+                }
               }
-            }
           }
 
           // If the start time range of the selected box is greater than the end time of the sampled data

@@ -1240,7 +1240,7 @@ export class SpRecordTrace extends BaseElement {
           );
           this.freshMenuItemsStatus('Trace command');
           try {
-            HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_STOP).then(() => {
+            HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_CANCEL).then(() => {
               HdcDeviceManager.shellResultAsString(CmdConstant.CMD_MOUNT, true).then(() => {
                 this.sp!.search = true;
                 this.progressEL!.loading = true;
@@ -1258,6 +1258,7 @@ export class SpRecordTrace extends BaseElement {
                         CmdConstant.CMD_TRACE_FILE_SIZE + this.recordSetting!.output,
                         false
                       ).then((traceFileSize) => {
+                        this.litSearch!.setPercent(`traceFileSize is ${traceFileSize}`,-1);
                         if (traceFileSize.indexOf('No such') != -1) {
                           this.litSearch!.setPercent('No such file or directory', -2);
                           this.buttonDisable(false);

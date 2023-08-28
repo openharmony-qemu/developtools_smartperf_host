@@ -486,6 +486,7 @@ export class SpApplication extends BaseElement {
     window.subscribe(window.SmartEvent.UI.Error, (err) => {
       litSearch.setPercent(err, -1);
       progressEL.loading = false;
+      that.freshMenuDisable(false);
     });
     window.subscribe(window.SmartEvent.UI.Loading, (loading) => {
       litSearch.setPercent(loading ? 'Import So File' : '', loading ? -1 : 101);
@@ -521,6 +522,8 @@ export class SpApplication extends BaseElement {
           }
         });
       } else {
+        let indexEL = litSearch.shadowRoot!.querySelector<HTMLSpanElement>('#index');
+        indexEL!.textContent = '0';
         litSearch.list = [];
         spSystemTrace?.visibleRows.forEach((it) => {
           it.highlight = false;

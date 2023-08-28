@@ -1195,16 +1195,13 @@ export class LitTable extends HTMLElement {
             this.newTableRowObject(item, totalHeight, depth, tableRowObject);
           }
         }
-
         if (
           Math.max(totalHeight, this.tableElement!.scrollTop) <=
-            Math.min(
-              totalHeight + tableRowObject.height,
-              this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight
-            ) ||
-          this.tableElement!.scrollTop >= this.value.length * 27
+          Math.min(
+            totalHeight + tableRowObject.height,
+            this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight
+          )
         ) {
-          this.tableElement!.scrollTop = 0;
           let newTableElement = this.createNewTreeTableElement(tableRowObject);
           newTableElement.style.transform = `translateY(${totalHeight}px)`;
           this.tbodyElement?.append(newTableElement);
@@ -1212,6 +1209,14 @@ export class LitTable extends HTMLElement {
             (this.treeElement?.lastChild as HTMLElement).style.height = tableRowObject.height + 'px';
           }
           this.currentRecycleList.push(newTableElement);
+        }
+        // 当滚动高度大于数据全部收起的高度时点击一键收起，滚动条位置偏下，需要向上滚动才能看到数据，
+        // 为了查看数据方便，直接将滚动条滚动到最上面
+        if (
+          this.tableElement!.scrollTop >= this.value.length * tableRowObject.height &&
+          this.currentRecycleList.length === 0
+        ) {
+          this.tableElement!.scrollTop = 0;
         }
         totalHeight += tableRowObject.height;
         visibleObjects.push(tableRowObject);
@@ -1254,6 +1259,19 @@ export class LitTable extends HTMLElement {
             skip = index;
             break;
           }
+        }
+        // 如果滚动高度大于数据全部收起的高度，并且this.currentRecycleList数组长度为0要给this.currentRecycleList赋值，不然tab页没有数据
+        if (
+          visibleObjects[0] &&
+          this.tableElement!.scrollTop >= this.value.length * visibleObjects[0].height &&
+          this.currentRecycleList.length === 0
+        ) {
+          let newTableElement = this.createNewTreeTableElement(visibleObjects[skip]);
+          this.tbodyElement?.append(newTableElement);
+          if (this.treeElement?.lastChild) {
+            (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjects[skip].height + 'px';
+          }
+          this.currentRecycleList.push(newTableElement);
         }
         let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
         if (reduce == 0) {

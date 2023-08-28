@@ -452,24 +452,6 @@ export const queryTotalTime = (): Promise<Array<{ total: number; recordStartNS: 
       trace_range;`
   );
 
-export const getAsyncEvents = (): Promise<Array<any>> =>
-  query(
-    'getAsyncEvents',
-    `
-    select
-      *,
-      p.pid as pid,
-      c.ts - t.start_ts as "startTime"
-    from
-      callstack c,trace_range t
-    left join
-      process p
-    on
-      c.callid = p.id
-    where
-      cookie is not null;`
-  );
-
 export const getCpuUtilizationRate = (
   startNS: number,
   endNS: number
@@ -5353,3 +5335,6 @@ export const queryLogData = (): Promise<Array<LogStruct>> =>
           l.ts;`,
     {}
   );
+
+export const queryMetric = (metricName: string): Promise<Array<string>> =>
+  query('queryMetric', metricName, '', 'exec-metric');

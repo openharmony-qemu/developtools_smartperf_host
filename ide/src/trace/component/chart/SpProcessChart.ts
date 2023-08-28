@@ -15,7 +15,6 @@
 
 import { SpSystemTrace } from '../SpSystemTrace.js';
 import {
-  getAsyncEvents,
   getFunDataByTid,
   getMaxDepthByTid,
   queryAllActualData,
@@ -58,7 +57,6 @@ export class SpProcessChart {
   private processAsyncFuncArray: any[] = [];
   private eventCountMap: any;
   private processThreads: Array<ThreadStruct> = [];
-  private processAsyncEvent: Array<ProcessMemStruct> = [];
   private processMem: Array<any> = [];
   private processThreadCountMap: Map<number, number> = new Map();
   private processThreadDataCountMap: Map<number, number> = new Map();
@@ -173,8 +171,6 @@ export class SpProcessChart {
     });
     let queryProcessThreadResult = await queryProcessThreads();
     let queryProcessThreadsByTableResult = await queryProcessThreadsByTable();
-    this.processAsyncEvent = await getAsyncEvents();
-    info('The amount of initialized process Event data is : ', this.processAsyncEvent!.length);
     this.processMem = await queryProcessMem();
     let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
     if (loadAppStartup) {

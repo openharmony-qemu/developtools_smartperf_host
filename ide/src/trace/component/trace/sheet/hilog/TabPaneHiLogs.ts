@@ -69,8 +69,8 @@ export class TabPaneHiLogs extends BaseElement {
     this.tagFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#tag-filter');
     this.searchFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#search-filter');
     this.processFilter = this.shadowRoot?.querySelector<HTMLInputElement>('#process-filter');
-    this.spSystemTrace = document.querySelector('body > sp-application')!.
-      shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
+    this.spSystemTrace = document.querySelector('body > sp-application')?.
+      shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.tableTimeHandle = this.delayedRefresh(this.refreshTable);
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
     this.hiLogDownLoadTbl = this.shadowRoot!.querySelector<LitTable>('#tb-hilogs');
