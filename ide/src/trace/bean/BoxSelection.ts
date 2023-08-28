@@ -108,6 +108,7 @@ export class SelectionParam {
 export class BoxJumpParam {
   leftNs: number = 0;
   rightNs: number = 0;
+  cpus: Array<number> = [];
   state: string = '';
   processId: number = 0;
   threadId: number = 0;

@@ -554,6 +554,7 @@ where c.ts not null and c.cookie is null group by tid,ipid`,
 export const getTabBoxChildData = (
   leftNs: number,
   rightNs: number,
+  cpus: number[],
   state: string | undefined,
   processId: number | undefined,
   threadId: number | undefined
@@ -562,6 +563,7 @@ export const getTabBoxChildData = (
       ${state != undefined && state != '' ? `and B.state = '${state}'` : ''}
       ${processId != undefined && processId != -1 ? `and IP.pid = ${processId}` : ''}
       ${threadId != undefined && threadId != -1 ? `and A.tid = ${threadId}` : ''}
+      ${cpus.length > 0 ? `and (B.cpu is null or B.cpu in (${cpus.join(',')}))` : ''}
   `;
   let sql = `select
       IP.name as process,
@@ -597,7 +599,8 @@ export const getTabBoxChildData = (
       IP.pid not null
     and
       not ((B.ts - TR.start_ts + B.dur < ${leftNs}) or (B.ts - TR.start_ts > ${rightNs})) ${condition};
-  `
+  `;
+  console.log(sql);
   return query('getTabBoxChildData', sql, {});
 };
 
@@ -2725,6 +2728,18 @@ from thread t left join process p on t.ipid = p.ipid
 left join callstack c on t.itid = c.callid
 where itid = $itid and c.ts = $ts;`,
     { $itid: itid, $ts: ts }
+  );
+
+export const queryWakeupListPriority = (itid: number[], ts: number[], cpus: number[]): Promise<Array<any>> =>
+  query(
+    'queryWakeupListPriority',
+    `
+    select itid, priority, (ts - start_ts) as ts, dur, cpu
+    from sched_slice,trace_range where cpu in (${cpus.join(',')})
+    and itid in (${itid.join(',')})
+    and ts - start_ts in (${ts.join(',')})
+    `,
+    { }
   );
 
 export const queryBinderByArgsId = (id: number, startTime: number, isNext: boolean): Promise<Array<any>> => {

@@ -34,7 +34,7 @@ export class TabPanePTS extends BaseElement {
     this.selectionParam = ptsValue;
     this.ptsRange!.textContent =
       'Selected range: ' + parseFloat(((ptsValue.rightNs - ptsValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs);
+    this.getDataByPTS(ptsValue.leftNs, ptsValue.rightNs, ptsValue.cpus);
   }
 
   initElements(): void {
@@ -43,12 +43,12 @@ export class TabPanePTS extends BaseElement {
     this.ptsTbl!.itemTextHandleMap.set('title', Utils.transferPTSTitle);
   }
 
-  getDataByPTS(ptsLeftNs: number, ptsRightNs: number) {
+  getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
     this.ptsTbl!.loading = true;
     procedurePool.submitWithName(
       'logic1',
       'spt-getPTS',
-      { leftNs: ptsLeftNs, rightNs: ptsRightNs },
+      { leftNs: ptsLeftNs, rightNs: ptsRightNs, cpus: cpus},
       undefined,
       (res: Array<SliceGroup>) => {
         this.ptsTbl!.loading = false;

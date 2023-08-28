@@ -18,7 +18,7 @@ import { LitTable } from '../../../../base-ui/table/lit-table.js';
 export function resizeObserver(
   parentEl: HTMLElement,
   tableEl: LitTable,
-  tblOffsetHeight: number = 45,
+  tblOffsetHeight: number = 50,
   loadingPage?: HTMLElement,
   loadingPageOffsetHeight: number = 24
 ) {

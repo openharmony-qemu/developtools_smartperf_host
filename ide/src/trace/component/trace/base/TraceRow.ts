@@ -817,7 +817,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       );
       this.selectChangeHandler?.([
-        ...this.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+        ...this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
         ...traceRowList,
       ]);
       return;

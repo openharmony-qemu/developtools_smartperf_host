@@ -722,6 +722,7 @@ export class TraceSheet extends BaseElement {
     let param = new BoxJumpParam();
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
+    param.cpus = this.selection!.cpus;
     param.state = e.detail.state;
     param.processId = e.detail.pid;
     param.threadId = e.detail.tid;

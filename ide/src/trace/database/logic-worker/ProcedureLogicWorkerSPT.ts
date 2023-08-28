@@ -44,21 +44,14 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
           self.postMessage({
             id: this.currentEventId,
             action: 'spt-getPTS',
-            results: this.getPTSData(data.params.leftNs, data.params.rightNs),
+            results: this.getPTSData(data.params.leftNs, data.params.rightNs, data.params.cpus),
           });
           break;
         case 'spt-getSPT':
           self.postMessage({
             id: this.currentEventId,
             action: 'spt-getSPT',
-            results: this.getSPTData(data.params.leftNs, data.params.rightNs),
-          });
-          break;
-        case 'spt-getGroupData':
-          self.postMessage({
-            id: this.currentEventId,
-            action: 'spt-getSPT',
-            results: this.getSPTData(data.params.leftNs, data.params.rightNs),
+            results: this.getSPTData(data.params.leftNs, data.params.rightNs, data.params.cpus),
           });
           break;
           case 'spt-getCpuPriority':
@@ -102,8 +95,11 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     );
   }
 
-  getPTSData(ptsLeftNs: number, ptsRightNs: number) {
-    let ptsFilter = this.threadSlice.filter(it => Math.max(ptsLeftNs, it.startTs!) < Math.min(ptsRightNs, it.startTs! + it.dur!));
+  getPTSData(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
+    let ptsFilter = this.threadSlice.filter(it =>
+      Math.max(ptsLeftNs, it.startTs!) < Math.min(ptsRightNs, it.startTs! + it.dur!) &&
+      (it.cpu === null || it.cpu === undefined || cpus.includes(it.cpu))
+    );
     let group: any = {};
     ptsFilter.forEach((slice) => {
       let item: SliceGroup = {
@@ -180,8 +176,11 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     return Object.values(group);
   }
 
-  getSPTData(ptsLeftNs: number, ptsRightNs: number) {
-    let sptFilter = this.threadSlice.filter(it => Math.max(ptsLeftNs, it.startTs!) < Math.min(ptsRightNs, it.startTs! + it.dur!));
+  getSPTData(sptLeftNs: number, sptRightNs: number, cpus: Array<number>) {
+    let sptFilter = this.threadSlice.filter(it =>
+      Math.max(sptLeftNs, it.startTs!) < Math.min(sptRightNs, it.startTs! + it.dur!) &&
+      (it.cpu === null || it.cpu === undefined || cpus.includes(it.cpu))
+    );
     let group: any = {};
     sptFilter.forEach((slice) => {
       let item: SliceGroup = {

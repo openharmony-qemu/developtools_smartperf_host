@@ -52,7 +52,7 @@ export class TabPaneBoxChild extends BaseElement {
 
   getDataByDB(val: BoxJumpParam) {
     this.boxChildTbl!.loading = true;
-    getTabBoxChildData(val.leftNs, val.rightNs, val.state, val.processId, val.threadId).then((result) => {
+    getTabBoxChildData(val.leftNs, val.rightNs, val.cpus, val.state, val.processId, val.threadId).then((result) => {
       this.boxChildTbl!.loading = false;
       if (result.length != null && result.length > 0) {
         result.map((e) => {

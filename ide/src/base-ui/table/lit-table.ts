@@ -478,6 +478,10 @@ export class LitTable extends HTMLElement {
     return concatStr;
   }
 
+  injectColumns() {
+    this.columns = this.st!.assignedElements();
+  }
+
   setStatus(list: any, status: boolean) {
     for (let item of list) {
       item.status = status;

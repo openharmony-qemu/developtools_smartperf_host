@@ -36,7 +36,7 @@ export class TabPaneSPT extends BaseElement {
     this.sptTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
     this.range!.textContent =
       'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
-    this.getDataBySPT(sptValue.leftNs, sptValue.rightNs);
+    this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus);
   }
 
   initElements(): void {
@@ -50,12 +50,12 @@ export class TabPaneSPT extends BaseElement {
     resizeObserver(this.parentElement!, this.sptTbl!);
   }
 
-  getDataBySPT(leftNs: number, rightNs: number) {
+  getDataBySPT(leftNs: number, rightNs: number, cpus: Array<number>) {
     this.sptTbl!.loading = true;
     procedurePool.submitWithName(
       'logic1',
       'spt-getSPT',
-      { leftNs: leftNs, rightNs: rightNs },
+      { leftNs: leftNs, rightNs: rightNs, cpus: cpus },
       undefined,
       (res: Array<SliceGroup>) => {
         this.sptTbl!.loading = false;

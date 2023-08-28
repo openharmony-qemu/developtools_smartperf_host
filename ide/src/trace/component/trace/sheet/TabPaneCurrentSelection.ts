@@ -25,11 +25,12 @@ import {
   queryGpuDur,
   queryPrecedingData,
   queryRunnableTimeByRunning,
+  queryThreadByItid,
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
-  queryThreadByItid,
   queryAnimationFrameFps,
+  queryWakeupListPriority,
 } from '../../../database/SqlLite.js';
 import { WakeupBean } from '../../../bean/WakeupBean.js';
 import { SpApplication } from '../../../SpApplication.js';
@@ -96,6 +97,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   weakUpBean: WakeupBean | null | undefined;
   private currentSelectionTbl: LitTable | null | undefined;
   private tableObserver: MutationObserver | undefined;
+  private wakeupListTbl: LitTable | undefined | null;
   private scrollView: HTMLDivElement | null | undefined;
   // @ts-ignore
   private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
@@ -115,7 +117,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
     scrollCallback?: (data: CpuStruct) => void
   ): void {
-    this.setTableHeight('550px');
+    this.setTableHeight('650px');
     let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     if (leftTitle) {
       leftTitle.innerText = 'Slice Details';
@@ -1003,6 +1005,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private setTableHeight(height: string): void {
     this.scrollView!.scrollTop = 0;
     this.currentSelectionTbl!.style.height = height;
+    this.wakeupListTbl!.style.display = 'none';
   }
 
   private addJankScrollCallBackEvent(
@@ -1128,12 +1131,11 @@ export class TabPaneCurrentSelection extends BaseElement {
   initCanvas(): HTMLCanvasElement | null {
     let canvas = this.shadowRoot!.querySelector<HTMLCanvasElement>('#rightDraw');
     let width = getComputedStyle(this.currentSelectionTbl!).getPropertyValue('width');
-    let height = getComputedStyle(this.currentSelectionTbl!).getPropertyValue('height');
     if (canvas !== null) {
       canvas.width = Math.round(Number(width.replace('px', '')) * this.dpr);
-      canvas.height = Math.round(Number(height.replace('px', '')) * this.dpr);
+      canvas.height = Math.round(Number(200 * this.dpr));
       canvas.style.width = width;
-      canvas.style.height = height;
+      canvas.style.height = '200px';
       canvas.getContext('2d')!.scale(this.dpr, this.dpr);
     }
     SpApplication.skinChange = (val: boolean): void => {
@@ -1219,8 +1221,45 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   initElements(): void {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
+    this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
     this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
+    window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => {
+      this.wakeupListTbl!.style.display = 'flex';
+      let cpus: number[] = []
+      let itids: number[] = []
+      let ts: number[] = []
+      let maxPriority = 0;
+      let maxDuration = 0;
+      data.forEach(it => {
+        cpus.push(it.cpu!);
+        itids.push(it.itid!);
+        ts.push(it.ts!);
+      });
+      queryWakeupListPriority(itids,ts,cpus).then(res => {
+        let resource = data.map(it => {
+          let wake = {
+            process: `${it.process}(${it.pid})`,
+            thread: `${it.thread}(${it.tid})`,
+            cpu: it.cpu,
+            dur: it.dur,
+            priority: 0,
+            isSelected: false
+          };
+          let find = res.find(re => re.cpu === it.cpu && re.itid === it.itid && re.ts === it.ts);
+          if (find) {
+            wake.priority = find.priority;
+          }
+          maxDuration = Math.max(maxDuration, it.dur!);
+          maxPriority = Math.max(maxPriority, wake.priority);
+          return wake;
+        });
+        resource.forEach(it => {
+          it.isSelected = it.priority === maxPriority || it.dur === maxDuration;
+        });
+        this.wakeupListTbl!.recycleDataSource = resource;
+      });
+    })
   }
 
   addTableObserver(): void {
@@ -1284,6 +1323,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             }
             .table-right{
                 width: 50%;
+                display: flex;
+                flex-direction: column;
             }
         </style>
         <div id="scroll_view" style="display: flex;flex-direction: column;width: 100%;height: 100%;overflow: auto">
@@ -1310,7 +1351,19 @@ export class TabPaneCurrentSelection extends BaseElement {
                         </lit-table-column>
                 </lit-table>
                 <div class="table-right">
-                    <canvas id="rightDraw" style="width: 100%;height: 100%;"></canvas>
+                    <canvas id="rightDraw" style="width: 100%;height: 200px;"></canvas>
+                    <lit-table id="wakeupListTbl" style="flex: 1;display: none" hideDownload>
+                        <lit-table-column title="Process" data-index="process" key="process" align="flex-start"  width="180px">
+                        </lit-table-column>
+                        <lit-table-column title="Thread" data-index="thread" key="thread" align="flex-start"  width="180px">
+                        </lit-table-column>
+                        <lit-table-column title="CPU" data-index="cpu" key="cpu" align="flex-start"  width="60px">
+                        </lit-table-column>
+                        <lit-table-column title="Duration" data-index="dur" key="dur" align="flex-start"  width="180px">
+                        </lit-table-column>
+                        <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="180px">
+                        </lit-table-column>
+                    </lit-table>
                 </div>
             </div>
         </div>
