@@ -78,7 +78,6 @@ export class PerfCallChainMerageData extends ChartStruct {
   tid: number = 0;
   pid: number = 0;
   currentTreeParentNode: PerfCallChainMerageData | undefined = undefined;
-  symbolName: string = '';
   libName: string = '';
   symbol: string = '';
   path: string = '';

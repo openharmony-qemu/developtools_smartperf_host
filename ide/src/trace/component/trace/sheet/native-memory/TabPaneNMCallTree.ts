@@ -589,7 +589,9 @@ export class TabpaneNMCalltree extends BaseElement {
       this.isChartShow = true;
       this.nmCallTreeFilter!.disabledMining = true;
       this.showBottomMenu(this.needShowMenu);
-      this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+      if (!flameChartData){
+        this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+      }
       this.nmCallTreeFrameChart?.calculateChartData();
     } else if (flameChartData.icon == 'tree') {
       nmCallTreePageChart?.setAttribute('class', '');

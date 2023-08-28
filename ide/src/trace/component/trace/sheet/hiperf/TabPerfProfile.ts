@@ -486,18 +486,20 @@ export class TabpanePerfProfile extends BaseElement {
     }).observe(this.parentElement!);
   }
 
-  switchFlameChart(data?: any) {
+  switchFlameChart(data?: any): void {
     let perfProfilerPageTab = this.shadowRoot?.querySelector('#show_table');
     let perfProfilerPageChart = this.shadowRoot?.querySelector('#show_chart');
-    if (!data || data.icon == 'block') {
+    if (!data || data.icon === 'block') {
       perfProfilerPageChart?.setAttribute('class', 'show');
       perfProfilerPageTab?.setAttribute('class', '');
       this.isChartShow = true;
       this.perfProfilerFilter!.disabledMining = true;
       showButtonMenu(this.perfProfilerFilter, this.needShowMenu);
-      this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
+      if (!data){
+        this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
+      }
       this.perfProfileFrameChart?.calculateChartData();
-    } else if (data.icon == 'tree') {
+    } else if (data.icon === 'tree') {
       perfProfilerPageChart?.setAttribute('class', '');
       perfProfilerPageTab?.setAttribute('class', 'show');
       showButtonMenu(this.perfProfilerFilter, true);

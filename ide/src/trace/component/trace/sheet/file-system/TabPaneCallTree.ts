@@ -443,18 +443,19 @@ export class TabPaneCallTree extends BaseElement {
     });
   }
 
-  switchFlameChart(data?: any) {
+  switchFlameChart(data?: any): void {
     let callTreePageTab = this.shadowRoot?.querySelector('#show_table');
     let callTreePageChart = this.shadowRoot?.querySelector('#show_chart');
-    if (!data || data.icon == 'block') {
+    if (!data || data.icon === 'block') {
       callTreePageChart?.setAttribute('class', 'show');
       callTreePageTab?.setAttribute('class', '');
       this.isChartShow = true;
       this.callTreeFilter!.disabledMining = true;
       showButtonMenu(this.callTreeFilter, this.needShowMenu);
+      if (!data)
       this.frameChart!.data = this.callTreeDataSource;
       this.frameChart?.calculateChartData();
-    } else if (data.icon == 'tree') {
+    } else if (data.icon === 'tree') {
       callTreePageChart?.setAttribute('class', '');
       callTreePageTab?.setAttribute('class', 'show');
       showButtonMenu(this.callTreeFilter, true);

@@ -36,7 +36,7 @@ export class Msg {
 export class MerageBean extends ChartStruct {
   #parentNode: MerageBean | undefined = undefined;
   #total = 0;
-  currentTreeParentNode: MerageBean | undefined = undefined;
+  parent: MerageBean | undefined = undefined;
   id: string = '';
   parentId: string = '';
   symbolName: string = '';
@@ -57,7 +57,7 @@ export class MerageBean extends ChartStruct {
   initChildren: MerageBean[] = [];
   type: number = 0;
   set parentNode(data: MerageBean | undefined) {
-    this.currentTreeParentNode = data;
+    this.parent = data;
     this.#parentNode = data;
   }
 
@@ -128,8 +128,8 @@ class MerageBeanDataSplit {
   //symbol lib prune
   recursionPruneTree(node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
-      node.currentTreeParentNode &&
-      node.currentTreeParentNode.children.splice(node.currentTreeParentNode.children.indexOf(node), 1);
+      node.parent &&
+      node.parent.children.splice(node.parent.children.indexOf(node), 1);
     } else {
       node.children.forEach((child) => {
         this.recursionPruneTree(child, symbolName, isSymbol);
@@ -232,10 +232,10 @@ class MerageBeanDataSplit {
       if ((node.symbolName && node.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
         node.searchShow = true;
         node.isSearch = node.symbolName != undefined && node.symbolName.toLocaleLowerCase().includes(search);
-        let parentNode = node.currentTreeParentNode;
+        let parentNode = node.parent;
         while (parentNode && !parentNode.searchShow) {
           parentNode.searchShow = true;
-          parentNode = parentNode.currentTreeParentNode;
+          parentNode = parentNode.parent;
         }
       } else {
         node.searchShow = false;
