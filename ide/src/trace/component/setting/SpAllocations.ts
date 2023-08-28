@@ -444,19 +444,19 @@ export class SpAllocations extends BaseElement {
               <span class="allocation-inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
               <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
           </div>
-          <div class="allocation-switchstyle">
+          <div class="allocation-switchstyle version-controller">
               <span class="allocation-inner-font-style" id="record_accurately ">Use Record Accurately (Available on recent OpenHarmony 4.0)</span> 
               <lit-switch   class="lts" id="use_record_accurately" title="record_accurately" checked="true"></lit-switch>
           </div>
-          <div class="allocation-switchstyle">
+          <div class="allocation-switchstyle version-controller">
               <span class="allocation-inner-font-style" id="offline_symbolization">Use Offline Symbolization (Available on recent OpenHarmony 4.0)</span> 
               <lit-switch class="lts" id="use_offline_symbolization" title="offline_symbolization" checked="true"></lit-switch>
           </div>
-           <div class="allocation-switchstyle">
+           <div class="allocation-switchstyle version-controller">
               <span class="allocation-inner-font-style" id="startup_mode">Use Startup Mode (Available on recent OpenHarmony 4.0)</span> 
               <lit-switch class="lts" id="use_startup_mode" title="startup_mode"></lit-switch>
           </div>   
-          <div class="allocation-switchstyle record-statistics-result" style="grid-row: 6; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
+          <div class="allocation-switchstyle record-statistics-result version-controller" style="grid-row: 6; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
             <div class="record-title">
                 <span class="record-mode">Use Record Statistics (Available on recent OpenHarmony 4.0)</span> 
                 <span class="allocation-record-prompt"> Time between following interval (0 = disabled) </span>

@@ -190,6 +190,7 @@ export class TraceRowConfig extends BaseElement {
               break;
             }
           }
+          traceRow.expansion = false;
           if (isShowRow) {
             if (traceRow.templateType.length > 0) {
               traceRow.removeAttribute('row-hidden');
@@ -197,7 +198,6 @@ export class TraceRowConfig extends BaseElement {
               if (traceRow.childrenList && traceRow.childrenList.length > 0) {
                 this.refreshChildRow(traceRow.childrenList, isShowRow);
               }
-              traceRow.expansion = false;
             }
           } else {
             traceRow.removeAttribute('scene');
@@ -208,24 +208,29 @@ export class TraceRowConfig extends BaseElement {
       });
       this.spSystemTrace?.collectRows.forEach(favoriteRow => {
         let isShowRow: boolean = false;
-        if (favoriteRow.parentRowEl) {
-          favoriteRow.parentRowEl.expansion = false;
-        }
         if (this.selectTypeList!.length === 0) {
           favoriteRow.removeAttribute('row-hidden');
           favoriteRow.setAttribute('scene', '');
         } else {
-          for (let index = 0; index < favoriteRow.templateType!.length; index++) {
-            if (this.selectTypeList!.indexOf(favoriteRow.templateType![index]) >= 0) {
-              isShowRow = true;
-              break;
+          if (favoriteRow.parentRowEl) {
+            favoriteRow.parentRowEl.expansion = false;
+            for (let index = 0; index < favoriteRow.parentRowEl!.templateType!.length; index++) {
+              if (this.selectTypeList!.indexOf(favoriteRow.parentRowEl!.templateType![index]) >= 0) {
+                isShowRow = true;
+                break;
+              }
+            }
+          } else {
+            for (let index = 0; index < favoriteRow.templateType!.length; index++) {
+              if (this.selectTypeList!.indexOf(favoriteRow.templateType![index]) >= 0) {
+                isShowRow = true;
+                break;
+              }
             }
           }
           if (isShowRow) {
-            if (favoriteRow.templateType.length > 0) {
-              favoriteRow.removeAttribute('row-hidden');
-              favoriteRow.setAttribute('scene', '');
-            }
+            favoriteRow.removeAttribute('row-hidden');
+            favoriteRow.setAttribute('scene', '');
           } else {
             favoriteRow.removeAttribute('scene');
             favoriteRow.setAttribute('row-hidden', '');

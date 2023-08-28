@@ -401,7 +401,7 @@ export class SpRecordTrace extends BaseElement {
       clearFlag = true;
     } else {
       let optionArray = new Array();
-      for (let i = 0 ; i < this.deviceSelect!.options.length ; i++) {
+      for (let i = 0; i < this.deviceSelect!.options.length; i++) {
         optionArray.push(this.deviceSelect!.options[i].value);
       }
       devs.forEach((value) => {
@@ -428,7 +428,7 @@ export class SpRecordTrace extends BaseElement {
             this.recordButton!.hidden = true;
             this.disconnectButton!.hidden = true;
           }
-          for (let i = 0 ; i < devs.length ; i++) {
+          for (let i = 0; i < devs.length; i++) {
             let dev = devs[i];
             let option = document.createElement('option');
             option.className = 'select';
@@ -451,7 +451,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
         }
-        for (let len = 0 ; len < devs.length ; len++) {
+        for (let len = 0; len < devs.length; len++) {
           let dev = devs[len];
           let option = document.createElement('option');
           option.className = 'select';
@@ -476,6 +476,7 @@ export class SpRecordTrace extends BaseElement {
                     SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
                     this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
                   }
+                  this.nativeMemoryHideBySelectVersion();
                   this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
                     PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
                     this.recordSetting!.output,
@@ -485,7 +486,8 @@ export class SpRecordTrace extends BaseElement {
               } else {
                 SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
                 this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
-                let cmdTxt = PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false)
+                this.nativeMemoryHideBySelectVersion();
+                let cmdTxt = PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false);
                 this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
                   cmdTxt,
                   this.recordSetting!.output,
@@ -513,7 +515,7 @@ export class SpRecordTrace extends BaseElement {
   refreshHint() {
     let flags = FlagsConfig.getAllFlagConfig();
     let showHint = false;
-    for (let i = 0 ; i < flags.length ; i++) {
+    for (let i = 0; i < flags.length; i++) {
       let flag = flags[i];
       if (this.selectedTemplate.has(flag.title)) {
         let selectedOption = flag.switchOptions.filter((option) => {
@@ -632,6 +634,7 @@ export class SpRecordTrace extends BaseElement {
     this.deviceVersion.onchange = (): void => {
       let versionItem = this.deviceVersion!.options[this.deviceVersion!.selectedIndex];
       SpRecordTrace.selectVersion = versionItem.getAttribute('device-version');
+      this.nativeMemoryHideBySelectVersion();
       this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
         PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
         this.recordSetting!.output,
@@ -707,8 +710,12 @@ export class SpRecordTrace extends BaseElement {
     this.probesConfig!.addEventListener('addProbe', () => {
       this.showHint = false;
     });
-    this.spRecordTemplate!.addEventListener('addProbe', (ev: CustomEventInit<{ 'elementId': string }>) => {
-      if (FlagsConfig.DEFAULT_CONFIG.find(flagItem => { return flagItem.title === ev.detail!.elementId;})) {
+    this.spRecordTemplate!.addEventListener('addProbe', (ev: CustomEventInit<{ elementId: string }>) => {
+      if (
+        FlagsConfig.DEFAULT_CONFIG.find((flagItem) => {
+          return flagItem.title === ev.detail!.elementId;
+        })
+      ) {
         this.selectedTemplate.set(ev.detail!.elementId, 1);
         let flagConfig = FlagsConfig.getFlagsConfig(ev.detail!.elementId);
         if (flagConfig![ev.detail!.elementId] !== 'Enabled') {
@@ -719,8 +726,12 @@ export class SpRecordTrace extends BaseElement {
         }
       }
     });
-    this.spRecordTemplate!.addEventListener('delProbe', (ev: CustomEventInit<{ 'elementId': string }>) => {
-      if (FlagsConfig.DEFAULT_CONFIG.find(flagItem => { return flagItem.title === ev.detail!.elementId;})) {
+    this.spRecordTemplate!.addEventListener('delProbe', (ev: CustomEventInit<{ elementId: string }>) => {
+      if (
+        FlagsConfig.DEFAULT_CONFIG.find((flagItem) => {
+          return flagItem.title === ev.detail!.elementId;
+        })
+      ) {
         this.selectedTemplate.delete(ev.detail!.elementId);
         if (this.selectedTemplate.size === 0) {
           this.showHint = false;
@@ -737,6 +748,21 @@ export class SpRecordTrace extends BaseElement {
     this.initMenuItems();
   }
 
+  private nativeMemoryHideBySelectVersion() {
+    let divConfigs = this.spAllocations?.shadowRoot?.querySelectorAll<HTMLDivElement>('.version-controller');
+    if (divConfigs) {
+      if (Number(SpRecordTrace.selectVersion) >= 4.0) {
+        for (let divConfig of divConfigs) {
+          divConfig!.style.zIndex = '1';
+        }
+      } else {
+        for (let divConfig of divConfigs) {
+          divConfig!.style.zIndex = '-1';
+        }
+      }
+    }
+  }
+
   private selectedDevice(deviceVersion: string): void {
     let deviceVersionItem = SpRecordTrace.supportVersions.filter((item) => deviceVersion.indexOf(item) != -1);
     if (deviceVersionItem.length > 0) {
@@ -751,7 +777,7 @@ export class SpRecordTrace extends BaseElement {
     SpRecordTrace.supportVersions.forEach((supportVersion) => {
       let option = document.createElement('option');
       option.className = 'select';
-      option.textContent = `OpenHarmony-${ supportVersion }`;
+      option.textContent = `OpenHarmony-${supportVersion}`;
       option.setAttribute('device-version', supportVersion);
       this.deviceVersion!.append(option);
     });
@@ -759,7 +785,7 @@ export class SpRecordTrace extends BaseElement {
 
   private setDeviceVersionSelect(selected: string): void {
     let children = this.deviceVersion!.children;
-    for (let i = 0 ; i < children.length ; i++) {
+    for (let i = 0; i < children.length; i++) {
       let child = children[i] as HTMLOptionElement;
       if (child.getAttribute('device-version') === selected) {
         child.selected = true;
@@ -889,6 +915,12 @@ export class SpRecordTrace extends BaseElement {
           icon: 'externaltools',
           fileChoose: false,
           clickHandler: function (ev: InputEvent): void {
+            let divConfigs = that.spAllocations?.shadowRoot?.querySelectorAll<HTMLDivElement>('.version-controller');
+            if ((!SpRecordTrace.selectVersion || Number(SpRecordTrace.selectVersion) < 4.0) && divConfigs) {
+              for (let divConfig of divConfigs) {
+                divConfig!.style.zIndex = '-1';
+              }
+            }
             that.appContent!.innerHTML = '';
             that.appContent!.append(that.spAllocations!);
             that.freshMenuItemsStatus('Native Memory');
@@ -998,7 +1030,7 @@ export class SpRecordTrace extends BaseElement {
   usbDisConnectionListener(event: USBConnectionEvent): void {
     // @ts-ignore
     let disConnectDevice: USBDevice = event.device;
-    for (let index = 0 ; index < this.deviceSelect!.children.length ; index++) {
+    for (let index = 0; index < this.deviceSelect!.children.length; index++) {
       let option = this.deviceSelect!.children[index] as HTMLOptionElement;
       if (option.value == disConnectDevice.serialNumber) {
         let optValue = option.value;
@@ -1023,7 +1055,7 @@ export class SpRecordTrace extends BaseElement {
     SpRecordTrace.stopRecord = false;
     let request = this.makeRequest();
     if (request.pluginConfigs.length == 0) {
-      this.hintEl!.textContent = 'It looks like you didn\'t add any probes. Please add at least one';
+      this.hintEl!.textContent = "It looks like you didn't add any probes. Please add at least one";
       this.showHint = true;
       return;
     } else {
@@ -1598,7 +1630,10 @@ export class SpRecordTrace extends BaseElement {
         `;
   }
 
-  private createHilogConfig(probesConfig: SpProbesConfig, reportingFrequency: number): ProfilerPluginConfig<HilogConfig> {
+  private createHilogConfig(
+    probesConfig: SpProbesConfig,
+    reportingFrequency: number
+  ): ProfilerPluginConfig<HilogConfig> {
     let hilogConfig: HilogConfig = {
       deviceType: Type.HI3516,
       logLevel: levelFromJSON(probesConfig.hilogConfig[0]),
@@ -1799,7 +1834,7 @@ export class SpRecordTrace extends BaseElement {
       memoryconfig.reportSysmemVmemInfo = true;
       memoryconfig.reportProcessMemInfo = true;
     }
-    if (hasSmaps || hasMonitorMemory){
+    if (hasSmaps || hasMonitorMemory) {
       memoryconfig.reportPurgeableAshmemInfo = true;
       memoryconfig.reportDmaMemInfo = true;
       memoryconfig.reportGpuMemInfo = true;
