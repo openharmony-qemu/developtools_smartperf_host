@@ -249,11 +249,6 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Scheduling analysis templates',
     },
-    {
-      title: 'BinderRunnable',
-      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
-      describeContent: 'support Cpu State Binder-Runnable',
-    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

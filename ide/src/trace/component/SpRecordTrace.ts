@@ -22,6 +22,7 @@ import { SpRecordSetting } from './setting/SpRecordSetting.js';
 import { LitMainMenu, MenuGroup, MenuItem } from '../../base-ui/menu/LitMainMenu.js';
 import { SpProbesConfig } from './setting/SpProbesConfig.js';
 import { SpTraceCommand } from './setting/SpTraceCommand.js';
+import { FlagsConfig } from './SpFlags.js';
 
 import {
   CpuConfig,
@@ -509,22 +510,50 @@ export class SpRecordTrace extends BaseElement {
     mainMenu.menus = mainMenu.menus;
   }
 
+  refreshHint() {
+    let flags = FlagsConfig.getAllFlagConfig();
+    let showHint = false;
+    for (let i = 0 ; i < flags.length ; i++) {
+      let flag = flags[i];
+      if (this.selectedTemplate.has(flag.title)) {
+        let selectedOption = flag.switchOptions.filter((option) => {
+          return option.selected;
+        });
+        if (selectedOption[0].option === 'Disabled') {
+          showHint = true;
+          break;
+        }
+      }
+    }
+    this.showHint = showHint;
+  }
+  get showHint(): boolean {
+    return this.hasAttribute('show_hint');
+  }
+  private hintTimeOut: number = -1;
+
   set showHint(bool: boolean) {
     if (bool) {
       if (this.hasAttribute('show_hint')) {
         this.removeAttribute('show_hint');
-        setTimeout(() => {
+        this.hintTimeOut = window.setTimeout(() => {
           this.setAttribute('show_hint', '');
         }, 200);
       } else {
         this.setAttribute('show_hint', '');
       }
     } else {
+      if (this.hintTimeOut !== -1) {
+        window.clearTimeout(this.hintTimeOut);
+        this.hintTimeOut = -1;
+      }
       this.removeAttribute('show_hint');
     }
   }
 
   private refreshDeviceTimer: number | undefined;
+  private hintEl: HTMLSpanElement | undefined;
+  private selectedTemplate: Map<string, number> = new Map();
 
   initElements(): void {
     let parentElement = this.parentNode as HTMLElement;
@@ -540,6 +569,8 @@ export class SpRecordTrace extends BaseElement {
     this.spHisysEvent = new SpHisysEvent();
     this.spArkTs = new SpArkTs();
     this.spRecordTemplate = new SpRecordTemplate(this);
+    this.hintEl = this.shadowRoot?.querySelector('#hint') as HTMLSpanElement;
+
     this.addButton = this.shadowRoot?.querySelector<LitButton>('.add');
     this.addButton!.addEventListener('click', () => {
       if (this.vs) {
@@ -676,8 +707,25 @@ export class SpRecordTrace extends BaseElement {
     this.probesConfig!.addEventListener('addProbe', () => {
       this.showHint = false;
     });
-    this.spRecordTemplate!.addEventListener('addProbe', () => {
-      this.showHint = false;
+    this.spRecordTemplate!.addEventListener('addProbe', (ev: CustomEventInit<{ 'elementId': string }>) => {
+      if (FlagsConfig.DEFAULT_CONFIG.find(flagItem => { return flagItem.title === ev.detail!.elementId;})) {
+        this.selectedTemplate.set(ev.detail!.elementId, 1);
+        let flagConfig = FlagsConfig.getFlagsConfig(ev.detail!.elementId);
+        if (flagConfig![ev.detail!.elementId] !== 'Enabled') {
+          this.hintEl!.textContent = 'Please open the corresponding Flags tag when parsing';
+          if (!this.showHint) {
+            this.showHint = true;
+          }
+        }
+      }
+    });
+    this.spRecordTemplate!.addEventListener('delProbe', (ev: CustomEventInit<{ 'elementId': string }>) => {
+      if (FlagsConfig.DEFAULT_CONFIG.find(flagItem => { return flagItem.title === ev.detail!.elementId;})) {
+        this.selectedTemplate.delete(ev.detail!.elementId);
+        if (this.selectedTemplate.size === 0) {
+          this.showHint = false;
+        }
+      }
     });
     this.menuGroup = this.shadowRoot?.querySelector('#menu-group') as LitMainMenuGroup;
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
@@ -975,6 +1023,7 @@ export class SpRecordTrace extends BaseElement {
     SpRecordTrace.stopRecord = false;
     let request = this.makeRequest();
     if (request.pluginConfigs.length == 0) {
+      this.hintEl!.textContent = 'It looks like you didn\'t add any probes. Please add at least one';
       this.showHint = true;
       return;
     } else {
@@ -1260,7 +1309,6 @@ export class SpRecordTrace extends BaseElement {
       sessionMode: ProfilerSessionConfigMode.OFFLINE,
       resultFile: this.recordSetting!.output,
       resultMaxSize: 0,
-      sampleDuration: this.recordSetting!.maxDur * 1000,
       keepAliveTime: 0,
     };
     let request: CreateSessionRequest = {
@@ -1868,7 +1916,6 @@ export class SpRecordTrace extends BaseElement {
       rawDataPrefix: '',
       traceDurationMs: 0,
       debugOn: false,
-      hitraceTime: this.recordSetting!.maxDur,
     };
     if (this.probesConfig!.traceEvents.length > 0) {
       tracePluginConfig.hitraceCategories = this.probesConfig!.traceEvents;

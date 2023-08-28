@@ -1086,6 +1086,7 @@ export class SpApplication extends BaseElement {
                 spRecordTemplate!.vs = true;
                 spRecordTemplate!.startRefreshDeviceList();
               }
+              spRecordTemplate!.refreshHint();
               spRecordTemplate!.synchronizeDeviceList();
               showContent(spRecordTemplate!);
             },

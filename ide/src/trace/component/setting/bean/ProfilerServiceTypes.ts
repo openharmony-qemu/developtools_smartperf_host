@@ -31,8 +31,6 @@ export interface ProfilerSessionConfig {
   resultFile: string;
   /** for OFFLINE mode, result file max size in KB */
   resultMaxSize: number;
-  /** for OFFLINE mode, sample duration in ms */
-  sampleDuration: number;
   /** if set to non-zero value, session will auto-destroyed after CreateSession in ms */
   keepAliveTime: number;
 }
@@ -70,7 +68,6 @@ export interface TracePluginConfig {
   traceDurationMs: number;
   /** enable debug options */
   debugOn: boolean;
-  hitraceTime: number;
 }
 
 export interface CreateSessionRequest {
