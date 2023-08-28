@@ -41,6 +41,7 @@ import {
   drawFlagLineSegment,
   drawLines,
   drawLinkLines,
+  drawLogsLineSegment,
   drawWakeUp,
   drawWakeUpList,
   isFrameContainPoint,
@@ -94,6 +95,7 @@ import { JsCpuProfilerChartFrame } from '../bean/JsStruct.js';
 import { FileInfo } from '../../js-heap/model/UiStruct.js';
 import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot.js';
 import { setSelectState, intersectData } from './Utils.js';
+import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -1108,6 +1110,14 @@ export class SpSystemTrace extends BaseElement {
           selection.purgeableTotalVM.push(...intersectData(it));
         } else if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
           selection.purgeablePinVM.push(...intersectData(it));
+        } else if (it.rowType === TraceRow.ROW_TYPE_LOGS) {
+          let systemLogs: LogStruct[] = it.dataList.filter(
+            (logStruct: LogStruct) =>
+              (logStruct.startTs ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              (logStruct.startTs ?? 0) <= TraceRow.rangeSelectObject!.endNS!
+          );
+          selection.hiLogs.push(...systemLogs);
+          selection.hiLogSummary.push(...systemLogs);
         }
         if (this.rangeTraceRow!.length !== rows.length) {
           let event = this.createPointEvent(it);
@@ -1593,6 +1603,31 @@ export class SpSystemTrace extends BaseElement {
         } as Rect
       );
     }
+    //draw system logs line segment for canvas
+    drawLogsLineSegment(
+      this.canvasPanelCtx,
+      this.traceSheetEL?.systemLogFlag,
+      {
+        x: 0,
+        y: 0,
+        width: this.timerShaftEL?.canvas?.clientWidth,
+        height: this.canvasPanel?.clientHeight,
+      },
+      this.timerShaftEL!
+    );
+    //draw system logs line segment for favorite canvas
+    drawLogsLineSegment(
+      this.canvasFavoritePanelCtx,
+      this.traceSheetEL?.systemLogFlag,
+      {
+        x: 0,
+        y: 0,
+        width: this.timerShaftEL?.canvas?.clientWidth,
+        height: this.canvasFavoritePanel?.clientHeight,
+      },
+      this.timerShaftEL!
+    );
+
     // Draw the connection curve
     if (this.linkNodes) {
       drawLinkLines(this.canvasPanelCtx!, this.linkNodes, this.timerShaftEL!, false);
@@ -2220,6 +2255,7 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_VM_TRACKER_SMAPS,
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
+    [TraceRow.ROW_TYPE_LOGS, () => LogStruct.hoverLogStruct !== null && LogStruct.hoverLogStruct !== undefined],
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {
@@ -2370,7 +2406,7 @@ export class SpSystemTrace extends BaseElement {
       this.observerScrollHeightEnable = true;
       let jankRowParent: any;
       if (d.rowId === 'actual frameTime') {
-        jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='frameTime']`);
+        jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
       } else {
         jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='${d.pid}']`);
       }
@@ -4044,6 +4080,9 @@ export class SpSystemTrace extends BaseElement {
             clearTimeout(refreshTimeOut);
           }, 360);
         });
+      }
+      if (this.loadTraceCompleted) {
+        this.traceSheetEL?.displaySystemLogsData();
       }
       this.intersectionObserver?.observe(it);
     });

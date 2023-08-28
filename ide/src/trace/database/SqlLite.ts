@@ -90,6 +90,7 @@ import { FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic.js';
 import { FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation.js';
 import { SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
 import { MemoryConfig } from '../bean/MemoryConfig.js';
+import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
 
 class DataWorkerThread extends Worker {
   taskMap: any = {};
@@ -616,7 +617,7 @@ export const getTabBoxChildData = (
       not ((B.ts - TR.start_ts + B.dur < ${leftNs}) or (B.ts - TR.start_ts > ${rightNs})) ${condition};
   `
   return query('getTabBoxChildData', sql, {});
-}
+};
 
 export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number): Promise<Array<CpuUsage>> =>
   query<CpuUsage>(
@@ -2042,9 +2043,9 @@ export const queryTraceMetaData = (): Promise<
 export const querySystemCalls = (): Promise<
   Array<{
     frequency: string;
-    minDur: string;
-    maxDur: string;
-    avgDur: string;
+    minDur: number;
+    maxDur: number;
+    avgDur: number;
     funName: string;
   }>
 > =>
@@ -5278,4 +5279,74 @@ export const getTabGpuMemoryVmTrackerComparisonData = (
     $pid = S.ipid
                 `,
     { $startNs: startNs, $pid: processId }
+  );
+
+export const getSystemLogsData = (): Promise<
+  Array<{
+    id: number;
+    ts: number;
+    processName: string;
+    tid: number;
+    level: string;
+    tag: string;
+    message: string;
+    des: number;
+  }>
+> =>
+  query(
+    'getSystemLogsData',
+    `SELECT
+            ROW_NUMBER() OVER (ORDER BY l.ts) AS processName,
+            l.seq AS id,
+            (l.ts - TR.start_ts) AS ts,
+            l.pid AS indexs,
+            l.tid,
+            l.level,
+            l.tag,
+            l.context AS message,
+            l.origints AS des
+         FROM trace_range AS TR,
+              log AS l
+         ORDER BY ts`
+  );
+
+export const queryLogData = (): Promise<Array<LogStruct>> =>
+  query(
+    'queryLogData',
+    `
+      SELECT l.seq AS id,
+          (l.ts - TR.start_ts) AS startTs,
+          l.level AS level,
+          CASE
+              WHEN l.level = 'D' THEN
+                  0
+              WHEN l.level = 'I' THEN
+                  1
+              WHEN l.level = 'W' THEN
+                  2
+              WHEN l.level = 'E' THEN
+                  3
+              WHEN l.level = 'F' THEN
+                  4
+              END AS depth,
+          l.tag AS tag,
+          l.context AS context,
+          l.origints AS time,
+          l.pid,
+          l.tid,
+          CASE
+              WHEN p.name is null THEN
+                  'Process ' || l.pid
+         else p.name
+         END AS processName,
+          1 AS dur
+         FROM
+          trace_range AS TR, 
+          log AS l
+        LEFT JOIN 
+          process p
+       ON p.pid = l.pid
+       ORDER BY 
+          l.ts;`,
+    {}
   );

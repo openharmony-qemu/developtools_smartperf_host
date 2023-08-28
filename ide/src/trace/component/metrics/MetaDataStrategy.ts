@@ -39,7 +39,7 @@ export const initMetaDataStrategy = (metricData: Array<{
     let name = metricData[sqlIndex].name;
     let value = metricData[sqlIndex].valueText;
     if (!value.match('^-?\\d+$')) {
-      value = `"${  value.replace('\r|\n', '')  }"`;
+      value = `${  value.replace('\r|\n', '')  }`;
     }
     let traceMetaData = {
       name: name,

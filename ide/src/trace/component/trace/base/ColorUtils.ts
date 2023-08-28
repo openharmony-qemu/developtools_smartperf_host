@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
+import {CpuStruct} from '../../../database/ui-worker/ProcedureWorkerCPU.js';
 
 export class ColorUtils {
   public static GREY_COLOR: string = '#f0f0f0';
@@ -65,9 +65,45 @@ export class ColorUtils {
     '#FFFFFF'
   ];
 
-  public static JANK_COLOR: Array<string> = ['#42A14D', '#C0CE85', '#FF651D', '#E8BE44', '#009DFA', '#E97978', '#A8D1F4'];
+  public static JANK_COLOR: Array<string> = [
+    '#42A14D',
+    '#C0CE85',
+    '#FF651D',
+    '#E8BE44',
+    '#009DFA',
+    '#E97978',
+    '#A8D1F4',
+  ];
   public static MD_PALETTE: Array<string> = ColorUtils.FUNC_COLOR_B;
   public static FUNC_COLOR: Array<string> = ColorUtils.FUNC_COLOR_B;
+  public static getHilogColor(loglevel: string): string {
+    let logColor: string = '#00000';
+    switch (loglevel) {
+      case 'D':
+      case 'Debug':
+        logColor = '#00BFBF';
+        break;
+      case 'I':
+      case 'Info':
+        logColor = '#00BF00';
+        break;
+      case 'W':
+      case 'Warn':
+        logColor = '#BFBF00';
+        break;
+      case 'E':
+      case 'Error':
+        logColor = '#FF4040';
+        break;
+      case 'F':
+      case 'Fatal':
+        logColor = '#BF00A4';
+        break;
+      default:
+        break;
+    }
+    return logColor;
+  }
 
   public static hash(str: string, max: number): number {
     let colorA: number = 0x811c9dc5;
@@ -102,7 +138,9 @@ export class ColorUtils {
   }
 
   public static formatNumberComma(str: number): string {
-    if (str === undefined || str === null) return '';
+    if (str === undefined || str === null) {
+      return '';
+    }
     let unit = str >= 0 ? '' : '-';
     let l = Math.abs(str).toString().split('').reverse();
     let t: string = '';
@@ -126,7 +164,7 @@ export class ColorUtils {
     return (Math.abs(hash) + depth) % max;
   }
 
-  public static funcTextColor(val: string) {
+  public static funcTextColor(val: string): string {
     var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
     // 把颜色值变成小写
     var color = val.toLowerCase();
@@ -141,7 +179,7 @@ export class ColorUtils {
       }
       var colorChange = [];
       for (var i = 1; i < 7; i += 2) {
-        colorChange.push(parseInt('0x' + color.slice(i, i + 2)));
+        colorChange.push(parseInt(`0x${color.slice(i, i + 2)}`));
       }
       var grayLevel = colorChange[0] * 0.299 + colorChange[1] * 0.587 + colorChange[2] * 0.114;
       if (grayLevel >= 150) {

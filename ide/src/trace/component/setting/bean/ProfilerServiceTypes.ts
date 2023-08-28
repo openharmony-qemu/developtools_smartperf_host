@@ -811,8 +811,6 @@ export enum Type {
 }
 
 export interface HilogConfig {
-  deviceType: Type;
-  logLevel: Level;
   needClear: boolean;
 }
 
@@ -893,8 +891,7 @@ export interface DiskioConfig {
   reportIoStats: string;
 }
 
-export interface NetworkConfig {
-}
+export interface NetworkConfig {}
 
 export interface HiperfPluginConfig {
   isRoot: boolean;

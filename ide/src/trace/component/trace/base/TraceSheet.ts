@@ -77,9 +77,11 @@ import { TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrack
 import { TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.js';
 import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
 import { Utils } from './Utils.js';
+import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
+  systemLogFlag: Flag | undefined | null;
   private litTabs: LitTabs | undefined | null;
   private importDiv: HTMLDivElement | undefined | null;
   private nav: HTMLDivElement | undefined | null;
@@ -181,6 +183,7 @@ export class TraceSheet extends BaseElement {
       }
     });
   }
+
   connectedCallback(): void {
     this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-container');
     let tabs: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#tabs');
@@ -586,6 +589,17 @@ export class TraceSheet extends BaseElement {
       this.displayTab<TabPaneGpuMemorySelectVmTracker>(
         'box-gpu-memory-selection-vmTracker'
       ).queryGpuMemoryVmTrackerClickDataByDB(data);
+    }
+  };
+
+  displaySystemLogsData = (): void => {
+    let tblHiLogPanel = this.shadowRoot?.querySelector<LitTabpane>('lit-tabpane[id=\'box-hilogs\']');
+    if (tblHiLogPanel) {
+      let tblHiLog = tblHiLogPanel.querySelector<TabPaneHiLogs>('tab-hi-log');
+      if (tblHiLog) {
+        tblHiLog.parentElement!.style.overflow = 'hidden';
+        tblHiLog.initTabSheetEl(tblHiLog.parentElement!, this);
+      }
     }
   };
 

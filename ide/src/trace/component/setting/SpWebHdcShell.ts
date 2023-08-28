@@ -41,7 +41,8 @@ export class SpWebHdcShell extends BaseElement {
   private static TOP_OFFSET = 48;
   private static FIRST_ROW_OFFSET = 32;
   private static LAST_ROW_OFFSET = 40;
-
+  private static MULTI_LINE_FLAG = '<\b';
+  private static LINE_BREAK_LENGTH = 2;
   private static LEFT_OFFSET = 48;
 
   public initElements(): void {
@@ -52,7 +53,7 @@ export class SpWebHdcShell extends BaseElement {
     this.shellCanvasCtx!.fillRect(0, 0, this.shellCanvas!.width, this.shellCanvas!.height);
     this.shellDiv = this.shadowRoot!.querySelector<HTMLDivElement>('.shell_cmd_div');
     this.shellCanvasAddMouseListener();
-    this.shellCanvas!.addEventListener('contextmenu', event => {
+    this.shellCanvas!.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
     });
@@ -71,7 +72,7 @@ export class SpWebHdcShell extends BaseElement {
     });
     window.subscribe(window.SmartEvent.UI.DeviceConnect, (deviceName: string) => {
       if (deviceName) {
-        this.focus();
+        this.hdcShellFocus();
       }
     });
     window.subscribe(window.SmartEvent.UI.DeviceDisConnect, (deviceName: string) => {
@@ -100,11 +101,12 @@ export class SpWebHdcShell extends BaseElement {
     window.clearInterval(this.intervalId);
   }
 
-  public focus(): void {
+  public hdcShellFocus(): void {
     HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((connected) => {
       if (connected) {
         if (this.sendCallBack && this.startShellDevice === SpRecordTrace.serialNumber) {
           this.shellCanvas!.focus();
+          this.refreshShellPage(true);
         } else {
           this.clear();
           this.sendCallBack = HdcDeviceManager.startShell((result: DataMessage) => {
@@ -116,6 +118,7 @@ export class SpWebHdcShell extends BaseElement {
             this.handleHdcRecvData(result);
           });
           this.shellCanvas!.focus();
+          this.refreshShellPage(true);
         }
       } else {
         this.clear();
@@ -126,7 +129,7 @@ export class SpWebHdcShell extends BaseElement {
   arrayBufferCompare(compareA: ArrayBuffer, compareB: number[]): boolean {
     const arrayA = new Uint8Array(compareA);
     if (arrayA.length === compareB.length) {
-      for (let i = 0 ; i < arrayA.length ; i++) {
+      for (let i = 0; i < arrayA.length; i++) {
         const dd = arrayA[i];
         if (dd !== compareB[i]) {
           return false;
@@ -146,26 +149,29 @@ export class SpWebHdcShell extends BaseElement {
     let endY = this.points!.endY!;
     let depth = Math.ceil((endY - startY) / 16);
     let index = 0;
-    for (let i = 0 ; i < textLines.length ; i++) {
+    for (let i = 0; i < textLines.length; i++) {
       let line = textLines[i];
       let x = SpWebHdcShell.LEFT_OFFSET;
       let textFirstRowY = 16 * i + SpWebHdcShell.FIRST_ROW_OFFSET;
       let textLastRowY = 16 * i + SpWebHdcShell.LAST_ROW_OFFSET;
       let textEndY = 16 * i + SpWebHdcShell.TOP_OFFSET;
       let w = this.shellCanvasCtx!.measureText(line).width;
-      if ((startY < textEndY && endY >= textEndY) || (startY > textFirstRowY && startY < textEndY)
-          || (endY > textLastRowY && endY < textEndY)) {
+      if (
+        (startY < textEndY && endY >= textEndY) ||
+        (startY > textFirstRowY && startY < textEndY) ||
+        (endY > textLastRowY && endY < textEndY)
+      ) {
         index++;
-        if(index == 1){
+        if (index == 1) {
           if (depth > 1) {
-            selectedText += line.substring(Math.floor((startX - x) / 8)) + ((endX < x + w) ? '\n' : '');
+            selectedText += line.substring(Math.floor((startX - x) / 8)) + (endX < x + w ? '\n' : '');
           } else {
-            selectedText += `${ line.substring(Math.floor((startX - x) / 8), Math.ceil((endX - x) / 8)) }\n`;
+            selectedText += `${line.substring(Math.floor((startX - x) / 8), Math.ceil((endX - x) / 8))}\n`;
           }
         } else if (index == depth) {
-          selectedText += `${ line.substring(0, Math.ceil((endX - x) / 8)) }\n`;
+          selectedText += `${line.substring(0, Math.ceil((endX - x) / 8))}\n`;
         } else {
-          selectedText += `${ line }\n`;
+          selectedText += `${line}\n`;
         }
       }
     }
@@ -187,7 +193,7 @@ export class SpWebHdcShell extends BaseElement {
       endPointY = endY;
     } else {
       //绘制多行
-      for (let index = 1 ; index <= depth ; index++) {
+      for (let index = 1; index <= depth; index++) {
         //第一行，绘起始点到canvas右边界矩形
         if (index === 1) {
           this.shellCanvasCtx!.fillRect(startX, startY, this.shellCanvas!.width - startX, index * 16);
@@ -195,12 +201,22 @@ export class SpWebHdcShell extends BaseElement {
           startPointY = startY;
         } else if (index === depth) {
           //最后一行，canvas左边界到结束点矩形
-          this.shellCanvasCtx!.fillRect(SpWebHdcShell.LEFT_OFFSET, startY + (index - 1) * 16, endX - SpWebHdcShell.LEFT_OFFSET, endY - (startY + (index - 1) * 16));
+          this.shellCanvasCtx!.fillRect(
+            SpWebHdcShell.LEFT_OFFSET,
+            startY + (index - 1) * 16,
+            endX - SpWebHdcShell.LEFT_OFFSET,
+            endY - (startY + (index - 1) * 16)
+          );
           endPointX = endX;
           endPointY = endY;
         } else {
           //中间行，canvas的左边界到右边界的矩形
-          this.shellCanvasCtx!.fillRect(SpWebHdcShell.LEFT_OFFSET, startY + (index - 1) * 16, this.shellCanvas!.width, 16);
+          this.shellCanvasCtx!.fillRect(
+            SpWebHdcShell.LEFT_OFFSET,
+            startY + (index - 1) * 16,
+            this.shellCanvas!.width,
+            16
+          );
         }
       }
     }
@@ -222,7 +238,7 @@ export class SpWebHdcShell extends BaseElement {
       endPointY = startY;
     } else {
       //绘制多行
-      for (let index = 1 ; index <= depth ; index++) {
+      for (let index = 1; index <= depth; index++) {
         //第一行，绘起始点到canvas左边界矩形
         if (index === 1) {
           this.shellCanvasCtx!.fillRect(SpWebHdcShell.LEFT_OFFSET, startY - 16, startX - SpWebHdcShell.LEFT_OFFSET, 16);
@@ -265,13 +281,12 @@ export class SpWebHdcShell extends BaseElement {
       this.shellCanvasCtx!.clearRect(0, 0, this.shellCanvas!.width, this.shellCanvas!.height);
       this.shellCanvasCtx!.fillStyle = '#000';
       this.shellCanvasCtx!.fillRect(0, 0, this.shellCanvas!.width, this.shellCanvas!.height);
-
-      let resultStrArr = this.resultStr.split('\n');
+      let resultStrArr = this.resultStr.split('\r\n');
       this.finalArr = [];
       if (this.shellCanvas!.width > 0) {
         let maxWidth = this.shellCanvas!.width;
-        let foundationWidth = this.shellCanvasCtx!.measureText(' ').width;
-        for (let i = 0 ; i < resultStrArr.length - 1 ; i++) {
+        let foundationWidth = Math.ceil(this.shellCanvasCtx!.measureText(' ').width);
+        for (let i = 0; i < resultStrArr.length - 1; i++) {
           let shellStr = resultStrArr[i];
           let strWidth = this.shellCanvasCtx!.measureText(shellStr).width;
           if (strWidth > maxWidth) {
@@ -289,16 +304,16 @@ export class SpWebHdcShell extends BaseElement {
         this.shellCanvasCtx!.fillStyle = '#fff';
         this.shellCanvasCtx!.font = '16px serif';
         let textY = SpWebHdcShell.TOP_OFFSET;
-        this.finalArr.push(this.cursorRow)
-        for (let index: number = 0 ; index < this.finalArr.length ; index++) {
+        this.finalArr.push(this.cursorRow);
+        for (let index: number = 0; index < this.finalArr.length; index++) {
           let shellStr: string = this.finalArr[index];
           textY = SpWebHdcShell.TOP_OFFSET + index * 16;
           this.shellCanvasCtx!.fillText(shellStr, SpWebHdcShell.LEFT_OFFSET, textY);
         }
         shellStrLength = this.cursorIndex * unitWidth + SpWebHdcShell.LEFT_OFFSET;
         if (scroller) {
-          if (this.finalArr.length < SpWebHdcShell.MAX_DISPLAY_ROWS && textY > this.shellDiv!.clientHeight) {
-            this.shellDiv!.scrollTop = textY - this.shellDiv!.clientHeight + (16 + 3);
+          if (textY > this.shellDiv!.clientHeight) {
+            this.shellDiv!.scrollTop = textY - this.shellDiv!.clientHeight + 3;
           }
         }
         if (this.intervalId) {
@@ -361,7 +376,7 @@ export class SpWebHdcShell extends BaseElement {
 
     </style>
     <div class="shell_cmd_div">
-        <canvas id="shell_cmd" style="width: 100%;height:${ 16000 + SpWebHdcShell.TOP_OFFSET }px;" tabindex="0"></canvas>
+        <canvas id="shell_cmd" style="width: 100%;height:${16000 + SpWebHdcShell.TOP_OFFSET}px;" tabindex="0"></canvas>
     </div>
     `;
   }
@@ -374,7 +389,7 @@ export class SpWebHdcShell extends BaseElement {
     let currentRow: string[] = [...lastRow];
     let result: string[] = [];
     this.cursorIndex = 0;
-    for (let index: number = 0 ; index < currentRow.length ; index++) {
+    for (let index: number = 0; index < currentRow.length; index++) {
       let currentResult: string = currentRow[index];
       if (currentResult === '\b') {
         this.cursorIndex--;
@@ -425,7 +440,17 @@ export class SpWebHdcShell extends BaseElement {
             }
           }
         } else {
-          this.resultStr += result.getDataToString();
+          if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
+            // 获取所有内容，不包括最后一行数据
+            this.resultStr = this.resultStr.substring(
+              0,
+              this.resultStr.lastIndexOf('\r\n') + SpWebHdcShell.LINE_BREAK_LENGTH
+            );
+            // 多行情况不能直接拼接返回数据
+            this.resultStr += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
+          } else {
+            this.resultStr += result.getDataToString();
+          }
         }
       }
       this.refreshCurrentRow();

@@ -21,6 +21,7 @@ import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDy
 import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation.js';
 import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing.js';
 import { JsCpuProfilerChartFrame } from './JsStruct.js';
+import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
 
 export class SelectionParam {
   recordStartNs: number = 0;
@@ -82,12 +83,12 @@ export class SelectionParam {
   frameSpacing: Array<FrameSpacingStruct> = [];
   jsCpuProfilerData: Array<JsCpuProfilerChartFrame> = [];
   gpu: {
-    gl:boolean,
+    gl: boolean,
     gpuTotal: boolean,
     gpuWindow: boolean
   } = {
     gl: false,
-    gpuWindow:false,
+    gpuWindow: false,
     gpuTotal: false
   }
   purgeableTotalAbility: Array<any> = [];
@@ -100,6 +101,8 @@ export class SelectionParam {
   gpuMemoryAbilityData: Array<any> = [];
   dmaVmTrackerData: Array<any> = [];
   gpuMemoryTrackerData: Array<any> = [];
+  hiLogs: Array<LogStruct> = [];
+  hiLogSummary: Array<LogStruct> = [];
 }
 
 export class BoxJumpParam {

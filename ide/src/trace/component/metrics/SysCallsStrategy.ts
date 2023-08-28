@@ -17,8 +17,8 @@ import { info } from '../../../log/Log.js';
 
 export const initSysCallsStrategy = (metricData: Array<{
   frequency: string;
-  minDur: string;
-  maxDur: string;
+  minDur: number;
+  maxDur: number;
   avgDur: number;
   funName: string;
 }>): FunctionListItem => {
@@ -28,7 +28,7 @@ export const initSysCallsStrategy = (metricData: Array<{
     let functionNames = metricData[sqlIndex].funName;
     let durMaxes = metricData[sqlIndex].maxDur;
     let durMines = metricData[sqlIndex].minDur;
-    let durAvgs = Math.floor(metricData[sqlIndex].avgDur).toString();
+    let durAvgs = Math.floor(metricData[sqlIndex].avgDur);
     let functionItem: FunctionItem = {
       functionName: functionNames,
       durMax: durMaxes,
@@ -48,7 +48,7 @@ export interface FunctionListItem {
 
 export interface FunctionItem {
   functionName: string;
-  durMax: string;
-  durMin: string;
-  durAvg: string;
+  durMax: number;
+  durMin: number;
+  durAvg: number;
 }

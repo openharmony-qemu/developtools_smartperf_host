@@ -46,14 +46,14 @@ export function resizeObserverFromMemory(
       // @ts-ignore
       tableEl?.shadowRoot.querySelector('.table').style.height = parentElement.clientHeight - tblOffsetHeight + 'px';
       tableEl?.reMeauseHeight();
-      if (filterEl!.clientHeight > 0) {
-        filterHeight = filterEl!.clientHeight;
-      }
-      if (parentElement!.clientHeight > filterHeight) {
-        filterEl!.style.display = 'flex';
-      } else {
-        filterEl!.style.display = 'none';
-      }
+    }
+    if (filterEl!.clientHeight > 0) {
+      filterHeight = filterEl!.clientHeight;
+    }
+    if (parentElement!.clientHeight > filterHeight) {
+      filterEl!.style.display = 'flex';
+    } else {
+      filterEl!.style.display = 'none';
     }
   }).observe(parentElement);
 }

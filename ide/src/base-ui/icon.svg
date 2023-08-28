@@ -107,6 +107,12 @@
             <rect id="rectangle" fill="#000000" transform="translate(12.001725, 12.001590) rotate(-315.000000) translate(-12.001725, -12.001590) " x="11.4017247" y="4.50158952" width="1.2" height="15" rx="0.6"></rect>
         </g>
     </symbol>
+    <symbol id="icon-close-light" viewBox="0 0 24 24">
+        <g id="close" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+            <rect id="rectangle" stroke="currentColor" transform="translate(12.002785, 12.003027) rotate(-315.000000) translate(-12.002785, -12.003027) " x="4.50278502" y="11.4030272" width="15" height="1.2" rx="0.6"></rect>
+            <rect id="rectangle" stroke="currentColor" transform="translate(12.001725, 12.001590) rotate(-315.000000) translate(-12.001725, -12.001590) " x="11.4017247" y="4.50158952" width="1.2" height="15" rx="0.6"></rect>
+        </g>
+    </symbol>
     <symbol id="icon-close-circle-fill" viewBox="0 0 16 16">
         <g id="close" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="1">
         <g id="closeHovered" transform="translate(2.000000, 2.000000)" fill="#bfbfbf">
