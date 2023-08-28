@@ -91,6 +91,7 @@ if (is_test) {
       "../src/table",
       "../src/table/base",
       "../src/filter",
+      "../src/metrics",
       "../src/base",
       "../src/rpc",
       "../src/include",

@@ -18,11 +18,11 @@ import sys
 import platform
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_TOP = os.path.realpath(os.path.join(THIS_DIR, "../../.."))
-TAIL_DIR = "developtools/profiler"
+PROJECT_TOP = os.path.realpath(os.path.join(THIS_DIR, ".."))
+TAIL_DIR = "."
 
-if "developtools" in sys.argv[2]:
-    TAIL_DIR = "."
+if "developtools" in sys.argv[3]:
+    TAIL_DIR = "developtools/profiler"
     PROJECT_TOP = os.path.realpath(os.path.join(THIS_DIR, ".."))
 
 OHOS_X64_OUT = os.path.join(PROJECT_TOP, sys.argv[2])

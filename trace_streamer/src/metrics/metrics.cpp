@@ -20,6 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 const uint32_t EXTRA_CHAR = 4;
+const uint32_t SEND_FINISH = 1;
 Metrics ::Metrics()
 {
     metricsFunction_ = {
@@ -152,11 +153,11 @@ void Metrics::InitSysCallStrategy(const std::string& result)
     }
     return;
 }
-void Metrics::PrintMetricsResult(uint32_t metricsIndex)
+void Metrics::PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback)
 {
     std::string res = "\r\n";
     std::string metricsName = "";
-    std::string repeateValue = " ";
+    std::string repeateValue = "";
     switch (metricsIndex) {
         case METRICS_TRACE_MEM:
             metricsName = TRACE_MEM;
@@ -166,7 +167,6 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex)
                                 std::to_string(item.overallCounters.max) + "," + AVG +
                                 std::to_string(item.overallCounters.avg) + "}}},";
             }
-            repeateValue.pop_back();
             break;
         case METRICS_TRACE_MEM_TOP_TEN:
             metricsName = TRACE_MEM_TOP_TEN;
@@ -176,7 +176,6 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex)
                                 std::to_string(item.overallCounters.max) + "," + AVG +
                                 std::to_string(item.overallCounters.avg) + "}}},";
             }
-            repeateValue.pop_back();
             break;
         case METRICS_TRACE_MEM_UNAGG:
             metricsName = TRACE_MEM_UNAGG;
@@ -190,7 +189,6 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex)
                     OOM_SCORE + std::to_string(item.swap.oom_score) + "," + VALUE + std::to_string(item.swap.value) +
                     "}},";
             }
-            repeateValue.pop_back();
             break;
         case METRICS_TRACE_TASK_NAMES:
             metricsName = TRACE_TASK_NAMES;
@@ -198,12 +196,11 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex)
                 repeateValue +=
                     PROCESS + PID + std::to_string(item.pid) + "," + PROCESS_NAME + "\"" + item.processName + "\",";
                 for (auto threadItem : item.threadName) {
-                    repeateValue += THREAD_NAME + "\"" + threadItem + ",";
+                    repeateValue += THREAD_NAME + "\"" + threadItem + "\",";
                 }
                 repeateValue.pop_back();
                 repeateValue += "},";
             }
-            repeateValue.pop_back();
             break;
         case METRICS_TRACE_STATS:
             metricsName = TRACE_STATS;
@@ -211,7 +208,6 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex)
                 repeateValue += STAT + NAME + "\"" + item.name + "\"," + COUNT + std::to_string(item.count) + "," +
                                 SOURCE + "\"" + item.source + "\"," + SEVERITY + "\"" + item.severity + "\"" + "},";
             }
-            repeateValue.pop_back();
             break;
         case METRICS_TRACE_METADATA:
             metricsName = TRACE_METADATA;
@@ -219,25 +215,30 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex)
                 repeateValue +=
                     TRACE_METADATA + ":{" + NAME + "\"" + item.name + "\"," + VALUE + "\"" + item.value + "\"" + "},";
             }
-            repeateValue.pop_back();
             break;
         case METRICS_SYS_CALLS:
             metricsName = SYS_CALLS;
             for (auto item : sysCallStrategy_) {
                 repeateValue += FUNCTION + FUNCTION_NAME + "\"" + item.functionName + "\"," + DUR_MAX +
-                                std::to_string(item.durMax) + "," + DUR_MIN + std::to_string(item.durMin) + "\"," +
-                                DUR_AVG + "\"" + std::to_string(item.durAvg) + "\"" + "},";
+                                std::to_string(item.durMax) + "," + DUR_MIN + std::to_string(item.durMin) + "," +
+                                DUR_AVG + std::to_string(item.durAvg) + "},";
             }
-            repeateValue.pop_back();
             break;
         default:
             break;
+    }
+    if (repeateValue != "") {
+        repeateValue.pop_back();
     }
     res += metricsName + ": {" + repeateValue + "}";
     res = JsonFormat(res) + "\r\n";
     std::regex strRegex(",");
     auto str = std::regex_replace(res, strRegex, "");
+#ifndef IS_WASM
     printf("%s", str.c_str());
+#else
+    callback(str, SEND_FINISH);
+#endif
     return;
 }
 std::string Metrics::GetLevelSpace(int level)

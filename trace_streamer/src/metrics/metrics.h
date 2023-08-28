@@ -71,7 +71,7 @@ const std::string FUNCTION = "function:{";
 const std::string FUNCTION_NAME = "function_name:";
 const std::string DUR_MAX = "dur_max:";
 const std::string DUR_MIN = "dur_min:";
-const std::string DUR_AVG = "dr_avg:";
+const std::string DUR_AVG = "dur_avg:";
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -80,8 +80,9 @@ class Metrics {
 public:
     Metrics();
     ~Metrics() {}
+    using ResultCallBack = std::function<void(const std::string /* json result */, int32_t)>;
     void ParserJson(const std::string& metrics, std::string& result);
-    void PrintMetricsResult(uint32_t metricsIndex);
+    void PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback);
     auto GetMetricsMap()
     {
         return initMetricsMap_;

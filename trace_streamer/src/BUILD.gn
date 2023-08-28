@@ -87,8 +87,7 @@ trace_streamer_include = [
   "${THIRD_PARTY}/perf_include/libbpf",
   "${THIRD_PARTY}/googletest/googletest/include",
   "${COMMON_LIBRARY}/c_utils/base/include",
-  "//prebuilts/clang/ohos/darwin-arm64/llvm/include/c++/v1",
-  "include/dummy/musl",
+  "${THIRD_PARTY}/sqlite",
 ]
 
 ohos_source_set("trace_streamer_source") {

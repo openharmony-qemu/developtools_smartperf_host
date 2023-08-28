@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <regex>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -48,62 +49,6 @@ using namespace SysTuning::base;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
-const std::string memQuery =
-    "select max(value) as maxNum, min(value) as minNum, avg(value) as avgNum, filter.name as name, p.name as "
-    "processName from process_measure left join process_measure_filter as filter on filter.id= filter_id left join "
-    "process as p on p.id = filter.ipid where filter_id > 0 and filter.name = 'mem.rss.anon' group by filter_id order "
-    "by avgNum desc;";
-const std::string memTopQuery =
-    "select max(value) as maxNum, min(value) as minNum, avg(value) as avgNum, f.name as name, p.name as processName "
-    "from process_measure left join process_measure_filter as f on f.id= filter_id left join process as p on p.id = "
-    "f.ipid where filter_id > 0 and f.name = 'mem.rss.anon' group by filter_id order by avgNum desc limit 10;";
-const std::string cpuSqlQuery =
-    "SELECT itid AS tid, ipid AS pid, group_concat(cpu, ',') AS cpu, group_concat(dur, ',') AS dur, "
-    "group_concat(min_freq, ',') AS min_freq, group_concat(max_freq, ',') AS max_freq, group_concat(avg_frequency, "
-    "',') AS avg_frequency FROM (SELECT itid, ipid, cpu, CAST (SUM(dur) AS INT) AS dur, CAST (MIN(freq) AS INT) AS "
-    "min_freq, CAST (MAX(freq) AS INT) AS max_freq, CAST ( (SUM(dur * freq) / SUM(dur) ) AS INT) AS avg_frequency from "
-    "result group by itid, cpu)GROUP BY ipid, itid ORDER BY ipid;";
-const std::string cpuTopTenSqlQuery =
-    "SELECT itid AS tid, ipid AS pid, group_concat(cpu, ',') AS cpu,group_concat(dur, ',') AS dur, "
-    "group_concat(min_freq, ',') AS min_freq, group_concat(max_freq, ',') AS max_freq, group_concat(avg_frequency, "
-    "',') AS avg_frequency, sum(dur * avg_frequency) AS sumNum FROM (SELECT itid, ipid, cpu, CAST (SUM(dur) AS INT) AS "
-    "dur,CAST (MIN(freq) AS INT) AS min_freq, CAST (MAX(freq) AS INT) AS max_freq,CAST ( (SUM(dur * freq) / SUM(dur) ) "
-    "AS INT) AS avg_frequency from result group by itid, cpu) GROUP BY ipid, itid ORDER BY sumNum DESC LIMIT 10";
-const std::string distributedTermQuery =
-    "select group_concat(thread.id,',') as threadId, group_concat(thread.name,',') as threadName, "
-    "group_concat(process.id,',') as processId, group_concat(process.name,',') as processName, "
-    "group_concat(callstack.name,',') as funName, group_concat(callstack.dur,',') as dur, "
-    "group_concat(callstack.ts,',') as ts, cast(callstack.chainId as varchar) as chainId, callstack.spanId as spanId, "
-    "callstack.parentSpanId as parentSpanId, group_concat(callstack.flag,',') as flag, (select value from meta where "
-    "name='source_name') as trace_name from callstack inner join thread on callstack.callid = thread.id inner join "
-    "process on process.id = thread.ipid where (callstack.flag='S' or callstack.flag='C') group by "
-    "callstack.chainId,callstack.spanId,callstack.parentSpanId;";
-const std::string memUnaggQuery =
-    "select p.name as processName, group_concat(filter.name) as name, cast(group_concat(value) as varchar) as value, "
-    "cast(group_concat(ts) as varchar) as ts from process_measure m left join process_measure_filter as filter on "
-    "filter.id= m.filter_id left join process as p on p.id = filter.ipid where filter.name = 'mem.rss.anon' or "
-    "filter.name = 'mem.rss.file' or filter.name = 'mem.swap' or filter.name = 'oom_score_adj' group by "
-    "p.name,filter.ipid order by filter.ipid;";
-const std::string metaDataQuery =
-    "select cast(name as varchar) as name, cast(value as varchar) as valueText from meta UNION select "
-    "'start_ts',cast(start_ts as varchar) from trace_range UNION select 'end_ts',cast(end_ts as varchar) from "
-    "trace_range;";
-const std::string sysCallsTopQuery =
-    "SELECT cpu.tid AS tid, cpu.pid AS pid, callstack.name AS funName, count(callstack.name) AS frequency, "
-    "min(callstack.dur) AS minDur, max(callstack.dur) AS maxDur, round(avg(callstack.dur)) AS avgDur FROM callstack "
-    "INNER JOIN (SELECT itid AS tid, ipid AS pid, group_concat(cpu, ',') AS cpu, group_concat(dur, ',') AS dur, "
-    "group_concat(min_freq, ',') AS min_freq, group_concat(max_freq, ',') AS max_freq, group_concat(avg_frequency, "
-    "',') AS avg_frequency, sum(dur * avg_frequency) AS sumNum FROM (SELECT itid, ipid, cpu, CAST (SUM(dur) AS INT) AS "
-    "dur, CAST (MIN(freq) AS INT) AS min_freq, CAST (MAX(freq) AS INT) AS max_freq, CAST ( (SUM(dur * freq) / SUM(dur) "
-    ") AS INT) AS avg_frequency FROM result GROUP BY itid, cpu) GROUP BY ipid, itid ORDER BY sumNum DESC LIMIT 10) AS "
-    "cpu ON callstack.callid = cpu.tid GROUP BY callstack.name ORDER BY frequency DESC LIMIT 10;";
-const std::string sysCallQuery =
-    "select count(*) as frequency, min(dur) as minDur, max(dur) as maxDur, avg(dur) as avgDur, name as funName from "
-    "callstack group by name order by frequency desc limit 100;";
-const std::string traceStateQuery = "select event_name,stat_type,count,source,serverity from stat;";
-const std::string traceTaskName =
-    "select P.id as id, P.pid as pid, P.name as process_name, group_concat(T.name,',') as thread_name from process as "
-    "P left join thread as T where P.id = T.ipid group by pid;";
 // set version info in meta.cpp please
 void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
 {
@@ -134,6 +79,9 @@ void ShowHelpInfo(const char* argv)
         " -h    start HTTP server.\n"
         " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"
         " -p    Specify the port of HTTP server, default is 9001.\n"
+        " -q    select sql from file.\n"
+        " -m    Perform operations that query metrics through linux,supports querying multiple metrics items.For "
+        "example:-m x,y,z.\n"
         " -i    show information.\n"
         " -v    show version.",
         argv, argv);
@@ -183,7 +131,7 @@ void ReadSqlFileAndPrintResult(TraceStreamerSelector& ts, const std::string& sql
 {
     std::vector<std::string> sqlStrings;
     LoadQueryFile(sqlOperator, sqlStrings);
-    for (const auto& str : sqlStrings) {
+    for (auto& str : sqlStrings) {
         ts.SearchDatabase(str, true);
     }
 }
@@ -297,47 +245,29 @@ int CheckFinal(char** argv, TraceExportOption& traceExportOption, HttpOption& ht
 {
     if ((traceExportOption.traceFilePath.empty() ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
-        !httpOption.enable && !traceExportOption.separateFile && traceExportOption.metricsIndex.empty() && traceExportOption.sqlOperatorFilePath.empty()) {
+        !httpOption.enable && !traceExportOption.separateFile && traceExportOption.metricsIndex.empty() &&
+        traceExportOption.sqlOperatorFilePath.empty()) {
         ShowHelpInfo(argv[0]);
         return 1;
     }
     return 0;
 }
-void InitMetricsMap(std::map<std::string, std::string>& metricsMap)
-{
-    metricsMap.emplace(TRACE_MEM_UNAGG, memUnaggQuery);
-    metricsMap.emplace(TRACE_MEM, memQuery);
-    metricsMap.emplace(TRACE_MEM_TOP_TEN, memTopQuery);
-    metricsMap.emplace(TRACE_METADATA, metaDataQuery);
-    metricsMap.emplace(SYS_CALLS, sysCallQuery);
-    metricsMap.emplace(TRACE_STATS, traceStateQuery);
-    metricsMap.emplace(TRACE_TASK_NAMES, traceTaskName);
-}
-
-const std::string MetricsSqlQuery(const std::string& metrics)
-{
-    std::map<std::string, std::string> metricsMap;
-    InitMetricsMap(metricsMap);
-    auto itor = metricsMap.find(metrics);
-    if (itor == metricsMap.end()) {
-        TS_LOGE("metrics name error!!!");
-        return "";
-    }
-    return itor->second;
-}
 
 void ParserAndPrintMetrics(TraceStreamerSelector& ts, const std::string& metrics)
 {
-    std::string result = ts.SearchDatabase(MetricsSqlQuery(metrics));
-    if (result == "") {
-        return;
-    }
-    Metrics metricsOperator;
-    metricsOperator.ParserJson(metrics, result);
-    for (auto item : metricsOperator.GetMetricsMap()) {
-        if (item.second == metrics) {
-            metricsOperator.PrintMetricsResult(item.first);
-            return;
+    auto metricsName = SplitStringToVec(metrics, ",");
+    for (const auto& itemName : metricsName) {
+        std::string result = ts.SearchDatabase(ts.MetricsSqlQuery(itemName));
+        if (result == "") {
+            continue;
+        }
+        Metrics metricsOperator;
+        metricsOperator.ParserJson(itemName, result);
+        for (auto item : metricsOperator.GetMetricsMap()) {
+            if (item.second == itemName) {
+                metricsOperator.PrintMetricsResult(item.first, nullptr);
+                continue;
+            }
         }
     }
 }
@@ -426,7 +356,9 @@ int main(int argc, char** argv)
     TraceStreamerSelector ts;
     ts.EnableMetaTable(tsOption.exportMetaTable);
     ts.EnableFileSave(tsOption.separateFile);
-    if (OpenAndParserFile(ts, tsOption.traceFilePath)) {
+    std::regex traceInvalidStr("\\\\");
+    auto strEscape = std::regex_replace(tsOption.traceFilePath, traceInvalidStr, "\\\\\\\\");
+    if (OpenAndParserFile(ts, strEscape)) {
         if (!tsOption.sqliteFilePath.empty()) {
             ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
         }

@@ -50,7 +50,7 @@ HWTEST_F(TableTest, AppnameTableTest, TestSize.Level1)
     DataIndex eventSource = stream_.traceDataCache_->GetDataIndex("eventSource");
     DataIndex appName = stream_.traceDataCache_->GetDataIndex("app1");
     stream_.traceDataCache_->GetAppNamesData()->AppendAppName(flags, eventSource, appName);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -78,17 +78,17 @@ HWTEST_F(TableTest, ArgsTableTest, TestSize.Level1)
     stream_.traceDataCache_->InitDB();
     stream_.traceDataCache_->GetArgSetData()->AppendNewArg(nameId0, dataType0, value0, argSet0);
     stream_.traceDataCache_->GetArgSetData()->AppendNewArg(nameId1, dataType1, value1, argSet1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -130,17 +130,17 @@ HWTEST_F(TableTest, CallstackTableTest, TestSize.Level1)
         startT, durationNs, internalTid, cat, nameIdentify, name, depth, cookid, parentId);
     stream_.traceDataCache_->GetInternalSlicesData()->AppendInternalAsyncSlice(
         startT1, durationNs1, internalTid1, cat1, nameIdentify1, name1, depth1, cookid1, parentId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -168,17 +168,17 @@ HWTEST_F(TableTest, ClkEventFilterTableTest, TestSize.Level1)
     uint64_t cpu1 = 1;
     stream_.traceDataCache_->GetClkEventFilterData()->AppendNewFilter(id, rate, name, cpu);
     stream_.traceDataCache_->GetClkEventFilterData()->AppendNewFilter(id1, rate1, name1, cpu1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -206,17 +206,17 @@ HWTEST_F(TableTest, ClockEventFilterTableTest, TestSize.Level1)
     uint64_t cpu1 = 1;
     stream_.traceDataCache_->GetClockEventFilterData()->AppendNewFilter(id, type, name, cpu);
     stream_.traceDataCache_->GetClockEventFilterData()->AppendNewFilter(id1, type1, name1, cpu1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -243,17 +243,17 @@ HWTEST_F(TableTest, CpuMeasureFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetCpuMeasuresData()->AppendNewFilter(filterId, name, cpu);
     stream_.traceDataCache_->GetCpuMeasuresData()->AppendNewFilter(filterId1, name1, cpu1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -281,10 +281,10 @@ HWTEST_F(TableTest, CpuUsageFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetCpuUsageInfoData()->AppendNewData(newTimeStamp, dur, totalLoad, userLoad, userLoad,
                                                                   thread);
-    stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     stream_.traceDataCache_->GetCpuUsageInfoData()->AppendNewData(newTimeStamp1, dur1, totalLoad1, userLoad1, userLoad1,
                                                                   thread1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -302,17 +302,17 @@ HWTEST_F(TableTest, DataDictTableTest, TestSize.Level1)
     std::string sqlSelect4 = "select * from data_dict where id >= 1";
     std::string sqlSelect5 = "select * from data_dict where data <= 1";
     stream_.traceDataCache_->GetDataFromDict(1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 61);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 59);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 60);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -336,17 +336,17 @@ HWTEST_F(TableTest, DataTypeTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetDataTypeData()->AppendNewDataType(dataType, dataDescIndex);
     stream_.traceDataCache_->GetDataTypeData()->AppendNewDataType(dataType1, dataDescIndex1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 6);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 4);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 4);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -371,7 +371,7 @@ HWTEST_F(TableTest, DiskIoTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetDiskIOData()->AppendNewData(ts, dur, rd, wr, rdPerSec, wrPerSec, rdCountPerSec,
                                                             wrCountPerSec, rdCount, wrCount);
-    stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
 }
 /**
  * @tc.name: EbpfCallstackTableTest
@@ -408,22 +408,22 @@ HWTEST_F(TableTest, EbpfCallstackTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, fps);
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect6.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect6, false);
     EXPECT_EQ(row, 2);
 
     stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(callChainId, depth, ip, symbolId, filePathId);
     stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(callChainId1, depth1, ip1, symbolId1, filePathId1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -483,11 +483,11 @@ HWTEST_F(TableTest, FileSystemSampleTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, fps);
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 0);
 
     stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(
@@ -496,11 +496,11 @@ HWTEST_F(TableTest, FileSystemSampleTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetFileSystemSample()->AppendNewData(
         callChainId1, type1, ipid1, itid1, startTs1, endTs1, dur1, returnValue1, errorCode1, size1, fd1, fileId1,
         firstArgument1, secondArgument1, thirdArgument1, fourthArgument1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -516,7 +516,7 @@ HWTEST_F(TableTest, HidumpTableTest, TestSize.Level1)
     uint32_t fps = 1;
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, fps);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -538,7 +538,7 @@ HWTEST_F(TableTest, HisysEventMeasureTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetSyseventMeasureData()->AppendData(ts, nameId, keyId, type, numericValue, stringValue,
                                                                   serial);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -575,22 +575,22 @@ HWTEST_F(TableTest, InstantTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type1, timestamp1, value1, filterId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
 
     stream_.traceDataCache_->GetInstantsData()->AppendInstantEventData(timeStamp, nameIndex, internalTid,
                                                                        wakeupFromInternalPid);
     stream_.traceDataCache_->GetInstantsData()->AppendInstantEventData(timestamp1, nameIndex1, internalTid1,
                                                                        wakeupFromInternalPid1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -638,7 +638,7 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, fps);
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
 
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(
@@ -646,9 +646,9 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(callChainId1, type1, ipid1, itid1, startTs1,
                                                                       endTs1, latencyDur1, tier1, size1, blockNumber1,
                                                                       filePathId1, durPer4k1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -683,9 +683,9 @@ HWTEST_F(TableTest, IrqTableTest, TestSize.Level1)
                                                                depth, parentId);
     stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(startT1, durationNs1, internalTid1, cat1, nameIdentify1,
                                                                name1, depth1, parentId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -714,7 +714,7 @@ HWTEST_F(TableTest, LiveProcessTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetLiveProcessData()->AppendNewData(newTimeStamp, dur, processID, processName,
                                                                  parentProcessID, uid, userName, cpuUsage, pssInfo,
                                                                  cpuTime, threads, diskWrites, diskReads);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -736,7 +736,7 @@ HWTEST_F(TableTest, LogTableTest, TestSize.Level1)
     uint64_t originTs = 1;
 
     stream_.traceDataCache_->GetHilogData()->AppendNewLogInfo(seq, timeStamp, pid, tid, level, tag, context, originTs);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -761,9 +761,9 @@ HWTEST_F(TableTest, MeasureTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type1, timestamp1, value1, filterId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -781,7 +781,7 @@ HWTEST_F(TableTest, MeasureFilterTableTest, TestSize.Level1)
     uint64_t internalTid = 1;
 
     stream_.traceDataCache_->GetThreadMeasureFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -795,7 +795,7 @@ HWTEST_F(TableTest, MetaTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from meta";
 
     stream_.traceDataCache_->GetMetaData();
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 9);
 }
 /**
@@ -839,15 +839,15 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
         callChainId, ipid, itid, eventType, subType, timeStamp, endTimestamp, duration, addr, memSize);
     stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
         callChainId1, ipid1, itid1, eventType1, subType1, timestamp1, endTimestamp1, duration1, addr1, memSize1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -888,15 +888,15 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
         callChainId1, depth1, ip1, sp1, symbolName1, filePath1, offset1, symbolOffset1, vaddr1);
 
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -922,7 +922,7 @@ HWTEST_F(TableTest, NetworkTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetNetworkData()->AppendNewNetData(newTimeStamp, tx, rx, dur, rxSpeed, txSpeed, packetIn,
                                                                 packetInSec, packetOut, packetOutSec, netType);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -938,32 +938,34 @@ HWTEST_F(TableTest, PerfCallchainTableTest, TestSize.Level1)
     std::string sqlSelect2 = "select * from perf_callchain where callchain_id > 1";
     std::string sqlSelect3 = "select * from perf_callchain where file_id < 1";
     std::string sqlSelect4 = "select * from perf_callchain where symbol_id >= 1";
-    uint64_t sampleId = stream_.traceDataCache_->GetDataIndex("sample");
     uint64_t callChainId = stream_.traceDataCache_->GetDataIndex("callChain");
+    uint32_t depth = 0;
+    uint64_t ip = 123;
     uint64_t vaddrInFile = 1;
     uint64_t fileId = stream_.traceDataCache_->GetDataIndex("file");
     uint64_t symbolId = stream_.traceDataCache_->GetDataIndex("symbolId");
 
-    uint64_t sampleId1 = stream_.traceDataCache_->GetDataIndex("sample1");
-    uint64_t callChainId1 = stream_.traceDataCache_->GetDataIndex("callChain1");
+    uint64_t callChainId1 = 2;
+    uint32_t depth1 = 1;
+    uint64_t ip1 = 234;
     uint64_t vaddrInFile1 = 2;
     uint64_t fileId1 = stream_.traceDataCache_->GetDataIndex("file1");
     uint64_t symbolId1 = stream_.traceDataCache_->GetDataIndex("symbolId1");
 
-    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(sampleId, callChainId, vaddrInFile, fileId,
+    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId, depth, vaddrInFile, ip, fileId,
                                                                             symbolId);
 
-    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(sampleId1, callChainId1, vaddrInFile1,
+    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(callChainId1, depth1, vaddrInFile1, ip1,
                                                                             fileId1, symbolId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -989,11 +991,11 @@ HWTEST_F(TableTest, PerfFilesTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds, serial, symbols, filePath);
     stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds1, serial1, symbols1, filePath1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -1009,7 +1011,7 @@ HWTEST_F(TableTest, PerfReportTableTest, TestSize.Level1)
     DataIndex value = stream_.traceDataCache_->GetDataIndex("value");
 
     stream_.traceDataCache_->GetPerfReportData()->AppendNewPerfReport(type, value);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1048,17 +1050,17 @@ HWTEST_F(TableTest, PerfSampleTableTest, TestSize.Level1)
                                                                       timestampTrace, cpuId, threadState);
     stream_.traceDataCache_->GetPerfSampleData()->AppendNewPerfSample(
         sampleId1, timestamp1, tid1, eventCount1, eventTypeId1, timestampTrace1, cpuId1, threadState1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1083,13 +1085,13 @@ HWTEST_F(TableTest, PerfThreadTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetPerfThreadData()->AppendNewPerfThread(pid, tid, threadName);
     stream_.traceDataCache_->GetPerfThreadData()->AppendNewPerfThread(pid1, tid1, threadName1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -1103,9 +1105,9 @@ HWTEST_F(TableTest, ProcessTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from process";
     std::string sqlSelect1 = "select * from process where id = 1";
 
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -1122,7 +1124,7 @@ HWTEST_F(TableTest, ProcessFilterTableTest, TestSize.Level1)
     uint32_t internalPid = 1;
 
     stream_.traceDataCache_->GetProcessFilterData()->AppendNewFilter(id, name, internalPid);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1140,7 +1142,7 @@ HWTEST_F(TableTest, ProcessMeasureTableTest, TestSize.Level1)
     uint32_t filterId = 1;
 
     stream_.traceDataCache_->GetProcessMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1165,13 +1167,13 @@ HWTEST_F(TableTest, ProcessMeasureFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(id, name, internalPid);
     stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(id1, name1, internalPid1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -1201,15 +1203,15 @@ HWTEST_F(TableTest, RawTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetRawData()->AppendRawData(id, timeStamp, name, cpu, internalTid);
     stream_.traceDataCache_->GetRawData()->AppendRawData(id1, timestamp1, name1, cpu1, internalTid1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -1243,19 +1245,19 @@ HWTEST_F(TableTest, SchedSliceTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, dur, cpu, internalTid, endState, priority);
     stream_.traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts1, dur1, cpu1, internalTid1, endState1, priority1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect6.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect6, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -1291,7 +1293,7 @@ HWTEST_F(TableTest, SmapsTest, TestSize.Level1)
     stream_.traceDataCache_->GetSmapsData()->AppendNewData(
         timeStamp, ipid, startAddr, endAddr, dirty, swapper, rss, pss, size, reside, protectionId, pathId, sharedClean,
         sharedDirty, privateClean, privateDirty, swap, swapPss, type);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1304,7 +1306,7 @@ HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
     TS_LOGI("test31-38");
     std::string sqlSelect = "select * from stat";
     stream_.traceDataCache_->GetStatAndInfo();
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 430);
 }
 /**
@@ -1326,11 +1328,11 @@ HWTEST_F(TableTest, SymbolsTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetSymbolsData()->InsertSymbol(name, addr);
     stream_.traceDataCache_->GetSymbolsData()->InsertSymbol(name1, addr1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1349,7 +1351,7 @@ HWTEST_F(TableTest, SyscallTableTest, TestSize.Level1)
     int64_t ret = 1;
 
     stream_.traceDataCache_->GetSysCallData()->AppendSysCallData(sysCallNum, type, ipid, timeStamp, ret);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1376,17 +1378,17 @@ HWTEST_F(TableTest, SysEventFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetSysMeasureFilterData()->AppendNewFilter(filterId, type, nameId);
     stream_.traceDataCache_->GetSysMeasureFilterData()->AppendNewFilter(filterId1, type1, nameId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 2);
 }
 /**
@@ -1404,7 +1406,7 @@ HWTEST_F(TableTest, SysMemMeasureTableTest, TestSize.Level1)
     uint32_t filterId = stream_.traceDataCache_->GetDataIndex("filter");
 
     stream_.traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1417,7 +1419,7 @@ HWTEST_F(TableTest, ThreadTableTest, TestSize.Level1)
     TS_LOGI("test31-43");
     std::string sqlSelect = "select * from thread";
 
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1434,7 +1436,7 @@ HWTEST_F(TableTest, ThreadFilterTableTest, TestSize.Level1)
     uint64_t internalTid = 1;
 
     stream_.traceDataCache_->GetThreadFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 /**
@@ -1468,23 +1470,23 @@ HWTEST_F(TableTest, ThreadStateTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetThreadStateData()->AppendThreadState(ts, dur, cpu, itid, idState);
     stream_.traceDataCache_->GetThreadStateData()->AppendThreadState(ts1, dur1, cpu1, itid1, idState1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
     EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect6.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect6, false);
     EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect7.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect7, false);
     EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect8.c_str(), false);
+    row = stream_.traceDataCache_->SearchDatabase(sqlSelect8, false);
     EXPECT_EQ(row, 0);
 }
 /**
@@ -1498,7 +1500,7 @@ HWTEST_F(TableTest, TraceRangeTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from trace_range";
 
     stream_.traceDataCache_->UpdateTraceRange();
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
+    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
 } // namespace TraceStreamer

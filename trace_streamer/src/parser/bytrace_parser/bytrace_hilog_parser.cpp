@@ -28,48 +28,57 @@ BytraceHilogParser::~BytraceHilogParser() = default;
 
 bool BytraceHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t& timeStamp) const
 {
-    const uint64_t S_TO_NS = 1e9;
     const uint64_t MS_TO_NS = 1e6;
     const uint64_t US_TO_NS = 1e3;
+    const uint32_t TM_YEAR_FROM = 1900;
+    const uint32_t MS_FORMAT_LEN = 3;
+    const uint32_t US_FORMAT_LEN = 6;
     uint64_t sec;
-    uint64_t usec;
+    uint64_t nsec;
     std::string usecStr;
     std::smatch matcheLine;
     if (std::regex_search(timeStr, matcheLine, std::regex(R"(^\d+\.(\d+)$)"))) {
         size_t index = 0;
         usecStr = matcheLine[++index].str();
-        sscanf_s(timeStr.c_str(), "%lu.%lu", &sec, &usec);
+        sscanf_s(timeStr.c_str(), "%lu.%lu", &sec, &nsec);
     } else if (std::regex_search(timeStr, matcheLine,
-                                 std::regex(R"(^(\d{4})?\-?(\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.(\d+))$)"))) {
+                                 std::regex(R"(^(\d{4})?\-?(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d+)$)"))) {
         size_t index = 0;
         std::string yearStr = matcheLine[++index].str();
-        std::string timeStrTmp = matcheLine[++index].str();
+        std::string monthStr = matcheLine[++index].str();
+        std::string dayStr = matcheLine[++index].str();
+        std::string hourStr = matcheLine[++index].str();
+        std::string minStr = matcheLine[++index].str();
+        std::string secStr = matcheLine[++index].str();
         usecStr = matcheLine[++index].str();
         struct tm timeInfo = {0};
-        sscanf_s(timeStrTmp.c_str(), "%d-%d %d:%d:%d.%lu", &timeInfo.tm_mon, &timeInfo.tm_mday, &timeInfo.tm_hour,
-                 &timeInfo.tm_min, &timeInfo.tm_sec, &usec);
         std::optional<uint32_t> optionalYear = base::StrToInt<uint32_t>(yearStr);
         if (optionalYear.has_value()) {
-            timeInfo.tm_year = optionalYear.value() - 1900;
+            timeInfo.tm_year = optionalYear.value() - TM_YEAR_FROM;
         } else {
             time_t tmNow;
             tmNow = time(nullptr);
             tm* ptmNow = localtime(&tmNow);
             timeInfo.tm_year = ptmNow->tm_year;
         }
-        timeInfo.tm_mon -= 1;
+        timeInfo.tm_mon = base::StrToInt<uint32_t>(monthStr).value() - 1;
+        timeInfo.tm_mday = base::StrToInt<uint32_t>(dayStr).value();
+        timeInfo.tm_hour = base::StrToInt<uint32_t>(hourStr).value();
+        timeInfo.tm_min = base::StrToInt<uint32_t>(minStr).value();
+        timeInfo.tm_sec = base::StrToInt<uint32_t>(secStr).value();
         sec = std::mktime(&timeInfo);
+        nsec = base::StrToInt<uint64_t>(usecStr).value();
     } else {
         return false;
     }
 
-    if (usecStr.length() == 3) {
-        usec *= MS_TO_NS;
-    } else if (usecStr.length() == 6) {
-        usec *= US_TO_NS;
+    if (usecStr.length() == MS_FORMAT_LEN) {
+        nsec *= MS_TO_NS;
+    } else if (usecStr.length() == US_FORMAT_LEN) {
+        nsec *= US_TO_NS;
     }
 
-    timeStamp = usec + sec * SEC_TO_NS;
+    timeStamp = nsec + sec * SEC_TO_NS;
     return true;
 }
 
@@ -141,6 +150,7 @@ void BytraceHilogParser::FilterAllHilogData()
 void BytraceHilogParser::BeginFilterHilogData(HilogLine* hilogData)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_HILOG, STAT_EVENT_RECEIVED);
+    traceDataCache_->UpdateTraceTime(hilogData->timeStamp);
     auto curLineSeq = hilogData->lineSeq;
     auto newTimeStamp = hilogData->timeStamp;
     auto levelData = traceDataCache_->dataDict_.GetStringIndex(hilogData->level);

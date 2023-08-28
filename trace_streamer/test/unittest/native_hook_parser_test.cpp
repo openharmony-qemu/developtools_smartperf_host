@@ -118,7 +118,7 @@ public:
         }
         callChainId_ = nativeHook.CallChainIds()[index];
         ipid_ = nativeHook.Ipids()[index];
-        itid_ = nativeHook.Itids()[index];
+        itid_ = nativeHook.InternalTidsData()[index];
         eventType_ = nativeHook.EventTypes()[index];
         subType_ = nativeHook.SubTypes()[index];
         startTimeStamp_ = nativeHook.TimeStampData()[index];

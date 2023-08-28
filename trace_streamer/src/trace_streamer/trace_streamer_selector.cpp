@@ -78,9 +78,6 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     if (start.compare(0, std::string("PERFILE2").length(), "PERFILE2") == 0) {
         return TRACE_FILETYPE_PERF;
     }
-    if (start.compare(0, std::string("\x1f\x8b").length(), "\x1f\x8b") == 0) {
-        return TRACE_FILETYPE_PERF;
-    }
     const std::regex bytraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
                                                  R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
     std::smatch matcheLine;
@@ -278,13 +275,34 @@ int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* o
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, bool printf)
+int32_t TraceStreamerSelector::SearchDatabase(std::string& sql, bool printf)
 {
     return traceDataCache_->SearchDatabase(sql, printf);
 }
 std::string TraceStreamerSelector::SearchDatabase(const std::string& sql)
 {
     return traceDataCache_->SearchDatabase(sql);
+}
+void TraceStreamerSelector::InitMetricsMap(std::map<std::string, std::string>& metricsMap)
+{
+    metricsMap.emplace(TRACE_MEM_UNAGG, memUnaggQuery);
+    metricsMap.emplace(TRACE_MEM, memQuery);
+    metricsMap.emplace(TRACE_MEM_TOP_TEN, memTopQuery);
+    metricsMap.emplace(TRACE_METADATA, metaDataQuery);
+    metricsMap.emplace(SYS_CALLS, sysCallQuery);
+    metricsMap.emplace(TRACE_STATS, traceStateQuery);
+    metricsMap.emplace(TRACE_TASK_NAMES, traceTaskName);
+}
+const std::string TraceStreamerSelector::MetricsSqlQuery(const std::string& metrics)
+{
+    std::map<std::string, std::string> metricsMap;
+    InitMetricsMap(metricsMap);
+    auto itor = metricsMap.find(metrics);
+    if (itor == metricsMap.end()) {
+        TS_LOGE("metrics name error!!!");
+        return "";
+    }
+    return itor->second;
 }
 int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
 {
