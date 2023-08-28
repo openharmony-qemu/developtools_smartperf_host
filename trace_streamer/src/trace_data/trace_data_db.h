@@ -54,6 +54,7 @@ public:
     int32_t SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
     int32_t SearchDatabase(const std::string& sql, bool print);
+    std::string SearchDatabase(const std::string& sql);
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);

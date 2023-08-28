@@ -282,6 +282,10 @@ int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, bool print
 {
     return traceDataCache_->SearchDatabase(sql, printf);
 }
+std::string TraceStreamerSelector::SearchDatabase(const std::string& sql)
+{
+    return traceDataCache_->SearchDatabase(sql);
+}
 int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
 {
     std::string traceRangeStr;

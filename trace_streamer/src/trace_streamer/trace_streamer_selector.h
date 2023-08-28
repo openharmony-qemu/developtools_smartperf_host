@@ -39,6 +39,7 @@ public:
     int32_t SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
     int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
     int32_t SearchDatabase(const std::string& sql, bool printf);
+    std::string SearchDatabase(const std::string& sql);
     int32_t UpdateTraceRangeTime(uint8_t* data, int32_t len);
     void WaitForParserEnd();
     void Clear();
