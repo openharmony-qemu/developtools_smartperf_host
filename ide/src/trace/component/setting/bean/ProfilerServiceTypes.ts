@@ -27,8 +27,7 @@ export enum ProfilerSessionConfigBufferConfigPolicy {
 export interface ProfilerSessionConfig {
   buffers: ProfilerSessionConfigBufferConfig[];
   sessionMode: ProfilerSessionConfigMode;
-  /** for OFFLINE mode, result file path */
-  resultFile: string;
+
   /** for OFFLINE mode, result file max size in KB */
   resultMaxSize: number;
   /** if set to non-zero value, session will auto-destroyed after CreateSession in ms */

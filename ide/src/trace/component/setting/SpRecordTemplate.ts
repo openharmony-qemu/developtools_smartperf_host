@@ -123,7 +123,7 @@ export class SpRecordTemplate extends BaseElement {
         config.push(this.createHiperfDefaultConfig());
       }
       SpRecordTemplate.FRAME_TIMELINE_EVENTS.forEach((ev) => {
-        if (traceEventSet.indexOf(ev) == -1) {
+        if (traceEventSet.indexOf(ev) === -1) {
           traceEventSet.push(ev);
         }
       });
@@ -160,13 +160,12 @@ export class SpRecordTemplate extends BaseElement {
         sampleInterval: 1000,
         configData: tracePluginConfig,
       };
-      SpRecordTrace.appendSerialize(htraceProfilerPluginConfig);
       config.push(htraceProfilerPluginConfig);
     }
     return config;
   }
 
-  private createHiperfDefaultConfig() {
+  private createHiperfDefaultConfig(): ProfilerPluginConfig<HiperfPluginConfig> {
     let hiPerf: HiperfPluginConfig = {
       isRoot: false,
       outfileName: '/data/local/tmp/perf.data',
