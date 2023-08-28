@@ -39,7 +39,8 @@ export class SpWebHdcShell extends BaseElement {
   private textDecoder: TextDecoder = new TextDecoder();
   private isDragging: boolean = false;
   private static TOP_OFFSET = 48;
-  private static TEXT_TOP_OFFSET = 32;
+  private static FIRST_ROW_OFFSET = 32;
+  private static LAST_ROW_OFFSET = 40;
 
   private static LEFT_OFFSET = 48;
 
@@ -139,7 +140,6 @@ export class SpWebHdcShell extends BaseElement {
   getSelectedText(): string {
     let selectedText = '';
     let textLines = [...this.finalArr];
-    textLines.push(this.cursorRow);
     let startX = this.points!.startX!;
     let startY = this.points!.startY!;
     let endX = this.points!.endX!;
@@ -149,16 +149,18 @@ export class SpWebHdcShell extends BaseElement {
     for (let i = 0 ; i < textLines.length ; i++) {
       let line = textLines[i];
       let x = SpWebHdcShell.LEFT_OFFSET;
-      let textStartY = 16 * i + SpWebHdcShell.TEXT_TOP_OFFSET;
+      let textFirstRowY = 16 * i + SpWebHdcShell.FIRST_ROW_OFFSET;
+      let textLastRowY = 16 * i + SpWebHdcShell.LAST_ROW_OFFSET;
       let textEndY = 16 * i + SpWebHdcShell.TOP_OFFSET;
       let w = this.shellCanvasCtx!.measureText(line).width;
-      if ((startY < textEndY && endY >= textEndY) || (startY > textStartY && startY < textEndY)) {
+      if ((startY < textEndY && endY >= textEndY) || (startY > textFirstRowY && startY < textEndY)
+          || (endY > textLastRowY && endY < textEndY)) {
         index++;
         if(index == 1){
-          if (startX > x && startX < x + w && depth > 1) {
+          if (depth > 1) {
             selectedText += line.substring(Math.floor((startX - x) / 8)) + ((endX < x + w) ? '\n' : '');
           } else {
-            selectedText += `${ line.substring(Math.floor((startX - x) / 8), endX / 8) }\n`;
+            selectedText += `${ line.substring(Math.floor((startX - x) / 8), Math.ceil((endX - x) / 8)) }\n`;
           }
         } else if (index == depth) {
           selectedText += `${ line.substring(0, Math.ceil((endX - x) / 8)) }\n`;
@@ -287,16 +289,13 @@ export class SpWebHdcShell extends BaseElement {
         this.shellCanvasCtx!.fillStyle = '#fff';
         this.shellCanvasCtx!.font = '16px serif';
         let textY = SpWebHdcShell.TOP_OFFSET;
+        this.finalArr.push(this.cursorRow)
         for (let index: number = 0 ; index < this.finalArr.length ; index++) {
           let shellStr: string = this.finalArr[index];
           textY = SpWebHdcShell.TOP_OFFSET + index * 16;
           this.shellCanvasCtx!.fillText(shellStr, SpWebHdcShell.LEFT_OFFSET, textY);
         }
-        if (textY !== SpWebHdcShell.TOP_OFFSET) {
-          textY += 16;
-        }
         shellStrLength = this.cursorIndex * unitWidth + SpWebHdcShell.LEFT_OFFSET;
-        this.shellCanvasCtx!.fillText(this.cursorRow, SpWebHdcShell.LEFT_OFFSET, textY);
         if (scroller) {
           if (this.finalArr.length < SpWebHdcShell.MAX_DISPLAY_ROWS && textY > this.shellDiv!.clientHeight) {
             this.shellDiv!.scrollTop = textY - this.shellDiv!.clientHeight + (16 + 3);
