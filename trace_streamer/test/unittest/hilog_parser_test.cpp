@@ -375,5 +375,60 @@ HWTEST_F(HilogParserTest, ParseHilogInfoHasDuplicateHilogLine, TestSize.Level1)
     eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_HILOG, STAT_EVENT_NOTMATCH);
     EXPECT_TRUE(1 == eventCount);
 }
+
+/**
+ * @tc.name: ParseTxtHilogInfo
+ * @tc.desc: Parse a text format HilogInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(HilogParserTest, ParseTxtHilogInfo, TestSize.Level1)
+{
+    TS_LOGI("test8-7");
+    constexpr size_t readSize = 1024;
+    constexpr uint32_t lineLength = 256;
+    char data[] = "08-07 11:04:45.947   523   640 E C04200/Root: <205>cannot find windowNode\n";
+
+    std::unique_ptr<SysTuning::TraceStreamer::TraceStreamerSelector> ta =
+        std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
+    ta->EnableMetaTable(false);
+
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(readSize);
+    memcpy_s(buf.get(), readSize, data, sizeof(data));
+
+    EXPECT_TRUE(ta->ParseTraceDataSegment(std::move(buf), sizeof(data)));
+    ta->WaitForParserEnd();
+
+    EXPECT_TRUE(ta->traceDataCache_->GetConstHilogData().HilogLineSeqs().size() == 1);
+}
+
+/**
+ * @tc.name: ParseTxtHilogInfoWithTimeFormat
+ * @tc.desc: Parse a text format HilogInfo with different time format
+ * @tc.type: FUNC
+ */
+HWTEST_F(HilogParserTest, ParseTxtHilogInfoWithTimeFormat, TestSize.Level1)
+{
+    TS_LOGI("test8-7");
+    constexpr size_t readSize = 1024;
+    constexpr uint32_t lineLength = 256;
+    char data[] = "08-07 11:04:45.947   523   640 E C04200/Root: <205>cannot find windowNode\n"
+        "CST 08-05 17:41:00.039   955   955 I C03900/Ace: [list_layout_algorithm.cpp(Measure)-(0)] child size is empty\n"
+        "CST 2017-08-05 17:41:19.409   840   926 I C01560/WifiDeviceServiceImpl: thread work normally\n"
+        "1501926013.969  1585  1585 I C02d10/HiView-DOCDB: close ejdb success\n"
+        "2337.006   601   894 E C01200/Ces: [access_token_helper.cpp:(RecordSensitivePermissionUsage):52] permission denied\n";
+
+    std::unique_ptr<SysTuning::TraceStreamer::TraceStreamerSelector> ta =
+        std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
+    ta->EnableMetaTable(false);
+
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(readSize);
+    memcpy_s(buf.get(), readSize, data, sizeof(data));
+
+    EXPECT_TRUE(ta->ParseTraceDataSegment(std::move(buf), sizeof(data)));
+    ta->WaitForParserEnd();
+
+    EXPECT_TRUE(ta->traceDataCache_->GetConstHilogData().HilogLineSeqs().size() == 5);
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning

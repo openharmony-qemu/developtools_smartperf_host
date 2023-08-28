@@ -240,5 +240,69 @@ HWTEST_F(BytraceParserTest, LineParserWithInvalidTs, TestSize.Level1)
     EXPECT_TRUE(bytraceParser.ParsedTraceValidLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceInvalidLines() == 1);
 }
+
+/**
+ * @tc.name: NomalHtmlBytraceFile
+ * @tc.desc: Test ParseTraceDataItem interface Parse normal html format bytrace data
+ * @tc.type: FUNC
+ */
+HWTEST_F(BytraceParserTest, NomalHtmlBytraceFile, TestSize.Level1)
+{
+    TS_LOGI("test2-10");
+    constexpr uint32_t bufSize = 1024;
+    auto buf = std::make_unique<uint8_t[]>(bufSize);
+    char realBuf[] = "<!DOCTYPE html>\r\n<html>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
+        "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: "
+        "transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \r\n"
+        "</script>\r\n</html>\n";
+    auto realBufSize = sizeof(realBuf);
+
+    if (memcpy_s(buf.get(), bufSize, realBuf, realBufSize)) {
+        EXPECT_TRUE(false);
+        return;
+    }
+    BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bytraceParser.ParseTraceDataSegment(std::move(buf), realBufSize);
+    bytraceParser.WaitForParserEnd();
+    stream_.traceDataCache_->ExportDatabase(dbPath_);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
+    EXPECT_TRUE(bytraceParser.TraceCommentLines() == 0);
+    EXPECT_TRUE(bytraceParser.ParsedTraceValidLines() == 1);
+    EXPECT_TRUE(bytraceParser.ParsedTraceInvalidLines() == 0);
+}
+
+/**
+ * @tc.name: MultiScriptHtmlBytraceFile
+ * @tc.desc: Test ParseTraceDataItem interface Parse html format bytrace data with multiple script section
+ * @tc.type: FUNC
+ */
+HWTEST_F(BytraceParserTest, MultiScriptHtmlBytraceFile, TestSize.Level1)
+{
+    TS_LOGI("test2-11");
+    constexpr uint32_t bufSize = 1024;
+    auto buf = std::make_unique<uint8_t[]>(bufSize);
+    char realBuf[] = "<!DOCTYPE html>\r\n<html>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
+        "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: "
+        "transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \r\n"
+        "</script>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
+        "{\"traceEvents\": [{\"category\": \"process_argv\", \"name\": \"process_argv\", \"args\": "
+        "{\"argv\": [\"c:\\\\platform-tools\\\\systrace\\\\systrace.py\", \"--from-file\", \"d:\\\\trace_output\", \"-o\", \"output.html\"]}, "
+        "\"pid\": 18892, \"ts\": 13988802989.6, \"tid\": 4464, \"ph\": \"M\"}], \"metadata\": {\"clock-domain\": \"SYSTRACE\"}}  </script>"
+        "</html>\n";
+    auto realBufSize = sizeof(realBuf);
+    if (memcpy_s(buf.get(), bufSize, realBuf, realBufSize)) {
+        EXPECT_TRUE(false);
+        return;
+    }
+    BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bytraceParser.ParseTraceDataSegment(std::move(buf), realBufSize);
+    bytraceParser.WaitForParserEnd();
+    stream_.traceDataCache_->ExportDatabase(dbPath_);
+    EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
+    EXPECT_TRUE(bytraceParser.TraceCommentLines() == 0);
+    EXPECT_TRUE(bytraceParser.ParsedTraceValidLines() == 1);
+    EXPECT_TRUE(bytraceParser.ParsedTraceInvalidLines() == 1);
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning

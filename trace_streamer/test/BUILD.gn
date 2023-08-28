@@ -99,6 +99,7 @@ if (is_test) {
       "../src/parser/bytrace_parser",
       "../src/parser",
       "../src/cfg",
+      "../src/metrics",
       "../src/parser/ebpf_parser",
       "../src/proto_reader",
       "../src/proto_reader/include",
