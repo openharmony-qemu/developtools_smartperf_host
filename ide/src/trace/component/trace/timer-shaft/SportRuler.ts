@@ -345,11 +345,6 @@ export class SportRuler extends Graph {
   removeTriangle(type: string) {
     if (type == 'inverted') {
       this.invertedTriangleTime = null;
-    } else {
-      let i = this.flagList.findIndex((it) => it.type == type);
-      if (i !== -1) {
-        this.flagList.splice(i, 1);
-      }
     }
     this.draw();
     this.notifyHandler &&
@@ -582,20 +577,27 @@ export class SportRuler extends Graph {
       } else {
         // 如果没有找到帽子，则绘制旗子，此处避免旗子和帽子重叠。
         // 查找旗子
+        let findFlag = this.flagList.find(
+          (it) => (x >= it.x && x <= it.x + 18 && it.type !== 'triangle') || (x === it.x && it.type === 'triangle')
+        );
         this.flagList.forEach((it) => (it.selected = false));
-        let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
-        if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
-          if (
-            flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
-            this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
-          ) {
-            let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-            this.flagList.push(flag);
-          }
+        if (findFlag) {
+          findFlag.selected = true;
         } else {
-          if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
-            let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-            this.flagList.push(flag);
+          let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
+          if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
+            if (
+              flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
+              this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
+            ) {
+              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+              this.flagList.push(flag);
+            }
+          } else {
+            if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
+              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+              this.flagList.push(flag);
+            }
           }
         }
         this.flagClickHandler && this.flagClickHandler(this.flagList.find((it) => it.selected)); // 绘制旗子

@@ -59,10 +59,6 @@ export class TabPaneCounterSample extends BaseElement {
     this._rangeRow = rangeRow;
   }
 
-  get rangeTraceRow(): Array<TraceRow<any>> | null | undefined {
-    return this._rangeRow;
-  }
-
   initElements(): void {
     this.sampleProgressEL = this.shadowRoot!.querySelector<LitProgressBar>('.progressCounter');
     this.counterLoadingPage = this.shadowRoot!.querySelector('.loadingCounter');

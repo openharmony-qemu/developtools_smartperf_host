@@ -296,13 +296,15 @@ export class TabPaneHiLogs extends BaseElement {
   private isFilterLog(data: LogStruct): boolean {
     let level = this.levelFilterInput?.selectedIndex || 0;
     let search = this.searchFilterInput?.value.toLowerCase() || '';
+    search = search.replace(/\s/g, '');
     let processSearch = this.processFilter?.value.toLowerCase() || '';
+    processSearch = processSearch.replace(/\s/g, '');
     return (data.startTs || 0) >= TraceRow.range!.startNS && (data.startTs || 0) <= TraceRow.range!.endNS &&
       (level === 0 || this.optionLevel.indexOf(data.level!) >= level) &&
       (this.allowTag.size === 0 || this.allowTag.has(data.tag!.toLowerCase())) &&
-      (search === '' || data.context!.toLowerCase().indexOf(search) >= 0) &&
+      (search === '' || data.context!.toLowerCase().replace(/\s/g, '').indexOf(search) >= 0) &&
       (processSearch === '' || (data.processName !== null &&
-        data.processName!.toLowerCase().indexOf(processSearch) >= 0));
+        data.processName!.toLowerCase().replace(/\s/g, '').indexOf(processSearch) >= 0));
   }
 
   private refreshTable(): void {

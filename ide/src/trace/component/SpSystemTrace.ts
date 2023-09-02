@@ -98,6 +98,7 @@ import { setSelectState, intersectData } from './Utils.js';
 import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
 import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample.js';
 import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js';
+import { LitSearch } from './trace/search/Search.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -342,6 +343,9 @@ export class SpSystemTrace extends BaseElement {
     document?.addEventListener('triangle-flag', (event: any) => {
       const time = event.detail.time;
       const type = event.detail.type;
+      if (time.length > 1) {
+        return;
+      }
       if (time === '' && type === 'square') {
         let temporaryTime = this.timerShaftEL?.drawTriangle(time, type);
         if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
@@ -1697,20 +1701,12 @@ export class SpSystemTrace extends BaseElement {
       let y = ev.offsetY;
       this.timerShaftEL?.documentOnMouseDown(ev);
       if (
-        this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
-        x > (TraceRow.rangeSelectObject?.startX || 0) &&
-        x < (TraceRow.rangeSelectObject?.endX || 0)
+        !(
+          this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
+          x > (TraceRow.rangeSelectObject?.startX || 0) &&
+          x < (TraceRow.rangeSelectObject?.endX || 0)
+        )
       ) {
-        let findSlicestime = this.timerShaftEL!.sportRuler?.findSlicesTime(x, y); // 查找帽子
-        if (!findSlicestime) {
-          // 如果没有找到帽子，则绘制一个三角形的旗子
-          let time = Math.round(
-            (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
-              TraceRow.range?.startNS!
-          );
-          this.timerShaftEL!.sportRuler!.drawTriangle(time, 'triangle');
-        }
-      } else {
         this.rangeSelect.mouseDown(ev);
         this.rangeSelect.drag = true;
       }
@@ -1749,6 +1745,25 @@ export class SpSystemTrace extends BaseElement {
     this.rangeSelect.isMouseDown = false;
     if ((window as any).isSheetMove) return;
     if (this.isMouseInSheet(ev)) return;
+    if (ev.offsetX > this.timerShaftEL!.canvas!.offsetLeft) {
+      let x = ev.offsetX - this.timerShaftEL!.canvas!.offsetLeft;
+      let y = ev.offsetY;
+      if (
+        this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
+        x > (TraceRow.rangeSelectObject?.startX || 0) &&
+        x < (TraceRow.rangeSelectObject?.endX || 0)
+      ) {
+        let findSlicestime = this.timerShaftEL!.sportRuler?.findSlicesTime(x, y); // 查找帽子
+        if (!findSlicestime) {
+          // 如果没有找到帽子，则绘制一个三角形的旗子
+          let time = Math.round(
+            (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
+              TraceRow.range?.startNS!
+          );
+          this.timerShaftEL!.sportRuler!.drawTriangle(time, 'triangle');
+        }
+      }
+    }
     this.rangeSelect.mouseUp(ev);
     this.timerShaftEL?.documentOnMouseUp(ev);
     ev.preventDefault();
@@ -2044,6 +2059,15 @@ export class SpSystemTrace extends BaseElement {
     }
     if (this.rangeSelect.isMouseDown) {
       this.refreshCanvas(true);
+      if (TraceRow.rangeSelectObject) {
+        let search = document
+          .querySelector('body > sp-application')!
+          .shadowRoot!.querySelector<LitSearch>('#lit-search');
+        if (search && search.searchValue !== '') {
+          search.clear();
+          search.valueChangeHandler?.('');
+        }
+      }
     } else {
       if (!this.rowsPaneEL!.containPoint(ev, { left: 248 })) {
         this.tipEL!.style.display = 'none';
@@ -2424,7 +2448,7 @@ export class SpSystemTrace extends BaseElement {
       )[0];
       let task = () => {
         if (threadRow) {
-          let findEntry = threadRow!.dataList!.find((dat) => dat.startTime === d.startTime);
+          let findEntry = threadRow!.dataList!.find((dat) => dat.startTime === d.startTime && dat.dur! > 0);
           if (
             findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||
             findEntry!.startTime! > TraceRow.range!.endNS
