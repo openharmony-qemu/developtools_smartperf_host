@@ -520,6 +520,8 @@ export class TabpaneNMCalltree extends BaseElement {
         if (this.responseTypes.length > thirdIndex) {
           this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
         }
+        this.searchValue = this.nmCallTreeFilter!.filterValue;
+        this.libTree = new ParseExpression(this.searchValue).parse();
         this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
       } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
         this.searchValue = this.nmCallTreeFilter!.filterValue;

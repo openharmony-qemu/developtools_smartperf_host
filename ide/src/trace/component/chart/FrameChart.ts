@@ -754,7 +754,6 @@ export class FrameChart extends BaseElement {
           })
         );
       }
-    } else if (e.button === 2) {
     }
     this.hideTip();
   }
