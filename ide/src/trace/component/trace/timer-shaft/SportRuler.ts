@@ -236,6 +236,8 @@ export class SportRuler extends Graph {
         );
         // 最多画二十段
         section < 20 ? (section = section) : (section = 20);
+        // 最少一段
+        section < 1 ? (section = 1) : (section = section);
         // 框选泳道图并放大左右移动后，框选的部分区域会移出可视区域,
         // TraceRow.rangeSelectObject的开始结束时间仍然是框选时的时间，要和this.range进行比较取可视框选范围的时间
         let startNS;
@@ -269,8 +271,10 @@ export class SportRuler extends Graph {
             }
           }
           let x = TraceRow.rangeSelectObject!.startX! + (rangeSelectWidth / section) * i;
-          this.context2D.moveTo(x, this.frame.y + 22);
-          this.context2D.lineTo(x, this.frame.y + 22 + 5);
+          if (i !== section) {
+            this.context2D.moveTo(x, this.frame.y + 22);
+            this.context2D.lineTo(x, this.frame.y + 22 + 5);
+          }
           //   this.context2D.font = 10 + 'px sans-serif';
           // 每一格的数量的数字宽度
           let countTextWidth = this.context2D.measureText(String(countArr[i - 1])).width;
@@ -279,7 +283,7 @@ export class SportRuler extends Graph {
             TraceRow.rangeSelectObject!.startX! +
             (rangeSelectWidth / section) * (i - 1) +
             (rangeSelectWidth / section - countTextWidth) / 2;
-          this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 10);
+          this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 12);
         }
       }
       this.context2D.stroke();
@@ -306,11 +310,9 @@ export class SportRuler extends Graph {
             this.flagList[i].type == '' ? this.flagList.splice(triangle, 1) : '';
           }
           this.flagList.forEach((it) => (it.selected = false));
-          this.flagList[i].selected = true;
         } else {
           this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
           this.flagList.forEach((it) => (it.selected = false));
-          this.flagList[this.flagList.length - 1].selected = true;
         }
       } else if (type == 'square') {
         if (i != -1) {
@@ -580,25 +582,20 @@ export class SportRuler extends Graph {
       } else {
         // 如果没有找到帽子，则绘制旗子，此处避免旗子和帽子重叠。
         // 查找旗子
-        let findFlag = this.flagList.find((it) => x >= it.x && x <= it.x + 18);
         this.flagList.forEach((it) => (it.selected = false));
-        if (findFlag) {
-          findFlag.selected = true;
+        let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
+        if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
+          if (
+            flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
+            this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
+          ) {
+            let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+            this.flagList.push(flag);
+          }
         } else {
-          let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
-          if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
-            if (
-              flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
-              this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
-            ) {
-              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-              this.flagList.push(flag);
-            }
-          } else {
-            if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
-              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-              this.flagList.push(flag);
-            }
+          if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
+            let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+            this.flagList.push(flag);
           }
         }
         this.flagClickHandler && this.flagClickHandler(this.flagList.find((it) => it.selected)); // 绘制旗子

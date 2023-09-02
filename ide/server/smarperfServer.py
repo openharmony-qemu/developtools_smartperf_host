@@ -160,8 +160,7 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
         self.check_dir('./logger')
         nowDate = datetime.now()
         now = nowDate.strftime("%Y-%m-%d")
-        fileName = f"{now}.txt"
-        dst = open("./logger/" + fileName, "a")
+        fileName = f"./logger/{now}.txt"
         content_type = self.headers.get("Content-Type")
         if content_type and content_type.startswith("application/json"):
             content_length = int(self.headers.get("Content-Length", 0))
@@ -169,7 +168,8 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
             req = json.loads(req_data)
             now = datetime.now()
             formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
-            dst.write(f"{formatted_date} {req['fileName']} ({req['fileSize']} M)\n")
+            with open(fileName, "a") as f:
+                f.write(f"{formatted_date} {req['fileName']} ({req['fileSize']} M)\n")
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
@@ -234,6 +234,7 @@ def get_content_type(file_extension):
         return 'image/svg+xml'
     return 'text/plain'
 
+
 def gen_ssl(cert_file, key_file):
     serial_number = 123456789
     organization = "www.smartperf.com"
@@ -246,6 +247,7 @@ def gen_ssl(cert_file, key_file):
                     "/O={}/OU={}/CN={}".format(organization, organizational_unit, common_name)])
     subprocess.run(["openssl", "x509", "-req", "-days", str(validity_days), "-in", csr_file, "-signkey",
                     key_file, "-out", cert_file, "-set_serial", str(serial_number)])
+
 
 class SpServer:
     def __init__(self, server_address, cert_file_path, keyfile_path):

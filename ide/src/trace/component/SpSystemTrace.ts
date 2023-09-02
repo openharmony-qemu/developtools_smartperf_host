@@ -96,6 +96,8 @@ import { FileInfo } from '../../js-heap/model/UiStruct.js';
 import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot.js';
 import { setSelectState, intersectData } from './Utils.js';
 import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
+import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample.js';
+import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -165,7 +167,7 @@ export class SpSystemTrace extends BaseElement {
   slicestime: SlicesTime | undefined | null = null;
   public timerShaftEL: TimerShaftElement | null | undefined;
   private traceSheetEL: TraceSheet | undefined | null;
-  private rangeSelect!: RangeSelect;
+  public rangeSelect!: RangeSelect;
   chartManager: SpChartManager | undefined | null;
   private loadTraceCompleted: boolean = false;
   private rangeTraceRow: Array<TraceRow<any>> | undefined = [];
@@ -180,6 +182,8 @@ export class SpSystemTrace extends BaseElement {
   private isSelectClick: boolean = false;
   private selectionParam: SelectionParam | undefined;
   private snapshotFiles: FileInfo | null | undefined;
+  private tabCpuFreq: TabPaneFrequencySample | undefined | null;
+  private tabCpuState: TabPaneCounterSample | undefined | null;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -248,6 +252,8 @@ export class SpSystemTrace extends BaseElement {
     this.canvasFavoritePanel = this.shadowRoot?.querySelector<HTMLCanvasElement>('.panel-canvas-favorite');
     this.timerShaftEL = this.shadowRoot?.querySelector('.timer-shaft');
     this.favoriteRowsEL = this.shadowRoot?.querySelector('.favorite-rows');
+    this.tabCpuFreq = this.traceSheetEL?.shadowRoot?.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
+    this.tabCpuState = this.traceSheetEL?.shadowRoot?.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
     this.rangeSelect = new RangeSelect(this);
     rightButton?.addEventListener('click', (event: any) => {
       if (SpSystemTrace.btnTimer) {
@@ -2032,6 +2038,10 @@ export class SpSystemTrace extends BaseElement {
       return;
     }
     this.rangeSelect.mouseMove(rows, ev);
+    if (this.rangeSelect.rangeTraceRow!.length > 0) {
+      this.tabCpuFreq!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
+      this.tabCpuState!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
+    }
     if (this.rangeSelect.isMouseDown) {
       this.refreshCanvas(true);
     } else {
