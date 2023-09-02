@@ -160,20 +160,20 @@ class SpRequestHandler(http.server.BaseHTTPRequestHandler):
         self.check_dir('./logger')
         nowDate = datetime.now()
         now = nowDate.strftime("%Y-%m-%d")
-        fileName = f"./logger/{now}.txt"
-        content_type = self.headers.get("Content-Type")
-        if content_type and content_type.startswith("application/json"):
-            content_length = int(self.headers.get("Content-Length", 0))
-            req_data = self.rfile.read(content_length)
-            req = json.loads(req_data)
-            now = datetime.now()
-            formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
-            with open(fileName, "a") as f:
-                f.write(f"{formatted_date} {req['fileName']} ({req['fileSize']} M)\n")
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(bytes(f"日志写入成功", "utf-8"))
+        fileName = f"{now}.txt"
+        with open("./logger/" + fileName, "a") as dst:
+            content_type = self.headers.get("Content-Type")
+            if content_type and content_type.startswith("application/json"):
+                content_length = int(self.headers.get("Content-Length", 0))
+                req_data = self.rfile.read(content_length)
+                req = json.loads(req_data)
+                now = datetime.now()
+                formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
+                dst.write(f"{formatted_date} {req['fileName']} ({req['fileSize']} M)\n")
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(bytes(f"日志写入成功", "utf-8"))
 
     def check_dir(self, dir_path):
         if not os.path.exists(dir_path):
