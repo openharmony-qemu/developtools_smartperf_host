@@ -477,6 +477,7 @@ export class FrameChart extends BaseElement {
         return node.searchDur > 0;
     }
   }
+
   /**
    * 绘制每个函数色块
    * @param node 函数块
@@ -747,6 +748,11 @@ export class FrameChart extends BaseElement {
         this.rootNode.frame!.width = this.rect.width = this.canvas.clientWidth;
         // 重新绘图
         this.clickRedraw();
+        document.dispatchEvent(
+          new CustomEvent('triangle-flag', {
+            detail: { time: ChartStruct.selectFuncStruct.tsArray, type: 'triangle' },
+          })
+        );
       }
     } else if (e.button === 2) {
     }

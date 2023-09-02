@@ -309,7 +309,7 @@ where ts between start_ts and end_ts ${condition};
       (A.end_ts - B.start_ts) as endTs,
       tid as threadId,
       sub_type_id as subTypeId,
-      ifnull(last_lib_id,0) as lastLibId
+      ifnull(last_lib_id,0) as lastLibId,
       ifnull(last_symbol_id,0) as lastSymbolId
     from
       native_hook A,
@@ -701,6 +701,7 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack.size)}`;
     stack.heapPercent = `${((stack.size / this.selectTotalSize) * 100).toFixed(1)}%`;
+    stack.tsArray.push(hook.startTs);
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseSampleTree(child as NativeHookCallInfo, hook);
@@ -716,6 +717,7 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack!.size)}`;
     stack.heapPercent = `${((stack!.size / this.selectTotalSize) * 100).toFixed(1)}%`;
+    stack.tsArray.push(hook.startTs);
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseTree(child as NativeHookCallInfo, hook);
@@ -889,7 +891,7 @@ where ts between start_ts and end_ts ${condition};
       }
 
       const callChains = this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
-      if (!callChains || callChains.length === 0) {
+	  if (!callChains || callChains.length === 0) {
         analysisSample.libId = -1;
         analysisSample.libName = 'Unknown';
         analysisSample.symbolId = -1;
@@ -982,6 +984,7 @@ where ts between start_ts and end_ts ${condition};
           ] = root;
           this.currentTreeList.push(root);
         }
+        root.tsArray.push(nativeHookSample.startTs);
         NativeHookCallInfo.merageCallChainSample(root, callChains[topIndex], nativeHookSample);
         if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
@@ -1004,6 +1007,7 @@ where ts between start_ts and end_ts ${condition};
         threadMerageData.heapSize = merageData.heapSize;
         threadMerageData.totalCount = totalCount;
         threadMerageData.totalSize = totalSize;
+        threadMerageData.tsArray = merageData.tsArray;
         rootMerageMap[merageData.tid] = threadMerageData;
       } else {
         rootMerageMap[merageData.tid].children.push(merageData);
@@ -1012,6 +1016,7 @@ where ts between start_ts and end_ts ${condition};
         rootMerageMap[merageData.tid].heapSize += merageData.heapSize;
         rootMerageMap[merageData.tid].totalCount = totalCount;
         rootMerageMap[merageData.tid].totalSize = totalSize;
+        rootMerageMap[merageData.tid].tsArray.push(...merageData.tsArray);
       }
       merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
     });
@@ -1145,7 +1150,7 @@ where ts between start_ts and end_ts ${condition};
   ) {
     isTopDown ? index++ : index--;
     let isEnd = isTopDown ? callChainDataList.length == index + 1 : index == 0;
-    let node;
+    let node: NativeHookCallInfo;
     if (
       currentNode.initChildren.filter((child: any) => {
         if (child.symbolId == callChainDataList[index]?.symbolId && child.fileId == callChainDataList[index]?.fileId) {
@@ -1163,7 +1168,8 @@ where ts between start_ts and end_ts ${condition};
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    node!.tsArray.push(sample.startTs);
+    if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
   setMerageName(currentNode: NativeHookCallInfo) {
     currentNode.symbol =

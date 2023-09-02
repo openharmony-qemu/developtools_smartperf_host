@@ -188,6 +188,11 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data as PerfCallChainMerageData;
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: data.tsArray, type: 'triangle' },
+        })
+      );
       this.setRightTableData(data);
       data.isSelected = true;
       this.perfSelectedData = data;
@@ -495,7 +500,7 @@ export class TabpanePerfProfile extends BaseElement {
       this.isChartShow = true;
       this.perfProfilerFilter!.disabledMining = true;
       showButtonMenu(this.perfProfilerFilter, this.needShowMenu);
-      if (!data) {
+      if (!data){
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       }
       this.perfProfileFrameChart?.calculateChartData();

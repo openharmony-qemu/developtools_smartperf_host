@@ -21,6 +21,7 @@ import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElem
 import { TraceRow } from '../base/TraceRow.js';
 import { SpApplication } from '../../../SpApplication.js';
 import { Utils } from '../base/Utils.js';
+import { SpSystemTrace } from '../../SpSystemTrace.js';
 
 export enum StType {
   TEMP, //临时的
@@ -92,6 +93,7 @@ export class SportRuler extends Graph {
     color: null,
   };
   private timerShaftEL: TimerShaftElement | undefined | null;
+  private timeArray: Array<number> = [];
   constructor(
     timerShaftEL: TimerShaftElement,
     frame: Rect,
@@ -113,6 +115,10 @@ export class SportRuler extends Graph {
   set range(value: TimeRange) {
     this._range = value;
     this.draw();
+  }
+
+  set time(timeArray: Array<number>) {
+    this.timeArray = timeArray;
   }
 
   modifyFlagList(flag: Flag | null | undefined) {
@@ -219,6 +225,63 @@ export class SportRuler extends Graph {
           this.context2D.fillText(`${txt}`, endX + 5, this.frame.y + 20);
         }
       }
+      if (this.timeArray.length > 0 && TraceRow.rangeSelectObject) {
+        // 页面可视框选区域的宽度
+        let rangeSelectWidth = TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!;
+        // 每段宽度必须大于总数的宽度
+        // 10,2+8,2是线的宽度，8是留的空隙，不然很不好看
+        // 分section段
+        let section = Math.floor(
+          rangeSelectWidth / (this.context2D.measureText(String(this.timeArray.length)).width + 10)
+        );
+        // 最多画二十段
+        section < 20 ? (section = section) : (section = 20);
+        // 框选泳道图并放大左右移动后，框选的部分区域会移出可视区域,
+        // TraceRow.rangeSelectObject的开始结束时间仍然是框选时的时间，要和this.range进行比较取可视框选范围的时间
+        let startNS;
+        let endNS;
+        TraceRow.rangeSelectObject!.startNS! > this.range.startNS
+          ? (startNS = TraceRow.rangeSelectObject!.startNS!)
+          : (startNS = this.range.startNS);
+        TraceRow.rangeSelectObject!.endNS! > this.range.endNS
+          ? (endNS = this.range.endNS)
+          : (endNS = TraceRow.rangeSelectObject!.endNS!);
+        // 每一格的时间
+        let sectionTime = (endNS - startNS) / section;
+        let countArr = new Uint16Array(section);
+        let count: number = 0; //某段时间的调用栈数量
+        // this.context2D.beginPath();
+        for (let i = 1; i <= section; i++) {
+          count = 0;
+          for (let j = 0; j < this.timeArray.length; j++) {
+            // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
+            if (
+              this.timeArray[j] >= startNS + sectionTime * (i - 1) &&
+              this.timeArray[j] < startNS + sectionTime * i &&
+              this.timeArray[j] > this.range.startNS &&
+              this.timeArray[j] < this.range.endNS
+            ) {
+              count++;
+              countArr[i - 1] = count;
+            } else {
+              // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
+              continue;
+            }
+          }
+          let x = TraceRow.rangeSelectObject!.startX! + (rangeSelectWidth / section) * i;
+          this.context2D.moveTo(x, this.frame.y + 22);
+          this.context2D.lineTo(x, this.frame.y + 22 + 5);
+          //   this.context2D.font = 10 + 'px sans-serif';
+          // 每一格的数量的数字宽度
+          let countTextWidth = this.context2D.measureText(String(countArr[i - 1])).width;
+          // 文本的开始位置 = 框选的开始位置 + 格数 + (一格的宽度 - 文本的宽度) / 2
+          let textY =
+            TraceRow.rangeSelectObject!.startX! +
+            (rangeSelectWidth / section) * (i - 1) +
+            (rangeSelectWidth / section - countTextWidth) / 2;
+          this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 10);
+        }
+      }
       this.context2D.stroke();
       this.context2D.closePath();
     }
@@ -245,14 +308,9 @@ export class SportRuler extends Graph {
           this.flagList.forEach((it) => (it.selected = false));
           this.flagList[i].selected = true;
         } else {
-          if (triangle == -1) {
-            this.flagList.forEach((it) => (it.selected = false));
-            this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
-          } else {
-            this.flagList.forEach((it) => (it.selected = false));
-            this.flagList[triangle].time = time;
-            this.flagList[triangle].selected = true;
-          }
+          this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
+          this.flagList.forEach((it) => (it.selected = false));
+          this.flagList[this.flagList.length - 1].selected = true;
         }
       } else if (type == 'square') {
         if (i != -1) {
@@ -352,7 +410,7 @@ export class SportRuler extends Graph {
       newSlicestime.selected = true;
       this.slicesTimeList.push(newSlicestime);
     } else {
-      this.clearTempSlicesTime();// 清除临时对象
+      this.clearTempSlicesTime(); // 清除临时对象
       this.slicesTime = { startTime: null, endTime: null, color: null };
     }
     this.range.slicesTime = this.slicesTime;
@@ -391,7 +449,7 @@ export class SportRuler extends Graph {
       typeof slicesTime.startTime != undefined &&
       slicesTime.endTime != null &&
       typeof slicesTime.endTime != undefined
-    )  {
+    ) {
       let startX = Math.round(
         (this.rulerW * (slicesTime.startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS)
       );
@@ -528,9 +586,19 @@ export class SportRuler extends Graph {
           findFlag.selected = true;
         } else {
           let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
-          if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
-            let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true,'');
-            this.flagList.push(flag);
+          if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
+            if (
+              flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
+              this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
+            ) {
+              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+              this.flagList.push(flag);
+            }
+          } else {
+            if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
+              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+              this.flagList.push(flag);
+            }
           }
         }
         this.flagClickHandler && this.flagClickHandler(this.flagList.find((it) => it.selected)); // 绘制旗子

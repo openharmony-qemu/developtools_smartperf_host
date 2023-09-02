@@ -305,6 +305,11 @@ export class TabpaneNMCalltree extends BaseElement {
         // @ts-ignore
         (event.detail as any).callBack(true);
       }
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: event.detail.tsArray, type: 'triangle' },
+        })
+      );
     });
     this.filesystemTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
     this.filesystemTbr!.addEventListener('row-click', (evt: any) => {

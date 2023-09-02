@@ -334,8 +334,24 @@ export class SpSystemTrace extends BaseElement {
       requestAnimationFrame(() => this.refreshCanvas(true));
     });
     document?.addEventListener('triangle-flag', (event: any) => {
-      let temporaryTime = this.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
-      if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
+      const time = event.detail.time;
+      const type = event.detail.type;
+      if (time === '' && type === 'square') {
+        let temporaryTime = this.timerShaftEL?.drawTriangle(time, type);
+        if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
+      }
+      this.clearTriangle(this.timerShaftEL!.sportRuler!.flagList);
+      // 框选的宽度
+      let rangeSelectWidth = TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!;
+      // 平均一个旗子占的宽度，一个三角旗子大概18px，部分重合也可以看清，所以只要大于15暂时就画旗子
+      if (rangeSelectWidth / time.length > 15) {
+        for (const item of time) {
+          this.timerShaftEL?.drawTriangle(item, type);
+        }
+      } else {
+        this.timerShaftEL!.sportRuler!.time = time;
+        this.timerShaftEL!.sportRuler?.draw();
+      }
     });
     document?.addEventListener('flag-change', (event: any) => {
       this.timerShaftEL?.modifyFlagList(event.detail);
@@ -660,8 +676,10 @@ export class SpSystemTrace extends BaseElement {
           }
 
           let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
-            Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) - Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) && filterFunc.funName!.indexOf('H:Task ') >= 0;
+            Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
+              Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+            filterFunc.funName!.indexOf('H:Task ') >= 0;
           let taskData = it.dataList.filter((taskData: FuncStruct) => {
             taskData!.tid = parseInt(it.rowId!);
             return isIntersect(taskData, TraceRow.rangeSelectObject!);
@@ -994,7 +1012,8 @@ export class SpSystemTrace extends BaseElement {
             ).length > 0;
         } else if (it.rowType == TraceRow.ROW_TYPE_JANK) {
           let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
-            Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) - Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+            Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
+              Math.min(filterJank.ts!, rangeData!.startNS || 0) <
             filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
           if (it.name == 'Actual Timeline') {
             selection.jankFramesData = [];
@@ -1028,11 +1047,14 @@ export class SpSystemTrace extends BaseElement {
             }
             // 个别文件的sample的最大timestamp小于时间的框选结束时间，不能给maxNodeId赋值
             // 所以加上此条件：sample.timestamp === it.dataList[it.dataList.length -1].timestamp
-            if (sample.timestamp * 1000 >= endNS! || sample.timestamp === it.dataList[it.dataList.length -1].timestamp) {
-                if (maxNodeId === undefined) {
-                  maxNodeId = sample.lastAssignedId;
-                }
+            if (
+              sample.timestamp * 1000 >= endNS! ||
+              sample.timestamp === it.dataList[it.dataList.length - 1].timestamp
+            ) {
+              if (maxNodeId === undefined) {
+                maxNodeId = sample.lastAssignedId;
               }
+            }
           }
 
           // If the start time range of the selected box is greater than the end time of the sampled data
@@ -1268,6 +1290,16 @@ export class SpSystemTrace extends BaseElement {
         this.setAttribute('disable', '');
       }
     });
+  }
+  // 清除上一次点击调用栈产生的三角旗子
+  private clearTriangle(flagList: Array<Flag>) {
+    this.timerShaftEL!.sportRuler!.time = [];
+    for (var i = 0; i < flagList.length; i++) {
+      if (flagList[i].type === 'triangle') {
+        flagList.splice(i, 1);
+        i--;
+      }
+    }
   }
 
   pushPidToSelection(selection: SelectionParam, id: string) {
@@ -1675,6 +1707,14 @@ export class SpSystemTrace extends BaseElement {
       } else {
         this.rangeSelect.mouseDown(ev);
         this.rangeSelect.drag = true;
+      }
+      //  如果鼠标摁下事件发生在traceRow范围或时间轴(sportRuler除外)范围内,清除上次点击调用栈产生的所有的三角旗子
+      // ev.offsetY:鼠标在SpSystemTrace元素的y轴偏移量
+      if (
+        ev.offsetY > this.timerShaftEL!.clientHeight ||
+        ev.offsetY < this.timerShaftEL!.clientHeight - this.timerShaftEL!.sportRuler!.frame.height
+      ) {
+        this.clearTriangle(this.timerShaftEL!.sportRuler!.flagList);
       }
     } else {
       this.rangeSelect.drag = false;

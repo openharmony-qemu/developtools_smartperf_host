@@ -97,10 +97,10 @@ export class TabpanePerfBottomUp extends BaseElement {
     let totalTime = results.reduce((sum, struct) => sum + struct.selfTime, 0);
     const setTabData = (array: Array<PerfBottomUpStruct>): void => {
       array.forEach((data) => {
-        data.totalTimePercent = `${ ((data.totalTime / totalTime) * percentageDenominator).toFixed(percentFraction) }%`;
-        data.selfTimePercent = `${ ((data.selfTime / totalTime) * percentageDenominator).toFixed(percentFraction) }%`;
-        data.selfTimeStr = `${ data.selfTime.toFixed(timeFractionDigits) }ms`;
-        data.totalTimeStr = `${ data.totalTime.toFixed(timeFractionDigits) }ms`;
+        data.totalTimePercent = `${((data.totalTime / totalTime) * percentageDenominator).toFixed(percentFraction)}%`;
+        data.selfTimePercent = `${((data.selfTime / totalTime) * percentageDenominator).toFixed(percentFraction)}%`;
+        data.selfTimeStr = `${data.selfTime.toFixed(timeFractionDigits)}ms`;
+        data.totalTimeStr = `${data.totalTime.toFixed(timeFractionDigits)}ms`;
         setTabData(data.children);
       });
     };
@@ -130,6 +130,11 @@ export class TabpanePerfBottomUp extends BaseElement {
 
     //@ts-ignore
     const bottomUpData = evt.detail.data as PerfBottomUpStruct;
+    document.dispatchEvent(
+      new CustomEvent('triangle-flag', {
+        detail: { time: bottomUpData.tsArray, type: 'triangle' },
+      })
+    );
     callStack!.push(bottomUpData);
     if (bottomUpData.parentNode && bottomUpData.parentNode!.symbolName !== 'root') {
       callStack.push(bottomUpData.parentNode!);
@@ -184,7 +189,6 @@ export class TabpanePerfBottomUp extends BaseElement {
     });
   }
 
-
   public connectedCallback(): void {
     const tableOffsetHeight = 32;
     const spanHeight = 22;
@@ -221,9 +225,9 @@ export class TabpanePerfBottomUp extends BaseElement {
         if (this.sortType === defaultSortType) {
           return defaultSort(callTreeLeftData, callTreeRightData);
         } else if (this.sortType === 1) {
-          return `${ callTreeLeftData.symbolName }`.localeCompare(`${ callTreeRightData.symbolName }`);
+          return `${callTreeLeftData.symbolName}`.localeCompare(`${callTreeRightData.symbolName}`);
         } else {
-          return `${ callTreeRightData.symbolName }`.localeCompare(`${ callTreeLeftData.symbolName }`);
+          return `${callTreeRightData.symbolName}`.localeCompare(`${callTreeLeftData.symbolName}`);
         }
       } else {
         if (this.sortType === defaultSortType) {
@@ -266,7 +270,7 @@ export class TabpanePerfBottomUp extends BaseElement {
   }
   public initHtml(): string {
     return `
-    ${ this.initHtmlStyle() }
+    ${this.initHtmlStyle()}
     <div class="perf-bottom-up-content">
     <selector id='show_table' class="show-bottom-up">
         <lit-slicer style="width:100%">
