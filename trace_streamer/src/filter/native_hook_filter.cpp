@@ -461,19 +461,19 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     // that startItor->second()->start <= startAddr && startItor->second()->end > startAddr.
     auto startItor = startAddrToMapsInfoMap_.upper_bound(startAddr);
     if (startAddrToMapsInfoMap_.begin() != startItor) {
-        startItor--;
+        --startItor;
         // Follow the rules of front closing and rear opening, [start, end)
-        if (startAddr >= startItor->second->end()) {
-            startItor++;
+        if (startItor != startAddrToMapsInfoMap_.end() && startAddr >= startItor->second->end()) {
+            ++startItor;
         }
     }
     // Forward query for the last item with filePathId == startItor ->filePathId()
     if (startItor != startAddrToMapsInfoMap_.end()) {
         auto startFilePathId = startItor->second->file_path_id();
         while (startAddrToMapsInfoMap_.begin() != startItor) {
-            startItor--;
+            --startItor;
             if (startFilePathId != startItor->second->file_path_id()) {
-                startItor++;
+                ++startItor;
                 break;
             }
         }

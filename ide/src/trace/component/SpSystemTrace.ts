@@ -1118,8 +1118,15 @@ export class SpSystemTrace extends BaseElement {
               (logStruct.startTs ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
               (logStruct.startTs ?? 0) <= TraceRow.rangeSelectObject!.endNS!
           );
-          selection.hiLogs.push(...systemLogs);
-          selection.hiLogSummary.push(...systemLogs);
+          let batchSize = 10000;
+          let totalLogs = systemLogs.length;
+          let currentIndex = 0;
+          while (currentIndex < totalLogs) {
+            let batch = systemLogs.slice(currentIndex, currentIndex + batchSize);
+            selection.hiLogSummary.push(...batch);
+            selection.hiLogs.push(...batch);
+            currentIndex += batchSize;
+          }
         }
         if (this.rangeTraceRow!.length !== rows.length) {
           let event = this.createPointEvent(it);

@@ -126,8 +126,8 @@ HWTEST_F(FrameFilterTest, RSVsyncHasNoFrameNum, TestSize.Level1)
     uint64_t vsyncStartTs = 1;
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS, IPID, ITID, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                  CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS = 2;
-    auto res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS, ITID);
+    const uint64_t ON_DO_COMPOSITION_TS = 2;
+    auto res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, ITID);
     EXPECT_TRUE(res);
     const uint64_t END_TS = 10;
     res = streamFilters_.frameFilter_->EndVsyncEvent(END_TS, ITID);
@@ -156,8 +156,8 @@ HWTEST_F(FrameFilterTest, RSVsyncHasFrameNumNotMatched, TestSize.Level1)
     uint64_t vsyncStartTs = 1;
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS, IPID, ITID, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                  CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS = 2;
-    auto res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS, ITID);
+    const uint64_t ON_DO_COMPOSITION_TS = 2;
+    auto res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, ITID);
     EXPECT_TRUE(res);
 
     const uint32_t SOURCE_ITID1 = 2;
@@ -194,8 +194,8 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpu, TestSize.Level1)
     uint64_t vsyncStartTs = 1;
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS, IPID, ITID, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                  CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS = 2;
-    auto res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS, ITID);
+    const uint64_t ON_DO_COMPOSITION_TS = 2;
+    auto res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, ITID);
     EXPECT_TRUE(res);
 
     const uint32_t SOURCE_ITID1 = 2;
@@ -232,8 +232,8 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpuCross, TestSize.Level1)
     uint64_t vsyncStartTs = 1;
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS, IPID, ITID, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                  CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS = 2;
-    auto res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS, ITID);
+    const uint64_t ON_DO_COMPOSITION_TS = 2;
+    auto res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, ITID);
     EXPECT_TRUE(res);
     const uint64_t GPU_START_TS = 3;
     streamFilters_.frameFilter_->StartFrameQueue(GPU_START_TS, ITID);
@@ -271,8 +271,8 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpu2Slices, TestSize.Level1)
     uint64_t vsyncStartTs = 1;
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS, IPID, ITID, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                  CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS = 2;
-    auto res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS, ITID);
+    const uint64_t ON_DO_COMPOSITION_TS = 2;
+    auto res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, ITID);
     EXPECT_TRUE(res);
     const uint64_t GPU_START_TS = 3;
     streamFilters_.frameFilter_->StartFrameQueue(GPU_START_TS, ITID);
@@ -288,8 +288,8 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpu2Slices, TestSize.Level1)
 
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS2, IPID, ITID, EXPECTED_START2, EXPECTED_END2, VSYNC_ID2,
                                                  CALLSTACK_SLICE_ID2);
-    const uint64_t ONVSYNC_TS2 = 5;
-    res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS2, ITID);
+    const uint64_t ON_DO_COMPOSITION_TS2 = 5;
+    res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS2, ITID);
     EXPECT_TRUE(res);
 
     const uint64_t GPU_END_TS = 15;
@@ -334,9 +334,9 @@ HWTEST_F(FrameFilterTest, SliceFromAppToRS, TestSize.Level1)
     uint64_t vsyncStartTs = 1;
     streamFilters_.frameFilter_->BeginVsyncEvent(START_TS, IPID, ITID, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                  CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS = 2;
+    const uint64_t ON_DO_COMPOSITION_TS = 2;
     const uint32_t FRAME_NUM = 1;
-    auto res = streamFilters_.frameFilter_->BeginRSTransactionData(ONVSYNC_TS, ITID, FRAME_NUM);
+    auto res = streamFilters_.frameFilter_->BeginRSTransactionData(ON_DO_COMPOSITION_TS, ITID, FRAME_NUM);
     EXPECT_TRUE(res);
 
     const uint64_t RS_START_TS = 5;
@@ -348,8 +348,8 @@ HWTEST_F(FrameFilterTest, SliceFromAppToRS, TestSize.Level1)
     const uint32_t RS_CALLSTACK_SLICE_ID = 2;
     streamFilters_.frameFilter_->BeginVsyncEvent(RS_START_TS, RS_IPID, RS_ITID, RS_EXPECTED_START, RS_EXPECTED_END,
                                                  RS_VSYNC_ID, RS_CALLSTACK_SLICE_ID);
-    const uint64_t ONVSYNC_TS2 = 7;
-    res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS2, RS_ITID);
+    const uint64_t ON_DO_COMPOSITION_TS2 = 7;
+    res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS2, RS_ITID);
     const uint64_t GPU_START_TS2 = 7;
     streamFilters_.frameFilter_->StartFrameQueue(GPU_START_TS2, RS_ITID);
     const uint64_t END_TS = 10;
@@ -366,8 +366,8 @@ HWTEST_F(FrameFilterTest, SliceFromAppToRS, TestSize.Level1)
     const uint32_t RS_CALLSTACK_SLICE_ID2 = 3;
     streamFilters_.frameFilter_->BeginVsyncEvent(RS_START_TS2, RS_IPID, RS_ITID, RS_EXPECTED_START2, RS_EXPECTED_END2,
                                                  RS_VSYNC_ID2, RS_CALLSTACK_SLICE_ID2);
-    const uint64_t ONVSYNC_TS3 = 12;
-    res = streamFilters_.frameFilter_->MarkRSOnvsyncEvent(ONVSYNC_TS3, RS_ITID);
+    const uint64_t ON_DO_COMPOSITION_TS3 = 12;
+    res = streamFilters_.frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS3, RS_ITID);
 
     const uint64_t GPU_END_TS = 15;
     res = streamFilters_.frameFilter_->EndFrameQueue(GPU_END_TS, RS_ITID);

@@ -73,7 +73,7 @@ private:
         {'Z', EXITZOMBIE},
         {'x', TASKDEAD},
         {'I', TASKDEAD},
-        {'K', RUNNABLE},
+        {'K', WAKEKILL},
         {'P', PARKED},
         {'N', NOLOAD},
         {'|', VALID},

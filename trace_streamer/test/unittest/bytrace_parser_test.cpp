@@ -251,7 +251,8 @@ HWTEST_F(BytraceParserTest, NomalHtmlBytraceFile, TestSize.Level1)
     TS_LOGI("test2-10");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    char realBuf[] = "<!DOCTYPE html>\r\n<html>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
+    char realBuf[] =
+        "<!DOCTYPE html>\r\n<html>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
         "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: "
         "transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \r\n"
         "</script>\r\n</html>\n";
@@ -281,13 +282,16 @@ HWTEST_F(BytraceParserTest, MultiScriptHtmlBytraceFile, TestSize.Level1)
     TS_LOGI("test2-11");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    char realBuf[] = "<!DOCTYPE html>\r\n<html>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
+    char realBuf[] =
+        "<!DOCTYPE html>\r\n<html>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
         "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: "
         "transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \r\n"
         "</script>\r\n<script class=\"trace-data\" type=\"application/text\">\r\n"
         "{\"traceEvents\": [{\"category\": \"process_argv\", \"name\": \"process_argv\", \"args\": "
-        "{\"argv\": [\"c:\\\\platform-tools\\\\systrace\\\\systrace.py\", \"--from-file\", \"d:\\\\trace_output\", \"-o\", \"output.html\"]}, "
-        "\"pid\": 18892, \"ts\": 13988802989.6, \"tid\": 4464, \"ph\": \"M\"}], \"metadata\": {\"clock-domain\": \"SYSTRACE\"}}  </script>"
+        "{\"argv\": [\"c:\\\\platform-tools\\\\systrace\\\\systrace.py\", \"--from-file\", \"d:\\\\trace_output\", "
+        "\"-o\", \"output.html\"]}, "
+        "\"pid\": 18892, \"ts\": 13988802989.6, \"tid\": 4464, \"ph\": \"M\"}], \"metadata\": {\"clock-domain\": "
+        "\"SYSTRACE\"}}  </script>"
         "</html>\n";
     auto realBufSize = sizeof(realBuf);
     if (memcpy_s(buf.get(), bufSize, realBuf, realBufSize)) {

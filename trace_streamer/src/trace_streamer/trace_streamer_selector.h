@@ -47,6 +47,8 @@ public:
     MetaData* GetMetaData();
     void SetDataType(TraceFileType type);
     void SetCancel(bool cancel);
+    bool ParserAndPrintMetrics(const std::string& metrics);
+    bool ReadSqlFileAndPrintResult(const std::string& sqlOperator);
     TraceFileType DataType() const
     {
         return fileType_;
@@ -61,6 +63,7 @@ public:
 private:
     void InitFilter();
     void Remove_Folders(const char* dir);
+    bool LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings);
     TraceFileType fileType_;
     std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};
