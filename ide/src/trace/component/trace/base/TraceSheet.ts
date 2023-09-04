@@ -78,6 +78,7 @@ import { TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.j
 import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
 import { Utils } from './Utils.js';
 import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
+import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -599,6 +600,15 @@ export class TraceSheet extends BaseElement {
       if (tblHiLog) {
         tblHiLog.parentElement!.style.overflow = 'hidden';
         tblHiLog.initTabSheetEl(tblHiLog.parentElement!, this);
+      }
+    }
+    let tblSummaryPanel = this.shadowRoot?.querySelector<LitTabpane>('lit-tabpane[id=\'box-hilogs-summary\']');
+    if (tblSummaryPanel) {
+      let tblSummary = tblSummaryPanel.querySelector<TabPaneHiLogSummary>('tab-hi-log-summary');
+      if (tblSummary) {
+        tblSummary.parentElement!.style.overflow = 'hidden';
+        tblSummary.style.overflow = 'hidden';
+        tblSummary.initTabSheetEl(tblSummary.parentElement!);
       }
     }
   };

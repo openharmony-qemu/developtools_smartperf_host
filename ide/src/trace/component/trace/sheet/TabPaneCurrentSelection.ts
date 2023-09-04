@@ -44,7 +44,6 @@ import { ColorUtils } from '../base/ColorUtils.js';
 import { IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq.js';
 import { BinderArgBean } from '../../../bean/BinderArgBean.js';
 import { JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank.js';
-import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
 import { Utils } from '../base/Utils.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
 import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup.js';
@@ -95,6 +94,7 @@ export function getTimeString(ns: number): string {
 @element('tabpane-current-selection')
 export class TabPaneCurrentSelection extends BaseElement {
   weakUpBean: WakeupBean | null | undefined;
+  selectWakeupBean: any;
   private currentSelectionTbl: LitTable | null | undefined;
   private tableObserver: MutationObserver | undefined;
   private wakeupListTbl: LitTable | undefined | null;
@@ -194,6 +194,15 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       let canvas = this.initCanvas();
       if (bean !== null) {
+        this.selectWakeupBean = {
+          process: `${this.transferString(data.processName || 'Process')}(${data.processId})`,
+          thread: `${this.transferString(data.name || 'Thread')}(${data.tid})`,
+          cpu: data.cpu,
+          dur: data.dur,
+          priority: data.priority,
+          isSelected: false
+        };
+
         this.weakUpBean = bean;
         if (rightArea !== null && rightArea) {
           rightArea.style.visibility = 'visible';
@@ -1253,6 +1262,9 @@ export class TabPaneCurrentSelection extends BaseElement {
           maxPriority = Math.max(maxPriority, wake.priority);
           return wake;
         });
+        if (this.selectWakeupBean) {
+          resource.unshift(this.selectWakeupBean);
+        }
         resource.forEach(it => {
           it.isSelected = it.priority === maxPriority || it.dur === maxDuration;
         });
@@ -1358,7 +1370,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                         </lit-table-column>
                         <lit-table-column title="CPU" data-index="cpu" key="cpu" align="flex-start"  width="60px">
                         </lit-table-column>
-                        <lit-table-column title="Duration" data-index="dur" key="dur" align="flex-start"  width="180px">
+                        <lit-table-column title="Duration(ns)" data-index="dur" key="dur" align="flex-start"  width="180px">
                         </lit-table-column>
                         <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="180px">
                         </lit-table-column>

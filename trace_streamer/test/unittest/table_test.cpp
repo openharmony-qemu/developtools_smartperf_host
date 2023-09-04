@@ -179,7 +179,7 @@ HWTEST_F(TableTest, ClkEventFilterTableTest, TestSize.Level1)
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
     EXPECT_EQ(row, 2);
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(row, 0);
 }
 /**
  * @tc.name: ClockEventFilterTableTest
@@ -1307,7 +1307,7 @@ HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from stat";
     stream_.traceDataCache_->GetStatAndInfo();
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 430);
+    EXPECT_EQ(row, 450);
 }
 /**
  * @tc.name: SymbolsTableTest

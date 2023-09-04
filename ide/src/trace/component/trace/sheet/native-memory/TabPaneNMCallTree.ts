@@ -24,6 +24,7 @@ import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite.js';
+import { ParseExpression } from '../SheetUtils.js';
 
 @element('tabpane-nm-calltree')
 export class TabpaneNMCalltree extends BaseElement {
@@ -53,6 +54,9 @@ export class TabpaneNMCalltree extends BaseElement {
   private filterResponseSelect: string = '0';
   private responseTypes: any[] = [];
   private subTypeArr: number[] = [];
+  private lastIsExpression = false;
+  private currentNMCallTreeFilter: TabPaneFilter | undefined | null;
+  private libTree: Map<string, string[]> | null = null;
 
   set data(nmCallTreeParam: SelectionParam | any) {
     if (nmCallTreeParam == this.currentSelection) {
@@ -203,7 +207,7 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   async initFilterTypes() {
-    let currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
+    this.currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     let secondFilterList = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
 
     let that = this;
@@ -238,7 +242,7 @@ export class TabpaneNMCalltree extends BaseElement {
         if (nullIndex != -1) {
           this.responseTypes.splice(nullIndex, 1);
         }
-        currentNMCallTreeFilter!.setSelectList(
+        this.currentNMCallTreeFilter!.setSelectList(
           null,
           secondFilterList,
           'Allocation Lifespan',
@@ -247,29 +251,29 @@ export class TabpaneNMCalltree extends BaseElement {
             return item.value;
           })
         );
-        currentNMCallTreeFilter!.setFilterModuleSelect('#first-select', 'width', '150px');
-        currentNMCallTreeFilter!.setFilterModuleSelect('#second-select', 'width', '150px');
-        currentNMCallTreeFilter!.setFilterModuleSelect('#third-select', 'width', '150px');
-        currentNMCallTreeFilter!.firstSelect = '0';
-        currentNMCallTreeFilter!.secondSelect = '0';
-        currentNMCallTreeFilter!.thirdSelect = '0';
+        this.currentNMCallTreeFilter!.setFilterModuleSelect('#first-select', 'width', '150px');
+        this.currentNMCallTreeFilter!.setFilterModuleSelect('#second-select', 'width', '150px');
+        this.currentNMCallTreeFilter!.setFilterModuleSelect('#third-select', 'width', '150px');
+        this.currentNMCallTreeFilter!.firstSelect = '0';
+        this.currentNMCallTreeFilter!.secondSelect = '0';
+        this.currentNMCallTreeFilter!.thirdSelect = '0';
         this.filterAllocationType = '0';
         this.filterNativeType = '0';
         this.filterResponseSelect = '0';
         this.filterResponseType = -1;
       });
     } else {
-      currentNMCallTreeFilter!.setSelectList(
+      this.currentNMCallTreeFilter!.setSelectList(
         null,
         secondFilterList,
         'Allocation Lifespan',
         'Allocation Type',
         undefined
       );
-      currentNMCallTreeFilter!.setFilterModuleSelect('#first-select', 'width', '150px');
-      currentNMCallTreeFilter!.setFilterModuleSelect('#second-select', 'width', '150px');
-      currentNMCallTreeFilter!.firstSelect = '0';
-      currentNMCallTreeFilter!.secondSelect = '0';
+      this.currentNMCallTreeFilter!.setFilterModuleSelect('#first-select', 'width', '150px');
+      this.currentNMCallTreeFilter!.setFilterModuleSelect('#second-select', 'width', '150px');
+      this.currentNMCallTreeFilter!.firstSelect = '0';
+      this.currentNMCallTreeFilter!.secondSelect = '0';
       this.filterAllocationType = '0';
       this.filterNativeType = '0';
     }
@@ -301,6 +305,11 @@ export class TabpaneNMCalltree extends BaseElement {
         // @ts-ignore
         (event.detail as any).callBack(true);
       }
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: event.detail.tsArray, type: 'triangle' },
+        })
+      );
     });
     this.filesystemTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
     this.filesystemTbr!.addEventListener('row-click', (evt: any) => {
@@ -511,19 +520,33 @@ export class TabpaneNMCalltree extends BaseElement {
         if (this.responseTypes.length > thirdIndex) {
           this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
         }
+        this.searchValue = this.nmCallTreeFilter!.filterValue;
+        this.libTree = new ParseExpression(this.searchValue).parse();
         this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
       } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
         this.searchValue = this.nmCallTreeFilter!.filterValue;
-        let nmArgs = [
-          {
+        this.libTree = new ParseExpression(this.searchValue).parse();
+        let nmArgs = [];
+        if (this.libTree) {
+          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+          this.lastIsExpression = true;
+          return;
+        } else {
+          if (this.lastIsExpression) {
+            this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+            this.lastIsExpression = false;
+            return;
+          }
+          nmArgs.push({
             funcName: 'setSearchValue',
             funcArgs: [this.searchValue],
-          },
-          {
+          });
+          nmArgs.push({
             funcName: 'resetAllNode',
             funcArgs: [],
-          },
-        ];
+          });
+          this.lastIsExpression = false;
+        }
         this.getDataByWorker(nmArgs, (result: any[]) => {
           this.setLTableData(result);
           this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
@@ -589,7 +612,7 @@ export class TabpaneNMCalltree extends BaseElement {
       this.isChartShow = true;
       this.nmCallTreeFilter!.disabledMining = true;
       this.showBottomMenu(this.needShowMenu);
-      if (!flameChartData){
+      if (!flameChartData) {
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
       }
       this.nmCallTreeFrameChart?.calculateChartData();
@@ -612,7 +635,13 @@ export class TabpaneNMCalltree extends BaseElement {
     let groupArgs = new Map<string, any>();
     groupArgs.set('filterAllocType', this.filterAllocationType);
     groupArgs.set('filterEventType', this.filterNativeType);
-    groupArgs.set('filterResponseType', this.filterResponseType);
+    if (this.libTree) {
+      groupArgs.set('filterExpression', this.libTree);
+      groupArgs.set('filterResponseType', -1);
+      this.currentNMCallTreeFilter!.thirdSelect = '0';
+    } else {
+      groupArgs.set('filterResponseType', this.filterResponseType);
+    }
     groupArgs.set('leftNs', this.currentSelection?.leftNs || 0);
     groupArgs.set('rightNs', this.currentSelection?.rightNs || 0);
     let selections: Array<any> = [];
@@ -628,6 +657,12 @@ export class TabpaneNMCalltree extends BaseElement {
       'nativeHookType',
       this.currentSelection!.nativeMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'
     );
+    if (this.lastIsExpression && !this.libTree) {
+      nmCallTreeArgs.push({
+        funcName: 'setSearchValue',
+        funcArgs: [this.searchValue],
+      });
+    }
     nmCallTreeArgs.push(
       {
         funcName: 'groupCallchainSample',

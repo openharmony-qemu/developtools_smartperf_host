@@ -61,7 +61,7 @@ export class TabPaneSchedPriority extends BaseElement {
     });
     procedurePool.submitWithName('logic1', 'spt-getCpuPriority', {}, undefined, async (res: Array<any>) => {
       for (const item of res) {
-        if (item.cpu && !this.selectionParam?.cpus.includes(item.cpu)) {
+        if (item.cpu === null || !(sptParam.cpus.includes(item.cpu))) {
           continue;
         }
         if (!(item.endTs < sptParam.leftNs || item.startTs > sptParam.rightNs)) {
@@ -70,6 +70,7 @@ export class TabPaneSchedPriority extends BaseElement {
           if (args) {
             strArg = args!.split(',');
           }
+          const filterList = ['0', '0x0'];
           const slice = Utils.SCHED_SLICE_MAP.get(`${item.itId}-${item.startTs}`);
           if (slice) {
             item.priority = slice!.priority;
@@ -78,7 +79,11 @@ export class TabPaneSchedPriority extends BaseElement {
               item.priorityType = 'RT';
             } else if (item.priority >= 89 && item.priority <= 99) {
               item.priorityType = 'VIP2.0';
-            } else if (item.priority >= 100 && strArg.length > 1 && (strArg[1] !== '0' || strArg[2] !== '0')) {
+            } else if (
+              item.priority >= 100 &&
+              strArg.length > 1 &&
+              (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
+            ) {
               item.priorityType = 'STATIC_VIP';
             } else {
               item.priorityType = 'CFS';

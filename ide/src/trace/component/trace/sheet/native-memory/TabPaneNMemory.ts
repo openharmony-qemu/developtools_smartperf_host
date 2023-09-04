@@ -28,7 +28,7 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import {
   formatRealDateMs,
   getByteWithUnit,
-  getTimeString
+  getTimeString,
 } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart.js';
 import { Utils } from '../../base/Utils.js';
@@ -254,7 +254,7 @@ export class TabPaneNMemory extends BaseElement {
       this.setRightTableData(data);
       document.dispatchEvent(
         new CustomEvent('triangle-flag', {
-          detail: { time: data.startTs, type: 'triangle' },
+          detail: { time: [data.startTs], type: 'triangle' },
         })
       );
     });
@@ -264,18 +264,21 @@ export class TabPaneNMemory extends BaseElement {
       this.getDataByNativeMemoryWorker(this.currentSelection);
     });
     this.memoryTbl!.itemTextHandleMap.set('startTs', (startTs) => {
-      return SpNativeMemoryChart.REAL_TIME_DIF === 0 ? getTimeString(startTs) : formatRealDateMs(startTs + SpNativeMemoryChart.REAL_TIME_DIF);
+      return SpNativeMemoryChart.REAL_TIME_DIF === 0
+        ? getTimeString(startTs)
+        : formatRealDateMs(startTs + SpNativeMemoryChart.REAL_TIME_DIF);
     });
     this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {
-      return (endTs > this.currentSelection!.leftNs &&
+      return endTs > this.currentSelection!.leftNs &&
         endTs <= this.currentSelection!.rightNs &&
         endTs !== 0 &&
         endTs !== null
-      ) ? 'Freed' : 'Existing';
+        ? 'Freed'
+        : 'Existing';
     });
     this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {
       return getByteWithUnit(heapSize);
-    })
+    });
     this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
       if (data.mark) {
         document.dispatchEvent(

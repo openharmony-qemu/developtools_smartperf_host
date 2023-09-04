@@ -32,6 +32,10 @@ export class SpWebHdcShell extends BaseElement {
   private skipFlag: number[] = [7];
   private clearFlag: number[] = [27, 91, 50, 74, 27, 91, 72];
   private CRLFFlag: number[] = [13, 13, 10];
+  private startRealTimeFlag: number[] = [27, 91, 115];
+  private endRealTimeFlag: number[] = [27, 91, 117];
+  private clearRealTimeFlag: number[] = [27, 91, 72, 27, 91, 74];
+  private ctrlCFlag: number[] = [13, 10, 35, 32];
   private points: Point | undefined;
   private forwardFlag: boolean = false;
   private cursorIndex: number = 3;
@@ -44,6 +48,8 @@ export class SpWebHdcShell extends BaseElement {
   private static MULTI_LINE_FLAG = '<\b';
   private static LINE_BREAK_LENGTH = 2;
   private static LEFT_OFFSET = 48;
+  private realTimeResult: string | null | undefined = '';
+  private startRealTime: boolean = false;
 
   public initElements(): void {
     this.shellCanvas = this.shadowRoot!.querySelector<HTMLCanvasElement>('#shell_cmd');
@@ -220,7 +226,7 @@ export class SpWebHdcShell extends BaseElement {
         }
       }
     }
-    this.points = { startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY };
+    this.points = {startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY};
   }
 
   reverseSelected(startX: number, startY: number, endX: number, endY: number): void {
@@ -254,7 +260,7 @@ export class SpWebHdcShell extends BaseElement {
         }
       }
     }
-    this.points = { startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY };
+    this.points = {startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY};
   }
 
   private singleLineToMultiLine(shellStr: string, foundationWidth: number, maxWidth: number): string[] {
@@ -273,6 +279,7 @@ export class SpWebHdcShell extends BaseElement {
   }
 
   private finalArr: Array<string> = [];
+
   refreshShellPage(scroller: boolean): void {
     try {
       if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
@@ -282,6 +289,9 @@ export class SpWebHdcShell extends BaseElement {
       this.shellCanvasCtx!.fillStyle = '#000';
       this.shellCanvasCtx!.fillRect(0, 0, this.shellCanvas!.width, this.shellCanvas!.height);
       let resultStrArr = this.resultStr.split('\r\n');
+      if (this.realTimeResult !== '') {
+        resultStrArr = (this.resultStr + this.realTimeResult).split('\r\n');
+      }
       this.finalArr = [];
       if (this.shellCanvas!.width > 0) {
         let maxWidth = this.shellCanvas!.width;
@@ -439,23 +449,79 @@ export class SpWebHdcShell extends BaseElement {
               this.resultStr += result.getDataToString();
             }
           }
+          this.realTimeResult = '';
+        } else if (this.isStartWidthArrayBuffer(arrayA, this.startRealTimeFlag)) {
+          let lastIndex = this.getLastRestorationIndex(arrayA, this.endRealTimeFlag);
+          this.realTimeResult = this.removeTextAndColorSequenceStr(this.textDecoder.decode(arrayA.slice(lastIndex, arrayA.length)));
+          this.startRealTime = true;
+        } else if (this.isStartWidthArrayBuffer(arrayA, this.clearRealTimeFlag)) {
+          this.realTimeResult = this.removeTextAndColorSequenceStr(this.textDecoder.decode(arrayA.slice(6, arrayA.length)));
+          this.startRealTime = true;
         } else {
-          if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
-            // 获取所有内容，不包括最后一行数据
-            this.resultStr = this.resultStr.substring(
-              0,
-              this.resultStr.lastIndexOf('\r\n') + SpWebHdcShell.LINE_BREAK_LENGTH
-            );
-            // 多行情况不能直接拼接返回数据
-            this.resultStr += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
+          if (this.isStartWidthArrayBuffer(arrayA, this.ctrlCFlag)) {
+            this.resultStr += this.realTimeResult;
+            this.startRealTime = false;
+          }
+          if (this.startRealTime) {
+            if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
+              this.realTimeResult += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
+            } else {
+              this.realTimeResult += result.getDataToString();
+            }
+            this.realTimeResult = this.removeTextAndColorSequenceStr(this.realTimeResult!);
           } else {
-            this.resultStr += result.getDataToString();
+            this.realTimeResult = '';
+            if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
+              // 获取所有内容，不包括最后一行数据
+              this.resultStr = this.resultStr.substring(
+                0,
+                this.resultStr.lastIndexOf('\r\n') + SpWebHdcShell.LINE_BREAK_LENGTH
+              );
+              // 多行情况不能直接拼接返回数据
+              this.resultStr += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
+            } else {
+              this.resultStr += result.getDataToString();
+            }
           }
         }
       }
+      this.resultStr = this.removeTextAndColorSequenceStr(this.resultStr);
       this.refreshCurrentRow();
       this.refreshShellPage(true);
     }
+  }
+
+  private removeTextAndColorSequenceStr(currentStr: string): string {
+    return currentStr.replace(new RegExp(/\x1B\[[0-9;]*[a-zA-Z]/g), '');
+  }
+
+  private isStartWidthArrayBuffer(sourceArray: Uint8Array, compareArray: number[]): boolean {
+    for (let index = 0; index < compareArray.length; index++) {
+      if (sourceArray[index] !== compareArray[index]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private getLastRestorationIndex(sourceArray: Uint8Array, compareArray: number[]): number {
+    let lastIndex = -1;
+    for (let index = sourceArray.length - 1; index >= 0; index--) {
+      if (sourceArray[index] === compareArray[0]) {
+        let isLast = true;
+        for (let j = 1; j < compareArray.length; j++) {
+          if (sourceArray[index + j] !== compareArray[j]) {
+            isLast = false;
+            break;
+          }
+        }
+        if (isLast) {
+          lastIndex = index;
+          break;
+        }
+      }
+    }
+    return lastIndex + compareArray.length;
   }
 
   private shellCanvasAddMouseListener(): void {

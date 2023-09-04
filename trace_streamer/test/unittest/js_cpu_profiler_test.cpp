@@ -189,7 +189,7 @@ HWTEST_F(JsCpuProfilerTest, cpuProfilerParserSamplesbyArkTs, TestSize.Level1)
     auto endTime2 = stream_.traceDataCache_->GetConstJsCpuProfilerSampleData().EndTimes()[1];
     EXPECT_EQ(8013755460000, endTime2);
     auto dur2 = stream_.traceDataCache_->GetConstJsCpuProfilerSampleData().Durs()[1];
-    EXPECT_EQ(72000, dur2);
+    EXPECT_EQ(215000, dur2);
     auto sampleFunctionId3 = stream_.traceDataCache_->GetConstJsCpuProfilerSampleData().FunctionIds()[2];
     EXPECT_EQ(4, sampleFunctionId3);
     auto startTime3 = stream_.traceDataCache_->GetConstJsCpuProfilerSampleData().StartTimes()[2];

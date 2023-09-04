@@ -309,7 +309,8 @@ where ts between start_ts and end_ts ${condition};
       (A.end_ts - B.start_ts) as endTs,
       tid as threadId,
       sub_type_id as subTypeId,
-      ifnull(last_lib_id,0) as lastLibId
+      ifnull(last_lib_id,0) as lastLibId,
+      ifnull(last_symbol_id,0) as lastSymbolId
     from
       native_hook A,
       trace_range B
@@ -700,6 +701,7 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack.size)}`;
     stack.heapPercent = `${((stack.size / this.selectTotalSize) * 100).toFixed(1)}%`;
+    stack.tsArray.push(hook.startTs);
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseSampleTree(child as NativeHookCallInfo, hook);
@@ -715,6 +717,7 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack!.size)}`;
     stack.heapPercent = `${((stack!.size / this.selectTotalSize) * 100).toFixed(1)}%`;
+    stack.tsArray.push(hook.startTs);
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseTree(child as NativeHookCallInfo, hook);
@@ -782,6 +785,7 @@ where ts between start_ts and end_ts ${condition};
                 (A.end_ts - B.start_ts) as endTs,
                 tid,
                 ifnull(last_lib_id,0) as lastLibId,
+                ifnull(last_symbol_id,0) as lastSymbolId,
                 t.name as threadName,
                 A.addr,
                 A.sub_type_id as subTypeId
@@ -887,7 +891,7 @@ where ts between start_ts and end_ts ${condition};
       }
 
       const callChains = this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
-      if (!callChains || callChains.length === 0) {
+	  if (!callChains || callChains.length === 0) {
         analysisSample.libId = -1;
         analysisSample.libName = 'Unknown';
         analysisSample.symbolId = -1;
@@ -980,6 +984,7 @@ where ts between start_ts and end_ts ${condition};
           ] = root;
           this.currentTreeList.push(root);
         }
+        root.tsArray.push(nativeHookSample.startTs);
         NativeHookCallInfo.merageCallChainSample(root, callChains[topIndex], nativeHookSample);
         if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
@@ -1002,6 +1007,7 @@ where ts between start_ts and end_ts ${condition};
         threadMerageData.heapSize = merageData.heapSize;
         threadMerageData.totalCount = totalCount;
         threadMerageData.totalSize = totalSize;
+        threadMerageData.tsArray = merageData.tsArray;
         rootMerageMap[merageData.tid] = threadMerageData;
       } else {
         rootMerageMap[merageData.tid].children.push(merageData);
@@ -1010,6 +1016,7 @@ where ts between start_ts and end_ts ${condition};
         rootMerageMap[merageData.tid].heapSize += merageData.heapSize;
         rootMerageMap[merageData.tid].totalCount = totalCount;
         rootMerageMap[merageData.tid].totalSize = totalSize;
+        rootMerageMap[merageData.tid].tsArray.push(...merageData.tsArray);
       }
       merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
     });
@@ -1038,11 +1045,12 @@ where ts between start_ts and end_ts ${condition};
     let filterAllocType = paramMap.get('filterAllocType');
     let filterEventType = paramMap.get('filterEventType');
     let filterResponseType = paramMap.get('filterResponseType');
+    let libTree = paramMap?.get('filterExpression');
     let leftNs = paramMap.get('leftNs');
     let rightNs = paramMap.get('rightNs');
     let nativeHookType = paramMap.get('nativeHookType');
     let statisticsSelection = paramMap.get('statisticsSelection');
-    if (filterAllocType == '0' && filterEventType == '0' && filterResponseType == -1) {
+    if (!libTree && filterAllocType == '0' && filterEventType == '0' && filterResponseType == -1) {
       this.currentSamples = this.queryAllCallchainsSamples;
       return;
     }
@@ -1069,7 +1077,14 @@ where ts between start_ts and end_ts ${condition};
           filterAllocation = item.heapSize === item.freeSize;
         }
       }
-      let filterLastLib = filterResponseType == -1 ? true : filterResponseType == item.lastLibId;
+      let filterLastLib = false;
+      if (libTree) {
+        filterLastLib = this.filterExpressionSample(item, libTree);
+        this.searchValue = '';
+      } else {
+        filterLastLib = filterResponseType == -1 ? true : filterResponseType == item.lastLibId;
+      }
+
       let filterNative = this.getTypeFromIndex(parseInt(filterEventType), item, statisticsSelection);
       return filterAllocation && filterNative && filterLastLib;
     });
@@ -1093,6 +1108,36 @@ where ts between start_ts and end_ts ${condition};
     // @ts-ignore
     this.currentSamples = Object.values(groupMap);
   }
+
+  private filterExpressionSample(sample: NativeHookStatistics, libTree: Map<string, Array<string>>): boolean {
+    const itemLibName = this.dataCache.dataDict.get(sample.lastLibId);
+    const itemSymbolName = this.dataCache.dataDict.get(sample.lastSymbolId);
+    if (!itemLibName || !itemSymbolName) {
+      return false;
+    }
+    for (const [lib, symbols] of libTree) {
+      const isInclude = lib[0] === '+';
+      const libStr = lib.substring(1);
+      // lib不包含则跳过
+      if (!itemLibName.toLowerCase().includes(libStr.toLowerCase()) && libStr !== '*') {
+        continue;
+      }
+      // * 表示全量
+      if (symbols.includes('*')) {
+        return isInclude;
+      }
+      for (const symbol of symbols) {
+        // 匹配到了就返回
+        if (itemSymbolName.toLowerCase().includes(symbol.toLowerCase())) {
+          return isInclude;
+        }
+      }
+      //全部没有匹配到
+      return !isInclude;
+    }
+    return false;
+  }
+
   createThreadSample(sample: NativeHookStatistics) {
     return this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
   }
@@ -1105,7 +1150,7 @@ where ts between start_ts and end_ts ${condition};
   ) {
     isTopDown ? index++ : index--;
     let isEnd = isTopDown ? callChainDataList.length == index + 1 : index == 0;
-    let node;
+    let node: NativeHookCallInfo;
     if (
       currentNode.initChildren.filter((child: any) => {
         if (child.symbolId == callChainDataList[index]?.symbolId && child.fileId == callChainDataList[index]?.fileId) {
@@ -1123,7 +1168,8 @@ where ts between start_ts and end_ts ${condition};
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    node!.tsArray.push(sample.startTs);
+    if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
   setMerageName(currentNode: NativeHookCallInfo) {
     currentNode.symbol =
@@ -1235,6 +1281,7 @@ export class NativeHookStatistics {
   tid: number = 0;
   threadName: string = '';
   lastLibId: number = 0;
+  lastSymbolId: number = 0;
   isSelected: boolean = false;
 }
 export class NativeHookCallInfo extends MerageBean {
@@ -1304,6 +1351,7 @@ export class NativeMemory {
   symbol: string = '';
   library: string = '';
   lastLibId: number = 0;
+  lastSymbolId: number = 0;
   isSelected: boolean = false;
   threadId: number = 0;
 }

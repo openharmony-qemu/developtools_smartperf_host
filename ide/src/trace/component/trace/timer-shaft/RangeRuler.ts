@@ -558,11 +558,11 @@ export class RangeRuler extends Graph {
         if (totalX === 0) {
           return;
         }
-        // 修正sliceMidX的值 
+        // 修正sliceMidX的值
         if (sliceMidX !== sliceMidXMap.get('tempMid1') || 0
           && sliceMidX !== sliceMidXMap.get('tempMid2') || 0) {
           if (x % 2 === 0) {
-            sliceMidXMap.set('tempMid2', sliceMidX); // 偶数 
+            sliceMidXMap.set('tempMid2', sliceMidX); // 偶数
           } else {
             sliceMidXMap.set('tempMid1', sliceMidX); // 奇数
           }
@@ -570,7 +570,6 @@ export class RangeRuler extends Graph {
           if (sliceMidX === sliceMidXMap.get('tempMid1')) {
             count1++;
           }
-
           if (sliceMidX === sliceMidXMap.get('tempMid2')) {
             count2++;
           }
@@ -612,10 +611,10 @@ export class RangeRuler extends Graph {
         x++;
         if (sliceMidX >= midX - MID_OFFSET && sliceMidX <= midX + MID_OFFSET) {
           /*  把 endNS 转换为 endX ， startNS 转化 startX，
-              totalX = ( endX - startX )  280px <= totalX  <= 300px 
-              此时，如果slice的比例或者宽度不合适，则进行调整校正，缩放到合适的比例。   
-              不能使用固定的 scale， 因为调整slice的宽度时，scale、 startNS 和  endNS 都在变化, 
-              所以要使用  totalX 来判断slice是否缩放到合适的大小了。  
+              totalX = ( endX - startX )  280px <= totalX  <= 300px
+              此时，如果slice的比例或者宽度不合适，则进行调整校正，缩放到合适的比例。
+              不能使用固定的 scale， 因为调整slice的宽度时，scale、 startNS 和  endNS 都在变化,
+              所以要使用  totalX 来判断slice是否缩放到合适的大小了。
           */
           if (totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0
             || Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET) {
@@ -649,7 +648,7 @@ export class RangeRuler extends Graph {
           endX = (this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS);
           totalX = endX - startX;
           sliceMidX = Math.round(startX + (endX - startX) / 2);
-          // slice中间位置大于画布的中间坐标时画布右移 ，startNS + s 
+          // slice中间位置大于画布的中间坐标时画布右移 ，startNS + s
           if (sliceMidX > midX + MID_OFFSET) {
             let distance = sliceMidX - midX;
             if (distance >= 10000) {
@@ -693,7 +692,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
       } while (sliceMidX < midX - MID_OFFSET || sliceMidX > midX + MID_OFFSET
       || Math.round(totalX) < FIT_TOTALX_MIN - MID_OFFSET
-        || Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET)
+      || Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET)
       this.pressFrameIdF = requestAnimationFrame(animF);
     };
     if (totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0 || totalX > FIT_TOTALX_MAX + MID_OFFSET) {
@@ -928,6 +927,7 @@ export class RangeRuler extends Graph {
     let clientWidth = this.canvas?.clientWidth || 0; // 1424
     let midX = Math.round(clientWidth / 2);
     this.currentDuration = 1000;
+
     let totalXMap = new Map();
     let count1 = 0;
     let count2 = 0;
@@ -968,7 +968,7 @@ export class RangeRuler extends Graph {
           }
         }
       }
-      // 此处为了解决特殊情况下sliceMidX的值非常接近中间区域，但是又无法进入中间区域，导致死循环程序无法正常终止。      
+      // 此处为了解决特殊情况下sliceMidX的值非常接近中间区域，但是又无法进入中间区域，导致死循环程序无法正常终止。
       if (count1 > 5) {
         this.fillX();
         this.range.refresh = true;

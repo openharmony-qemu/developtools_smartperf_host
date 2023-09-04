@@ -14,10 +14,9 @@
  */
 
 import { SpApplication } from '../SpApplication.js';
-import { BaseStruct } from './BaseStruct.js';
 import { Rect } from '../component/trace/timer-shaft/Rect.js';
 import { warn } from '../../log/Log.js';
-import { drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
+import { BaseStruct, drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
 
 const padding: number = 1;
 const rectHeight = 20;
@@ -56,6 +55,7 @@ export class ChartStruct extends BaseStruct {
   isSearch: boolean = false;
   isChartSelect: boolean = false; // 是否为点选的调用链
   isChartSelectParent: boolean = false; // 用来显示灰色
+  tsArray: Array<number> = [];
 }
 
 export enum ChartMode {

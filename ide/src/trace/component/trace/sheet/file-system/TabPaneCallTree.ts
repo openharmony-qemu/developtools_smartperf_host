@@ -222,6 +222,11 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data as MerageBean;
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: data.tsArray, type: 'triangle' },
+        })
+      );
       this.setRightTableData(data);
       data.isSelected = true;
       this.callTreeSelectedData = data;
@@ -452,8 +457,7 @@ export class TabPaneCallTree extends BaseElement {
       this.isChartShow = true;
       this.callTreeFilter!.disabledMining = true;
       showButtonMenu(this.callTreeFilter, this.needShowMenu);
-      if (!data)
-      this.frameChart!.data = this.callTreeDataSource;
+      if (!data) this.frameChart!.data = this.callTreeDataSource;
       this.frameChart?.calculateChartData();
     } else if (data.icon === 'tree') {
       callTreePageChart?.setAttribute('class', '');

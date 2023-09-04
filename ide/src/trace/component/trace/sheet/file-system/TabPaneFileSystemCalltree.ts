@@ -172,6 +172,11 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.fsCallTreeTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data as FileMerageBean;
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: data.tsArray, type: 'triangle' },
+        })
+      );
       this.setRightTableData(data);
       data.isSelected = true;
       this.fsCallTreeCurrentSelectedData = data;
@@ -441,7 +446,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       this.isChartShow = true;
       this.fsCallTreeFilter!.disabledMining = true;
       showButtonMenu(this.fsCallTreeFilter, this.needShowMenu);
-      if (!data){
+	  if (!data){
         this.frameChart!.data = this.fsCallTreeDataSource;
       }
       this.frameChart?.calculateChartData();

@@ -24,6 +24,7 @@ export class ChartStruct {
   parent: ChartStruct | undefined;
   children: Array<ChartStruct> = [];
   isSearch: boolean = false;
+  tsArray: Array<number> = [];
 }
 
 export class Msg {
@@ -67,8 +68,8 @@ export class MerageBean extends ChartStruct {
 
   set total(data: number) {
     this.#total = data;
-    this.weight = `${ getProbablyTime(this.dur) }`;
-    this.weightPercent = `${ ((this.dur / data) * 100).toFixed(1) }%`;
+    this.weight = `${getProbablyTime(this.dur)}`;
+    this.weightPercent = `${((this.dur / data) * 100).toFixed(1)}%`;
   }
 
   get total(): number {
@@ -128,8 +129,7 @@ class MerageBeanDataSplit {
   //symbol lib prune
   recursionPruneTree(node: MerageBean, symbolName: string, isSymbol: boolean): void {
     if ((isSymbol && node.symbolName == symbolName) || (!isSymbol && node.libName == symbolName)) {
-      node.parent &&
-      node.parent.children.splice(node.parent.children.indexOf(node), 1);
+      node.parent && node.parent.children.splice(node.parent.children.indexOf(node), 1);
     } else {
       node.children.forEach((child) => {
         this.recursionPruneTree(child, symbolName, isSymbol);
@@ -137,7 +137,12 @@ class MerageBeanDataSplit {
     }
   }
 
-  recursionChargeByRule(splitMapData: any, node: MerageBean, ruleName: string, rule: (node: MerageBean) => boolean): void {
+  recursionChargeByRule(
+    splitMapData: any,
+    node: MerageBean,
+    ruleName: string,
+    rule: (node: MerageBean) => boolean
+  ): void {
     if (node.initChildren.length > 0) {
       node.initChildren.forEach((child) => {
         if (rule(child)) {
@@ -312,7 +317,7 @@ const PAGE_SIZE: number = 50_0000;
 export let postMessage = (id: any, action: string, results: Array<any>, pageSize: number = PAGE_SIZE): void => {
   if (results.length > pageSize) {
     let pageCount = Math.ceil(results.length / pageSize);
-    for (let i = 1 ; i <= pageCount ; i++) {
+    for (let i = 1; i <= pageCount; i++) {
       let tag = 'start';
       if (i == 1) {
         tag = 'start';
@@ -367,9 +372,9 @@ export let convertJSON = (arrBuf: ArrayBuffer | Array<any>): any[] => {
       }
       let columns = parse.columns;
       let values = parse.values;
-      for (let i = 0 ; i < values.length ; i++) {
+      for (let i = 0; i < values.length; i++) {
         let object: any = {};
-        for (let j = 0 ; j < columns.length ; j++) {
+        for (let j = 0; j < columns.length; j++) {
           object[columns[j]] = values[i][j];
         }
         jsonArray.push(object);

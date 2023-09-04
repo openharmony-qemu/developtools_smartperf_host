@@ -23,6 +23,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 export class TabPaneHiLogSummary extends BaseElement {
   private logSummaryTable: HTMLDivElement | undefined | null;
   private summaryDownLoadTbl: LitTable | undefined | null;
+  private parentTabEl: HTMLElement | undefined | null;
   private systemLogSource: LogStruct[] = [];
   private expandedNodeList: Set<number> = new Set();
   private logLevel: string[] = ['Debug', 'Info', 'Warn', 'Error','Fatal'];
@@ -89,12 +90,23 @@ export class TabPaneHiLogSummary extends BaseElement {
           <label class="head-label">Level/Process/Tag/Message</label>
           <label class="head-label head-count">Count</label> 
         </div>
-        <div id="tab-summary"></div>
+        <div id="tab-summary" style="overflow: auto"></div>
         <lit-table id="tb-hilog-summary" style="display: none" tree>
           <lit-table-column title="Level/Process/Tag/Message" data-index="logName" key="logName"></lit-table-column>
           <lit-table-column title="Count" data-index="count" key="count"></lit-table-column>
         </lit-table>
         `;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    new ResizeObserver(() => {
+      this.refreshRowNodeTable();
+    }).observe(this.parentElement!);
+  }
+
+  initTabSheetEl(parentTabEl: HTMLElement) {
+    this.parentTabEl = parentTabEl;
   }
 
   private getLevelName(level: string): string {
@@ -158,7 +170,9 @@ export class TabPaneHiLogSummary extends BaseElement {
       expandIcon.name = this.expandedNodeList.has(rowNode.id) ? 'minus-square' : 'plus-square';
       toggleIconEl.classList.add('expand-icon');
       toggleIconEl.addEventListener('click', () => {
+        let scrollTop = this.logSummaryTable?.scrollTop ?? 0;
         this.changeNode(rowNode.id);
+        this.logSummaryTable!.scrollTop = scrollTop;
       });
     }
     tableRowEl.appendChild(toggleIconEl);
@@ -175,6 +189,9 @@ export class TabPaneHiLogSummary extends BaseElement {
 
   private refreshRowNodeTable(): void {
     this.logSummaryTable!.innerHTML = '';
+    if (this.logSummaryTable && this.parentTabEl) {
+      this.logSummaryTable.style.height = `${this.parentTabEl!.clientHeight - 30}px`;
+    }
     let logTreeNodes = this.buildTreeTblNodes(this.systemLogSource);
     if (logTreeNodes.length > 0) {
       this.summaryDownLoadTbl!.recycleDataSource = logTreeNodes;

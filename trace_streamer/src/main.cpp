@@ -96,46 +96,6 @@ void PrintVersion()
     fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
 }
 
-void LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings)
-{
-    auto fd = fopen(sqlOperator.c_str(), "r");
-    if (!fd) {
-        TS_LOGE("open file failed!");
-        return;
-    }
-    char buffer[G_CHUNK_SIZE];
-    while (!feof(fd)) {
-        std::string sqlString;
-        while (fgets(buffer, sizeof(buffer), fd)) {
-            std::string line = buffer;
-            if (line == "\n" || line == "\r\n") {
-                break;
-            }
-            sqlString.append(buffer);
-
-            if (EndWith(line, ";") || EndWith(line, ";\r\n")) {
-                break;
-            }
-        }
-
-        if (sqlString.empty()) {
-            continue;
-        }
-        sqlStrings.push_back(sqlString);
-    }
-    fclose(fd);
-    fd = nullptr;
-}
-
-void ReadSqlFileAndPrintResult(TraceStreamerSelector& ts, const std::string& sqlOperator)
-{
-    std::vector<std::string> sqlStrings;
-    LoadQueryFile(sqlOperator, sqlStrings);
-    for (auto& str : sqlStrings) {
-        ts.SearchDatabase(str, true);
-    }
-}
-
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
 {
     auto startTime =
@@ -251,25 +211,6 @@ int CheckFinal(char** argv, TraceExportOption& traceExportOption, HttpOption& ht
         return 1;
     }
     return 0;
-}
-
-void ParserAndPrintMetrics(TraceStreamerSelector& ts, const std::string& metrics)
-{
-    auto metricsName = SplitStringToVec(metrics, ",");
-    for (const auto& itemName : metricsName) {
-        std::string result = ts.SearchDatabase(ts.MetricsSqlQuery(itemName));
-        if (result == "") {
-            continue;
-        }
-        Metrics metricsOperator;
-        metricsOperator.ParserJson(itemName, result);
-        for (auto item : metricsOperator.GetMetricsMap()) {
-            if (item.second == itemName) {
-                metricsOperator.PrintMetricsResult(item.first, nullptr);
-                continue;
-            }
-        }
-    }
 }
 
 int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpOption& httpOption)
@@ -395,10 +336,10 @@ int main(int argc, char** argv)
         metaData->SetParserToolVersion(g_traceStreamerVersion.c_str());
         metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion.c_str());
         metaData->SetTraceDataSize(g_loadSize);
-        ParserAndPrintMetrics(ts, tsOption.metricsIndex);
+        ts.ParserAndPrintMetrics(tsOption.metricsIndex);
     }
     if (!tsOption.sqlOperatorFilePath.empty()) {
-        ReadSqlFileAndPrintResult(ts, tsOption.sqlOperatorFilePath);
+        ts.ReadSqlFileAndPrintResult(tsOption.sqlOperatorFilePath);
     }
     return 0;
 }

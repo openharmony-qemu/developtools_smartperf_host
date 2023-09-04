@@ -43,7 +43,6 @@ public:
     TraceDataDB(const TraceDataDB&) = delete;
     TraceDataDB& operator=(const TraceDataDB&) = delete;
     virtual ~TraceDataDB();
-    virtual void InitDB() = 0;
     void Prepare();
 
 public:

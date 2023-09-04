@@ -42,6 +42,7 @@
 #include "system_event_measure_filter.h"
 
 using namespace SysTuning::base;
+const uint32_t CHUNK_SIZE = 1024 * 1024;
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
@@ -334,6 +335,67 @@ void TraceStreamerSelector::UpdateTaskPoolTraceStatus(bool status)
 void TraceStreamerSelector::UpdateAppStartTraceStatus(bool status)
 {
     traceDataCache_->UpdateAppStartTraceStatus(status);
+}
+bool TraceStreamerSelector::LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings)
+{
+    auto fd = fopen(sqlOperator.c_str(), "r");
+    if (!fd) {
+        TS_LOGE("open file failed!");
+        return false;
+    }
+    char buffer[CHUNK_SIZE];
+    while (!feof(fd)) {
+        std::string sqlString;
+        while (fgets(buffer, sizeof(buffer), fd)) {
+            std::string line = buffer;
+            if (line == "\n" || line == "\r\n") {
+                break;
+            }
+            sqlString.append(buffer);
+
+            if (EndWith(line, ";") || EndWith(line, ";\r\n")) {
+                break;
+            }
+        }
+
+        if (sqlString.empty()) {
+            continue;
+        }
+        sqlStrings.push_back(sqlString);
+    }
+    fclose(fd);
+    fd = nullptr;
+    return true;
+}
+bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOperator)
+{
+    std::vector<std::string> sqlStrings;
+    if (!LoadQueryFile(sqlOperator, sqlStrings)) {
+        return false;
+    }
+    for (auto& str : sqlStrings) {
+        SearchDatabase(str, true);
+    }
+    return true;
+}
+bool TraceStreamerSelector::ParserAndPrintMetrics(const std::string& metrics)
+{
+    auto metricsName = SplitStringToVec(metrics, ",");
+    for (const auto& itemName : metricsName) {
+        std::string result = SearchDatabase(MetricsSqlQuery(itemName));
+        if (result == "") {
+            return false;
+        }
+        Metrics metricsOperator;
+        metricsOperator.ParserJson(itemName, result);
+        for (auto item : metricsOperator.GetMetricsMap()) {
+            if (item.second == itemName) {
+                metricsOperator.PrintMetricsResult(item.first, nullptr);
+                continue;
+            }
+        }
+    }
+    return true;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

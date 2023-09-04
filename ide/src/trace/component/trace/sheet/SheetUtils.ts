@@ -102,3 +102,66 @@ export class CompareStruct {
     return new CompareStruct(this.key, value);
   }
 }
+
+export class ParseExpression {
+  private expression: string; //输入的表达式
+  private libTreeMap: Map<string, string[]> = new Map<string, string[]>();
+  constructor(expression: string) {
+    this.expression = expression.trim();
+  }
+
+  /**
+   * 解析用户输入的表达式
+   * @returns string：sql/ null: 非法表达式
+   */
+  public parse(): Map<string, string[]> | null {
+    // 表达式必须以@开头
+    if (!this.expression.startsWith('@')) {
+      return null;
+    }
+
+    const expressions: string[] = [];
+    // 包含- 表示可能有两组表达式
+    if (this.expression.includes('-')) {
+      const multiExpression = this.expression.split('-');
+      if (multiExpression.length === 0 || multiExpression.length > 2) {
+        return null;
+      }
+      expressions.push(...multiExpression);
+    } else {
+      expressions.push(this.expression);
+    }
+    let include = true;
+    for (let expression of expressions) {
+      this.paseSingleExpression(expression, include);
+      include = false;
+    }
+    return this.libTreeMap;
+  }
+
+  private paseSingleExpression(expression: string, includes: boolean): void {
+    const regex = /\((.*?)\)/; // 匹配括号内的内容
+    const match = expression.match(regex);
+    if (match && match.length > 1) {
+      expression = match[1];
+
+      const libs = expression.split(','); // 逗号拆分lib
+      for (let lib of libs) {
+        lib = lib.trim();
+        const items = lib.split(' '); // 空格拆分函数
+        if (items.length > 0) {
+          const path = items[0];
+          items.splice(0, 1);
+          if (this.libTreeMap.has(path)) {
+            continue;
+          }
+          if (includes) {
+            this.libTreeMap.set(`+${path}`, items);
+          } else {
+            this.libTreeMap.set(`-${path}`, items);
+          }
+        }
+      }
+    }
+  }
+}

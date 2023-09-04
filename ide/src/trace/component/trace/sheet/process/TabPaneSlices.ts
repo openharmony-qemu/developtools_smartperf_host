@@ -19,6 +19,7 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js'
 import { getTabSlices, getTabSlicesAsyncFunc } from '../../../../database/SqlLite.js';
 import { SpAllocations } from '../../../setting/SpAllocations.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { TraceRow } from '../../base/TraceRow.js';
 import { LitSearch } from '../../search/Search.js';
 import { resizeObserver } from '../SheetUtils.js';
 
@@ -44,31 +45,33 @@ export class TabPaneSlices extends BaseElement {
     });
     this.slicesTbl!.loading = true;
     getTabSlicesAsyncFunc(asyncNames, asyncPid, slicesParam.leftNs, slicesParam.rightNs).then((res) => {
-      getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then((res2) => {
-        this.slicesTbl!.loading = false;
-        let processSlicesResult = (res || []).concat(res2 || []);
-        if (processSlicesResult != null && processSlicesResult.length > 0) {
-          let sumWall = 0.0;
-          let sumOcc = 0;
-          for (let processSliceItem of processSlicesResult) {
-            processSliceItem.name = processSliceItem.name == null ? '' : processSliceItem.name;
-            sumWall += processSliceItem.wallDuration;
-            sumOcc += processSliceItem.occurrences;
-            processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
-            processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
+      getTabSlices(slicesParam.funTids, slicesParam.processIds, slicesParam.leftNs, slicesParam.rightNs).then(
+        (res2) => {
+          this.slicesTbl!.loading = false;
+          let processSlicesResult = (res || []).concat(res2 || []);
+          if (processSlicesResult != null && processSlicesResult.length > 0) {
+            let sumWall = 0.0;
+            let sumOcc = 0;
+            for (let processSliceItem of processSlicesResult) {
+              processSliceItem.name = processSliceItem.name == null ? '' : processSliceItem.name;
+              sumWall += processSliceItem.wallDuration;
+              sumOcc += processSliceItem.occurrences;
+              processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
+              processSliceItem.avgDuration = parseFloat((processSliceItem.avgDuration / 1000000.0).toFixed(5));
+            }
+            let count = new SelectionData();
+            count.process = ' ';
+            count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
+            count.occurrences = sumOcc;
+            processSlicesResult.splice(0, 0, count);
+            this.slicesSource = processSlicesResult;
+            this.slicesTbl!.recycleDataSource = processSlicesResult;
+          } else {
+            this.slicesSource = [];
+            this.slicesTbl!.recycleDataSource = this.slicesSource;
           }
-          let count = new SelectionData();
-          count.process = ' ';
-          count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
-          count.occurrences = sumOcc;
-          processSlicesResult.splice(0, 0, count);
-          this.slicesSource = processSlicesResult;
-          this.slicesTbl!.recycleDataSource = processSlicesResult;
-        } else {
-          this.slicesSource = [];
-          this.slicesTbl!.recycleDataSource = this.slicesSource;
         }
-      });
+      );
     });
   }
 
@@ -94,14 +97,61 @@ export class TabPaneSlices extends BaseElement {
         it.draw();
       });
       spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
-      input.value = data.name;
-      let list = spSystemTrace!.searchCPU(data.name);
-      await spSystemTrace!.searchFunction(list, data.name).then((mixedResults) => {
-        search.list = spSystemTrace!.searchSdk(mixedResults, data.name);
+
+      await spSystemTrace!.searchFunction([], data.name).then((mixedResults) => {
+        if (mixedResults && mixedResults.length === 0) {
+          return;
+        }
+        search.list = mixedResults.filter((item) => item.funName === data.name);
+        const sliceRowList: Array<TraceRow<any>> = [];
+        // 框选的slice泳道
+        for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
+          //console.log(row.name, row.rowType, row.folder);
+          if (row.rowType === 'func') {
+            sliceRowList.push(row);
+          }
+          if (row.childrenList) {
+            for (const childrenRow of row.childrenList) {
+              if (childrenRow.rowType === 'func') {
+                sliceRowList.push(childrenRow);
+              }
+            }
+          }
+        }
+        if (sliceRowList.length === 0) {
+          return;
+        }
+        // search 到的内容与框选泳道的内容取并集
+        let rangeSelectList :Array<unknown> = []; // 框选范围的数据
+        for (const searchItem of search.list) {
+          for (const traceRow of sliceRowList) {
+            if (
+              Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <
+              Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+              !rangeSelectList.includes(searchItem)
+            ) {
+              // 异步调用栈
+              if (traceRow.asyncFuncName) {
+                if(`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}`){
+                  rangeSelectList.push(searchItem);
+                }
+              } else { // 线程调用栈
+                if (`${searchItem.tid}` === traceRow.rowId) {
+                  rangeSelectList.push(searchItem);
+                }
+              }
+            }
+          }
+        }
+        if (rangeSelectList.length === 0) {
+          return;
+        }
+        input.value = data.name;
+        search.list = rangeSelectList;
+        search.total = search.list.length;
+        search.index = spSystemTrace!.showStruct(true, 1, search.list);
+        indexEL!.textContent = '1';
       });
-      search.index = spSystemTrace!.showStruct(true, 1, search.list);
-      search.valueChangeHandler!(data.name);
-      indexEL!.textContent = '1';
     });
   }
 
@@ -145,7 +195,11 @@ export class TabPaneSlices extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return slicesSort === 2 ? parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property]) : parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
+          return slicesSort === 2
+            ? // @ts-ignore
+              parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
+            : // @ts-ignore
+              parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
         } else {
           // @ts-ignore
           if (slicesRightData[property] > slicesLeftData[property]) {

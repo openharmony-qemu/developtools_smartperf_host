@@ -577,7 +577,7 @@ class FileSystemCallTreeHandler {
     this.queryData(
       this.currentEventId,
       'fileSystem-queryFileSamples',
-      `select s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from file_system_sample s,trace_range t 
+      `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from file_system_sample s,trace_range t 
 left join process p on p.id = s.ipid  
 left join thread h on h.id = s.itid 
 where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} and callchain_id != -1;`,
@@ -602,7 +602,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     this.queryData(
       this.currentEventId,
       'fileSystem-queryIoSamples',
-      `select s.callchain_id as callChainId,h.tid,h.name as threadName,s.latency_dur as dur,s.type,p.pid,p.name as processName from bio_latency_sample s,trace_range t
+      `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.latency_dur as dur,s.type,p.pid,p.name as processName from bio_latency_sample s,trace_range t
 left join process p on p.id = s.ipid
 left join thread h on h.id = s.itid
 where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} and callchain_id != -1;`,
@@ -625,7 +625,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     this.queryData(
       this.currentEventId,
       'fileSystem-queryVirtualMemorySamples',
-      `select s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from paged_memory_sample s,trace_range t 
+      `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from paged_memory_sample s,trace_range t 
 left join process p on p.id = s.ipid  
 left join thread h on h.id = s.itid 
 where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} and callchain_id != -1;`,
@@ -659,6 +659,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
             root;
           this.currentTreeList.push(root);
         }
+        root.tsArray.push(sample.ts);
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
         this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
       }
@@ -676,6 +677,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         fileMerageBean.dur = merageData.dur;
         fileMerageBean.count = merageData.count;
         fileMerageBean.total = totalCount;
+        fileMerageBean.tsArray = merageData.tsArray;
         rootMerageMap[merageData.pid] = fileMerageBean;
       } else {
         rootMerageMap[merageData.pid].children.push(merageData);
@@ -683,6 +685,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         rootMerageMap[merageData.pid].dur += merageData.dur;
         rootMerageMap[merageData.pid].count += merageData.count;
         rootMerageMap[merageData.pid].total = totalCount;
+        rootMerageMap[merageData.pid].tsArray.push(...merageData.tsArray);
       }
       merageData.parentNode = rootMerageMap[merageData.pid]; //子节点添加父节点的引用
     });
@@ -739,7 +742,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
   ) {
     isTopDown ? index++ : index--;
     let isEnd = isTopDown ? callChainDataList.length == index + 1 : index == 0;
-    let node;
+    let node: FileMerageBean;
     if (
       currentNode.initChildren.filter((child: any) => {
         if (
@@ -762,7 +765,8 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    if (node && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+    node!.tsArray.push(sample.ts);
+    if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
 
   setMerageName(currentNode: FileMerageBean) {
@@ -865,6 +869,7 @@ class FileSample {
   tid: number = 0;
   threadName: string = '';
   processName: string = '';
+  ts: number = 0;
 }
 
 class FileAnalysisSample extends FileSample {

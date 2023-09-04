@@ -411,11 +411,14 @@ HWTEST_F(HilogParserTest, ParseTxtHilogInfoWithTimeFormat, TestSize.Level1)
     TS_LOGI("test8-7");
     constexpr size_t readSize = 1024;
     constexpr uint32_t lineLength = 256;
-    char data[] = "08-07 11:04:45.947   523   640 E C04200/Root: <205>cannot find windowNode\n"
-        "CST 08-05 17:41:00.039   955   955 I C03900/Ace: [list_layout_algorithm.cpp(Measure)-(0)] child size is empty\n"
+    char data[] =
+        "08-07 11:04:45.947   523   640 E C04200/Root: <205>cannot find windowNode\n"
+        "CST 08-05 17:41:00.039   955   955 I C03900/Ace: [list_layout_algorithm.cpp(Measure)-(0)] child size is "
+        "empty\n"
         "CST 2017-08-05 17:41:19.409   840   926 I C01560/WifiDeviceServiceImpl: thread work normally\n"
         "1501926013.969  1585  1585 I C02d10/HiView-DOCDB: close ejdb success\n"
-        "2337.006   601   894 E C01200/Ces: [access_token_helper.cpp:(RecordSensitivePermissionUsage):52] permission denied\n";
+        "2337.006   601   894 E C01200/Ces: [access_token_helper.cpp:(RecordSensitivePermissionUsage):52] permission "
+        "denied\n";
 
     std::unique_ptr<SysTuning::TraceStreamer::TraceStreamerSelector> ta =
         std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
