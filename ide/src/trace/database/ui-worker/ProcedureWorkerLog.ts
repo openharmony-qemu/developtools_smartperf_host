@@ -14,7 +14,7 @@
  */
 
 import {TraceRow} from '../../component/trace/base/TraceRow.js';
-import {isFrameContainPoint, ns2x, Rect, Render} from './ProcedureWorkerCommon.js';
+import { ns2x, Rect, Render } from './ProcedureWorkerCommon.js';
 
 import {BaseStruct} from '../../bean/BaseStruct.js';
 import {ColorUtils} from "../../component/trace/base/ColorUtils.js";
@@ -72,11 +72,34 @@ export function filterLogData(
   }
   logFilter.length = 0;
   if (logList) {
+    let allTypeDataMap: Map<number, Array<LogStruct>> = new Map();
     for (let index: number = 0; index < logList.length; index++) {
       let itemLog: LogStruct = logList[index];
       if ((itemLog.startTs ?? 0) + (itemLog.dur ?? 0) >= startNS && (itemLog.startTs ?? 0) <= endNS) {
-        LogStruct.setLogFrame(itemLog, 0, startNS, endNS, totalNS, frame);
-        logFilter.push(itemLog);
+        let currentDepth = itemLog.depth ?? 0;
+        if (allTypeDataMap.has(currentDepth)) {
+          let newDataList = allTypeDataMap.get(currentDepth);
+          if (newDataList && newDataList.length > 0) {
+            let preData = newDataList[newDataList.length - 1];
+            let pre = ns2x(preData.startTs ?? 0, startNS, endNS, totalNS, frame);
+            let current = ns2x(itemLog.startTs || 0, startNS, endNS, totalNS, frame);
+            if (current - pre > 1) {
+              LogStruct.setLogFrame(itemLog, 0, startNS, endNS, totalNS, frame);
+              newDataList!.push(itemLog);
+            }
+          }
+        } else {
+          LogStruct.setLogFrame(itemLog, 0, startNS, endNS, totalNS, frame);
+          allTypeDataMap.set(currentDepth, [itemLog]);
+        }
+      }
+    }
+    for (let index = 0; index < 5; index++) {
+      if (allTypeDataMap.has(index)) {
+        let newVar = allTypeDataMap.get(index);
+        if (newVar) {
+          logFilter.push(...newVar);
+        }
       }
     }
   }
@@ -94,7 +117,7 @@ export class LogStruct extends BaseStruct {
   level: string | undefined;
   tag: string | undefined;
   context: string | undefined;
-  time: number | undefined;
+  originTime: string | undefined;
   depth: number | undefined;
   dur: number | undefined;
 

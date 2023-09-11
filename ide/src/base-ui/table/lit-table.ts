@@ -35,7 +35,7 @@ export class LitTable extends HTMLElement {
   private ds: Array<any> = [];
   public recycleDs: Array<any> = [];
   private normalDs: Array<any> = [];
-  private gridTemplateColumns: any;
+  private gridTemplateColumns: Array<string> = [];
   /*Grid css layout descriptions are obtained according to the clustern[] nested structure*/
   private st: HTMLSlotElement | null | undefined;
   private tableElement: HTMLDivElement | null | undefined;
@@ -53,6 +53,7 @@ export class LitTable extends HTMLElement {
   private _loading: boolean = false;
   private value: any;
   private _mode = TableMode.Expand;
+  private columnResizeEnable: boolean = true;
 
   constructor() {
     super();
@@ -95,6 +96,11 @@ export class LitTable extends HTMLElement {
             width: 100%;
             height: auto;
             cursor: pointer;
+        }
+        .td label{
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: normal;
         }
         .td text{
             overflow: hidden; 
@@ -237,6 +243,13 @@ export class LitTable extends HTMLElement {
             bottom:20px;
             z-index: 999999;
         }
+        .resize{
+            width: 2px;
+            margin-right: 3px;
+            height: 20px;
+            background-color: #e0e0e0;
+            cursor: col-resize;
+        }
         .progress{
             position: absolute;
             height: 1px;
@@ -324,13 +337,15 @@ export class LitTable extends HTMLElement {
   }
 
   set dataSource(value) {
-    this.ds = value;
-    this.isRecycleList = false;
-    if (this.hasAttribute('tree')) {
-      this.renderTreeTable();
-    } else {
-      this.renderTable();
-    }
+    // this.ds = value;
+    // this.isRecycleList = false;
+    // if (this.hasAttribute('tree')) {
+    //   this.renderTreeTable();
+    // } else {
+    //   this.renderTable();
+    // }
+    this.columnResizeEnable = false;
+    this.recycleDataSource = value;
   }
 
   get recycleDataSource() {
@@ -351,7 +366,11 @@ export class LitTable extends HTMLElement {
     }
     if (this.hasAttribute('tree')) {
       this.value = value;
-      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Expand);
+      if (this.shadowRoot?.querySelector('.expand')) {
+        this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.top')!.name = 'up';
+        this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.bottom')!.name = 'down';
+      }
+      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
     } else {
       this.recycleDs = this.meauseAllRowHeight(value);
     }
@@ -480,12 +499,15 @@ export class LitTable extends HTMLElement {
 
   injectColumns() {
     this.columns = this.st!.assignedElements();
+    this.columns.forEach((column) => {
+      if (column.tagName === 'LIT-TABLE-COLUMN') {
+        this.gridTemplateColumns.push(column.getAttribute('width') || '1fr');
+      }
+    });
   }
 
   setStatus(list: any, status: boolean) {
-    if (!status) {
-      this.tableElement!.scrollTop = 0;
-    }
+    this.tableElement!.scrollTop = 0;
     for (let item of list) {
       item.status = status;
       if (item.children != undefined && item.children.length > 0) {
@@ -555,8 +577,8 @@ export class LitTable extends HTMLElement {
           box.appendChild(checkbox);
           rowElement.appendChild(box);
         }
-        let area: Array<any> = [],
-          gridTemplateColumns: Array<any> = [];
+        let area: Array<any> = [];
+        this.gridTemplateColumns = [];
         let resolvingArea = (columns: any, x: any, y: any) => {
           columns.forEach((a: any, i: any) => {
             if (!area[y]) area[y] = [];
@@ -586,33 +608,36 @@ export class LitTable extends HTMLElement {
               x++;
               let h: any = document.createElement('div');
               h.classList.add('td');
-              if (a.hasAttribute('isExpand')) {
+              if ((this.hasAttribute('tree') && i > 1) || (!this.hasAttribute('tree') && i > 0)) {
+                let resizeDiv: HTMLDivElement = document.createElement('div');
+                resizeDiv.classList.add('resize');
+                h.appendChild(resizeDiv);
+                this.resizeEventHandler(rowElement, resizeDiv, i);
+              }
+              if (a.hasAttribute('retract')) {
                 let expand = document.createElement('div');
                 expand.classList.add('expand');
                 expand.style.display = 'grid';
                 h.append(expand);
-                let bottom = document.createElement('lit-icon') as LitIcon;
-                bottom.classList.add('down');
-                bottom.name = 'down';
-                expand.append(bottom);
                 let top = document.createElement('lit-icon') as LitIcon;
                 top.classList.add('top');
                 top.name = 'up';
                 expand.append(top);
-                if (a.hasAttribute('retract')) {
-                  top.name = 'down';
-                  bottom.name = 'up';
-                }
+                let bottom = document.createElement('lit-icon') as LitIcon;
+                bottom.classList.add('bottom');
+                bottom.name = 'down';
+                expand.append(bottom);
+
                 expand.addEventListener('click', (e) => {
-                  if (top.name !== 'up' && bottom.name !== 'down') {
-                    top.name = 'up';
-                    bottom.name = 'down';
+                  if (top.name == 'up' && bottom.name == 'down') {
+                    top.name = 'down';
+                    bottom.name = 'up';
                     // 一键展开
                     this.setStatus(this.value, true);
                     this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Expand);
                   } else {
-                    top.name = 'down';
-                    bottom.name = 'up';
+                    top.name = 'up';
+                    bottom.name = 'down';
                     // 一键收起
                     this.setStatus(this.value, false);
                     this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
@@ -657,6 +682,9 @@ export class LitTable extends HTMLElement {
                 h.appendChild(upSvg);
                 h.appendChild(downSvg);
                 h.onclick = () => {
+                  if (this.isResize || this.resizeColumnIndex !== -1) {
+                    return;
+                  }
                   this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: any) => {
                     it.setAttribute('fill', 'let(--dark-color1,#212121)');
                     it.sortType = 0;
@@ -703,54 +731,17 @@ export class LitTable extends HTMLElement {
                 };
               }
               h.style.justifyContent = a.getAttribute('align');
-              gridTemplateColumns.push(a.getAttribute('width') || '1fr');
+              this.gridTemplateColumns.push(a.getAttribute('width') || '1fr');
               h.style.gridArea = key;
-              //   根据进程、线程、状态、优先级展开
-              if (
-                a.title === 'State/Process/Thread' ||
-                a.title === 'Process/Thread/State' ||
-                a.title === 'Priority/State'
-              ) {
-                let labelArr = a.title.split('/');
-                for (let i = 0; i < labelArr.length; i++) {
-                  let titleLabel = document.createElement('label');
-                  titleLabel.style.cursor = 'pointer';
-                  i == 0 ? (titleLabel.textContent = labelArr[i]) : (titleLabel.textContent = '/' + labelArr[i]);
-                  h.appendChild(titleLabel);
-                  titleLabel.addEventListener('click', (e) => {
-                    if (
-                      (titleLabel.textContent?.includes('State') && i === 0) ||
-                      (titleLabel.textContent?.includes('Process') && i === 0) ||
-                      (titleLabel.textContent?.includes('Priority') && i === 0)
-                    ) {
-                      this.setStatus(this.value, false);
-                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
-                    } else if (
-                      (titleLabel.textContent?.includes('Process') && i === 1) ||
-                      (titleLabel.textContent?.includes('Thread') && i === 1)
-                    ) {
-                      for (let item of this.value) {
-                        item.status = true;
-                        if (item.children != undefined && item.children.length > 0) {
-                          this.setStatus(item.children, false);
-                        }
-                      }
-                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
-                    } else if (
-                      (titleLabel.textContent?.includes('Thread') && i === 2) ||
-                      (titleLabel.textContent?.includes('State') && i === 2) ||
-                      (titleLabel.textContent?.includes('State') && i === 1)
-                    ) {
-                      this.setStatus(this.value, true);
-                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Expand);
-                    }
-                  });
-                }
-              } else {
+
+              let labelArr = a.title.split('/');
+              for (let i = 0; i < labelArr.length; i++) {
                 let titleLabel = document.createElement('label');
-                titleLabel.textContent = a.title;
+                titleLabel.style.cursor = 'pointer';
+                i == 0 ? (titleLabel.textContent = labelArr[i]) : (titleLabel.textContent = '/' + labelArr[i]);
                 h.appendChild(titleLabel);
               }
+
               if (a.hasAttribute('fixed')) {
                 this.fixed(h, a.getAttribute('fixed'), '#42b983');
               }
@@ -764,15 +755,14 @@ export class LitTable extends HTMLElement {
             if (!rows[i]) rows[i] = array[j - 1][i];
           }
         });
-        this.gridTemplateColumns = gridTemplateColumns.join(' ');
         if (this.selectable) {
           let s = area.map((a) => '"_checkbox_ ' + a.map((aa: any) => aa.t).join(' ') + '"').join(' ');
-          rowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
+          rowElement.style.gridTemplateColumns = '60px ' + this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
         } else {
           let s = area.map((a) => '"' + a.map((aa: any) => aa.t).join(' ') + '"').join(' ');
-          rowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+          rowElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
         }
@@ -784,6 +774,80 @@ export class LitTable extends HTMLElement {
 
     this.shadowRoot!.addEventListener('load', function (event) {});
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
+  }
+
+  private isResize: boolean = false;
+  private resizeColumnIndex: number = -1;
+  private resizeDownX: number = 0;
+  private columnMinWidth: number = 50;
+  private beforeResizeWidth1: number = 0;
+  private beforeResizeWidth2: number = 0;
+
+  resizeEventHandler(header: HTMLDivElement, element: HTMLDivElement, index: number){
+    header.addEventListener('mousemove', (event) => {
+      if (!this.columnResizeEnable) return;
+      if (this.isResize) {
+        let width = event.clientX - this.resizeDownX;
+        header.style.cursor = 'col-resize';
+        let preWidth = this.beforeResizeWidth1, nowWidth = this.beforeResizeWidth2;
+        if (width < 0) {
+          preWidth = Math.max(this.beforeResizeWidth1 + width, this.columnMinWidth);
+          nowWidth = (this.beforeResizeWidth1 - preWidth) + this.beforeResizeWidth2;
+        }
+        if (width > 0) {
+          nowWidth = Math.max(this.beforeResizeWidth2 - width, this.columnMinWidth);
+          preWidth = (this.beforeResizeWidth2 - nowWidth) + this.beforeResizeWidth1;
+        }
+        this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
+        this.gridTemplateColumns[this.resizeColumnIndex] = `${nowWidth}px`;
+        header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
+        this.shadowRoot!.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
+          if (this.hasAttribute('tree')) {
+            tr.style.gridTemplateColumns = this.gridTemplateColumns.slice(1).join(' ');
+          } else {
+            tr.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
+          }
+        });
+        event.preventDefault();
+        event.stopPropagation();
+      } else {
+        header.style.cursor = 'pointer';
+      }
+    });
+    header.addEventListener('mouseup', (event) => {
+      if (!this.columnResizeEnable) return;
+      this.isResize = false;
+      this.resizeDownX = 0;
+      header.style.cursor = 'pointer';
+      setTimeout(() => {
+        this.resizeColumnIndex = -1;
+      }, 100);
+      event.stopPropagation();
+      event.preventDefault();
+    });
+    header.addEventListener('mouseleave', (event) => {
+      if (!this.columnResizeEnable) return;
+      event.stopPropagation();
+      event.preventDefault();
+      this.isResize = false;
+      this.resizeDownX = 0;
+      this.resizeColumnIndex = -1;
+      header.style.cursor = 'pointer';
+    });
+    element.addEventListener('mousedown', (event)=> {
+      if (!this.columnResizeEnable) return;
+      this.isResize = true;
+      this.resizeColumnIndex = index;
+      this.resizeDownX = event.clientX;
+      let pre = (header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement);
+      let now = (header.childNodes.item(this.resizeColumnIndex) as HTMLDivElement);
+      this.beforeResizeWidth1 = pre.clientWidth;
+      this.beforeResizeWidth2 = now.clientWidth;
+      event.stopPropagation();
+    });
+    element.addEventListener('click',(event) => {
+      event.stopPropagation();
+    });
   }
 
   // Is called when the custom element is removed from the document DOM.
@@ -804,257 +868,6 @@ export class LitTable extends HTMLElement {
       td.style.right = '0px';
       td.style.boxShadow = '-3px 0px 5px #33333333';
     }
-  }
-
-  renderTable() {
-    if (!this.columns) return;
-    if (!this.ds) return; // If no data source is set, it is returned directly
-    this.normalDs = [];
-    this.tbodyElement!.innerHTML = ''; // Clear the table contents
-    this.ds.forEach((rowData: any) => {
-      let tblRowElement = document.createElement('div');
-      tblRowElement.classList.add('tr');
-      // @ts-ignore
-      tblRowElement.data = rowData;
-      let gridTemplateColumns: Array<any> = [];
-      // If the table is configured with selectable (select row mode) add a checkbox at the head of the line alone
-      if (this.selectable) {
-        let tblBox = document.createElement('div');
-        tblBox.style.display = 'flex';
-        tblBox.style.justifyContent = 'center';
-        tblBox.style.alignItems = 'center';
-        tblBox.classList.add('td');
-        let checkbox = document.createElement('lit-checkbox');
-        checkbox.classList.add('row-checkbox');
-        checkbox.onchange = (e: any) => {
-          // Checkbox checking affects whether the div corresponding to the row has a checked attribute for marking
-          if (e.detail.checked) {
-            tblRowElement.setAttribute('checked', '');
-          } else {
-            tblRowElement.removeAttribute('checked');
-          }
-        };
-        this.getWheelStatus(tblBox);
-        tblBox.appendChild(checkbox);
-        tblRowElement.appendChild(tblBox);
-      }
-      this.tableColumns!.forEach((tblColumn) => {
-        let dataIndex = tblColumn.getAttribute('data-index') || '1';
-        gridTemplateColumns.push(tblColumn.getAttribute('width') || '1fr');
-        if (tblColumn.template) {
-          // If you customize the rendering, you get the nodes from the template
-          // @ts-ignore
-          let cloneNode = tblColumn.template.render(rowData).content.cloneNode(true);
-          let tblCustomDiv = document.createElement('div');
-          tblCustomDiv.classList.add('td');
-          tblCustomDiv.style.wordBreak = 'break-all';
-          tblCustomDiv.style.whiteSpace = 'pre-wrap';
-          tblCustomDiv.style.justifyContent = tblColumn.getAttribute('align') || '';
-          if (tblColumn.hasAttribute('fixed')) {
-            this.fixed(tblCustomDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
-          }
-          this.getWheelStatus(tblCustomDiv);
-          tblCustomDiv.append(cloneNode);
-          tblRowElement.append(tblCustomDiv);
-        } else {
-          let tblDiv = document.createElement('div');
-          tblDiv.classList.add('td');
-          tblDiv.style.wordBreak = 'break-all';
-          tblDiv.style.whiteSpace = 'pre-wrap';
-          tblDiv.title = rowData[dataIndex];
-          tblDiv.style.justifyContent = tblColumn.getAttribute('align') || '';
-          if (tblColumn.hasAttribute('fixed')) {
-            this.fixed(tblDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
-          }
-          this.getWheelStatus(tblDiv);
-          tblDiv.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
-          tblRowElement.append(tblDiv);
-        }
-      });
-      if (this.selectable) {
-        // If the table with selection is preceded by a 60px column
-        tblRowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
-      } else {
-        tblRowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
-      }
-      tblRowElement.onclick = (e) => {
-        this.dispatchEvent(
-          new CustomEvent('row-click', {
-            detail: {
-              rowData,
-              data: rowData,
-              callBack: (isSelected: boolean) => {
-                //是否爲单选
-                if (isSelected) {
-                  this.clearAllSelection(rowData);
-                }
-                this.setSelectedRow(rowData.isSelected, [tblRowElement]);
-              },
-            },
-            composed: true,
-          })
-        );
-      };
-      this.normalDs.push(tblRowElement);
-      this.tbodyElement!.append(tblRowElement);
-    });
-  }
-
-  renderTreeTable() {
-    if (!this.columns) return;
-    if (!this.ds) return;
-    this.tbodyElement!.innerHTML = '';
-    this.treeElement!.innerHTML = '';
-    let ids = JSON.parse(this.getAttribute('tree') || `["id","pid"]`);
-    let toTreeData = (data: any, id: any, pid: any) => {
-      let cloneData = JSON.parse(JSON.stringify(data));
-      return cloneData.filter((father: any) => {
-        let branchArr = cloneData.filter((child: any) => father[id] == child[pid]);
-        branchArr.length > 0 ? (father['children'] = branchArr) : '';
-        return !father[pid];
-      });
-    };
-    let treeData = toTreeData(this.ds, ids[0], ids[1]);
-    let offset = 30;
-    let offsetVal = offset;
-    const drawRow = (arr: any, parentNode: any) => {
-      arr.forEach((rowData: any) => {
-        let treeTblRowElement = document.createElement('div');
-        treeTblRowElement.classList.add('tr');
-        // @ts-ignore
-        treeTblRowElement.data = rowData;
-        let gridTemplateColumns: Array<any> = [];
-        if (this.selectable) {
-          let treeTblDiv = document.createElement('div');
-          treeTblDiv.style.display = 'flex';
-          treeTblDiv.style.justifyContent = 'center';
-          treeTblDiv.style.alignItems = 'center';
-          treeTblDiv.classList.add('td');
-          let checkbox = document.createElement('lit-checkbox');
-          checkbox.classList.add('row-checkbox');
-          checkbox.onchange = (e: any) => {
-            if (e.detail.checked) {
-              treeTblRowElement.setAttribute('checked', '');
-            } else {
-              treeTblRowElement.removeAttribute('checked');
-            }
-            const changeChildNode = (rowElement: any, checked: any) => {
-              let id = rowElement.getAttribute('id');
-              let pid = rowElement.getAttribute('pid');
-              this.shadowRoot!.querySelectorAll(`div[pid=${id}]`).forEach((element) => {
-                // @ts-ignore
-                element.querySelector('.row-checkbox')!.checked = checked;
-                if (checked) {
-                  element.setAttribute('checked', '');
-                } else {
-                  element.removeAttribute('checked');
-                }
-                changeChildNode(element, checked);
-              });
-            };
-            changeChildNode(treeTblRowElement, e.detail.checked);
-          };
-          this.getWheelStatus(treeTblDiv);
-          treeTblDiv.appendChild(checkbox);
-          treeTblRowElement.appendChild(treeTblDiv);
-        }
-        this.tableColumns!.forEach((treeTblColumn, index) => {
-          let dataIndex = treeTblColumn.getAttribute('data-index');
-          let treeTblEl;
-          if (index !== 0) {
-            gridTemplateColumns.push(treeTblColumn.getAttribute('width') || '1fr');
-            if (treeTblColumn.template) {
-              // @ts-ignore
-              let cloneNode = treeTblColumn.template.render(rowData).content.cloneNode(true);
-              treeTblEl = document.createElement('div');
-              treeTblEl.classList.add('td');
-              treeTblEl.style.wordBreak = 'break-all';
-              treeTblEl.style.justifyContent = treeTblColumn.getAttribute('align') || '';
-              if (treeTblColumn.hasAttribute('fixed')) {
-                this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
-              }
-              this.getWheelStatus(treeTblEl);
-              treeTblEl.append(cloneNode);
-            } else {
-              treeTblEl = document.createElement('div');
-              treeTblEl.style.justifyContent = treeTblColumn.getAttribute('align') || '';
-              treeTblEl.style.wordBreak = 'break-all';
-              treeTblEl.classList.add('td');
-              if (treeTblColumn.hasAttribute('fixed')) {
-                this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
-              }
-              // @ts-ignore
-              treeTblEl.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
-            }
-            this.getWheelStatus(treeTblEl);
-            treeTblRowElement.append(treeTblEl);
-          } else {
-            this.treeElement!.style.width = treeTblColumn.getAttribute('width') || '260px';
-            let treeElement = document.createElement('div');
-            treeElement.classList.add('tree-first-body');
-            if (treeTblColumn.template) {
-              // @ts-ignore
-              let firstCloneNode = treeTblColumn.template.render(rowData).content.cloneNode(true);
-              treeTblEl = document.createElement('div');
-              treeTblEl.classList.add('td');
-              treeTblEl.style.justifyContent = treeTblColumn.getAttribute('align') || '';
-              if (treeTblColumn.hasAttribute('fixed')) {
-                this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
-              }
-              this.getWheelStatus(treeTblEl);
-              treeTblEl.append(firstCloneNode);
-            } else {
-              treeTblEl = document.createElement('div');
-              treeTblEl.style.justifyContent = treeTblColumn.getAttribute('align') || '';
-              treeTblEl.classList.add('td');
-              if (treeTblColumn.hasAttribute('fixed')) {
-                this.fixed(treeTblEl, treeTblColumn.getAttribute('fixed') || '', '#ffffff');
-              }
-              this.getWheelStatus(treeTblEl);
-              // @ts-ignore
-              treeTblEl.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
-            }
-            if (rowData.children && rowData.children.length > 0) {
-              let treeTblIcon = document.createElement('lit-icon');
-              treeTblIcon.classList.add('tree-icon');
-              // @ts-ignore
-              treeTblIcon.name = 'minus-square';
-              treeElement.append(treeTblIcon);
-              treeElement.append(treeTblEl);
-              treeElement.style.paddingLeft = offsetVal - 30 + 'px';
-            } else {
-              treeElement.append(treeTblEl);
-              treeElement.style.paddingLeft = offsetVal + 'px';
-            }
-            this.treeElement!.append(treeElement);
-          }
-        });
-        if (this.selectable) {
-          treeTblRowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
-        } else {
-          treeTblRowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
-        }
-        treeTblRowElement.onclick = (e) => {
-          this.dispatchEvent(
-            new CustomEvent('row-click', {
-              detail: rowData,
-              composed: true,
-            })
-          );
-        };
-        treeTblRowElement.style.cursor = 'pointer';
-        parentNode.append(treeTblRowElement);
-        treeTblRowElement.setAttribute('id', rowData[ids[0]]);
-        treeTblRowElement.setAttribute('pid', rowData[ids[1]]);
-        treeTblRowElement.setAttribute('expend', '');
-        if (rowData.children && rowData.children.length > 0) {
-          offsetVal = offsetVal + offset;
-          drawRow(rowData.children, parentNode);
-          offsetVal = offsetVal - offset;
-        }
-      });
-    };
-    drawRow(treeData, this.tbodyElement);
   }
 
   getCheckRows() {
@@ -1299,7 +1112,6 @@ export class LitTable extends HTMLElement {
   createNewTreeTableElement(rowData: TableRowObject): any {
     let newTableElement = document.createElement('div');
     newTableElement.classList.add('tr');
-    let gridTemplateColumns: Array<any> = [];
     let treeTop = 0;
     if (this.treeElement!.children?.length > 0) {
       let transX = Number((this.treeElement?.lastChild as HTMLElement).style.transform.replace(/[^0-9]/gi, ''));
@@ -1309,15 +1121,16 @@ export class LitTable extends HTMLElement {
       let dataIndex = column.getAttribute('data-index') || '1';
       let td: any;
       if (index === 0) {
+        let text = this.formatName(dataIndex, rowData.data[dataIndex]);
         if (column.template) {
           td = column.template.render(rowData.data).content.cloneNode(true);
           td.template = column.template;
           td.title = rowData.data[dataIndex];
         } else {
           td = document.createElement('div');
-          td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
+          td.innerHTML = text;
           td.dataIndex = dataIndex;
-          td.title = rowData.data[dataIndex];
+          td.title = text;
         }
         if (rowData.data.children && rowData.data.children.length > 0 && !rowData.data.hasNext) {
           let btn = this.createExpandBtn(rowData);
@@ -1403,22 +1216,21 @@ export class LitTable extends HTMLElement {
         this.treeElement?.append(td);
         this.currentTreeDivList.push(td);
       } else {
-        gridTemplateColumns.push(column.getAttribute('width') || '1fr');
         td = document.createElement('div');
         td.classList.add('td');
         td.style.overflow = 'hidden';
         td.style.textOverflow = 'ellipsis';
         td.style.whiteSpace = 'nowrap';
-        td.title = rowData.data[dataIndex];
+        let text = this.formatName(dataIndex, rowData.data[dataIndex]);
+        td.title = text;
         td.dataIndex = dataIndex;
         td.style.justifyContent = column.getAttribute('align') || 'flex-start';
         if (column.template) {
           td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
           td.template = column.template;
         } else {
-          td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
+          td.innerHTML = text;
         }
-        this.getWheelStatus(td);
         newTableElement.append(td);
       }
     });
@@ -1427,7 +1239,7 @@ export class LitTable extends HTMLElement {
       lastChild.style.transform = `translateY(${treeTop}px)`;
     }
     (newTableElement as any).data = rowData.data;
-    newTableElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+    newTableElement.style.gridTemplateColumns = this.gridTemplateColumns.slice(1).join(' ');
     newTableElement.style.position = 'absolute';
     newTableElement.style.top = '0px';
     newTableElement.style.left = '0px';
@@ -1628,10 +1440,8 @@ export class LitTable extends HTMLElement {
   createNewTableElement(rowData: any): any {
     let newTableElement = document.createElement('div');
     newTableElement.classList.add('tr');
-    let gridTemplateColumns: Array<any> = [];
     this?.columns?.forEach((column: any) => {
       let dataIndex = column.getAttribute('data-index') || '1';
-      gridTemplateColumns.push(column.getAttribute('width') || '1fr');
       let td: any;
       td = document.createElement('div');
       td.classList.add('td');
@@ -1640,14 +1450,14 @@ export class LitTable extends HTMLElement {
       td.style.whiteSpace = 'nowrap';
       td.dataIndex = dataIndex;
       td.style.justifyContent = column.getAttribute('align') || 'flex-start';
-      td.title = rowData.data[dataIndex];
+      let text = this.formatName(dataIndex, rowData.data[dataIndex]);
+      td.title = text;
       if (column.template) {
         td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
         td.template = column.template;
       } else {
-        td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
+        td.innerHTML = text;
       }
-      this.getWheelStatus(td);
       newTableElement.append(td);
     });
     newTableElement.onclick = () => {
@@ -1661,7 +1471,7 @@ export class LitTable extends HTMLElement {
     }
     (newTableElement as any).data = rowData.data;
     newTableElement.style.cursor = 'pointer';
-    newTableElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+    newTableElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
     newTableElement.style.position = 'absolute';
     newTableElement.style.top = '0px';
     newTableElement.style.left = '0px';
@@ -1694,8 +1504,9 @@ export class LitTable extends HTMLElement {
             .content.cloneNode(true).innerHTML;
         } else {
           let dataIndex = this.columns![0].getAttribute('data-index') || '1';
-          firstElement.innerHTML = this.formatName(dataIndex, rowObject.data[dataIndex]);
-          firstElement.title = rowObject.data[dataIndex];
+          let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
+          firstElement.innerHTML = text;
+          firstElement.title = text;
         }
         if (rowObject.children && rowObject.children.length > 0 && !rowObject.data.hasNext) {
           let btn = this.createExpandBtn(rowObject);
@@ -1764,15 +1575,16 @@ export class LitTable extends HTMLElement {
         }
       }
       let dataIndex = this.columns![idx].getAttribute('data-index') || '1';
+      let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
       if ((this.columns![idx] as any).template) {
         (child as HTMLElement).innerHTML = '';
         (child as HTMLElement).appendChild(
           (this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true)
         );
-        (child as HTMLElement).title = rowObject.data[dataIndex];
+        (child as HTMLElement).title = text;
       } else {
-        (child as HTMLElement).innerHTML = this.formatName(dataIndex, rowObject.data[dataIndex]);
-        (child as HTMLElement).title = rowObject.data[dataIndex];
+        (child as HTMLElement).innerHTML = text;
+        (child as HTMLElement).title = text;
       }
     });
     if (element.style.display == 'none') {
@@ -2064,15 +1876,6 @@ export class LitTable extends HTMLElement {
       scriptText.style.color = '#a1a1a1';
     }
     divElement.title = rowData.data.symbolName;
-  }
-
-  getWheelStatus(element: any) {
-    element.addEventListener('wheel', (event: WheelEvent) => {
-      if (element.scrollWidth !== element.offsetWidth) {
-        event.preventDefault();
-      }
-      element.scrollLeft += event.deltaY;
-    });
   }
 }
 

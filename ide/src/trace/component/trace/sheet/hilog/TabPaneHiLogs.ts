@@ -44,7 +44,7 @@ export class TabPaneHiLogs extends BaseElement {
   private filterData: LogStruct[] = [];
   private visibleData: LogStruct[] = [];
   private optionLevel: string[] = ['D', 'I', 'W', 'E', 'F'];
-  private tableColumnHead: string[] = ['Timestamp', 'Level', 'Tag', 'Process name', 'Message'];
+  private tableColumnHead: string[] = ['Timestamp', 'Time', 'Level', 'Tag', 'Process name', 'Message'];
   private allowTag: Set<string> = new Set();
   private startDataIndex: number = 0;
   private endDataIndex: number = 0;
@@ -106,7 +106,8 @@ export class TabPaneHiLogs extends BaseElement {
             ${this.initTableCssStyle()}
         <div class="logs-title-content">
           <label id="log-title">Hilogs [0, 0] / 0</label>
-          <div class="level-content">
+          <div style="display: flex;flex-wrap: wrap;">
+            <div class="level-content">
             <label class="level-select-title">Log Level</label>
             <select id="level-filter">
               <option>Debug</option>
@@ -116,18 +117,21 @@ export class TabPaneHiLogs extends BaseElement {
               <option>Fatal</option>
             </select>
           </div>
-          <div style="display: flex;">
-            <div id="tagFilter" style='display: flex;width: auto; height: 100%;'></div>
-            <input type="text" id="tag-filter" class="filter-input" placeholder="Filter by tag...">
+            <div style="display: flex;">
+              <div id="tagFilter" style='display: flex;width: auto; height: 100%;flex-wrap: wrap;'></div>
+                 <input type="text" id="tag-filter" class="filter-input" placeholder="Filter by tag...">
+              </div>
+              <input type="text" id="process-filter" class="filter-input" placeholder="Search process name...">
+              <input type="text" id="search-filter" class="filter-input" placeholder="Search logs...">
+            </div>
           </div>
-          <input type="text" id="process-filter" class="filter-input" placeholder="Search process name...">
-          <input type="text" id="search-filter" class="filter-input" placeholder="Search logs...">
-        </div>
-        <div class="tbl-logs">
-          <div id="logs-data-content"></div>
-        </div>
+          <div class="tbl-logs">
+              <div id="logs-data-content"></div>
+            </div>
         <lit-table id="tb-hilogs" style="display: none;">
             <lit-table-column title="Timestamp" width="1fr" data-index="startTs" key="startTs">
+            </lit-table-column>
+            <lit-table-column title="Time" width="1fr" data-index="originTime" key="originTime">
             </lit-table-column>
             <lit-table-column title="Level" width="1fr" data-index="level" key="level">
             </lit-table-column>
@@ -328,6 +332,7 @@ export class TabPaneHiLogs extends BaseElement {
     if (this.visibleData) {
       this.visibleData.forEach((row) => {
         let trEL = document.createElement('tr');
+        let time = document.createElement('td');
         let timeStampEl = document.createElement('td');
         let levelEl = document.createElement('td');
         let tagEl = document.createElement('td');
@@ -337,6 +342,7 @@ export class TabPaneHiLogs extends BaseElement {
         if (colorIndex >= 0) {
           trEL.style.color = ColorUtils.getHilogColor(row.level!);
         }
+        time.textContent = `${row.originTime}`;
         timeStampEl.classList.add('time-td');
         timeStampEl.textContent = `${ns2Timestamp(row.startTs!)}`;
         levelEl.textContent = `${row.level}`;
@@ -359,6 +365,7 @@ export class TabPaneHiLogs extends BaseElement {
           this.spSystemTrace?.refreshCanvas(false);
         });
         trEL.appendChild(timeStampEl);
+        trEL.appendChild(time);
         trEL.appendChild(levelEl);
         trEL.appendChild(tagEl);
         trEL.appendChild(processNameEl);
@@ -391,18 +398,24 @@ export class TabPaneHiLogs extends BaseElement {
         }
         .logs-title-content {
           display: flex;
+          flex-wrap: wrap;
+          width: 100%;
           align-items: center;
           justify-content: space-between;
-          padding-bottom: 5px;
           border-bottom: 1px solid #D5D5D5;
+          padding: 10px 0px;
         }
         #log-title {
           flex-grow: 1;
         }
-        .level-content, .filter-input {
+        .filter-input {
           line-height: 16px;
           margin-right: 20px;
           padding: 3px 12px;
+          height: 16px;
+        }
+        .level-content {
+          margin-right: 20px;
         }
         input {
           background: #FFFFFF;
@@ -436,6 +449,8 @@ export class TabPaneHiLogs extends BaseElement {
           margin-right: 5px;
           border-radius: 10px;
           font-size: 14px;
+          height: 22px;
+          margin-bottom: 5px;
         }
         .tag {
           line-height: 14px;
@@ -443,7 +458,7 @@ export class TabPaneHiLogs extends BaseElement {
           color: #FFFFFF;
         }
         #level-filter {
-          padding: 2px 12px;
+          padding: 1px 12px;
           opacity: 0.6;
           font-size: 14px;
           line-height: 20px;
@@ -462,7 +477,7 @@ export class TabPaneHiLogs extends BaseElement {
         }
         tr {
           display: grid;
-          grid-template-columns: 15% 5% 15% 15% 50%;
+          grid-template-columns: 12% 12% 5% 15% 12% 44%;
           background-color: #FFFFFF;
           font-weight: 400;
           opacity: 0.9;

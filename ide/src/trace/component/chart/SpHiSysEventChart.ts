@@ -129,6 +129,7 @@ export class SpHiSysEventChart {
     this.energyTraceRow.rowType = TraceRow.ROW_TYPE_ENERGY;
     this.energyTraceRow.rowParentId = '';
     this.energyTraceRow.folder = true;
+    this.energyTraceRow.addTemplateTypes('HiSysEvent');
     this.energyTraceRow.name = 'Energy';
     this.energyTraceRow.style.height = '40px';
     this.energyTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;

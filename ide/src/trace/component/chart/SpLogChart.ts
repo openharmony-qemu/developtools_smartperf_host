@@ -19,6 +19,8 @@ import { queryLogData } from '../../database/SqlLite.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog.js';
 
+const ONE_DAY_NS = 86400000000000;
+
 export class SpLogChart {
   private trace: SpSystemTrace;
 
@@ -27,7 +29,8 @@ export class SpLogChart {
   }
 
   async init() {
-    let dataArray = await queryLogData();
+    let oneDayTime = (window as any).recordEndNS - ONE_DAY_NS;
+    let dataArray = await queryLogData(oneDayTime);
     if (dataArray.length === 0) {
       return;
     }

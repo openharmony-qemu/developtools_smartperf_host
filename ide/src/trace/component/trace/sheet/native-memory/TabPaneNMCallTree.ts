@@ -25,6 +25,7 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite.js';
 import { ParseExpression } from '../SheetUtils.js';
+import { NativeMemoryExpression } from '../../../../bean/NativeHook.js';
 
 @element('tabpane-nm-calltree')
 export class TabpaneNMCalltree extends BaseElement {
@@ -56,7 +57,7 @@ export class TabpaneNMCalltree extends BaseElement {
   private subTypeArr: number[] = [];
   private lastIsExpression = false;
   private currentNMCallTreeFilter: TabPaneFilter | undefined | null;
-  private libTree: Map<string, string[]> | null = null;
+  private expressionStruct: NativeMemoryExpression | null = null;
 
   set data(nmCallTreeParam: SelectionParam | any) {
     if (nmCallTreeParam == this.currentSelection) {
@@ -306,8 +307,8 @@ export class TabpaneNMCalltree extends BaseElement {
         (event.detail as any).callBack(true);
       }
       document.dispatchEvent(
-        new CustomEvent('triangle-flag', {
-          detail: { time: event.detail.tsArray, type: 'triangle' },
+        new CustomEvent('number_calibration', {
+          detail: { time: event.detail.tsArray, counts: event.detail.countArray },
         })
       );
     });
@@ -509,51 +510,58 @@ export class TabpaneNMCalltree extends BaseElement {
         this.filterResponseSelect = '';
       }
       if (
-        this.filterAllocationType != nmCallTreeData.firstSelect ||
-        this.filterNativeType != nmCallTreeData.secondSelect ||
-        this.filterResponseSelect != nmCallTreeData.thirdSelect
+        (this.isChartShow && nmCallTreeData.icon === 'tree') ||
+        (!this.isChartShow && nmCallTreeData.icon === 'block')
       ) {
-        this.filterAllocationType = nmCallTreeData.firstSelect || '0';
-        this.filterNativeType = nmCallTreeData.secondSelect || '0';
-        this.filterResponseSelect = nmCallTreeData.thirdSelect || "0'";
-        let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
-        if (this.responseTypes.length > thirdIndex) {
-          this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
-        }
-        this.searchValue = this.nmCallTreeFilter!.filterValue;
-        this.libTree = new ParseExpression(this.searchValue).parse();
-        this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-      } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
-        this.searchValue = this.nmCallTreeFilter!.filterValue;
-        this.libTree = new ParseExpression(this.searchValue).parse();
-        let nmArgs = [];
-        if (this.libTree) {
-          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-          this.lastIsExpression = true;
-          return;
-        } else {
-          if (this.lastIsExpression) {
-            this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-            this.lastIsExpression = false;
-            return;
-          }
-          nmArgs.push({
-            funcName: 'setSearchValue',
-            funcArgs: [this.searchValue],
-          });
-          nmArgs.push({
-            funcName: 'resetAllNode',
-            funcArgs: [],
-          });
-          this.lastIsExpression = false;
-        }
-        this.getDataByWorker(nmArgs, (result: any[]) => {
-          this.setLTableData(result);
-          this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-          this.switchFlameChart(nmCallTreeData);
-        });
-      } else {
         this.switchFlameChart(nmCallTreeData);
+      } else {
+        if (
+          this.filterAllocationType != nmCallTreeData.firstSelect ||
+          this.filterNativeType != nmCallTreeData.secondSelect ||
+          this.filterResponseSelect != nmCallTreeData.thirdSelect
+        ) {
+          this.filterAllocationType = nmCallTreeData.firstSelect || '0';
+          this.filterNativeType = nmCallTreeData.secondSelect || '0';
+          this.filterResponseSelect = nmCallTreeData.thirdSelect || "0'";
+          let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
+          if (this.responseTypes.length > thirdIndex) {
+            this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
+          }
+          this.searchValue = this.nmCallTreeFilter!.filterValue;
+          this.expressionStruct = new ParseExpression(this.searchValue).parse();
+          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+        } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
+          this.searchValue = this.nmCallTreeFilter!.filterValue;
+          this.expressionStruct = new ParseExpression(this.searchValue).parse();
+          let nmArgs = [];
+          if (this.expressionStruct) {
+            this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+            this.lastIsExpression = true;
+            return;
+          } else {
+            if (this.lastIsExpression) {
+              this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+              this.lastIsExpression = false;
+              return;
+            }
+            nmArgs.push({
+              funcName: 'setSearchValue',
+              funcArgs: [this.searchValue],
+            });
+            nmArgs.push({
+              funcName: 'resetAllNode',
+              funcArgs: [],
+            });
+            this.lastIsExpression = false;
+          }
+          this.getDataByWorker(nmArgs, (result: any[]) => {
+            this.setLTableData(result);
+            this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+            this.switchFlameChart(nmCallTreeData);
+          });
+        } else {
+          this.switchFlameChart(nmCallTreeData);
+        }
       }
     });
     this.nmCallTreeTbl!.addEventListener('column-click', (evt) => {
@@ -635,10 +643,10 @@ export class TabpaneNMCalltree extends BaseElement {
     let groupArgs = new Map<string, any>();
     groupArgs.set('filterAllocType', this.filterAllocationType);
     groupArgs.set('filterEventType', this.filterNativeType);
-    if (this.libTree) {
-      groupArgs.set('filterExpression', this.libTree);
+    if (this.expressionStruct) {
+      groupArgs.set('filterExpression', this.expressionStruct);
       groupArgs.set('filterResponseType', -1);
-      this.currentNMCallTreeFilter!.thirdSelect = '0';
+      this.currentNMCallTreeFilter!.thirdSelect = this.currentSelection!.nativeMemoryStatistic.length > 0 ? '' : '0';
     } else {
       groupArgs.set('filterResponseType', this.filterResponseType);
     }
@@ -657,7 +665,7 @@ export class TabpaneNMCalltree extends BaseElement {
       'nativeHookType',
       this.currentSelection!.nativeMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'
     );
-    if (this.lastIsExpression && !this.libTree) {
+    if (this.lastIsExpression && !this.expressionStruct) {
       nmCallTreeArgs.push({
         funcName: 'setSearchValue',
         funcArgs: [this.searchValue],
@@ -831,7 +839,7 @@ export class TabpaneNMCalltree extends BaseElement {
         <div id="left_table" style="width: 65%">
             <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
-                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start" isExpand>
+                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start"retract>
                 </lit-table-column>
                 <lit-table-column class="nm-call-tree-column" width="1fr" title="Size" data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
                 </lit-table-column>

@@ -223,8 +223,8 @@ export class TabPaneCallTree extends BaseElement {
       // @ts-ignore
       let data = evt.detail.data as MerageBean;
       document.dispatchEvent(
-        new CustomEvent('triangle-flag', {
-          detail: { time: data.tsArray, type: 'triangle' },
+        new CustomEvent('number_calibration', {
+          detail: { time: data.tsArray, durations: data.durArray},
         })
       );
       this.setRightTableData(data);
@@ -457,7 +457,9 @@ export class TabPaneCallTree extends BaseElement {
       this.isChartShow = true;
       this.callTreeFilter!.disabledMining = true;
       showButtonMenu(this.callTreeFilter, this.needShowMenu);
-      if (!data) this.frameChart!.data = this.callTreeDataSource;
+      if (!data){
+        this.frameChart!.data = this.callTreeDataSource;
+      }
       this.frameChart?.calculateChartData();
     } else if (data.icon === 'tree') {
       callTreePageChart?.setAttribute('class', '');
@@ -603,7 +605,7 @@ export class TabPaneCallTree extends BaseElement {
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
             <lit-table id="tb-calltree" style="height: auto" tree>
-                <lit-table-column class="call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start" isExpand></lit-table-column>
+                <lit-table-column class="call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start"retract></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>

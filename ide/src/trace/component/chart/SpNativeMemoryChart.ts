@@ -65,6 +65,7 @@ export class SpNativeMemoryChart {
     nativeRow.style.height = '40px';
     nativeRow.rowParentId = '';
     nativeRow.folder = true;
+    nativeRow.addTemplateTypes('NativeMemory');
     nativeRow.name = `Native Memory` + process;
     nativeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     nativeRow.selectChangeHandler = this.trace.selectChangeHandler;

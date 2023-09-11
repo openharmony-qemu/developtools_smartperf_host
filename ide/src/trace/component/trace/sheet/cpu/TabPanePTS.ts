@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { procedurePool } from '../../../../database/Procedure.js';
@@ -48,13 +48,39 @@ export class TabPanePTS extends BaseElement {
     procedurePool.submitWithName(
       'logic1',
       'spt-getPTS',
-      { leftNs: ptsLeftNs, rightNs: ptsRightNs, cpus: cpus},
+      { leftNs: ptsLeftNs, rightNs: ptsRightNs, cpus: cpus },
       undefined,
       (res: Array<SliceGroup>) => {
         this.ptsTbl!.loading = false;
         this.ptsTbl!.recycleDataSource = res;
+        this.theadClick(res);
       }
     );
+  }
+  private theadClick(data: Array<SliceGroup>) {
+    let labels = this.ptsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    if (labels) {
+      for (let i = 0; i < labels.length; i++) {
+        let label = labels[i].innerHTML;
+        labels[i].addEventListener('click', (e) => {
+          if (label.includes('Process') && i === 0) {
+            this.ptsTbl!.setStatus(data, false);
+            this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('Thread') && i === 1) {
+            for (let item of data) {
+              item.status = true;
+              if (item.children != undefined && item.children.length > 0) {
+                this.ptsTbl!.setStatus(item.children, false);
+              }
+            }
+            this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('State') && i === 2) {
+            this.ptsTbl!.setStatus(data, true);
+            this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+          }
+        });
+      }
+    }
   }
 
   connectedCallback() {
@@ -71,7 +97,7 @@ export class TabPanePTS extends BaseElement {
         </style>
         <label id="pts-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="pts-tbl" style="height: auto" tree>
-            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%" isExpand>
+            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%"retract>
             </lit-table-column>
             <lit-table-column class="pts-column" title="Count" data-index="count" key="count" align="flex-start" width="1fr">
             </lit-table-column>

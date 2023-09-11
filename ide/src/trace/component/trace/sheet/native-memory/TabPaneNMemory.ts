@@ -254,7 +254,7 @@ export class TabPaneNMemory extends BaseElement {
       this.setRightTableData(data);
       document.dispatchEvent(
         new CustomEvent('triangle-flag', {
-          detail: { time: [data.startTs], type: 'triangle' },
+          detail: { time: [data.startTs], type: 'triangle'},
         })
       );
     });

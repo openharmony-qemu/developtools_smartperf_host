@@ -21,7 +21,6 @@ import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElem
 import { TraceRow } from '../base/TraceRow.js';
 import { SpApplication } from '../../../SpApplication.js';
 import { Utils } from '../base/Utils.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
 
 export enum StType {
   TEMP, //临时的
@@ -94,6 +93,8 @@ export class SportRuler extends Graph {
   };
   private timerShaftEL: TimerShaftElement | undefined | null;
   private timeArray: Array<number> = [];
+  private countArray: Array<number> = [];
+  private durArray: Array<number> = [];
   constructor(
     timerShaftEL: TimerShaftElement,
     frame: Rect,
@@ -117,8 +118,16 @@ export class SportRuler extends Graph {
     this.draw();
   }
 
-  set time(timeArray: Array<number>) {
+  set times(timeArray: Array<number>) {
     this.timeArray = timeArray;
+  }
+
+  set counts(countArray: Array<number>) {
+    this.countArray = countArray;
+  }
+
+  set durations(durArray: Array<number>) {
+    this.durArray = durArray;
   }
 
   modifyFlagList(flag: Flag | null | undefined) {
@@ -250,20 +259,42 @@ export class SportRuler extends Graph {
           : (endNS = TraceRow.rangeSelectObject!.endNS!);
         // 每一格的时间
         let sectionTime = (endNS - startNS) / section;
-        let countArr = new Uint16Array(section);
+        let countArr = new Uint32Array(section);
         let count: number = 0; //某段时间的调用栈数量
-        // this.context2D.beginPath();
+        const useIndex : number[] = [];
+        const isEbpf = this.durArray && this.durArray.length > 0; 
         for (let i = 1; i <= section; i++) {
           count = 0;
           for (let j = 0; j < this.timeArray.length; j++) {
+            if (isEbpf && useIndex.includes(j)){
+              continue;
+            }
+            const itemTime = this.timeArray[j];
+            let inRange = false;
+            // ebpf需要考虑dur
+            if (this.durArray && this.durArray.length > 0) {
+              const dur = this.durArray[j];
+              inRange =
+                itemTime + dur >= startNS + sectionTime * (i - 1) &&
+                itemTime < startNS + sectionTime * i &&
+                itemTime + dur >= this.range.startNS  &&
+                itemTime < this.range.endNS;
+            } else {
+              inRange =
+                itemTime >= startNS + sectionTime * (i - 1) &&
+                itemTime < startNS + sectionTime * i &&
+                itemTime >= this.range.startNS &&
+                itemTime < this.range.endNS;
+            }
             // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
-            if (
-              this.timeArray[j] >= startNS + sectionTime * (i - 1) &&
-              this.timeArray[j] < startNS + sectionTime * i &&
-              this.timeArray[j] > this.range.startNS &&
-              this.timeArray[j] < this.range.endNS
-            ) {
-              count++;
+            if (inRange) {
+              // nm统计模式则统计每个时间的count
+              if (this.countArray && this.countArray[j] > 0) {
+                count += this.countArray[j];
+              } else {
+                count++;
+              }
+              useIndex.push(j);
               countArr[i - 1] = count;
             } else {
               // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
@@ -275,7 +306,6 @@ export class SportRuler extends Graph {
             this.context2D.moveTo(x, this.frame.y + 22);
             this.context2D.lineTo(x, this.frame.y + 22 + 5);
           }
-          //   this.context2D.font = 10 + 'px sans-serif';
           // 每一格的数量的数字宽度
           let countTextWidth = this.context2D.measureText(String(countArr[i - 1])).width;
           // 文本的开始位置 = 框选的开始位置 + 格数 + (一格的宽度 - 文本的宽度) / 2
@@ -310,9 +340,16 @@ export class SportRuler extends Graph {
             this.flagList[i].type == '' ? this.flagList.splice(triangle, 1) : '';
           }
           this.flagList.forEach((it) => (it.selected = false));
+          this.flagList[i].selected = true;
         } else {
-          this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
-          this.flagList.forEach((it) => (it.selected = false));
+          if (triangle == -1) {
+            this.flagList.forEach((it) => (it.selected = false));
+            this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
+          } else {
+            this.flagList.forEach((it) => (it.selected = false));
+            this.flagList[triangle].time = time;
+            this.flagList[triangle].selected = true;
+          }
         }
       } else if (type == 'square') {
         if (i != -1) {

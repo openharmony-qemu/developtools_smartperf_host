@@ -56,6 +56,8 @@ export class ChartStruct extends BaseStruct {
   isChartSelect: boolean = false; // 是否为点选的调用链
   isChartSelectParent: boolean = false; // 用来显示灰色
   tsArray: Array<number> = [];
+  countArray: Array<number> = [];
+  durArray: Array<number> = [];
 }
 
 export enum ChartMode {

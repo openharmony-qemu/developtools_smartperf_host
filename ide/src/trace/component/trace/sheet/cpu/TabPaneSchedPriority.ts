@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { procedurePool } from '../../../../database/Procedure.js';
@@ -27,6 +27,7 @@ export class TabPaneSchedPriority extends BaseElement {
   private priorityTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
   private selectionParam: SelectionParam | null | undefined;
+  private strValueMap: Map<number, string> = new Map<number, string>();
 
   set data(sptValue: SelectionParam) {
     if (sptValue == this.selectionParam) {
@@ -53,96 +54,124 @@ export class TabPaneSchedPriority extends BaseElement {
   private async queryDataByDB(sptParam: SelectionParam | any): Promise<void> {
     this.priorityTbl!.loading = true;
     const resultData: Array<Priority> = [];
-    const strValueMap: Map<number, string> = new Map<number, string>();
-    await queryThreadStateArgsByName('next_info').then((value) => {
-      for (const item of value) {
-        strValueMap.set(item.argset, item.strValue);
-      }
-    });
-    procedurePool.submitWithName('logic1', 'spt-getCpuPriority', {}, undefined, async (res: Array<any>) => {
-      for (const item of res) {
-        if (item.cpu === null || !(sptParam.cpus.includes(item.cpu))) {
-          continue;
+    if (this.strValueMap.size === 0){
+      await queryThreadStateArgsByName('next_info').then((value) => {
+        for (const item of value) {
+          this.strValueMap.set(item.argset, item.strValue);
         }
-        if (!(item.endTs < sptParam.leftNs || item.startTs > sptParam.rightNs)) {
+      });
+    }
+   
+    const filterList = ['0', '0x0']; //next_info第2字段不为0 || next_info第3字段不为0
+
+    // 通过priority与next_info结合判断优先级等级
+    function setPriority(item: Priority, strArg: string[]) {
+      if (item.priority >= 0 && item.priority <= 88) {
+        item.priorityType = 'RT';
+      } else if (item.priority >= 89 && item.priority <= 99) {
+        item.priorityType = 'VIP2.0';
+      } else if (
+        item.priority >= 100 &&
+        strArg.length > 1 &&
+        (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
+      ) {
+        item.priorityType = 'STATIC_VIP';
+      } else {
+        item.priorityType = 'CFS';
+      }
+    }
+    // thread_state表中runnable数据的Map
+    const runnableMap = new Map<string, Priority>();
+    procedurePool.submitWithName(
+      'logic1',
+      'spt-getCpuPriorityByTime',
+      { leftNs: sptParam.leftNs, rightNs: sptParam.rightNs },
+      undefined,
+      async (res: Array<any>) => {
+        for (const item of res) {
+          if (['R', 'R+'].includes(item.state)) {
+            runnableMap.set(`${item.itid}_${item.endTs}`, item);
+          }
+          if (item.cpu === null || !sptParam.cpus.includes(item.cpu)) {
+            continue;
+          }
+
           let strArg: string[] = [];
-          const args = strValueMap.get(item.argSetID);
+          const args = this.strValueMap.get(item.argSetID);
           if (args) {
             strArg = args!.split(',');
           }
-          const filterList = ['0', '0x0'];
+
           const slice = Utils.SCHED_SLICE_MAP.get(`${item.itId}-${item.startTs}`);
           if (slice) {
-            item.priority = slice!.priority;
-            item.endState = slice.endState;
-            if (item.priority >= 0 && item.priority <= 88) {
-              item.priorityType = 'RT';
-            } else if (item.priority >= 89 && item.priority <= 99) {
-              item.priorityType = 'VIP2.0';
-            } else if (
-              item.priority >= 100 &&
-              strArg.length > 1 &&
-              (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
-            ) {
-              item.priorityType = 'STATIC_VIP';
-            } else {
-              item.priorityType = 'CFS';
+            const runningPriority = new Priority();
+            runningPriority.priority = slice.priority;
+            runningPriority.state = 'Running';
+            runningPriority.dur = item.dur;
+            setPriority(runningPriority, strArg);
+            resultData.push(runningPriority);
+
+            const runnableItem = runnableMap.get(`${item.itid}_${item.startTs}`);
+            if (runnableItem) {
+              const runnablePriority = new Priority();
+              runnablePriority.priority = slice.priority;
+              runnablePriority.state = 'Runnable';
+              runnablePriority.dur = runnableItem.dur;
+              setPriority(runnablePriority, strArg);
+              resultData.push(runnablePriority);
             }
-            resultData.push(item);
           }
-        } else {
-          continue;
         }
+        this.getDataByPriority(resultData);
       }
-      this.getDataByPriority(resultData);
-    });
+    );
   }
 
   private getDataByPriority(source: Array<Priority>): void {
     const priorityMap: Map<string, Priority> = new Map<string, Priority>();
     const stateMap: Map<string, Priority> = new Map<string, Priority>();
-    source.map((d) => {
-      if (priorityMap.has(d.priorityType + '')) {
-        const priorityMapObj = priorityMap.get(d.priorityType + '');
+    source.map((priorityItem) => {
+      if (priorityMap.has(priorityItem.priorityType + '')) {
+        const priorityMapObj = priorityMap.get(priorityItem.priorityType + '');
         priorityMapObj!.count++;
-        priorityMapObj!.wallDuration += d.dur;
+        priorityMapObj!.wallDuration += priorityItem.dur;
         priorityMapObj!.avgDuration = (priorityMapObj!.wallDuration / priorityMapObj!.count).toFixed(2);
-        if (d.dur > priorityMapObj!.maxDuration) {
-          priorityMapObj!.maxDuration = d.dur;
+        if (priorityItem.dur > priorityMapObj!.maxDuration) {
+          priorityMapObj!.maxDuration = priorityItem.dur;
         }
-        if (d.dur < priorityMapObj!.minDuration) {
-          priorityMapObj!.minDuration = d.dur;
+        if (priorityItem.dur < priorityMapObj!.minDuration) {
+          priorityMapObj!.minDuration = priorityItem.dur;
         }
       } else {
         const stateMapObj = new Priority();
-        stateMapObj.title = d.priorityType;
-        stateMapObj.minDuration = d.dur;
-        stateMapObj.maxDuration = d.dur;
+        stateMapObj.title = priorityItem.priorityType;
+        stateMapObj.minDuration = priorityItem.dur;
+        stateMapObj.maxDuration = priorityItem.dur;
         stateMapObj.count = 1;
-        stateMapObj.avgDuration = d.dur + '';
-        stateMapObj.wallDuration = d.dur;
-        priorityMap.set(d.priorityType + '', stateMapObj);
+        stateMapObj.avgDuration = priorityItem.dur + '';
+        stateMapObj.wallDuration = priorityItem.dur;
+        priorityMap.set(priorityItem.priorityType + '', stateMapObj);
       }
-      if (stateMap.has(d.priorityType + '_' + d.endState)) {
-        const ptsPtMapObj = stateMap.get(d.priorityType + '_' + d.endState);
+      if (stateMap.has(priorityItem.priorityType + '_' + priorityItem.state)) {
+        const ptsPtMapObj = stateMap.get(priorityItem.priorityType + '_' + priorityItem.state);
         ptsPtMapObj!.count++;
-        ptsPtMapObj!.wallDuration += d.dur;
+        ptsPtMapObj!.wallDuration += priorityItem.dur;
         ptsPtMapObj!.avgDuration = (ptsPtMapObj!.wallDuration / ptsPtMapObj!.count).toFixed(2);
-        if (d.dur > ptsPtMapObj!.maxDuration) {
-          ptsPtMapObj!.maxDuration = d.dur;
+        if (priorityItem.dur > ptsPtMapObj!.maxDuration) {
+          ptsPtMapObj!.maxDuration = priorityItem.dur;
         }
-        if (d.dur < ptsPtMapObj!.minDuration) {
-          ptsPtMapObj!.minDuration = d.dur;
+        if (priorityItem.dur < ptsPtMapObj!.minDuration) {
+          ptsPtMapObj!.minDuration = priorityItem.dur;
         }
       } else {
         const ptsPtMapObj = new Priority();
-        ptsPtMapObj.title = Utils.getEndState(d.endState);
-        ptsPtMapObj.minDuration = d.dur;
-        ptsPtMapObj.maxDuration = d.dur;
+        ptsPtMapObj.title = priorityItem.state;
+        ptsPtMapObj.minDuration = priorityItem.dur;
+        ptsPtMapObj.maxDuration = priorityItem.dur;
         ptsPtMapObj.count = 1;
-        ptsPtMapObj.avgDuration = d.dur + '';
-        ptsPtMapObj.wallDuration = d.dur;
-        stateMap.set(d.priorityType + '_' + d.endState, ptsPtMapObj);
+        ptsPtMapObj.avgDuration = priorityItem.dur + '';
+        ptsPtMapObj.wallDuration = priorityItem.dur;
+        stateMap.set(priorityItem.priorityType + '_' + priorityItem.state, ptsPtMapObj);
       }
     });
 
@@ -160,6 +189,25 @@ export class TabPaneSchedPriority extends BaseElement {
     }
     this.priorityTbl!.loading = false;
     this.priorityTbl!.recycleDataSource = priorityArr;
+    this.theadClick(priorityArr);
+  }
+
+  private theadClick(data: Array<Priority>) {
+    let labels = this.priorityTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    if (labels) {
+      for (let i = 0; i < labels.length; i++) {
+        let label = labels[i].innerHTML;
+        labels[i].addEventListener('click', (e) => {
+          if (label.includes('Priority') && i === 0) {
+            this.priorityTbl!.setStatus(data, false);
+            this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('State') && i === 1) {
+            this.priorityTbl!.setStatus(data, true);
+            this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+          }
+        });
+      }
+    }
   }
 
   public initHtml(): string {
@@ -173,7 +221,7 @@ export class TabPaneSchedPriority extends BaseElement {
         </style>
         <label id="priority-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="priority-tbl" style="height: auto" tree>
-            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State" isExpand>
+            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State" retract>
             </lit-table-column>
             <lit-table-column width="1fr" data-index="count" key="count" align="flex-start" title="Count">
             </lit-table-column>

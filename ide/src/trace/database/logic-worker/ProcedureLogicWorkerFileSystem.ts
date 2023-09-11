@@ -590,15 +590,18 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
 
   queryIOSamples(selectionParam: any) {
     let sql = '';
-    if (selectionParam.diskIOipids.length > 0) {
-      sql += `and (s.ipid in (${selectionParam.diskIOipids.join(',')}) and s.type in (5,6)) `;
-    }
+    const types : number[] = [];
     if (selectionParam.diskIOReadIds.length > 0) {
-      sql += `or (s.ipid in (${selectionParam.diskIOReadIds.join(',')}) and s.type in (1,3)) `;
+      types.push(...[1,3]);
     }
     if (selectionParam.diskIOWriteIds.length > 0) {
-      sql += `or (s.ipid in (${selectionParam.diskIOWriteIds.join(',')}) and s.type in (2,4)) `;
+      types.push(...[2,4])
     }
+    if (selectionParam.diskIOipids.length > 0) {
+      types.push(...[5,6])
+      sql += `and (s.ipid in (${selectionParam.diskIOipids.join(',')}) and s.type in (${types.join(',')})) `;
+    }
+    
     this.queryData(
       this.currentEventId,
       'fileSystem-queryIoSamples',
@@ -659,7 +662,6 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
             root;
           this.currentTreeList.push(root);
         }
-        root.tsArray.push(sample.ts);
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
         this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
       }
@@ -677,7 +679,8 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         fileMerageBean.dur = merageData.dur;
         fileMerageBean.count = merageData.count;
         fileMerageBean.total = totalCount;
-        fileMerageBean.tsArray = merageData.tsArray;
+        fileMerageBean.tsArray = [...merageData.tsArray];
+        fileMerageBean.durArray = [...merageData.durArray]
         rootMerageMap[merageData.pid] = fileMerageBean;
       } else {
         rootMerageMap[merageData.pid].children.push(merageData);
@@ -685,7 +688,12 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         rootMerageMap[merageData.pid].dur += merageData.dur;
         rootMerageMap[merageData.pid].count += merageData.count;
         rootMerageMap[merageData.pid].total = totalCount;
-        rootMerageMap[merageData.pid].tsArray.push(...merageData.tsArray);
+        for (const ts of merageData.tsArray) {
+          rootMerageMap[merageData.pid].tsArray.push(ts);
+        }
+        for (const dur of merageData.durArray) {
+          rootMerageMap[merageData.pid].durArray.push(dur);
+        }
       }
       merageData.parentNode = rootMerageMap[merageData.pid]; //子节点添加父节点的引用
     });
@@ -765,7 +773,6 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    node!.tsArray.push(sample.ts);
     if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
 
@@ -916,6 +923,8 @@ export class FileMerageBean extends MerageBean {
     }
     currentNode.dur += sample.dur;
     currentNode.count++;
+    currentNode.tsArray.push(sample.ts);
+    currentNode.durArray.push(sample.dur);
   }
 }
 

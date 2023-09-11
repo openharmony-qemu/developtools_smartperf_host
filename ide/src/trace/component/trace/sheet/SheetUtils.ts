@@ -14,6 +14,7 @@
  */
 
 import { LitTable } from '../../../../base-ui/table/lit-table.js';
+import { NativeMemoryExpression } from '../../../bean/NativeHook.js';
 
 export function resizeObserver(
   parentEl: HTMLElement,
@@ -106,7 +107,9 @@ export class CompareStruct {
 export class ParseExpression {
   private expression: string; //输入的表达式
   private libTreeMap: Map<string, string[]> = new Map<string, string[]>();
+  private expressionStruct: NativeMemoryExpression;
   constructor(expression: string) {
+    this.expressionStruct = new NativeMemoryExpression();
     this.expression = expression.trim();
   }
 
@@ -114,7 +117,7 @@ export class ParseExpression {
    * 解析用户输入的表达式
    * @returns string：sql/ null: 非法表达式
    */
-  public parse(): Map<string, string[]> | null {
+  public parse(): NativeMemoryExpression | null {
     // 表达式必须以@开头
     if (!this.expression.startsWith('@')) {
       return null;
@@ -136,7 +139,7 @@ export class ParseExpression {
       this.paseSingleExpression(expression, include);
       include = false;
     }
-    return this.libTreeMap;
+    return this.expressionStruct;
   }
 
   private paseSingleExpression(expression: string, includes: boolean): void {
@@ -156,9 +159,9 @@ export class ParseExpression {
             continue;
           }
           if (includes) {
-            this.libTreeMap.set(`+${path}`, items);
+            this.expressionStruct.includeLib.set(`${path}`, items);
           } else {
-            this.libTreeMap.set(`-${path}`, items);
+            this.expressionStruct.abandonLib.set(`${path}`, items);
           }
         }
       }

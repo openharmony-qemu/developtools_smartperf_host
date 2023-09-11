@@ -77,6 +77,7 @@ export class SpFileSystemChart {
     fsFolder.style.height = '40px';
     fsFolder.folder = true;
     fsFolder.name = `EBPF`; /* & I/O Latency */
+    fsFolder.addTemplateTypes('HiEBpf');
     fsFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     fsFolder.selectChangeHandler = this.trace.selectChangeHandler;
     fsFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
