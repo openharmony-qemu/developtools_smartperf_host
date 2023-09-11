@@ -18,8 +18,6 @@ import './LitMainMenuItem.js';
 import './LitMainMenuGroup.js';
 import { LitMainMenuGroup } from './LitMainMenuGroup.js';
 import { LitMainMenuItem } from './LitMainMenuItem.js';
-import { Theme } from '../../trace/component/trace/base/CustomThemeColor.js';
-let backgroundColor = window.localStorage.getItem('Theme') === Theme.DARK ? '#262f3c' : '#fff';
 
 @element('lit-main-menu')
 export class LitMainMenu extends BaseElement {
@@ -38,6 +36,11 @@ export class LitMainMenu extends BaseElement {
     this._menus = value;
     this.shadowRoot?.querySelectorAll('lit-main-menu-group').forEach((a) => a.remove());
     let menuBody = this.shadowRoot?.querySelector('.menu-body');
+    if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') == 'dark') {
+      this.style.backgroundColor = '#262f3c';
+    } else {
+      this.style.backgroundColor = '#fff';
+    }
     value?.forEach((it) => {
       let group = new LitMainMenuGroup();
       group.setAttribute('title', it.title || '');
@@ -47,11 +50,22 @@ export class LitMainMenu extends BaseElement {
       } else {
         group.removeAttribute('collapsed');
       }
+      let groupName = group!.shadowRoot!.querySelector('.group-name') as LitMainMenuGroup;
+      let groupDescribe = group!.shadowRoot!.querySelector('.group-describe') as LitMainMenuGroup;
       menuBody?.appendChild(group);
       it.children?.forEach((item: any) => {
         let th = new LitMainMenuItem();
         th.setAttribute('icon', item.icon || '');
         th.setAttribute('title', item.title || '');
+        if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
+          groupName.style.color = 'white';
+          groupDescribe.style.color = 'white';
+          th!.style.color = 'white';
+        } else {
+          groupName.style.color = 'black';
+          groupDescribe.style.color = 'black';
+          th!.style.color = 'black';
+        }
         if (item.fileChoose) {
           th.setAttribute('file', '');
           th.addEventListener('file-change', (e) => {
@@ -95,7 +109,7 @@ export class LitMainMenu extends BaseElement {
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background-color: ${backgroundColor};
+            background-color: #fff;
         }
         .menu-body ::-webkit-scrollbar-thumb
         {

@@ -437,6 +437,7 @@ export class SpApplication extends BaseElement {
     let sidebarButton: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button');
     let chartFilter = this.shadowRoot?.querySelector('.chart-filter') as TraceRowConfig;
     let customColor = this.shadowRoot?.querySelector('.custom-color') as CustomThemeColor;
+    mainMenu!.setAttribute('main_menu', '1');
     chartFilter!.setAttribute('mode', '');
     customColor!.setAttribute('mode', '');
     let childNodes = [
