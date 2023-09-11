@@ -435,7 +435,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    node!.tsArray.push(...sample.ts.split(',').map(Number));
     if (node! && !isEnd) this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
 

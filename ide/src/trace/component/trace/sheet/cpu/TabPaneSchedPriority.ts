@@ -59,43 +59,60 @@ export class TabPaneSchedPriority extends BaseElement {
         strValueMap.set(item.argset, item.strValue);
       }
     });
-    procedurePool.submitWithName('logic1', 'spt-getCpuPriority', {}, undefined, async (res: Array<any>) => {
-      for (const item of res) {
-        if (item.cpu === null || !(sptParam.cpus.includes(item.cpu))) {
-          continue;
-        }
-        if (!(item.endTs < sptParam.leftNs || item.startTs > sptParam.rightNs)) {
+    const filterList = ['0', '0x0'];
+    function setPriority(item: any, strArg: string[]) {
+      if (item.priority >= 0 && item.priority <= 88) {
+        item.priorityType = 'RT';
+      } else if (item.priority >= 89 && item.priority <= 99) {
+        item.priorityType = 'VIP2.0';
+      } else if (
+        item.priority >= 100 &&
+        strArg.length > 1 &&
+        (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
+      ) {
+        item.priorityType = 'STATIC_VIP';
+      } else {
+        item.priorityType = 'CFS';
+      }
+    }
+    const runnableMap = new Map<string, Priority>();
+    procedurePool.submitWithName(
+      'logic1',
+      'spt-getCpuPriorityByTime',
+      { leftNs: sptParam.leftNs, rightNs: sptParam.rightNs },
+      undefined,
+      async (res: Array<any>) => {
+        for (const item of res) {
+          if (['R', 'R+'].includes(item.state)) {
+            runnableMap.set(`${item.itid}_${item.endTs}`, item);
+          }
+          if (item.cpu === null || !sptParam.cpus.includes(item.cpu)) {
+            continue;
+          }
           let strArg: string[] = [];
           const args = strValueMap.get(item.argSetID);
           if (args) {
             strArg = args!.split(',');
           }
-          const filterList = ['0', '0x0'];
+
           const slice = Utils.SCHED_SLICE_MAP.get(`${item.itId}-${item.startTs}`);
           if (slice) {
             item.priority = slice!.priority;
-            item.endState = slice.endState;
-            if (item.priority >= 0 && item.priority <= 88) {
-              item.priorityType = 'RT';
-            } else if (item.priority >= 89 && item.priority <= 99) {
-              item.priorityType = 'VIP2.0';
-            } else if (
-              item.priority >= 100 &&
-              strArg.length > 1 &&
-              (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
-            ) {
-              item.priorityType = 'STATIC_VIP';
-            } else {
-              item.priorityType = 'CFS';
-            }
+            item.state = 'Running';
+            setPriority(item, strArg);
+            const runnableItem = runnableMap.get(`${item.itid}_${item.startTs}`);
             resultData.push(item);
+            if (runnableItem) {
+              runnableItem.priority = slice.priority;
+              runnableItem.state = 'Runnable';
+              setPriority(runnableItem, strArg);
+              resultData.push(runnableItem);
+            }
           }
-        } else {
-          continue;
         }
+        this.getDataByPriority(resultData);
       }
-      this.getDataByPriority(resultData);
-    });
+    );
   }
 
   private getDataByPriority(source: Array<Priority>): void {
@@ -123,8 +140,8 @@ export class TabPaneSchedPriority extends BaseElement {
         stateMapObj.wallDuration = d.dur;
         priorityMap.set(d.priorityType + '', stateMapObj);
       }
-      if (stateMap.has(d.priorityType + '_' + d.endState)) {
-        const ptsPtMapObj = stateMap.get(d.priorityType + '_' + d.endState);
+      if (stateMap.has(d.priorityType + '_' + d.state)) {
+        const ptsPtMapObj = stateMap.get(d.priorityType + '_' + d.state);
         ptsPtMapObj!.count++;
         ptsPtMapObj!.wallDuration += d.dur;
         ptsPtMapObj!.avgDuration = (ptsPtMapObj!.wallDuration / ptsPtMapObj!.count).toFixed(2);
@@ -136,13 +153,13 @@ export class TabPaneSchedPriority extends BaseElement {
         }
       } else {
         const ptsPtMapObj = new Priority();
-        ptsPtMapObj.title = Utils.getEndState(d.endState);
+        ptsPtMapObj.title = d.state;
         ptsPtMapObj.minDuration = d.dur;
         ptsPtMapObj.maxDuration = d.dur;
         ptsPtMapObj.count = 1;
         ptsPtMapObj.avgDuration = d.dur + '';
         ptsPtMapObj.wallDuration = d.dur;
-        stateMap.set(d.priorityType + '_' + d.endState, ptsPtMapObj);
+        stateMap.set(d.priorityType + '_' + d.state, ptsPtMapObj);
       }
     });
 

@@ -406,7 +406,7 @@ export class SpAllocations extends BaseElement {
         }
         .allocation-inputstyle{
             background: var(--dark-background5,#FFFFFF);
-            border: 1px solid var(--dark-background5,#999999);
+            border: 1px solid var(--dark-background5,#ccc);
             font-family: Helvetica;
             font-size: 14px;
             color: var(--dark-color1,#212121);
