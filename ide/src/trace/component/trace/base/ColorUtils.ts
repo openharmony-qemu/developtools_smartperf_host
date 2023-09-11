@@ -13,12 +13,34 @@
  * limitations under the License.
  */
 
-import {CpuStruct} from '../../../database/ui-worker/ProcedureWorkerCPU.js';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
 
 export class ColorUtils {
   public static GREY_COLOR: string = '#f0f0f0';
 
   public static FUNC_COLOR_A: Array<string> = [
+    '#8770D3',
+    '#A37775',
+    '#0CBDD4',
+    '#7DA6F4',
+    '#A56DF5',
+    '#E86B6A',
+    '#69D3E5',
+    '#998FE6',
+    '#E3AA7D',
+    '#76D1C0',
+    '#99C47C',
+    '#DC8077',
+    '#36BAA4',
+    '#A1CD94',
+    '#E68C43',
+    '#66C7BA',
+    '#B1CDF1',
+    '#E7B75D',
+    '#93D090',
+    '#ADB7DB',
+  ];
+  public static FUNC_COLOR_B: Array<string> = [
     '#40b3e7',
     '#23b0e7',
     '#8d9171',
@@ -26,6 +48,9 @@ export class ColorUtils {
     '#7a9160',
     '#9fafc4',
     '#8a8a8b',
+    '#8983B5',
+    '#78aec2',
+    '#4ca694',
     '#e05b52',
     '#9bb87a',
     '#ebc247',
@@ -33,23 +58,9 @@ export class ColorUtils {
     '#a16a40',
     '#a94eb9',
     '#aa4fba',
-  ];
-  public static FUNC_COLOR_B: Array<string> = [
-    '#9785D3',
-    '#A27F7E',
-    '#00bdd6',
-    '#94B5F4',
-    '#B282F6',
-    '#E97978',
-    '#7AD7E6',
-    '#A1C38A',
-    '#DB8E86',
-    '#42B7A4',
-    '#AACEA0',
-    '#E69553',
-    '#7EC6BB',
-    '#8d9171',
-
+    '#B9A683',
+    '#789876',
+    '#8091D0',
   ];
 
   public static ANIMATION_COLOR: Array<string> = [
@@ -62,7 +73,7 @@ export class ColorUtils {
     '#BFEBE5',
     '#0A59F7',
     '#25ACF5',
-    '#FFFFFF'
+    '#FFFFFF',
   ];
 
   public static JANK_COLOR: Array<string> = [

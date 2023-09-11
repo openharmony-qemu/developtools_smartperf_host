@@ -127,7 +127,7 @@ export class RangeRuler extends Graph {
     50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 200_000, 500_000, 1_000_000, 2_000_000,
     5_000_000, 10_000_000, 20_000_000, 50_000_000, 100_000_000, 200_000_000, 500_000_000, 1_000_000_000, 2_000_000_000,
     5_000_000_000, 10_000_000_000, 20_000_000_000, 50_000_000_000, 100_000_000_000, 200_000_000_000, 500_000_000_000,
-    1_000_000_000_000, 2_000_000_000_000, 5_000_000_000_000
+    1_000_000_000_000, 2_000_000_000_000, 5_000_000_000_000,
   ];
   private _cpuUsage: Array<{ cpu: number; ro: number; rate: number }> = [];
 
@@ -157,6 +157,7 @@ export class RangeRuler extends Graph {
   }
 
   drawCpuUsage() {
+    this.context2D.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
     let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount); //每格高度
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
     for (let index = 0; index < this._cpuUsage.length; index++) {
@@ -173,7 +174,12 @@ export class RangeRuler extends Graph {
   }
 
   draw(discardNotify: boolean = false): void {
-    this.context2D.clearRect(this.frame.x - MarkPadding, this.frame.y, this.frame.width + MarkPadding * 2, this.frame.height);
+    this.context2D.clearRect(
+      this.frame.x - MarkPadding,
+      this.frame.y,
+      this.frame.width + MarkPadding * 2,
+      this.frame.height
+    );
     this.context2D.beginPath();
     if (this._cpuUsage.length > 0) {
       this.drawCpuUsage();
@@ -560,8 +566,7 @@ export class RangeRuler extends Graph {
           return;
         }
         // 修正sliceMidX的值
-        if (sliceMidX !== sliceMidXMap.get('tempMid1') || 0
-          && sliceMidX !== sliceMidXMap.get('tempMid2') || 0) {
+        if (sliceMidX !== sliceMidXMap.get('tempMid1') || (0 && sliceMidX !== sliceMidXMap.get('tempMid2')) || 0) {
           if (x % 2 === 0) {
             sliceMidXMap.set('tempMid2', sliceMidX); // 偶数
           } else {
@@ -575,17 +580,14 @@ export class RangeRuler extends Graph {
             count2++;
           }
           // 此处为了解决特殊情况下sliceMidX的值非常接近中间区域，但是又无法进入中间区域，导致死循环程序无法正常终止。
-          if (count1 >= 3 && count1 <= 5
-            || count2 >= 3 && count2 <= 5) {
+          if ((count1 >= 3 && count1 <= 5) || (count2 >= 3 && count2 <= 5)) {
             if (sliceMidX >= midX - MID_OFFSET && sliceMidX <= midX + MID_OFFSET) {
               let tempMid1 = sliceMidXMap.get('tempMid1') || 0;
               let tempMid2 = sliceMidXMap.get('tempMid2') || 0;
-              if (sliceMidX === tempMid1
-                && tempMid1 === tempMid2) {
+              if (sliceMidX === tempMid1 && tempMid1 === tempMid2) {
                 sliceMidX += 11;
               }
-              if (sliceMidX === tempMid1
-                && sliceMidX !== tempMid2) {
+              if (sliceMidX === tempMid1 && sliceMidX !== tempMid2) {
                 if (sliceMidX < tempMid2) {
                   sliceMidX += 15;
                 } else {
@@ -617,8 +619,10 @@ export class RangeRuler extends Graph {
               不能使用固定的 scale， 因为调整slice的宽度时，scale、 startNS 和  endNS 都在变化,
               所以要使用  totalX 来判断slice是否缩放到合适的大小了。
           */
-          if (totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0
-            || Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET) {
+          if (
+            (totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0) ||
+            Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET
+          ) {
             this.zoomFit(startTime, endTime);
             this.fillX();
             this.range.refresh = true;
@@ -629,10 +633,12 @@ export class RangeRuler extends Graph {
           endX = (this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS);
           totalX = endX - startX;
           sliceMidX = Math.round(startX + (endX - startX) / 2);
-          if (sliceMidX >= midX - MID_OFFSET
-            && sliceMidX <= midX + MID_OFFSET
-            && Math.round(totalX) >= FIT_TOTALX_MIN - MID_OFFSET
-            && Math.round(totalX) <= FIT_TOTALX_MAX + MID_OFFSET) {
+          if (
+            sliceMidX >= midX - MID_OFFSET &&
+            sliceMidX <= midX + MID_OFFSET &&
+            Math.round(totalX) >= FIT_TOTALX_MIN - MID_OFFSET &&
+            Math.round(totalX) <= FIT_TOTALX_MAX + MID_OFFSET
+          ) {
             this.fillX();
             this.range.refresh = true;
             this.notifyHandler(this.range);
@@ -642,9 +648,9 @@ export class RangeRuler extends Graph {
         } else {
           // 0.2经验值，不要随便调整这个系数，该系数决定了调整后的slice中间位置是否能落在FIT_TOTALX_MIN和FIT_TOTALX_MAX之间。
           let s = (this.scale / this.p) * this.currentDuration * 0.2; // 微调
-          let big_s = (this.scale / this.p) * this.currentDuration * 1.2;  // 大幅度调整
-          let biger = (this.scale / this.p) * this.currentDuration * 10;  // 更大幅度调整
-          let huge = (this.scale / this.p) * this.currentDuration * 100;  // 巨大幅度调整
+          let big_s = (this.scale / this.p) * this.currentDuration * 1.2; // 大幅度调整
+          let biger = (this.scale / this.p) * this.currentDuration * 10; // 更大幅度调整
+          let huge = (this.scale / this.p) * this.currentDuration * 100; // 巨大幅度调整
           startX = (this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS);
           endX = (this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS);
           totalX = endX - startX;
@@ -655,12 +661,10 @@ export class RangeRuler extends Graph {
             if (distance >= 10000) {
               this.range.startNS += huge;
               this.range.endNS += huge;
-            }
-            else if (distance >= 1000 && distance < 10000) {
+            } else if (distance >= 1000 && distance < 10000) {
               this.range.startNS += biger;
               this.range.endNS += biger;
-            }
-            else if (distance > DIS && distance < 1000) {
+            } else if (distance > DIS && distance < 1000) {
               this.range.startNS += big_s;
               this.range.endNS += big_s;
             } else {
@@ -674,12 +678,10 @@ export class RangeRuler extends Graph {
             if (distance >= 10000) {
               this.range.startNS -= huge;
               this.range.endNS -= huge;
-            }
-            else if (distance >= 1000 && distance < 10000) {
+            } else if (distance >= 1000 && distance < 10000) {
               this.range.startNS -= biger;
               this.range.endNS -= biger;
-            }
-            else if (distance > DIS && distance < 1000) {
+            } else if (distance > DIS && distance < 1000) {
               this.range.startNS -= big_s;
               this.range.endNS -= big_s;
             } else {
@@ -691,12 +693,15 @@ export class RangeRuler extends Graph {
         this.fillX();
         this.draw();
         this.range.refresh = false;
-      } while (sliceMidX < midX - MID_OFFSET || sliceMidX > midX + MID_OFFSET
-      || Math.round(totalX) < FIT_TOTALX_MIN - MID_OFFSET
-      || Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET)
+      } while (
+        sliceMidX < midX - MID_OFFSET ||
+        sliceMidX > midX + MID_OFFSET ||
+        Math.round(totalX) < FIT_TOTALX_MIN - MID_OFFSET ||
+        Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET
+      );
       this.pressFrameIdF = requestAnimationFrame(animF);
     };
-    if (totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0 || totalX > FIT_TOTALX_MAX + MID_OFFSET) {
+    if ((totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0) || totalX > FIT_TOTALX_MAX + MID_OFFSET) {
       this.zoomFit(startTime, endTime);
       this.pressFrameIdF = requestAnimationFrame(animF);
     }
@@ -944,16 +949,13 @@ export class RangeRuler extends Graph {
         }
       }
       if (count1 >= 3 && count1 <= 5) {
-        if (Math.round(totalX) >= FIT_TOTALX_MIN - MID_OFFSET
-          && Math.round(totalX) <= FIT_TOTALX_MAX + MID_OFFSET) {
+        if (Math.round(totalX) >= FIT_TOTALX_MIN - MID_OFFSET && Math.round(totalX) <= FIT_TOTALX_MAX + MID_OFFSET) {
           let tempTotalX1 = totalXMap.get('totalX1') || 0;
           let tempTotalX2 = totalXMap.get('totalX2') || 0;
-          if (Math.round(totalX) === tempTotalX1
-            && tempTotalX2 === tempTotalX2) {
+          if (Math.round(totalX) === tempTotalX1 && tempTotalX2 === tempTotalX2) {
             totalX += 11;
           }
-          if (Math.round(totalX) === tempTotalX1
-            && Math.round(totalX) !== tempTotalX2) {
+          if (Math.round(totalX) === tempTotalX1 && Math.round(totalX) !== tempTotalX2) {
             if (Math.round(totalX) < tempTotalX2) {
               totalX += 12;
             } else {
@@ -1026,16 +1028,13 @@ export class RangeRuler extends Graph {
         }
       }
       if (count2 >= 3 && count2 <= 5) {
-        if (Math.round(totalX) >= FIT_TOTALX_MIN - MID_OFFSET
-          && Math.round(totalX) <= FIT_TOTALX_MAX + MID_OFFSET) {
+        if (Math.round(totalX) >= FIT_TOTALX_MIN - MID_OFFSET && Math.round(totalX) <= FIT_TOTALX_MAX + MID_OFFSET) {
           let tempTotalX1 = totalXMap.get('totalX1') || 0;
           let tempTotalX2 = totalXMap.get('totalX2') || 0;
-          if (Math.round(totalX) === tempTotalX1
-            && tempTotalX2 === tempTotalX2) {
+          if (Math.round(totalX) === tempTotalX1 && tempTotalX2 === tempTotalX2) {
             totalX += 11;
           }
-          if (Math.round(totalX) === tempTotalX1
-            && Math.round(totalX) !== tempTotalX2) {
+          if (Math.round(totalX) === tempTotalX1 && Math.round(totalX) !== tempTotalX2) {
             if (Math.round(totalX) < tempTotalX2) {
               totalX += 12;
             } else {

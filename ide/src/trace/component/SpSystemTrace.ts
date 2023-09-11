@@ -235,10 +235,6 @@ export class SpSystemTrace extends BaseElement {
   }
 
   initElements(): void {
-    let sideColor =
-      document!.querySelector('body > sp-application')?.shadowRoot?.querySelector!(
-        '#main-menu'
-      )?.shadowRoot?.querySelector('div.bottom > div.color');
     this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
     let rightButton: HTMLElement | null | undefined = this.traceSheetEL?.shadowRoot
       ?.querySelector('#current-selection > tabpane-current-selection')
@@ -336,9 +332,6 @@ export class SpSystemTrace extends BaseElement {
       }
       this.refreshFavoriteCanvas();
       this.refreshCanvas(true);
-    });
-    sideColor?.addEventListener('click', (event: any) => {
-      requestAnimationFrame(() => this.refreshCanvas(true));
     });
     document?.addEventListener('triangle-flag', (event: any) => {
       let temporaryTime = this.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);

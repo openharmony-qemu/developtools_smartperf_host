@@ -18,7 +18,8 @@ import './LitMainMenuItem.js';
 import './LitMainMenuGroup.js';
 import { LitMainMenuGroup } from './LitMainMenuGroup.js';
 import { LitMainMenuItem } from './LitMainMenuItem.js';
-let backgroundColor = sessionStorage.getItem('backgroundColor');
+import { Theme } from '../../trace/component/trace/base/CustomThemeColor.js';
+let backgroundColor = window.localStorage.getItem('Theme') === Theme.DARK ? '#262f3c' : '#fff';
 
 @element('lit-main-menu')
 export class LitMainMenu extends BaseElement {
@@ -138,10 +139,10 @@ export class LitMainMenu extends BaseElement {
             color: #94979d;
             font-size: 0.6rem;
         }
-        .color{
+        .color, .customColor{
             cursor: pointer;
             font-size: 0.6rem;
-            padding: 20px;
+            padding: 20px 0px 20px 20px;
         }
         *{
             box-sizing: border-box;
@@ -164,9 +165,9 @@ export class LitMainMenu extends BaseElement {
             <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
                 <slot id="st" ></slot>
                 </div>
-        <div class="bottom">        
-             <div class="color" style="">
-                <lit-icon name="bg-colors" size="20" color="gray"></lit-icon>
+        <div class="bottom">
+             <div class="customColor">
+                <lit-icon name="bg-colors" size="20" color="grey"></lit-icon>
              </div>
              <div class="version" style="">
              </div>

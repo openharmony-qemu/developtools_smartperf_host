@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { Theme } from '../../trace/component/trace/base/CustomThemeColor.js';
 import { BaseElement, element } from '../BaseElement.js';
 let textColor = '';
 
@@ -65,8 +66,8 @@ export class LitMainMenuGroup extends BaseElement {
       }
       this.collapsed = !this.collapsed;
     });
-    let backgroundColor = sessionStorage.getItem('backgroundColor');
-    if (backgroundColor == 'rgb(38, 47, 60)') {
+    let backgroundColor =  window.localStorage.getItem('Theme');
+    if (backgroundColor == Theme.DARK) {
       textColor = 'white';
       this.groupNameEl!.style.color = 'white';
       this.groupDescEl!.style.color = 'white';
@@ -132,7 +133,6 @@ export class LitMainMenuGroup extends BaseElement {
             font-size: 0.6rem;
             padding: 4px 24px 20px 24px;
         }
-       
         </style>
        <div id="group">
          <div class="group-name"></div>

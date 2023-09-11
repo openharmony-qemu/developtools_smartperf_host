@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { Theme } from '../../trace/component/trace/base/CustomThemeColor.js';
 import { BaseElement, element } from '../BaseElement.js';
 let textColor = '';
 
@@ -66,8 +67,8 @@ export class LitMainMenuItem extends BaseElement {
     this.titleEl = this.shadowRoot?.querySelector('.name');
     this.iconEl = this.shadowRoot?.querySelector('.icon');
     this.fileEL = this.shadowRoot?.querySelector('.file');
-    let backgroundColor = sessionStorage.getItem('backgroundColor');
-    if (backgroundColor == 'rgb(38, 47, 60)') {
+    let backgroundColor = window.localStorage.getItem('Theme');
+    if (backgroundColor == Theme.DARK) {
       textColor = 'white';
       this.style.color = 'white';
     } else {
