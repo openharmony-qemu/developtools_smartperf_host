@@ -1404,7 +1404,7 @@ export class SpRecordTrace extends BaseElement {
         );
       }
 
-      if (this.spAllocations!.appProcess != '') {
+      if (this.spAllocations!.appProcess !== '' && this.spAllocations!.startSamp) {
         request.pluginConfigs.push(this.createNativePluginConfig(reportingFrequency));
       }
       if (this.spRecordPerf!.startSamp) {

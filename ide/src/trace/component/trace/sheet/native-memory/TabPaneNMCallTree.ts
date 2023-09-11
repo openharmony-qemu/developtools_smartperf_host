@@ -25,6 +25,7 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite.js';
 import { ParseExpression } from '../SheetUtils.js';
+import { NativeMemoryExpression } from '../../../../bean/NativeHook.js';
 
 @element('tabpane-nm-calltree')
 export class TabpaneNMCalltree extends BaseElement {
@@ -56,7 +57,7 @@ export class TabpaneNMCalltree extends BaseElement {
   private subTypeArr: number[] = [];
   private lastIsExpression = false;
   private currentNMCallTreeFilter: TabPaneFilter | undefined | null;
-  private libTree: Map<string, string[]> | null = null;
+  private expressionStruct: NativeMemoryExpression | null = null;
 
   set data(nmCallTreeParam: SelectionParam | any) {
     if (nmCallTreeParam == this.currentSelection) {
@@ -307,7 +308,7 @@ export class TabpaneNMCalltree extends BaseElement {
       }
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: { time: event.detail.tsArray, counts: event.detail.countArray},
+          detail: { time: event.detail.tsArray, counts: event.detail.countArray },
         })
       );
     });
@@ -521,13 +522,13 @@ export class TabpaneNMCalltree extends BaseElement {
           this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
         }
         this.searchValue = this.nmCallTreeFilter!.filterValue;
-        this.libTree = new ParseExpression(this.searchValue).parse();
+        this.expressionStruct = new ParseExpression(this.searchValue).parse();
         this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
       } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
         this.searchValue = this.nmCallTreeFilter!.filterValue;
-        this.libTree = new ParseExpression(this.searchValue).parse();
+        this.expressionStruct = new ParseExpression(this.searchValue).parse();
         let nmArgs = [];
-        if (this.libTree) {
+        if (this.expressionStruct) {
           this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
           this.lastIsExpression = true;
           return;
@@ -635,10 +636,10 @@ export class TabpaneNMCalltree extends BaseElement {
     let groupArgs = new Map<string, any>();
     groupArgs.set('filterAllocType', this.filterAllocationType);
     groupArgs.set('filterEventType', this.filterNativeType);
-    if (this.libTree) {
-      groupArgs.set('filterExpression', this.libTree);
+    if (this.expressionStruct) {
+      groupArgs.set('filterExpression', this.expressionStruct);
       groupArgs.set('filterResponseType', -1);
-      this.currentNMCallTreeFilter!.thirdSelect = '0';
+      this.currentNMCallTreeFilter!.thirdSelect = this.currentSelection!.nativeMemoryStatistic.length > 0 ? '' : '0';
     } else {
       groupArgs.set('filterResponseType', this.filterResponseType);
     }
@@ -657,7 +658,7 @@ export class TabpaneNMCalltree extends BaseElement {
       'nativeHookType',
       this.currentSelection!.nativeMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'
     );
-    if (this.lastIsExpression && !this.libTree) {
+    if (this.lastIsExpression && !this.expressionStruct) {
       nmCallTreeArgs.push({
         funcName: 'setSearchValue',
         funcArgs: [this.searchValue],

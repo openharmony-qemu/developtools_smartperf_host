@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NativeMemoryExpression } from '../../bean/NativeHook.js';
 import {
   convertJSON,
   DataCache,
@@ -701,8 +702,8 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack.size)}`;
     stack.heapPercent = `${((stack.size / this.selectTotalSize) * 100).toFixed(1)}%`;
-    stack.countArray.push(...hook.countArray || hook.count);
-    stack.tsArray.push(...hook.tsArray || hook.startTs);
+    stack.countArray.push(...(hook.countArray || hook.count));
+    stack.tsArray.push(...(hook.tsArray || hook.startTs));
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseSampleTree(child as NativeHookCallInfo, hook);
@@ -718,8 +719,8 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack!.size)}`;
     stack.heapPercent = `${((stack!.size / this.selectTotalSize) * 100).toFixed(1)}%`;
-    stack.countArray.push(...hook.countArray || hook.count);
-    stack.tsArray.push(...hook.tsArray || hook.startTs);
+    stack.countArray.push(...(hook.countArray || hook.count));
+    stack.tsArray.push(...(hook.tsArray || hook.startTs));
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseTree(child as NativeHookCallInfo, hook);
@@ -826,7 +827,9 @@ where ts between start_ts and end_ts ${condition};
                 release_size as freeSize,
                 apply_count as count,
                 release_count as freeCount,
-                (max(A.ts) - B.start_ts) as startTs
+                (max(A.ts) - B.start_ts) as startTs,
+                ifnull(last_lib_id,0) as lastLibId,
+                ifnull(last_symbol_id,0) as lastSymbolId
             from
                 native_hook_statistic A,
                 trace_range B
@@ -1116,33 +1119,53 @@ where ts between start_ts and end_ts ${condition};
     this.currentSamples = Object.values(groupMap);
   }
 
-  private filterExpressionSample(sample: NativeHookStatistics, libTree: Map<string, Array<string>>): boolean {
+  private filterExpressionSample(sample: NativeHookStatistics, expressStruct: NativeMemoryExpression): boolean {
     const itemLibName = this.dataCache.dataDict.get(sample.lastLibId);
     const itemSymbolName = this.dataCache.dataDict.get(sample.lastSymbolId);
     if (!itemLibName || !itemSymbolName) {
       return false;
     }
-    for (const [lib, symbols] of libTree) {
-      const isInclude = lib[0] === '+';
-      const libStr = lib.substring(1);
-      // lib不包含则跳过
-      if (!itemLibName.toLowerCase().includes(libStr.toLowerCase()) && libStr !== '*') {
-        continue;
-      }
-      // * 表示全量
-      if (symbols.includes('*')) {
-        return isInclude;
-      }
-      for (const symbol of symbols) {
-        // 匹配到了就返回
-        if (itemSymbolName.toLowerCase().includes(symbol.toLowerCase())) {
-          return isInclude;
+
+    function isMatch(libTree: Map<string, string[]>, match: boolean) {
+      for (const [lib, symbols] of libTree) {
+        // lib不包含则跳过
+        if (!itemLibName!.toLowerCase().includes(lib.toLowerCase()) && lib !== '*') {
+          continue;
         }
+        // * 表示全量
+        if (symbols.includes('*')) {
+          match = true;
+          break;
+        }
+
+        for (const symbol of symbols) {
+          // 匹配到了就返回
+          if (itemSymbolName!.toLowerCase().includes(symbol.toLowerCase())) {
+            match = true;
+            break;
+          }
+        }
+        // 如果匹配到了，跳出循环
+        if (match) {
+          break;
+        }
+        //全部没有匹配到
+        match = false;
       }
-      //全部没有匹配到
-      return !isInclude;
+      return match;
     }
-    return false;
+
+    let includeMatch = expressStruct.includeLib.size === 0; // true表达这条数据需要显示
+    includeMatch = isMatch(expressStruct.includeLib, includeMatch);
+
+    if (expressStruct.abandonLib.size === 0) {
+      return includeMatch;
+    }
+
+    let abandonMatch = false; // false表示这条数据需要显示
+    abandonMatch = isMatch(expressStruct.abandonLib, abandonMatch);
+
+    return includeMatch && !abandonMatch;
   }
 
   createThreadSample(sample: NativeHookStatistics) {
@@ -1290,7 +1313,7 @@ export class NativeHookStatistics {
   lastSymbolId: number = 0;
   isSelected: boolean = false;
   tsArray: Array<number> = [];
-  countArray:Array<number> = [];
+  countArray: Array<number> = [];
 }
 export class NativeHookCallInfo extends MerageBean {
   #totalCount: number = 0;
@@ -1343,13 +1366,13 @@ export class NativeHookCallInfo extends MerageBean {
       currentNode.tid = sample.tid;
     }
     currentNode.count += sample.count || 1;
-    if (sample.countArray && sample.countArray.length > 0){
+    if (sample.countArray && sample.countArray.length > 0) {
       currentNode.countArray.push(...sample.countArray);
     } else {
       currentNode.countArray.push(sample.count);
     }
 
-    if (sample.tsArray && sample.tsArray.length > 0){
+    if (sample.tsArray && sample.tsArray.length > 0) {
       currentNode.tsArray.push(...sample.tsArray);
     } else {
       currentNode.tsArray.push(sample.startTs);
