@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { SliceGroup } from '../../../../bean/StateProcessThread.js';
 import { resizeObserver } from '../SheetUtils.js';
@@ -60,8 +60,35 @@ export class TabPaneSPT extends BaseElement {
       (res: Array<SliceGroup>) => {
         this.sptTbl!.loading = false;
         this.sptTbl!.recycleDataSource = res;
+        this.theadClick(res);
       }
     );
+  }
+
+  private theadClick(data: Array<SliceGroup>) {
+    let labels = this.sptTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    if (labels) {
+      for (let i = 0; i < labels.length; i++) {
+        let label = labels[i].innerHTML;
+        labels[i].addEventListener('click', (e) => {
+          if (label.includes('State') && i === 0) {
+            this.sptTbl!.setStatus(data, false);
+            this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('Process') && i === 1) {
+            for (let item of data) {
+              item.status = true;
+              if (item.children != undefined && item.children.length > 0) {
+                this.sptTbl!.setStatus(item.children, false);
+              }
+            }
+            this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('Thread') && i === 2) {
+            this.sptTbl!.setStatus(data, true);
+            this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+          }
+        });
+      }
+    }
   }
 
   initHtml(): string {

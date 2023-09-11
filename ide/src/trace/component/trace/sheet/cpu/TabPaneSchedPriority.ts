@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { procedurePool } from '../../../../database/Procedure.js';
@@ -189,6 +189,25 @@ export class TabPaneSchedPriority extends BaseElement {
     }
     this.priorityTbl!.loading = false;
     this.priorityTbl!.recycleDataSource = priorityArr;
+    this.theadClick(priorityArr);
+  }
+
+  private theadClick(data: Array<Priority>) {
+    let labels = this.priorityTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    if (labels) {
+      for (let i = 0; i < labels.length; i++) {
+        let label = labels[i].innerHTML;
+        labels[i].addEventListener('click', (e) => {
+          if (label.includes('Priority') && i === 0) {
+            this.priorityTbl!.setStatus(data, false);
+            this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('State') && i === 1) {
+            this.priorityTbl!.setStatus(data, true);
+            this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+          }
+        });
+      }
+    }
   }
 
   public initHtml(): string {
@@ -202,7 +221,7 @@ export class TabPaneSchedPriority extends BaseElement {
         </style>
         <label id="priority-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="priority-tbl" style="height: auto" tree>
-            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State"retract>
+            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State" retract>
             </lit-table-column>
             <lit-table-column width="1fr" data-index="count" key="count" align="flex-start" title="Count">
             </lit-table-column>

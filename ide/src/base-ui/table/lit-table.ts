@@ -733,52 +733,15 @@ export class LitTable extends HTMLElement {
               h.style.justifyContent = a.getAttribute('align');
               this.gridTemplateColumns.push(a.getAttribute('width') || '1fr');
               h.style.gridArea = key;
-              //   根据进程、线程、状态、优先级展开
-              if (
-                a.title === 'State/Process/Thread' ||
-                a.title === 'Process/Thread/State' ||
-                a.title === 'Priority/State'
-              ) {
-                let labelArr = a.title.split('/');
-                for (let i = 0; i < labelArr.length; i++) {
-                  let titleLabel = document.createElement('label');
-                  titleLabel.style.cursor = 'pointer';
-                  i == 0 ? (titleLabel.textContent = labelArr[i]) : (titleLabel.textContent = '/' + labelArr[i]);
-                  h.appendChild(titleLabel);
-                  titleLabel.addEventListener('click', (e) => {
-                    if (
-                      (titleLabel.textContent?.includes('State') && i === 0) ||
-                      (titleLabel.textContent?.includes('Process') && i === 0) ||
-                      (titleLabel.textContent?.includes('Priority') && i === 0)
-                    ) {
-                      this.setStatus(this.value, false);
-                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
-                    } else if (
-                      (titleLabel.textContent?.includes('Process') && i === 1) ||
-                      (titleLabel.textContent?.includes('Thread') && i === 1)
-                    ) {
-                      for (let item of this.value) {
-                        item.status = true;
-                        if (item.children != undefined && item.children.length > 0) {
-                          this.setStatus(item.children, false);
-                        }
-                      }
-                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
-                    } else if (
-                      (titleLabel.textContent?.includes('Thread') && i === 2) ||
-                      (titleLabel.textContent?.includes('State') && i === 2) ||
-                      (titleLabel.textContent?.includes('State') && i === 1)
-                    ) {
-                      this.setStatus(this.value, true);
-                      this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Expand);
-                    }
-                  });
-                }
-              } else {
+
+              let labelArr = a.title.split('/');
+              for (let i = 0; i < labelArr.length; i++) {
                 let titleLabel = document.createElement('label');
-                titleLabel.textContent = a.title;
+                titleLabel.style.cursor = 'pointer';
+                i == 0 ? (titleLabel.textContent = labelArr[i]) : (titleLabel.textContent = '/' + labelArr[i]);
                 h.appendChild(titleLabel);
               }
+
               if (a.hasAttribute('fixed')) {
                 this.fixed(h, a.getAttribute('fixed'), '#42b983');
               }

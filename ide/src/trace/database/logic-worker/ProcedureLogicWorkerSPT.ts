@@ -113,7 +113,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     );
     let group: any = {};
     ptsFilter.forEach((slice) => {
-      let item: SliceGroup = {
+      let item = {
         title: `S-${slice.state}`,
         count: 1,
         state: slice.state,
@@ -197,7 +197,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     );
     let group: any = {};
     sptFilter.forEach((slice) => {
-      let item: SliceGroup = {
+      let item = {
         title: `T-${slice.tid}`,
         count: 1,
         state: slice.state,

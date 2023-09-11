@@ -200,7 +200,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           cpu: data.cpu,
           dur: data.dur,
           priority: data.priority,
-          isSelected: false
+          isSelected: false,
         };
 
         this.weakUpBean = bean;
@@ -1220,45 +1220,47 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
     this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
-    window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => {
-      this.wakeupListTbl!.style.display = 'flex';
-      let cpus: number[] = []
-      let itids: number[] = []
-      let ts: number[] = []
-      let maxPriority = 0;
-      let maxDuration = 0;
-      data.forEach(it => {
-        cpus.push(it.cpu!);
-        itids.push(it.itid!);
-        ts.push(it.ts!);
-      });
-      queryWakeupListPriority(itids,ts,cpus).then(res => {
-        let resource = data.map(it => {
-          let wake = {
-            process: `${it.process}(${it.pid})`,
-            thread: `${it.thread}(${it.tid})`,
-            cpu: it.cpu,
-            dur: it.dur,
-            priority: 0,
-            isSelected: false
-          };
-          let find = res.find(re => re.cpu === it.cpu && re.itid === it.itid && re.ts === it.ts);
-          if (find) {
-            wake.priority = find.priority;
-          }
-          maxDuration = Math.max(maxDuration, it.dur!);
-          maxPriority = Math.max(maxPriority, wake.priority);
-          return wake;
-        });
-        if (this.selectWakeupBean) {
-          resource.unshift(this.selectWakeupBean);
+    window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
+  }
+
+  showWakeupListTableData(data: Array<WakeupBean>) {
+    this.wakeupListTbl!.style.display = 'flex';
+    let cpus: number[] = [];
+    let itids: number[] = [];
+    let ts: number[] = [];
+    let maxPriority = 0;
+    let maxDuration = 0;
+    data.forEach((it) => {
+      cpus.push(it.cpu!);
+      itids.push(it.itid!);
+      ts.push(it.ts!);
+    });
+    queryWakeupListPriority(itids, ts, cpus).then((res) => {
+      let resource = data.map((it) => {
+        let wake = {
+          process: `${it.process}(${it.pid})`,
+          thread: `${it.thread}(${it.tid})`,
+          cpu: it.cpu,
+          dur: it.dur,
+          priority: 0,
+          isSelected: false,
+        };
+        let find = res.find((re) => re.cpu === it.cpu && re.itid === it.itid && re.ts === it.ts);
+        if (find) {
+          wake.priority = find.priority;
         }
-        resource.forEach(it => {
-          it.isSelected = it.priority === maxPriority || it.dur === maxDuration;
-        });
-        this.wakeupListTbl!.recycleDataSource = resource;
+        maxDuration = Math.max(maxDuration, it.dur!);
+        maxPriority = Math.max(maxPriority, wake.priority);
+        return wake;
       });
-    })
+      if (this.selectWakeupBean) {
+        resource.unshift(this.selectWakeupBean);
+      }
+      resource.forEach((it) => {
+        it.isSelected = it.priority === maxPriority || it.dur === maxDuration;
+      });
+      this.wakeupListTbl!.recycleDataSource = resource;
+    });
   }
 
   addTableObserver(): void {

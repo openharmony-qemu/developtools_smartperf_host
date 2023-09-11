@@ -354,7 +354,7 @@ export class SpApplication extends BaseElement {
             height: 100%;
             visibility: visible;
             position: absolute;
-            width: 70%;
+            width: 50%;
             right: 0;
             z-index: 1002;
             top: 0;
@@ -1300,8 +1300,7 @@ export class SpApplication extends BaseElement {
         ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_A;
       }
     }
-    systemTrace?.refreshCanvas(true);
-    systemTrace!.timerShaftEL!.rangeRuler!.drawCpuUsage();
+    systemTrace!.timerShaftEL!.rangeRuler!.draw();
     if (this.colorTransiton) {
       clearTimeout(this.colorTransiton);
     }

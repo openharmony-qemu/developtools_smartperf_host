@@ -19,11 +19,12 @@ export class SliceGroup {
   state?: string;
   tid?: number;
   pid?: number;
+  status: boolean = false;
   minDuration: number = 0;
   maxDuration: number = 0;
   wallDuration: number = 0;
   avgDuration: string = '';
-  children?: Array<SliceGroup>
+  children?: Array<SliceGroup>;
 }
 
 export class SPTChild {
@@ -51,4 +52,5 @@ export class Priority extends SliceGroup {
   endState: string = '';
   dur: number = 0;
   priority: number = 0;
+  status: boolean = false;
 }

@@ -2431,6 +2431,18 @@ export class SpSystemTrace extends BaseElement {
       let task = () => {
         if (threadRow) {
           let findEntry = threadRow!.dataList!.find((dat) => dat.startTime === d.startTime && dat.dur! > 0);
+          if (!findEntry) {
+            findEntry = {
+              processName: d.processName,
+              threadName: d.name,
+              startTime: d.startTime,
+              state: 'Running',
+              dur: 0,
+              pid: d.processId,
+              tid: d.tid,
+              cpu: d.cpu,
+            } as ThreadStruct;
+          }
           if (
             findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||
             findEntry!.startTime! > TraceRow.range!.endNS

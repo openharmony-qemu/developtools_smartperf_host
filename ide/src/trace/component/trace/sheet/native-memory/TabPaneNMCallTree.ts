@@ -510,51 +510,58 @@ export class TabpaneNMCalltree extends BaseElement {
         this.filterResponseSelect = '';
       }
       if (
-        this.filterAllocationType != nmCallTreeData.firstSelect ||
-        this.filterNativeType != nmCallTreeData.secondSelect ||
-        this.filterResponseSelect != nmCallTreeData.thirdSelect
+        (this.isChartShow && nmCallTreeData.icon === 'tree') ||
+        (!this.isChartShow && nmCallTreeData.icon === 'block')
       ) {
-        this.filterAllocationType = nmCallTreeData.firstSelect || '0';
-        this.filterNativeType = nmCallTreeData.secondSelect || '0';
-        this.filterResponseSelect = nmCallTreeData.thirdSelect || "0'";
-        let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
-        if (this.responseTypes.length > thirdIndex) {
-          this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
-        }
-        this.searchValue = this.nmCallTreeFilter!.filterValue;
-        this.expressionStruct = new ParseExpression(this.searchValue).parse();
-        this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-      } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
-        this.searchValue = this.nmCallTreeFilter!.filterValue;
-        this.expressionStruct = new ParseExpression(this.searchValue).parse();
-        let nmArgs = [];
-        if (this.expressionStruct) {
-          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-          this.lastIsExpression = true;
-          return;
-        } else {
-          if (this.lastIsExpression) {
-            this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-            this.lastIsExpression = false;
-            return;
-          }
-          nmArgs.push({
-            funcName: 'setSearchValue',
-            funcArgs: [this.searchValue],
-          });
-          nmArgs.push({
-            funcName: 'resetAllNode',
-            funcArgs: [],
-          });
-          this.lastIsExpression = false;
-        }
-        this.getDataByWorker(nmArgs, (result: any[]) => {
-          this.setLTableData(result);
-          this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-          this.switchFlameChart(nmCallTreeData);
-        });
-      } else {
         this.switchFlameChart(nmCallTreeData);
+      } else {
+        if (
+          this.filterAllocationType != nmCallTreeData.firstSelect ||
+          this.filterNativeType != nmCallTreeData.secondSelect ||
+          this.filterResponseSelect != nmCallTreeData.thirdSelect
+        ) {
+          this.filterAllocationType = nmCallTreeData.firstSelect || '0';
+          this.filterNativeType = nmCallTreeData.secondSelect || '0';
+          this.filterResponseSelect = nmCallTreeData.thirdSelect || "0'";
+          let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
+          if (this.responseTypes.length > thirdIndex) {
+            this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
+          }
+          this.searchValue = this.nmCallTreeFilter!.filterValue;
+          this.expressionStruct = new ParseExpression(this.searchValue).parse();
+          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+        } else if (this.searchValue != this.nmCallTreeFilter!.filterValue) {
+          this.searchValue = this.nmCallTreeFilter!.filterValue;
+          this.expressionStruct = new ParseExpression(this.searchValue).parse();
+          let nmArgs = [];
+          if (this.expressionStruct) {
+            this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+            this.lastIsExpression = true;
+            return;
+          } else {
+            if (this.lastIsExpression) {
+              this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+              this.lastIsExpression = false;
+              return;
+            }
+            nmArgs.push({
+              funcName: 'setSearchValue',
+              funcArgs: [this.searchValue],
+            });
+            nmArgs.push({
+              funcName: 'resetAllNode',
+              funcArgs: [],
+            });
+            this.lastIsExpression = false;
+          }
+          this.getDataByWorker(nmArgs, (result: any[]) => {
+            this.setLTableData(result);
+            this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+            this.switchFlameChart(nmCallTreeData);
+          });
+        } else {
+          this.switchFlameChart(nmCallTreeData);
+        }
       }
     });
     this.nmCallTreeTbl!.addEventListener('column-click', (evt) => {
