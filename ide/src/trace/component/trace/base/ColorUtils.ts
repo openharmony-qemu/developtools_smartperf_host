@@ -205,3 +205,99 @@ export class ColorUtils {
     }
   }
 }
+export function interpolateColorBrightness(colorHex: string, percentage: number): number[] {
+  const color = hexToRgb(colorHex);
+  if (color.length === 0) {
+    return [];
+  }
+  const [h, s, l] = rgbToHsl(color[0] / 255, color[1] / 255, color[2] / 255);
+
+  // 根据百分比计算亮度插值
+  const interpolatedL = 1 - percentage * 0.75; // 百分比越高，亮度越低
+
+  // 将插值后的亮度值与原始的色相和饱和度值组合
+  const interpolatedColor = hslToRgb(h, s, interpolatedL);
+  const interpolatedColorScaled = interpolatedColor.map((val) => Math.round(val * 255));
+
+  return interpolatedColorScaled;
+}
+
+function rgbToHsl(r: number, g: number, b: number): number[] {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0; // achromatic
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+    h /= 6;
+  }
+
+  return [h, s, l];
+}
+
+function hexToRgb(colorHex: string): number[] {
+  // 16进制颜色值
+  const reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+  let color = colorHex.toLowerCase();
+  if (reg.test(color)) {
+    // 如果只有三位的值，需变成六位，如：#fff => #ffffff
+    if (color.length === 4) {
+      let colorNew = '#';
+      for (let i = 1; i < 4; i += 1) {
+        colorNew += color.slice(i, i + 1).concat(color.slice(i, i + 1));
+      }
+      color = colorNew;
+    }
+    // 处理六位的颜色值，转为RGB
+    let rgb = [];
+    for (let i = 1; i < 7; i += 2) {
+      rgb.push(parseInt('0x' + color.slice(i, i + 2)));
+    }
+    return rgb;
+  }
+  return [];
+}
+
+function hslToRgb(h: number, s: number, l: number): number[] {
+  let r = 0,
+    g = 0,
+    b = 0;
+
+  if (s === 0) {
+    r = g = b = l; // achromatic
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+
+  return [r, g, b];
+}

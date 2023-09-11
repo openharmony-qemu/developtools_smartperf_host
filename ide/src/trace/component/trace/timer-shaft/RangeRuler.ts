@@ -16,7 +16,7 @@
 import { Graph } from './Graph.js';
 import { Rect } from './Rect.js';
 import { ns2s, ns2UnitS, TimerShaftElement } from '../TimerShaftElement.js';
-import { ColorUtils } from '../base/ColorUtils.js';
+import { ColorUtils, interpolateColorBrightness } from '../base/ColorUtils.js';
 import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
 import { CurrentSlicesTime, SpSystemTrace } from '../../SpSystemTrace.js';
 
@@ -162,7 +162,8 @@ export class RangeRuler extends Graph {
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
     for (let index = 0; index < this._cpuUsage.length; index++) {
       let cpuUsageItem = this._cpuUsage[index];
-      this.context2D.fillStyle = ColorUtils.MD_PALETTE[cpuUsageItem.cpu];
+      const color = interpolateColorBrightness(ColorUtils.MD_PALETTE[cpuUsageItem.cpu],cpuUsageItem.rate)
+      this.context2D.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       this.context2D.globalAlpha = cpuUsageItem.rate;
       this.context2D.fillRect(
         this.frame.x + miniWidth * cpuUsageItem.ro,
