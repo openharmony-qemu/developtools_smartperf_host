@@ -78,6 +78,7 @@ export class LitSearch extends BaseElement {
       this.setAttribute('isLoading', '');
     } else {
       this.removeAttribute('isLoading');
+      window.localStorage.setItem(LOCAL_STORAGE_SEARCH_KEY, '');
     }
   }
 

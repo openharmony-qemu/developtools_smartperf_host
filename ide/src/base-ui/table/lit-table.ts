@@ -1231,7 +1231,6 @@ export class LitTable extends HTMLElement {
         } else {
           td.innerHTML = text;
         }
-        this.getWheelStatus(td);
         newTableElement.append(td);
       }
     });
@@ -1459,7 +1458,6 @@ export class LitTable extends HTMLElement {
       } else {
         td.innerHTML = text;
       }
-      this.getWheelStatus(td);
       newTableElement.append(td);
     });
     newTableElement.onclick = () => {
@@ -1878,15 +1876,6 @@ export class LitTable extends HTMLElement {
       scriptText.style.color = '#a1a1a1';
     }
     divElement.title = rowData.data.symbolName;
-  }
-
-  getWheelStatus(element: any) {
-    element.addEventListener('wheel', (event: WheelEvent) => {
-      if (element.scrollWidth !== element.offsetWidth) {
-        event.preventDefault();
-      }
-      element.scrollLeft += event.deltaY;
-    });
   }
 }
 

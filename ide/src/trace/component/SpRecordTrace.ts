@@ -78,7 +78,7 @@ export class SpRecordTrace extends BaseElement {
   public static MaxFileSize: number = 1024 * 1024 * 1024;
   public static isVscode = false;
   public static cancelRecord = false;
-  static supportVersions = ['3.2', '4.0'];
+  static supportVersions = ['3.2', '4.0+'];
   private nowChildItem: HTMLElement | undefined;
 
   set record_template(re: boolean) {
@@ -473,14 +473,8 @@ export class SpRecordTrace extends BaseElement {
             HdcDeviceManager.connect(option.value).then((result) => {
               if (result) {
                 HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_VERSION, false).then((version) => {
-                  let deviceVersionItem = SpRecordTrace.supportVersions.filter((item) => version.indexOf(item) != -1);
-                  if (deviceVersionItem.length > 0) {
-                    SpRecordTrace.selectVersion = deviceVersionItem[0];
-                    this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
-                  } else {
-                    SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
-                    this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
-                  }
+                  SpRecordTrace.selectVersion = this.getDeviceVersion(version);
+                  this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
                   this.nativeMemoryHideBySelectVersion();
                   this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
                     PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
@@ -509,6 +503,14 @@ export class SpRecordTrace extends BaseElement {
     }
   }
 
+  getDeviceVersion(version: string): string {
+    if (version.indexOf('3.2') != -1) {
+      return '3.2';
+    } else if (version.indexOf('4.') != -1) {
+      return '4.0+';
+    }
+    return '3.2';
+  }
   freshMenuDisable(disable: boolean): void {
     let mainMenu = this.sp!.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     mainMenu.menus?.forEach((men) => {
@@ -773,7 +775,7 @@ export class SpRecordTrace extends BaseElement {
   private nativeMemoryHideBySelectVersion() {
     let divConfigs = this.spAllocations?.shadowRoot?.querySelectorAll<HTMLDivElement>('.version-controller');
     if (divConfigs) {
-      if (Number(SpRecordTrace.selectVersion) >= 4.0) {
+      if (SpRecordTrace.selectVersion != '3.2') {
         for (let divConfig of divConfigs) {
           divConfig!.style.zIndex = '1';
         }
@@ -786,12 +788,7 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private selectedDevice(deviceVersion: string): void {
-    let deviceVersionItem = SpRecordTrace.supportVersions.filter((item) => deviceVersion.indexOf(item) != -1);
-    if (deviceVersionItem.length > 0) {
-      SpRecordTrace.selectVersion = deviceVersionItem[0];
-    } else {
-      SpRecordTrace.selectVersion = SpRecordTrace.supportVersions[0];
-    }
+    SpRecordTrace.selectVersion = this.getDeviceVersion(deviceVersion);
     this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
   }
 
@@ -983,7 +980,7 @@ export class SpRecordTrace extends BaseElement {
           fileChoose: false,
           clickHandler: function (ev: InputEvent): void {
             let divConfigs = that.spAllocations?.shadowRoot?.querySelectorAll<HTMLDivElement>('.version-controller');
-            if ((!SpRecordTrace.selectVersion || Number(SpRecordTrace.selectVersion) < 4.0) && divConfigs) {
+            if ((!SpRecordTrace.selectVersion || SpRecordTrace.selectVersion === '3.2') && divConfigs) {
               for (let divConfig of divConfigs) {
                 divConfig!.style.zIndex = '-1';
               }
@@ -1859,7 +1856,7 @@ export class SpRecordTrace extends BaseElement {
     let pid = 0;
     let processName = '';
     let processId = '';
-    if (this.spAllocations!.startup_mode && Number(SpRecordTrace.selectVersion) >= 4.0) {
+    if (this.spAllocations!.startup_mode && SpRecordTrace.selectVersion !== '3.2') {
       processName = appProcess;
     } else {
       if (appProcess.indexOf('(') != -1) {
@@ -1885,7 +1882,7 @@ export class SpRecordTrace extends BaseElement {
       fpUnwind: this.spAllocations!.fp_unwind,
       blocked: true,
     };
-    if (Number(SpRecordTrace.selectVersion) >= 4.0) {
+    if (SpRecordTrace.selectVersion !== '3.2') {
       nativeConfig.callframeCompress = true;
       nativeConfig.recordAccurately = this.spAllocations!.record_accurately;
       nativeConfig.offlineSymbolization = this.spAllocations!.offline_symbolization;

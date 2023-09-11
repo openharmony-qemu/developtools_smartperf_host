@@ -932,6 +932,7 @@ export class SpApplication extends BaseElement {
     };
 
     function openTraceFile(ev: any, isClickHandle?: boolean) {
+      that.removeAttribute('custom-color');
       openFileInit();
       if (that.vs && isClickHandle) {
         Cmd.openFileDialog().then((res: string) => {
@@ -1268,7 +1269,7 @@ export class SpApplication extends BaseElement {
         ColorUtils.FUNC_COLOR = JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
       } else if (colorsArray) {
         ColorUtils.MD_PALETTE = colorsArray;
-        ColorUtils.MD_PALETTE = colorsArray;
+        ColorUtils.FUNC_COLOR = colorsArray;
       } else {
         ColorUtils.MD_PALETTE = ColorUtils.FUNC_COLOR_B;
         ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_B;
@@ -1294,7 +1295,7 @@ export class SpApplication extends BaseElement {
         ColorUtils.FUNC_COLOR = JSON.parse(window.localStorage.getItem('LightThemeColors')!);
       } else if (colorsArray) {
         ColorUtils.MD_PALETTE = colorsArray;
-        ColorUtils.MD_PALETTE = colorsArray;
+        ColorUtils.FUNC_COLOR = colorsArray;
       } else {
         ColorUtils.MD_PALETTE = ColorUtils.FUNC_COLOR_A;
         ColorUtils.FUNC_COLOR = ColorUtils.FUNC_COLOR_A;

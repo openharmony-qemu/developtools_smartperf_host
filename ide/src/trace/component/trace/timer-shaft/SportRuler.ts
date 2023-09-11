@@ -21,7 +21,6 @@ import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElem
 import { TraceRow } from '../base/TraceRow.js';
 import { SpApplication } from '../../../SpApplication.js';
 import { Utils } from '../base/Utils.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
 
 export enum StType {
   TEMP, //临时的
@@ -262,9 +261,13 @@ export class SportRuler extends Graph {
         let sectionTime = (endNS - startNS) / section;
         let countArr = new Uint32Array(section);
         let count: number = 0; //某段时间的调用栈数量
+        const useIndex : number[] = [];
         for (let i = 1; i <= section; i++) {
           count = 0;
           for (let j = 0; j < this.timeArray.length; j++) {
+            if (useIndex.includes(j)){
+              continue;
+            }
             const itemTime = this.timeArray[j];
             let inRange = false;
             // ebpf需要考虑dur
@@ -290,6 +293,7 @@ export class SportRuler extends Graph {
               } else {
                 count++;
               }
+              useIndex.push(j);
               countArr[i - 1] = count;
             } else {
               // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
@@ -301,7 +305,6 @@ export class SportRuler extends Graph {
             this.context2D.moveTo(x, this.frame.y + 22);
             this.context2D.lineTo(x, this.frame.y + 22 + 5);
           }
-          //   this.context2D.font = 10 + 'px sans-serif';
           // 每一格的数量的数字宽度
           let countTextWidth = this.context2D.measureText(String(countArr[i - 1])).width;
           // 文本的开始位置 = 框选的开始位置 + 格数 + (一格的宽度 - 文本的宽度) / 2

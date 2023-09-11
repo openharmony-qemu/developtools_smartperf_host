@@ -590,15 +590,18 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
 
   queryIOSamples(selectionParam: any) {
     let sql = '';
-    if (selectionParam.diskIOipids.length > 0) {
-      sql += `and (s.ipid in (${selectionParam.diskIOipids.join(',')}) and s.type in (5,6)) `;
-    }
+    const types : number[] = [];
     if (selectionParam.diskIOReadIds.length > 0) {
-      sql += `or (s.ipid in (${selectionParam.diskIOReadIds.join(',')}) and s.type in (1,3)) `;
+      types.push(...[1,3]);
     }
     if (selectionParam.diskIOWriteIds.length > 0) {
-      sql += `or (s.ipid in (${selectionParam.diskIOWriteIds.join(',')}) and s.type in (2,4)) `;
+      types.push(...[2,4])
     }
+    if (selectionParam.diskIOipids.length > 0) {
+      types.push(...[5,6])
+      sql += `and (s.ipid in (${selectionParam.diskIOipids.join(',')}) and s.type in (${types.join(',')})) `;
+    }
+    
     this.queryData(
       this.currentEventId,
       'fileSystem-queryIoSamples',

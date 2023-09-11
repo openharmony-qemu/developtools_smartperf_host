@@ -168,14 +168,17 @@ export class SpWebHdcShell extends BaseElement {
         (endY > textLastRowY && endY < textEndY)
       ) {
         index++;
-        if (index == 1) {
+        if (index === 1) {
           if (depth > 1) {
-            selectedText += line.substring(Math.floor((startX - x) / 8)) + (endX < x + w ? '\n' : '');
+            selectedText += line.slice(
+              this.getCurrentLineBackSize(line, startX - x, true)) + (endX < x + w ? '\n' : '');
           } else {
-            selectedText += `${line.substring(Math.floor((startX - x) / 8), Math.ceil((endX - x) / 8))}\n`;
+            selectedText += `${line.slice(
+              this.getCurrentLineBackSize(line, startX - x, true),
+              this.getCurrentLineBackSize(line, endX - x, false))}\n`;
           }
-        } else if (index == depth) {
-          selectedText += `${line.substring(0, Math.ceil((endX - x) / 8))}\n`;
+        } else if (index === depth) {
+          selectedText += `${line.slice(0, this.getCurrentLineBackSize(line, endX - x, false))}\n`;
         } else {
           selectedText += `${line}\n`;
         }
@@ -229,6 +232,23 @@ export class SpWebHdcShell extends BaseElement {
     this.points = {startX: startPointX, startY: startPointY, endX: endPointX, endY: endPointY};
   }
 
+  getCurrentLineBackSize(currentLine: string, maxBackSize: number, isStart: boolean): number{
+    let fillText = '';
+    let strings = currentLine.split('');
+    for (let index = 0; index < strings.length; index++) {
+      let text = strings[index];
+      if (this.shellCanvasCtx!.measureText(fillText).width < maxBackSize &&
+        this.shellCanvasCtx!.measureText(fillText + text).width >= maxBackSize) {
+        if (!isStart) {
+          fillText += text;
+        }
+        break;
+      }
+      fillText += text;
+    }
+    return fillText.length;
+  }
+
   reverseSelected(startX: number, startY: number, endX: number, endY: number): void {
     //左边界x为SpWebHdcShell.LEFT_OFFSET，右边界为this.shellCanvas!.width
     let depth = Math.ceil((startY - endY) / 16);
@@ -257,6 +277,7 @@ export class SpWebHdcShell extends BaseElement {
           startPointY = endY;
         } else {
           this.shellCanvasCtx!.fillRect(SpWebHdcShell.LEFT_OFFSET, startY - index * 16, this.shellCanvas!.width, 16);
+          this.shellCanvasCtx!.textBaseline = 'middle';
         }
       }
     }
@@ -320,7 +341,8 @@ export class SpWebHdcShell extends BaseElement {
           textY = SpWebHdcShell.TOP_OFFSET + index * 16;
           this.shellCanvasCtx!.fillText(shellStr, SpWebHdcShell.LEFT_OFFSET, textY);
         }
-        shellStrLength = this.cursorIndex * unitWidth + SpWebHdcShell.LEFT_OFFSET;
+        shellStrLength = this.shellCanvasCtx!.measureText(
+          this.cursorRow.slice(0, this.cursorIndex)).width + SpWebHdcShell.LEFT_OFFSET;
         if (scroller) {
           if (textY > this.shellDiv!.clientHeight) {
             this.shellDiv!.scrollTop = textY - this.shellDiv!.clientHeight + 3;

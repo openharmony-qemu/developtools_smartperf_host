@@ -25,7 +25,7 @@ import {
   queryFrameDynamicData,
   queryFrameSpacing,
   queryFrameTimeData,
-  queryPhysicalData
+  queryPhysicalData, queryTraceType
 } from '../../database/SqlLite.js';
 import { JanksStruct } from '../../bean/JanksStruct.js';
 import { ns2xByTimeShaft, PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon.js';
@@ -50,6 +50,7 @@ import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;
   private flagConfig: Params | undefined;
+  private isTxtTraceType: boolean = false;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -59,7 +60,13 @@ export class SpFrameTimeChart {
     let frameTimeData = await queryFrameTimeData();
     if (frameTimeData.length > 0) {
       let frameTimeLineRow: TraceRow<JanksStruct> = await this.initFrameTimeLine();
-      await this.initExpectedChart(frameTimeLineRow);
+      let traceType = await queryTraceType();
+      if (traceType.length > 0 && traceType[0].value.startsWith('txt')) {
+        this.isTxtTraceType = true;
+      }
+      if (!this.isTxtTraceType) {
+        await this.initExpectedChart(frameTimeLineRow);
+      }
       await this.initActualChart(frameTimeLineRow);
     }
   }
@@ -634,6 +641,9 @@ export class SpFrameTimeChart {
       let depthArray = [];
       for (let index: number = 0; index < frameActualData.length; index++) {
         let it = frameActualData[index];
+        if (this.isTxtTraceType) {
+          it.jank_tag = 0;
+        }
         if (!it.dur || it.dur < 0) {
           continue;
         }
