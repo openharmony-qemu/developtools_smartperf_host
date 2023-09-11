@@ -106,7 +106,6 @@ export class TabPaneSlices extends BaseElement {
         const sliceRowList: Array<TraceRow<any>> = [];
         // 框选的slice泳道
         for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
-          //console.log(row.name, row.rowType, row.folder);
           if (row.rowType === 'func') {
             sliceRowList.push(row);
           }

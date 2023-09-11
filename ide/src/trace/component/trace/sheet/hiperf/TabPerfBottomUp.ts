@@ -136,8 +136,8 @@ export class TabpanePerfBottomUp extends BaseElement {
     //@ts-ignore
     const bottomUpData = evt.detail.data as PerfBottomUpStruct;
     document.dispatchEvent(
-      new CustomEvent('triangle-flag', {
-        detail: { time: bottomUpData.tsArray, type: 'triangle' },
+      new CustomEvent('number_calibration', {
+        detail: { time: bottomUpData.tsArray},
       })
     );
     callStack!.push(bottomUpData);

@@ -173,8 +173,8 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       // @ts-ignore
       let data = evt.detail.data as FileMerageBean;
       document.dispatchEvent(
-        new CustomEvent('triangle-flag', {
-          detail: { time: data.tsArray, type: 'triangle' },
+        new CustomEvent('number_calibration', {
+          detail: { time: data.tsArray },
         })
       );
       this.setRightTableData(data);

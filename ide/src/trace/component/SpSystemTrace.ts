@@ -341,28 +341,16 @@ export class SpSystemTrace extends BaseElement {
       requestAnimationFrame(() => this.refreshCanvas(true));
     });
     document?.addEventListener('triangle-flag', (event: any) => {
-      const time = event.detail.time;
-      const type = event.detail.type;
-      if (time.length > 1) {
-        return;
-      }
-      if (time === '' && type === 'square') {
-        let temporaryTime = this.timerShaftEL?.drawTriangle(time, type);
-        if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
-      }
-      this.clearTriangle(this.timerShaftEL!.sportRuler!.flagList);
-      // 框选的宽度
-      let rangeSelectWidth = TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!;
-      // 平均一个旗子占的宽度，一个三角旗子大概18px，部分重合也可以看清，所以只要大于15暂时就画旗子
-      if (rangeSelectWidth / time.length > 15) {
-        for (const item of time) {
-          this.timerShaftEL?.drawTriangle(item, type);
-        }
-      } else {
-        this.timerShaftEL!.sportRuler!.time = time;
-        this.timerShaftEL!.sportRuler?.draw();
-      }
+      let temporaryTime = this.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
+      if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
     });
+
+    document?.addEventListener('number_calibration', (event: any) => {
+      this.timerShaftEL!.sportRuler!.times = event.detail.time;
+      this.timerShaftEL!.sportRuler!.counts = event.detail.counts;
+      this.timerShaftEL!.sportRuler?.draw();
+    });
+
     document?.addEventListener('flag-change', (event: any) => {
       this.timerShaftEL?.modifyFlagList(event.detail);
       if (event.detail.hidden) {
@@ -1303,7 +1291,7 @@ export class SpSystemTrace extends BaseElement {
   }
   // 清除上一次点击调用栈产生的三角旗子
   private clearTriangle(flagList: Array<Flag>) {
-    this.timerShaftEL!.sportRuler!.time = [];
+    this.timerShaftEL!.sportRuler!.times = [];
     for (var i = 0; i < flagList.length; i++) {
       if (flagList[i].type === 'triangle') {
         flagList.splice(i, 1);

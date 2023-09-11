@@ -589,30 +589,6 @@ export class FrameChart extends BaseElement {
   }
 
   /**
-   * 判断当前node的整条调用栈都与之前点击node的相同
-   * 则认为是上次选择的node
-   * @param data 每一个函数node
-   * @returns 是否为点选的那个node
-   */
-  private isSelectedNode(data: ChartStruct): boolean {
-    let select = ChartStruct.selectFuncStruct;
-    while (data?.parent && select?.parent) {
-      if (
-        select?.depth === data.depth &&
-        select.symbol === data.symbol &&
-        select.lib === data.lib &&
-        select.addr === data.addr
-      ) {
-        data = data.parent;
-        select = select.parent;
-      } else {
-        return false;
-      }
-    }
-    return !data.parent && !select?.parent;
-  }
-
-  /**
    * 点选后重绘火焰图
    */
   private clickRedraw(): void {
@@ -749,8 +725,11 @@ export class FrameChart extends BaseElement {
         // 重新绘图
         this.clickRedraw();
         document.dispatchEvent(
-          new CustomEvent('triangle-flag', {
-            detail: { time: ChartStruct.selectFuncStruct.tsArray, type: 'triangle' },
+          new CustomEvent('number_calibration', {
+            detail: {
+              time: ChartStruct.selectFuncStruct.tsArray,
+              count: ChartStruct.selectFuncStruct.countArray,
+            },
           })
         );
       }

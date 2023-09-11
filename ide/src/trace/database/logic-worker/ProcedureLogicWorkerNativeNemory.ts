@@ -701,7 +701,8 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack.size)}`;
     stack.heapPercent = `${((stack.size / this.selectTotalSize) * 100).toFixed(1)}%`;
-    stack.tsArray.push(hook.startTs);
+    stack.countArray.push(...hook.countArray || hook.count);
+    stack.tsArray.push(...hook.tsArray || hook.startTs);
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseSampleTree(child as NativeHookCallInfo, hook);
@@ -717,7 +718,8 @@ where ts between start_ts and end_ts ${condition};
     stack.threadName = hook.threadName;
     stack.heapSizeStr = `${getByteWithUnit(stack!.size)}`;
     stack.heapPercent = `${((stack!.size / this.selectTotalSize) * 100).toFixed(1)}%`;
-    stack.tsArray.push(hook.startTs);
+    stack.countArray.push(...hook.countArray || hook.count);
+    stack.tsArray.push(...hook.tsArray || hook.startTs);
     if (stack.children.length > 0) {
       stack.children.map((child) => {
         this.traverseTree(child as NativeHookCallInfo, hook);
@@ -891,7 +893,7 @@ where ts between start_ts and end_ts ${condition};
       }
 
       const callChains = this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
-	  if (!callChains || callChains.length === 0) {
+      if (!callChains || callChains.length === 0) {
         analysisSample.libId = -1;
         analysisSample.libName = 'Unknown';
         analysisSample.symbolId = -1;
@@ -984,7 +986,6 @@ where ts between start_ts and end_ts ${condition};
           ] = root;
           this.currentTreeList.push(root);
         }
-        root.tsArray.push(nativeHookSample.startTs);
         NativeHookCallInfo.merageCallChainSample(root, callChains[topIndex], nativeHookSample);
         if (callChains.length > 1) {
           this.merageChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
@@ -1007,7 +1008,8 @@ where ts between start_ts and end_ts ${condition};
         threadMerageData.heapSize = merageData.heapSize;
         threadMerageData.totalCount = totalCount;
         threadMerageData.totalSize = totalSize;
-        threadMerageData.tsArray = merageData.tsArray;
+        threadMerageData.tsArray = [...merageData.tsArray];
+        threadMerageData.countArray = [...merageData.countArray];
         rootMerageMap[merageData.tid] = threadMerageData;
       } else {
         rootMerageMap[merageData.tid].children.push(merageData);
@@ -1016,6 +1018,7 @@ where ts between start_ts and end_ts ${condition};
         rootMerageMap[merageData.tid].heapSize += merageData.heapSize;
         rootMerageMap[merageData.tid].totalCount = totalCount;
         rootMerageMap[merageData.tid].totalSize = totalSize;
+        rootMerageMap[merageData.tid].countArray.push(...merageData.countArray);
         rootMerageMap[merageData.tid].tsArray.push(...merageData.tsArray);
       }
       merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
@@ -1098,10 +1101,14 @@ where ts between start_ts and end_ts ${condition};
         }
         if (currentNode.count === 0) {
           currentNode.count++;
+          currentNode.countArray.push(1);
+          currentNode.tsArray.push(sample.startTs);
         }
       } else {
         currentNode.count++;
         currentNode.heapSize += sample.heapSize;
+        currentNode.countArray.push(1);
+        currentNode.tsArray.push(sample.startTs);
       }
       groupMap[sample.tid + '-' + sample.eventId] = currentNode;
     });
@@ -1168,7 +1175,6 @@ where ts between start_ts and end_ts ${condition};
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    node!.tsArray.push(sample.startTs);
     if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
   setMerageName(currentNode: NativeHookCallInfo) {
@@ -1283,6 +1289,8 @@ export class NativeHookStatistics {
   lastLibId: number = 0;
   lastSymbolId: number = 0;
   isSelected: boolean = false;
+  tsArray: Array<number> = [];
+  countArray:Array<number> = [];
 }
 export class NativeHookCallInfo extends MerageBean {
   #totalCount: number = 0;
@@ -1335,6 +1343,17 @@ export class NativeHookCallInfo extends MerageBean {
       currentNode.tid = sample.tid;
     }
     currentNode.count += sample.count || 1;
+    if (sample.countArray && sample.countArray.length > 0){
+      currentNode.countArray.push(...sample.countArray);
+    } else {
+      currentNode.countArray.push(sample.count);
+    }
+
+    if (sample.tsArray && sample.tsArray.length > 0){
+      currentNode.tsArray.push(...sample.tsArray);
+    } else {
+      currentNode.tsArray.push(sample.startTs);
+    }
     currentNode.heapSize += sample.heapSize;
   }
 }

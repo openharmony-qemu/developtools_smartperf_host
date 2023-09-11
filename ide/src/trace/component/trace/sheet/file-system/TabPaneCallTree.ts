@@ -223,8 +223,8 @@ export class TabPaneCallTree extends BaseElement {
       // @ts-ignore
       let data = evt.detail.data as MerageBean;
       document.dispatchEvent(
-        new CustomEvent('triangle-flag', {
-          detail: { time: data.tsArray, type: 'triangle' },
+        new CustomEvent('number_calibration', {
+          detail: { time: data.tsArray,},
         })
       );
       this.setRightTableData(data);

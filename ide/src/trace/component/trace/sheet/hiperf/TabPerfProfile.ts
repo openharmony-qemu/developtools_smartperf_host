@@ -189,8 +189,8 @@ export class TabpanePerfProfile extends BaseElement {
       // @ts-ignore
       let data = evt.detail.data as PerfCallChainMerageData;
       document.dispatchEvent(
-        new CustomEvent('triangle-flag', {
-          detail: { time: data.tsArray, type: 'triangle' },
+        new CustomEvent('number_calibration', {
+          detail: { time: data.tsArray },
         })
       );
       this.setRightTableData(data);
@@ -481,10 +481,14 @@ export class TabpanePerfProfile extends BaseElement {
           this.perfProfileFrameChart?.calculateChartData();
         }
         // @ts-ignore
-        this.perfProfilerTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 35 + 'px';
+        this.perfProfilerTbl?.shadowRoot.querySelector('.table').style.height =
+          // @ts-ignore
+          this.parentElement.clientHeight - 10 - 35 + 'px';
         this.perfProfilerTbl?.reMeauseHeight();
         // @ts-ignore
-        this.perfProfilerList?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 - 21 + 'px';
+        this.perfProfilerList?.shadowRoot.querySelector('.table').style.height =
+          // @ts-ignore
+          this.parentElement.clientHeight - 45 - 21 + 'px';
         this.perfProfilerList?.reMeauseHeight();
         this.perfProfileLoadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
@@ -500,7 +504,7 @@ export class TabpanePerfProfile extends BaseElement {
       this.isChartShow = true;
       this.perfProfilerFilter!.disabledMining = true;
       showButtonMenu(this.perfProfilerFilter, this.needShowMenu);
-      if (!data){
+      if (!data) {
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       }
       this.perfProfileFrameChart?.calculateChartData();

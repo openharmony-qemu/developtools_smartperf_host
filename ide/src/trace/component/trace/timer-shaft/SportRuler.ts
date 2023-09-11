@@ -94,6 +94,7 @@ export class SportRuler extends Graph {
   };
   private timerShaftEL: TimerShaftElement | undefined | null;
   private timeArray: Array<number> = [];
+  private countArray: Array<number> = [];
   constructor(
     timerShaftEL: TimerShaftElement,
     frame: Rect,
@@ -117,8 +118,12 @@ export class SportRuler extends Graph {
     this.draw();
   }
 
-  set time(timeArray: Array<number>) {
+  set times(timeArray: Array<number>) {
     this.timeArray = timeArray;
+  }
+
+  set counts(countArray: Array<number>) {
+    this.countArray = countArray;
   }
 
   modifyFlagList(flag: Flag | null | undefined) {
@@ -263,7 +268,12 @@ export class SportRuler extends Graph {
               this.timeArray[j] > this.range.startNS &&
               this.timeArray[j] < this.range.endNS
             ) {
-              count++;
+              // nm统计模式则统计每个时间的count
+              if (this.countArray && this.countArray[j] > 0){
+                count += this.countArray[j];
+              } else {
+                count++;
+              }
               countArr[i - 1] = count;
             } else {
               // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
@@ -310,9 +320,16 @@ export class SportRuler extends Graph {
             this.flagList[i].type == '' ? this.flagList.splice(triangle, 1) : '';
           }
           this.flagList.forEach((it) => (it.selected = false));
+          this.flagList[i].selected = true;
         } else {
-          this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
-          this.flagList.forEach((it) => (it.selected = false));
+          if (triangle == -1) {
+            this.flagList.forEach((it) => (it.selected = false));
+            this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
+          } else {
+            this.flagList.forEach((it) => (it.selected = false));
+            this.flagList[triangle].time = time;
+            this.flagList[triangle].selected = true;
+          }
         }
       } else if (type == 'square') {
         if (i != -1) {

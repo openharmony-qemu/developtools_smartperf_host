@@ -306,8 +306,8 @@ export class TabpaneNMCalltree extends BaseElement {
         (event.detail as any).callBack(true);
       }
       document.dispatchEvent(
-        new CustomEvent('triangle-flag', {
-          detail: { time: event.detail.tsArray, type: 'triangle' },
+        new CustomEvent('number_calibration', {
+          detail: { time: event.detail.tsArray, counts: event.detail.countArray},
         })
       );
     });

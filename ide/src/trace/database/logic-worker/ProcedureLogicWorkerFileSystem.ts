@@ -659,7 +659,6 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
             root;
           this.currentTreeList.push(root);
         }
-        root.tsArray.push(sample.ts);
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
         this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
       }
@@ -677,7 +676,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         fileMerageBean.dur = merageData.dur;
         fileMerageBean.count = merageData.count;
         fileMerageBean.total = totalCount;
-        fileMerageBean.tsArray = merageData.tsArray;
+        fileMerageBean.tsArray = [...merageData.tsArray];
         rootMerageMap[merageData.pid] = fileMerageBean;
       } else {
         rootMerageMap[merageData.pid].children.push(merageData);
@@ -765,7 +764,6 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       this.currentTreeList.push(node);
       node.parentNode = currentNode;
     }
-    node!.tsArray.push(sample.ts);
     if (node! && !isEnd) this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
   }
 
@@ -916,6 +914,7 @@ export class FileMerageBean extends MerageBean {
     }
     currentNode.dur += sample.dur;
     currentNode.count++;
+    currentNode.tsArray.push(sample.ts);
   }
 }
 
