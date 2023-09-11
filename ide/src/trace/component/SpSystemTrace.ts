@@ -127,9 +127,9 @@ export class CurrentSlicesTime {
 
 @element('sp-system-trace')
 export class SpSystemTrace extends BaseElement {
-  static mouseCurrentPosition = 0;
-  static offsetMouse = 0;
-  static moveable = true;
+  mouseCurrentPosition = 0;
+  offsetMouse = 0;
+  isMouseLeftDown = false;
   static scrollViewWidth = 0;
   static isCanvasOffScreen = true;
   static DATA_DICT: Map<number, string> = new Map<number, string>();
@@ -341,7 +341,7 @@ export class SpSystemTrace extends BaseElement {
     document?.addEventListener('number_calibration', (event: any) => {
       this.timerShaftEL!.sportRuler!.times = event.detail.time;
       this.timerShaftEL!.sportRuler!.counts = event.detail.counts;
-      this.timerShaftEL!.sportRuler!.durations = event.detail.durations
+      this.timerShaftEL!.sportRuler!.durations = event.detail.durations;
       this.timerShaftEL!.sportRuler?.draw();
     });
 
@@ -1675,6 +1675,13 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
+    if (ev.ctrlKey) {
+      ev.preventDefault();
+      this.style.cursor = 'move';
+      this.isMouseLeftDown = true;
+      this.mouseCurrentPosition = ev.clientX;
+      return;
+    }
     TraceRow.isUserInteraction = true;
     if (this.isMouseInSheet(ev)) return;
     this.observerScrollHeightEnable = false;
@@ -1721,6 +1728,14 @@ export class SpSystemTrace extends BaseElement {
     if (this.isWASDKeyPress()) {
       ev.preventDefault();
       ev.stopPropagation();
+      return;
+    }
+    if (ev.ctrlKey) {
+      ev.preventDefault();
+      this.offsetMouse = 0;
+      this.mouseCurrentPosition = 0;
+      this.isMouseLeftDown = false;
+      this.style.cursor = 'default';
       return;
     }
     TraceRow.isUserInteraction = false;
@@ -2014,6 +2029,9 @@ export class SpSystemTrace extends BaseElement {
       this.hoverFlag = null;
       ev.preventDefault();
       return;
+    }
+    if (ev.ctrlKey && ev.button == 0 && this.isMouseLeftDown) {
+      this.translateByMouseMove(ev);
     }
     this.inFavoriteArea = this.favoriteRowsEL?.containPoint(ev);
     if ((window as any).isSheetMove) return;
@@ -3270,39 +3288,20 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  myMouseMove = (ev: MouseEvent) => {
-    if (ev.ctrlKey) {
-      ev.preventDefault();
-      SpSystemTrace.offsetMouse = ev.clientX - SpSystemTrace.mouseCurrentPosition;
-      let eventA = new KeyboardEvent('keypress', {
-        key: 'a',
-        code: '65',
-        keyCode: 65,
-      });
-      let eventD = new KeyboardEvent('keypress', {
-        key: 'd',
-        code: '68',
-        keyCode: 68,
-      });
-      if (ev.button == 0) {
-        if (SpSystemTrace.offsetMouse < 0 && SpSystemTrace.moveable) {
-          // 向右拖动，则泳道图右移
-          this.timerShaftEL!.documentOnKeyPress(eventD);
-          setTimeout(() => {
-            this.timerShaftEL!.documentOnKeyUp(eventD);
-          }, 350);
-        }
-        if (SpSystemTrace.offsetMouse > 0 && SpSystemTrace.moveable) {
-          // 向左拖动，则泳道图左移
-          this.timerShaftEL!.documentOnKeyPress(eventA);
-          setTimeout(() => {
-            this.timerShaftEL!.documentOnKeyUp(eventA);
-          }, 350);
-        }
-      }
-      SpSystemTrace.moveable = false;
+  translateByMouseMove(ev: MouseEvent): void {
+    ev.preventDefault();
+    let offset = 0;
+    if (this.offsetMouse === 0) {
+      this.offsetMouse = ev.clientX;
+      offset = ev.clientX - this.mouseCurrentPosition;
+    } else {
+      offset = ev.clientX - this.offsetMouse;
     }
-  };
+    this.offsetMouse = ev.clientX;
+    const rangeRuler = this.timerShaftEL?.getRangeRuler()!;
+
+    rangeRuler.translate(offset);
+  }
 
   connectedCallback() {
     this.initPointToEvent();
@@ -3332,40 +3331,6 @@ export class SpSystemTrace extends BaseElement {
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
-
-    /**
-     * 获取并保存鼠标当前的x轴坐标位置，配合ctrl+鼠标左键拖动完成泳道图的左移或右移
-     */
-    this.addEventListener(
-      'mousedown',
-      (e) => {
-        if (e.ctrlKey) {
-          e.preventDefault();
-          this.style.cursor = 'move';
-          SpSystemTrace.moveable = true;
-          SpSystemTrace.mouseCurrentPosition = e.clientX;
-        }
-      },
-      { passive: false }
-    );
-    /**
-     * ctrl+鼠标移动，实现泳道图左移或者右移。
-     */
-    this.addEventListener('mousemove', (ev) => throttle(this.myMouseMove, 350, ev)(), { passive: false });
-
-    this.addEventListener(
-      'mouseup',
-      (e) => {
-        if (e.ctrlKey) {
-          e.preventDefault();
-          SpSystemTrace.offsetMouse = 0;
-          SpSystemTrace.mouseCurrentPosition = 0;
-          SpSystemTrace.moveable = false;
-          this.style.cursor = 'default';
-        }
-      },
-      { passive: false }
-    );
 
     /**
      * 泳道图中添加ctrl+鼠标滚轮事件，对泳道图进行放大缩小。

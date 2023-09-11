@@ -162,7 +162,7 @@ export class RangeRuler extends Graph {
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
     for (let index = 0; index < this._cpuUsage.length; index++) {
       let cpuUsageItem = this._cpuUsage[index];
-      const color = interpolateColorBrightness(ColorUtils.MD_PALETTE[cpuUsageItem.cpu],cpuUsageItem.rate)
+      const color = interpolateColorBrightness(ColorUtils.MD_PALETTE[cpuUsageItem.cpu], cpuUsageItem.rate);
       this.context2D.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       this.context2D.globalAlpha = cpuUsageItem.rate;
       this.context2D.fillRect(
@@ -926,6 +926,27 @@ export class RangeRuler extends Graph {
     };
     this.upFrameIdD = requestAnimationFrame(animD);
   }
+
+  translate(distance: number) {
+    const rangeDur = (this.range.endNS - this.range.startNS)
+    const time = (distance / this.canvas!.width) * rangeDur;
+    if (
+      this.range.startNS < 0 ||
+      this.range.endNS < 0 ||
+      this.range.startNS > this.range.totalNS ||
+      this.range.endNS > this.range.totalNS
+    ) {
+      return;
+    }
+    this.range.startNS -= time;
+    this.range.endNS -= time;
+    this.fillX();
+    this.draw();
+    this.range.refresh = true;
+    this.notifyHandler(this.range);
+    this.range.refresh = false;
+  }
+
   zoomFit(startTime: number, endTime: number) {
     let startX = (this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS);
     let endX = (this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS);
