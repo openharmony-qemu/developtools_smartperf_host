@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NumberCalibration } from '../../bean/FrameChartStruct.js';
 import { NativeMemoryExpression } from '../../bean/NativeHook.js';
 import {
   convertJSON,
@@ -1021,8 +1022,12 @@ where ts between start_ts and end_ts ${condition};
         rootMerageMap[merageData.tid].heapSize += merageData.heapSize;
         rootMerageMap[merageData.tid].totalCount = totalCount;
         rootMerageMap[merageData.tid].totalSize = totalSize;
-        rootMerageMap[merageData.tid].countArray.push(...merageData.countArray);
-        rootMerageMap[merageData.tid].tsArray.push(...merageData.tsArray);
+        for (const count of merageData.countArray) {
+          rootMerageMap[merageData.tid].countArray.push(count);
+        }
+        for (const ts of merageData.tsArray) {
+          rootMerageMap[merageData.tid].tsArray.push(ts);
+        }
       }
       merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
     });

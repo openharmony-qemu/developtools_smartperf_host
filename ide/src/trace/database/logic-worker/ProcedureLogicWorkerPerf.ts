@@ -315,8 +315,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   addPerfGroupData(callChain: PerfCallChain) {
     const currentCallChain = this.callChainData[callChain.sampleId] || [];
     this.callChainData[callChain.sampleId] = currentCallChain;
-    if (currentCallChain.length > maxDepth){
-      currentCallChain.splice(0,1);
+    if (currentCallChain.length > maxDepth) {
+      currentCallChain.splice(0, 1);
     }
     currentCallChain.push(callChain);
   }
@@ -356,7 +356,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             this.currentTreeMapData[perfCallChains[topIndex].name + perfSample.pid] = perfRootNode;
             this.currentTreeList.push(perfRootNode);
           }
-          
+
           PerfCallChainMerageData.merageCallChainSample(perfRootNode, perfCallChains[topIndex], perfSample, false);
           this.mergeChildrenByIndex(perfRootNode, perfCallChains, topIndex, perfSample, isTopDown);
         }
@@ -385,7 +385,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         rootMerageMap[merageData.pid].dur += merageData.dur;
         rootMerageMap[merageData.pid].count += merageData.dur;
         rootMerageMap[merageData.pid].total = totalSamplesCount;
-        rootMerageMap[merageData.pid].tsArray.push(...merageData.tsArray);
+        for (const ts of merageData.tsArray) {
+          rootMerageMap[merageData.pid].tsArray.push(ts);
+        }
       }
       merageData.parentNode = rootMerageMap[merageData.pid]; //子节点添加父节点的引用
     });
@@ -877,7 +879,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         bottomUpStruct = sameSymbolMap.get(symbolKey)!;
         bottomUpStruct.totalTime += perfBottomUpStruct.totalTime;
         bottomUpStruct.selfTime += perfBottomUpStruct.selfTime;
-        bottomUpStruct.tsArray.push(...perfBottomUpStruct.tsArray);
+        for (const ts of perfBottomUpStruct.tsArray) {
+          bottomUpStruct.tsArray.push(ts);
+        }
       } else {
         bottomUpStruct = perfBottomUpStruct;
         sameSymbolMap.set(symbolKey, bottomUpStruct);

@@ -95,6 +95,7 @@ export class SportRuler extends Graph {
   private timerShaftEL: TimerShaftElement | undefined | null;
   private timeArray: Array<number> = [];
   private countArray: Array<number> = [];
+  private durArray: Array<number> = [];
   constructor(
     timerShaftEL: TimerShaftElement,
     frame: Rect,
@@ -124,6 +125,10 @@ export class SportRuler extends Graph {
 
   set counts(countArray: Array<number>) {
     this.countArray = countArray;
+  }
+
+  set durations(durArray: Array<number>) {
+    this.durArray = durArray;
   }
 
   modifyFlagList(flag: Flag | null | undefined) {
@@ -255,21 +260,32 @@ export class SportRuler extends Graph {
           : (endNS = TraceRow.rangeSelectObject!.endNS!);
         // 每一格的时间
         let sectionTime = (endNS - startNS) / section;
-        let countArr = new Uint16Array(section);
+        let countArr = new Uint32Array(section);
         let count: number = 0; //某段时间的调用栈数量
-        // this.context2D.beginPath();
         for (let i = 1; i <= section; i++) {
           count = 0;
           for (let j = 0; j < this.timeArray.length; j++) {
+            const itemTime = this.timeArray[j];
+            let inRange = false;
+            // ebpf需要考虑dur
+            if (this.durArray && this.durArray.length > 0) {
+              const dur = this.durArray[j];
+              inRange =
+                itemTime + dur >= startNS + sectionTime * (i - 1) &&
+                itemTime < startNS + sectionTime * i &&
+                itemTime + dur >= this.range.startNS  &&
+                itemTime < this.range.endNS;
+            } else {
+              inRange =
+                itemTime >= startNS + sectionTime * (i - 1) &&
+                itemTime < startNS + sectionTime * i &&
+                itemTime >= this.range.startNS &&
+                itemTime < this.range.endNS;
+            }
             // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
-            if (
-              this.timeArray[j] >= startNS + sectionTime * (i - 1) &&
-              this.timeArray[j] < startNS + sectionTime * i &&
-              this.timeArray[j] > this.range.startNS &&
-              this.timeArray[j] < this.range.endNS
-            ) {
+            if (inRange) {
               // nm统计模式则统计每个时间的count
-              if (this.countArray && this.countArray[j] > 0){
+              if (this.countArray && this.countArray[j] > 0) {
                 count += this.countArray[j];
               } else {
                 count++;

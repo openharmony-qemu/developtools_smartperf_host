@@ -86,6 +86,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         this.frameChart?.updateCanvas(true, this.clientWidth);
         this.frameChart?.calculateChartData();
         this.switchFlameChart();
+        this.fsCallTreeFilter.icon = 'block';
       }
     );
   }
@@ -174,7 +175,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       let data = evt.detail.data as FileMerageBean;
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: { time: data.tsArray },
+          detail: { time: data.tsArray,durations: data.durArray },
         })
       );
       this.setRightTableData(data);

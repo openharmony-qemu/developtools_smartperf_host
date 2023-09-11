@@ -728,7 +728,8 @@ export class FrameChart extends BaseElement {
           new CustomEvent('number_calibration', {
             detail: {
               time: ChartStruct.selectFuncStruct.tsArray,
-              count: ChartStruct.selectFuncStruct.countArray,
+              counts: ChartStruct.selectFuncStruct.countArray,
+              durations: ChartStruct.selectFuncStruct.durArray,
             },
           })
         );

@@ -348,6 +348,7 @@ export class SpSystemTrace extends BaseElement {
     document?.addEventListener('number_calibration', (event: any) => {
       this.timerShaftEL!.sportRuler!.times = event.detail.time;
       this.timerShaftEL!.sportRuler!.counts = event.detail.counts;
+      this.timerShaftEL!.sportRuler!.durations = event.detail.durations
       this.timerShaftEL!.sportRuler?.draw();
     });
 

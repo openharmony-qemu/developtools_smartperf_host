@@ -224,7 +224,7 @@ export class TabPaneCallTree extends BaseElement {
       let data = evt.detail.data as MerageBean;
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: { time: data.tsArray,},
+          detail: { time: data.tsArray, durations: data.durArray},
         })
       );
       this.setRightTableData(data);
@@ -457,7 +457,9 @@ export class TabPaneCallTree extends BaseElement {
       this.isChartShow = true;
       this.callTreeFilter!.disabledMining = true;
       showButtonMenu(this.callTreeFilter, this.needShowMenu);
-      if (!data) this.frameChart!.data = this.callTreeDataSource;
+      if (!data){
+        this.frameChart!.data = this.callTreeDataSource;
+      }
       this.frameChart?.calculateChartData();
     } else if (data.icon === 'tree') {
       callTreePageChart?.setAttribute('class', '');

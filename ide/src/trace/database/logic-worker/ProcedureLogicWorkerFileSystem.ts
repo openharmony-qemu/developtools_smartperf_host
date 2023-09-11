@@ -677,6 +677,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         fileMerageBean.count = merageData.count;
         fileMerageBean.total = totalCount;
         fileMerageBean.tsArray = [...merageData.tsArray];
+        fileMerageBean.durArray = [...merageData.durArray]
         rootMerageMap[merageData.pid] = fileMerageBean;
       } else {
         rootMerageMap[merageData.pid].children.push(merageData);
@@ -684,7 +685,12 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
         rootMerageMap[merageData.pid].dur += merageData.dur;
         rootMerageMap[merageData.pid].count += merageData.count;
         rootMerageMap[merageData.pid].total = totalCount;
-        rootMerageMap[merageData.pid].tsArray.push(...merageData.tsArray);
+        for (const ts of merageData.tsArray) {
+          rootMerageMap[merageData.pid].tsArray.push(ts);
+        }
+        for (const dur of merageData.durArray) {
+          rootMerageMap[merageData.pid].durArray.push(dur);
+        }
       }
       merageData.parentNode = rootMerageMap[merageData.pid]; //子节点添加父节点的引用
     });
@@ -915,6 +921,7 @@ export class FileMerageBean extends MerageBean {
     currentNode.dur += sample.dur;
     currentNode.count++;
     currentNode.tsArray.push(sample.ts);
+    currentNode.durArray.push(sample.dur);
   }
 }
 

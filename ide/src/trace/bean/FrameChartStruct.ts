@@ -57,6 +57,7 @@ export class ChartStruct extends BaseStruct {
   isChartSelectParent: boolean = false; // 用来显示灰色
   tsArray: Array<number> = [];
   countArray: Array<number> = [];
+  durArray: Array<number> = [];
 }
 
 export enum ChartMode {

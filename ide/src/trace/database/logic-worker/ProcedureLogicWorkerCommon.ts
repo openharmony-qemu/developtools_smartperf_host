@@ -24,8 +24,9 @@ export class ChartStruct {
   parent: ChartStruct | undefined;
   children: Array<ChartStruct> = [];
   isSearch: boolean = false;
-  tsArray: Array<number> = [];// 每个绘制的函数由哪些时间点的样本组成
-  countArray :Array<number> = [];// native hook统计模式下一个时间点有多次分配
+  tsArray: Array<number> = []; // 每个绘制的函数由哪些时间点的样本组成
+  countArray: Array<number> = []; // native hook统计模式下一个时间点有多次分配
+  durArray: Array<number> = [];
 }
 
 export class Msg {
