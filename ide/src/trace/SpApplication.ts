@@ -933,6 +933,11 @@ export class SpApplication extends BaseElement {
 
     function openTraceFile(ev: any, isClickHandle?: boolean) {
       that.removeAttribute('custom-color');
+      if (window.localStorage.getItem('Theme') == 'dark') {
+        that.changeTheme(Theme.DARK);
+      } else {
+        that.changeTheme(Theme.LIGHT);
+      }
       openFileInit();
       if (that.vs && isClickHandle) {
         Cmd.openFileDialog().then((res: string) => {

@@ -262,10 +262,11 @@ export class SportRuler extends Graph {
         let countArr = new Uint32Array(section);
         let count: number = 0; //某段时间的调用栈数量
         const useIndex : number[] = [];
+        const isEbpf = this.durArray && this.durArray.length > 0; 
         for (let i = 1; i <= section; i++) {
           count = 0;
           for (let j = 0; j < this.timeArray.length; j++) {
-            if (useIndex.includes(j)){
+            if (isEbpf && useIndex.includes(j)){
               continue;
             }
             const itemTime = this.timeArray[j];
