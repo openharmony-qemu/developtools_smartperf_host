@@ -366,7 +366,11 @@ export class LitTable extends HTMLElement {
     }
     if (this.hasAttribute('tree')) {
       this.value = value;
-      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Expand);
+      if (this.shadowRoot?.querySelector('.expand')) {
+        this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.top')!.name = 'up';
+        this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.bottom')!.name = 'down';
+      }
+      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
     } else {
       this.recycleDs = this.meauseAllRowHeight(value);
     }
@@ -610,33 +614,30 @@ export class LitTable extends HTMLElement {
                 h.appendChild(resizeDiv);
                 this.resizeEventHandler(rowElement, resizeDiv, i);
               }
-              if (a.hasAttribute('isExpand')) {
+              if (a.hasAttribute('retract')) {
                 let expand = document.createElement('div');
                 expand.classList.add('expand');
                 expand.style.display = 'grid';
                 h.append(expand);
-                let bottom = document.createElement('lit-icon') as LitIcon;
-                bottom.classList.add('down');
-                bottom.name = 'down';
-                expand.append(bottom);
                 let top = document.createElement('lit-icon') as LitIcon;
                 top.classList.add('top');
                 top.name = 'up';
                 expand.append(top);
-                if (a.hasAttribute('retract')) {
-                  top.name = 'down';
-                  bottom.name = 'up';
-                }
+                let bottom = document.createElement('lit-icon') as LitIcon;
+                bottom.classList.add('bottom');
+                bottom.name = 'down';
+                expand.append(bottom);
+
                 expand.addEventListener('click', (e) => {
-                  if (top.name !== 'up' && bottom.name !== 'down') {
-                    top.name = 'up';
-                    bottom.name = 'down';
+                  if (top.name == 'up' && bottom.name == 'down') {
+                    top.name = 'down';
+                    bottom.name = 'up';
                     // 一键展开
                     this.setStatus(this.value, true);
                     this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Expand);
                   } else {
-                    top.name = 'down';
-                    bottom.name = 'up';
+                    top.name = 'up';
+                    bottom.name = 'down';
                     // 一键收起
                     this.setStatus(this.value, false);
                     this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);

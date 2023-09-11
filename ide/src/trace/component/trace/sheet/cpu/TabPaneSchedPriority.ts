@@ -173,7 +173,7 @@ export class TabPaneSchedPriority extends BaseElement {
         </style>
         <label id="priority-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="priority-tbl" style="height: auto" tree>
-            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State" isExpand>
+            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State"retract>
             </lit-table-column>
             <lit-table-column width="1fr" data-index="count" key="count" align="flex-start" title="Count">
             </lit-table-column>

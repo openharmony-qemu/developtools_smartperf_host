@@ -71,7 +71,7 @@ export class TabPanePTS extends BaseElement {
         </style>
         <label id="pts-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="pts-tbl" style="height: auto" tree>
-            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%" isExpand>
+            <lit-table-column class="pts-column" title="Process/Thread/State" data-index="title" key="title" align="flex-start" width="27%"retract>
             </lit-table-column>
             <lit-table-column class="pts-column" title="Count" data-index="count" key="count" align="flex-start" width="1fr">
             </lit-table-column>
