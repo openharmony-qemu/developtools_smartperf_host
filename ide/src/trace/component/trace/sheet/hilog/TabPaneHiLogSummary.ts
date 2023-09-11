@@ -18,6 +18,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog.js';
 import { ColorUtils } from '../../base/ColorUtils.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { LitIcon } from '../../../../../base-ui/icon/LitIcon.js';
 
 @element('tab-hi-log-summary')
 export class TabPaneHiLogSummary extends BaseElement {
@@ -25,8 +26,13 @@ export class TabPaneHiLogSummary extends BaseElement {
   private summaryDownLoadTbl: LitTable | undefined | null;
   private parentTabEl: HTMLElement | undefined | null;
   private systemLogSource: LogStruct[] = [];
+  private logTreeNodes: LogTreeNode[] = [];
+  private expansionDiv: HTMLDivElement | undefined | null;
+  private expansionUpIcon: LitIcon | undefined | null;
+  private expansionDownIcon: LitIcon | undefined | null;
   private expandedNodeList: Set<number> = new Set();
   private logLevel: string[] = ['Debug', 'Info', 'Warn', 'Error','Fatal'];
+  private selectTreeDepth: number = 0;
 
   set data(systemLogDetailParam: SelectionParam) {
     this.systemLogSource = [];
@@ -45,6 +51,18 @@ export class TabPaneHiLogSummary extends BaseElement {
   initElements(): void {
     this.logSummaryTable = this.shadowRoot?.querySelector<HTMLDivElement>('#tab-summary');
     this.summaryDownLoadTbl = this.shadowRoot?.querySelector<LitTable>('#tb-hilog-summary');
+    this.expansionDiv = this.shadowRoot?.querySelector<HTMLDivElement>('.expansion-div');
+    this.expansionUpIcon = this.shadowRoot?.querySelector<LitIcon>('.expansion-up-icon');
+    this.expansionDownIcon = this.shadowRoot?.querySelector<LitIcon>('.expansion-down-icon');
+    let summaryTreeLevel: string[] = ['Level', '/Process', '/Tag', '/Message']
+    this.shadowRoot?.querySelectorAll<HTMLLabelElement>('.head-label').forEach(summaryTreeHead => {
+      summaryTreeHead.addEventListener('click', ()=>{
+        this.selectTreeDepth = summaryTreeLevel.indexOf(summaryTreeHead.textContent!);
+        this.expandedNodeList.clear();
+        this.refreshSelectDepth(this.logTreeNodes);
+        this.refreshRowNodeTable(true);
+      });
+    });
   }
 
   initHtml(): string {
@@ -64,11 +82,11 @@ export class TabPaneHiLogSummary extends BaseElement {
         .tree-row-tr:hover {
           background-color: #DEEDFF;
         }
-        td, .head-label {
+        td, .head-label, .head-count {
           white-space: nowrap;
           overflow: hidden;
         }
-        .head-label {
+        .head-label, .head-count {
           font-weight: bold;
         }
         .count-column-td, .head-count {
@@ -87,8 +105,17 @@ export class TabPaneHiLogSummary extends BaseElement {
         }
         </style>
         <div class="tab-summary-head">
-          <label class="head-label">Level/Process/Tag/Message</label>
-          <label class="head-label head-count">Count</label> 
+          <div style="justify-content: flex-start; display: flex">
+            <div class="expansion-div" style="display: grid;">
+              <lit-icon class="expansion-up-icon" name="up"></lit-icon>
+              <lit-icon class="expansion-down-icon" name="down"></lit-icon>
+            </div>
+            <label class="head-label" style="cursor: pointer;">Level</label>
+            <label class="head-label" style="cursor: pointer;">/Process</label>
+            <label class="head-label" style="cursor: pointer;">/Tag</label>
+            <label class="head-label" style="cursor: pointer;">/Message</label>
+          </div>
+          <label class="head-count">Count</label> 
         </div>
         <div id="tab-summary" style="overflow: auto"></div>
         <lit-table id="tb-hilog-summary" style="display: none" tree>
@@ -103,6 +130,38 @@ export class TabPaneHiLogSummary extends BaseElement {
     new ResizeObserver(() => {
       this.refreshRowNodeTable();
     }).observe(this.parentElement!);
+    this.expansionDiv?.addEventListener('click', this.expansionClickEvent);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.expansionDiv?.removeEventListener('click', this.expansionClickEvent);
+  }
+
+  expansionClickEvent = () => {
+    this.expandedNodeList.clear();
+    if (this.expansionUpIcon?.name === 'down') {
+      this.selectTreeDepth = 0;
+      this.expansionUpIcon!.name = 'up';
+      this.expansionDownIcon!.name = 'down';
+    } else {
+      this.selectTreeDepth = 4;
+      this.expansionUpIcon!.name = 'down';
+      this.expansionDownIcon!.name = 'up';
+    }
+    this.refreshSelectDepth(this.logTreeNodes);
+    this.refreshRowNodeTable(true);
+  }
+
+  private refreshSelectDepth(logTreeNodes: LogTreeNode[]){
+    logTreeNodes.forEach(item => {
+      if (item.depth < this.selectTreeDepth) {
+        this.expandedNodeList.add(item.id);
+        if (item.children.length > 0) {
+          this.refreshSelectDepth(item.children);
+        }
+      }
+    })
   }
 
   initTabSheetEl(parentTabEl: HTMLElement) {
@@ -153,8 +212,9 @@ export class TabPaneHiLogSummary extends BaseElement {
       }
       tableRowEl.appendChild(countEL);
       tableFragmentEl.appendChild(tableRowEl);
-      if (this.expandedNodeList.has(rowNode.id) && rowNode.children) {
-        tableFragmentEl.appendChild(this.createRowNodeTableEL(rowNode.children, countEL.style.color));
+      if (rowNode.children && this.expandedNodeList.has(rowNode.id)) {
+        let documentFragment = this.createRowNodeTableEL(rowNode.children, countEL.style.color);
+        tableFragmentEl.appendChild(documentFragment);
       }
     });
     return tableFragmentEl;
@@ -187,18 +247,20 @@ export class TabPaneHiLogSummary extends BaseElement {
     this.refreshRowNodeTable();
   }
 
-  private refreshRowNodeTable(): void {
+  private refreshRowNodeTable(useCacheRefresh: boolean = false): void {
     this.logSummaryTable!.innerHTML = '';
     if (this.logSummaryTable && this.parentTabEl) {
       this.logSummaryTable.style.height = `${this.parentTabEl!.clientHeight - 30}px`;
     }
-    let logTreeNodes = this.buildTreeTblNodes(this.systemLogSource);
-    if (logTreeNodes.length > 0) {
-      this.summaryDownLoadTbl!.recycleDataSource = logTreeNodes;
-    } else {
-      this.summaryDownLoadTbl!.recycleDataSource = [];
+    if (!useCacheRefresh) {
+      this.logTreeNodes = this.buildTreeTblNodes(this.systemLogSource);
+      if (this.logTreeNodes.length > 0) {
+        this.summaryDownLoadTbl!.recycleDataSource = this.logTreeNodes;
+      } else {
+        this.summaryDownLoadTbl!.recycleDataSource = [];
+      }
     }
-    let fragment = this.createRowNodeTableEL(logTreeNodes);
+    let fragment = this.createRowNodeTableEL(this.logTreeNodes);
     this.logSummaryTable!.appendChild(fragment);
   }
 

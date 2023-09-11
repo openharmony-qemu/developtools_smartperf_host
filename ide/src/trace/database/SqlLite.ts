@@ -5310,45 +5310,46 @@ export const getSystemLogsData = (): Promise<
          ORDER BY ts`
   );
 
-export const queryLogData = (): Promise<Array<LogStruct>> =>
+export const queryLogData = (oneDayTime: number): Promise<Array<LogStruct>> =>
   query(
     'queryLogData',
-    `
-      SELECT l.seq AS id,
-          (l.ts - TR.start_ts) AS startTs,
-          l.level AS level,
-          CASE
+    `SELECT l.seq     AS id,
+            CASE
+              WHEN l.ts < ${oneDayTime} THEN
+                0
+              ELSE (l.ts - TR.start_ts)
+              END     AS startTs,
+            l.level   AS level,
+            CASE
               WHEN l.level = 'D' THEN
-                  0
+                0
               WHEN l.level = 'I' THEN
-                  1
+                1
               WHEN l.level = 'W' THEN
-                  2
+                2
               WHEN l.level = 'E' THEN
-                  3
+                3
               WHEN l.level = 'F' THEN
-                  4
-              END AS depth,
-          l.tag AS tag,
-          l.context AS context,
-          l.origints AS time,
-          l.pid,
-          l.tid,
-          CASE
-              WHEN p.name is null THEN
-                  'Process ' || l.pid
-         else p.name
-         END AS processName,
-          1 AS dur
-         FROM
-          trace_range AS TR, 
-          log AS l
-        LEFT JOIN 
-          process p
-       ON p.pid = l.pid
-       ORDER BY 
-          l.ts;`,
-    {}
+                4
+              END     AS depth,
+            l.tag     AS tag,
+            l.context AS context,
+            (strftime( '%m-%d %H:%M:%S', l.origints / 1000000000, 'unixepoch', 'localtime' ) || '.' || printf('%03d', (l.origints / 1000000) % 1000)) AS originTime,
+            l.pid,
+            l.tid,
+            CASE
+            WHEN p.name IS NULL THEN
+            'Process ' || l.pid ELSE p.name
+            END
+            AS processName,
+            1 AS dur 
+            FROM
+            trace_range AS TR,
+            log AS l
+            LEFT JOIN process p ON p.pid = l.pid 
+            ORDER BY
+            l.ts;`,
+    {$oneDayTime: oneDayTime}
   );
 
 export const queryMetric = (metricName: string): Promise<Array<string>> =>
