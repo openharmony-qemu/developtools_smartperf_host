@@ -1064,15 +1064,9 @@ export class TabPaneCurrentSelection extends BaseElement {
         wb = wf[0];
         if (wb !== null) {
           wb.wakeupTime = wakeupTs - recordStartTs;
-          wb.process = Utils.PROCESS_MAP.get(wb.pid!);
-          wb.thread = Utils.THREAD_MAP.get(wb.tid!);
+          wb.process = Utils.PROCESS_MAP.get(wb.pid!) || 'Process';
+          wb.thread = Utils.THREAD_MAP.get(wb.tid!) || 'Thread';
           wb.schedulingLatency = (data.startTime || 0) - (wb.wakeupTime || 0);
-          if (wb.process === null) {
-            wb.process = wb.thread;
-          }
-          if (wb.pid === undefined) {
-            wb.pid = wb.tid;
-          }
           wb.schedulingDesc = INPUT_WORD;
         }
       }
@@ -1095,15 +1089,9 @@ export class TabPaneCurrentSelection extends BaseElement {
         wb = wf[0];
         if (wb !== null) {
           wb.wakeupTime = wakeupTs - recordStartTs;
-          wb.process = Utils.PROCESS_MAP.get(wb.pid!);
-          wb.thread = Utils.THREAD_MAP.get(wb.tid!);
+          wb.process = Utils.PROCESS_MAP.get(wb.pid!) || 'Process';
+          wb.thread = Utils.THREAD_MAP.get(wb.tid!) || 'Thread';
           wb.schedulingLatency = (data.ts || 0) - (wb.wakeupTime || 0);
-          if (wb.process === null) {
-            wb.process = wb.thread;
-          }
-          if (wb.pid === undefined) {
-            wb.pid = wb.tid;
-          }
           wb.schedulingDesc = INPUT_WORD;
         }
       }

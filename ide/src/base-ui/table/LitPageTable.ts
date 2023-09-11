@@ -31,7 +31,7 @@ export class LitPageTable extends BaseElement {
   public itemTextHandleMap: Map<string,(value: any) => string> = new Map<string, (value: any) => string>();
   private ds: Array<any> = [];
   public recycleDs: Array<any> = [];
-  private gridTemplateColumns: any;
+  private gridTemplateColumns: Array<string> = [];
   private st: HTMLSlotElement | null | undefined;
   private tableElement: HTMLDivElement | null | undefined;
   private exportProgress: LitProgressBar | null | undefined;
@@ -233,6 +233,11 @@ export class LitPageTable extends BaseElement {
             height: auto;
             cursor: pointer;
         }
+        .td label{
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: normal;
+        }
         .td text{
             overflow: hidden; 
             text-overflow: ellipsis; 
@@ -391,6 +396,14 @@ export class LitPageTable extends BaseElement {
             bottom:20px;
             z-index: 999999;
         }
+        .resize{
+            width: 2px;
+            margin-right: 3px;
+            height: 20px;
+            background-color: #e0e0e0;
+            cursor: col-resize;
+        }
+       
         .progress{
             position: absolute;
             height: 1px;
@@ -554,8 +567,8 @@ export class LitPageTable extends BaseElement {
           box.appendChild(checkbox);
           rowElement.appendChild(box);
         }
-        let area: Array<any> = [],
-          gridTemplateColumns: Array<any> = [];
+        let area: Array<any> = [];
+        this.gridTemplateColumns = [];
         let resolvingArea = (columns: any, x: any, y: any) => {
           columns.forEach((a: any, i: any) => {
             if (!area[y]) area[y] = [];
@@ -585,6 +598,12 @@ export class LitPageTable extends BaseElement {
               x++;
               let h: any = document.createElement('div');
               h.classList.add('td');
+              if (i > 0) {
+                let resizeDiv: HTMLDivElement = document.createElement('div');
+                resizeDiv.classList.add('resize');
+                h.appendChild(resizeDiv);
+                this.resizeEventHandler(rowElement, resizeDiv, i);
+              }
               if (a.hasAttribute('order')) {
                 h.sortType = 0;
                 h.classList.add('td-order');
@@ -622,6 +641,9 @@ export class LitPageTable extends BaseElement {
                 h.appendChild(upSvg);
                 h.appendChild(downSvg);
                 h.onclick = () => {
+                  if (this.isResize || this.resizeColumnIndex !== -1) {
+                    return;
+                  }
                   this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: any) => {
                     it.setAttribute('fill', 'let(--dark-color1,#212121)');
                     it.sortType = 0;
@@ -668,7 +690,7 @@ export class LitPageTable extends BaseElement {
                 };
               }
               h.style.justifyContent = a.getAttribute('align');
-              gridTemplateColumns.push(a.getAttribute('width') || '1fr');
+              this.gridTemplateColumns.push(a.getAttribute('width') || '1fr');
               h.style.gridArea = key;
               let titleLabel = document.createElement('label');
               titleLabel.textContent = a.title;
@@ -686,15 +708,14 @@ export class LitPageTable extends BaseElement {
             if (!rows[i]) rows[i] = array[j - 1][i];
           }
         });
-        this.gridTemplateColumns = gridTemplateColumns.join(' ');
         if (this.selectable) {
           let s = area.map((a) => '"_checkbox_ ' + a.map((aa: any) => aa.t).join(' ') + '"').join(' ');
-          rowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
+          rowElement.style.gridTemplateColumns = '60px ' + this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
         } else {
           let s = area.map((a) => '"' + a.map((aa: any) => aa.t).join(' ') + '"').join(' ');
-          rowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+          rowElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
           rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`;
           rowElement.style.gridTemplateAreas = s;
         }
@@ -703,9 +724,73 @@ export class LitPageTable extends BaseElement {
         this.treeElement!.style.top = this.theadElement?.clientHeight + 'px';
       });
     });
-
     this.shadowRoot!.addEventListener('load', function (event) {});
     this.tableElement!.addEventListener('mouseout', (ev) => this.mouseOut());
+  }
+
+  private isResize: boolean = false;
+  private resizeColumnIndex: number = -1;
+  private resizeDownX: number = 0;
+  private columnMinWidth: number = 50;
+  private beforeResizeWidth1: number = 0;
+  private beforeResizeWidth2: number = 0;
+  resizeEventHandler(header: HTMLDivElement, element: HTMLDivElement, index: number){
+    header.addEventListener('mousemove', (event) => {
+      if (this.isResize) {
+        let width = event.clientX - this.resizeDownX;
+        header.style.cursor = 'col-resize';
+        let preWidth = this.beforeResizeWidth1, nowWidth = this.beforeResizeWidth2;
+        if (width < 0) {
+          preWidth = Math.max(this.beforeResizeWidth1 + width, this.columnMinWidth);
+          nowWidth = (this.beforeResizeWidth1 - preWidth) + this.beforeResizeWidth2;
+        }
+        if (width > 0) {
+          nowWidth = Math.max(this.beforeResizeWidth2 - width, this.columnMinWidth);
+          preWidth = (this.beforeResizeWidth2 - nowWidth) + this.beforeResizeWidth1;
+        }
+        this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
+        this.gridTemplateColumns[this.resizeColumnIndex] = `${nowWidth}px`;
+        header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
+        this.shadowRoot!.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
+          tr.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
+        });
+        event.preventDefault();
+        event.stopPropagation();
+      } else {
+        header.style.cursor = 'pointer';
+      }
+    });
+    header.addEventListener('mouseup', (event) => {
+      this.isResize = false;
+      this.resizeDownX = 0;
+      header.style.cursor = 'pointer';
+      setTimeout(() => {
+        this.resizeColumnIndex = -1;
+      }, 100);
+      event.stopPropagation();
+      event.preventDefault();
+    });
+    header.addEventListener('mouseleave', (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      this.isResize = false;
+      this.resizeDownX = 0;
+      this.resizeColumnIndex = -1;
+      header.style.cursor = 'pointer';
+    });
+    element.addEventListener('mousedown', (event)=>{
+      this.isResize = true;
+      this.resizeColumnIndex = index;
+      this.resizeDownX = event.clientX;
+      let pre = (header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement);
+      let now = (header.childNodes.item(this.resizeColumnIndex) as HTMLDivElement);
+      this.beforeResizeWidth1 = pre.clientWidth;
+      this.beforeResizeWidth2 = now.clientWidth;
+      event.stopPropagation();
+    });
+    element.addEventListener('click',(event) => {
+      event.stopPropagation();
+    });
   }
 
   // Is called when the custom element is removed from the document DOM.
@@ -918,7 +1003,6 @@ export class LitPageTable extends BaseElement {
   createNewTreeTableElement(rowData: TableRowObject): any {
     let newTableElement = document.createElement('div');
     newTableElement.classList.add('tr');
-    let gridTemplateColumns: Array<any> = [];
     let treeTop = 0;
     if (this.treeElement!.children?.length > 0) {
       let transX = Number((this.treeElement?.lastChild as HTMLElement).style.transform.replace(/[^0-9]/gi, ''));
@@ -927,16 +1011,17 @@ export class LitPageTable extends BaseElement {
     this?.columns?.forEach((column: any, index) => {
       let dataIndex = column.getAttribute('data-index') || '1';
       let td: any;
+      let text = this.formatName(dataIndex, rowData.data[dataIndex]);
       if (index === 0) {
         if (column.template) {
           td = column.template.render(rowData.data).content.cloneNode(true);
           td.template = column.template;
-          td.title = rowData.data[dataIndex];
+          td.title = text;
         } else {
           td = document.createElement('div');
-          td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
+          td.innerHTML = text;
           td.dataIndex = dataIndex;
-          td.title = rowData.data[dataIndex];
+          td.title = text;
         }
         if (rowData.data.children && rowData.data.children.length > 0 && !rowData.data.hasNext) {
           let btn = this.createExpandBtn(rowData);
@@ -980,20 +1065,19 @@ export class LitPageTable extends BaseElement {
         this.treeElement?.append(td);
         this.currentTreeDivList.push(td);
       } else {
-        gridTemplateColumns.push(column.getAttribute('width') || '1fr');
         td = document.createElement('div');
         td.classList.add('td');
         td.style.overflow = 'hidden';
         td.style.textOverflow = 'ellipsis';
         td.style.whiteSpace = 'nowrap';
-        td.title = rowData.data[dataIndex];
+        td.title = text;
         td.dataIndex = dataIndex;
         td.style.justifyContent = column.getAttribute('align') || 'flex-start';
         if (column.template) {
           td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
           td.template = column.template;
         } else {
-          td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
+          td.innerHTML = text;
         }
         newTableElement.append(td);
       }
@@ -1003,7 +1087,7 @@ export class LitPageTable extends BaseElement {
       lastChild.style.transform = `translateY(${treeTop}px)`;
     }
     (newTableElement as any).data = rowData.data;
-    newTableElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+    newTableElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
     newTableElement.style.position = 'absolute';
     newTableElement.style.top = '0px';
     newTableElement.style.left = '0px';
@@ -1172,10 +1256,8 @@ export class LitPageTable extends BaseElement {
   createNewTableElement(rowData: any): any {
     let newTableElement = document.createElement('div');
     newTableElement.classList.add('tr');
-    let gridTemplateColumns: Array<any> = [];
     this?.columns?.forEach((column: any) => {
       let dataIndex = column.getAttribute('data-index') || '1';
-      gridTemplateColumns.push(column.getAttribute('width') || '1fr');
       let td: any;
       td = document.createElement('div');
       td.classList.add('td');
@@ -1184,12 +1266,13 @@ export class LitPageTable extends BaseElement {
       td.style.whiteSpace = 'nowrap';
       td.dataIndex = dataIndex;
       td.style.justifyContent = column.getAttribute('align') || 'flex-start';
-      td.title = rowData.data[dataIndex];
+      let text = this.formatName(dataIndex, rowData.data[dataIndex]);
+      td.title = text;
       if (column.template) {
         td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
         td.template = column.template;
       } else {
-        td.innerHTML = this.formatName(dataIndex, rowData.data[dataIndex]);
+        td.innerHTML = text;
       }
       newTableElement.append(td);
     });
@@ -1204,7 +1287,7 @@ export class LitPageTable extends BaseElement {
     }
     (newTableElement as any).data = rowData.data;
     newTableElement.style.cursor = 'pointer';
-    newTableElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+    newTableElement.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
     newTableElement.style.position = 'absolute';
     newTableElement.style.top = '0px';
     newTableElement.style.left = '0px';
@@ -1237,8 +1320,9 @@ export class LitPageTable extends BaseElement {
             .content.cloneNode(true).innerHTML;
         } else {
           let dataIndex = this.columns![0].getAttribute('data-index') || '1';
-          firstElement.innerHTML = this.formatName(dataIndex, rowObject.data[dataIndex]);
-          firstElement.title = rowObject.data[dataIndex];
+          let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
+          firstElement.innerHTML = text;
+          firstElement.title = text;
         }
         if (rowObject.children && rowObject.children.length > 0 && !rowObject.data.hasNext) {
           let btn = this.createExpandBtn(rowObject);
@@ -1265,15 +1349,16 @@ export class LitPageTable extends BaseElement {
         }
       }
       let dataIndex = this.columns![idx].getAttribute('data-index') || '1';
+      let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
       if ((this.columns![idx] as any).template) {
         (child as HTMLElement).innerHTML = '';
         (child as HTMLElement).appendChild(
           (this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true)
         );
-        (child as HTMLElement).title = rowObject.data[dataIndex];
+        (child as HTMLElement).title = text;
       } else {
-        (child as HTMLElement).innerHTML = this.formatName(dataIndex, rowObject.data[dataIndex]);
-        (child as HTMLElement).title = rowObject.data[dataIndex];
+        (child as HTMLElement).innerHTML = text;
+        (child as HTMLElement).title = text;
       }
     });
     if (element.style.display == 'none') {

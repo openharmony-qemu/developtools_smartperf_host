@@ -211,7 +211,7 @@ export class LitAllocationSelect extends BaseElement {
   initData() {
     this.selectAllocationInputEl = this.shadowRoot!.querySelector('input');
     this.selectAllocationOptions = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
-    this.selectAllocationInputEl?.addEventListener('keyup', () => {
+    this.selectAllocationInputEl?.addEventListener('input', () => {
       let filter = [...this.shadowRoot!.querySelectorAll<HTMLDivElement>('.option')].filter((a: HTMLDivElement) => {
         if (a.textContent!.indexOf(this.selectAllocationInputEl!.value) <= -1) {
           a.style.display = 'none';
