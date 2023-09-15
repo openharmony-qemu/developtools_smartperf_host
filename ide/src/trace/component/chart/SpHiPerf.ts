@@ -114,9 +114,6 @@ export class SpHiPerf {
     row.rowParentId = '';
     row.folder = true;
     row.style.height = '40px';
-    if (SpChartManager.APP_STARTUP_PID_ARR.find(pid => pid === process.pid) !== undefined) {
-      row.addTemplateTypes('AppStartup');
-    }
     row.addTemplateTypes('HiPerf');
     if (SpHiPerf.stringResult?.existA === true) {
       row.name = `HiPerf (All)`;
@@ -236,7 +233,10 @@ export class SpHiPerf {
       row.rowParentId = 'HiPerf';
       row.rowHidden = !this.rowFolder.expansion;
       row.folder = true;
-
+      if (SpChartManager.APP_STARTUP_PID_ARR.find(pid => pid === process.pid) !== undefined) {
+        row.addTemplateTypes('AppStartup');
+      }
+      row.addTemplateTypes('HiPerf');
       row.name = `${process.processName || 'Process'} [${process.pid}]`;
       row.folderPaddingLeft = 6;
       row.style.height = '40px';
