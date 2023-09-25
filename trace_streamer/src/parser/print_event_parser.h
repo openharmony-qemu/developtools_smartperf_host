@@ -75,7 +75,6 @@ private:
 
 private:
     std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
-    std::set<DataIndex> onAnimationStartEvents_ = {};
     const uint32_t pointLength_;
     const uint32_t maxPointLength_;
     TraceStreamerConfig config_{};

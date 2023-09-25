@@ -37,8 +37,7 @@ if current_os == "Windows":
     PROTOCREADER_PLUGIN = "protoreader_plugin.exe"
 PROTOC = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOC_NAME)
 OPT_PLUGIN_PROTOREADER_PATH = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
-OPT_PLUGIN_PROTOREADER = "--plugin=protoc-gen-plugin=" + 
-                        os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
+OPT_PLUGIN_PROTOREADER = "--plugin=protoc-gen-plugin=" + os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
 PLUGINOUT = "--plugin_out=wrapper_namespace=ProtoReader"
 OPT_OUT = "--opt_out"
 OPT_PROTOREADER_OUT = "--cpp_out"

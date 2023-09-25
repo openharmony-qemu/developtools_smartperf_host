@@ -183,7 +183,7 @@ void TraceStreamerSelector::WaitForParserEnd()
     }
     traceDataCache_->UpdateTraceRange();
     if (traceDataCache_->AnimationTraceEnabled()) {
-        streamFilters_->animationFilter_->UpdateFrameNum();
+        streamFilters_->animationFilter_->UpdateFrameInfo();
         streamFilters_->animationFilter_->UpdateDynamicFrameInfo();
     }
 }

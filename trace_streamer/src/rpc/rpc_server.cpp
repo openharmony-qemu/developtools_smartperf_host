@@ -108,6 +108,7 @@ bool RpcServer::GetLongTraceTimeSnap(std::string dataString)
             TS_LOGE("GetLongTraceTimeSnap error");
             return false;
         }
+        dataString = dataString.substr(PACKET_HEADER_LENGTH);
     }
     return true;
 }
@@ -129,10 +130,10 @@ bool RpcServer::GetTimeSnap(std::string dataString)
                 pHeader->data.length, pHeader->data.magic);
         return false;
     }
-    TraceTimeSnap longTraceTimeSnap;
-    longTraceTimeSnap.startTime = pHeader->data.boottime;
-    longTraceTimeSnap.endTime = pHeader->data.boottime + pHeader->data.durationNs;
-    vTraceTimeSnap_.emplace_back(longTraceTimeSnap);
+    std::unique_ptr<TraceTimeSnap> longTraceTimeSnap = std::make_unique<TraceTimeSnap>();
+    longTraceTimeSnap->startTime = pHeader->data.boottime;
+    longTraceTimeSnap->endTime = pHeader->data.boottime + pHeader->data.durationNs;
+    vTraceTimeSnap_.emplace_back(std::move(longTraceTimeSnap));
     return true;
 }
 bool RpcServer::LongTraceSplitFile(const uint8_t* data,
@@ -144,8 +145,8 @@ bool RpcServer::LongTraceSplitFile(const uint8_t* data,
     if (vTraceTimeSnap_.size() <= pageNum) {
         return false;
     }
-    ts_->minTs_ = vTraceTimeSnap_[pageNum].startTime;
-    ts_->maxTs_ = vTraceTimeSnap_[pageNum].endTime;
+    ts_->minTs_ = vTraceTimeSnap_[pageNum]->startTime;
+    ts_->maxTs_ = vTraceTimeSnap_[pageNum]->endTime;
     ParseSplitFileData(data, len, isFinish, splitFileCallBack, true);
     return true;
 }
@@ -321,7 +322,6 @@ bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack re
     metaData->SetTraceDataSize(g_loadSize);
     metaData->SetTraceType((ts_->DataType() == TRACE_FILETYPE_H_TRACE) ? "proto-based-trace" : "txt-based-trace");
     TS_LOGI("RPC ParseDataOver, has parsed len %zu", lenParseData_);
-
     ts_->WaitForParserEnd();
 #ifndef USE_VTABLE
     ts_->Clear();

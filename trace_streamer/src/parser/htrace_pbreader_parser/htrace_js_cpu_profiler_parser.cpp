@@ -98,16 +98,17 @@ uint32_t HtraceJsCpuProfilerParser::ParseSampleData(const json& jMessage,
     uint32_t sample = std::numeric_limits<uint32_t>::max();
     json filteredSamples = nlohmann::json::array();
     json filteredTimeDeltas = nlohmann::json::array();
+    filteredTimeDeltas.push_back(jMessage.at("timeDeltas")[0]);
+    startTimeSnap = streamFilters_->clockFilter_->Convert(TS_CLOCK_BOOTTIME, startTimeSnap, TS_MONOTONIC);
+    endTimeSnap = streamFilters_->clockFilter_->Convert(TS_CLOCK_BOOTTIME, endTimeSnap, TS_MONOTONIC);
     for (size_t i = 0; i < jMessage.at("samples").size(); i++) {
-        if (traceDataCache_->isSplitFile_ && i + 1 < jMessage.at("timeDeltas").size()) {
-            uint64_t splitTimeDeltas = jMessage.at("timeDeltas")[i + 1];
+        if (traceDataCache_->isSplitFile_ && i < jMessage.at("timeDeltas").size()) {
+            uint64_t splitTimeDeltas = jMessage.at("timeDeltas")[i];
             splitTimeDeltas = splitTimeDeltas * TIME_SECOND_COVER;
-            startTimeSnap = streamFilters_->clockFilter_->Convert(TS_CLOCK_BOOTTIME, startTimeSnap, TS_MONOTONIC);
-            endTimeSnap = streamFilters_->clockFilter_->Convert(TS_CLOCK_BOOTTIME, endTimeSnap, TS_MONOTONIC);
             uint64_t timeSnap = splitStartTime + splitTimeDeltas;
             if (timeSnap >= startTimeSnap && timeSnap <= endTimeSnap) {
                 filteredSamples.push_back(jMessage.at("samples")[i]);
-                filteredTimeDeltas.push_back(jMessage.at("timeDeltas")[i + 1]);
+                filteredTimeDeltas.push_back(jMessage.at("timeDeltas")[i]);
                 if (startTime_ == INVALID_UINT64) {
                     startTime_ = splitStartTime;
                 }

@@ -3133,7 +3133,7 @@ TableRowId Animation::AppendAnimation(InternalTime inputTime, InternalTime start
     inputTimes_.emplace_back(inputTime);
     startPoints_.emplace_back(startPoint);
     endPoins_.emplace_back(INVALID_TIME);
-    frameNums_.emplace_back(INVALID_UINT32);
+    frameInfos_.emplace_back(INVALID_UINT64);
     ids_.emplace_back(Size());
     return ids_.size() - 1;
 }
@@ -3149,10 +3149,10 @@ void Animation::UpdateEndPoint(TableRowId index, InternalTime endPoint)
         endPoins_[index] = endPoint;
     }
 }
-void Animation::UpdateFrameNum(TableRowId index, InternalTime frameNum)
+void Animation::UpdateFrameInfo(TableRowId index, InternalTime frameInfo)
 {
     if (index <= Size()) {
-        frameNums_[index] = frameNum;
+        frameInfos_[index] = frameInfo;
     }
 }
 size_t Animation::Size() const
@@ -3171,9 +3171,9 @@ const std::deque<InternalTime>& Animation::EndPoints() const
 {
     return endPoins_;
 }
-const std::deque<uint32_t>& Animation::FrameNums() const
+const std::deque<DataIndex>& Animation::FrameInfos() const
 {
-    return frameNums_;
+    return frameInfos_;
 }
 const std::deque<uint64_t>& Animation::IdsData() const
 {
@@ -3184,7 +3184,7 @@ void Animation::Clear()
     inputTimes_.clear();
     startPoints_.clear();
     endPoins_.clear();
-    frameNums_.clear();
+    frameInfos_.clear();
     ids_.clear();
 }
 uint32_t DeviceInfo::PhysicalWidth() const

@@ -76,7 +76,7 @@ private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;
     std::vector<std::string> symbolsPathFiles_;
-    std::vector<TraceTimeSnap> vTraceTimeSnap_;
+    std::vector<std::unique_ptr<TraceTimeSnap>> vTraceTimeSnap_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

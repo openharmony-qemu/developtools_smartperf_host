@@ -228,9 +228,11 @@ public:
     {
         return internalPids_;
     }
-    void AppendInternalPid(InternalPid ipid)
+    void ReviseInternalPid(uint32_t row, InternalPid ipid)
     {
-        internalPids_.emplace_back(ipid);
+        if (row < internalPids_.size()) {
+            internalPids_[row] = ipid;
+        }
     }
     void Clear() override
     {
@@ -2520,12 +2522,12 @@ public:
     TableRowId AppendAnimation(InternalTime inputTime, InternalTime startPoint);
     void UpdateStartPoint(TableRowId index, InternalTime startPoint);
     void UpdateEndPoint(TableRowId index, InternalTime endPoint);
-    void UpdateFrameNum(TableRowId index, InternalTime frameNum);
+    void UpdateFrameInfo(TableRowId index, InternalTime frameInfo);
     size_t Size() const;
     const std::deque<InternalTime>& InputTimes() const;
     const std::deque<InternalTime>& StartPoints() const;
     const std::deque<InternalTime>& EndPoints() const;
-    const std::deque<uint32_t>& FrameNums() const;
+    const std::deque<DataIndex>& FrameInfos() const;
     const std::deque<uint64_t>& IdsData() const;
     void Clear();
 
@@ -2533,7 +2535,7 @@ private:
     std::deque<InternalTime> inputTimes_ = {};
     std::deque<InternalTime> startPoints_ = {};
     std::deque<InternalTime> endPoins_ = {};
-    std::deque<uint32_t> frameNums_ = {};
+    std::deque<DataIndex> frameInfos_ = {};
     std::deque<uint64_t> ids_ = {};
 };
 class DeviceInfo {

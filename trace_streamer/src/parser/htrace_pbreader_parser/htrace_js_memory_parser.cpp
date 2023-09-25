@@ -556,6 +556,7 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket,
         }
         auto resultJson = result.substr(pos + CHUNK_POS, result.size() - pos - CHUNK_POS - END_POS);
         jsMemoryString_ += resultJson;
+        curTypeIsCpuProfile_ = false;
     } else {
         ParseJsCpuProfiler(result, profilerPluginData, ts);
     }

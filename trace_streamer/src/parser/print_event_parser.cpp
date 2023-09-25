@@ -33,16 +33,6 @@ PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreame
                                        std::placeholders::_2, std::placeholders::_3)},
         {rsMainThreadProcessCmd_, bind(&PrintEventParser::OnMainThreadProcessCmd, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)}};
-    onAnimationStartEvents_ = {
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_ICON"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_RECENT"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_SWIPE_TO_HOME"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_BACK_TO_HOME"),
-        traceDataCache_->GetDataIndex("H:APP_TRANSITION_TO_OTHER_APP"),
-        traceDataCache_->GetDataIndex("H:APP_TRANSITION_FROM_OTHER_APP"),
-        traceDataCache_->GetDataIndex("H:APP_LIST_FLING")};
 }
 
 bool PrintEventParser::ParsePrintEvent(const std::string& comm,
@@ -140,17 +130,7 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
         OnFrameQueueStart(ts, index, point.tgid_);
     } else if (traceDataCache_->AnimationTraceEnabled() && index != INVALID_UINT64 &&
                EndWith(comm, onAnimationProcEvent_)) { // the comm is taskName
-        auto info = SplitStringToVec(point.name_, ", ");
-        auto startEventIter = onAnimationStartEvents_.find(traceDataCache_->GetDataIndex(info.front()));
-        if (startEventIter == onAnimationStartEvents_.end()) {
-            return;
-        }
-        // pop for '.': '1693876195576.'
-        info.back().pop_back();
-        uint64_t inputTime = base::StrToInt<uint64_t>(info.back()).value();
-        inputTime =
-            streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, inputTime * ONE_MILLION_NANOSECONDS);
-        streamFilters_->animationFilter_->StartAnimationEvent(line, inputTime, index);
+        streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
     }
 }
 void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint& point, const BytraceLine& line)

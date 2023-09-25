@@ -14,6 +14,8 @@
  */
 
 #include "animation_filter.h"
+
+#include "clock_filter_ex.h"
 #include "string_help.h"
 #include "string_to_numerical.h"
 
@@ -35,6 +37,16 @@ AnimationFilter::AnimationFilter(TraceDataCache* dataCache, const TraceStreamerF
     if (dynamicFrame_ == nullptr || callStackSlice_ == nullptr) {
         TS_LOGE("dynamicFrame_ or callStackSlice_ is nullptr.");
     }
+    onAnimationStartEvents_ = {
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_ICON"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_RECENT"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_SWIPE_TO_HOME"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_BACK_TO_HOME"),
+        traceDataCache_->GetDataIndex("H:APP_TRANSITION_TO_OTHER_APP"),
+        traceDataCache_->GetDataIndex("H:APP_TRANSITION_FROM_OTHER_APP"),
+        animationAppListCmd_};
 }
 AnimationFilter::~AnimationFilter() {}
 bool AnimationFilter::UpdateDeviceFps(const BytraceLine& line)
@@ -88,25 +100,30 @@ bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint& point, const Bytra
 }
 bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t callStackRow)
 {
-    const std::string& curStackName = traceDataCache_->GetDataFromDict(callStackSlice_->NamesData()[callStackRow]);
-    if (StartWith(curStackName, frameCountCmd_)) {
+    if (StartWith(point.name_, frameCountCmd_)) {
         frameCountRows_.insert(callStackRow);
         return true;
+    } else if (StartWith(point.name_, realFrameRateCmd_)) {
+        // eg: `frame rate is 88.61: APP_LIST_FLING, com.taobao.taobao, pages/Index`
+        auto infos = SplitStringToVec(point.funcArgs_, ": ");
+        auto curRealFrameRateFlagInadex = traceDataCache_->GetDataIndex("H:" + infos.back());
+        auto iter = realFrameRateFlagsDict_.find(curRealFrameRateFlagInadex);
+        TS_CHECK_TRUE_RET(iter != realFrameRateFlagsDict_.end(), false);
+        auto animationRow = iter->second;
+        auto curRealFrameRate = SplitStringToVec(infos.front(), " ").back();
+        auto curFrameNum = "0:";
+        traceDataCache_->GetAnimation()->UpdateFrameInfo(animationRow, traceDataCache_->GetDataIndex(curFrameNum + curRealFrameRate));
+        return true;
+    } else if (!StartWith(point.name_, frameBeginCmd_)) {
+        return false;
     }
     // get the parent frame of data
     const std::optional<uint64_t>& parentId = callStackSlice_->ParentIdData()[callStackRow];
     uint8_t depth = callStackSlice_->Depths()[callStackRow];
-    if (depth < DYNAMIC_STACK_DEPTH_MIN || !parentId.has_value()) {
-        return false;
-    }
-    if (!StartWith(curStackName, frameBeginCmd_)) {
-        return false;
-    }
+    TS_CHECK_TRUE_RET(depth >= DYNAMIC_STACK_DEPTH_MIN && parentId.has_value(), false);
     // get name 'xxx' from [xxx], eg:H:RSUniRender::Process:[xxx]
     auto nameSize = point.funcPrefix_.size() - frameBeginPrefix_.size() - 1;
-    if (nameSize <= 0) {
-        return false;
-    }
+    TS_CHECK_TRUE_RET(nameSize > 0, false);
     auto nameIndex = traceDataCache_->GetDataIndex(point.funcPrefix_.substr(frameBeginPrefix_.size(), nameSize));
     auto dynamicFramRow = dynamicFrame_->AppendDynamicFrame(nameIndex);
     callStackRowMap_.emplace(callStackRow, dynamicFramRow);
@@ -122,11 +139,27 @@ bool AnimationFilter::EndDynamicFrameEvent(uint64_t ts, size_t callStackRow)
     frameCountRows_.erase(iter);
     return true;
 }
-void AnimationFilter::StartAnimationEvent(const BytraceLine& line, const uint64_t inputTime, size_t callStackRow)
+bool AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePoint& point, size_t callStackRow)
 {
+    auto infos = SplitStringToVec(point.name_, ", ");
+    auto curAnimationIndex = traceDataCache_->GetDataIndex(infos.front());
+    auto startEventIter = onAnimationStartEvents_.find(curAnimationIndex);
+    TS_CHECK_TRUE_RET(startEventIter != onAnimationStartEvents_.end(), false);
+    // pop for '.': '1693876195576.'
+    auto& inputTimeStr = infos.back();
+    if (inputTimeStr.back() == '.') {
+        inputTimeStr.pop_back();
+    }
+    uint64_t inputTime = base::StrToInt<uint64_t>(inputTimeStr).value();
+    inputTime =
+        streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, inputTime * ONE_MILLION_NANOSECONDS);
     auto startPoint = line.ts;
     auto animationRow = traceDataCache_->GetAnimation()->AppendAnimation(inputTime, startPoint);
     animationCallIds_.emplace(callStackRow, animationRow);
+    if (curAnimationIndex == animationAppListCmd_) {
+        realFrameRateFlagsDict_[traceDataCache_->GetDataIndex(point.name_)] = animationRow;
+    }
+    return true;
 }
 bool AnimationFilter::FinishAnimationEvent(const BytraceLine& line, size_t callStackRow)
 {
@@ -156,24 +189,26 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
     }
     return false;
 }
-void AnimationFilter::UpdateFrameNum()
+void AnimationFilter::UpdateFrameInfo()
 {
     auto animation = traceDataCache_->GetAnimation();
-    for (size_t raw = 0; raw < animation->Size(); raw++) {
-        auto firstFrameTimeIter =
-            std::lower_bound(frameCountEndTimes_.begin(), frameCountEndTimes_.end(), animation->StartPoints()[raw]);
-        if (firstFrameTimeIter == frameCountEndTimes_.end()) {
+    for (size_t row = 0; row < animation->Size(); row++) {
+        if (animation->FrameInfos()[row] != INVALID_UINT64) {
             continue;
         }
-        uint32_t frameNum = 0;
-        while (firstFrameTimeIter != frameCountEndTimes_.end() && *firstFrameTimeIter <= animation->EndPoints()[raw]) {
+        auto firstFrameTimeIter =
+            std::lower_bound(frameCountEndTimes_.begin(), frameCountEndTimes_.end(), animation->StartPoints()[row]);
+        uint64_t frameNum = 0;
+        while (firstFrameTimeIter != frameCountEndTimes_.end() && *firstFrameTimeIter <= animation->EndPoints()[row]) {
             ++frameNum;
             ++firstFrameTimeIter;
         }
-        animation->UpdateFrameNum(raw, frameNum);
+        auto curRealFrameRate = ":0";
+        animation->UpdateFrameInfo(row, traceDataCache_->GetDataIndex(std::to_string(frameNum) + curRealFrameRate));
     }
     frameCountRows_.clear();
     frameCountEndTimes_.clear();
+    realFrameRateFlagsDict_.clear();
 }
 void AnimationFilter::UpdateDynamicFrameInfo()
 {
