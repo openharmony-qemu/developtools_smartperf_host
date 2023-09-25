@@ -17,6 +17,7 @@
 #define TRACE_DATA_CACHE_BASE_H
 
 #include <array>
+#include <atomic>
 #include <deque>
 #include <map>
 #include <stdexcept>
@@ -72,14 +73,13 @@ public:
                                                      {TASK_TRACED, "t"},
                                                      {TASK_EXIT_DEAD, "X"},
                                                      {TASK_ZOMBIE, "Z"},
-                                                     {TASK_CLONE, "I"},
-                                                     {TASK_KILLED, "I"},
+                                                     {TASK_PARKED, "P"},
+                                                     {TASK_KILLED, "K"},
                                                      {TASK_DK, "DK"},
                                                      {TASK_DK_IO, "DK-IO"},
                                                      {TASK_DK_NIO, "DK-NIO"},
                                                      {TASK_TRACED_KILL, "TK"},
-                                                     {TASK_WAKEKILL, "K"},
-                                                     {TASK_PARKED, "P"},
+                                                     {TASK_WAKEKILL, "W"},
                                                      {TASK_FOREGROUND, "R+"},
                                                      {TASK_RUNNABLE_BINDER, "R-B"},
                                                      {TASK_MAX, "S"},
@@ -87,6 +87,7 @@ public:
     std::map<std::string, uint64_t> threadStatus2Value_ = {};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
+    std::atomic<bool> isSplitFile_{false};
 
     Raw rawData_;
     ThreadStateData threadStateData_;

@@ -200,10 +200,10 @@ export class TabPaneSchedPriority extends BaseElement {
         labels[i].addEventListener('click', (e) => {
           if (label.includes('Priority') && i === 0) {
             this.priorityTbl!.setStatus(data, false);
-            this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+            this.priorityTbl!.recycleDs = this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('State') && i === 1) {
             this.priorityTbl!.setStatus(data, true);
-            this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+            this.priorityTbl!.recycleDs = this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
           }
         });
       }

@@ -114,7 +114,6 @@ export class SpHiPerf {
     row.rowParentId = '';
     row.folder = true;
     row.style.height = '40px';
-    row.addTemplateTypes('HiPerf');
     if (SpHiPerf.stringResult?.existA === true) {
       row.name = `HiPerf (All)`;
     } else {
@@ -163,8 +162,16 @@ export class SpHiPerf {
     cpuMergeRow.selectChangeHandler = this.trace.selectChangeHandler;
     cpuMergeRow.supplier = () => queryHiPerfCpuMergeData();
     cpuMergeRow.focusHandler = () => this.hoverTip(cpuMergeRow, HiPerfCpuStruct.hoverStruct);
+    cpuMergeRow.findHoverStruct = () => {
+      HiPerfCpuStruct.hoverStruct = cpuMergeRow.getHoverStruct();
+    };
     cpuMergeRow.onThreadHandler = (useCache) => {
-      let context = cpuMergeRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      let context:CanvasRenderingContext2D;
+      if(cpuMergeRow.currentContext){
+        context = cpuMergeRow.currentContext;
+      } else{
+        context  = cpuMergeRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
       cpuMergeRow.canvasSave(context);
       (renders['HiPerf-Cpu'] as HiperfCpuRender).renderMainThread(
         {
@@ -200,8 +207,16 @@ export class SpHiPerf {
       perfCpuRow.style.height = '40px';
       perfCpuRow.supplier = () => queryHiPerfCpuData(i);
       perfCpuRow.focusHandler = () => this.hoverTip(perfCpuRow, HiPerfCpuStruct.hoverStruct);
+      perfCpuRow.findHoverStruct = () => {
+        HiPerfCpuStruct.hoverStruct = perfCpuRow.getHoverStruct();
+      };
       perfCpuRow.onThreadHandler = (useCache) => {
-        let context = perfCpuRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        let context:CanvasRenderingContext2D;
+        if(perfCpuRow.currentContext){
+          context = perfCpuRow.currentContext;
+        } else{
+          context  = perfCpuRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        }
         perfCpuRow.canvasSave(context);
         (renders['HiPerf-Cpu'] as HiperfCpuRender).renderMainThread(
           {
@@ -244,8 +259,16 @@ export class SpHiPerf {
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.supplier = () => queryHiPerfProcessData(process.pid);
       row.focusHandler = () => this.hoverTip(row, HiPerfProcessStruct.hoverStruct);
+      row.findHoverStruct = () => {
+        HiPerfProcessStruct.hoverStruct = row.getHoverStruct();
+      };
       row.onThreadHandler = (useCache) => {
-        let context = this.trace.canvasPanelCtx!;
+        let context:CanvasRenderingContext2D;
+        if(row.currentContext){
+          context = row.currentContext;
+        } else{
+          context  = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        }
         row.canvasSave(context);
         if (row.expansion) {
           this.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
@@ -282,8 +305,16 @@ export class SpHiPerf {
         thread.selectChangeHandler = this.trace.selectChangeHandler;
         thread.supplier = () => queryHiPerfThreadData(thObj.tid);
         thread.focusHandler = () => this.hoverTip(thread, HiPerfThreadStruct.hoverStruct);
+        thread.findHoverStruct = () => {
+          HiPerfThreadStruct.hoverStruct = thread.getHoverStruct();
+        };
         thread.onThreadHandler = (useCache) => {
-          let context = thread.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          let context:CanvasRenderingContext2D;
+          if(thread.currentContext){
+            context = thread.currentContext;
+          } else{
+            context  = thread.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
           thread.canvasSave(context);
           (renders['HiPerf-Thread'] as HiperfThreadRender).renderMainThread(
             {

@@ -67,6 +67,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.fsCallTreeFilter!.filterValue = '';
     this.fsCallTreeProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
+    const initWidth = this.clientWidth;
     this.getDataByWorker(
       [
         {
@@ -82,9 +83,8 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         this.setLTableData(fsCallTreeResults);
         this.fsCallTreeTbr!.recycleDataSource = [];
         this.frameChart!.mode = ChartMode.Duration;
+        this.frameChart?.updateCanvas(true, initWidth);
         this.frameChart!.data = this.fsCallTreeDataSource;
-        this.frameChart?.updateCanvas(true, this.clientWidth);
-        this.frameChart?.calculateChartData();
         this.switchFlameChart();
         this.fsCallTreeFilter.icon = 'block';
       }
@@ -447,9 +447,6 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       this.isChartShow = true;
       this.fsCallTreeFilter!.disabledMining = true;
       showButtonMenu(this.fsCallTreeFilter, this.needShowMenu);
-	  if (!data){
-        this.frameChart!.data = this.fsCallTreeDataSource;
-      }
       this.frameChart?.calculateChartData();
     } else if (data.icon == 'tree') {
       fsCallTreePageChart?.setAttribute('class', '');

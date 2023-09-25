@@ -21,6 +21,7 @@
 #include <map>
 #include <string>
 using ClockId = uint32_t;
+const std::string INVALID_STRING = "INVALID_STRING";
 const uint64_t INVALID_ITID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint64_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
@@ -118,6 +119,7 @@ enum RefType {
 enum TraceFileType {
     TRACE_FILETYPE_BY_TRACE,
     TRACE_FILETYPE_H_TRACE,
+    TRACE_FILETYPE_RAW_TRACE,
     TRACE_FILETYPE_SYSEVENT,
     TRACE_FILETYPE_PERF,
     TRACE_FILETYPE_HILOG,
@@ -145,8 +147,7 @@ enum EndState {
     TASK_EXIT_DEAD = 16,
     // (Z) Zombie state
     TASK_ZOMBIE = 32,
-    // (I) clone thread
-    TASK_CLONE = 64,
+    TASK_PARKED = 64,
     // (K) Process killed
     TASK_KILLED = 128,
     // (DK)
@@ -157,7 +158,6 @@ enum EndState {
     TASK_TRACED_KILL = 136,
     // (W) The process is in a deep sleep state and will be killed directly after waking up
     TASK_WAKEKILL = 256,
-    TASK_PARKED = 512,
     // (R+) Process groups in the foreground
     TASK_FOREGROUND = 2048,
     TASK_RUNNABLE_BINDER = 2049,
@@ -206,6 +206,10 @@ namespace TraceStreamer {
 struct ArgsData {
     BaseDataType type;
     int64_t value;
+};
+struct TraceTimeSnap {
+    uint64_t startTime;
+    uint64_t endTime;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

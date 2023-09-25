@@ -52,6 +52,7 @@ export class TraceRowConfig extends BaseElement {
       'AnimationEffect',
       'AppStartup',
       'HiSysEvent',
+      'Memory',
       'ProcessMemory',
       'ArkTs',
       'NativeMemory',
@@ -150,22 +151,22 @@ export class TraceRowConfig extends BaseElement {
           }
           if (upParentRow === row) {
             if (optionCheckBox.checked) {
-              chartRow.removeAttribute('row-hidden');
+              chartRow.rowHidden = false;
               chartRow.setAttribute('scene', '');
             } else {
               row.expansion = true;
               chartRow.removeAttribute('scene');
-              chartRow.setAttribute('row-hidden', '');
+              chartRow.rowHidden = true;
             }
           }
         });
       }
       if (optionCheckBox.checked) {
-        row.removeAttribute('row-hidden');
+        row.rowHidden = false;
         row.setAttribute('scene', '');
       } else {
         row.removeAttribute('scene');
-        row.setAttribute('row-hidden', '');
+        row.rowHidden = true;
       }
       this.refreshSystemPanel();
     });
@@ -198,7 +199,7 @@ export class TraceRowConfig extends BaseElement {
       this.traceRowList.forEach((traceRow: TraceRow<BaseStruct>) => {
         let isShowRow: boolean = false;
         if (this.selectTypeList!.length === 0) {
-          traceRow.removeAttribute('row-hidden');
+          traceRow.rowHidden = false;
           traceRow.setAttribute('scene', '');
           this.refreshChildRow(traceRow.childrenList, true);
         } else {
@@ -212,7 +213,7 @@ export class TraceRowConfig extends BaseElement {
           traceRow.expansion = false;
           if (isShowRow) {
             if (traceRow.templateType.length > 0) {
-              traceRow.removeAttribute('row-hidden');
+              traceRow.rowHidden = false;
               traceRow.setAttribute('scene', '');
               if (traceRow.childrenList && traceRow.childrenList.length > 0) {
                 this.refreshChildRow(traceRow.childrenList, isShowRow);
@@ -220,7 +221,7 @@ export class TraceRowConfig extends BaseElement {
             }
           } else {
             traceRow.removeAttribute('scene');
-            traceRow.setAttribute('row-hidden', '');
+            traceRow.rowHidden = true;
             this.refreshChildRow(traceRow.childrenList);
           }
         }
@@ -228,7 +229,7 @@ export class TraceRowConfig extends BaseElement {
       this.spSystemTrace?.collectRows.forEach((favoriteRow) => {
         let isShowRow: boolean = false;
         if (this.selectTypeList!.length === 0) {
-          favoriteRow.removeAttribute('row-hidden');
+          favoriteRow.rowHidden = false;
           favoriteRow.setAttribute('scene', '');
         } else {
           if (favoriteRow.parentRowEl) {
@@ -248,11 +249,11 @@ export class TraceRowConfig extends BaseElement {
             }
           }
           if (isShowRow) {
-            favoriteRow.removeAttribute('row-hidden');
+            favoriteRow.rowHidden = false;
             favoriteRow.setAttribute('scene', '');
           } else {
             favoriteRow.removeAttribute('scene');
-            favoriteRow.setAttribute('row-hidden', '');
+            favoriteRow.rowHidden = true;
           }
         }
       });
@@ -270,7 +271,7 @@ export class TraceRowConfig extends BaseElement {
         row.expansion = false;
       } else {
         row.removeAttribute('scene');
-        row.setAttribute('row-hidden', '');
+        row.rowHidden = true;
         if (row.childrenList && row.childrenList.length > 0) {
           this.refreshChildRow(row.childrenList);
         }
@@ -330,7 +331,7 @@ export class TraceRowConfig extends BaseElement {
   initHtml(): string {
     return `
             <style>
-                :host([mode='hidden']){
+                :host([hidden]) {
                     visibility: hidden;
                 }
                 :host{

@@ -62,6 +62,7 @@ export class SpArkTsChart implements ParseListener {
       this.folderRow.rowParentId = '';
       this.folderRow.folder = true;
       this.folderRow.name = `Ark Ts ` + this.process;
+      this.folderRow.addTemplateTypes('ArkTs');
       this.folderRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       this.folderRow.selectChangeHandler = this.trace.selectChangeHandler;
       this.folderRow.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
@@ -83,6 +84,7 @@ export class SpArkTsChart implements ParseListener {
       };
       this.trace.rowsEL?.appendChild(this.folderRow);
       if (this.folderRow && jsConfig[0].type !== -1 && jsMemory.length > 0) {
+        this.folderRow.addTemplateTypes('Memory');
         if (jsConfig[0].type === TYPE_SNAPSHOT) {
           // snapshot
           await this.initSnapshotChart();
@@ -121,6 +123,9 @@ export class SpArkTsChart implements ParseListener {
         `<span>Size: ${Utils.getBinaryByteWithUnit(HeapTimelineStruct.hoverHeapTimelineStruct?.size || 0)}</span>`
       );
     };
+    this.heapTimelineRow!.findHoverStruct = () => {
+      HeapTimelineStruct.hoverHeapTimelineStruct = this.heapTimelineRow!.getHoverStruct();
+    };
     this.folderRow!.addChildTraceRow(this.heapTimelineRow!);
   }
 
@@ -144,6 +149,9 @@ export class SpArkTsChart implements ParseListener {
             <span>Size: ${Utils.getBinaryByteWithUnit(HeapSnapshotStruct.hoverSnapshotStruct?.size || 0)}</span>`
       );
     };
+    this.heapSnapshotRow!.findHoverStruct = () => {
+      HeapSnapshotStruct.hoverSnapshotStruct = this.heapSnapshotRow!.getHoverStruct();
+    };
     this.folderRow!.addChildTraceRow(this.heapSnapshotRow);
   }
 
@@ -164,7 +172,12 @@ export class SpArkTsChart implements ParseListener {
         this.heapTimelineRow!.rowId = `heaptimeline` + file.id;
         this.heapTimelineRow!.supplier = (): Promise<any> => new Promise<any>((resolve) => resolve(samples));
         this.heapTimelineRow!.onThreadHandler = (useCache): void => {
-          let context = this.heapTimelineRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          let context: CanvasRenderingContext2D;
+          if(this.heapTimelineRow?.currentContext){
+            context = this.heapTimelineRow!.currentContext;
+          }else{
+            context = this.heapTimelineRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
           this.heapTimelineRow!.canvasSave(context);
           (renders['heap-timeline'] as HeapTimelineRender).renderMainThread(
             {
@@ -181,7 +194,12 @@ export class SpArkTsChart implements ParseListener {
         this.heapSnapshotRow!.supplier = (): Promise<Array<any>> =>
           new Promise<Array<any>>((resolve) => resolve(heapFile));
         this.heapSnapshotRow!.onThreadHandler = (useCache): void => {
-          let context = this.heapSnapshotRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          let context: CanvasRenderingContext2D;
+          if(this.heapSnapshotRow?.currentContext){
+            context = this.heapSnapshotRow!.currentContext;
+          }else{
+            context = this.heapSnapshotRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
           this.heapSnapshotRow!.canvasSave(context);
           (renders['heap-snapshot'] as HeapSnapshotRender).renderMainThread(
             {
@@ -245,8 +263,16 @@ export class SpArkTsChart implements ParseListener {
         <span>${JsCpuProfilerStruct.hoverJsCpuProfilerStruct?.url || 0}</span>`
       );
     };
+    this.jsCpuProfilerRow!.findHoverStruct = () => {
+      JsCpuProfilerStruct.hoverJsCpuProfilerStruct = this.jsCpuProfilerRow!.getHoverStruct();
+    };
     this.jsCpuProfilerRow.onThreadHandler = (useCache): void => {
-      let context = this.jsCpuProfilerRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      let context:CanvasRenderingContext2D;
+      if(this.jsCpuProfilerRow?.currentContext){
+        context = this.jsCpuProfilerRow!.currentContext;
+      }else{
+        context = this.jsCpuProfilerRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
       this.jsCpuProfilerRow!.canvasSave(context);
       (renders['js-cpu-profiler'] as JsCpuProfilerRender).renderMainThread(
         {

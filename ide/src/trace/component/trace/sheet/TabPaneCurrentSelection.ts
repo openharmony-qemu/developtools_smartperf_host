@@ -29,7 +29,6 @@ import {
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
-  queryAnimationFrameFps,
   queryWakeupListPriority,
 } from '../../../database/SqlLite.js';
 import { WakeupBean } from '../../../bean/WakeupBean.js';
@@ -651,14 +650,14 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (data.frame_type === 'render_service') {
         queryGpuDur(data.id!).then((it) => {
           if (it.length > 0) {
-            list.push({ name: `<div>Gpu Duration</div>`, value: getTimeString(it[0].gpu_dur) });
+            list.push({ name: 'Gpu Duration', value: getTimeString(it[0].gpu_dur) });
           }
         });
         if (data.src_slice) {
           queryFlowsData(data.src_slice!.split(',')).then((it) => {
             if (it.length > 0) {
               list.push({
-                name: `<div style="padding:5px 0 5px 0;">FrameTimeLine flows</div>`,
+                name: 'FrameTimeLine flows',
                 value: '',
               });
               it.forEach((a: any) => {
@@ -666,7 +665,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 appNode.children.push(new JankTreeNode(a.name, a.pid, 'frameTime'));
                 jankJumperList.push(appNode);
                 list.push({
-                  name: `<div>Slice</div>`,
+                  name: 'Slice',
                   value:
                     a.cmdline +
                     ' [' +
@@ -676,12 +675,12 @@ export class TabPaneCurrentSelection extends BaseElement {
                 });
               });
               list.push({
-                name: `<div style="padding:5px 0 5px 0;">Following flows</div>`,
+                name: 'Following flows',
                 value: '',
               });
               it.forEach((a: any) => {
                 list.push({
-                  name: `<div>Slice</div>`,
+                  name: 'Slice',
                   value:
                     a.cmdline +
                     ' [' +
@@ -699,11 +698,11 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
       } else if (data.frame_type === 'app') {
         list.push({
-          name: `<div style="padding:5px 0 5px 0;">FrameTimeLine flows</div>`,
+          name: 'FrameTimeLine flows',
           value: '',
         });
         list.push({
-          name: `<div>Slice</div>`,
+          name: 'Slice',
           value:
             data.cmdline +
             ' [' +
@@ -717,14 +716,14 @@ export class TabPaneCurrentSelection extends BaseElement {
           queryPrecedingData(data.dst_slice).then((it) => {
             if (it.length > 0) {
               list.push({
-                name: `<div style="padding:5px 0 5px 0;">Preceding flows</div>`,
+                name: 'Preceding flows',
                 value: '',
               });
               it.forEach((a: any) => {
                 let rsNode = new JankTreeNode(a.name, a.pid, 'render_service');
                 jankJumperList.push(rsNode);
                 list.push({
-                  name: `<div>Slice</div>`,
+                  name: 'Slice',
                   value:
                     a.cmdline +
                     ' [' +
@@ -745,60 +744,60 @@ export class TabPaneCurrentSelection extends BaseElement {
         queryGpuDur(data.id!).then((it) => {
           if (it.length > 0) {
             list.push({
-              name: `<div>Gpu Duration</div>`,
+              name: 'Gpu Duration',
               value: getTimeString(it[0].gpu_dur),
             });
           }
           if (data.name) {
             list.push({
-              name: `<div style="padding:5px 0 5px 0;">App Frame</div>`,
+              name: 'App Frame',
               value: '',
             });
             list.push({
-              name: `<div>Process</div>`,
+              name: 'Process',
               value: data.cmdline + ' ' + data.pid,
             });
             list.push({
-              name: '<div>StartTime(Relative)</div>',
+              name: 'StartTime(Relative)',
               value: getTimeString(data.ts || 0),
             });
             list.push({
-              name: '<div>StartTime(Absolute)</div>',
+              name: 'StartTime(Absolute)',
               value: ((data.ts || 0) + (window as any).recordStartNS) / 1000000000,
             });
             list.push({
-              name: `<div>end time</div>`,
+              name: 'end time',
               value: getTimeString(data!.ts! + data.dur! || 0),
             });
           }
           if (data.rs_name) {
             list.push({
-              name: `<div style="padding:5px 0 5px 0;">RenderService Frame</div>`,
+              name: 'RenderService Frame',
               value: '',
             });
             list.push({
-              name: `<div>Process</div>`,
+              name: 'Process',
               value: data.rs_name + ' ' + data.rs_pid,
             });
             list.push({
-              name: '<div>StartTime(Relative)</div>',
+              name: 'StartTime(Relative)',
               value: getTimeString(data.rs_ts || 0),
             });
             list.push({
-              name: '<div>StartTime(Absolute)</div>',
+              name: 'StartTime(Absolute)',
               value: ((data.rs_ts || 0) + (window as any).recordStartNS) / 1000000000,
             });
             list.push({
-              name: `<div>end time</div>`,
+              name: 'end time',
               value: getTimeString(data.rs_ts! + data.rs_dur! || 0),
             });
           }
           list.push({
-            name: `<div style="padding:5px 0 5px 0;">Following</div>`,
+            name: 'Following',
             value: '',
           });
           list.push({
-            name: `<div>Slice</div>`,
+            name: 'Slice',
             value:
               data.cmdline +
               ' [' +
@@ -961,21 +960,26 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.setTableHeight('550px');
     this.tabCurrentSelectionInit('Animation Details');
     let list = [];
-    let dataTs: number = data.ts < 0 ? 0 : data.ts;
+    let dataTs: number = data.startTs < 0 ? 0 : data.startTs;
     list.push({ name: 'Name', value: data.animationId });
-    list.push({ name: 'StartTime(Relative)', value: `${Utils.getTimeString(dataTs)}` });
+    list.push({ name: 'Start time(Relative)', value: `${Utils.getTimeString(dataTs)}` });
     list.push({
-      name: 'StartTime(Absolute)',
+      name: 'Start time(Absolute)',
       value: ((dataTs || 0) + (window as any).recordStartNS) / 1000000000,
     });
-    list.push({ name: 'End time', value: `${Utils.getTimeString(dataTs + (data.dur || 0))}` });
+    list.push({ name: 'End time(Relative)', value: `${Utils.getTimeString(dataTs + (data.dur || 0))}` });
+    list.push({ name: 'End time(Absolute)', value: ((dataTs + (data.dur || 0)) + (window as any).recordStartNS) / 1000000000});
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
-      let result = await queryAnimationFrameFps(dataTs, dataTs + data.dur);
-      if (result.length > 0) {
-        let fixedNumber: number = 2;
-        let fpsValue: number = result[0].fps / (data.dur / 1000_000_000);
-        list.push({ name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}` });
+      let frameFpsMessage = data.frameInfo?.split(':');
+      if (frameFpsMessage) {
+        if (frameFpsMessage[1] !== '0') {
+          list.push({ name: 'FPS', value: `${frameFpsMessage[1]}` });
+        } else {
+          let fixedNumber: number = 2;
+          let fpsValue: number = Number(frameFpsMessage[0]) / (data.dur / 1000_000_000);
+          list.push({ name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}` });
+        }
       }
     }
     this.currentSelectionTbl!.dataSource = list;
@@ -1229,6 +1233,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let itids: number[] = [];
     let ts: number[] = [];
     let maxPriority = 0;
+    let maxPriorityDuration = 0;
     let maxDuration = 0;
     data.forEach((it) => {
       cpus.push(it.cpu!);
@@ -1255,9 +1260,20 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       if (this.selectWakeupBean) {
         resource.unshift(this.selectWakeupBean);
+        maxDuration = Math.max(maxDuration, this.selectWakeupBean.dur);
+        maxPriority = Math.max(maxPriority, this.selectWakeupBean.priority);
       }
-      resource.forEach((it) => {
-        it.isSelected = it.priority === maxPriority || it.dur === maxDuration;
+      resource.forEach(it => {
+        if (it.priority === maxPriority) {
+          maxPriorityDuration = Math.max(it.dur || 0, maxPriorityDuration);
+        }
+      });
+      this.wakeupListTbl!.getItemTextColor = ((data: any) => {
+        if ((data.priority === maxPriority && data.dur === maxPriorityDuration) || data.dur === maxDuration) {
+          return '#f44336';
+        } else {
+          return '#262626';
+        }
       });
       this.wakeupListTbl!.recycleDataSource = resource;
     });
@@ -1325,6 +1341,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             .table-right{
                 width: 50%;
                 display: flex;
+                height: 650px;
                 flex-direction: column;
             }
         </style>
@@ -1343,7 +1360,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 </div>
             </div>
             <div class="scroll-area">
-                <lit-table id="selectionTbl" class="table-left" no-head hideDownload>
+                <lit-table id="selectionTbl" class="table-left" no-head hideDownload noRecycle>
                         <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
                             <template><div>{{name}}</div></template>
                         </lit-table-column>
@@ -1353,16 +1370,16 @@ export class TabPaneCurrentSelection extends BaseElement {
                 </lit-table>
                 <div class="table-right">
                     <canvas id="rightDraw" style="width: 100%;height: 200px;"></canvas>
-                    <lit-table id="wakeupListTbl" style="flex: 1;display: none" hideDownload>
+                    <lit-table id="wakeupListTbl" style="height: 300px;display: none;overflow: auto" hideDownload>
                         <lit-table-column title="Process" data-index="process" key="process" align="flex-start"  width="180px">
                         </lit-table-column>
                         <lit-table-column title="Thread" data-index="thread" key="thread" align="flex-start"  width="180px">
                         </lit-table-column>
                         <lit-table-column title="CPU" data-index="cpu" key="cpu" align="flex-start"  width="60px">
                         </lit-table-column>
-                        <lit-table-column title="Duration(ns)" data-index="dur" key="dur" align="flex-start"  width="180px">
+                        <lit-table-column title="Duration(ns)" data-index="dur" key="dur" align="flex-start"  width="120px">
                         </lit-table-column>
-                        <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="180px">
+                        <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="80px">
                         </lit-table-column>
                     </lit-table>
                 </div>

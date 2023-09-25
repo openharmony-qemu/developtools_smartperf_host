@@ -329,5 +329,29 @@ void TraceDataCache::UpdateBinderRunnableTraceStatus(bool status)
 {
     binderRunnableTraceEnabled_ = status;
 }
+uint64_t TraceDataCache::SplitFileMaxTime()
+{
+    return splitFileMaxTs_;
+}
+uint64_t TraceDataCache::SplitFileMinTime()
+{
+    return splitFileMinTs_;
+}
+void TraceDataCache::SetSplitFileMaxTime(uint64_t maxTs)
+{
+    splitFileMaxTs_ = maxTs;
+}
+void TraceDataCache::SetSplitFileMinTime(uint64_t minTs)
+{
+    splitFileMinTs_ = minTs;
+}
+std::deque<std::unique_ptr<std::string>>& TraceDataCache::HookCommProtos()
+{
+    return hookCommProtos_;
+}
+void TraceDataCache::ClearHookCommProtos()
+{
+    hookCommProtos_.clear();
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

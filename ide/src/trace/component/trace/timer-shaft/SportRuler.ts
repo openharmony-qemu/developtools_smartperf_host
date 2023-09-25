@@ -21,6 +21,7 @@ import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElem
 import { TraceRow } from '../base/TraceRow.js';
 import { SpApplication } from '../../../SpApplication.js';
 import { Utils } from '../base/Utils.js';
+import { SpSystemTrace } from '../../SpSystemTrace.js';
 
 export enum StType {
   TEMP, //临时的
@@ -29,8 +30,8 @@ export enum StType {
 
 export class SlicesTime {
   private _id: string;
-  startTime: number | null | undefined;
-  endTime: number | null | undefined;
+  startTime: number = 0;
+  endTime: number = 0;
   startNS: number;
   endNS: number;
   color: string = '';
@@ -41,8 +42,8 @@ export class SlicesTime {
   text: string = '';
   type: number = StType.PERM; // 默认类型为永久的
   constructor(
-    startTime: number | null | undefined,
-    endTime: number | null | undefined,
+    startTime: number = 0,
+    endTime: number = 0,
     startNS: number,
     endNS: number,
     startX: number,
@@ -261,12 +262,12 @@ export class SportRuler extends Graph {
         let sectionTime = (endNS - startNS) / section;
         let countArr = new Uint32Array(section);
         let count: number = 0; //某段时间的调用栈数量
-        const useIndex : number[] = [];
-        const isEbpf = this.durArray && this.durArray.length > 0; 
+        const useIndex: number[] = [];
+        const isEbpf = this.durArray && this.durArray.length > 0;
         for (let i = 1; i <= section; i++) {
           count = 0;
           for (let j = 0; j < this.timeArray.length; j++) {
-            if (isEbpf && useIndex.includes(j)){
+            if (isEbpf && useIndex.includes(j)) {
               continue;
             }
             const itemTime = this.timeArray[j];
@@ -274,17 +275,35 @@ export class SportRuler extends Graph {
             // ebpf需要考虑dur
             if (this.durArray && this.durArray.length > 0) {
               const dur = this.durArray[j];
-              inRange =
-                itemTime + dur >= startNS + sectionTime * (i - 1) &&
-                itemTime < startNS + sectionTime * i &&
-                itemTime + dur >= this.range.startNS  &&
-                itemTime < this.range.endNS;
+              if (itemTime === this.range.endNS) {
+                // 如果时间点刚好和时间轴结束时间一样会导致该时间点没有计数,所以此情况需要的判断条件要多个等号
+                inRange =
+                  itemTime >= startNS + sectionTime * (i - 1) &&
+                  itemTime <= startNS + sectionTime * i &&
+                  itemTime >= this.range.startNS &&
+                  itemTime <= this.range.endNS;
+              } else {
+                // 判断时间点是否在某时间段内时，一般情况下和左边界相同算在该时间段，和右边界相同算在下一段，
+                inRange =
+                  itemTime + dur >= startNS + sectionTime * (i - 1) &&
+                  itemTime < startNS + sectionTime * i &&
+                  itemTime + dur >= this.range.startNS &&
+                  itemTime < this.range.endNS;
+              }
             } else {
-              inRange =
-                itemTime >= startNS + sectionTime * (i - 1) &&
-                itemTime < startNS + sectionTime * i &&
-                itemTime >= this.range.startNS &&
-                itemTime < this.range.endNS;
+              if (itemTime === this.range.endNS) {
+                inRange =
+                  itemTime >= startNS + sectionTime * (i - 1) &&
+                  itemTime <= startNS + sectionTime * i &&
+                  itemTime >= this.range.startNS &&
+                  itemTime <= this.range.endNS;
+              } else {
+                inRange =
+                  itemTime >= startNS + sectionTime * (i - 1) &&
+                  itemTime < startNS + sectionTime * i &&
+                  itemTime >= this.range.startNS &&
+                  itemTime < this.range.endNS;
+              }
             }
             // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
             if (inRange) {
@@ -339,8 +358,6 @@ export class SportRuler extends Graph {
           if (triangle !== -1) {
             this.flagList[i].type == '' ? this.flagList.splice(triangle, 1) : '';
           }
-          this.flagList.forEach((it) => (it.selected = false));
-          this.flagList[i].selected = true;
         } else {
           if (triangle == -1) {
             this.flagList.forEach((it) => (it.selected = false));
@@ -411,46 +428,51 @@ export class SportRuler extends Graph {
     endTime: number | null = null,
     shiftKey: boolean | null = null
   ): SlicesTime | null {
-    let newSlicestime: SlicesTime | null = null;
-    if (startTime != null && typeof startTime != undefined && endTime != null && typeof endTime != undefined) {
-      this.slicesTime = {
-        startTime: startTime <= endTime ? startTime : endTime,
-        endTime: startTime <= endTime ? endTime : startTime,
-        color: null,
-      };
-      let startX = Math.round(
-        (this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS)
-      );
-      let endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
-      let color = randomRgbColor();
-      this.slicesTime.color = color;
-      newSlicestime = new SlicesTime(
-        this.slicesTime.startTime,
-        this.slicesTime.endTime,
-        this.range.startNS,
-        this.range.endNS,
-        startX,
-        endX,
-        color,
-        true
-      );
-      if (!shiftKey) {
-        this.clearTempSlicesTime(); // 清除临时对象
-
-        // 如果没有按下shift键，则把当前slicestime对象的类型设为临时类型。
-        newSlicestime.type = StType.TEMP;
-      }
-      this.slicesTimeList.forEach((slicestime) => (slicestime.selected = false));
-      newSlicestime.selected = true;
-      this.slicesTimeList.push(newSlicestime);
+    let findSlicesTime = this.slicesTimeList.find((it) => it.startTime === startTime && it.endTime === endTime);
+    if (findSlicesTime && this.slicesTimeList.length > 0) {
+      return null;
     } else {
-      this.clearTempSlicesTime(); // 清除临时对象
-      this.slicesTime = { startTime: null, endTime: null, color: null };
+      let newSlicestime: SlicesTime | null = null;
+      if (startTime != null && typeof startTime != undefined && endTime != null && typeof endTime != undefined) {
+        this.slicesTime = {
+          startTime: startTime <= endTime ? startTime : endTime,
+          endTime: startTime <= endTime ? endTime : startTime,
+          color: null,
+        };
+        let startX = Math.round(
+          (this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS)
+        );
+        let endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
+        let color = randomRgbColor();
+        this.slicesTime.color = color;
+        newSlicestime = new SlicesTime(
+          this.slicesTime.startTime || 0,
+          this.slicesTime.endTime || 0,
+          this.range.startNS,
+          this.range.endNS,
+          startX,
+          endX,
+          color,
+          true
+        );
+        if (!shiftKey) {
+          this.clearTempSlicesTime(); // 清除临时对象
+
+          // 如果没有按下shift键，则把当前slicestime对象的类型设为临时类型。
+          newSlicestime.type = StType.TEMP;
+        }
+        this.slicesTimeList.forEach((slicestime) => (slicestime.selected = false));
+        newSlicestime.selected = true;
+        this.slicesTimeList.push(newSlicestime);
+      } else {
+        this.clearTempSlicesTime(); // 清除临时对象
+        this.slicesTime = { startTime: null, endTime: null, color: null };
+      }
+      this.range.slicesTime = this.slicesTime;
+      this.draw();
+      this.timerShaftEL?.render();
+      return newSlicestime;
     }
-    this.range.slicesTime = this.slicesTime;
-    this.draw();
-    this.timerShaftEL?.render();
-    return newSlicestime;
   }
 
   // 清除临时对象
@@ -622,20 +644,8 @@ export class SportRuler extends Graph {
           findFlag.selected = true;
         } else {
           let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
-          if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
-            if (
-              flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
-              this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
-            ) {
-              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-              this.flagList.push(flag);
-            }
-          } else {
-            if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
-              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-              this.flagList.push(flag);
-            }
-          }
+          let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+          this.flagList.push(flag);
         }
         this.flagClickHandler && this.flagClickHandler(this.flagList.find((it) => it.selected)); // 绘制旗子
       }

@@ -211,7 +211,7 @@ void CpuFilter::Finish() const
     auto slice = traceDataCache_->GetConstSchedSliceData();
     size = slice.Size();
     for (auto i = 0; i < size; i++) {
-        traceDataCache_->GetSchedSliceData()->AppendInternalPid(
+        traceDataCache_->GetSchedSliceData()->ReviseInternalPid(i,
             traceDataCache_->GetThreadData(slice.InternalTidsData()[i])->internalPid_);
     }
 }

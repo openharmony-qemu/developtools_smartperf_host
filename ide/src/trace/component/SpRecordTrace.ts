@@ -1882,7 +1882,7 @@ export class SpRecordTrace extends BaseElement {
       fpUnwind: this.spAllocations!.fp_unwind,
       blocked: true,
     };
-    if (SpRecordTrace.selectVersion !== '3.2') {
+    if (SpRecordTrace.selectVersion !== undefined && SpRecordTrace.selectVersion !== '3.2') {
       nativeConfig.callframeCompress = true;
       nativeConfig.recordAccurately = this.spAllocations!.record_accurately;
       nativeConfig.offlineSymbolization = this.spAllocations!.offline_symbolization;

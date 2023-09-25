@@ -93,7 +93,7 @@ Processes History的Tab页如图：
 +     Duration：前一次采集到本次采集的时间差。
 +     Data Read：从磁盘读取到内存的总字节数。
 +     Data Read/sec：每秒从磁盘读取到内存的字节数。
-+     Data Write：从磁盘写入磁盘的总字节数。
++     Data Write：从内存写入磁盘的总字节数。
 +     Data Write/sec：每秒从内存写入磁盘的字节数。
 +     Reads In：读入的字节数。
 +     Reads In/sec：每秒读入的字节数。

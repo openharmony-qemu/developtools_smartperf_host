@@ -419,7 +419,7 @@ export class SpRecordSetting extends BaseElement {
         <div class="root">
           <div class="record">
             <span class="record-mode">Record mode</span>
-            <lit-radio name="Stop when full" dis="round" id="litradio" checked>Stop when full</lit-radio>
+            <lit-radio name="Normal Mode" dis="round" id="litradio" checked>Normal Mode</lit-radio>
           </div>
           <div class="output">
             <span class="record-mode">output file path</span>

@@ -33,10 +33,17 @@ export class TabPaneHiLogSummary extends BaseElement {
   private expandedNodeList: Set<number> = new Set();
   private logLevel: string[] = ['Debug', 'Info', 'Warn', 'Error','Fatal'];
   private selectTreeDepth: number = 0;
+  private currentSelection: SelectionParam | undefined;
 
   set data(systemLogDetailParam: SelectionParam) {
+    if (systemLogDetailParam === this.currentSelection) {
+      return;
+    }
+    this.currentSelection = systemLogDetailParam;
     this.systemLogSource = [];
     this.expandedNodeList.clear();
+    this.expansionUpIcon!.name = 'up';
+    this.expansionDownIcon!.name = 'down';
     this.logSummaryTable!.innerHTML = '';
     this.summaryDownLoadTbl!.recycleDataSource = [];
     if (this.summaryDownLoadTbl) {
