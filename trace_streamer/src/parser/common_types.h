@@ -69,6 +69,11 @@ struct HtraceDataSegment {
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
     ProtoReader::BytesView protoData;
 };
+struct RawtraceDataSegment {
+    std::shared_ptr<std::string> seg;
+    uint64_t timeStamp;
+    std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
+};
 
 class TracePoint {
 public:
@@ -136,6 +141,23 @@ struct HtraceSplitResult {
     };
 };
 
+struct RawTraceFileHeader {
+    uint16_t magicNumber;
+    uint8_t fileType;
+    uint16_t versionNumber;
+    uint32_t reserved;
+};
+
+enum RawTraceContentType : uint8_t {
+    CONTENT_TYPE_DEFAULT = 0,
+    CONTENT_TYPE_EVENTS_FORMAT = 1,
+    CONTENT_TYPE_CMDLINES = 2,
+    CONTENT_TYPE_TGIDS = 3,
+    CONTENT_TYPE_CPU_RAW = 4,
+    CONTENT_TYPE_HEADER_PAGE = 30,
+    CONTENT_TYPE_PRINTK_FORMATS = 31,
+    CONTENT_TYPE_KALLSYMS = 32
+};
 } // namespace TraceStreamer
 } // namespace SysTuning
 #endif // _BYTRACE_COMMON_TYPES_H_

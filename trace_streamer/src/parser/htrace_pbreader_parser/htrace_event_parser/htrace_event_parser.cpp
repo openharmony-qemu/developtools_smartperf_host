@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 #include "htrace_event_parser.h"
-#include <string>
 #include <cinttypes>
+#include <string>
 #include "app_start_filter.h"
 #include "binder_filter.h"
 #include "binder.pbreader.h"

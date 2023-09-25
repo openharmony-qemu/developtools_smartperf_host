@@ -56,10 +56,9 @@ void ThreadStateData::SetDuration(TableRowId index, InternalTime dur)
 void ThreadStateData::SortAllRowByTs()
 {
     std::deque<InternalTime> timeStampsTemp;
-    timeStampsTemp = std::move(timeStamps_);    
+    timeStampsTemp = std::move(timeStamps_);
     std::multimap<uint64_t, uint32_t> timeStampsToIdMap = {};
-    for(auto id = 0; id < timeStampsTemp.size(); ++id)
-    {
+    for (auto id = 0; id < timeStampsTemp.size(); ++id) {
         timeStampsToIdMap.insert({timeStampsTemp[id], id});
     }
     std::deque<InternalTime> durationsTemp;
@@ -160,6 +159,7 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
     endStates_.emplace_back(endState);
     priority_.emplace_back(priority);
     argSets_.emplace_back(INVALID_UINT32);
+    internalPids_.emplace_back(INVALID_UINT32);
     return Size() - 1;
 }
 

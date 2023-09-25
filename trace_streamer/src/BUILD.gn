@@ -74,6 +74,7 @@ trace_streamer_include = [
   "parser/htrace_pbreader_parser",
   "parser/htrace_pbreader_parser/htrace_event_parser",
   "parser/htrace_pbreader_parser/htrace_cpu_parser",
+  "parser/rawtrace_parser",
   "parser/hiperf_parser",
   "${THIRD_PARTY}/bounds_checking_function/include",
   "${THIRD_PARTY}/sqlite/include",
@@ -90,6 +91,7 @@ trace_streamer_include = [
   "${COMMON_LIBRARY}/c_utils/base/include",
   "${THIRD_PARTY}/sqlite",
   "${THIRD_PARTY}/protogen/types/plugins/js_memory",
+  "${PERF_DIR}/profiler/device/plugins/ftrace_plugin/include",
 ]
 
 ohos_source_set("trace_streamer_source") {

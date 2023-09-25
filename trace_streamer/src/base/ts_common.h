@@ -21,6 +21,7 @@
 #include <map>
 #include <string>
 using ClockId = uint32_t;
+const std::string INVALID_STRING = "INVALID_STRING";
 const uint64_t INVALID_ITID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint64_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
@@ -118,6 +119,7 @@ enum RefType {
 enum TraceFileType {
     TRACE_FILETYPE_BY_TRACE,
     TRACE_FILETYPE_H_TRACE,
+    TRACE_FILETYPE_RAW_TRACE,
     TRACE_FILETYPE_SYSEVENT,
     TRACE_FILETYPE_PERF,
     TRACE_FILETYPE_HILOG,

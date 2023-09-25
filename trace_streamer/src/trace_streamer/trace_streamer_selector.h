@@ -25,6 +25,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class BytraceParser;
 class HtraceParser;
+class RawTraceParser;
 class TraceStreamerSelector {
 public:
     TraceStreamerSelector();
@@ -87,6 +88,7 @@ private:
     std::unique_ptr<TraceDataCache> traceDataCache_ = {};
     std::unique_ptr<BytraceParser> bytraceParser_;
     std::unique_ptr<HtraceParser> htraceParser_;
+    std::unique_ptr<RawTraceParser> rawTraceParser_;
     bool enableFileSeparate_ = false;
 };
 } // namespace TraceStreamer

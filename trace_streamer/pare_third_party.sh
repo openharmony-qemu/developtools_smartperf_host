@@ -125,3 +125,24 @@ if [ ! -f "bounds_checking_function/BUILD.gn" ];then
     git clone git@gitee.com:openharmony/third_party_bounds_checking_function.git bounds_checking_function
     $cp ../prebuilts/patch_bounds_checking_function/bounds_checking_functionbuild.gn bounds_checking_function/BUILD.gn
 fi
+
+if [ ! -f "commonlibrary/c_utils/base/include/nocopyable.h" ];then
+    rm -rf commonlibrary
+    git clone git@gitee.com:openharmony/commonlibrary_c_utils.git
+    if [ -d "commonlibrary_c_utils" ];then
+        mkdir -p commonlibrary/c_utils/base/include
+        $cp commonlibrary_c_utils/base/include/nocopyable.h commonlibrary/c_utils/base/include
+        rm -rf commonlibrary_c_utils
+    fi
+fi
+
+if [ ! -f "profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h" ];then
+    rm -rf profiler
+    git clone git@gitee.com:openharmony/developtools_profiler.git
+    if [ -d "developtools_profiler" ];then
+        mkdir -p profiler/device/plugins/ftrace_plugin/include
+        $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h profiler/device/plugins/ftrace_plugin/include
+        $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_namespace.h profiler/device/plugins/ftrace_plugin/include
+        rm -rf developtools_profiler
+    fi
+fi
