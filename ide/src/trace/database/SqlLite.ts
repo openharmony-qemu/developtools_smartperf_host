@@ -5354,3 +5354,11 @@ export const queryLogData = (oneDayTime: number): Promise<Array<LogStruct>> =>
 
 export const queryMetric = (metricName: string): Promise<Array<string>> =>
   query('queryMetric', metricName, '', 'exec-metric');
+
+export const queryExistFtrace = (): Promise<Array<number>> =>
+    query(
+        'queryExistFtrace',
+        `select 1 from thread_state
+         UNION
+         select 1 from args;`
+    );
