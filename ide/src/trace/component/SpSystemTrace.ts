@@ -151,7 +151,6 @@ export class SpSystemTrace extends BaseElement {
   rowsPaneEL: HTMLDivElement | undefined | null;
   spacerEL: HTMLDivElement | undefined | null;
   visibleRows: Array<TraceRow<any>> = [];
-  folders: NodeListOf<TraceRow<any>> | undefined;
   collectRows: Array<TraceRow<any>> = [];
   currentRow: TraceRow<any> | undefined | null;
   keyboardEnable = true;
@@ -190,6 +189,9 @@ export class SpSystemTrace extends BaseElement {
   private tabCpuFreq: TabPaneFrequencySample | undefined | null;
   private tabCpuState: TabPaneCounterSample | undefined | null;
   private collapseAll: boolean = false;
+  private currentCollectGroup: string = '1';
+  private _list: Array<SlicesTime> = [];
+  private expandRowList: Array<TraceRow<any>> = [];
   private _slicesList: Array<SlicesTime> = [];
   private _flagList: Array<any> = [];
 
@@ -303,7 +305,7 @@ export class SpSystemTrace extends BaseElement {
         if (this.rowsEL!.contains(cpuFavoriteRow)) {
           this.rowsEL!.replaceChild(replaceRow, cpuFavoriteRow);
         }
-        this.favoriteChartListEL!.insertRow(cpuFavoriteRow);
+        this.favoriteChartListEL!.insertRow(cpuFavoriteRow, this.currentCollectGroup, true);
         this.currentClickRow = null;
         cpuFavoriteRow.setAttribute('draggable', 'true');
         cpuFavoriteRow.addEventListener('dragstart', () => {
@@ -459,9 +461,9 @@ export class SpSystemTrace extends BaseElement {
             parent!.replaceTraceRow(replaceRow, currentRow);
           }
         }
-        this.favoriteChartListEL?.insertRow(currentRow);
+        this.favoriteChartListEL?.insertRow(currentRow, this.currentCollectGroup, event.detail.type !== 'auto-collect');
       } else {
-        this.favoriteChartListEL?.deleteRow(currentRow);
+        this.favoriteChartListEL?.deleteRow(currentRow, event.detail.type !== 'auto-collect');
         if (event.detail.type !== 'auto-collect') {
           let rowIndex = this.collectRows.indexOf(currentRow);
           if (rowIndex !== -1) {
@@ -1314,13 +1316,13 @@ export class SpSystemTrace extends BaseElement {
       }
     });
     window.subscribe(window.SmartEvent.UI.CollapseAllLane, (collapse: boolean) => {
+      if (!collapse) {
+        // 一键折叠之前，记录当前打开的泳道图
+        this.expandRowList = Array.from(this.rowsEL!.querySelectorAll<TraceRow<any>>(`trace-row[folder][expansion]`)) || [];
+      }
       this.collapseAll = true;
       this.setAttribute('disable', '');
-      this.folders?.forEach((it) => {
-        if (!it.hasAttribute('row-hidden')) {
-          it.expansion = collapse;
-        }
-      });
+      this.expandRowList!.forEach((it) => it.expansion = collapse);
       this.collapseAll = false;
       this.removeAttribute('disable');
       this.refreshCanvas(true);
@@ -1332,6 +1334,9 @@ export class SpSystemTrace extends BaseElement {
       } else {
         this.setAttribute('disable', '');
       }
+    });
+    window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => {
+      this.currentCollectGroup = group;
     });
   }
   // 清除上一次点击调用栈产生的三角旗子
@@ -4163,7 +4168,6 @@ export class SpSystemTrace extends BaseElement {
     progress('completed', 100);
     info('All TraceRow Data initialized');
     this.loadTraceCompleted = true;
-    this.folders = this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row[folder]');
     this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
       if (rowId !== '' && (it.rowId?.includes(rowId) || it.name.includes(rowId))) {
         it.addTemplateTypes('Ark Ts');
