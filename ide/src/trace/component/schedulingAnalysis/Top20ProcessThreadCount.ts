@@ -78,7 +78,6 @@ export class Top20ProcessThreadCount extends BaseElement {
       this.nodata!.noData = res === undefined || res.length === 0;
       this.processThreadCountTbl!.recycleDataSource = res;
       this.processThreadCountData = res;
-      this.processThreadCountTbl?.reMeauseHeight();
       this.processThreadCountPie!.config = {
         appendPadding: 10,
         data: res,

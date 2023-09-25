@@ -99,7 +99,14 @@ export class TabPaneCurrent extends BaseElement {
       btn.className = 'remove';
       let color = document.createElement('input');
       color.type = 'color';
-      let sliceData = new SlicesStruct(btn, ns2s(slice.startTime) , ns2s(slice.endTime), color);
+      let sliceData = new SlicesStruct(
+        btn,
+        ns2s(slice.startTime),
+        ns2s(slice.endTime),
+        slice.startTime,
+        slice.endTime,
+        color
+      );
       color!.value = slice.color;
       this.tableDataSource.push(sliceData);
     }
@@ -132,7 +139,10 @@ export class TabPaneCurrent extends BaseElement {
       tr[i].querySelector('input')!.value = this.slicestimeList[i - 1].color;
       //  点击色块修改颜色
       tr[i].querySelector('input')?.addEventListener('change', (event: any) => {
-        if (tr[i].querySelector('.td')!.innerHTML === String(this.slicestimeList[i - 1].startTime)) {
+        if (
+          this.tableDataSource[i].startTime === this.slicestimeList[i - 1].startTime &&
+          this.tableDataSource[i].endTime === this.slicestimeList[i - 1].endTime
+        ) {
           this.slicestimeList[i - 1].color = event?.target.value;
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicestimeList[i - 1] }));
           //   卡尺颜色改变时，重绘泳道图
@@ -141,7 +151,10 @@ export class TabPaneCurrent extends BaseElement {
       });
       // 点击remove按钮移除
       tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
-        if (tr[i].querySelector('.td')!.innerHTML === String(this.slicestimeList[i - 1].startTime)) {
+        if (
+          this.tableDataSource[i].startTime === this.slicestimeList[i - 1].startTime &&
+          this.tableDataSource[i].endTime === this.slicestimeList[i - 1].endTime
+        ) {
           this.slicestimeList[i - 1].hidden = true;
           this.systemTrace!.slicesList = this.slicestimeList || [];
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicestimeList[i - 1] }));
@@ -163,9 +176,9 @@ export class TabPaneCurrent extends BaseElement {
         }
         </style>
         <lit-table class="notes-editor-panel" style="height: auto">
-            <lit-table-column width="1fr" data-index="startTime" key="startTime" align="flex-start" title="StartTime">
+            <lit-table-column width="1fr" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="StartTime">
             </lit-table-column>
-            <lit-table-column width="1fr" data-index="endTime" key="endTime" align="flex-start" title="EndTime">
+            <lit-table-column width="1fr" data-index="endTimeStr" key="endTimeStr" align="flex-start" title="EndTime">
             </lit-table-column>
             <lit-table-column width="1fr" data-index="color" key="color" align="flex-start" title="Color">
                 <template>
@@ -204,17 +217,23 @@ export class TabPaneCurrent extends BaseElement {
 }
 
 export class SlicesStruct {
-  startTime: string | undefined;
-  endTime: string | undefined;
+  startTimeStr: string | undefined;
+  endTimeStr: string | undefined;
+  startTime: number | undefined;
+  endTime: number | undefined;
   colorEl: HTMLInputElement | undefined;
   operate: HTMLButtonElement | undefined;
   isSelected: boolean = false;
   constructor(
     operate: HTMLButtonElement,
-    startTime?: string,
-    endTime?: string,
+    startTimeStr?: string,
+    endTimeStr?: string,
+    startTime?: number,
+    endTime?: number,
     colorEl?: HTMLInputElement | undefined
   ) {
+    this.startTimeStr = startTimeStr;
+    this.endTimeStr = endTimeStr;
     this.startTime = startTime;
     this.endTime = endTime;
     this.colorEl = colorEl;

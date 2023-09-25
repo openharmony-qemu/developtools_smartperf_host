@@ -116,7 +116,12 @@ export class SpFileSystemChart {
     logicalReadRow.selectChangeHandler = this.trace.selectChangeHandler;
     logicalReadRow.focusHandler = () => this.focusHandler(logicalReadRow);
     logicalReadRow.onThreadHandler = (useCache) => {
-      let context = logicalReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      let context:CanvasRenderingContext2D;
+      if(logicalReadRow.currentContext){
+        context = logicalReadRow.currentContext;
+      } else{
+        context  = logicalReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
       logicalReadRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
@@ -147,7 +152,12 @@ export class SpFileSystemChart {
     logicalWriteRow.selectChangeHandler = this.trace.selectChangeHandler;
     logicalWriteRow.focusHandler = () => this.focusHandler(logicalWriteRow);
     logicalWriteRow.onThreadHandler = (useCache) => {
-      let context = logicalWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      let context:CanvasRenderingContext2D;
+      if(logicalWriteRow.currentContext){
+        context = logicalWriteRow.currentContext;
+      } else{
+        context  = logicalWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
       logicalWriteRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
@@ -179,7 +189,12 @@ export class SpFileSystemChart {
     diskIoRow.selectChangeHandler = this.trace.selectChangeHandler;
     diskIoRow.focusHandler = () => this.focusHandler(diskIoRow);
     diskIoRow.onThreadHandler = (useCache) => {
-      let context = diskIoRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      let context:CanvasRenderingContext2D;
+      if(diskIoRow.currentContext){
+        context = diskIoRow.currentContext;
+      } else{
+        context  = diskIoRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
       diskIoRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {
@@ -214,7 +229,12 @@ export class SpFileSystemChart {
       rowRead.selectChangeHandler = this.trace.selectChangeHandler;
       rowRead.focusHandler = () => this.focusHandler(rowRead);
       rowRead.onThreadHandler = (useCache) => {
-        let context = rowRead.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        let context:CanvasRenderingContext2D;
+        if(rowRead.currentContext){
+          context = rowRead.currentContext;
+        } else{
+          context  = rowRead.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        }
         rowRead.canvasSave(context);
         (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
           {
@@ -243,7 +263,12 @@ export class SpFileSystemChart {
       rowWrite.selectChangeHandler = this.trace.selectChangeHandler;
       rowWrite.focusHandler = () => this.focusHandler(rowWrite);
       rowWrite.onThreadHandler = (useCache) => {
-        let context = rowWrite.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        let context:CanvasRenderingContext2D;
+        if(rowWrite.currentContext){
+          context = rowWrite.currentContext;
+        } else{
+          context  = rowWrite.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        }
         rowWrite.canvasSave(context);
         (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
           {
@@ -277,7 +302,12 @@ export class SpFileSystemChart {
     vmTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
     vmTraceRow.focusHandler = () => this.focusHandler(vmTraceRow);
     vmTraceRow.onThreadHandler = (useCache) => {
-      let context = vmTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      let context:CanvasRenderingContext2D;
+      if(vmTraceRow.currentContext){
+        context = vmTraceRow.currentContext;
+      } else{
+        context  = vmTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
       vmTraceRow.canvasSave(context);
       (renders[TraceRow.ROW_TYPE_FILE_SYSTEM] as FileSystemRender).renderMainThread(
         {

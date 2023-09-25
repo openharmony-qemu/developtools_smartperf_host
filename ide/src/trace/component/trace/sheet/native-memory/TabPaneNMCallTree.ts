@@ -103,7 +103,7 @@ export class TabpaneNMCalltree extends BaseElement {
         }
       }
     }
-
+    const initWidth = this.clientWidth;
     this.getDataByWorkerQuery(
       {
         leftNs: nmCallTreeParam.leftNs,
@@ -114,11 +114,9 @@ export class TabpaneNMCalltree extends BaseElement {
         this.setLTableData(results);
         this.filesystemTbr!.recycleDataSource = [];
         this.nmCallTreeFrameChart!.mode = ChartMode.Byte;
+        this.nmCallTreeFrameChart?.updateCanvas(true, initWidth);
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-        this.nmCallTreeFrameChart?.updateCanvas(true, this.clientWidth);
-        this.nmCallTreeFrameChart?.calculateChartData();
         this.switchFlameChart();
-        this.nmCallTreeFilter.icon = 'block';
       }
     );
   }
@@ -620,9 +618,6 @@ export class TabpaneNMCalltree extends BaseElement {
       this.isChartShow = true;
       this.nmCallTreeFilter!.disabledMining = true;
       this.showBottomMenu(this.needShowMenu);
-      if (!flameChartData) {
-        this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-      }
       this.nmCallTreeFrameChart?.calculateChartData();
     } else if (flameChartData.icon == 'tree') {
       nmCallTreePageChart?.setAttribute('class', '');

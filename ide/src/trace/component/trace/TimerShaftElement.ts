@@ -28,7 +28,7 @@ import { LitTabpane } from '../../../base-ui/tabs/lit-tabpane.js';
 import { TabPaneCurrent } from './sheet/TabPaneCurrent.js';
 import { SelectionParam } from '../../bean/BoxSelection.js';
 import { SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace.js';
-
+import './timer-shaft/CollapseButton.js'
 //随机生成十六位进制颜色
 export function randomRgbColor() {
   const letters = '0123456789ABCDEF';
@@ -537,6 +537,7 @@ export class TimerShaftElement extends BaseElement {
                     <div class="time-collect">
                         <lit-icon class="time-collect-arrow" name="caret-down" size="17"></lit-icon>
                     </div>
+                    <collapse-button>123</collapse-button>
                 </div>
             </div>
             <canvas class="panel"></canvas>

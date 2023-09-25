@@ -454,7 +454,15 @@ export class SpApplication extends BaseElement {
       spRecordTemplate,
       spFlags,
     ];
-
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        if (window.localStorage.getItem('Theme') == 'dark') {
+          that.changeTheme(Theme.DARK);
+        } else {
+          that.changeTheme(Theme.LIGHT);
+        }
+      }
+    });
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => showContent(spSystemTrace!));
     window.subscribe(window.SmartEvent.UI.Error, (err) => {
       litSearch.setPercent(err, -1);
@@ -940,11 +948,6 @@ export class SpApplication extends BaseElement {
 
     function openTraceFile(ev: any, isClickHandle?: boolean) {
       that.removeAttribute('custom-color');
-      if (window.localStorage.getItem('Theme') == 'dark') {
-        that.changeTheme(Theme.DARK);
-      } else {
-        that.changeTheme(Theme.LIGHT);
-      }
       openFileInit();
       if (that.vs && isClickHandle) {
         Cmd.openFileDialog().then((res: string) => {

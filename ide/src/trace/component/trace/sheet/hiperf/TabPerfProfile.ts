@@ -72,6 +72,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter!.filterValue = '';
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
+    const initWidth = this.clientWidth;
     this.getDataByWorker(
       [
         {
@@ -87,11 +88,9 @@ export class TabpanePerfProfile extends BaseElement {
         this.setPerfProfilerLeftTableData(results);
         this.perfProfilerList!.recycleDataSource = [];
         this.perfProfileFrameChart!.mode = ChartMode.Count;
+        this.perfProfileFrameChart?.updateCanvas(true, initWidth);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-        this.perfProfileFrameChart?.updateCanvas(true, this.clientWidth);
-        this.perfProfileFrameChart?.calculateChartData();
         this.switchFlameChart();
-        this.perfProfilerFilter.icon = 'block';
       }
     );
   }
@@ -504,9 +503,6 @@ export class TabpanePerfProfile extends BaseElement {
       this.isChartShow = true;
       this.perfProfilerFilter!.disabledMining = true;
       showButtonMenu(this.perfProfilerFilter, this.needShowMenu);
-      if (!data) {
-        this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-      }
       this.perfProfileFrameChart?.calculateChartData();
     } else if (data.icon === 'tree') {
       perfProfilerPageChart?.setAttribute('class', '');
