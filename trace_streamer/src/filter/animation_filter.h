@@ -29,7 +29,7 @@ public:
     ~AnimationFilter() override;
     bool UpdateDeviceInfoEvent(const TracePoint& point, const BytraceLine& line);
     bool BeginDynamicFrameEvent(const TracePoint& point, size_t callStackRow);
-    void StartAnimationEvent(const BytraceLine& line, size_t callStackRow);
+    void StartAnimationEvent(const BytraceLine& line, const TracePoint& point, size_t callStackRow);
     bool FinishAnimationEvent(const BytraceLine& line, size_t callStackRow);
     void UpdateDynamicFrameInfo();
     void Clear();
@@ -38,11 +38,11 @@ private:
     bool UpdateDeviceFps(const BytraceLine& line);
     bool UpdateDeviceScreenSize(const TracePoint& point);
     bool UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t curStackRow);
-    const std::string generateVsyncCmd_ = "H:GenerateVsyncCount";
-    const std::string leashWindowCmd_ = "H:RSUniRender::Process:[leashWindow";
-    const std::string rsUniProcessCmd_ = "H:RSUniRender::Process:[";
-    const DataIndex rsDoCompCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
-    const DataIndex entryViewCmd_ = traceDataCache_->GetDataIndex("H:RSUniRender::Process:[EntryView]");
+    const std::string frameRateCmd_ = "H:GenerateVsyncCount";
+    const std::string frameBeginCmd_ = "H:RSUniRender::Process:[WindowScene_";
+    const std::string frameBeginPrefix_ = "H:RSUniRender::Process:[";
+    const std::string screenSizeCmd_ = "H:RSUniRender::Process:[SCBDesktop";
+    const DataIndex frameEndTimeCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
     // for update dynamicFrameInfo at the end, first is callStackRow, second is dynamicFramRow
     std::map<uint64_t, uint64_t> callStackRowMap_ = {};
     // for update animationInfo, first is callStackRow, second is animationRow

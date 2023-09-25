@@ -65,21 +65,13 @@ void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestam
     if (timestampMin == std::numeric_limits<uint64_t>::max() || timestampMax == 0 || timestampMin == timestampMax) {
         return;
     }
-    if ((timestampMax < traceStartTime_ || timestampMin > traceEndTime_) &&
-        (traceStartTime_ != std::numeric_limits<uint64_t>::max() && traceEndTime_ != 0)) {
-        return;
-    }
-    if ((timestampMin == timestampMax - 1) && traceStartTime_ != std::numeric_limits<uint64_t>::max() &&
-        traceEndTime_) {
-        return;
-    }
     if (traceStartTime_ != std::numeric_limits<uint64_t>::max()) {
-        traceStartTime_ = std::max(traceStartTime_, timestampMin);
+        traceStartTime_ = std::min(traceStartTime_, timestampMin);
     } else {
         traceStartTime_ = timestampMin;
     }
     if (traceEndTime_) {
-        traceEndTime_ = std::min(traceEndTime_, timestampMax);
+        traceEndTime_ = std::max(traceEndTime_, timestampMax);
     } else {
         traceEndTime_ = timestampMax;
     }

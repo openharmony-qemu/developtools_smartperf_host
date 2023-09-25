@@ -51,12 +51,14 @@ private:
     void UpdateEventConfigInfo();
     void UpdateCmdlineInfo() const;
     void LoadEventDesc();
+    void ProcessUniStackTableData();
     void UpdateReportWorkloadInfo() const;
     void UpdateSymbolAndFilesData();
     void UpdateClockType();
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
     void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
-    uint32_t UpdatePerfCallChainData(const std::unique_ptr<PerfRecordSample>& sample);
+    uint32_t UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample>& sample);
+    uint32_t UpdateCallChainCompressed(const std::unique_ptr<PerfRecordSample>& sample);
 
     uint32_t callChainId_ = 0;
     std::unique_ptr<PerfFileReader> recordDataReader_ = nullptr;
@@ -89,6 +91,8 @@ private:
     const std::string tmpPerfData_ = "ts_tmp.perf.data";
     const std::string cpuOffEventName_ = "sched:sched_switch";
     const std::string wakingEventName_ = "sched:sched_waking";
+    bool stackCompressedMode_ = false;
+    std::set<uint32_t> savedCompressedCallChainId_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

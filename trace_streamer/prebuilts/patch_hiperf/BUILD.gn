@@ -64,6 +64,7 @@ ohos_source_set("hiperf_src") {
     "./src/symbols_file.cpp",
     "./src/virtual_runtime.cpp",
     "./src/virtual_thread.cpp",
+    "./src/unique_stack_table.cpp",
     "include/symbols_file.h",
   ]
   include_dirs = [

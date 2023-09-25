@@ -88,12 +88,20 @@ fi
 
 if [ ! -f "hiperf/BUILD.gn" ];then
     rm -rf hiperf developtools_hiperf
-    git clone -b OpenHarmony-3.2-Release --depth=1 git@gitee.com:openharmony/developtools_hiperf.git
+    git clone --depth=1 git@gitee.com:openharmony/developtools_hiperf.git
     if [ -d "developtools_hiperf" ];then
         mv developtools_hiperf hiperf
+        $patch -p1 -d ./hiperf < ../prebuilts/patch_hiperf/1_pengjingtong.diff
+        $patch -p1 -d ./hiperf < ../prebuilts/patch_hiperf/2_perf_dump_report_0913.patch
         $cp ../prebuilts/patch_hiperf/BUILD.gn ../third_party/hiperf/BUILD.gn
-        # report.h
-        # remove #include "report_json_file.h"
+        $cp ../prebuilts/patch_hiperf/file_ex.h hiperf/include/nonlinux/linux
+        $cp ../prebuilts/patch_hiperf/unique_fd.h hiperf/include/nonlinux/linux
+        #include <../musl/include/elf.h>
+        # 替换为
+        #include <elf.h>
+        $sed -i "s/..\/musl\/include\/elf.h/elf.h/g" hiperf/include/elf_parser.h
+        $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_thread.h
+        $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
         $sed -i "/#include \"report_json_file.h\"/s/^\(.*\)$/\/\/\1/g" hiperf/include/report.h
         $sed -i "/#include <gtest\/gtest_prod.h>/s/^\(.*\)$/\/\/\1/g" hiperf/include/debug_logger.h
         $sed -i "/#include <gtest\/gtest_prod.h>/s/^\(.*\)$/\/\/\1/g" hiperf/include/utilities.h
@@ -103,15 +111,9 @@ if [ ! -f "hiperf/BUILD.gn" ];then
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_runtime.h
         # elf_parser.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/report.h
-        #include <../musl/include/elf.h>
-        # 替换为
-        #include <elf.h>
-        $sed -i "s/..\/musl\/include\/elf.h/elf.h/g" hiperf/include/elf_parser.h
         # virtual_thread.h
         # HIPERF_DEBUG 替换为 ALWAYSTRUE
         $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
-        $cp ../prebuilts/patch_hiperf/file_ex.h hiperf/include/nonlinux/linux
-        $cp ../prebuilts/patch_hiperf/unique_fd.h hiperf/include/nonlinux/linux
         $sed -i "/using __s8 = char;/a #define unw_word_t uint64_t" hiperf/include/nonlinux/linux/types.h
         $sed -i '/^void Report::PrepareConsole(/,/^}/ s/^.*$/\/\/&/; /^void Report::PrepareConsole(/,/return;/ s/^[[:blank:]]*/    /' hiperf/src/report.cpp
         $sed -i '/namespace HiPerf {/avoid Report::PrepareConsole(){ return;}' hiperf/src/report.cpp

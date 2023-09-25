@@ -152,11 +152,8 @@ void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClo
     if (!tracePluginResult.has_ftrace_cpu_detail()) {
         return;
     }
-
     for (auto it = tracePluginResult.ftrace_cpu_detail(); it; ++it) {
         ProtoReader::FtraceCpuDetailMsg_Reader msg(it->ToBytes());
-        eventCpu_ = msg.cpu();
-        auto events = msg.event();
         if (!msg.has_event()) {
             return;
         }
@@ -173,8 +170,8 @@ void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClo
         // parser cpu event
         auto kTimestampDataAreaNumber = ProtoReader::FtraceEvent_Reader::kTimestampDataAreaNumber;
         auto tsTag = CreateTagVarInt(kTimestampDataAreaNumber);
-        for (auto i = events; i; i++) {
-            ProtoReader::BytesView event(i->ToBytes());
+        for (auto eventItor = msg.event(); eventItor; eventItor++) {
+            ProtoReader::BytesView event(eventItor->ToBytes());
             uint64_t timeStamp = 0;
             if (event.size_ > MIN_DATA_AREA && event.data_[0] == tsTag) {
                 (void)ProtoReader::VarIntDecode(event.data_ + DATA_AREA_START, event.data_ + DATA_AREA_END, &timeStamp);
@@ -188,7 +185,7 @@ void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClo
             traceDataCache_->UpdateTraceTime(eventTimeStamp_);
             ProtoReader::BytesView commonField;
             htraceEventList_.push_back(
-                std::make_unique<EventInfo>(eventTimeStamp_, eventCpu_, tracePacket.seg, i->ToBytes()));
+                std::make_unique<EventInfo>(eventTimeStamp_, msg.cpu(), tracePacket.seg, event));
             FilterAllEventsReader();
         }
     }

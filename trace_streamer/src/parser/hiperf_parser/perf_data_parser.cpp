@@ -112,6 +112,7 @@ bool PerfDataParser::Reload()
 
     TS_LOGD("process record");
     UpdateClockType();
+    ProcessUniStackTableData();
     recordDataReader_->ReadDataSection(std::bind(&PerfDataParser::RecordCallBack, this, std::placeholders::_1));
     TS_LOGD("process record completed");
     TS_LOGI("load perf data done");
@@ -187,6 +188,17 @@ void PerfDataParser::UpdateCmdlineInfo() const
     perfReportData->AppendNewPerfReport(cmdlineIndex_, cmdlineValueIndex);
 }
 
+void PerfDataParser::ProcessUniStackTableData()
+{
+    auto featureSection = recordDataReader_->GetFeatureSection(FEATURE::HIPERF_FILES_UNISTACK_TABLE);
+    if (featureSection != nullptr) {
+        PerfFileSectionUniStackTable *sectioniStackTable =
+            static_cast<PerfFileSectionUniStackTable *>(const_cast<PerfFileSection *>(featureSection));
+        report_->virtualRuntime_.ImportUniqueStackNodes(sectioniStackTable->uniStackTableInfos_);
+        report_->virtualRuntime_.SetDedupStack();
+        stackCompressedMode_ = true;
+    }
+}
 void PerfDataParser::UpdateSymbolAndFilesData()
 {
     // we need unwind it (for function name match) even not give us path
@@ -232,7 +244,12 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
 
     if (record->GetType() == PERF_RECORD_SAMPLE) {
         std::unique_ptr<PerfRecordSample> sample(static_cast<PerfRecordSample*>(record.release()));
-        auto callChainId = UpdatePerfCallChainData(sample);
+        uint32_t callChainId = INVALID_UINT32;
+        if (stackCompressedMode_) {
+            callChainId = UpdateCallChainCompressed(sample);
+        } else {
+            callChainId = UpdateCallChainUnCompressed(sample);
+        }
         UpdatePerfSampleData(callChainId, sample);
     } else if (record->GetType() == PERF_RECORD_COMM) {
         auto recordComm = static_cast<PerfRecordComm*>(record.get());
@@ -250,7 +267,28 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     return true;
 }
 
-uint32_t PerfDataParser::UpdatePerfCallChainData(const std::unique_ptr<PerfRecordSample>& sample)
+uint32_t PerfDataParser::UpdateCallChainCompressed(const std::unique_ptr<PerfRecordSample>& sample)
+{
+    auto callChainId = static_cast<uint32_t>(sample->StackId_.section.id);
+    if (savedCompressedCallChainId_.count(callChainId) != 0) {
+        return callChainId;
+    }
+    savedCompressedCallChainId_.insert(callChainId);
+    uint32_t depth = 0;
+    for (auto itor = sample->callFrames_.rbegin(); itor != sample->callFrames_.rend(); ++itor) {
+        auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(itor->filePath_);
+        auto fileId = INVALID_UINT64;
+        if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
+            fileId = fileDataDictIdToFileId_.at(fileDataIndex);
+        }
+        streamFilters_->perfDataFilter_->AppendPerfCallChain(callChainId, depth++, itor->ip_, itor->vaddrInFile_,
+                                                             fileId, itor->symbolIndex_);
+    }
+
+    return callChainId;
+
+}
+uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample>& sample)
 {
     std::string stackStr = "";
     for (auto& callFrame : sample->callFrames_) {

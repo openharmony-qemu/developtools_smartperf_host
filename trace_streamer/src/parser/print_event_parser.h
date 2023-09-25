@@ -15,6 +15,7 @@
 #ifndef SRC_PRINT_EVENT_PARSER_H
 #define SRC_PRINT_EVENT_PARSER_H
 #include <regex>
+#include <set>
 #include <string_view>
 #include "common_types.h"
 #include "event_parser_base.h"
@@ -74,16 +75,16 @@ private:
 
 private:
     std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
+    std::set<DataIndex> onAnimationStartEvents_ = {};
     const uint32_t pointLength_;
     const uint32_t maxPointLength_;
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
     const DataIndex rsOnDoCompositionEvent_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
     const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";
-    const std::string onLauncherVsyncEvent_ = "launcher";
+    const std::string onAnimationProcEvent_ = "render_service";
     const DataIndex marshRwTransactionData_ = traceDataCache_->GetDataIndex("H:MarshRSTransactionData");
     const DataIndex rsMainThreadProcessCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::ProcessCommandUni");
-    const DataIndex onAnimationStartEvent_ = traceDataCache_->GetDataIndex("H:L:TracestartAppAnimation");
     const std::regex recvVsyncPattern_ = std::regex("(\\w+):(\\w+)");
     const std::regex transFlagPattern_ = std::regex("transactionFlag:\\[(\\d+),(\\d+)\\]");
     const std::regex mainProcessCmdPattern = std::regex("\\[(\\d+),(\\d+)\\]");

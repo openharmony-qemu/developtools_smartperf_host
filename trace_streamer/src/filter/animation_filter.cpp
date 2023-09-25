@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint8_t GENERATE_VSYNC_EVENT_MAX = 5;
-constexpr uint8_t DYNAMIC_STACK_DEPTH_MIN = 4;
+constexpr uint8_t DYNAMIC_STACK_DEPTH_MIN = 2;
 constexpr uint16_t FPS_60 = 60;
 constexpr uint16_t FPS_70 = 70;
 constexpr uint16_t FPS_90 = 90;
@@ -63,8 +63,8 @@ bool AnimationFilter::UpdateDeviceScreenSize(const TracePoint& point)
 {
     // get width and height, eg:funcArgs=(0, 0, 1344, 2772) Alpha: 1.00
     std::smatch matcheLine;
-    std::regex entryViewArgsPattern(R"(\(\d+,\s*\d+,\s*(\d+),\s*(\d+)\))");
-    if (!std::regex_search(point.funcArgs_, matcheLine, entryViewArgsPattern)) {
+    std::regex screenSizePattern(R"(\(\d+,\s*\d+,\s*(\d+),\s*(\d+)\))");
+    if (!std::regex_search(point.funcArgs_, matcheLine, screenSizePattern)) {
         TS_LOGE("Not support this event: %s\n", point.name_.data());
         return false;
     }
@@ -78,10 +78,10 @@ bool AnimationFilter::UpdateDeviceScreenSize(const TracePoint& point)
 bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint& point, const BytraceLine& line)
 {
     if (traceDataCache_->GetConstDeviceInfo().PhysicalFrameRate() == INVALID_UINT32 &&
-        StartWith(point.name_, generateVsyncCmd_)) {
+        StartWith(point.name_, frameRateCmd_)) {
         return UpdateDeviceFps(line);
     } else if (traceDataCache_->GetConstDeviceInfo().PhysicalWidth() == INVALID_UINT32 &&
-               point.funcPrefixId_ == entryViewCmd_) {
+               StartWith(point.name_, screenSizeCmd_)) {
         return UpdateDeviceScreenSize(point);
     }
     return false;
@@ -95,22 +95,24 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t cal
         return false;
     }
     const std::string& curStackName = traceDataCache_->GetDataFromDict(callStackSlice_->NamesData()[callStackRow]);
-    if (!StartWith(curStackName, leashWindowCmd_)) {
+    if (!StartWith(curStackName, frameBeginCmd_)) {
         return false;
     }
     // get name 'xxx' from [xxx], eg:H:RSUniRender::Process:[xxx]
-    auto nameSize = point.funcPrefix_.size() - rsUniProcessCmd_.size() - 1;
+    auto nameSize = point.funcPrefix_.size() - frameBeginPrefix_.size() - 1;
     if (nameSize <= 0) {
         return false;
     }
-    auto nameIndex = traceDataCache_->GetDataIndex(point.funcPrefix_.substr(rsUniProcessCmd_.size(), nameSize));
+    auto nameIndex = traceDataCache_->GetDataIndex(point.funcPrefix_.substr(frameBeginPrefix_.size(), nameSize));
     auto dynamicFramRow = dynamicFrame_->AppendDynamicFrame(nameIndex);
     callStackRowMap_.emplace(callStackRow, dynamicFramRow);
     return true;
 }
-void AnimationFilter::StartAnimationEvent(const BytraceLine& line, size_t callStackRow)
+void AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePoint& point, size_t callStackRow)
 {
-    auto animationRow = traceDataCache_->GetAnimation()->AppendAnimation(line.ts);
+    auto inputTime = point.value_ * ONE_MILLION_NANOSECONDS;
+    auto startPoint = line.ts;
+    auto animationRow = traceDataCache_->GetAnimation()->AppendAnimation(inputTime, startPoint);
     animationCallIds_.emplace(callStackRow, animationRow);
 }
 bool AnimationFilter::FinishAnimationEvent(const BytraceLine& line, size_t callStackRow)
@@ -132,8 +134,8 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
             return false;
         }
         curStackRow = callStackSlice_->ParentIdData()[curStackRow].value();
-        // use 'H:RSMainThread::DoComposition' endTime as dynamicFrame endTime
-        if (rsDoCompCmd_ == callStackSlice_->NamesData()[curStackRow]) {
+        // use frameEndTimeCmd_'s endTime as dynamicFrame endTime
+        if (frameEndTimeCmd_ == callStackSlice_->NamesData()[curStackRow]) {
             auto endTime = callStackSlice_->TimeStampData()[curStackRow] + callStackSlice_->DursData()[curStackRow];
             dynamicFrame_->UpdateEndTime(curFrameRow, endTime);
             return true;
@@ -144,17 +146,17 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
 void AnimationFilter::UpdateDynamicFrameInfo()
 {
     std::smatch matcheLine;
-    std::regex leashWindowPattern(R"((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)\s+Alpha:\s+-*(\d+\.\d+))");
+    std::regex framePixPattern(R"((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)\s+Alpha:\s+-*(\d+\.\d+))");
     uint64_t curStackRow;
     uint64_t curFrameRow;
     for (const auto& it : callStackRowMap_) {
         curStackRow = it.first;
         curFrameRow = it.second;
-        // update dynamicFrame pos, eg:H:RSUniRender::Process:[leashWindow25] (0, 0, 1344, 2772) Alpha: 1.00
+        // update dynamicFrame pix, eg:H:RSUniRender::Process:[xxx] (0, 0, 1344, 2772) Alpha: 1.00
         auto nameDataIndex = callStackSlice_->NamesData()[curStackRow];
         const std::string& curStackName = traceDataCache_->GetDataFromDict(nameDataIndex);
-        const std::string& funcArgs = curStackName.substr(leashWindowCmd_.size());
-        if (!std::regex_search(funcArgs, matcheLine, leashWindowPattern)) {
+        const std::string& funcArgs = curStackName.substr(frameBeginCmd_.size());
+        if (!std::regex_search(funcArgs, matcheLine, framePixPattern)) {
             TS_LOGE("Not support this event: %s\n", funcArgs.data());
             continue;
         }

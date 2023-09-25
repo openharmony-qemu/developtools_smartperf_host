@@ -27,12 +27,23 @@ PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreame
     eventToFrameFunctionMap_ = {
         {recvievVsync_, bind(&PrintEventParser::ReciveVsync, this, std::placeholders::_1, std::placeholders::_2,
                              std::placeholders::_3)},
-        {rsOnDoCompositionEvent_, bind(&PrintEventParser::RSReciveOnDoComposition, this, std::placeholders::_1, std::placeholders::_2,
-                               std::placeholders::_3)},
+        {rsOnDoCompositionEvent_, bind(&PrintEventParser::RSReciveOnDoComposition, this, std::placeholders::_1,
+                                       std::placeholders::_2, std::placeholders::_3)},
         {marshRwTransactionData_, bind(&PrintEventParser::OnRwTransaction, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
         {rsMainThreadProcessCmd_, bind(&PrintEventParser::OnMainThreadProcessCmd, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)}};
+    onAnimationStartEvents_ = {
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_ICON"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_RECENT"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_SWIPE_TO_HOME"),
+        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_BACK_TO_HOME"),
+        traceDataCache_->GetDataIndex("H:APP_TRANSITION_TO_OTHER_APP"),
+        traceDataCache_->GetDataIndex("H:APP_TRANSITION_FROM_OTHER_APP"),
+        traceDataCache_->GetDataIndex("H:APP_LIST_FLING")
+    };
 }
 
 bool PrintEventParser::ParsePrintEvent(const std::string& comm,
@@ -126,9 +137,12 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
     if (point.name_ == onFrameQueeuStartEvent_ && index != INVALID_UINT64) {
         OnFrameQueueStart(ts, index, point.tgid_);
     } else if (traceDataCache_->AnimationTraceEnabled() && index != INVALID_UINT64 &&
-               EndWith(comm, onLauncherVsyncEvent_) && // the comm is taskName
-               onAnimationStartEvent_ == traceDataCache_->GetDataIndex(point.name_)) {
-        streamFilters_->animationFilter_->StartAnimationEvent(line, index);
+               EndWith(comm, onAnimationProcEvent_)) { // the comm is taskName
+        auto info = SplitStringToVec(point.name_, ", ");
+        auto startEventIter = onAnimationStartEvents_.find(traceDataCache_->GetDataIndex(info.front()));
+        if (startEventIter != onAnimationStartEvents_.end()) {
+            streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
+        }
     }
 }
 void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint& point, const BytraceLine& line)

@@ -2516,7 +2516,7 @@ private:
 };
 class Animation {
 public:
-    TableRowId AppendAnimation(InternalTime startPoint);
+    TableRowId AppendAnimation(InternalTime inputTime, InternalTime startPoint);
     void UpdateStartPoint(TableRowId index, InternalTime startPoint);
     void UpdateEndPoint(TableRowId index, InternalTime endPoint);
     size_t Size() const;

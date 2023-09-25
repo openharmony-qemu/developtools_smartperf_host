@@ -55,14 +55,11 @@ void DataDict::Finish()
 {
     std::string::size_type pos(0);
     for (auto i = 0; i < dataDict_.size(); i++) {
-        if (dataDict_[i].empty()) {
-            continue;
-        }
         while ((pos = dataDict_[i].find("\"")) != std::string::npos) {
             dataDict_[i].replace(pos, 1, "\'");
         }
-        while ((dataDict_[i].back() >= SPASCII_START && dataDict_[i].back() <= SPASCII_END) ||
-               dataDict_[i].back() == '\r') {
+        while (!dataDict_[i].empty() && ((dataDict_[i].back() >= SPASCII_START && dataDict_[i].back() <= SPASCII_END) ||
+                                         dataDict_[i].back() == '\r')) {
             dataDict_[i].pop_back();
         }
     }
@@ -3095,9 +3092,9 @@ void TaskPoolInfo::AppendTimeoutRow(uint32_t index, uint32_t timeoutRow)
         timeoutRows_[index] = timeoutRow;
     }
 }
-TableRowId Animation::AppendAnimation(InternalTime startPoint)
+TableRowId Animation::AppendAnimation(InternalTime inputTime, InternalTime startPoint)
 {
-    inputTimes_.emplace_back(INVALID_TIME);
+    inputTimes_.emplace_back(inputTime);
     startPoints_.emplace_back(startPoint);
     endPoins_.emplace_back(INVALID_TIME);
     ids_.emplace_back(Size());
