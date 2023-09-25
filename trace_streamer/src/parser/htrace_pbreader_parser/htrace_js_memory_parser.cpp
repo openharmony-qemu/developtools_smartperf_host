@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,7 +98,6 @@ void from_json(const json& j, Meta& v)
     }
     return;
 }
-
 void from_json(const json& j, Snapshot& v)
 {
     j.at("meta").get_to(v.meta);
@@ -106,7 +106,6 @@ void from_json(const json& j, Snapshot& v)
     j.at("trace_function_count").get_to(v.traceFunctionCount);
     return;
 }
-
 struct Nodes {
     std::vector<uint32_t> types;
     std::vector<uint32_t> names;
@@ -139,7 +138,6 @@ void from_json(const json& j, Nodes& v)
         g_ids.emplace_back(j[m]);
     }
 }
-
 struct Edges {
     std::vector<uint32_t> types;
     std::vector<uint32_t> nameOrIndexes;
@@ -159,7 +157,6 @@ void from_json(const json& j, Edges& v)
     }
     return;
 }
-
 struct Location {
     std::vector<uint32_t> objectIndexes;
     std::vector<uint32_t> scriptIds;
@@ -176,7 +173,6 @@ void from_json(const json& j, Location& v)
         v.columns.emplace_back(j[i * LOCATION_SINGLE_LENGTH + OFFSET_THIRD]);
     }
 }
-
 struct Sample {
     std::vector<uint32_t> timestampUs;
     std::vector<uint32_t> lastAssignedIds;
@@ -189,7 +185,6 @@ void from_json(const json& j, Sample& v)
         v.lastAssignedIds.emplace_back(j[i * SAMPLE_SINGLE_LENGTH + OFFSET_FIRST]);
     }
 }
-
 struct Strings {
     std::vector<std::string> strings;
 };
@@ -199,7 +194,6 @@ void from_json(const json& j, Strings& v)
         v.strings.emplace_back(j[i]);
     }
 }
-
 struct TraceFuncInfo {
     std::vector<uint32_t> functionIds;
     std::vector<uint32_t> names;
@@ -220,7 +214,6 @@ void from_json(const json& j, TraceFuncInfo& v)
         v.columns.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_FIFTH]);
     }
 }
-
 struct TraceTree {
     std::vector<uint32_t> ids;
     std::vector<uint32_t> functionInfoIndexes;
@@ -228,7 +221,6 @@ struct TraceTree {
     std::vector<uint32_t> sizes;
     std::vector<uint32_t> parentIds;
 };
-
 struct ParentFunc {
     uint32_t id;
     uint32_t functionInfoIndex;
@@ -244,7 +236,6 @@ struct ParentFunc {
         size = 0;
     }
 };
-
 class TraceParser {
 public:
     void parse_trace_node(const json& array,
@@ -284,7 +275,6 @@ void from_json(const json& j, TraceTree& v)
     }
 }
 } // namespace jsonns
-
 const int32_t END_POS = 3;
 const int32_t CHUNK_POS = 8;
 const int32_t PROFILE_POS = 9;
@@ -293,7 +283,6 @@ const int32_t TIME_MILLI_SECOND = 1000;
 const int32_t TIME_MICRO_SECOND = 1000 * 1000;
 const std::string JS_MEMORY_INDEX = "{\"params:{\"chunk\":{";
 const std::string ARKTS_INDEX = "{\"id\":3, \"result\":{\"profile\":";
-
 HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : EventParserBase(dataCache, ctx), jsCpuProfilerParser_(std::make_unique<HtraceJsCpuProfilerParser>(dataCache, ctx))
 {
@@ -309,13 +298,11 @@ HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const Trac
         closedir(dir);
     }
 }
-
 HtraceJSMemoryParser::~HtraceJSMemoryParser()
 {
     TS_LOGI("arkts-plugin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
-
 void HtraceJSMemoryParser::ParseJSMemoryConfig(ProtoReader::BytesView tracePacket)
 {
     ProtoReader::ArkTSConfig_Reader jsHeapConfig(tracePacket.data_, tracePacket.size_);
@@ -330,7 +317,6 @@ void HtraceJSMemoryParser::ParseJSMemoryConfig(ProtoReader::BytesView tracePacke
     (void)traceDataCache_->GetJsConfigData()->AppendNewData(pid, type_, interval, captureNumericValue, trackAllocation,
                                                             cpuProfiler, cpuProfilerInterval);
 }
-
 struct timespec HtraceJSMemoryParser::TimeToTimespec(uint64_t timeMs)
 {
     timeMs = timeMs / TIME_MILLI_SECOND;
@@ -339,7 +325,6 @@ struct timespec HtraceJSMemoryParser::TimeToTimespec(uint64_t timeMs)
     ts.tv_nsec = (timeMs % TIME_MICRO_SECOND) * TIME_MILLI_SECOND;
     return ts;
 }
-
 void HtraceJSMemoryParser::SerializeToString(const ProfilerPluginDataHeader& profilerPluginData,
                                              uint64_t startTime,
                                              uint64_t endTime)
@@ -365,7 +350,6 @@ void HtraceJSMemoryParser::SerializeToString(const ProfilerPluginDataHeader& pro
         SerializeCpuProfilerData(startTime, endTime, profilerPluginDataResult, jsHeapResult);
     }
 }
-
 void HtraceJSMemoryParser::SerializeSnapshotData(ProfilerPluginData& profilerPluginDataResult,
                                                  ArkTSResult& jsHeapResult)
 {
@@ -403,7 +387,6 @@ void HtraceJSMemoryParser::SerializeSnapshotData(ProfilerPluginData& profilerPlu
     memcpy_s(&endLen[0], sizeof(uint32_t), &profilerArktsDataSize, sizeof(uint32_t));
     profilerArktsData_ += bufflen + profilerArktsData + endLen + arkTsEndString;
 }
-
 void HtraceJSMemoryParser::SerializeTimelineData(uint64_t startTime,
                                                  uint64_t endTime,
                                                  ProfilerPluginData& profilerPluginDataResult,
@@ -444,7 +427,6 @@ void HtraceJSMemoryParser::SerializeTimelineData(uint64_t startTime,
     memcpy_s(&endLen[0], sizeof(uint32_t), &size, sizeof(uint32_t));
     profilerArktsData_ = startLen + timelineStartString + bufflen + profilerArktsData + endLen + timelineEndString;
 }
-
 void HtraceJSMemoryParser::SerializeCpuProfilerData(uint64_t startTime,
                                                     uint64_t endTime,
                                                     ProfilerPluginData& profilerPluginDataResult,
@@ -476,7 +458,77 @@ void HtraceJSMemoryParser::SerializeCpuProfilerData(uint64_t startTime,
     memcpy_s(&bufflen[0], sizeof(uint32_t), &size, sizeof(uint32_t));
     profilerArktsData_ += startLen + arkTsStartString + bufflen + profilerArktsData;
 }
-
+void HtraceJSMemoryParser::ParseSnapshotOrTimeLineEnd(const std::string& result,
+                                                      ProtoReader::BytesView& tracePacket,
+                                                      ProfilerPluginDataHeader& profilerPluginData,
+                                                      uint64_t ts)
+{
+    std::string fileName = "";
+    std::regex strEscapeInvalid("\\\\n");
+    std::regex strInvalid("\\\\\"");
+    auto strEscape = std::regex_replace(jsMemoryString_, strEscapeInvalid, "");
+    auto str = std::regex_replace(strEscape, strInvalid, "\"");
+    if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_SNAPSHOT) {
+        fileName = "Snapshot" + std::to_string(fileId_);
+        ParseSnapshot(tracePacket, profilerPluginData, str, ts);
+    } else if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_TIMELINE) {
+        if (result == snapshotEnd_) {
+            ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
+            UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
+            startTime_ = ts;
+            return;
+        }
+        fileName = "Timeline";
+        ParseTimeLine(profilerPluginData, str);
+    }
+    ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
+    UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
+    if (traceDataCache_->isSplitFile_ && startTime_ >= traceDataCache_->SplitFileMinTime() &&
+        ts <= traceDataCache_->SplitFileMaxTime()) {
+        jsMemorySplitFileData_ = tracePacket.ToStdString();
+    }
+    if (!traceDataCache_->isSplitFile_) {
+        (void)traceDataCache_->GetJsHeapFilesData()->AppendNewData(fileId_, fileName, startTime_, ts, selfSizeCount_);
+    }
+    selfSizeCount_ = 0;
+    fileId_++;
+    isFirst_ = true;
+}
+void HtraceJSMemoryParser::ParseJsCpuProfiler(const std::string& result,
+                                              ProfilerPluginDataHeader& profilerPluginData,
+                                              uint64_t ts)
+{
+    auto jsCpuProfilerPos = result.find("profile");
+    if (jsCpuProfilerPos == string::npos) {
+        return;
+    }
+    curTypeIsCpuProfile_ = true;
+    auto jsCpuProfilerString =
+        result.substr(jsCpuProfilerPos + PROFILE_POS, result.size() - jsCpuProfilerPos - PROFILE_POS - END_PROFILE_POS);
+    std::regex strEscapeInvalid("\\\\n");
+    std::regex strInvalid("\\\\\"");
+    auto strEscape = std::regex_replace(jsCpuProfilerString, strEscapeInvalid, "");
+    auto str = std::regex_replace(strEscape, strInvalid, "\"");
+    ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
+    UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
+    if (enableFileSave_) {
+        auto fd = base::OpenFile(tmpJsCpuProfilerData_ + jsCpuProFiler, O_CREAT | O_RDWR, TS_PERMISSION_RW);
+        if (!fd) {
+            fprintf(stdout, "Failed to create file: %s", jsCpuProFiler.c_str());
+            exit(-1);
+        }
+        (void)ftruncate(fd, 0);
+        (void)write(fd, str.data(), str.size());
+        close(fd);
+        fd = 0;
+    }
+    jsCpuProfilerParser_->ParseJsCpuProfiler(str, traceDataCache_->SplitFileMinTime(),
+                                             traceDataCache_->SplitFileMaxTime());
+    if (traceDataCache_->isSplitFile_) {
+        cpuProfilerSplitFileData_ = jsCpuProfilerParser_->GetUpdateJson().dump();
+        SerializeToString(profilerPluginData, traceDataCache_->SplitFileMinTime(), traceDataCache_->SplitFileMaxTime());
+    }
+}
 void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket,
                                  uint64_t ts,
                                  uint64_t startTime,
@@ -485,55 +537,8 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket,
 {
     ProtoReader::ArkTSResult_Reader jsHeapResult(tracePacket.data_, tracePacket.size_);
     auto result = jsHeapResult.result().ToStdString();
-    std::string fileName = "";
     if (result == snapshotEnd_ || result == timeLineEnd_) {
-        std::regex strEscapeInvalid("\\\\n");
-        std::regex strInvalid("\\\\\"");
-        auto strEscape = std::regex_replace(jsMemoryString_, strEscapeInvalid, "");
-        auto str = std::regex_replace(strEscape, strInvalid, "\"");
-        if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_SNAPSHOT) {
-            fileName = "Snapshot" + std::to_string(fileId_);
-            ParseSnapshot(fileId_, str);
-            if (traceDataCache_->isSplitFile_) {
-                ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
-                if (startTime_ >= startTime && ts <= endTime) {
-                    snapShotData_.startTime = startTime_;
-                    snapShotData_.endTime = ts;
-                    snapShotData_.snapshotData = str;
-                    jsMemorySplitFileData_ = tracePacket.ToStdString();
-                    SerializeToString(profilerPluginData, startTime, endTime);
-                }
-            }
-            jsMemoryString_ = "";
-        } else if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_TIMELINE) {
-            if (result == snapshotEnd_) {
-                ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
-                UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
-                startTime_ = ts;
-                return;
-            }
-            fileName = "Timeline";
-            ParseTimeLine(fileId_, str, startTime, endTime);
-            if (traceDataCache_->isSplitFile_) {
-                updatedJson_["snapshot"]["node_count"] = nodeCount_;
-                jsMemorySplitFileData_ = updatedJson_.dump();
-                SerializeToString(profilerPluginData, startTime, endTime);
-                nodeCount_ = 0;
-            }
-            jsMemoryString_ = "";
-        }
-        ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
-        UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
-        if (traceDataCache_->isSplitFile_ && startTime_ >= startTime && ts <= endTime) {
-            jsMemorySplitFileData_ = tracePacket.ToStdString();
-        }
-        if (!traceDataCache_->isSplitFile_) {
-            (void)traceDataCache_->GetJsHeapFilesData()->AppendNewData(fileId_, fileName, startTime_, ts,
-                                                                       selfSizeCount_);
-        }
-        selfSizeCount_ = 0;
-        fileId_++;
-        isFirst_ = true;
+        ParseSnapshotOrTimeLineEnd(result, tracePacket, profilerPluginData, ts);
         return;
     } else if (cpuTimeFirst_ && result == jsCpuProfilerStart_) {
         ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
@@ -552,41 +557,10 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket,
         auto resultJson = result.substr(pos + CHUNK_POS, result.size() - pos - CHUNK_POS - END_POS);
         jsMemoryString_ += resultJson;
     } else {
-        auto jsCpuProfilerPos = result.find("profile");
-        if (jsCpuProfilerPos != string::npos) {
-            curTypeIsCpuProfile_ = true;
-            auto jsCpuProfilerString = result.substr(jsCpuProfilerPos + PROFILE_POS,
-                                                     result.size() - jsCpuProfilerPos - PROFILE_POS - END_PROFILE_POS);
-            std::regex strEscapeInvalid("\\\\n");
-            std::regex strInvalid("\\\\\"");
-            auto strEscape = std::regex_replace(jsCpuProfilerString, strEscapeInvalid, "");
-            auto str = std::regex_replace(strEscape, strInvalid, "\"");
-            ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
-            UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
-            if (enableFileSave_) {
-                auto fd = base::OpenFile(tmpJsCpuProfilerData_ + jsCpuProFiler, O_CREAT | O_RDWR, TS_PERMISSION_RW);
-                if (!fd) {
-                    fprintf(stdout, "Failed to create file: %s", jsCpuProFiler.c_str());
-                    exit(-1);
-                }
-                (void)ftruncate(fd, 0);
-                (void)write(fd, str.data(), str.size());
-                close(fd);
-                fd = 0;
-            }
-            jsCpuProfilerParser_->ParseJsCpuProfiler(str, startTime, endTime);
-            if (traceDataCache_->isSplitFile_) {
-                cpuProfilerSplitFileData_ = jsCpuProfilerParser_->GetUpdateJson().dump();
-                SerializeToString(profilerPluginData, startTime, endTime);
-            }
-        }
+        ParseJsCpuProfiler(result, profilerPluginData, ts);
     }
 }
-
-void HtraceJSMemoryParser::ParseTimeLine(int32_t fileId,
-                                         const std::string& jsonString,
-                                         uint64_t startTime,
-                                         uint64_t endTime)
+void HtraceJSMemoryParser::ParseTimeLine(ProfilerPluginDataHeader& profilerPluginData, const std::string& jsonString)
 {
     if (enableFileSave_) {
         (void)write(jsFileId_, jsonString.data(), jsonString.size());
@@ -599,14 +573,22 @@ void HtraceJSMemoryParser::ParseTimeLine(int32_t fileId,
             }
         }
     }
-    ParserJSSnapInfo(fileId, jMessage);
-    ParseSample(fileId, jMessage, startTime, endTime, traceDataCache_->isSplitFile_);
-    ParseNodes(fileId, jMessage, endTime, traceDataCache_->isSplitFile_);
-    ParseEdges(fileId, jMessage);
-    ParseLocation(fileId, jMessage);
-    ParseString(fileId, jMessage);
-    ParseTraceFuncInfo(fileId, jMessage);
-    ParseTraceNode(fileId, jMessage);
+    ParserJSSnapInfo(fileId_, jMessage);
+    ParseSample(fileId_, jMessage, traceDataCache_->SplitFileMinTime(), traceDataCache_->SplitFileMaxTime(),
+                traceDataCache_->isSplitFile_);
+    ParseNodes(fileId_, jMessage, traceDataCache_->SplitFileMinTime(), traceDataCache_->isSplitFile_);
+    ParseEdges(fileId_, jMessage);
+    ParseLocation(fileId_, jMessage);
+    ParseString(fileId_, jMessage);
+    ParseTraceFuncInfo(fileId_, jMessage);
+    ParseTraceNode(fileId_, jMessage);
+    if (traceDataCache_->isSplitFile_) {
+        updatedJson_["snapshot"]["node_count"] = nodeCount_;
+        jsMemorySplitFileData_ = updatedJson_.dump();
+        SerializeToString(profilerPluginData, traceDataCache_->SplitFileMinTime(), traceDataCache_->SplitFileMaxTime());
+        nodeCount_ = 0;
+    }
+    jsMemoryString_ = "";
     streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_RECEIVED);
     return;
 }
@@ -627,7 +609,6 @@ void HtraceJSMemoryParser::ParserSnapInfo(int32_t fileId,
     }
     return;
 }
-
 const std::string NODE_TYPES = "node_types";
 const std::string EDGE_TYPES = "edge_types";
 void HtraceJSMemoryParser::ParserJSSnapInfo(int32_t fileId, const json& jMessage)
@@ -641,13 +622,11 @@ void HtraceJSMemoryParser::ParserJSSnapInfo(int32_t fileId, const json& jMessage
     auto nodeCount = snapshot.nodeCount;
     auto edgeCount = snapshot.edgeCount;
     auto traceFuncCount = snapshot.traceFunctionCount;
-
     (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, "node_count", 0, nodeCount, "");
     (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, "edge_count", 0, edgeCount, "");
     (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, "trace_function_count", 0, traceFuncCount, "");
     return;
 }
-
 void HtraceJSMemoryParser::ParseNodes(int32_t fileId, const json& jMessage, uint64_t endTime, bool isSplitFile)
 {
     json filteredNodes = nlohmann::json::array();
@@ -681,7 +660,6 @@ void HtraceJSMemoryParser::ParseNodes(int32_t fileId, const json& jMessage, uint
     }
     return;
 }
-
 void HtraceJSMemoryParser::ParseEdges(int32_t fileId, const json& jMessage)
 {
     if (traceDataCache_->isSplitFile_) {
@@ -699,7 +677,6 @@ void HtraceJSMemoryParser::ParseEdges(int32_t fileId, const json& jMessage)
     }
     return;
 }
-
 void HtraceJSMemoryParser::ParseLocation(int32_t fileId, const json& jMessage)
 {
     if (traceDataCache_->isSplitFile_) {
@@ -792,7 +769,10 @@ void HtraceJSMemoryParser::ParseTraceNode(int32_t fileId, const json& jMessage)
     }
     return;
 }
-void HtraceJSMemoryParser::ParseSnapshot(int32_t fileId, const std::string& jsonString)
+void HtraceJSMemoryParser::ParseSnapshot(ProtoReader::BytesView& tracePacket,
+                                         ProfilerPluginDataHeader& profilerPluginData,
+                                         const std::string& jsonString,
+                                         uint64_t& ts)
 {
     if (enableFileSave_) {
         if (jsFileId_) {
@@ -802,7 +782,7 @@ void HtraceJSMemoryParser::ParseSnapshot(int32_t fileId, const std::string& json
                 (void)remove(tmpJsMemoryTimelineData_.c_str());
             }
         }
-        jsFileId_ = base::OpenFile(tmpJsMemorySnapshotData_ + "_" + base::number(fileId) + jsSnapshotFileTail,
+        jsFileId_ = base::OpenFile(tmpJsMemorySnapshotData_ + "_" + base::number(fileId_) + jsSnapshotFileTail,
                                    O_CREAT | O_RDWR, TS_PERMISSION_RW);
         if (!jsFileId_) {
             fprintf(stdout, "Failed to create file: %s", jsSnapshotFileTail.c_str());
@@ -814,14 +794,26 @@ void HtraceJSMemoryParser::ParseSnapshot(int32_t fileId, const std::string& json
         jsFileId_ = 0;
     }
     json jMessage = json::parse(jsonString);
-    ParserJSSnapInfo(fileId, jMessage);
-    ParseNodes(fileId, jMessage, INVALID_UINT64, false);
-    ParseEdges(fileId, jMessage);
-    ParseLocation(fileId, jMessage);
-    ParseSample(fileId, jMessage, INVALID_UINT64, INVALID_UINT64, false);
-    ParseString(fileId, jMessage);
-    ParseTraceFuncInfo(fileId, jMessage);
-    ParseTraceNode(fileId, jMessage);
+    ParserJSSnapInfo(fileId_, jMessage);
+    ParseNodes(fileId_, jMessage, INVALID_UINT64, false);
+    ParseEdges(fileId_, jMessage);
+    ParseLocation(fileId_, jMessage);
+    ParseSample(fileId_, jMessage, INVALID_UINT64, INVALID_UINT64, false);
+    ParseString(fileId_, jMessage);
+    ParseTraceFuncInfo(fileId_, jMessage);
+    ParseTraceNode(fileId_, jMessage);
+    if (traceDataCache_->isSplitFile_) {
+        ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
+        if (startTime_ >= traceDataCache_->SplitFileMinTime() && ts <= traceDataCache_->SplitFileMaxTime()) {
+            snapShotData_.startTime = startTime_;
+            snapShotData_.endTime = ts;
+            snapShotData_.snapshotData = jsonString;
+            jsMemorySplitFileData_ = tracePacket.ToStdString();
+            SerializeToString(profilerPluginData, traceDataCache_->SplitFileMinTime(),
+                              traceDataCache_->SplitFileMaxTime());
+        }
+    }
+    jsMemoryString_ = "";
     streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_RECEIVED);
     return;
 }

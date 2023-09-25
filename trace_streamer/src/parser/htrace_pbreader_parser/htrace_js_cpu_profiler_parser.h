@@ -38,6 +38,14 @@ public:
     }
 
 private:
+    void ParseNodeData(const json& jMessage);
+    uint32_t ParseSampleData(const json& jMessage,
+                             uint64_t& sampleEndTime,
+                             uint64_t& startTime,
+                             uint64_t startTimeSnap,
+                             uint64_t endTimeSnap);
+
+private:
     json updatedJson_;
     uint64_t startTime_ = INVALID_UINT64;
 };

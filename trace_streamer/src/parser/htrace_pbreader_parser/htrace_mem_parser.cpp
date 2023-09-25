@@ -23,8 +23,53 @@
 #include "stat_filter.h"
 #include "symbols_filter.h"
 #include "system_event_measure_filter.h"
+
 namespace SysTuning {
 namespace TraceStreamer {
+std::vector<std::string> g_unknownAnonMemInfo = {
+    "[anon]",
+    "[anon:libwebview reservation]",
+    "[anon:atexit handlers]",
+    "[anon:cfi shadow]",
+    "[anon:thread signal stack]",
+    "[anon:bionic_alloc_small_objects]",
+    "[anon:bionic_alloc_lob]",
+    "[anon:linker_alloc]",
+    "[anon:System property context nodes]",
+    "[anon:arc4random data]",
+};
+std::map<std::string, uint32_t> g_checkMemStart = {
+    {"[stack", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
+    {"[anon:stack_and_tls:", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
+    {"[anon:stack:", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
+    {"[anon:signal_stack:", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
+    {"[anon:maple_alloc_ros]", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-allocspace", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-main space", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-large object", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-free list large", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-non moving", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-zygote space", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
+    {"/dev/ashmem/jit-zygote-cache", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
+    {"/memfd:jit-cache", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
+    {"/memfd:jit-zygote-cache", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
+    {"[heap]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:libc_malloc", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:scudo", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:GWP-Asan", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+};
+std::map<std::string, uint32_t> g_checkMemEnd = {
+    {".art", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {".art]", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+};
+std::map<std::string, uint32_t> g_checkMemContain = {
+    {"[anon:ArkJS Heap]", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:native_heap:jemalloc]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[heap]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:native_heap:musl]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"/dev/ashmem/", HtraceMemParser::SMAPS_MEM_TYPE_ASHMEM},
+};
 HtraceMemParser::HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : EventParserBase(dataCache, ctx)
 {
@@ -126,65 +171,11 @@ void HtraceMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* tra
     }
 }
 
-uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const
+uint32_t HtraceMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& smapsInfo,
+                                                const std::string& path,
+                                                const bool hasAppNmae) const
 {
-    std::string path(smapsInfo.path().ToStdString());
-    path.erase(0, path.find_first_not_of(" "));
-    path.erase(path.find_last_not_of(" ") + 1);
-    if (path.empty()) {
-        path = "[anon]";
-    }
-    std::map<std::string, uint32_t> check_start = {
-        {"[stack", SMAPS_MEM_TYPE_STACK},
-        {"[anon:stack_and_tls:", SMAPS_MEM_TYPE_STACK},
-        {"[anon:stack:", SMAPS_MEM_TYPE_STACK},
-        {"[anon:signal_stack:", SMAPS_MEM_TYPE_STACK},
-        {"[anon:maple_alloc_ros]", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-allocspace", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-main space", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-large object", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-free list large", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-non moving", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-zygote space", SMAPS_MEM_TYPE_JS_HEAP},
-        {"[anon:dalvik-", SMAPS_MEM_TYPE_JAVA_VM},
-        {"/dev/ashmem/jit-zygote-cache", SMAPS_MEM_TYPE_JAVA_VM},
-        {"/memfd:jit-cache", SMAPS_MEM_TYPE_JAVA_VM},
-        {"/memfd:jit-zygote-cache", SMAPS_MEM_TYPE_JAVA_VM},
-        {"[heap]", SMAPS_MEM_TYPE_NATIVE_HEAP},
-        {"[anon:libc_malloc", SMAPS_MEM_TYPE_NATIVE_HEAP},
-        {"[anon:scudo", SMAPS_MEM_TYPE_NATIVE_HEAP},
-        {"[anon:GWP-Asan", SMAPS_MEM_TYPE_NATIVE_HEAP},
-    };
-    std::map<std::string, uint32_t> check_end = {
-        {".art", SMAPS_MEM_TYPE_JS_HEAP},
-        {".art]", SMAPS_MEM_TYPE_JS_HEAP},
-    };
-    std::map<std::string, uint32_t> check_contain = {
-        {"[anon:ArkJS Heap]", SMAPS_MEM_TYPE_JS_HEAP}, {"[anon:native_heap:jemalloc]", SMAPS_MEM_TYPE_NATIVE_HEAP},
-        {"[heap]", SMAPS_MEM_TYPE_NATIVE_HEAP},        {"[anon:native_heap:musl]", SMAPS_MEM_TYPE_NATIVE_HEAP},
-        {"/dev/ashmem/", SMAPS_MEM_TYPE_ASHMEM},
-    };
-
-    for (const auto& iter : check_start) {
-        if (StartWith(path, iter.first)) {
-            return iter.second;
-        }
-    }
-
-    for (const auto& iter : check_end) {
-        if (EndWith(path, iter.first)) {
-            return iter.second;
-        }
-    }
-
-    for (const auto& iter : check_contain) {
-        if (path.find(iter.first) != std::string::npos) {
-            return iter.second;
-        }
-    }
-
     bool hasX = smapsInfo.permission().ToStdString().find("x") != std::string::npos;
-    bool hasAppNmae = path.find("com.huawei.wx") != std::string::npos;
     if (EndWith(path, ".so")) {
         if (hasX) {
             if (StartWith(path, "/data/app/") || hasAppNmae) {
@@ -214,27 +205,43 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
     if (path.find("[bss]") != std::string::npos) {
         return hasAppNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS;
     }
-
     if ((path.find("[anon]") != std::string::npos) || (path.find("[anon:") != std::string::npos)) {
-        std::vector<std::string> unknown_anon_mem_info = {
-            "[anon]",
-            "[anon:libwebview reservation]",
-            "[anon:atexit handlers]",
-            "[anon:cfi shadow]",
-            "[anon:thread signal stack]",
-            "[anon:bionic_alloc_small_objects]",
-            "[anon:bionic_alloc_lob]",
-            "[anon:linker_alloc]",
-            "[anon:System property context nodes]",
-            "[anon:arc4random data]",
-        };
-        if (std::find(unknown_anon_mem_info.begin(), unknown_anon_mem_info.end(), path) !=
-            unknown_anon_mem_info.end()) {
+        if (std::find(g_unknownAnonMemInfo.begin(), g_unknownAnonMemInfo.end(), path) != g_unknownAnonMemInfo.end()) {
             return SMAPS_MEM_TYPE_UNKNOWN_ANON;
         }
         return SMAPS_MEM_TYPE_NATIVE_HEAP;
     }
+    return SMAPS_MEM_TYPE_INVALID;
+}
 
+uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const
+{
+    std::string path(smapsInfo.path().ToStdString());
+    path.erase(0, path.find_first_not_of(" "));
+    path.erase(path.find_last_not_of(" ") + 1);
+    if (path.empty()) {
+        path = "[anon]";
+    }
+    for (const auto& iter : g_checkMemStart) {
+        if (StartWith(path, iter.first)) {
+            return iter.second;
+        }
+    }
+    for (const auto& iter : g_checkMemEnd) {
+        if (EndWith(path, iter.first)) {
+            return iter.second;
+        }
+    }
+    for (const auto& iter : g_checkMemContain) {
+        if (path.find(iter.first) != std::string::npos) {
+            return iter.second;
+        }
+    }
+    bool hasAppNmae = path.find("com.huawei.wx") != std::string::npos;
+    uint32_t detailRet = ParseSmapsBlockDetail(smapsInfo, path, hasAppNmae);
+    if (detailRet != SMAPS_MEM_TYPE_INVALID) {
+        return detailRet;
+    }
     return hasAppNmae ? SMAPS_MEM_TYPE_OTHER_APP : SMAPS_MEM_TYPE_OTHER_SYS;
 }
 
@@ -1226,7 +1233,27 @@ void HtraceMemParser::ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Reade
         }
     }
 }
-
+void HtraceMemParser::FillGpuWindowMemInfo(const ProtoReader::GpuDumpInfo_Reader& gpuDumpInfo, uint64_t timeStamp) const
+{
+    DataIndex windowNameId = traceDataCache_->GetDataIndex(gpuDumpInfo.window_name().ToStdString());
+    uint64_t windowId = gpuDumpInfo.id();
+    uint64_t purgeableSize = gpuDumpInfo.gpu_purgeable_size();
+    for (auto i = gpuDumpInfo.gpu_detail_info(); i; ++i) {
+        ProtoReader::GpuDetailInfo_Reader GpuDetailInfo(i->ToBytes().data_, i->ToBytes().size_);
+        DataIndex moduleNameId = traceDataCache_->GetDataIndex(GpuDetailInfo.module_name().ToStdString());
+        if (!GpuDetailInfo.has_gpu_sub_info()) {
+            continue;
+        }
+        for (auto j = GpuDetailInfo.gpu_sub_info(); j; ++j) {
+            ProtoReader::GpuSubInfo_Reader gpuSubInfo(j->ToBytes().data_, j->ToBytes().size_);
+            DataIndex categoryNameId = traceDataCache_->GetDataIndex(gpuSubInfo.category_name().ToStdString());
+            uint64_t size = gpuSubInfo.size();
+            uint32_t entryNum = gpuSubInfo.entry_num();
+            traceDataCache_->GetGpuWindowMemData()->AppendNewData(timeStamp, windowNameId, windowId, moduleNameId,
+                                                                  categoryNameId, size, entryNum, purgeableSize);
+        }
+    }
+}
 void HtraceMemParser::ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_gpudumpinfo()) {
@@ -1234,27 +1261,10 @@ void HtraceMemParser::ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader
     }
     for (auto i = tracePacket->gpudumpinfo(); i; ++i) {
         ProtoReader::GpuDumpInfo_Reader GpuDumpInfo(i->ToBytes().data_, i->ToBytes().size_);
-        DataIndex windowNameId = traceDataCache_->GetDataIndex(GpuDumpInfo.window_name().ToStdString());
-        uint64_t windowId = GpuDumpInfo.id();
-        uint64_t purgeableSize = GpuDumpInfo.gpu_purgeable_size();
-        if (GpuDumpInfo.has_gpu_detail_info()) {
-            for (auto j = GpuDumpInfo.gpu_detail_info(); j; ++j) {
-                ProtoReader::GpuDetailInfo_Reader GpuDetailInfo(j->ToBytes().data_, j->ToBytes().size_);
-                DataIndex moduleNameId = traceDataCache_->GetDataIndex(GpuDetailInfo.module_name().ToStdString());
-                if (GpuDetailInfo.has_gpu_sub_info()) {
-                    for (auto k = GpuDetailInfo.gpu_sub_info(); k; ++k) {
-                        ProtoReader::GpuSubInfo_Reader GpuSubInfo(k->ToBytes().data_, k->ToBytes().size_);
-                        DataIndex categoryNameId =
-                            traceDataCache_->GetDataIndex(GpuSubInfo.category_name().ToStdString());
-                        uint64_t size = GpuSubInfo.size();
-                        uint32_t entryNum = GpuSubInfo.entry_num();
-                        traceDataCache_->GetGpuWindowMemData()->AppendNewData(timeStamp, windowNameId, windowId,
-                                                                              moduleNameId, categoryNameId, size,
-                                                                              entryNum, purgeableSize);
-                    }
-                }
-            }
+        if (!GpuDumpInfo.has_gpu_detail_info()) {
+            continue;
         }
+        FillGpuWindowMemInfo(GpuDumpInfo, timeStamp);
     }
 }
 

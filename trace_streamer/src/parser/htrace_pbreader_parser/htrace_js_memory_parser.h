@@ -66,8 +66,16 @@ public:
     }
 
 private:
-    void ParseTimeLine(int32_t fileId, const std::string& jsonString, uint64_t startTime, uint64_t endTime);
-    void ParseSnapshot(int32_t fileId, const std::string& jsonString);
+    void ParseTimeLine(ProfilerPluginDataHeader& profilerPluginData, const std::string& jsonString);
+    void ParseSnapshot(ProtoReader::BytesView& tracePacket,
+                       ProfilerPluginDataHeader& profilerPluginData,
+                       const std::string& jsonString,
+                       uint64_t& ts);
+    void ParseSnapshotOrTimeLineEnd(const std::string& result,
+                                    ProtoReader::BytesView& tracePacket,
+                                    ProfilerPluginDataHeader& profilerPluginData,
+                                    uint64_t ts);
+    void ParseJsCpuProfiler(const std::string& result, ProfilerPluginDataHeader& profilerPluginData, uint64_t ts);
     void ParserJSSnapInfo(int32_t fileId, const json& jMessage);
     void ParseNodes(int32_t fileId, const json& jMessage, uint64_t endTime, bool isSplitFile);
     void ParseEdges(int32_t fileId, const json& jMessage);
