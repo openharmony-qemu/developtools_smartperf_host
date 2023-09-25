@@ -73,6 +73,7 @@ export class SpApplication extends BaseElement {
     187: true,
     189: true,
   };
+  private traceFileName: string | undefined;
   colorTransiton: any;
 
   static get observedAttributes() {
@@ -380,6 +381,7 @@ export class SpApplication extends BaseElement {
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
                 </div>
+                <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.png" style="display: block;text-align: right;position: absolute;right: 3.2em;cursor: pointer;top: 20px">
                 <img class="filter-config" title="Display Template" src="img/config_filter.png" style="display: block;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 20px">
                 <lit-progress-bar class="progress"></lit-progress-bar>
             </div>
@@ -439,6 +441,10 @@ export class SpApplication extends BaseElement {
     let search = this.shadowRoot?.querySelector('.search-container') as HTMLElement;
     let sidebarButton: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button');
     let chartFilter = this.shadowRoot?.querySelector('.chart-filter') as TraceRowConfig;
+    let cutTraceFile = this.shadowRoot?.querySelector('.cut-trace-file') as HTMLImageElement;
+    cutTraceFile.addEventListener('click', () => {
+      this.croppingFile(progressEL, litSearch);
+    });
     let customColor = this.shadowRoot?.querySelector('.custom-color') as CustomThemeColor;
     mainMenu!.setAttribute('main_menu', '1');
     chartFilter!.setAttribute('mode', '');
@@ -1104,6 +1110,7 @@ export class SpApplication extends BaseElement {
         that.search = true;
         progressEL.loading = true;
         let fileName = (ev as any).name;
+        that.traceFileName = fileName;
         let fileSize = ((ev as any).size / 1048576).toFixed(1);
         postLog(fileName, fileSize);
         let showFileName =
@@ -1332,19 +1339,33 @@ export class SpApplication extends BaseElement {
       setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
       this.downloadOnLineFile(urlParams.trace, downloadLineFile, (localPath) => {
         let path = urlParams.trace as string;
-        let fileName = path.split('/').reverse()[0];
-        let showFileName =
+        let fileName: string = '';
+        let showFileName: string = '';
+        if (urlParams.local) {
+          openMenu(true);
+          fileName = urlParams.traceName as string;
+        } else {
+          fileName = path.split('/').reverse()[0];
+        }
+        that.traceFileName = fileName;
+        showFileName =
           fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
         TraceRow.rangeSelectObject = undefined;
         let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.trace;
         fetch(localUrl).then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
+            if (urlParams.local) {
+              URL.revokeObjectURL(localUrl);
+            }
             let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
             postLog(fileName, fileSize);
             document.title = `${showFileName} (${fileSize}M)`;
             info('Parse trace using wasm mode ');
             handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
           });
+        }).catch((e) => {
+          const firstQuestionMarkIndex = window.location.href.indexOf('?');
+          location.replace(window.location.href.substring(0, firstQuestionMarkIndex));
         });
       });
     } else {
@@ -1464,6 +1485,47 @@ export class SpApplication extends BaseElement {
           return a;
         }, {})
       : {};
+  }
+
+  private croppingFile(progressEL: LitProgressBar, litSearch: LitSearch) {
+    let cutLeftNs = TraceRow.rangeSelectObject?.startNS || 0;
+    let cutRightNs = TraceRow.rangeSelectObject?.endNS || 0;
+    if (cutRightNs === cutLeftNs) {
+      return;
+    }
+    let recordStartNS = (window as any).recordStartNS;
+    let offset = Math.floor((cutRightNs - cutLeftNs) * 0.1);
+    let cutLeftTs = recordStartNS + cutLeftNs - offset;
+    if (cutLeftNs - offset < 0) {
+      cutLeftTs = recordStartNS;
+    }
+    let recordEndNS = (window as any).recordEndNS;
+    let cutRightTs = recordStartNS + cutRightNs + offset;
+    if (cutRightTs > recordEndNS) {
+      cutRightTs = recordEndNS;
+    }
+    progressEL.loading = true;
+    threadPool.cutFile(cutLeftTs, cutRightTs, (status: boolean, msg: string, cutBuffer?: ArrayBuffer) => {
+      progressEL.loading = false;
+      if (status) {
+        let traceFileName = this.traceFileName as string;
+        let cutIndex = traceFileName.indexOf('_cut_');
+        let fileType = traceFileName.substring(traceFileName.lastIndexOf('.'));
+        let traceName = document.title.replace(/\s*\([^)]*\)/g, '').trim();
+        if (cutIndex != -1) {
+          traceName = traceName.substring(0, cutIndex);
+        } else {
+          traceName = traceName;
+        }
+        let blobUrl = URL.createObjectURL(new Blob([cutBuffer!]));
+        window.open(`index.html?link=true&local=true&traceName=${traceName}_cut_${cutLeftTs}${fileType}&trace=${encodeURIComponent(blobUrl)}`);
+      } else {
+        litSearch.setPercent(msg, -1);
+        window.setTimeout(() => {
+          litSearch.setPercent(msg, 101);
+        }, 1000);
+      }
+    });
   }
 
   private downloadDB(mainMenu: LitMainMenu, fileDbName: string) {

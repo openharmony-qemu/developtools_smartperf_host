@@ -1128,8 +1128,8 @@ export class SpSystemTrace extends BaseElement {
           selection.jsCpuProfilerData = jsCpuProfilerData;
         } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
           let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
-            Math.max(animationStruct.ts! + animationStruct.dur!, selectStruct!.endNS || 0) -
-              Math.min(animationStruct.ts!, selectStruct!.startNS || 0) <
+            Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
+              Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
             animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
           let frameAnimationList = it.dataList.filter((frameAnimationBean: FrameAnimationStruct) => {
             return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
@@ -1904,8 +1904,8 @@ export class SpSystemTrace extends BaseElement {
       );
     } else if (FrameAnimationStruct.selectFrameAnimationStruct) {
       this.timerShaftEL?.setSlicesMark(
-        FrameAnimationStruct.selectFrameAnimationStruct.ts || 0,
-        (FrameAnimationStruct.selectFrameAnimationStruct.ts || 0) +
+        FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
+        (FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0) +
           (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
       );
     } else if (JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
@@ -4179,6 +4179,13 @@ export class SpSystemTrace extends BaseElement {
             child.removeEventListener('expansion-change', this.extracted(child));
           }
           this.intersectionObserver?.unobserve(child);
+        });
+        this.linkNodes.map((value) => {
+          if ('task' === value[0].business && value[0].rowEL.parentRowEl?.rowId === it.rowId) {
+            value[0].hidden = true;
+            value[1].hidden = true;
+            this.clickEmptyArea();
+          }
         });
       }
       if (!this.collapseAll) {
