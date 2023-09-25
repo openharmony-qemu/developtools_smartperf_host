@@ -88,13 +88,17 @@ bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint& point, const Bytra
 }
 bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t callStackRow)
 {
+    const std::string& curStackName = traceDataCache_->GetDataFromDict(callStackSlice_->NamesData()[callStackRow]);
+    if (StartWith(curStackName, frameCountCmd_)) {
+        frameCountRows_.insert(callStackRow);
+        return true;
+    }
     // get the parent frame of data
     const std::optional<uint64_t>& parentId = callStackSlice_->ParentIdData()[callStackRow];
     uint8_t depth = callStackSlice_->Depths()[callStackRow];
     if (depth < DYNAMIC_STACK_DEPTH_MIN || !parentId.has_value()) {
         return false;
     }
-    const std::string& curStackName = traceDataCache_->GetDataFromDict(callStackSlice_->NamesData()[callStackRow]);
     if (!StartWith(curStackName, frameBeginCmd_)) {
         return false;
     }
@@ -108,9 +112,18 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t cal
     callStackRowMap_.emplace(callStackRow, dynamicFramRow);
     return true;
 }
-void AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePoint& point, size_t callStackRow)
+bool AnimationFilter::EndDynamicFrameEvent(uint64_t ts, size_t callStackRow)
 {
-    auto inputTime = point.value_ * ONE_MILLION_NANOSECONDS;
+    auto iter = frameCountRows_.find(callStackRow);
+    if (iter == frameCountRows_.end()) {
+        return false;
+    }
+    frameCountEndTimes_.emplace_back(ts);
+    frameCountRows_.erase(iter);
+    return true;
+}
+void AnimationFilter::StartAnimationEvent(const BytraceLine& line, const uint64_t inputTime, size_t callStackRow)
+{
     auto startPoint = line.ts;
     auto animationRow = traceDataCache_->GetAnimation()->AppendAnimation(inputTime, startPoint);
     animationCallIds_.emplace(callStackRow, animationRow);
@@ -142,6 +155,25 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
         }
     }
     return false;
+}
+void AnimationFilter::UpdateFrameNum()
+{
+    auto animation = traceDataCache_->GetAnimation();
+    for (size_t raw = 0; raw < animation->Size(); raw++) {
+        auto firstFrameTimeIter =
+            std::lower_bound(frameCountEndTimes_.begin(), frameCountEndTimes_.end(), animation->StartPoints()[raw]);
+        if (firstFrameTimeIter == frameCountEndTimes_.end()) {
+            continue;
+        }
+        uint32_t frameNum = 0;
+        while (firstFrameTimeIter != frameCountEndTimes_.end() && *firstFrameTimeIter <= animation->EndPoints()[raw]) {
+            ++frameNum;
+            ++firstFrameTimeIter;
+        }
+        animation->UpdateFrameNum(raw, frameNum);
+    }
+    frameCountRows_.clear();
+    frameCountEndTimes_.clear();
 }
 void AnimationFilter::UpdateDynamicFrameInfo()
 {

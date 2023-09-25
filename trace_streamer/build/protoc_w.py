@@ -37,7 +37,8 @@ if current_os == "Windows":
     PROTOCREADER_PLUGIN = "protoreader_plugin.exe"
 PROTOC = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOC_NAME)
 OPT_PLUGIN_PROTOREADER_PATH = os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
-OPT_PLUGIN_PROTOREADER = "--plugin=protoc-gen-plugin=" + os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
+OPT_PLUGIN_PROTOREADER = "--plugin=protoc-gen-plugin=" + 
+                        os.path.join(PROJECT_TOP, sys.argv[2], TAIL_DIR, PROTOCREADER_PLUGIN)
 PLUGINOUT = "--plugin_out=wrapper_namespace=ProtoReader"
 OPT_OUT = "--opt_out"
 OPT_PROTOREADER_OUT = "--cpp_out"
@@ -71,12 +72,10 @@ PARAMS_STANDARD = f" --proto_path {PROTO_OUT_DIR} "
 PARAMS_STANDARD += " ".join([f"{PROTO_OUT_DIR}/{os.path.basename(param)}" for param in PARAMS_REPLACE])
 PARAMS_ALL = f"{PARAMS_SRC} {PARAMS_STANDARD}"
 
-print("执行参数：--------------- --------------------------")
 if not sys.argv[4].startswith("--plugin"):
-    print("执行参数：--------------- -------------------2-------")
     if os.path.isfile(OPT_PLUGIN_PROTOREADER_PATH):
-      cmd=[PROTOC, OPT_PLUGIN_PROTOREADER, f"{PLUGINOUT}:{sys.argv[5]}", *PARAMS_ALL.split()]
-      print("执行参数：--------------- ", cmd, " --------------------------")
-      subprocess.run(cmd)
-    #   subprocess.run(cmd, env={"LD_LIBRARY_PATH": f"{LIBCXX_X64_OUT}:{SUBSYS_X64_OUT}"})
+        cmd=[PROTOC, OPT_PLUGIN_PROTOREADER, f"{PLUGINOUT}:{sys.argv[5]}", *PARAMS_ALL.split()]
+        print("执行参数：--------------- ", cmd, " --------------------------")
+        subprocess.run(cmd)
+    # subprocess.run(cmd, env={"LD_LIBRARY_PATH": f"{LIBCXX_X64_OUT}:{SUBSYS_X64_OUT}"})
 subprocess.run([PROTOC, *PARAMS_ALL.split()])

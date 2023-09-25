@@ -63,7 +63,7 @@ struct HilogLine {
 };
 struct HtraceDataSegment {
     std::shared_ptr<std::string> seg;
-    uint64_t timeStamp;
+    uint64_t timeStamp{INVALID_TIME};
     BuiltinClocks clockId;
     DataSourceType dataType;
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
@@ -119,6 +119,21 @@ public:
     uint32_t funcPrefixId_ = 0;
     std::string funcPrefix_ = "";
     std::string funcArgs_ = "";
+};
+
+enum class SplitDataDataType { SPLIT_FILE_DATA = 0, SPLIT_FILE_JSON };
+struct HtraceSplitResult {
+    int32_t type;
+    union {
+        struct {
+            uint8_t* address;
+            uint64_t size;
+        } buffer;
+        struct {
+            uint64_t offset;
+            uint64_t size;
+        } json;
+    };
 };
 
 } // namespace TraceStreamer

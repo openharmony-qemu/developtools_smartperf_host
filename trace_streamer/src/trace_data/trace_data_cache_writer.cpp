@@ -54,6 +54,9 @@ Thread* TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
 
 void TraceDataCacheWriter::UpdateTraceTime(uint64_t timeStamp)
 {
+    if (isSplitFile_) {
+        return;
+    }
     if (timeStamp) {
         traceStartTime_ = std::min(traceStartTime_, timeStamp);
         traceEndTime_ = std::max(traceEndTime_, timeStamp);
@@ -62,7 +65,13 @@ void TraceDataCacheWriter::UpdateTraceTime(uint64_t timeStamp)
 
 void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestampMax)
 {
-    if (timestampMin == std::numeric_limits<uint64_t>::max() || timestampMax == 0 || timestampMin == timestampMax) {
+    if (isSplitFile_) {
+        return;
+    }
+    if (timestampMin == timestampMax) {
+        ++timestampMax;
+    }
+    if (timestampMin == std::numeric_limits<uint64_t>::max() || timestampMax == 0) {
         return;
     }
     if (traceStartTime_ != std::numeric_limits<uint64_t>::max()) {

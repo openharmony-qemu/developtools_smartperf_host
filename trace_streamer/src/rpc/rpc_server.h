@@ -26,13 +26,21 @@ public:
     using ResultCallBack = std::function<void(const std::string /* result */, int32_t)>;
     using ParseELFFileCallBack = std::function<void(const std::string, int32_t)>;
     using SendDataCallBack = std::function<void(const char*, int32_t, int32_t)>;
+    using SplitFileCallBack = std::function<void(const std::string /* result */, int32_t, int32_t)>;
     // In order to bind HTTP, maintain a unified interface, even if some parameters are useless
     bool ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
+    bool ParseSplitFileData(const uint8_t* data,
+                            size_t len,
+                            int32_t isFinish,
+                            SplitFileCallBack splitFileCallBack,
+                            bool isSplitFile);
+    bool ParserFileTimeSnap(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool SqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool Reset(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     void CancelSqlQuery();
+    bool ParseDataWithoutCallback(const uint8_t* data, size_t len, int32_t isFinish, bool isSplitFile);
 
     // only for wasm, no callback
     int32_t WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen);
@@ -42,6 +50,9 @@ public:
     int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
     bool ParserConfig(std::string parserConfigJson);
+    bool SplitFile(std::string timeSnaps);
+    void ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack);
+    void ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
 #ifdef IS_WASM
     int32_t DownloadELFCallback(const std::string& fileName,
                                 size_t totalLen,
@@ -53,6 +64,8 @@ public:
     std::map<int32_t, std::string> g_thirdPartyConfig;
 
 private:
+    void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;
     std::vector<std::string> symbolsPathFiles_;

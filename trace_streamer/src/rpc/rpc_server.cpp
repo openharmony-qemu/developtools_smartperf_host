@@ -21,10 +21,14 @@
 #if IS_WASM
 #include <filesystem>
 #endif
+#include "common_types.h"
+#include "bytrace_parser.h"
+#include "htrace_parser.h"
 #include "json.hpp"
 #include "log.h"
 #include "string_help.h"
 #include "version.h"
+
 
 #define UNUSED(expr)             \
     do {                         \
@@ -34,6 +38,11 @@ namespace SysTuning {
 namespace TraceStreamer {
 uint32_t g_fileLen = 0;
 FILE* g_importFileFd = nullptr;
+const size_t PACKET_HEADER_LENGTH = 1024;
+const std::string VALUE = "{\"value\":[";
+const std::string OFFSET = "{\"offset\":";
+const std::string SIZE = ",\"size\":";
+
 using json = nlohmann::json;
 namespace jsonns {
 struct ParserConfig {
@@ -58,7 +67,7 @@ bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack result
         size_t parseSize = std::min(len, blockSize);
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(parseSize);
         std::copy(data, data + parseSize, buf.get());
-        if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize)) {
+        if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize, false, false)) {
             if (resultCallBack) {
                 resultCallBack("formaterror\r\n", SEND_FINISH);
             }
@@ -72,6 +81,160 @@ bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack result
         resultCallBack("ok\r\n", SEND_FINISH);
     }
     return true;
+}
+bool RpcServer::ParseDataWithoutCallback(const uint8_t* data, size_t len, int32_t isFinish, bool isSplitFile)
+{
+    g_loadSize += len;
+    size_t blockSize = 1024 * 1024;
+    do {
+        size_t parseSize = std::min(len, blockSize);
+        std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(parseSize);
+        std::copy(data, data + parseSize, buf.get());
+        if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize, isSplitFile, isFinish && (len == parseSize))) {
+            return false;
+        }
+        data += parseSize;
+        len -= parseSize;
+        lenParseData_ += parseSize;
+    } while (len > 0);
+    return true;
+}
+bool RpcServer::ParseSplitFileData(const uint8_t* data,
+                                   size_t len,
+                                   int32_t isFinish,
+                                   SplitFileCallBack splitFileCallBack,
+                                   bool isSplitFile)
+{
+    ParseDataWithoutCallback(data, len, isFinish, isSplitFile);
+    if (isSplitFile && ts_->GetFileType() == TRACE_FILETYPE_BY_TRACE) {
+        splitFileCallBack(ts_->GetBytraceData()->GetTraceDataBytrace(), (int32_t)SplitDataDataType::SPLIT_FILE_DATA, isFinish);
+        ts_->GetBytraceData()->ClearByTraceData();
+        return true;
+    }
+    if (isSplitFile && isFinish && ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
+        uint64_t dataSize = 0;
+        std::string result = VALUE;
+        for (const auto& itemHtrace : ts_->GetHtraceData()->GetTraceDataHtrace()) {
+            dataSize += itemHtrace.second;
+            result += OFFSET + std::to_string(itemHtrace.first);
+            result += SIZE + std::to_string(itemHtrace.second);
+            result += "},";
+        }
+        auto dataSourceType = ts_->GetHtraceData()->GetDataSourceType();
+        auto profilerHeader = ts_->GetHtraceData()->GetProfilerHeader();
+        if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
+            dataSize += ts_->GetHtraceData()->GetArkTsConfigData().size() +
+                        ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSize();
+        }
+        for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
+            dataSize += (sizeof(uint32_t) + commProto->size());
+        }
+        // Send Header
+        profilerHeader.data.length = PACKET_HEADER_LENGTH + dataSize;
+        std::string buffer(reinterpret_cast<char*>(&profilerHeader), sizeof(profilerHeader));
+        splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+        // Send Datas
+        ProcHookCommSplitResult(splitFileCallBack);
+        if (result != VALUE && !ts_->GetHtraceData()->GetTraceDataHtrace().empty()) {
+            result.pop_back();
+            result += "]}\r\n";
+            splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
+        }
+        if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
+            splitFileCallBack(ts_->GetHtraceData()->GetArkTsConfigData() +
+                                  ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSplitFileData(),
+                              (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+        }
+        ProcPerfSplitResult(splitFileCallBack, true);
+        ProcEbpfSplitResult(splitFileCallBack, true);
+    }
+    if (isSplitFile && isFinish && ts_->GetFileType() == TRACE_FILETYPE_PERF) {
+        ProcPerfSplitResult(splitFileCallBack, true);
+    }
+    if (isSplitFile && isFinish) {
+        std::string resultEnd = "{\"value\":[]}";
+        splitFileCallBack(resultEnd, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
+        ts_->GetHtraceData()->ClearTraceDataHtrace();
+        ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
+        ts_->GetTraceDataCache()->isSplitFile_ = false;
+    }
+    return true;
+}
+void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
+{
+    ts_->GetHtraceData()->ClearNativehookData();
+    std::string lenBuffer(sizeof(uint32_t), 0);
+    for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
+        uint32_t len = commProto->size();
+        memcpy_s(const_cast<char*>(lenBuffer.data()), sizeof(uint32_t), &len, sizeof(uint32_t));
+        splitFileCallBack(lenBuffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+        splitFileCallBack(*commProto, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+    }
+    ts_->GetTraceDataCache()->ClearHookCommProtos();
+}
+void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
+{
+    auto splitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
+    TS_LOGI("splitResult.size = %zu", splitResult.size());
+    bool replyFinish = false;
+    std::string result = VALUE;
+    for (auto it = splitResult.begin(); it != splitResult.end(); ++it) {
+        replyFinish = (isLast && (it == splitResult.end() - 1));
+        if (it->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
+            result += OFFSET + std::to_string(it->json.offset);
+            result += SIZE + std::to_string(it->json.size);
+            result += "},";
+        } else {
+            if (result != VALUE) {
+                result.pop_back();
+                result += "]}\r\n";
+                TS_LOGE("SPLIT_FILE_JSON : %s", result.c_str());
+                splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
+                result = VALUE;
+            }
+            std::string buffer(reinterpret_cast<char*>(it->buffer.address), it->buffer.size);
+            TS_LOGE("SPLIT_FILE_DATA : size = %llu, replyFinish = %d", it->buffer.size, replyFinish);
+            splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+        }
+    }
+    if (result != VALUE) {
+        result.pop_back();
+        result += "]}\r\n";
+        TS_LOGE("SPLIT_FILE_JSON : %s, replyFinish = %d", result.c_str(), replyFinish);
+        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
+    }
+}
+void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
+{
+    auto splitResult = ts_->GetHtraceData()->GetPerfSplitResult();
+    bool replyFinish = false;
+    std::string result = VALUE;
+    for (auto it = splitResult.begin(); it != splitResult.end(); ++it) {
+        replyFinish = (isLast && (it == splitResult.end() - 1));
+        if (it->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
+            result += OFFSET + std::to_string(it->json.offset);
+            result += SIZE + std::to_string(it->json.size);
+            result += "},";
+        } else {
+            if (result != VALUE) {
+                result.pop_back();
+                result += "]}\r\n";
+                splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
+                TS_LOGE("SPLIT_FILE_JSON : %s", result.c_str());
+                result = VALUE;
+            }
+            std::string buffer(reinterpret_cast<char*>(it->buffer.address), it->buffer.size);
+            splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+            TS_LOGE("SPLIT_FILE_DATA : size = %llu", it->buffer.size);
+        }
+    }
+
+    if (result != VALUE) {
+        result.pop_back();
+        result += "]}\r\n";
+        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
+        TS_LOGE("SPLIT_FILE_JSON : %s", result.c_str());
+    }
 }
 
 int32_t RpcServer::UpdateTraceTime(const uint8_t* data, int32_t len)
@@ -294,6 +457,17 @@ int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
     return true;
 }
 #endif
+
+bool RpcServer::SplitFile(std::string timeSnaps)
+{
+    std::vector<std::string> vTimesnaps = SplitStringToVec(timeSnaps, ";");
+    if (vTimesnaps.size() <= 1) {
+        return false;
+    }
+    ts_->minTs_ = std::stoull(vTimesnaps.at(0));
+    ts_->maxTs_ = std::stoull(vTimesnaps.at(1));
+    return true;
+}
 
 bool RpcServer::ParserConfig(std::string parserConfigJson)
 {

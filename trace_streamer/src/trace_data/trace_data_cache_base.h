@@ -17,6 +17,7 @@
 #define TRACE_DATA_CACHE_BASE_H
 
 #include <array>
+#include <atomic>
 #include <deque>
 #include <map>
 #include <stdexcept>
@@ -86,6 +87,7 @@ public:
     std::map<std::string, uint64_t> threadStatus2Value_ = {};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
+    std::atomic<bool> isSplitFile_{false};
 
     Raw rawData_;
     ThreadStateData threadStateData_;

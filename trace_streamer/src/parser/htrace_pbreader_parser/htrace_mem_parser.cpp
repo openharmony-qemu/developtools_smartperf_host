@@ -183,17 +183,17 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
         }
     }
 
-    bool has_x = smapsInfo.permission().ToStdString().find("x") != std::string::npos;
-    bool has_appNmae = path.find("com.huawei.wx") != std::string::npos;
+    bool hasX = smapsInfo.permission().ToStdString().find("x") != std::string::npos;
+    bool hasAppNmae = path.find("com.huawei.wx") != std::string::npos;
     if (EndWith(path, ".so")) {
-        if (has_x) {
-            if (StartWith(path, "/data/app/") || has_appNmae) {
+        if (hasX) {
+            if (StartWith(path, "/data/app/") || hasAppNmae) {
                 return SMAPS_MEM_TYPE_CODE_APP;
             } else {
                 return SMAPS_MEM_TYPE_CODE_SYS;
             }
         } else {
-            if (StartWith(path, "[anon:.bss]/data/app/") || StartWith(path, "/data/app/") || has_appNmae) {
+            if (StartWith(path, "[anon:.bss]/data/app/") || StartWith(path, "/data/app/") || hasAppNmae) {
                 return SMAPS_MEM_TYPE_DATA_APP;
             } else {
                 return SMAPS_MEM_TYPE_DATA_SYS;
@@ -202,17 +202,17 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
     }
     if ((EndWith(path, ".jar")) || (EndWith(path, ".apk")) || (EndWith(path, ".vdex")) || (EndWith(path, ".odex")) ||
         (EndWith(path, ".oat")) || (path.find("dex") != std::string::npos)) {
-        return has_x ? (has_appNmae ? SMAPS_MEM_TYPE_CODE_APP : SMAPS_MEM_TYPE_CODE_SYS)
-                     : (has_appNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS);
+        return hasX ? (hasAppNmae ? SMAPS_MEM_TYPE_CODE_APP : SMAPS_MEM_TYPE_CODE_SYS)
+                    : (hasAppNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS);
     }
-    if (has_x && path.find("/bin/") != std::string::npos) {
+    if (hasX && path.find("/bin/") != std::string::npos) {
         return SMAPS_MEM_TYPE_CODE_SYS;
     }
-    if ((!has_x) && (path.find("/bin/") != std::string::npos || path.find("[anon:.bss]") != std::string::npos)) {
+    if ((!hasX) && (path.find("/bin/") != std::string::npos || path.find("[anon:.bss]") != std::string::npos)) {
         return SMAPS_MEM_TYPE_DATA_SYS;
     }
     if (path.find("[bss]") != std::string::npos) {
-        return has_appNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS;
+        return hasAppNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS;
     }
 
     if ((path.find("[anon]") != std::string::npos) || (path.find("[anon:") != std::string::npos)) {
@@ -235,7 +235,7 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
         return SMAPS_MEM_TYPE_NATIVE_HEAP;
     }
 
-    return has_appNmae ? SMAPS_MEM_TYPE_OTHER_APP : SMAPS_MEM_TYPE_OTHER_SYS;
+    return hasAppNmae ? SMAPS_MEM_TYPE_OTHER_APP : SMAPS_MEM_TYPE_OTHER_SYS;
 }
 
 void HtraceMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader* memInfo,
@@ -255,16 +255,16 @@ void HtraceMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Re
         double reside = smapsInfo.reside();
         DataIndex protection = traceDataCache_->GetDataIndex(smapsInfo.permission().ToStdString());
         DataIndex path = traceDataCache_->GetDataIndex(smapsInfo.path().ToStdString());
-        uint64_t private_clean = smapsInfo.has_private_clean() ? smapsInfo.private_clean() : 0;
-        uint64_t private_dirty = smapsInfo.has_private_dirty() ? smapsInfo.private_dirty() : 0;
-        uint64_t shared_clean = smapsInfo.has_shared_clean() ? smapsInfo.shared_clean() : 0;
-        uint64_t shared_dirty = smapsInfo.has_shared_dirty() ? smapsInfo.shared_dirty() : 0;
+        uint64_t privateClean = smapsInfo.has_private_clean() ? smapsInfo.private_clean() : 0;
+        uint64_t privateDirty = smapsInfo.has_private_dirty() ? smapsInfo.private_dirty() : 0;
+        uint64_t sharedClean = smapsInfo.has_shared_clean() ? smapsInfo.shared_clean() : 0;
+        uint64_t sharedDirty = smapsInfo.has_shared_dirty() ? smapsInfo.shared_dirty() : 0;
         uint64_t swap = smapsInfo.has_swap() ? smapsInfo.swap() : 0;
-        uint64_t swap_pss = smapsInfo.has_swap_pss() ? smapsInfo.swap_pss() : 0;
+        uint64_t swapPss = smapsInfo.has_swap_pss() ? smapsInfo.swap_pss() : 0;
         uint32 type = ParseSmapsBlockType(smapsInfo);
         traceDataCache_->GetSmapsData()->AppendNewData(timeStamp, ipid, startAddr, endAddr, dirty, swapper, rss, pss,
-                                                       size, reside, protection, path, shared_clean, shared_dirty,
-                                                       private_clean, private_dirty, swap, swap_pss, type);
+                                                       size, reside, protection, path, sharedClean, sharedDirty,
+                                                       privateClean, privateDirty, swap, swapPss, type);
     }
 }
 
@@ -1113,7 +1113,7 @@ void HtraceMemParser::AshMemDeduplicate() const
         }
     }
 }
-HtraceMemParser::mem_process_type HtraceMemParser::GetMemProcessType(uint64_t ipid) const
+HtraceMemParser::MemProcessType HtraceMemParser::GetMemProcessType(uint64_t ipid) const
 {
     const auto& iterProcess = traceDataCache_->GetConstProcessData(ipid);
     if (iterProcess.cmdLine_ == "composer_host") {
@@ -1170,9 +1170,9 @@ void HtraceMemParser::DmaMemDeduplicate() const
 
     for (const auto& iterator : dataByTs) {
         /* L1 map (key = ino, value = L2 map)
-           L2 map (key = ipid, value = pair(index, mem_process_type)) */
-        std::map<uint32_t, std::map<uint64_t, std::pair<uint64_t, mem_process_type>>> inoMap;
-        std::map<uint32_t /*ino*/, mem_process_type> processTypeMap;
+           L2 map (key = ipid, value = pair(index, MemProcessType)) */
+        std::map<uint32_t, std::map<uint64_t, std::pair<uint64_t, MemProcessType>>> inoMap;
+        std::map<uint32_t /*ino*/, MemProcessType> processTypeMap;
         for (auto i = iterator.first; i <= iterator.second; ++i) {
             auto ino = dmaMemData->Inos()[i];
             auto ipid = dmaMemData->Ipids()[i];

@@ -165,11 +165,12 @@ void TraceStreamerSelector::WaitForParserEnd()
         bytraceParser_->WaitForParserEnd();
     }
     if (fileType_ == TRACE_FILETYPE_PERF) {
-        htraceParser_->TraceDataSegmentEnd();
+        htraceParser_->TraceDataSegmentEnd(false);
         htraceParser_->WaitForParserEnd();
     }
     traceDataCache_->UpdateTraceRange();
     if (traceDataCache_->AnimationTraceEnabled()) {
+        streamFilters_->animationFilter_->UpdateFrameNum();
         streamFilters_->animationFilter_->UpdateDynamicFrameInfo();
     }
 }
@@ -188,7 +189,10 @@ void TraceStreamerSelector::SetDataType(TraceFileType type)
         bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
     }
 }
-bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size)
+bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
+                                                  size_t size,
+                                                  bool isSplitFile,
+                                                  int32_t isFinish)
 {
     if (size == 0) {
         return true;
@@ -212,13 +216,17 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
             return false;
         }
     }
+    traceDataCache_->SetSplitFileMinTime(minTs_);
+    traceDataCache_->SetSplitFileMaxTime(maxTs_);
+    traceDataCache_->isSplitFile_ = isSplitFile;
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         htraceParser_->ParseTraceDataSegment(std::move(data), size);
     } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT ||
                fileType_ == TRACE_FILETYPE_HILOG) {
         bytraceParser_->ParseTraceDataSegment(std::move(data), size);
+        return true;
     } else if (fileType_ == TRACE_FILETYPE_PERF) {
-        htraceParser_->StoreTraceDataSegment(std::move(data), size);
+        htraceParser_->StoreTraceDataSegment(std::move(data), size, isFinish);
     }
     SetAnalysisResult(TRACE_PARSER_NORMAL);
     return true;

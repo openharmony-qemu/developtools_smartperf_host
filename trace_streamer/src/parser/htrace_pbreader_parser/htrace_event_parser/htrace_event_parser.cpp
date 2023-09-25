@@ -141,7 +141,7 @@ HtraceEventParser::~HtraceEventParser()
             static_cast<unsigned long long>(ftraceOriginEndTime_));
 }
 
-void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClocks clock)
+void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClocks clock, bool& haveSplitSeg)
 {
     if (clock != clock_) {
         clock_ = clock;
@@ -183,9 +183,16 @@ void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClo
             ftraceStartTime_ = std::min(ftraceStartTime_, eventTimeStamp_);
             ftraceEndTime_ = std::max(ftraceEndTime_, eventTimeStamp_);
             traceDataCache_->UpdateTraceTime(eventTimeStamp_);
+            if (traceDataCache_->isSplitFile_) {
+                if (eventTimeStamp_ >= traceDataCache_->SplitFileMinTime() &&
+                    eventTimeStamp_ <= traceDataCache_->SplitFileMaxTime()) {
+                    haveSplitSeg = true;
+                    return;
+                }
+                continue;
+            }
             ProtoReader::BytesView commonField;
-            htraceEventList_.push_back(
-                std::make_unique<EventInfo>(eventTimeStamp_, msg.cpu(), tracePacket.seg, event));
+            htraceEventList_.push_back(std::make_unique<EventInfo>(eventTimeStamp_, msg.cpu(), tracePacket.seg, event));
             FilterAllEventsReader();
         }
     }

@@ -57,6 +57,29 @@ struct ProfilerTraceFileHeader {
     HeaderData data = {};
     uint8_t padding_[HEADER_SIZE - sizeof(data)] = {};
 };
+struct ProfilerPluginDataHeader {
+    std::string name = "";
+    uint32_t status;
+    uint8_t* data;
+    enum ClockId {
+        CLOCKID_REALTIME = 0,
+        CLOCKID_REALTIME_ALARM,  // since Linux 3.0; Linux-specific
+        CLOCKID_REALTIME_COARSE, // since Linux 2.6.32; Linux-specific
+        CLOCKID_TAI,             // since Linux 3.10; Linux-specific
+        CLOCKID_MONOTONIC,
+        CLOCKID_MONOTONIC_COARSE,   // since Linux 2.6.32; Linux-specific
+        CLOCKID_MONOTONIC_RAW,      // since Linux 2.6.28; Linux-specific
+        CLOCKID_BOOTTIME,           // since Linux 2.6.39; Linux-specific
+        CLOCKID_BOOTTIME_ALARM,     // since Linux 3.0; Linux-specific
+        CLOCKID_PROCESS_CPUTIME_ID, // since Linux 2.6.12
+        CLOCKID_THREAD_CPUTIME_ID   // since Linux 2.6.12
+    };
+    ClockId clock_id;
+    uint64_t tv_sec;
+    uint64_t tv_nsec;
+    uint8_t* version;         // "1.01"
+    uint32_t sample_interval; // Polling plugin collection interval(ms)
+};
 const std::string EBPF_PLUGIN_NAME = "hiebpf-plugin";
 } // namespace TraceStreamer
 } // namespace SysTuning

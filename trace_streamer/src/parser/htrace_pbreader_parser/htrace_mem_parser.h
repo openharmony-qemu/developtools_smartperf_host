@@ -36,7 +36,7 @@ public:
     void Parse(HtraceDataSegment& seg, uint64_t, BuiltinClocks clock);
     void ParseMemoryConfig(HtraceDataSegment& seg);
     void Finish();
-    enum smaps_mem_type {
+    enum SmapsMemType {
         SMAPS_MEM_TYPE_CODE_SYS = 0,     // 系统代码段
         SMAPS_MEM_TYPE_CODE_APP = 1,     // 应用代码段
         SMAPS_MEM_TYPE_DATA_SYS = 2,     // 系统数据段
@@ -50,12 +50,12 @@ public:
         SMAPS_MEM_TYPE_OTHER_SYS = 10,   // 系统其他杂类资源
         SMAPS_MEM_TYPE_OTHER_APP = 11,   // 应用其他杂类资源
     };
-    enum mem_process_type {
+    enum MemProcessType {
         PID_TYPE_COMPOSER = 0,
         PID_TYPE_RENDER_SERVICES,
         PID_TYPE_APP,
     };
-    enum mem_deduplicate_flag {
+    enum MemDeduplicateFlag {
         MEM_DEDUPLICATE_FLAG_NOMAL = 0,
         MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS,
         MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS,
@@ -77,7 +77,7 @@ private:
     void ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void AshMemDeduplicate() const;
     void DmaMemDeduplicate() const;
-    mem_process_type GetMemProcessType(uint64_t ipid) const;
+    MemProcessType GetMemProcessType(uint64_t ipid) const;
 
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
     std::map<uint32_t, DataIndex> sysMemNameDictMap_ = {};

@@ -27,6 +27,11 @@ ReplyFunction g_reply;
 uint8_t* g_reqBuf;
 uint32_t g_reqBufferSize;
 
+using SplitFileFunction = void (*)(const char* data, uint32_t len, int32_t dataType, int32_t isFinish);
+SplitFileFunction g_splitFile;
+uint8_t* g_splitFileBuf;
+uint32_t g_splitFileBufferSize;
+
 uint8_t* g_parserConfigBuf;
 uint32_t g_parserConfigSize;
 
@@ -48,6 +53,11 @@ void ResultCallback(const std::string& jsonResult, int32_t finish)
     g_reply(jsonResult.data(), jsonResult.size(), finish);
 }
 
+void SplitFileCallback(const std::string& jsonResult, int32_t dataType, int32_t finish)
+{
+    g_splitFile(jsonResult.data(), jsonResult.size(), dataType, finish);
+}
+
 void ParseELFCallback(const std::string& SODataResult, int32_t finish)
 {
     g_parseELFCallback(SODataResult.data(), SODataResult.size(), finish);
@@ -58,6 +68,31 @@ EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction, uint32_t r
     g_reqBuf = new uint8_t[reqBufferSize];
     g_reqBufferSize = reqBufferSize;
     return g_reqBuf;
+}
+
+EMSCRIPTEN_KEEPALIVE uint8_t* InitializeSplitFile(SplitFileFunction splitFileFunction, uint32_t reqBufferSize)
+{
+    g_splitFile = splitFileFunction;
+    g_splitFileBuf = new uint8_t[reqBufferSize];
+    g_splitFileBufferSize = reqBufferSize;
+    return g_splitFileBuf;
+}
+
+EMSCRIPTEN_KEEPALIVE int TraceStreamerSplitFileEx(int dataLen)
+{
+    std::string timeSnaps(reinterpret_cast<const char*>(g_splitFileBuf), dataLen);
+    if (g_wasmTraceStreamer.SplitFile(timeSnaps)) {
+        return 0;
+    }
+    return -1;
+}
+
+EMSCRIPTEN_KEEPALIVE int TraceStreamerReciveFileEx(int32_t dataLen, int32_t isFinish)
+{
+    if (g_wasmTraceStreamer.ParseSplitFileData(g_splitFileBuf, dataLen, isFinish, &SplitFileCallback, true)) {
+        return 0;
+    }
+    return -1;
 }
 
 EMSCRIPTEN_KEEPALIVE uint8_t* InitializeParseConfig(uint32_t reqBufferSize)

@@ -1725,12 +1725,12 @@ public:
                        double reside,
                        DataIndex protectionId,
                        DataIndex pathId,
-                       uint64_t shared_clean,
-                       uint64_t shared_dirty,
-                       uint64_t private_clean,
-                       uint64_t private_dirty,
+                       uint64_t sharedClean,
+                       uint64_t sharedDirty,
+                       uint64_t privateClean,
+                       uint64_t privateDirty,
                        uint64_t swap,
-                       uint64_t swap_pss,
+                       uint64_t swapPss,
                        uint32_t type);
     const std::deque<uint64_t>& Id() const;
     const std::deque<uint64_t>& TimeStamps() const;
@@ -2519,10 +2519,12 @@ public:
     TableRowId AppendAnimation(InternalTime inputTime, InternalTime startPoint);
     void UpdateStartPoint(TableRowId index, InternalTime startPoint);
     void UpdateEndPoint(TableRowId index, InternalTime endPoint);
+    void UpdateFrameNum(TableRowId index, InternalTime frameNum);
     size_t Size() const;
     const std::deque<InternalTime>& InputTimes() const;
     const std::deque<InternalTime>& StartPoints() const;
     const std::deque<InternalTime>& EndPoints() const;
+    const std::deque<uint32_t>& FrameNums() const;
     const std::deque<uint64_t>& IdsData() const;
     void Clear();
 
@@ -2530,6 +2532,7 @@ private:
     std::deque<InternalTime> inputTimes_ = {};
     std::deque<InternalTime> startPoints_ = {};
     std::deque<InternalTime> endPoins_ = {};
+    std::deque<uint32_t> frameNums_ = {};
     std::deque<uint64_t> ids_ = {};
 };
 class DeviceInfo {
@@ -2616,7 +2619,7 @@ public:
         purgeds_.clear();
         flags_.clear();
     }
-    void SetFlag(uint64_t rowId, uint32_t Flag);
+    void SetFlag(uint64_t rowId, uint32_t flag);
 
 private:
     std::deque<InternalPid> ipids_ = {};
@@ -2667,7 +2670,7 @@ public:
         expNameIds_.clear();
         flags_.clear();
     }
-    void SetFlag(uint64_t rowId, uint32_t Flag);
+    void SetFlag(uint64_t rowId, uint32_t flag);
 
 private:
     std::deque<InternalPid> ipids_ = {};

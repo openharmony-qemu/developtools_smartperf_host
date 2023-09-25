@@ -1995,12 +1995,12 @@ void SmapsData::AppendNewData(uint64_t timeStamp,
                               double reside,
                               DataIndex protectionId,
                               DataIndex pathId,
-                              uint64_t shared_clean,
-                              uint64_t shared_dirty,
-                              uint64_t private_clean,
-                              uint64_t private_dirty,
+                              uint64_t sharedClean,
+                              uint64_t sharedDirty,
+                              uint64_t privateClean,
+                              uint64_t privateDirty,
                               uint64_t swap,
-                              uint64_t swap_pss,
+                              uint64_t swapPss,
                               uint32_t type)
 {
     timeStamps_.emplace_back(timeStamp);
@@ -2015,12 +2015,12 @@ void SmapsData::AppendNewData(uint64_t timeStamp,
     resides_.emplace_back(reside);
     protectionIds_.emplace_back(protectionId);
     pathIds_.emplace_back(pathId);
-    sharedClean_.emplace_back(shared_clean);
-    sharedDirty_.emplace_back(shared_dirty);
-    privateClean_.emplace_back(private_clean);
-    privateDirty_.emplace_back(private_dirty);
+    sharedClean_.emplace_back(sharedClean);
+    sharedDirty_.emplace_back(sharedDirty);
+    privateClean_.emplace_back(privateClean);
+    privateDirty_.emplace_back(privateDirty);
     swap_.emplace_back(swap);
-    swapPss_.emplace_back(swap_pss);
+    swapPss_.emplace_back(swapPss);
     type_.emplace_back(type);
     ids_.push_back(rowCount_);
     rowCount_++;
@@ -3097,6 +3097,7 @@ TableRowId Animation::AppendAnimation(InternalTime inputTime, InternalTime start
     inputTimes_.emplace_back(inputTime);
     startPoints_.emplace_back(startPoint);
     endPoins_.emplace_back(INVALID_TIME);
+    frameNums_.emplace_back(INVALID_UINT32);
     ids_.emplace_back(Size());
     return ids_.size() - 1;
 }
@@ -3110,6 +3111,12 @@ void Animation::UpdateEndPoint(TableRowId index, InternalTime endPoint)
 {
     if (index <= Size()) {
         endPoins_[index] = endPoint;
+    }
+}
+void Animation::UpdateFrameNum(TableRowId index, InternalTime frameNum)
+{
+    if (index <= Size()) {
+        frameNums_[index] = frameNum;
     }
 }
 size_t Animation::Size() const
@@ -3128,6 +3135,10 @@ const std::deque<InternalTime>& Animation::EndPoints() const
 {
     return endPoins_;
 }
+const std::deque<uint32_t>& Animation::FrameNums() const
+{
+    return frameNums_;
+}
 const std::deque<uint64_t>& Animation::IdsData() const
 {
     return ids_;
@@ -3137,6 +3148,7 @@ void Animation::Clear()
     inputTimes_.clear();
     startPoints_.clear();
     endPoins_.clear();
+    frameNums_.clear();
     ids_.clear();
 }
 uint32_t DeviceInfo::PhysicalWidth() const
@@ -3280,9 +3292,9 @@ void AshMemData::AppendNewData(InternalPid ipid,
     ids_.push_back(rowCount_);
     rowCount_++;
 }
-void AshMemData::SetFlag(uint64_t rowId, uint32_t Flag)
+void AshMemData::SetFlag(uint64_t rowId, uint32_t flag)
 {
-    flags_[rowId] = Flag;
+    flags_[rowId] = flag;
 }
 const std::deque<InternalPid>& AshMemData::Ipids() const
 {
@@ -3353,9 +3365,9 @@ void DmaMemData::AppendNewData(InternalPid ipid,
     ids_.push_back(rowCount_);
     rowCount_++;
 }
-void DmaMemData::SetFlag(uint64_t rowId, uint32_t Flag)
+void DmaMemData::SetFlag(uint64_t rowId, uint32_t flag)
 {
-    flags_[rowId] = Flag;
+    flags_[rowId] = flag;
 }
 const std::deque<InternalPid>& DmaMemData::Ipids() const
 {
