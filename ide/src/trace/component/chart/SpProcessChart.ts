@@ -34,7 +34,7 @@ import {
   queryProcessThreads,
   queryProcessThreadsByTable,
   queryStartupPidArray,
-  queryThreadData
+  queryThreadData, queryTraceType,
 } from '../../database/SqlLite.js';
 import { Utils } from '../trace/base/Utils.js';
 import { info } from '../../../log/Log.js';
@@ -201,11 +201,18 @@ export class SpProcessChart {
     let allJankProcess: Array<number> = [];
     let allExpectedProcess: Array<any> = [];
     let allActualProcess: Array<any> = [];
+    let isTxtTraceType: boolean = false;
     if (allJankProcessData.length > 0) {
       allJankProcessData.forEach((name, index) => {
         allJankProcess.push(name.pid!);
       });
-      allExpectedProcess = await queryAllExpectedData();
+      let traceType = await queryTraceType();
+      if (traceType.length > 0 && traceType[0].value.startsWith('txt')) {
+        isTxtTraceType = true;
+      }
+      if (!isTxtTraceType) {
+        allExpectedProcess = await queryAllExpectedData();
+      }
       allActualProcess = await queryAllActualData();
     }
     let allTaskPoolPid = await queryAllTaskPoolPid();
@@ -277,142 +284,144 @@ export class SpProcessChart {
        */
       let actualRow: TraceRow<JankStruct> | null = null;
       let expectedRow: TraceRow<JankStruct> | null = null;
-      if (allJankProcess.indexOf(it.pid) > -1 && allExpectedProcess.length > 0) {
-        let expectedData = allExpectedProcess.filter((ite) => ite.pid == it.pid);
-        if (expectedData.length > 0) {
-          // @ts-ignore
-          let isIntersect = (a: JanksStruct, b: JanksStruct): boolean =>
-            Math.max(a.ts! + a.dur!, b.ts! + b.dur!) - Math.min(a.ts!, b.ts!) < a.dur! + b.dur!;
-          let depthArray: any = [];
-          for (let j = 0 ; j < expectedData.length ; j++) {
-            let expectedItem = expectedData[j];
-            if (expectedItem.cmdline != 'render_service') {
-              expectedItem.frame_type = 'app';
-            } else {
-              expectedItem.frame_type = expectedItem.cmdline;
-            }
-            if (!expectedItem.dur || expectedItem.dur < 0) {
-              continue;
-            }
-            if (depthArray.length === 0) {
-              expectedItem.depth = 0;
-              depthArray.push(expectedItem);
-            } else {
-              if (isIntersect(depthArray[0], expectedItem)) {
-                if (isIntersect(depthArray[depthArray.length - 1], expectedItem)) {
-                  expectedItem.depth = depthArray.length;
-                  depthArray.push(expectedItem);
-                }
-              } else {
-                expectedItem.depth = 0;
-                depthArray = [expectedItem];
-              }
-            }
-          }
-          let max = Math.max(...expectedData.map((it) => it.depth || 0)) + 1;
-          let maxHeight = max * 20;
-          expectedRow = TraceRow.skeleton<JankStruct>();
-          let timeLineType = expectedData[0].type;
-          expectedRow.rowId = `${ timeLineType }-${ it.pid }`;
-          expectedRow.asyncFuncName = it.processName;
-          expectedRow.asyncFuncNamePID = it.pid;
-          expectedRow.rowType = TraceRow.ROW_TYPE_JANK;
-          expectedRow.rowParentId = `${ it.pid }`;
-          expectedRow.rowHidden = !processRow.expansion;
-          expectedRow.style.width = '100%';
-          expectedRow.style.height = `${ maxHeight }px`;
-          expectedRow.setAttribute('height', `${ maxHeight }`);
-          expectedRow.setAttribute('frame_type', expectedData[0].frame_type);
-          expectedRow.name = 'Expected Timeline';
-          expectedRow.addTemplateTypes('FrameTimeline');
-          expectedRow.setAttribute('children', '');
-          expectedRow.supplier = (): Promise<any> =>
-            new Promise((resolve) => {
-              resolve(expectedData);
-            });
-          expectedRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-          expectedRow.selectChangeHandler = this.trace.selectChangeHandler;
-          expectedRow.onThreadHandler = (useCache): void => {
-            let context = expectedRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-            expectedRow!.canvasSave(context);
-            (renders['jank'] as JankRender).renderMainThread(
-              {
-                context: context,
-                useCache: useCache,
-                type: 'expected_frame_timeline_slice',
-              },
-              expectedRow!
-            );
-            expectedRow!.canvasRestore(context);
-          };
-          processRow.addChildTraceRow(expectedRow);
-          let actualData = allActualProcess.filter((ite) => ite.pid == it.pid);
-          if (actualData.length > 0) {
-            let isIntersect = (a: any, b: any): boolean =>
-              Math.max(a.ts + a.dur, b.ts + b.dur) - Math.min(a.ts, b.ts) < a.dur + b.dur;
+      if (allJankProcess.indexOf(it.pid) > -1) {
+        let isIntersect = (a: JanksStruct, b: JanksStruct): boolean =>
+          Math.max(a.ts! + a.dur!, b.ts! + b.dur!) - Math.min(a.ts!, b.ts!) < a.dur! + b.dur!;
+        if (!isTxtTraceType) {
+          let expectedData = allExpectedProcess.filter((ite) => ite.pid == it.pid);
+          if (expectedData.length > 0) {
             let depthArray: any = [];
-            for (let j = 0 ; j < actualData.length ; j++) {
-              let actualItem = actualData[j];
-              if (actualItem.cmdline != 'render_service') {
-                actualItem.frame_type = 'app';
+            for (let j = 0 ; j < expectedData.length ; j++) {
+              let expectedItem = expectedData[j];
+              if (expectedItem.cmdline != 'render_service') {
+                expectedItem.frame_type = 'app';
               } else {
-                actualItem.frame_type = actualItem.cmdline;
+                expectedItem.frame_type = expectedItem.cmdline;
               }
-              if (!actualItem.dur || actualItem.dur < 0) {
+              if (!expectedItem.dur || expectedItem.dur < 0) {
                 continue;
               }
               if (depthArray.length === 0) {
-                actualItem.depth = 0;
-                depthArray.push(actualItem);
+                expectedItem.depth = 0;
+                depthArray.push(expectedItem);
               } else {
-                if (isIntersect(depthArray[0], actualItem)) {
-                  if (isIntersect(depthArray[depthArray.length - 1], actualItem)) {
-                    actualItem.depth = depthArray.length;
-                    depthArray.push(actualItem);
-                  } else {
-                    actualItem.depth = depthArray.length - 1;
-                    depthArray[length - 1] = actualItem;
+                if (isIntersect(depthArray[0], expectedItem)) {
+                  if (isIntersect(depthArray[depthArray.length - 1], expectedItem)) {
+                    expectedItem.depth = depthArray.length;
+                    depthArray.push(expectedItem);
                   }
                 } else {
-                  actualItem.depth = 0;
-                  depthArray = [actualItem];
+                  expectedItem.depth = 0;
+                  depthArray = [expectedItem];
                 }
               }
             }
-            let max = Math.max(...actualData.map((it) => it.depth || 0)) + 1;
+            let max = Math.max(...expectedData.map((it) => it.depth || 0)) + 1;
             let maxHeight = max * 20;
-            actualRow = TraceRow.skeleton<JankStruct>();
-            let timeLineType = actualData[0].type;
-            actualRow.rowId = `${ timeLineType }-${ it.pid }`;
-            actualRow.rowType = TraceRow.ROW_TYPE_JANK;
-            actualRow.rowParentId = `${ it.pid }`;
-            actualRow.rowHidden = !processRow.expansion;
-            actualRow.style.width = '100%';
-            actualRow.style.height = `${ maxHeight }px`;
-            actualRow.setAttribute('height', `${ maxHeight }`);
-            actualRow.name = 'Actual Timeline';
-            actualRow.addTemplateTypes('FrameTimeline');
-            actualRow.setAttribute('frame_type', actualData[0].frame_type);
-            actualRow.setAttribute('children', '');
-            actualRow.dataList = actualData;
-            actualRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(actualData));
-            actualRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-            actualRow.selectChangeHandler = this.trace.selectChangeHandler;
-            actualRow.onThreadHandler = (useCache): void => {
-              let context = actualRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-              actualRow!.canvasSave(context);
+            expectedRow = TraceRow.skeleton<JankStruct>();
+            let timeLineType = expectedData[0].type;
+            expectedRow.rowId = `${ timeLineType }-${ it.pid }`;
+            expectedRow.asyncFuncName = it.processName;
+            expectedRow.asyncFuncNamePID = it.pid;
+            expectedRow.rowType = TraceRow.ROW_TYPE_JANK;
+            expectedRow.rowParentId = `${ it.pid }`;
+            expectedRow.rowHidden = !processRow.expansion;
+            expectedRow.style.width = '100%';
+            expectedRow.style.height = `${ maxHeight }px`;
+            expectedRow.setAttribute('height', `${ maxHeight }`);
+            expectedRow.setAttribute('frame_type', expectedData[0].frame_type);
+            expectedRow.name = 'Expected Timeline';
+            expectedRow.addTemplateTypes('FrameTimeline');
+            expectedRow.setAttribute('children', '');
+            expectedRow.supplier = (): Promise<any> =>
+              new Promise((resolve) => {
+                resolve(expectedData);
+              });
+            expectedRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+            expectedRow.selectChangeHandler = this.trace.selectChangeHandler;
+            expectedRow.onThreadHandler = (useCache): void => {
+              let context = expectedRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+              expectedRow!.canvasSave(context);
               (renders['jank'] as JankRender).renderMainThread(
                 {
                   context: context,
                   useCache: useCache,
-                  type: 'actual_frame_timeline_slice',
+                  type: 'expected_frame_timeline_slice',
                 },
-                actualRow!
+                expectedRow!
               );
-              actualRow!.canvasRestore(context);
+              expectedRow!.canvasRestore(context);
             };
-            processRow.addChildTraceRow(actualRow);
+            processRow.addChildTraceRow(expectedRow);
           }
+        }
+        let actualData = allActualProcess.filter((ite) => ite.pid == it.pid);
+        if (actualData.length > 0) {
+          let depthArray: any = [];
+          for (let j = 0 ; j < actualData.length ; j++) {
+            let actualItem = actualData[j];
+            if (isTxtTraceType) {
+              actualItem.jank_tag = 0;
+            }
+            if (actualItem.cmdline != 'render_service') {
+              actualItem.frame_type = 'app';
+            } else {
+              actualItem.frame_type = actualItem.cmdline;
+            }
+            if (!actualItem.dur || actualItem.dur < 0) {
+              continue;
+            }
+            if (depthArray.length === 0) {
+              actualItem.depth = 0;
+              depthArray.push(actualItem);
+            } else {
+              if (isIntersect(depthArray[0], actualItem)) {
+                if (isIntersect(depthArray[depthArray.length - 1], actualItem)) {
+                  actualItem.depth = depthArray.length;
+                  depthArray.push(actualItem);
+                } else {
+                  actualItem.depth = depthArray.length - 1;
+                  depthArray[length - 1] = actualItem;
+                }
+              } else {
+                actualItem.depth = 0;
+                depthArray = [actualItem];
+              }
+            }
+          }
+          let max = Math.max(...actualData.map((it) => it.depth || 0)) + 1;
+          let maxHeight = max * 20;
+          actualRow = TraceRow.skeleton<JankStruct>();
+          let timeLineType = actualData[0].type;
+          actualRow.rowId = `${ timeLineType }-${ it.pid }`;
+          actualRow.rowType = TraceRow.ROW_TYPE_JANK;
+          actualRow.rowParentId = `${ it.pid }`;
+          actualRow.rowHidden = !processRow.expansion;
+          actualRow.style.width = '100%';
+          actualRow.style.height = `${ maxHeight }px`;
+          actualRow.setAttribute('height', `${ maxHeight }`);
+          actualRow.name = 'Actual Timeline';
+          actualRow.addTemplateTypes('FrameTimeline');
+          actualRow.setAttribute('frame_type', actualData[0].frame_type);
+          actualRow.setAttribute('children', '');
+          actualRow.dataList = actualData;
+          actualRow.supplier = (): Promise<any> => new Promise((resolve) => resolve(actualData));
+          actualRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+          actualRow.selectChangeHandler = this.trace.selectChangeHandler;
+          actualRow.onThreadHandler = (useCache): void => {
+            let context = actualRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            actualRow!.canvasSave(context);
+            (renders['jank'] as JankRender).renderMainThread(
+              {
+                context: context,
+                useCache: useCache,
+                type: 'actual_frame_timeline_slice',
+              },
+              actualRow!
+            );
+            actualRow!.canvasRestore(context);
+          };
+          processRow.addChildTraceRow(actualRow);
         }
       }
       let offsetYTimeOut: any = undefined;

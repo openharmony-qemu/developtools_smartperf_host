@@ -187,7 +187,13 @@ export class LitTable extends HTMLElement {
             display: grid;
             background-color: var(--dark-background,#FFFFFF);
         }
-
+        :host([data-query-scene]) .th {
+          background-color: #F6F6F6;
+          color: #7E7E7E;
+        }
+        :host([data-query-scene]) .tr {
+          background-color: #F6F6F6;
+        }
         .tree-icon{
             font-size: 1.2rem;
             width: 20px;
@@ -1574,17 +1580,19 @@ export class LitTable extends HTMLElement {
           this.setSelectedRow(false, [firstElement]);
         }
       }
-      let dataIndex = this.columns![idx].getAttribute('data-index') || '1';
-      let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
-      if ((this.columns![idx] as any).template) {
-        (child as HTMLElement).innerHTML = '';
-        (child as HTMLElement).appendChild(
-          (this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true)
-        );
-        (child as HTMLElement).title = text;
-      } else {
-        (child as HTMLElement).innerHTML = text;
-        (child as HTMLElement).title = text;
+      if (idx < this.columns!.length) {
+        let dataIndex = this.columns![idx].getAttribute('data-index') || '1';
+        let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
+        if ((this.columns![idx] as any).template) {
+          (child as HTMLElement).innerHTML = '';
+          (child as HTMLElement).appendChild(
+            (this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true)
+          );
+          (child as HTMLElement).title = text;
+        } else {
+          (child as HTMLElement).innerHTML = text;
+          (child as HTMLElement).title = text;
+        }
       }
     });
     if (element.style.display == 'none') {

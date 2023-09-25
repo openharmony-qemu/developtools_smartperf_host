@@ -130,6 +130,7 @@ export class CustomThemeColor extends BaseElement {
     close!.addEventListener('click', (ev) => {
       if (this.application!.hasAttribute('custom-color')) {
         this.application!.removeAttribute('custom-color');
+        this.setAttribute('hidden', '');
       }
       this.cancelOperate();
     });
@@ -190,7 +191,7 @@ export class CustomThemeColor extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        :host([mode='hidden']) {
+        :host([hidden]) {
             visibility: hidden;
         }
         :host {

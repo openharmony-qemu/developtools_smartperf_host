@@ -324,4 +324,20 @@
         </g>
     </g>
     </symbol>
+    <symbol id="icon-run-sql" viewBox="0 0 24 24">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+            <g transform="translate(-1343.000000, -542.000000)">
+                <g transform="translate(228.000000, 88.000000)">
+                    <g id="table-copy" transform="translate(20.000000, 438.000000)">
+                        <g id="play" transform="translate(1095.000000, 16.000000)">
+                            <rect fill="#000000" opacity="0.600880941" x="0" y="0" width="16" height="16" rx="8"></rect>
+                            <g id="arrowDown" transform="translate(6.500669, 3.501909)" fill="#FFFFFF">
+                                <polygon transform="translate(2.500000, 4.500000) rotate(-270.000000) translate(-2.500000, -4.500000) " points="2.5 2 7 7 -2 7"></polygon>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </symbol>
 </svg>

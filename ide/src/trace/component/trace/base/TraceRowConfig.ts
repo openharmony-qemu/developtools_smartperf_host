@@ -330,7 +330,7 @@ export class TraceRowConfig extends BaseElement {
   initHtml(): string {
     return `
             <style>
-                :host([mode='hidden']){
+                :host([hidden]) {
                     visibility: hidden;
                 }
                 :host{

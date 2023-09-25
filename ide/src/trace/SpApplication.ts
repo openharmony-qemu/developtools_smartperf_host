@@ -439,7 +439,9 @@ export class SpApplication extends BaseElement {
     let customColor = this.shadowRoot?.querySelector('.custom-color') as CustomThemeColor;
     mainMenu!.setAttribute('main_menu', '1');
     chartFilter!.setAttribute('mode', '');
+    chartFilter!.setAttribute('hidden', '');
     customColor!.setAttribute('mode', '');
+    customColor!.setAttribute('hidden', '');
     let childNodes = [
       spSystemTrace,
       spRecordTrace,
@@ -517,8 +519,10 @@ export class SpApplication extends BaseElement {
     filterConfig.addEventListener('click', (ev) => {
       if (this!.hasAttribute('chart_filter')) {
         this!.removeAttribute('chart_filter');
+        chartFilter!.setAttribute('hidden', '');
       } else {
         this!.setAttribute('chart_filter', '');
+        chartFilter!.removeAttribute('hidden');
       }
     });
     configClose!.addEventListener('click', (ev) => {
@@ -533,9 +537,11 @@ export class SpApplication extends BaseElement {
     customColorShow.addEventListener('click', (ev) => {
       if (this!.hasAttribute('custom-color')) {
         this!.removeAttribute('custom-color');
+        customColor!.setAttribute('hidden', '');
         customColor.cancelOperate();
       } else {
         this!.setAttribute('custom-color', '');
+        customColor!.removeAttribute('hidden');
       }
     });
 
