@@ -15,6 +15,7 @@
 
 import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../base-ui/table/lit-table.js';
+import { MarkStruct } from '../../../bean/MarkStruct.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
 import { ns2s } from '../TimerShaftElement.js';
 import { Flag } from './Flag.js';
@@ -24,7 +25,7 @@ export class TabPaneFlag extends BaseElement {
   private flag: Flag | null = null;
   private flagList: Array<Flag> = [];
   private systemTrace: SpSystemTrace | undefined | null;
-  private tableDataSource: Array<FlagsStruct | any> = [];
+  private tableDataSource: Array<MarkStruct | any> = [];
   private panelTable: LitTable | undefined | null;
 
   initElements(): void {
@@ -42,7 +43,7 @@ export class TabPaneFlag extends BaseElement {
       this.panelTable?.setCurrentSelection(data);
       //   页面上对应的flag变为实心有旗杆
       this.flagList.forEach((flag) => {
-        if (data.time === flag.time) {
+        if (data.startTime === flag.time) {
           flag.selected = true;
         } else {
           flag.selected = false;
@@ -67,13 +68,6 @@ export class TabPaneFlag extends BaseElement {
     this.flag = flag;
     // 判断当前传入的旗子是否已经存在
     let findFlag = this.flagList.find((it) => it.time === flag.time);
-    // m键生成的临时旗子只能同时出现最后一个，所以将永久旗子过滤出来，并加上最后一个临时旗子
-    if (this.flag.type === 'triangle') {
-      this.flagList = this.flagList.filter(
-        (item: Flag) =>
-          item.type === '' || item.type === 'square' || (item.type === 'triangle' && item.time === this.flag!.time)
-      );
-    }
     // 如果this.flagList为空，或者没有在同一位置绘制过，就将当前的flag放进数组
     if (!findFlag || this.flagList.length === 0) {
       this.flagList!.push(this.flag);
@@ -97,20 +91,22 @@ export class TabPaneFlag extends BaseElement {
       btn.className = 'remove';
       let color = document.createElement('input');
       color.type = 'color';
-      let flagData = new FlagsStruct(btn, ns2s(flag.time), flag.time, color);
+      let flagData = new MarkStruct(btn, color, ns2s(flag.time), flag.time);
       color!.value = flag.color;
+      flag.selected === true ? (flagData.isSelected = true) : (flagData.isSelected = false);
+      this.systemTrace?.timerShaftEL!.sportRuler!.drawTriangle(flag.time, flag.type);
       this.tableDataSource.push(flagData);
     }
     // 表格第一行只添加一个RemoveAll按钮
     let removeAll = document.createElement('button');
     removeAll.className = 'removeAll';
     removeAll.innerHTML = 'RemoveAll';
-    let flagData = new FlagsStruct(removeAll);
+    let flagData = new MarkStruct(removeAll);
     this.tableDataSource.unshift(flagData);
 
     // 当前点击了哪个旗子，就将对应的表格中的那行的背景变色
     for (let data of this.tableDataSource) {
-      if (data.time === this.flag?.time) {
+      if (data.startTime === this.flag?.time) {
         data.isSelected = true;
         this.panelTable?.clearAllSelection(data);
         this.panelTable?.setCurrentSelection(data);
@@ -130,22 +126,24 @@ export class TabPaneFlag extends BaseElement {
       tr[i].querySelector('input')!.value = this.flagList[i - 1].color;
       //  点击色块修改颜色
       tr[i].querySelector('input')?.addEventListener('change', (event: any) => {
-        if (this.tableDataSource[i].time === this.flagList[i - 1].time) {
+        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
           this.flagList[i - 1].color = event?.target.value;
           document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
           //   旗子颜色改变时，重绘泳道图
           this.systemTrace?.refreshCanvas(true);
         }
+        event.stopPropagation();
       });
       // 点击remove按钮移除
       tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
-        if (this.tableDataSource[i].time === this.flagList[i - 1].time) {
+        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
           this.flagList[i - 1].hidden = true;
           this.systemTrace!.flagList = this.flagList || [];
           document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
           //   移除时更新表格内容
           this.setTableData();
         }
+        event.stopPropagation();
       });
     }
   }
@@ -160,7 +158,7 @@ export class TabPaneFlag extends BaseElement {
         }
         </style>
         <lit-table class="notes-editor-panel" style="height: auto">
-            <lit-table-column width="1fr" data-index="timeStr" key="timeStr" align="flex-start" title="TimeStamp">
+            <lit-table-column width="1fr" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="TimeStamp">
             </lit-table-column>
             <lit-table-column width="1fr" data-index="color" key="color" align="flex-start" title="Color">
                 <template>
@@ -195,19 +193,5 @@ export class TabPaneFlag extends BaseElement {
             </lit-table-column>
         </lit-table>
         `;
-  }
-}
-
-export class FlagsStruct {
-  timeStr: string | undefined;
-  time: number | undefined;
-  colorEl: HTMLInputElement | undefined;
-  operate: HTMLButtonElement | undefined;
-  isSelected: boolean = false;
-  constructor(operate: HTMLButtonElement, timeStr?: string, time?: number, colorEl?: HTMLInputElement | undefined) {
-    this.timeStr = timeStr;
-    this.time = time;
-    this.colorEl = colorEl;
-    this.operate = operate;
   }
 }

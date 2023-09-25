@@ -65,7 +65,7 @@ export class TabPanePTS extends BaseElement {
         labels[i].addEventListener('click', (e) => {
           if (label.includes('Process') && i === 0) {
             this.ptsTbl!.setStatus(data, false);
-            this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+            this.ptsTbl!.recycleDs = this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Thread') && i === 1) {
             for (let item of data) {
               item.status = true;
@@ -73,10 +73,10 @@ export class TabPanePTS extends BaseElement {
                 this.ptsTbl!.setStatus(item.children, false);
               }
             }
-            this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+            this.ptsTbl!.recycleDs = this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('State') && i === 2) {
             this.ptsTbl!.setStatus(data, true);
-            this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+            this.ptsTbl!.recycleDs = this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
           }
         });
       }

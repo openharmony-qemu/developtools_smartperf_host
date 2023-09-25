@@ -77,6 +77,7 @@ export class Top20ProcessThreadCount extends BaseElement {
     this.queryLogicWorker('scheduling-Process ThreadCount', 'query Process Thread Count Analysis Time:', (res) => {
       this.nodata!.noData = res === undefined || res.length === 0;
       this.processThreadCountTbl!.recycleDataSource = res;
+      this.processThreadCountTbl!.reMeauseHeight();
       this.processThreadCountData = res;
       this.processThreadCountPie!.config = {
         appendPadding: 10,

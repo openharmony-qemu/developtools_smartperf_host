@@ -15,6 +15,7 @@
 
 import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../base-ui/table/lit-table.js';
+import { MarkStruct } from '../../../bean/MarkStruct.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
 import { ns2s } from '../TimerShaftElement.js';
 import { SlicesTime, StType } from '../timer-shaft/SportRuler.js';
@@ -24,7 +25,7 @@ export class TabPaneCurrent extends BaseElement {
   private slicestimeList: Array<SlicesTime> = [];
   private slicestime: SlicesTime | null = null;
   private systemTrace: SpSystemTrace | undefined | null;
-  private tableDataSource: Array<SlicesStruct | any> = [];
+  private tableDataSource: Array<MarkStruct | any> = [];
   private panelTable: LitTable | undefined | null;
 
   initElements(): void {
@@ -99,22 +100,23 @@ export class TabPaneCurrent extends BaseElement {
       btn.className = 'remove';
       let color = document.createElement('input');
       color.type = 'color';
-      let sliceData = new SlicesStruct(
+      let sliceData = new MarkStruct(
         btn,
+        color,
         ns2s(slice.startTime),
-        ns2s(slice.endTime),
         slice.startTime,
-        slice.endTime,
-        color
+        ns2s(slice.endTime),
+        slice.endTime
       );
       color!.value = slice.color;
+      slice.selected === true ? (sliceData.isSelected = true) : (sliceData.isSelected = false);
       this.tableDataSource.push(sliceData);
     }
     // 表格第一行只添加一个RemoveAll按钮
     let removeAll = document.createElement('button');
     removeAll.className = 'removeAll';
     removeAll.innerHTML = 'RemoveAll';
-    let sliceData = new SlicesStruct(removeAll);
+    let sliceData = new MarkStruct(removeAll);
     this.tableDataSource.unshift(sliceData);
 
     // 当前点击了哪个卡尺，就将对应的表格中的那行的背景变色
@@ -148,6 +150,7 @@ export class TabPaneCurrent extends BaseElement {
           //   卡尺颜色改变时，重绘泳道图
           this.systemTrace?.refreshCanvas(true);
         }
+        event.stopPropagation();
       });
       // 点击remove按钮移除
       tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
@@ -162,6 +165,7 @@ export class TabPaneCurrent extends BaseElement {
           //   移除时更新表格内容
           this.setTableData();
         }
+        event.stopPropagation();
       });
     }
   }
@@ -213,30 +217,5 @@ export class TabPaneCurrent extends BaseElement {
             </lit-table-column>
         </lit-table>
         `;
-  }
-}
-
-export class SlicesStruct {
-  startTimeStr: string | undefined;
-  endTimeStr: string | undefined;
-  startTime: number | undefined;
-  endTime: number | undefined;
-  colorEl: HTMLInputElement | undefined;
-  operate: HTMLButtonElement | undefined;
-  isSelected: boolean = false;
-  constructor(
-    operate: HTMLButtonElement,
-    startTimeStr?: string,
-    endTimeStr?: string,
-    startTime?: number,
-    endTime?: number,
-    colorEl?: HTMLInputElement | undefined
-  ) {
-    this.startTimeStr = startTimeStr;
-    this.endTimeStr = endTimeStr;
-    this.startTime = startTime;
-    this.endTime = endTime;
-    this.colorEl = colorEl;
-    this.operate = operate;
   }
 }

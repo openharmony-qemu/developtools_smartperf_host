@@ -324,10 +324,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   set rowHidden(val: boolean) {
+    let height = 0;
     if (val) {
       this.setAttribute('row-hidden', '');
+      height = 0;
     } else {
       this.removeAttribute('row-hidden');
+      height = this.clientHeight;
+    }
+    if (this.collect){
+      window.publish(window.SmartEvent.UI.RowHeightChange, {
+        expand: this.funcExpand,
+        value: height,
+      });
     }
   }
 

@@ -651,14 +651,14 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (data.frame_type === 'render_service') {
         queryGpuDur(data.id!).then((it) => {
           if (it.length > 0) {
-            list.push({ name: `<div>Gpu Duration</div>`, value: getTimeString(it[0].gpu_dur) });
+            list.push({ name: 'Gpu Duration', value: getTimeString(it[0].gpu_dur) });
           }
         });
         if (data.src_slice) {
           queryFlowsData(data.src_slice!.split(',')).then((it) => {
             if (it.length > 0) {
               list.push({
-                name: `<div style="padding:5px 0 5px 0;">FrameTimeLine flows</div>`,
+                name: 'FrameTimeLine flows',
                 value: '',
               });
               it.forEach((a: any) => {
@@ -666,7 +666,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 appNode.children.push(new JankTreeNode(a.name, a.pid, 'frameTime'));
                 jankJumperList.push(appNode);
                 list.push({
-                  name: `<div>Slice</div>`,
+                  name: 'Slice',
                   value:
                     a.cmdline +
                     ' [' +
@@ -676,12 +676,12 @@ export class TabPaneCurrentSelection extends BaseElement {
                 });
               });
               list.push({
-                name: `<div style="padding:5px 0 5px 0;">Following flows</div>`,
+                name: 'Following flows',
                 value: '',
               });
               it.forEach((a: any) => {
                 list.push({
-                  name: `<div>Slice</div>`,
+                  name: 'Slice',
                   value:
                     a.cmdline +
                     ' [' +
@@ -699,11 +699,11 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
       } else if (data.frame_type === 'app') {
         list.push({
-          name: `<div style="padding:5px 0 5px 0;">FrameTimeLine flows</div>`,
+          name: 'FrameTimeLine flows',
           value: '',
         });
         list.push({
-          name: `<div>Slice</div>`,
+          name: 'Slice',
           value:
             data.cmdline +
             ' [' +
@@ -717,14 +717,14 @@ export class TabPaneCurrentSelection extends BaseElement {
           queryPrecedingData(data.dst_slice).then((it) => {
             if (it.length > 0) {
               list.push({
-                name: `<div style="padding:5px 0 5px 0;">Preceding flows</div>`,
+                name: 'Preceding flows',
                 value: '',
               });
               it.forEach((a: any) => {
                 let rsNode = new JankTreeNode(a.name, a.pid, 'render_service');
                 jankJumperList.push(rsNode);
                 list.push({
-                  name: `<div>Slice</div>`,
+                  name: 'Slice',
                   value:
                     a.cmdline +
                     ' [' +
@@ -745,60 +745,60 @@ export class TabPaneCurrentSelection extends BaseElement {
         queryGpuDur(data.id!).then((it) => {
           if (it.length > 0) {
             list.push({
-              name: `<div>Gpu Duration</div>`,
+              name: 'Gpu Duration',
               value: getTimeString(it[0].gpu_dur),
             });
           }
           if (data.name) {
             list.push({
-              name: `<div style="padding:5px 0 5px 0;">App Frame</div>`,
+              name: 'App Frame',
               value: '',
             });
             list.push({
-              name: `<div>Process</div>`,
+              name: 'Process',
               value: data.cmdline + ' ' + data.pid,
             });
             list.push({
-              name: '<div>StartTime(Relative)</div>',
+              name: 'StartTime(Relative)',
               value: getTimeString(data.ts || 0),
             });
             list.push({
-              name: '<div>StartTime(Absolute)</div>',
+              name: 'StartTime(Absolute)',
               value: ((data.ts || 0) + (window as any).recordStartNS) / 1000000000,
             });
             list.push({
-              name: `<div>end time</div>`,
+              name: 'end time',
               value: getTimeString(data!.ts! + data.dur! || 0),
             });
           }
           if (data.rs_name) {
             list.push({
-              name: `<div style="padding:5px 0 5px 0;">RenderService Frame</div>`,
+              name: 'RenderService Frame',
               value: '',
             });
             list.push({
-              name: `<div>Process</div>`,
+              name: 'Process',
               value: data.rs_name + ' ' + data.rs_pid,
             });
             list.push({
-              name: '<div>StartTime(Relative)</div>',
+              name: 'StartTime(Relative)',
               value: getTimeString(data.rs_ts || 0),
             });
             list.push({
-              name: '<div>StartTime(Absolute)</div>',
+              name: 'StartTime(Absolute)',
               value: ((data.rs_ts || 0) + (window as any).recordStartNS) / 1000000000,
             });
             list.push({
-              name: `<div>end time</div>`,
+              name: 'end time',
               value: getTimeString(data.rs_ts! + data.rs_dur! || 0),
             });
           }
           list.push({
-            name: `<div style="padding:5px 0 5px 0;">Following</div>`,
+            name: 'Following',
             value: '',
           });
           list.push({
-            name: `<div>Slice</div>`,
+            name: 'Slice',
             value:
               data.cmdline +
               ' [' +
@@ -1255,6 +1255,8 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       if (this.selectWakeupBean) {
         resource.unshift(this.selectWakeupBean);
+        maxDuration = Math.max(maxDuration, this.selectWakeupBean.dur);
+        maxPriority = Math.max(maxPriority, this.selectWakeupBean.priority);
       }
       resource.forEach((it) => {
         it.isSelected = it.priority === maxPriority || it.dur === maxDuration;

@@ -73,7 +73,7 @@ export class TabPaneSPT extends BaseElement {
         labels[i].addEventListener('click', (e) => {
           if (label.includes('State') && i === 0) {
             this.sptTbl!.setStatus(data, false);
-            this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+            this.sptTbl!.recycleDs = this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Process') && i === 1) {
             for (let item of data) {
               item.status = true;
@@ -81,10 +81,10 @@ export class TabPaneSPT extends BaseElement {
                 this.sptTbl!.setStatus(item.children, false);
               }
             }
-            this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+            this.sptTbl!.recycleDs = this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Thread') && i === 2) {
             this.sptTbl!.setStatus(data, true);
-            this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+            this.sptTbl!.recycleDs = this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
           }
         });
       }

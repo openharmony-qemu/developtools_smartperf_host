@@ -5354,15 +5354,3 @@ export const queryLogData = (oneDayTime: number): Promise<Array<LogStruct>> =>
 
 export const queryMetric = (metricName: string): Promise<Array<string>> =>
   query('queryMetric', metricName, '', 'exec-metric');
-
-export const queryTraceType = (): Promise<Array<{
-  value: string
-}>> =>
-  query(
-    'queryTraceType',
-    `SELECT m.value
-            FROM 
-                meta AS m
-            WHERE 
-                m.name = 'source_type';`
-  );

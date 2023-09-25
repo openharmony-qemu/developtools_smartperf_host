@@ -1139,7 +1139,9 @@ export class LitTable extends HTMLElement {
           td = document.createElement('div');
           td.innerHTML = text;
           td.dataIndex = dataIndex;
-          td.title = text;
+          if (text.indexOf('&lt;') === -1) {
+            td.title = text;
+          }
         }
         if (rowData.data.children && rowData.data.children.length > 0 && !rowData.data.hasNext) {
           let btn = this.createExpandBtn(rowData);
@@ -1231,7 +1233,9 @@ export class LitTable extends HTMLElement {
         td.style.textOverflow = 'ellipsis';
         td.style.whiteSpace = 'nowrap';
         let text = this.formatName(dataIndex, rowData.data[dataIndex]);
-        td.title = text;
+        if (text.indexOf('&lt;') === -1) {
+          td.title = text;
+        }
         td.dataIndex = dataIndex;
         td.style.justifyContent = column.getAttribute('align') || 'flex-start';
         if (column.template) {
@@ -1412,7 +1416,7 @@ export class LitTable extends HTMLElement {
     if (reduce == 0) {
       return;
     }
-    while (reduce <= this.tableElement!.clientHeight) {
+    while (reduce <= this.tableElement!.clientHeight + 1) {
       let newTableElement;
       if (this.hasAttribute('tree')) {
         newTableElement = this.createNewTreeTableElement(visibleObjects[skip]);
@@ -1460,7 +1464,9 @@ export class LitTable extends HTMLElement {
       td.dataIndex = dataIndex;
       td.style.justifyContent = column.getAttribute('align') || 'flex-start';
       let text = this.formatName(dataIndex, rowData.data[dataIndex]);
-      td.title = text;
+      if (text.indexOf('&lt;') === -1) {
+        td.title = text;
+      }
         //   如果表格中有模板的情况，将模板中的数据放进td中，没有模板，直接将文本放进td
         //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
         //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下

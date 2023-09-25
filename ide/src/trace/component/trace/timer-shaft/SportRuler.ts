@@ -275,17 +275,35 @@ export class SportRuler extends Graph {
             // ebpf需要考虑dur
             if (this.durArray && this.durArray.length > 0) {
               const dur = this.durArray[j];
-              inRange =
-                itemTime + dur >= startNS + sectionTime * (i - 1) &&
-                itemTime < startNS + sectionTime * i &&
-                itemTime + dur >= this.range.startNS &&
-                itemTime < this.range.endNS;
+              if (itemTime === this.range.endNS) {
+                // 如果时间点刚好和时间轴结束时间一样会导致该时间点没有计数,所以此情况需要的判断条件要多个等号
+                inRange =
+                  itemTime >= startNS + sectionTime * (i - 1) &&
+                  itemTime <= startNS + sectionTime * i &&
+                  itemTime >= this.range.startNS &&
+                  itemTime <= this.range.endNS;
+              } else {
+                // 判断时间点是否在某时间段内时，一般情况下和左边界相同算在该时间段，和右边界相同算在下一段，
+                inRange =
+                  itemTime + dur >= startNS + sectionTime * (i - 1) &&
+                  itemTime < startNS + sectionTime * i &&
+                  itemTime + dur >= this.range.startNS &&
+                  itemTime < this.range.endNS;
+              }
             } else {
-              inRange =
-                itemTime >= startNS + sectionTime * (i - 1) &&
-                itemTime < startNS + sectionTime * i &&
-                itemTime >= this.range.startNS &&
-                itemTime < this.range.endNS;
+              if (itemTime === this.range.endNS) {
+                inRange =
+                  itemTime >= startNS + sectionTime * (i - 1) &&
+                  itemTime <= startNS + sectionTime * i &&
+                  itemTime >= this.range.startNS &&
+                  itemTime <= this.range.endNS;
+              } else {
+                inRange =
+                  itemTime >= startNS + sectionTime * (i - 1) &&
+                  itemTime < startNS + sectionTime * i &&
+                  itemTime >= this.range.startNS &&
+                  itemTime < this.range.endNS;
+              }
             }
             // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
             if (inRange) {
@@ -626,20 +644,8 @@ export class SportRuler extends Graph {
           findFlag.selected = true;
         } else {
           let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
-          if (TraceRow.rangeSelectObject?.startNS! && TraceRow.rangeSelectObject?.endNS!) {
-            if (
-              flagAtRulerTime < TraceRow.rangeSelectObject!.startNS! ||
-              this.range.startNS + flagAtRulerTime > TraceRow.rangeSelectObject?.endNS!
-            ) {
-              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-              this.flagList.push(flag);
-            }
-          } else {
-            if (flagAtRulerTime > 0 && this.range.startNS + flagAtRulerTime < this.range.endNS) {
-              let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
-              this.flagList.push(flag);
-            }
-          }
+          let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
+          this.flagList.push(flag);
         }
         this.flagClickHandler && this.flagClickHandler(this.flagList.find((it) => it.selected)); // 绘制旗子
       }

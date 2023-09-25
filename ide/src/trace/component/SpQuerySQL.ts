@@ -45,7 +45,7 @@ export class SpQuerySQL extends BaseElement {
   initElements(): void {
     this.progressLoad = this.shadowRoot?.querySelector('.load-query-sql') as LitProgressBar;
     this.selector = this.shadowRoot?.querySelector('.sql-select') as HTMLTextAreaElement;
-    this.queryTableEl = new LitTable();
+    this.queryTableEl = this.shadowRoot?.querySelector('lit-table') as LitTable;
     this.queryTableEl.setAttribute('data-query-scene','');
     this.querySize = this.shadowRoot?.querySelector('.query_size') as HTMLElement;
     this.response = this.shadowRoot?.querySelector('#dataResult') as HTMLDivElement;
@@ -166,16 +166,18 @@ export class SpQuerySQL extends BaseElement {
     }
   };
 
-  private executeSql(sql: string) : void{
+  private executeSql(sql: string): void {
     this.progressLoad!.loading = true;
     queryCustomizeSelect(sql).then((resultList): void => {
       if (resultList && resultList.length > 0) {
         this.statDataArray = resultList;
         this.keyList = Object.keys(resultList[0]);
         this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
-        this.initDataElement();
-        this.response!.appendChild(this.queryTableEl!);
-        this.setPageNationTableEl();
+        setTimeout(() => {
+          this.initDataElement();
+          this.response!.appendChild(this.queryTableEl!);
+          this.setPageNationTableEl();
+        }, 50);
       } else {
         this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
         this.progressLoad!.loading = false;
@@ -276,6 +278,7 @@ export class SpQuerySQL extends BaseElement {
   }
 
   runSqlListener = (e: Event): void => {
+    this.scrollTo(0, 0);
     this.statDataArray = [];
     this.keyList = [];
     this.response!.innerHTML = '';
@@ -504,7 +507,9 @@ export class SpQuerySQL extends BaseElement {
                          <button id="close-button" class="button-option">Close</button>
                       </div>
                   </div>
-                 <div id="dataResult"></div>
+                 <div id="dataResult">
+                    <lit-table></lit-table>
+                  </div>
                  <pagination-box class="pagination-box"></pagination-box>
               </div>
               <div class="query-sql">
