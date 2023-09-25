@@ -486,7 +486,7 @@ export class TraceSheet extends BaseElement {
       this.displayTab<TabPaneSummary>('box-heap-summary').setSnapshotData(data, dataList, scrollCallback);
     }
   };
-  displayFlagData = (flagObj: Flag): void => this.displayTab<TabPaneFlag>('box-flag').setFlagObj(flagObj);
+  displayFlagData = (flagObj: Flag): void => this.displayTab<TabPaneFlag>('box-flag').setCurrentFlag(flagObj);
   displayFreqData = (): CpuFreqStruct | undefined =>
     (this.displayTab<TabPaneCurrentSelection>('box-freq').data = CpuFreqStruct.selectCpuFreqStruct);
   displayCpuStateData = (): CpuStateStruct | undefined =>

@@ -340,8 +340,6 @@ export class SportRuler extends Graph {
           if (triangle !== -1) {
             this.flagList[i].type == '' ? this.flagList.splice(triangle, 1) : '';
           }
-          this.flagList.forEach((it) => (it.selected = false));
-          this.flagList[i].selected = true;
         } else {
           if (triangle == -1) {
             this.flagList.forEach((it) => (it.selected = false));
