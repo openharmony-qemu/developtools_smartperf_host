@@ -27,8 +27,8 @@
 #include "json.hpp"
 #include "log.h"
 #include "string_help.h"
+#include "trace_streamer_selector.h"
 #include "version.h"
-
 
 #define UNUSED(expr)             \
     do {                         \
@@ -99,15 +99,70 @@ bool RpcServer::ParseDataWithoutCallback(const uint8_t* data, size_t len, int32_
     } while (len > 0);
     return true;
 }
+
+bool RpcServer::GetLongTraceTimeSnap(std::string dataString)
+{
+    int count = dataString.size() / PACKET_HEADER_LENGTH;
+    for (int i = 0; i < count; i++) {
+        if (!GetTimeSnap(dataString)) {
+            TS_LOGE("GetLongTraceTimeSnap error");
+            return false;
+        }
+    }
+    return true;
+}
+bool RpcServer::GetTimeSnap(std::string dataString)
+{
+    if (dataString.size() < PACKET_HEADER_LENGTH) {
+        TS_LOGE("buffer size less than profiler trace file header");
+        return false;
+    }
+    uint8_t buffer[PACKET_HEADER_LENGTH];
+    (void)memset_s(buffer, PACKET_HEADER_LENGTH, 0, PACKET_HEADER_LENGTH);
+    int32_t i = 0;
+    for (auto it = dataString.begin(); it != dataString.begin() + PACKET_HEADER_LENGTH; ++it, ++i) {
+        buffer[i] = *it;
+    }
+    ProfilerTraceFileHeader* pHeader = reinterpret_cast<ProfilerTraceFileHeader*>(buffer);
+    if (pHeader->data.length <= PACKET_HEADER_LENGTH || pHeader->data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
+        TS_LOGE("Profiler Trace data is truncated or invalid magic! len = %" PRIu64 ", maigc = %" PRIx64 "",
+                pHeader->data.length, pHeader->data.magic);
+        return false;
+    }
+    TraceTimeSnap longTraceTimeSnap;
+    longTraceTimeSnap.startTime = pHeader->data.boottime;
+    longTraceTimeSnap.endTime = pHeader->data.boottime + pHeader->data.durationNs;
+    vTraceTimeSnap_.emplace_back(longTraceTimeSnap);
+    return true;
+}
+bool RpcServer::LongTraceSplitFile(const uint8_t* data,
+                                   size_t len,
+                                   int32_t isFinish,
+                                   uint32_t pageNum,
+                                   SplitFileCallBack splitFileCallBack)
+{
+    if (vTraceTimeSnap_.size() <= pageNum) {
+        return false;
+    }
+    ts_->minTs_ = vTraceTimeSnap_[pageNum].startTime;
+    ts_->maxTs_ = vTraceTimeSnap_[pageNum].endTime;
+    ParseSplitFileData(data, len, isFinish, splitFileCallBack, true);
+    return true;
+}
+
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
                                    size_t len,
                                    int32_t isFinish,
                                    SplitFileCallBack splitFileCallBack,
                                    bool isSplitFile)
 {
-    ParseDataWithoutCallback(data, len, isFinish, isSplitFile);
+    if (!ParseDataWithoutCallback(data, len, isFinish, isSplitFile)) {
+        TS_LOGE("ParserData failed!");
+        return false;
+    }
     if (isSplitFile && ts_->GetFileType() == TRACE_FILETYPE_BY_TRACE) {
-        splitFileCallBack(ts_->GetBytraceData()->GetTraceDataBytrace(), (int32_t)SplitDataDataType::SPLIT_FILE_DATA, isFinish);
+        splitFileCallBack(ts_->GetBytraceData()->GetTraceDataBytrace(), (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
+                          isFinish);
         ts_->GetBytraceData()->ClearByTraceData();
         return true;
     }
@@ -175,11 +230,8 @@ void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto splitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
-    TS_LOGI("splitResult.size = %zu", splitResult.size());
-    bool replyFinish = false;
     std::string result = VALUE;
     for (auto it = splitResult.begin(); it != splitResult.end(); ++it) {
-        replyFinish = (isLast && (it == splitResult.end() - 1));
         if (it->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
             result += OFFSET + std::to_string(it->json.offset);
             result += SIZE + std::to_string(it->json.size);
@@ -188,29 +240,24 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
             if (result != VALUE) {
                 result.pop_back();
                 result += "]}\r\n";
-                TS_LOGE("SPLIT_FILE_JSON : %s", result.c_str());
                 splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
                 result = VALUE;
             }
             std::string buffer(reinterpret_cast<char*>(it->buffer.address), it->buffer.size);
-            TS_LOGE("SPLIT_FILE_DATA : size = %llu, replyFinish = %d", it->buffer.size, replyFinish);
             splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
         }
     }
     if (result != VALUE) {
         result.pop_back();
         result += "]}\r\n";
-        TS_LOGE("SPLIT_FILE_JSON : %s, replyFinish = %d", result.c_str(), replyFinish);
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
 }
 void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto splitResult = ts_->GetHtraceData()->GetPerfSplitResult();
-    bool replyFinish = false;
     std::string result = VALUE;
     for (auto it = splitResult.begin(); it != splitResult.end(); ++it) {
-        replyFinish = (isLast && (it == splitResult.end() - 1));
         if (it->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
             result += OFFSET + std::to_string(it->json.offset);
             result += SIZE + std::to_string(it->json.size);
@@ -220,12 +267,10 @@ void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool is
                 result.pop_back();
                 result += "]}\r\n";
                 splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
-                TS_LOGE("SPLIT_FILE_JSON : %s", result.c_str());
                 result = VALUE;
             }
             std::string buffer(reinterpret_cast<char*>(it->buffer.address), it->buffer.size);
             splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
-            TS_LOGE("SPLIT_FILE_DATA : size = %llu", it->buffer.size);
         }
     }
 
@@ -233,7 +278,6 @@ void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool is
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
-        TS_LOGE("SPLIT_FILE_JSON : %s", result.c_str());
     }
 }
 

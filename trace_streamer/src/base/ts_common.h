@@ -205,6 +205,10 @@ struct ArgsData {
     BaseDataType type;
     int64_t value;
 };
+struct TraceTimeSnap {
+    uint64_t startTime;
+    uint64_t endTime;
+};
 } // namespace TraceStreamer
 } // namespace SysTuning
 #endif

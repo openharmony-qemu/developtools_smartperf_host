@@ -110,6 +110,22 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerParserConfigEx(int dataLen)
     }
     return -1;
 }
+EMSCRIPTEN_KEEPALIVE int TraceStreamerGetLongTraceTimeSnapEx(int dataLen)
+{
+    std::string dataString(reinterpret_cast<const char*>(g_splitFileBuf), dataLen);
+    if (g_wasmTraceStreamer.GetLongTraceTimeSnap(dataString)) {
+        return 0;
+    }
+    return -1;
+}
+
+EMSCRIPTEN_KEEPALIVE int TraceStreamerLongTraceSplitFileEx(int dataLen, int32_t isFinish, uint32_t pageNum)
+{
+    if (g_wasmTraceStreamer.LongTraceSplitFile(g_splitFileBuf, dataLen, isFinish, pageNum, &SplitFileCallback)) {
+        return 0;
+    }
+    return -1;
+}
 
 EMSCRIPTEN_KEEPALIVE uint8_t* InitFileName(ParseELFFunction parseELFCallback, uint32_t reqBufferSize)
 {

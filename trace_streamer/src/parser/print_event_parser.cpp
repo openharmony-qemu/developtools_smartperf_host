@@ -148,7 +148,8 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
         // pop for '.': '1693876195576.'
         info.back().pop_back();
         uint64_t inputTime = base::StrToInt<uint64_t>(info.back()).value();
-        inputTime = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, inputTime * ONE_MILLION_NANOSECONDS);
+        inputTime =
+            streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, inputTime * ONE_MILLION_NANOSECONDS);
         streamFilters_->animationFilter_->StartAnimationEvent(line, inputTime, index);
     }
 }

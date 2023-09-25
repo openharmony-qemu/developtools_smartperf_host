@@ -53,6 +53,13 @@ public:
     bool SplitFile(std::string timeSnaps);
     void ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack);
     void ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+    bool GetLongTraceTimeSnap(std::string dataString);
+    bool LongTraceSplitFile(const uint8_t* data,
+                            size_t len,
+                            int32_t isFinish,
+                            uint32_t pageNum,
+                            SplitFileCallBack splitFileCallBack);
+    bool GetTimeSnap(std::string dataString);
 #ifdef IS_WASM
     int32_t DownloadELFCallback(const std::string& fileName,
                                 size_t totalLen,
@@ -69,6 +76,7 @@ private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;
     std::vector<std::string> symbolsPathFiles_;
+    std::vector<TraceTimeSnap> vTraceTimeSnap_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
