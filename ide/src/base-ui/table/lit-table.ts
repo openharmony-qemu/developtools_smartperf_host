@@ -359,26 +359,28 @@ export class LitTable extends HTMLElement {
   }
 
   set recycleDataSource(value) {
-    this.isScrollXOutSide = this.tableElement!.scrollWidth > this.tableElement!.clientWidth;
-    this.isRecycleList = true;
-    this.ds = value;
-    if (this.rememberScrollTop) {
-      this.currentScrollTop = this.tableElement!.scrollTop;
-      this.tableElement!.scrollTop = 0;
-      this.tableElement!.scrollLeft = 0;
-    } else {
-      this.tableElement!.scrollTop = 0;
-      this.tableElement!.scrollLeft = 0;
-    }
-    if (this.hasAttribute('tree')) {
-      this.value = value;
-      if (this.shadowRoot?.querySelector('.expand')) {
-        this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.top')!.name = 'up';
-        this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.bottom')!.name = 'down';
+    if (this.tableElement) {
+      this.isScrollXOutSide = this.tableElement!.scrollWidth > this.tableElement!.clientWidth;
+      this.isRecycleList = true;
+      this.ds = value;
+      if (this.rememberScrollTop) {
+        this.currentScrollTop = this.tableElement!.scrollTop;
+        this.tableElement!.scrollTop = 0;
+        this.tableElement!.scrollLeft = 0;
+      } else {
+        this.tableElement!.scrollTop = 0;
+        this.tableElement!.scrollLeft = 0;
       }
-      this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
-    } else {
-      this.recycleDs = this.meauseAllRowHeight(value);
+      if (this.hasAttribute('tree')) {
+        this.value = value;
+        if (this.shadowRoot?.querySelector('.expand')) {
+          this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.top')!.name = 'up';
+          this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.bottom')!.name = 'down';
+        }
+        this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
+      } else {
+        this.recycleDs = this.meauseAllRowHeight(value);
+      }
     }
   }
 
@@ -789,20 +791,21 @@ export class LitTable extends HTMLElement {
   private beforeResizeWidth1: number = 0;
   private beforeResizeWidth2: number = 0;
 
-  resizeEventHandler(header: HTMLDivElement, element: HTMLDivElement, index: number){
+  resizeEventHandler(header: HTMLDivElement, element: HTMLDivElement, index: number) {
     header.addEventListener('mousemove', (event) => {
       if (!this.columnResizeEnable) return;
       if (this.isResize) {
         let width = event.clientX - this.resizeDownX;
         header.style.cursor = 'col-resize';
-        let preWidth = this.beforeResizeWidth1, nowWidth = this.beforeResizeWidth2;
+        let preWidth = this.beforeResizeWidth1,
+          nowWidth = this.beforeResizeWidth2;
         if (width < 0) {
           preWidth = Math.max(this.beforeResizeWidth1 + width, this.columnMinWidth);
-          nowWidth = (this.beforeResizeWidth1 - preWidth) + this.beforeResizeWidth2;
+          nowWidth = this.beforeResizeWidth1 - preWidth + this.beforeResizeWidth2;
         }
         if (width > 0) {
           nowWidth = Math.max(this.beforeResizeWidth2 - width, this.columnMinWidth);
-          preWidth = (this.beforeResizeWidth2 - nowWidth) + this.beforeResizeWidth1;
+          preWidth = this.beforeResizeWidth2 - nowWidth + this.beforeResizeWidth1;
         }
         this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
         this.gridTemplateColumns[this.resizeColumnIndex] = `${nowWidth}px`;
@@ -840,18 +843,18 @@ export class LitTable extends HTMLElement {
       this.resizeColumnIndex = -1;
       header.style.cursor = 'pointer';
     });
-    element.addEventListener('mousedown', (event)=> {
+    element.addEventListener('mousedown', (event) => {
       if (!this.columnResizeEnable) return;
       this.isResize = true;
       this.resizeColumnIndex = index;
       this.resizeDownX = event.clientX;
-      let pre = (header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement);
-      let now = (header.childNodes.item(this.resizeColumnIndex) as HTMLDivElement);
+      let pre = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
+      let now = header.childNodes.item(this.resizeColumnIndex) as HTMLDivElement;
       this.beforeResizeWidth1 = pre.clientWidth;
       this.beforeResizeWidth2 = now.clientWidth;
       event.stopPropagation();
     });
-    element.addEventListener('click',(event) => {
+    element.addEventListener('click', (event) => {
       event.stopPropagation();
     });
   }
@@ -1458,9 +1461,32 @@ export class LitTable extends HTMLElement {
       td.style.justifyContent = column.getAttribute('align') || 'flex-start';
       let text = this.formatName(dataIndex, rowData.data[dataIndex]);
       td.title = text;
+        //   如果表格中有模板的情况，将模板中的数据放进td中，没有模板，直接将文本放进td
+        //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
+        //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下
       if (column.template) {
-        td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
-        td.template = column.template;
+        if (dataIndex === 'color' && rowData.data.colorEl === undefined) {
+          td.innerHTML = '';
+          td.template = '';
+        } else if (dataIndex === 'operate' && rowData.data.operate && rowData.data.operate.innerHTML === 'RemoveAll') {
+          let removeAll = document.createElement('button');
+          removeAll.className = 'removeAll';
+          removeAll.innerHTML = 'RemoveAll';
+          removeAll.style.background = 'var(--dark-border1,#262f3c)';
+          removeAll.style.color = 'white';
+          removeAll.style.borderRadius = '10px';
+          removeAll.style.fontSize = '10px';
+          removeAll.style.height = '18px';
+          removeAll.style.lineHeight = '18px';
+          removeAll.style.minWidth = '7em';
+          removeAll.style.border = 'none';
+          removeAll.style.cursor = 'pointer';
+          removeAll.style.outline = 'inherit';
+          td.appendChild(removeAll);
+        } else {
+          td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
+          td.template = column.template;
+        }
       } else {
         td.innerHTML = text;
       }

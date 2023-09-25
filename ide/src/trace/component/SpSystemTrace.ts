@@ -185,9 +185,14 @@ export class SpSystemTrace extends BaseElement {
   private snapshotFiles: FileInfo | null | undefined;
   private tabCpuFreq: TabPaneFrequencySample | undefined | null;
   private tabCpuState: TabPaneCounterSample | undefined | null;
+  private _list: Array<SlicesTime> = [];
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
+  }
+
+  set slicesList(list: Array<SlicesTime>) {
+    this._list = list;
   }
 
   addPointPair(startPoint: PairPoint, endPoint: PairPoint) {
@@ -357,7 +362,9 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL?.modifySlicesList(event.detail);
       if (event.detail.hidden) {
         this.slicestime = null;
-        this.traceSheetEL?.setAttribute('mode', 'hidden');
+        if (this._list.length <= 1) {
+          this.traceSheetEL?.setAttribute('mode', 'hidden');
+        }
         this.refreshCanvas(true);
       }
     });
