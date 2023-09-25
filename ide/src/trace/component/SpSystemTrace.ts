@@ -1957,7 +1957,85 @@ export class SpSystemTrace extends BaseElement {
         );
       }
     }
+
+    if (ev.ctrlKey) {
+      if (keyPress === '[' && this._slicesList.length > 1) {
+        this.MarkJump(this._slicesList, 'slice', 'previous');
+      } else if (keyPress === ',' && this._flagList.length > 1) {
+        this.MarkJump(this._flagList, 'flag', 'previous');
+      } else if (keyPress === ']' && this._slicesList.length > 1) {
+        this.MarkJump(this._slicesList, 'slice', 'next');
+      } else if (keyPress === '.' && this._flagList.length > 1) {
+        this.MarkJump(this._flagList, 'flag', 'next');
+      } else {
+        return;
+      }
+    }
   };
+
+  /**
+   * 根据传入的参数实现卡尺和旗子的快捷跳转
+   * @param list 要跳转的数组
+   * @param type 标记类型（卡尺和旗子）
+   * @param direction 跳转方向（前一个/后一个）
+   */
+  MarkJump(list: Array<any>, type: string, direction: string) {
+    this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
+    let find = list.find((it) => it.selected);
+    if (!find) {
+      // 如果当前没有选中的，就选中第一个
+      list.forEach((it) => (it.selected = false));
+      list[0].selected = true;
+    } else {
+      for (let i = 0; i < list.length; i++) {
+        // 将当前数组中选中的那条数据改为未选中
+        if (list[i].selected) {
+          list[i].selected = false;
+          if (direction === 'previous') {
+            if (i === 0) {
+              // 如果当前选中的是第一个，就循环到最后一个上
+              list[list.length - 1].selected = true;
+              break;
+            } else {
+              // 选中当前的上一个
+              list[i - 1].selected = true;
+              break;
+            }
+          } else if (direction === 'next') {
+            if (i === list.length - 1) {
+              // 如果当前选中的是最后一个，就循环到第一个上
+              list[0].selected = true;
+              break;
+            } else {
+              // 选中当前的下一个
+              list[i + 1].selected = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (type === 'flag') {
+      let currentPane = this.traceSheetEL?.displayTab<TabPaneFlag>('box-flag');
+      list.forEach((flag, index) => {
+        this.timerShaftEL!.sportRuler!.drawTriangle(flag.time, flag.type);
+        if (flag.selected) {
+          // 修改当前选中的旗子对应的表格中某行的背景
+          currentPane!.setTableSelection(index + 1);
+        }
+      });
+    } else if (type === 'slice') {
+      this.refreshCanvas(true);
+      let currentPane = this.traceSheetEL?.displayTab<TabPaneCurrent>('tabpane-current');
+      list.forEach((slice, index) => {
+        if (slice.selected) {
+          // 修改当前选中的卡尺对应的表格中某行的背景
+          currentPane!.setTableSelection(index + 1);
+        }
+      });
+    }
+  }
 
   isMouseInSheet = (ev: MouseEvent) => {
     this.isMousePointInSheet =
