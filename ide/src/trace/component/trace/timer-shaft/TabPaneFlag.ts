@@ -170,13 +170,13 @@ export class TabPaneFlag extends BaseElement {
             </lit-table-column>
             <lit-table-column width="1fr" data-index="color" key="color" align="flex-start" title="Color">
                 <template>
-                    <div style='width:50px; height: 18px; position: relative;overflow: hidden;'>
+                    <div style='width:50px; height: 21px; position: relative;overflow: hidden;'>
                         <input type="color" id="color-input" style='
                             background: var(--dark-background5,#FFFFFF);
                             padding: 0px;
                             border: none;
                             width: 60px;
-                            height: 28px;
+                            height: 31px;
                             position: absolute;
                             top: -5px;
                             left: -5px;'/>
@@ -190,8 +190,8 @@ export class TabPaneFlag extends BaseElement {
                         color: white;
                         border-radius: 10px;
                         font-size: 10px;
-                        height: 18px;
-                        line-height: 18px;
+                        height: 21px;
+                        line-height: 21px;
                         min-width: 7em;
                         border: none;
                         cursor: pointer;
