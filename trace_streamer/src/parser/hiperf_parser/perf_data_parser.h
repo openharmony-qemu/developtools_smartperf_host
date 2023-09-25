@@ -189,6 +189,7 @@ private:
     std::vector<HtraceSplitResult> splitResult_;
     bool stackCompressedMode_ = false;
     std::set<uint32_t> savedCompressedCallChainId_ = {};
+    uint32_t compressFailedCallChainId_ = INVALID_UINT32;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

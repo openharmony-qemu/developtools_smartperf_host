@@ -597,6 +597,9 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
 uint32_t PerfDataParser::UpdateCallChainCompressed(const std::unique_ptr<PerfRecordSample>& sample)
 {
     auto callChainId = static_cast<uint32_t>(sample->StackId_.section.id);
+    if (callChainId == 0) {
+        callChainId = --compressFailedCallChainId_;
+    }
     if (savedCompressedCallChainId_.count(callChainId) != 0) {
         return callChainId;
     }

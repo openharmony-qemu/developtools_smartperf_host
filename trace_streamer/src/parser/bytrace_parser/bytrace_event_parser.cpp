@@ -734,6 +734,7 @@ void BytraceEventParser::FilterAllEvents()
     if (traceDataCache_->AppStartTraceEnabled()) {
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     }
+    traceDataCache_->GetThreadStateData()->SortAllRowByTs();
 }
 
 void BytraceEventParser::BeginFilterEvents(EventInfo* event)

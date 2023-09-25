@@ -865,6 +865,7 @@ void HtraceEventParser::FilterAllEvents()
     if (traceDataCache_->AppStartTraceEnabled()) {
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     }
+    traceDataCache_->GetThreadStateData()->SortAllRowByTs();
 }
 
 void HtraceEventParser::ProtoReaderDealEvent(const ProtoReader::FtraceEvent_Reader& ftraceEvent,

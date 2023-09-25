@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <map>
 #include "string_to_numerical.h"
 namespace SysTuning {
 namespace TraceStdtype {
@@ -50,6 +51,41 @@ TableRowId ThreadStateData::AppendThreadState(InternalTime ts,
 void ThreadStateData::SetDuration(TableRowId index, InternalTime dur)
 {
     durations_[index] = dur;
+}
+
+void ThreadStateData::SortAllRowByTs()
+{
+    std::deque<InternalTime> timeStampsTemp;
+    timeStampsTemp = std::move(timeStamps_);    
+    std::multimap<uint64_t, uint32_t> timeStampsToIdMap = {};
+    for(auto id = 0; id < timeStampsTemp.size(); ++id)
+    {
+        timeStampsToIdMap.insert({timeStampsTemp[id], id});
+    }
+    std::deque<InternalTime> durationsTemp;
+    std::deque<InternalTid> itidsTemp;
+    std::deque<InternalTid> tidsTemp;
+    std::deque<InternalPid> pidsTemp;
+    std::deque<DataIndex> statesTemp;
+    std::deque<InternalCpu> cpusTemp;
+    std::deque<uint32_t> argSetIdsTemp;
+    durationsTemp = std::move(durations_);
+    itidsTemp = std::move(itids_);
+    tidsTemp = std::move(tids_);
+    pidsTemp = std::move(pids_);
+    statesTemp = std::move(states_);
+    cpusTemp = std::move(cpus_);
+    argSetIdsTemp = std::move(argSetIds_);
+    for (auto itor = timeStampsToIdMap.begin(); itor != timeStampsToIdMap.end(); itor++) {
+        timeStamps_.emplace_back(timeStampsTemp[itor->second]);
+        durations_.emplace_back(durationsTemp[itor->second]);
+        itids_.emplace_back(itidsTemp[itor->second]);
+        tids_.emplace_back(tidsTemp[itor->second]);
+        pids_.emplace_back(pidsTemp[itor->second]);
+        states_.emplace_back(statesTemp[itor->second]);
+        cpus_.emplace_back(cpusTemp[itor->second]);
+        argSetIds_.emplace_back(argSetIdsTemp[itor->second]);
+    }
 }
 void DataDict::Finish()
 {

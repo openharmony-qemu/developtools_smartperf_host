@@ -133,6 +133,7 @@ public:
     void UpdateDuration(TableRowId index, InternalTime ts, TableRowId idState);
     void UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid);
     TableRowId UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState);
+    void SortAllRowByTs();
     void Clear()
     {
         timeStamps_.clear();
