@@ -85,6 +85,7 @@ export class TraceSheet extends BaseElement {
   systemLogFlag: Flag | undefined | null;
   private litTabs: LitTabs | undefined | null;
   private importDiv: HTMLDivElement | undefined | null;
+  private exportBt: LitIcon | undefined | null;
   private nav: HTMLDivElement | undefined | null;
   private selection: SelectionParam | undefined | null;
   private currentPaneID: string = 'current-selection';
@@ -118,6 +119,11 @@ export class TraceSheet extends BaseElement {
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
     let litTabpane = this.shadowRoot?.querySelector<LitTabpane>(`#tabs lit-tabpane[id='${names[0]}']`);
+    if (names[0] === 'current-selection') {
+      this.exportBt!.style.display = 'none';
+    } else {
+      this.exportBt!.style.display = 'flex';
+    }
     this.shadowRoot?.querySelector<LitTabs>('#tabs')?.activePane(litTabpane!.key);
     return litTabpane!.children.item(0) as unknown as T;
   }
@@ -266,7 +272,7 @@ export class TraceSheet extends BaseElement {
     let tabsPackUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#min-btn');
     let importFileBt: HTMLInputElement | undefined | null =
       this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
-    let exportDataBt: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
+    this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
       tabs!.style.height = window.innerHeight - search!.offsetHeight - timerShaft!.offsetHeight - borderTop + 'px';
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
@@ -330,7 +336,7 @@ export class TraceSheet extends BaseElement {
       importFileBt!.files = null;
       importFileBt!.value = '';
     });
-    exportDataBt!.onclick = (): void => {
+    this.exportBt!.onclick = (): void => {
       let currentTab = this.getTabpaneByKey(this.litTabs?.activekey!);
       if (currentTab) {
         let tables = Array.from(
@@ -615,6 +621,7 @@ export class TraceSheet extends BaseElement {
 
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
+    this.exportBt!.style.display = 'flex';
     this.showUploadSoBt(selection);
     Reflect.ownKeys(tabConfig)
       .reverse()

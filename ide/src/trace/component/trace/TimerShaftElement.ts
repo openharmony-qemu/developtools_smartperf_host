@@ -564,11 +564,11 @@ export class TimerShaftElement extends BaseElement {
                     <div class="collect_group">
                         <div class="collect_div">
                             <input id="collect1" type="radio" style="cursor: pointer" checked name="collect_group" value="1"/>
-                            <label>collect 1</label>
+                            <label>G1</label>
                         </div>
                         <div class="collect_div">
                             <input type="radio" style="cursor: pointer" name="collect_group" value="2"/>
-                            <label>collect 2</label>
+                            <label>G2</label>
                         </div>
                     </div>
                     <collapse-button expand>123</collapse-button>

@@ -26,7 +26,6 @@ import {
 } from '../../database/SqlLite.js';
 import { info } from '../../../log/Log.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
-import { procedurePool } from '../../database/Procedure.js';
 import { ColorUtils } from '../trace/base/ColorUtils.js';
 import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
@@ -77,6 +76,9 @@ export class SpFreqChart {
           `<span>${ColorUtils.formatNumberComma(CpuFreqStruct.hoverCpuFreqStruct?.value!)} kHz</span>`
         );
       };
+      traceRow.findHoverStruct = () => {
+        CpuFreqStruct.hoverCpuFreqStruct = traceRow.getHoverStruct();
+      };
       traceRow.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(traceRow.currentContext){
@@ -122,6 +124,9 @@ export class SpFreqChart {
           CpuStateStruct.hoverStateStruct,
           `<span>State: ${CpuStateStruct.hoverStateStruct?.value}</span>`
         );
+      };
+      cpuStateRow.findHoverStruct = () => {
+        CpuStateStruct.hoverStateStruct = cpuStateRow.getHoverStruct();
       };
       cpuStateRow.onThreadHandler = (useCache: boolean) => {
         let context:CanvasRenderingContext2D;
@@ -172,6 +177,9 @@ export class SpFreqChart {
             CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct?.min || 0
           )} kHz</span>`
         );
+      };
+      cpuFreqLimitRow.findHoverStruct = () => {
+        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = cpuFreqLimitRow.getHoverStruct();
       };
       cpuFreqLimitRow.onThreadHandler = (useCache: boolean) => {
         let context:CanvasRenderingContext2D;

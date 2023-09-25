@@ -29,7 +29,6 @@ import {
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
-  queryAnimationFrameFps,
   queryWakeupListPriority,
 } from '../../../database/SqlLite.js';
 import { WakeupBean } from '../../../bean/WakeupBean.js';
@@ -972,10 +971,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     list.push({ name: 'End time(Absolute)', value: ((dataTs + (data.dur || 0)) + (window as any).recordStartNS) / 1000000000});
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
-      let result = await queryAnimationFrameFps(dataTs, dataTs + data.dur);
-      if (result.length > 0) {
+      if (data.frameCount! > 0) {
         let fixedNumber: number = 2;
-        let fpsValue: number = result[0].fps / (data.dur / 1000_000_000);
+        let fpsValue: number = data.frameCount! / (data.dur / 1000_000_000);
         list.push({ name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}` });
       }
     }
@@ -1230,6 +1228,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let itids: number[] = [];
     let ts: number[] = [];
     let maxPriority = 0;
+    let maxPriorityDuration = 0;
     let maxDuration = 0;
     data.forEach((it) => {
       cpus.push(it.cpu!);
@@ -1259,8 +1258,17 @@ export class TabPaneCurrentSelection extends BaseElement {
         maxDuration = Math.max(maxDuration, this.selectWakeupBean.dur);
         maxPriority = Math.max(maxPriority, this.selectWakeupBean.priority);
       }
-      resource.forEach((it) => {
-        it.isSelected = it.priority === maxPriority || it.dur === maxDuration;
+      resource.forEach(it => {
+        if (it.priority === maxPriority) {
+          maxPriorityDuration = Math.max(it.dur || 0, maxPriorityDuration);
+        }
+      });
+      this.wakeupListTbl!.getItemTextColor = ((data: any) => {
+        if ((data.priority === maxPriority && data.dur === maxPriorityDuration) || data.dur === maxDuration) {
+          return '#f44336';
+        } else {
+          return '#262626';
+        }
       });
       this.wakeupListTbl!.recycleDataSource = resource;
     });
@@ -1328,6 +1336,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             .table-right{
                 width: 50%;
                 display: flex;
+                height: 650px;
                 flex-direction: column;
             }
         </style>
@@ -1346,7 +1355,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 </div>
             </div>
             <div class="scroll-area">
-                <lit-table id="selectionTbl" class="table-left" no-head hideDownload>
+                <lit-table id="selectionTbl" class="table-left" no-head hideDownload noRecycle>
                         <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
                             <template><div>{{name}}</div></template>
                         </lit-table-column>
@@ -1356,16 +1365,16 @@ export class TabPaneCurrentSelection extends BaseElement {
                 </lit-table>
                 <div class="table-right">
                     <canvas id="rightDraw" style="width: 100%;height: 200px;"></canvas>
-                    <lit-table id="wakeupListTbl" style="flex: 1;display: none" hideDownload>
+                    <lit-table id="wakeupListTbl" style="height: 300px;display: none;overflow: auto" hideDownload>
                         <lit-table-column title="Process" data-index="process" key="process" align="flex-start"  width="180px">
                         </lit-table-column>
                         <lit-table-column title="Thread" data-index="thread" key="thread" align="flex-start"  width="180px">
                         </lit-table-column>
                         <lit-table-column title="CPU" data-index="cpu" key="cpu" align="flex-start"  width="60px">
                         </lit-table-column>
-                        <lit-table-column title="Duration(ns)" data-index="dur" key="dur" align="flex-start"  width="180px">
+                        <lit-table-column title="Duration(ns)" data-index="dur" key="dur" align="flex-start"  width="120px">
                         </lit-table-column>
-                        <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="180px">
+                        <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="80px">
                         </lit-table-column>
                     </lit-table>
                 </div>

@@ -4506,22 +4506,27 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
   query(
     'queryFrameAnimationData',
     `SELECT a.id AS animationId,
-                'Response delay' as status,
-                (CASE WHEN a.input_time NOT NULL 
-                    THEN ( a.input_time - R.start_ts ) 
-                    ELSE ( a.start_point - R.start_ts ) END
-                ) AS startTs,
-                (a.start_point - R.start_ts) AS endTs
-         FROM animation AS a,
-              trace_range AS R
+           'Response delay' as status,
+           (CASE WHEN a.input_time NOT NULL 
+               THEN ( a.input_time - R.start_ts ) 
+               ELSE ( a.start_point - R.start_ts ) END
+           ) AS startTs,
+           (a.start_point - R.start_ts) AS endTs,
+           0 AS frameCount
+         FROM 
+             animation AS a, 
+             trace_range AS R
          UNION
          SELECT a.id AS animationId,
-                'Completion delay' as status,
-                (a.start_point - R.start_ts) AS startTs,
-                (a.end_point - R.start_ts)   AS endTs
-         FROM animation AS a,
-              trace_range AS R
-         ORDER BY startTs;`
+           'Completion delay' as status,
+           (a.start_point - R.start_ts) AS startTs,
+           (a.end_point - R.start_ts) AS endTs,
+           a.frame_num AS frameCount
+         FROM 
+             animation AS a, 
+             trace_range AS R
+         ORDER BY 
+             startTs;`
   );
 
 export const queryFrameDynamicData = (): Promise<Array<FrameDynamicStruct>> =>
@@ -4559,27 +4564,6 @@ export const queryFrameApp = (): Promise<
             d.end_time >= R.start_ts
             AND
             d.end_time <= R.end_ts;`
-  );
-
-export const queryAnimationFrameFps = (
-  startTime: number,
-  endTime: number
-): Promise<
-  Array<{
-    fps: number;
-  }>
-> =>
-  query(
-    'queryAnimationFrameFps',
-    `SELECT
-            count(*) as fps
-        FROM
-            dynamic_frame AS d,
-            trace_range AS R
-        WHERE 
-            d.end_time >= (${startTime} + R.start_ts)
-        AND
-            d.end_time <= (${endTime} + R.start_ts)`
   );
 
 export const queryFrameSpacing = (): Promise<Array<FrameSpacingStruct>> =>
@@ -5406,3 +5390,15 @@ export const queryExistFtrace = (): Promise<Array<number>> =>
          UNION
          select 1 from args;`
     );
+
+export const queryTraceType = (): Promise<Array<{
+  value: string
+}>> =>
+  query(
+    'queryTraceType',
+    `SELECT m.value
+            FROM 
+                meta AS m
+            WHERE 
+                m.name = 'source_type';`
+  );

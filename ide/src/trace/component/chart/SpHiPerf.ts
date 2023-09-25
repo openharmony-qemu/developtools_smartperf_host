@@ -162,6 +162,9 @@ export class SpHiPerf {
     cpuMergeRow.selectChangeHandler = this.trace.selectChangeHandler;
     cpuMergeRow.supplier = () => queryHiPerfCpuMergeData();
     cpuMergeRow.focusHandler = () => this.hoverTip(cpuMergeRow, HiPerfCpuStruct.hoverStruct);
+    cpuMergeRow.findHoverStruct = () => {
+      HiPerfCpuStruct.hoverStruct = cpuMergeRow.getHoverStruct();
+    };
     cpuMergeRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(cpuMergeRow.currentContext){
@@ -204,6 +207,9 @@ export class SpHiPerf {
       perfCpuRow.style.height = '40px';
       perfCpuRow.supplier = () => queryHiPerfCpuData(i);
       perfCpuRow.focusHandler = () => this.hoverTip(perfCpuRow, HiPerfCpuStruct.hoverStruct);
+      perfCpuRow.findHoverStruct = () => {
+        HiPerfCpuStruct.hoverStruct = perfCpuRow.getHoverStruct();
+      };
       perfCpuRow.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(perfCpuRow.currentContext){
@@ -253,6 +259,9 @@ export class SpHiPerf {
       row.selectChangeHandler = this.trace.selectChangeHandler;
       row.supplier = () => queryHiPerfProcessData(process.pid);
       row.focusHandler = () => this.hoverTip(row, HiPerfProcessStruct.hoverStruct);
+      row.findHoverStruct = () => {
+        HiPerfProcessStruct.hoverStruct = row.getHoverStruct();
+      };
       row.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(row.currentContext){
@@ -296,6 +305,9 @@ export class SpHiPerf {
         thread.selectChangeHandler = this.trace.selectChangeHandler;
         thread.supplier = () => queryHiPerfThreadData(thObj.tid);
         thread.focusHandler = () => this.hoverTip(thread, HiPerfThreadStruct.hoverStruct);
+        thread.findHoverStruct = () => {
+          HiPerfThreadStruct.hoverStruct = thread.getHoverStruct();
+        };
         thread.onThreadHandler = (useCache) => {
           let context:CanvasRenderingContext2D;
           if(thread.currentContext){

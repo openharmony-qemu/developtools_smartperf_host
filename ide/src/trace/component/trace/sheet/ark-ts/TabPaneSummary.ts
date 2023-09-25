@@ -724,7 +724,7 @@ export class TabPaneSummary extends BaseElement {
     <selector id='show_table' class="summary_show">
         <lit-slicer style="width:100%">
         <div id="summary_left_table" style="width: 65%;">
-            <lit-table id="summary_left" style="height: auto" tree>
+            <lit-table id="summary_left" style="height: 100%" tree>
                 <lit-table-column width="40%" title="Constructor" data-index="" key="objectName" align="flex-start" order>
                 </lit-table-column>
                 <lit-table-column width="2fr" title="Distance" data-index="distance" key="distance" align="flex-start" order>

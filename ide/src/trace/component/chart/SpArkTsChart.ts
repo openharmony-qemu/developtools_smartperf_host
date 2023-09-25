@@ -123,6 +123,9 @@ export class SpArkTsChart implements ParseListener {
         `<span>Size: ${Utils.getBinaryByteWithUnit(HeapTimelineStruct.hoverHeapTimelineStruct?.size || 0)}</span>`
       );
     };
+    this.heapTimelineRow!.findHoverStruct = () => {
+      HeapTimelineStruct.hoverHeapTimelineStruct = this.heapTimelineRow!.getHoverStruct();
+    };
     this.folderRow!.addChildTraceRow(this.heapTimelineRow!);
   }
 
@@ -145,6 +148,9 @@ export class SpArkTsChart implements ParseListener {
         `<span>Name: ${HeapSnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
             <span>Size: ${Utils.getBinaryByteWithUnit(HeapSnapshotStruct.hoverSnapshotStruct?.size || 0)}</span>`
       );
+    };
+    this.heapSnapshotRow!.findHoverStruct = () => {
+      HeapSnapshotStruct.hoverSnapshotStruct = this.heapSnapshotRow!.getHoverStruct();
     };
     this.folderRow!.addChildTraceRow(this.heapSnapshotRow);
   }
@@ -256,6 +262,9 @@ export class SpArkTsChart implements ParseListener {
         <span style='font-weight: bold;'>Url: </span>
         <span>${JsCpuProfilerStruct.hoverJsCpuProfilerStruct?.url || 0}</span>`
       );
+    };
+    this.jsCpuProfilerRow!.findHoverStruct = () => {
+      JsCpuProfilerStruct.hoverJsCpuProfilerStruct = this.jsCpuProfilerRow!.getHoverStruct();
     };
     this.jsCpuProfilerRow.onThreadHandler = (useCache): void => {
       let context:CanvasRenderingContext2D;

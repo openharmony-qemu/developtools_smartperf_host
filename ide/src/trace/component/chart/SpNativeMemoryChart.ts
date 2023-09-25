@@ -140,6 +140,9 @@ export class SpNativeMemoryChart {
         }
         this.trace?.displayTip(allHeapRow, HeapStruct.hoverHeapStruct, tip);
       };
+      allHeapRow.findHoverStruct = () => {
+        HeapStruct.hoverHeapStruct = allHeapRow.getHoverStruct();
+      };
       allHeapRow.supplier = () => {
         return nativeMemoryType === 'native_hook'
           ? this.getNativeMemoryDataByChartType(i, allHeapRow.drawType)

@@ -187,6 +187,9 @@ export class SpHiSysEventChart {
         `<span>AnomalyName:${EnergyAnomalyStruct.hoverEnergyAnomalyStruct?.eventName || ''}</span>`
       );
     };
+    anomalyTraceRow.findHoverStruct = () => {
+      EnergyAnomalyStruct.hoverEnergyAnomalyStruct = anomalyTraceRow.getHoverStruct();
+    };
     anomalyTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(anomalyTraceRow.currentContext){
@@ -247,6 +250,9 @@ export class SpHiSysEventChart {
                                 }</div></div>
                             </div>`
       );
+    };
+    systemTraceRow.findHoverStruct = () => {
+      EnergySystemStruct.hoverEnergySystemStruct = systemTraceRow.getHoverStruct();
     };
     systemTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -424,6 +430,9 @@ export class SpHiSysEventChart {
       queryPowerData().then((items) => {
         return this.getPowerData(items);
       });
+    powerTraceRow.findHoverStruct = () => {
+      EnergyPowerStruct.hoverEnergyPowerStruct = powerTraceRow.getHoverStruct();
+    };
     powerTraceRow.focusHandler = () => {
       this.trace?.displayTip(
         powerTraceRow,
@@ -607,6 +616,9 @@ export class SpHiSysEventChart {
           let stateInitValue = initValueList[index] == 'nocolumn' ? [] : result[0];
           return stateInitValue.concat(result[1]);
         });
+      stateTraceRow.findHoverStruct = () => {
+        EnergyStateStruct.hoverEnergyStateStruct = stateTraceRow.getHoverStruct();
+      };
       stateTraceRow.focusHandler = () => {
         let tip = '';
         if (EnergyStateStruct.hoverEnergyStateStruct?.type!.toLocaleLowerCase().includes('state')) {

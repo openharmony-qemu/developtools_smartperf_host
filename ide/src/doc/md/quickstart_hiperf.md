@@ -27,7 +27,7 @@ HiPerf工具是对系统性能数据进行采样记录，并将采样数据保�
 +     黄色区域：辅助信息(Callstack)。
 
 ### HiPerf泳道图展示
-Perf泳道图展示按照CPU使用量和线程和进程展示，鼠标移动都泳道图上，悬浮框会显示CPU的使用量。
+Perf泳道图展示按照CPU使用量和线程和进程展示，鼠标移动到泳道图上，悬浮框会显示CPU的使用量。
 ![GitHub Logo](../../figures/perf/chart.jpg)
 按住w键放大界面，泳道图会出现P的标志，鼠标移动到P图标上，悬浮框会显示每个callstack和调用的深度如下图。
 ![GitHub Logo](../../figures/perf/callstack.jpg)

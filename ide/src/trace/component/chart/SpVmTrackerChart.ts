@@ -306,6 +306,9 @@ export class VmTrackerChart {
 
   private async addGpuTotalRow(): Promise<void> {
     let types = await queryGpuTotalType();
+    if (!types || types.length == 0){
+      return;
+    }
     let gpuTotalRow = this.initTraceRow(
       'Skia Gpu Dump Total',
       TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL,
@@ -349,6 +352,9 @@ export class VmTrackerChart {
 
   private async addGpuWindowRow(): Promise<void> {
     let types = await queryGpuWindowType();
+    if (!types || types.length === 0){
+      return;
+    }
     let settings: TreeItemData[] = types
       .filter((it) => it.pid === null)
       .map((it) => {
@@ -416,6 +422,9 @@ export class VmTrackerChart {
     vmTrackerTraceRow.name = rowName;
     vmTrackerTraceRow.focusHandler = (): void => {
       this.showTip(vmTrackerTraceRow);
+    };
+    vmTrackerTraceRow.findHoverStruct = () => {
+      SnapshotStruct.hoverSnapshotStruct = vmTrackerTraceRow.getHoverStruct();
     };
     vmTrackerTraceRow.onThreadHandler = (useCache): void => {
       let context:CanvasRenderingContext2D

@@ -594,6 +594,9 @@ export class SpProcessChart {
             `<span>${ProcessMemStruct.hoverProcessMemStruct?.value || '0'}</span>`
           );
         };
+        row.findHoverStruct = () => {
+          ProcessMemStruct.hoverProcessMemStruct = row.getHoverStruct();
+        };
         row.supplier = (): Promise<Array<ProcessMemStruct>> =>
           queryProcessMemData(mem.trackId).then((resultProcess) => {
             let maxValue = Math.max(...resultProcess.map((it) => it.value || 0));
@@ -658,7 +661,6 @@ export class SpProcessChart {
             }
             return res;
           });
-        threadRow.focusHandler = (ev): void => {};
         threadRow.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
           if (threadRow.currentContext) {
@@ -793,7 +795,6 @@ export class SpProcessChart {
         }
         return res;
       });
-    startupRow.focusHandler = (ev): void => {};
     startupRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (startupRow.currentContext) {
@@ -844,7 +845,6 @@ export class SpProcessChart {
         });
         return res;
       });
-    soRow.focusHandler = (ev): void => {};
     soRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (soRow.currentContext) {

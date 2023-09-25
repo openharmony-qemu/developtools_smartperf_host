@@ -61,6 +61,9 @@ export class SpIrqChart {
           `<span>${IrqStruct.hoverIrqStruct?.name || ''}</span>`
         );
       };
+      traceRow.findHoverStruct = () => {
+        IrqStruct.hoverIrqStruct = traceRow.getHoverStruct();
+      };
       traceRow.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(traceRow.currentContext){

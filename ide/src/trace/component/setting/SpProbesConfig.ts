@@ -239,6 +239,7 @@ export class SpProbesConfig extends BaseElement {
       { value: 'zcamera', isSelect: true },
       { value: 'zimage', isSelect: true },
       { value: 'zmedia', isSelect: true },
+      { value: 'virse', isSelect: false }
     ];
     this.hitrace = this.shadowRoot?.getElementById('hitrace') as SpCheckDesBox;
     let parent = this.shadowRoot?.querySelector('.user-events') as Element;

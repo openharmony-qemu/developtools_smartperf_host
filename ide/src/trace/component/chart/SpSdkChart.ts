@@ -242,6 +242,9 @@ export class SpSdkChart {
         `<span>${CounterStruct.hoverCounterStruct?.value?.toFixed(2)}</span>`
       );
     };
+    traceRow.findHoverStruct = () => {
+      CounterStruct.hoverCounterStruct = traceRow.getHoverStruct();
+    };
     let maxList = await queryCounterMax(sqlMap.maxSql, result.counter_id, componentId);
     let maxCounter = maxList[0].max_value;
     traceRow.onThreadHandler = (useCache) => {
@@ -366,6 +369,9 @@ export class SpSdkChart {
         SdkSliceStruct.hoverSdkSliceStruct,
         `<span>${SdkSliceStruct.hoverSdkSliceStruct?.value}</span>`
       );
+    };
+    traceRow.findHoverStruct = () => {
+      SdkSliceStruct.hoverSdkSliceStruct = traceRow.getHoverStruct();
     };
     traceRow.onThreadHandler = (useCache: boolean) => {
       let context:CanvasRenderingContext2D;

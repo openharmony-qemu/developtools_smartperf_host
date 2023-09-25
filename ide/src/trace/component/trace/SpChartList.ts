@@ -35,6 +35,7 @@ import { LitIcon } from '../../../base-ui/icon/LitIcon.js';
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
 const minHeight = 20; //泳道最低高度为20
+const mouseMoveRange = 5
 
 @element('sp-chart-list')
 export class SpChartList extends BaseElement {
@@ -89,7 +90,7 @@ export class SpChartList extends BaseElement {
       } else {
         this.icon1!.style.transform = 'rotateZ(-90deg)';
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
-        this.resizeHeight()
+        this.resizeHeight();
       }
     });
     this.icon2?.addEventListener('click', () => {
@@ -147,6 +148,25 @@ export class SpChartList extends BaseElement {
 
   getCollectRow(condition: string) {
     return this.rootEl!.querySelector<TraceRow<any>>(condition);
+  }
+
+  getAllCollectRows(): Array<TraceRow<any>> {
+    return [...this.collectRowList1, ...this.collectRowList2];
+  }
+
+  getAllSelectCollectRows(): Array<TraceRow<any>>{
+    const rows: Array<TraceRow<any>> = [];
+    for(const row of this.collectRowList1){
+      if (row.checkType === '2'){
+        rows.push(row);
+      }
+    }
+    for(const row of this.collectRowList2){
+      if (row.checkType === '2'){
+        rows.push(row);
+      }
+    }
+    return rows;
   }
 
   insertRowBefore(node: Node, child: Node) {
@@ -226,8 +246,8 @@ export class SpChartList extends BaseElement {
     this.startClientHeight = this.clientHeight;
     if (this.containPoint(ev)) {
       if (
-        this.getBoundingClientRect().bottom > ev.pageY &&
-        this.getBoundingClientRect().bottom < ev.pageY + minHeight
+        this.getBoundingClientRect().bottom > ev.pageY - mouseMoveRange&&
+        this.getBoundingClientRect().bottom < ev.pageY + mouseMoveRange
       ) {
         this.style.cursor = 'row-resize';
         this.canResize = true;
@@ -241,8 +261,8 @@ export class SpChartList extends BaseElement {
   onMouseMove = (ev: MouseEvent) => {
     if (this.containPoint(ev)) {
       if (
-        this.getBoundingClientRect().bottom > ev.pageY &&
-        this.getBoundingClientRect().bottom < ev.pageY + minHeight
+        this.getBoundingClientRect().bottom > ev.pageY - mouseMoveRange &&
+        this.getBoundingClientRect().bottom < ev.pageY + mouseMoveRange
       ) {
         this.style.cursor = 'row-resize';
       } else {
@@ -258,7 +278,21 @@ export class SpChartList extends BaseElement {
       // 拖动超过所有泳道最大高度 或小于一个泳道的高度，不支持拖动
       let newHeight = this.startClientHeight + ev.pageY - this.startPageY;
       if (newHeight > this.maxHeight || newHeight > this.getMaxLimitHeight() || newHeight < minHeight) {
-        this.canResize = false;
+        // 超出最大最小高度时触发mouseup事件
+        const mouseUpEvent = new MouseEvent('mouseup', {
+          bubbles: true, 
+          cancelable: true, 
+          view: window,
+          button: 0, 
+          buttons: 0,
+          clientX: ev.clientX, // 鼠标在窗口中的水平坐标
+          clientY: ev.clientY, // 鼠标在窗口中的垂直坐标
+        });
+
+        // 获取需要触发事件的元素
+        const element = document.getElementById('myElement');
+        // 触发 mouseup 事件
+        element?.dispatchEvent(mouseUpEvent);
         ev.stopPropagation();
         return;
       }
@@ -460,13 +494,13 @@ export class SpChartList extends BaseElement {
 <div class="root">
     <div id="group-1-title" style="background-color: #efefef;padding: 10px;align-items: center">
         <lit-icon id="group_1_expand" class="icon" name="caret-down" size="19"></lit-icon>
-        <span style="width: 184px;font-size: 10px;color: #898989">Collect 1</span>
+        <span style="width: 184px;font-size: 10px;color: #898989">G1</span>
         <lit-icon id="group_1_collect" name="star-fill" style="color: #5291FF;cursor: pointer" size="19"></lit-icon>
     </div>
     <div id="collect-group-1"></div>
     <div id="group-2-title" style="background-color: #efefef;padding: 10px;align-items: center">
         <lit-icon id="group_2_expand" class="icon" name="caret-down" size="19"></lit-icon>
-        <span style="width: 184px;font-size: 10px;color: #898989">Collect 2</span>
+        <span style="width: 184px;font-size: 10px;color: #898989">G2</span>
         <lit-icon id="group_2_collect" name="star-fill" style="color: #f56940;cursor: pointer" size="19"></lit-icon>
     </div>
     <div id="collect-group-2"></div>

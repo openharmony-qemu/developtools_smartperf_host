@@ -29,7 +29,7 @@ import { LitProgressBar } from '../base-ui/progress-bar/LitProgressBar.js';
 import { SpRecordTrace } from './component/SpRecordTrace.js';
 import { SpWelcomePage } from './component/SpWelcomePage.js';
 import { LitSearch } from './component/trace/search/Search.js';
-import { DbPool, queryExistFtrace, threadPool } from './database/SqlLite.js';
+import { DbPool, queryExistFtrace, queryTraceType, threadPool } from './database/SqlLite.js';
 import './component/trace/search/Search.js';
 import './component/SpWelcomePage.js';
 import './component/SpSystemTrace.js';
@@ -381,7 +381,7 @@ export class SpApplication extends BaseElement {
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
                 </div>
-                <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.png" style="display: block;text-align: right;position: absolute;right: 3.2em;cursor: pointer;top: 20px">
+                <img class="cut-trace-file" title="Cut Trace File" src="img/menu-cut.svg" style="display: block;text-align: right;position: absolute;right: 3.2em;cursor: pointer;top: 20px">
                 <img class="filter-config" title="Display Template" src="img/config_filter.png" style="display: block;text-align: right;position: absolute;right: 1.2em;cursor: pointer;top: 20px">
                 <lit-progress-bar class="progress"></lit-progress-bar>
             </div>
@@ -774,12 +774,13 @@ export class SpApplication extends BaseElement {
     }
 
     function postConvert(fileName: string) {
-      let uint8Array = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
+      let htraceData = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
       let enc = new TextDecoder();
-      let headerStr = enc.decode(uint8Array);
-      let newFileName = fileName.substring(0, fileName.lastIndexOf('.')) + '.txt';
+      let headerStr = enc.decode(htraceData);
+      let newFileName = fileName.substring(0, fileName.lastIndexOf('.')) + '.systrace';
       let aElement = document.createElement('a');
-      if (headerStr.indexOf('OHOSPROF') == 0) {
+      let rowTraceStr = Array.from(new Uint8Array(DbPool.sharedBuffer!.slice(0, 2))).map(byte => byte.toString(16).padStart(2, '0')).join('');
+      if (headerStr.indexOf('OHOSPROF') === 0 || rowTraceStr.indexOf('49df') === 0) {
         convertPool.submitWithName('getConvertData', (status: boolean, msg: string, results: Blob) => {
           aElement.href = URL.createObjectURL(results);
           aElement.download = newFileName;

@@ -14,6 +14,7 @@
  */
 
 import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
+import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
 
@@ -30,7 +31,7 @@ export class LitSearch extends BaseElement {
   private historyMaxCount = 100;
   private lastSearch = '';
   private searchList: Array<SearchInfo> = [];
-  private searchELList: Array<HTMLLIElement> = [];
+  private searchELList: Array<HTMLElement> = [];
 
   get list(): Array<any> {
     return this._list;
@@ -61,7 +62,6 @@ export class LitSearch extends BaseElement {
   set total(value: number) {
     if (value > 0) {
       this.setAttribute('show-search-info', '');
-      this.updateSearchList(this.search!.value);
     } else {
       this.removeAttribute('show-search-info');
     }
@@ -191,7 +191,8 @@ export class LitSearch extends BaseElement {
   }
 
   private searchKeyupListener(e: KeyboardEvent) {
-    if (e.code == 'Enter') {
+    if (e.code === 'Enter') {
+      this.updateSearchList(this.search!.value);
       if (e.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
@@ -352,9 +353,15 @@ export class LitSearch extends BaseElement {
         }       
         .search-history-list-item {
             cursor: pointer;
+            width: 100%;
         }
-        .search-history-list-item:hover {
+        .search-list:hover {
             background-color: #e9e9e9;
+        }
+        .search-list {
+            display: flex;
+            justify-content: space-between;
+            padding-right: 20px;
         }
         </style>
         <div class="root" style="display: none">
@@ -379,9 +386,15 @@ export class LitSearch extends BaseElement {
   showSearchHistoryList() {
     this.searchHistoryListEL!.innerHTML = '';
     let historyInfos = this.getSearchHistory();
-    let fragment = new DocumentFragment();
+    let fragment = document.createElement('div');
     historyInfos.forEach((historyInfo) => {
+      let searchContainer = document.createElement('div');
+      searchContainer.className = 'search-list';
       let searchInfoOption = document.createElement('li');
+      let closeOption = document.createElement('lit-icon');
+      closeOption.setAttribute('name', 'close');
+      closeOption.className = 'close-option';
+      closeOption.setAttribute('size', '20');
       searchInfoOption.className = 'search-history-list-item';
       searchInfoOption.textContent = historyInfo.searchContent;
       searchInfoOption.addEventListener('click', () => {
@@ -390,11 +403,26 @@ export class LitSearch extends BaseElement {
           this.valueChangeHandler?.(this.search!.value);
         }
       });
+      searchContainer.append(searchInfoOption);
+      searchContainer.append(closeOption);
       this.searchELList.push(searchInfoOption);
-      fragment.append(searchInfoOption);
+      this.searchELList.push(closeOption);
+      fragment.append(searchContainer);
     });
     this.searchHistoryListEL?.append(fragment);
     this.searchHistoryListEL!.style.display = 'block';
+    let closeOptionList = this.searchHistoryListEL!.querySelectorAll<LitIcon>('.close-option');
+    closeOptionList.forEach((item) => {
+      item.addEventListener('click', () => {
+        let currentHistory = item.previousSibling!.textContent;
+        let index = this.searchList.findIndex((element) => element.searchContent === currentHistory);
+        if (index !== -1) {
+          this.searchList.splice(index, 1);
+        }
+        let historyStr = JSON.stringify(this.searchList);
+        window.localStorage.setItem(LOCAL_STORAGE_SEARCH_KEY, historyStr);
+      });
+    });
   }
 
   hideSearchHistoryList() {

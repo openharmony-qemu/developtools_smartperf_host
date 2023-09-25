@@ -67,16 +67,10 @@ export class SpQuerySQL extends BaseElement {
       this.queryTableEl!.dataSource = [];
       this.response!.innerHTML = '';
     });
-    new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight !== 0) {
-        this.queryTableEl!.style.height = '100%';
-        this.queryTableEl!.reMeauseHeight();
-      }
-    }).observe(this.response);
-    this.initSqlInit();
+    this.initCommonList();
   }
 
-  private initSqlInit() : void {
+  private initCommonList() : void {
     let commonSqlList = getAllSql();
     if (commonSqlList.length > 0) {
       for (let i = 0;i < commonSqlList.length; i ++) {
@@ -84,9 +78,10 @@ export class SpQuerySQL extends BaseElement {
         commonSqlDiv.className = 'sql-item';
         let sql = document.createElement('div');
         sql.className = 'sql';
-        sql.textContent = commonSqlList[i];
+        sql.textContent = commonSqlList[i].sql;
         let runButton = document.createElement('lit-icon');
         runButton.className = 'runButton';
+        runButton.title = commonSqlList[i].title;
         runButton.setAttribute('size', '20');
         runButton.setAttribute('name', 'run-sql');
         commonSqlDiv.appendChild(sql);
@@ -173,11 +168,16 @@ export class SpQuerySQL extends BaseElement {
         this.statDataArray = resultList;
         this.keyList = Object.keys(resultList[0]);
         this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
-        setTimeout(() => {
-          this.initDataElement();
+        this.initDataElement();
           this.response!.appendChild(this.queryTableEl!);
           this.setPageNationTableEl();
-        }, 50);
+          setTimeout(() => {
+            if (this.parentElement?.clientHeight !== 0) {
+            this.queryTableEl!.style.height = '100%';
+            this.queryTableEl!.reMeauseHeight();
+            }
+          }, 300);
+
       } else {
         this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
         this.progressLoad!.loading = false;
@@ -492,10 +492,13 @@ export class SpQuerySQL extends BaseElement {
           padding: 10px;
           border-radius: 16px;
         }
+        lit-icon {
+          text-overflow: ellipsis;
+        }
         </style>
         <div class="query">
             <div class="query-message request">
-                <p class="query_select" style="color: #999999">Enter query and press cmd/ctrl + Enter</p>
+                <p class="query_select" style="color: #999999">Enter query and press command/ctrl + Enter</p>
                 <textarea class="sql-select"></textarea>
                 <lit-progress-bar class="load-query-sql"></lit-progress-bar>
             </div>

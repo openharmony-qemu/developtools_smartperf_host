@@ -27,7 +27,7 @@ import '../../../../base-ui/tree/LitTree.js';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
 import { info } from '../../../../log/Log.js';
 import { ColorUtils } from './ColorUtils.js';
-import { drawSelectionRange } from '../../../database/ui-worker/ProcedureWorkerCommon.js';
+import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon.js';
 import { TraceRowConfig } from './TraceRowConfig.js';
 import { TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree.js';
 
@@ -165,6 +165,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   _rowSettingList: Array<TreeItemData> | null | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
+  findHoverStruct?: () => void | undefined;
   private _funcExpand: boolean = true; //default expand func chart
   private funcMaxHeight: number = 0;
   currentContext: CanvasRenderingContext2D | undefined | null;
@@ -449,6 +450,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
+  getHoverStruct() {
+    if (this.isHover) {
+      return this.dataListCache.find(re => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY));
+    }
+  }
+
   addChildTraceRow(child: TraceRow<any>) {
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
@@ -473,7 +480,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (index != -1) {
       this.childrenList.splice(index + 1, 0, child);
       child.rowHidden = false;
-      this.fragment.insertBefore(child, this.fragment.childNodes.item(index));
+      this.fragment.insertBefore(child, this.fragment.childNodes.item(index + 1));
     } else {
       this.childrenList.push(child);
       child.rowHidden = false;
@@ -489,8 +496,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     child.setAttribute('scene', '');
     if (index != -1) {
       this.childrenList.splice(index, 0, child);
+      this.fragment.insertBefore(child, this.fragment.childNodes.item(index));
     } else {
       this.childrenList.push(child);
+      child.rowHidden = false;
+      this.fragment.appendChild(child);
     }
   }
 

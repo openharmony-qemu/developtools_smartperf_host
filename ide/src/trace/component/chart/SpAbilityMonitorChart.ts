@@ -186,6 +186,9 @@ export class SpAbilityMonitorChart {
       let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
       this.trace?.displayTip(traceRow, CpuAbilityMonitorStruct.hoverCpuAbilityStruct, `<span>${monitorCpuTip}</span>`);
     };
+    traceRow.findHoverStruct = () => {
+      CpuAbilityMonitorStruct.hoverCpuAbilityStruct = traceRow.getHoverStruct();
+    };
     traceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(traceRow.currentContext){
@@ -227,6 +230,9 @@ export class SpAbilityMonitorChart {
         `<span>${monitorCpuTip}</span>`
       );
     };
+    userTraceRow.findHoverStruct = () => {
+      CpuAbilityMonitorStruct.hoverCpuAbilityStruct = userTraceRow.getHoverStruct();
+    };
     userTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(userTraceRow.currentContext){
@@ -267,6 +273,9 @@ export class SpAbilityMonitorChart {
         CpuAbilityMonitorStruct.hoverCpuAbilityStruct,
         `<span>${monitorCpuTip}</span>`
       );
+    };
+    sysTraceRow.findHoverStruct = () => {
+      CpuAbilityMonitorStruct.hoverCpuAbilityStruct = sysTraceRow.getHoverStruct();
     };
     sysTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -320,6 +329,9 @@ export class SpAbilityMonitorChart {
         `<span>${Utils.getBinaryKBWithUnit(MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.value || 0)}</span>`
       );
     };
+    memoryUsedTraceRow.findHoverStruct = () => {
+      MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = memoryUsedTraceRow.getHoverStruct();
+    };
     memoryUsedTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(memoryUsedTraceRow.currentContext){
@@ -364,6 +376,9 @@ export class SpAbilityMonitorChart {
         `<span>${Utils.getBinaryKBWithUnit(MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.value || 0)}</span>`
       );
     };
+    cachedFilesTraceRow.findHoverStruct = () => {
+      MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = cachedFilesTraceRow.getHoverStruct();
+    };
     cachedFilesTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(cachedFilesTraceRow.currentContext){
@@ -407,6 +422,9 @@ export class SpAbilityMonitorChart {
         MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct,
         `<span>${Utils.getBinaryKBWithUnit(MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.value || 0)}</span>`
       );
+    };
+    compressedTraceRow.findHoverStruct = () => {
+      MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = compressedTraceRow.getHoverStruct();
     };
     compressedTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -458,6 +476,9 @@ export class SpAbilityMonitorChart {
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
     };
+    bytesReadTraceRow.findHoverStruct = () => {
+      DiskAbilityMonitorStruct.hoverDiskAbilityStruct = bytesReadTraceRow.getHoverStruct();
+    };
     bytesReadTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(bytesReadTraceRow.currentContext){
@@ -499,6 +520,9 @@ export class SpAbilityMonitorChart {
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
+    };
+    bytesWrittenTraceRow.findHoverStruct = () => {
+      DiskAbilityMonitorStruct.hoverDiskAbilityStruct = bytesWrittenTraceRow.getHoverStruct();
     };
     bytesWrittenTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -542,6 +566,9 @@ export class SpAbilityMonitorChart {
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
     };
+    readOpsTraceRow.findHoverStruct = () => {
+      DiskAbilityMonitorStruct.hoverDiskAbilityStruct = readOpsTraceRow.getHoverStruct();
+    };
     readOpsTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(readOpsTraceRow.currentContext){
@@ -583,6 +610,9 @@ export class SpAbilityMonitorChart {
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
+    };
+    writtenOpsTraceRow.findHoverStruct = () => {
+      DiskAbilityMonitorStruct.hoverDiskAbilityStruct = writtenOpsTraceRow.getHoverStruct();
     };
     writtenOpsTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -634,6 +664,9 @@ export class SpAbilityMonitorChart {
         `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.value || 0)}</span>`
       );
     };
+    bytesInTraceRow.findHoverStruct = () => {
+      NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = bytesInTraceRow.getHoverStruct();
+    };
     bytesInTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(bytesInTraceRow.currentContext){
@@ -676,6 +709,9 @@ export class SpAbilityMonitorChart {
         `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.value || 0)}</span>`
       );
     };
+    bytesOutTraceRow.findHoverStruct = () => {
+      NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = bytesOutTraceRow.getHoverStruct();
+    };
     bytesOutTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(bytesOutTraceRow.currentContext){
@@ -717,6 +753,9 @@ export class SpAbilityMonitorChart {
         NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct,
         `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.value || 0)}</span>`
       );
+    };
+    packetInTraceRow.findHoverStruct = () => {
+      NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = packetInTraceRow.getHoverStruct();
     };
     packetInTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -761,6 +800,9 @@ export class SpAbilityMonitorChart {
           `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct!.value!)}</span>`
         );
       }
+    };
+    packetOutTraceRow.findHoverStruct = () => {
+      NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = packetOutTraceRow.getHoverStruct();
     };
     packetOutTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
@@ -815,6 +857,9 @@ export class SpAbilityMonitorChart {
 			   <span>Value: ${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
         );
       };
+      totalTraceRow.findHoverStruct = () => {
+        SnapshotStruct.hoverSnapshotStruct = totalTraceRow.getHoverStruct();
+      };
       totalTraceRow.onThreadHandler = (useCache) => {
         let context = totalTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
         totalTraceRow.canvasSave(context);
@@ -854,6 +899,9 @@ export class SpAbilityMonitorChart {
           `<span>Name: ${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
          <span>Value: ${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
         );
+      };
+      pinTraceRow.findHoverStruct = () => {
+        SnapshotStruct.hoverSnapshotStruct = pinTraceRow.getHoverStruct();
       };
       pinTraceRow.onThreadHandler = (useCache) => {
         let context = pinTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
@@ -907,6 +955,9 @@ export class SpAbilityMonitorChart {
          <span>${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
       );
     };
+    dmaTraceRow.findHoverStruct = () => {
+      SnapshotStruct.hoverSnapshotStruct = dmaTraceRow.getHoverStruct();
+    };
     dmaTraceRow.onThreadHandler = (useCache) => {
       let context = dmaTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       dmaTraceRow.canvasSave(context);
@@ -956,6 +1007,9 @@ export class SpAbilityMonitorChart {
         `<span>${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
         <span>${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
       );
+    };
+    gpuMemoryTraceRow.findHoverStruct = () => {
+      SnapshotStruct.hoverSnapshotStruct = gpuMemoryTraceRow.getHoverStruct();
     };
     gpuMemoryTraceRow.onThreadHandler = (useCache) => {
       let context = gpuMemoryTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;

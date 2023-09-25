@@ -293,6 +293,7 @@ export class LitTable extends HTMLElement {
       'grid-line',
       'defaultOrderColumn',
       'hideDownload',
+      'noRecycle',
       'loading',
       'expand',
     ];
@@ -344,15 +345,26 @@ export class LitTable extends HTMLElement {
   }
 
   set dataSource(value) {
-    // this.ds = value;
-    // this.isRecycleList = false;
-    // if (this.hasAttribute('tree')) {
-    //   this.renderTreeTable();
-    // } else {
-    //   this.renderTable();
-    // }
-    this.columnResizeEnable = false;
-    this.recycleDataSource = value;
+    if (this.hasAttribute('noRecycle')) {
+      this.ds = value;
+      this.isRecycleList = false;
+      this.renderTable();
+    } else {
+      this.columnResizeEnable = false;
+      this.recycleDataSource = value;
+    }
+  }
+
+  set noRecycle(value) {
+    if (value) {
+      this.setAttribute('noRecycle', '');
+    } else {
+      this.removeAttribute('noRecycle');
+    }
+  }
+
+  get noRecycle() {
+    return this.hasAttribute('noRecycle');
   }
 
   get recycleDataSource() {
@@ -1518,6 +1530,109 @@ export class LitTable extends HTMLElement {
       newTableElement.style.color = this.getItemTextColor(rowData.data);
     }
     return newTableElement;
+  }
+
+  getWheelStatus(element: any) {
+    element.addEventListener('wheel', (event: WheelEvent) => {
+      if (element.scrollWidth !== element.offsetWidth) {
+        event.preventDefault();
+      }
+      element.scrollLeft += event.deltaY;
+    });
+  }
+
+  renderTable() {
+    if (!this.columns) return;
+    if (!this.ds) return; // If no data source is set, it is returned directly
+    this.normalDs = [];
+    this.tbodyElement!.innerHTML = ''; // Clear the table contents
+    this.ds.forEach((rowData: any) => {
+      let tblRowElement = document.createElement('div');
+      tblRowElement.classList.add('tr');
+      // @ts-ignore
+      tblRowElement.data = rowData;
+      let gridTemplateColumns: Array<any> = [];
+      // If the table is configured with selectable (select row mode) add a checkbox at the head of the line alone
+      if (this.selectable) {
+        let tblBox = document.createElement('div');
+        tblBox.style.display = 'flex';
+        tblBox.style.justifyContent = 'center';
+        tblBox.style.alignItems = 'center';
+        tblBox.classList.add('td');
+        let checkbox = document.createElement('lit-checkbox');
+        checkbox.classList.add('row-checkbox');
+        checkbox.onchange = (e: any) => {
+          // Checkbox checking affects whether the div corresponding to the row has a checked attribute for marking
+          if (e.detail.checked) {
+            tblRowElement.setAttribute('checked', '');
+          } else {
+            tblRowElement.removeAttribute('checked');
+          }
+        };
+        this.getWheelStatus(tblBox);
+        tblBox.appendChild(checkbox);
+        tblRowElement.appendChild(tblBox);
+      }
+      this.tableColumns!.forEach((tblColumn) => {
+        let dataIndex = tblColumn.getAttribute('data-index') || '1';
+        gridTemplateColumns.push(tblColumn.getAttribute('width') || '1fr');
+        if (tblColumn.template) {
+          // If you customize the rendering, you get the nodes from the template
+          // @ts-ignore
+          let cloneNode = tblColumn.template.render(rowData).content.cloneNode(true);
+          let tblCustomDiv = document.createElement('div');
+          tblCustomDiv.classList.add('td');
+          tblCustomDiv.style.wordBreak = 'break-all';
+          tblCustomDiv.style.whiteSpace = 'pre-wrap';
+          tblCustomDiv.style.justifyContent = tblColumn.getAttribute('align') || '';
+          if (tblColumn.hasAttribute('fixed')) {
+            this.fixed(tblCustomDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
+          }
+          this.getWheelStatus(tblCustomDiv);
+          tblCustomDiv.append(cloneNode);
+          tblRowElement.append(tblCustomDiv);
+        } else {
+          let tblDiv = document.createElement('div');
+          tblDiv.classList.add('td');
+          tblDiv.style.wordBreak = 'break-all';
+          tblDiv.style.whiteSpace = 'pre-wrap';
+          tblDiv.title = rowData[dataIndex];
+          tblDiv.style.justifyContent = tblColumn.getAttribute('align') || '';
+          if (tblColumn.hasAttribute('fixed')) {
+            this.fixed(tblDiv, tblColumn.getAttribute('fixed') || '', '#ffffff');
+          }
+          this.getWheelStatus(tblDiv);
+          tblDiv.innerHTML = this.formatName(dataIndex, rowData[dataIndex]);
+          tblRowElement.append(tblDiv);
+        }
+      });
+      if (this.selectable) {
+        // If the table with selection is preceded by a 60px column
+        tblRowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
+      } else {
+        tblRowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+      }
+      tblRowElement.onclick = (e) => {
+        this.dispatchEvent(
+          new CustomEvent('row-click', {
+            detail: {
+              rowData,
+              data: rowData,
+              callBack: (isSelected: boolean) => {
+                //是否爲单选
+                if (isSelected) {
+                  this.clearAllSelection(rowData);
+                }
+                this.setSelectedRow(rowData.isSelected, [tblRowElement]);
+              },
+            },
+            composed: true,
+          })
+        );
+      };
+      this.normalDs.push(tblRowElement);
+      this.tbodyElement!.append(tblRowElement);
+    });
   }
 
   freshCurrentLine(element: HTMLElement, rowObject: TableRowObject, firstElement?: HTMLElement) {

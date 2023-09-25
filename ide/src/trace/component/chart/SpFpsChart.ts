@@ -50,7 +50,9 @@ export class SpFpsChart {
       }
       this.trace?.displayTip(fpsRow, FpsStruct.hoverFpsStruct, tip);
     };
-
+    fpsRow.findHoverStruct = () => {
+      FpsStruct.hoverFpsStruct = fpsRow.getHoverStruct()
+    };
     fpsRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(fpsRow.currentContext){

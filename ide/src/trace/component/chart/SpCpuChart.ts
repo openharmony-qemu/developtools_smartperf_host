@@ -101,6 +101,9 @@ export class SpCpuChart {
               }]</span>`
             );
           };
+          traceRow.findHoverStruct = () => {
+            CpuStruct.hoverCpuStruct = traceRow.getHoverStruct();
+          };
           traceRow.onThreadHandler = (useCache: boolean, buf: ArrayBuffer | undefined | null) => {
             let context:CanvasRenderingContext2D;
             if(traceRow.currentContext){

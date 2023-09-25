@@ -99,6 +99,9 @@ export class SpVirtualMemChart {
         `<span>value:${VirtualMemoryStruct.hoverStruct?.value}</span>`
       );
     };
+    virtualMemoryRow.findHoverStruct = () => {
+      VirtualMemoryStruct.hoverStruct = virtualMemoryRow.getHoverStruct();
+    };
     virtualMemoryRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(virtualMemoryRow.currentContext){

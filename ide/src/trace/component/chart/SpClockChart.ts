@@ -100,6 +100,9 @@ export class SpClockChart {
           `<span>${ColorUtils.formatNumberComma(ClockStruct.hoverClockStruct?.value!)}</span>`
         );
       };
+      traceRow.findHoverStruct = () => {
+        ClockStruct.hoverClockStruct = traceRow.getHoverStruct();
+      };
       traceRow.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(traceRow.currentContext){

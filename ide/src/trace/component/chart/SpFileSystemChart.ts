@@ -115,6 +115,9 @@ export class SpFileSystemChart {
     logicalReadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     logicalReadRow.selectChangeHandler = this.trace.selectChangeHandler;
     logicalReadRow.focusHandler = () => this.focusHandler(logicalReadRow);
+    logicalReadRow.findHoverStruct = () => {
+      FileSysChartStruct.hoverFileSysStruct = logicalReadRow.getHoverStruct()
+    };
     logicalReadRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(logicalReadRow.currentContext){
@@ -151,6 +154,9 @@ export class SpFileSystemChart {
     logicalWriteRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     logicalWriteRow.selectChangeHandler = this.trace.selectChangeHandler;
     logicalWriteRow.focusHandler = () => this.focusHandler(logicalWriteRow);
+    logicalWriteRow.findHoverStruct = () => {
+      FileSysChartStruct.hoverFileSysStruct = logicalWriteRow.getHoverStruct()
+    };
     logicalWriteRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(logicalWriteRow.currentContext){
@@ -188,6 +194,9 @@ export class SpFileSystemChart {
     diskIoRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     diskIoRow.selectChangeHandler = this.trace.selectChangeHandler;
     diskIoRow.focusHandler = () => this.focusHandler(diskIoRow);
+    diskIoRow.findHoverStruct = () => {
+      FileSysChartStruct.hoverFileSysStruct = diskIoRow.getHoverStruct()
+    };
     diskIoRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(diskIoRow.currentContext){
@@ -228,6 +237,9 @@ export class SpFileSystemChart {
       rowRead.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       rowRead.selectChangeHandler = this.trace.selectChangeHandler;
       rowRead.focusHandler = () => this.focusHandler(rowRead);
+      rowRead.findHoverStruct = () => {
+        FileSysChartStruct.hoverFileSysStruct = rowRead.getHoverStruct()
+      };
       rowRead.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(rowRead.currentContext){
@@ -262,6 +274,9 @@ export class SpFileSystemChart {
       rowWrite.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       rowWrite.selectChangeHandler = this.trace.selectChangeHandler;
       rowWrite.focusHandler = () => this.focusHandler(rowWrite);
+      rowWrite.findHoverStruct = () => {
+        FileSysChartStruct.hoverFileSysStruct = rowWrite.getHoverStruct()
+      };
       rowWrite.onThreadHandler = (useCache) => {
         let context:CanvasRenderingContext2D;
         if(rowWrite.currentContext){
@@ -301,6 +316,9 @@ export class SpFileSystemChart {
     vmTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     vmTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
     vmTraceRow.focusHandler = () => this.focusHandler(vmTraceRow);
+    vmTraceRow.findHoverStruct = () => {
+      FileSysChartStruct.hoverFileSysStruct = vmTraceRow.getHoverStruct()
+    };
     vmTraceRow.onThreadHandler = (useCache) => {
       let context:CanvasRenderingContext2D;
       if(vmTraceRow.currentContext){
