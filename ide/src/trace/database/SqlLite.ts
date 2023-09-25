@@ -4512,7 +4512,7 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
                ELSE ( a.start_point - R.start_ts ) END
            ) AS startTs,
            (a.start_point - R.start_ts) AS endTs,
-           0 AS frameCount
+           0 AS frameInfo
          FROM 
              animation AS a, 
              trace_range AS R
@@ -4521,7 +4521,7 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
            'Completion delay' as status,
            (a.start_point - R.start_ts) AS startTs,
            (a.end_point - R.start_ts) AS endTs,
-           a.frame_num AS frameCount
+           a.frame_info AS frameInfo
          FROM 
              animation AS a, 
              trace_range AS R

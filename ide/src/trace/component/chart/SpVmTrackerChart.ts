@@ -89,7 +89,7 @@ export class VmTrackerChart {
     VmTrackerRow.rowId = 'VmTrackerRow';
     VmTrackerRow.rowType = TraceRow.ROW_TYPE_VM_TRACKER;
     VmTrackerRow.addTemplateTypes('ProcessMemory');
-    VmTrackerRow.addTemplateTypes('Memory')
+    VmTrackerRow.addTemplateTypes('Memory');
     VmTrackerRow.rowParentId = '';
     VmTrackerRow.style.height = '40px';
     VmTrackerRow.index = 0;
@@ -100,20 +100,26 @@ export class VmTrackerChart {
     VmTrackerRow.supplier = (): Promise<Array<SnapshotStruct>> =>
       new Promise<Array<SnapshotStruct>>((resolve) => resolve([]));
     VmTrackerRow.onThreadHandler = (useCache): void => {
-      VmTrackerRow.canvasSave(this.trace.canvasPanelCtx!);
+      let context: CanvasRenderingContext2D;
+      if (VmTrackerRow.currentContext) {
+        context = VmTrackerRow.currentContext;
+      } else {
+        context = VmTrackerRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      VmTrackerRow.canvasSave(context);
       if (VmTrackerRow.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, VmTrackerRow.frame.width, VmTrackerRow.frame.height);
+        context?.clearRect(0, 0, VmTrackerRow.frame.width, VmTrackerRow.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
           {
-            context: this.trace.canvasPanelCtx,
+            context: context,
             useCache: useCache,
             type: '',
           },
           VmTrackerRow
         );
       }
-      VmTrackerRow.canvasRestore(this.trace.canvasPanelCtx!);
+      VmTrackerRow.canvasRestore(context);
     };
     this.rowFolder = VmTrackerRow;
     this.trace.rowsEL?.appendChild(VmTrackerRow);
@@ -135,20 +141,26 @@ export class VmTrackerChart {
     sMapsRow.supplier = (): Promise<Array<SnapshotStruct>> =>
       new Promise<Array<SnapshotStruct>>((resolve) => resolve([]));
     sMapsRow.onThreadHandler = (useCache): void => {
-      sMapsRow.canvasSave(this.trace.canvasPanelCtx!);
+      let context: CanvasRenderingContext2D;
+      if (sMapsRow.currentContext) {
+        context = sMapsRow.currentContext;
+      } else {
+        context = sMapsRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      sMapsRow.canvasSave(context);
       if (sMapsRow.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, sMapsRow.frame.width, sMapsRow.frame.height);
+        context?.clearRect(0, 0, sMapsRow.frame.width, sMapsRow.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
           {
-            context: this.trace.canvasPanelCtx,
+            context: context,
             useCache: useCache,
             type: '',
           },
           sMapsRow
         );
       }
-      sMapsRow.canvasRestore(this.trace.canvasPanelCtx!);
+      sMapsRow.canvasRestore(context);
     };
     this.sMapsFolder = sMapsRow;
     this.rowFolder?.addChildTraceRow(sMapsRow);
@@ -169,20 +181,26 @@ export class VmTrackerChart {
     gpuTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
       new Promise<Array<SnapshotStruct>>((resolve) => resolve([]));
     gpuTraceRow.onThreadHandler = (useCache): void => {
-      gpuTraceRow.canvasSave(this.trace.canvasPanelCtx!);
+      let context: CanvasRenderingContext2D;
+      if (gpuTraceRow.currentContext) {
+        context = gpuTraceRow.currentContext;
+      } else {
+        context = gpuTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      gpuTraceRow.canvasSave(context);
       if (gpuTraceRow.expansion) {
-        this.trace.canvasPanelCtx?.clearRect(0, 0, gpuTraceRow.frame.width, gpuTraceRow.frame.height);
+        context?.clearRect(0, 0, gpuTraceRow.frame.width, gpuTraceRow.frame.height);
       } else {
         (renders.empty as EmptyRender).renderMainThread(
           {
-            context: this.trace.canvasPanelCtx,
+            context: context,
             useCache: useCache,
             type: '',
           },
           gpuTraceRow
         );
       }
-      gpuTraceRow.canvasRestore(this.trace.canvasPanelCtx!);
+      gpuTraceRow.canvasRestore(context);
     };
     this.gpuFolder = gpuTraceRow;
     this.rowFolder.addChildTraceRow(gpuTraceRow);
@@ -306,7 +324,7 @@ export class VmTrackerChart {
 
   private async addGpuTotalRow(): Promise<void> {
     let types = await queryGpuTotalType();
-    if (!types || types.length == 0){
+    if (!types || types.length == 0) {
       return;
     }
     let gpuTotalRow = this.initTraceRow(
@@ -352,7 +370,7 @@ export class VmTrackerChart {
 
   private async addGpuWindowRow(): Promise<void> {
     let types = await queryGpuWindowType();
-    if (!types || types.length === 0){
+    if (!types || types.length === 0) {
       return;
     }
     let settings: TreeItemData[] = types
@@ -427,10 +445,10 @@ export class VmTrackerChart {
       SnapshotStruct.hoverSnapshotStruct = vmTrackerTraceRow.getHoverStruct();
     };
     vmTrackerTraceRow.onThreadHandler = (useCache): void => {
-      let context:CanvasRenderingContext2D
-      if(vmTrackerTraceRow.currentContext){
+      let context: CanvasRenderingContext2D;
+      if (vmTrackerTraceRow.currentContext) {
         context = vmTrackerTraceRow.currentContext;
-      }else{
+      } else {
         context = vmTrackerTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       vmTrackerTraceRow.canvasSave(context);

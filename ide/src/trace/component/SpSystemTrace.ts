@@ -1666,8 +1666,8 @@ export class SpSystemTrace extends BaseElement {
 
     // Draw the connection curve
     if (this.linkNodes) {
-      drawLinkLines(this.canvasPanelCtx!, this.linkNodes, this.timerShaftEL!, false);
-      this.favoriteChartListEL?.drawLinkLines(this.linkNodes, this.timerShaftEL!, true);
+      drawLinkLines(this.canvasPanelCtx!, this.linkNodes, this.timerShaftEL!, false, this.favoriteChartListEL!.clientHeight);
+      this.favoriteChartListEL?.drawLinkLines(this.linkNodes, this.timerShaftEL!, true, this.favoriteChartListEL!.clientHeight);
     }
   }
 
@@ -3025,6 +3025,16 @@ export class SpSystemTrace extends BaseElement {
           let selectRow = this.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
             `trace-row[row-id='${allocationRowId}'][row-type=\'func\']`
           );
+          if (!selectRow) {
+            let collectList = this.favoriteChartListEL!.getCollectRows(`trace-row[collect-type]`);
+            for (let index = 0; index < collectList.length; index++) {
+              let selectCollectRow = collectList[index];
+              if (selectCollectRow.rowId === allocationRowId.toString() && selectCollectRow.rowType === 'func') {
+                selectRow = selectCollectRow;
+                break;
+              }
+            }
+          }
           selectRow!.dataList.forEach((value) => {
             // allocation to execute
             if (value.id === res[0].allocation_task_row) {
@@ -3222,16 +3232,26 @@ export class SpSystemTrace extends BaseElement {
     if (selectJankStruct == undefined || selectJankStruct == null) {
       return;
     }
+    let selectRowId = 'actual frameTime';
     if (selectJankStruct.frame_type == 'frameTime') {
       startRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-        "trace-row[row-id='actual frameTime'][row-type='janks']"
+        `trace-row[row-id='${selectRowId}'][row-type='janks']`
       );
     } else {
+      selectRowId = selectJankStruct?.type + '-' + selectJankStruct?.pid;
       startRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
-        `trace-row[row-id='${`${selectJankStruct?.type}-${selectJankStruct?.pid}`}'][row-type='janks']`
+        `trace-row[row-id='${selectRowId}'][row-type='janks']`
       );
     }
-
+    if (!startRow) {
+      for (let index = 0; index < collectList.length; index++) {
+        let collectChart = collectList[index];
+        if (collectChart.rowId === selectRowId && collectChart.rowType === 'janks') {
+          startRow = collectChart;
+          break;
+        }
+      }
+    }
     function collectionHasJank(jankRow: any): boolean {
       for (let item of collectList!) {
         if (item.rowId === jankRow.rowId && item.rowType === jankRow.rowType) {

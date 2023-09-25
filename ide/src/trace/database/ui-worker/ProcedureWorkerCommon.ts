@@ -777,30 +777,57 @@ export function drawLinkLines(
   context: CanvasRenderingContext2D,
   nodes: PairPoint[][],
   tm: TimerShaftElement,
-  isFavorite: boolean
+  isFavorite: boolean,
+  favoriteHeight: number
 ) {
   let percentage =
     (tm.getRange()!.totalNS - Math.abs(tm.getRange()!.endNS - tm.getRange()!.startNS)) / tm.getRange()!.totalNS;
   let maxWidth = tm.getBoundingClientRect().width - 268;
   for (let i = 0; i < nodes.length; i++) {
     let it = nodes[i];
+    let newFirstNode = new PairPoint(it[0].rowEL, it[0].x, it[0].y, it[0].ns, it[0].offsetY, it[0].isRight, it[0].business);
+    let newSecondNode = new PairPoint(it[1].rowEL, it[0].x, it[1].y, it[1].ns, it[1].offsetY, it[1].isRight, it[1].business);
     if (it[0].hidden) {
       continue;
     }
     if (isFavorite) {
-      if (!it[0].rowEL.collect && !it[1].rowEL.collect) {
+      if (it[0].rowEL.collect && it[1].rowEL.collect) {
+      } else if (!it[0].rowEL.collect && !it[1].rowEL.collect) {
         continue;
+      } else {
+        if (it[0].rowEL.collect) {
+          newSecondNode.y = it[1].y + favoriteHeight;
+          if (newSecondNode.y <= favoriteHeight) {
+            newSecondNode.y = favoriteHeight;
+          }
+        } else {
+          newFirstNode.y = it[0].y + favoriteHeight;
+          if (newFirstNode.y <= favoriteHeight) {
+            newFirstNode.y = favoriteHeight;
+          }
+        }
+      }
+    } else {
+      if (it[0].rowEL.collect && it[1].rowEL.collect) {
+        continue;
+      } else if (!it[0].rowEL.collect && !it[1].rowEL.collect) {
+      } else {
+        if (it[0].rowEL.collect) {
+          newFirstNode.y = it[0].y - favoriteHeight;
+        } else {
+          newSecondNode.y = it[1].y - favoriteHeight;
+        }
       }
     }
     switch (it[0].lineType) {
       case LineType.brokenLine:
-        drawBrokenLine(it, maxWidth, context);
+        drawBrokenLine([newFirstNode, newSecondNode], maxWidth, context);
         break;
       case LineType.bezierCurve:
-        drawBezierCurve(it, maxWidth, context, percentage);
+        drawBezierCurve([newFirstNode, newSecondNode], maxWidth, context, percentage);
         break;
       default:
-        drawBezierCurve(it, maxWidth, context, percentage);
+        drawBezierCurve([newFirstNode, newSecondNode], maxWidth, context, percentage);
     }
   }
 }

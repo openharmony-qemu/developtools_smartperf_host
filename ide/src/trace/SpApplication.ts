@@ -753,24 +753,21 @@ export class SpApplication extends BaseElement {
       return menus;
     }
 
-    function restoreDownLoadIcons(time: number) {
-      let timer = setInterval(function () {
-        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-        querySelectorAll!.forEach((menuGroup) => {
-          let attribute = menuGroup.getAttribute('title');
-          if (attribute === 'Convert trace') {
-            let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-            querySelectors.forEach((item) => {
-              if (item.getAttribute('title') === 'Convert to .systrace') {
-                item!.setAttribute('icon', 'download');
-                let querySelector = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-                querySelector.removeAttribute('spin');
-                clearInterval(timer);
-              }
-            });
-          }
-        });
-      }, time);
+    function restoreDownLoadIcons() {
+      let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
+      querySelectorAll!.forEach((menuGroup) => {
+        let attribute = menuGroup.getAttribute('title');
+        if (attribute === 'Convert trace') {
+          let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+          querySelectors.forEach((item) => {
+            if (item.getAttribute('title') === 'Convert to .systrace') {
+              item!.setAttribute('icon', 'download');
+              let querySelector = item!.shadowRoot?.querySelector('.icon') as LitIcon;
+              querySelector.removeAttribute('spin');
+            }
+          });
+        }
+      });
     }
 
     function postConvert(fileName: string) {
@@ -784,28 +781,28 @@ export class SpApplication extends BaseElement {
         convertPool.submitWithName('getConvertData', (status: boolean, msg: string, results: Blob) => {
           aElement.href = URL.createObjectURL(results);
           aElement.download = newFileName;
+          let timeoutId = 0;
+          aElement.addEventListener('click', ev => {
+            clearTimeout(timeoutId);
+            timeoutId = window.setTimeout(()=>{
+              restoreDownLoadIcons();
+            }, 2000);
+          });
           aElement.click();
           window.URL.revokeObjectURL(aElement.href);
-          let time = 2000;
-          let size = results.size / (1024 * 1024);
-          if (size > 100 && size < 1200) {
-            time = Number(Number(size / 100).toFixed(2)) * 1800;
-          } else if (size >= 1200) {
-            time = Number(Number(size / 100).toFixed(2)) * 2500;
-          }
-          restoreDownLoadIcons(time);
         });
       } else {
-        let time = 1000;
-        let size = DbPool.sharedBuffer!.byteLength / (1024 * 1024);
-        if (size > 100) {
-          time = Number(Number(size / 100).toFixed(2)) * 1000;
-        }
         aElement.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
         aElement.download = newFileName;
+        let txtTimeoutId = 0;
+        aElement.addEventListener('click', ev => {
+          clearTimeout(txtTimeoutId);
+          txtTimeoutId = window.setTimeout(()=>{
+            restoreDownLoadIcons();
+          }, 2000);
+        });
         aElement.click();
         window.URL.revokeObjectURL(aElement.href);
-        restoreDownLoadIcons(time);
       }
     }
 

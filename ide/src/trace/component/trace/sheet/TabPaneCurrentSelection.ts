@@ -971,10 +971,15 @@ export class TabPaneCurrentSelection extends BaseElement {
     list.push({ name: 'End time(Absolute)', value: ((dataTs + (data.dur || 0)) + (window as any).recordStartNS) / 1000000000});
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
-      if (data.frameCount! > 0) {
-        let fixedNumber: number = 2;
-        let fpsValue: number = data.frameCount! / (data.dur / 1000_000_000);
-        list.push({ name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}` });
+      let frameFpsMessage = data.frameInfo?.split(':');
+      if (frameFpsMessage) {
+        if (frameFpsMessage[1] !== '0') {
+          list.push({ name: 'FPS', value: `${frameFpsMessage[1]}` });
+        } else {
+          let fixedNumber: number = 2;
+          let fpsValue: number = Number(frameFpsMessage[0]) / (data.dur / 1000_000_000);
+          list.push({ name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}` });
+        }
       }
     }
     this.currentSelectionTbl!.dataSource = list;

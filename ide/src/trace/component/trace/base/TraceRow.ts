@@ -137,7 +137,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public onRowSettingChangeHandler: ((keys: Array<string>, nodes: Array<any>) => void) | undefined | null;
   public supplier: (() => Promise<Array<T>>) | undefined | null;
   public favoriteChangeHandler: ((fav: TraceRow<any>) => void) | undefined | null;
-  public selectChangeHandler: ((traceRow:TraceRow<any>) => void) | undefined | null;
+  public selectChangeHandler: ((traceRow: TraceRow<any>) => void) | undefined | null;
   dpr = window.devicePixelRatio || 1;
   // @ts-ignore
   offscreen: Array<OffscreenCanvas | undefined> = [];
@@ -345,7 +345,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.removeAttribute('row-hidden');
       height = this.clientHeight;
     }
-    if (this.collect){
+    if (this.collect) {
       window.publish(window.SmartEvent.UI.RowHeightChange, {
         expand: this.funcExpand,
         value: height,
@@ -386,11 +386,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (value) {
       this.insertAfter(this.fragment, this);
     } else {
-      for (const childrenRow of this.childrenList){
-        if (!childrenRow.collect){
-          this.fragment.append(childrenRow);
-        }
-      }
+      this.isShowChildrenRow(this.childrenList);
     }
     if (value) {
       this.setAttribute('expansion', '');
@@ -407,6 +403,17 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         },
       })
     );
+  }
+
+  private isShowChildrenRow(childrenRowList: Array<TraceRow<T>>): void {
+    for (const childrenRow of childrenRowList) {
+      if (!childrenRow.collect) {
+        this.fragment.append(childrenRow);
+      }
+      if (childrenRow.childrenList && childrenRow.expansion) {
+        this.isShowChildrenRow(childrenRow.childrenList);
+      }
+    }
   }
 
   clearMemory() {
@@ -452,7 +459,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   getHoverStruct() {
     if (this.isHover) {
-      return this.dataListCache.find(re => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY));
+      return this.dataListCache.find((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY));
     }
   }
 
@@ -467,7 +474,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   removeChildTraceRow(row: TraceRow<any>) {
-    this.childrenList.splice(this.childrenList.indexOf(row),1);
+    this.childrenList.splice(this.childrenList.indexOf(row), 1);
     this.fragment.removeChild(row);
   }
 
@@ -654,7 +661,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this.checkType = '2';
       }
       this.setCheckBox(ev.target.checked);
-      ev.stopPropagation()
+      ev.stopPropagation();
     };
     // 防止事件冒泡触发两次describeEl的点击事件
     this.checkBoxEL!.onclick = (ev: any) => {

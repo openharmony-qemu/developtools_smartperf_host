@@ -323,7 +323,9 @@ export class TabPaneSmapsStatistics extends BaseElement {
       // @ts-ignore
       this.totalTree.sort((previous, next) => next.size - previous.size);
       this.totalTree.unshift(this.allTree);
-      table!.recycleDataSource = this.totalTree;
+      // 深拷贝数组，不然在给表格赋值之后删除了all那行，表格的数据this.value也会少了all行
+      let copyTotalTree = Array.from(this.totalTree);
+      table!.recycleDataSource = copyTotalTree;
       this.totalTree.shift();
       table?.reMeauseHeight();
     } else {
@@ -411,7 +413,8 @@ export class TabPaneSmapsStatistics extends BaseElement {
         break;
     }
     this.sortArray.unshift(this.allTree!);
-    table!.recycleDataSource = this.sortArray;
+    let copySortArray = Array.from(this.sortArray);
+    table!.recycleDataSource = copySortArray;
     this.sortArray.shift();
   }
 

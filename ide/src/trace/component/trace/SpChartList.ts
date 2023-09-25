@@ -442,8 +442,8 @@ export class SpChartList extends BaseElement {
     );
   }
 
-  drawLinkLines(nodes: PairPoint[][], tse: TimerShaftElement, isFavorite: boolean) {
-    drawLinkLines(this.canvasCtx!, nodes, tse, isFavorite);
+  drawLinkLines(nodes: PairPoint[][], tse: TimerShaftElement, isFavorite: boolean, favoriteHeight: number) {
+    drawLinkLines(this.canvasCtx!, nodes, tse, isFavorite, favoriteHeight);
   }
 
   refreshFavoriteCanvas() {
