@@ -586,22 +586,4 @@ export class SpAllocations extends BaseElement {
         `;
   }
 
-  private convertToValue(input: string, unit: string): number {
-    let value: number;
-    switch (unit) {
-      case 'MB':
-        value = Number(input) * 1024 * 1024;
-        break;
-      case 'KB':
-        value = Number(input) * 1024;
-        break;
-      default:
-        value = 0;
-    }
-    let number = value / 0;
-    if (number > 0 && number < 1) {
-      return 16384;
-    }
-    return parseInt(String(number));
-  }
 }
