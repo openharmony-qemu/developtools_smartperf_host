@@ -25,6 +25,7 @@ import { SpRecordTrace } from '../SpRecordTrace.js';
 import { Cmd } from '../../../command/Cmd.js';
 import { CmdConstant } from '../../../command/CmdConstant.js';
 import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
+import { SpApplication } from '../../SpApplication.js';
 
 @element('sp-file-system')
 export class SpFileSystem extends BaseElement {
@@ -202,6 +203,16 @@ export class SpFileSystem extends BaseElement {
     });
   }
 
+  connectedCallback(): void {
+    let traceMode = this.shadowRoot!.querySelector('#traceMode') as HTMLDivElement;
+    let isLongTrace = SpApplication.isLongTrace;
+    if (isLongTrace) {
+      traceMode!.style.display = 'block';
+    } else {
+      traceMode!.style.display = 'none';
+    }
+  }
+
   initHtml(): string {
     return `
         <style>
@@ -288,6 +299,10 @@ export class SpFileSystem extends BaseElement {
         }
         </style>
         <div class="root">
+          <span class="long_trace_title" style="display: none">This Is Record long Trace File</span>
+          <div class="file-system-title" id="traceMode" style="text-align:left;">
+            <span style='color: red'>This is record long trace!</span>
+          </div>
           <div class="file-system-config-div">
             <div>
                <span class="file-system-title">Start FileSystem Record</span>

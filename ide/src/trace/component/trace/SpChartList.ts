@@ -39,6 +39,8 @@ const mouseMoveRange = 5
 
 @element('sp-chart-list')
 export class SpChartList extends BaseElement {
+  private static COLLECT_G1 = '1';
+  private static COLLECT_G2 = '2';
   private collectEl1: HTMLDivElement | null | undefined;
   private collectEl2: HTMLDivElement | null | undefined;
   private groupTitle1: HTMLDivElement | null | undefined;
@@ -171,7 +173,7 @@ export class SpChartList extends BaseElement {
 
   insertRowBefore(node: Node, child: Node) {
     if (child === null || (child as TraceRow<any>).collectGroup === (node as TraceRow<any>).collectGroup) {
-      if ((node as TraceRow<any>).collectGroup === '1') {
+      if ((node as TraceRow<any>).collectGroup === SpChartList.COLLECT_G1) {
         this.collectEl1!.insertBefore(node, child);
         this.collectRowList1 = Array.from(this.collectEl1!.children) as TraceRow<any>[];
       } else {
@@ -312,7 +314,13 @@ export class SpChartList extends BaseElement {
   insertRow(row: TraceRow<any>, group: string, updateGroup: boolean) {
     this.style.display = 'flex';
     let collectGroup = !updateGroup && row.collectGroup ? row.collectGroup : group;
-    if (collectGroup === '1') {
+    if (row.collectGroup !== SpChartList.COLLECT_G1 && row.collectGroup !== SpChartList.COLLECT_G2) {
+      row.collectGroup = group;
+    }
+    if (updateGroup) {
+      row.collectGroup = group;
+    }
+    if (collectGroup === SpChartList.COLLECT_G1) {
       if (!this.collect1Expand) {
         this.collect1Expand = true;
         this.icon1!.style.transform = 'rotateZ(0deg)';
@@ -337,9 +345,6 @@ export class SpChartList extends BaseElement {
       }
       this.collectEl2!.appendChild(this.fragmentGroup2);
     }
-    if (updateGroup) {
-      row.collectGroup = group;
-    }
     this.updateGroupDisplay();
     this.resizeHeight();
     this.scrollTo({ top: this.scrollHeight });
@@ -348,7 +353,7 @@ export class SpChartList extends BaseElement {
   }
 
   deleteRow(row: TraceRow<any>, clearCollectGroup: boolean) {
-    if (row.collectGroup === '1') {
+    if (row.collectGroup === SpChartList.COLLECT_G1) {
       this.collectRowList1.splice(this.collectRowList1.indexOf(row), 1);
       if (!this.fragmentGroup1.contains(row)) {
         this.fragmentGroup1.appendChild(row);

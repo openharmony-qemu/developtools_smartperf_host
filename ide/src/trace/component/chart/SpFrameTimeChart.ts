@@ -218,6 +218,8 @@ export class SpFrameTimeChart {
     nameArr: { name: string }[]
   ): Promise<TraceRow<BaseStruct>> {
     let frameChart: TraceRow<BaseStruct> = TraceRow.skeleton<BaseStruct>();
+    let labelName = frameChart.shadowRoot?.querySelector('.name') as HTMLLabelElement;
+    labelName.style.marginRight = '77px';
     let systemPopover = this.addSystemConfigButton(frameChart, nameArr);
     systemPopover.style.zIndex = '101';
     let radioList = systemPopover.querySelectorAll<HTMLInputElement>('.radio');

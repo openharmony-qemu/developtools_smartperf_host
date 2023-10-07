@@ -458,13 +458,8 @@ export class SpSystemTrace extends BaseElement {
             }
           });
         }
-        if (this.rowsEL!.contains(currentRow)) {
+        if (!currentRow.hasParentRowEl) {
           this.rowsEL!.replaceChild(replaceRow, currentRow);
-        } else {
-          if (currentRow.hasParentRowEl) {
-            let parent = currentRow.parentRowEl;
-            parent!.replaceTraceRow(replaceRow, currentRow);
-          }
         }
         this.favoriteChartListEL?.insertRow(currentRow, this.currentCollectGroup, event.detail.type !== 'auto-collect');
       } else {
@@ -483,24 +478,28 @@ export class SpSystemTrace extends BaseElement {
           row = parent;
         }
         for (let index: number = allowExpansionRow.length - 1; index >= 0; index--) {
-          if (!allowExpansionRow[index]?.expansion && allowExpansionRow[index]?.hasAttribute('scene')) {
-            allowExpansionRow[index].expansion = true;
+          if (allowExpansionRow[index]?.hasAttribute('scene')) {
+            if (allowExpansionRow[index]!.expansion) {
+              allowExpansionRow[index].updateChildRowStatus();
+            } else {
+              allowExpansionRow[index].expansion = true;
+            }
           }
         }
         allowExpansionRow.length = 0;
         let replaceRow = this.rowsEL!.querySelector<HTMLCanvasElement>(
           `div[row-id='${currentRow.rowId}-${currentRow.rowType}']`
         );
+        // 取消收藏时，删除父亲ID
+        let rowNameArr = currentRow.name.split('(');
+        if (rowNameArr.length > 1) {
+          let tempName = '';
+          tempName += rowNameArr[0];
+          currentRow.name = tempName;
+        } else {
+          currentRow.name = rowNameArr[0];
+        }
         if (replaceRow != null) {
-          // 取消收藏时，删除父亲ID
-          let rowNameArr = currentRow.name.split('(');
-          if (rowNameArr.length > 1) {
-            let tempName = '';
-            tempName += rowNameArr[0];
-            currentRow.name = tempName;
-          } else {
-            currentRow.name = rowNameArr[0];
-          }
           this.rowsEL!.replaceChild(currentRow, replaceRow);
           currentRow.style.boxShadow = `0 10px 10px #00000000`;
         }

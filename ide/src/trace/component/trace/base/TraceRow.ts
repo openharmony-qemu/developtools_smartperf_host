@@ -384,9 +384,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       return;
     }
     if (value) {
-      this.insertAfter(this.fragment, this);
+      this.updateChildRowStatus();
     } else {
-      this.isShowChildrenRow(this.childrenList);
+      this.childRowToFragment(false);
     }
     if (value) {
       this.setAttribute('expansion', '');
@@ -405,15 +405,23 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     );
   }
 
-  private isShowChildrenRow(childrenRowList: Array<TraceRow<T>>): void {
-    for (const childrenRow of childrenRowList) {
+  childRowToFragment (expansion: boolean) : void {
+    for (const childrenRow of this.childrenList){
       if (!childrenRow.collect) {
         this.fragment.append(childrenRow);
       }
-      if (childrenRow.childrenList && childrenRow.expansion) {
-        this.isShowChildrenRow(childrenRow.childrenList);
+      if (!expansion) {
+        if (childrenRow.childrenList && childrenRow.expansion) {
+          this.childRowToFragment(expansion);
+        }
       }
     }
+  }
+
+  updateChildRowStatus() : void {
+    this.fragment = document.createDocumentFragment();
+    this.childRowToFragment(true);
+    this.insertAfter(this.fragment, this);
   }
 
   clearMemory() {
@@ -437,13 +445,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.templateType.push(...type);
     if (this.hasParentRowEl) {
       this.toParentAddTemplateType(this);
-    }
-  }
-
-  replaceTraceRow(newNode: any, oldNode: any) {
-    let oldIndex = this.childrenList.indexOf(oldNode);
-    if (oldIndex != -1) {
-      this.childrenList.splice(oldIndex, 1, newNode);
     }
   }
 
@@ -471,11 +472,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.childrenList.push(child);
     child.rowHidden = false;
     this.fragment.appendChild(child);
-  }
-
-  removeChildTraceRow(row: TraceRow<any>) {
-    this.childrenList.splice(this.childrenList.indexOf(row), 1);
-    this.fragment.removeChild(row);
   }
 
   addChildTraceRowAfter(child: TraceRow<any>, targetRow: TraceRow<any>) {

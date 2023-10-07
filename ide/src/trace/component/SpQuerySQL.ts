@@ -495,6 +495,9 @@ export class SpQuerySQL extends BaseElement {
         lit-icon {
           text-overflow: ellipsis;
         }
+        .runButton:hover {
+           cursor: pointer;
+        }
         </style>
         <div class="query">
             <div class="query-message request">

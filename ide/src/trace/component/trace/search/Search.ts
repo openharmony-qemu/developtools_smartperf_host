@@ -350,7 +350,10 @@ export class LitSearch extends BaseElement {
             overflow-y: auto;
             display: none;
             border-radius: 0 0 20px 20px;
-        }       
+        }     
+        .search-history-list:hover{
+             cursor: pointer;
+        }  
         .search-history-list-item {
             cursor: pointer;
             width: 100%;
