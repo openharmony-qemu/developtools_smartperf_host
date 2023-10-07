@@ -112,7 +112,8 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint& point, size_t cal
         auto animationRow = iter->second;
         auto curRealFrameRate = SplitStringToVec(infos.front(), " ").back();
         auto curFrameNum = "0:";
-        traceDataCache_->GetAnimation()->UpdateFrameInfo(animationRow, traceDataCache_->GetDataIndex(curFrameNum + curRealFrameRate));
+        traceDataCache_->GetAnimation()->UpdateFrameInfo(animationRow,
+                                                         traceDataCache_->GetDataIndex(curFrameNum + curRealFrameRate));
         return true;
     } else if (!StartWith(point.name_, frameBeginCmd_)) {
         return false;

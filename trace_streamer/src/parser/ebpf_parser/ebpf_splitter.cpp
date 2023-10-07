@@ -86,7 +86,6 @@ void EbpfSplitter::SplitEbpfBodyData()
            ebpfBuffer_.size() > EBPF_TITLE_SIZE) {
         EbpfTypeAndLength dataTitle;
         std::copy_n(ebpfBuffer_.begin(), EBPF_TITLE_SIZE, reinterpret_cast<char*>(&dataTitle));
-        // TS_LOGE("dataTitle.length = %lu, dataTitle.type = %lu", dataTitle.length, dataTitle.type);
         if (dataTitle.length + EBPF_TITLE_SIZE > ebpfBuffer_.size()) {
             return;
         }

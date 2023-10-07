@@ -404,9 +404,6 @@ bool HtraceEventParser::SchedSwitchEvent(const ProtoReader::DataArea& event)
     std::string prevCommStr = msg.prev_comm().ToStdString();
     std::string nextCommStr = msg.next_comm().ToStdString();
     auto prevState = msg.prev_state();
-    if (prevState == TASK_WAKEKILL) {
-        prevState = TASK_RUNNABLE;
-    }
 
     auto nextInternalTid =
         streamFilters_->processFilter_->UpdateOrCreateThreadWithName(eventTimeStamp_, nextPidValue, nextCommStr);
@@ -529,7 +526,7 @@ bool HtraceEventParser::SchedWakingEvent(const ProtoReader::DataArea& event) con
     auto instants = traceDataCache_->GetInstantsData();
     auto internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimeStamp_, wakePidValue);
     auto wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimeStamp_, eventTid_);
-    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimeStamp_, internalTid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimeStamp_, internalTid, true);
     instants->AppendInstantEventData(eventTimeStamp_, schedWakingName_, internalTid, wakeupFromPid);
     uint32_t targetCpu = msg.target_cpu();
     traceDataCache_->GetRawData()->AppendRawData(0, eventTimeStamp_, RAW_SCHED_WAKING, targetCpu, wakeupFromPid);

@@ -18,17 +18,15 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include "cpu_detail_parser.h"
 #include "ftrace_common_type.h"
 #include "ftrace_field_processor.h"
 #include "printk_formats_processor.h"
-#include "rawtrace_cpu_detail_parser.h"
 #include "ftrace_event_processor.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-#ifndef PAGE_SIZE
-constexpr uint32_t PAGE_SIZE = 4096;
-#endif
+constexpr uint32_t FTRACE_PAGE_SIZE = 4096;
 class FtraceProcessor {
 public:
     FtraceProcessor();
@@ -39,7 +37,7 @@ public:
     bool HandlePage(FtraceCpuDetailMsg& cpuDetailMsg,
                     CpuDetailParser& cpuDetailParser,
                     uint8_t page[],
-                    size_t size = PAGE_SIZE);
+                    size_t size = FTRACE_PAGE_SIZE);
 
     bool HandleTgids(const std::string& tgids);
     bool HandleCmdlines(const std::string& cmdlines);

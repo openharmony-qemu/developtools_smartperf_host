@@ -69,18 +69,18 @@ public:
                                                      {TASK_UNINTERRUPTIBLE_IO, "D-IO"},
                                                      {TASK_UNINTERRUPTIBLE_NIO, "D-NIO"},
                                                      {TASK_RUNNING, "Running"},
-                                                     {TASK_INTERRUPTED, "T"},
+                                                     {TASK_STOPPED, "T"},
                                                      {TASK_TRACED, "t"},
                                                      {TASK_EXIT_DEAD, "X"},
                                                      {TASK_ZOMBIE, "Z"},
                                                      {TASK_PARKED, "P"},
-                                                     {TASK_KILLED, "K"},
+                                                     {TASK_DEAD, "I"},
                                                      {TASK_DK, "DK"},
                                                      {TASK_DK_IO, "DK-IO"},
                                                      {TASK_DK_NIO, "DK-NIO"},
                                                      {TASK_TRACED_KILL, "TK"},
-                                                     {TASK_WAKEKILL, "W"},
-                                                     {TASK_FOREGROUND, "R+"},
+                                                     {TASK_WAKEKILL, "R+"},
+                                                     {TASK_NEW, "R+"},
                                                      {TASK_RUNNABLE_BINDER, "R-B"},
                                                      {TASK_MAX, "S"},
                                                      {TASK_INVALID, "U"}};
@@ -177,6 +177,9 @@ public:
     DmaMemData dmaMemData_;
     GpuProcessMemData gpuProcessMemData_;
     GpuWindowMemData gpuWindowMemData_;
+    CpuDumpInfo cpuDumpInfo_;
+    ProfileMemInfo profileMemInfo_;
+    RSImageDumpInfo rsImageDumpInfo_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

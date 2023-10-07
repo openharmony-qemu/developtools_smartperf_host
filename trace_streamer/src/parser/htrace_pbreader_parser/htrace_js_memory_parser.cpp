@@ -378,7 +378,6 @@ void HtraceJSMemoryParser::SerializeSnapshotData(ProfilerPluginData& profilerPlu
     profilerPluginDataResult.set_data(endString);
     std::string arkTsEndString = "";
     profilerPluginDataResult.SerializeToString(&arkTsEndString);
-    dataSize_ = profilerArktsData.size() + arkTsEndString.size();
     std::string bufflen(sizeof(uint32_t), '\0');
     uint32_t profilerArktsDataSize = profilerArktsData.size();
     memcpy_s(&bufflen[0], sizeof(uint32_t), &profilerArktsDataSize, sizeof(uint32_t));
@@ -415,7 +414,6 @@ void HtraceJSMemoryParser::SerializeTimelineData(uint64_t startTime,
     profilerPluginDataResult.set_data(endString);
     std::string timelineEndString = "";
     profilerPluginDataResult.SerializeToString(&timelineEndString);
-    dataSize_ = timelineStartString.size() + profilerArktsData.size() + timelineEndString.size();
     std::string startLen(sizeof(uint32_t), '\0');
     uint32_t size = timelineStartString.size();
     memcpy_s(&startLen[0], sizeof(uint32_t), &size, sizeof(uint32_t));
@@ -449,7 +447,6 @@ void HtraceJSMemoryParser::SerializeCpuProfilerData(uint64_t startTime,
     profilerPluginDataResult.set_tv_nsec(endTs.tv_nsec);
     std::string profilerArktsData = "";
     profilerPluginDataResult.SerializeToString(&profilerArktsData);
-    dataSize_ += arkTsStartString.size() + profilerArktsData.size();
     std::string startLen(sizeof(uint32_t), '\0');
     uint32_t size = arkTsStartString.size();
     memcpy_s(&startLen[0], sizeof(uint32_t), &size, sizeof(uint32_t));

@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RAW_TRACE_CPU_DETAIL_PARSER_H
-#define RAW_TRACE_CPU_DETAIL_PARSER_H
+#ifndef CPU_DETAIL_PARSER_H
+#define CPU_DETAIL_PARSER_H
 #include "print_event_parser.h"
 #include "trace_data_cache.h"
 #include "trace_plugin_result.pb.h"
@@ -24,7 +24,7 @@ namespace TraceStreamer {
 struct RawTraceEventInfo {
     uint8_t cpuId = INVALID_UINT8;
     uint32_t eventId = INVALID_UINT32;
-    FtraceEvent* msgPtr = nullptr;
+    std::unique_ptr<FtraceEvent> msgPtr;
 };
 class CpuDetailParser {
 public:
@@ -51,7 +51,7 @@ private:
     bool BinderTractionUnLockEvent(const RawTraceEventInfo& event) const;
     bool TaskRenameEvent(const RawTraceEventInfo& event) const;
     bool TaskNewtaskEvent(const RawTraceEventInfo& event) const;
-    bool ParsePrintEvent(const RawTraceEventInfo& event);
+    bool ParseTracingMarkWriteOrPrintEvent(const RawTraceEventInfo& event);
     bool CpuIdleEvent(const RawTraceEventInfo& event) const;
     bool CpuFrequencyEvent(const RawTraceEventInfo& event) const;
     bool CpuFrequencyLimitsEvent(const RawTraceEventInfo& event) const;
@@ -65,6 +65,13 @@ private:
     bool SoftIrqEntryEvent(const RawTraceEventInfo& event) const;
     bool SoftIrqRaiseEvent(const RawTraceEventInfo& event) const;
     bool SoftIrqExitEvent(const RawTraceEventInfo& event) const;
+    bool SetRateEvent(const RawTraceEventInfo& event) const;
+    bool ClockEnableEvent(const RawTraceEventInfo& event) const;
+    bool ClockDisableEvent(const RawTraceEventInfo& event) const;
+    bool RegulatorSetVoltageEvent(const RawTraceEventInfo& event) const;
+    bool RegulatorSetVoltageCompleteEvent(const RawTraceEventInfo& event) const;
+    bool RegulatorDisableEvent(const RawTraceEventInfo& event) const;
+    bool RegulatorDisableCompleteEvent(const RawTraceEventInfo& event) const;
 
 private:
     using FuncCall = std::function<bool(const RawTraceEventInfo& event)>;
@@ -90,4 +97,4 @@ private:
 } // namespace TraceStreamer
 } // namespace SysTuning
 
-#endif // RAW_TRACE_CPU_DETAIL_PARSER_H_
+#endif // CPU_DETAIL_PARSER_H_
