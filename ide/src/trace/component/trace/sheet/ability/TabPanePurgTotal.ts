@@ -51,7 +51,12 @@ export class TabPanePurgTotal extends BaseElement {
         if (purgeTotalResults.length > 0) {
           for (let i = 0; i < purgeTotalResults.length; i++) {
             this.purgeableTotalSource.push(
-              this.toTabStruct(purgeTotalResults[i].name, purgeTotalResults[i].maxSize, purgeTotalResults[i].minSize, purgeTotalResults[i].avgSize)
+              this.toTabStruct(
+                purgeTotalResults[i].name,
+                purgeTotalResults[i].maxSize,
+                purgeTotalResults[i].minSize,
+                purgeTotalResults[i].avgSize
+              )
             );
           }
           this.sortByColumn({ key: this.sortKey, sort: this.sortType });
@@ -146,7 +151,9 @@ export class TabPanePurgTotal extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(purgeTotalRightData[key]) - parseFloat(purgeTotalLeftData[key]) : parseFloat(purgeTotalLeftData[key]) - parseFloat(purgeTotalRightData[key]);
+          return sort === 2
+            ? parseFloat(purgeTotalRightData[key]) - parseFloat(purgeTotalLeftData[key])
+            : parseFloat(purgeTotalLeftData[key]) - parseFloat(purgeTotalRightData[key]);
         } else {
           if (sort === 2) {
             return purgeTotalRightData[key].toString().localeCompare(purgeTotalLeftData[key].toString());

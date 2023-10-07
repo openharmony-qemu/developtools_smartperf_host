@@ -143,7 +143,11 @@ class DbThread extends Worker {
     this.postMessage(msg);
   }
 
-  cutFileByRange(leftTs: number, rightTs: number, handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void) {
+  cutFileByRange(
+    leftTs: number,
+    rightTs: number,
+    handler: (status: boolean, msg: string, splitBuffer?: ArrayBuffer) => void
+  ) {
     this.busy = true;
     let id = this.uuid();
     this.taskMap[id] = (res: any) => {
@@ -160,7 +164,7 @@ class DbThread extends Worker {
         action: 'cut-file',
         leftTs: leftTs,
         rightTs: rightTs,
-        buffer: DbPool.sharedBuffer!
+        buffer: DbPool.sharedBuffer!,
       },
       [DbPool.sharedBuffer!]
     );
@@ -1244,13 +1248,17 @@ export const queryThreads = (): Promise<Array<any>> =>
 
 export const queryDataDICT = (): Promise<Array<any>> => query('queryDataDICT', `select * from data_dict;`);
 
-export const queryAppStartupProcessIds = (): Promise<Array<{ pid: number }>> => query('queryAppStartupProcessIds', `
+export const queryAppStartupProcessIds = (): Promise<Array<{ pid: number }>> =>
+  query(
+    'queryAppStartupProcessIds',
+    `
   SELECT pid FROM process 
   WHERE ipid IN (
     SELECT ipid FROM app_startup 
     UNION
     SELECT t.ipid FROM app_startup a LEFT JOIN thread t ON a.call_id = t.itid 
-);`);
+);`
+  );
 export const queryProcessContentCount = (): Promise<Array<any>> =>
   query(`queryProcessContentCount`, `select pid,switch_count,thread_count,slice_count,mem_count from process;`);
 export const queryProcessThreadsByTable = (): Promise<Array<ThreadStruct>> =>
@@ -1384,8 +1392,8 @@ select pid id,name,'p' type from process;`,
 export const queryThreadStateArgs = (argset: number): Promise<Array<BinderArgBean>> =>
   query('queryThreadStateArgs', ` select args_view.* from args_view where argset = ${argset}`, {});
 
-export const queryThreadStateArgsByName = (key: string): Promise<Array<{argset: number, strValue: string}>> =>
-query('queryThreadStateArgsByName', ` select strValue, argset from args_view where keyName = $key`, {$key: key});
+export const queryThreadStateArgsByName = (key: string): Promise<Array<{ argset: number; strValue: string }>> =>
+  query('queryThreadStateArgsByName', ` select strValue, argset from args_view where keyName = $key`, { $key: key });
 
 export const queryWakeUpThread_Desc = (): Promise<Array<any>> =>
   query(
@@ -2779,7 +2787,7 @@ export const queryWakeupListPriority = (itid: number[], ts: number[], cpus: numb
     and itid in (${itid.join(',')})
     and ts - start_ts in (${ts.join(',')})
     `,
-    { }
+    {}
   );
 
 export const queryBinderByArgsId = (id: number, startTime: number, isNext: boolean): Promise<Array<any>> => {
@@ -5377,23 +5385,25 @@ export const queryLogData = (oneDayTime: number): Promise<Array<LogStruct>> =>
             LEFT JOIN process p ON p.pid = l.pid 
             ORDER BY
             l.ts;`,
-    {$oneDayTime: oneDayTime}
+    { $oneDayTime: oneDayTime }
   );
 
 export const queryMetric = (metricName: string): Promise<Array<string>> =>
   query('queryMetric', metricName, '', 'exec-metric');
 
 export const queryExistFtrace = (): Promise<Array<number>> =>
-    query(
-        'queryExistFtrace',
-        `select 1 from thread_state
+  query(
+    'queryExistFtrace',
+    `select 1 from thread_state
          UNION
          select 1 from args;`
-    );
+  );
 
-export const queryTraceType = (): Promise<Array<{
-  value: string
-}>> =>
+export const queryTraceType = (): Promise<
+  Array<{
+    value: string;
+  }>
+> =>
   query(
     'queryTraceType',
     `SELECT m.value

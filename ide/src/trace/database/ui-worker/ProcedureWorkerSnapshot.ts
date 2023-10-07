@@ -32,7 +32,14 @@ export class SnapshotRender extends Render {
     for (let item of list) {
       maxValue = Math.max(maxValue, item.value || 0);
     }
-    snapshot(list, filter, maxValue, TraceRow.range?.startNS ?? 0, (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0), row.frame);
+    snapshot(
+      list,
+      filter,
+      maxValue,
+      TraceRow.range?.startNS ?? 0,
+      (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),
+      row.frame
+    );
     req.context!.beginPath();
     let find = false;
     for (let re of filter) {

@@ -254,7 +254,7 @@ export class TabPaneNMemory extends BaseElement {
       this.setRightTableData(data);
       document.dispatchEvent(
         new CustomEvent('triangle-flag', {
-          detail: { time: [data.startTs], type: 'triangle'},
+          detail: { time: [data.startTs], type: 'triangle' },
         })
       );
     });
@@ -337,10 +337,12 @@ export class TabPaneNMemory extends BaseElement {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.memoryTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
+        this.memoryTbl?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 31 + 'px';
         this.memoryTbl?.reMeauseHeight();
         // @ts-ignore
-        this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 31 + 'px';
+        this.tblData?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 31 + 'px';
         this.tblData?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }

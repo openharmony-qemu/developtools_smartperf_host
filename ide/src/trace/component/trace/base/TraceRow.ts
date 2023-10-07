@@ -405,26 +405,26 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     );
   }
 
-  childRowToFragment (expansion: boolean) : void {
-    for (const childrenRow of this.childrenList){
+  childRowToFragment(expansion: boolean): void {
+    for (const childrenRow of this.childrenList) {
       if (!childrenRow.collect) {
         this.fragment.append(childrenRow);
       }
       if (!expansion) {
-        if (childrenRow.childrenList && childrenRow.expansion) {
-          this.childRowToFragment(expansion);
+        if (childrenRow.childrenList && childrenRow.folder && childrenRow.expansion) {
+          childrenRow.expansion = false;
         }
       }
     }
   }
 
-  updateChildRowStatus() : void {
+  updateChildRowStatus(): void {
     this.fragment = document.createDocumentFragment();
     this.childRowToFragment(true);
     this.insertAfter(this.fragment, this);
   }
 
-  clearMemory() {
+  clearMemory(): void {
     this.dataList2 = [];
     this.dataList = [];
     this.dataListCache = [];
@@ -691,6 +691,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.rowSettingPop!.visible = false;
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
+    this.checkType = '-1';
   }
 
   initCanvas(list: Array<HTMLCanvasElement>): void {

@@ -600,7 +600,7 @@ export class TraceSheet extends BaseElement {
   };
 
   displaySystemLogsData = (): void => {
-    let tblHiLogPanel = this.shadowRoot?.querySelector<LitTabpane>('lit-tabpane[id=\'box-hilogs\']');
+    let tblHiLogPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hilogs']");
     if (tblHiLogPanel) {
       let tblHiLog = tblHiLogPanel.querySelector<TabPaneHiLogs>('tab-hi-log');
       if (tblHiLog) {
@@ -608,7 +608,7 @@ export class TraceSheet extends BaseElement {
         tblHiLog.initTabSheetEl(tblHiLog.parentElement!, this);
       }
     }
-    let tblSummaryPanel = this.shadowRoot?.querySelector<LitTabpane>('lit-tabpane[id=\'box-hilogs-summary\']');
+    let tblSummaryPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hilogs-summary']");
     if (tblSummaryPanel) {
       let tblSummary = tblSummaryPanel.querySelector<TabPaneHiLogSummary>('tab-hi-log-summary');
       if (tblSummary) {

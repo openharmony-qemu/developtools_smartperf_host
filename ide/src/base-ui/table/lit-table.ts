@@ -1480,9 +1480,9 @@ export class LitTable extends HTMLElement {
       if (text.indexOf('&lt;') === -1) {
         td.title = text;
       }
-        //   如果表格中有模板的情况，将模板中的数据放进td中，没有模板，直接将文本放进td
-        //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
-        //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下
+      //   如果表格中有模板的情况，将模板中的数据放进td中，没有模板，直接将文本放进td
+      //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
+      //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下
       if (column.template) {
         if (dataIndex === 'color' && rowData.data.colorEl === undefined) {
           td.innerHTML = '';

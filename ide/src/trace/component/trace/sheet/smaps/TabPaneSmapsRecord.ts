@@ -18,15 +18,13 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabSmapsData, getTabSmapsRecordData } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { log } from '../../../../../log/Log.js';
-import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { Smaps, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
 import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
   private tblSmapsRecord: LitTable | null | undefined;
   private sourceSmapsRecord: Array<Smaps> = [];
-  private querySmapsRecordResult: Array<Smaps> = [];
   private isClick = false;
   private tabTitle: HTMLDivElement | undefined | null;
   set data(valSmapsRecord: SelectionParam) {
@@ -55,7 +53,8 @@ export class TabPaneSmapsRecord extends BaseElement {
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tblSmapsRecord?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight  - 15+ 'px';
+        this.tblSmapsRecord?.shadowRoot?.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 15 + 'px';
         this.tblSmapsRecord?.reMeauseHeight();
       }
     }).observe(this.parentElement!);
@@ -112,11 +111,9 @@ export class TabPaneSmapsRecord extends BaseElement {
         }
       }
       this.sourceSmapsRecord = result;
-      this.querySmapsRecordResult = result;
       this.tblSmapsRecord!.recycleDataSource = this.sourceSmapsRecord;
     } else {
       this.sourceSmapsRecord = [];
-      this.querySmapsRecordResult = [];
       this.tblSmapsRecord!.recycleDataSource = [];
     }
   }
@@ -169,8 +166,11 @@ export class TabPaneSmapsRecord extends BaseElement {
     function compare(property, sort, type) {
       return function (aSmapsRecord: Smaps, bSmapsRecord: Smaps) {
         if (type === 'number') {
-          // @ts-ignore
-          return sort === 2 ? parseFloat(bSmapsRecord[property]) - parseFloat(aSmapsRecord[property]) : parseFloat(aSmapsRecord[property]) - parseFloat(bSmapsRecord[property]);
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(bSmapsRecord[property]) - parseFloat(aSmapsRecord[property])
+            : // @ts-ignore
+              parseFloat(aSmapsRecord[property]) - parseFloat(bSmapsRecord[property]);
         } else {
           // @ts-ignore
           if (bSmapsRecord[property] > aSmapsRecord[property]) {
@@ -186,11 +186,7 @@ export class TabPaneSmapsRecord extends BaseElement {
         }
       };
     }
-    if (
-      detail.key === 'rssStr' ||
-      detail.key === 'sizeStr' ||
-      detail.key === 'resideStr'
-    ) {
+    if (detail.key === 'rssStr' || detail.key === 'sizeStr' || detail.key === 'resideStr') {
       let key = detail.key.substring(0, detail.key.indexOf('Str'));
       this.sourceSmapsRecord.sort(compare(key, detail.sort, 'number'));
     } else {

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import '../icon/LitIcon.js'
-import '../checkbox/LitCheckBox.js'
+import '../icon/LitIcon.js';
+import '../checkbox/LitCheckBox.js';
 import { BaseElement, element } from '../BaseElement.js';
 import { LitCheckBox } from '../checkbox/LitCheckBox.js';
 import { LitIcon } from '../icon/LitIcon.js';
@@ -22,7 +22,6 @@ import { TreeItemData } from './LitTree.js';
 
 @element('lit-tree-node')
 export class LitTreeNode extends BaseElement {
-
   private arrowElement: HTMLSpanElement | null | undefined;
   private itemElement: HTMLDivElement | null | undefined;
   private checkboxElement: LitCheckBox | null | undefined;
@@ -30,7 +29,20 @@ export class LitTreeNode extends BaseElement {
   private _data: TreeItemData | null | undefined;
 
   static get observedAttributes() {
-    return ['icon-name', 'icon-size', 'color', 'path', 'title', 'arrow', 'checkable', 'selected', 'checked', 'missing', 'multiple', 'top-depth'];
+    return [
+      'icon-name',
+      'icon-size',
+      'color',
+      'path',
+      'title',
+      'arrow',
+      'checkable',
+      'selected',
+      'checked',
+      'missing',
+      'multiple',
+      'top-depth',
+    ];
   }
 
   get checkable() {
@@ -64,7 +76,6 @@ export class LitTreeNode extends BaseElement {
   get multiple() {
     return this.hasAttribute('multiple');
   }
-
 
   get iconName() {
     return this.getAttribute('icon-name') || '';
@@ -138,12 +149,12 @@ export class LitTreeNode extends BaseElement {
     this.arrowElement!.onclick = (e) => {
       e.stopPropagation();
       this.autoExpand();
-    }
+    };
     this.checkboxElement!.onchange = (e: any) => {
       e.stopPropagation();
       this.onChange(e.detail.checked);
       return false;
-    }
+    };
     //这里需要给checkbox 添加onclick时间 并停止冒泡，不然onchange事件会触发父节点中的 onclick事件
     this.checkboxElement!.onclick = (e) => {
       e.stopPropagation();
@@ -158,7 +169,7 @@ export class LitTreeNode extends BaseElement {
     this.checked = checked;
     this.data!.checked = checked;
     this.checkHandler();
-    this.dispatchEvent(new CustomEvent('change', {detail: checked}));
+    this.dispatchEvent(new CustomEvent('change', { detail: checked }));
   }
 
   initHtml(): string {
@@ -320,7 +331,7 @@ export class LitTreeNode extends BaseElement {
             <lit-icon id="icon" name="${this.iconName}"></lit-icon>
             <span id="title">${this.title}</span>
         </div>
-        `
+        `;
   }
 
   //当 custom element首次被插入文档DOM时，被调用。
@@ -341,26 +352,33 @@ export class LitTreeNode extends BaseElement {
             a.removeAttribute('missing');
           });
         } else {
-          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: any) => a.checked = false);
+          this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: any) => (a.checked = false));
         }
       }
       let setCheckStatus = (element: any) => {
-        if (element.parentElement.parentElement.previousElementSibling && element.parentElement.parentElement.previousElementSibling.tagName === 'LIT-TREE-NODE') {
-          let allChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).every((item: any) => item.checked);
-          let someChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).some((item: any, index, array) => item.checked);
+        if (
+          element.parentElement.parentElement.previousElementSibling &&
+          element.parentElement.parentElement.previousElementSibling.tagName === 'LIT-TREE-NODE'
+        ) {
+          let allChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).every(
+            (item: any) => item.checked
+          );
+          let someChecked = Array.from(element.parentElement.parentElement.querySelectorAll('lit-tree-node')).some(
+            (item: any, index, array) => item.checked
+          );
           if (allChecked === true) {
             element.parentElement.parentElement.previousElementSibling.checked = true;
             element.parentElement.parentElement.previousElementSibling.removeAttribute('missing');
           } else if (someChecked) {
-            element.parentElement.parentElement.previousElementSibling.setAttribute('missing', '')
-            element.parentElement.parentElement.previousElementSibling.removeAttribute('checked')
+            element.parentElement.parentElement.previousElementSibling.setAttribute('missing', '');
+            element.parentElement.parentElement.previousElementSibling.removeAttribute('checked');
           } else {
-            element.parentElement.parentElement.previousElementSibling.removeAttribute('missing')
-            element.parentElement.parentElement.previousElementSibling.removeAttribute('checked')
+            element.parentElement.parentElement.previousElementSibling.removeAttribute('missing');
+            element.parentElement.parentElement.previousElementSibling.removeAttribute('checked');
           }
-          setCheckStatus(element.parentElement.parentElement.previousElementSibling)
+          setCheckStatus(element.parentElement.parentElement.previousElementSibling);
         }
-      }
+      };
       setCheckStatus(this);
     }
   }
@@ -419,14 +437,10 @@ export class LitTreeNode extends BaseElement {
   }
 
   //当 custom element从文档DOM中删除时，被调用。
-  disconnectedCallback() {
-
-  }
+  disconnectedCallback() {}
 
   //当 custom element被移动到新的文档时，被调用。
-  adoptedCallback() {
-
-  }
+  adoptedCallback() {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
   attributeChangedCallback(name: string, oldValue: any, newValue: any) {
@@ -457,7 +471,7 @@ export class LitTreeNode extends BaseElement {
   }
 
   //在node top  top-right  bottom bottom-right 画线条
-  drawLine(direction: string/*string[top|bottom|top-right|bottom-right]*/) {
+  drawLine(direction: string /*string[top|bottom|top-right|bottom-right]*/) {
     let item = this.shadowRoot!.querySelector('#item');
     if (!item) return;
     item.removeAttribute('line-top');
@@ -466,16 +480,16 @@ export class LitTreeNode extends BaseElement {
     item.removeAttribute('line-bottom-right');
     switch (direction) {
       case 'top':
-        item.setAttribute('line-top', '')
+        item.setAttribute('line-top', '');
         break;
       case 'bottom':
-        item.setAttribute('line-bottom', '')
+        item.setAttribute('line-bottom', '');
         break;
       case 'top-right':
-        item.setAttribute('line-top-right', '')
+        item.setAttribute('line-top-right', '');
         break;
       case 'bottom-right':
-        item.setAttribute('line-bottom-right', '')
+        item.setAttribute('line-bottom-right', '');
         break;
     }
   }

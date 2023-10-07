@@ -24,7 +24,7 @@ import { info } from '../../../log/Log.js';
 import { TraceSheet } from './base/TraceSheet.js';
 import { SelectionParam } from '../../bean/BoxSelection.js';
 import { SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace.js';
-import './timer-shaft/CollapseButton.js'
+import './timer-shaft/CollapseButton.js';
 //随机生成十六位进制颜色
 export function randomRgbColor() {
   const letters = '0123456789ABCDEF';

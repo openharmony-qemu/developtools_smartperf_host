@@ -27,7 +27,9 @@ export class JSONToCSV {
       formatter: undefined,
     };
     let showLabel = typeof isShowLabel === 'undefined' ? true : isShowLabel;
-    let row = '', csv = '', key;
+    let row = '',
+      csv = '',
+      key;
     // 如果要现实表头文字
     if (showLabel) {
       // 如果有传入自定义的表头文字
@@ -91,9 +93,12 @@ export class JSONToCSV {
       linkDom.click();
       document.body.removeChild(linkDom);
     } else if (browserType['ie'] >= 10 || browserType['edge'] == 'edge') {
-      (navigator as any).msSaveBlob(new Blob(['\uFEFF' + csvData], {
-        type: 'text/csv',
-      }), fileName);
+      (navigator as any).msSaveBlob(
+        new Blob(['\uFEFF' + csvData], {
+          type: 'text/csv',
+        }),
+        fileName
+      );
     } else {
       let oWin: any = window.top?.open('about:blank', '_blank');
       oWin.document.write('sep=,\r\n' + csvData);
@@ -105,9 +110,11 @@ export class JSONToCSV {
 
   static getDownloadUrl(csvData: any) {
     if (window.Blob && window.URL && (window.URL as any).createObjectURL) {
-      return URL.createObjectURL(new Blob(['\uFEFF' + csvData], {
-        type: 'text/csv',
-      }));
+      return URL.createObjectURL(
+        new Blob(['\uFEFF' + csvData], {
+          type: 'text/csv',
+        })
+      );
     }
   }
 
@@ -118,16 +125,16 @@ export class JSONToCSV {
     (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') : agent.match(/rv:([\d.]+)\) like gecko/))
       ? (type.ie = has[1])
       : (has = agent.match(/msie ([\d.]+)/))
-        ? (type.ie = has[1])
-        : (has = agent.match(/firefox\/([\d.]+)/))
-          ? (type.firefox = has[1])
-          : (has = agent.match(/chrome\/([\d.]+)/))
-            ? (type.chrome = has[1])
-            : (has = agent.match(/opera.([\d.]+)/))
-              ? (type.opera = has[1])
-              : (has = agent.match(/version\/([\d.]+).*safari/))
-                ? (type.safari = has[1])
-                : 0;
+      ? (type.ie = has[1])
+      : (has = agent.match(/firefox\/([\d.]+)/))
+      ? (type.firefox = has[1])
+      : (has = agent.match(/chrome\/([\d.]+)/))
+      ? (type.chrome = has[1])
+      : (has = agent.match(/opera.([\d.]+)/))
+      ? (type.opera = has[1])
+      : (has = agent.match(/version\/([\d.]+).*safari/))
+      ? (type.safari = has[1])
+      : 0;
     return type;
   }
 
@@ -144,7 +151,7 @@ export class JSONToCSV {
     data.forEach((item: any) => {
       let depthCSV = 0;
       const loop = (data: any, depth: any) => {
-        result.push({depthCSV: depth, ...data});
+        result.push({ depthCSV: depth, ...data });
         let child = data.children;
         if (child) {
           for (let i = 0; i < child.length; i++) {
@@ -181,8 +188,8 @@ export class JSONToCSV {
     return new Promise((resolve) => {
       let data: any = this.columnsData(dataSource.columns);
       let columns = {
-          title: data.titleList,
-          key: data.ketList,
+        title: data.titleList,
+        key: data.ketList,
       };
       if (dataSource.tables.length > 0) {
         if (Array.isArray(dataSource.tables[0])) {
@@ -191,9 +198,9 @@ export class JSONToCSV {
             JSONToCSV.setCsvData({
               data: resultArr,
               fileName: `${dataSource.fileName}_${childIndex}`,
-              columns: columns
+              columns: columns,
             });
-          })
+          });
         } else {
           let resultArr = JSONToCSV.treeToArr(dataSource.tables);
           JSONToCSV.setCsvData({

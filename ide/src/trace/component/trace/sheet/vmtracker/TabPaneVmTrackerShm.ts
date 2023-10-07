@@ -34,9 +34,9 @@ export class TabPaneVmTrackerShm extends BaseElement {
       this.init();
       this.clear();
       this.range!.textContent =
-          'Selected range: ' +
-          parseFloat(((valVmTrackerShm.rightNs - valVmTrackerShm.leftNs) / 1000000.0).toFixed(5)) +
-          '  ms';
+        'Selected range: ' +
+        parseFloat(((valVmTrackerShm.rightNs - valVmTrackerShm.leftNs) / 1000000.0).toFixed(5)) +
+        '  ms';
       this.queryDataByDB(valVmTrackerShm);
     }
   }

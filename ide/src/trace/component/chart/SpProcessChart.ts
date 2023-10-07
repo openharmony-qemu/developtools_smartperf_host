@@ -35,7 +35,7 @@ import {
   queryProcessThreads,
   queryProcessThreadsByTable,
   queryStartupPidArray,
-  queryThreadData
+  queryThreadData,
 } from '../../database/SqlLite.js';
 import { Utils } from '../trace/base/Utils.js';
 import { info } from '../../../log/Log.js';
@@ -293,7 +293,7 @@ export class SpProcessChart {
           let isIntersect = (a: JanksStruct, b: JanksStruct): boolean =>
             Math.max(a.ts! + a.dur!, b.ts! + b.dur!) - Math.min(a.ts!, b.ts!) < a.dur! + b.dur!;
           let depthArray: any = [];
-          for (let j = 0 ; j < expectedData.length ; j++) {
+          for (let j = 0; j < expectedData.length; j++) {
             let expectedItem = expectedData[j];
             if (expectedItem.cmdline != 'render_service') {
               expectedItem.frame_type = 'app';
@@ -322,15 +322,15 @@ export class SpProcessChart {
           let maxHeight = max * 20;
           expectedRow = TraceRow.skeleton<JankStruct>();
           let timeLineType = expectedData[0].type;
-          expectedRow.rowId = `${ timeLineType }-${ it.pid }`;
+          expectedRow.rowId = `${timeLineType}-${it.pid}`;
           expectedRow.asyncFuncName = it.processName;
           expectedRow.asyncFuncNamePID = it.pid;
           expectedRow.rowType = TraceRow.ROW_TYPE_JANK;
-          expectedRow.rowParentId = `${ it.pid }`;
+          expectedRow.rowParentId = `${it.pid}`;
           expectedRow.rowHidden = !processRow.expansion;
           expectedRow.style.width = '100%';
-          expectedRow.style.height = `${ maxHeight }px`;
-          expectedRow.setAttribute('height', `${ maxHeight }`);
+          expectedRow.style.height = `${maxHeight}px`;
+          expectedRow.setAttribute('height', `${maxHeight}`);
           expectedRow.setAttribute('frame_type', expectedData[0].frame_type);
           expectedRow.name = 'Expected Timeline';
           expectedRow.addTemplateTypes('FrameTimeline');
@@ -360,7 +360,7 @@ export class SpProcessChart {
             let isIntersect = (a: any, b: any): boolean =>
               Math.max(a.ts + a.dur, b.ts + b.dur) - Math.min(a.ts, b.ts) < a.dur + b.dur;
             let depthArray: any = [];
-            for (let j = 0 ; j < actualData.length ; j++) {
+            for (let j = 0; j < actualData.length; j++) {
               let actualItem = actualData[j];
               if (actualItem.cmdline != 'render_service') {
                 actualItem.frame_type = 'app';
@@ -392,13 +392,13 @@ export class SpProcessChart {
             let maxHeight = max * 20;
             actualRow = TraceRow.skeleton<JankStruct>();
             let timeLineType = actualData[0].type;
-            actualRow.rowId = `${ timeLineType }-${ it.pid }`;
+            actualRow.rowId = `${timeLineType}-${it.pid}`;
             actualRow.rowType = TraceRow.ROW_TYPE_JANK;
-            actualRow.rowParentId = `${ it.pid }`;
+            actualRow.rowParentId = `${it.pid}`;
             actualRow.rowHidden = !processRow.expansion;
             actualRow.style.width = '100%';
-            actualRow.style.height = `${ maxHeight }px`;
-            actualRow.setAttribute('height', `${ maxHeight }`);
+            actualRow.style.height = `${maxHeight}px`;
+            actualRow.setAttribute('height', `${maxHeight}`);
             actualRow.name = 'Actual Timeline';
             actualRow.addTemplateTypes('FrameTimeline');
             actualRow.setAttribute('frame_type', actualData[0].frame_type);

@@ -41,7 +41,8 @@ export class TabPaneGpuMemorySelectVmTracker extends BaseElement {
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.gpuMemoryClickTable?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 18 + 'px';
+        this.gpuMemoryClickTable?.shadowRoot?.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 18 + 'px';
         this.parentElement!.style.overflow = 'hidden';
         this.gpuMemoryClickTable?.reMeauseHeight();
       }

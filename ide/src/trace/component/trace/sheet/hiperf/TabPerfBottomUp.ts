@@ -137,7 +137,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     const bottomUpData = evt.detail.data as PerfBottomUpStruct;
     document.dispatchEvent(
       new CustomEvent('number_calibration', {
-        detail: { time: bottomUpData.tsArray},
+        detail: { time: bottomUpData.tsArray },
       })
     );
     callStack!.push(bottomUpData);

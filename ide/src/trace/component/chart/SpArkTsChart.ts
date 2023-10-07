@@ -173,9 +173,9 @@ export class SpArkTsChart implements ParseListener {
         this.heapTimelineRow!.supplier = (): Promise<any> => new Promise<any>((resolve) => resolve(samples));
         this.heapTimelineRow!.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
-          if(this.heapTimelineRow?.currentContext){
+          if (this.heapTimelineRow?.currentContext) {
             context = this.heapTimelineRow!.currentContext;
-          }else{
+          } else {
             context = this.heapTimelineRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
           }
           this.heapTimelineRow!.canvasSave(context);
@@ -195,9 +195,9 @@ export class SpArkTsChart implements ParseListener {
           new Promise<Array<any>>((resolve) => resolve(heapFile));
         this.heapSnapshotRow!.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
-          if(this.heapSnapshotRow?.currentContext){
+          if (this.heapSnapshotRow?.currentContext) {
             context = this.heapSnapshotRow!.currentContext;
-          }else{
+          } else {
             context = this.heapSnapshotRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
           }
           this.heapSnapshotRow!.canvasSave(context);
@@ -267,10 +267,10 @@ export class SpArkTsChart implements ParseListener {
       JsCpuProfilerStruct.hoverJsCpuProfilerStruct = this.jsCpuProfilerRow!.getHoverStruct();
     };
     this.jsCpuProfilerRow.onThreadHandler = (useCache): void => {
-      let context:CanvasRenderingContext2D;
-      if(this.jsCpuProfilerRow?.currentContext){
+      let context: CanvasRenderingContext2D;
+      if (this.jsCpuProfilerRow?.currentContext) {
         context = this.jsCpuProfilerRow!.currentContext;
-      }else{
+      } else {
         context = this.jsCpuProfilerRow!.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       this.jsCpuProfilerRow!.canvasSave(context);

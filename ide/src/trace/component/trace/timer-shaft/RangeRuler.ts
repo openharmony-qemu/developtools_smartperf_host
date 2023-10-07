@@ -928,7 +928,7 @@ export class RangeRuler extends Graph {
   }
 
   translate(distance: number) {
-    const rangeDur = (this.range.endNS - this.range.startNS)
+    const rangeDur = this.range.endNS - this.range.startNS;
     const time = (distance / this.canvas!.width) * rangeDur;
     if (
       this.range.startNS < 0 ||

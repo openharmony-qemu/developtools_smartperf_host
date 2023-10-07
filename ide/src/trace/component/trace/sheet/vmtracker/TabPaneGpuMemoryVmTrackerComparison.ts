@@ -141,22 +141,18 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
             );
             break;
           case 'gpuName':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort(
-              (gpuMCompVmLeftData, gpuMCompVmRightData) => {
-                return sort === 1
-                  ? `${gpuMCompVmLeftData.gpuName}`.localeCompare(`${gpuMCompVmRightData.gpuName}`)
-                  : `${gpuMCompVmRightData.gpuName}`.localeCompare(`${gpuMCompVmLeftData.gpuName}`);
-              }
-            );
+            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMCompVmLeftData, gpuMCompVmRightData) => {
+              return sort === 1
+                ? `${gpuMCompVmLeftData.gpuName}`.localeCompare(`${gpuMCompVmRightData.gpuName}`)
+                : `${gpuMCompVmRightData.gpuName}`.localeCompare(`${gpuMCompVmLeftData.gpuName}`);
+            });
             break;
           case 'sizeDelta':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort(
-              (gpuMCompVmLeftData, gpuMCompVmRightData) => {
-                return sort === 1
-                  ? gpuMCompVmLeftData.value - gpuMCompVmRightData.value
-                  : gpuMCompVmRightData.value - gpuMCompVmLeftData.value;
-              }
-            );
+            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMCompVmLeftData, gpuMCompVmRightData) => {
+              return sort === 1
+                ? gpuMCompVmLeftData.value - gpuMCompVmRightData.value
+                : gpuMCompVmRightData.value - gpuMCompVmLeftData.value;
+            });
             break;
         }
         break;

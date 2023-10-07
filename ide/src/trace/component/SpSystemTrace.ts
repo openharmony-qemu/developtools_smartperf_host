@@ -295,7 +295,7 @@ export class SpSystemTrace extends BaseElement {
         let cpuFavoriteRow: any = this.shadowRoot?.querySelector<TraceRow<any>>(
           `trace-row[row-type='cpu-data'][row-id='${wakeupCpuLists[i]}']`
         );
-        if (!cpuFavoriteRow){
+        if (!cpuFavoriteRow) {
           return;
         }
         cpuFavoriteRow!.setAttribute('collect-type', '');
@@ -436,10 +436,10 @@ export class SpSystemTrace extends BaseElement {
         replaceRow.setAttribute('type', 'replaceRow');
         replaceRow.setAttribute('row-parent-id', currentRow.rowParentId);
         replaceRow.style.display = 'none';
-        if (!currentRow.hasAttribute('scene')){
-          currentRow.setAttribute('row-hidden','')
+        if (!currentRow.hasAttribute('scene')) {
+          currentRow.setAttribute('row-hidden', '');
         } else {
-          currentRow.removeAttribute('row-hidden')
+          currentRow.removeAttribute('row-hidden');
         }
         // 添加收藏时，在线程名前面追加父亲ID
         let rowParentId = currentRow.rowParentId;
@@ -1322,11 +1322,12 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.CollapseAllLane, (collapse: boolean) => {
       if (!collapse) {
         // 一键折叠之前，记录当前打开的泳道图
-        this.expandRowList = Array.from(this.rowsEL!.querySelectorAll<TraceRow<any>>(`trace-row[folder][expansion]`)) || [];
+        this.expandRowList =
+          Array.from(this.rowsEL!.querySelectorAll<TraceRow<any>>(`trace-row[folder][expansion]`)) || [];
       }
       this.collapseAll = true;
       this.setAttribute('disable', '');
-      this.expandRowList!.forEach((it) => it.expansion = collapse);
+      this.expandRowList!.forEach((it) => (it.expansion = collapse));
       this.collapseAll = false;
       this.removeAttribute('disable');
       this.refreshCanvas(true);
@@ -1365,11 +1366,11 @@ export class SpSystemTrace extends BaseElement {
     return this.favoriteChartListEL!.getCollectRows(condition);
   }
 
-  getAllCollectRows(){
+  getAllCollectRows() {
     return this.favoriteChartListEL!.getCollectRows('trace-row');
   }
 
-  getAllSelectCollectRows(){
+  getAllSelectCollectRows() {
     return this.favoriteChartListEL!.getCollectRows("trace-row[check-type='2']");
   }
 
@@ -1665,8 +1666,19 @@ export class SpSystemTrace extends BaseElement {
 
     // Draw the connection curve
     if (this.linkNodes) {
-      drawLinkLines(this.canvasPanelCtx!, this.linkNodes, this.timerShaftEL!, false, this.favoriteChartListEL!.clientHeight);
-      this.favoriteChartListEL?.drawLinkLines(this.linkNodes, this.timerShaftEL!, true, this.favoriteChartListEL!.clientHeight);
+      drawLinkLines(
+        this.canvasPanelCtx!,
+        this.linkNodes,
+        this.timerShaftEL!,
+        false,
+        this.favoriteChartListEL!.clientHeight
+      );
+      this.favoriteChartListEL?.drawLinkLines(
+        this.linkNodes,
+        this.timerShaftEL!,
+        true,
+        this.favoriteChartListEL!.clientHeight
+      );
     }
   }
 

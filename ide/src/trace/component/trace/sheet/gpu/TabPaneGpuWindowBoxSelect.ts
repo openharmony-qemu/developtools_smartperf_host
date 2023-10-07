@@ -56,28 +56,30 @@ export class TabPaneGpuWindowBoxSelect extends BaseElement {
     this.range!.textContent =
       'Selected range: ' + ((gpuBoxParam.rightNs - gpuBoxParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.gpuBoxTbl!.loading = true;
-    queryGpuDataByRange(gpuBoxParam.leftNs, gpuBoxParam.rightNs, MemoryConfig.getInstance().snapshotDur).then((result) => {
-      this.gpuBoxTbl!.loading = false;
-      if (result != null && result.length > 0) {
-        log('getTabStartups result size : ' + result.length);
-        let target = result.filter((it) => it.windowId !== 0);
-        target.forEach((it: Gpu) => {
-          let windowName = SpSystemTrace.DATA_DICT.get(it.windowId) || 'NULL';
-          let moduleName = SpSystemTrace.DATA_DICT.get(it.moduleId) || 'NULL';
-          let categoryName = SpSystemTrace.DATA_DICT.get(it.categoryId) || 'NULL';
-          it.gpuName = `${windowName} / ${moduleName} / ${categoryName}`;
-          it.startTsStr = getProbablyTime(it.startTs);
-          it.avgSizeStr = Utils.getBinaryByteWithUnit(it.avgSize);
-          it.minSizeStr = Utils.getBinaryByteWithUnit(it.minSize);
-          it.maxSizeStr = Utils.getBinaryByteWithUnit(it.maxSize);
-        });
-        this.gpuBoxSource = target;
-        this.gpuBoxTbl!.recycleDataSource = this.gpuBoxSource;
-      } else {
-        this.gpuBoxSource = [];
-        this.gpuBoxTbl!.recycleDataSource = [];
+    queryGpuDataByRange(gpuBoxParam.leftNs, gpuBoxParam.rightNs, MemoryConfig.getInstance().snapshotDur).then(
+      (result) => {
+        this.gpuBoxTbl!.loading = false;
+        if (result != null && result.length > 0) {
+          log('getTabStartups result size : ' + result.length);
+          let target = result.filter((it) => it.windowId !== 0);
+          target.forEach((it: Gpu) => {
+            let windowName = SpSystemTrace.DATA_DICT.get(it.windowId) || 'NULL';
+            let moduleName = SpSystemTrace.DATA_DICT.get(it.moduleId) || 'NULL';
+            let categoryName = SpSystemTrace.DATA_DICT.get(it.categoryId) || 'NULL';
+            it.gpuName = `${windowName} / ${moduleName} / ${categoryName}`;
+            it.startTsStr = getProbablyTime(it.startTs);
+            it.avgSizeStr = Utils.getBinaryByteWithUnit(it.avgSize);
+            it.minSizeStr = Utils.getBinaryByteWithUnit(it.minSize);
+            it.maxSizeStr = Utils.getBinaryByteWithUnit(it.maxSize);
+          });
+          this.gpuBoxSource = target;
+          this.gpuBoxTbl!.recycleDataSource = this.gpuBoxSource;
+        } else {
+          this.gpuBoxSource = [];
+          this.gpuBoxTbl!.recycleDataSource = [];
+        }
       }
-    });
+    );
   }
 
   initElements(): void {

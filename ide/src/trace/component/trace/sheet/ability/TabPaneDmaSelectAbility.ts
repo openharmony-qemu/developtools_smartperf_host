@@ -42,7 +42,8 @@ export class TabPaneDmaSelectAbility extends BaseElement {
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
-        this.damClickTable?.shadowRoot?.querySelector('.table').style.height = (this.parentElement?.clientHeight - 18) + 'px';
+        this.damClickTable?.shadowRoot?.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 18 + 'px';
         this.parentElement!.style.overflow = 'hidden';
         this.damClickTable?.reMeauseHeight();
       }

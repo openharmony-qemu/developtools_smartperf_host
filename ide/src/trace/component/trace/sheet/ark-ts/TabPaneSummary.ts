@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import {BaseElement, element} from '../../../../../base-ui/BaseElement.js';
-import {LitTable} from '../../../../../base-ui/table/lit-table.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import '../../../../../base-ui/table/lit-table.js';
-import {ConstructorItem, FileInfo} from '../../../../../js-heap/model/UiStruct.js';
-import {HeapDataInterface} from '../../../../../js-heap/HeapDataInterface.js';
+import { ConstructorItem, FileInfo } from '../../../../../js-heap/model/UiStruct.js';
+import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface.js';
 import '../../../../../base-ui/table/lit-table-column.js';
-import {TabPaneJsMemoryFilter} from '../TabPaneJsMemoryFilter.js';
+import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
 import '../TabPaneJsMemoryFilter.js';
-import {LitProgressBar} from '../../../../../base-ui/progress-bar/LitProgressBar.js';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import '../../../../../base-ui/slicer/lit-slicer.js';
-import {HeapSnapshotStruct} from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import {HeapTraceFunctionInfo} from '../../../../../js-heap/model/DatabaseStruct.js';
+import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
+import { HeapTraceFunctionInfo } from '../../../../../js-heap/model/DatabaseStruct.js';
 
 @element('tabpane-summary')
 export class TabPaneSummary extends BaseElement {
@@ -385,9 +385,7 @@ export class TabPaneSummary extends BaseElement {
   private retainsTableByRetainedSize(currentLeftItem: ConstructorItem, sort: number) {
     const getList = function (list: Array<ConstructorItem>) {
       list.sort((leftA, rightB) => {
-        return sort === 1
-          ? leftA.retainedSize - rightB.retainedSize
-          : rightB.retainedSize - leftA.retainedSize;
+        return sort === 1 ? leftA.retainedSize - rightB.retainedSize : rightB.retainedSize - leftA.retainedSize;
       });
       list.forEach(function (row) {
         if (row.children.length > 0) {

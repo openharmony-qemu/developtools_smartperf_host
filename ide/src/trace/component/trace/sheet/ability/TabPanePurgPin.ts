@@ -53,7 +53,12 @@ export class TabPanePurgPin extends BaseElement {
         if (purgePinResults.length > 0) {
           for (let i = 0; i < purgePinResults.length; i++) {
             this.purgeablePinSource.push(
-              this.toTabStruct(purgePinResults[i].name, purgePinResults[i].maxSize, purgePinResults[i].minSize, purgePinResults[i].avgSize)
+              this.toTabStruct(
+                purgePinResults[i].name,
+                purgePinResults[i].maxSize,
+                purgePinResults[i].minSize,
+                purgePinResults[i].avgSize
+              )
             );
           }
           this.sortByColumn({ key: this.sortKey, sort: this.sortType });
@@ -110,7 +115,11 @@ export class TabPanePurgPin extends BaseElement {
     this.sortType = 2;
   }
 
-  private toTabStruct(type: string, maxPurgePinSize: number, minPurgePinSize: number, avgPurgePinSize: number
+  private toTabStruct(
+    type: string,
+    maxPurgePinSize: number,
+    minPurgePinSize: number,
+    avgPurgePinSize: number
   ): PurgeableTabStruct {
     const tabStruct = new PurgeableTabStruct(
       type,
@@ -150,7 +159,9 @@ export class TabPanePurgPin extends BaseElement {
         }
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(purgePinRightData[key]) - parseFloat(purgePinLeftData[key]) : parseFloat(purgePinLeftData[key]) - parseFloat(purgePinRightData[key]);
+          return sort === 2
+            ? parseFloat(purgePinRightData[key]) - parseFloat(purgePinLeftData[key])
+            : parseFloat(purgePinLeftData[key]) - parseFloat(purgePinRightData[key]);
         } else {
           if (sort === 2) {
             return purgePinRightData[key].toString().localeCompare(purgePinLeftData[key].toString());

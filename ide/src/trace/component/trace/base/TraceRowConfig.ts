@@ -64,9 +64,10 @@ export class TraceRowConfig extends BaseElement {
     this.chartTable!.innerHTML = '';
     this.inputElement!.value = '';
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
-    this.traceRowList = this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows-pane]')!.querySelectorAll<
-      TraceRow<BaseStruct>
-    >("trace-row[row-parent-id='']");
+    this.traceRowList =
+      this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows-pane]')!.querySelectorAll<TraceRow<BaseStruct>>(
+        "trace-row[row-parent-id='']"
+      );
     let allowSceneList: Array<string> = [];
     TraceRowConfig.allTraceRowList.push(...this.traceRowList!);
     this.traceRowList!.forEach((traceRow: TraceRow<BaseStruct>) => {

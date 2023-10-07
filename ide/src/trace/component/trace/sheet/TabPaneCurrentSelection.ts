@@ -153,8 +153,6 @@ export class TabPaneCurrentSelection extends BaseElement {
 </div>`,
       });
     }
-
-    list.push({ name: 'CmdLine', value: `${data.processCmdLine}` });
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTime || 0),
@@ -968,7 +966,10 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: ((dataTs || 0) + (window as any).recordStartNS) / 1000000000,
     });
     list.push({ name: 'End time(Relative)', value: `${Utils.getTimeString(dataTs + (data.dur || 0))}` });
-    list.push({ name: 'End time(Absolute)', value: ((dataTs + (data.dur || 0)) + (window as any).recordStartNS) / 1000000000});
+    list.push({
+      name: 'End time(Absolute)',
+      value: (dataTs + (data.dur || 0) + (window as any).recordStartNS) / 1000000000,
+    });
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
       let frameFpsMessage = data.frameInfo?.split(':');
@@ -1263,18 +1264,18 @@ export class TabPaneCurrentSelection extends BaseElement {
         maxDuration = Math.max(maxDuration, this.selectWakeupBean.dur);
         maxPriority = Math.max(maxPriority, this.selectWakeupBean.priority);
       }
-      resource.forEach(it => {
+      resource.forEach((it) => {
         if (it.priority === maxPriority) {
           maxPriorityDuration = Math.max(it.dur || 0, maxPriorityDuration);
         }
       });
-      this.wakeupListTbl!.getItemTextColor = ((data: any) => {
+      this.wakeupListTbl!.getItemTextColor = (data: any) => {
         if ((data.priority === maxPriority && data.dur === maxPriorityDuration) || data.dur === maxDuration) {
           return '#f44336';
         } else {
           return '#262626';
         }
-      });
+      };
       this.wakeupListTbl!.recycleDataSource = resource;
     });
   }

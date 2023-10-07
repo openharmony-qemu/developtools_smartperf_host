@@ -201,10 +201,12 @@ export class TabPaneCallTree extends BaseElement {
           this.frameChart?.calculateChartData();
         }
         // @ts-ignore
-        this.callTreeTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 10 - 35 + 'px';
+        this.callTreeTbl?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 35 + 'px';
         this.callTreeTbl?.reMeauseHeight();
         // @ts-ignore
-        this.callTreeTbr?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 - 21 + 'px';
+        this.callTreeTbr?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 45 - 21 + 'px';
         this.callTreeTbr?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
@@ -224,7 +226,7 @@ export class TabPaneCallTree extends BaseElement {
       let data = evt.detail.data as MerageBean;
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: { time: data.tsArray, durations: data.durArray},
+          detail: { time: data.tsArray, durations: data.durArray },
         })
       );
       this.setRightTableData(data);

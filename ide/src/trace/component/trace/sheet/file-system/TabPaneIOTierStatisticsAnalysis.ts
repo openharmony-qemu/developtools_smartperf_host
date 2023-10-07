@@ -367,11 +367,11 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       }
     });
   }
-  private getIoTierTip(obj: { obj: { tableName: any; durFormat: any; percent: any; }; }) {
+  private getIoTierTip(obj: { obj: { tableName: any; durFormat: any; percent: any } }) {
     return `<div>
-                                <div>ThreadName:${ obj.obj.tableName }</div>
-                                <div>Duration:${ obj.obj.durFormat }</div>
-                                <div>Percent:${ obj.obj.percent }%</div> 
+                                <div>ThreadName:${obj.obj.tableName}</div>
+                                <div>Duration:${obj.obj.durFormat}</div>
+                                <div>Percent:${obj.obj.percent}%</div> 
                             </div>
                                 `;
   }
@@ -402,9 +402,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       },
       tip: (ioTierObj): string => {
         return `<div>
-                                <div>Library:${ ioTierObj.obj.tableName }</div>
-                                <div>Duration:${ ioTierObj.obj.durFormat }</div>
-                                <div>Percent:${ ioTierObj.obj.percent }%</div> 
+                                <div>Library:${ioTierObj.obj.tableName}</div>
+                                <div>Duration:${ioTierObj.obj.durFormat}</div>
+                                <div>Percent:${ioTierObj.obj.percent}%</div> 
                             </div>
                                 `;
       },
@@ -520,7 +520,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     } else {
       let sortIoArr = [...this.currentLevelData];
       if (column === 'tableName') {
-          ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((firstIOElement, secondIOElement) => {
+        ioTierCurrentTable!.recycleDataSource = sortIoArr.sort((firstIOElement, secondIOElement) => {
           if (ioSort === 1) {
             if (firstIOElement.tableName > secondIOElement.tableName) {
               return 1;
@@ -591,8 +591,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       for (let item of value) {
         pName = item.processName =
           item.processName === null || item.processName === undefined
-            ? `Process(${ item.pid })`
-            : `${ item.processName }(${ item.pid })`;
+            ? `Process(${item.pid})`
+            : `${item.processName}(${item.pid})`;
         ioPidDataDur += item.dur;
       }
       this.pidData.push({
@@ -695,7 +695,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       for (let item of value) {
         dur += item.dur;
         tName = item.threadName =
-          item.threadName === null || item.threadName === undefined ? `Thread(${ item.tid })` : `${ item.threadName }`;
+          item.threadName === null || item.threadName === undefined ? `Thread(${item.tid})` : `${item.threadName}`;
       }
       const threadData = {
         tableName: tName,
@@ -772,7 +772,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
   getIOTierFunction(item: any): void {
     this.progressEL!.loading = true;
-    this.shadowRoot!.querySelector<HTMLDivElement>('.io-tier-subheading')!.textContent = 'Statistic By Function AllDuration';
+    this.shadowRoot!.querySelector<HTMLDivElement>('.io-tier-subheading')!.textContent =
+      'Statistic By Function AllDuration';
     let tid = item.tid;
     let pid = item.pid;
     let type = item.type;
@@ -877,7 +878,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private getTip() {
-    return (obj: { obj: { tableName: any; durFormat: any; percent: any; }; }): string => {
+    return (obj: { obj: { tableName: any; durFormat: any; percent: any } }): string => {
       return `<div>
                                     <div>Function:${obj.obj.tableName}</div>
                                     <div>Duration:${obj.obj.durFormat}</div>
@@ -902,8 +903,11 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     return ioTierReleaseType;
   }
   totalDurationData(duration: number): {
-    durFormat: string; percent: string; tableName: string;
-    duration: number; allDuration: number;
+    durFormat: string;
+    percent: string;
+    tableName: string;
+    duration: number;
+    allDuration: number;
   } {
     let allDuration;
     allDuration = {
@@ -924,7 +928,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         percent: 0,
         durFormat: 0,
       };
-      for (let i = 0 ; i < res.length ; i++) {
+      for (let i = 0; i < res.length; i++) {
         if (i < 19) {
           IOTierPieChartArr.push(res[i]);
         } else {

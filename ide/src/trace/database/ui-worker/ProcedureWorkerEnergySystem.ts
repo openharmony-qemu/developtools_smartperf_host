@@ -82,9 +82,12 @@ export class EnergySystemRender extends Render {
     }
     if (!find && row.isHover) EnergySystemStruct.hoverEnergySystemStruct = undefined;
     if (EnergySystemStruct.hoverEnergySystemStruct) {
-      EnergySystemStruct.hoverEnergySystemStruct!.workScheduler = energySystemData.workScheduler == undefined ? '0' : energySystemData.workScheduler;
-      EnergySystemStruct.hoverEnergySystemStruct!.power = energySystemData.power == undefined ? '0' : energySystemData.power;
-      EnergySystemStruct.hoverEnergySystemStruct!.location = energySystemData.location == undefined ? '0' : energySystemData.location;
+      EnergySystemStruct.hoverEnergySystemStruct!.workScheduler =
+        energySystemData.workScheduler == undefined ? '0' : energySystemData.workScheduler;
+      EnergySystemStruct.hoverEnergySystemStruct!.power =
+        energySystemData.power == undefined ? '0' : energySystemData.power;
+      EnergySystemStruct.hoverEnergySystemStruct!.location =
+        energySystemData.location == undefined ? '0' : energySystemData.location;
     }
     let spApplication = document.getElementsByTagName('sp-application')[0];
     let isDark = spApplication.hasAttribute('dark');

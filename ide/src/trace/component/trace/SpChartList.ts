@@ -35,7 +35,7 @@ import { LitIcon } from '../../../base-ui/icon/LitIcon.js';
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
 const minHeight = 20; //泳道最低高度为20
-const mouseMoveRange = 5
+const mouseMoveRange = 5;
 
 @element('sp-chart-list')
 export class SpChartList extends BaseElement {
@@ -156,15 +156,15 @@ export class SpChartList extends BaseElement {
     return [...this.collectRowList1, ...this.collectRowList2];
   }
 
-  getAllSelectCollectRows(): Array<TraceRow<any>>{
+  getAllSelectCollectRows(): Array<TraceRow<any>> {
     const rows: Array<TraceRow<any>> = [];
-    for(const row of this.collectRowList1){
-      if (row.checkType === '2'){
+    for (const row of this.collectRowList1) {
+      if (row.checkType === '2') {
         rows.push(row);
       }
     }
-    for(const row of this.collectRowList2){
-      if (row.checkType === '2'){
+    for (const row of this.collectRowList2) {
+      if (row.checkType === '2') {
         rows.push(row);
       }
     }
@@ -248,7 +248,7 @@ export class SpChartList extends BaseElement {
     this.startClientHeight = this.clientHeight;
     if (this.containPoint(ev)) {
       if (
-        this.getBoundingClientRect().bottom > ev.pageY - mouseMoveRange&&
+        this.getBoundingClientRect().bottom > ev.pageY - mouseMoveRange &&
         this.getBoundingClientRect().bottom < ev.pageY + mouseMoveRange
       ) {
         this.style.cursor = 'row-resize';
@@ -282,10 +282,10 @@ export class SpChartList extends BaseElement {
       if (newHeight > this.maxHeight || newHeight > this.getMaxLimitHeight() || newHeight < minHeight) {
         // 超出最大最小高度时触发mouseup事件
         const mouseUpEvent = new MouseEvent('mouseup', {
-          bubbles: true, 
-          cancelable: true, 
+          bubbles: true,
+          cancelable: true,
           view: window,
-          button: 0, 
+          button: 0,
           buttons: 0,
           clientX: ev.clientX, // 鼠标在窗口中的水平坐标
           clientY: ev.clientY, // 鼠标在窗口中的垂直坐标
