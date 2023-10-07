@@ -77,8 +77,9 @@ import { type TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVm
 import { type TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.js';
 import { type TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
 import { Utils } from './Utils.js';
-import { type TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
-import { type TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
+import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
+import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
+import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -465,8 +466,12 @@ export class TraceSheet extends BaseElement {
     this.selection = val;
     val.smapsType = [];
     this.displayTab<TabPaneSmapsComparison>('box-smaps-comparison').setData(val, dataList);
-    this.displayTab<TabPaneSmapsStatistics>('box-smaps-statistics', 'box-smaps-record', 'box-smaps-comparison').data =
-      val;
+    this.displayTab<TabPaneSmapsStatistics>(
+      'box-smaps-statistics',
+      'box-smaps-sample',
+      'box-smaps-comparison',
+      'box-smaps-record'
+    ).data = val;
   };
   displaySnapshotData = (
     data: HeapSnapshotStruct,
@@ -597,6 +602,9 @@ export class TraceSheet extends BaseElement {
         'box-gpu-memory-selection-vmTracker'
       ).queryGpuMemoryVmTrackerClickDataByDB(data);
     }
+  };
+  displayGpuResourceVmTracker = (data: number) => {
+    this.displayTab<TabPaneGpuResourceVmTracker>('box-smaps-gpu-resource').data = data;
   };
 
   displaySystemLogsData = (): void => {

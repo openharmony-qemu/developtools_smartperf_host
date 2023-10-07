@@ -31,10 +31,18 @@ interface GpuTreeItem {
 export class TabPaneGpuClickSelect extends BaseElement {
   private gpuTbl: LitTable | null | undefined;
   private gpuSource: Array<GpuTreeItem> = [];
-  gpuClickData(gpu: { type: string; startTs: number }): void {
-    let label = this.gpuTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild?.firstChild;
-    if (label) {
-      (label as HTMLLabelElement).innerHTML = gpu.type === 'total' ? 'Module / Category' : 'Window / Module / Category';
+  gpuClickData(gpu: { type: string; startTs: number }) {
+    let td = this.gpuTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild as HTMLDivElement;
+    let title = gpu.type === 'total' ? 'Module / Category' : 'Window / Module / Category';
+    let titleArr = title.split('/');
+    if (td) {
+      td.innerHTML = '';
+      for (let i = 0; i < titleArr.length; i++) {
+        let label = document.createElement('label');
+        label.style.cursor = 'pointer';
+        i == 0 ? (label.innerHTML = titleArr[i]) : (label.innerHTML = '/' + titleArr[i]);
+        td.appendChild(label);
+      }
     }
     //@ts-ignore
     this.gpuTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
@@ -129,7 +137,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
         }
         </style>
         <lit-table id="tb-gpu" style="height: auto" tree>
-                <lit-table-column width="50%" title="Window / Module / Category" data-index="name" key="name" align="flex-start">
+                <lit-table-column width="50%" title="" data-index="name" key="name" align="flex-start">
                 </lit-table-column>
                 <lit-table-column width="1fr" title="Size" data-index="sizeStr" key="sizeStr"  align="flex-start" order >
                 </lit-table-column>

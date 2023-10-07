@@ -595,7 +595,7 @@ export class SpProcessChart {
           );
         };
         row.findHoverStruct = () => {
-          ProcessMemStruct.hoverProcessMemStruct = row.getHoverStruct();
+          ProcessMemStruct.hoverProcessMemStruct = row.getHoverStruct(false);
         };
         row.supplier = (): Promise<Array<ProcessMemStruct>> =>
           queryProcessMemData(mem.trackId).then((resultProcess) => {

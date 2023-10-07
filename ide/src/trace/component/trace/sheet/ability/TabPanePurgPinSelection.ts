@@ -84,7 +84,7 @@ export class TabPanePurgPinSelection extends BaseElement {
         }
         </style>
         <lit-table id="selectionTbl" no-head>
-            <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
+            <lit-table-column title="name" data-index="name" key="name" align="flex-start" width="180px">
                 <template><div>{{name}}</div></template>
             </lit-table-column>
             <lit-table-column title="value" data-index="value" key="value" align="flex-start" >

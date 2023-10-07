@@ -103,9 +103,24 @@ export function ns2Timestamp(ns: number): string {
     .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
-export function isFrameContainPoint(frame: Rect, x: number, y: number): boolean {
-  return x >= frame.x && x <= frame.x + frame.width && y >= frame.y && y <= frame.y + frame.height;
+const offsetX = 5;
+
+export function isFrameContainPoint(frame: Rect, x: number, y: number, strict: boolean = true, offset: boolean = false): boolean {
+  if (strict) {
+    if (offset) {
+      return x >= frame.x - offsetX && x <= frame.x + frame.width + offsetX && y >= frame.y && y <= frame.y + frame.height;
+    } else {
+      return x >= frame.x && x <= frame.x + frame.width && y >= frame.y && y <= frame.y + frame.height;
+    }
+  } else {
+    if (offset) {
+      return x >= frame.x - offsetX && x <= frame.x + frame.width + offsetX;
+    } else {
+      return x >= frame.x && x <= frame.x + frame.width;
+    }
+  }
 }
+
 export const isSurroundingPoint = function (pointX: number, currentRect: Rect, unitPointXRange: number): boolean {
   return pointX >= currentRect?.x - unitPointXRange && pointX <= currentRect?.x + unitPointXRange;
 };

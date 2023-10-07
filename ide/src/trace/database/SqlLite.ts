@@ -3576,10 +3576,10 @@ export const queryGpuTotalType = (): Promise<Array<{ id: number; data: string }>
   query(
     'queryGpuTotalType',
     `
-  select distinct module_name_id id,data
+    select distinct module_name_id id,data
     from memory_window_gpu A, trace_range TR left join data_dict B on A.module_name_id = B.id
     where window_name_id = 0
-    and A.ts < TR.end_ts;
+    and A.ts < TR.end_ts
   `
   );
 
@@ -3606,11 +3606,14 @@ export const queryGpuDataByTs = (
        category_name_id as categoryId,
        size
        from memory_window_gpu, trace_range
-       where ts - start_ts = ${ts} ${condition};`;
+       where ts - start_ts = ${ts} ${condition}
+        `;
   return query('queryGpuDataByTs', sql);
 };
 
-export const queryGpuTotalData = (moduleId: number | null): Promise<Array<{ startNs: number; value: number }>> => {
+export const queryGpuTotalData = (
+  moduleId: number | null
+): Promise<Array<{ startNs: number; value: number }>> => {
   let moduleCondition = moduleId === null ? '' : `and module_name_id = ${moduleId}`;
   let sql = `
   select (ts - start_ts) startNs, sum(size) value
@@ -3622,45 +3625,47 @@ export const queryGpuTotalData = (moduleId: number | null): Promise<Array<{ star
   return query('queryGpuTotalData', sql);
 };
 
-export const queryGpuGLData = (ipid: number): Promise<Array<{ startNs: number; value: number }>> => {
+// GL 或 Graph 泳道图
+export const queryGpuData = (ipid: number, name: string): Promise<Array<{ startNs: number; value: number }>> => {
   let sql = `
-  select (ts - start_ts) startNs,sum(value) value
-from process_measure, trace_range
-where filter_id = (
-    select id
-    from process_measure_filter
-    where name = 'mem.gl_pss' and ipid = ${ipid}
-    )
-and ts between start_ts and end_ts
-group by ts;
-  `;
-  return query('queryGpuGLData', sql);
+    select (ts - start_ts) startNs,sum(value) value
+  from process_measure, trace_range
+  where filter_id = (
+      select id
+      from process_measure_filter
+      where name = ${name} and ipid = ${ipid}
+      )
+  and ts between start_ts and end_ts
+  group by ts;
+    `;
+  return query('queryGpuData', sql);
 };
-
-export const queryGpuGLDataByRange = (
+// GL 或 Graph 框选Tab页
+export const queryGpuDataTab = (
   ipid: number,
   leftNs: number,
   rightNs: number,
-  interval: number
+  interval: number,
+  name: string
 ): Promise<Array<{ startTs: number; size: number }>> => {
   let sql = `
-  select (ts - start_ts) startTs,sum(value) size
-from process_measure, trace_range
-where filter_id = (
-    select id
-    from process_measure_filter
-    where name = 'mem.gl_pss' and ipid = ${ipid}
-    )
-and not ((startTs + ${interval} < ${leftNs}) or (startTs > ${rightNs}))
-group by ts;
-  `;
+    select (ts - start_ts) startTs,sum(value) size
+  from process_measure, trace_range
+  where filter_id = (
+      select id
+      from process_measure_filter
+      where name = ${name} and ipid = ${ipid}
+      )
+  and not ((startTs + ${interval} < ${leftNs}) or (startTs > ${rightNs}))
+  group by ts;
+    `;
   return query('queryGpuGLDataByRange', sql);
 };
 
 export const queryGpuDataByRange = (
   leftNs: number,
   rightNs: number,
-  interval: number
+  interval: number,
 ): Promise<
   Array<{
     startTs: number;
@@ -3689,7 +3694,7 @@ export const queryGpuDataByRange = (
 
 export const queryGpuWindowData = (
   windowId: number,
-  moduleId: number | null
+  moduleId: number | null,
 ): Promise<Array<{ startNs: number; value: number }>> => {
   let moduleCondition = moduleId === null ? '' : `and module_name_id = ${moduleId}`;
   let sql = `
@@ -4670,9 +4675,9 @@ export const queryVmTrackerShmSelectionData = (startNs: number, ipid: number): P
              where startNS = ${startNs} and ipid = ${ipid};`,
     {}
   );
-export const getTabSmapsRecordData = (rightNs: number): Promise<Array<Smaps>> =>
+export const getTabSmapsSampleData = (rightNs: number): Promise<Array<Smaps>> =>
   query<Smaps>(
-    'getTabSmapsRecordData',
+    'getTabSmapsSampleData',
     `
       SELECT
      (A.timestamp - t.start_ts) AS startNs,
@@ -4689,6 +4694,27 @@ export const getTabSmapsRecordData = (rightNs: number): Promise<Array<Smaps>> =>
      WHERE (startNs) = $rightNs`,
     { $rightNs: rightNs },
     'exec'
+  );
+
+// VM Tracker Smaps Record Tab页
+export const querySmapsRecordTabData = (
+  startNs: number,
+  ipid: number,
+  pixelmapId: number,
+  typeId:number
+): Promise<Array<{ name: string; size: number }>> =>
+  query(
+    'querySmapsRecordTabData',
+    `select  'RenderServiceCpu' as name, IFNULL(sum(mem_size), 0) as size from memory_rs_image, trace_range tr
+    where ipid = ${ipid} and (ts - tr.start_ts) = ${startNs} and type_id = ${pixelmapId}
+    union all
+    select 'SkiaCpu' as name, total_size as size from memory_cpu,trace_range
+    where (ts - start_ts) = ${startNs}
+    union all
+    select 'GLESHostCache' as name, 0
+    union all
+    select 'VirtaulSize' as name, sum(virtaul_size) * 1024 as size from smaps, trace_range
+    where type = ${typeId} and (timeStamp - start_ts) = ${startNs}`
   );
 
 export const getTabSmapsStatisticMaxSize = (rightNs: number): Promise<Array<any>> =>
@@ -4776,6 +4802,41 @@ export const queryGpuMemoryData = (processId: number): Promise<Array<SnapshotStr
     AND A.ts < B.end_ts
     GROUP by A.ts;`,
     { $pid: processId }
+  );
+
+//  VM Tracker Gpu Resourcet泳道图
+export const queryGpuResourceData = (categoryNameId: number): Promise<Array<SnapshotStruct>> =>
+  query(
+    'queryGpuResourceData',
+    `SELECT
+    subquery1.startNs,
+    IFNULL(subquery1.totalSize, 0) as aSize, 
+    IFNULL(subquery2.size, 0) as bSize,
+    (IFNULL(subquery1.totalSize, 0) - IFNULL(subquery2.size, 0)) AS value
+  FROM
+    (SELECT (ts - start_ts) AS startNs,SUM(total_size) AS totalSize
+     FROM memory_profile, trace_range
+     WHERE ts between start_ts and end_ts
+     GROUP BY ts) AS subquery1
+   LEFT JOIN
+    (SELECT (ts - start_ts) AS startNs, SUM(size) AS size
+     FROM memory_window_gpu, trace_range
+     WHERE ts between start_ts and end_ts
+    AND category_name_id = ${categoryNameId}
+     GROUP BY ts) AS subquery2
+  ON subquery1.startNs = subquery2.startNs`,
+  );
+
+//  VM Tracker Gpu Resource Tab页
+export const queryGpuResourceTabData = (
+  startNs: number
+): Promise<Array<{ startNs: number; channelId: number; totalSize: number }>> =>
+  query(
+    'queryGpuResourceTabData',
+    `SELECT (ts - start_ts) as startNs, channel_id as channelId, sum(total_size) as totalSize 
+    FROM memory_profile, trace_range
+    WHERE (ts - start_ts) = ${startNs}
+    GROUP by ts, channelId`
   );
 
 // Ability Monitor Purgeable泳道图

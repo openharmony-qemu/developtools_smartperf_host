@@ -1406,6 +1406,18 @@ export class SpRecordTrace extends BaseElement {
   private loadLongTraceFile(timStamp: number) {
     return new Promise(async (resolve) => {
       let maxSize = 48 * 1024 * 1024;
+      let traceTypePage: Array<number> = [];
+      for (let fileIndex = 0; fileIndex < this.longTraceList.length; fileIndex++) {
+        let traceFileName = this.longTraceList[fileIndex];
+        if (this.sp!.fileTypeList.some(fileType => traceFileName.toLowerCase().includes(fileType))) {
+          continue;
+        }
+        let firstLastIndexOf = traceFileName.lastIndexOf('.');
+        let firstText = traceFileName.slice(0, firstLastIndexOf);
+        let resultLastIndexOf = firstText.lastIndexOf('_');
+        traceTypePage.push(Number(firstText.slice(resultLastIndexOf + 1, firstText.length)) - 1)
+      }
+      traceTypePage.sort((leftNum: number, rightNum: number) => leftNum - rightNum);
       for (let fileIndex = 0; fileIndex < this.longTraceList.length; fileIndex++) {
         if (this.longTraceList[fileIndex] !== '') {
           let types = this.sp!.fileTypeList.filter((type) =>
@@ -1415,13 +1427,14 @@ export class SpRecordTrace extends BaseElement {
           let fileType = types[0];
           if (types.length === 0) {
             fileType = 'trace';
-            pageNumber =
+            let searchNumber =
               Number(
                 this.longTraceList[fileIndex].substring(
                   this.longTraceList[fileIndex].lastIndexOf('_') + 1,
                   this.longTraceList[fileIndex].lastIndexOf('.')
                 )
               ) - 1;
+            pageNumber = traceTypePage.lastIndexOf(searchNumber);
           }
           let pullRes = await HdcDeviceManager.fileRecv(
             this.recordSetting!.longOutPath + this.longTraceList[fileIndex],

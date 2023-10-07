@@ -163,7 +163,7 @@ export class SpHiPerf {
     cpuMergeRow.supplier = () => queryHiPerfCpuMergeData();
     cpuMergeRow.focusHandler = () => this.hoverTip(cpuMergeRow, HiPerfCpuStruct.hoverStruct);
     cpuMergeRow.findHoverStruct = () => {
-      HiPerfCpuStruct.hoverStruct = cpuMergeRow.getHoverStruct();
+      HiPerfCpuStruct.hoverStruct = cpuMergeRow.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
     };
     cpuMergeRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
@@ -208,7 +208,7 @@ export class SpHiPerf {
       perfCpuRow.supplier = () => queryHiPerfCpuData(i);
       perfCpuRow.focusHandler = () => this.hoverTip(perfCpuRow, HiPerfCpuStruct.hoverStruct);
       perfCpuRow.findHoverStruct = () => {
-        HiPerfCpuStruct.hoverStruct = perfCpuRow.getHoverStruct();
+        HiPerfCpuStruct.hoverStruct = perfCpuRow.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
       };
       perfCpuRow.onThreadHandler = (useCache) => {
         let context: CanvasRenderingContext2D;
@@ -260,7 +260,7 @@ export class SpHiPerf {
       row.supplier = () => queryHiPerfProcessData(process.pid);
       row.focusHandler = () => this.hoverTip(row, HiPerfProcessStruct.hoverStruct);
       row.findHoverStruct = () => {
-        HiPerfProcessStruct.hoverStruct = row.getHoverStruct();
+        HiPerfProcessStruct.hoverStruct = row.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
       };
       row.onThreadHandler = (useCache) => {
         let context: CanvasRenderingContext2D;
@@ -306,7 +306,7 @@ export class SpHiPerf {
         thread.supplier = () => queryHiPerfThreadData(thObj.tid);
         thread.focusHandler = () => this.hoverTip(thread, HiPerfThreadStruct.hoverStruct);
         thread.findHoverStruct = () => {
-          HiPerfThreadStruct.hoverStruct = thread.getHoverStruct();
+          HiPerfThreadStruct.hoverStruct = thread.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
         };
         thread.onThreadHandler = (useCache) => {
           let context: CanvasRenderingContext2D;

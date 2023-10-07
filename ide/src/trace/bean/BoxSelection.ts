@@ -84,10 +84,12 @@ export class SelectionParam {
   jsCpuProfilerData: Array<JsCpuProfilerChartFrame> = [];
   gpu: {
     gl: boolean;
+    graph: boolean;
     gpuTotal: boolean;
     gpuWindow: boolean;
   } = {
     gl: false,
+    graph: false,
     gpuWindow: false,
     gpuTotal: false,
   };

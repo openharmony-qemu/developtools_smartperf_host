@@ -65,9 +65,17 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
   }
   async getGpuClickDataByDB(type: string, startTs: number, dataList: Array<SnapshotStruct>): Promise<void> {
     const dataArray = [];
-    let label = this.gpuComparisonTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild?.firstChild;
-    if (label) {
-      (label as HTMLLabelElement).innerHTML = type === 'total' ? 'Module / Category' : 'Window / Module / Category';
+    let td = this.gpuComparisonTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild as HTMLDivElement;
+    let title = type === 'total' ? 'Module / Category' : 'Window / Module / Category';
+    let titleArr = title.split('/');
+    if (td) {
+      td.innerHTML = '';
+      for (let i = 0; i < titleArr.length; i++) {
+        let label = document.createElement('label');
+        label.style.cursor = 'pointer';
+        i == 0 ? (label.innerHTML = titleArr[i]) : (label.innerHTML = '/' + titleArr[i]);
+        td.appendChild(label);
+      }
     }
     //@ts-ignore
     this.gpuComparisonTbl?.shadowRoot?.querySelector('.table')?.style?.height =
@@ -170,7 +178,7 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     }
     </style>
     <lit-table id="tb-gpu" style="height: auto" tree>
-            <lit-table-column width="50%" title="Window / Module / Category" data-index="name" key="name" align="flex-start" order>
+            <lit-table-column width="50%" title="" data-index="name" key="name" align="flex-start" order>
             </lit-table-column>
             <lit-table-column width="1fr" title="SizeDelta" data-index="sizeStr" key="sizeDelta"  align="flex-start" order >
             </lit-table-column>

@@ -953,6 +953,13 @@ export class SpSystemTrace extends BaseElement {
                         (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
                         (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
                     ).length > 0;
+                } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+                  selection.gpu.graph =
+                    item.dataList.filter(
+                      (it) =>
+                        (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                        (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                    ).length > 0;
                 } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
                   selection.gpu.gpuTotal =
                     item.dataList.filter(
@@ -1008,6 +1015,13 @@ export class SpSystemTrace extends BaseElement {
                     (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
                     (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
                 ).length > 0;
+            } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+              selection.gpu.graph =
+                th.dataList.filter(
+                  (it) =>
+                    (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                    (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                ).length > 0;
             } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
               selection.gpu.gpuTotal =
                 th.dataList.filter(
@@ -1030,6 +1044,13 @@ export class SpSystemTrace extends BaseElement {
           selection.dmaVmTrackerData.push(...intersectData(it)!);
         } else if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
           selection.gpu.gl =
+            it.dataList.filter(
+              (it) =>
+                (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+            ).length > 0;
+        } else if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+          selection.gpu.graph =
             it.dataList.filter(
               (it) =>
                 (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
@@ -1362,15 +1383,15 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  getCollectRows(condition: string) {
+  getCollectRows(condition: string): Array<TraceRow<any>> {
     return this.favoriteChartListEL!.getCollectRows(condition);
   }
 
-  getAllCollectRows() {
+  getAllCollectRows(): Array<TraceRow<any>> {
     return this.favoriteChartListEL!.getCollectRows('trace-row');
   }
 
-  getAllSelectCollectRows() {
+  getAllSelectCollectRows(): Array<TraceRow<any>> {
     return this.favoriteChartListEL!.getCollectRows("trace-row[check-type='2']");
   }
 
@@ -2459,6 +2480,10 @@ export class SpSystemTrace extends BaseElement {
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [
+      TraceRow.ROW_TYPE_GPU_RESOURCE_VMTRACKER,
+      () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
+    ],
+    [
       TraceRow.ROW_TYPE_VMTRACKER_SHM,
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
@@ -2976,6 +3001,9 @@ export class SpSystemTrace extends BaseElement {
         SnapshotStruct.selectSnapshotStruct.startNs,
         gpuMemoryVmTracker!.dataList
       );
+    } else if (clickRowType === TraceRow.ROW_TYPE_GPU_RESOURCE_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayGpuResourceVmTracker(SnapshotStruct.selectSnapshotStruct.startNs);
     } else {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         this.removeLinkLinesByBusinessType('janks');

@@ -1104,6 +1104,7 @@ export class SpApplication extends BaseElement {
             splitDataList: that.longTraceDataList,
           },
           (res: Array<any>) => {
+            litSearch.setPercent('Cut in file ',  100);
             if (that.longTraceHeadMessageList.length > 0) {
               getTraceFileByPage(that.currentPageNum);
               litSearch.style.marginLeft = '80px';
@@ -1113,6 +1114,7 @@ export class SpApplication extends BaseElement {
                 that.shadowRoot?.querySelector<HTMLDivElement>('#preview-button');
               let nextButton: HTMLDivElement | null | undefined =
                 that.shadowRoot?.querySelector<HTMLDivElement>('#next-button');
+              let pageInput = that.shadowRoot?.querySelector<HTMLInputElement>('.page-input');
               if (previewButton) {
                 previewButton.style.pointerEvents = 'none';
                 previewButton.style.opacity = '0.7';
@@ -1134,9 +1136,13 @@ export class SpApplication extends BaseElement {
                     let previewElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                       `.page-number[title='${that.currentPageNum}']`
                     );
+                    if (previewElement!.textContent === '...') {
+                      return;
+                    }
                     let querySelector = pageListDiv.querySelector('.page-number[selected]');
                     querySelector?.removeAttribute('selected');
                     previewElement!.setAttribute('selected', '');
+                    pageInput!.value = that.currentPageNum + '';
                     progressEL.loading = true;
                     getTraceFileByPage(that.currentPageNum);
                   }
@@ -1164,6 +1170,9 @@ export class SpApplication extends BaseElement {
                   let nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                     `.page-number[title='${that.currentPageNum}']`
                   );
+                  if (nextElement!.textContent === '...') {
+                    return;
+                  }
                   let querySelector = pageListDiv.querySelector('.page-number[selected]');
                   querySelector?.removeAttribute('selected');
                   nextElement!.setAttribute('selected', '');
@@ -1173,7 +1182,7 @@ export class SpApplication extends BaseElement {
               });
               pageListDiv.querySelectorAll('div').forEach((divEL) => {
                 divEL.addEventListener('click', () => {
-                  if (progressEL.loading) {
+                  if (progressEL.loading || divEL.textContent === '...') {
                     return;
                   }
                   let querySelector = pageListDiv.querySelector('.page-number[selected]');
@@ -1201,7 +1210,6 @@ export class SpApplication extends BaseElement {
                   }
                 });
               });
-              let pageInput = that.shadowRoot?.querySelector<HTMLInputElement>('.page-input');
               pageInput!.addEventListener('input', () => {
                 let value = pageInput!.value;
                 value = value.replace(/\D/g, '');
@@ -1322,7 +1330,9 @@ export class SpApplication extends BaseElement {
             let fileName = `hiprofiler_long_trace_${indexedDbPageNum}.htrace`;
             if (otherDataLength > maxTraceFileLength) {
               if (traceLength > maxTraceFileLength) {
-                console.log('trace File too big');
+                litSearch.isLoading = false;
+                litSearch.setPercent('hitrace file too big!',  -1);
+                progressEL.loading = false;
               } else {
                 let freeDataLength = maxTraceFileLength - traceLength;
                 let freeDataIndex = findFreeSizeAlgorithm(
@@ -1538,14 +1548,30 @@ export class SpApplication extends BaseElement {
         that.longTraceDataList = [];
         let detail = (ev as any).detail;
         let timStamp = new Date().getTime();
-        const readFiles = async (files: FileList) => {
+        let traceTypePage: Array<number> = [];
+        let allFileSize = 0;
+        let readSize = 0;
+        for (let index = 0; index < detail.length; index++) {
+          let file = detail[index];
+          let fileName = file.name as string;
+          allFileSize += file.size;
+          if (that.fileTypeList.some(fileType => fileName.toLowerCase().includes(fileType))) {
+            continue;
+          }
+          let firstLastIndexOf = fileName.lastIndexOf('.');
+          let firstText = fileName.slice(0, firstLastIndexOf);
+          let resultLastIndexOf = firstText.lastIndexOf('_');
+          traceTypePage.push(Number(firstText.slice(resultLastIndexOf + 1, firstText.length)) - 1)
+        }
+        traceTypePage.sort((leftNum: number, rightNum: number) => leftNum - rightNum);
+        const readFiles = async (files: FileList, traceTypePage: Array<number>) => {
           const promises = Array.from(files).map((file) => {
             let types = that.fileTypeList.filter((type) => file.name.toLowerCase().includes(type.toLowerCase()));
-            return readFile(file, types);
+            return readFile(file, types, traceTypePage);
           });
           return Promise.all(promises);
         };
-        const readFile = async (file: any, types: Array<string>) => {
+        const readFile = async (file: any, types: Array<string>, traceTypePage: Array<number>) => {
           return new Promise((resolve, reject) => {
             let fileName = file.name;
             let fr = new FileReader();
@@ -1556,7 +1582,6 @@ export class SpApplication extends BaseElement {
               size: 0,
             };
             info('Parse long trace using wasm mode ');
-            litSearch.setPercent('', 1);
             let maxSize = 48 * 1024 * 1024;
             let fileType = 'trace';
             let pageNumber = 0;
@@ -1566,7 +1591,8 @@ export class SpApplication extends BaseElement {
               let firstLastIndexOf = fileName.lastIndexOf('.');
               let firstText = fileName.slice(0, firstLastIndexOf);
               let resultLastIndexOf = firstText.lastIndexOf('_');
-              pageNumber = Number(firstText.slice(resultLastIndexOf + 1, firstText.length)) - 1;
+              let searchNumber = Number(firstText.slice(resultLastIndexOf + 1, firstText.length)) - 1;
+              pageNumber = traceTypePage.lastIndexOf(searchNumber);
             }
             let chunk = maxSize;
             let offset = 0;
@@ -1574,7 +1600,6 @@ export class SpApplication extends BaseElement {
             let index = 1;
             fr.onload = function () {
               let data = fr.result as ArrayBuffer;
-              litSearch.setPercent('downloading file ', 10);
               LongTraceDBUtils.getInstance()
                 .indexedDBHelp.add(LongTraceDBUtils.getInstance().tableName, {
                   buf: data,
@@ -1633,16 +1658,20 @@ export class SpApplication extends BaseElement {
               }
               sliceLen = Math.min(file.size - offset, chunk);
               let slice = file.slice(offset, offset + sliceLen);
+              readSize += slice.size;
+              let percentValue = (readSize * 100 / allFileSize).toFixed(2);
+              litSearch.setPercent('Read in file: ',  Number(percentValue));
               fr.readAsArrayBuffer(slice);
             }
-
             continue_reading();
             fr.onerror = function () {
               reject(false);
             };
           });
         };
-        readFiles(detail).then(() => {
+        litSearch.setPercent('Read in file: ',  1);
+        readFiles(detail, traceTypePage).then(() => {
+          litSearch.setPercent('Cut in file: ',  1);
           sendCutFileMessage(timStamp);
         });
       }
@@ -2151,6 +2180,13 @@ export class SpApplication extends BaseElement {
     let cutRightTs = recordStartNS + cutRightNs + offset;
     if (cutRightTs > recordEndNS) {
       cutRightTs = recordEndNS;
+    }
+    let minCutDur = 1_000_000;
+    if (cutRightTs - cutLeftTs < minCutDur) {
+      let unitTs = (cutRightTs - cutLeftTs) / 2;
+      let midTs = cutLeftTs + unitTs;
+      cutLeftTs = midTs - minCutDur / 2;
+      cutRightTs = midTs + minCutDur / 2;
     }
     progressEL.loading = true;
     threadPool.cutFile(cutLeftTs, cutRightTs, (status: boolean, msg: string, cutBuffer?: ArrayBuffer) => {

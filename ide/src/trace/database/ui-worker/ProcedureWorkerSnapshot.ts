@@ -79,6 +79,8 @@ export class SnapshotStruct extends BaseStruct {
   endNs: number = 0;
   dur: number = 0;
   name: string = '';
+  aSize: number = 0;
+  categoryNameId: number = 0;
   textWidth: number = 0;
   value: number = 0;
   type: string = '';

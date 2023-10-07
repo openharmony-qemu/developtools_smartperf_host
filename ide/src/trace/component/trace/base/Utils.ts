@@ -49,8 +49,6 @@ export class Utils {
     Utils.statusMap.set('t', 'Traced');
     Utils.statusMap.set('X', 'Exit (Dead)');
     Utils.statusMap.set('Z', 'Exit (Zombie)');
-    Utils.statusMap.set('K', 'Wake Kill');
-    Utils.statusMap.set('W', 'Waking');
     Utils.statusMap.set('P', 'Parked');
     Utils.statusMap.set('N', 'No Load');
   }

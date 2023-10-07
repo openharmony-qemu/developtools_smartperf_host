@@ -88,12 +88,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_STATE_ENERGY = 'state-energy';
   static ROW_TYPE_SYS_MEMORY_GPU = 'sys-memory-gpu';
   static ROW_TYPE_SYS_MEMORY_GPU_GL = 'sys-memory-gpu-gl';
+  static ROW_TYPE_SYS_MEMORY_GPU_GRAPH = 'sys-memory-gpu-graph';
   static ROW_TYPE_SYS_MEMORY_GPU_TOTAL = 'sys-memory-gpu-total';
   static ROW_TYPE_SYS_MEMORY_GPU_WINDOW = 'sys-memory-gpu-window';
   static ROW_TYPE_VM_TRACKER_SMAPS = 'smaps';
   static ROW_TYPE_VM_TRACKER = 'VmTracker';
   static ROW_TYPE_DMA_VMTRACKER = 'dma-vmTracker';
   static ROW_TYPE_GPU_MEMORY_VMTRACKER = 'gpu-memory-vmTracker';
+  static ROW_TYPE_GPU_RESOURCE_VMTRACKER = 'sys-memory-gpu-resource';
   static ROW_TYPE_VMTRACKER_SHM = 'VmTracker-shm';
   static ROW_TYPE_CLOCK_GROUP = 'clock-group';
   static ROW_TYPE_COLLECT_GROUP = 'collect-group';
@@ -178,12 +180,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-        canvasNumber: 1,
-        alpha: false,
-        contextId: '2d',
-        isOffScreen: true,
-        skeleton: false,
-      }
+      canvasNumber: 1,
+      alpha: false,
+      contextId: '2d',
+      isOffScreen: true,
+      skeleton: false,
+    }
   ) {
     super();
     this.args = args;
@@ -458,9 +460,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
-  getHoverStruct(): T | undefined {
+  getHoverStruct(strict: boolean = true, offset: boolean = false): T | undefined {
     if (this.isHover) {
-      return this.dataListCache.find((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY));
+      return this.dataListCache.find(
+        (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
+      );
     }
   }
 
