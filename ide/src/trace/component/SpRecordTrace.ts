@@ -1580,6 +1580,7 @@ export class SpRecordTrace extends BaseElement {
       if (SpApplication.isLongTrace && request.sessionConfig) {
         request.sessionConfig.splitFile = true;
         request.sessionConfig!.splitFileMaxSizeMb = this.recordSetting!.longTraceSingleFileMaxSize;
+        request.sessionConfig!.splitFileMaxNum = 20;
       }
       let hasMonitorMemory = false;
       let hasSamps = false;

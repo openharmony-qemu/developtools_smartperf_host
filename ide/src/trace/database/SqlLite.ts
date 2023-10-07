@@ -4536,14 +4536,17 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
          UNION
          SELECT a.id AS animationId,
            'Completion delay' as status,
-           (a.start_point - R.start_ts) AS startTs,
+           (CASE WHEN a.input_time NOT NULL
+               THEN ( a.input_time - R.start_ts )
+               ELSE ( a.start_point - R.start_ts ) END
+           ) AS startTs,
            (a.end_point - R.start_ts) AS endTs,
            a.frame_info AS frameInfo
          FROM 
              animation AS a, 
              trace_range AS R
-         ORDER BY 
-             startTs;`
+         ORDER BY
+            endTs;`
   );
 
 export const queryFrameDynamicData = (): Promise<FrameDynamicStruct[]> =>

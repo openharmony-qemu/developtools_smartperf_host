@@ -1136,7 +1136,7 @@ export class SpApplication extends BaseElement {
                     let previewElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                       `.page-number[title='${that.currentPageNum}']`
                     );
-                    if (previewElement!.textContent === '...') {
+                    if (!previewElement || previewElement.textContent === '...') {
                       return;
                     }
                     let querySelector = pageListDiv.querySelector('.page-number[selected]');
@@ -1170,12 +1170,13 @@ export class SpApplication extends BaseElement {
                   let nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                     `.page-number[title='${that.currentPageNum}']`
                   );
-                  if (nextElement!.textContent === '...') {
+                  if (!nextElement || nextElement.textContent === '...') {
                     return;
                   }
                   let querySelector = pageListDiv.querySelector('.page-number[selected]');
                   querySelector?.removeAttribute('selected');
-                  nextElement!.setAttribute('selected', '');
+                  nextElement?.setAttribute('selected', '');
+                  pageInput!.value = that.currentPageNum + '';
                   progressEL.loading = true;
                   getTraceFileByPage(that.currentPageNum);
                 }
@@ -1205,6 +1206,7 @@ export class SpApplication extends BaseElement {
                       previewButton!.style.pointerEvents = 'auto';
                       previewButton!.style.opacity = '1';
                     }
+                    pageInput!.value = that.currentPageNum + '';
                     progressEL.loading = true;
                     getTraceFileByPage(that.currentPageNum);
                   }
@@ -1224,7 +1226,7 @@ export class SpApplication extends BaseElement {
                   return;
                 }
                 let pageIndex = Number(pageInput!.value);
-                if (pageIndex > 0 && pageIndex < that.longTraceHeadMessageList.length) {
+                if (pageIndex > 0 && pageIndex <= that.longTraceHeadMessageList.length) {
                   that.currentPageNum = pageIndex;
                   if (that.currentPageNum === that.longTraceHeadMessageList.length) {
                     nextButton!.style.pointerEvents = 'none';
@@ -1243,9 +1245,14 @@ export class SpApplication extends BaseElement {
                   let nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                     `.page-number[title='${that.currentPageNum}']`
                   );
+                  if (!nextElement) {
+                    nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
+                      `.page-number[title='...']`
+                    );
+                  }
                   let querySelector = pageListDiv.querySelector('.page-number[selected]');
                   querySelector?.removeAttribute('selected');
-                  nextElement!.setAttribute('selected', '');
+                  nextElement?.setAttribute('selected', '');
                   progressEL.loading = true;
                   getTraceFileByPage(that.currentPageNum);
                 }
