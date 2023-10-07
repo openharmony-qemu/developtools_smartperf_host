@@ -28,15 +28,15 @@ import {
   queryPhysicalData,
 } from '../../database/SqlLite.js';
 import { JanksStruct } from '../../bean/JanksStruct.js';
-import { ns2xByTimeShaft, PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon.js';
-import { LitPopover } from '../../../base-ui/popover/LitPopoverV.js';
+import { ns2xByTimeShaft, type PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon.js';
+import { type LitPopover } from '../../../base-ui/popover/LitPopoverV.js';
 import { FrameDynamicRender, FrameDynamicStruct } from '../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
 import { FrameAnimationRender, FrameAnimationStruct } from '../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
-import { BaseStruct } from '../../bean/BaseStruct.js';
+import { type BaseStruct } from '../../bean/BaseStruct.js';
 import { FrameSpacingRender, FrameSpacingStruct } from '../../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { FlagsConfig, Params } from '../SpFlags.js';
-import { AnimationRanges, DeviceStruct } from '../../bean/FrameComponentBean.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import { FlagsConfig, type Params } from '../SpFlags.js';
+import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean.js';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;

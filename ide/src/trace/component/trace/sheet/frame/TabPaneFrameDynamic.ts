@@ -14,11 +14,11 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type SelectionParam } from '../../../../bean/BoxSelection.js';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { resizeObserver } from '../SheetUtils.js';
-import { FrameDynamicStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
-import { FrameAnimationSelect } from '../../../../bean/FrameComponentBean.js';
+import { type FrameDynamicStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
+import { type FrameAnimationSelect } from '../../../../bean/FrameComponentBean.js';
 import { Utils } from '../../base/Utils.js';
 
 @element('tabpane-frame-dynamic')

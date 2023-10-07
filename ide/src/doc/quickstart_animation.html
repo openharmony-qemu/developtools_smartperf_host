@@ -795,7 +795,8 @@
       <h3 class="mume-header fontColor">Animation抓取参数的配置</h3>
 
       <p class="fontColor">
-        <img src="../figures/animation/animationconfig.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/animation/animationconfig.jpg" alt="GitHub Logo" />
+        <br />
         配置项说明：
       </p>
       <ul class="fontColor">
@@ -812,12 +813,20 @@ Animation effect：动效配置项的总开关。
       <h3 class="mume-header fontColor">Animation泳道图展示</h3>
 
       <p class="fontColor">
-        Animation的响应时延泳道图显示,泳道图的Slice会显示响应时延，如下图中的Completion delay(683.035938ms)。<br />
-        <img src="../figures/animation/anrsdelayrow.jpg" alt="GitHub Logo" />。<br />
-        Animation的动效曲线和帧间距的总泳道图，如图点击leashWindow40旁边的小齿轮可以切换leashWindow。<br />
-        <img src="../figures/animation/anrsallrow.jpg" alt="GitHub Logo" />。<br />
-        Animation的动效曲线泳道图展示，如下：<br />
-        <img src="../figures/animation/anieffectcurv.jpg" alt="GitHub Logo" /><br />
+        Animation的响应时延泳道图显示,泳道图的Slice会显示响应时延，如下图中的Completion delay(683.035938ms)。
+        <br />
+        <img src="../figures/animation/anrsdelayrow.jpg" alt="GitHub Logo" />
+        。
+        <br />
+        Animation的动效曲线和帧间距的总泳道图，如图点击leashWindow40旁边的小齿轮可以切换leashWindow。
+        <br />
+        <img src="../figures/animation/anrsallrow.jpg" alt="GitHub Logo" />
+        。
+        <br />
+        Animation的动效曲线泳道图展示，如下：
+        <br />
+        <img src="../figures/animation/anieffectcurv.jpg" alt="GitHub Logo" />
+        <br />
         泳道图说明:
       </p>
       <ul class="fontColor">
@@ -835,8 +844,10 @@ Animation Effect Curve泳道图红色的曲线代表的是异常判断点，也�
         </li>
       </ul>
       <p class="fontColor">
-        Animation的帧间距泳道图展示，如下:<br />
-        <img src="../figures/animation/framespacirow.jpg" alt="GitHub Logo" /><br />
+        Animation的帧间距泳道图展示，如下:
+        <br />
+        <img src="../figures/animation/framespacirow.jpg" alt="GitHub Logo" />
+        <br />
         泳道图说明:
       </p>
       <ul class="fontColor">
@@ -850,7 +861,8 @@ Frame spacing泳道图显示相邻两帧在时间尺度上相对于设备物理�
       <h3 class="mume-header fontColor">动效曲线泳道图点选功能</h3>
 
       <p class="fontColor">
-        点选动效曲线泳道图上的属性值会出现一个空心小圆点，Frame Dynamic的Tab页会显示相关信息。<br />
+        点选动效曲线泳道图上的属性值会出现一个空心小圆点，Frame Dynamic的Tab页会显示相关信息。
+        <br />
         <img src="../figures/animation/anieffectcurvselect.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -876,7 +888,8 @@ Value：属性值。
       <h3 class="mume-header fontColor">动效曲线泳道图框选功能</h3>
 
       <p class="fontColor">
-        框选动效曲线泳道图，Frame Dynamic的Tab页会显示框选范围内每个点的属性值。<br />
+        框选动效曲线泳道图，Frame Dynamic的Tab页会显示框选范围内每个点的属性值。
+        <br />
         <img src="../figures/animation/anieffectcurvdrag.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -903,7 +916,8 @@ Value：属性值。
 
       <p class="fontColor">
         点选帧间距泳道图，Frame
-        spacing的Tab页会显示这一个点的帧间距计算数据，一个点要计算两个属性的的帧间距，所以需要显示两个属性的。<br />
+        spacing的Tab页会显示这一个点的帧间距计算数据，一个点要计算两个属性的的帧间距，所以需要显示两个属性的。
+        <br />
         <img src="../figures/animation/anispacingselect.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -965,7 +979,8 @@ result：帧间距。
       <h3 class="mume-header fontColor">帧间距泳道图框选功能</h3>
 
       <p class="fontColor">
-        框选帧间距泳道图，Frame spacing的Tab页会显示框选范围内帧间距数据。<br />
+        框选帧间距泳道图，Frame spacing的Tab页会显示框选范围内帧间距数据。
+        <br />
         <img src="../figures/animation/anispacingdrag.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -1029,10 +1044,10 @@ result：帧间距。
     <script>
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

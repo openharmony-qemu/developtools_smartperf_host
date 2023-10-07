@@ -14,8 +14,8 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type SelectionParam } from '../../../../bean/BoxSelection.js';
 import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
 import { queryProcessPurgeableTab, querySysPurgeableTab } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
@@ -33,9 +33,8 @@ export class TabPanePurgPin extends BaseElement {
 
   set data(selection: SelectionParam) {
     //@ts-ignore
-    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
-      this.parentElement!.clientHeight - 45
-    }px`;
+    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
+      }px`;
     this.init();
     this.purgPinTimeRange!.textContent =
       'Selected range: ' + ((selection.rightNs - selection.leftNs) / 1000000.0).toFixed(5) + ' ms';
@@ -100,7 +99,7 @@ export class TabPanePurgPin extends BaseElement {
     }
   }
 
-  private init() {
+  private init(): void {
     const thTable = this.tabTitle!.querySelector('.th');
     const purgePinTblNodes = thTable!.querySelectorAll('div');
     if (this.tabTitle!.hasAttribute('sort')) {

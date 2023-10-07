@@ -800,20 +800,24 @@
       <h4 class="mume-header fontColor">TaskPool的抓取配置参数</h4>
 
       <p class="fontColor">
-        打开Task pool开关抓取taskpool数据。<br />
+        打开Task pool开关抓取taskpool数据。
+        <br />
         <img src="../figures/Taskpool/taskpoolconfig.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">TaskPool展示说明</h3>
 
       <p class="fontColor">
-        将抓取的taskpool文件导入到smartperf中，查看任务的关联关系等信息。<br />
+        将抓取的taskpool文件导入到smartperf中，查看任务的关联关系等信息。
+        <br />
         <img src="../figures/Taskpool/taskpoolrow.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">TaskPool的任务关联关系跟踪</h3>
 
       <p class="fontColor">
-        任务关联关系就是根据任务的executeId，把一个taskpool任务的各个执行的函数调用栈连接起来，用于表示一个任务从开始分发到执行，再到最后任务结束的整个过程。<br />
-        <img src="../figures/Taskpool/taskpoolrelation.jpg" alt="GitHub Logo" /><br />
+        任务关联关系就是根据任务的executeId，把一个taskpool任务的各个执行的函数调用栈连接起来，用于表示一个任务从开始分发到执行，再到最后任务结束的整个过程。
+        <br />
+        <img src="../figures/Taskpool/taskpoolrelation.jpg" alt="GitHub Logo" />
+        <br />
         如上图所示，点击H:Task Perform: taskId : 2, executeId :
         2的调用栈会出现红色连线，红色连线展示了executeId是2的任务的关联关系，连接的调用栈分别是：
       </p>
@@ -840,13 +844,15 @@ H:Task PerformTask End: taskId : 2, executeId : 2, performResult : Successful：
       <h3 class="mume-header fontColor">TaskPool的并发度</h3>
 
       <p class="fontColor">
-        点选或者框选任务状态为执行会进行任务并发度展示，如图所示并发度是3。<br />
+        点选或者框选任务状态为执行会进行任务并发度展示，如图所示并发度是3。
+        <br />
         <img src="../figures/Taskpool/taskpoolconcurrency.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">TaskPool泳道图的点选功能</h3>
 
       <p class="fontColor">
-        点选taskpool的Slice，展示该taskpool信息的tab页。<br />
+        点选taskpool的Slice，展示该taskpool信息的tab页。
+        <br />
         <img src="../figures/Taskpool/taskpoolselect.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -878,7 +884,8 @@ depth：调用栈层级。
       <h3 class="mume-header fontColor">TaskPool泳道图的框选功能</h3>
 
       <p class="fontColor">
-        框选taskpool的泳道图，展示Frames的tab页。<br />
+        框选taskpool的泳道图，展示Frames的tab页。
+        <br />
         <img src="../figures/Taskpool/taskpooldrag.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -916,13 +923,15 @@ Return Time(ms)：返回耗时(任务返回的结束时间 – 任务执行的�
       <h3 class="mume-header fontColor">TaskPool的队列任务数和线程池里线程状态统计</h3>
 
       <p class="fontColor">
-        <img src="../figures/Taskpool/taskpoolnum.jpg" alt="GitHub Logo" /><br />
+        <img src="../figures/Taskpool/taskpoolnum.jpg" alt="GitHub Logo" />
+        <br />
         如上图，H:threadNum，H:runningThreadNum，H:idleThreadNum，H:timeoutThreadNum是线程池里线程状态统计，H:taskNum是队列任务数。
       </p>
       <h3 class="mume-header fontColor">TaskPool的任务超时退出</h3>
 
       <p class="fontColor">
-        在带有H:Thread Timeout Exit的调用栈的泳道图会采用黄色圆圈，中间为白色反叹号标记，代表任务超时退出。<br />
+        在带有H:Thread Timeout Exit的调用栈的泳道图会采用黄色圆圈，中间为白色反叹号标记，代表任务超时退出。
+        <br />
         <img src="../figures/Taskpool/taskpoolexit.jpg" alt="GitHub Logo" />
       </p>
     </div>
@@ -930,10 +939,10 @@ Return Time(ms)：返回耗时(任务返回的结束时间 – 任务执行的�
     <script>
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

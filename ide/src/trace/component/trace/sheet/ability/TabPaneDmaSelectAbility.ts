@@ -14,8 +14,8 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { Dma } from '../../../../bean/AbilityMonitor.js';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type Dma } from '../../../../bean/AbilityMonitor.js';
 import { getTabDmaAbilityClickData } from '../../../../database/SqlLite.js';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';

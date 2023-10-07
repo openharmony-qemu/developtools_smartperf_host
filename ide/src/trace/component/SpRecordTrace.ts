@@ -589,7 +589,9 @@ export class SpRecordTrace extends BaseElement {
 
   initElements(): void {
     let parentElement = this.parentNode as HTMLElement;
-    parentElement.style.overflow = 'hidden';
+    if (parentElement) {
+      parentElement.style.overflow = 'hidden';
+    }
     this.recordSetting = new SpRecordSetting();
     this.probesConfig = new SpProbesConfig();
     this.traceCommand = new SpTraceCommand();
@@ -716,8 +718,8 @@ export class SpRecordTrace extends BaseElement {
     this.recordButtonText = this.shadowRoot?.querySelector('.record_text') as HTMLSpanElement;
     this.cancelButton = this.shadowRoot?.querySelector('.cancel') as LitButton;
     this.sp = document.querySelector('sp-application') as SpApplication;
-    this.progressEL = this.sp.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.litSearch = this.sp.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
+    this.progressEL = this.sp?.shadowRoot?.querySelector('.progress') as LitProgressBar;
+    this.litSearch = this.sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
     if (this.deviceSelect!.options && this.deviceSelect!.options.length > 0) {
       this.disconnectButton!.hidden = false;
       this.recordButton!.hidden = false;

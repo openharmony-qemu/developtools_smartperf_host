@@ -517,7 +517,7 @@ export class SpProcessChart {
             Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
           let depthArray: any = [];
           asyncFunctions.forEach((it, i) => {
-            if (it.dur == -1) {
+            if (it.dur === -1) {
               it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
               it.flag = 'Did not end';
             }
@@ -557,7 +557,7 @@ export class SpProcessChart {
               context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
             }
             funcRow.canvasSave(context);
-            (renders['func'] as FuncRender).renderMainThread(
+            (renders.func as FuncRender).renderMainThread(
               {
                 context: context,
                 useCache: cacheFlag,
@@ -602,7 +602,7 @@ export class SpProcessChart {
             let maxValue = Math.max(...resultProcess.map((it) => it.value || 0));
             for (let j = 0; j < resultProcess.length; j++) {
               resultProcess[j].maxValue = maxValue;
-              if (j == resultProcess.length - 1) {
+              if (j === resultProcess.length - 1) {
                 resultProcess[j].duration = (TraceRow.range?.totalNS || 0) - (resultProcess[j].startTime || 0);
               } else {
                 resultProcess[j].duration = (resultProcess[j + 1].startTime || 0) - (resultProcess[j].startTime || 0);
@@ -623,7 +623,7 @@ export class SpProcessChart {
             context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
           }
           row.canvasSave(context);
-          (renders['mem'] as MemRender).renderMainThread(
+          (renders.mem as MemRender).renderMainThread(
             {
               context: context,
               useCache: useCache,
@@ -727,7 +727,7 @@ export class SpProcessChart {
                 funs.forEach((fun) => {
                   if (isBinder(fun)) {
                   } else {
-                    if (fun.dur == -1) {
+                    if (fun.dur === -1) {
                       fun.dur = (TraceRow.range?.totalNS || 0) - (fun.startTs || 0);
                       fun.flag = 'Did not end';
                     }
@@ -749,7 +749,7 @@ export class SpProcessChart {
               context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
             }
             funcRow.canvasSave(context);
-            (renders['func'] as FuncRender).renderMainThread(
+            (renders.func as FuncRender).renderMainThread(
               {
                 context: context,
                 useCache: useCache,

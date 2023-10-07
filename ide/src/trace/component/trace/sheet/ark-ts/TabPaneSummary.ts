@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import '../../../../../base-ui/table/lit-table.js';
-import { ConstructorItem, FileInfo } from '../../../../../js-heap/model/UiStruct.js';
+import { type ConstructorItem, FileInfo } from '../../../../../js-heap/model/UiStruct.js';
 import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface.js';
 import '../../../../../base-ui/table/lit-table-column.js';
 import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
@@ -305,7 +305,7 @@ export class TabPaneSummary extends BaseElement {
     this.initSummaryData(data);
   }
 
-  initSummaryData(file: FileInfo | HeapSnapshotStruct, minNodeId?: number, maxNodeId?: number) {
+  initSummaryData(file: FileInfo | HeapSnapshotStruct, minNodeId?: number, maxNodeId?: number): void {
     this.file = file as FileInfo;
     this.clear();
     this.summary = [];
@@ -354,8 +354,8 @@ export class TabPaneSummary extends BaseElement {
     this.clickToggleTable();
   }
 
-  private retainsTableByDistance(currentLeftItem: ConstructorItem, sort: number) {
-    const getList = function (list: Array<ConstructorItem>) {
+  private retainsTableByDistance(currentLeftItem: ConstructorItem, sort: number): void {
+    const getList = function (list: Array<ConstructorItem>): void {
       list.sort((leftA, rightB) => {
         return sort === 1 ? leftA.distance - rightB.distance : rightB.distance - leftA.distance;
       });
@@ -368,8 +368,8 @@ export class TabPaneSummary extends BaseElement {
     getList(currentLeftItem.children);
   }
 
-  private retainsTableByShallowSize(currentLeftItem: ConstructorItem, sort: number) {
-    const getList = function (list: Array<ConstructorItem>) {
+  private retainsTableByShallowSize(currentLeftItem: ConstructorItem, sort: number): void {
+    const getList = function (list: Array<ConstructorItem>): void {
       list.sort((leftA, rightB) => {
         return sort === 1 ? leftA.shallowSize - rightB.shallowSize : rightB.shallowSize - leftA.shallowSize;
       });
@@ -382,8 +382,8 @@ export class TabPaneSummary extends BaseElement {
     getList(currentLeftItem.children);
   }
 
-  private retainsTableByRetainedSize(currentLeftItem: ConstructorItem, sort: number) {
-    const getList = function (list: Array<ConstructorItem>) {
+  private retainsTableByRetainedSize(currentLeftItem: ConstructorItem, sort: number): void {
+    const getList = function (list: Array<ConstructorItem>): void {
       list.sort((leftA, rightB) => {
         return sort === 1 ? leftA.retainedSize - rightB.retainedSize : rightB.retainedSize - leftA.retainedSize;
       });
@@ -396,8 +396,8 @@ export class TabPaneSummary extends BaseElement {
     getList(currentLeftItem.children);
   }
 
-  private retainsTableByObjectName(currentLeftItem: ConstructorItem, sort: number) {
-    const getList = function (list: Array<ConstructorItem>) {
+  private retainsTableByObjectName(currentLeftItem: ConstructorItem, sort: number): void {
+    const getList = function (list: Array<ConstructorItem>): void {
       list.sort((leftA, rightB) => {
         return sort === 1
           ? (leftA.objectName + '').localeCompare(rightB.objectName + '')

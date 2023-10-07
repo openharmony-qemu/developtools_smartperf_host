@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { queryGpuDataByTs } from '../../../../database/SqlLite.js';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart.js';
@@ -31,7 +31,7 @@ interface GpuTreeItem {
 export class TabPaneGpuClickSelect extends BaseElement {
   private gpuTbl: LitTable | null | undefined;
   private gpuSource: Array<GpuTreeItem> = [];
-  gpuClickData(gpu: { type: string; startTs: number }) {
+  gpuClickData(gpu: { type: string; startTs: number }): void {
     let label = this.gpuTbl!.shadowRoot!.querySelector('.thead')?.firstChild?.firstChild?.firstChild;
     if (label) {
       (label as HTMLLabelElement).innerHTML = gpu.type === 'total' ? 'Module / Category' : 'Window / Module / Category';
@@ -146,7 +146,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
         return gpuB.size - gpuA.size;
       }
     };
-    let deepCompare = (arr: GpuTreeItem[]) => {
+    let deepCompare = (arr: GpuTreeItem[]): void => {
       arr.forEach((it) => {
         if (it.children) {
           deepCompare(it.children);

@@ -967,7 +967,7 @@ function queryJSON(name: string, sql: string, params: any) {
   return convertJSON();
 }
 
-function query(name: string, sql: string, params: any) {
+function query(name: string, sql: string, params: any): void {
   if (params) {
     Reflect.ownKeys(params).forEach((key: any) => {
       if (typeof params[key] === 'string') {

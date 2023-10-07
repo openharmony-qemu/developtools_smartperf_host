@@ -16,9 +16,9 @@
 import '../icon/LitIcon.js';
 import '../checkbox/LitCheckBox.js';
 import { BaseElement, element } from '../BaseElement.js';
-import { LitCheckBox } from '../checkbox/LitCheckBox.js';
-import { LitIcon } from '../icon/LitIcon.js';
-import { TreeItemData } from './LitTree.js';
+import { type LitCheckBox } from '../checkbox/LitCheckBox.js';
+import { type LitIcon } from '../icon/LitIcon.js';
+import { type TreeItemData } from './LitTree.js';
 
 @element('lit-tree-node')
 export class LitTreeNode extends BaseElement {
@@ -28,7 +28,7 @@ export class LitTreeNode extends BaseElement {
   private iconElement: LitIcon | null | undefined;
   private _data: TreeItemData | null | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return [
       'icon-name',
       'icon-size',
@@ -45,7 +45,7 @@ export class LitTreeNode extends BaseElement {
     ];
   }
 
-  get checkable() {
+  get checkable(): string {
     return this.getAttribute('checkable') || 'false';
   }
 
@@ -53,7 +53,7 @@ export class LitTreeNode extends BaseElement {
     this._data = value;
   }
 
-  get data() {
+  get data(): TreeItemData | null | undefined {
     return this._data;
   }
 
@@ -73,11 +73,11 @@ export class LitTreeNode extends BaseElement {
     }
   }
 
-  get multiple() {
+  get multiple(): boolean {
     return this.hasAttribute('multiple');
   }
 
-  get iconName() {
+  get iconName(): string {
     return this.getAttribute('icon-name') || '';
   }
 
@@ -85,7 +85,7 @@ export class LitTreeNode extends BaseElement {
     this.setAttribute('icon-name', value);
   }
 
-  get topDepth() {
+  get topDepth(): boolean {
     return this.hasAttribute('top-depth');
   }
 
@@ -97,7 +97,7 @@ export class LitTreeNode extends BaseElement {
     }
   }
 
-  get arrow() {
+  get arrow(): boolean {
     return this.hasAttribute('arrow');
   }
 
@@ -109,7 +109,7 @@ export class LitTreeNode extends BaseElement {
     }
   }
 
-  get open() {
+  get open(): string {
     return this.getAttribute('open') || 'true';
   }
 
@@ -117,7 +117,7 @@ export class LitTreeNode extends BaseElement {
     this.setAttribute('open', value);
   }
 
-  get selected() {
+  get selected(): boolean {
     return this.hasAttribute('selected');
   }
 
@@ -129,7 +129,7 @@ export class LitTreeNode extends BaseElement {
     }
   }
 
-  get checked() {
+  get checked(): boolean {
     return this.hasAttribute('checked');
   }
 
@@ -146,26 +146,26 @@ export class LitTreeNode extends BaseElement {
     this.iconElement = this.shadowRoot!.querySelector<LitIcon>('#icon');
     this.itemElement = this.shadowRoot!.querySelector<HTMLDivElement>('#item');
     this.checkboxElement = this.shadowRoot!.querySelector<LitCheckBox>('#checkbox');
-    this.arrowElement!.onclick = (e) => {
+    this.arrowElement!.onclick = (e): void => {
       e.stopPropagation();
       this.autoExpand();
     };
-    this.checkboxElement!.onchange = (e: any) => {
+    this.checkboxElement!.onchange = (e: any): boolean => {
       e.stopPropagation();
       this.onChange(e.detail.checked);
       return false;
     };
     //这里需要给checkbox 添加onclick时间 并停止冒泡，不然onchange事件会触发父节点中的 onclick事件
-    this.checkboxElement!.onclick = (e) => {
+    this.checkboxElement!.onclick = (e): void => {
       e.stopPropagation();
     };
-    this.itemElement!.onclick = (e) => {
+    this.itemElement!.onclick = (e): void => {
       e.stopPropagation();
       this.onChange(!this.data?.checked);
     };
   }
 
-  onChange(checked: boolean) {
+  onChange(checked: boolean): void {
     this.checked = checked;
     this.data!.checked = checked;
     this.checkHandler();
@@ -335,12 +335,14 @@ export class LitTreeNode extends BaseElement {
   }
 
   //当 custom element首次被插入文档DOM时，被调用。
-  connectedCallback() {
-    if (this.hasAttribute('checked')) this.checkboxElement!.checked = true;
+  connectedCallback(): void {
+    if (this.hasAttribute('checked')) {
+      this.checkboxElement!.checked = true;
+    }
     this.checkHandler();
   }
 
-  checkHandler() {
+  checkHandler(): void {
     if (this.checked) {
       this.removeAttribute('missing');
     }
@@ -355,7 +357,7 @@ export class LitTreeNode extends BaseElement {
           this.nextElementSibling.querySelectorAll('lit-tree-node').forEach((a: any) => (a.checked = false));
         }
       }
-      let setCheckStatus = (element: any) => {
+      let setCheckStatus = (element: any): void => {
         if (
           element.parentElement.parentElement.previousElementSibling &&
           element.parentElement.parentElement.previousElementSibling.tagName === 'LIT-TREE-NODE'
@@ -383,21 +385,25 @@ export class LitTreeNode extends BaseElement {
     }
   }
 
-  expand() {
-    if (this.open === 'true') return;
+  expand(): void {
+    if (this.open === 'true') {
+      return;
+    }
     let uul = this.parentElement!.querySelector('ul');
     this.expandSection(uul);
     this.arrowElement!.style.transform = 'translateX(-50%) rotateZ(0deg)';
   }
 
-  collapse() {
-    if (this.open === 'false') return;
+  collapse(): void {
+    if (this.open === 'false') {
+      return;
+    }
     let uul = this.parentElement!.querySelector('ul');
     this.collapseSection(uul);
     this.arrowElement!.style.transform = 'translateX(-50%) rotateZ(-90deg)';
   }
 
-  autoExpand() {
+  autoExpand(): void {
     let uul = this.parentElement!.querySelector('ul');
     if (this.open === 'true') {
       this.collapseSection(uul);
@@ -409,8 +415,10 @@ export class LitTreeNode extends BaseElement {
   }
 
   //收起
-  collapseSection(element: any) {
-    if (!element) return;
+  collapseSection(element: any): void {
+    if (!element) {
+      return;
+    }
     let sectionHeight = element.scrollHeight;
     let elementTransition = element.style.transition;
     element.style.transition = '';
@@ -425,11 +433,13 @@ export class LitTreeNode extends BaseElement {
   }
 
   //展开
-  expandSection(element: any) {
-    if (!element) return;
+  expandSection(element: any): void {
+    if (!element) {
+      return;
+    }
     let sectionHeight = element.scrollHeight;
     element.style.height = sectionHeight + 'px';
-    element.ontransitionend = (e: any) => {
+    element.ontransitionend = (e: any): void => {
       element.ontransitionend = null;
       element.style.height = null;
       this.open = 'true';
@@ -437,13 +447,13 @@ export class LitTreeNode extends BaseElement {
   }
 
   //当 custom element从文档DOM中删除时，被调用。
-  disconnectedCallback() {}
+  disconnectedCallback(): void {}
 
   //当 custom element被移动到新的文档时，被调用。
-  adoptedCallback() {}
+  adoptedCallback(): void {}
 
   //当 custom element增加、删除、修改自身属性时，被调用。
-  attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+  attributeChangedCallback(name: string, oldValue: any, newValue: any): void {
     if (name === 'title') {
       this.shadowRoot!.querySelector('#title')!.textContent = newValue;
     } else if (name === 'icon-name') {
@@ -471,9 +481,11 @@ export class LitTreeNode extends BaseElement {
   }
 
   //在node top  top-right  bottom bottom-right 画线条
-  drawLine(direction: string /*string[top|bottom|top-right|bottom-right]*/) {
+  drawLine(direction: string /*string[top|bottom|top-right|bottom-right]*/): void {
     let item = this.shadowRoot!.querySelector('#item');
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     item.removeAttribute('line-top');
     item.removeAttribute('line-top-right');
     item.removeAttribute('line-bottom');

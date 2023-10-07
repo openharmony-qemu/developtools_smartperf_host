@@ -35,7 +35,7 @@ import { HiPerfEventStruct } from '../../database/ui-worker/ProcedureWorkerHiPer
 import { perfDataQuery } from './PerfDataQuery.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfReport.js';
+import { type HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfReport.js';
 import { SpChartManager } from './SpChartManager.js';
 
 export interface ResultData {

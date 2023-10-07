@@ -14,14 +14,16 @@
  */
 
 export class JSONToCSV {
-  static setCsvData(obj: any) {
+  static setCsvData(obj: any): void {
     let that = this;
     let browserType = this.browserType();
-    if (browserType['ie'] < 9) return;
-    let data = obj['data'];
-    let isShowLabel = typeof obj['showLabel'] === 'undefined' ? true : obj['showLabel'];
-    let fileName = (obj['fileName'] || 'UserExport') + '.csv';
-    let columns = obj['columns'] || {
+    if (browserType.ie < 9) {
+      return;
+    }
+    let data = obj.data;
+    let isShowLabel = typeof obj.showLabel === 'undefined' ? true : obj.showLabel;
+    let fileName = (obj.fileName || 'UserExport') + '.csv';
+    let columns = obj.columns || {
       title: [],
       key: [],
       formatter: undefined,
@@ -77,13 +79,15 @@ export class JSONToCSV {
       row.slice(0, row.length - 1); // 删除最后一个,
       csv += row + '\r\n'; // 添加换行符号
     });
-    if (!csv) return;
+    if (!csv) {
+      return;
+    }
     this.saveCsvFile(fileName, csv);
   }
 
-  static saveCsvFile(fileName: any, csvData: any) {
+  static saveCsvFile(fileName: any, csvData: any): void {
     let browserType: any = this.browserType();
-    if (!browserType['edge'] || !browserType['ie']) {
+    if (!browserType.edge || !browserType.ie) {
       let alink: any = document.createElement('a');
       alink.id = 'csvDownloadLink';
       alink.href = this.getDownloadUrl(csvData);
@@ -92,7 +96,7 @@ export class JSONToCSV {
       linkDom.setAttribute('download', fileName);
       linkDom.click();
       document.body.removeChild(linkDom);
-    } else if (browserType['ie'] >= 10 || browserType['edge'] == 'edge') {
+    } else if (browserType.ie >= 10 || browserType.edge === 'edge') {
       (navigator as any).msSaveBlob(
         new Blob(['\uFEFF' + csvData], {
           type: 'text/csv',
@@ -118,7 +122,7 @@ export class JSONToCSV {
     }
   }
 
-  static browserType() {
+  static browserType(): any {
     let type: any = {};
     let agent = navigator.userAgent.toLowerCase();
     let has;
@@ -164,7 +168,10 @@ export class JSONToCSV {
     return result;
   }
 
-  static columnsData(columns: Array<any>) {
+  static columnsData(columns: Array<any>): {
+    titleList: any[];
+    ketList: any[];
+  } {
     let titleList: Array<any> = [];
     let ketList: Array<any> = [];
     columns.forEach((column) => {

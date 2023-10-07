@@ -84,12 +84,12 @@ import { AppStartupStruct } from './ui-worker/ProcedureWorkerAppStartup.js';
 import { SoStruct } from './ui-worker/ProcedureWorkerSoInit.js';
 import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerCommon.js';
 import { TaskTabStruct } from '../component/trace/sheet/task/TabPaneTaskFrames.js';
-import { DeviceStruct } from '../bean/FrameComponentBean.js';
-import { FrameSpacingStruct } from './ui-worker/ProcedureWorkerFrameSpacing.js';
-import { FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic.js';
-import { FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation.js';
-import { SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
-import { MemoryConfig } from '../bean/MemoryConfig.js';
+import { type DeviceStruct } from '../bean/FrameComponentBean.js';
+import { type FrameSpacingStruct } from './ui-worker/ProcedureWorkerFrameSpacing.js';
+import { type FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic.js';
+import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation.js';
+import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
+import { type MemoryConfig } from '../bean/MemoryConfig.js';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
 
 class DataWorkerThread extends Worker {
@@ -307,7 +307,7 @@ export class DbPool {
     }
   };
 
-  initServer = async (url: string, progress: Function) => {
+  initServer = async (url: string, progress: Function): Promise<{ status: boolean; msg: string }> => {
     this.progress = progress;
     progress('database loaded', 15);
     DbPool.sharedBuffer = await fetch(url).then((res) => res.arrayBuffer());
@@ -4384,7 +4384,11 @@ export const queryHiPerfProcessCount = (
   );
 };
 
-export const queryConcurrencyTask = (itid: number, selectStartTime: number, selectEndTime: number) =>
+export const queryConcurrencyTask = (
+  itid: number,
+  selectStartTime: number,
+  selectEndTime: number
+): Promise<TaskTabStruct[]> =>
   query<TaskTabStruct>(
     'queryConcurrencyTask',
     `SELECT thread.tid,
@@ -4537,7 +4541,7 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
              startTs;`
   );
 
-export const queryFrameDynamicData = (): Promise<Array<FrameDynamicStruct>> =>
+export const queryFrameDynamicData = (): Promise<FrameDynamicStruct[]> =>
   query(
     'queryFrameDynamicData',
     `SELECT

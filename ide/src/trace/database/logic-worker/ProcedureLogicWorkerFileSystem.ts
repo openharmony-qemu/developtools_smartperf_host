@@ -723,9 +723,9 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     let map: any = {};
     if (this.currentDataType == 'fileSystem') {
       map = FILE_TYPE_MAP;
-    } else if (this.currentDataType == 'io') {
+    } else if (this.currentDataType === 'io') {
       map = DISKIO_TYPE_MAP;
-    } else if (this.currentDataType == 'virtualMemory') {
+    } else if (this.currentDataType === 'virtualMemory') {
       map = VM_TYPE_MAP;
     }
     // @ts-ignore

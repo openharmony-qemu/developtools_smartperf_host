@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { type SpSystemTrace } from '../SpSystemTrace.js';
 import {
   queryDmaSampsData,
   queryGpuMemoryData,
@@ -28,13 +28,13 @@ import {
   queryGpuWindowType,
 } from '../../database/SqlLite.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
-import { BaseStruct } from '../../bean/BaseStruct.js';
+import { type BaseStruct } from '../../bean/BaseStruct.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { Utils } from '../trace/base/Utils.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 import { info } from '../../../log/Log.js';
-import { SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { TreeItemData } from '../../../base-ui/tree/LitTree.js';
+import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot.js';
+import { type TreeItemData } from '../../../base-ui/tree/LitTree.js';
 import { MemoryConfig } from '../../bean/MemoryConfig.js';
 
 export class VmTrackerChart {
@@ -317,7 +317,7 @@ export class VmTrackerChart {
       let glRow = this.initTraceRow('GL', TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL, this.gpuFolder.rowId!);
       glRow.addTemplateTypes('sys-memory');
       glRow.folderTextLeft = 40;
-      glRow.supplier = () => new Promise((resolve) => resolve(glArr));
+      glRow.supplier = (): Promise<SnapshotStruct[]> => new Promise((resolve) => resolve(glArr));
       this.gpuFolder.addChildTraceRow(glRow);
     }
   }
@@ -341,14 +341,21 @@ export class VmTrackerChart {
         title: 'Total',
         checked: true,
       },
-      ...types.map((it) => {
-        return {
-          key: `${it.id}`,
-          title: it.data,
-        };
-      }),
+      ...types.map(
+        (
+          it
+        ): {
+          key: string;
+          title: string;
+        } => {
+          return {
+            key: `${it.id}`,
+            title: it.data,
+          };
+        }
+      ),
     ];
-    gpuTotalRow.onRowSettingChangeHandler = (setting) => {
+    gpuTotalRow.onRowSettingChangeHandler = (setting): void => {
       if (setting && setting.length > 0) {
         gpuTotalRow.dataListCache = [];
         gpuTotalRow.dataList = [];

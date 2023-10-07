@@ -556,7 +556,13 @@ export function drawFlagLine(
   }
 }
 
-export function drawFlagLineSegment(ctx: any, hoverFlag: any, selectFlag: any, frame: any, tse: TimerShaftElement) {
+export function drawFlagLineSegment(
+  ctx: any,
+  hoverFlag: any,
+  selectFlag: any,
+  frame: any,
+  tse: TimerShaftElement
+): void {
   if (ctx) {
     if (hoverFlag) {
       ctx.beginPath();
@@ -940,7 +946,7 @@ function drawBezierCurve(it: PairPoint[], maxWidth: number, context: CanvasRende
   }
 }
 
-function drawBrokenLine(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D) {
+function drawBrokenLine(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D): void {
   let brokenLineStart = it[0].x > it[1].x ? it[1] : it[0];
   let brokenLineEnd = it[0].x > it[1].x ? it[0] : it[1];
   if (brokenLineStart && brokenLineEnd) {
@@ -1098,7 +1104,7 @@ export function hiPerf(
   frame: any,
   groupBy10MS: boolean,
   use: boolean
-) {
+): void {
   if (use && res.length > 0) {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y;

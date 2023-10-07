@@ -15,8 +15,8 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { FrameSpacingStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type SelectionParam } from '../../../../bean/BoxSelection.js';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { resizeObserver } from '../SheetUtils.js';
 import { Utils } from '../../base/Utils.js';
 

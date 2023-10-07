@@ -25,7 +25,7 @@ import {
 } from '../../../../database/SqlLite.js';
 import { BaseStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
+import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 
 const ALLOCATION_TASK = 'H:Task Allocation:';
 const PERFORM_TASK = 'H:Task Perform:';
@@ -92,7 +92,7 @@ export class TabPaneTaskFrames extends BaseElement {
         }
       });
       allocationTime = executeStartTime - allocationStartTime;
-      returnTime = returnEndTime == 0 ? 0 : returnEndTime - (executeStartTime + executeTime);
+      returnTime = returnEndTime === 0 ? 0 : returnEndTime - (executeStartTime + executeTime);
       if (TabPaneTaskFrames.IsShowConcurrency) {
         let tableList: TaskTabStruct[] = [];
         this.buildConcurrencyTable(executeStruct!, tableList, framesParam, isClick);

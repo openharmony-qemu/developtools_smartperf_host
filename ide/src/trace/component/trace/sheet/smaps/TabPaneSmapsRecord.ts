@@ -18,7 +18,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { getTabSmapsData, getTabSmapsRecordData } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { log } from '../../../../../log/Log.js';
-import { Smaps, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
+import { type Smaps, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
 import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
 @element('tabpane-smaps-record')
@@ -168,9 +168,9 @@ export class TabPaneSmapsRecord extends BaseElement {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-              parseFloat(bSmapsRecord[property]) - parseFloat(aSmapsRecord[property])
+            parseFloat(bSmapsRecord[property]) - parseFloat(aSmapsRecord[property])
             : // @ts-ignore
-              parseFloat(aSmapsRecord[property]) - parseFloat(bSmapsRecord[property]);
+            parseFloat(aSmapsRecord[property]) - parseFloat(bSmapsRecord[property]);
         } else {
           // @ts-ignore
           if (bSmapsRecord[property] > aSmapsRecord[property]) {

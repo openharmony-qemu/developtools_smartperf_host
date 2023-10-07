@@ -14,7 +14,7 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { HiPerfStruct, PerfRender, RequestMessage } from './ProcedureWorkerCommon.js';
+import { HiPerfStruct, PerfRender, type RequestMessage } from './ProcedureWorkerCommon.js';
 
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 
@@ -124,7 +124,7 @@ export function HiPerfReport(
           if (groupBy10MS) {
             hiPerfFilters.push(current);
           } else {
-            if (hiPerfFilters.length == 0) {
+            if (hiPerfFilters.length === 0) {
               hiPerfFilters.push(current);
             }
             if (

@@ -797,19 +797,22 @@
       <h4 class="mume-header fontColor">Cpuprofiler的抓取配置参数</h4>
 
       <p class="fontColor">
-        打开Start Ark Ts Record总开关下面的Start cpu profiler开关抓取cpuprofiler数据。<br />
+        打开Start Ark Ts Record总开关下面的Start cpu profiler开关抓取cpuprofiler数据。
+        <br />
         <img src="../figures/arkts/cpuprofilerconfig.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">Cpuprofiler展示说明</h3>
 
       <p class="fontColor">
-        将抓取的cpuprofiler文件导入到smartperf中，查看Ts层耗时长的函数和阶段。<br />
+        将抓取的cpuprofiler文件导入到smartperf中，查看Ts层耗时长的函数和阶段。
+        <br />
         <img src="../figures/arkts/cpuprofilerrow.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">Cpuprofiler的泳道图悬浮显示</h3>
 
       <p class="fontColor">
-        鼠标放到泳道图的Slice上会有悬浮框显示。<br />
+        鼠标放到泳道图的Slice上会有悬浮框显示。
+        <br />
         <img src="../figures/arkts/cpuprofilertip.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -842,9 +845,12 @@ Url : 函数所在的文件名称。
 
       <p class="fontColor">
         点选或者框选泳道图上函数名的Slice，会显示Js Profiler Statistics，Js Profiler CallTree，Js Profiler
-        BottomUp的Tab页信息。<br />
-        Js Profiler Statistics的Tab页显示数据的维度信息，以饼图和Table表的方式展示，如下图：<br />
-        <img src="../figures/arkts/cpuprofilerselects.jpg" alt="GitHub Logo" /><br />
+        BottomUp的Tab页信息。
+        <br />
+        Js Profiler Statistics的Tab页显示数据的维度信息，以饼图和Table表的方式展示，如下图：
+        <br />
+        <img src="../figures/arkts/cpuprofilerselects.jpg" alt="GitHub Logo" />
+        <br />
         <img src="../figures/arkts/cpuprofilerdrags.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -869,8 +875,10 @@ Total : 时间。
       </ul>
       <p class="fontColor">
         Js Profiler CallTree的Tab页把name，url，depth，parent相同的函数合并，构建成一个top
-        down的树结构，以树形表格的形式显示，表格中显示函数调用关系，如下图：<br />
-        <img src="../figures/arkts/cpuprofilerselectc.jpg" alt="GitHub Logo" /><br />
+        down的树结构，以树形表格的形式显示，表格中显示函数调用关系，如下图：
+        <br />
+        <img src="../figures/arkts/cpuprofilerselectc.jpg" alt="GitHub Logo" />
+        <br />
         <img src="../figures/arkts/cpuprofilerdragc.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -895,8 +903,10 @@ Total Time : 函数自身及调用者的调用时间总和。
       </ul>
       <p class="fontColor">
         Js Profiler BottomUp的Tab页把name，url，depth，parent相同的函数合并，构建成一个bottom
-        up的树结构，以树形表格的形式显示，只不过作为根节点的是被调用者，表格中显示函数被调用关系，如下图：<br />
-        <img src="../figures/arkts/cpuprofilerselectb.jpg" alt="GitHub Logo" /><br />
+        up的树结构，以树形表格的形式显示，只不过作为根节点的是被调用者，表格中显示函数被调用关系，如下图：
+        <br />
+        <img src="../figures/arkts/cpuprofilerselectb.jpg" alt="GitHub Logo" />
+        <br />
         <img src="../figures/arkts/cpuprofilerdragb.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -922,9 +932,12 @@ Total Time : 函数自身及调用者的调用时间总和。
       <h3 class="mume-header fontColor">Cpuprofiler的Heaviest Stack功能</h3>
 
       <p class="fontColor">
-        Js Profiler CallTree的Tab页的Heaviest Stack表格显示的是选中的函数的完整的调用栈。<br />
-        <img src="../figures/arkts/cpuprofilerheavic.jpg" alt="GitHub Logo" /><br />
-        Js Profiler BottomUp的Tab页的Heaviest Stack表格显示的是选中的函数的完整的逆序调用栈。<br />
+        Js Profiler CallTree的Tab页的Heaviest Stack表格显示的是选中的函数的完整的调用栈。
+        <br />
+        <img src="../figures/arkts/cpuprofilerheavic.jpg" alt="GitHub Logo" />
+        <br />
+        Js Profiler BottomUp的Tab页的Heaviest Stack表格显示的是选中的函数的完整的逆序调用栈。
+        <br />
         <img src="../figures/arkts/cpuprofilerheavib.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -952,10 +965,10 @@ Total Time : 函数自身及调用者的调用时间总和。
     <script>
       window.onload = () => {
         let isDark = window.location.search;
-        if (isDark.indexOf('?') != -1) {
+        if (isDark.indexOf('?') !== -1) {
           isDark = isDark.substr(1, isDark.length - 1);
         }
-        if (isDark == 'true') {
+        if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
           for (let i = 0; i < header.length; i++) {

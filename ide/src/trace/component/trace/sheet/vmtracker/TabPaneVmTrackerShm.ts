@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { queryVmTrackerShmSizeData } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { MemoryConfig } from '../../../../bean/MemoryConfig.js';

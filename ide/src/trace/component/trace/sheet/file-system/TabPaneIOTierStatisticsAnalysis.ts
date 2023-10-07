@@ -165,7 +165,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       tip: this.getTip(),
       angleClick: (ioTierPieItem): void => {
         // @ts-ignore
-        if (ioTierPieItem.tableName != 'other') {
+        if (ioTierPieItem.tableName !== 'other') {
           this.ioTierProcessLevelClickEvent(ioTierPieItem);
         }
       },
@@ -317,7 +317,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       },
       angleClick: (it): void => {
         // @ts-ignore
-        if (it.tableName != 'other') {
+        if (it.tableName !== 'other') {
           this.ioTierThreadLevelClickEvent(it);
         }
       },
@@ -367,7 +367,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       }
     });
   }
-  private getIoTierTip(obj: { obj: { tableName: any; durFormat: any; percent: any } }) {
+  private getIoTierTip(obj: { obj: { tableName: any; durFormat: any; percent: any } }): string {
     return `<div>
                                 <div>ThreadName:${obj.obj.tableName}</div>
                                 <div>Duration:${obj.obj.durFormat}</div>
@@ -410,7 +410,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       },
       angleClick: (ioTierBean): void => {
         // @ts-ignore
-        if (ioTierBean.tableName != 'other') {
+        if (ioTierBean.tableName !== 'other') {
           this.ioTierSoLevelClickEvent(ioTierBean);
         }
       },
@@ -609,7 +609,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.progressEL!.loading = false;
     this.processPieChart();
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         this.ioTierTableProcess!.style.height = this.parentElement!.clientHeight - 50 + 'px';
         this.ioTierTableProcess?.reMeauseHeight();
         this.ioTierTableThread!.style.height = this.parentElement!.clientHeight - 50 + 'px';

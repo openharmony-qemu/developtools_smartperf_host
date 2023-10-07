@@ -15,7 +15,7 @@
 
 import { TraceRow } from '../../component/trace/base/TraceRow.js';
 import { BaseStruct, computeUnitWidth, isSurroundingPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon.js';
-import { AnimationRanges } from '../../bean/FrameComponentBean.js';
+import { type AnimationRanges } from '../../bean/FrameComponentBean.js';
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 
 export class FrameSpacingRender extends Render {

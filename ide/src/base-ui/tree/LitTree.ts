@@ -15,7 +15,7 @@
 
 import './LitTreeNode.js';
 import { BaseElement, element } from '../BaseElement.js';
-import { LitTreeNode } from './LitTreeNode.js';
+import { type LitTreeNode } from './LitTreeNode.js';
 
 export interface TreeItemData {
   key: string;
@@ -37,7 +37,7 @@ export class LitTree extends BaseElement {
   private srcDragElement: any;
   private dragDirection: string | null | undefined;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['show-line', 'show-icon', 'checkable', 'foldable', 'dragable', 'multiple']; //foldable 表示点击目录是否可以折叠
   }
 
@@ -49,10 +49,10 @@ export class LitTree extends BaseElement {
 
     /*双向绑定*/
     const handler = {
-      get: (target: any, propkey: any) => {
+      get: (target: any, propkey: any): any => {
         return target[propkey];
       },
-      set: (target: any, propkey: any, value: any, receiver: any) => {
+      set: (target: any, propkey: any, value: any, receiver: any): boolean => {
         if (target[propkey] !== value) {
           if (!value.children) {
             value.children = new Proxy([], handler);
@@ -80,7 +80,7 @@ export class LitTree extends BaseElement {
         return true;
       },
     };
-    let setProxy = (v: Array<TreeItemData>) => {
+    let setProxy = (v: Array<TreeItemData>): void => {
       v.forEach((a) => {
         if (!a.children) {
           a.children = new Proxy([], handler);
@@ -102,11 +102,11 @@ export class LitTree extends BaseElement {
     }
   }
 
-  get multiple() {
+  get multiple(): boolean {
     return this.hasAttribute('multiple');
   }
 
-  get treeData() {
+  get treeData(): TreeItemData[] {
     return this.proxyData;
   }
 
@@ -127,8 +127,8 @@ export class LitTree extends BaseElement {
   }
 
   //当 custom element首次被插入文档DOM时，被调用。
-  connectedCallback() {
-    this.onclick = (ev) => {
+  connectedCallback(): void {
+    this.onclick = (ev): void => {
       this.contextMenu!.style.display = 'none';
       this.currentSelectedData = null;
       this.currentSelectedNode = null;
@@ -136,27 +136,27 @@ export class LitTree extends BaseElement {
     };
   }
 
-  getCheckdKeys() {
+  getCheckdKeys(): any[] {
     return Array.from(this.shadowRoot!.querySelectorAll('lit-tree-node[checked]')).map((a: any) => a.data.key);
   }
 
-  getCheckdNodes() {
+  getCheckdNodes(): any[] {
     return Array.from(this.shadowRoot!.querySelectorAll('lit-tree-node[checked]')).map((a: any) => a.data);
   }
 
   //展开所有节点
-  expandKeys(keys: Array<string>) {
+  expandKeys(keys: Array<string>): void {
     keys.forEach((k) => this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: any) => b.expand()));
   }
 
   //收起所有节点
-  collapseKeys(keys: Array<string>) {
+  collapseKeys(keys: Array<string>): void {
     keys.forEach((k) =>
       this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: any) => b.collapse())
     );
   }
 
-  checkedKeys(keys: Array<string>) {
+  checkedKeys(keys: Array<string>): void {
     keys.forEach((k) =>
       this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: any) => {
         b.setAttribute('checked', 'true');
@@ -165,7 +165,7 @@ export class LitTree extends BaseElement {
     );
   }
 
-  uncheckedKeys(keys: Array<string>) {
+  uncheckedKeys(keys: Array<string>): void {
     keys.forEach((k) =>
       this.shadowRoot!.querySelectorAll(`lit-tree-node[key='${k}']`).forEach((b: any) => {
         b.removeAttribute('checked');
@@ -175,7 +175,7 @@ export class LitTree extends BaseElement {
     );
   }
 
-  drawTree(parent: any, array: Array<TreeItemData>, topDepth: boolean = false) {
+  drawTree(parent: any, array: Array<TreeItemData>, topDepth: boolean = false): void {
     let that = this;
     array.forEach((a) => {
       let li = document.createElement('li');
@@ -201,7 +201,7 @@ export class LitTree extends BaseElement {
       node.selected = a.selected || false; //是否选中行
       node.checked = a.checked || false; // 是否勾选
       node.data = a;
-      node.addEventListener('change', (e: any) => {
+      node.addEventListener('change', (e: any): void => {
         if (e.detail && !this.multiple) {
           this.nodeList.forEach((item) => {
             item.checked = item.data!.key === node.data!.key;
@@ -251,7 +251,7 @@ export class LitTree extends BaseElement {
         }
         node.arrow = false;
       }
-      li.onclick = (e) => {
+      li.onclick = (e): void => {
         e.stopPropagation();
         if (this.hasAttribute('foldable')) {
           // @ts-ignore
@@ -269,7 +269,7 @@ export class LitTree extends BaseElement {
         }
       };
       // node 添加右键菜单功能
-      node.oncontextmenu = (ev) => {
+      node.oncontextmenu = (ev): void => {
         ev.preventDefault();
         this.selectedNode(node);
         this.currentSelectedNode = node;
@@ -279,7 +279,7 @@ export class LitTree extends BaseElement {
         this.contextMenu!.style.top = ev.pageY + 'px';
       };
     });
-    this.oncontextmenu = (ev) => {
+    this.oncontextmenu = (ev): void => {
       ev.preventDefault();
       this.contextMenu!.style.display = 'block';
       this.contextMenu!.style.left = ev.pageX + 'px';
@@ -288,7 +288,7 @@ export class LitTree extends BaseElement {
   }
 
   //取消所有节点的选中状态 然后选中当前node节点
-  selectedNode(node: LitTreeNode | null | undefined) {
+  selectedNode(node: LitTreeNode | null | undefined): void {
     this.shadowRoot!.querySelectorAll<LitTreeNode>('lit-tree-node').forEach((a) => {
       a.selected = false;
     });
@@ -297,32 +297,34 @@ export class LitTree extends BaseElement {
     }
   }
 
-  closeContextMenu() {
+  closeContextMenu(): void {
     this.contextMenu!.style.display = 'none';
   }
 
-  onDrag(e: MouseEvent) {}
+  onDrag(e: MouseEvent): void {}
 
-  onDragStart(ev: MouseEvent) {
+  onDragStart(ev: MouseEvent): undefined {
     this.srcDragElement = ev.target;
     (ev.target! as LitTreeNode).open = 'true';
     (ev.target! as LitTreeNode).autoExpand();
     return undefined;
   }
 
-  onDragEnd(ev: MouseEvent) {
+  onDragEnd(ev: MouseEvent): undefined {
     this.srcDragElement = null;
     return undefined;
   }
 
-  onDragEnter(ev: MouseEvent) {
+  onDragEnter(ev: MouseEvent): undefined {
     (ev.target as LitTreeNode).style.backgroundColor = '#42b98333';
     return undefined;
   }
 
-  onDragOver(ev: MouseEvent) {
+  onDragOver(ev: MouseEvent): undefined {
     let node = ev.target as LitTreeNode;
-    if (this.srcDragElement.data.key === node.data!.key) return;
+    if (this.srcDragElement.data.key === node.data!.key) {
+      return;
+    }
     let rect = (ev.currentTarget! as any).getBoundingClientRect();
     if (ev.clientX >= rect.left + rect.width / 3 && ev.clientX < rect.left + rect.width) {
       //bottom-right
@@ -340,19 +342,21 @@ export class LitTree extends BaseElement {
     return undefined;
   }
 
-  onDragLeave(ev: MouseEvent) {
+  onDragLeave(ev: MouseEvent): undefined {
     (ev.target as LitTreeNode).style.backgroundColor = '#ffffff00';
     (ev.target as LitTreeNode).drawLine('');
     return undefined;
   }
 
-  onDrop(ev: MouseEvent) {
+  onDrop(ev: MouseEvent): undefined {
     (ev.target as LitTreeNode).style.backgroundColor = '#ffffff00';
     (ev.target as LitTreeNode).drawLine('');
     //移动的不是node节点 而是上层的li节点
     let srcData = this.srcDragElement.data; //获取原节点的data数据
     let dstData = (ev.target as LitTreeNode).data; //获取目标节点的data数据
-    if (srcData.key === dstData!.key) return; //同一个节点不用处理
+    if (srcData.key === dstData!.key) {
+      return;
+    } //同一个节点不用处理
     let srcElement = this.srcDragElement.parentElement;
     let srcParentElement = srcElement.parentElement;
     let dstElement = (ev.target as LitTreeNode).parentElement;
@@ -373,9 +377,13 @@ export class LitTree extends BaseElement {
     }
     let ul1 = dstElement!.querySelector('ul'); //如果拖动后目标节点的子节点没有记录，需要关闭arrow箭头
     if (ul1) {
-      if (ul1.childElementCount == 0) (ul1.previousElementSibling! as LitTreeNode).arrow = false;
+      if (ul1.childElementCount === 0) {
+        (ul1.previousElementSibling! as LitTreeNode).arrow = false;
+      }
     }
-    if (srcParentElement.childElementCount === 0) srcParentElement.previousElementSibling.arrow = false; //如果拖动的原节点的父节点没有子节点需要 关闭arrow箭头
+    if (srcParentElement.childElementCount === 0) {
+      srcParentElement.previousElementSibling.arrow = false;
+    } //如果拖动的原节点的父节点没有子节点需要 关闭arrow箭头
     //拖动调整结构后修改 data树形数据结构
     this.removeDataNode(this._treeData, srcData);
     this.addDataNode(this._treeData, srcData, dstData!.key, this.dragDirection!);
@@ -394,7 +402,7 @@ export class LitTree extends BaseElement {
   }
 
   //移除treeData中指定的节点 通过key匹配
-  removeDataNode(arr: Array<TreeItemData>, d: TreeItemData) {
+  removeDataNode(arr: Array<TreeItemData>, d: TreeItemData): void {
     let delIndex = arr.findIndex((v) => v.key === d.key);
     if (delIndex > -1) {
       arr.splice(delIndex, 1);
@@ -408,11 +416,13 @@ export class LitTree extends BaseElement {
   }
 
   //中array中匹配到key为k的节点， t='bottom-right' 把d加入到该节点的children中去 t='top' 添加到找到的节点前面 t='bottom' 添加到找到的节点后面
-  addDataNode(arr: Array<TreeItemData>, d: TreeItemData, k: string, t: string) {
+  addDataNode(arr: Array<TreeItemData>, d: TreeItemData, k: string, t: string): void {
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].key === k) {
         if (t === 'bottom-right') {
-          if (!arr[i].children) arr[i].children = [];
+          if (!arr[i].children) {
+            arr[i].children = [];
+          }
           arr[i].children!.push(d);
         } else if (t === 'top') {
           arr.splice(i, 0, d);
@@ -421,12 +431,14 @@ export class LitTree extends BaseElement {
         }
         return;
       } else {
-        if (arr[i].children) this.addDataNode(arr[i].children || [], d, k, t);
+        if (arr[i].children) {
+          this.addDataNode(arr[i].children || [], d, k, t);
+        }
       }
     }
   }
 
-  insert(obj: TreeItemData) {
+  insert(obj: TreeItemData): void {
     if (this.currentSelectedData) {
       this.currentSelectedData.children.push(obj);
     } else {
@@ -434,26 +446,28 @@ export class LitTree extends BaseElement {
     }
   }
 
-  _insertNode(parent: any, a: any) {
-    if (!parent) parent = this.shadowRoot!.querySelector('#root');
+  _insertNode(parent: any, a: any): void {
+    if (!parent) {
+      parent = this.shadowRoot!.querySelector('#root');
+    }
     let li = document.createElement('li');
     let insertNode = document.createElement('lit-tree-node') as LitTreeNode;
     insertNode.title = a.title;
     insertNode.setAttribute('key', a.key);
     if (this.hasAttribute('dragable')) {
       insertNode.draggable = true;
-      document.ondragover = function (e) {
+      document.ondragover = function (e): void {
         e.preventDefault();
       };
       //在拖动目标上触发事件 (源元素)
-      insertNode.ondrag = (ev) => this.onDrag(ev); //元素正在拖动时触发
-      insertNode.ondragstart = (ev) => this.onDragStart(ev); //用户开始拖动元素时触发
-      insertNode.ondragend = (ev) => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      insertNode.ondrag = (ev): void => this.onDrag(ev); //元素正在拖动时触发
+      insertNode.ondragstart = (ev): undefined => this.onDragStart(ev); //用户开始拖动元素时触发
+      insertNode.ondragend = (ev): undefined => this.onDragEnd(ev); // 用户完成元素拖动后触发
       //释放目标时触发的事件:
-      insertNode.ondragenter = (ev) => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
-      insertNode.ondragover = (ev) => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
-      insertNode.ondragleave = (ev) => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
-      insertNode.ondrop = (ev) => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+      insertNode.ondragenter = (ev): undefined => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
     }
     insertNode.selected = a.selected || false; //是否选中行
     insertNode.checked = a.checked || false; // 是否勾选
@@ -502,7 +516,7 @@ export class LitTree extends BaseElement {
       }
       insertNode.arrow = false;
     }
-    li.onclick = (e) => {
+    li.onclick = (e): void => {
       e.stopPropagation();
       if (this.hasAttribute('foldable')) {
         // @ts-ignore
@@ -520,7 +534,7 @@ export class LitTree extends BaseElement {
       }
     };
     // node 添加右键菜单功能
-    insertNode.oncontextmenu = (ev) => {
+    insertNode.oncontextmenu = (ev): void => {
       ev.preventDefault();
       this.selectedNode(insertNode);
       this.currentSelectedNode = insertNode;

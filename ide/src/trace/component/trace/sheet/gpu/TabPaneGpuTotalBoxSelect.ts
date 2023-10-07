@@ -14,9 +14,9 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { type SelectionParam } from '../../../../bean/BoxSelection.js';
 import { queryGpuDataByRange } from '../../../../database/SqlLite.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { log } from '../../../../../log/Log.js';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { resizeObserver } from '../SheetUtils.js';
