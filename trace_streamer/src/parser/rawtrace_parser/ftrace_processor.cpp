@@ -75,7 +75,7 @@ FtraceProcessor::~FtraceProcessor()
 bool FtraceProcessor::SetupEvent(const std::string& desc)
 {
     EventFormat format;
-    TS_CHECK_TRUE_RET(HandleEventFormat(desc.data(), format), false);
+    TS_CHECK_TRUE(HandleEventFormat(desc.data(), format), false, "HandleEventFormat failed!");
     TS_CHECK_TRUE(FtraceEventProcessor::GetInstance().SetupEvent(format), false, "setup %s failed!",
                   format.eventName.c_str());
     eventFormatDict_[format.eventId] = format;
@@ -138,7 +138,8 @@ bool FtraceProcessor::HandleEventFormat(const std::string& formatInfo, EventForm
             format.eventId = static_cast<uint32_t>(atoi(idStr.c_str()));
         } else if (StartWith(curLine, nameLinePrefix_)) {
             format.eventName = curLine.substr(nameLinePrefix_.size() + 1);
-            TS_CHECK_TRUE_RET(FtraceEventProcessor::GetInstance().IsSupported(format.eventName), false);
+            TS_CHECK_TRUE(FtraceEventProcessor::GetInstance().IsSupported(format.eventName), false,
+                          "Isn't Supported %s event!", format.eventName.data());
         }
     }
 
@@ -211,7 +212,7 @@ static std::string GetNameFromTypeName(const std::string& typeName)
         curName = rightPart;
     } else {
         auto posT1 = rightPart.rfind('[');
-        TS_CHECK_TRUE_RET(posT1 == std::string::npos, "");
+        TS_CHECK_TRUE(posT1 != std::string::npos, "", "GetNameFromTypeName Failed!");
         curName = rightPart.substr(0, posT1);
     }
     return curName;
@@ -370,7 +371,6 @@ bool FtraceProcessor::HandleFieldType(const std::string& type, FieldFormat& fiel
     }
 
     // for flex array with __data_loc mark, likes: __data_loc char[] name;
-    // __data_loc __u8[] buf;
     if (std::regex_match(curTypeName, flexDataLocArrayRegex_)) {
         if (field.size != sizeof(uint32_t)) {
             TS_LOGW("__data_loc: %s, size: %hu", curTypeName.c_str(), field.size);
@@ -533,7 +533,7 @@ bool FtraceProcessor::HandleTimeStamp(const FtraceEventHeader& eventHeader)
 
     // refers kernel function rb_update_write_stamp in ring_buffer.c
     curTimestamp_ = eventHeader.timeDelta + TimestampIncrements(deltaExt);
-    TS_LOGI("update ts with %u to %" PRIu64, deltaExt, curTimestamp_);
+    TS_LOGD("update ts with %u to %" PRIu64, deltaExt, curTimestamp_);
     return true;
 }
 
@@ -569,14 +569,14 @@ bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader& eventHeader,
     TS_LOGD("HandleDataRecord: eventId = %u, name = %s", eventId, format.eventName.c_str());
 
     if (FtraceEventProcessor::GetInstance().IsSupported(format.eventId)) {
-        auto ftraceEvent = cpuMsg.add_event();
+        std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
         ftraceEvent->set_timestamp(curTimestamp_);
+        HandleFtraceEvent(*ftraceEvent, eventStart, eventSize, format);
         std::unique_ptr<RawTraceEventInfo> event = std::make_unique<RawTraceEventInfo>();
         event->cpuId = cpuMsg.cpu();
         event->eventId = eventId;
-        event->msgPtr = ftraceEvent;
+        event->msgPtr = std::move(ftraceEvent);
         cpuDetailParser.EventAppend(std::move(event));
-        HandleFtraceEvent(*ftraceEvent, eventStart, eventSize, format);
     } else {
         TS_LOGD("event %u %s not supported!", format.eventId, format.eventName.c_str());
     }
@@ -680,8 +680,7 @@ bool FtraceProcessor::HandleFtraceEvent(FtraceEvent& ftraceEvent,
         } else {
             TS_LOGD("pid = %d, taskName can't find.taskName = %s", pid, std::to_string(pid).data());
         }
-        TS_LOGD("pid = %5d, tgid = %5d, taskName = %16s, event = %s", pid, ftraceEvent.tgid(),
-                ftraceEvent.taskName().c_str(), format.eventName.c_str());
+        TS_LOGD("pid = %5d, tgid = %5d, event = %s", pid, ftraceEvent.tgid(), format.eventName.c_str());
     }
     FtraceEventProcessor::GetInstance().HandleEvent(ftraceEvent, data, dataSize, format);
     return true;

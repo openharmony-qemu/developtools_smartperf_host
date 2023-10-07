@@ -70,6 +70,7 @@ void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestam
     }
     if (timestampMin == timestampMax) {
         ++timestampMax;
+        --timestampMin;
     }
     if (timestampMin == std::numeric_limits<uint64_t>::max() || timestampMax == 0) {
         return;
@@ -423,7 +424,18 @@ GpuWindowMemData* TraceDataCacheWriter::GetGpuWindowMemData()
 {
     return &gpuWindowMemData_;
 }
-
+CpuDumpInfo* TraceDataCacheWriter::GetCpuDumpInfo()
+{
+    return &cpuDumpInfo_;
+}
+ProfileMemInfo* TraceDataCacheWriter::GetProfileMemInfo()
+{
+    return &profileMemInfo_;
+}
+RSImageDumpInfo* TraceDataCacheWriter::GetRSImageDumpInfo()
+{
+    return &rsImageDumpInfo_;
+}
 void TraceDataCacheWriter::Clear()
 {
     rawData_.Clear();

@@ -267,7 +267,9 @@ HWTEST_F(AnimationFilterTest, AnimationStartAndEnd, TestSize.Level1)
     auto callStackRow = callStackSlice->AppendInternalSlice(line.ts, dur, INVALID_UINT32, INVALID_UINT64,
                                                             INVALID_UINT16, callStackName, depth, parentId);
 
-    stream_.streamFilters_->animationFilter_->StartAnimationEvent(line, callStackRow);
+    TracePoint point;
+    point.name_ = "1693876195576., 1693876195586.";
+    stream_.streamFilters_->animationFilter_->StartAnimationEvent(line, point, callStackRow);
     EXPECT_TRUE(!stream_.streamFilters_->animationFilter_->animationCallIds_.empty());
     stream_.streamFilters_->animationFilter_->FinishAnimationEvent(line, callStackRow);
     EXPECT_TRUE(stream_.streamFilters_->animationFilter_->animationCallIds_.empty());

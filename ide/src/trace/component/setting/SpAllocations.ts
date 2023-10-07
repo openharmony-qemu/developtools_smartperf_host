@@ -196,7 +196,7 @@ export class SpAllocations extends BaseElement {
       };
       this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
       if (this.recordStatisticsResult!.hasAttribute('percent')) {
-        let step = Number(this.recordStatisticsResult!.getAttribute('percent')) / 450;
+        let step = Math.round(Number(this.recordStatisticsResult!.getAttribute('percent')) / 450);
         this.recordStatisticsResult!.setAttribute('percentValue', stepValue[step] + '');
         this.intervalResultInput!.value = stepValue[step] + '';
       }
@@ -255,7 +255,7 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider.shadowRoot?.querySelector<HTMLElement>('#slider')!.addEventListener('mouseup', (ev) => {
       setTimeout(() => {
         let percentValue = this.recordStatisticsResult!.getAttribute('percent');
-        let index = Number(percentValue) / 450;
+        let index = Math.round(Number(percentValue) / 450);
         index = index < 1 ? 0 : index;
         this.intervalResultInput!.value = stepValue[index] + '';
         this.recordStatisticsResult!.setAttribute('percentValue', stepValue[index] + '');
@@ -299,9 +299,9 @@ export class SpAllocations extends BaseElement {
     }
     this.processId!.removeAttribute('disabled');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
-    inputBoxes!.forEach((item) =>{
+    inputBoxes!.forEach((item) => {
       item.disabled = false;
-    })
+    });
     this.statisticsSlider!.disabled = false;
   }
 
@@ -319,11 +319,11 @@ export class SpAllocations extends BaseElement {
     if (this.offlineSymbol) {
       this.offlineSymbol.disabled = true;
     }
-    this.processId!.setAttribute('disabled','');
+    this.processId!.setAttribute('disabled', '');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
-    inputBoxes!.forEach((item) =>{
+    inputBoxes!.forEach((item) => {
       item.disabled = true;
-    })
+    });
     this.statisticsSlider!.disabled = true;
   }
 

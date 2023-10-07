@@ -16,10 +16,10 @@
 #ifndef RAWTRACE_PARSER_H
 #define RAWTRACE_PARSER_H
 #include "common_types.h"
+#include "cpu_detail_parser.h"
 #include "parser_base.h"
 #include "ftrace_processor.h"
 #include "kernel_symbols_processor.h"
-#include "rawtrace_cpu_detail_parser.h"
 #include "trace_data_cache.h"
 
 namespace SysTuning {

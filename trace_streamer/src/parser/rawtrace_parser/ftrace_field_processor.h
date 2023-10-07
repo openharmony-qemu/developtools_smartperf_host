@@ -14,9 +14,9 @@
  */
 #ifndef FTRACE_FIELD_PROCESSOR_H
 #define FTRACE_FIELD_PROCESSOR_H
-#include "ftrace_common_type.h"
 #include <string>
 #include <vector>
+#include "ftrace_common_type.h"
 #include "log.h"
 
 namespace SysTuning {

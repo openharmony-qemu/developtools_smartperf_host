@@ -54,11 +54,10 @@ public:
     }
     auto GetArkTsSize()
     {
-        return dataSize_;
+        return profilerArktsData_.size();
     }
     void ClearArkTsSplitFileData()
     {
-        dataSize_ = 0;
         jsMemorySplitFileData_ = "";
         cpuProfilerSplitFileData_ = "";
         arkTsSplitFileDataResult_ = "";
@@ -122,7 +121,6 @@ private:
     json updatedJson_;
     uint32_t nodeFileId_ = INVALID_UINT32;
     uint32_t nodeCount_ = 0;
-    uint32_t dataSize_ = 0;
     bool hasCpuProfiler_ = false;
     SnapShotData snapShotData_;
     bool curTypeIsCpuProfile_ = false;

@@ -14,9 +14,6 @@
  */
 #include "kernel_symbols_processor.h"
 
-#include <algorithm>
-#include <sstream>
-
 #include "log.h"
 #include "symbols_filter.h"
 #include "string_help.h"

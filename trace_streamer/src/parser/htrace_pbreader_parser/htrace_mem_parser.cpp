@@ -39,36 +39,37 @@ std::vector<std::string> g_unknownAnonMemInfo = {
     "[anon:arc4random data]",
 };
 std::map<std::string, uint32_t> g_checkMemStart = {
-    {"[stack", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
-    {"[anon:stack_and_tls:", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
-    {"[anon:stack:", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
-    {"[anon:signal_stack:", HtraceMemParser::SMAPS_MEM_TYPE_STACK},
-    {"[anon:maple_alloc_ros]", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-allocspace", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-main space", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-large object", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-free list large", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-non moving", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-zygote space", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:dalvik-", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
-    {"/dev/ashmem/jit-zygote-cache", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
-    {"/memfd:jit-cache", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
-    {"/memfd:jit-zygote-cache", HtraceMemParser::SMAPS_MEM_TYPE_JAVA_VM},
-    {"[heap]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
-    {"[anon:libc_malloc", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
-    {"[anon:scudo", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
-    {"[anon:GWP-Asan", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[stack", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_STACK},
+    {"[anon:stack_and_tls:", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_STACK},
+    {"[anon:stack:", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_STACK},
+    {"[anon:signal_stack:", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_STACK},
+    {"[anon:maple_alloc_ros]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-allocspace", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-main space", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-large object", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-free list large", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-non moving", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-zygote space", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:dalvik-", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JAVA_VM},
+    {"/dev/ashmem/jit-zygote-cache", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JAVA_VM},
+    {"/memfd:jit-cache", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JAVA_VM},
+    {"/memfd:jit-zygote-cache", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JAVA_VM},
+    {"[heap]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:libc_malloc", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:scudo", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:GWP-Asan", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
 };
 std::map<std::string, uint32_t> g_checkMemEnd = {
-    {".art", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {".art]", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
+    {".art", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {".art]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {".tty", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_FONT},
 };
 std::map<std::string, uint32_t> g_checkMemContain = {
-    {"[anon:ArkJS Heap]", HtraceMemParser::SMAPS_MEM_TYPE_JS_HEAP},
-    {"[anon:native_heap:jemalloc]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
-    {"[heap]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
-    {"[anon:native_heap:musl]", HtraceMemParser::SMAPS_MEM_TYPE_NATIVE_HEAP},
-    {"/dev/ashmem/", HtraceMemParser::SMAPS_MEM_TYPE_ASHMEM},
+    {"[anon:ArkJS Heap]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_JS_HEAP},
+    {"[anon:native_heap:jemalloc]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[heap]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"[anon:native_heap:musl]", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP},
+    {"/dev/ashmem/", (uint32_t)HtraceMemParser::SmapsMemType::SMAPS_MEM_TYPE_ASHMEM},
 };
 HtraceMemParser::HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : EventParserBase(dataCache, ctx)
@@ -121,6 +122,18 @@ void HtraceMemParser::Parse(HtraceDataSegment& seg, uint64_t timeStamp, BuiltinC
     if (memData.has_gpudumpinfo()) {
         ParseGpuWindowMemInfo(&memData, newTimeStamp);
     }
+    if (memData.has_windowinfo()) {
+        ParseWindowManagerServiceInfo(&memData, newTimeStamp);
+    }
+    if (memData.has_cpudumpinfo()) {
+        ParseCpuDumpInfo(&memData, newTimeStamp);
+    }
+    if (memData.has_profilememinfo()) {
+        ParseProfileMemInfo(&memData, newTimeStamp);
+    }
+    if (memData.has_rsdumpinfo()) {
+        ParseRSImageDumpInfo(&memData, newTimeStamp);
+    }
 }
 void HtraceMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
 {
@@ -162,6 +175,10 @@ void HtraceMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* tra
             hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
                 ipid, memNameDictMap_.at(MEM_GL_PSS), timeStamp, processMemoryInfo.gl_pss_kb());
         }
+        if (processMemoryInfo.has_graph_pss_kb()) {
+            hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
+                ipid, memNameDictMap_.at(MEM_GRAPH_PSS), timeStamp, processMemoryInfo.graph_pss_kb());
+        }
         if (hasValue) {
             streamFilters_->processFilter_->AddProcessMemory(ipid);
         }
@@ -179,39 +196,39 @@ uint32_t HtraceMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& s
     if (EndWith(path, ".so")) {
         if (hasX) {
             if (StartWith(path, "/data/app/") || hasAppNmae) {
-                return SMAPS_MEM_TYPE_CODE_APP;
+                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_APP;
             } else {
-                return SMAPS_MEM_TYPE_CODE_SYS;
+                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS;
             }
         } else {
             if (StartWith(path, "[anon:.bss]/data/app/") || StartWith(path, "/data/app/") || hasAppNmae) {
-                return SMAPS_MEM_TYPE_DATA_APP;
+                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_APP;
             } else {
-                return SMAPS_MEM_TYPE_DATA_SYS;
+                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS;
             }
         }
     }
     if ((EndWith(path, ".jar")) || (EndWith(path, ".apk")) || (EndWith(path, ".vdex")) || (EndWith(path, ".odex")) ||
         (EndWith(path, ".oat")) || (path.find("dex") != std::string::npos)) {
-        return hasX ? (hasAppNmae ? SMAPS_MEM_TYPE_CODE_APP : SMAPS_MEM_TYPE_CODE_SYS)
-                    : (hasAppNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS);
+        return hasX ? (hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_APP : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS)
+                    : (hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_APP : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
     }
     if (hasX && path.find("/bin/") != std::string::npos) {
-        return SMAPS_MEM_TYPE_CODE_SYS;
+        return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS;
     }
     if ((!hasX) && (path.find("/bin/") != std::string::npos || path.find("[anon:.bss]") != std::string::npos)) {
-        return SMAPS_MEM_TYPE_DATA_SYS;
+        return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS;
     }
     if (path.find("[bss]") != std::string::npos) {
-        return hasAppNmae ? SMAPS_MEM_TYPE_DATA_APP : SMAPS_MEM_TYPE_DATA_SYS;
+        return hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_APP : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS;
     }
     if ((path.find("[anon]") != std::string::npos) || (path.find("[anon:") != std::string::npos)) {
         if (std::find(g_unknownAnonMemInfo.begin(), g_unknownAnonMemInfo.end(), path) != g_unknownAnonMemInfo.end()) {
-            return SMAPS_MEM_TYPE_UNKNOWN_ANON;
+            return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_UNKNOWN_ANON;
         }
-        return SMAPS_MEM_TYPE_NATIVE_HEAP;
+        return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP;
     }
-    return SMAPS_MEM_TYPE_INVALID;
+    return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_INVALID;
 }
 
 uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const
@@ -239,10 +256,10 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
     }
     bool hasAppNmae = path.find("com.huawei.wx") != std::string::npos;
     uint32_t detailRet = ParseSmapsBlockDetail(smapsInfo, path, hasAppNmae);
-    if (detailRet != SMAPS_MEM_TYPE_INVALID) {
+    if (detailRet != (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_INVALID) {
         return detailRet;
     }
-    return hasAppNmae ? SMAPS_MEM_TYPE_OTHER_APP : SMAPS_MEM_TYPE_OTHER_SYS;
+    return hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_OTHER_APP : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_OTHER_SYS;
 }
 
 void HtraceMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader* memInfo,
@@ -1104,7 +1121,7 @@ void HtraceMemParser::AshMemDeduplicate() const
             if (pidMap.find(ipid) == pidMap.end()) {
                 pidMap.emplace(ipid, i);
             } else {
-                ashMemData->SetFlag(i, MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
+                ashMemData->SetFlag(i, (uint32_t)MemDeduplicateFlag::MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
             }
         }
 
@@ -1115,7 +1132,7 @@ void HtraceMemParser::AshMemDeduplicate() const
                 continue;
             }
             for (++iter; iter != pidMap.end(); ++iter) {
-                ashMemData->SetFlag(iter->second, MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
+                ashMemData->SetFlag(iter->second, (uint32_t)MemDeduplicateFlag::MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
             }
         }
     }
@@ -1124,11 +1141,11 @@ HtraceMemParser::MemProcessType HtraceMemParser::GetMemProcessType(uint64_t ipid
 {
     const auto& iterProcess = traceDataCache_->GetConstProcessData(ipid);
     if (iterProcess.cmdLine_ == "composer_host") {
-        return PID_TYPE_COMPOSER;
+        return MemProcessType::PID_TYPE_COMPOSER;
     } else if (iterProcess.cmdLine_ == "render_service") {
-        return PID_TYPE_RENDER_SERVICES;
+        return MemProcessType::PID_TYPE_RENDER_SERVICES;
     } else {
-        return PID_TYPE_APP;
+        return MemProcessType::PID_TYPE_APP;
     }
 }
 
@@ -1185,7 +1202,7 @@ void HtraceMemParser::DmaMemDeduplicate() const
             auto ipid = dmaMemData->Ipids()[i];
             auto& pidMap = inoMap[ino];
             if (pidMap.find(ipid) != pidMap.end()) {
-                dmaMemData->SetFlag(i, MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
+                dmaMemData->SetFlag(i, (uint32_t)MemDeduplicateFlag::MEM_DEDUPLICATE_FLAG_DUP_SAME_PROCESS);
             } else {
                 auto processType = GetMemProcessType(ipid);
                 pidMap.emplace(ipid, std::make_pair(i, processType));
@@ -1200,7 +1217,7 @@ void HtraceMemParser::DmaMemDeduplicate() const
             const auto& pidMap = item.second;
             for (const auto& pidItem : pidMap) {
                 if (pidItem.second.second < maxPidType) {
-                    dmaMemData->SetFlag(pidItem.second.first, MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
+                    dmaMemData->SetFlag(pidItem.second.first, (uint32_t)MemDeduplicateFlag::MEM_DEDUPLICATE_FLAG_DUP_DIFF_PROCESS);
                 }
             }
         }
@@ -1267,7 +1284,56 @@ void HtraceMemParser::ParseGpuWindowMemInfo(const ProtoReader::MemoryData_Reader
         FillGpuWindowMemInfo(GpuDumpInfo, timeStamp);
     }
 }
+void HtraceMemParser::ParseWindowManagerServiceInfo(const ProtoReader::MemoryData_Reader* tracePacket,
+                                                    uint64_t timeStamp)
+{
+    if (tracePacket->has_windowinfo()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_WINDOW_MANAGER_SERVICE, STAT_EVENT_RECEIVED);
+    }
+    for (auto i = tracePacket->windowinfo(); i; ++i) {
+        ProtoReader::WindowManagerServiceInfo_Reader windowInfo(i->ToBytes().data_, i->ToBytes().size_);
+        if (!windowInfo.has_pid() || !windowInfo.has_window_name()) {
+            continue;
+        }
+        auto windowNameId = traceDataCache_->GetDataIndex(windowInfo.window_name().ToStdString());
+        auto ipid =
+            streamFilters_->processFilter_->GetOrCreateInternalPid(timeStamp, static_cast<uint32_t>(windowInfo.pid()));
+        windowIdToipidMap_.insert({windowNameId, ipid});
+    }
+}
+void HtraceMemParser::ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+{
+    for (auto i = tracePacket->cpudumpinfo(); i; ++i) {
+        ProtoReader::CpuDumpInfo_Reader cpuDumpInfo(i->ToBytes().data_, i->ToBytes().size_);
+        auto totalSize = cpuDumpInfo.total_cpu_memory_size();
+        traceDataCache_->GetCpuDumpInfo()->AppendNewData(timeStamp, totalSize);
+    }
+}
+void HtraceMemParser::ParseProfileMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+{
+    for (auto i = tracePacket->profilememinfo(); i; ++i) {
+        ProtoReader::ProfileMemInfo_Reader profileMemInfo(i->ToBytes().data_, i->ToBytes().size_);
+        auto channelIndex = traceDataCache_->GetDataIndex(profileMemInfo.channel().ToStdString());
+        auto totalSize = profileMemInfo.total_memory_size();
+        traceDataCache_->GetProfileMemInfo()->AppendNewData(timeStamp, channelIndex, totalSize);
+    }
+}
 
+void HtraceMemParser::ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
+{
+    for (auto i = tracePacket->rsdumpinfo(); i; ++i) {
+        ProtoReader::RSImageDumpInfo_Reader rsImageDumpInfo(i->ToBytes().data_, i->ToBytes().size_);
+        auto size = rsImageDumpInfo.size();
+        auto typeIndex = traceDataCache_->GetDataIndex(rsImageDumpInfo.type().ToStdString());
+        InternalPid ipid = INVALID_IPID;
+        if (rsImageDumpInfo.has_pid()) {
+            ipid = streamFilters_->processFilter_->GetOrCreateInternalPid(timeStamp,
+                                                                          static_cast<uint32_t>(rsImageDumpInfo.pid()));
+        }
+        auto surfaceNameIndex = traceDataCache_->GetDataIndex(rsImageDumpInfo.surface_name().ToStdString());
+        traceDataCache_->GetRSImageDumpInfo()->AppendNewData(timeStamp, size, typeIndex, ipid, surfaceNameIndex);
+    }
+}
 void HtraceMemParser::ParseMemoryConfig(HtraceDataSegment& seg)
 {
     ProtoReader::MemoryConfig_Reader memConfigData(seg.protoData.data_, seg.protoData.size_);
@@ -1289,6 +1355,7 @@ void HtraceMemParser::ParseMemoryConfig(HtraceDataSegment& seg)
 
 void HtraceMemParser::Finish()
 {
+    traceDataCache_->GetGpuWindowMemData()->RevicesIpid(windowIdToipidMap_);
     if (traceDataCache_->traceStartTime_ == INVALID_UINT64 || traceDataCache_->traceEndTime_ == 0) {
         traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
     } else {

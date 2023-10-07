@@ -144,11 +144,11 @@ export class LitSearch extends BaseElement {
       return;
     }
     this.lastSearch = searchStr;
-    let searchInfo = this.searchList.find(searchInfo => searchInfo.searchContent === searchStr);
+    let searchInfo = this.searchList.find((searchInfo) => searchInfo.searchContent === searchStr);
     if (searchInfo != undefined) {
       searchInfo.useCount += 1;
     } else {
-      this.searchList.push({searchContent: searchStr, useCount: 1});
+      this.searchList.push({ searchContent: searchStr, useCount: 1 });
     }
   }
 
@@ -350,7 +350,10 @@ export class LitSearch extends BaseElement {
             overflow-y: auto;
             display: none;
             border-radius: 0 0 20px 20px;
-        }       
+        }     
+        .search-history-list:hover{
+             cursor: pointer;
+        }  
         .search-history-list-item {
             cursor: pointer;
             width: 100%;
@@ -444,7 +447,7 @@ export class LitSearch extends BaseElement {
 
   updateSearchHistoryList(searchValue: string) {
     const keyword = searchValue.toLowerCase();
-    this.searchELList.forEach(item => {
+    this.searchELList.forEach((item) => {
       if (item.textContent!.toLowerCase().includes(keyword)) {
         item.style.display = 'block';
       } else {
@@ -452,10 +455,9 @@ export class LitSearch extends BaseElement {
       }
     });
   }
-
 }
 
 export interface SearchInfo {
-  searchContent: string
-  useCount: number
+  searchContent: string;
+  useCount: number;
 }

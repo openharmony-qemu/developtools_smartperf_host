@@ -170,6 +170,7 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
     if (isSplitFile && isFinish && ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
         uint64_t dataSize = 0;
         std::string result = VALUE;
+        ts_->GetHtraceData()->ClearNativehookData();
         for (const auto& itemHtrace : ts_->GetHtraceData()->GetTraceDataHtrace()) {
             dataSize += itemHtrace.second;
             result += OFFSET + std::to_string(itemHtrace.first);
@@ -218,7 +219,6 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
 }
 void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 {
-    ts_->GetHtraceData()->ClearNativehookData();
     std::string lenBuffer(sizeof(uint32_t), 0);
     for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
         uint32_t len = commProto->size();

@@ -3502,6 +3502,7 @@ void GpuWindowMemData::AppendNewData(uint64_t ts,
     sizes_.emplace_back(size);
     counts_.emplace_back(count);
     purgeableSizes_.emplace_back(purgeableSize);
+    ipids_.emplace_back(INVALID_IPID);
     ids_.push_back(rowCount_);
     rowCount_++;
 }
@@ -3533,6 +3534,73 @@ const std::deque<uint64_t>& GpuWindowMemData::PurgeableSizes() const
 {
     return purgeableSizes_;
 }
+const std::deque<InternalPid>& GpuWindowMemData::Ipids() const
+{
+    return ipids_;
+}
+void GpuWindowMemData::RevicesIpid(const std::map<DataIndex, InternalPid>& windowIdToIpidMap)
+{
+    for (auto i = 0; i < Size(); i++) {
+        if (windowIdToIpidMap.count(windowNameIds_[i])) {
+            ipids_[i] = windowIdToIpidMap.at(windowNameIds_[i]);
+        }
+    }
+}
 
+void CpuDumpInfo::AppendNewData(uint64_t timestamp, uint64_t size)
+{
+    timeStamps_.emplace_back(timestamp);
+    totalSizes_.emplace_back(size);
+    ids_.emplace_back(Size());
+}
+const std::deque<uint64_t>& CpuDumpInfo::TotalSizes() const
+{
+    return totalSizes_;
+}
+
+void ProfileMemInfo::AppendNewData(uint64_t timestamp, DataIndex channelIndex, uint64_t size)
+{
+    timeStamps_.emplace_back(timestamp);
+    totalSizes_.emplace_back(size);
+    channelIndexs_.emplace_back(channelIndex);
+    ids_.emplace_back(Size());
+}
+const std::deque<uint64_t>& ProfileMemInfo::ChannelIndexs() const
+{
+    return channelIndexs_;
+}
+const std::deque<uint64_t>& ProfileMemInfo::TotalSizes() const
+{
+    return totalSizes_;
+}
+void RSImageDumpInfo::AppendNewData(uint64_t timestamp,
+                                    uint64_t memSize,
+                                    DataIndex typeIndex,
+                                    InternalPid ipid,
+                                    DataIndex name)
+{
+    timeStamps_.emplace_back(timestamp);
+    memSizes_.emplace_back(memSize);
+    typeIndexs_.emplace_back(typeIndex);
+    ipids_.emplace_back(ipid);
+    surfaceNameIndexs_.emplace_back(name);
+    ids_.emplace_back(Size());
+}
+const std::deque<uint64_t>& RSImageDumpInfo::MemSizes() const
+{
+    return memSizes_;
+}
+const std::deque<DataIndex>& RSImageDumpInfo::TypeIndexs() const
+{
+    return typeIndexs_;
+}
+const std::deque<InternalPid>& RSImageDumpInfo::Ipids() const
+{
+    return ipids_;
+}
+const std::deque<DataIndex>& RSImageDumpInfo::SurfaceNameIndexs() const
+{
+    return surfaceNameIndexs_;
+}
 } // namespace TraceStdtype
 } // namespace SysTuning

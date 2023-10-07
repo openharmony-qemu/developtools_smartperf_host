@@ -154,7 +154,7 @@ void TaskNewtask(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const Ev
     newTaskMsg->set_oom_score_adj(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
 }
 
-void PrintFormat(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+void TracingMarkWriteOrPrintFormat(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
 {
     uint8_t index = 0;
     auto printMsg = ftraceEvent.mutable_print_format();
@@ -253,6 +253,57 @@ void SoftirqExit(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const Ev
     auto softirqExitMsg = ftraceEvent.mutable_softirq_exit_format();
     softirqExitMsg->set_vec(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
 }
+void ClockSetRate(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto clockSetRateMsg = ftraceEvent.mutable_clock_set_rate_format();
+    clockSetRateMsg->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    clockSetRateMsg->set_state(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    clockSetRateMsg->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+}
+void ClockEnable(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto clockEnable = ftraceEvent.mutable_clock_enable_format();
+    clockEnable->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    clockEnable->set_state(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    clockEnable->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+}
+void ClockDisable(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto clockDisable = ftraceEvent.mutable_clock_disable_format();
+    clockDisable->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    clockDisable->set_state(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    clockDisable->set_cpu_id(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+}
+void RegulatorSetVoltage(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto regulatorSetVoltage = ftraceEvent.mutable_regulator_set_voltage_format();
+    regulatorSetVoltage->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    regulatorSetVoltage->set_min(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    regulatorSetVoltage->set_max(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+}
+void RegulatorSetVoltageComplete(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto regulatorSetVoltage = ftraceEvent.mutable_regulator_set_voltage_complete_format();
+    regulatorSetVoltage->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    regulatorSetVoltage->set_val(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+}
+void RegulatorDisable(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto regulatorDisable = ftraceEvent.mutable_regulator_disable_format();
+    regulatorDisable->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+}
+void RegulatorDisableComplete(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format)
+{
+    uint8_t index = 0;
+    auto regulatorDisableComplete = ftraceEvent.mutable_regulator_disable_complete_format();
+    regulatorDisableComplete->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+}
 
 FtraceEventProcessor& FtraceEventProcessor::GetInstance()
 {
@@ -276,7 +327,8 @@ FtraceEventProcessor::FtraceEventProcessor()
         {config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE), CpuIdle},
         {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY), CpuFrequency},
         {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS), CpuFrequencyLimits},
-        {config_.eventNameMap_.at(TRACE_EVENT_PRINT), PrintFormat},
+        {config_.eventNameMap_.at(TRACE_EVENT_PRINT), TracingMarkWriteOrPrintFormat},
+        {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE), TracingMarkWriteOrPrintFormat},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME), TaskRename},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK), TaskNewtask},
         {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION), BinderTransaction},
@@ -292,6 +344,13 @@ FtraceEventProcessor::FtraceEventProcessor()
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW), SchedWakeupNew},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT), SchedProcessExit},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_FREE), SchedProcessFree},
+        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE), ClockSetRate},
+        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE), ClockEnable},
+        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE), ClockDisable},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE), RegulatorSetVoltage},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE), RegulatorSetVoltageComplete},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE), RegulatorDisable},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE), RegulatorDisableComplete},
     };
 }
 
