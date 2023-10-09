@@ -21,6 +21,7 @@ import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
 import '../../../../base-ui/popover/LitPopoverV.js';
 import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
+import { queryTransferList } from '../../../database/SqlLite.js';
 
 export interface FilterData {
   inputValue: string;
@@ -53,9 +54,11 @@ export class TabPaneFilter extends BaseElement {
   private getCallTree: ((e: any) => void) | undefined;
   private getCallTreeConstraints: ((e: any) => void) | undefined;
   private getStatisticsType: ((e: any) => void) | undefined;
+  private getCallTransfer: ((e: any) => void) | undefined;
 
   private cutList: Array<any> | undefined;
   private libraryList: Array<any> | undefined;
+  private transferChecked: string | undefined;
 
   filterData(type: string, data: object = {}) {
     return {
@@ -89,6 +92,7 @@ export class TabPaneFilter extends BaseElement {
     this.markButtonEL = this.shadowRoot?.querySelector('#mark');
     this.iconEL = this.shadowRoot?.querySelector<LitIcon>('#icon');
     this.statisticsName = this.shadowRoot?.querySelector<HTMLDivElement>('.statistics-name');
+    let transferEL = this.shadowRoot?.querySelector<HTMLDivElement>('.transfer-text');
     this.iconEL!.onclick = (e) => {
       if (this.iconEL!.name == 'statistics') {
         this.iconEL!.name = 'menu';
@@ -96,14 +100,20 @@ export class TabPaneFilter extends BaseElement {
         if (this.getFilter) {
           this.getFilter(this.filterData('icon'));
         }
+        transferEL!.style.display = 'inline';
       } else if (this.iconEL!.name == 'menu') {
         this.iconEL!.name = 'statistics';
         this.iconEL!.size = 16;
         if (this.getFilter) {
           this.getFilter(this.filterData('icon'));
         }
+        transferEL!.style.display = 'none';
       }
     };
+
+    transferEL!.onclick = () => {
+      this.getTransferList();
+    }
 
     this.markButtonEL!.onclick = (e) => {
       if (this.getFilter) {
@@ -268,6 +278,10 @@ export class TabPaneFilter extends BaseElement {
     this.getCallTree = getCallTree;
   }
 
+  getCallTransferData(getCallTransfer: (v: any) => void) {
+    this.getCallTransfer = getCallTransfer;
+  }
+
   getCallTreeConstraintsData(getCallTreeConstraints: (v: any) => void) {
     this.getCallTreeConstraints = getCallTreeConstraints;
   }
@@ -403,6 +417,39 @@ export class TabPaneFilter extends BaseElement {
         }
       };
     });
+  }
+
+  initializeTreeTransfer() {
+    let radioList = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.radio');
+    let divElement = this.shadowRoot!.querySelectorAll<HTMLDivElement>('.tree-radio');
+
+    if(this.transferChecked && this.transferChecked !== 'count') {
+      radioList![Number(this.transferChecked)].checked = true;
+    } else if( this.transferChecked && this.transferChecked == 'count') {
+      radioList![radioList.length -1].checked = true;
+    }
+
+    divElement!.forEach((divEl, idx) => {
+      divEl.addEventListener('click', () => {
+        this.transferChecked = radioList![idx].value;
+        radioList![idx].checked = true;
+        if(this.getCallTransfer) {
+          this.getCallTransfer({
+            value: radioList![idx].value
+          })
+        }
+      })
+    })
+  }
+
+  refreshTreeTransfer() {
+    let radioList = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.radio');
+    if(this.transferChecked && this.transferChecked !== 'count') {
+      radioList![Number(this.transferChecked)].checked = false;
+    } else if( this.transferChecked && this.transferChecked == 'count') {
+      radioList![radioList.length -1].checked = false;
+    }
+    this.transferChecked = ''
   }
 
   initializeTreeConstraints() {
@@ -567,6 +614,19 @@ export class TabPaneFilter extends BaseElement {
       dataLibrary: this.libraryList,
     };
     return data;
+  }
+
+  async getTransferList() {
+    let dataCmd: { id: number; cmdStr: string }[] = (await queryTransferList()) as { id: number; cmdStr: string }[];
+    let html = "";
+    dataCmd.forEach(item => {
+      html += `<div id="cycles-btn" class="tree-radio">
+      <input name="transfer" class="radio" type="radio" value="${item.id}" style="margin-right:8px" />${item.cmdStr}</div>` 
+    });
+    html +=`<div id="cycles-btn" class="tree-radio">
+    <input name="transfer" class="radio" type="radio" value="count" style="margin-right:8px" />Count</div>`
+    this.shadowRoot!.querySelector<HTMLDivElement>('#transfer-list')!.innerHTML = html;
+    this.initializeTreeTransfer();
   }
 
   initializeFilterTree(callTree: boolean = true, treeConstraints: boolean = true, mining: boolean = true) {
@@ -795,6 +855,17 @@ export class TabPaneFilter extends BaseElement {
         .lit-check-box{
             margin-right: 5px;
         }
+        .transfer-list{
+          display: flex;
+          flex-derection: column;
+        }
+        .tree-radio{
+          margin: 5px 0;
+          cursor: pointer;
+        }
+        .radio{
+          cursor: pointer;
+        }
 </style>
     <lit-icon name="menu" class="spacing" id="icon" size="20"></lit-icon>
     <span class="describe left-text spacing">Input Filter</span>
@@ -834,6 +905,12 @@ export class TabPaneFilter extends BaseElement {
                  </div>
             </div>
             <span class="describe tree max-spacing" id="data-mining">Symbol Filter</span>
+        </lit-popover>
+        <lit-popover placement="topLeft" class="popover transfer-area" haveRadio="true" trigger="click" id="call-tree-popover">
+             <div slot="content" id="transfer-list" style="display:block; height:auto; max-height: 200px; overflow-y:auto;">
+                 
+             </div>
+             <span class="describe tree max-spacing transfer-text" id="call-tree">Transfer</span>
         </lit-popover>
         <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-library-popover">
             <div slot="content">
