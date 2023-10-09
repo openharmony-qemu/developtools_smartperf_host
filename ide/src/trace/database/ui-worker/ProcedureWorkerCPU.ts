@@ -299,6 +299,7 @@ export class CpuStruct extends BaseStruct {
   type: string | undefined;
   v: boolean = false;
   nofinish: boolean = false;
+  ts:number | undefined;
   static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number) {
     if (data.frame) {
       let width = data.frame.width || 0;
