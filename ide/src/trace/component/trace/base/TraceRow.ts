@@ -675,7 +675,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       if(this.folder && (cpuFnanme=='Cpu Frequency' || cpuFnanme=='Cpu State' || cpuFnanme=='Cpu Freq Limit')){
         this.expansion=!this.expansion
       }
-    },500)
+    },1400)
     this.describeEl?.addEventListener('click', () => {
       if (this.folder) {
         this.expansion = !this.expansion;
