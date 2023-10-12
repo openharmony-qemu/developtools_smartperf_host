@@ -300,6 +300,10 @@ export class CpuStruct extends BaseStruct {
   v: boolean = false;
   nofinish: boolean = false;
   ts:number | undefined;
+  itid: number | undefined;
+  process: string | undefined;
+  pid: number | undefined;
+  thread: string | undefined;
   static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number) {
     if (data.frame) {
       let width = data.frame.width || 0;
