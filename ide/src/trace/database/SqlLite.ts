@@ -5480,3 +5480,37 @@ export const queryTraceType = (): Promise<
             WHERE 
                 m.name = 'source_type';`
   );
+
+export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+  'getTabRunningPercent',
+  `
+  select
+    B.pid,B.tid,B.state,B.cpu,B.dur,B.ts
+  from
+    thread_state AS B
+  left join 
+    trace_range AS TR
+  where
+  B.tid in (${tIds.join(',')})
+  and
+  B.state='Running'
+  and
+    not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+    order by ts
+  `,
+  {$leftNS:leftNS, $rightNS:rightNS}
+);
+
+export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+  query(
+  'querySearchFuncData',
+  `
+  select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName,
+  p.pid,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
+  left join trace_range r
+  where c.name = '${funcName}' and t.tid = ${tIds} and
+  not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+  `,
+  {$search: funcName}
+);
