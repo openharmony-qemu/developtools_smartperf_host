@@ -85,6 +85,17 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
+  disabledTransfer(b: boolean, str?: string) {
+    if (b) {
+      this.setAttribute('disableTransfer', '')
+    } else {
+      if (str == 'perf') {
+        this.setAttribute('perf', 'perf')
+      }
+      this.removeAttribute('disableTransfer')
+    }
+  }
+
   initElements(): void {
     this.cutList = [];
     this.libraryList = [];
@@ -100,14 +111,20 @@ export class TabPaneFilter extends BaseElement {
         if (this.getFilter) {
           this.getFilter(this.filterData('icon'));
         }
-        transferEL!.style.display = 'inline';
+
+        if (this.getAttribute('perf') == 'perf') {
+          this.disabledTransfer(false);
+        }
       } else if (this.iconEL!.name == 'menu') {
         this.iconEL!.name = 'statistics';
         this.iconEL!.size = 16;
         if (this.getFilter) {
           this.getFilter(this.filterData('icon'));
         }
-        transferEL!.style.display = 'none';
+
+        if(this.getAttribute('perf') == 'perf') {
+          this.disabledTransfer(true);
+        }
       }
     };
 
@@ -762,6 +779,9 @@ export class TabPaneFilter extends BaseElement {
         }
         :host([disabledMining]) #data-library{
             display: none;
+        }
+        :host([disableTransfer]) .transfer-text{
+          display: none;
         }
         :host(:not([icon])) #icon{
             display: none;

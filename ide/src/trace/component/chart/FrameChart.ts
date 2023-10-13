@@ -834,8 +834,6 @@ export class FrameChart extends BaseElement {
                       <br>
                       <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span>
                       <br>
-                      <span class="bold">Dur: </span> <span>${eventDur} (${percent}%)</span>
-                      <br>
                       <span class="bold">EventCount: </span> <span> ${eventCount} (${percent}%)</span>`;
           break;
     }

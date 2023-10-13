@@ -67,6 +67,7 @@ export class TabpanePerfProfile extends BaseElement {
     } else {
       this.perfProfilerFilter!.style.display = 'none';
     }
+    this.perfProfilerFilter!.disabledTransfer(false, 'perf');
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
     this.perfProfilerFilter!.refreshTreeTransfer();
@@ -94,7 +95,7 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfilerFilter.icon = 'block';
       }
     );
-    
+
     this.perfProfilerFilter!.getCallTransferData((data: any) => {
       perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
       this.getDataByWorker(

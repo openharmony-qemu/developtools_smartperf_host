@@ -196,9 +196,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       let arg = `${arg1}${arg2}${arg3}`.substring(3);
       sql = ` ${arg4} and (${arg}) `;
     }
-    console.log(selectionParam.leftNs +' :selectionParam.leftNs')
-    console.log(selectionParam.rightNs +' :selectionParam.rightNs')
-    console.log(sql +' :sql')
+    
     this.queryData(
       this.currentEventId,
       'perf-queryCallchainsGroupSample',
