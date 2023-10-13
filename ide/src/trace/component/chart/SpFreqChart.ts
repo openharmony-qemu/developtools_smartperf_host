@@ -75,7 +75,6 @@ export class SpFreqChart {
       this.folderRow.supplier = FolderSupplier();
       this.folderRow.onThreadHandler = FolderThreadHandler(this.folderRow, this.trace);
       this.trace.rowsEL?.appendChild(this.folderRow);
-    }
 
     info('Cpu Freq data size is: ', freqList!.length);
     let freqMaxList = await queryCpuMaxFreq();
@@ -124,6 +123,8 @@ export class SpFreqChart {
       };
       this.folderRow!.addChildTraceRow(traceRow);
     }
+    }
+
     if (CpuState.length > 0) {
       this.folderRowState = TraceRow.skeleton();
       this.folderRowState.rowId = 'Cpu State';
@@ -133,61 +134,62 @@ export class SpFreqChart {
       this.folderRowState.style.width = '100%';
       this.folderRowState.rowParentId = '';
       this.folderRowState.name = 'Cpu State';
-      this.folderRowState.rowHidden = this.folderRow!.expansion;
+      this.folderRowState.rowHidden = this.folderRowState!.expansion;
       this.folderRowState.setAttribute('children', '');
       this.folderRowState.supplier = FolderSupplier();
       this.folderRowState.onThreadHandler = FolderThreadHandler(this.folderRowState, this.trace);
       this.trace.rowsEL?.appendChild(this.folderRowState);
-    }
-    let heights = [4, 12, 21, 30];
-    for (let it of cpuStateFilterIds) {
-      let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
-      cpuStateRow.rowId = `${it.filterId}`;
-      cpuStateRow.rowType = TraceRow.ROW_TYPE_CPU_STATE;
-      cpuStateRow.rowParentId = 'Cpu State';
-      cpuStateRow.style.height = '40px';
-      cpuStateRow.name = `Cpu ${it.cpu} State`;
-      cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      cpuStateRow.selectChangeHandler = this.trace.selectChangeHandler;
-      cpuStateRow.isHover = true;
-      cpuStateRow.supplier = () =>
-        queryCpuState(it.filterId).then((res) => {
-          res.forEach((r) => {
-            r.height = heights[it.value];
-            r.cpu = it.cpu;
+
+      let heights = [4, 12, 21, 30];
+      for (let it of cpuStateFilterIds) {
+        let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
+        cpuStateRow.rowId = `${it.filterId}`;
+        cpuStateRow.rowType = TraceRow.ROW_TYPE_CPU_STATE;
+        cpuStateRow.rowParentId = 'Cpu State';
+        cpuStateRow.style.height = '40px';
+        cpuStateRow.name = `Cpu ${it.cpu} State`;
+        cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        cpuStateRow.selectChangeHandler = this.trace.selectChangeHandler;
+        cpuStateRow.isHover = true;
+        cpuStateRow.supplier = () =>
+          queryCpuState(it.filterId).then((res) => {
+            res.forEach((r) => {
+              r.height = heights[it.value];
+              r.cpu = it.cpu;
+            });
+            return res;
           });
-          return res;
-        });
-      cpuStateRow.focusHandler = (ev) => {
-        this.trace.displayTip(
-          cpuStateRow,
-          CpuStateStruct.hoverStateStruct,
-          `<span>State: ${CpuStateStruct.hoverStateStruct?.value}</span>`
-        );
-      };
-      cpuStateRow.findHoverStruct = () => {
-        CpuStateStruct.hoverStateStruct = cpuStateRow.getHoverStruct();
-      };
-      cpuStateRow.onThreadHandler = (useCache: boolean) => {
-        let context: CanvasRenderingContext2D;
-        if (cpuStateRow.currentContext) {
-          context = cpuStateRow.currentContext;
-        } else {
-          context = cpuStateRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        cpuStateRow.canvasSave(context);
-        (renders['cpu-state'] as CpuStateRender).renderMainThread(
-          {
-            cpuStateContext: context,
-            useCache: useCache,
-            type: `cpu-state-${it.cpu}`,
-            cpu: it.cpu,
-          },
-          cpuStateRow
-        );
-        cpuStateRow.canvasRestore(context);
-      };
-      this.folderRowState!.addChildTraceRow(cpuStateRow);
+        cpuStateRow.focusHandler = (ev) => {
+          this.trace.displayTip(
+            cpuStateRow,
+            CpuStateStruct.hoverStateStruct,
+            `<span>State: ${CpuStateStruct.hoverStateStruct?.value}</span>`
+          );
+        };
+        cpuStateRow.findHoverStruct = () => {
+          CpuStateStruct.hoverStateStruct = cpuStateRow.getHoverStruct();
+        };
+        cpuStateRow.onThreadHandler = (useCache: boolean) => {
+          let context: CanvasRenderingContext2D;
+          if (cpuStateRow.currentContext) {
+            context = cpuStateRow.currentContext;
+          } else {
+            context = cpuStateRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
+          cpuStateRow.canvasSave(context);
+          (renders['cpu-state'] as CpuStateRender).renderMainThread(
+            {
+              cpuStateContext: context,
+              useCache: useCache,
+              type: `cpu-state-${it.cpu}`,
+              cpu: it.cpu,
+            },
+            cpuStateRow
+          );
+          cpuStateRow.canvasRestore(context);
+        };
+        this.folderRowState!.addChildTraceRow(cpuStateRow);
+      }
     }
     let durTime = new Date().getTime() - cpuFreqStartTime;
     info('The time to load the CpuFreq data is: ', durTime);
@@ -199,64 +201,65 @@ export class SpFreqChart {
       this.folderRowLimit.rowParentId = 'Cpu Freq Limit';
       this.folderRowLimit.folder = true;
       this.folderRowLimit.name = 'Cpu Freq Limit';
-      this.folderRowLimit.rowHidden = this.folderRow!.expansion;
+      this.folderRowLimit.rowHidden = this.folderRowLimit!.expansion;
       this.folderRowLimit.setAttribute('children', '');
       this.folderRowLimit.supplier = FolderSupplier();
       this.folderRowLimit.onThreadHandler = FolderThreadHandler(this.folderRowLimit, this.trace);
       this.trace.rowsEL?.appendChild(this.folderRowLimit);
-    }
-    for (let limit of cpuFreqLimits) {
-      let findMax = Utils.getFrequencyWithUnit(
-        cpuFreqLimitsMax.find((maxLimit) => {
-          return maxLimit.filterId == limit.maxFilterId;
-        })?.maxValue || 0
-      );
-      let cpuFreqLimitRow = TraceRow.skeleton<CpuFreqLimitsStruct>();
-      cpuFreqLimitRow.rowId = `${limit.cpu}`;
-      cpuFreqLimitRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMIT;
-      cpuFreqLimitRow.rowParentId = '';
-      cpuFreqLimitRow.style.height = '40px';
-      cpuFreqLimitRow.name = `Cpu ${limit.cpu} Freq Limit`;
-      cpuFreqLimitRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      cpuFreqLimitRow.selectChangeHandler = this.trace.selectChangeHandler;
-      cpuFreqLimitRow.isHover = true;
-      cpuFreqLimitRow.supplier = () => getCpuLimitFreq(limit.maxFilterId, limit.minFilterId, limit.cpu);
-      cpuFreqLimitRow.focusHandler = (ev) => {
-        this.trace.displayTip(
-          cpuFreqLimitRow,
-          CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct,
-          `<span>Max Freq: ${ColorUtils.formatNumberComma(
-            CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct?.max || 0
-          )} kHz</span><span>Min Freq: ${ColorUtils.formatNumberComma(
-            CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct?.min || 0
-          )} kHz</span>`
+
+      for (let limit of cpuFreqLimits) {
+        let findMax = Utils.getFrequencyWithUnit(
+          cpuFreqLimitsMax.find((maxLimit) => {
+            return maxLimit.filterId == limit.maxFilterId;
+          })?.maxValue || 0
         );
-      };
-      cpuFreqLimitRow.findHoverStruct = () => {
-        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = cpuFreqLimitRow.getHoverStruct();
-      };
-      cpuFreqLimitRow.onThreadHandler = (useCache: boolean) => {
-        let context: CanvasRenderingContext2D;
-        if (cpuFreqLimitRow.currentContext) {
-          context = cpuFreqLimitRow.currentContext;
-        } else {
-          context = cpuFreqLimitRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        cpuFreqLimitRow.canvasSave(context);
-        (renders['cpu-limit-freq'] as CpuFreqLimitRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `cpu-limit-freq-${limit.cpu}`,
-            cpu: limit.cpu,
-            maxFreq: findMax?.maxFreq || 0,
-            maxFreqName: findMax?.maxFreqName || '',
-          },
-          cpuFreqLimitRow
-        );
-        cpuFreqLimitRow.canvasRestore(context);
-      };
-      this.folderRowLimit!.addChildTraceRow(cpuFreqLimitRow);
+        let cpuFreqLimitRow = TraceRow.skeleton<CpuFreqLimitsStruct>();
+        cpuFreqLimitRow.rowId = `${limit.cpu}`;
+        cpuFreqLimitRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMIT;
+        cpuFreqLimitRow.rowParentId = '';
+        cpuFreqLimitRow.style.height = '40px';
+        cpuFreqLimitRow.name = `Cpu ${limit.cpu} Freq Limit`;
+        cpuFreqLimitRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        cpuFreqLimitRow.selectChangeHandler = this.trace.selectChangeHandler;
+        cpuFreqLimitRow.isHover = true;
+        cpuFreqLimitRow.supplier = () => getCpuLimitFreq(limit.maxFilterId, limit.minFilterId, limit.cpu);
+        cpuFreqLimitRow.focusHandler = (ev) => {
+          this.trace.displayTip(
+            cpuFreqLimitRow,
+            CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct,
+            `<span>Max Freq: ${ColorUtils.formatNumberComma(
+              CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct?.max || 0
+            )} kHz</span><span>Min Freq: ${ColorUtils.formatNumberComma(
+              CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct?.min || 0
+            )} kHz</span>`
+          );
+        };
+        cpuFreqLimitRow.findHoverStruct = () => {
+          CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = cpuFreqLimitRow.getHoverStruct();
+        };
+        cpuFreqLimitRow.onThreadHandler = (useCache: boolean) => {
+          let context: CanvasRenderingContext2D;
+          if (cpuFreqLimitRow.currentContext) {
+            context = cpuFreqLimitRow.currentContext;
+          } else {
+            context = cpuFreqLimitRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
+          cpuFreqLimitRow.canvasSave(context);
+          (renders['cpu-limit-freq'] as CpuFreqLimitRender).renderMainThread(
+            {
+              context: context,
+              useCache: useCache,
+              type: `cpu-limit-freq-${limit.cpu}`,
+              cpu: limit.cpu,
+              maxFreq: findMax?.maxFreq || 0,
+              maxFreqName: findMax?.maxFreqName || '',
+            },
+            cpuFreqLimitRow
+          );
+          cpuFreqLimitRow.canvasRestore(context);
+        };
+        this.folderRowLimit!.addChildTraceRow(cpuFreqLimitRow);
+      }
     }
   }
 }
