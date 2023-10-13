@@ -272,11 +272,26 @@ export class SpSystemTrace extends BaseElement {
       if (SpSystemTrace.btnTimer) {
         return;
       }
-      // 唤醒树有值则不再重复添加
+      // 唤醒树有值则不再重复添加      
+      const startIndex = CpuStruct.selectCpuStruct!.displayProcess?.indexOf('[')
       if (SpSystemTrace.wakeupList.length === 0) {
         SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
         this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
         CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
+        CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
+        CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
+        CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+        CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
+        sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct))
+      } else {
+        this.wakeupListNull()
+        SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
+        this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
+        CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
+        CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
+        CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
+        CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+        CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
         sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct))
       }
       setTimeout(() => {
@@ -2515,14 +2530,19 @@ export class SpSystemTrace extends BaseElement {
         for (const item of SpSystemTrace.wakeupList) {
           if (item.ts === CpuStruct.wakeupBean.ts && item.wakeupTime === CpuStruct.wakeupBean.wakeupTime) {
             checkHandlerKey = false;
-            if (SpSystemTrace.wakeupList[0].itid) {
+            if (SpSystemTrace.wakeupList[0].schedulingDesc) {
               SpSystemTrace.wakeupList.unshift(JSON.parse(sessionStorage.getItem('saveselectcpustruct')!))
             }
             this.refreshCanvas(true)
             break;
           }
         }
-        if (checkHandlerKey) {
+        // 点击线程在唤醒树内
+        if (!checkHandlerKey) {
+          // 查询获取tab表格数据
+          window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
+        } else {
+          // 不在唤醒树内，清空数组
           this.wakeupListNull()
           this.refreshCanvas(true)
         }
