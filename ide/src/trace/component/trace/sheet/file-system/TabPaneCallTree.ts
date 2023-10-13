@@ -221,6 +221,7 @@ export class TabPaneCallTree extends BaseElement {
 
     this.callTreeTbl!.rememberScrollTop = true;
     this.callTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
+    this.callTreeFilter!.disabledTransfer(true);
     this.callTreeTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data as MerageBean;
