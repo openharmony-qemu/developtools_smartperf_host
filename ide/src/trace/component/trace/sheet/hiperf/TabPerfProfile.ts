@@ -67,10 +67,8 @@ export class TabpanePerfProfile extends BaseElement {
     } else {
       this.perfProfilerFilter!.style.display = 'none';
     }
-    this.perfProfilerFilter!.disabledTransfer(false, 'perf');
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
-    this.perfProfilerFilter!.refreshTreeTransfer();
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
     const initWidth = this.clientWidth;
@@ -95,35 +93,6 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfilerFilter.icon = 'block';
       }
     );
-
-    this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
-      this.getDataByWorker(
-        [
-          {
-            funcName: 'setSearchValue',
-            funcArgs: [''],
-          },
-          {
-            funcName: 'getCurrentDataFromDb',
-            funcArgs: [perfProfilerSelection],
-          },
-        ],
-        (results: any[]) => {
-          this.setPerfProfilerLeftTableData(results);
-          this.perfProfilerList!.recycleDataSource = [];
-          if(data.value !== 'count') {
-            this.perfProfileFrameChart!.mode = ChartMode.EventCount;
-          }else{
-            this.perfProfileFrameChart!.mode = ChartMode.Count;
-          }
-          
-          this.perfProfileFrameChart?.updateCanvas(true, initWidth);
-          this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-          this.switchFlameChart();
-          this.perfProfilerFilter.icon = 'block';
-        })
-    })
   }
 
   getParentTree(
