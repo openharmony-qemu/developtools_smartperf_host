@@ -1017,9 +1017,9 @@ export class SpApplication extends BaseElement {
         } else {
           fd.append('file', ev as any);
         }
-        let uploadPath = `https://${window.location.host.split(':')[0]}:9000/upload`;
+        let uploadPath = `https://${window.location.host.split(':')[0]}:9000/application/upload`;
         if (that.vs) {
-          uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`;
+          uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/application/upload`;
         }
         info('upload trace');
         let dbName = '';
@@ -1990,7 +1990,10 @@ export class SpApplication extends BaseElement {
         downloadLineFile = true;
      }
       setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
-      this.downloadOnLineFile(urlParams.trace, downloadLineFile, (localPath) => {
+      this.downloadOnLineFile(urlParams.trace, downloadLineFile,
+        (arrayBuf, fileName, showFileName, fileSize) => {
+        handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
+      }, (localPath) => {
         let path = urlParams.trace as string;
         let fileName: string = '';
         let showFileName: string = '';
@@ -2140,18 +2143,31 @@ export class SpApplication extends BaseElement {
     }, 1000);
   }
 
-  private downloadOnLineFile(url: string, download: boolean, openFileHandler: (path: string) => void) {
+  private downloadOnLineFile(url: string, download: boolean, openUrl: (buffer: ArrayBuffer, fileName: string,
+    showFileName: string, fileSize: string) => void, openFileHandler: (path: string) => void) {
     if (download) {
-      let api = `${window.location.origin}/download-file`;
-      fetch(api, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          url: url,
-        }),
+      fetch(url)
+      .then((res) => {
+        res.arrayBuffer().then((arrayBuf) => {
+          let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
+          let fileName = url.split('/').reverse()[0];
+          document.title = `${fileName} (${fileSize}M)`;
+          info('Parse trace using wasm mode ');
+          let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+          openUrl(arrayBuf, fileName, showFileName, fileSize);
+        });
       })
+      .catch((e) => {
+        let api = `${window.location.origin}/application/download-file`;
+        fetch(api, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            url: url,
+          }),
+        })
         .then((response) => response.json())
         .then((res) => {
           if (res.code === 0 && res.success) {
@@ -2161,6 +2177,7 @@ export class SpApplication extends BaseElement {
             }
           }
         });
+      });
     } else {
       openFileHandler(url);
     }
