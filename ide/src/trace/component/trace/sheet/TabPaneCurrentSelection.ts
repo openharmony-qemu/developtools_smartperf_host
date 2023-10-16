@@ -1260,7 +1260,10 @@ export class TabPaneCurrentSelection extends BaseElement {
         return wake;
       });
       if (this.selectWakeupBean) {
-        resource.unshift(this.selectWakeupBean);
+        // 点击第一层唤醒树时向数组头部添加当前点击信息
+        if (data[0].schedulingLatency) {
+          resource.unshift(this.selectWakeupBean);
+        }
         maxDuration = Math.max(maxDuration, this.selectWakeupBean.dur);
         maxPriority = Math.max(maxPriority, this.selectWakeupBean.priority);
       }
