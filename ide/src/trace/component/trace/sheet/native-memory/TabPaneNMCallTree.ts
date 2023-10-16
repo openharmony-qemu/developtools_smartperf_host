@@ -58,6 +58,7 @@ export class TabpaneNMCalltree extends BaseElement {
   private lastIsExpression = false;
   private currentNMCallTreeFilter: TabPaneFilter | undefined | null;
   private expressionStruct: NativeMemoryExpression | null = null;
+  private currentNmCallTreeSource: Array<FileMerageBean> = [];
 
   set data(nmCallTreeParam: SelectionParam | any) {
     if (nmCallTreeParam == this.currentSelection) {
@@ -116,6 +117,7 @@ export class TabpaneNMCalltree extends BaseElement {
         this.nmCallTreeFrameChart!.mode = ChartMode.Byte;
         this.nmCallTreeFrameChart?.updateCanvas(true, initWidth);
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+        this.currentNmCallTreeSource = this.nmCallTreeSource;
         this.switchFlameChart();
         this.nmCallTreeFilter.icon = 'block';
       }
@@ -554,7 +556,15 @@ export class TabpaneNMCalltree extends BaseElement {
             this.lastIsExpression = false;
           }
           this.getDataByWorker(nmArgs, (result: any[]) => {
-            this.setLTableData(result);
+            if (result.length === 0) {
+              this.setLTableData(result);
+            } else {
+              if (this.nmCallTreeSource.length === 0) {
+                this.nmCallTreeSource = this.currentNmCallTreeSource;
+              }
+              this.findSearchNode(this.nmCallTreeSource, this.searchValue);
+              this.setLTableData(this.nmCallTreeSource);
+            }
             this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
             this.switchFlameChart(nmCallTreeData);
           });
@@ -571,6 +581,23 @@ export class TabpaneNMCalltree extends BaseElement {
       // @ts-ignore
       this.setLTableData(this.nmCallTreeSource, true);
       this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+    });
+  }
+
+  private findSearchNode(sampleArray: any[], search: string): void {
+    search = search.toLocaleLowerCase();
+    sampleArray.forEach((sample) => {
+      if (sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) {
+        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
+      } else {
+        sample.isSearch = false;
+      }
+      if (search === '') {
+        sample.isSearch = false;
+      }
+      if (sample.children.length > 0) {
+        this.findSearchNode(sample.children, search);
+      }
     });
   }
 

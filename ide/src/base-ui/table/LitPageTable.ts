@@ -470,6 +470,7 @@ export class LitPageTable extends BaseElement {
       columns: this.columns as any[],
       tables: this.ds,
       fileName: date.getTime() + '',
+      columnFormatter: this.itemTextHandleMap
     }).then((res) => {
       this.exportLoading = false;
       this.exportProgress!.loading = false;

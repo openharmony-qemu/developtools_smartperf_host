@@ -20,6 +20,7 @@ import { VmTrackerChart } from '../../../chart/SpVmTrackerChart.js';
 import { log } from '../../../../../log/Log.js';
 import { SpSystemTrace } from '../../../SpSystemTrace.js';
 import { Utils } from '../../base/Utils.js';
+import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
 interface GpuTreeItem {
   name: string;
   id: number;
@@ -49,7 +50,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
     this.gpuTbl!.loading = true;
     let window = gpu.type === 'total' ? 0 : VmTrackerChart.gpuWindow;
     let module = gpu.type === 'total' ? VmTrackerChart.gpuTotalModule : VmTrackerChart.gpuWindowModule;
-    queryGpuDataByTs(gpu.startTs, window || 0, module).then((result) => {
+    queryGpuDataByTs(gpu.startTs, window || 0, module, MemoryConfig.getInstance().iPid).then((result) => {
       this.gpuTbl!.loading = false;
       if (result != null && result.length > 0) {
         log('queryGpuDataByTs result size : ' + result.length);

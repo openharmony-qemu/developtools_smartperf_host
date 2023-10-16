@@ -49,6 +49,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private loadingList: number[] = [];
   private loadingPage: any;
   private currentSelection: SelectionParam | undefined;
+  private currentFsCallTreeDataSource: Array<FileMerageBean> = [];
 
   set data(fsCallTreeSelection: SelectionParam | any) {
     if (fsCallTreeSelection == this.currentSelection) {
@@ -85,6 +86,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         this.frameChart!.mode = ChartMode.Duration;
         this.frameChart?.updateCanvas(true, initWidth);
         this.frameChart!.data = this.fsCallTreeDataSource;
+        this.currentFsCallTreeDataSource = this.fsCallTreeDataSource;
         this.switchFlameChart();
         this.fsCallTreeFilter.icon = 'block';
       }
@@ -385,7 +387,15 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           },
         ];
         this.getDataByWorker(fileArgs, (result: any[]) => {
-          this.setLTableData(result);
+          if (result.length === 0) {
+            this.setLTableData(result);
+          } else {
+            if (this.fsCallTreeDataSource.length === 0) {
+              this.fsCallTreeDataSource = this.currentFsCallTreeDataSource;
+            }
+            this.findSearchNode(this.fsCallTreeDataSource, this.searchValue);
+            this.setLTableData(this.fsCallTreeDataSource);
+          }
           this.frameChart!.data = this.fsCallTreeDataSource;
           this.switchFlameChart(data);
         });
@@ -401,6 +411,23 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       // @ts-ignore
       this.setLTableData(this.fsCallTreeDataSource);
       this.frameChart!.data = this.fsCallTreeDataSource;
+    });
+  }
+
+  private findSearchNode(sampleArray: any[], search: string): void {
+    search = search.toLocaleLowerCase();
+    sampleArray.forEach((sample) => {
+      if (sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) {
+        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
+      } else {
+        sample.isSearch = false;
+      }
+      if (search === '') {
+        sample.isSearch = false;
+      }
+      if (sample.children.length > 0) {
+        this.findSearchNode(sample.children, search);
+      }
     });
   }
 

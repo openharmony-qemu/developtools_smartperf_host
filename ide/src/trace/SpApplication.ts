@@ -1989,6 +1989,11 @@ export class SpApplication extends BaseElement {
       that.search = true;
       progressEL.loading = true;
       let downloadLineFile = false;
+      if (urlParams.local) {
+         downloadLineFile = false;
+      } else {
+         downloadLineFile = true;
+      }
       setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
       this.downloadOnLineFile(urlParams.trace, downloadLineFile, (localPath) => {
         let path = urlParams.trace as string;
@@ -2018,8 +2023,10 @@ export class SpApplication extends BaseElement {
             });
           })
           .catch((e) => {
-            const firstQuestionMarkIndex = window.location.href.indexOf('?');
-            location.replace(window.location.href.substring(0, firstQuestionMarkIndex));
+            if (!downloadLineFile) {
+              const firstQuestionMarkIndex = window.location.href.indexOf('?');
+              location.replace(window.location.href.substring(0, firstQuestionMarkIndex));
+            }
           });
       });
     } else {

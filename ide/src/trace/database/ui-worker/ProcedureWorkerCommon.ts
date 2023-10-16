@@ -84,7 +84,7 @@ export function ns2s(ns: number): string {
   } else if (ns > 0) {
     res = `${ns.toFixed(1)} ns`;
   } else {
-    res = `${ns.toFixed(1)} s`;
+    res = `${ns.toFixed(0)}`;
   }
   return res;
 }

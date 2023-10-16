@@ -53,6 +53,7 @@ export class TabpanePerfProfile extends BaseElement {
   private perfProfileLoadingList: number[] = [];
   private perfProfileLoadingPage: any;
   private currentSelection: SelectionParam | undefined;
+  private currentPerfProfilerDataSource: Array<PerfCallChainMerageData> = [];
 
   set data(perfProfilerSelection: SelectionParam | any) {
     if (perfProfilerSelection === this.currentSelection) {
@@ -89,6 +90,7 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfileFrameChart!.mode = ChartMode.Count;
         this.perfProfileFrameChart?.updateCanvas(true, initWidth);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
+        this.currentPerfProfilerDataSource = this.perfProfilerDataSource;
         this.switchFlameChart();
         this.perfProfilerFilter.icon = 'block';
       }
@@ -437,7 +439,15 @@ export class TabpanePerfProfile extends BaseElement {
           },
         ];
         this.getDataByWorker(perfArgs, (result: any[]) => {
-          this.setPerfProfilerLeftTableData(result);
+          if (result.length === 0) {
+            this.setPerfProfilerLeftTableData(result);
+          } else {
+            if (this.perfProfilerDataSource.length === 0) {
+              this.perfProfilerDataSource = this.currentPerfProfilerDataSource;
+            }
+            this.findSearchNode(this.perfProfilerDataSource, this.searchValue);
+            this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
+          }
           this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
           this.switchFlameChart(data);
         });
@@ -453,6 +463,23 @@ export class TabpanePerfProfile extends BaseElement {
       // @ts-ignore
       this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
+    });
+  }
+
+  private findSearchNode(sampleArray: PerfCallChainMerageData[], search: string): void {
+    search = search.toLocaleLowerCase();
+    sampleArray.forEach((sample) => {
+      if (sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) {
+        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
+      } else {
+        sample.isSearch = false;
+      }
+      if (search === '') {
+        sample.isSearch = false;
+      }
+      if (sample.children.length > 0) {
+        this.findSearchNode(sample.children, search);
+      }
     });
   }
 

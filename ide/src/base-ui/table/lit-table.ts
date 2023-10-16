@@ -23,7 +23,8 @@ import { JSONToCSV } from '../utils/CSVFormater.js';
 import { NodeType } from '../../js-heap/model/DatabaseStruct.js';
 import { ConstructorType } from '../../js-heap/model/UiStruct.js';
 import { LitIcon } from '../icon/LitIcon.js';
-
+const iconWidth = 20;
+const iconPadding = 5;
 @element('lit-table')
 export class LitTable extends HTMLElement {
   meauseRowElement: HTMLDivElement | undefined;
@@ -433,6 +434,7 @@ export class LitTable extends HTMLElement {
       columns: this.columns as any[],
       tables: this.ds,
       fileName: date.getTime() + '',
+      columnFormatter: this.itemTextHandleMap
     }).then((res) => {
       this.exportLoading = false;
       this.exportProgress!.loading = false;
@@ -1165,9 +1167,9 @@ export class LitTable extends HTMLElement {
           let btn = this.createBtn(rowData);
           td.insertBefore(btn, td.firstChild);
         }
-        td.style.paddingLeft = rowData.depth * 15 + 'px';
+        td.style.paddingLeft = rowData.depth * iconWidth + 'px';
         if (!rowData.data.children || rowData.data.children.length === 0) {
-          td.style.paddingLeft = 15 * rowData.depth + 16 + 'px';
+          td.style.paddingLeft = iconWidth * rowData.depth + iconWidth + iconPadding * 2 + 'px';
         }
         if (rowData.data.rowName === 'js-memory') {
           let nodeText = document.createElement('text');
@@ -1666,15 +1668,15 @@ export class LitTable extends HTMLElement {
           let btn = this.createExpandBtn(rowObject);
           firstElement.insertBefore(btn, firstElement.firstChild);
         }
-        firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
+        firstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
         if (!rowObject.children || rowObject.children.length === 0) {
-          firstElement.style.paddingLeft = 15 * rowObject.depth + 16 + 'px';
+          firstElement.style.paddingLeft = iconWidth * rowObject.depth + iconWidth + iconPadding  * 2 + 'px';
         }
         if (rowObject.data.hasNext) {
           let btn = this.createBtn(rowObject);
           firstElement.title = rowObject.data.objectName;
           firstElement.insertBefore(btn, firstElement.firstChild);
-          firstElement.style.paddingLeft = 15 * rowObject.depth + 'px';
+          firstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
         }
         if (rowObject.data.rowName === 'js-memory') {
           let nodeText = document.createElement('text');

@@ -59,7 +59,8 @@ export class TabPaneGpuWindowBoxSelect extends BaseElement {
     queryGpuDataByRange(
       gpuBoxParam.leftNs,
       gpuBoxParam.rightNs,
-      MemoryConfig.getInstance().snapshotDur
+      MemoryConfig.getInstance().snapshotDur,
+      MemoryConfig.getInstance().iPid
     ).then((result) => {
       this.gpuBoxTbl!.loading = false;
       if (result != null && result.length > 0) {

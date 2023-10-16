@@ -16,6 +16,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { type LitSelect } from '../../../../../base-ui/select/LitSelect.js';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption.js';
 import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
 import { queryGpuDataByTs } from '../../../../database/SqlLite.js';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot.js';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart.js';
@@ -58,7 +59,7 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     let gpuData: Array<any> = [];
     let window = type === 'total' ? 0 : VmTrackerChart.gpuWindow;
     let module = type === 'total' ? VmTrackerChart.gpuTotalModule : VmTrackerChart.gpuWindowModule;
-    await queryGpuDataByTs(startTs, window || 0, module).then((result) => {
+    await queryGpuDataByTs(startTs, window || 0, module, MemoryConfig.getInstance().iPid).then((result) => {
       gpuData = result;
     });
     return gpuData;

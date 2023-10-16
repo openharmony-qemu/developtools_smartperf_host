@@ -286,8 +286,8 @@ export class SpSystemTrace extends BaseElement {
     });
     rightStar?.addEventListener('click', () => {
       let wakeupLists = [];
+      wakeupLists.push(CpuStruct.selectCpuStruct?.cpu);
       for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
-        wakeupLists.unshift(CpuStruct.selectCpuStruct?.cpu);
         wakeupLists.push(SpSystemTrace.wakeupList[i].cpu);
       }
       let wakeupCpuLists = Array.from(new Set(wakeupLists)).sort();
@@ -295,8 +295,8 @@ export class SpSystemTrace extends BaseElement {
         let cpuFavoriteRow: any = this.shadowRoot?.querySelector<TraceRow<any>>(
           `trace-row[row-type='cpu-data'][row-id='${wakeupCpuLists[i]}']`
         );
-        if (!cpuFavoriteRow) {
-          return;
+        if (cpuFavoriteRow === null || cpuFavoriteRow === undefined) {
+          continue;
         }
         cpuFavoriteRow!.setAttribute('collect-type', '');
         let replaceRow = document.createElement('div');
