@@ -1973,7 +1973,21 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private createHilogConfig(reportingFrequency: number): ProfilerPluginConfig<HilogConfig> {
+    let appProcess = this.spHilog!.appProcess;
+    let re = /^[0-9]+.?[0-9]*/;
+    let pid = 0;
+    let processId = '';
+    if (appProcess.indexOf('(') != -1) {
+      processId = appProcess.slice(appProcess.lastIndexOf('(') + 1, appProcess.lastIndexOf(')'));
+    } else {
+      processId = appProcess;
+    }
+    if (re.test(processId)) {
+      pid = Number(processId);
+    }
     let hilogConfig: HilogConfig = {
+      pid: pid,
+      logLevel: levelFromJSON(this.spHilog!.appLogLevel),
       needClear: true,
     };
     let hilogConfigProfilerPluginConfig: ProfilerPluginConfig<HilogConfig> = {

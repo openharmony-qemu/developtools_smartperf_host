@@ -175,23 +175,6 @@ export class TabPaneHiLogSummary extends BaseElement {
     this.parentTabEl = parentTabEl;
   }
 
-  private getLevelName(level: string): string {
-    switch (level) {
-      case 'D':
-        return 'Debug';
-      case 'I':
-        return 'Info';
-      case 'W':
-        return 'Warn';
-      case 'E':
-        return 'Error';
-      case 'F':
-        return 'Fatal';
-      default:
-        return 'Other';
-    }
-  }
-
   private createRowNodeTableEL(rowNodeList: LogTreeNode[], rowColor: string = ''): DocumentFragment {
     let unitPadding: number = 20;
     let leftPadding: number = 5;

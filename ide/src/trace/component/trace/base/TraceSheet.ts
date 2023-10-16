@@ -142,8 +142,6 @@ export class TraceSheet extends BaseElement {
     this.litTabs = this.shadowRoot?.querySelector('#tabs');
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.buildTabs(this.litTabs);
-    let minBtn = this.shadowRoot?.querySelector('#min-btn');
-    minBtn?.addEventListener('click', () => {});
     this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
     this.litTabs!.addEventListener('close-handler', () => {
       Reflect.ownKeys(tabConfig)
@@ -299,9 +297,11 @@ export class TraceSheet extends BaseElement {
         tabs!.style.height = navRoot!.offsetHeight + 'px';
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
+        tabsPackUp!.title = '恢复';
         (window as any).isPackUpTable = true;
       } else {
         tabsPackUp!.name = 'down';
+        tabsPackUp!.title = '最小化';
         tabs!.style.height = initialHeight.tabs;
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = initialHeight.node));
       }
@@ -430,7 +430,7 @@ export class TraceSheet extends BaseElement {
     val.nativeMemoryStatistic.push(rowType);
     val.nativeMemory = [];
     val.leftNs = data.startTime!;
-    val.rightNs = data.startTime! + data.dur! - 1;
+    val.rightNs = data.dur === 0 ? data.startTime! : (data.startTime! + data.dur! - 1);
     this.selection = val;
     this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
     this.showUploadSoBt(val);
@@ -619,7 +619,7 @@ export class TraceSheet extends BaseElement {
       let tblHiLog = tblHiLogPanel.querySelector<TabPaneHiLogs>('tab-hi-log');
       if (tblHiLog) {
         tblHiLog.parentElement!.style.overflow = 'hidden';
-        tblHiLog.initTabSheetEl(tblHiLog.parentElement!, this);
+        tblHiLog.initTabSheetEl(this);
       }
     }
     let tblSummaryPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hilogs-summary']");

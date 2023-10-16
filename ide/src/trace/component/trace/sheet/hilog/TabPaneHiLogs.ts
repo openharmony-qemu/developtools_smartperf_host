@@ -186,7 +186,7 @@ export class TabPaneHiLogs extends BaseElement {
     }
   }
 
-  initTabSheetEl(parentTabEl: HTMLElement, traceSheet: TraceSheet): void {
+  initTabSheetEl(traceSheet: TraceSheet): void {
     this.traceSheetEl = traceSheet;
     this.levelFilterInput!.selectedIndex = 0;
     this.tagFilterInput!.value = '';
@@ -308,9 +308,11 @@ export class TabPaneHiLogs extends BaseElement {
   }
 
   private refreshTable(): void {
-    this.traceSheetEl!.systemLogFlag = undefined;
-    this.spSystemTrace?.refreshCanvas(false);
-    this.updateFilterData();
+    if (this.traceSheetEl) {
+      this.traceSheetEl.systemLogFlag = undefined;
+      this.spSystemTrace?.refreshCanvas(false);
+      this.updateFilterData();
+    }
   }
 
   private delayedRefresh(optionFn: Function, dur: number = tableTimeOut): () => void {

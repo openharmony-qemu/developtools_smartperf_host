@@ -27,7 +27,6 @@ import {
   queryGpuWindowType,
   queryGpuData,
   queryGpuResourceData,
-  queryIsExistsGpuDumpData,
 } from '../../database/SqlLite.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
 import { type BaseStruct } from '../../bean/BaseStruct.js';
@@ -81,7 +80,7 @@ export class VmTrackerChart {
     await this.initPurgeableVM();
     await this.initDmaRow();
     const gpuMemoryData = await queryGpuMemoryData(this.memoryConfig.iPid);
-    const gpuResource = await queryGpuResourceData(this.scratchId, this.memoryConfig.iPid);
+    const gpuResource = await queryGpuResourceData(this.scratchId);
     const graphArr = await queryGpuData(MemoryConfig.getInstance().iPid, "'mem.graph_pss'").then((res) => {
       res.forEach((graph, index) => {
         (graph as any).name = `SnapShot ${index}`;
@@ -108,8 +107,7 @@ export class VmTrackerChart {
         await this.addGpuGraphRow(graphArr);
       }
       await this.addGpuGLRow(glArr);
-      let isExists = await queryIsExistsGpuDumpData(this.memoryConfig.iPid);
-      if (isExists.length > 0 && isExists[0].is_exists) {
+      if (glArr.length > 0) {
         await this.addGpuTotalRow();
         await this.addGpuWindowRow();
       }
@@ -381,7 +379,7 @@ export class VmTrackerChart {
   }
 
   private async addGpuTotalRow(): Promise<void> {
-    let types = await queryGpuTotalType(this.memoryConfig.iPid);
+    let types = await queryGpuTotalType();
     if (!types || types.length == 0) {
       return;
     }
@@ -423,7 +421,7 @@ export class VmTrackerChart {
       }
     };
     gpuTotalRow.supplier = (): Promise<Array<SnapshotStruct>> => {
-      return queryGpuTotalData(VmTrackerChart.gpuTotalModule, this.memoryConfig.iPid).then((res) => {
+      return queryGpuTotalData(VmTrackerChart.gpuTotalModule).then((res) => {
         res.forEach((it, index) => {
           (it as any).name = `SnapShot ${index}`;
         });
@@ -434,7 +432,7 @@ export class VmTrackerChart {
   }
 
   private async addGpuWindowRow(): Promise<void> {
-    let types = await queryGpuWindowType(this.memoryConfig.iPid);
+    let types = await queryGpuWindowType();
     if (!types || types.length === 0) {
       return;
     }
@@ -481,14 +479,15 @@ export class VmTrackerChart {
       }
     };
     gpuWindowRow.supplier = () => {
-      return queryGpuWindowData(VmTrackerChart.gpuWindow!, VmTrackerChart.gpuWindowModule, this.memoryConfig.iPid).then(
-        (res) => {
-          res.forEach((window, index) => {
-            (window as any).name = `SnapShot ${index}`;
-          });
-          return res as SnapshotStruct[];
-        }
-      );
+      return queryGpuWindowData(
+        VmTrackerChart.gpuWindow!,
+        VmTrackerChart.gpuWindowModule
+      ).then((res) => {
+        res.forEach((window, index) => {
+          (window as any).name = `SnapShot ${index}`;
+        });
+        return res as SnapshotStruct[];
+      });
     };
     this.gpuFolder.addChildTraceRow(gpuWindowRow);
   }

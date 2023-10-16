@@ -18,7 +18,7 @@ import { type LitTable, TableMode } from '../../../../../base-ui/table/lit-table
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { type JsCpuProfilerChartFrame, JsCpuProfilerTabStruct } from '../../../../bean/JsStruct.js';
 import { procedurePool } from '../../../../database/Procedure.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
+import { findSearchNode, ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 import { type FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import '../TabPaneFilter.js';
 
@@ -182,25 +182,9 @@ export class TabPaneJsCpuCallTree extends BaseElement {
     this.profilerFilter!.getFilterData((data: FilterData): void => {
       if (this.searchValue !== this.profilerFilter!.filterValue) {
         this.searchValue = this.profilerFilter!.filterValue;
-        this.findSearchNode(this.callTreeSource, this.searchValue);
+        findSearchNode(this.callTreeSource, this.searchValue, false);
         this.callTreeTable!.setStatus(this.callTreeSource, true);
         this.setCallTreeTableData(this.callTreeSource);
-      }
-    });
-  }
-  private findSearchNode(sampleArray: JsCpuProfilerTabStruct[], search: string): void {
-    search = search.toLocaleLowerCase();
-    sampleArray.forEach((sample) => {
-      if (sample.symbolName && sample.symbolName.toLocaleLowerCase().includes(search)) {
-        sample.isSearch = sample.symbolName != undefined && sample.symbolName.toLocaleLowerCase().includes(search);
-      } else {
-        sample.isSearch = false;
-      }
-      if (search === '') {
-        sample.isSearch = false;
-      }
-      if (sample.children.length > 0) {
-        this.findSearchNode(sample.children, search);
       }
     });
   }

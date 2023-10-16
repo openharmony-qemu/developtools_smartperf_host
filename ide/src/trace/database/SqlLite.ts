@@ -1594,13 +1594,15 @@ export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number
 export const queryNativeHookSubType = (leftNs: number, rightNs: number): Promise<Array<any>> =>
   query(
     'queryNativeHookSubType',
-    `select distinct sub_type_id as subTypeId, DD.data as subType
+    `select distinct(
+  case when sub_type_id is null  then -1 else sub_type_id end
+) as subTypeId,
+(case when sub_type_id is null then 'Other MmapEvent' else DD.data end) as subType
       from
         native_hook NH,
         trace_range TR
       left join data_dict DD on NH.sub_type_id = DD.id
-      where
-        NH.sub_type_id not null and
+where event_type = 'MmapEvent' and
         (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
         `,
     { $leftNs: leftNs, $rightNs: rightNs }
@@ -3572,7 +3574,7 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-export const queryGpuTotalType = (ipid:number): Promise<Array<{ id: number; data: string }>> =>
+export const queryGpuTotalType = (): Promise<Array<{ id: number; data: string }>> =>
   query(
     'queryGpuTotalType',
     `
@@ -3580,15 +3582,13 @@ export const queryGpuTotalType = (ipid:number): Promise<Array<{ id: number; data
     from memory_window_gpu A, trace_range TR left join data_dict B on A.module_name_id = B.id
     where window_name_id = 0
     and A.ts < TR.end_ts
-    and A.ipid = ${ipid}
   `
   );
 
 export const queryGpuDataByTs = (
   ts: number,
   window: number,
-  module: number | null,
-  ipid: number
+  module: number | null
 ): Promise<
   Array<{
     windowNameId: number;
@@ -3609,14 +3609,12 @@ export const queryGpuDataByTs = (
        size
        from memory_window_gpu, trace_range
        where ts - start_ts = ${ts} ${condition}
-       and ipid = ${ipid}
         `;
   return query('queryGpuDataByTs', sql);
 };
 
 export const queryGpuTotalData = (
-  moduleId: number | null,
-  ipid: number
+  moduleId: number | null
 ): Promise<Array<{ startNs: number; value: number }>> => {
   let moduleCondition = moduleId === null ? '' : `and module_name_id = ${moduleId}`;
   let sql = `
@@ -3624,7 +3622,6 @@ export const queryGpuTotalData = (
     from memory_window_gpu,trace_range
     where window_name_id = 0 ${moduleCondition}
     and ts< end_ts
-    and ipid = ${ipid}
     group by ts;
   `;
   return query('queryGpuTotalData', sql);
@@ -3667,18 +3664,10 @@ export const queryGpuDataTab = (
   return query('queryGpuGLDataByRange', sql);
 };
 
-export const queryIsExistsGpuDumpData = (ipid: number): Promise<Array<{ is_exists: boolean }>> => {
-  let sql = `
-    SELECT COUNT(*) > 0 AS is_exists FROM memory_window_gpu WHERE ipid = ${ipid};
-    `;
-  return query('queryIsExistsGpuDumpData', sql);
-};
-
 export const queryGpuDataByRange = (
   leftNs: number,
   rightNs: number,
   interval: number,
-  ipid: number
 ): Promise<
   Array<{
     startTs: number;
@@ -3698,7 +3687,7 @@ export const queryGpuDataByRange = (
     max(size) maxSize,
     min(size) minSize
   from memory_window_gpu,trace_range
-  where ipid = ${ipid} and not ((startTs + ${interval} < ${leftNs}) or (startTs > ${rightNs}))
+  where not ((startTs + ${interval} < ${leftNs}) or (startTs > ${rightNs}))
   group by window_name_id,module_name_id,category_name_id
   order by avgSize DESC;
   `;
@@ -3708,7 +3697,6 @@ export const queryGpuDataByRange = (
 export const queryGpuWindowData = (
   windowId: number,
   moduleId: number | null,
-  ipid: number
 ): Promise<Array<{ startNs: number; value: number }>> => {
   let moduleCondition = moduleId === null ? '' : `and module_name_id = ${moduleId}`;
   let sql = `
@@ -3716,27 +3704,24 @@ export const queryGpuWindowData = (
     from memory_window_gpu,trace_range
     where window_name_id = ${windowId} ${moduleCondition}
     and ts < end_ts
-    and ipid = ${ipid}
     group by ts;
   `;
   return query('queryGpuWindowData', sql);
 };
 
-export const queryGpuWindowType = (ipid:number): Promise<Array<{ id: number; data: string; pid: number }>> =>
+export const queryGpuWindowType = (): Promise<Array<{ id: number; data: string; pid: number }>> =>
   query(
     'queryGpuWindowType',
     `
   select distinct A.window_name_id as id,B.data, null as pid
 from memory_window_gpu A, trace_range tr left join data_dict B on A.window_name_id = B.id
-where window_name_id != 0 
+where window_name_id != 0
 and A.ts < tr.end_ts
-and A.ipid = ${ipid}
 union all
 select distinct A.module_name_id id, B.data, A.window_name_id pid
 from memory_window_gpu A, trace_range TR left join data_dict B on A.module_name_id = B.id
 where window_name_id != 0
 and A.ts < TR.end_ts
-and A.ipid = ${ipid}
   `
   );
 
@@ -4827,7 +4812,7 @@ export const queryGpuMemoryData = (processId: number): Promise<Array<SnapshotStr
   );
 
 //  VM Tracker Gpu Resourcet泳道图
-export const queryGpuResourceData = (ipid: number, categoryNameId: number): Promise<Array<SnapshotStruct>> =>
+export const queryGpuResourceData = (categoryNameId: number): Promise<Array<SnapshotStruct>> =>
   query(
     'queryGpuResourceData',
     `SELECT
@@ -4845,7 +4830,6 @@ export const queryGpuResourceData = (ipid: number, categoryNameId: number): Prom
      FROM memory_window_gpu, trace_range
      WHERE ts between start_ts and end_ts
     AND category_name_id = ${categoryNameId}
-    AND ipid = ${ipid}
      GROUP BY ts) AS subquery2
   ON subquery1.startNs = subquery2.startNs`,
   );

@@ -105,10 +105,18 @@ export function ns2Timestamp(ns: number): string {
 
 const offsetX = 5;
 
-export function isFrameContainPoint(frame: Rect, x: number, y: number, strict: boolean = true, offset: boolean = false): boolean {
+export function isFrameContainPoint(
+  frame: Rect,
+  x: number,
+  y: number,
+  strict: boolean = true,
+  offset: boolean = false
+): boolean {
   if (strict) {
     if (offset) {
-      return x >= frame.x - offsetX && x <= frame.x + frame.width + offsetX && y >= frame.y && y <= frame.y + frame.height;
+      return (
+        x >= frame.x - offsetX && x <= frame.x + frame.width + offsetX && y >= frame.y && y <= frame.y + frame.height
+      );
     } else {
       return x >= frame.x && x <= frame.x + frame.width && y >= frame.y && y <= frame.y + frame.height;
     }
@@ -1409,4 +1417,25 @@ export function drawWakeUpList(
     wakeUpListContext.stroke();
     wakeUpListContext.closePath();
   }
+}
+
+export function findSearchNode(data: any[], search: string, parentSearch: boolean): void {
+  search = search.toLocaleLowerCase();
+  data.forEach((node) => {
+    if ((node.symbolName && node.symbolName.toLocaleLowerCase().includes(search) && search !== '') || parentSearch) {
+      node.searchShow = true;
+      node.isSearch = node.symbolName != undefined && node.symbolName.toLocaleLowerCase().includes(search);
+      let parentNode = node.parent;
+      while (parentNode && !parentNode.searchShow) {
+        parentNode.searchShow = true;
+        parentNode = parentNode.parent;
+      }
+    } else {
+      node.searchShow = false;
+      node.isSearch = false;
+    }
+    if (node.children.length > 0) {
+      findSearchNode(node.children, search, node.searchShow);
+    }
+  });
 }

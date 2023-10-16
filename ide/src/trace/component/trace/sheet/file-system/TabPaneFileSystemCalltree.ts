@@ -27,6 +27,7 @@ import '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 import { showButtonMenu } from '../SheetUtils.js';
+import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 
 @element('tabpane-filesystem-calltree')
 export class TabpaneFilesystemCalltree extends BaseElement {
@@ -387,16 +388,9 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           },
         ];
         this.getDataByWorker(fileArgs, (result: any[]) => {
-          if (result.length === 0) {
-            this.setLTableData(result);
-          } else {
-            if (this.fsCallTreeDataSource.length === 0) {
-              this.fsCallTreeDataSource = this.currentFsCallTreeDataSource;
-            }
-            this.findSearchNode(this.fsCallTreeDataSource, this.searchValue);
-            this.fsCallTreeTbl!.setStatus(this.fsCallTreeDataSource, true);
-            this.setLTableData(this.fsCallTreeDataSource);
-          }
+          this.fsCallTreeTbl!.isSearch = true;
+          this.fsCallTreeTbl!.setStatus(result, true);
+          this.setLTableData(result);
           this.frameChart!.data = this.fsCallTreeDataSource;
           this.switchFlameChart(data);
         });
@@ -412,23 +406,6 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       // @ts-ignore
       this.setLTableData(this.fsCallTreeDataSource);
       this.frameChart!.data = this.fsCallTreeDataSource;
-    });
-  }
-
-  private findSearchNode(sampleArray: any[], search: string): void {
-    search = search.toLocaleLowerCase();
-    sampleArray.forEach((sample) => {
-      if (sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) {
-        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
-      } else {
-        sample.isSearch = false;
-      }
-      if (search === '') {
-        sample.isSearch = false;
-      }
-      if (sample.children.length > 0) {
-        this.findSearchNode(sample.children, search);
-      }
     });
   }
 

@@ -31,6 +31,7 @@ import '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { showButtonMenu } from '../SheetUtils.js';
+import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
@@ -439,16 +440,9 @@ export class TabpanePerfProfile extends BaseElement {
           },
         ];
         this.getDataByWorker(perfArgs, (result: any[]) => {
-          if (result.length === 0) {
-            this.setPerfProfilerLeftTableData(result);
-          } else {
-            if (this.perfProfilerDataSource.length === 0) {
-              this.perfProfilerDataSource = this.currentPerfProfilerDataSource;
-            }
-            this.findSearchNode(this.perfProfilerDataSource, this.searchValue);
-            this.perfProfilerTbl!.setStatus(this.perfProfilerDataSource, true);
-            this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
-          }
+          this.perfProfilerTbl!.isSearch = true;
+          this.perfProfilerTbl!.setStatus(result, true);
+          this.setPerfProfilerLeftTableData(result);
           this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
           this.switchFlameChart(data);
         });
@@ -464,23 +458,6 @@ export class TabpanePerfProfile extends BaseElement {
       // @ts-ignore
       this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-    });
-  }
-
-  private findSearchNode(sampleArray: PerfCallChainMerageData[], search: string): void {
-    search = search.toLocaleLowerCase();
-    sampleArray.forEach((sample) => {
-      if (sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) {
-        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
-      } else {
-        sample.isSearch = false;
-      }
-      if (search === '') {
-        sample.isSearch = false;
-      }
-      if (sample.children.length > 0) {
-        this.findSearchNode(sample.children, search);
-      }
     });
   }
 

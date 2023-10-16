@@ -26,6 +26,7 @@ import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogic
 import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite.js';
 import { ParseExpression } from '../SheetUtils.js';
 import { NativeMemoryExpression } from '../../../../bean/NativeHook.js';
+import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 
 @element('tabpane-nm-calltree')
 export class TabpaneNMCalltree extends BaseElement {
@@ -556,16 +557,9 @@ export class TabpaneNMCalltree extends BaseElement {
             this.lastIsExpression = false;
           }
           this.getDataByWorker(nmArgs, (result: any[]) => {
-            if (result.length === 0) {
-              this.setLTableData(result);
-            } else {
-              if (this.nmCallTreeSource.length === 0) {
-                this.nmCallTreeSource = this.currentNmCallTreeSource;
-              }
-              this.findSearchNode(this.nmCallTreeSource, this.searchValue);
-              this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
-              this.setLTableData(this.nmCallTreeSource);
-            }
+            this.nmCallTreeTbl!.isSearch = true;
+            this.nmCallTreeTbl!.setStatus(result, true);
+            this.setLTableData(result);
             this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
             this.switchFlameChart(nmCallTreeData);
           });
@@ -582,23 +576,6 @@ export class TabpaneNMCalltree extends BaseElement {
       // @ts-ignore
       this.setLTableData(this.nmCallTreeSource, true);
       this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-    });
-  }
-
-  private findSearchNode(sampleArray: any[], search: string): void {
-    search = search.toLocaleLowerCase();
-    sampleArray.forEach((sample) => {
-      if (sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) {
-        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
-      } else {
-        sample.isSearch = false;
-      }
-      if (search === '') {
-        sample.isSearch = false;
-      }
-      if (sample.children.length > 0) {
-        this.findSearchNode(sample.children, search);
-      }
     });
   }
 

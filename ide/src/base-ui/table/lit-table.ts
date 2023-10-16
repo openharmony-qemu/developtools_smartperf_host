@@ -55,6 +55,7 @@ export class LitTable extends HTMLElement {
   private value: Array<any> = [];
   private _mode = TableMode.Expand;
   private columnResizeEnable: boolean = true;
+  private _isSearch: boolean = false;
 
   constructor() {
     super();
@@ -372,6 +373,10 @@ export class LitTable extends HTMLElement {
     return this.ds || [];
   }
 
+  set isSearch(value: boolean) {
+    this._isSearch = value;
+  }
+
   set recycleDataSource(value) {
     if (this.tableElement) {
       this.isScrollXOutSide = this.tableElement!.scrollWidth > this.tableElement!.clientWidth;
@@ -386,16 +391,22 @@ export class LitTable extends HTMLElement {
         this.tableElement!.scrollLeft = 0;
       }
       if (this.hasAttribute('tree')) {
-        if (
-          value !== this.value &&
-          this.value.length !== 0 &&
-          this.querySelector('lit-table-column')?.hasAttribute('retract')
-        ) {
-          this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'up';
-          this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'down';
+        if (value.length === 0) {
+          this.recycleDs = this.meauseTreeRowElement(value);
+        } else {
+          if (
+            value !== this.value &&
+            this.value.length !== 0 &&
+            !this._isSearch &&
+            this.querySelector('lit-table-column')?.hasAttribute('retract')
+          ) {
+            this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'up';
+            this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'down';
+          }
+          this._isSearch = false;
+          this.value = value;
+          this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
         }
-        this.value = value;
-        this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
       } else {
         this.recycleDs = this.meauseAllRowHeight(value);
       }
