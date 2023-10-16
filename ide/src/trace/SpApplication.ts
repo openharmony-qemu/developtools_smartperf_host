@@ -1017,9 +1017,9 @@ export class SpApplication extends BaseElement {
         } else {
           fd.append('file', ev as any);
         }
-        let uploadPath = `https://${window.location.host.split(':')[0]}:9000/application/upload`;
+        let uploadPath = `https://${window.location.host.split(':')[0]}:9000/upload`;
         if (that.vs) {
-          uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/application/upload`;
+          uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`;
         }
         info('upload trace');
         let dbName = '';
@@ -1119,7 +1119,7 @@ export class SpApplication extends BaseElement {
                 previewButton.style.pointerEvents = 'none';
                 previewButton.style.opacity = '0.7';
                 previewButton.addEventListener('click', () => {
-                  if (progressEL.loading) {
+                  if (progressEL.loading || that.currentPageNum === 1) {
                     return;
                   }
                   if (that.currentPageNum > 1) {
@@ -1136,12 +1136,13 @@ export class SpApplication extends BaseElement {
                     let previewElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                       `.page-number[title='${that.currentPageNum}']`
                     );
-                    if (!previewElement || previewElement.textContent === '...') {
-                      return;
-                    }
                     let querySelector = pageListDiv.querySelector('.page-number[selected]');
                     querySelector?.removeAttribute('selected');
-                    previewElement!.setAttribute('selected', '');
+                    if (!previewElement || previewElement.textContent === '...') {
+                      previewElement = that.shadowRoot?.querySelector<HTMLDivElement>(
+                        `.page-number[title='...']`);
+                    }
+                    previewElement?.setAttribute('selected', '');
                     pageInput!.value = that.currentPageNum + '';
                     progressEL.loading = true;
                     getTraceFileByPage(that.currentPageNum);
@@ -1153,7 +1154,7 @@ export class SpApplication extends BaseElement {
                 nextButton.style.opacity = '0.7';
               }
               nextButton!.addEventListener('click', () => {
-                if (progressEL.loading) {
+                if (progressEL.loading || that.currentPageNum === that.longTraceHeadMessageList.length) {
                   return;
                 }
                 if (that.currentPageNum < that.longTraceHeadMessageList.length) {
@@ -1170,11 +1171,12 @@ export class SpApplication extends BaseElement {
                   let nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
                     `.page-number[title='${that.currentPageNum}']`
                   );
-                  if (!nextElement || nextElement.textContent === '...') {
-                    return;
-                  }
                   let querySelector = pageListDiv.querySelector('.page-number[selected]');
                   querySelector?.removeAttribute('selected');
+                  if (!nextElement || nextElement.textContent === '...') {
+                    nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
+                      `.page-number[title='...']`);
+                  }
                   nextElement?.setAttribute('selected', '');
                   pageInput!.value = that.currentPageNum + '';
                   progressEL.loading = true;
@@ -1340,6 +1342,7 @@ export class SpApplication extends BaseElement {
                 litSearch.isLoading = false;
                 litSearch.setPercent('hitrace file too big!',  -1);
                 progressEL.loading = false;
+                that.freshMenuDisable(false);
               } else {
                 let freeDataLength = maxTraceFileLength - traceLength;
                 let freeDataIndex = findFreeSizeAlgorithm(
@@ -1353,12 +1356,14 @@ export class SpApplication extends BaseElement {
                 let fileBlob = new Blob(finalData);
                 const file = new File([fileBlob], fileName);
                 let fileSize = (file.size / 1048576).toFixed(1);
+                document.title = `${fileName}(${fileSize}M)`
                 handleWasmMode(file, file.name, `${fileSize}M`, fileName);
               }
             } else {
               let fileBlob = new Blob([traceArray, ebpfArray, arkTsArray, hiPerfArray]);
               const file = new File([fileBlob], fileName);
               let fileSize = (file.size / 1048576).toFixed(1);
+              document.title = `${fileName}(${fileSize}M)`
               handleWasmMode(file, file.name, `${fileSize}M`, file.name);
             }
             that.traceFileName = fileName;
@@ -1984,16 +1989,8 @@ export class SpApplication extends BaseElement {
       that.search = true;
       progressEL.loading = true;
       let downloadLineFile = false;
-      if (urlParams.local) {
-        downloadLineFile = false;
-     } else {
-        downloadLineFile = true;
-     }
       setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
-      this.downloadOnLineFile(urlParams.trace, downloadLineFile,
-        (arrayBuf, fileName, showFileName, fileSize) => {
-        handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
-      }, (localPath) => {
+      this.downloadOnLineFile(urlParams.trace, downloadLineFile, (localPath) => {
         let path = urlParams.trace as string;
         let fileName: string = '';
         let showFileName: string = '';
@@ -2021,10 +2018,8 @@ export class SpApplication extends BaseElement {
             });
           })
           .catch((e) => {
-            if (!downloadLineFile) {
-              const firstQuestionMarkIndex = window.location.href.indexOf('?');
-              location.replace(window.location.href.substring(0, firstQuestionMarkIndex));
-            }
+            const firstQuestionMarkIndex = window.location.href.indexOf('?');
+            location.replace(window.location.href.substring(0, firstQuestionMarkIndex));
           });
       });
     } else {
@@ -2143,31 +2138,18 @@ export class SpApplication extends BaseElement {
     }, 1000);
   }
 
-  private downloadOnLineFile(url: string, download: boolean, openUrl: (buffer: ArrayBuffer, fileName: string,
-    showFileName: string, fileSize: string) => void, openFileHandler: (path: string) => void) {
+  private downloadOnLineFile(url: string, download: boolean, openFileHandler: (path: string) => void) {
     if (download) {
-      fetch(url)
-      .then((res) => {
-        res.arrayBuffer().then((arrayBuf) => {
-          let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
-          let fileName = url.split('/').reverse()[0];
-          document.title = `${fileName} (${fileSize}M)`;
-          info('Parse trace using wasm mode ');
-          let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
-          openUrl(arrayBuf, fileName, showFileName, fileSize);
-        });
+      let api = `${window.location.origin}/download-file`;
+      fetch(api, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          url: url,
+        }),
       })
-      .catch((e) => {
-        let api = `${window.location.origin}/application/download-file`;
-        fetch(api, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            url: url,
-          }),
-        })
         .then((response) => response.json())
         .then((res) => {
           if (res.code === 0 && res.success) {
@@ -2177,7 +2159,6 @@ export class SpApplication extends BaseElement {
             }
           }
         });
-      });
     } else {
       openFileHandler(url);
     }

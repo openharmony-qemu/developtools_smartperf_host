@@ -704,6 +704,7 @@ async function splitFileAndSave(
   let saveStartOffset = 0;
   let currentChunk = new Uint8Array(maxSize);
   let currentChunkOffset = 0;
+  let resultFileSize = 0;
   do {
     queryEndIndex = queryStartIndex + 9;
     if (queryEndIndex > endIndex) {
@@ -712,11 +713,10 @@ async function splitFileAndSave(
     const transaction = db.transaction(STORE_NAME, 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const index = store.index('QueryCompleteFile');
-    let range = IDBKeyRange.bound([timStamp, fileType, 0, startIndex], [timStamp, fileType, 0, endIndex], false, false);
+    let range = IDBKeyRange.bound([timStamp, fileType, 0, queryStartIndex], [timStamp, fileType, 0, queryEndIndex], false, false);
     const getRequest = index.openCursor(range);
     let res = await queryDataFromIndexeddb(getRequest);
     queryStartIndex = queryEndIndex + 1;
-    let resultFileSize = 0;
     for (let i = 0; i < res.length; i++) {
       let arrayBuffer = res[i];
       let uint8Array = new Uint8Array(arrayBuffer.buf);

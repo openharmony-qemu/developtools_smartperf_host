@@ -829,7 +829,7 @@ export function drawLinkLines(
     );
     let newSecondNode = new PairPoint(
       it[1].rowEL,
-      it[0].x,
+      it[1].x,
       it[1].y,
       it[1].ns,
       it[1].offsetY,

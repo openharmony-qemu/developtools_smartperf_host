@@ -80,6 +80,7 @@ import { Utils } from './Utils.js';
 import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
 import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
 import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
+import { type LitPageTable } from '../../../../base-ui/table/LitPageTable.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -142,7 +143,7 @@ export class TraceSheet extends BaseElement {
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.buildTabs(this.litTabs);
     let minBtn = this.shadowRoot?.querySelector('#min-btn');
-    minBtn?.addEventListener('click', () => { });
+    minBtn?.addEventListener('click', () => {});
     this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
     this.litTabs!.addEventListener('close-handler', () => {
       Reflect.ownKeys(tabConfig)
@@ -223,7 +224,7 @@ export class TraceSheet extends BaseElement {
           } else if (
             navRoot!.offsetHeight <= moveY &&
             search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight <=
-            window.innerHeight - moveY
+              window.innerHeight - moveY
           ) {
             tabs!.style.height = moveY + 'px';
             node!.style.height = moveY - navRoot!.offsetHeight + 'px';
@@ -340,9 +341,14 @@ export class TraceSheet extends BaseElement {
     this.exportBt!.onclick = (): void => {
       let currentTab = this.getTabpaneByKey(this.litTabs?.activekey!);
       if (currentTab) {
-        let tables = Array.from(
+        let table1 = Array.from(
+          (currentTab.firstChild as BaseElement).shadowRoot?.querySelectorAll<LitPageTable>('lit-page-table') || []
+        );
+        let table2 = Array.from(
           (currentTab.firstChild as BaseElement).shadowRoot?.querySelectorAll<LitTable>('lit-table') || []
         );
+        let tables = [...table1, ...table2];
+
         for (let table of tables) {
           if (!table.hasAttribute('hideDownload')) {
             table.exportData();
@@ -702,7 +708,7 @@ export class TraceSheet extends BaseElement {
       }
     }
     queryNativeHookResponseTypes(param.leftNs, param.rightNs, nmTypes).then((res) => {
-      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => { });
+      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => {});
     });
   }
 

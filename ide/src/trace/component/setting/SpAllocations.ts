@@ -223,18 +223,32 @@ export class SpAllocations extends BaseElement {
         this.intervalResultInput!.style.color = 'red';
         parentElement.setAttribute('percent', '3600');
       } else {
-        this.statisticsSlider!.percent = this.intervalResultInput!.value;
+        let defaultSize = 0;
+        let stepSize = 450;
+        let inputValue = Number(this.intervalResultInput!.value);
+        for (let stepIndex = 0; stepIndex < stepValue.length; stepIndex++) {
+          let currentValue = stepValue[stepIndex];
+          if (inputValue === currentValue) {
+            defaultSize = stepIndex * stepSize;
+            break;
+          } else if (inputValue < currentValue && stepIndex !== 0) {
+            defaultSize = (inputValue - stepValue[stepIndex - 1]) /
+              (currentValue - stepValue[stepIndex - 1]) * stepSize + (stepSize * (stepIndex - 1));
+            break;
+          }
+        }
+        this.statisticsSlider!.percent = defaultSize + '';
         let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
-        htmlInputElement.value = this.intervalResultInput!.value;
         this.statisticsSlider!.sliderStyle = {
           minRange: 0,
           maxRange: 3600,
-          defaultValue: this.intervalResultInput!.value,
+          defaultValue: defaultSize + '',
           resultUnit: 'S',
           stepSize: 1,
           lineColor: 'var(--dark-color3,#46B1E3)',
           buttonColor: '#999999',
         };
+        htmlInputElement.value = defaultSize + '';
         parentElement.setAttribute('percent', this.intervalResultInput!.value);
         parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
       }
@@ -271,7 +285,7 @@ export class SpAllocations extends BaseElement {
       }
     });
 
-    let litSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;
+    let litSwitch = this.shadowRoot?.querySelector('#switch-disabled') as LitSwitch;
     litSwitch.addEventListener('change', (event: any) => {
       let detail = event.detail;
       if (detail.checked) {
@@ -525,7 +539,7 @@ export class SpAllocations extends BaseElement {
         <div class="root">
           <div class = "title" style="width: 92%;margin-top: 5vh;">
             <span class="allocation-title">Start Native Memory Record</span>
-            <lit-switch></lit-switch>
+            <lit-switch id="switch-disabled"></lit-switch>
           </div>
           <div class="allocation-application">
              <span class="allocation-inner-font-style">ProcessId or ProcessName</span>

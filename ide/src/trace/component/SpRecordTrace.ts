@@ -727,11 +727,13 @@ export class SpRecordTrace extends BaseElement {
       this.disconnectButton!.hidden = true;
       this.recordButton!.hidden = true;
     }
-    this.recordButton!.addEventListener('click', () => {
-      if (this.recordButtonText!.textContent == this.record) {
-        this.recordButtonListener();
-      } else {
-        this.stopRecordListener();
+    this.recordButton!.addEventListener('mousedown', (event) => {
+      if (event.button === 0) {
+        if (this.recordButtonText!.textContent === this.record) {
+          this.recordButtonListener();
+        } else {
+          this.stopRecordListener();
+        }
       }
     });
     this.cancelButton!.addEventListener('click', () => {
