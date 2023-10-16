@@ -959,7 +959,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.tabCurrentSelectionInit('Animation Details');
     let list = [];
     let dataTs: number = data.startTs < 0 ? 0 : data.startTs;
-    list.push({ name: 'Name', value: data.animationId });
+    list.push({ name: 'Name', value: data.name });
     list.push({ name: 'Start time(Relative)', value: `${Utils.getTimeString(dataTs)}` });
     list.push({
       name: 'Start time(Absolute)',

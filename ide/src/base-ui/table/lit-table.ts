@@ -52,7 +52,7 @@ export class LitTable extends HTMLElement {
   private isScrollXOutSide: boolean = false;
   private exportLoading: boolean = false;
   private _loading: boolean = false;
-  private value: any;
+  private value: Array<any> = [];
   private _mode = TableMode.Expand;
   private columnResizeEnable: boolean = true;
 
@@ -386,11 +386,15 @@ export class LitTable extends HTMLElement {
         this.tableElement!.scrollLeft = 0;
       }
       if (this.hasAttribute('tree')) {
-        this.value = value;
-        if (this.shadowRoot?.querySelector('.expand')) {
-          this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.top')!.name = 'up';
-          this.shadowRoot!.querySelector('.expand')!.querySelector<LitIcon>('.bottom')!.name = 'down';
+        if (
+          value !== this.value &&
+          this.value.length !== 0 &&
+          this.querySelector('lit-table-column')?.hasAttribute('retract')
+        ) {
+          this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'up';
+          this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'down';
         }
+        this.value = value;
         this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
       } else {
         this.recycleDs = this.meauseAllRowHeight(value);
@@ -434,7 +438,7 @@ export class LitTable extends HTMLElement {
       columns: this.columns as any[],
       tables: this.ds,
       fileName: date.getTime() + '',
-      columnFormatter: this.itemTextHandleMap
+      columnFormatter: this.itemTextHandleMap,
     }).then((res) => {
       this.exportLoading = false;
       this.exportProgress!.loading = false;
@@ -529,12 +533,22 @@ export class LitTable extends HTMLElement {
     });
   }
 
-  setStatus(list: any, status: boolean) {
+  setStatus(list: any, status: boolean, depth: number = 0) {
     this.tableElement!.scrollTop = 0;
+    // 添加depth参数，让切换图标的代码在递归中只走一遍
+    if (depth === 0) {
+      if (status) {
+        this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'down';
+        this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'up';
+      } else {
+        this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'up';
+        this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'down';
+      }
+    }
     for (let item of list) {
       item.status = status;
       if (item.children != undefined && item.children.length > 0) {
-        this.setStatus(item.children, status);
+        this.setStatus(item.children, status, depth + 1);
       }
     }
   }
@@ -1152,7 +1166,11 @@ export class LitTable extends HTMLElement {
           td.title = rowData.data[dataIndex];
         } else {
           td = document.createElement('div');
-          td.innerHTML = text;
+          if (rowData.data.rowName === 'js-memory' || rowData.data.rowName === 'cpu-profiler') {
+            td.innerHTML = '';
+          } else {
+            td.innerHTML = text;
+          }
           td.dataIndex = dataIndex;
           if (text.indexOf('&lt;') === -1) {
             td.title = text;
@@ -1661,7 +1679,11 @@ export class LitTable extends HTMLElement {
         } else {
           let dataIndex = this.columns![0].getAttribute('data-index') || '1';
           let text = this.formatName(dataIndex, rowObject.data[dataIndex]);
-          firstElement.innerHTML = text;
+          if (rowObject.data.rowName === 'js-memory' || rowObject.data.rowName === 'cpu-profiler') {
+            firstElement.innerHTML = '';
+          } else {
+            firstElement.innerHTML = text;
+          }
           firstElement.title = text;
         }
         if (rowObject.children && rowObject.children.length > 0 && !rowObject.data.hasNext) {
@@ -1670,7 +1692,7 @@ export class LitTable extends HTMLElement {
         }
         firstElement.style.paddingLeft = iconWidth * rowObject.depth + 'px';
         if (!rowObject.children || rowObject.children.length === 0) {
-          firstElement.style.paddingLeft = iconWidth * rowObject.depth + iconWidth + iconPadding  * 2 + 'px';
+          firstElement.style.paddingLeft = iconWidth * rowObject.depth + iconWidth + iconPadding * 2 + 'px';
         }
         if (rowObject.data.hasNext) {
           let btn = this.createBtn(rowObject);

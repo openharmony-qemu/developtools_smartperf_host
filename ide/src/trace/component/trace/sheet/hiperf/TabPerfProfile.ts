@@ -446,6 +446,7 @@ export class TabpanePerfProfile extends BaseElement {
               this.perfProfilerDataSource = this.currentPerfProfilerDataSource;
             }
             this.findSearchNode(this.perfProfilerDataSource, this.searchValue);
+            this.perfProfilerTbl!.setStatus(this.perfProfilerDataSource, true);
             this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
           }
           this.perfProfileFrameChart!.data = this.perfProfilerDataSource;

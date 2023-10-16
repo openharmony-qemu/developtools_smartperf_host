@@ -104,7 +104,9 @@ export class VmTrackerChart {
       } else {
         this.smapsRecordTab!.GLESHostCache = [];
       }
-      await this.addGpuGraphRow(graphArr);
+      if (graphArr.length > 0) {
+        await this.addGpuGraphRow(graphArr);
+      }
       await this.addGpuGLRow(glArr);
       let isExists = await queryIsExistsGpuDumpData(this.memoryConfig.iPid);
       if (isExists.length > 0 && isExists[0].is_exists) {
@@ -346,7 +348,7 @@ export class VmTrackerChart {
     for (let i = 0; i < gpuResourceData.length; i++) {
       gpuResourceData[i].name = `Snapshot${i}`;
     }
-    // 将泳道图数据传递给Smaps Record Tab页
+    // 将泳道图数据传递给Native Heap Tab页
     this.smapsRecordTab!.GLESHostCache = gpuResourceData;
     let gpuMemoryTraceRow = this.initTraceRow(
       'Gpu Resource',

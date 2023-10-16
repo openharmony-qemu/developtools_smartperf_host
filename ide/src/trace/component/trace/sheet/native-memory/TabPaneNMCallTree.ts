@@ -563,6 +563,7 @@ export class TabpaneNMCalltree extends BaseElement {
                 this.nmCallTreeSource = this.currentNmCallTreeSource;
               }
               this.findSearchNode(this.nmCallTreeSource, this.searchValue);
+              this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
               this.setLTableData(this.nmCallTreeSource);
             }
             this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;

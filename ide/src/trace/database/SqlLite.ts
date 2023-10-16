@@ -4546,7 +4546,8 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
                ELSE ( a.start_point - R.start_ts ) END
            ) AS startTs,
            (a.start_point - R.start_ts) AS endTs,
-           0 AS frameInfo
+           0 AS frameInfo,
+           a.name AS name
          FROM 
              animation AS a, 
              trace_range AS R
@@ -4558,7 +4559,8 @@ export const queryFrameAnimationData = (): Promise<Array<FrameAnimationStruct>> 
                ELSE ( a.start_point - R.start_ts ) END
            ) AS startTs,
            (a.end_point - R.start_ts) AS endTs,
-           a.frame_info AS frameInfo
+           a.frame_info AS frameInfo,
+           a.name AS name
          FROM 
              animation AS a, 
              trace_range AS R
@@ -5441,7 +5443,18 @@ export const queryLogData = (oneDayTime: number): Promise<Array<LogStruct>> =>
                 0
               ELSE (l.ts - TR.start_ts)
               END     AS startTs,
-            l.level   AS level,
+            CASE
+              WHEN l.level = 'D' THEN
+                  'Debug'
+              WHEN l.level = 'I' THEN
+                  'Info'
+              WHEN l.level = 'W' THEN
+                  'Warn'
+              WHEN l.level = 'E' THEN
+                  'Error'
+              WHEN l.level = 'F' THEN
+                  'Fatal'
+              END AS level,
             CASE
               WHEN l.level = 'D' THEN
                 0

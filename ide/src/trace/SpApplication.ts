@@ -261,6 +261,7 @@ export class SpApplication extends BaseElement {
         .search-container{
             z-index: 10;
             position: relative;
+            cursor: default;
         }
         .progress{
             bottom: 0;
@@ -915,42 +916,22 @@ export class SpApplication extends BaseElement {
       });
     }
 
-    function postConvert(fileName: string) {
-      let htraceData = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
-      let enc = new TextDecoder();
-      let headerStr = enc.decode(htraceData);
+    function postConvert(fileName: string): void {
       let newFileName = fileName.substring(0, fileName.lastIndexOf('.')) + '.systrace';
       let aElement = document.createElement('a');
-      let rowTraceStr = Array.from(new Uint8Array(DbPool.sharedBuffer!.slice(0, 2)))
-        .map((byte) => byte.toString(16).padStart(2, '0'))
-        .join('');
-      if (headerStr.indexOf('OHOSPROF') === 0 || rowTraceStr.indexOf('49df') === 0) {
-        convertPool.submitWithName('getConvertData', (status: boolean, msg: string, results: Blob) => {
-          aElement.href = URL.createObjectURL(results);
-          aElement.download = newFileName;
-          let timeoutId = 0;
-          aElement.addEventListener('click', (ev) => {
-            clearTimeout(timeoutId);
-            timeoutId = window.setTimeout(() => {
-              restoreDownLoadIcons();
-            }, 2000);
-          });
-          aElement.click();
-          window.URL.revokeObjectURL(aElement.href);
-        });
-      } else {
-        aElement.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+      convertPool.submitWithName('getConvertData',　(status: boolean, msg: string, results: Blob) => {
+        aElement.href = URL.createObjectURL(results);
         aElement.download = newFileName;
-        let txtTimeoutId = 0;
+        let timeoutId = 0;
         aElement.addEventListener('click', (ev) => {
-          clearTimeout(txtTimeoutId);
-          txtTimeoutId = window.setTimeout(() => {
+          clearTimeout(timeoutId);
+          timeoutId = window.setTimeout(() => {
             restoreDownLoadIcons();
           }, 2000);
         });
         aElement.click();
         window.URL.revokeObjectURL(aElement.href);
-      }
+      });
     }
 
     function pushConvertTrace(fileName: string): Array<any> {
@@ -1438,8 +1419,13 @@ export class SpApplication extends BaseElement {
             },
             async (res) => {
               let existFtrace = await queryExistFtrace();
+              let traceHeadData = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
+              let enc = new TextDecoder();
+              let headerStr = enc.decode(traceHeadData);
+              let rowTraceStr = Array.from(new Uint8Array(DbPool.sharedBuffer!.slice(0, 2))).
+              map((byte) => byte.toString(16).padStart(2, '0')).join('');
               let index = 2;
-              if (existFtrace.length > 0) {
+              if (existFtrace.length > 0 && (headerStr.indexOf('OHOSPROF') === 0 || rowTraceStr.indexOf('49df') === 0)) {
                 mainMenu.menus!.splice(2, 1, {
                   collapsed: false,
                   title: 'Convert trace',

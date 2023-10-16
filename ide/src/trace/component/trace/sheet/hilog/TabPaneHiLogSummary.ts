@@ -276,7 +276,7 @@ export class TabPaneHiLogSummary extends BaseElement {
     let root: LogTreeNode = { id: id, depth: 0, children: [], logName: 'All', count: 0 };
     logTreeNodes.forEach((item) => {
       id++;
-      let levelName = this.getLevelName(item.level!);
+      let levelName = item.level!;
       let levelNode = root.children.find((node) => node.logName === levelName);
       if (!levelNode) {
         id++;

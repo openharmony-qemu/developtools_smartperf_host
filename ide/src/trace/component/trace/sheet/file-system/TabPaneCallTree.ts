@@ -440,6 +440,7 @@ export class TabPaneCallTree extends BaseElement {
               this.callTreeDataSource = this.currentCallTreeDataSource;
             }
             this.findSearchNode(this.callTreeDataSource, this.searchValue);
+            this.callTreeTbl!.setStatus(this.callTreeDataSource, true);
             this.setLTableData(this.callTreeDataSource);
           }
           this.frameChart!.data = this.callTreeDataSource;

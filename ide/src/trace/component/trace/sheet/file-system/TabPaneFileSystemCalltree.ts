@@ -394,6 +394,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
               this.fsCallTreeDataSource = this.currentFsCallTreeDataSource;
             }
             this.findSearchNode(this.fsCallTreeDataSource, this.searchValue);
+            this.fsCallTreeTbl!.setStatus(this.fsCallTreeDataSource, true);
             this.setLTableData(this.fsCallTreeDataSource);
           }
           this.frameChart!.data = this.fsCallTreeDataSource;
