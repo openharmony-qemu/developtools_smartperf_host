@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import './sql-wasm.js';
+// import './sql-wasm.js';
 
 import { Counter, Fps, SelectionData } from '../bean/BoxSelection.js';
 import { WakeupBean } from '../bean/WakeupBean.js';
@@ -5494,4 +5494,10 @@ export const queryTraceType = (): Promise<
                 meta AS m
             WHERE 
                 m.name = 'source_type';`
+  );
+
+  export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string}>> => 
+  query(
+    'queryTransferList',
+    `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`
   );
