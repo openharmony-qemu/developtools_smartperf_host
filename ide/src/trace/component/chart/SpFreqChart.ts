@@ -18,13 +18,11 @@ import {
   getCpuLimitFreq,
   getCpuLimitFreqId,
   getCpuLimitFreqMax,
-  queryCpuCount,
   queryCpuFreq,
   queryCpuFreqData,
   queryCpuMaxFreq,
   queryCpuState,
   queryCpuStateFilter,
-  queryJsMemoryData,
 } from '../../database/SqlLite.js';
 import { info } from '../../../log/Log.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
@@ -33,22 +31,16 @@ import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worke
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWorkerFreq.js';
 import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState.js';
-import { FolderSupplier, FolderThreadHandler } from './SpChartManager.js';
 import { Utils } from '../trace/base/Utils.js';
-const TYPE_SNAPSHOT = 0;
-const TYPE_TIMELINE = 1;
+
 export class SpFreqChart {
   private trace: SpSystemTrace;
-  private folderRow: TraceRow<any> | undefined;
-  private folderRowState: TraceRow<any> | undefined;
-  private folderRowLimit: TraceRow<any> | undefined;
+
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
+
   async init() {
-    let CpuCount = await queryCpuCount();
-    let CpuState = await queryCpuState(CpuCount.length);
-    let freCpu = await queryCpuFreqData(CpuCount.length);
     let cpuFreqStartTime = new Date().getTime();
     let freqList = await queryCpuFreq();
     let cpuStateFilterIds = await queryCpuStateFilter();
@@ -60,23 +52,6 @@ export class SpFreqChart {
         })
         .join(',')
     );
-    let jsMemory = await queryJsMemoryData();
-    if (freCpu.length > 0) {
-      this.folderRow = TraceRow.skeleton();
-      this.folderRow.rowId = 'Cpu Frequency';
-      this.folderRow.rowParentId = '';
-      this.folderRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ_ALL;
-      this.folderRow.style.height = '40px';
-      this.folderRow.style.width = '100%';
-      this.folderRow.name = 'Cpu Frequency';
-      this.folderRow.folder = true;
-      this.folderRow.rowHidden = this.folderRow!.expansion;
-      this.folderRow.setAttribute('children', '');
-      this.folderRow.supplier = FolderSupplier();
-      this.folderRow.onThreadHandler = FolderThreadHandler(this.folderRow, this.trace);
-      this.trace.rowsEL?.appendChild(this.folderRow);
-    }
-
     info('Cpu Freq data size is: ', freqList!.length);
     let freqMaxList = await queryCpuMaxFreq();
     CpuFreqStruct.maxFreq = freqMaxList[0].maxFreq;
@@ -88,7 +63,7 @@ export class SpFreqChart {
       let traceRow = TraceRow.skeleton<CpuFreqStruct>();
       traceRow.rowId = `${it.filterId}`;
       traceRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ;
-      traceRow.rowParentId = 'Cpu Frequency';
+      traceRow.rowParentId = '';
       traceRow.style.height = '40px';
       traceRow.name = `Cpu ${it.cpu} Frequency`;
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -122,29 +97,14 @@ export class SpFreqChart {
         );
         traceRow.canvasRestore(context);
       };
-      this.folderRow!.addChildTraceRow(traceRow);
-    }
-    if (CpuState.length > 0) {
-      this.folderRowState = TraceRow.skeleton();
-      this.folderRowState.rowId = 'Cpu State';
-      this.folderRowState.rowType = TraceRow.ROW_TYPE_CPU_STATE_ALL;
-      this.folderRowState.style.height = '40px';
-      this.folderRowState.folder = true;
-      this.folderRowState.style.width = '100%';
-      this.folderRowState.rowParentId = '';
-      this.folderRowState.name = 'Cpu State';
-      this.folderRowState.rowHidden = this.folderRow!.expansion;
-      this.folderRowState.setAttribute('children', '');
-      this.folderRowState.supplier = FolderSupplier();
-      this.folderRowState.onThreadHandler = FolderThreadHandler(this.folderRowState, this.trace);
-      this.trace.rowsEL?.appendChild(this.folderRowState);
+      this.trace.rowsEL?.appendChild(traceRow);
     }
     let heights = [4, 12, 21, 30];
     for (let it of cpuStateFilterIds) {
       let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
       cpuStateRow.rowId = `${it.filterId}`;
       cpuStateRow.rowType = TraceRow.ROW_TYPE_CPU_STATE;
-      cpuStateRow.rowParentId = 'Cpu State';
+      cpuStateRow.rowParentId = '';
       cpuStateRow.style.height = '40px';
       cpuStateRow.name = `Cpu ${it.cpu} State`;
       cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -187,24 +147,10 @@ export class SpFreqChart {
         );
         cpuStateRow.canvasRestore(context);
       };
-      this.folderRowState!.addChildTraceRow(cpuStateRow);
+      this.trace.rowsEL?.appendChild(cpuStateRow);
     }
     let durTime = new Date().getTime() - cpuFreqStartTime;
     info('The time to load the CpuFreq data is: ', durTime);
-    if (cpuFreqLimits.length > 0) {
-      this.folderRowLimit = TraceRow.skeleton();
-      this.folderRowLimit.rowId = 'Cpu Freq Limit';
-      this.folderRowLimit.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL;
-      this.folderRowLimit.style.height = '40px';
-      this.folderRowLimit.rowParentId = 'Cpu Freq Limit';
-      this.folderRowLimit.folder = true;
-      this.folderRowLimit.name = 'Cpu Freq Limit';
-      this.folderRowLimit.rowHidden = this.folderRow!.expansion;
-      this.folderRowLimit.setAttribute('children', '');
-      this.folderRowLimit.supplier = FolderSupplier();
-      this.folderRowLimit.onThreadHandler = FolderThreadHandler(this.folderRowLimit, this.trace);
-      this.trace.rowsEL?.appendChild(this.folderRowLimit);
-    }
     for (let limit of cpuFreqLimits) {
       let findMax = Utils.getFrequencyWithUnit(
         cpuFreqLimitsMax.find((maxLimit) => {
@@ -256,7 +202,7 @@ export class SpFreqChart {
         );
         cpuFreqLimitRow.canvasRestore(context);
       };
-      this.folderRowLimit!.addChildTraceRow(cpuFreqLimitRow);
+      this.trace.rowsEL?.appendChild(cpuFreqLimitRow);
     }
   }
 }
