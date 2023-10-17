@@ -156,8 +156,6 @@ export class TabPaneFrequencySample extends BaseElement {
     let stateFiliterIds: Array<any> = [];
     //cpu state和cpu fre泳道对应的cpu顺序号
     let cpuFiliterOrder: Array<any> = [];
-    let leftStartNs = frqSampleParam.leftNs + frqSampleParam.recordStartNs;
-    let rightEndNs = frqSampleParam.rightNs + frqSampleParam.recordStartNs;
     let result = await getTabPaneFrequencySampleData(
       frqSampleParam.leftNs + frqSampleParam.recordStartNs,
       frqSampleParam.rightNs + frqSampleParam.recordStartNs,
@@ -191,8 +189,8 @@ export class TabPaneFrequencySample extends BaseElement {
         cpuFiliterOrder.push(cpuStateIds[0].cpu)
       });
       let res = await getTabPaneCounterSampleData(
-        leftStartNs,
-        rightEndNs,
+        frqSampleParam.leftNs + frqSampleParam.recordStartNs,
+        frqSampleParam.rightNs + frqSampleParam.recordStartNs,
         stateFiliterIds
       );
       //开启一个线程计算busyTime
