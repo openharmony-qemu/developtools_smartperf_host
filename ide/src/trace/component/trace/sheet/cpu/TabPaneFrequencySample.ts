@@ -147,15 +147,13 @@ export class TabPaneFrequencySample extends BaseElement {
   }
 
   async queryDataByDB(frqSampleParam: SelectionParam | any) {
+    let sampleMap = new Map<any, any>();
+    let frqSampleList = new Array();
+    let stateFiliterIds: Array<any> = [];
+    let cpuFiliterOrder: Array<any> = [];
     this.frequencySampleTbl!.loading = true;
     if (this.frequencySampleClickType) this.frequencySampleClickType = !this.frequencySampleClickType;
     if (this.busyTimeLoadingHide) this.busyTimeLoadingHide = !this.busyTimeLoadingHide;
-    let sampleMap = new Map<any, any>();
-    let frqSampleList = new Array();
-    //cpu state对应的泳道filterId
-    let stateFiliterIds: Array<any> = [];
-    //cpu state和cpu fre泳道对应的cpu顺序号
-    let cpuFiliterOrder: Array<any> = [];
     let result = await getTabPaneFrequencySampleData(
       frqSampleParam.leftNs + frqSampleParam.recordStartNs,
       frqSampleParam.rightNs + frqSampleParam.recordStartNs,
@@ -175,8 +173,8 @@ export class TabPaneFrequencySample extends BaseElement {
     this.frequencySampleSource = frqSampleList;
     this.frequencySampleTbl!.loading = false;
     this.sortTable(this.frequencySampleSortKey, this.frequencySampleSortType);
-    this.freqBusyDataList = [];
     //找出框选的cpu fre所对应的cpu state
+    this.freqBusyDataList = [];
     if (!frqSampleParam.cpuStateRowsId.length) {
       sampleMap.forEach((value: any) => {
         value.busyTime = 'NULL';
