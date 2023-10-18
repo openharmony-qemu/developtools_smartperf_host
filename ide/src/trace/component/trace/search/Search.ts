@@ -277,7 +277,7 @@ export class LitSearch extends BaseElement {
         } else {
           _prompt!.style.display = 'block';
           _root!.style.display = 'none';
-          _prompt!.innerHTML = `一共是${this._list.length}页,请重新输入!!!`
+          _prompt!.innerHTML = `${this._list.length} pages in total, please re-enter`
           setTimeout(() => {
             _prompt!.style.display = 'none';
             _root!.style.display = 'flex';
