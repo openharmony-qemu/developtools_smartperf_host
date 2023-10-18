@@ -644,6 +644,10 @@ export class SpSystemTrace extends BaseElement {
       selection.leftNs = TraceRow.rangeSelectObject?.startNS || 0;
       selection.rightNs = TraceRow.rangeSelectObject?.endNS || 0;
       selection.recordStartNs = (window as any).recordStartNS;
+      let nodeList:any = this.shadowRoot?.querySelectorAll(`trace-row[row-type='cpu-freq']`);
+      for(let i of nodeList){
+        selection.cpuFreqList = selection.cpuFreqList.concat(i.dataList);
+      }
       rows.forEach((it) => {
         if (it.rowType == TraceRow.ROW_TYPE_CPU) {
           selection.cpus.push(parseInt(it.rowId!));
