@@ -3924,21 +3924,25 @@ export class SpSystemTrace extends BaseElement {
     return searchResults;
   }
 
-  showStruct(previous: boolean, currentIndex: number, structs: Array<any>) {
+  showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number) {
     if (structs.length == 0) {
       return 0;
     }
     let findIndex = -1;
     if (previous) {
-      for (let i = structs.length - 1; i >= 0; i--) {
-        let it = structs[i];
-        if (
-          i < currentIndex &&
-          it.startTime! >= TraceRow.range!.startNS &&
-          it.startTime! + it.dur! <= TraceRow.range!.endNS
-        ) {
-          findIndex = i;
-          break;
+      if (retargetIndex) {
+        findIndex = retargetIndex - 1
+      } else {
+        for (let i = structs.length - 1; i >= 0; i--) {
+          let it = structs[i];
+          if (
+            i < currentIndex &&
+            it.startTime! >= TraceRow.range!.startNS &&
+            it.startTime! + it.dur! <= TraceRow.range!.endNS
+          ) {
+            findIndex = i;
+            break;
+          }
         }
       }
     } else {
