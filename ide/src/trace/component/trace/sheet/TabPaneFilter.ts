@@ -452,7 +452,7 @@ export class TabPaneFilter extends BaseElement {
         radioList![idx].checked = true;
         if(this.getCallTransfer) {
           this.getCallTransfer({
-            value: radioList![idx].value
+            eventTypeId: radioList![idx].value
           })
         }
       })

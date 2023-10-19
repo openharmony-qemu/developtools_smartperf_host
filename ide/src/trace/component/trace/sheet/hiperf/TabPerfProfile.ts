@@ -75,6 +75,14 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter!.refreshTreeTransfer();
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
+    this.getDataByWorkAndUpDateCanvas(perfProfilerSelection)
+    this.perfProfilerFilter!.getCallTransferData((data: {eventTypeId: string}) => {
+      perfProfilerSelection.eventTypeId = data.eventTypeId !== 'count' ? data.eventTypeId : '';
+      this.getDataByWorkAndUpDateCanvas(perfProfilerSelection)
+    })
+  }
+
+  getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam) {
     const initWidth = this.clientWidth;
     this.getDataByWorker(
       [
@@ -90,44 +98,18 @@ export class TabpanePerfProfile extends BaseElement {
       (results: any[]) => {
         this.setPerfProfilerLeftTableData(results);
         this.perfProfilerList!.recycleDataSource = [];
-        this.perfProfileFrameChart!.mode = ChartMode.Count;
+        if(perfProfilerSelection.eventTypeId && perfProfilerSelection.eventTypeId !== 'count') {
+          this.perfProfileFrameChart!.mode = ChartMode.EventCount;
+        }else{
+          this.perfProfileFrameChart!.mode = ChartMode.Count;
+        }
+        
         this.perfProfileFrameChart?.updateCanvas(true, initWidth);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
         this.currentPerfProfilerDataSource = this.perfProfilerDataSource;
         this.switchFlameChart();
         this.perfProfilerFilter.icon = 'block';
-      }
-    );
-
-    this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
-      this.getDataByWorker(
-        [
-          {
-            funcName: 'setSearchValue',
-            funcArgs: [''],
-          },
-          {
-            funcName: 'getCurrentDataFromDb',
-            funcArgs: [perfProfilerSelection],
-          },
-        ],
-        (results: any[]) => {
-          this.setPerfProfilerLeftTableData(results);
-          this.perfProfilerList!.recycleDataSource = [];
-          if(data.value !== 'count') {
-            this.perfProfileFrameChart!.mode = ChartMode.EventCount;
-          }else{
-            this.perfProfileFrameChart!.mode = ChartMode.Count;
-          }
-          
-          this.perfProfileFrameChart?.updateCanvas(true, initWidth);
-          this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-          this.currentPerfProfilerDataSource = this.perfProfilerDataSource;
-          this.switchFlameChart();
-          this.perfProfilerFilter.icon = 'block';
-        })
-    })
+      })
   }
 
   getParentTree(
