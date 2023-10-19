@@ -649,6 +649,11 @@ export class SpApplication extends BaseElement {
       litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
       litSearch.blur();
     });
+     // 翻页事件
+     litSearch.addEventListener('retarget-data', (ev: any) => {
+      litSearch.index = spSystemTrace!.showStruct(true, ev.detail.value, litSearch.list, ev.detail.value);
+      litSearch.blur();
+    });
     litSearch.valueChangeHandler = (value: string) => {
       if (value.length > 0) {
         let list = spSystemTrace!.searchCPU(value);

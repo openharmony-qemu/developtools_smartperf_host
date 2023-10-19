@@ -58,6 +58,7 @@ export class SpFreqChart {
     let maxFreqObj = Utils.getFrequencyWithUnit(freqMaxList[0].maxFreq);
     CpuFreqStruct.maxFreq = maxFreqObj.maxFreq;
     CpuFreqStruct.maxFreqName = maxFreqObj.maxFreqName;
+    this.trace.stateRowsId = cpuStateFilterIds;
     for (let i = 0; i < freqList.length; i++) {
       const it = freqList[i];
       let traceRow = TraceRow.skeleton<CpuFreqStruct>();
