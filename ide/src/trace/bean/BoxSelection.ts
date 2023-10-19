@@ -40,12 +40,9 @@ export class SelectionParam {
   isCurrentPane: boolean = false;
   startup: boolean = false;
   staticInit: boolean = false;
-<<<<<<< HEAD
   eventTypeId: string = '';
 
-=======
   
->>>>>>> 34b7181feb203cb32a2fce86334b28f0f3894c25
   cpus: Array<number> = [];
   cpuStateRowsId: Array<object> = [];
   //新增框选cpu freq row名
