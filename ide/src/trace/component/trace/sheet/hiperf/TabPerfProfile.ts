@@ -70,9 +70,9 @@ export class TabpanePerfProfile extends BaseElement {
       this.perfProfilerFilter!.style.display = 'none';
     }
     this.perfProfilerFilter!.disabledTransfer(false, 'perf');
+    this.perfProfilerFilter!.getTransferList();
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
-    this.perfProfilerFilter!.refreshTreeTransfer();
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
     this.getDataByWorkAndUpDateCanvas(perfProfilerSelection)
