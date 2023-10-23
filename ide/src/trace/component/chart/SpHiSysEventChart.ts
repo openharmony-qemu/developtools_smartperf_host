@@ -554,7 +554,7 @@ export class SpHiSysEventChart {
       'Audio Stream Change',
       'Audio Volume Change',
       'Wifi State',
-      'Bluetooth Br Switch State',
+      'Bt Switch State',
       'Location Switch State',
       'Sensor State',
     ];
@@ -565,7 +565,7 @@ export class SpHiSysEventChart {
       'AUDIO_STREAM_CHANGE',
       'AUDIO_VOLUME_CHANGE',
       'WIFI_STATE',
-      'BLUETOOTH_BR_SWITCH_STATE',
+      'BT_SWITCH_STATE',
       'LOCATION_SWITCH_STATE',
       'SENSOR_STATE',
     ];
@@ -589,7 +589,7 @@ export class SpHiSysEventChart {
       let maxStateTotal = maxStateData[0].maxValue.toString();
       if (
         maxStateData[0].type.toLocaleLowerCase().includes('state') &&
-        maxStateData[0].type.toLocaleLowerCase() != 'bluetooth_br_switch_state'
+        maxStateData[0].type.toLocaleLowerCase() != 'bt_switch_state'
       ) {
         if (maxStateData[0].maxValue == 0) {
           maxStateTotal = 'enable';
@@ -625,7 +625,7 @@ export class SpHiSysEventChart {
           tip = `<span>Switch Status: ${
             EnergyStateStruct.hoverEnergyStateStruct?.value == 1 ? 'disable' : 'enable'
           }</span>`;
-          if (EnergyStateStruct.hoverEnergyStateStruct?.type!.toLocaleLowerCase() == 'bluetooth_br_switch_state') {
+          if (EnergyStateStruct.hoverEnergyStateStruct?.type!.toLocaleLowerCase() == 'bt_switch_state') {
             tip = `<span>${SpHiSysEventChart.getBlueToothState(
               EnergyStateStruct.hoverEnergyStateStruct?.value
             )}</span>`;
@@ -650,7 +650,7 @@ export class SpHiSysEventChart {
             type: `energyState${index}`,
             maxState: maxStateData[0].maxValue,
             maxStateName:
-              maxStateData[0].type.toLocaleLowerCase() == 'bluetooth_br_switch_state' ? '-1' : maxStateTotal.toString(),
+              maxStateData[0].type.toLocaleLowerCase() == 'bt_switch_state' ? '-1' : maxStateTotal.toString(),
           },
           stateTraceRow
         );

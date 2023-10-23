@@ -405,19 +405,13 @@ export class FrameChart extends BaseElement {
         case ChartMode.Byte:
           calibration = Utils.getByteWithUnit(((this.total * sizeRatio) / 10) * i);
           break;
-        case ChartMode.Count:
-          //count 转化为时间
-          calibration = Utils.timeMsFormat2p(
-            ((this.total * (SpHiPerf.stringResult?.fValue || 1) * sizeRatio) / 10) * i
-          );
-          break;
         case ChartMode.Duration:
           calibration = Utils.getProbablyTime(((this.total * sizeRatio) / 10) * i);
           break;
         case ChartMode.EventCount:
-          calibration = Utils.timeMsFormat2p(
-            ((this.total * (SpHiPerf.stringResult?.fValue || 1) * sizeRatio) / 10) * i
-          );
+        case ChartMode.Count:
+          //count 转化为时间
+          calibration = Math.ceil((this.total * (SpHiPerf.stringResult?.fValue || 1) * sizeRatio) / 10) * i + '';
           break;
       }
       const size = this.canvasContext!.measureText(calibration).width;
@@ -798,14 +792,11 @@ export class FrameChart extends BaseElement {
         break;
       case ChartMode.Count:
         const count = this.getNodeValue(hoverNode);
-        const dur = Utils.timeMsFormat2p(count * (SpHiPerf.stringResult?.fValue || 1));
         this.hintContent = `
                     <span class="bold">Name: </span> <span class="text">${name} </span> <br>
                     <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
                     <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span>
-                    <br>
-                    <span class="bold">Dur: </span> <span>${dur} (${percent}%)</span>
                     <br>
                     <span class="bold">Count: </span> <span> ${count} (${percent}%)</span>`;
         break;
@@ -820,7 +811,6 @@ export class FrameChart extends BaseElement {
         break;
       case ChartMode.EventCount:
         const eventCount = this.getNodeValue(hoverNode);
-        const eventDur = Utils.timeMsFormat2p(eventCount * (SpHiPerf.stringResult?.fValue || 1));
         this.hintContent = `
                       <span class="bold">Name: </span> <span class="text">${name} </span> <br>
                       <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>

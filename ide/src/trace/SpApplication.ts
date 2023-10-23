@@ -551,8 +551,8 @@ export class SpApplication extends BaseElement {
                 </sp-help>
                 <sp-flags style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 104" id="sp-flags">
                 </sp-flags>
-                <trace-row-config class="chart-filter"></trace-row-config>
-                <custom-theme-color class="custom-color"></custom-theme-color>
+                <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 105"></trace-row-config>
+                <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 106"></custom-theme-color>
             </div>
         </div>
         `;
@@ -684,6 +684,9 @@ export class SpApplication extends BaseElement {
         this!.removeAttribute('chart_filter');
         chartFilter!.setAttribute('hidden', '');
       } else {
+        this!.removeAttribute('custom-color');
+        customColor!.setAttribute('hidden', '');
+        customColor.cancelOperate();
         this!.setAttribute('chart_filter', '');
         chartFilter!.removeAttribute('hidden');
       }
@@ -703,6 +706,8 @@ export class SpApplication extends BaseElement {
         customColor!.setAttribute('hidden', '');
         customColor.cancelOperate();
       } else {
+        this!.removeAttribute('chart_filter');
+        chartFilter!.setAttribute('hidden', '');
         this!.setAttribute('custom-color', '');
         customColor!.removeAttribute('hidden');
       }
@@ -770,6 +775,14 @@ export class SpApplication extends BaseElement {
       childNodes.forEach((node) => {
         if (that.hasAttribute('chart_filter')) {
           that!.removeAttribute('chart_filter');
+        }
+        if (that!.hasAttribute('custom-color')) {
+          that!.removeAttribute('custom-color');
+          customColor!.setAttribute('hidden', '');
+          customColor.cancelOperate();
+        } else {
+          that!.setAttribute('custom-color', '');
+          customColor!.removeAttribute('hidden');
         }
         if (node === showNode) {
           showNode.style.visibility = 'visible';

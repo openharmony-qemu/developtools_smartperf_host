@@ -24,7 +24,6 @@ import {
   queryCpuMaxFreq,
   queryCpuState,
   queryCpuStateFilter,
-  queryJsMemoryData,
 } from '../../database/SqlLite.js';
 import { info } from '../../../log/Log.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
@@ -35,22 +34,20 @@ import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWor
 import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState.js';
 import { FolderSupplier, FolderThreadHandler } from './SpChartManager.js';
 import { Utils } from '../trace/base/Utils.js';
-const TYPE_SNAPSHOT = 0;
-const TYPE_TIMELINE = 1;
 export class SpFreqChart {
   private trace: SpSystemTrace;
   private folderRow: TraceRow<any> | undefined;
   private folderRowState: TraceRow<any> | undefined;
   private folderRowLimit: TraceRow<any> | undefined;
 
-  constructor(trace: SpSystemTrace) {
+  constructor(trace: SpSystemTrace){
     this.trace = trace;
   }
 
   async init() {
-    let CpuCount = await queryCpuCount();
-    let CpuState = await queryCpuState(CpuCount.length);
-    let freCpu = await queryCpuFreqData(CpuCount.length);
+    let cpuCount = await queryCpuCount();
+    let cpuState = await queryCpuState(cpuCount.length);
+    let freCpu = await queryCpuFreqData(cpuCount.length);
     let cpuFreqStartTime = new Date().getTime();
     let freqList = await queryCpuFreq();
     let cpuStateFilterIds = await queryCpuStateFilter();
@@ -62,8 +59,7 @@ export class SpFreqChart {
         })
         .join(',')
     );
-    let jsMemory = await queryJsMemoryData();
-    if (jsMemory.length > 0 || freCpu.length > 0) {
+    if (freCpu.length > 0) {
       this.folderRow = TraceRow.skeleton();
       this.folderRow.rowId = 'Cpu Frequency';
       this.folderRow.rowParentId = '';
@@ -127,7 +123,7 @@ export class SpFreqChart {
         this.folderRow!.addChildTraceRow(traceRow);
       }
     }
-    if (jsMemory.length > 0 || CpuState.length > 0) {
+    if (cpuState.length > 0) {
       this.folderRowState = TraceRow.skeleton();
       this.folderRowState.rowId = 'Cpu State';
       this.folderRowState.rowType = TraceRow.ROW_TYPE_CPU_STATE_ALL;
@@ -192,7 +188,7 @@ export class SpFreqChart {
       };
       this.folderRowState!.addChildTraceRow(cpuStateRow);
     }
-    if (jsMemory.length > 0 || cpuFreqLimits.length > 0) {
+    if (cpuFreqLimits.length > 0) {
       this.folderRowLimit = TraceRow.skeleton();
       this.folderRowLimit.rowId = 'Cpu Freq Limit';
       this.folderRowLimit.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL;

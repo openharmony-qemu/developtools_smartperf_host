@@ -181,48 +181,48 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     );
   }
 
-  getCurrentDataFromDb(selectionParam: any) {
-    let cpus = selectionParam.perfAll ? [] : selectionParam.perfCpus;
-    let processes = selectionParam.perfAll ? [] : selectionParam.perfProcess;
-    let threads = selectionParam.perfAll ? [] : selectionParam.perfThread;
-    let sql = '';
-    let arg4 = '';
+  getCurrentDataFromDb(selectionParam: any):void {
+    const cpus = selectionParam.perfAll ? [] : selectionParam.perfCpus;
+    const processes = selectionParam.perfAll ? [] : selectionParam.perfProcess;
+    const threads = selectionParam.perfAll ? [] : selectionParam.perfThread;
+    let filterSql = '';
+    let eventTypeFilter = '';
     if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
-      let arg1 = cpus.length > 0 ? `or s.cpu_id in (${cpus.join(',')}) ` : '';
-      let arg2 = processes.length > 0 ? `or thread.process_id in (${processes.join(',')}) ` : '';
-      let arg3 = threads.length > 0 ? `or s.thread_id in (${threads.join(',')})` : '';
-      let eventTypeId = selectionParam.eventTypeId;
-      arg4 = eventTypeId ? `and s.event_type_id = ${eventTypeId}` : '';
-      let arg = `${arg1}${arg2}${arg3}`.substring(3);
-      sql = ` and (${arg})`;
+      const cpuFilter = cpus.length > 0 ? `or s.cpu_id in (${cpus.join(',')}) ` : '';
+      const processFilter = processes.length > 0 ? `or thread.process_id in (${processes.join(',')}) ` : '';
+      const threadFilter = threads.length > 0 ? `or s.thread_id in (${threads.join(',')})` : '';
+      let arg = `${cpuFilter}${processFilter}${threadFilter}`.substring(3);
+      filterSql = ` and (${arg})`;
     }
+    const eventTypeId = selectionParam.eventTypeId;
+    eventTypeFilter = eventTypeId ? ` and s.event_type_id = ${eventTypeId}` : '';
+    filterSql += eventTypeFilter;
     this.queryData(
       this.currentEventId,
       'perf-queryCallchainsGroupSample',
-      `
-          select p.callchain_id as sampleId,
-                 p.thread_state as threadState,
-                 p.thread_id    as tid,
-                 p.count,
-                 p.process_id   as pid,
-                 p.event_count  as eventCount,
-                 p.ts as ts,
-                 p.event_type_id as eventTypeId
-          from (select callchain_id, s.thread_id,s.event_type_id, thread_state, process_id, 
-                count(callchain_id) as count,event_count,
+      `select p.callchain_id as sampleId,
+          p.thread_state as threadState,
+          p.thread_id    as tid,
+          p.count,
+          p.process_id   as pid,
+          p.event_count  as eventCount,
+          p.ts as ts,
+          p.event_type_id as eventTypeId
+      from (
+        select callchain_id, s.thread_id, s.event_type_id, thread_state, process_id, 
+                count(callchain_id) as count,SUM(event_count) as event_count,
                 group_concat(s.timestamp_trace - t.start_ts,',') as ts
-                from perf_sample s, trace_range t
-                    left join perf_thread thread
-                on s.thread_id = thread.thread_id
-                where timestamp_trace between $startTime + t.start_ts
-                  and $endTime + t.start_ts
-                  and callchain_id != -1
-                  and s.thread_id != 0 ${sql}
-                group by callchain_id, s.thread_id, thread_state, process_id) p`,
+        from perf_sample s, trace_range t
+        left join perf_thread thread on s.thread_id = thread.thread_id
+        where timestamp_trace between $startTime + t.start_ts
+            and $endTime + t.start_ts
+            and callchain_id != -1
+            and s.thread_id != 0 ${filterSql}
+        group by callchain_id, s.thread_id, thread_state, process_id) p`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
-        $sql: sql,
+        $sql: filterSql,
       }
     );
   }
