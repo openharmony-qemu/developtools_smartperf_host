@@ -72,11 +72,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter!.filterValue = '';
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
-    this.getDataByWorkAndUpDateCanvas(perfProfilerSelection)
-    this.perfProfilerFilter!.getCallTransferData((data: {eventTypeId: string}) => {
-      perfProfilerSelection.eventTypeId = data.eventTypeId !== 'count' ? data.eventTypeId : '';
-      this.getDataByWorkAndUpDateCanvas(perfProfilerSelection)
-    })
+    this.getDataByWorkAndUpDateCanvas(perfProfilerSelection);
   }
 
   getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam) {
@@ -84,12 +80,12 @@ export class TabpanePerfProfile extends BaseElement {
     this.initGetData(perfProfilerSelection, initWidth);
     
     this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
-      this.initGetData(perfProfilerSelection, initWidth, data);
+      perfProfilerSelection.eventTypeId = data.eventTypeId !== 'count' ? data.eventTypeId : undefined;
+      this.initGetData(perfProfilerSelection, initWidth);
     });
   }
 
-  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number, data?: any): void {
+  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number): void {
     this.getDataByWorker(
       [
         {
@@ -113,7 +109,7 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfileFrameChart?.updateCanvas(true, initWidth);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
         this.switchFlameChart();
-        this.perfProfilerFilter.icon = 'block';
+        this.perfProfilerFilter!.icon = 'block';
       })
   }
 
