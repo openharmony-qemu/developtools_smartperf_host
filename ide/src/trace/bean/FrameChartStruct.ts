@@ -49,8 +49,8 @@ export class ChartStruct extends BaseStruct {
   drawSize: number = 0;
   drawCount: number = 0;
   drawDur: number = 0;
-
   drawEventCount: number = 0;
+
   parent: ChartStruct | undefined;
   children: Array<ChartStruct> = [];
   percent: number = 0; // 0 - 1 该node所占整体的百分比
@@ -67,7 +67,7 @@ export enum ChartMode {
   Byte, // Native Memory
   Count, // Perf
   Duration, // eBpf
-  EventCount,//cycles
+  EventCount, //cycles
 }
 
 export function setFuncFrame(node: ChartStruct, canvasFrame: Rect, total: number, mode: ChartMode): void {

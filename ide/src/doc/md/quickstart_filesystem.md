@@ -66,7 +66,7 @@ FileSystem statistics 的 Tab 页如图：
 -     Duration：时长。
 -     Process：进程名。
 -     Thread：线程名。
--     Firsr Argument：系统调用的第一个参数。
+-     First Argument：系统调用的第一个参数。
 -     Second Argument：系统调用的第二个参数。
 -     Third Argument：系统调用的第三个参数。
 -     Fourth Argument：系统调用的第四个参数。

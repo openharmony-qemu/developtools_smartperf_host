@@ -855,7 +855,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       list.push({
         name: 'EndTime(Absolute)',
-        value: ((data.startTs || 0) + (data.dur || 0) + (window as any).recordStartNS) / 1000000000,
+        value: ((data.startTs || 0) + (data.dur || 0) + (window as any).recordStartNS) / 1000000000 + 's',
       });
     } else {
       list.push({
@@ -873,7 +873,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let endIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#end-jump');
     let scrollClick = (type: number): void => {
       let recordNs: number = (window as any).recordStartNS;
-      let useEnd = type === 1 && data.startName! < 4;
+      let useEnd = type === 1 && data.startName! < 6;
       queryThreadByItid(
         useEnd ? data.endItid! : data.itid!,
         useEnd ? recordNs + data.startTs! + data.dur! : recordNs + data.startTs!
@@ -963,12 +963,12 @@ export class TabPaneCurrentSelection extends BaseElement {
     list.push({ name: 'Start time(Relative)', value: `${Utils.getTimeString(dataTs)}` });
     list.push({
       name: 'Start time(Absolute)',
-      value: ((dataTs || 0) + (window as any).recordStartNS) / 1000000000,
+      value: ((dataTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
     list.push({ name: 'End time(Relative)', value: `${Utils.getTimeString(dataTs + (data.dur || 0))}` });
     list.push({
       name: 'End time(Absolute)',
-      value: (dataTs + (data.dur || 0) + (window as any).recordStartNS) / 1000000000,
+      value: (dataTs + (data.dur || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
@@ -1224,7 +1224,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => { });
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 

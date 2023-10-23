@@ -221,7 +221,6 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeProgressEL = this.shadowRoot?.querySelector('.call-tree-progress') as LitProgressBar;
     this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
     this.loadingPage = this.shadowRoot?.querySelector('.call-tree-loading');
-
     this.callTreeTbl!.rememberScrollTop = true;
     this.callTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.callTreeFilter!.disabledTransfer(true);

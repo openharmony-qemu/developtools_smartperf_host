@@ -599,5 +599,4 @@ export class SpAllocations extends BaseElement {
         </div>
         `;
   }
-
 }
