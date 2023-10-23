@@ -124,7 +124,7 @@ export class SpFreqChart {
         this.folderRow!.addChildTraceRow(traceRow);
       }
     }
-    if (cpuState.length > 0) {
+    if (cpuStateFilterIds.length > 0) {
       this.folderRowState = TraceRow.skeleton();
       this.folderRowState.rowId = 'Cpu State';
       this.folderRowState.rowType = TraceRow.ROW_TYPE_CPU_STATE_ALL;

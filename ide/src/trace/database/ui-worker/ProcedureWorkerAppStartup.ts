@@ -111,7 +111,7 @@ export class AppStartupStruct extends BaseStruct {
   }
 
   static getStartupName(step: number | undefined): string {
-    if (step === undefined || step < 0 || step > 5) {
+    if (step === undefined || step < 0 || step > 7) {
       return 'Unknown Start Step';
     } else {
       return AppStartupStruct.StartUpStep[step];

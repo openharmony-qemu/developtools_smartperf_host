@@ -873,7 +873,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let endIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#end-jump');
     let scrollClick = (type: number): void => {
       let recordNs: number = (window as any).recordStartNS;
-      let useEnd = type === 1 && data.startName! < 4;
+      let useEnd = type === 1 && data.startName! < 6;
       queryThreadByItid(
         useEnd ? data.endItid! : data.itid!,
         useEnd ? recordNs + data.startTs! + data.dur! : recordNs + data.startTs!
