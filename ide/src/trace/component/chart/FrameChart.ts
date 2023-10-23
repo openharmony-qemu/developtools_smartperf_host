@@ -199,7 +199,7 @@ export class FrameChart extends BaseElement {
         currentValuePercent = this.total / this.rootNode.size;
         break;
       case ChartMode.Count:
-        currentValue = Utils.timeMsFormat2p(this.total * (SpHiPerf.stringResult?.fValue || 1));
+        currentValue = this.total + '';
         currentValuePercent = this.total / this.rootNode.count;
         break;
       case ChartMode.Duration:
@@ -207,7 +207,7 @@ export class FrameChart extends BaseElement {
         currentValuePercent = this.total / this.rootNode.dur;
         break;
       case ChartMode.EventCount:
-        currentValue = Utils.timeMsFormat2p(this.total * (SpHiPerf.stringResult?.fValue || 1));
+        currentValue = this.total + '';
         currentValuePercent = this.total / this.rootNode.eventCount;
         break;
     }
@@ -410,8 +410,7 @@ export class FrameChart extends BaseElement {
           break;
         case ChartMode.EventCount:
         case ChartMode.Count:
-          //count 转化为时间
-          calibration = Math.ceil((this.total * (SpHiPerf.stringResult?.fValue || 1) * sizeRatio) / 10) * i + '';
+          calibration = Math.ceil(((this.total * sizeRatio) / 10) * i) + '';
           break;
       }
       const size = this.canvasContext!.measureText(calibration).width;

@@ -66,7 +66,9 @@ export class AppStartupStruct extends BaseStruct {
   static hoverStartupStruct: AppStartupStruct | undefined;
   static selectStartupStruct: AppStartupStruct | undefined;
   static StartUpStep: string[] = [
-    'Process Creating',
+    'ProcessTouchEvent',
+    'StartUIAbilityBySCB',
+    'LoadAbility',
     'Application Launching',
     'UI Ability Launching',
     'UI Ability OnForeground',

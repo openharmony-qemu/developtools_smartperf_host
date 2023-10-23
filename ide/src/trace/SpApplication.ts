@@ -1102,50 +1102,27 @@ export class SpApplication extends BaseElement {
             if (that.longTraceHeadMessageList.length > 0) {
               getTraceFileByPage(that.currentPageNum);
               litSearch.style.marginLeft = '80px';
+              longTracePage.style.display = 'flex';
               let pageListDiv = that.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
-              that.drawPageNumber(longTracePage, pageListDiv, that.longTraceHeadMessageList.length);
               let previewButton: HTMLDivElement | null | undefined =
                 that.shadowRoot?.querySelector<HTMLDivElement>('#preview-button');
               let nextButton: HTMLDivElement | null | undefined =
                 that.shadowRoot?.querySelector<HTMLDivElement>('#next-button');
               let pageInput = that.shadowRoot?.querySelector<HTMLInputElement>('.page-input');
+              pageListDiv.innerHTML = '';
+              that.refreshPageList(pageListDiv, previewButton!, nextButton!, pageInput!, that.currentPageNum, that.longTraceHeadMessageList.length);
               if (previewButton) {
-                previewButton.style.pointerEvents = 'none';
-                previewButton.style.opacity = '0.7';
                 previewButton.addEventListener('click', () => {
                   if (progressEL.loading || that.currentPageNum === 1) {
                     return;
                   }
                   if (that.currentPageNum > 1) {
                     that.currentPageNum--;
-                    if (that.currentPageNum === 1) {
-                      previewButton!.style.pointerEvents = 'none';
-                      nextButton!.style.pointerEvents = 'auto';
-                      previewButton!.style.opacity = '0.7';
-                    } else {
-                      previewButton!.style.pointerEvents = 'auto';
-                      nextButton!.style.pointerEvents = 'none';
-                      previewButton!.style.opacity = '1';
-                    }
-                    let previewElement = that.shadowRoot?.querySelector<HTMLDivElement>(
-                      `.page-number[title='${that.currentPageNum}']`
-                    );
-                    let querySelector = pageListDiv.querySelector('.page-number[selected]');
-                    querySelector?.removeAttribute('selected');
-                    if (!previewElement || previewElement.textContent === '...') {
-                      previewElement = that.shadowRoot?.querySelector<HTMLDivElement>(
-                        `.page-number[title='...']`);
-                    }
-                    previewElement?.setAttribute('selected', '');
-                    pageInput!.value = that.currentPageNum + '';
                     progressEL.loading = true;
+                    that.refreshPageList(pageListDiv, previewButton!, nextButton!, pageInput!, that.currentPageNum, that.longTraceHeadMessageList.length);
                     getTraceFileByPage(that.currentPageNum);
                   }
                 });
-              }
-              if (nextButton && that.longTraceHeadMessageList.length === 1) {
-                nextButton.style.pointerEvents = 'none';
-                nextButton.style.opacity = '0.7';
               }
               nextButton!.addEventListener('click', () => {
                 if (progressEL.loading || that.currentPageNum === that.longTraceHeadMessageList.length) {
@@ -1153,59 +1130,26 @@ export class SpApplication extends BaseElement {
                 }
                 if (that.currentPageNum < that.longTraceHeadMessageList.length) {
                   that.currentPageNum++;
-                  if (that.currentPageNum === that.longTraceHeadMessageList.length) {
-                    nextButton!.style.pointerEvents = 'none';
-                    previewButton!.style.pointerEvents = 'auto';
-                    nextButton!.style.opacity = '0.7';
-                  } else {
-                    previewButton!.style.pointerEvents = 'auto';
-                    nextButton!.style.pointerEvents = 'auto';
-                    nextButton!.style.opacity = '1';
-                  }
-                  let nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
-                    `.page-number[title='${that.currentPageNum}']`
-                  );
-                  let querySelector = pageListDiv.querySelector('.page-number[selected]');
-                  querySelector?.removeAttribute('selected');
-                  if (!nextElement || nextElement.textContent === '...') {
-                    nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
-                      `.page-number[title='...']`);
-                  }
-                  nextElement?.setAttribute('selected', '');
-                  pageInput!.value = that.currentPageNum + '';
                   progressEL.loading = true;
+                  that.refreshPageList(pageListDiv, previewButton!, nextButton!, pageInput!, that.currentPageNum, that.longTraceHeadMessageList.length);
                   getTraceFileByPage(that.currentPageNum);
                 }
               });
-              pageListDiv.querySelectorAll('div').forEach((divEL) => {
+              let nodeListOf = pageListDiv.querySelectorAll<HTMLDivElement>('div');
+              nodeListOf.forEach((divEL, index) => {
                 divEL.addEventListener('click', () => {
-                  if (progressEL.loading || divEL.textContent === '...') {
+                  if (progressEL.loading) {
                     return;
                   }
-                  let querySelector = pageListDiv.querySelector('.page-number[selected]');
-                  querySelector?.removeAttribute('selected');
-                  divEL.setAttribute('selected', '');
-                  let selectPageNum = Number(divEL.textContent);
-                  if (selectPageNum !== that.currentPageNum) {
-                    that.currentPageNum = selectPageNum;
-                    if (that.currentPageNum === that.longTraceHeadMessageList.length) {
-                      nextButton!.style.pointerEvents = 'none';
-                      nextButton!.style.opacity = '0.7';
-                    } else {
-                      nextButton!.style.pointerEvents = 'auto';
-                      nextButton!.style.opacity = '1';
-                    }
-                    if (that.currentPageNum === 1) {
-                      previewButton!.style.pointerEvents = 'none';
-                      previewButton!.style.opacity = '0.7';
-                    } else {
-                      previewButton!.style.pointerEvents = 'auto';
-                      previewButton!.style.opacity = '1';
-                    }
-                    pageInput!.value = that.currentPageNum + '';
-                    progressEL.loading = true;
-                    getTraceFileByPage(that.currentPageNum);
+                  if (divEL.textContent === '...') {
+                    let freeSize = Number(nodeListOf[index + 1].textContent) - Number(nodeListOf[index - 1].textContent);
+                    that.currentPageNum = Math.floor(freeSize / 2 + Number(nodeListOf[index - 1].textContent));
+                  } else {
+                    that.currentPageNum = Number(divEL.textContent);
                   }
+                  progressEL.loading = true;
+                  that.refreshPageList(pageListDiv, previewButton!, nextButton!, pageInput!, that.currentPageNum, that.longTraceHeadMessageList.length);
+                  getTraceFileByPage(that.currentPageNum);
                 });
               });
               pageInput!.addEventListener('input', () => {
@@ -1221,37 +1165,10 @@ export class SpApplication extends BaseElement {
                 if (progressEL.loading) {
                   return;
                 }
-                let pageIndex = Number(pageInput!.value);
-                if (pageIndex > 0 && pageIndex <= that.longTraceHeadMessageList.length) {
-                  that.currentPageNum = pageIndex;
-                  if (that.currentPageNum === that.longTraceHeadMessageList.length) {
-                    nextButton!.style.pointerEvents = 'none';
-                    nextButton!.style.opacity = '0.7';
-                  } else {
-                    nextButton!.style.pointerEvents = 'auto';
-                    nextButton!.style.opacity = '1';
-                  }
-                  if (that.currentPageNum === 1) {
-                    previewButton!.style.pointerEvents = 'none';
-                    previewButton!.style.opacity = '0.7';
-                  } else {
-                    previewButton!.style.pointerEvents = 'auto';
-                    previewButton!.style.opacity = '1';
-                  }
-                  let nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
-                    `.page-number[title='${that.currentPageNum}']`
-                  );
-                  if (!nextElement) {
-                    nextElement = that.shadowRoot?.querySelector<HTMLDivElement>(
-                      `.page-number[title='...']`
-                    );
-                  }
-                  let querySelector = pageListDiv.querySelector('.page-number[selected]');
-                  querySelector?.removeAttribute('selected');
-                  nextElement?.setAttribute('selected', '');
-                  progressEL.loading = true;
-                  getTraceFileByPage(that.currentPageNum);
-                }
+                that.currentPageNum = Number(pageInput!.value);
+                progressEL.loading = true;
+                that.refreshPageList(pageListDiv, previewButton!, nextButton!, pageInput!, that.currentPageNum, that.longTraceHeadMessageList.length);
+                getTraceFileByPage(that.currentPageNum);
               });
             }
           },
@@ -2036,38 +1953,87 @@ export class SpApplication extends BaseElement {
     }
   }
 
-  private drawPageNumber(longTracePage: HTMLDivElement, pageListDiv: HTMLDivElement, maxPageNumber: number): void {
-    longTracePage.style.display = 'flex';
-    if (maxPageNumber > 6) {
-      for (let index = 1; index <= 6; index++) {
-        let element = document.createElement('div');
-        element.className = 'page-number pagination';
-        element.textContent = index.toString();
-        element.title = index.toString();
-        if (index === 1) {
-          element.setAttribute('selected', '');
-        }
-        if (index === 5) {
-          element.textContent = '...';
-          element.title = '...'
-        }
-        if (index === 6) {
-          element.textContent = `${maxPageNumber}`;
-          element.title = `${maxPageNumber}`;
-        }
-        pageListDiv.appendChild(element);
+  private refreshPageList(
+    pageListDiv: HTMLDivElement,
+    previewButton: HTMLDivElement,
+    nextButton: HTMLDivElement,
+    pageInput: HTMLInputElement,
+    currentPageNum: number,
+    maxPageNumber: number
+  ): void {
+    if (pageInput) {
+      pageInput.textContent = currentPageNum.toString();
+      pageInput.value = currentPageNum.toString();
+    }
+    let pageText: string[] = [];
+    if (maxPageNumber > 7) {
+      switch (currentPageNum) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+          pageText = ['1', '2', '3', '4', '5', '...', maxPageNumber.toString()];
+          break;
+        case maxPageNumber:
+        case maxPageNumber - 1:
+        case maxPageNumber - 2:
+        case maxPageNumber - 3:
+        case maxPageNumber - 4:
+          pageText = ['1', '...', (maxPageNumber - 4).toString(), (maxPageNumber - 3).toString(),
+            (maxPageNumber - 2).toString(), (maxPageNumber - 1).toString(), maxPageNumber.toString()];
+          break;
+        default:
+          nextButton.style.pointerEvents = 'auto';
+          previewButton!.style.pointerEvents = 'auto';
+          nextButton.style.opacity = '1';
+          previewButton!.style.opacity = '1';
+          pageText = ['1', '...', (currentPageNum - 1).toString(), currentPageNum.toString(),
+            (currentPageNum + 1).toString(), '...', maxPageNumber.toString()];
+          break;
       }
     } else {
-      for (let index = 1; index <= maxPageNumber; index++) {
+      pageText = [];
+      for (let index = 0; index < maxPageNumber; index++) {
+        pageText.push((index + 1).toString())
+      }
+    }
+    let pageNodeList = pageListDiv.querySelectorAll<HTMLDivElement>('div');
+    if (pageNodeList.length > 0) {
+      pageNodeList.forEach((page, index) => {
+        page.textContent = pageText[index].toString();
+        page.title = pageText[index];
+        if (currentPageNum.toString() === pageText[index]) {
+          page.setAttribute('selected', '');
+        } else {
+          if (page.hasAttribute('selected')) {
+            page.removeAttribute('selected');
+          }
+        }
+      })
+    } else {
+      pageListDiv.innerHTML = '';
+      pageText.forEach(page => {
         let element = document.createElement('div');
         element.className = 'page-number pagination';
-        element.textContent = index.toString();
-        element.title = index.toString();
-        if (index === 1) {
+        element.textContent = page.toString();
+        element.title = page.toString();
+        if (currentPageNum.toString() === page.toString()) {
           element.setAttribute('selected', '');
         }
         pageListDiv.appendChild(element);
-      }
+      });
+    }
+    nextButton.style.pointerEvents = 'auto';
+    nextButton.style.opacity = '1';
+    previewButton.style.pointerEvents = 'auto';
+    previewButton.style.opacity = '1';
+    if (currentPageNum === 1) {
+      previewButton.style.pointerEvents = 'none';
+      previewButton.style.opacity = '0.7';
+    } else if (currentPageNum === maxPageNumber) {
+      nextButton.style.pointerEvents = 'none';
+      nextButton.style.opacity = '0.7';
     }
   }
 

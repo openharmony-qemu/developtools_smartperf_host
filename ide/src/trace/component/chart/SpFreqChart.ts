@@ -40,7 +40,7 @@ export class SpFreqChart {
   private folderRowState: TraceRow<any> | undefined;
   private folderRowLimit: TraceRow<any> | undefined;
 
-  constructor(trace: SpSystemTrace){
+  constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
 
@@ -137,56 +137,57 @@ export class SpFreqChart {
       this.folderRowState.supplier = FolderSupplier();
       this.folderRowState.onThreadHandler = FolderThreadHandler(this.folderRowState, this.trace);
       this.trace.rowsEL?.appendChild(this.folderRowState);
-    }
-    let heights = [4, 12, 21, 30];
-    for (let it of cpuStateFilterIds) {
-      let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
-      cpuStateRow.rowId = `${it.filterId}`;
-      cpuStateRow.rowType = TraceRow.ROW_TYPE_CPU_STATE;
-      cpuStateRow.rowParentId = '';
-      cpuStateRow.style.height = '40px';
-      cpuStateRow.name = `Cpu ${it.cpu} State`;
-      cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      cpuStateRow.selectChangeHandler = this.trace.selectChangeHandler;
-      cpuStateRow.isHover = true;
-      cpuStateRow.supplier = () =>
-        queryCpuState(it.filterId).then((res) => {
-          res.forEach((r) => {
-            r.height = heights[it.value];
-            r.cpu = it.cpu;
+
+      let heights = [4, 12, 21, 30];
+      for (let it of cpuStateFilterIds) {
+        let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
+        cpuStateRow.rowId = `${it.filterId}`;
+        cpuStateRow.rowType = TraceRow.ROW_TYPE_CPU_STATE;
+        cpuStateRow.rowParentId = '';
+        cpuStateRow.style.height = '40px';
+        cpuStateRow.name = `Cpu ${it.cpu} State`;
+        cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        cpuStateRow.selectChangeHandler = this.trace.selectChangeHandler;
+        cpuStateRow.isHover = true;
+        cpuStateRow.supplier = () =>
+          queryCpuState(it.filterId).then((res) => {
+            res.forEach((r) => {
+              r.height = heights[it.value];
+              r.cpu = it.cpu;
+            });
+            return res;
           });
-          return res;
-        });
-      cpuStateRow.focusHandler = (ev) => {
-        this.trace.displayTip(
-          cpuStateRow,
-          CpuStateStruct.hoverStateStruct,
-          `<span>State: ${CpuStateStruct.hoverStateStruct?.value}</span>`
-        );
-      };
-      cpuStateRow.findHoverStruct = () => {
-        CpuStateStruct.hoverStateStruct = cpuStateRow.getHoverStruct();
-      };
-      cpuStateRow.onThreadHandler = (useCache: boolean) => {
-        let context: CanvasRenderingContext2D;
-        if (cpuStateRow.currentContext) {
-          context = cpuStateRow.currentContext;
-        } else {
-          context = cpuStateRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        cpuStateRow.canvasSave(context);
-        (renders['cpu-state'] as CpuStateRender).renderMainThread(
-          {
-            cpuStateContext: context,
-            useCache: useCache,
-            type: `cpu-state-${it.cpu}`,
-            cpu: it.cpu,
-          },
-          cpuStateRow
-        );
-        cpuStateRow.canvasRestore(context);
-      };
-      this.folderRowState!.addChildTraceRow(cpuStateRow);
+        cpuStateRow.focusHandler = (ev) => {
+          this.trace.displayTip(
+            cpuStateRow,
+            CpuStateStruct.hoverStateStruct,
+            `<span>State: ${CpuStateStruct.hoverStateStruct?.value}</span>`
+          );
+        };
+        cpuStateRow.findHoverStruct = () => {
+          CpuStateStruct.hoverStateStruct = cpuStateRow.getHoverStruct();
+        };
+        cpuStateRow.onThreadHandler = (useCache: boolean) => {
+          let context: CanvasRenderingContext2D;
+          if (cpuStateRow.currentContext) {
+            context = cpuStateRow.currentContext;
+          } else {
+            context = cpuStateRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
+          cpuStateRow.canvasSave(context);
+          (renders['cpu-state'] as CpuStateRender).renderMainThread(
+            {
+              cpuStateContext: context,
+              useCache: useCache,
+              type: `cpu-state-${it.cpu}`,
+              cpu: it.cpu,
+            },
+            cpuStateRow
+          );
+          cpuStateRow.canvasRestore(context);
+        };
+        this.folderRowState!.addChildTraceRow(cpuStateRow);
+      }
     }
     if (cpuFreqLimits.length > 0) {
       this.folderRowLimit = TraceRow.skeleton();
