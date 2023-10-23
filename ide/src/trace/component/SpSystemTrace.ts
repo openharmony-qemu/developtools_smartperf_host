@@ -2531,15 +2531,15 @@ export class SpSystemTrace extends BaseElement {
     this.selectStructNull();
     // 判断点击的线程是否在唤醒树内
     let timeoutJudge = setTimeout(() => {
-      if (SpSystemTrace.wakeupList.length && CpuStruct.wakeupBean) {
+      if (SpSystemTrace.wakeupList.length && CpuStruct.selectCpuStruct) {
         let checkHandlerKey = true;
         for (const item of SpSystemTrace.wakeupList) {
-          if (item.ts === CpuStruct.wakeupBean.ts && item.wakeupTime === CpuStruct.wakeupBean.wakeupTime) {
+          if (item.ts === CpuStruct.selectCpuStruct.startTime && item.dur === CpuStruct.selectCpuStruct.dur) {
             checkHandlerKey = false;
             if (SpSystemTrace.wakeupList[0].schedulingDesc) {
-              SpSystemTrace.wakeupList.unshift(JSON.parse(sessionStorage.getItem('saveselectcpustruct')!));
+              SpSystemTrace.wakeupList.unshift(JSON.parse(sessionStorage.getItem('saveselectcpustruct')!))
             }
-            this.refreshCanvas(true);
+            this.refreshCanvas(true)
             break;
           }
         }
@@ -2549,15 +2549,15 @@ export class SpSystemTrace extends BaseElement {
           window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
         } else {
           // 不在唤醒树内，清空数组
-          this.wakeupListNull();
-          this.refreshCanvas(true);
+          this.wakeupListNull()
+          this.refreshCanvas(true)
         }
       } else {
         this.wakeupListNull();
-        this.refreshCanvas(true);
+        this.refreshCanvas(true)
       }
-      clearTimeout(timeoutJudge);
-    }, 500);
+      clearTimeout(timeoutJudge)
+    }, 10);
     let threadClickHandler: any;
     let threadClickPreviousHandler: any;
     let threadClickNextHandler: any;
