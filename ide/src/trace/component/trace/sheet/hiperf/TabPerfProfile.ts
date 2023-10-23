@@ -74,6 +74,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfileLoadingPage.style.visibility = 'visible';
     const initWidth = this.clientWidth;
     this.initGetData(perfProfilerSelection, initWidth);
+    
     this.perfProfilerFilter!.getCallTransferData((data: any) => {
       perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
       this.initGetData(perfProfilerSelection, initWidth, data);
