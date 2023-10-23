@@ -148,7 +148,6 @@ export class SpSystemTrace extends BaseElement {
   intersectionObserver: IntersectionObserver | undefined;
   tipEL: HTMLDivElement | undefined | null;
   rowsEL: HTMLDivElement | undefined | null;
-  stateRowsId: Array<object> = [];
   rowsPaneEL: HTMLDivElement | undefined | null;
   spacerEL: HTMLDivElement | undefined | null;
   visibleRows: Array<TraceRow<any>> = [];
@@ -273,28 +272,9 @@ export class SpSystemTrace extends BaseElement {
       if (SpSystemTrace.btnTimer) {
         return;
       }
-      // 唤醒树有值则不再重复添加      
-      const startIndex = CpuStruct.selectCpuStruct!.displayProcess?.indexOf('[')
-      if (SpSystemTrace.wakeupList.length === 0) {
-        SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
-        this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
-        CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
-        CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
-        CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
-        CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
-        CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
-        sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct))
-      } else {
-        this.wakeupListNull()
-        SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
-        this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
-        CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
-        CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
-        CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
-        CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
-        CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
-        sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct))
-      }
+      this.wakeupListNull();
+      SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
+      this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
       setTimeout(() => {
         requestAnimationFrame(() => this.refreshCanvas(false));
       }, 300);
@@ -640,14 +620,9 @@ export class SpSystemTrace extends BaseElement {
         this.rangeTraceRow = [];
       }
       let selection = new SelectionParam();
-      selection.cpuStateRowsId = this.stateRowsId;
       selection.leftNs = TraceRow.rangeSelectObject?.startNS || 0;
       selection.rightNs = TraceRow.rangeSelectObject?.endNS || 0;
       selection.recordStartNs = (window as any).recordStartNS;
-      let nodeList:any = this.shadowRoot?.querySelectorAll(`trace-row[row-type='cpu-freq']`);
-      for(let i of nodeList){
-        selection.cpuFreqList = selection.cpuFreqList.concat(i.dataList);
-      }
       rows.forEach((it) => {
         if (it.rowType == TraceRow.ROW_TYPE_CPU) {
           selection.cpus.push(parseInt(it.rowId!));
@@ -659,12 +634,8 @@ export class SpSystemTrace extends BaseElement {
           }
         } else if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ) {
           let filterId = parseInt(it.rowId!);
-          let filterName = it.name!;
           if (selection.cpuFreqFilterIds.indexOf(filterId) == -1) {
             selection.cpuFreqFilterIds.push(filterId);
-          }
-          if (selection.cpuFreqFilterNames.indexOf(filterName) == -1) {
-            selection.cpuFreqFilterNames.push(filterName)
           }
         } else if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ_LIMIT) {
           selection.cpuFreqLimitDatas.push(it.dataList!);
@@ -745,8 +716,8 @@ export class SpSystemTrace extends BaseElement {
 
           let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-            Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-            filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+              Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
             filterFunc.funName!.indexOf('H:Task ') >= 0;
           let taskData = it.dataList.filter((taskData: FuncStruct) => {
             taskData!.tid = parseInt(it.rowId!);
@@ -1102,7 +1073,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_JANK) {
           let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-            Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+              Math.min(filterJank.ts!, rangeData!.startNS || 0) <
             filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
           if (it.name == 'Actual Timeline') {
             selection.jankFramesData = [];
@@ -1185,7 +1156,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
           let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
             Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-            Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+              Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
             animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
           let frameAnimationList = it.dataList.filter((frameAnimationBean: FrameAnimationStruct) => {
             return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
@@ -1359,7 +1330,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.SliceMark, (data) => {
       this.sliceMarkEventHandler(data);
     });
-    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
     window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => {
       this.refreshCanvas(false);
     });
@@ -1819,7 +1790,7 @@ export class SpSystemTrace extends BaseElement {
           // 如果没有找到帽子，则绘制一个旗子
           let time = Math.round(
             (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
-            TraceRow.range?.startNS!
+              TraceRow.range?.startNS!
           );
           this.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
         }
@@ -1985,13 +1956,13 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL?.setSlicesMark(
         FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
         (FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0) +
-        (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
+          (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
       );
     } else if (JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
       this.timerShaftEL?.setSlicesMark(
         JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0,
         (JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0) +
-        (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
+          (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
       );
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
@@ -2533,35 +2504,7 @@ export class SpSystemTrace extends BaseElement {
     if (!this.loadTraceCompleted) return;
     this.queryAllTraceRow().forEach((it) => (it.rangeSelect = false));
     this.selectStructNull();
-    // 判断点击的线程是否在唤醒树内
-    let timeoutJudge = setTimeout(() => {
-      if (SpSystemTrace.wakeupList.length && CpuStruct.wakeupBean) {
-        let checkHandlerKey = true;
-        for (const item of SpSystemTrace.wakeupList) {
-          if (item.ts === CpuStruct.wakeupBean.ts && item.wakeupTime === CpuStruct.wakeupBean.wakeupTime) {
-            checkHandlerKey = false;
-            if (SpSystemTrace.wakeupList[0].schedulingDesc) {
-              SpSystemTrace.wakeupList.unshift(JSON.parse(sessionStorage.getItem('saveselectcpustruct')!))
-            }
-            this.refreshCanvas(true)
-            break;
-          }
-        }
-        // 点击线程在唤醒树内
-        if (!checkHandlerKey) {
-          // 查询获取tab表格数据
-          window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
-        } else {
-          // 不在唤醒树内，清空数组
-          this.wakeupListNull()
-          this.refreshCanvas(true)
-        }
-      } else {
-        this.wakeupListNull();
-        this.refreshCanvas(true)
-      }
-      clearTimeout(timeoutJudge)
-    }, 500);
+    this.wakeupListNull();
     let threadClickHandler: any;
     let threadClickPreviousHandler: any;
     let threadClickNextHandler: any;
@@ -3924,25 +3867,21 @@ export class SpSystemTrace extends BaseElement {
     return searchResults;
   }
 
-  showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number) {
+  showStruct(previous: boolean, currentIndex: number, structs: Array<any>) {
     if (structs.length == 0) {
       return 0;
     }
     let findIndex = -1;
     if (previous) {
-      if (retargetIndex) {
-        findIndex = retargetIndex - 1
-      } else {
-        for (let i = structs.length - 1; i >= 0; i--) {
-          let it = structs[i];
-          if (
-            i < currentIndex &&
-            it.startTime! >= TraceRow.range!.startNS &&
-            it.startTime! + it.dur! <= TraceRow.range!.endNS
-          ) {
-            findIndex = i;
-            break;
-          }
+      for (let i = structs.length - 1; i >= 0; i--) {
+        let it = structs[i];
+        if (
+          i < currentIndex &&
+          it.startTime! >= TraceRow.range!.startNS &&
+          it.startTime! + it.dur! <= TraceRow.range!.endNS
+        ) {
+          findIndex = i;
+          break;
         }
       }
     } else {
@@ -4247,8 +4186,8 @@ export class SpSystemTrace extends BaseElement {
     HeapDataInterface.getInstance().clearData();
     procedurePool.clearCache();
     Utils.clearData();
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
-    procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => { });
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {

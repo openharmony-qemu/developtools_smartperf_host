@@ -40,11 +40,8 @@ export class SelectionParam {
   isCurrentPane: boolean = false;
   startup: boolean = false;
   staticInit: boolean = false;
-  
+
   cpus: Array<number> = [];
-  cpuStateRowsId: Array<object> = [];
-  //新增框选cpu freq row名
-  cpuFreqFilterNames: Array<string> = [];
   cpuStateFilterIds: Array<number> = [];
   cpuFreqFilterIds: Array<number> = [];
   cpuFreqLimitDatas: Array<Array<CpuFreqLimitsStruct>> = [];
@@ -91,11 +88,11 @@ export class SelectionParam {
     gpuTotal: boolean;
     gpuWindow: boolean;
   } = {
-      gl: false,
-      graph: false,
-      gpuWindow: false,
-      gpuTotal: false,
-    };
+    gl: false,
+    graph: false,
+    gpuWindow: false,
+    gpuTotal: false,
+  };
   purgeableTotalAbility: Array<any> = [];
   purgeableTotalVM: Array<any> = [];
   purgeablePinAbility: Array<any> = [];
@@ -108,7 +105,6 @@ export class SelectionParam {
   gpuMemoryTrackerData: Array<any> = [];
   hiLogs: Array<LogStruct> = [];
   hiLogSummary: Array<LogStruct> = [];
-  cpuFreqList: Array<any> = [];
 }
 
 export class BoxJumpParam {
