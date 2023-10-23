@@ -299,7 +299,7 @@ export class CpuStruct extends BaseStruct {
   type: string | undefined;
   v: boolean = false;
   nofinish: boolean = false;
-  ts:number | undefined;
+  ts: number | undefined;
   itid: number | undefined;
   process: string | undefined;
   pid: number | undefined;

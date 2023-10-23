@@ -286,7 +286,7 @@ export class SpProbesConfig extends BaseElement {
     this.bufferSizeSliderInit();
 
     let litSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;
-    this.ftraceSlider = this.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider')
+    this.ftraceSlider = this.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
 
     litSwitch.addEventListener('change', (event: any) => {
       let detail = event.detail;
@@ -295,7 +295,7 @@ export class SpProbesConfig extends BaseElement {
       } else {
         this.disable();
       }
-    })
+    });
   }
 
   private bufferSizeSliderInit() {
@@ -413,7 +413,6 @@ export class SpProbesConfig extends BaseElement {
     return `
         <style>
         .recordText {
-           grid-column:span 2/auto;
            font-family: Helvetica-Bold;
            font-size: 1em;
            color: var(--dark-color1,#000000);
@@ -547,9 +546,9 @@ export class SpProbesConfig extends BaseElement {
         </style>
         <div class="root">
             <div class="recordText" >
-              <span class="record-title">Record mode</span>
-              <lit-switch checked="true"></lit-switch>
-           </div>
+                <span class="record-title">Record mode</span>
+                <lit-switch checked="true"></lit-switch>
+                </div>
             <div class="config-page">
                 <div>
                     <div class="trace-config"></div>

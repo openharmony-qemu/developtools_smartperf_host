@@ -118,8 +118,6 @@ import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
 import { TabPaneSchedPriority } from '../sheet/cpu/TabPaneSchedPriority.js';
 import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
 import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph.js';
-import {TabePaneFreqUsage} from '../sheet/frequsage/TabPaneFreqUsage.js';
-import {TabPaneFreqDataCut} from '../sheet/frequsage/TabPaneFreqDataCut.js';
 
 export let tabConfig: any = {
   'current-selection': {
@@ -628,14 +626,4 @@ export let tabConfig: any = {
     type: TabPaneCurrent,
     require: (param: SelectionParam) => param.isCurrentPane,
   }, //current selection
-  'tabpane-Thrfrequsage': {
-    title: 'Freq Usage',
-    type: TabePaneFreqUsage,
-    require: (param: SelectionParam) => param.threadIds.length < 2 && param.threadIds.length > 0
-  },
-  'tabpane-Thrfreqdatacut': {
-    title: 'Freq DataCut',
-    type: TabPaneFreqDataCut,
-    require: (param: SelectionParam) => param.threadIds.length < 2 && param.threadIds.length > 0
-  },
 };

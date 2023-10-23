@@ -64,8 +64,8 @@ export class TabPaneCounterSample extends BaseElement {
     this.counterLoadingPage = this.shadowRoot!.querySelector('.loadingCounter');
     this.counterSampleTbl = this.shadowRoot!.querySelector<LitTable>('#tb-counter-sample');
     this.systemTrace = document
-      .querySelector('body > sp-application')?.
-      shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
+      .querySelector('body > sp-application')
+      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.counterSampleTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.counterSortKey = evt.detail.key;
@@ -97,7 +97,7 @@ export class TabPaneCounterSample extends BaseElement {
                 cpuStateFilter[i].value === data.value &&
                 cpuStateFilter[i].cpu === data.cpu &&
                 Math.max(TraceRow.rangeSelectObject?.startNS!, cpuStateFilter[i].startTs!) <
-                Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
+                  Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
               ) {
                 CpuStateStruct.hoverStateStruct = cpuStateFilter[i];
               }
@@ -185,7 +185,7 @@ export class TabPaneCounterSample extends BaseElement {
         sampleMap.set(item.filterId + '-' + item.value, {
           ...item,
           counter: 'Cpu ' + item.cpu,
-          count: initCounterResultList.filter(ele => ele.value === item.value).length
+          count: initCounterResultList.filter((ele) => ele.value === item.value).length,
         });
       }
     });

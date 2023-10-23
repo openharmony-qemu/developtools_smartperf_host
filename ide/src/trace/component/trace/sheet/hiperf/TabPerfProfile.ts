@@ -31,7 +31,6 @@ import '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { showButtonMenu } from '../SheetUtils.js';
-import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
@@ -39,7 +38,7 @@ export class TabpanePerfProfile extends BaseElement {
   private perfProfilerList: LitTable | null | undefined;
   private perfProfileProgressEL: LitProgressBar | null | undefined;
   private perfProfilerRightSource: Array<PerfCallChainMerageData> = [];
-  private perfProfilerFilter: any;
+  private perfProfilerFilter: TabPaneFilter| null| undefined;
   private perfProfilerDataSource: any[] = [];
   private perfProfileSortKey = 'weight';
   private perfProfileSortType = 0;
@@ -51,10 +50,8 @@ export class TabpanePerfProfile extends BaseElement {
   private perfProfilerModal: DisassemblingWindow | null | undefined;
   private needShowMenu = true;
   private searchValue: string = '';
-  private perfProfileLoadingList: number[] = [];
   private perfProfileLoadingPage: any;
   private currentSelection: SelectionParam | undefined;
-  private currentPerfProfilerDataSource: Array<PerfCallChainMerageData> = [];
 
   set data(perfProfilerSelection: SelectionParam | any) {
     if (perfProfilerSelection === this.currentSelection) {
@@ -76,6 +73,15 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
     const initWidth = this.clientWidth;
+    this.initGetData(perfProfilerSelection, initWidth);
+    
+    this.perfProfilerFilter!.getCallTransferData((data: any) => {
+      perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
+      this.initGetData(perfProfilerSelection, initWidth, data);
+    });
+  }
+
+  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number, data?: any): void {
     this.getDataByWorker(
       [
         {
@@ -90,44 +96,18 @@ export class TabpanePerfProfile extends BaseElement {
       (results: any[]) => {
         this.setPerfProfilerLeftTableData(results);
         this.perfProfilerList!.recycleDataSource = [];
-        this.perfProfileFrameChart!.mode = ChartMode.Count;
+        if (data && data.value !== 'count') {
+          this.perfProfileFrameChart!.mode = ChartMode.EventCount;
+        } else {
+          this.perfProfileFrameChart!.mode = ChartMode.Count;
+        }
+
         this.perfProfileFrameChart?.updateCanvas(true, initWidth);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-        this.currentPerfProfilerDataSource = this.perfProfilerDataSource;
         this.switchFlameChart();
-        this.perfProfilerFilter.icon = 'block';
+        this.perfProfilerFilter!.icon = 'block';
       }
     );
-
-    this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
-      this.getDataByWorker(
-        [
-          {
-            funcName: 'setSearchValue',
-            funcArgs: [''],
-          },
-          {
-            funcName: 'getCurrentDataFromDb',
-            funcArgs: [perfProfilerSelection],
-          },
-        ],
-        (results: any[]) => {
-          this.setPerfProfilerLeftTableData(results);
-          this.perfProfilerList!.recycleDataSource = [];
-          if(data.value !== 'count') {
-            this.perfProfileFrameChart!.mode = ChartMode.EventCount;
-          }else{
-            this.perfProfileFrameChart!.mode = ChartMode.Count;
-          }
-          
-          this.perfProfileFrameChart?.updateCanvas(true, initWidth);
-          this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-          this.currentPerfProfilerDataSource = this.perfProfilerDataSource;
-          this.switchFlameChart();
-          this.perfProfilerFilter.icon = 'block';
-        })
-    })
   }
 
   getParentTree(
@@ -254,7 +234,7 @@ export class TabpanePerfProfile extends BaseElement {
       let spApplication = <SpApplication>document.getElementsByTagName('sp-application')[0];
       if (Date.now() - lastClikTime < 200 && spApplication.vs) {
         this.perfProfilerTbl!.style.visibility = 'hidden';
-        this.perfProfilerFilter.style.display = 'none';
+        this.perfProfilerFilter!.style.display = 'none';
         new ResizeObserver((entries) => {
           this.perfProfilerModal!.style.width = this.perfProfilerTbl!.clientWidth + 'px';
           this.perfProfilerModal!.style.height = this.perfProfilerTbl!.clientHeight + 'px';
