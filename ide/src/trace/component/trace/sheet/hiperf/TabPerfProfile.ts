@@ -67,21 +67,25 @@ export class TabpanePerfProfile extends BaseElement {
       this.perfProfilerFilter!.style.display = 'none';
     }
     this.perfProfilerFilter!.disabledTransfer(false, 'perf');
+    this.perfProfilerFilter!.getTransferList();
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
-    this.perfProfilerFilter!.refreshTreeTransfer();
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
+    this.getDataByWorkAndUpDateCanvas(perfProfilerSelection);
+  }
+
+  getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam) {
     const initWidth = this.clientWidth;
     this.initGetData(perfProfilerSelection, initWidth);
     
     this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      perfProfilerSelection.eventTypeId = data.value !== 'count' ? data.value : undefined;
-      this.initGetData(perfProfilerSelection, initWidth, data);
+      perfProfilerSelection.eventTypeId = data.eventTypeId !== 'count' ? data.eventTypeId : undefined;
+      this.initGetData(perfProfilerSelection, initWidth);
     });
   }
 
-  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number, data?: any): void {
+  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number): void {
     this.getDataByWorker(
       [
         {
@@ -96,18 +100,17 @@ export class TabpanePerfProfile extends BaseElement {
       (results: any[]) => {
         this.setPerfProfilerLeftTableData(results);
         this.perfProfilerList!.recycleDataSource = [];
-        if (data && data.value !== 'count') {
+        if(perfProfilerSelection.eventTypeId && perfProfilerSelection.eventTypeId !== 'count') {
           this.perfProfileFrameChart!.mode = ChartMode.EventCount;
-        } else {
+        }else{
           this.perfProfileFrameChart!.mode = ChartMode.Count;
         }
-
+        
         this.perfProfileFrameChart?.updateCanvas(true, initWidth);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
         this.switchFlameChart();
         this.perfProfilerFilter!.icon = 'block';
-      }
-    );
+      })
   }
 
   getParentTree(
