@@ -103,6 +103,7 @@ import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js'
 import { LitSearch } from './trace/search/Search.js';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
+import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -2472,6 +2473,11 @@ export class SpSystemTrace extends BaseElement {
         JsCpuProfilerStruct.hoverJsCpuProfilerStruct !== null &&
         JsCpuProfilerStruct.hoverJsCpuProfilerStruct !== undefined,
     ],
+    [TraceRow.ROW_TYPE_PERF_CALLCHART,
+      ()=>
+      HiPerfCallChartStruct.hoverPerfCallCutStruct !==null &&
+      HiPerfCallChartStruct.hoverPerfCallCutStruct !== undefined,
+    ],
     [
       TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY,
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
@@ -4395,7 +4401,7 @@ export class SpSystemTrace extends BaseElement {
     }
     if (this.tipEL) {
       this.tipEL.innerHTML = html;
-      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
+      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER ||row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
         this.tipEL.style.maxWidth = row.clientWidth / 3 + 'px';
         this.tipEL.style.wordBreak = ' break-all';
         this.tipEL.style.height = 'unset';
