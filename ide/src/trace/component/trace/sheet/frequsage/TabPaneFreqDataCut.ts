@@ -315,9 +315,7 @@ export class TabPaneFreqDataCut extends BaseElement{
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let dealArr = new Array();
                 for(let i of result){
-                    if(i.startTime + timeDur + i.dur > this.currentSelectionParam.rightNs + timeDur){
-                        dealArr.push({'ts': i.startTime + timeDur, 'dur': this.currentSelectionParam.rightNs + timeDur - (i.startTime + timeDur)});
-                    }else{
+                    if(i.startTime + timeDur + i.dur < this.currentSelectionParam.rightNs + timeDur){
                         dealArr.push({'ts': i.startTime + timeDur, 'dur': i.dur});
                     }
                 }
