@@ -1719,10 +1719,10 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
+    this.isMouseLeftDown = true;
     if (ev.ctrlKey) {
       ev.preventDefault();
-      this.style.cursor = 'move';
-      this.isMouseLeftDown = true;
+      this.style.cursor = 'move'; 
       this.mouseCurrentPosition = ev.clientX;
       return;
     }
