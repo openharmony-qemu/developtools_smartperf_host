@@ -88,7 +88,6 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number): void {
-    console.log(this.filterDate)
     let perfProfileArgs: any[] = [];
       perfProfileArgs.push({
         funcName: 'setSearchValue',
