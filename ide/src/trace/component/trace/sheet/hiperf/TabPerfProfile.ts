@@ -53,6 +53,8 @@ export class TabpanePerfProfile extends BaseElement {
   private perfProfileLoadingPage: any;
   private currentSelection: SelectionParam | undefined;
 
+  private filterDate: any;
+
   set data(perfProfilerSelection: SelectionParam | any) {
     if (perfProfilerSelection === this.currentSelection) {
       return;
@@ -86,18 +88,17 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number): void {
-    this.getDataByWorker(
-      [
-        {
-          funcName: 'setSearchValue',
-          funcArgs: [''],
-        },
-        {
-          funcName: 'getCurrentDataFromDb',
-          funcArgs: [perfProfilerSelection],
-        },
-      ],
-      (results: any[]) => {
+    console.log(this.filterDate)
+    let perfProfileArgs: any[] = [];
+      perfProfileArgs.push({
+        funcName: 'setSearchValue',
+        funcArgs: [''],
+      },
+      {
+        funcName: 'getCurrentDataFromDb',
+        funcArgs: [perfProfilerSelection],
+      },)
+    this.getDataByWorker(perfProfileArgs, (results: any[]) => {
         this.setPerfProfilerLeftTableData(results);
         this.perfProfilerList!.recycleDataSource = [];
         if(perfProfilerSelection.eventTypeId && perfProfilerSelection.eventTypeId !== 'count') {
@@ -110,6 +111,9 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
         this.switchFlameChart();
         this.perfProfilerFilter!.icon = 'block';
+        if(this.filterDate != undefined) {
+          this.refreshAllNode(this.filterDate);
+        }
       })
   }
 
@@ -377,6 +381,14 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter!.getDataLibrary(filterFunc);
     this.perfProfilerFilter!.getDataMining(filterFunc);
     this.perfProfilerFilter!.getCallTreeData((data: any) => {
+      if(data.checks[0] === false && data.checks[1] === false){
+        this.filterDate = undefined;
+      } else {
+        this.filterDate = {
+          ...this.perfProfilerFilter!.getFilterTreeData(),
+          callTree: data.checks,
+        };
+      }
       if (data.value === 0) {
         this.refreshAllNode({
           ...this.perfProfilerFilter!.getFilterTreeData(),
