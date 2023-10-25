@@ -5494,3 +5494,68 @@ export const queryTraceType = (): Promise<
 
 export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
   query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
+
+  export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+query<SelectionData>(
+  'getTabRunningPercent',
+  `
+  select
+    B.pid,B.tid,B.state,B.cpu,B.dur,B.ts
+  from
+    thread_state AS B
+  left join 
+    trace_range AS TR
+  where
+  B.tid in (${tIds.join(',')})
+  and
+  B.state='Running'
+  and
+    not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+    order by ts
+  `,
+  {$leftNS:leftNS, $rightNS:rightNS}
+);
+  
+export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+query(
+  'querySearchFuncData',
+  `
+  select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName,
+  p.pid,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
+  left join trace_range r
+  where c.name = '${funcName}' and t.tid = ${tIds} and
+  not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+  `,
+  {$search: funcName}
+);
+
+export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =>
+query(
+  'queryCpuFreqUsageData',
+  `select
+  value,
+  ifnull(dur,tb.end_ts - c.ts) dur,
+  ts-tb.start_ts as startNS,
+  filter_id
+  from
+  measure c,
+  trace_range tb
+  where
+  c.filter_id in (${Ids.join(',')})
+  `
+);
+
+export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
+query(
+  'queryCpuFreqFilterId',
+  `select
+  id,
+  cpu
+  from
+  cpu_measure_filter 
+  where
+  name='cpufreq'
+  or
+  name='cpu_frequency'
+  `
+);
