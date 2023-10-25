@@ -2532,14 +2532,20 @@ export class SpSystemTrace extends BaseElement {
     // 判断点击的线程是否在唤醒树内
     let timeoutJudge = setTimeout(() => {
       if (SpSystemTrace.wakeupList.length && CpuStruct.selectCpuStruct) {
-        let checkHandlerKey = true;
+        let checkHandlerKey:boolean = true;
+        let saveSelectCpuStruct:any = JSON.parse(sessionStorage.getItem('saveselectcpustruct')!)
         for (const item of SpSystemTrace.wakeupList) {
           if (item.ts === CpuStruct.selectCpuStruct.startTime && item.dur === CpuStruct.selectCpuStruct.dur) {
             checkHandlerKey = false;
             if (SpSystemTrace.wakeupList[0].schedulingDesc) {
-              SpSystemTrace.wakeupList.unshift(JSON.parse(sessionStorage.getItem('saveselectcpustruct')!))
+              SpSystemTrace.wakeupList.unshift(saveSelectCpuStruct)
             }
             this.refreshCanvas(true);
+            break;
+          }else if (saveSelectCpuStruct.startTime === CpuStruct.selectCpuStruct.startTime && saveSelectCpuStruct.dur === CpuStruct.selectCpuStruct.dur) {
+            // 如果点击的是第一层，保持唤醒树不变
+            checkHandlerKey = false;
+            this.refreshCanvas(true)
             break;
           }
         }
