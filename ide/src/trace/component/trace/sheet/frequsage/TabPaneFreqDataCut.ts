@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,43 +23,46 @@ import { log } from '../../../../../log/Log.js';
 import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-freqdatacut')
-export class TabPaneFreqDataCut extends BaseElement{
-    private threadStatesTbl: LitTable|null|undefined;
-    private threadStatesTblSource:Array<SelectionData> = [];
-    private currentSelectionParam: SelectionParam|any;
-    private threadStatesDIV:Element|null|undefined;
-    private initData:Array<SelectionData> = [];
+export class TabPaneFreqDataCut extends BaseElement {
+    private threadStatesTbl: LitTable | null | undefined;
+    private threadStatesTblSource: Array<SelectionData> = [];
+    private currentSelectionParam: SelectionParam | any;
+    private threadStatesDIV: Element | null | undefined;
+    private initData: Array<SelectionData> = [];
 
-    set data(threadStatesParam: SelectionParam|any){
+    set data(threadStatesParam: SelectionParam | any) {
         if (this.currentSelectionParam === threadStatesParam) {
             return;
         }
         this.currentSelectionParam = threadStatesParam;
         this.threadStatesTblSource = [];
         this.threadStatesTbl!.recycleDataSource = [];
-
+        let divRoot1: any = this.shadowRoot?.querySelector('#dataCutThreadId');
+        divRoot1.value = '';
+        let divRoot2: any = this.shadowRoot?.querySelector('#dataCutThreadFunc');
+        divRoot2.value = '';
         getTabRunningPercent(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs).then((result) => {
-            queryCpuFreqFilterId().then(r =>{
+            queryCpuFreqFilterId().then(r => {
                 let IdMap = new Map();
                 let queryId = new Array();
-                for(let i = 0; i < r.length; i++){
+                for (let i = 0; i < r.length; i++) {
                     queryId.push(r[i].id);
-                    IdMap.set(r[i].id,r[i].cpu);
+                    IdMap.set(r[i].id, r[i].cpu);
                 }
-                queryCpuFreqUsageData(queryId).then((res) =>{
-                    if(result != null && result.length > 0){
+                queryCpuFreqUsageData(queryId).then((res) => {
+                    if (result != null && result.length > 0) {
                         log('getTabRunningPercent result size : ' + result.length);
                         let sum = 0;
                         let dealArr = new Array();
-                        for(let i of res){
-                            dealArr.push({'startNS': i.startNS + threadStatesParam.recordStartNs, 'dur': i.dur, 'value': i.value, 'cpu': IdMap.get(i.filter_id)});
+                        for (let i of res) {
+                            dealArr.push({ 'startNS': i.startNS + threadStatesParam.recordStartNs, 'dur': i.dur, 'value': i.value, 'cpu': IdMap.get(i.filter_id) });
                         }
                         let targetList = new Array();
                         let cpuArr = new Array();
                         let finalResultArr = new Array();
-                        finalResultArr.push({'thread': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': '100.00', 'state': 'Running', children: new Array()});
-                        for(let e of result){
-                            if(threadStatesParam.processIds.includes(e.pid) && e.state == 'Running'){
+                        finalResultArr.push({ 'thread': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': '100.00', 'state': 'Running', children: new Array() });
+                        for (let e of result) {
+                            if (threadStatesParam.processIds.includes(e.pid) && e.state == 'Running') {
                                 let process = Utils.PROCESS_MAP.get(e.pid);
                                 let thread = Utils.THREAD_MAP.get(e.tid);
                                 e.process = process == null || process.length == 0 ? '[NULL]' : process;
@@ -68,38 +71,38 @@ export class TabPaneFreqDataCut extends BaseElement{
                                 e.state = Utils.getEndState(e.stateJX);
                                 sum += e.dur;
                                 targetList.push(e);
-                                if(!cpuArr.includes(e.cpu)){
+                                if (!cpuArr.includes(e.cpu)) {
                                     cpuArr.push(e.cpu);
                                     finalResultArr[0].thread = finalResultArr[0].thread == '' ? e.tid + '_' + e.thread : finalResultArr[0].thread;
-                                    finalResultArr[0].children.push({'thread': e.tid + '_' + e.thread, 'count': 0, 'cpu': e.cpu, 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array()});
+                                    finalResultArr[0].children.push({ 'thread': e.tid + '_' + e.thread, 'count': 0, 'cpu': e.cpu, 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                                 }
                             }
                         }
                         // 用来存放数据切割之前的汇总数据
                         let resultList = new Array();
                         // 通过循环获取每个running状态线程的相关信息，此处或许可以进行算法优化
-                        for(let i = 0; i < targetList.length; i++){
-                            for(let j = 0; j < dealArr.length; j++){
-                                if(targetList[i].cpu == dealArr[j].cpu){
-                                    if(targetList[i].ts > dealArr[j].startNS){
-                                        if(targetList[i].ts < (dealArr[j].startNS + dealArr[j].dur)){
-                                            if(targetList[i].dur < (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts)){
-                                                resultList.push({'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * targetList[i].dur) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': targetList[i].dur, 'percent': targetList[i].dur / sum * 100, 'state': 'Running', 'ts': targetList[i].ts});
+                        for (let i = 0; i < targetList.length; i++) {
+                            for (let j = 0; j < dealArr.length; j++) {
+                                if (targetList[i].cpu == dealArr[j].cpu) {
+                                    if (targetList[i].ts > dealArr[j].startNS) {
+                                        if (targetList[i].ts < (dealArr[j].startNS + dealArr[j].dur)) {
+                                            if (targetList[i].dur < (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts)) {
+                                                resultList.push({ 'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * targetList[i].dur) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': targetList[i].dur, 'percent': targetList[i].dur / sum * 100, 'state': 'Running', 'ts': targetList[i].ts });
                                                 break;
-                                            }else{
-                                                resultList.push({'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts)) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts), 'percent': (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts) / sum *100, 'state': 'Running', 'ts': targetList[i].ts});
+                                            } else {
+                                                resultList.push({ 'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts)) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts), 'percent': (dealArr[j].startNS + dealArr[j].dur - targetList[i].ts) / sum * 100, 'state': 'Running', 'ts': targetList[i].ts });
                                             }
                                         }
-                                    }else{
-                                        if((targetList[i].ts + targetList[i].dur) > dealArr[j].startNS){
-                                            if((targetList[i].dur + targetList[i].ts - dealArr[j].startNS) < dealArr[j].dur){
-                                                resultList.push({'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * (targetList[i].dur + targetList[i].ts - dealArr[j].startNS)) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': (targetList[i].dur + targetList[i].ts - dealArr[j].startNS), 'percent': (targetList[i].dur + targetList[i].ts - dealArr[j].startNS) / sum * 100, 'state': 'Running', 'ts': dealArr[j].startNS});
+                                    } else {
+                                        if ((targetList[i].ts + targetList[i].dur) > dealArr[j].startNS) {
+                                            if ((targetList[i].dur + targetList[i].ts - dealArr[j].startNS) < dealArr[j].dur) {
+                                                resultList.push({ 'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * (targetList[i].dur + targetList[i].ts - dealArr[j].startNS)) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': (targetList[i].dur + targetList[i].ts - dealArr[j].startNS), 'percent': (targetList[i].dur + targetList[i].ts - dealArr[j].startNS) / sum * 100, 'state': 'Running', 'ts': dealArr[j].startNS });
                                                 break;
-                                            }else{
-                                                resultList.push({'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * dealArr[j].dur) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': dealArr[j].dur, 'percent': dealArr[j].dur / sum * 100, 'state': 'Running', 'ts': dealArr[j].startNS});
+                                            } else {
+                                                resultList.push({ 'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': (dealArr[j].value * dealArr[j].dur) / 1000, 'cpu': targetList[i].cpu, 'freq': dealArr[j].value, 'dur': dealArr[j].dur, 'percent': dealArr[j].dur / sum * 100, 'state': 'Running', 'ts': dealArr[j].startNS });
                                             }
-                                        }else{
-                                            resultList.push({'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': 0, 'cpu': targetList[i].cpu, 'freq': 'unknown', 'dur': targetList[i].dur, 'percent': targetList[i].dur / sum * 100, 'state': 'Running', 'ts': targetList[i].ts});
+                                        } else {
+                                            resultList.push({ 'thread': targetList[i].tid + '_' + targetList[i].thread, 'count': 0, 'cpu': targetList[i].cpu, 'freq': 'unknown', 'dur': targetList[i].dur, 'percent': targetList[i].dur / sum * 100, 'state': 'Running', 'ts': targetList[i].ts });
                                             break;
                                         }
                                     }
@@ -109,9 +112,9 @@ export class TabPaneFreqDataCut extends BaseElement{
                         // 深拷贝，用来进行数据切割操作，避免数据污染
                         this.initData = JSON.parse(JSON.stringify(resultList));
                         //合并同一线程内，当运行所在cpu和频点相同时，dur及percent进行累加求和，或许可以进行算法优化
-                        for(let i = 0; i < resultList.length ; i++){
-                            for(let j = i + 1; j < resultList.length; j++){
-                                if(resultList[i].cpu == resultList[j].cpu && resultList[i].freq == resultList[j].freq){
+                        for (let i = 0; i < resultList.length; i++) {
+                            for (let j = i + 1; j < resultList.length; j++) {
+                                if (resultList[i].cpu == resultList[j].cpu && resultList[i].freq == resultList[j].freq) {
                                     resultList[i].dur += resultList[j].dur;
                                     resultList[i].percent += resultList[j].percent;
                                     resultList[i].count += resultList[j].count;
@@ -122,11 +125,11 @@ export class TabPaneFreqDataCut extends BaseElement{
                             resultList[i].percent = Number((resultList[i].percent).toFixed(2));
                             resultList[i].ts = resultList[i].ts - threadStatesParam.recordStartNs;
                         }
-                        finalResultArr[0].children.sort((a:any, b:any) => a.cpu - b.cpu);
+                        finalResultArr[0].children.sort((a: any, b: any) => a.cpu - b.cpu);
                         // 转成树结构数据进行展示
-                        for(let i = 0; i < finalResultArr[0].children.length; i++){
-                            for(let j = 0; j < resultList.length; j++){
-                                if(finalResultArr[0].children[i].cpu == resultList[j].cpu){
+                        for (let i = 0; i < finalResultArr[0].children.length; i++) {
+                            for (let j = 0; j < resultList.length; j++) {
+                                if (finalResultArr[0].children[i].cpu == resultList[j].cpu) {
                                     finalResultArr[0].children[i].children.push(resultList[j]);
                                     finalResultArr[0].children[i].dur += resultList[j].dur;
                                     finalResultArr[0].children[i].percent += resultList[j].percent;
@@ -141,31 +144,28 @@ export class TabPaneFreqDataCut extends BaseElement{
                         }
                         this.threadStatesTblSource = finalResultArr;
                         this.threadStatesTbl!.recycleDataSource = finalResultArr;
-                    }else{
+                    } else {
                         this.threadStatesTblSource = [];
                         this.threadStatesTbl!.recycleDataSource = [];
                         this.initData = [];
                     }
                 })
             })
-            
+
         });
     }
     initElements(): void {
         this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-running-percent');
         // 暂时屏蔽列排序功能，后续增加则重写排序方法
-        // this.threadStatesTbl!.addEventListener('column-click', (evt: any) => {
-        //     this.sortByColumn(evt.detail);
-        // });
         this.threadStatesDIV = this.shadowRoot?.querySelector('#dataCut');
-        this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e)=>{
+        this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
             this.dataSingleCut(this.threadStatesDIV?.children[0], this.threadStatesDIV?.children[1], this.initData);
         })
-        this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e)=>{
+        this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
             this.dataLoopCut(this.threadStatesDIV?.children[0], this.threadStatesDIV?.children[1], this.initData);
         })
     }
-    connectedCallback(){
+    connectedCallback() {
         super.connectedCallback();
         resizeObserver(this.parentElement!, this.threadStatesTbl!);
     }
@@ -225,81 +225,51 @@ export class TabPaneFreqDataCut extends BaseElement{
         </lit-table>
         `
     }
-    sortByColumn(treadStateDetail: any){
-        function compare(property: any, treadStatesSort: any, type: any){
-            return function(threadStatesLeftData: SelectionData | any, threadStatesRightData: SelectionData | any){
-                if(threadStatesLeftData.process == ' ' || threadStatesRightData.process == ' '){
-                    return 0;
-                }
-                if(type === 'number'){
-                    return treadStatesSort === 2 
-                    ? parseFloat(threadStatesRightData[property]) - parseFloat(threadStatesLeftData[property])
-                    :  parseFloat(threadStatesLeftData[property]) - parseFloat(threadStatesRightData[property]);
-                }else{
-                    if(threadStatesRightData[property] > threadStatesLeftData[property]){
-                        return treadStatesSort === 2 ? 1 : -1;
-                    }else if(threadStatesRightData[property] == threadStatesLeftData[property]){
-                        return 0;
-                    }else{
-                        return treadStatesSort === 2 ? -1 : 1;
-                    }
-                }
-            };
-        }
-
-        if(treadStateDetail.key === 'name' || treadStateDetail.key === 'thread' || treadStateDetail.key === 'state'){
-            this.threadStatesTblSource.sort(compare(treadStateDetail.key, treadStateDetail.sort, 'string'));
-        }else{
-            this.threadStatesTblSource.sort(compare(treadStateDetail.key, treadStateDetail.sort, 'number'));
-        }
-        this.threadStatesTbl!.recycleDataSource = this.threadStatesTblSource;
-    }
-    dataLoopCut(threadId: any, threadFunc:any, resultList:any){
+    dataLoopCut(threadId: any, threadFunc: any, resultList: any) {
         let threadIdValue = threadId.value.trim();
         let threadFuncName = threadFunc.value.trim();
         let leftNS = this.currentSelectionParam.leftNs;
         let rightNS = this.currentSelectionParam.rightNs;
-        if(/^[0-9]*$/.test(threadIdValue)){
+        if (/^[0-9]*$/.test(threadIdValue)) {
             querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(res => {
                 let displayArr = JSON.parse(JSON.stringify(resultList));
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let cutArr = new Array();
                 // 根据线程id及方法名获取的数据，处理后用作切割时间依据，时间跨度为整个方法开始时间到末个方法开始时间
-                for(let i of res){
-                    cutArr.push({'ts': i.startTime + timeDur});
+                for (let i of res) {
+                    cutArr.push({ 'ts': i.startTime + timeDur });
                 }
                 // 将数据进行切割处理
                 let finalArr = new Array();
                 let finalResultArr = new Array();
-                let tsArr = new Array();
-                finalResultArr.push({'thread': displayArr[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array()});
-                for(let i = 0; i < cutArr.length - 1; i++){
-                    for(let j = 0; j < displayArr.length; j++){
-                        if(displayArr[j].ts >= cutArr[i].ts){
-                            if((displayArr[j].ts + displayArr[j].dur) <= cutArr[i+1].ts){
-                                finalArr.push({'thread': displayArr[j].thread, 'count': (displayArr[j].freq * displayArr[j].dur) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': displayArr[j].dur, 'percent': displayArr[j].percent, 'state': 'Running', 'ts': (displayArr[j].ts - timeDur) / 1000000000, 'id': i});
-                            }else{
-                                if(cutArr[i+1].ts - displayArr[j].ts > 0){
-                                    finalArr.push({'thread': displayArr[j].thread, 'count': (displayArr[j].freq * (cutArr[i+1].ts - displayArr[j].ts)) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': cutArr[i+1].ts - displayArr[j].ts, 'percent': displayArr[j].percent * ((cutArr[i+1].ts - displayArr[j].ts) / displayArr[j].dur), 'state': 'Running', 'ts': (displayArr[j].ts - timeDur) / 1000000000, 'id': i});
+                finalResultArr.push({ 'thread': displayArr[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
+                for (let i = 0; i < cutArr.length - 1; i++) {
+                    for (let j = 0; j < displayArr.length; j++) {
+                        if (displayArr[j].ts >= cutArr[i].ts) {
+                            if ((displayArr[j].ts + displayArr[j].dur) <= cutArr[i + 1].ts) {
+                                finalArr.push({ 'thread': displayArr[j].thread, 'count': (displayArr[j].freq * displayArr[j].dur) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': displayArr[j].dur, 'percent': displayArr[j].percent, 'state': 'Running', 'ts': (displayArr[j].ts - timeDur) / 1000000000, 'id': i });
+                            } else {
+                                if (cutArr[i + 1].ts - displayArr[j].ts > 0) {
+                                    finalArr.push({ 'thread': displayArr[j].thread, 'count': (displayArr[j].freq * (cutArr[i + 1].ts - displayArr[j].ts)) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': cutArr[i + 1].ts - displayArr[j].ts, 'percent': displayArr[j].percent * ((cutArr[i + 1].ts - displayArr[j].ts) / displayArr[j].dur), 'state': 'Running', 'ts': (displayArr[j].ts - timeDur) / 1000000000, 'id': i });
                                     break;
                                 }
                             }
-                        }else{
-                            if((displayArr[j].ts + displayArr[j].dur) > cutArr[i+1].ts){
-                                finalArr.push({'thread': displayArr[j].thread, 'count': (displayArr[j].freq * (cutArr[i+1].ts - cutArr[i].ts)) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': cutArr[i+1].ts - cutArr[i].ts, 'percent': displayArr[j].percent * ((cutArr[i+1].ts - cutArr[i].ts) / displayArr[j].dur), 'state': 'Running', 'ts': (cutArr[i].ts - timeDur) / 1000000000, 'id': i});
+                        } else {
+                            if ((displayArr[j].ts + displayArr[j].dur) > cutArr[i + 1].ts) {
+                                finalArr.push({ 'thread': displayArr[j].thread, 'count': (displayArr[j].freq * (cutArr[i + 1].ts - cutArr[i].ts)) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': cutArr[i + 1].ts - cutArr[i].ts, 'percent': displayArr[j].percent * ((cutArr[i + 1].ts - cutArr[i].ts) / displayArr[j].dur), 'state': 'Running', 'ts': (cutArr[i].ts - timeDur) / 1000000000, 'id': i });
                             }
-                            if((displayArr[j].ts + displayArr[j].dur) > cutArr[i].ts && (displayArr[j].ts + displayArr[j].dur) < cutArr[i+1].ts){
-                                finalArr.push({'thread': displayArr[j].thread, 'count': (displayArr[j].freq * (displayArr[j].dur + displayArr[j].ts - cutArr[i].ts)) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': displayArr[j].dur + displayArr[j].ts - cutArr[i].ts, 'percent': displayArr[j].percent * ((displayArr[j].dur + displayArr[j].ts - cutArr[i].ts) / displayArr[j].dur), 'state': 'Running', 'ts': (cutArr[i].ts - timeDur) / 1000000000, 'id': i});
+                            if ((displayArr[j].ts + displayArr[j].dur) > cutArr[i].ts && (displayArr[j].ts + displayArr[j].dur) < cutArr[i + 1].ts) {
+                                finalArr.push({ 'thread': displayArr[j].thread, 'count': (displayArr[j].freq * (displayArr[j].dur + displayArr[j].ts - cutArr[i].ts)) / 1000, 'cpu': displayArr[j].cpu, 'freq': displayArr[j].freq, 'dur': displayArr[j].dur + displayArr[j].ts - cutArr[i].ts, 'percent': displayArr[j].percent * ((displayArr[j].dur + displayArr[j].ts - cutArr[i].ts) / displayArr[j].dur), 'state': 'Running', 'ts': (cutArr[i].ts - timeDur) / 1000000000, 'id': i });
                             }
                         }
                     }
-                    finalResultArr[0].children.push({'thread': displayArr[0].thread, 'ts': (cutArr[i].ts - timeDur) / 1000000000,'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array(), 'id': i});
+                    finalResultArr[0].children.push({ 'thread': displayArr[0].thread, 'ts': (cutArr[i].ts - timeDur) / 1000000000, 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array(), 'id': i });
                 }
 
-                for(let i = 0; i < finalArr.length; i++){
-                    for(let j = i+1; j < finalArr.length; j++){
-                        if(finalArr[i].cpu === finalArr[j].cpu && finalArr[i].freq === finalArr[j].freq && finalArr[i].id === finalArr[j].id){
-                            finalArr[i].dur += finalArr[j].dur; 
+                for (let i = 0; i < finalArr.length; i++) {
+                    for (let j = i + 1; j < finalArr.length; j++) {
+                        if (finalArr[i].cpu === finalArr[j].cpu && finalArr[i].freq === finalArr[j].freq && finalArr[i].id === finalArr[j].id) {
+                            finalArr[i].dur += finalArr[j].dur;
                             finalArr[i].percent += finalArr[j].percent;
                             finalArr[i].count += finalArr[j].count;
                             finalArr.splice(j, 1);
@@ -315,56 +285,56 @@ export class TabPaneFreqDataCut extends BaseElement{
                 this.threadStatesTblSource = finalResult[0].children.length > 0 ? finalResult : [];
                 this.threadStatesTbl!.recycleDataSource = finalResult[0].children.length > 0 ? finalResult : [];
             })
-        }else{
+        } else {
             alert('请输入正确的线程ID');
         }
     }
-    dataSingleCut(threadId: any, threadFunc:any, resultList:any){
+    dataSingleCut(threadId: any, threadFunc: any, resultList: any) {
         let threadIdValue = threadId.value.trim();
         let threadFuncName = threadFunc.value.trim();
         let leftNS = this.currentSelectionParam.leftNs;
         let rightNS = this.currentSelectionParam.rightNs;
-        if(/^[0-9]*$/.test(threadIdValue)){
+        if (/^[0-9]*$/.test(threadIdValue)) {
             querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(result => {
                 let [...targetList] = JSON.parse(JSON.stringify(resultList));
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let dealArr = new Array();
-                for(let i of result){
-                    if(i.startTime + timeDur + i.dur < this.currentSelectionParam.rightNs + timeDur){
-                        dealArr.push({'ts': i.startTime + timeDur, 'dur': i.dur});
+                for (let i of result) {
+                    if (i.startTime + timeDur + i.dur < this.currentSelectionParam.rightNs + timeDur) {
+                        dealArr.push({ 'ts': i.startTime + timeDur, 'dur': i.dur });
                     }
                 }
                 let finalResultArr = new Array();
-                finalResultArr.push({'thread': targetList[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array()});
+                finalResultArr.push({ 'thread': targetList[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                 let resList = new Array();
-                for(let i = 0; i < dealArr.length; i++){
-                    for(let j = 0; j < targetList.length; j++){
-                        if(dealArr[i].ts < targetList[j].ts){
-                            if(dealArr[i].ts + dealArr[i].dur > targetList[j].ts){
-                                if(dealArr[i].ts + dealArr[i].dur > targetList[j].ts + targetList[j].dur){
-                                    resList.push({'thread': targetList[i].thread, 'ts': (targetList[j].ts - timeDur) / 1000000000, 'count': (targetList[j].freq * targetList[j].dur) / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': targetList[j].dur, 'percent': targetList[j].percent, 'state': 'Running', 'id': i});
-                                }else{
-                                    resList.push({'thread': targetList[j].thread, 'ts': (targetList[j].ts - timeDur) / 1000000000, 'count': (dealArr[i].ts + dealArr[i].dur - targetList[j].ts) * targetList[j].freq / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': dealArr[i].ts + dealArr[i].dur - targetList[j].ts, 'percent': (dealArr[i].ts + dealArr[i].dur - targetList[j].ts) / targetList[j].dur * targetList[j].percent, 'state': 'Running', 'id': i});
+                for (let i = 0; i < dealArr.length; i++) {
+                    for (let j = 0; j < targetList.length; j++) {
+                        if (dealArr[i].ts < targetList[j].ts) {
+                            if (dealArr[i].ts + dealArr[i].dur > targetList[j].ts) {
+                                if (dealArr[i].ts + dealArr[i].dur > targetList[j].ts + targetList[j].dur) {
+                                    resList.push({ 'thread': targetList[i].thread, 'ts': (targetList[j].ts - timeDur) / 1000000000, 'count': (targetList[j].freq * targetList[j].dur) / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': targetList[j].dur, 'percent': targetList[j].percent, 'state': 'Running', 'id': i });
+                                } else {
+                                    resList.push({ 'thread': targetList[j].thread, 'ts': (targetList[j].ts - timeDur) / 1000000000, 'count': (dealArr[i].ts + dealArr[i].dur - targetList[j].ts) * targetList[j].freq / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': dealArr[i].ts + dealArr[i].dur - targetList[j].ts, 'percent': (dealArr[i].ts + dealArr[i].dur - targetList[j].ts) / targetList[j].dur * targetList[j].percent, 'state': 'Running', 'id': i });
                                     break;
-                                }       
+                                }
                             }
-                        }else{
-                            if(targetList[j].ts + targetList[j].dur > dealArr[i].ts){
-                                if(targetList[j].ts + targetList[j].dur > dealArr[i].ts + dealArr[i].dur){
-                                    resList.push({'thread': targetList[j].thread, 'ts': (dealArr[i].ts - timeDur) / 1000000000, 'count': dealArr[i].dur * targetList[j].freq / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': dealArr[i].dur, 'percent': dealArr[i].dur / targetList[j].dur * targetList[j].percent, 'state': 'Running', 'id': i});
+                        } else {
+                            if (targetList[j].ts + targetList[j].dur > dealArr[i].ts) {
+                                if (targetList[j].ts + targetList[j].dur > dealArr[i].ts + dealArr[i].dur) {
+                                    resList.push({ 'thread': targetList[j].thread, 'ts': (dealArr[i].ts - timeDur) / 1000000000, 'count': dealArr[i].dur * targetList[j].freq / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': dealArr[i].dur, 'percent': dealArr[i].dur / targetList[j].dur * targetList[j].percent, 'state': 'Running', 'id': i });
                                     break;
-                                }else{
-                                    resList.push({'thread': targetList[j].thread, 'ts': (dealArr[i].ts - timeDur) / 1000000000, 'count': (targetList[j].ts + targetList[j].dur - dealArr[i].ts) * targetList[j].freq / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': targetList[j].ts + targetList[j].dur - dealArr[i].ts, 'percent': (targetList[j].ts + targetList[j].dur - dealArr[i].ts) / targetList[j].dur * targetList[j].percent, 'state': 'Running', 'id': i});
+                                } else {
+                                    resList.push({ 'thread': targetList[j].thread, 'ts': (dealArr[i].ts - timeDur) / 1000000000, 'count': (targetList[j].ts + targetList[j].dur - dealArr[i].ts) * targetList[j].freq / 1000, 'cpu': targetList[j].cpu, 'freq': targetList[j].freq, 'dur': targetList[j].ts + targetList[j].dur - dealArr[i].ts, 'percent': (targetList[j].ts + targetList[j].dur - dealArr[i].ts) / targetList[j].dur * targetList[j].percent, 'state': 'Running', 'id': i });
                                 }
                             }
                         }
                     }
-                    finalResultArr[0].children.push({'thread': targetList[0].thread, 'ts': (dealArr[i].ts - timeDur) / 1000000000,'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array(), 'id': i});
+                    finalResultArr[0].children.push({ 'thread': targetList[0].thread, 'ts': (dealArr[i].ts - timeDur) / 1000000000, 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array(), 'id': i });
                 }
                 // 合并相同周期内的数据
-                for(let i = 0; i < resList.length; i++){
-                    for(let j = i+1; j < resList.length; j++){
-                        if(resList[i].cpu === resList[j].cpu && resList[i].freq === resList[j].freq && resList[i].id === resList[j].id){
+                for (let i = 0; i < resList.length; i++) {
+                    for (let j = i + 1; j < resList.length; j++) {
+                        if (resList[i].cpu === resList[j].cpu && resList[i].freq === resList[j].freq && resList[i].id === resList[j].id) {
                             resList[i].dur += resList[j].dur;
                             resList[i].percent += resList[j].percent;
                             resList[i].count += resList[j].count;
@@ -378,28 +348,28 @@ export class TabPaneFreqDataCut extends BaseElement{
                 let newArr1 = JSON.parse(JSON.stringify(finalResultArr[0]));
                 let newArr2 = JSON.parse(JSON.stringify(resList));
                 let finalResult = new Array(this.mergeTree(newArr1, newArr2));
-                
+
                 this.threadStatesTblSource = finalResult[0].children.length > 0 ? finalResult : [];
                 this.threadStatesTbl!.recycleDataSource = finalResult[0].children.length > 0 ? finalResult : [];
             })
-        }else{
+        } else {
             alert('请输入正确的线程ID');
         }
     }
 
-    mergeTree (arr1:any, arr2:any) {
-        for(let i = 0; i < arr1.children.length; i++){
+    mergeTree(arr1: any, arr2: any) {
+        for (let i = 0; i < arr1.children.length; i++) {
             // 改成map对象做标记
             let cpuArr = new Array();
             let flagMap = new Map();
             let flag = 0;
-            for(let j = 0; j < arr2.length; j++){
-                if(arr1.children[i].id == arr2[j].id){
-                    if(!cpuArr.includes(arr2[j].cpu)){
+            for (let j = 0; j < arr2.length; j++) {
+                if (arr1.children[i].id == arr2[j].id) {
+                    if (!cpuArr.includes(arr2[j].cpu)) {
                         flagMap.set(arr2[j].cpu, flag);
                         cpuArr.push(arr2[j].cpu);
-                        arr1.children[i].children.push({'thread': arr2[j].thread, 'count': 0, 'cpu': arr2[j].cpu, 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', 'ts': '', children: new Array(), 'id': arr2[j].id});
-                        if(arr1.children[i].children[flag].cpu == arr2[j].cpu && arr1.children[i].children[flag].id == arr2[j].id){
+                        arr1.children[i].children.push({ 'thread': arr2[j].thread, 'count': 0, 'cpu': arr2[j].cpu, 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', 'ts': '', children: new Array(), 'id': arr2[j].id });
+                        if (arr1.children[i].children[flag].cpu == arr2[j].cpu && arr1.children[i].children[flag].id == arr2[j].id) {
                             arr1.children[i].children[flag].children.push(arr2[j]);
                             arr1.children[i].children[flag].dur += arr2[j].dur;
                             arr1.children[i].children[flag].percent += arr2[j].percent;
@@ -408,15 +378,14 @@ export class TabPaneFreqDataCut extends BaseElement{
                             arr1.children[i].children[flag].percent = Number(arr1.children[i].children[flag].percent.toFixed(2));
                             arr1.children[i].dur += arr1.children[i].children[flag].dur;
                             arr1.children[i].count += arr1.children[i].children[flag].count;
-                            // arr1.children[i].thread = arr1.children[i].children[flag].thread;
                             flag++;
                             arr2.splice(j, 1);
                             j--;
                         }
-                    }else{
+                    } else {
                         // 利用map做数据处理
                         let count = flagMap.get(arr2[j].cpu);
-                        if(arr1.children[i].children[count].cpu == arr2[j].cpu && arr1.children[i].children[count].id == arr2[j].id){
+                        if (arr1.children[i].children[count].cpu == arr2[j].cpu && arr1.children[i].children[count].id == arr2[j].id) {
                             arr1.children[i].children[count].children.push(arr2[j]);
                             arr1.children[i].children[count].dur += arr2[j].dur;
                             arr1.children[i].children[count].percent += arr2[j].percent;
@@ -425,21 +394,19 @@ export class TabPaneFreqDataCut extends BaseElement{
                             arr1.children[i].children[count].percent = Number(arr2[j].percent.toFixed(2));
                             arr1.children[i].dur += arr2[j].dur;
                             arr1.children[i].count += arr2[j].count;
-                            // arr1.children[i].thread = arr2[j].thread;
                             arr2.splice(j, 1);
                             j--;
                         }
                     }
-                }else{
+                } else {
                     break;
                 }
             }
-            arr1.children[i].children.sort((a:any, b:any) => a.cpu - b.cpu);
+            arr1.children[i].children.sort((a: any, b: any) => a.cpu - b.cpu);
             arr1.percent += arr1.children[i].percent;
             arr1.children[i].percent = Number(arr1.children[i].percent.toFixed(2));
             arr1.dur += arr1.children[i].dur;
             arr1.count += arr1.children[i].count;
-            // arr1.thread = arr1.children[i].thread == '' ? arr1.thread : arr1.children[i].thread;
         }
         arr1.percent = Number(arr1.percent.toFixed(2));
         return arr1;

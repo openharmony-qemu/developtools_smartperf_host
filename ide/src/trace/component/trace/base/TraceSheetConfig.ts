@@ -627,15 +627,15 @@ export let tabConfig: any = {
     title: 'M Selection',
     type: TabPaneCurrent,
     require: (param: SelectionParam) => param.isCurrentPane,
-  }, //current selection
+  }, 
   'tabpane-frequsage': {
     title: 'Freq Usage',
     type: TabPaneFreqUsage,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
+    require: (param: SelectionParam) => param.threadIds.length > 0 && param.threadIds.length < 2,
   }, 
   'tabpane-freqdatacut': {
     title: 'Freq DataCut',
     type: TabPaneFreqDataCut,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
+    require: (param: SelectionParam) => param.threadIds.length > 0 && param.threadIds.length < 2,
   }, 
 };
