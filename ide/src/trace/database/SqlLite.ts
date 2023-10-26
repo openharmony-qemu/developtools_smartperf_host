@@ -5569,14 +5569,15 @@ export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =
 export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
   query(
     'queryCpuFreqFilterId',
-    `select
-      id,
-      cpu
-    from
-      cpu_measure_filter 
+    `
+      select
+        id,
+        cpu
+      from
+        cpu_measure_filter 
       where
-      name='cpufreq'
-    or
-      name='cpu_frequency'
-  `
+        name='cpufreq'
+      or
+        name='cpu_frequency'
+    `
   );

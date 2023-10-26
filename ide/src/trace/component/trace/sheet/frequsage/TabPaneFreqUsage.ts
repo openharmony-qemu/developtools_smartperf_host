@@ -34,6 +34,8 @@ export class TabPaneFreqUsage extends BaseElement {
         this.currentSelectionParam = threadStatesParam;
         this.threadStatesTblSource = [];
         this.threadStatesTbl!.recycleDataSource = [];
+        let tableValue:any = this.threadStatesTbl;
+        tableValue.value = [];
         getTabRunningPercent(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs).then((result) => {
             queryCpuFreqFilterId().then(r => {
                 let IdMap = new Map();
@@ -158,7 +160,7 @@ export class TabPaneFreqUsage extends BaseElement {
         }
         </style>
         <lit-table id="tb-running-percent" style="height: auto; overflow-x:auto;width:calc(100vw - 270px)" tree>
-            <lit-table-column class="running-percent-column" width="240px" title="ThreadName" data-index="thread" key="thread" align="flex-start" retract>
+            <lit-table-column class="running-percent-column" width="320px" title="ThreadName" data-index="thread" key="thread" align="flex-start" retract>
             </lit-table-column>
             <lit-table-column class="running-percent-column" width="240px" title="算力消耗(Hz·ms)" data-index="count" key="count" align="flex-start">
             </lit-table-column>
