@@ -114,39 +114,6 @@ export class TabPaneFreqDataCut extends BaseElement {
                         }
                         // 深拷贝，用来进行数据切割操作，避免数据污染
                         this.initData = JSON.parse(JSON.stringify(resultList));
-                        //合并同一线程内，当运行所在cpu和频点相同时，dur及percent进行累加求和，或许可以进行算法优化
-                        for (let i = 0; i < resultList.length; i++) {
-                            for (let j = i + 1; j < resultList.length; j++) {
-                                if (resultList[i].cpu == resultList[j].cpu && resultList[i].freq == resultList[j].freq) {
-                                    resultList[i].dur += resultList[j].dur;
-                                    resultList[i].percent += resultList[j].percent;
-                                    resultList[i].count += resultList[j].count;
-                                    resultList.splice(j, 1);
-                                    j--;
-                                }
-                            }
-                            resultList[i].percent = Number((resultList[i].percent).toFixed(2));
-                            resultList[i].ts = (resultList[i].ts * tsMutiple - threadStatesParam.recordStartNs) / tsMutiple;
-                        }
-                        finalResultArr[0].children.sort((a: any, b: any) => a.cpu - b.cpu);
-                        // 转成树结构数据进行展示
-                        for (let i = 0; i < finalResultArr[0].children.length; i++) {
-                            for (let j = 0; j < resultList.length; j++) {
-                                if (finalResultArr[0].children[i].cpu == resultList[j].cpu) {
-                                    finalResultArr[0].children[i].children.push(resultList[j]);
-                                    finalResultArr[0].children[i].dur += resultList[j].dur;
-                                    finalResultArr[0].children[i].percent += resultList[j].percent;
-                                    finalResultArr[0].children[i].count += resultList[j].count;
-                                    resultList.splice(j, 1);
-                                    j--;
-                                }
-                            }
-                            finalResultArr[0].children[i].percent = finalResultArr[0].children[i].percent.toFixed(2);
-                            finalResultArr[0].dur += finalResultArr[0].children[i].dur;
-                            finalResultArr[0].count += finalResultArr[0].children[i].count;
-                        }
-                        this.threadStatesTblSource = finalResultArr;
-                        this.threadStatesTbl!.recycleDataSource = finalResultArr;
                     } else {
                         this.threadStatesTblSource = [];
                         this.threadStatesTbl!.recycleDataSource = [];
@@ -233,6 +200,8 @@ export class TabPaneFreqDataCut extends BaseElement {
         let threadFuncName = threadFunc.value.trim();
         let leftNS = this.currentSelectionParam.leftNs;
         let rightNS = this.currentSelectionParam.rightNs;
+        let tableValue: any = this.threadStatesTbl;
+        tableValue.value = [];
         if (/^[0-9]*$/.test(threadIdValue)) {
             querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(res => {
                 let displayArr = JSON.parse(JSON.stringify(resultList));
@@ -299,6 +268,8 @@ export class TabPaneFreqDataCut extends BaseElement {
         let threadFuncName = threadFunc.value.trim();
         let leftNS = this.currentSelectionParam.leftNs;
         let rightNS = this.currentSelectionParam.rightNs;
+        let tableValue: any = this.threadStatesTbl;
+        tableValue.value = [];
         if (/^[0-9]*$/.test(threadIdValue)) {
             querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(result => {
                 let [...targetList] = JSON.parse(JSON.stringify(resultList));
