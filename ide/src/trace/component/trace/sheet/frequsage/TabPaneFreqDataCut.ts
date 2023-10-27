@@ -203,8 +203,8 @@ export class TabPaneFreqDataCut extends BaseElement {
         let tableValue: any = this.threadStatesTbl;
         tableValue.value = [];
         if (/^[0-9]*$/.test(threadIdValue)) {
-            querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(res => {
-                let displayArr = JSON.parse(JSON.stringify(resultList));
+            querySearchFuncData(threadFuncName, Number(threadIdValue), leftNS, rightNS).then(res => {
+                let display = JSON.parse(JSON.stringify(resultList));
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let cutArr = new Array();
                 // 根据线程id及方法名获取的数据，处理后用作切割时间依据，时间跨度为整个方法开始时间到末个方法开始时间
@@ -215,8 +215,9 @@ export class TabPaneFreqDataCut extends BaseElement {
                 let finalArr = new Array();
                 let finalResultArr = new Array();
                 const tsMutiple = 1000000000;
-                finalResultArr.push({ 'thread': displayArr[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
+                finalResultArr.push({ 'thread': display[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                 for (let i = 0; i < cutArr.length - 1; i++) {
+                    let displayArr = JSON.parse(JSON.stringify(display));
                     for (let j = 0; j < displayArr.length; j++) {
                         displayArr[j].ts = displayArr[j].ts * tsMutiple;
                         if (displayArr[j].ts >= cutArr[i].ts) {
@@ -271,8 +272,8 @@ export class TabPaneFreqDataCut extends BaseElement {
         let tableValue: any = this.threadStatesTbl;
         tableValue.value = [];
         if (/^[0-9]*$/.test(threadIdValue)) {
-            querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(result => {
-                let [...targetList] = JSON.parse(JSON.stringify(resultList));
+            querySearchFuncData(threadFuncName, Number(threadIdValue), leftNS, rightNS).then(result => {
+                let [...target] = JSON.parse(JSON.stringify(resultList));
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let dealArr = new Array();
                 for (let i of result) {
@@ -281,10 +282,11 @@ export class TabPaneFreqDataCut extends BaseElement {
                     }
                 }
                 let finalResultArr = new Array();
-                finalResultArr.push({ 'thread': targetList[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
+                finalResultArr.push({ 'thread': target[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                 let resList = new Array();
                 const tsMutiple = 1000000000;
                 for (let i = 0; i < dealArr.length; i++) {
+                    let targetList = JSON.parse(JSON.stringify(target));
                     for (let j = 0; j < targetList.length; j++) {
                         targetList[j].ts = targetList[j].ts * tsMutiple;
                         if (dealArr[i].ts < targetList[j].ts) {

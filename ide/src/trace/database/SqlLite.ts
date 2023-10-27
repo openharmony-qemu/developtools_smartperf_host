@@ -5513,7 +5513,7 @@ export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightN
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+export const querySearchFuncData = (funcName: string, tIds: number, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFuncData',
     `
