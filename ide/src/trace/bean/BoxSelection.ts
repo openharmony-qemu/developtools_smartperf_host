@@ -40,9 +40,6 @@ export class SelectionParam {
   isCurrentPane: boolean = false;
   startup: boolean = false;
   staticInit: boolean = false;
-  eventTypeId: string = '';
-
-  
 
   cpus: Array<number> = [];
   cpuStateRowsId: Array<object> = [];
