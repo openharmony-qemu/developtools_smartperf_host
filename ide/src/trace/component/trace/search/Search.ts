@@ -241,6 +241,8 @@ export class LitSearch extends BaseElement {
       this._retarge_index!.value = ""
     });
     this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
+      this._retarge_index!.value = ""
+      this.index = -1;
       this.searchKeyupListener(e);
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (e) => {
