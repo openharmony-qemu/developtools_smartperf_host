@@ -1719,10 +1719,10 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
+    this.isMouseLeftDown = true;
     if (ev.ctrlKey) {
       ev.preventDefault();
-      this.style.cursor = 'move';
-      this.isMouseLeftDown = true;
+      this.style.cursor = 'move'; 
       this.mouseCurrentPosition = ev.clientX;
       return;
     }
@@ -1775,11 +1775,12 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
+    
+    this.isMouseLeftDown = false;
     if (ev.ctrlKey) {
       ev.preventDefault();
       this.offsetMouse = 0;
-      this.mouseCurrentPosition = 0;
-      this.isMouseLeftDown = false;
+      this.mouseCurrentPosition = 0; 
       this.style.cursor = 'default';
       return;
     }
