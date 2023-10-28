@@ -118,7 +118,7 @@ export class TabPaneFilter extends BaseElement {
         if (this.getFilter) {
           this.getFilter(this.filterData('icon'));
         }
-        if(this.getAttribute('perf') == 'perf') {
+        if (this.getAttribute('perf') == 'perf') {
           this.disabledTransfer(true);
         }
       }
@@ -431,10 +431,25 @@ export class TabPaneFilter extends BaseElement {
   initializeTreeTransfer() {
     let radioList = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.radio');
     let divElement = this.shadowRoot!.querySelectorAll<HTMLDivElement>('.tree-radio');
-    radioList![radioList.length -1].checked = true;
+    radioList![radioList.length - 1].checked = true;
 
     divElement!.forEach((divEl, idx) => {
       divEl.addEventListener('click', () => {
+        let filterData = this.getFilterTreeData();
+        if (filterData.callTree[0] === true || filterData.callTree[1] === true) {
+          let row = this.shadowRoot!.querySelectorAll<LitCheckBox>('.tree-check lit-check-box');
+          row[0].checked = false;
+          row[1].checked = false;
+        }
+        if (filterData.callTreeConstraints.checked === true) {
+          let check = this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');
+          let inputs = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.constraints-input');
+          check!.checked = false;
+          inputs[0].value = '0';
+          inputs[1].value = '∞';
+        }
+        this.filterInputEL!.value = ''
+
         radioList![idx].checked = true;
         if (this.getCallTransfer) {
           this.getCallTransfer({
@@ -490,9 +505,8 @@ export class TabPaneFilter extends BaseElement {
     let html = ``;
     this.cutList!.forEach((a, b) => {
       html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? 'highlight' : ''}>
-                        <lit-check-box class="lit-check-box" not-close ${
-                          a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+                        <lit-check-box class="lit-check-box" not-close ${a.checked ? 'checked' : ''
+        } style="display: flex"></lit-check-box>
                         <div id="title" title="${a.name}">${a.name}</div></div>`;
     });
 
@@ -524,9 +538,8 @@ export class TabPaneFilter extends BaseElement {
     let html = ``;
     this.libraryList!.forEach((a, b) => {
       html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? 'highlight' : ''}>
-                        <lit-check-box class="lit-check-box" not-close ${
-                          a.checked ? 'checked' : ''
-                        } style="display: flex"></lit-check-box>
+                        <lit-check-box class="lit-check-box" not-close ${a.checked ? 'checked' : ''
+        } style="display: flex"></lit-check-box>
                         <div id="title" title="${a.name}">${a.name}</div></div>`;
     });
 
