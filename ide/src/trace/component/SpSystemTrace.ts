@@ -3934,13 +3934,17 @@ export class SpSystemTrace extends BaseElement {
         }
       }
     } else {
-      findIndex = structs.findIndex((it, idx) => {
-        return (
-          idx > currentIndex &&
-          it.startTime! >= TraceRow.range!.startNS &&
-          it.startTime! + it.dur! <= TraceRow.range!.endNS
-        );
-      });
+      if(currentIndex==-1) {
+        findIndex=0
+      }else{
+        findIndex = structs.findIndex((it, idx) => {
+          return (
+            idx > currentIndex &&
+            it.startTime! >= TraceRow.range!.startNS &&
+            it.startTime! + it.dur! <= TraceRow.range!.endNS
+          );
+        });
+      }
     }
     let findEntry: any;
     if (findIndex >= 0) {
