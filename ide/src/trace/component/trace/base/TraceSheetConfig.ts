@@ -118,6 +118,8 @@ import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
 import { TabPaneSchedPriority } from '../sheet/cpu/TabPaneSchedPriority.js';
 import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
 import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph.js';
+import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
+import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
 import { TabpanePerfBinaryTree } from '../sheet/hiperf/TabPerfBinaryTree.js';
 
 export let tabConfig: any = {
@@ -626,6 +628,17 @@ export let tabConfig: any = {
     title: 'M Selection',
     type: TabPaneCurrent,
     require: (param: SelectionParam) => param.isCurrentPane,
+  }, 
+  'tabpane-frequsage': {
+    title: 'Freq Usage',
+    type: TabPaneFreqUsage,
+    require: (param: SelectionParam) => param.threadIds.length > 0 && param.threadIds.length < 2,
+  }, 
+  'tabpane-freqdatacut': {
+    title: 'Freq DataCut',
+    type: TabPaneFreqDataCut,
+    require: (param: SelectionParam) => param.threadIds.length > 0 && param.threadIds.length < 2,
+  }, 
   }, //current selection
   'box-perf-Binary': {
     title: 'BinaryTree',

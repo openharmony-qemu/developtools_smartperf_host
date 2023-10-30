@@ -296,8 +296,8 @@ export class DbPool {
             }
           }
         };
-        thread!.onmessageerror = (e) => {};
-        thread!.onerror = (e) => {};
+        thread!.onmessageerror = (e) => { };
+        thread!.onerror = (e) => { };
         thread!.id = i;
         thread!.busy = false;
         this.works?.push(thread!);
@@ -1271,8 +1271,7 @@ export const queryVirtualMemory = (): Promise<Array<any>> =>
 export const queryVirtualMemoryData = (filterId: number): Promise<Array<any>> =>
   query(
     'queryVirtualMemoryData',
-    `select ts-${
-      (window as any).recordStartNS
+    `select ts-${(window as any).recordStartNS
     } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );
@@ -3839,11 +3838,9 @@ export const queryEbpfSamplesCount = (startTime: number, endTime: number, ipids:
     select
 fsCount,
     vmCount from
-(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     })
-,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     });
 `,
     { $startTime: startTime, $endTime: endTime }
@@ -5494,3 +5491,93 @@ export const queryTraceType = (): Promise<
 
 export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
   query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
+
+export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabRunningPercent',
+    `
+      select
+        B.pid,B.tid,B.state,B.cpu,B.dur,B.ts
+      from
+        thread_state AS B
+      left join 
+        trace_range AS TR
+      where
+        B.tid in (${tIds.join(',')})
+      and
+        B.state='Running'
+      and
+        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+      order by ts
+  `,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+
+export const querySearchFuncData = (funcName: string, tIds: number, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+  query(
+    'querySearchFuncData',
+    `
+      select 
+        c.cookie,
+        c.id,
+        c.name as funName,
+        c.ts - r.start_ts as startTime,
+        c.dur,
+        c.depth,
+        t.tid,
+        t.name as threadName,
+        p.pid,
+        'func' as type 
+      from 
+        callstack c 
+      left join 
+        thread t 
+      on 
+        c.callid = t.id 
+      left join 
+        process p 
+      on 
+        t.ipid = p.id
+      left join 
+        trace_range r
+      where 
+        c.name = '${funcName}' 
+      and 
+        t.tid = ${tIds} 
+      and
+        not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+  `,
+    { $search: funcName }
+  );
+
+export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =>
+  query(
+    'queryCpuFreqUsageData',
+    `select
+      value,
+      ifnull(dur,tb.end_ts - c.ts) dur,
+      ts-tb.start_ts as startNS,
+      filter_id
+    from
+      measure c,
+      trace_range tb
+    where
+      c.filter_id in (${Ids.join(',')})
+  `
+  );
+
+export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
+  query(
+    'queryCpuFreqFilterId',
+    `
+      select
+        id,
+        cpu
+      from
+        cpu_measure_filter 
+      where
+        name='cpufreq'
+      or
+        name='cpu_frequency'
+    `
+  );
