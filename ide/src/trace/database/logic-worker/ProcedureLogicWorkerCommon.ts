@@ -37,6 +37,25 @@ export class Msg {
   data: Array<any> = [];
 }
 
+export class hiperfSymbol {
+  id: number = 0;
+  startTime: number = 0;
+  endTime: number = 0;
+  cpu_id: number = 0;
+  depth: number = 0;
+  children?: Array<hiperfSymbol>;
+  callchain_id: number = 0;
+  thread_id:number = 0;
+  name:string='';
+
+  public clone(): hiperfSymbol {
+    const cloneSymbol = new hiperfSymbol();
+    cloneSymbol.children = new Array<hiperfSymbol>();
+    cloneSymbol.depth = this.depth;
+    return cloneSymbol;
+  }
+}
+
 export class MerageBean extends ChartStruct {
   #parentNode: MerageBean | undefined = undefined;
   #total = 0;
@@ -596,6 +615,9 @@ export class DataCache {
   public perfCallChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
   public jsCallChain: Array<JsProfilerSymbol> | undefined;
   public jsSymbolMap = new Map<number, JsProfilerSymbol>();
+  public perfCallFireMap = new Map<string, hiperfSymbol>();
+  public perfCallChain: Array<hiperfSymbol> | undefined;
+  public perfSymbolMap = new Map<string, hiperfSymbol>()
 
   public static getInstance(): DataCache {
     if (!this.instance) {
