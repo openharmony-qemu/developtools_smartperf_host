@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { LogicHandler, ChartStruct, convertJSON, DataCache, PerfCall,hiperfSymbol } from './ProcedureLogicWorkerCommon.js';
+import { LogicHandler, ChartStruct, convertJSON, DataCache, PerfCall } from './ProcedureLogicWorkerCommon.js';
 import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct.js';
-import { hiPerfchartFrame } from '../../bean/perfStruct.js';
 
 const systemRuleName = '/system/';
 const numRuleName = '/max/min/';
@@ -37,11 +36,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   currentEventId: string = '';
   isAnalysis: boolean = false;
   isPerfBottomUp: boolean = false;
-  perfCallData: any[] = [];
-  eventTypeId: string = '';
+  eventTypeId?: string = '';
 
   private dataCache = DataCache.getInstance();
-  private samplesCpu = Array<hiPrefSample>();
 
   handle(data: any): void {
     this.currentEventId = data.id;
@@ -51,28 +48,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           this.dataCache.perfCountToMs = data.params.fValue;
           this.initPerfFiles();
           break;
-          case 'perf-fire':
-            this.perfCallData = data.params
-            this.initPerfFire();
-            break;
-          case 'perf-call-chain':
-            if (!this.dataCache.perfCallChain || this.dataCache.perfCallChain.length === 0) {
-              this.dataCache.perfCallChain = convertJSON(data.params.list) || [];
-              this.createCallChain();
-            }
-            this.queryCallData(this.perfCallData);
-            break;
-          // 查perf_sample表并处理
-          case 'perf-sample-cpu':
-            // 拿到的sample的数据
-            this.samplesCpu = convertJSON(data.params.list) || [];
-            // 处理sample数据
-            self.postMessage({
-              id: data.id,
-              action: data.action,
-              results: this.combinePerfSampleBycallChainId(this.samplesCpu)
-            });
-            break;
         case 'perf-queryPerfFiles':
           let files = convertJSON(data.params.list) || [];
           files.forEach((file: any) => {
@@ -169,29 +144,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     );
   }
 
-  initPerfFire() {
-    this.clearAll();
-    this.queryData(
-      this.currentEventId,
-      'perf-call-chain',
-      `select name,
-       depth,
-      callchain_id from perf_callchain`,
-      {}
-    )
-  }
-
-  queryCallData(data: any) {
-    const sql = `SELECT id,
-    callchain_id,
-    timestamp_trace - start_ts AS timeTip,
-    thread_id,
-    cpu_id
-  FROM
-    perf_sample,trace_range where ${data[0] == 0 ? 'cpu_id=' : 'thread_id='}${data[1]}`;
-    this.queryData(this.currentEventId!, 'perf-sample-cpu', sql, {});
-  }
-
   initPerfThreads() {
     this.queryData(
       this.currentEventId,
@@ -230,12 +182,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     );
   }
 
-  getCurrentDataFromDb(selectionParam: any):void {
+  getCurrentDataFromDb(selectionParam: any): void {
     const cpus = selectionParam.perfAll ? [] : selectionParam.perfCpus;
     const processes = selectionParam.perfAll ? [] : selectionParam.perfProcess;
     const threads = selectionParam.perfAll ? [] : selectionParam.perfThread;
     let filterSql = '';
-    let eventTypeFilter = '';
     if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
       const cpuFilter = cpus.length > 0 ? `or s.cpu_id in (${cpus.join(',')}) ` : '';
       const processFilter = processes.length > 0 ? `or thread.process_id in (${processes.join(',')}) ` : '';
@@ -243,7 +194,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       let arg = `${cpuFilter}${processFilter}${threadFilter}`.substring(3);
       filterSql = ` and (${arg})`;
     }
-    eventTypeFilter = this.eventTypeId ? ` and s.event_type_id = ${this.eventTypeId}` : '';
+    const eventTypeFilter = this.eventTypeId ? ` and s.event_type_id = ${this.eventTypeId}` : '';
     filterSql += eventTypeFilter;
     this.queryData(
       this.currentEventId,
@@ -275,125 +226,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     );
   }
 
-  // 将perf_sample表的数据根据callchain_id分组并赋值startTime,endTime等等
-  combinePerfSampleBycallChainId(sampleList: Array<hiPrefSample>) {
-    let arr: any = new Array();
-    let num = undefined;
-    for (let i = 0; i < sampleList.length; i++) {
-      // 若不是相同的callchain_id,赋值
-      if (sampleList[i].callchain_id != num) {
-        arr.push(new hiPrefSample());
-        arr[arr.length - 1].children = new Array<hiperfSymbol>();
-        arr[arr.length - 1].children[0] = new hiperfSymbol();
-        arr[arr.length - 1].depth = -1;
-        arr[arr.length - 1].name = 'name';
-        arr[arr.length - 1].callchain_id = sampleList[i].callchain_id;
-        arr[arr.length - 1].thread_id = sampleList[i].thread_id;
-        arr[arr.length - 1].id = sampleList[i].id;
-        if (i !== 0 && i !== sampleList.length - 1 && sampleList[i].callchain_id !== sampleList[i - 1].callchain_id && sampleList[i].callchain_id !== sampleList[i + 1].callchain_id) {
-          arr[arr.length - 1].startTime = sampleList[i - 1].timeTip;
-        } else {
-          arr[arr.length - 1].startTime = sampleList[i].timeTip
-        }
-      }
-      arr[arr.length - 1].endTime = sampleList[i].timeTip
-      arr[arr.length - 1].totalTime = arr[arr.length - 1].endTime - arr[arr.length - 1].startTime
-      num = sampleList[i].callchain_id
-    }
-    return this.combineChartData(arr);
-    // return arr;
-  }
-  /**
-   * 建立callChain每个函数的联系，设置depth跟children
-   */
-  private createCallChain(): void {
-    const jsSymbolMap = this.dataCache.perfCallFireMap;
-    for (const item of this.dataCache.perfCallChain!) {
-      jsSymbolMap.set(item.callchain_id.toString() + item.depth, item);
-      let parentSymbol = jsSymbolMap.get(item.callchain_id.toString() + (item.depth - 1));
-      if (parentSymbol) {
-        switch (parentSymbol.callchain_id) {
-          case item.callchain_id:
-            switch (parentSymbol.depth) {
-              case item.depth - 1:
-                parentSymbol.children = new Array<hiperfSymbol>();
-                parentSymbol.children?.push(item)
-                break;
-            }
-            break;
-        }
-      }
-    }
-  }
-
-  combineChartData(samples: any): Array<hiPerfchartFrame> {
-    let combineSample: any = [];
-    // 遍历sample表查到的数据，并且为其匹配相应的callchain数据
-    for (let sample of samples) {
-      let stackTopSymbol = JSON.parse(JSON.stringify(this.dataCache.perfCallFireMap.get(sample.callchain_id.toString() + '0'))) || new hiperfSymbol();
-      stackTopSymbol.startTime = sample.startTime;
-      stackTopSymbol.endTime = sample.endTime;
-      stackTopSymbol.totalTime = sample.totalTime;
-      stackTopSymbol.thread_id = sample.thread_id;
-      stackTopSymbol.cpu_id = sample.thread_id;
-      this.setDur(stackTopSymbol)
-      sample.children = new Array<hiperfSymbol>();
-      sample.children.push(stackTopSymbol)
-      // 每一项都和combineSample对比
-      if (combineSample.length === 0) {
-        combineSample.push(sample)
-      } else {
-        if (this.perfCallData[0] === 0) {
-          if (combineSample[combineSample.length - 1].thread_id === sample.thread_id) {
-            this.combinePerfCallData(combineSample[combineSample.length - 1], sample)
-          } else { combineSample.push(sample) };
-        } else {
-          if (combineSample[combineSample.length - 1].cpu_id === sample.cpu_id) {
-            this.combinePerfCallData(combineSample[combineSample.length - 1], sample)
-          } else { combineSample.push(sample) };
-        }
-      }
-    }
-    return combineSample;
-  }
-
-  // 递归设置dur,startTime,endTime
-  setDur(data: any) {
-    if (data.children && data.children.length > 0) {
-      data.children[0].totalTime = data.totalTime;
-      data.children[0].startTime = data.startTime;
-      data.children[0].endTime = data.endTime;
-      data.children[0].thread_id = data.thread_id;
-      data.children[0].cpu_id = data.cpu_id;
-      this.setDur(data.children[0])
-    } else {
-      return
-    }
-  }
-
-  // hiperf火焰图合并逻辑
-  combinePerfCallData(data1: any, data2: any) {
-    if (data1.depth === data2.depth && data1.name === data2.name) {
-      data1.endTime = data2.endTime;
-      data1.totalTime = data1.endTime - data1.startTime;
-      if (data1.children && data1.children.length > 0 && data2.children && data2.children.length > 0) {
-        if (data1.children[data1.children.length - 1].depth === data2.children[0].depth && data1.children[data1.children.length - 1].name !== data2.children[0].name) {
-          data1.children.push(data2.children[0])
-        } else {
-          this.combinePerfCallData(data1.children[data1.children.length - 1], data2.children[0]);
-        }
-      } else if (data2.children && data2.children.length > 0 && (!data1.children || data1.children.length === 0)) {
-        data1.endTime = data2.endTime;
-        data1.totalTime = data1.endTime - data1.endTime;
-        data1.children = new Array<hiperfSymbol>();
-        data1.children.push(data2.children[0]);
-      } else {
-      }
-    }
-    else { }
-    return
-  }
-
   clearAll() {
     this.filesData = {};
     this.samplesData = {};
@@ -406,6 +238,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.dataSource = [];
     this.allProcess = [];
     this.dataCache.clearPerf();
+    this.eventTypeId = undefined;
   }
 
   initPerfCallChainBottomUp(callChains: PerfCallChain[]) {
@@ -920,11 +753,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             case 'splitTree':
               this.splitPerfTree(this.allProcess, item.funcArgs[0], item.funcArgs[1], item.funcArgs[2]);
               break;
-            case 'setEventTypeId':
-              this.eventTypeId = item.funcArgs[0];
-              break;
             case 'setSearchValue':
               this.searchValue = item.funcArgs[0];
+              break;
+            case 'setEventTypeId':
+              this.eventTypeId = item.funcArgs[0];
               break;
             case 'setCombineCallChain':
               this.isAnalysis = true;
@@ -1356,19 +1189,4 @@ export function timeMsFormat2p(ns: number) {
     perfResult = '0s';
   }
   return perfResult;
-}
-
-
-class hiPrefSample {
-  name: string = "";
-  depth: number = 0;
-  callchain_id: number = 0;
-  totalTime: number = 0;
-  thread_id: number = 0;
-  id: number = 0;
-  startTime: number = 0;
-  endTime: number = 0;
-  timeTip: number = 0;
-  cpu_id: number = 0;
-  stack?: Array<hiperfSymbol>;
 }

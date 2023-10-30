@@ -131,6 +131,15 @@ export class SpRecordSetting extends BaseElement {
   initElements(): void {
     this.bufferNumber = this.shadowRoot?.querySelector('.buffer-size') as HTMLElement;
     this.durationNumber = this.shadowRoot?.querySelector('.max-duration') as HTMLElement;
+    let inputs = this.shadowRoot?.querySelectorAll('input');
+    inputs!.forEach(item => {
+      item.addEventListener('keydown', (ev) => {
+        // @ts-ignore
+        if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+          ev.preventDefault();
+        }
+      });
+    });
     let bu = this.shadowRoot?.querySelector('.record') as HTMLDivElement;
     this.shadowRoot?.querySelectorAll<HTMLButtonElement>('.MenuButton').forEach((button) => {
       button!.addEventListener('mouseenter', (e) => {
@@ -167,6 +176,12 @@ export class SpRecordSetting extends BaseElement {
     let maxSingleFileEl = longTraceMaxSlide.querySelector<HTMLDivElement>('.max-single-file-size');
     let maxSizeSliders = longTraceMaxSlide.querySelector('#max-size') as LitSlider;
     let maxSizeInput = longTraceMaxSlide.querySelector('.max_size_result') as HTMLInputElement;
+    maxSizeInput!.onkeydown = (ev): void => {
+      // @ts-ignore
+      if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+        ev.preventDefault();
+      }
+    };
     let maxSizeParentElement = maxSizeSliders.parentNode as Element;
     maxSizeSliders.sliderStyle = {
       minRange: 200,

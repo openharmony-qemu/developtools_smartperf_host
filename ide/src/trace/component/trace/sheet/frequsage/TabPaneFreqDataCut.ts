@@ -114,6 +114,39 @@ export class TabPaneFreqDataCut extends BaseElement {
                         }
                         // 深拷贝，用来进行数据切割操作，避免数据污染
                         this.initData = JSON.parse(JSON.stringify(resultList));
+                        //合并同一线程内，当运行所在cpu和频点相同时，dur及percent进行累加求和，或许可以进行算法优化
+                        for (let i = 0; i < resultList.length; i++) {
+                            for (let j = i + 1; j < resultList.length; j++) {
+                                if (resultList[i].cpu == resultList[j].cpu && resultList[i].freq == resultList[j].freq) {
+                                    resultList[i].dur += resultList[j].dur;
+                                    resultList[i].percent += resultList[j].percent;
+                                    resultList[i].count += resultList[j].count;
+                                    resultList.splice(j, 1);
+                                    j--;
+                                }
+                            }
+                            resultList[i].percent = Number((resultList[i].percent).toFixed(2));
+                            resultList[i].ts = (resultList[i].ts * tsMutiple - threadStatesParam.recordStartNs) / tsMutiple;
+                        }
+                        finalResultArr[0].children.sort((a: any, b: any) => a.cpu - b.cpu);
+                        // 转成树结构数据进行展示
+                        for (let i = 0; i < finalResultArr[0].children.length; i++) {
+                            for (let j = 0; j < resultList.length; j++) {
+                                if (finalResultArr[0].children[i].cpu == resultList[j].cpu) {
+                                    finalResultArr[0].children[i].children.push(resultList[j]);
+                                    finalResultArr[0].children[i].dur += resultList[j].dur;
+                                    finalResultArr[0].children[i].percent += resultList[j].percent;
+                                    finalResultArr[0].children[i].count += resultList[j].count;
+                                    resultList.splice(j, 1);
+                                    j--;
+                                }
+                            }
+                            finalResultArr[0].children[i].percent = finalResultArr[0].children[i].percent.toFixed(2);
+                            finalResultArr[0].dur += finalResultArr[0].children[i].dur;
+                            finalResultArr[0].count += finalResultArr[0].children[i].count;
+                        }
+                        this.threadStatesTblSource = finalResultArr;
+                        this.threadStatesTbl!.recycleDataSource = finalResultArr;
                     } else {
                         this.threadStatesTblSource = [];
                         this.threadStatesTbl!.recycleDataSource = [];
@@ -203,8 +236,8 @@ export class TabPaneFreqDataCut extends BaseElement {
         let tableValue: any = this.threadStatesTbl;
         tableValue.value = [];
         if (/^[0-9]*$/.test(threadIdValue)) {
-            querySearchFuncData(threadFuncName, Number(threadIdValue), leftNS, rightNS).then(res => {
-                let display = JSON.parse(JSON.stringify(resultList));
+            querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(res => {
+                let displayArr = JSON.parse(JSON.stringify(resultList));
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let cutArr = new Array();
                 // 根据线程id及方法名获取的数据，处理后用作切割时间依据，时间跨度为整个方法开始时间到末个方法开始时间
@@ -215,9 +248,8 @@ export class TabPaneFreqDataCut extends BaseElement {
                 let finalArr = new Array();
                 let finalResultArr = new Array();
                 const tsMutiple = 1000000000;
-                finalResultArr.push({ 'thread': display[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
+                finalResultArr.push({ 'thread': displayArr[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                 for (let i = 0; i < cutArr.length - 1; i++) {
-                    let displayArr = JSON.parse(JSON.stringify(display));
                     for (let j = 0; j < displayArr.length; j++) {
                         displayArr[j].ts = displayArr[j].ts * tsMutiple;
                         if (displayArr[j].ts >= cutArr[i].ts) {
@@ -272,8 +304,8 @@ export class TabPaneFreqDataCut extends BaseElement {
         let tableValue: any = this.threadStatesTbl;
         tableValue.value = [];
         if (/^[0-9]*$/.test(threadIdValue)) {
-            querySearchFuncData(threadFuncName, Number(threadIdValue), leftNS, rightNS).then(result => {
-                let [...target] = JSON.parse(JSON.stringify(resultList));
+            querySearchFuncData(threadFuncName, threadIdValue, leftNS, rightNS).then(result => {
+                let [...targetList] = JSON.parse(JSON.stringify(resultList));
                 let timeDur = this.currentSelectionParam.recordStartNs;
                 let dealArr = new Array();
                 for (let i of result) {
@@ -282,11 +314,10 @@ export class TabPaneFreqDataCut extends BaseElement {
                     }
                 }
                 let finalResultArr = new Array();
-                finalResultArr.push({ 'thread': target[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
+                finalResultArr.push({ 'thread': targetList[0].thread, 'ts': '', 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                 let resList = new Array();
                 const tsMutiple = 1000000000;
                 for (let i = 0; i < dealArr.length; i++) {
-                    let targetList = JSON.parse(JSON.stringify(target));
                     for (let j = 0; j < targetList.length; j++) {
                         targetList[j].ts = targetList[j].ts * tsMutiple;
                         if (dealArr[i].ts < targetList[j].ts) {

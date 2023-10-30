@@ -56,7 +56,6 @@ import { FrameSpacingRender } from './ProcedureWorkerFrameSpacing.js';
 import { JsCpuProfilerRender } from './ProcedureWorkerCpuProfiler.js';
 import { SnapshotRender } from './ProcedureWorkerSnapshot.js';
 import { LogRender } from './ProcedureWorkerLog.js';
-import { HiperfCallChartRender } from './ProcedureWorkerHiPerfCallChart.js';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -87,7 +86,6 @@ export let renders: any = {
   'HiPerf-Group': new EmptyRender(),
   monitorGroup: new EmptyRender(),
   'HiPerf-Cpu': new HiperfCpuRender(),
-  'Hiperf-callchart':new HiperfCallChartRender(), 
   'HiPerf-Process': new HiperfProcessRender(),
   'HiPerf-Thread': new HiperfThreadRender(),
   'HiPerf-Report-Event': new HiperfEventRender(),
