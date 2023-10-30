@@ -1940,8 +1940,9 @@ export class SpApplication extends BaseElement {
         sidebarButton.style.width = open ? `0px` : '48px';
       }
     };
-    let urlParams = new URL(window.location.href).searchParams;
-    if (urlParams && urlParams.get('trace') && urlParams.get('link')) {
+
+    let urlParams = this.getUrlParams(window.location.href);
+    if (urlParams && urlParams.trace && urlParams.link) {
       openFileInit();
       openMenu(false);
       litSearch.clear();
@@ -1949,36 +1950,36 @@ export class SpApplication extends BaseElement {
       that.search = true;
       progressEL.loading = true;
       let downloadLineFile = false;
-      if (urlParams.get('local')) {
+      if (urlParams.local) {
         downloadLineFile = false;
       } else {
         downloadLineFile = true;
       }
       setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
       this.downloadOnLineFile(
-        urlParams.get('trace') as string,
+        urlParams.trace,
         downloadLineFile,
         (arrayBuf, fileName, showFileName, fileSize) => {
           handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
         },
         (localPath) => {
-          let path = urlParams.get('trace') as string;
+          let path = urlParams.trace as string;
           let fileName: string = '';
           let showFileName: string = '';
-          if (urlParams.get('local')) {
+          if (urlParams.local) {
             openMenu(true);
-            fileName = urlParams.get('traceName') as string;
+            fileName = urlParams.traceName as string;
           } else {
             fileName = path.split('/').reverse()[0];
           }
           that.traceFileName = fileName;
           showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
           TraceRow.rangeSelectObject = undefined;
-          let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.get('trace')!;
+          let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.trace;
           fetch(localUrl)
             .then((res) => {
               res.arrayBuffer().then((arrayBuf) => {
-                if (urlParams.get('local')) {
+                if (urlParams.local) {
                   URL.revokeObjectURL(localUrl);
                 }
                 let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
@@ -2218,6 +2219,18 @@ export class SpApplication extends BaseElement {
     } else {
       openFileHandler(url);
     }
+  }
+
+  private getUrlParams(url: string) {
+    const _url = url || window.location.href;
+    const _urlParams = _url.match(/([?&])(.+?=[^&]+)/gim);
+    return _urlParams
+      ? _urlParams.reduce((a: any, b) => {
+          const value = b.slice(1).split('=');
+          a[`${value[0]}`] = decodeURIComponent(value[1]);
+          return a;
+        }, {})
+      : {};
   }
 
   private croppingFile(progressEL: LitProgressBar, litSearch: LitSearch) {

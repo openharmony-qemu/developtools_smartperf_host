@@ -3868,6 +3868,12 @@ export class SpSystemTrace extends BaseElement {
       this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-type='process'][scene]`).forEach((row) => {
         processList.push(row.rowId!);
       });
+      if (query.includes('_')){
+        query = query.replace('_','\\_');
+      }
+      if (query.includes('%')){
+        query = query.replace('%','\\%');
+      }
       let list = await querySceneSearchFunc(query, processList);
       cpuList = cpuList.concat(list);
       cpuList.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
@@ -4366,11 +4372,11 @@ export class SpSystemTrace extends BaseElement {
         it.childrenList.forEach((child) => {
           if (child.hasAttribute('scene') && !child.collect) {
             child.rowHidden = true;
+            this.intersectionObserver?.unobserve(child);
           }
           if (child.folder) {
             child.removeEventListener('expansion-change', this.extracted(child));
           }
-          this.intersectionObserver?.unobserve(child);
         });
         this.linkNodes.map((value) => {
           if ('task' === value[0].business && value[0].rowEL.parentRowEl?.rowId === it.rowId) {

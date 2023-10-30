@@ -1691,23 +1691,28 @@ export const queryAllHookData = (rightNs: number): Promise<Array<NativeHookSampl
 export const queryNativeHookResponseTypes = (
   leftNs: number,
   rightNs: number,
-  types: Array<string>
-): Promise<Array<any>> =>
-  query(
+  types: Array<string | number>,
+  isStatistic: boolean
+): Promise<Array<any>> => {
+  const table = isStatistic ? 'native_hook_statistic' : 'native_hook';
+  const tsKey = isStatistic ? 'ts' : 'start_ts';
+  const type = isStatistic ? 'type' : 'event_type';
+  return query(
     'queryNativeHookResponseTypes',
     `
-        select 
-          distinct last_lib_id as lastLibId,
-          data_dict.data as value 
-        from 
-          native_hook A ,trace_range B
-          left join data_dict on A.last_lib_id = data_dict.id 
-        where
-        A.start_ts - B.start_ts
-        between ${leftNs} and ${rightNs} and A.event_type in (${types.join(',')});
-    `,
+          select 
+            distinct last_lib_id as lastLibId,
+            data_dict.data as value 
+          from 
+            ${table} A ,trace_range B
+            left join data_dict on A.last_lib_id = data_dict.id 
+          where
+          A.${tsKey} - B.start_ts
+          between ${leftNs} and ${rightNs} and A.${type} in (${types.join(',')});
+      `,
     { $leftNs: leftNs, $rightNs: rightNs, $types: types }
   );
+};
 /**
  * HiPerf
  */
