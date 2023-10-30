@@ -49,7 +49,6 @@ export class TabPaneFrequencySample extends BaseElement {
   private busyTimeLoadingHide: boolean = false;
   private freqBusyDataList: Array<any> = [];
   private worker: Worker | undefined;
-  private freqResult: Array<any> = [];
 
   set data(frequencySampleValue: SelectionParam | any) {
     if (frequencySampleValue == this.selectionParam) {
@@ -160,7 +159,6 @@ export class TabPaneFrequencySample extends BaseElement {
       frqSampleParam.rightNs + frqSampleParam.recordStartNs,
       frqSampleParam.cpuFreqFilterIds
     )
-    this.freqResult = result;
     frqSampleParam.cpuFreqFilterIds.forEach((a: number) => {
       this.getInitTime(
         result.filter((f) => f.filterId == a),
@@ -254,7 +252,6 @@ export class TabPaneFrequencySample extends BaseElement {
   //点击按钮控制busyTime显示与否
   handleClick(key: string, type: boolean) {
     let res = new Array();
-    if (this.freqResult.length == 0) return;
     //当busyTime的值计算完毕后进入if判断
     if (this.busyTimeLoadingHide) {
       this.busyTimeLoadingHide = false;

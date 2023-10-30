@@ -190,7 +190,7 @@ export class TabPaneHiLogs extends BaseElement {
       }
       let tableHeight = Number(tbl!.style.height.replace('px', '')) - tableHeadHeight;
       while (height < tableHeight) {
-        if (height + firstRowHeight > tableHeight) {
+        if (firstRowHeight <= 0 || height + firstRowHeight > tableHeight) {
           break;
         }
         height += firstRowHeight;

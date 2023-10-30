@@ -55,7 +55,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
   static ROW_TYPE_HIPERF = 'hiperf';
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
-  static ROW_TYPE_PERF_CALLCHART = 'Hiperf-callchart';
   static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
   static ROW_TYPE_HIPERF_PROCESS = 'hiperf-process';
   static ROW_TYPE_HIPERF_THREAD = 'hiperf-thread';
@@ -679,7 +678,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.funcExpand = true;
 
     this.nameEL!.onclick = () => {
-      if (this.rowType === TraceRow.ROW_TYPE_FUNC || TraceRow.ROW_TYPE_PERF_CALLCHART) {
+      if (this.rowType === TraceRow.ROW_TYPE_FUNC) {
         if (this.funcExpand) {
           this.funcMaxHeight = this.clientHeight;
           this.style.height = '20px';
