@@ -247,6 +247,7 @@ export class LitTable extends HTMLElement {
           transition: opacity 0.2s;
           outline: none;
           position: relative;
+          overflow: hidden;
         }
         .button-icon:active {
           background: var(--dark-background1,#f5f5f5)

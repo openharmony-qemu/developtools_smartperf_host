@@ -312,6 +312,12 @@ export class SpProbesConfig extends BaseElement {
     };
     let ftraceBufferSizeSliderParent = ftraceBufferSizeSlider!.parentNode as Element;
     let ftraceBuffSizeResultInput = this.shadowRoot?.querySelector('.ftrace-buff-size-result') as HTMLInputElement;
+    ftraceBuffSizeResultInput!.onkeydown = (ev): void => {
+      // @ts-ignore
+      if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+        ev.preventDefault();
+      }
+    };
     ftraceBuffSizeResultInput.value = ftraceBufferSizeSlider.sliderStyle.defaultValue;
     ftraceBufferSizeSlider.addEventListener('input', (evt) => {
       ftraceBuffSizeResultInput.parentElement!.classList.remove('border-red');

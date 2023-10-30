@@ -616,17 +616,7 @@ export class TraceSheet extends BaseElement {
     if (tblHiLogPanel) {
       let tblHiLog = tblHiLogPanel.querySelector<TabPaneHiLogs>('tab-hi-log');
       if (tblHiLog) {
-        tblHiLog.parentElement!.style.overflow = 'hidden';
         tblHiLog.initTabSheetEl(this);
-      }
-    }
-    let tblSummaryPanel = this.shadowRoot?.querySelector<LitTabpane>("lit-tabpane[id='box-hilogs-summary']");
-    if (tblSummaryPanel) {
-      let tblSummary = tblSummaryPanel.querySelector<TabPaneHiLogSummary>('tab-hi-log-summary');
-      if (tblSummary) {
-        tblSummary.parentElement!.style.overflow = 'hidden';
-        tblSummary.style.overflow = 'hidden';
-        tblSummary.initTabSheetEl(tblSummary.parentElement!);
       }
     }
   };
