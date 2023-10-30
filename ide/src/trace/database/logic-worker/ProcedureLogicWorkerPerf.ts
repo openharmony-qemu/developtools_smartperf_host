@@ -38,6 +38,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   isAnalysis: boolean = false;
   isPerfBottomUp: boolean = false;
   perfCallData: any[] = [];
+  eventTypeId: string = '';
 
   private dataCache = DataCache.getInstance();
   private samplesCpu = Array<hiPrefSample>();
@@ -242,8 +243,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       let arg = `${cpuFilter}${processFilter}${threadFilter}`.substring(3);
       filterSql = ` and (${arg})`;
     }
-    const eventTypeId = selectionParam.eventTypeId;
-    eventTypeFilter = eventTypeId ? ` and s.event_type_id = ${eventTypeId}` : '';
+    eventTypeFilter = this.eventTypeId ? ` and s.event_type_id = ${this.eventTypeId}` : '';
     filterSql += eventTypeFilter;
     this.queryData(
       this.currentEventId,
@@ -919,6 +919,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
               break;
             case 'splitTree':
               this.splitPerfTree(this.allProcess, item.funcArgs[0], item.funcArgs[1], item.funcArgs[2]);
+              break;
+            case 'setEventTypeId':
+              this.eventTypeId = item.funcArgs[0];
               break;
             case 'setSearchValue':
               this.searchValue = item.funcArgs[0];
