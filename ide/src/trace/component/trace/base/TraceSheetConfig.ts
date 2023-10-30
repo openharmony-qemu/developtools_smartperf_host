@@ -120,6 +120,7 @@ import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResour
 import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph.js';
 import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
 import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
+import { TabpanePerfBinaryTree } from '../sheet/hiperf/TabPerfBinaryTree.js';
 
 export let tabConfig: any = {
   'current-selection': {
@@ -638,4 +639,10 @@ export let tabConfig: any = {
     type: TabPaneFreqDataCut,
     require: (param: SelectionParam) => param.threadIds.length > 0 && param.threadIds.length < 2,
   }, 
+  }, //current selection
+  'box-perf-Binary': {
+    title: 'BinaryTree',
+    type: TabpanePerfBinaryTree,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
 };
