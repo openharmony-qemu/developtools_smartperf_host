@@ -5521,7 +5521,7 @@ export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string 
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+export const querySearchFuncData = (funcName: string, tIds: number, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFuncData',
     `
@@ -5549,7 +5549,7 @@ export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftN
       left join 
         trace_range r
       where 
-        c.name = '${funcName}' 
+        c.name like '${funcName}%' 
       and 
         t.tid = ${tIds} 
       and
