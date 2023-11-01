@@ -164,7 +164,7 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
     }
 
     auto cs = fc.GetConstraints();
-    std::set<uint32_t> sId = {static_cast<uint32_t>(Index::IPID), static_cast<uint32_t>(Index::ID)};
+    std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
     SwapIndexFront(cs, sId);
     for (size_t i = 0; i < cs.size(); i++) {
         const auto& c = cs[i];

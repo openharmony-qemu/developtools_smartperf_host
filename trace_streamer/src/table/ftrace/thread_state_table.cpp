@@ -155,7 +155,7 @@ int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
         indexMapBack = std::make_unique<IndexMap>(0, rowCount_).get();
     }
     auto cs = fc.GetConstraints();
-    std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS), static_cast<uint32_t>(Index::ID)};
+    std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(cs, sId);
     for (size_t i = 0; i < cs.size(); i++) {
         const auto& c = cs[i];

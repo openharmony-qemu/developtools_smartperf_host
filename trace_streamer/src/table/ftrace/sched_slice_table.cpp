@@ -166,7 +166,7 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     }
 
     auto cs = fc.GetConstraints();
-    std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS), static_cast<uint32_t>(Index::ID)};
+    std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(cs, sId);
     for (size_t i = 0; i < cs.size(); i++) {
         const auto& c = cs[i];

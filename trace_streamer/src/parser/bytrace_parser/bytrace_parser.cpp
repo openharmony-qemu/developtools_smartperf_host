@@ -55,6 +55,7 @@ void BytraceParser::WaitForParserEnd()
     eventParser_->Clear();
     hilogParser_->FilterAllHilogData();
     dataSegArray_.reset();
+    isParsingOver_ = false;
 }
 void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish)
 {
