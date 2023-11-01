@@ -2755,7 +2755,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
    select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
    ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r
-   where c.name like '%${search}%' and startTime > 0 and p.pid in (${processList.join(',')});
+   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
     `,
     { $search: search }
   );
