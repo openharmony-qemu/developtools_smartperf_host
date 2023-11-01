@@ -68,7 +68,7 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
         if (packagesLine == packagesBuffer_.end()) {
             if (isFinish) {
                 isParsingOver_ = true;
-            } else{
+            } else {
                 break;
             }
         }
@@ -81,7 +81,7 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
         auto extra = 0;
         if (packagesLine != packagesBuffer_.end()) {
             if (*(packagesLine - 1) == '\r') {
-                extra =  1;
+                extra = 1;
             }
         }
         std::string bufferLine(packagesBegin, packagesLine - extra);

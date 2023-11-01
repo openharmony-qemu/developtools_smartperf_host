@@ -169,8 +169,8 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         return true;
     }
     if (isSplitFile && ts_->GetFileType() == TRACE_FILETYPE_HILOG) {
-        splitFileCallBack(ts_->GetBytraceData()->GetHiLogParser()->GetTraceDataHiLog(), (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
-                          isFinish);
+        splitFileCallBack(ts_->GetBytraceData()->GetHiLogParser()->GetTraceDataHiLog(),
+                          (int32_t)SplitDataDataType::SPLIT_FILE_DATA, isFinish);
         ts_->GetBytraceData()->GetHiLogParser()->ClearHiLogData();
         return true;
     }
