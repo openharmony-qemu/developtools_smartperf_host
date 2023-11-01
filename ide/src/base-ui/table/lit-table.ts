@@ -1824,7 +1824,11 @@ export class LitTable extends HTMLElement {
           (child as HTMLElement).title = text;
         } else {
           (child as HTMLElement).innerHTML = text;
-          if (dataIndex === 'timeStr' && rowObject.data instanceof JsCpuProfilerStatisticsStruct) {
+          if (dataIndex === 'selfTimeStr' && rowObject.data.chartFrameChildren) {
+            (child as HTMLElement).title = rowObject.data.selfTime + 'ns';
+          } else if (dataIndex === 'totalTimeStr' && rowObject.data.chartFrameChildren) {
+            (child as HTMLElement).title = rowObject.data.totalTime + 'ns';
+          } else if (dataIndex === 'timeStr' && rowObject.data instanceof JsCpuProfilerStatisticsStruct) {
             (child as HTMLElement).title = rowObject.data.time + 'ns';
           } else {
             (child as HTMLElement).title = text;
