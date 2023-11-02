@@ -1061,6 +1061,7 @@ export class SpApplication extends BaseElement {
                   mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
                     collapsed: false,
                     title: 'Current Trace',
+                    second:false,
                     describe: 'Actions on the current trace',
                     children: getTraceOptionMenus(showFileName, fileSize, fileName, true, dbName),
                   });
@@ -1404,6 +1405,7 @@ export class SpApplication extends BaseElement {
                 mainMenu.menus!.splice(2, 1, {
                   collapsed: false,
                   title: 'Convert trace',
+                  second:false,
                   describe: 'Convert to other formats',
                   children: pushConvertTrace(fileName),
                 });
@@ -1412,6 +1414,7 @@ export class SpApplication extends BaseElement {
               mainMenu.menus!.splice(index, 1, {
                 collapsed: false,
                 title: 'Support',
+                second:false,
                 describe: 'Support',
                 children: [
                   {
@@ -1446,6 +1449,7 @@ export class SpApplication extends BaseElement {
                 mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
                   collapsed: false,
                   title: 'Current Trace',
+                  second:false,
                   describe: 'Actions on the current trace',
                   children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
                 });
@@ -1740,6 +1744,7 @@ export class SpApplication extends BaseElement {
                   mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
                     collapsed: false,
                     title: 'Current Trace',
+                    second:false,
                     describe: 'Actions on the current trace',
                     children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
                   });
@@ -1765,6 +1770,7 @@ export class SpApplication extends BaseElement {
       {
         collapsed: false,
         title: 'Navigation',
+        second:false,
         describe: 'Open or record a new trace',
         children: [
           {
@@ -1823,6 +1829,7 @@ export class SpApplication extends BaseElement {
       {
         collapsed: false,
         title: 'Support',
+        second:false,
         describe: 'Support',
         children: [
           {

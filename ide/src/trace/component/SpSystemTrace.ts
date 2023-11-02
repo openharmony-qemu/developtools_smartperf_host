@@ -2925,6 +2925,7 @@ export class SpSystemTrace extends BaseElement {
         snapshotClickHandler
       );
     } else if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
+      console.log('点了吗');
       JsCpuProfilerStruct.selectJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
       let selectStruct = JsCpuProfilerStruct.selectJsCpuProfilerStruct;
       let dataArr: Array<JsCpuProfilerChartFrame> = [];
