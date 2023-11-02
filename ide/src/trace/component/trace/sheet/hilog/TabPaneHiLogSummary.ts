@@ -100,6 +100,9 @@ export class TabPaneHiLogSummary extends BaseElement {
         .tree-row-tr:hover {
           background-color: #DEEDFF;
         }
+        .tree-row-tr:nth-last-child(1):hover {
+          background-color: white;
+        }
         .head-label, .head-count {
           white-space: nowrap;
           overflow: hidden;
@@ -276,6 +279,12 @@ export class TabPaneHiLogSummary extends BaseElement {
       tableTreeEl.style.height = `${this.parentElement!.clientHeight - 40}px`;
     }
     this.createRowNodeTableEL(this.logTreeNodes, tableTreeEl, tableCountEl, '');
+    let emptyTr = document.createElement('tr');
+    emptyTr.className = 'tree-row-tr';
+    tableTreeEl?.appendChild(emptyTr);
+    let emptyCountTr = document.createElement('tr');
+    emptyCountTr.className = 'tree-row-tr';
+    tableCountEl?.appendChild(emptyCountTr);
     tableFragmentEl.appendChild(tableTreeEl);
     tableFragmentEl.appendChild(tableCountEl);
     this.logSummaryTable!.appendChild(tableFragmentEl);

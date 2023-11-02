@@ -3877,10 +3877,10 @@ export class SpSystemTrace extends BaseElement {
         processList.push(row.rowId!);
       });
       if (query.includes('_')) {
-        query = query.replace('_', '\\_');
+        query = query.replace(/_/g, '\\_');
       }
       if (query.includes('%')) {
-        query = query.replace('%', '\\%');
+        query = query.replace(/%/g, '\\%');
       }
       let list = await querySceneSearchFunc(query, processList);
       cpuList = cpuList.concat(list);
