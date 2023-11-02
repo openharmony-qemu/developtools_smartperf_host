@@ -227,8 +227,8 @@ export class LitSearch extends BaseElement {
     this.searchHistoryListEL = this.shadowRoot!.querySelector<HTMLUListElement>('.search-history-list');
 
     this._retarge_index = this.shadowRoot!.querySelector<HTMLInputElement>("input[name='retarge_index']");
-    let _root = this.shadowRoot!.querySelector<HTMLInputElement>(".root")
-    let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>("#prompt")
+    let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
+    let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
 
     this.search!.addEventListener('focus', () => {
       this.searchFocusListener();
@@ -238,7 +238,7 @@ export class LitSearch extends BaseElement {
     });
     this.search!.addEventListener('change', (event) => {
       this.index = -1;
-      this._retarge_index!.value = ""
+      this._retarge_index!.value = '';
     });
     this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
       this._retarge_index!.value = ""
@@ -264,10 +264,10 @@ export class LitSearch extends BaseElement {
       );
     });
 
-        // 添加翻页监听事件
+    // 添加翻页监听事件
     this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keyup', (e: any) => {
       if (e.keyCode == 13) {
-        this.retarget_index = Number(this._retarge_index!.value)
+        this.retarget_index = Number(this._retarge_index!.value);
         if (this.retarget_index <= this._list.length && this.retarget_index != 0) {
           this.dispatchEvent(
             new CustomEvent('retarget-data', {
@@ -277,18 +277,17 @@ export class LitSearch extends BaseElement {
             })
           );
         } else if (this.retarget_index == 0) {
-          return
+          return;
         } else {
           _prompt!.style.display = 'block';
           _root!.style.display = 'none';
-          _prompt!.innerHTML = `${this._list.length} pages in total, please re-enter`
+          _prompt!.innerHTML = `${this._list.length} pages in total, please re-enter`;
           setTimeout(() => {
             _prompt!.style.display = 'none';
             _root!.style.display = 'flex';
-            this._retarge_index!.value = ""
-          }, 2000)
+            this._retarge_index!.value = '';
+          }, 2000);
         }
-
       }
       e.stopPropagation();
     });
@@ -450,12 +449,12 @@ export class LitSearch extends BaseElement {
       searchInfoOption.textContent = historyInfo.searchContent;
       searchInfoOption.addEventListener('click', () => {
         if (searchInfoOption.textContent) {
-          let flag=this.search!.value
+          let flag = this.search!.value;
           this.search!.value = searchInfoOption.textContent;
           this.valueChangeHandler?.(this.search!.value);
-          if(flag!=searchInfoOption.textContent) {
-            this._retarge_index!.value = ""
-            this.index=-1
+          if (flag != searchInfoOption.textContent) {
+            this._retarge_index!.value = '';
+            this.index = -1;
           }
         }
       });

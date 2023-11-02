@@ -67,21 +67,20 @@ export class TabpanePerfProfile extends BaseElement {
       this.perfProfilerFilter!.style.display = 'none';
     }
     this.perfProfilerFilter!.disabledTransfer(false, 'perf');
-    this.perfProfilerFilter!.getTransferList();
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
+    this.perfProfilerFilter!.refreshTreeTransfer();
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
     this.getDataByWorkAndUpDateCanvas(perfProfilerSelection);
   }
 
-  getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam) {
+  getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam):void {
     const initWidth = this.clientWidth;
     this.initGetData(perfProfilerSelection, initWidth);
-
-
     this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      this.initGetData(perfProfilerSelection, initWidth, data.eventTypeId);
+      const eventTypeId = data.value !== 'count' ? data.value : undefined;
+      this.initGetData(perfProfilerSelection, initWidth, eventTypeId);
     });
   }
 
@@ -91,7 +90,7 @@ export class TabpanePerfProfile extends BaseElement {
       perfProfileArgs.push({
         funcName: 'setEventTypeId',
         funcArgs: [eventTypeId !== 'count' ? eventTypeId : undefined],
-      })
+      });
     }
     perfProfileArgs.push(
       {
@@ -101,7 +100,8 @@ export class TabpanePerfProfile extends BaseElement {
       {
         funcName: 'getCurrentDataFromDb',
         funcArgs: [perfProfilerSelection],
-      })
+      }
+    );
 
     this.getDataByWorker(perfProfileArgs, (results: any[]) => {
       this.setPerfProfilerLeftTableData(results);
@@ -116,8 +116,7 @@ export class TabpanePerfProfile extends BaseElement {
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
-    })
-
+    });
   }
 
   getParentTree(

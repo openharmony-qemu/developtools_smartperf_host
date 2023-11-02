@@ -1391,17 +1391,20 @@ export class SpApplication extends BaseElement {
             },
             async (res) => {
               let existFtrace = await queryExistFtrace();
-              let traceHeadData = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
-              let enc = new TextDecoder();
-              let headerStr = enc.decode(traceHeadData);
-              let rowTraceStr = Array.from(new Uint8Array(DbPool.sharedBuffer!.slice(0, 2)))
+              let isAllowTrace = true;
+              if (DbPool.sharedBuffer) {
+                let traceHeadData = new Uint8Array(DbPool.sharedBuffer!.slice(0, 10));
+                let enc = new TextDecoder();
+                let headerStr = enc.decode(traceHeadData);
+                let rowTraceStr = Array.from(new Uint8Array(DbPool.sharedBuffer!.slice(0, 2)))
                 .map((byte) => byte.toString(16).padStart(2, '0'))
                 .join('');
+                if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
+                  isAllowTrace = false;
+                }
+              }
               let index = 2;
-              if (
-                existFtrace.length > 0 &&
-                (headerStr.indexOf('OHOSPROF') === 0 || rowTraceStr.indexOf('49df') === 0)
-              ) {
+              if (existFtrace.length > 0 && isAllowTrace) {
                 mainMenu.menus!.splice(2, 1, {
                   collapsed: false,
                   title: 'Convert trace',
@@ -1947,9 +1950,8 @@ export class SpApplication extends BaseElement {
         sidebarButton.style.width = open ? `0px` : '48px';
       }
     };
-
-    let urlParams = this.getUrlParams(window.location.href);
-    if (urlParams && urlParams.trace && urlParams.link) {
+    let urlParams = new URL(window.location.href).searchParams;
+    if (urlParams && urlParams.get('trace') && urlParams.get('link')) {
       openFileInit();
       openMenu(false);
       litSearch.clear();
@@ -1957,36 +1959,36 @@ export class SpApplication extends BaseElement {
       that.search = true;
       progressEL.loading = true;
       let downloadLineFile = false;
-      if (urlParams.local) {
+      if (urlParams.get('local')) {
         downloadLineFile = false;
       } else {
         downloadLineFile = true;
       }
       setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
       this.downloadOnLineFile(
-        urlParams.trace,
+        urlParams.get('trace') as string,
         downloadLineFile,
         (arrayBuf, fileName, showFileName, fileSize) => {
           handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
         },
         (localPath) => {
-          let path = urlParams.trace as string;
+          let path = urlParams.get('trace') as string;
           let fileName: string = '';
           let showFileName: string = '';
-          if (urlParams.local) {
+          if (urlParams.get('local')) {
             openMenu(true);
-            fileName = urlParams.traceName as string;
+            fileName = urlParams.get('traceName') as string;
           } else {
             fileName = path.split('/').reverse()[0];
           }
           that.traceFileName = fileName;
           showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
           TraceRow.rangeSelectObject = undefined;
-          let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.trace;
+          let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.get('trace')!;
           fetch(localUrl)
             .then((res) => {
               res.arrayBuffer().then((arrayBuf) => {
-                if (urlParams.local) {
+                if (urlParams.get('local')) {
                   URL.revokeObjectURL(localUrl);
                 }
                 let fileSize = (arrayBuf.byteLength / 1048576).toFixed(1);
@@ -2226,18 +2228,6 @@ export class SpApplication extends BaseElement {
     } else {
       openFileHandler(url);
     }
-  }
-
-  private getUrlParams(url: string) {
-    const _url = url || window.location.href;
-    const _urlParams = _url.match(/([?&])(.+?=[^&]+)/gim);
-    return _urlParams
-      ? _urlParams.reduce((a: any, b) => {
-          const value = b.slice(1).split('=');
-          a[`${value[0]}`] = decodeURIComponent(value[1]);
-          return a;
-        }, {})
-      : {};
   }
 
   private croppingFile(progressEL: LitProgressBar, litSearch: LitSearch) {

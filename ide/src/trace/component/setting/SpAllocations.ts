@@ -130,6 +130,27 @@ export class SpAllocations extends BaseElement {
     return false;
   }
 
+  connectedCallback() {
+    this.unwindEL?.addEventListener('keydown', this.handleInputChange);
+    this.shareMemory?.addEventListener('keydown', this.handleInputChange);
+    this.shareMemoryUnit?.addEventListener('keydown', this.handleInputChange);
+    this.filterMemory?.addEventListener('keydown', this.handleInputChange);
+  }
+
+  disconnectedCallback() {
+    this.unwindEL?.removeEventListener('keydown', this.handleInputChange);
+    this.shareMemory?.removeEventListener('keydown', this.handleInputChange);
+    this.shareMemoryUnit?.removeEventListener('keydown', this.handleInputChange);
+    this.filterMemory?.removeEventListener('keydown', this.handleInputChange);
+  }
+
+  handleInputChange = (ev: KeyboardEvent) => {
+    // @ts-ignore
+    if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+      ev.preventDefault();
+    }
+  };
+
   initElements(): void {
     this.processId = this.shadowRoot?.getElementById('pid') as LitAllocationSelect;
     let process = this.processId.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
