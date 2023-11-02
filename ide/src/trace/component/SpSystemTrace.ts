@@ -1720,10 +1720,10 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
+    this.isMouseLeftDown = true;
     if (ev.ctrlKey) {
       ev.preventDefault();
-      this.style.cursor = 'move';
-      this.isMouseLeftDown = true;
+      this.style.cursor = 'move'; 
       this.mouseCurrentPosition = ev.clientX;
       return;
     }
@@ -1776,11 +1776,12 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
+    
+    this.isMouseLeftDown = false;
     if (ev.ctrlKey) {
       ev.preventDefault();
       this.offsetMouse = 0;
-      this.mouseCurrentPosition = 0;
-      this.isMouseLeftDown = false;
+      this.mouseCurrentPosition = 0; 
       this.style.cursor = 'default';
       return;
     }
@@ -2538,14 +2539,20 @@ export class SpSystemTrace extends BaseElement {
     // 判断点击的线程是否在唤醒树内
     let timeoutJudge = setTimeout(() => {
       if (SpSystemTrace.wakeupList.length && CpuStruct.selectCpuStruct) {
-        let checkHandlerKey = true;
+        let checkHandlerKey:boolean = true;
+        let saveSelectCpuStruct:any = JSON.parse(sessionStorage.getItem('saveselectcpustruct')!)
         for (const item of SpSystemTrace.wakeupList) {
           if (item.ts === CpuStruct.selectCpuStruct.startTime && item.dur === CpuStruct.selectCpuStruct.dur) {
             checkHandlerKey = false;
             if (SpSystemTrace.wakeupList[0].schedulingDesc) {
-              SpSystemTrace.wakeupList.unshift(JSON.parse(sessionStorage.getItem('saveselectcpustruct')!))
+              SpSystemTrace.wakeupList.unshift(saveSelectCpuStruct)
             }
             this.refreshCanvas(true);
+            break;
+          }else if (saveSelectCpuStruct.startTime === CpuStruct.selectCpuStruct.startTime && saveSelectCpuStruct.dur === CpuStruct.selectCpuStruct.dur) {
+            // 如果点击的是第一层，保持唤醒树不变
+            checkHandlerKey = false;
+            this.refreshCanvas(true)
             break;
           }
         }
@@ -3941,13 +3948,17 @@ export class SpSystemTrace extends BaseElement {
         }
       }
     } else {
-      findIndex = structs.findIndex((it, idx) => {
-        return (
-          idx > currentIndex &&
-          it.startTime! >= TraceRow.range!.startNS &&
-          it.startTime! + it.dur! <= TraceRow.range!.endNS
-        );
-      });
+      if(currentIndex==-1) {
+        findIndex=0
+      }else{
+        findIndex = structs.findIndex((it, idx) => {
+          return (
+            idx > currentIndex &&
+            it.startTime! >= TraceRow.range!.startNS &&
+            it.startTime! + it.dur! <= TraceRow.range!.endNS
+          );
+        });
+      }
     }
     let findEntry: any;
     if (findIndex >= 0) {

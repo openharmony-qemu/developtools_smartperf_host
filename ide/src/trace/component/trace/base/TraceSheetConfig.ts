@@ -118,6 +118,7 @@ import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
 import { TabPaneSchedPriority } from '../sheet/cpu/TabPaneSchedPriority.js';
 import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
 import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph.js';
+import { TabpanePerfBinaryTree } from '../sheet/hiperf/TabPerfBinaryTree.js';
 
 export let tabConfig: any = {
   'current-selection': {
@@ -626,4 +627,9 @@ export let tabConfig: any = {
     type: TabPaneCurrent,
     require: (param: SelectionParam) => param.isCurrentPane,
   }, //current selection
+  'box-perf-Binary': {
+    title: 'BinaryTree',
+    type: TabpanePerfBinaryTree,
+    require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
 };
