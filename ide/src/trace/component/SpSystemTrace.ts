@@ -23,7 +23,16 @@ import {
   querySceneSearchFunc,
   querySearchFunc,
   threadPool,
+  queryProcessMemData,
+  queryProcess,
+  queryProcessByTable,
+  queryProcessThreads,
+  queryProcessThreadsByTable,
+  getFunDataByTid,
+  queryProcessMem,
 } from '../database/SqlLite.js';
+import { MemRender,ProcessMemStruct } from '../database/ui-worker/ProcedureWorkerMem.js';
+import { renders } from '../database/ui-worker/ProcedureWorker.js';
 import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow.js';
 import { TimerShaftElement } from './trace/TimerShaftElement.js';
 import './trace/base/TraceSheet.js';
@@ -45,6 +54,7 @@ import {
   drawWakeUp,
   drawWakeUpList,
   isFrameContainPoint,
+  drawVsync,
   LineType,
   ns2x,
   ns2xByTimeShaft,
@@ -57,7 +67,7 @@ import { ProcessStruct } from '../database/ui-worker/ProcedureWorkerProcess.js';
 import { CpuFreqStruct } from '../database/ui-worker/ProcedureWorkerFreq.js';
 import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
 import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread.js';
-import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc.js';
+import { func, FuncStruct,FuncRender } from '../database/ui-worker/ProcedureWorkerFunc.js';
 import { CpuStateStruct } from '../database/ui-worker/ProcedureWorkerCpuState.js';
 import { HiPerfCpuStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCPU.js';
 import { HiPerfProcessStruct } from '../database/ui-worker/ProcedureWorkerHiPerfProcess.js';
@@ -194,7 +204,15 @@ export class SpSystemTrace extends BaseElement {
   private expandRowList: Array<TraceRow<any>> = [];
   private _slicesList: Array<SlicesTime> = [];
   private _flagList: Array<any> = [];
-
+  private _frameList: Array<any> = [];
+  private _isVsync: boolean = false;
+  private processes: Array<any> =[];
+  private processFromTable: Array<any> =[];
+  private queryProcessThreadResult: Array<any>=[];
+  private queryProcessThreadsByTableResult: Array<any>=[];
+  private queryFunData: Array<any> =[];
+  private querydbData : Array<any>=[];
+  private dbProcessMen: Array<any>=[];
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
   }
@@ -223,6 +241,164 @@ export class SpSystemTrace extends BaseElement {
     this.linkNodes.push([startPoint, endPoint]);
   }
 
+  async makeVsyncLine(){
+    if(this._isVsync){
+     let vsyncPid: number = 0;//单框架进程Id
+     let vsyncUPid: number = 0;//单框架
+     let vsyncTid: number = 0;//单框架
+     let vsyncDbPid : number = 0;//双框架进程Id
+     let context = this.canvasPanelCtx!;
+     this.processes = this.processes.length>0? this.processes:await queryProcess();
+     this.processFromTable = this.processFromTable.length>0?this.processFromTable:await queryProcessByTable();
+     this.queryProcessThreadResult = this.queryProcessThreadResult.length>0?this.queryProcessThreadResult:await queryProcessThreads();
+     this.queryProcessThreadsByTableResult = this.queryProcessThreadsByTableResult.length>0?this.queryProcessThreadsByTableResult:await queryProcessThreadsByTable();
+     let processList = Utils.removeDuplicates(this.processes,this.processFromTable,'pid');
+     info('ProcessList Data size is: ', processList!.length);
+     let processThreads = Utils.removeDuplicates(this.queryProcessThreadResult,this.queryProcessThreadsByTableResult,'tid');
+     info('The amount of initialized process threads data is : ', processThreads!.length);
+     processList.forEach((ele:any)=>{
+      if(ele.processName === 'render_service'){//单框架
+        vsyncPid = Number(`${ele.pid}`)
+      }else if(ele.processName === 'surfaceflinger'){
+        vsyncDbPid =  Number(`${ele.pid}`)
+      }
+     })
+     if(vsyncPid){
+      let vsyncThreads = processThreads.filter((thread:any)=>thread.pid == vsyncPid && thread.tid !=0);
+      vsyncThreads.forEach((ele:any)=>{
+        if(ele.threadName == 'VSyncGenerator'){
+          vsyncTid = Number(`${ele.tid}`);
+          vsyncUPid = Number(`${ele.upid}`);
+        }
+      })
+      let funcRow = TraceRow.skeleton<FuncStruct>();
+      this.queryFunData = this.queryFunData.length>0?this.queryFunData:await getFunDataByTid(vsyncTid || 0,vsyncUPid || 0);
+      if(this.queryFunData.length >0){
+        for(let i =0;i<this.queryFunData.length;i++){
+          if(i%2){
+            this.queryFunData[i].color = '#fff';
+          }else{
+            this.queryFunData[i].color = '#808080';
+          }
+        }
+        let isBinder = (data: FuncStruct): boolean => {
+          return (
+            data.funName != null &&
+            (data.funName.toLowerCase().startsWith('binder transaction async') || //binder transaction
+              data.funName.toLowerCase().startsWith('binder async') ||
+              data.funName.toLowerCase().startsWith('binder reply'))
+          );
+        };
+        this.queryFunData.forEach((fun) => {
+          if (isBinder(fun)) {
+          } else {
+            if (fun.dur === -1) {
+              fun.dur = (TraceRow.range?.totalNS || 0) - (fun.startTs || 0);
+              fun.flag = 'Did not end';
+            }
+          }
+        });
+        funcRow.dataList = [];
+        funcRow.dataList.push(...this.queryFunData);
+        (renders.func as FuncRender).renderMainThread(
+          {
+          context:context,
+          useCache:false,
+          type:`fun${vsyncTid}VSyncGenerator`
+        },
+        funcRow
+        );
+        if(funcRow.dataListCache.length > 0){
+          let drawVsData = [];
+          let dataStart:any={};
+          let dataEnd: any={};
+          let drawLineList = [];
+          if(funcRow.dataListCache[0]!.color! == '#fff'){
+            dataStart = {
+              color: '#808080',
+              frame:{
+                x:0,y:0,width:1,height:20
+              }
+            }
+          }else{
+            dataStart = {
+              color: '#fff',
+              frame:{
+                x:0,y:0,width:1,height:20
+              }
+            }
+          }
+          if(funcRow.dataListCache[funcRow.dataListCache.length-1]!.color! == '#fff'){
+            dataEnd = {
+              color: '#808080',
+              frame:{
+                x:this.canvasPanel!.clientWidth,y:0,width:1,height:20
+              }
+            }
+          }else{
+            dataEnd = {
+              color: '#fff',
+              frame:{
+                x:this.canvasPanel!.clientWidth,y:0,width:1,height:20
+              }
+            }
+          }
+          drawVsData.push(dataStart);
+          drawVsData.push(...funcRow.dataListCache);
+          drawVsData.push(dataEnd);
+          for(let i = 0;i<drawVsData.length;i++){
+            drawLineList.push(drawVsData[i]);
+            drawLineList[i]!.frame!.x = Number(drawVsData[i]!.frame!.x);
+            drawLineList[i]!.frame!.width =  drawVsData[i+1]?Number(drawVsData[i+1]!.frame!.x) - Number(drawVsData[i]!.frame!.x) : 0;
+          }
+          this.refreshCanvas(true,'',drawLineList);
+        }
+      }
+     }else if(vsyncDbPid){
+      let dbRow = TraceRow.skeleton<ProcessMemStruct>();
+      this.dbProcessMen = this.dbProcessMen.length>0?this.dbProcessMen:await queryProcessMem();
+      let vsyncDbThreads = this.dbProcessMen.filter((thread:any)=> thread.pid == vsyncDbPid && thread.tid != 0);
+      vsyncDbThreads.forEach(async(ele:any)=>{
+        if(ele.trackName == 'VSYNC-app'){
+          this.querydbData = this.querydbData.length>0?this.querydbData:await queryProcessMemData(ele.trackId);
+          dbRow.dataList = [];
+          dbRow.dataList.push(...this.querydbData);
+          let context = this.canvasPanelCtx!;
+          (renders['mem'] as MemRender).renderMainThread(
+            {
+              context:context,
+              useCache:false,
+              type:`mem ${ele.trackId} VSYNC-app`
+            },
+            dbRow
+          );
+          let value_1_list = [];
+          let value_0_list = [];
+          let drawList = [];
+          this._frameList = [];
+          for(let i =0; i<dbRow.dataListCache.length;i++){
+            if(dbRow.dataListCache[i].value == 1){
+              value_1_list.push(dbRow.dataListCache[i])
+            }else if(dbRow.dataListCache[i].value == 0){
+              value_0_list.push(dbRow.dataListCache[i])
+            }
+          }
+          for(let i=0;i<value_1_list.length;i++){
+            drawList.push(value_1_list[i]);
+            drawList[i]!.frame!.x = Number(value_1_list[i]!.frame!.x);
+            if(dbRow.dataListCache[0].value != 0){
+              drawList[i]!.frame!.width = value_0_list[i]?Number(value_0_list[i]!.frame!.x) - Number(value_1_list[i]!.frame!.x):this.canvasPanel!.clientWidth - Number(value_1_list[i]!.frame!.x);
+            }else{
+              drawList[i]!.frame!.width = value_0_list[i+1]?Number(value_0_list[i+1]!.frame!.x) - Number(value_1_list[i]!.frame!.x):this.canvasPanel!.clientWidth - Number(value_1_list[i]!.frame!.x);
+            }
+          }
+          this.refreshCanvas(true,'',drawList)
+        }
+      })
+     }
+    }
+  }
+  
   clearPointPair() {
     this.linkNodes.length = 0;
   }
@@ -1600,9 +1776,13 @@ export class SpSystemTrace extends BaseElement {
   }
 
   // refresh main canvas and favorite canvas
-  refreshCanvas(cache: boolean, from?: string) {
+  refreshCanvas(cache: boolean, from?: string,frameList?:any) {
     if (this.visibleRows.length == 0) {
       return;
+    }
+    if(frameList) {
+      this._frameList = [];
+      this._frameList.push(...frameList);
     }
     //clear main canvas
     this.canvasPanelCtx?.clearRect(0, 0, this.canvasPanel!.offsetWidth, this.canvasPanel!.offsetHeight);
@@ -1688,6 +1868,30 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL!
     );
     this.favoriteChartListEL?.drawLogsLineSegment(this.traceSheetEL!.systemLogFlag, this.timerShaftEL!);
+
+  //---------------------------新增代码开始--------------------------
+
+  if(this._frameList.length > 0){
+    for(let i =0; i < this._frameList.length; i++){
+      if(this._frameList[i].frame){
+        drawVsync(
+          this.canvasPanelCtx,
+          TraceRow.range!.startNS,
+          TraceRow.range!.endNS,
+          TraceRow.range!.totalNS,
+          {
+            x:this._frameList[i].frame!.x!,
+            y:this._frameList[i].frame!.y!,
+            width:this._frameList[i].frame!.width!,
+            height:this.canvasPanel!.clientHeight!
+          } as Rect,
+          this._frameList[i]!.color!
+        );
+      }
+    }
+  }
+
+//---------------------------新增代码结束--------------------------
 
     // Draw the connection curve
     if (this.linkNodes) {
@@ -1775,6 +1979,11 @@ export class SpSystemTrace extends BaseElement {
       this.mouseCurrentPosition = 0;
       this.isMouseLeftDown = false;
       this.style.cursor = 'default';
+      requestAnimationFrame(()=>{
+        setTimeout(()=>{
+          this.makeVsyncLine();
+        },100)
+      })
       return;
     }
     TraceRow.isUserInteraction = false;
@@ -1853,6 +2062,11 @@ export class SpSystemTrace extends BaseElement {
       if (keyPressWASD) {
         this.keyPressMap.set(keyPress, true);
         this.hoverFlag = null;
+        requestAnimationFrame(()=>{
+          setTimeout(()=>{
+            this.makeVsyncLine();
+          },100)
+        })
       }
       this.timerShaftEL!.documentOnKeyPress(ev, this.currentSlicesTime);
       if (keyPress === 'f') {
@@ -1988,8 +2202,22 @@ export class SpSystemTrace extends BaseElement {
   documentOnKeyUp = (ev: KeyboardEvent) => {
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
+    if(keyPress === 'v'){
+      this._isVsync = !this._isVsync;
+      if(this._isVsync){
+        this.makeVsyncLine();
+      }else{
+        this.refreshCanvas(true,'',[])
+      }
+      
+    }
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
       this.keyPressMap.set(keyPress, false);
+      requestAnimationFrame(()=>{
+        setTimeout(()=>{
+          this.makeVsyncLine();
+        },100)
+      })
     }
     TraceRow.isUserInteraction = false;
     this.observerScrollHeightEnable = false;
@@ -3543,6 +3771,11 @@ export class SpSystemTrace extends BaseElement {
       (e) => {
         if (e.ctrlKey) {
           if (e.deltaY > 0) {
+            requestAnimationFrame(()=>{
+              setTimeout(()=>{
+                this.makeVsyncLine();
+              },100)
+            })
             e.preventDefault();
             e.stopPropagation();
             let eventS = new KeyboardEvent('keypress', {
@@ -3556,6 +3789,11 @@ export class SpSystemTrace extends BaseElement {
             }, 200);
           }
           if (e.deltaY < 0) {
+            requestAnimationFrame(()=>{
+              setTimeout(()=>{
+                this.makeVsyncLine();
+              },100)
+            })
             e.preventDefault();
             e.stopPropagation();
             let eventW = new KeyboardEvent('keypress', {
@@ -4218,6 +4456,15 @@ export class SpSystemTrace extends BaseElement {
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {
+    this._frameList = [];
+    this.processes = [];
+    this.processFromTable = [];
+    this.queryProcessThreadResult = [];
+    this.queryProcessThreadsByTableResult = [];
+    this.queryFunData = [];
+    this.dbProcessMen = [];
+    this.querydbData = [];
+    this._isVsync = false;
     progress('Load database', 6);
     this.rowsPaneEL!.scroll({
       top: 0,
