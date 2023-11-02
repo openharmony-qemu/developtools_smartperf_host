@@ -655,37 +655,37 @@ export function drawLogsLineSegment(
   timerShaftEl: TimerShaftElement
 ): void {
   timerShaftEl.sportRuler?.draw();
-  // if (systemLogFlag) {
-  //   if (ctx) {
-  //     ctx.beginPath();
-  //     ctx.lineWidth = 2;
-  //     ctx.strokeStyle = systemLogFlag?.color || '#dadada';
-  //     ctx.moveTo(Math.floor(systemLogFlag.x), 0);
-  //     ctx.lineTo(Math.floor(systemLogFlag.x), frame.height || 0);
-  //     ctx.stroke();
-  //     ctx.closePath();
-  //   }
-  //   if (timerShaftEl.ctx) {
-  //     let timeText = `| ${ns2Timestamp(systemLogFlag.time)}`;
-  //     let textPointX = systemLogFlag.x;
-  //     let textMetrics = timerShaftEl.ctx.measureText(timeText);
-  //     if (timerShaftEl.ctx.canvas.width - systemLogFlag.x <= textMetrics.width) {
-  //       textPointX = systemLogFlag.x - textMetrics.width;
-  //       timeText = `${ns2Timestamp(systemLogFlag.time)} |`;
-  //     }
-  //     let locationY = 120;
-  //     timerShaftEl.ctx.beginPath();
-  //     timerShaftEl.ctx.lineWidth = 0;
-  //     timerShaftEl.ctx.fillStyle = '#FFFFFF';
-  //     let textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-  //     timerShaftEl.ctx.fillRect(textPointX, locationY - textHeight, textMetrics.width, textHeight);
-  //     timerShaftEl.ctx.lineWidth = 2;
-  //     timerShaftEl.ctx.fillStyle = systemLogFlag?.color || '#dadada';
-  //     timerShaftEl.ctx.fillText(timeText, textPointX, locationY);
-  //     timerShaftEl.ctx.stroke();
-  //     timerShaftEl.ctx.closePath();
-  //   }
-  // }
+  if (systemLogFlag) {
+    if (ctx) {
+      ctx.beginPath();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = systemLogFlag?.color || '#dadada';
+      ctx.moveTo(Math.floor(systemLogFlag.x), 0);
+      ctx.lineTo(Math.floor(systemLogFlag.x), frame.height || 0);
+      ctx.stroke();
+      ctx.closePath();
+    }
+    if (timerShaftEl.ctx) {
+      let timeText = `| ${ns2Timestamp(systemLogFlag.time)}`;
+      let textPointX = systemLogFlag.x;
+      let textMetrics = timerShaftEl.ctx.measureText(timeText);
+      if (timerShaftEl.ctx.canvas.width - systemLogFlag.x <= textMetrics.width) {
+        textPointX = systemLogFlag.x - textMetrics.width;
+        timeText = `${ns2Timestamp(systemLogFlag.time)} |`;
+      }
+      let locationY = 120;
+      timerShaftEl.ctx.beginPath();
+      timerShaftEl.ctx.lineWidth = 0;
+      timerShaftEl.ctx.fillStyle = '#FFFFFF';
+      let textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+      timerShaftEl.ctx.fillRect(textPointX, locationY - textHeight, textMetrics.width, textHeight);
+      timerShaftEl.ctx.lineWidth = 2;
+      timerShaftEl.ctx.fillStyle = systemLogFlag?.color || '#dadada';
+      timerShaftEl.ctx.fillText(timeText, textPointX, locationY);
+      timerShaftEl.ctx.stroke();
+      timerShaftEl.ctx.closePath();
+    }
+  }
 }
 
 export function drawSelection(ctx: any, params: any) {
