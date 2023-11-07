@@ -178,7 +178,7 @@ export class JSONToCSV {
       let dataIndex = column.getAttribute('data-index');
       let columnName = column.getAttribute('title');
       if (columnName == '') {
-        columnName = dataIndex;
+        columnName = dataIndex == 'busyTimeStr' ? 'GetBusyTime(ms)' : dataIndex;
       }
       if (columnName !== '  ') {
         titleList.push(columnName);
