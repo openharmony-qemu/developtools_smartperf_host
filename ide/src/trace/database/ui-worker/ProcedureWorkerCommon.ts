@@ -745,26 +745,6 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
   }
 }
 
-//---------------------------新增代码开始--------------------------
-
-export function drawVsync(
-  vsyncContext: CanvasRenderingContext2D | any,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame:Rect,
-  color:string
-){
-  vsyncContext.lineWidth = 2;
-  vsyncContext.fillStyle = color?color:"#808080";
-  vsyncContext.globalAlpha = 0.4;
-  vsyncContext.fillRect(frame.x,frame.y,frame.width,frame.height);
-  // vsyncContext.stroke();
-  // vsyncContext.closePath();
-}
-
-//---------------------------新增代码结束--------------------------
-
 export function drawWakeUp(
   wakeUpContext: CanvasRenderingContext2D | any,
   wake: WakeupBean | undefined | null,
