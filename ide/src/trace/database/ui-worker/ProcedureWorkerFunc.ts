@@ -116,6 +116,7 @@ export function func(
 }
 
 export class FuncStruct extends BaseFuncStruct {
+  [x: string]: any;
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
