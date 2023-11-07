@@ -203,7 +203,7 @@ export class SportRuler extends Graph {
         this.drawFlag(flagObj.x, flagObj.color, flagObj.selected, flagObj.text, flagObj.type);
       }
     });
-    // !this.hoverFlag.hidden && this.drawFlag(this.hoverFlag.x, this.hoverFlag.color, true, this.hoverFlag.text);
+    !this.hoverFlag.hidden && this.drawFlag(this.hoverFlag.x, this.hoverFlag.color, true, this.hoverFlag.text);
     //If region selection is enabled, the serial number draws a line on the axis to show the length of the box selection
     if (this.isRangeSelect) {
       let range = TraceRow.rangeSelectObject;
@@ -443,7 +443,7 @@ export class SportRuler extends Graph {
           (this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS)
         );
         let endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
-        let color = randomRgbColor() || '#ff0000';
+        let color = randomRgbColor();
         this.slicesTime.color = color;
         newSlicestime = new SlicesTime(
           this.slicesTime.startTime || 0,

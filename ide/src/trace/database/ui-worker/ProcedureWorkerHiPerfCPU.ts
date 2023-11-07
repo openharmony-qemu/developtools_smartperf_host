@@ -15,6 +15,11 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
 import {
+  BaseStruct,
+  drawFlagLine,
+  drawLines,
+  drawLoading,
+  drawSelection,
   HiPerfStruct,
   hiPerf,
   PerfRender,
