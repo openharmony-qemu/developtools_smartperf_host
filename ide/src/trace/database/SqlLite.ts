@@ -5500,7 +5500,7 @@ export const queryTraceType = (): Promise<
 export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
   query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
 
-  export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabRunningPercent',
     `
@@ -5517,11 +5517,11 @@ export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string 
       and
         not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
       order by ts
-  `,
+    `,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+export const querySearchFuncData = (funcName: string, tIds: number, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFuncData',
     `
@@ -5549,13 +5549,12 @@ export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftN
       left join 
         trace_range r
       where 
-        c.name = '${funcName}' 
+        c.name like '${funcName}%' 
       and 
         t.tid = ${tIds} 
       and
         not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-  `,
-    { $search: funcName }
+  `
   );
 
 export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =>
