@@ -55,6 +55,8 @@ import './component/trace/base/CustomThemeColor.js';
 import { CustomThemeColor, Theme } from './component/trace/base/CustomThemeColor.js';
 import { convertPool } from './database/Convert.js';
 import { LongTraceDBUtils } from './database/LongTraceDBUtils.js';
+import { SpKeyboard } from './component/SpKeyboard.js';
+import './component/SpKeyboard.js';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -500,8 +502,10 @@ export class SpApplication extends BaseElement {
             display: flex;
         }
         </style>
-        <div class="root">
+        <div class="root" style="position: relative;">
             <lit-main-menu id="main-menu" class="menu" data=''></lit-main-menu>
+            <sp-keyboard style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 8888" id="sp-keyboard">
+            </sp-keyboard>
             <div class="search-container">
                 <div class="search" style="position: relative;">
                     <div class="sidebar-button" style="width: 0">
@@ -571,6 +575,7 @@ export class SpApplication extends BaseElement {
     let spSystemTrace = this.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.spHelp = this.shadowRoot!.querySelector<SpHelp>('#sp-help');
     let spFlags = this.shadowRoot!.querySelector<SpFlags>('#sp-flags') as SpFlags;
+    let SpKeyboard = this.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard') as SpKeyboard;
     let spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-trace');
     let spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-template');
     let spSchedulingAnalysis = this.shadowRoot!.querySelector<SpSchedulingAnalysis>(
@@ -607,6 +612,7 @@ export class SpApplication extends BaseElement {
       this.spHelp,
       spRecordTemplate,
       spFlags,
+      SpKeyboard,
     ];
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') {
@@ -1473,6 +1479,18 @@ export class SpApplication extends BaseElement {
                       showContent(spFlags);
                     },
                   },
+                  {
+                    title: 'Keyboard shortcuts',
+                    icon: 'menu',
+                    clickHandler: function (item: MenuItem) {
+                      SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                        event: 'Keyboard shortcuts',
+                        action: 'Keyboard shortcuts',
+                      });
+                      that.search = false;
+                      showContent(SpKeyboard);
+                    },
+                  },
                 ],
               });
               if (res.status) {
@@ -1881,6 +1899,18 @@ export class SpApplication extends BaseElement {
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
                 event: 'flags',
                 action: 'flags',
+              });
+            },
+          },
+          {
+            title: 'Keyboard shortcuts',
+            icon: 'smart-help',
+            clickHandler: function (item: MenuItem) {
+              that.search = false;
+              showContent(SpKeyboard);
+              SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                event: 'Keyboard shortcuts',
+                action: 'Keyboard shortcuts',
               });
             },
           },
