@@ -103,6 +103,7 @@ import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js'
 import { LitSearch } from './trace/search/Search.js';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
+import {SpKeyboard} from '../component/SpKeyboard.js'
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -2002,6 +2003,14 @@ export class SpSystemTrace extends BaseElement {
   };
 
   documentOnKeyUp = (ev: KeyboardEvent) => {
+    if(ev.key.toLocaleLowerCase() === '?'){
+      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
+    }
+    if(ev.key.toLocaleLowerCase() === 'escape'){
+      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
+      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-welcome')!.style.visibility = 'visible';
+      
+    }
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
