@@ -115,6 +115,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr uint8_t CPU_ID_FORMAT_WIDTH = 3;
 TraceDataCache::TraceDataCache()
 {
     InitDB();
@@ -389,12 +390,18 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
     std::string buffLine;
     for (uint64_t row = 0; row < perfSample_.Size(); ++row) {
         std::string procName;
+        std::string cpuIdStr = std::to_string(perfSample_.CpuIds()[row]);
         std::string eventTypeName;
         auto threadId = perfSample_.Tids()[row];
-        auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), threadId);
-        if (perfThreadTidItor != perfThread_.Tids().end()) {
-            auto perfThreadRow = std::distance(perfThread_.Tids().begin(), perfThreadTidItor);
-            procName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
+        if (threadId == 0) {
+            auto threadDataRow = 0;
+            procName = GetDataFromDict(GetConstThreadData(threadDataRow).nameIndex_);
+        } else {
+            auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), threadId);
+            if (perfThreadTidItor != perfThread_.Tids().end()) {
+                auto perfThreadRow = std::distance(perfThread_.Tids().begin(), perfThreadTidItor);
+                procName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
+            }
         }
         auto perfReportIdItor =
             std::find(perfReport_.IdsData().begin(), perfReport_.IdsData().end(), perfSample_.EventTypeIds()[row]);
@@ -404,7 +411,7 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
         }
         buffLine += procName;
         buffLine += ("  " + std::to_string(threadId));
-        buffLine += (" " + std::to_string(perfSample_.CpuIds()[row]));
+        buffLine += (" [" + std::string(CPU_ID_FORMAT_WIDTH - cpuIdStr.size(), '0') + cpuIdStr + "]");
         buffLine += (" " + base::ConvertTimestampToSecStr(perfSample_.TimeStampData()[row], curTimePrecision) + ":");
         buffLine += ("          " + std::to_string(perfSample_.EventCounts()[row]));
         buffLine += (" " + eventTypeName + " \r\n");

@@ -80,7 +80,7 @@ bool OfflineSymbolizationFilter::FillFrameInfo(const std::shared_ptr<FrameInfo>&
     }
     if (frameInfo->filePathId_ == INVALID_UINT32) {
         // find matching MapsInfo failed!!!
-        TS_LOGI("find matching Maps Info failed, ip = %llu, length=%lld", ip, length);
+        TS_LOGI("find matching Maps Info failed, ip = %" PRIu64 ", length=%" PRId64 "", ip, length);
         return false;
     }
     return true;
