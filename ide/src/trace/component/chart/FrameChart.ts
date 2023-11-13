@@ -815,7 +815,7 @@ export class FrameChart extends BaseElement {
                       <span class="bold">${label}: </span> <span> ${count}</span>`;
         break;
     }
-    if (this.mode != ChartMode.Byte) {
+    if (this._mode != ChartMode.Byte) {
       if (threadPercent) {
         this.hintContent += `
                       <br>
