@@ -13,12 +13,8 @@
  * limitations under the License.
  */
 
-export class CallTreeLevel {
-  processId?: number;
-  threadId?: number;
+import { PerfLevelStruct } from './PerfProfile.js';
+
+export class CallTreeLevelStruct extends PerfLevelStruct {
   typeId?: number;
-  libId?: number;
-  libName?: string;
-  symbolId?: number;
-  symbolName?: string;
 }

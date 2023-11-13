@@ -1536,7 +1536,7 @@ export const queryNativeHookStatistics = (
     where
       (A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}
      and (event_type = 'AllocEvent' or event_type = 'MmapEvent')
-     and 
+     and ipid = ${ipid}
     group by event_type;`,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
@@ -1634,14 +1634,14 @@ export const queryNativeHookStatisticSubType = (leftNs: number, rightNs: number,
         WHEN type = 2 THEN 'FILE_PAGE_MSG'
         WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
         WHEN type = 3 THEN 'MEMORY_USING_MSG'
-        ELSE 'MmapEvent'
+        ELSE 'Other MmapEvent'
       END AS subType
       FROM
         native_hook_statistic NHS
         LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
         trace_range TR
       WHERE
-        NHS.type > 1 AND
+        NHS.type >= 1 AND
         (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
         AND ipid = ${ipid}
       `,
@@ -2662,7 +2662,14 @@ export const queryPerfProcess = (): Promise<Array<PerfThread>> =>
 export const queryPerfThread = (): Promise<Array<PerfThread>> =>
   query(
     'queryPerfThread',
-    `select a.thread_id as tid,a.thread_name as threadName,a.process_id as pid,b.thread_name as processName from perf_thread a left join (select * from perf_thread where thread_id = process_id) b on a.process_id = b.thread_id`,
+    `select a.thread_id as tid,
+       a.thread_name as threadName,
+       a.process_id as pid,
+       b.thread_name as processName
+from perf_thread a
+         left join (select distinct process_id, thread_name from perf_thread) b 
+         on a.process_id = b.process_id
+order by pid;`,
     {}
   );
 
@@ -5558,7 +5565,7 @@ export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightN
 
 export const querySearchFuncData = (
   funcName: string,
-  tIds: Array<number>,
+  tIds: number,
   leftNS: number,
   rightNS: number
 ): Promise<Array<SearchFuncBean>> =>
@@ -5589,7 +5596,7 @@ export const querySearchFuncData = (
       left join 
         trace_range r
       where 
-        c.name = '${funcName}' 
+        c.name like '${funcName}' 
       and 
         t.tid = ${tIds} 
       and

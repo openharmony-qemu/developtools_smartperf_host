@@ -528,7 +528,7 @@ export class SpRecordTrace extends BaseElement {
   freshMenuDisable(disable: boolean): void {
     let mainMenu = this.sp!.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     mainMenu.menus?.forEach((men) => {
-      men.children.forEach((child) => {
+      men.children.forEach((child: any) => {
         // @ts-ignore
         child.disabled = disable;
       });
@@ -1682,7 +1682,9 @@ export class SpRecordTrace extends BaseElement {
         request.pluginConfigs.push(this.createSdkConfig());
       }
       if (this.spHisysEvent?.startSamp) {
-        request.pluginConfigs.push(this.createHiSystemEventPluginConfig(this.spHisysEvent.domain, this.spHisysEvent.eventName));
+        request.pluginConfigs.push(
+          this.createHiSystemEventPluginConfig(this.spHisysEvent.domain, this.spHisysEvent.eventName)
+        );
       }
       if (this.spArkTs!.process != '' && this.spArkTs!.startSamp) {
         request.pluginConfigs.push(this.createArkTsConfig());
@@ -2168,7 +2170,6 @@ export class SpRecordTrace extends BaseElement {
       }
     }
     let nativeConfig: NativeHookConfig = {
-      pid: pid,
       saveFile: false,
       fileName: '',
       filterSize: this.spAllocations!.filter,
@@ -2187,6 +2188,9 @@ export class SpRecordTrace extends BaseElement {
         nativeConfig.statisticsInterval = this.spAllocations!.statistics_interval;
       }
       nativeConfig.startupMode = this.spAllocations!.startup_mode;
+    }
+    if (this.spAllocations!.expandPids.length > 0) {
+      nativeConfig.expandPids = this.spAllocations!.expandPids;
     }
     let nativePluginConfig: ProfilerPluginConfig<NativeHookConfig> = {
       pluginName: 'nativehook',
@@ -2310,11 +2314,14 @@ export class SpRecordTrace extends BaseElement {
     return fpsPlugin;
   }
 
-  private createHiSystemEventPluginConfig(domainName: string, eventName: string): ProfilerPluginConfig<HiSystemEventConfig> {
+  private createHiSystemEventPluginConfig(
+    domainName: string,
+    eventName: string
+  ): ProfilerPluginConfig<HiSystemEventConfig> {
     let hiSystemEventConfig: HiSystemEventConfig = {
       msg: 'hisysevent-plugin',
-      subscribe_domain : domainName,
-      subscribe_event : eventName,
+      subscribe_domain: domainName,
+      subscribe_event: eventName,
     };
     let hiSystemEventPlugin: ProfilerPluginConfig<HiSystemEventConfig> = {
       pluginName: 'hisysevent-plugin',

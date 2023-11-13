@@ -799,19 +799,8 @@ export class FrameChart extends BaseElement {
                     <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
                     <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
-                    <span class="bold">Duration: </span> <span>${duration} (${percent}%)</span>`;
-        if (threadPercent) {
-          this.hintContent += ` 
-                        <br>
-                        <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
-        }
-        if (processPercent) {
-          this.hintContent += `
-                        <br>
-                        <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
-        }
-        this.hintContent += `<br>
-                      <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
+                    <span class="bold">Duration: </span> <span>${duration}</span>`;
+
         break;
       case ChartMode.EventCount:
       case ChartMode.Count:
@@ -824,56 +813,48 @@ export class FrameChart extends BaseElement {
                       <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span>
                       <br>
                       <span class="bold">${label}: </span> <span> ${count}</span>`;
-        if (threadPercent) {
-          this.hintContent += ` 
-            <br>
-            <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
-        }
-        if (processPercent) {
-          this.hintContent += `
-            <br>
-            <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
-        }
-        this.hintContent += `<br>
-          <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
         break;
     }
+    if (this.mode != ChartMode.Byte) {
+      if (threadPercent) {
+        this.hintContent += `
+                      <br>
+                      <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
+      }
+      if (processPercent) {
+        this.hintContent += `
+                      <br>
+                      <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
+      }
+      this.hintContent += `<br>
+                    <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
+    }
+  }
+
+  private getCurrentPercent(node: ChartStruct, isThread: boolean): string {
+    const parentNode = this.findCurrentNode(node, isThread);
+    if (parentNode) {
+      return ((this.getNodeValue(node) / this.getNodeValue(parentNode)) * 100).toFixed(2);
+    }
+    return '';
+  }
+
+  private findCurrentNode(node: ChartStruct, isThread: boolean): ChartStruct | null {
+    while (node.parent) {
+      if ((isThread && node.parent.isThread) || (!isThread && node.parent.isProcess)) {
+        return node.parent;
+      }
+      node = node.parent;
+    }
+    return null;
   }
 
   private getCurrentPercentOfThread(node: ChartStruct): string {
-    const threadNode = this.findCurrentNodeThread(node);
-    if (threadNode) {
-      return ((this.getNodeValue(node) / this.getNodeValue(threadNode)) * 100).toFixed(2);
-    }
-    return '';
+    return this.getCurrentPercent(node, true);
   }
 
   private getCurrentPercentOfProcess(node: ChartStruct): string {
-    const processNode = this.findCurrentNodeProcess(node);
-    if (processNode) {
-      return ((this.getNodeValue(node) / this.getNodeValue(processNode)) * 100).toFixed(2);
-    }
-    return '';
-  }
-
-  private findCurrentNodeThread(node: ChartStruct): ChartStruct | null {
-    while (node.parent) {
-      if (node.parent.isThread) {
-        return node.parent;
-      }
-      node = node.parent;
-    }
-    return null;
-  }
-
-  private findCurrentNodeProcess(node: ChartStruct): ChartStruct | null {
-    while (node.parent) {
-      if (node.parent.isProcess) {
-        return node.parent;
-      }
-      node = node.parent;
-    }
-    return null;
+    return this.getCurrentPercent(node, false);
   }
 
   /**

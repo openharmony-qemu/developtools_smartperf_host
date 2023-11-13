@@ -85,18 +85,32 @@ export class TabPaneHisysEvents extends BaseElement {
     this.levelFilter = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
     this.spSystemTrace = document.querySelector('body > sp-application')
       ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.traceSheetEl = this.spSystemTrace!.shadowRoot?.querySelector('.trace-sheet');
+    this.traceSheetEl = this.spSystemTrace?.shadowRoot?.querySelector('.trace-sheet');
     this.contentFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#contents-filter');
     this.changeInput = this.shadowRoot?.querySelector<HTMLInputElement>('#contents-change');
     this.detailsTbl = this.shadowRoot?.querySelector<LitTable>('#tb-hisysevent-data');
     this.slicerTrack = this.shadowRoot?.querySelector<LitSlicerTrack>('lit-slicer-track');
     this.detailbox = this.shadowRoot?.querySelector<HTMLDivElement>('.detail-content');
     this.tableElement = this.hiSysEventTable?.shadowRoot?.querySelector('.table') as HTMLDivElement;
-    this.hiSysEventTable!.addEventListener('row-click', (e) => {
+    this.hiSysEventTable!.addEventListener('row-click', (event) => {
       this.changeInput!.value = '';
       // @ts-ignore
-      this.convertData(e.detail.data);
+      const data = event.detail.data;
+      this.convertData(data);
+      this.hiSysEventTable?.clearAllSelection();
+      data.isSelected = true;
+      this.hiSysEventTable?.setCurrentSelection(data);
       this.updateDetail(this.baseTime);
+    });
+    this.boxDetails!.addEventListener('click', ev => {
+      if (ev.target !== this.hiSysEventTable) {
+        this.hiSysEventTable?.clearAllSelection();
+        this.detailsTbl!.dataSource = [];
+        this.boxDetails!.style.width = '100%';
+        this.detailbox!.style.display = 'none';
+        this.slicerTrack!.style.visibility = 'hidden';
+        this.detailsTbl!.style.paddingLeft = '0px';
+      }
     });
     this.hiSysEventTable!.addEventListener('row-hover', (e) => {
       // @ts-ignore
@@ -109,7 +123,7 @@ export class TabPaneHisysEvents extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.tableElement.addEventListener('mouseout', () => {
+    this.tableElement?.addEventListener('mouseout', () => {
       this.traceSheetEl!.systemLogFlag = undefined;
       this.spSystemTrace?.refreshCanvas(false);
     });
@@ -237,6 +251,7 @@ export class TabPaneHisysEvents extends BaseElement {
         }
         #tb-hisysevent-data {
           height: auto;
+          width: auto;
           border-left: 1px solid var(--dark-border1,#e2e2e2);
           display:flex;
         }
@@ -320,11 +335,7 @@ export class TabPaneHisysEvents extends BaseElement {
     new ResizeObserver(() => {
       this.tableElement!.style.height = `${this.parentElement!.clientHeight - 20 - 35}px`;
       this.hiSysEventTable?.reMeauseHeight();
-      // @ts-ignore
-      this.detailsTbl?.shadowRoot?.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 20 - 35}px`;
-      // @ts-ignore
-      this.detailsTbl?.shadowRoot?.querySelector('.table').style = 'hidden';
+      this.detailsTbl!.style.height = `${this.parentElement!.clientHeight - 30}px`;
       this.parentElement!.style.overflow = 'hidden';
       this.detailsTbl?.reMeauseHeight();
       this.updateData();
@@ -466,18 +477,14 @@ export class TabPaneHisysEvents extends BaseElement {
       });
     });
     this.detailsTbl!.recycleDataSource = detailList;
-    console.log(this.detailsTbl!.recycleDataSource)
-    const tr = this.detailsTbl!.shadowRoot?.querySelector<HTMLDivElement>('.tr:nth-of-type(1)');
-    if (tr) {
-      tr.style.fontWeight = 'bolder';
-    }
   }
 
   convertData = (data: HiSysEventStruct): void => {
     this.baseTime = '';
     this.currentDetailList = [{
       key: 'key',
-      value: 'value'}];
+      value: 'value'
+    }];
     const content = JSON.parse(data.contents ?? '{}');
     if (content && typeof content === 'object') {
       let isFirstTime = false;
@@ -566,4 +573,5 @@ export class TabPaneHisysEvents extends BaseElement {
     this.spSystemTrace?.refreshCanvas(false);
   }
 }
-const  millisecond = 1000_000;
+
+const millisecond = 1000_000;

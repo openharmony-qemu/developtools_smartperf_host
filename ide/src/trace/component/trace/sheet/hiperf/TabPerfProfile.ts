@@ -167,8 +167,8 @@ export class TabpanePerfProfile extends BaseElement {
   private getDataByPieLevel(eventTypeId: number | undefined): void {
     this.perfLevel = new PerfLevelStruct();
     this.perfLevel = {
-      process: this._rowClickData.pid,
-      thread: this._rowClickData.tid,
+      processId: this._rowClickData.pid,
+      threadId: this._rowClickData.tid,
       libId: this._rowClickData.libId,
     };
     let args = [];
@@ -177,18 +177,18 @@ export class TabpanePerfProfile extends BaseElement {
       funcArgs: [this.currentSelection, this.perfLevel],
     });
 
-    if (this._rowClickData.libId !== undefined && this._currentLevel === 2) {
-      this.perfLevel.libName = this._rowClickData.tableName;
+    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentLevel === 2) {
+      this.perfLevel!.libName = this._rowClickData.tableName;
       args.push({
         funcName: 'showLibLevelData',
-        funcArgs: [this.perfLevel.libId, this.perfLevel.libName],
+        funcArgs: [this.perfLevel!.libId, this.perfLevel!.libName],
       });
-    } else if (!this._rowClickData.libId && this._currentLevel === 3) {
-      this.perfLevel.symbolId = this._rowClickData.symbolId;
-      this.perfLevel.symbolName = this._rowClickData.tableName;
+    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentLevel === 3) {
+      this.perfLevel!.symbolId = this._rowClickData.symbolId;
+      this.perfLevel!.symbolName = this._rowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
-        funcArgs: [this.perfLevel.symbolId, this.perfLevel.symbolName],
+        funcArgs: [this.perfLevel!.symbolId, this.perfLevel!.symbolName],
       });
     }
 
@@ -634,7 +634,7 @@ export class TabpanePerfProfile extends BaseElement {
         funcName: 'showLibLevelData',
         funcArgs: [this.perfLevel!.libId, this.perfLevel!.libName],
       });
-    } else if (this._rowClickData && !this._rowClickData.libId && this._currentLevel === 3) {
+    } else if (this._rowClickData && this._rowClickData.symbolId && this._currentLevel === 3) {
       perfProfileArgs.push({
         funcName: 'showFunLevelData',
         funcArgs: [this.perfLevel!.symbolId, this.perfLevel!.symbolName],

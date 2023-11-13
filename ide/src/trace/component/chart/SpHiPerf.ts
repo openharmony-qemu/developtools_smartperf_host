@@ -61,12 +61,10 @@ export class SpHiPerf {
   private group: any;
   private rowList: TraceRow<any>[] | undefined;
   private eventTypeList: Array<{ id: number; report: string }> = [];
-  private allCombineDataMap = new Map<number, HiPerfChartFrame>();
   private callChartType: number = 0;
   private callChartId: number = 0;
   private eventTypeId: number = -2;
-
-  public threadDataList: any = [];
+  private stackChartMaxDepth: number = 1;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -79,9 +77,6 @@ export class SpHiPerf {
     this.perfThreads = await queryPerfThread();
     info('PerfThread Data size is: ', this.perfThreads!.length);
     this.group = Utils.groupBy(this.perfThreads || [], 'pid');
-    Reflect.ownKeys(this.group).forEach((v, i) => {
-      this.threadDataList.push((this.group[v] as Array<PerfThread>).filter((item: any) => { return item.pid === item.tid })[0])
-    })
     this.cpuData = await queryHiPerfCpuMergeData2();
     this.callChartType = 0;
     this.callChartId = 0;
@@ -202,7 +197,6 @@ export class SpHiPerf {
     this.trace.rowsEL?.appendChild(row);
   }
 
-  // callchart泳道
   async initCallChart() {
     let perfCallCutRow = TraceRow.skeleton<HiPerfCallChartStruct>();
     perfCallCutRow.rowId = `HiPerf-callchart`;
@@ -244,10 +238,9 @@ export class SpHiPerf {
     perfCallCutRow.findHoverStruct = () => {
       HiPerfCallChartStruct.hoverPerfCallCutStruct = perfCallCutRow.getHoverStruct();
     };
-    await this.setCallTotalRow(perfCallCutRow, this.cpuData, this.threadDataList);
+    await this.setCallTotalRow(perfCallCutRow, this.cpuData, this.perfThreads);
   }
 
-  // callchart级联单选按钮
   async setCallTotalRow(row: TraceRow<any>, cpuData: any = Array, threadData: any = Array) {
     row.addTemplateTypes('hiperf-callchart');
     row.rowSetting = 'enable';
@@ -521,21 +514,12 @@ export class SpHiPerf {
 
   async getHiPerfChartData(type: number, id: number, eventTypeId: number, row: TraceRow<any>) {
     let source: Array<HiPerfChartFrame> = [];
+    this.stackChartMaxDepth = 1;
     await new Promise((resolve) => {
       procedurePool.submitWithName('logic0', 'perf-callstack-chart', [type, id, eventTypeId], undefined, (res: any) => {
         this.onlyOneSampleHandler(res);
         this.getAllCombineData(res, source);
-        this.allCombineDataMap = new Map<number, HiPerfChartFrame>();
-        for (let data of source) {
-          this.allCombineDataMap.set(data.id, data);
-        }
-        let max = 1;
-        for (let i = 0; i < source.length; i++) {
-          if (source[i].depth > max) {
-            max = source[i].depth
-          }
-        }
-        let maxHeight = max * 20;
+        let maxHeight = this.stackChartMaxDepth * 20;
         row.funcMaxHeight = maxHeight;
         if (row.funcExpand) {
           row!.style.height = `${maxHeight}px`;
@@ -559,6 +543,9 @@ export class SpHiPerf {
     for (let data of combineData) {
       if (data.name != 'name') {
         allCombineData.push(data);
+      }
+      if (data.depth + 1 > this.stackChartMaxDepth) {
+        this.stackChartMaxDepth = data.depth + 1;
       }
       if (data.children && data.children.length > 0) {
         this.getAllCombineData(data.children, allCombineData);

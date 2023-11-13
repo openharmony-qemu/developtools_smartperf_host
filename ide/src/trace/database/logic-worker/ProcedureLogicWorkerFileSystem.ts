@@ -776,6 +776,7 @@ where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionPara
       if (rootMerageMap[merageData.pid] === undefined) {
         let fileMerageBean = new FileMerageBean(); //新增进程的节点数据
         fileMerageBean.canCharge = false;
+        fileMerageBean.isProcess = true;
         fileMerageBean.symbolName = merageData.processName;
         fileMerageBean.symbol = fileMerageBean.symbolName;
         fileMerageBean.children.push(merageData);
@@ -840,6 +841,7 @@ where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionPara
     threadCallChain.callChainId = sample.callChainId;
     threadCallChain.ip = (sample.threadName || 'Thread') + `-${sample.tid}`;
     threadCallChain.symbolsId = sample.tid;
+    threadCallChain.isThread = true;
     threadCallChain.pathId = -1;
     let list: FileCallChain[] = [];
     const eBpfCallChainsMap = DataCache.getInstance().eBpfCallChainsMap;
@@ -1053,6 +1055,9 @@ export class FileMerageBean extends MerageBean {
     if (isEnd) {
       currentNode.selfDur += sample.dur;
       currentNode.self = getProbablyTime(currentNode.selfDur);
+    }
+    if (callChain.isThread && !currentNode.isThread){
+      currentNode.isThread = callChain.isThread;
     }
     currentNode.dur += sample.dur;
     currentNode.count++;

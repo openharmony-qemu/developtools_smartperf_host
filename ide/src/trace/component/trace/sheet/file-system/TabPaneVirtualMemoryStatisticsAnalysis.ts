@@ -682,14 +682,14 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       let vmPidDataDur = 0;
       let pName = '';
       for (let item of value) {
-        if (item.vmProcessName && item.vmProcessName.length > 0) {
-          if (!item.vmProcessName.endsWith(`(${item.pid})`)) {
-            item.vmProcessName = `${item.vmProcessName}(${item.pid})`;
+        if (item.processName && item.processName.length > 0) {
+          if (!item.processName.endsWith(`(${item.pid})`)) {
+            item.processName = `${item.processName}(${item.pid})`;
           }
         } else {
-          item.vmProcessName = `Process(${item.pid})`;
+          item.processName = `Process(${item.pid})`;
         }
-        pName = item.vmProcessName;
+        pName = item.processName;
         vmPidDataDur += item.dur;
       }
       this.vmStatisticsAnalysisPidData.push({
@@ -782,10 +782,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       let tName = '';
       for (let item of value) {
         vmThreadDur += item.dur;
-        tName = item.vmThreadName =
-          item.vmThreadName === null || item.vmThreadName === undefined
+        tName = item.threadName =
+          item.threadName === null || item.threadName === undefined
             ? `Thread(${item.tid})`
-            : `${item.vmThreadName}`;
+            : `${item.threadName}`;
       }
       const threadData = {
         tableName: tName,

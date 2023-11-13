@@ -610,6 +610,7 @@ export class FileCallChain {
   symbolsId: number = 0;
   pathId: number = 0;
   ip: string = '';
+  isThread: boolean = false;
 }
 
 export class DataCache {

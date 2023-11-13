@@ -689,14 +689,14 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       let analysisPidDataDur = 0;
       let pName = '';
       for (let fileSysStatPidItem of value) {
-        if (fileSysStatPidItem.fsProcessName && fileSysStatPidItem.fsProcessName.length > 0) {
-          if (!fileSysStatPidItem.fsProcessName.endsWith(`(${fileSysStatPidItem.pid})`)) {
-            fileSysStatPidItem.fsProcessName = `${fileSysStatPidItem.fsProcessName}(${fileSysStatPidItem.pid})`;
+        if (fileSysStatPidItem.processName && fileSysStatPidItem.processName.length > 0) {
+          if (!fileSysStatPidItem.processName.endsWith(`(${fileSysStatPidItem.pid})`)) {
+            fileSysStatPidItem.processName = `${fileSysStatPidItem.processName}(${fileSysStatPidItem.pid})`;
           }
         } else {
-          fileSysStatPidItem.fsProcessName = `Process(${fileSysStatPidItem.pid})`;
+          fileSysStatPidItem.processName = `Process(${fileSysStatPidItem.pid})`;
         }
-        pName = fileSysStatPidItem.fsProcessName;
+        pName = fileSysStatPidItem.processName;
         analysisPidDataDur += fileSysStatPidItem.dur;
       }
       this.fileStatisticsAnalysisPidData.push({
@@ -789,11 +789,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       let tName = '';
       for (let fileSysStatThreadItem of value) {
         dur += fileSysStatThreadItem.dur;
-        tName = fileSysStatThreadItem.fileStatisticsAnalysisThreadName =
-          fileSysStatThreadItem.fileStatisticsAnalysisThreadName === null ||
-          fileSysStatThreadItem.fileStatisticsAnalysisThreadName === undefined
+        tName = fileSysStatThreadItem.threadName =
+          fileSysStatThreadItem.threadName === null || fileSysStatThreadItem.threadName === undefined
             ? `Thread(${fileSysStatThreadItem.tid})`
-            : `${fileSysStatThreadItem.fileStatisticsAnalysisThreadName}`;
+            : `${fileSysStatThreadItem.threadName}`;
       }
       const threadData = {
         tableName: tName,

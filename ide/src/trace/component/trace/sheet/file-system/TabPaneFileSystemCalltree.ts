@@ -25,7 +25,7 @@ import '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 import { showButtonMenu } from '../SheetUtils.js';
-import { CallTreeLevel } from '../../../../bean/EbpfStruct.js';
+import { CallTreeLevelStruct } from '../../../../bean/EbpfStruct.js';
 import '../../../../../base-ui/headline/lit-headline.js';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
 
@@ -61,7 +61,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private _cWidth: number = 0;
   private _currentFsCallTreeLevel: number = 0;
   private _fsRowClickData: any = undefined;
-  private FsCallTreeLevel: CallTreeLevel | undefined | null;
+  private FsCallTreeLevel: CallTreeLevelStruct | undefined | null;
   private headLine: LitHeadLine | null | undefined;
 
   set pieTitle(value: string) {
@@ -154,7 +154,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
    * 根据Analysis Tab饼图跳转过来的层级绘制对应的CallTree Tab火焰图和表格
    */
   private getFsCallTreeDataByPieLevel(): void {
-    this.FsCallTreeLevel = new CallTreeLevel();
+    this.FsCallTreeLevel = new CallTreeLevelStruct();
     this.FsCallTreeLevel = {
       processId: this._fsRowClickData.pid,
       threadId: this._fsRowClickData.tid,
@@ -168,13 +168,13 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       funcArgs: [this.currentSelection, this.FsCallTreeLevel],
     });
 
-    if (this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
+    if (this._fsRowClickData && this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
       this.FsCallTreeLevel.libName = this._fsRowClickData.tableName;
       args.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.FsCallTreeLevel.libId, this.FsCallTreeLevel.libName],
       });
-    } else if (this._fsRowClickData.symbolId !== undefined && this._currentFsCallTreeLevel === 4) {
+    } else if (this._fsRowClickData && this._fsRowClickData.symbolId !== undefined && this._currentFsCallTreeLevel === 4) {
       this.FsCallTreeLevel.symbolName = this._fsRowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',

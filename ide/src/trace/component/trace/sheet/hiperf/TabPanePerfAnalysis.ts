@@ -811,6 +811,7 @@ export class TabPanePerfAnalysis extends BaseElement {
       const symbolData = {
         pid: item.pid,
         tid: item.tid,
+        libId: item.libId,
         percent: ((symbolCount / parentCount) * 100).toFixed(2),
         count: symbolCount,
         symbolId: symbolId,

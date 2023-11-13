@@ -15,20 +15,17 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement.js';
 import { log } from '../../../log/Log.js';
-import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
-import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
-import '../../../base-ui/select/LitAllocationSelect.js';
 import { SpApplication } from '../../SpApplication.js';
 import { LitSearch } from '../trace/search/Search.js';
 import { SpRecordTrace } from '../SpRecordTrace.js';
 import { Cmd } from '../../../command/Cmd.js';
-import { CmdConstant } from '../../../command/CmdConstant.js';
 import LitSwitch from '../../../base-ui/switch/lit-switch.js';
-import { LitSlider } from '../../../base-ui/slider/LitSlider';
+import { LitSlider } from '../../../base-ui/slider/LitSlider.js';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV.js';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
-  private processId: LitAllocationSelect | null | undefined;
+  private processId: LitSelectV | null | undefined;
   private unwindEL: HTMLInputElement | null | undefined;
   private shareMemory: HTMLInputElement | null | undefined;
   private shareMemoryUnit: HTMLSelectElement | null | undefined;
@@ -121,7 +118,7 @@ export class SpAllocations extends BaseElement {
     if (this.recordStatisticsResult?.hasAttribute('percentValue')) {
       return Number(this.recordStatisticsResult?.getAttribute('percentValue'));
     }
-    return 3600;
+    return 10;
   }
 
   get startup_mode(): boolean {
@@ -130,6 +127,18 @@ export class SpAllocations extends BaseElement {
       return value;
     }
     return false;
+  }
+
+  get expandPids(): number[] {
+    let allPidList: number[] = [];
+    if (this.processId?.value.length > 0) {
+      let result = this.processId?.value.match(/\((.+?)\)/g);
+      result?.forEach((pid: string) => {
+        let currentPid = pid!.replace('(', '').replace(')', '');
+        allPidList.push(Number(currentPid));
+      });
+    }
+    return allPidList;
   }
 
   connectedCallback() {
@@ -160,29 +169,19 @@ export class SpAllocations extends BaseElement {
         ev.preventDefault();
       }
     });
-    this.processId = this.shadowRoot?.getElementById('pid') as LitAllocationSelect;
-    let process = this.processId.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement;
-    let sp = document.querySelector('sp-application') as SpApplication;
-    let litSearch = sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
-    let allocationProcessData: Array<string> = [];
-    process.addEventListener('mousedown', (ev) => {
-      if (SpRecordTrace.serialNumber === '') {
-        this.processId!.processData = [];
-      }
-    });
-    process.addEventListener('valuable', (ev) => {
-      this.dispatchEvent(new CustomEvent('addProbe', {}));
-    });
-    process.addEventListener('inputClick', () => {
-      allocationProcessData = [];
-      if (this.startup_mode) {
-        this.processId!.processData = [];
-        return;
-      }
-      if (SpRecordTrace.serialNumber != '') {
+    this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
+    let process = this.processId.shadowRoot?.querySelector('input') as HTMLInputElement;
+    process!.addEventListener('mousedown', (ev) => {
+      process.readOnly = true;
+      if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
+        process.readOnly = false;
+        this.processId?.dataSource([], '');
+      } else {
         Cmd.getProcess().then((processList) => {
-          this.processId!.processData = processList;
-          this.processId!.initData();
+          this.processId?.dataSource(processList, '');
+          if (processList.length > 0) {
+            this.processId?.dataSource(processList, 'ALL-Process');
+          }
         });
       }
     });
@@ -321,12 +320,11 @@ export class SpAllocations extends BaseElement {
       });
     });
     this.startupMode.addEventListener('change', (evt) => {
+      process.value = '';
       if (this.startup_mode) {
-        this.processId!.value = '';
-        this.processId!.placeholder = 'please input process';
+        process!.placeholder = 'please input process';
       } else {
-        this.processId!.value = '';
-        this.processId!.placeholder = 'please select process';
+        process!.placeholder = 'please select process';
       }
     });
 
@@ -589,8 +587,8 @@ export class SpAllocations extends BaseElement {
           <div class="allocation-application">
              <span class="allocation-inner-font-style">ProcessId or ProcessName</span>
              <span class="value-range">Record process</span>
-             <lit-allocation-select show-search class="processSelect" rounded default-value="" id="pid" placement="bottom" title="process" placeholder="please select process">
-             </lit-allocation-select>
+             <lit-select-v class="processSelect" rounded mode="multiple" default-value="" id="pid" placement="bottom" title="process" placeholder="please select process">
+             </lit-select-v>
           </div>
           <div class="allocation-application">
             <span class="allocation-inner-font-style" >Max unwind level</span>

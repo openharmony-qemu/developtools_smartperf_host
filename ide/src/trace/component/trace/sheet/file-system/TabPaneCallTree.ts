@@ -23,7 +23,7 @@ import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { MerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { showButtonMenu } from '../SheetUtils.js';
-import { CallTreeLevel } from '../../../../bean/EbpfStruct.js';
+import { CallTreeLevelStruct } from '../../../../bean/EbpfStruct.js';
 import '../../../../../base-ui/headline/lit-headline.js';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
 
@@ -61,7 +61,7 @@ export class TabPaneCallTree extends BaseElement {
   private _cWidth: number = 0;
   private _currentCallTreeLevel: number = 0;
   private _rowClickData: any = undefined;
-  private callTreeLevel: CallTreeLevel | undefined | null;
+  private callTreeLevel: CallTreeLevelStruct | undefined | null;
   private headLine: LitHeadLine | null | undefined;
 
   set pieTitle(value: string) {
@@ -155,7 +155,7 @@ export class TabPaneCallTree extends BaseElement {
    * 根据Analysis Tab饼图跳转过来的层级绘制对应的CallTree Tab火焰图和表格
    */
   private getCallTreeDataByPieLevel(): void {
-    this.callTreeLevel = new CallTreeLevel();
+    this.callTreeLevel = new CallTreeLevelStruct();
     this.callTreeLevel = {
       processId: this._rowClickData.pid,
       threadId: this._rowClickData.tid,
@@ -169,13 +169,13 @@ export class TabPaneCallTree extends BaseElement {
       funcArgs: [this.currentSelection, this.callTreeLevel],
     });
 
-    if (this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
+    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
       this.callTreeLevel.libName = this._rowClickData.tableName;
       args.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.callTreeLevel.libId, this.callTreeLevel.libName],
       });
-    } else if (this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
+    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
       this.callTreeLevel.symbolName = this._rowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
@@ -631,12 +631,12 @@ export class TabPaneCallTree extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
-    if (this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
+    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
       callTreeArgs.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.callTreeLevel!.libId, this.callTreeLevel!.libName],
       });
-    } else if (this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
+    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
       callTreeArgs.push({
         funcName: 'showFunLevelData',
         funcArgs: [this.callTreeLevel!.symbolId, this.callTreeLevel!.symbolName],

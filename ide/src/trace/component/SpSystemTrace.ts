@@ -2627,7 +2627,7 @@ export class SpSystemTrace extends BaseElement {
       this.scrollToProcess(`${d.cpu}`, '', 'cpu-data', true);
       let cpuRow = this.queryAllTraceRow<TraceRow<CpuStruct>>(
         `trace-row[row-id='${d.cpu}'][row-type='cpu-data']`,
-        (row) => row.rowId === d.cpu && row.rowType === 'cpu-data'
+        (row) => row.rowId === `${d.cpu}` && row.rowType === 'cpu-data'
       )[0];
       let findEntry = cpuRow!.dataList!.find((dat: any) => dat.startTime === d.startTime);
       if (
@@ -2709,7 +2709,7 @@ export class SpSystemTrace extends BaseElement {
       this.observerScrollHeightEnable = true;
       let threadRow = this.queryAllTraceRow<TraceRow<ThreadStruct>>(
         `trace-row[row-id='${d.tid}'][row-type='thread']`,
-        (row) => row.rowId === d.tid && row.rowType === 'thread'
+        (row) => row.rowId === `${d.tid}` && row.rowType === 'thread'
       )[0];
       let task = () => {
         if (threadRow) {
@@ -3685,6 +3685,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.ProcessSwitch, (data) => {
       this.traceSheetEL?.updateRangeSelect(data);
     });
+    window.subscribe(window.SmartEvent.UI.HoverNull, () => this.hoverStructNull());
   }
 
   favoriteAreaSearchHandler(row: TraceRow<any>): void {

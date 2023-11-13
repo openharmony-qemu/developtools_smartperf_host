@@ -177,21 +177,28 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   setFilterType(selections: Array<any>, data: FilterByAnalysis): void {
-    switch (data.type) {
-      case 'AllocEvent':
-        data.type = '1';
-        break;
-      case 'MmapEvent':
-        data.type = '2';
+    if (data.type === 'AllocEvent') {
+      data.type = '1';
     }
+    const that = this;
     if (this.subTypeArr.length > 0) {
       this.subTypeArr.map((memory): void => {
-        const typeName = SpSystemTrace.DATA_DICT.get(memory);
         selections.push({
           memoryTap: memory,
         });
-        if (data.type === typeName) {
-          data.type = `${selections.length + 2}`;
+        if (that.currentSelection?.nativeMemory && that.currentSelection.nativeMemory.length > 0) {
+          const typeName = SpSystemTrace.DATA_DICT.get(memory);
+          if (data.type === 'MmapEvent' && memory== -1 || data.type === typeName) {
+            data.type = `${selections.length + 2}`;
+          }
+        } else {
+          if (
+            (data.type === 'MmapEvent' && memory === 1) ||
+            (data.type === 'FILE_PAGE_MSG' && memory === 2) ||
+            (data.type === 'MEMORY_USING_MSG' && memory === 3)
+          ) {
+            data.type = `${selections.length + 2}`;
+          }
         }
       });
     }

@@ -1461,9 +1461,9 @@ export class LitPageTable extends BaseElement {
     this.reMeauseHeight();
   }
 
-  clearAllSelection(rowObjectData: any) {
+  clearAllSelection(rowObjectData: any = undefined) {
     this.recycleDs.forEach((item) => {
-      if (item.data != rowObjectData && item.data.isSelected) {
+      if (rowObjectData || (item.data != rowObjectData && item.data.isSelected)) {
         item.data.isSelected = false;
       }
     });

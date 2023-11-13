@@ -128,8 +128,8 @@ export class PerfCmdLine {
 }
 
 export class PerfLevelStruct {
-  process?: number;
-  thread?: number;
+  processId?: number;
+  threadId?: number;
   libId?: number;
   libName?: number;
   symbolId?: number;

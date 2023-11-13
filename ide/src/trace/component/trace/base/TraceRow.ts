@@ -691,6 +691,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
     this.checkType = '-1';
+    this.rowSettingPop?.addEventListener('mouseenter', (e) => {
+      window.publish(window.SmartEvent.UI.HoverNull, undefined);
+    });
   }
 
   getRowSettingKeys() : Array<string> {
