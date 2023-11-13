@@ -103,7 +103,7 @@ import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js'
 import { LitSearch } from './trace/search/Search.js';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
-import {SpKeyboard} from '../component/SpKeyboard.js'
+import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -1226,6 +1226,13 @@ export class SpSystemTrace extends BaseElement {
             selection.hiLogs.push(...batch);
             currentIndex += batchSize;
           }
+        } else if (it.rowType === TraceRow.ROW_TYPE_HI_SYSEVENT) {
+          let systemEvents: HiSysEventStruct[] = it.dataList.filter(
+            (systemEventStruct: HiSysEventStruct) =>
+              (systemEventStruct.ts ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              (systemEventStruct.ts ?? 0) <= TraceRow.rangeSelectObject!.endNS!
+          );
+          selection.hiSysEvents.push(...systemEvents);
         }
         if (this.rangeTraceRow!.length !== rows.length) {
           let event = this.createPointEvent(it);
@@ -2003,14 +2010,6 @@ export class SpSystemTrace extends BaseElement {
   };
 
   documentOnKeyUp = (ev: KeyboardEvent) => {
-    if(ev.key.toLocaleLowerCase() === '?'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
-    }
-    if(ev.key.toLocaleLowerCase() === 'escape'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-welcome')!.style.visibility = 'visible';
-      
-    }
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
