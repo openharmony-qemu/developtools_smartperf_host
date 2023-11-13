@@ -36,9 +36,13 @@ void BytraceHiSysEventParser::ParseHiSysEventDataItem(const std::string& buffer,
 void BytraceHiSysEventParser::Finish()
 {
     auto startTime = streamFilters_->hiSysEventMeasureFilter_->GetPluginStartTime();
-    traceDataCache_->UpdateTraceTime(startTime);
+    if (startTime != INVALID_UINT64) {
+        traceDataCache_->UpdateTraceTime(startTime);
+    }
     auto endTime = streamFilters_->hiSysEventMeasureFilter_->GetPluginEndTime();
-    traceDataCache_->UpdateTraceTime(endTime);
+    if (endTime != INVALID_UINT64) {
+        traceDataCache_->UpdateTraceTime(endTime);
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

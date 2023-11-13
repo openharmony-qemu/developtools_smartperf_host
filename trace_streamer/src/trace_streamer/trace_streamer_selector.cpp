@@ -287,6 +287,13 @@ int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName, Tra
     return traceDataCache_->ExportDatabase(outputName, resultCallBack);
 }
 
+int32_t TraceStreamerSelector::ExportPerfReadableText(const std::string& outputName,
+                                                      TraceDataDB::ResultCallBack resultCallBack)
+{
+    traceDataCache_->UpdateTraceRange();
+    return traceDataCache_->ExportPerfReadableText(outputName, resultCallBack);
+}
+
 bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vector<std::string>& symbolsPaths)
 {
     TS_LOGE("directory is %s", directory.c_str());

@@ -14,6 +14,13 @@
  */
 
 #include "trace_data_cache.h"
+
+#include <fcntl.h>
+#include <stack>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "animation_table.h"
 #include "app_startup_table.h"
 #include "args_table.h"
@@ -37,6 +44,7 @@
 #include "ebpf_elf_table.h"
 #include "ebpf_process_maps_table.h"
 #endif
+#include "file.h"
 #include "file_system_sample_table.h"
 #include "filter_table.h"
 #include "frame_maps_table.h"
@@ -91,6 +99,7 @@
 #include "sqlite3.h"
 #include "stat_table.h"
 #include "so_static_initalization_table.h"
+#include "string_to_numerical.h"
 #include "symbols_table.h"
 #include "sysevent_all_event_table.h"
 #include "sysevent_measure_table.h"
@@ -364,6 +373,78 @@ std::deque<std::unique_ptr<std::string>>& TraceDataCache::HookCommProtos()
 void TraceDataCache::ClearHookCommProtos()
 {
     hookCommProtos_.clear();
+}
+int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
+                                               TraceDataDB::ResultCallBack resultCallBack)
+{
+#if !IS_WASM
+    int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
+    TS_CHECK_TRUE(fd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
+    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&fd, [](int32_t* fp) { close(*fp); });
+    TS_CHECK_TRUE(ftruncate(fd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
+                  strerror(errno));
+#endif
+    fprintf(stdout, "ExportPerfReadableText begin...\n");
+    uint8_t curTimePrecision = 6;
+    std::string buffLine;
+    for (uint64_t row = 0; row < perfSample_.Size(); ++row) {
+        std::string procName;
+        std::string eventTypeName;
+        auto threadId = perfSample_.Tids()[row];
+        auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), threadId);
+        if (perfThreadTidItor != perfThread_.Tids().end()) {
+            auto perfThreadRow = std::distance(perfThread_.Tids().begin(), perfThreadTidItor);
+            procName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
+        }
+        auto perfReportIdItor =
+            std::find(perfReport_.IdsData().begin(), perfReport_.IdsData().end(), perfSample_.EventTypeIds()[row]);
+        if (perfReportIdItor != perfReport_.IdsData().end()) {
+            auto perfReportRow = std::distance(perfReport_.IdsData().begin(), perfReportIdItor);
+            eventTypeName = GetDataFromDict(perfReport_.Values()[perfReportRow]);
+        }
+        buffLine += procName;
+        buffLine += ("  " + std::to_string(threadId));
+        buffLine += (" " + std::to_string(perfSample_.CpuIds()[row]));
+        buffLine += (" " + base::ConvertTimestampToSecStr(perfSample_.TimeStampData()[row], curTimePrecision) + ":");
+        buffLine += ("          " + std::to_string(perfSample_.EventCounts()[row]));
+        buffLine += (" " + eventTypeName + " \r\n");
+        ExportPerfCallChaninText(perfSample_.SampleIds()[row], buffLine);
+#if !IS_WASM
+        TS_CHECK_TRUE(write(fd, buffLine.data(), buffLine.size()) != -1, 1, "Failed to write file: %s, err:%s",
+                      outputName.c_str(), strerror(errno));
+#endif
+        buffLine.clear();
+    }
+    fprintf(stdout, "ExportPerfReadableText end...\n");
+    return 0;
+}
+void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string& buffLine)
+{
+    std::stack<uint64_t> callChainStackRows;
+    auto perfCallChainItor =
+        std::lower_bound(perfCallChain_.CallChainIds().begin(), perfCallChain_.CallChainIds().end(), callChainId);
+    while (perfCallChainItor != perfCallChain_.CallChainIds().end() && callChainId == *perfCallChainItor) {
+        auto perfCallChainRow = std::distance(perfCallChain_.CallChainIds().begin(), perfCallChainItor);
+        callChainStackRows.emplace(perfCallChainRow);
+        ++perfCallChainItor;
+    }
+    while (!callChainStackRows.empty()) {
+        auto perfCallChainRow = callChainStackRows.top();
+        callChainStackRows.pop();
+        auto formatIp = base::number(perfCallChain_.Ips()[perfCallChainRow], base::INTEGER_RADIX_TYPE_HEX);
+        formatIp = std::string(base::INTEGER_RADIX_TYPE_HEX - formatIp.size(), ' ') + formatIp;
+        std::string filePath("[unknown]");
+        auto curFileId = perfCallChain_.FileIds()[perfCallChainRow];
+        auto perfFileIdItor = std::lower_bound(perfFiles_.FileIds().begin(), perfFiles_.FileIds().end(), curFileId);
+        if (perfFileIdItor != perfFiles_.FileIds().end()) {
+            auto perfFileRow = std::distance(perfFiles_.FileIds().begin(), perfFileIdItor);
+            filePath = GetDataFromDict(perfFiles_.FilePaths()[perfFileRow]);
+        }
+        buffLine += ("\t" + formatIp);
+        buffLine += (" [" + perfCallChain_.Names()[perfCallChainRow] + "]");
+        buffLine += (" (" + filePath + ")\r\n");
+    }
+    buffLine += "\r\n";
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

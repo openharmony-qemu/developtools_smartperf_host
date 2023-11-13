@@ -1160,7 +1160,7 @@ public:
 
 public:
     std::deque<std::string> dataDict_;
-    std::unordered_map<uint64_t, DataIndex> dataDictInnerMap_;
+    std::unordered_map<std::string_view, DataIndex> dataDictInnerMap_;
 
 private:
     std::hash<std::string_view> hashFun;

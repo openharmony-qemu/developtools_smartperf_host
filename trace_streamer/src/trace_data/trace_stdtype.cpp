@@ -1227,22 +1227,20 @@ const std::string& MetaData::Name(uint64_t row) const
 }
 DataIndex DataDict::GetStringIndex(std::string_view str)
 {
-    auto hashValue = hashFun(str);
-    auto itor = dataDictInnerMap_.find(hashValue);
+    auto itor = dataDictInnerMap_.find(str);
     if (itor != dataDictInnerMap_.end()) {
         return itor->second;
     }
     mutex_.lock();
     dataDict_.emplace_back(std::string(str));
     DataIndex stringIdentity = dataDict_.size() - 1;
-    dataDictInnerMap_.emplace(hashValue, stringIdentity);
+    dataDictInnerMap_.emplace(std::string_view(dataDict_.back()), stringIdentity);
     mutex_.unlock();
     return stringIdentity;
 }
 DataIndex DataDict::GetStringIndexNoWrite(std::string_view str) const
 {
-    auto hashValue = hashFun(str);
-    auto itor = dataDictInnerMap_.find(hashValue);
+    auto itor = dataDictInnerMap_.find(str);
     if (itor != dataDictInnerMap_.end()) {
         return itor->second;
     }

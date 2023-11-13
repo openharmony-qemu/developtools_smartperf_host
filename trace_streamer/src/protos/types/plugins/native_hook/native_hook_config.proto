@@ -42,4 +42,5 @@ message NativeHookConfig {
     // Configure zero to disable the data statistics function,
     // greater than zero reports statistical data according to the configured numeric interval
     uint32 statistics_interval = 22;
+    repeated int32 expand_pids = 26;
 }
