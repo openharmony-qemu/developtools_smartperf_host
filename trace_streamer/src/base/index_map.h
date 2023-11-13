@@ -200,7 +200,6 @@ public:
                     rowIndex_.push_back(i);
                 }
             }
-            empty_ = false;
         }
         indexType_ = INDEX_TYPE_OUTER_INDEX;
         FixSize();

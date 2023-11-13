@@ -75,7 +75,7 @@ void ShowHelpInfo(const char* argv)
         "Usage: %s FILE -e sqlite_out.pb\n"
         " or    %s FILE -c\n"
         "Options:\n"
-        " -e    transfer a bytrace file into a SQLiteBased DB. with -nm to except meta table\n"
+        " -e    transfer a trace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
         " -h    start HTTP server.\n"
         " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"

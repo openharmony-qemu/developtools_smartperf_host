@@ -16,7 +16,6 @@
 #include "trace_data_cache.h"
 #include "animation_table.h"
 #include "app_startup_table.h"
-#include "appname_table.h"
 #include "args_table.h"
 #include "bio_latency_sample_table.h"
 #include "callstack_table.h"
@@ -93,7 +92,9 @@
 #include "stat_table.h"
 #include "so_static_initalization_table.h"
 #include "symbols_table.h"
+#include "sysevent_all_event_table.h"
 #include "sysevent_measure_table.h"
+#include "sysevent_subkey_table.h"
 #include "system_call_table.h"
 #include "system_event_filter_table.h"
 #include "table_base.h"
@@ -185,10 +186,11 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<EbpfElfTable>(*db_, this, "ebpf_elf");
     TableBase::TableDeclare<EbpfElfSymbolTable>(*db_, this, "ebpf_elf_symbol");
 #endif
-    TableBase::TableDeclare<AppnameTable>(*db_, this, "app_name");
+    TableBase::TableDeclare<SysEventSubkeyTable>(*db_, this, "app_name");
     TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "hisys_event_measure");
     TableBase::TableDeclare<TraceConfigTable>(*db_, this, "trace_config");
     TableBase::TableDeclare<DeviceStateTable>(*db_, this, "device_state");
+    TableBase::TableDeclare<SysEventAllEventTable>(*db_, this, "hisys_all_event");
     TableBase::TableDeclare<SmapsTable>(*db_, this, "smaps");
     TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "bio_latency_sample");
     TableBase::TableDeclare<DataSourceClockIdTableTable>(*db_, this, "datasource_clockid");
@@ -294,8 +296,9 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<EbpfElfTable>(*db_, this, "_ebpf_elf");
     TableBase::TableDeclare<EbpfElfSymbolTable>(*db_, this, "_ebpf_elf_symbol");
 #endif
-    TableBase::TableDeclare<AppnameTable>(*db_, this, "_app_name");
+    TableBase::TableDeclare<SysEventSubkeyTable>(*db_, this, "_app_name");
     TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "_hisys_event_measure");
+    TableBase::TableDeclare<SysEventAllEventTable>(*db_, this, "_hisys_all_event");
     TableBase::TableDeclare<DeviceStateTable>(*db_, this, "_device_state");
     TableBase::TableDeclare<TraceConfigTable>(*db_, this, "_trace_config");
     TableBase::TableDeclare<PerfReportTable>(*db_, this, "_perf_report");
