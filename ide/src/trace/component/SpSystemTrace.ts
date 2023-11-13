@@ -102,6 +102,8 @@ import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js'
 import { LitSearch } from './trace/search/Search.js';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
+import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart.js';
+import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -696,15 +698,15 @@ export class SpSystemTrace extends BaseElement {
           if (!it.expansion) {
             memoryRows = [...it.childrenList];
           }
-          const rowKey =  it.rowId!.split(' ');
+          const rowKey = it.rowId!.split(' ');
           const process = {
             ipid: Number(rowKey[rowKey.length - 1]),
-            pid: Number(rowKey[rowKey.length - 2])
-          }
-          if (!isExistPidInArray(selection.nativeMemoryAllProcess,process.pid)){
+            pid: Number(rowKey[rowKey.length - 2]),
+          };
+          if (!isExistPidInArray(selection.nativeMemoryAllProcess, process.pid)) {
             selection.nativeMemoryAllProcess.push(process);
           }
-          if (selection.nativeMemoryCurrentIPid === -1){
+          if (selection.nativeMemoryCurrentIPid === -1) {
             selection.nativeMemoryCurrentIPid = process.ipid;
           }
           memoryRows.forEach((th) => {
@@ -768,21 +770,21 @@ export class SpSystemTrace extends BaseElement {
           const key = it.rowParentId!.split(' ');
           const process = {
             ipid: Number(key[key.length - 1]),
-            pid: Number(key[key.length - 2])
+            pid: Number(key[key.length - 2]),
           };
 
-          if (!isExistPidInArray(selection.nativeMemoryAllProcess,process.pid)){
+          if (!isExistPidInArray(selection.nativeMemoryAllProcess, process.pid)) {
             selection.nativeMemoryAllProcess.push(process);
           }
-          if (selection.nativeMemoryCurrentIPid === -1){
+          if (selection.nativeMemoryCurrentIPid === -1) {
             selection.nativeMemoryCurrentIPid = process.ipid;
           }
           if (selection.nativeMemoryAllProcess)
-          if (it.getAttribute('heap-type') === 'native_hook_statistic') {
-            selection.nativeMemoryStatistic.push(it.rowId!);
-          } else {
-            selection.nativeMemory.push(it.rowId!);
-          }
+            if (it.getAttribute('heap-type') === 'native_hook_statistic') {
+              selection.nativeMemoryStatistic.push(it.rowId!);
+            } else {
+              selection.nativeMemory.push(it.rowId!);
+            }
           info('load nativeMemory traceRow id is : ', it.rowId);
         } else if (it.rowType == TraceRow.ROW_TYPE_MONITOR) {
           let abilityChildRows: Array<TraceRow<any>> = [
@@ -851,7 +853,22 @@ export class SpSystemTrace extends BaseElement {
           if (it.rowType == TraceRow.ROW_TYPE_HIPERF_EVENT || it.rowType == TraceRow.ROW_TYPE_HIPERF_REPORT) {
             return;
           }
+          selection.perfEventTypeId = it.drawType === -2 ? undefined : it.drawType;
           selection.perfSampleIds.push(1);
+          if (it.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
+            let setting = it.getRowSettingKeys();
+            if (setting && setting.length > 0) {
+              // 0:cpu,1:thread
+              let type = setting[0].indexOf('c') > -1 ? 0 : 1;
+              let id = Number(setting[0].indexOf('c') > -1 ?
+                setting[0].substring(0, setting[0].indexOf('c')) : setting[0].substring(0, setting[0].indexOf('t')));
+              if (type === 0) {
+                selection.perfCpus.push(id);
+              } else {
+                selection.perfThread.push(id);
+              }
+            }
+          }
           if (it.rowType == TraceRow.ROW_TYPE_HIPERF_PROCESS) {
             let hiperfProcessRows: Array<TraceRow<any>> = [
               ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
@@ -1248,6 +1265,13 @@ export class SpSystemTrace extends BaseElement {
             selection.hiLogs.push(...batch);
             currentIndex += batchSize;
           }
+        } else if (it.rowType === TraceRow.ROW_TYPE_HI_SYSEVENT) {
+          let systemEvents: HiSysEventStruct[] = it.dataList.filter(
+            (systemEventStruct: HiSysEventStruct) =>
+              (systemEventStruct.ts ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              (systemEventStruct.ts ?? 0) <= TraceRow.rangeSelectObject!.endNS!
+          );
+          selection.hiSysEvents.push(...systemEvents);
         }
         if (this.rangeTraceRow!.length !== rows.length) {
           let event = this.createPointEvent(it);
@@ -1602,6 +1626,7 @@ export class SpSystemTrace extends BaseElement {
       itln[0].y = itln[0].rowEL.translateY + itln[0].offsetY;
       itln[1].y = itln[1].rowEL.translateY + itln[1].offsetY;
     });
+    this.hoverStructNull();
     if (this.scrollTimer) {
       clearTimeout(this.scrollTimer);
     }
@@ -2274,7 +2299,6 @@ export class SpSystemTrace extends BaseElement {
     } else {
       if (!this.rowsPaneEL!.containPoint(ev, { left: 248 })) {
         this.hoverStructNull();
-        this.tipEL!.style.display = 'none';
       }
       rows
         .filter((it) => it.focusContain(ev, this.inFavoriteArea!) && it.collect === this.inFavoriteArea)
@@ -2291,7 +2315,6 @@ export class SpSystemTrace extends BaseElement {
         .forEach((tr) => {
           this.hoverStructNull();
           if (this.currentRowType != tr.rowType) {
-            this.tipEL!.style.display = 'none';
             this.currentRowType = tr.rowType || '';
           }
           tr.findHoverStruct?.();
@@ -2330,6 +2353,8 @@ export class SpSystemTrace extends BaseElement {
     FrameSpacingStruct.hoverFrameSpacingStruct = undefined;
     JsCpuProfilerStruct.hoverJsCpuProfilerStruct = undefined;
     SnapshotStruct.hoverSnapshotStruct = undefined;
+    HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
+    this.tipEL!.style.display = 'none';
   }
 
   selectStructNull() {
@@ -2353,6 +2378,7 @@ export class SpSystemTrace extends BaseElement {
     FrameDynamicStruct.selectFrameDynamicStruct = undefined;
     JsCpuProfilerStruct.selectJsCpuProfilerStruct = undefined;
     SnapshotStruct.selectSnapshotStruct = undefined;
+    HiPerfCallChartStruct.selectStruct = undefined;
   }
 
   isWASDKeyPress() {
@@ -2915,7 +2941,12 @@ export class SpSystemTrace extends BaseElement {
       HeapStruct.hoverHeapStruct
     ) {
       HeapStruct.selectHeapStruct = HeapStruct.hoverHeapStruct;
-      this.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!);
+      const key = row.rowParentId!.split(' ');
+      let ipid = 1;
+      if (key.length > 0) {
+        ipid = Number(key[key.length - 1]);
+      }
+      this.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!, ipid);
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
       JankStruct.selectJankStructList.length = 0;
@@ -3903,10 +3934,10 @@ export class SpSystemTrace extends BaseElement {
         processList.push(row.rowId!);
       });
       if (query.includes('_')) {
-        query = query.replace('_', '\\_');
+        query = query.replace(/_/g, '\\_');
       }
       if (query.includes('%')) {
-        query = query.replace('%', '\\%');
+        query = query.replace(/%/g, '\\%');
       }
       let list = await querySceneSearchFunc(query, processList);
       cpuList = cpuList.concat(list);
@@ -4439,7 +4470,7 @@ export class SpSystemTrace extends BaseElement {
     }
     if (this.tipEL) {
       this.tipEL.innerHTML = html;
-      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
+      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
         this.tipEL.style.maxWidth = row.clientWidth / 3 + 'px';
         this.tipEL.style.wordBreak = ' break-all';
         this.tipEL.style.height = 'unset';

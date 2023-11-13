@@ -56,6 +56,8 @@ import { FrameSpacingRender } from './ProcedureWorkerFrameSpacing.js';
 import { JsCpuProfilerRender } from './ProcedureWorkerCpuProfiler.js';
 import { SnapshotRender } from './ProcedureWorkerSnapshot.js';
 import { LogRender } from './ProcedureWorkerLog.js';
+import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart.js';
+import { HiSysEventRender } from './ProcedureWorkerHiSysEvent.js';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -86,6 +88,7 @@ export let renders: any = {
   'HiPerf-Group': new EmptyRender(),
   monitorGroup: new EmptyRender(),
   'HiPerf-Cpu': new HiperfCpuRender(),
+  'HiPerf-callchart': new HiPerfCallChartRender(),
   'HiPerf-Process': new HiperfProcessRender(),
   'HiPerf-Thread': new HiperfThreadRender(),
   'HiPerf-Report-Event': new HiperfEventRender(),
@@ -109,6 +112,7 @@ export let renders: any = {
   'js-cpu-profiler': new JsCpuProfilerRender(),
   snapshot: new SnapshotRender(),
   logs: new LogRender(),
+  hiSysEvent: new HiSysEventRender(),
 };
 
 function match(type: string, req: RequestMessage): void {

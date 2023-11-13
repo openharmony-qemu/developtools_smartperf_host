@@ -24,11 +24,12 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
 import { TabPaneFilter } from '../TabPaneFilter.js';
 import { initSort } from '../SheetUtils.js';
+import { TabpaneFilesystemCalltree } from './TabPaneFileSystemCalltree.js';
 
 @element('tabpane-file-statistics-analysis')
 export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   private fsPieChart: LitChartPie | null | undefined;
-  private fileStatisticsAnalysisCurrentSelection: SelectionParam | null | undefined;
+  private fsCurrentSelection: SelectionParam | null | undefined;
   private fileStatisticsAnalysisProcessData: any;
   private fileStatisticsAnalysisThreadData!: any[];
   private fileStatisticsAnalysisSoData!: any[];
@@ -65,14 +66,14 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   private fsTableArray: NodeListOf<LitTable> | undefined | null;
 
   set data(val: SelectionParam) {
-    if (val === this.fileStatisticsAnalysisCurrentSelection) {
+    if (val === this.fsCurrentSelection) {
       this.fileStatisticsAnalysisPidData.unshift(this.processStatisticsData);
       this.fileStatisticsAnalysisTableProcess!.recycleDataSource = this.fileStatisticsAnalysisPidData;
       // @ts-ignore
       this.fileStatisticsAnalysisPidData.shift(this.processStatisticsData);
       return;
     }
-    this.fileStatisticsAnalysisCurrentSelection = val;
+    this.fsCurrentSelection = val;
     if (this.fsTableArray && this.fsTableArray.length > 0) {
       for (let fsTable of this.fsTableArray) {
         initSort(fsTable!, this.fsSortColumn, this.fsSortType);
@@ -130,6 +131,9 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         this.fsSortType = evt.detail.sort;
         this.sortByColumn();
       });
+      fsTable!.addEventListener('contextmenu', function (event) {
+        event.preventDefault(); // 阻止默认的上下文菜单弹框
+      });
       fsTable!.addEventListener('row-hover', (evt) => {
         // @ts-ignore
         let detail = evt.detail;
@@ -142,6 +146,34 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
         this.fsPieChart?.showHover();
         this.fsPieChart?.hideTip();
+      });
+      fsTable!.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.button === 2) {
+          let fsTab = this.parentElement?.parentElement?.querySelector<TabpaneFilesystemCalltree>(
+            '#box-file-system-calltree > tabpane-filesystem-calltree'
+          );
+          fsTab!.cWidth = this.clientWidth;
+          fsTab!.currentFsCallTreeLevel = this.currentLevel;
+          if (this.hideProcessCheckBox?.checked) {
+            detail.data.pid = undefined;
+          }
+          if (this.hideThreadCheckBox?.checked) {
+            detail.data.tid = undefined;
+          }
+          fsTab!.fsRowClickData = detail.data;
+          let title = '';
+          if (this.titleEl?.textContent === '') {
+            title = detail.data.tableName;
+          } else {
+            title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+          }
+          fsTab!.pieTitle = title;
+          //  是否是在表格上右键点击跳转到火焰图的
+          this.fsCurrentSelection!.isRowClick = true;
+          fsTab!.data = this.fsCurrentSelection;
+        }
       });
     }
     for (let box of this.checkBoxs) {
@@ -157,34 +189,20 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       });
     }
-    this.fileStatisticsAnalysisTableProcess!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.fileProcessLevelClickEvent(data);
-      }
-    });
-    this.fileStatisticsAnalysisTableType!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.fileTypeLevelClickEvent(data);
-      }
-    });
-    this.fileStatisticsAnalysisTableThread!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.fileThreadLevelClickEvent(data);
-      }
-    });
-    this.fileStatisticsAnalysisTableSo!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.fileSoLevelClickEvent(data);
-      }
-    });
+    const addRowClickEventListener = (fsTable: LitTable, clickEvent: Function) => {
+      fsTable.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        const detail = evt.detail;
+        if (detail.button === 0 && detail.data.tableName !== '' && detail.data.duration !== 0) {
+          clickEvent(detail.data, this.fsCurrentSelection);
+        }
+      });
+    };
+
+    addRowClickEventListener(this.fileStatisticsAnalysisTableProcess!, this.fileProcessLevelClickEvent.bind(this));
+    addRowClickEventListener(this.fileStatisticsAnalysisTableType!, this.fileTypeLevelClickEvent.bind(this));
+    addRowClickEventListener(this.fileStatisticsAnalysisTableThread!, this.fileThreadLevelClickEvent.bind(this));
+    addRowClickEventListener(this.fileStatisticsAnalysisTableSo!, this.fileSoLevelClickEvent.bind(this));
   }
 
   private reset(showTable: LitTable, isShowBack: boolean): void {
@@ -921,7 +939,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       }
       const symbolData = {
         pid: item.pid,
+        type: item.type,
         tid: item.tid,
+        libId: item.libId,
+        symbolId: key,
         percent: ((dur / allDur) * 100).toFixed(2),
         tableName: fsSymbolName,
         durFormat: Utils.getProbablyTime(dur),

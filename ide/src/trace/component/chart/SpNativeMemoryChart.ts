@@ -157,7 +157,7 @@ export class SpNativeMemoryChart {
       allHeapRow.supplier = (): Promise<HeapStruct[]> => {
         return type === 'native_hook'
           ? this.getNativeMemoryDataByChartType(i, allHeapRow.drawType, process.ipid)
-          : this.getNativeMemoryStatisticByChartType(i - 1);
+          : this.getNativeMemoryStatisticByChartType(i - 1, process.ipid);
       };
       this.chartThreadHandler(allHeapRow);
       folder.addChildTraceRow(allHeapRow);
@@ -187,13 +187,13 @@ export class SpNativeMemoryChart {
     info('The time to load the Native Memory data is: ', durTime);
   };
 
-  getNativeMemoryStatisticByChartType = async (chartType: number): Promise<Array<HeapStruct>> => {
+  getNativeMemoryStatisticByChartType = async (chartType: number, ipid: number): Promise<Array<HeapStruct>> => {
     let nmStatisticArray: Array<HeapStruct> = [];
     await new Promise<Array<HeapStruct>>((resolve, reject) => {
       procedurePool.submitWithName(
         'logic1',
         'native-memory-queryNativeHookStatistic',
-        { type: chartType, totalNS: TraceRow.range?.totalNS! },
+        { type: chartType, totalNS: TraceRow.range?.totalNS!,ipid: ipid},
         undefined,
         (res: any) => {
           nmStatisticArray = nmStatisticArray.concat(res.data);

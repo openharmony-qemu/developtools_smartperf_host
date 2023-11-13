@@ -126,3 +126,12 @@ export class PerfStack {
 export class PerfCmdLine {
   report_value: string = '';
 }
+
+export class PerfLevelStruct {
+  process?: number;
+  thread?: number;
+  libId?: number;
+  libName?: number;
+  symbolId?: number;
+  symbolName?: string;
+}

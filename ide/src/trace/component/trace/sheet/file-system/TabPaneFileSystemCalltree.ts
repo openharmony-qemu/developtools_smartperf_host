@@ -18,8 +18,6 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { FrameChart } from '../../../chart/FrameChart.js';
 import '../../../chart/FrameChart.js';
-import { DisassemblingWindow } from '../../../DisassemblingWindow.js';
-import '../../../DisassemblingWindow.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
 import { ChartMode } from '../../../../bean/FrameChartStruct.js';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
@@ -27,6 +25,9 @@ import '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
 import { showButtonMenu } from '../SheetUtils.js';
+import { CallTreeLevel } from '../../../../bean/EbpfStruct.js';
+import '../../../../../base-ui/headline/lit-headline.js';
+import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
 
 const InvertOptionIndex: number = 0;
 const hideEventOptionIndex: number = 2;
@@ -47,7 +48,6 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private isChartShow: boolean = false;
   private systmeRuleName: string = '/system/';
   private fsCallTreeNumRuleName: string = '/max/min/';
-  private modal: DisassemblingWindow | null | undefined;
   private needShowMenu: boolean = true;
   private searchValue: string = '';
   private loadingList: number[] = [];
@@ -55,13 +55,48 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private currentSelection: SelectionParam | undefined;
   private currentFsCallTreeDataSource: Array<FileMerageBean> = [];
 
+  private currentRowClickData: any;
+  private initWidth: number = 0;
+  private _pieTitle: string = '';
+  private _cWidth: number = 0;
+  private _currentFsCallTreeLevel: number = 0;
+  private _fsRowClickData: any = undefined;
+  private FsCallTreeLevel: CallTreeLevel | undefined | null;
+  private headLine: LitHeadLine | null | undefined;
+
+  set pieTitle(value: string) {
+    this._pieTitle = value;
+    if (this._pieTitle.length > 0) {
+      this.headLine!.isShow = true;
+      this.headLine!.titleTxt = this._pieTitle;
+      this.headLine!.closeCallback = () => {
+        this.restore();
+      };
+    }
+  }
+
+  set cWidth(value: number) {
+    this._cWidth = value;
+  }
+
+  set currentFsCallTreeLevel(value: number) {
+    this._currentFsCallTreeLevel = value;
+  }
+
+  set fsRowClickData(value: any) {
+    this._fsRowClickData = value;
+  }
+
   set data(fsCallTreeSelection: SelectionParam | any) {
-    if (fsCallTreeSelection == this.currentSelection) {
+    if (fsCallTreeSelection !== this.currentSelection && this._fsRowClickData === this.currentRowClickData) {
+      this._fsRowClickData = undefined;
+    }
+    if (fsCallTreeSelection === this.currentSelection && !this.currentSelection?.isRowClick) {
       return;
     }
     this.searchValue = '';
     this.currentSelection = fsCallTreeSelection;
-    this.modal!.style.display = 'none';
+    this.currentRowClickData = this._fsRowClickData;
     this.fsCallTreeTbl!.style.visibility = 'visible';
     if (this.parentElement!.clientHeight > this.fsCallTreeFilter!.clientHeight) {
       this.fsCallTreeFilter!.style.display = 'flex';
@@ -73,7 +108,24 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.fsCallTreeFilter!.filterValue = '';
     this.fsCallTreeProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    const initWidth = this.clientWidth;
+    this.getDataByWorkAndUpDateCanvas(fsCallTreeSelection);
+  }
+
+  getDataByWorkAndUpDateCanvas(fsCallTreeSelection: SelectionParam): void {
+    if (this.clientWidth === 0) {
+      this.initWidth = this._cWidth;
+    } else {
+      this.initWidth = this.clientWidth;
+    }
+    if (this._fsRowClickData && this.currentRowClickData !== undefined && this.currentSelection?.isRowClick) {
+      this.getFsCallTreeDataByPieLevel();
+    } else {
+      this.headLine!.isShow = false;
+      this.getFsCallTreeData(fsCallTreeSelection, this.initWidth);
+    }
+  }
+
+  private getFsCallTreeData(fsCallTreeSelection: SelectionParam | any, initWidth: number): void {
     this.getDataByWorker(
       [
         {
@@ -85,7 +137,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           funcArgs: [{ queryFuncName: 'fileSystem', ...fsCallTreeSelection }],
         },
       ],
-      (fsCallTreeResults: any[]): void => {
+      (fsCallTreeResults: any[]) => {
         this.setLTableData(fsCallTreeResults);
         this.fsCallTreeTbr!.recycleDataSource = [];
         this.frameChart!.mode = ChartMode.Duration;
@@ -96,6 +148,56 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         this.fsCallTreeFilter.icon = 'block';
       }
     );
+  }
+
+  /**
+   * 根据Analysis Tab饼图跳转过来的层级绘制对应的CallTree Tab火焰图和表格
+   */
+  private getFsCallTreeDataByPieLevel(): void {
+    this.FsCallTreeLevel = new CallTreeLevel();
+    this.FsCallTreeLevel = {
+      processId: this._fsRowClickData.pid,
+      threadId: this._fsRowClickData.tid,
+      typeId: this._fsRowClickData.type,
+      libId: this._fsRowClickData.libId,
+      symbolId: this._fsRowClickData.symbolId,
+    };
+    let args = [];
+    args.push({
+      funcName: 'getCurrentDataFromDb',
+      funcArgs: [this.currentSelection, this.FsCallTreeLevel],
+    });
+
+    if (this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
+      this.FsCallTreeLevel.libName = this._fsRowClickData.tableName;
+      args.push({
+        funcName: 'showLibLevelData',
+        funcArgs: [this.FsCallTreeLevel.libId, this.FsCallTreeLevel.libName],
+      });
+    } else if (this._fsRowClickData.symbolId !== undefined && this._currentFsCallTreeLevel === 4) {
+      this.FsCallTreeLevel.symbolName = this._fsRowClickData.tableName;
+      args.push({
+        funcName: 'showFunLevelData',
+        funcArgs: [this.FsCallTreeLevel.symbolId, this.FsCallTreeLevel.symbolName],
+      });
+    }
+
+    this.getDataByWorker(args, (fsCallTreeResults: any[]) => {
+      this.setLTableData(fsCallTreeResults);
+      this.fsCallTreeTbr!.recycleDataSource = [];
+      this.frameChart!.mode = ChartMode.Duration;
+      this.frameChart?.updateCanvas(true, this.initWidth);
+      this.frameChart!.data = this.fsCallTreeDataSource;
+      this.currentFsCallTreeDataSource = this.fsCallTreeDataSource;
+      this.switchFlameChart();
+      this.fsCallTreeFilter.icon = 'block';
+    });
+  }
+
+  private restore(): void {
+    this.headLine!.isShow = false;
+    this._fsRowClickData = undefined;
+    this.getFsCallTreeData(this.currentSelection, this.initWidth);
   }
 
   getParentTree(
@@ -165,11 +267,14 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   initElements(): void {
+    this.headLine = this.shadowRoot?.querySelector('.titleBox');
     this.fsCallTreeTbl = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-calltree');
     this.fsCallTreeProgressEL = this.shadowRoot?.querySelector('.fs-call-tree-progress') as LitProgressBar;
     this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
-    this.modal = this.shadowRoot?.querySelector<DisassemblingWindow>('tab-native-data-modal');
     this.loadingPage = this.shadowRoot?.querySelector('.fs-call-tree-loading');
+    this.addEventListener('contextmenu', (event) => {
+      event.preventDefault(); // 阻止默认的上下文菜单弹框
+    });
     this.frameChart!.addChartClickListener((needShowMenu: boolean) => {
       this.parentElement!.scrollTo(0, 0);
       showButtonMenu(this.fsCallTreeFilter, needShowMenu);
@@ -209,11 +314,6 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         // @ts-ignore
         (evt.detail as any).callBack(true);
       }
-    });
-    this.modal!.setCloseListener((): void => {
-      this.modal!.style.display = 'none';
-      this.fsCallTreeTbl!.style.visibility = 'visible';
-      this.shadowRoot!.querySelector<TabPaneFilter>('#filter')!.style.display = 'flex';
     });
     let filterFunc = (data: any): void => {
       let fsCallTreeFuncArgs: any[] = [];
@@ -425,7 +525,6 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       } else {
         fsCallTreeTabFilter.style.display = 'none';
       }
-      this.modal!.style.height = this.fsCallTreeTbl!.clientHeight - 2 + 'px'; //2 is borderWidth
       if (this.fsCallTreeTbl!.style.visibility === 'hidden') {
         fsCallTreeTabFilter.style.display = 'none';
       }
@@ -511,6 +610,21 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
+    if (this._fsRowClickData && this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
+      fileSysCallTreeArgs.push({
+        funcName: 'showLibLevelData',
+        funcArgs: [this.FsCallTreeLevel!.libId, this.FsCallTreeLevel!.libName],
+      });
+    } else if (
+      this._fsRowClickData &&
+      this._fsRowClickData.symbolId !== undefined &&
+      this._currentFsCallTreeLevel === 4
+    ) {
+      fileSysCallTreeArgs.push({
+        funcName: 'showFunLevelData',
+        funcArgs: [this.FsCallTreeLevel!.symbolId, this.FsCallTreeLevel!.symbolName],
+      });
+    }
     this.getDataByWorker(fileSysCallTreeArgs, (result: any[]): void => {
       this.setLTableData(result);
       this.frameChart!.data = this.fsCallTreeDataSource;
@@ -607,13 +721,15 @@ export class TabpaneFilesystemCalltree extends BaseElement {
             display: flex;
             flex: 1;
         }
+        #level{
+            display: none;
+        }
     </style>
-    <div class="fs-call-tree-content" style="display: flex;flex-direction: row">
-    
+    <div class="fs-call-tree-content" style="display: flex;flex-direction: column">
+    <lit-headline class="titleBox"></lit-headline>
     <selector id='show_table' class="show">
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
-            <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
                 <lit-table-column class="fs-call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start"retract></lit-table-column>
                 <lit-table-column class="fs-call-tree-column" width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>

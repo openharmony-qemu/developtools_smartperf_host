@@ -24,6 +24,7 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
 import { TabPaneFilter } from '../TabPaneFilter.js';
 import { initSort } from '../SheetUtils.js';
+import { TabPaneIOCallTree } from './TabPaneIOCallTree.js';
 
 @element('tabpane-tb-vm-statistics')
 export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
@@ -136,6 +137,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         this.ioSortType = evt.detail.sort;
         this.sortByColumn();
       });
+      ioTable!.addEventListener('contextmenu', function (event) {
+        event.preventDefault(); // 阻止默认的上下文菜单弹框
+      });
       ioTable!.addEventListener('row-hover', (evt) => {
         // @ts-ignore
         let detail = evt.detail;
@@ -148,6 +152,36 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         }
         this.ioPieChart?.showHover();
         this.ioPieChart?.hideTip();
+      });
+      ioTable!.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.button === 2) {
+          let ioTab = this.parentElement?.parentElement?.querySelector<TabPaneIOCallTree>(
+            '#box-io-calltree > tabpane-io-calltree'
+          );
+          if (detail.button === 2) {
+            ioTab!.cWidth = this.clientWidth;
+            ioTab!.currentCallTreeLevel = this.currentLevel;
+            if (this.hideProcessCheckBox?.checked) {
+              detail.data.pid = undefined;
+            }
+            if (this.hideThreadCheckBox?.checked) {
+              detail.data.tid = undefined;
+            }
+            ioTab!.rowClickData = detail.data;
+            let title = '';
+            if (this.titleEl?.textContent === '') {
+              title = detail.data.tableName;
+            } else {
+              title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+            }
+            ioTab!.pieTitle = title;
+            //  是否是在表格上右键点击跳转到火焰图的
+            this.currentSelection!.isRowClick = true;
+            ioTab!.data = this.currentSelection;
+          }
+        }
       });
     }
     for (let box of this.checkBoxs) {
@@ -163,34 +197,21 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         }
       });
     }
-    this.ioTierTableProcess!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.ioTierProcessLevelClickEvent(data);
-      }
-    });
-    this.tableType!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.ioTierTypeLevelClickEvent(data);
-      }
-    });
-    this.ioTierTableThread!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.ioTierThreadLevelClickEvent(data);
-      }
-    });
-    this.ioTierTableSo!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.ioTierSoLevelClickEvent(data);
-      }
-    });
+
+    const addRowClickEventListener = (ioTable: LitTable, clickEvent: Function) => {
+      ioTable.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        const detail = evt.detail;
+        if (detail.button === 0 && detail.data.tableName !== '' && detail.data.duration !== 0) {
+          clickEvent(detail.data, this.currentSelection);
+        }
+      });
+    };
+
+    addRowClickEventListener(this.ioTierTableProcess!, this.ioTierProcessLevelClickEvent.bind(this));
+    addRowClickEventListener(this.tableType!, this.ioTierTypeLevelClickEvent.bind(this));
+    addRowClickEventListener(this.ioTierTableThread!, this.ioTierThreadLevelClickEvent.bind(this));
+    addRowClickEventListener(this.ioTierTableSo!, this.ioTierSoLevelClickEvent.bind(this));
   }
 
   private reset(showTable: LitTable, isShowBack: boolean): void {
@@ -719,6 +740,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       const ioTypeData = {
         tableName: this.typeIdToString(key),
         pid: item === null ? value[0].pid : item.pid,
+        tid: item === null ? value[0].tid : item.tid,
         type: key,
         percent: ((dur / allDur) * 100).toFixed(2),
         durFormat: Utils.getProbablyTime(dur),
@@ -917,6 +939,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       const symbolData = {
         pid: item.pid,
         tid: item.tid,
+        type: item.type,
+        libId: item.libId,
+        symbolId: key,
         percent: ((dur / allDur) * 100).toFixed(2),
         tableName: funSymbolName,
         durFormat: Utils.getProbablyTime(dur),

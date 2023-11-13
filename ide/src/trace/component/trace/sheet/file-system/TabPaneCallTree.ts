@@ -23,6 +23,9 @@ import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { MerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { showButtonMenu } from '../SheetUtils.js';
+import { CallTreeLevel } from '../../../../bean/EbpfStruct.js';
+import '../../../../../base-ui/headline/lit-headline.js';
+import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
 
 const InvertOptionIndex: number = 0;
 const hideEventOptionIndex: number = 2;
@@ -52,14 +55,49 @@ export class TabPaneCallTree extends BaseElement {
   private currentSelection: SelectionParam | undefined;
   private flameChartMode: ChartMode = ChartMode.Duration;
   private currentCallTreeDataSource: Array<MerageBean> = [];
+  private currentRowClickData: any;
+  private initWidth: number = 0;
+  private _pieTitle: string = '';
+  private _cWidth: number = 0;
+  private _currentCallTreeLevel: number = 0;
+  private _rowClickData: any = undefined;
+  private callTreeLevel: CallTreeLevel | undefined | null;
+  private headLine: LitHeadLine | null | undefined;
+
+  set pieTitle(value: string) {
+    this._pieTitle = value;
+    if (this._pieTitle.length > 0) {
+      this.headLine!.isShow = true;
+      this.headLine!.titleTxt = this._pieTitle;
+      this.headLine!.closeCallback = () => {
+        this.restore();
+      };
+    }
+  }
+
+  set cWidth(value: number) {
+    this._cWidth = value;
+  }
+
+  set currentCallTreeLevel(value: number) {
+    this._currentCallTreeLevel = value;
+  }
+
+  set rowClickData(value: any) {
+    this._rowClickData = value;
+  }
 
   set data(callTreeSelection: SelectionParam | any) {
-    if (callTreeSelection === this.currentSelection) {
+    if (callTreeSelection !== this.currentSelection && this._rowClickData === this.currentRowClickData) {
+      this._rowClickData = undefined;
+    }
+    if (callTreeSelection === this.currentSelection && !this.currentSelection?.isRowClick) {
       return;
     }
     this.searchValue = '';
     this.initModeAndAction();
     this.currentSelection = callTreeSelection;
+    this.currentRowClickData = this._rowClickData;
     this.callTreeTbl!.style.visibility = 'visible';
     if (this.parentElement!.clientHeight > this.callTreeFilter!.clientHeight) {
       this.callTreeFilter!.style.display = 'flex';
@@ -71,7 +109,24 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeFilter!.filterValue = '';
     this.callTreeProgressEL!.loading = true;
     this.loadingPage.style.visibility = 'visible';
-    const initWidth = this.clientWidth;
+    this.getDataByWorkAndUpDateCanvas(callTreeSelection);
+  }
+
+  getDataByWorkAndUpDateCanvas(callTreeSelection: SelectionParam): void {
+    if (this.clientWidth === 0) {
+      this.initWidth = this._cWidth;
+    } else {
+      this.initWidth = this.clientWidth;
+    }
+    if (this._rowClickData && this.currentRowClickData !== undefined && this.currentSelection?.isRowClick) {
+      this.getCallTreeDataByPieLevel();
+    } else {
+      this.headLine!.isShow = false;
+      this.getCallTreeData(callTreeSelection, this.initWidth);
+    }
+  }
+
+  private getCallTreeData(callTreeSelection: SelectionParam | any, initWidth: number): void {
     this.getDataByWorker(
       [
         {
@@ -94,6 +149,58 @@ export class TabPaneCallTree extends BaseElement {
         this.callTreeFilter.icon = 'block';
       }
     );
+  }
+
+  /**
+   * 根据Analysis Tab饼图跳转过来的层级绘制对应的CallTree Tab火焰图和表格
+   */
+  private getCallTreeDataByPieLevel(): void {
+    this.callTreeLevel = new CallTreeLevel();
+    this.callTreeLevel = {
+      processId: this._rowClickData.pid,
+      threadId: this._rowClickData.tid,
+      typeId: this._rowClickData.type,
+      libId: this._rowClickData.libId,
+      symbolId: this._rowClickData.symbolId,
+    };
+    let args = [];
+    args.push({
+      funcName: 'getCurrentDataFromDb',
+      funcArgs: [this.currentSelection, this.callTreeLevel],
+    });
+
+    if (this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
+      this.callTreeLevel.libName = this._rowClickData.tableName;
+      args.push({
+        funcName: 'showLibLevelData',
+        funcArgs: [this.callTreeLevel.libId, this.callTreeLevel.libName],
+      });
+    } else if (this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
+      this.callTreeLevel.symbolName = this._rowClickData.tableName;
+      args.push({
+        funcName: 'showFunLevelData',
+        funcArgs: [this.callTreeLevel.symbolId, this.callTreeLevel.symbolName],
+      });
+    }
+
+    this.getDataByWorker(args, (results: any[]) => {
+      this.callTreeProgressEL!.loading = false;
+      this.loadingPage.style.visibility = 'hidden';
+      this.setLTableData(results);
+      this.callTreeTbr!.recycleDataSource = [];
+      this.frameChart!.mode = this.flameChartMode;
+      this.frameChart?.updateCanvas(true, this.initWidth);
+      this.frameChart!.data = this.callTreeDataSource;
+      this.currentCallTreeDataSource = this.callTreeDataSource;
+      this.switchFlameChart();
+      this.callTreeFilter.icon = 'block';
+    });
+  }
+
+  private restore(): void {
+    this.headLine!.isShow = false;
+    this._rowClickData = undefined;
+    this.getCallTreeData(this.currentSelection, this.initWidth);
   }
 
   initModeAndAction(): void {
@@ -221,6 +328,7 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   initElements(): void {
+    this.headLine = this.shadowRoot?.querySelector<LitHeadLine>('.titleBox');
     this.callTreeTbl = this.shadowRoot?.querySelector<LitTable>('#tb-calltree');
     this.callTreeProgressEL = this.shadowRoot?.querySelector('.call-tree-progress') as LitProgressBar;
     this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
@@ -228,6 +336,9 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeTbl!.rememberScrollTop = true;
     this.callTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.callTreeFilter!.disabledTransfer(true);
+    this.addEventListener('contextmenu', (event) => {
+      event.preventDefault(); // 阻止默认的上下文菜单弹框
+    });
     this.callTreeTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
       let data = evt.detail.data as MerageBean;
@@ -370,7 +481,7 @@ export class TabPaneCallTree extends BaseElement {
         if (data.checks[1]) {
           callTreeArgs.push({
             funcName: 'hideSystemLibrary',
-            funcArgs: [],
+            funcArgs: [true],
           });
           callTreeArgs.push({
             funcName: 'resetAllNode',
@@ -503,7 +614,7 @@ export class TabPaneCallTree extends BaseElement {
     if (isHideSystemLibrary) {
       callTreeArgs.push({
         funcName: 'hideSystemLibrary',
-        funcArgs: [],
+        funcArgs: [true],
       });
     }
     if (filterData.callTreeConstraints.checked) {
@@ -520,6 +631,17 @@ export class TabPaneCallTree extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
+    if (this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
+      callTreeArgs.push({
+        funcName: 'showLibLevelData',
+        funcArgs: [this.callTreeLevel!.libId, this.callTreeLevel!.libName],
+      });
+    } else if (this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
+      callTreeArgs.push({
+        funcName: 'showFunLevelData',
+        funcArgs: [this.callTreeLevel!.symbolId, this.callTreeLevel!.symbolName],
+      });
+    }
     this.getDataByWorker(callTreeArgs, (result: any[]): void => {
       this.setLTableData(result);
       this.frameChart!.data = this.callTreeDataSource;
@@ -617,8 +739,8 @@ export class TabPaneCallTree extends BaseElement {
             flex: 1;
         }
     </style>
-    <div class="call-tree-content" style="display: flex;flex-direction: row">
-    
+    <div class="call-tree-content" style="display: flex;flex-direction: column">
+    <lit-headline class="titleBox"></lit-headline>
     <selector id='show_table' class="show">
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
@@ -628,7 +750,6 @@ export class TabPaneCallTree extends BaseElement {
                 <lit-table-column class="call-tree-column" width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
                 <lit-table-column class="call-tree-column" width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>
             </lit-table>
-            
         </div>
         <lit-slicer-track ></lit-slicer-track>
         <lit-table id="tb-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>

@@ -66,6 +66,8 @@ export class ChartStruct extends BaseStruct {
   tsArray: Array<number> = [];
   countArray: Array<number> = [];
   durArray: Array<number> = [];
+  isThread: boolean = false;
+  isProcess: boolean = false;
 }
 
 export enum ChartMode {

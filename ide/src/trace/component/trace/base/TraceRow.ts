@@ -56,6 +56,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_HIPERF = 'hiperf';
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
   static ROW_TYPE_HIPERF_CPU = 'hiperf-cpu';
+  static ROW_TYPE_PERF_CALLCHART = 'hiperf-callchart';
   static ROW_TYPE_HIPERF_PROCESS = 'hiperf-process';
   static ROW_TYPE_HIPERF_THREAD = 'hiperf-thread';
   static ROW_TYPE_HIPERF_REPORT = 'hiperf-report';
@@ -119,6 +120,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
+  static ROW_TYPE_HI_SYSEVENT = 'hi-sysevent';
   public obj: TraceRowObject<any> | undefined | null;
   isHover: boolean = false;
   hoverX: number = 0;
@@ -160,6 +162,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private _rangeSelect: boolean = false;
   private _drawType: number = 0;
   private folderIconEL: LitIcon | null | undefined;
+  private _enableCollapseChart: boolean = false;
   online: boolean = false;
   static isUserInteraction: boolean;
   asyncFuncName: string | undefined | null;
@@ -171,8 +174,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
-  private _funcExpand: boolean = true; //default expand func chart
-  private funcMaxHeight: number = 0;
+  public funcMaxHeight: number = 0;
   currentContext: CanvasRenderingContext2D | undefined | null;
 
   constructor(
@@ -232,15 +234,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   get funcExpand(): boolean {
-    return this.hasAttribute('func-expand');
+    return this.getAttribute('func-expand') === 'true';
   }
 
   set funcExpand(b: boolean) {
-    if (b) {
-      this.setAttribute('func-expand', '');
-    } else {
-      this.removeAttribute('func-expand');
-    }
+    this.setAttribute('func-expand', b ? 'true' : 'false');
   }
 
   get hasParentRowEl(): boolean {
@@ -289,6 +287,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   set rowSettingList(value: Array<TreeItemData> | null | undefined) {
     this._rowSettingList = value;
     this.rowSettingTree!.treeData = value || [];
+  }
+
+  set rowSettingMultiple(value: boolean) {
+    this.rowSettingTree!.multiple = value;
   }
 
   get rowSettingList(): TreeItemData[] | null | undefined {
@@ -676,40 +678,62 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     });
     this.funcExpand = true;
+    this.rowSettingTree!.onChange = (e: any): void => {
+      // @ts-ignore
+      this.rowSettingPop!.visible = false;
+      if (this.rowSettingTree?.multiple) {
+        // @ts-ignore
+        this.rowSettingPop!.visible = true;
+      } else {
+        // @ts-ignore
+        this.rowSettingPop!.visible = false;
+      }
+      this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
+    };
+    this.checkType = '-1';
+  }
 
+  getRowSettingKeys() : Array<string> {
+    if (this.rowSetting === 'enable') {
+      return this.rowSettingTree!.getCheckdKeys();
+    }
+    return [];
+  }
+  expandFunc(): void {
+    if (this._enableCollapseChart && !this.funcExpand) {
+      this.style.height = `${this.funcMaxHeight}px`;
+      this.funcExpand = true;
+      if (this.collect) {
+        window.publish(window.SmartEvent.UI.RowHeightChange, {
+          expand: this.funcExpand,
+          value: this.funcMaxHeight - 20,
+        });
+      }
+    }
+  }
+
+  enableCollapseChart() : void {
+    this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
-      if (this.rowType === TraceRow.ROW_TYPE_FUNC) {
-        if (this.funcExpand) {
-          this.funcMaxHeight = this.clientHeight;
-          this.style.height = '20px';
-          this.funcExpand = false;
-        } else {
-          this.style.height = `${this.funcMaxHeight}px`;
-          this.funcExpand = true;
-        }
+      if (this.funcExpand) {
+        this.funcMaxHeight = this.clientHeight;
+        this.style.height = '20px';
+        this.funcExpand = false;
+      } else {
+        this.style.height = `${this.funcMaxHeight}px`;
+        this.funcExpand = true;
+      }
+      setTimeout(() => {
+        TraceRow.range!.refresh = true;
+        this.draw(false);
+      }, 200);
+      if (this.collect) {
         window.publish(window.SmartEvent.UI.RowHeightChange, {
           expand: this.funcExpand,
           value: this.funcMaxHeight - 20,
         });
       }
     };
-    this.rowSettingTree!.onChange = (e: any): void => {
-      // @ts-ignore
-      this.rowSettingPop!.visible = false;
-      this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
-    };
-    this.checkType = '-1';
-  }
-
-  expandFunc(): void {
-    if (this.rowType === TraceRow.ROW_TYPE_FUNC && !this.funcExpand) {
-      this.style.height = `${this.funcMaxHeight}px`;
-      this.funcExpand = true;
-      window.publish(window.SmartEvent.UI.RowHeightChange, {
-        expand: this.funcExpand,
-        value: this.funcMaxHeight - 20,
-      });
-    }
   }
 
   initCanvas(list: Array<HTMLCanvasElement>): void {
@@ -1283,7 +1307,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host(:not([check-type])) .lit-check-box{
             display: none;
         }
-        :host([collect-type]) .setting{
+        :host([collect-type][row-setting='enable']:not([row-type='hiperf-callchart'])) .setting{
+            position:fixed;
+            z-index:1003;
+            left: 473px;
+        }
+        :host([collect-type][row-setting='enable'][row-type='hiperf-callchart'][func-expand='false']) .setting{
             position:fixed;
             z-index:1003;
             left: 473px;
@@ -1348,7 +1377,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([row-type="func"]) .name{
             cursor: pointer;
         }
-        :host([row-type="func"]:not([func-expand])) .name{
+        :host(:not([func-expand])) .name{
             color: #00a3f5;
         }
         .lit-check-box{

@@ -18,19 +18,17 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import '../TabPaneFilter.js';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { PerfCallChainMerageData } from '../../../../bean/PerfProfile.js';
+import { PerfCallChainMerageData, PerfLevelStruct } from '../../../../bean/PerfProfile.js';
 import '../../../chart/FrameChart.js';
 import { FrameChart } from '../../../chart/FrameChart.js';
 import { ChartMode } from '../../../../bean/FrameChartStruct.js';
-import '../../../DisassemblingWindow.js';
-import { DisassemblingWindow } from '../../../DisassemblingWindow.js';
-import { Cmd } from '../../../../../command/Cmd.js';
-import { SpApplication } from '../../../../SpApplication.js';
 import '../../../../../base-ui/slicer/lit-slicer.js';
 import '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { showButtonMenu } from '../SheetUtils.js';
+import '../../../../../base-ui/headline/lit-headline.js';
+import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
 
 const InvertOptionIndex: number = 0;
 const hideThreadOptionIndex: number = 3;
@@ -52,19 +50,52 @@ export class TabpanePerfProfile extends BaseElement {
   private isChartShow: boolean = false;
   private systemRuleName: string = '/system/';
   private perfProfileNumRuleName: string = '/max/min/';
-  private perfProfilerModal: DisassemblingWindow | null | undefined;
   private needShowMenu: boolean = true;
   private searchValue: string = '';
   private perfProfileLoadingPage: any;
   private currentSelection: SelectionParam | undefined;
+  private currentRowClickData: any;
+  private initWidth: number = 0;
+  private _pieTitle: string = '';
+  private _cWidth: number = 0;
+  private _currentLevel: number = 0;
+  private _rowClickData: any = undefined;
+  private perfLevel: PerfLevelStruct | undefined | null;
+  private headLine: LitHeadLine | null | undefined;
+
+  set pieTitle(value: string) {
+    this._pieTitle = value;
+    if (this._pieTitle.length > 0) {
+      this.headLine!.isShow = true;
+      this.headLine!.titleTxt = this._pieTitle;
+      this.headLine!.closeCallback = (): void => {
+        this.restore();
+      };
+    }
+  }
+
+  set cWidth(value: number) {
+    this._cWidth = value;
+  }
+
+  set currentLevel(value: number) {
+    this._currentLevel = value;
+  }
+
+  set rowClickData(value: any) {
+    this._rowClickData = value;
+  }
 
   set data(perfProfilerSelection: SelectionParam | any) {
-    if (perfProfilerSelection === this.currentSelection) {
+    if (perfProfilerSelection !== this.currentSelection && this._rowClickData === this.currentRowClickData) {
+      this._rowClickData = undefined;
+    }
+    if (perfProfilerSelection === this.currentSelection && !this.currentSelection?.isRowClick) {
       return;
     }
     this.searchValue = '';
     this.currentSelection = perfProfilerSelection;
-    this.perfProfilerModal!.style.display = 'none';
+    this.currentRowClickData = this._rowClickData;
     this.perfProfilerTbl!.style.visibility = 'visible';
     if (this.parentElement!.clientHeight > this.perfProfilerFilter!.clientHeight) {
       this.perfProfilerFilter!.style.display = 'flex';
@@ -72,32 +103,31 @@ export class TabpanePerfProfile extends BaseElement {
       this.perfProfilerFilter!.style.display = 'none';
     }
     procedurePool.submitWithName('logic0', 'perf-reset', [], undefined, () => {});
-    this.perfProfilerFilter!.disabledTransfer(false, 'perf');
+    this.perfProfilerFilter!.disabledTransfer(true);
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
-    this.perfProfilerFilter!.refreshTreeTransfer();
     this.perfProfileProgressEL!.loading = true;
     this.perfProfileLoadingPage.style.visibility = 'visible';
     this.getDataByWorkAndUpDateCanvas(perfProfilerSelection);
   }
 
-  getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam):void {
-    const initWidth = this.clientWidth;
-    this.initGetData(perfProfilerSelection, initWidth);
-    this.perfProfilerFilter!.getCallTransferData((data: any) => {
-      const eventTypeId = data.value !== 'count' ? data.value : undefined;
-      this.initGetData(perfProfilerSelection, initWidth, eventTypeId);
-    });
+  getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam): void {
+    if (this.clientWidth === 0) {
+      this.initWidth = this._cWidth;
+    } else {
+      this.initWidth = this.clientWidth;
+    }
+    if (this._rowClickData && this.currentRowClickData !== undefined && this.currentSelection?.isRowClick) {
+      // 点击表格的某一行跳转到火焰图
+      this.getDataByPieLevel(perfProfilerSelection.perfEventTypeId);
+    } else {
+      this.headLine!.isShow = false;
+      this.initGetData(perfProfilerSelection, this.initWidth, perfProfilerSelection.perfEventTypeId);
+    }
   }
 
-  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number, eventTypeId?: string): void {
+  initGetData(perfProfilerSelection: SelectionParam | any, initWidth: number, eventTypeId: undefined | number): void {
     let perfProfileArgs: any[] = [];
-    if (eventTypeId) {
-      perfProfileArgs.push({
-        funcName: 'setEventTypeId',
-        funcArgs: [eventTypeId !== 'count' ? eventTypeId : undefined],
-      });
-    }
     perfProfileArgs.push(
       {
         funcName: 'setSearchValue',
@@ -112,13 +142,67 @@ export class TabpanePerfProfile extends BaseElement {
     this.getDataByWorker(perfProfileArgs, (results: any[]) => {
       this.setPerfProfilerLeftTableData(results);
       this.perfProfilerList!.recycleDataSource = [];
-      if (eventTypeId && eventTypeId !== 'count') {
-        this.perfProfileFrameChart!.mode = ChartMode.EventCount;
-      } else {
+      if (eventTypeId === undefined) {
         this.perfProfileFrameChart!.mode = ChartMode.Count;
+      } else {
+        this.perfProfileFrameChart!.mode = ChartMode.EventCount;
       }
-
       this.perfProfileFrameChart?.updateCanvas(true, initWidth);
+      this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
+      this.switchFlameChart();
+      this.perfProfilerFilter!.icon = 'block';
+    });
+  }
+
+  private restore(): void {
+    // 恢复全部的火焰图和表格，并隐藏title;
+    this.headLine!.isShow = false;
+    this._rowClickData = undefined;
+    this.initGetData(this.currentSelection, this.initWidth, this.currentSelection?.perfEventTypeId);
+  }
+
+  /**
+   * 根据饼图跳转过来的层级绘制对应的火焰图和表格
+   */
+  private getDataByPieLevel(eventTypeId: number | undefined): void {
+    this.perfLevel = new PerfLevelStruct();
+    this.perfLevel = {
+      process: this._rowClickData.pid,
+      thread: this._rowClickData.tid,
+      libId: this._rowClickData.libId,
+    };
+    let args = [];
+    args.push({
+      funcName: 'getCurrentDataFromDb',
+      funcArgs: [this.currentSelection, this.perfLevel],
+    });
+
+    if (this._rowClickData.libId !== undefined && this._currentLevel === 2) {
+      this.perfLevel.libName = this._rowClickData.tableName;
+      args.push({
+        funcName: 'showLibLevelData',
+        funcArgs: [this.perfLevel.libId, this.perfLevel.libName],
+      });
+    } else if (!this._rowClickData.libId && this._currentLevel === 3) {
+      this.perfLevel.symbolId = this._rowClickData.symbolId;
+      this.perfLevel.symbolName = this._rowClickData.tableName;
+      args.push({
+        funcName: 'showFunLevelData',
+        funcArgs: [this.perfLevel.symbolId, this.perfLevel.symbolName],
+      });
+    }
+
+    this.getDataByWorker(args, (results: any[]) => {
+      this.perfProfileProgressEL!.loading = false;
+      this.perfProfileLoadingPage.style.visibility = 'hidden';
+      this.setPerfProfilerLeftTableData(results);
+      this.perfProfilerList!.recycleDataSource = [];
+      if (eventTypeId === undefined) {
+        this.perfProfileFrameChart!.mode = ChartMode.Count;
+      } else {
+        this.perfProfileFrameChart!.mode = ChartMode.EventCount;
+      }
+      this.perfProfileFrameChart?.updateCanvas(true, this.initWidth);
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
@@ -202,11 +286,14 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   initElements(): void {
+    this.headLine = this.shadowRoot?.querySelector<LitHeadLine>('.titleBox');
     this.perfProfilerTbl = this.shadowRoot?.querySelector<LitTable>('#tb-perf-profile');
     this.perfProfileProgressEL = this.shadowRoot?.querySelector('.perf-profile-progress') as LitProgressBar;
     this.perfProfileFrameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
-    this.perfProfilerModal = this.shadowRoot?.querySelector<DisassemblingWindow>('tab-native-data-modal');
     this.perfProfileLoadingPage = this.shadowRoot?.querySelector('.perf-profile-loading');
+    this.addEventListener('contextmenu', (event) => {
+      event.preventDefault(); // 阻止默认的上下文菜单弹框
+    });
     this.perfProfileFrameChart!.addChartClickListener((needShowMenu: boolean): void => {
       this.parentElement!.scrollTo(0, 0);
       showButtonMenu(this.perfProfilerFilter, needShowMenu);
@@ -234,7 +321,6 @@ export class TabpanePerfProfile extends BaseElement {
       }
     });
     this.perfProfilerList = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
-    let lastClikTime = 0;
     this.perfProfilerList!.addEventListener('row-click', (evt: any): void => {
       // @ts-ignore
       let data = evt.detail.data as PerfCallChainMerageData;
@@ -246,47 +332,6 @@ export class TabpanePerfProfile extends BaseElement {
         // @ts-ignore
         (evt.detail as any).callBack(true);
       }
-      let spApplication = <SpApplication>document.getElementsByTagName('sp-application')[0];
-      if (Date.now() - lastClikTime < 200 && spApplication.vs) {
-        this.perfProfilerTbl!.style.visibility = 'hidden';
-        this.perfProfilerFilter!.style.display = 'none';
-        new ResizeObserver((entries: ResizeObserverEntry[]): void => {
-          this.perfProfilerModal!.style.width = this.perfProfilerTbl!.clientWidth + 'px';
-          this.perfProfilerModal!.style.height = this.perfProfilerTbl!.clientHeight + 'px';
-        }).observe(this.perfProfilerTbl!);
-        this.perfProfilerModal!.showLoading();
-        // @ts-ignore
-        let data = evt.detail.data as PerfCallChainMerageData;
-        let perfProfilerPath = data.path;
-        let perfProfilerAddr = data.vaddrInFile;
-        let perfProfilerAddrHex = perfProfilerAddr.toString(16);
-        if (perfProfilerPath.trim() === '[kernel.kallsyms]') {
-          this.perfProfilerModal?.showContent(
-            `error : Symbol ${data.symbol} lib is [kernel.kallsyms] ,not support `,
-            perfProfilerAddrHex
-          );
-        } else if (perfProfilerPath.trim() === '') {
-          this.perfProfilerModal?.showContent(`error : Symbol ${data.symbol} lib is null `, perfProfilerAddrHex);
-        } else if (perfProfilerAddr < 0) {
-          this.perfProfilerModal?.showContent(
-            `error : Symbol ${data.symbol} current addr is error ` + perfProfilerAddrHex,
-            perfProfilerAddrHex
-          );
-        } else {
-          const binDir = 'C:/binary_cache';
-          let binPath = binDir + perfProfilerPath;
-          let cmd = 'C:/binary_cache/llvm-objdump.exe -S ' + binPath;
-          Cmd.execObjDump(cmd, perfProfilerAddrHex, (result: any): void => {
-            this.perfProfilerModal?.showContent(result, perfProfilerAddrHex);
-          });
-        }
-      }
-      lastClikTime = Date.now();
-    });
-    this.perfProfilerModal!.setCloseListener((): void => {
-      this.perfProfilerModal!.style.display = 'none';
-      this.perfProfilerTbl!.style.visibility = 'visible';
-      this.shadowRoot!.querySelector<TabPaneFilter>('#filter')!.style.display = 'flex';
     });
     this.perfProfilerList = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
     let filterFunc = (data: any): void => {
@@ -498,7 +543,6 @@ export class TabpanePerfProfile extends BaseElement {
       } else {
         perfProfileTabFilter.style.display = 'none';
       }
-      this.perfProfilerModal!.style.height = this.perfProfilerTbl!.clientHeight - 2 + 'px'; //2 is borderWidth
       if (this.perfProfilerTbl!.style.visibility === 'hidden') {
         perfProfileTabFilter.style.display = 'none';
       }
@@ -585,6 +629,17 @@ export class TabpanePerfProfile extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
+    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentLevel === 2) {
+      perfProfileArgs.push({
+        funcName: 'showLibLevelData',
+        funcArgs: [this.perfLevel!.libId, this.perfLevel!.libName],
+      });
+    } else if (this._rowClickData && !this._rowClickData.libId && this._currentLevel === 3) {
+      perfProfileArgs.push({
+        funcName: 'showFunLevelData',
+        funcArgs: [this.perfLevel!.symbolId, this.perfLevel!.symbolName],
+      });
+    }
     this.getDataByWorker(perfProfileArgs, (result: any[]): void => {
       this.setPerfProfilerLeftTableData(result);
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
@@ -647,6 +702,7 @@ export class TabpanePerfProfile extends BaseElement {
             display: flex;
             flex-direction: column;
             padding: 10px 10px 0 10px;
+            height: calc(100% - 20px);
         }
         .perf-profile-progress{
             bottom: 33px;
@@ -672,17 +728,19 @@ export class TabpanePerfProfile extends BaseElement {
             flex: 1;
         }
     </style>
-    <div class="perf-profile-content" style="display: flex;flex-direction: row">
-    
+    <div class="perf-profile-content" style="display: flex;flex-direction: column">
+    <lit-headline class="titleBox"></lit-headline>
     <selector id='show_table' class="show">
         <lit-slicer style="width:100%">
         <div id="left_table" style="width: 65%">
             <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-perf-profile" style="height: auto" tree>
-                <lit-table-column width="70%" title="Call Stack" data-index="symbol" key="symbol"  align="flex-start"retract></lit-table-column>
+                <lit-table-column width="50%" title="Call Stack" data-index="symbol" key="symbol"  align="flex-start"retract></lit-table-column>
                 <lit-table-column width="1fr" title="Local" data-index="selfDur" key="selfDur"  align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="Sample Count" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>
+                <lit-table-column width="1fr" title="Event Count" data-index="eventCount" key="eventCount"  align="flex-start"  order></lit-table-column>
+                <lit-table-column width="1fr" title="%" data-index="eventPercent" key="eventPercent"  align="flex-start"  order></lit-table-column>
             </lit-table>
             
         </div>

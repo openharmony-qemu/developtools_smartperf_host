@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NativeMemoryExpression } from '../../bean/NativeHook.js';
+import { FilterByAnalysis, NativeMemoryExpression } from '../../bean/NativeHook.js';
 import {
   convertJSON,
   DataCache,
@@ -49,7 +49,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   nativeMemoryArgs?: Map<string, any>;
   private dataCache = DataCache.getInstance();
   isHideThread: boolean = false;
-  private currentSelectIPid : number = 1;
+  private currentSelectIPid: number = 1;
 
   handle(data: any): void {
     this.currentEventId = data.id;
@@ -220,7 +220,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
             postMessage(data.id, data.action, this.handleNativeHookStatisticData(arr));
           } else {
             this.totalNS = data.params.totalNS;
-            this.queryNativeHookStatistic(data.params.type);
+            this.queryNativeHookStatistic(data.params.type, data.params.ipid);
           }
           break;
         case 'native-memory-reset':
@@ -264,7 +264,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     );
   }
 
-  queryNativeHookStatistic(type: number): void {
+  queryNativeHookStatistic(type: number, ipid: number): void {
     let condition: string;
     if (type === 0) {
       condition = 'and type = 0';
@@ -281,7 +281,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
        release_size releaseSize
   from native_hook_statistic,trace_range
   where ts between start_ts and end_ts ${condition}
-        and ipid = ${this.currentSelectIPid};
+        and ipid = ${ipid}
         `;
     this.queryData(this.currentEventId, 'native-memory-queryNativeHookStatistic', sql, {});
   }
@@ -484,8 +484,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     this.queryData(
       this.currentEventId,
       'native-memory-queryNMFrameData',
-      `
-            select h.symbol_id as symbolId, h.file_id as fileId, h.depth, h.callchain_id as eventId, h.vaddr as addr
+      `select h.symbol_id as symbolId, h.file_id as fileId, h.depth, h.callchain_id as eventId, h.vaddr as addr
                     from native_hook_frame h
         `,
       {}
@@ -1020,8 +1019,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let rootMerageMap: any = {};
     // @ts-ignore
     let threads = Object.values(this.currentTreeMapData);
-
-    // 不隐藏时走这里
     threads.forEach((merageData: any): void => {
       if (this.isHideThread) {
         merageData.tid = 0;
@@ -1031,6 +1028,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         let threadMerageData = new NativeHookCallInfo(); //新增进程的节点数据
         threadMerageData.canCharge = false;
         threadMerageData.type = -1;
+        threadMerageData.isThread = true;
         threadMerageData.symbolName = `${merageData.threadName || 'Thread'} [${merageData.tid}]`;
         threadMerageData.symbol = threadMerageData.symbolName;
         threadMerageData.children.push(merageData);
@@ -1058,7 +1056,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
       merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
     });
-
     let id = 0;
     this.currentTreeList.forEach((nmTreeNode: any): void => {
       nmTreeNode.totalCount = totalCount;
@@ -1078,11 +1075,21 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     });
     this.allThreads = Object.values(rootMerageMap) as NativeHookCallInfo[];
   }
+
   groupCallchainSample(paramMap: Map<string, any>): void {
     let groupMap: any = {};
     let filterAllocType = paramMap.get('filterAllocType');
     let filterEventType = paramMap.get('filterEventType');
     let filterResponseType = paramMap.get('filterResponseType');
+    let filterAnalysis = paramMap.get('filterByTitleArr') as FilterByAnalysis;
+    if (filterAnalysis) {
+      if (filterAnalysis.type) {
+        filterEventType = filterAnalysis.type;
+      }
+      if (filterAnalysis.libId) {
+        filterResponseType = filterAnalysis.libId;
+      }
+    }
     let libTree = paramMap?.get('filterExpression');
     let leftNs = paramMap.get('leftNs');
     let rightNs = paramMap.get('rightNs');
@@ -1115,7 +1122,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           filterAllocation = item.heapSize === item.freeSize;
         }
       }
-      let filterLastLib = false;
+
+      let filterThread = true;
+      if (filterAnalysis && filterAnalysis.tid) {
+        filterThread = item.tid === filterAnalysis.tid;
+      }
+
+      let filterLastLib = true;
       if (libTree) {
         filterLastLib = this.filterExpressionSample(item, libTree);
         this.searchValue = '';
@@ -1123,8 +1136,14 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         filterLastLib = filterResponseType === -1 ? true : filterResponseType === item.lastLibId;
       }
 
+      let filterFunction = true;
+      if (filterAnalysis && filterAnalysis.symbolId) {
+        filterFunction = filterAnalysis.symbolId === item.lastSymbolId;
+      }
+
       let filterNative = this.getTypeFromIndex(parseInt(filterEventType), item, statisticsSelection);
-      return filterAllocation && filterNative && filterLastLib;
+
+      return filterAllocation && filterNative && filterLastLib && filterThread && filterFunction;
     });
     filter.forEach((sample: NativeHookStatistics): void => {
       let currentNode = groupMap[sample.tid + '-' + sample.eventId] || new NativeHookStatistics();

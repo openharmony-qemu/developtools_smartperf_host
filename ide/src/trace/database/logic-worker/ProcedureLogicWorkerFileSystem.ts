@@ -63,6 +63,9 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
   currentEventId: string = '';
   tab: string = '';
   isAnalysis: boolean = false;
+  private lib: object | undefined;
+  private symbol: object | undefined;
+  private isTopDown: boolean = true;
 
   handle(data: any): void {
     if (data.id) {
@@ -90,6 +93,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
           break;
         case 'fileSystem-queryFileSamples':
           this.handlerMap.get('fileSystem').samplesList = convertJSON(data.params.list) || [];
+          let fsResults;
           if (this.isAnalysis) {
             this.isAnalysis = false;
             self.postMessage({
@@ -98,21 +102,43 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
               results: this.fileSystemAnalysis(FS_TYPE, this.handlerMap.get('fileSystem').samplesList),
             });
           } else {
+            if (this.lib) {
+              let samplesList = this.fileSystemAnalysis(
+                FS_TYPE,
+                this.handlerMap.get('fileSystem').samplesList,
+                this.lib
+              );
+              this.handlerMap.get('fileSystem').freshCurrentCallChains(samplesList, this.isTopDown);
+              fsResults = this.handlerMap.get('fileSystem').allProcess;
+              this.lib = undefined;
+            } else if (this.symbol) {
+              let samplesList = this.fileSystemAnalysis(
+                FS_TYPE,
+                this.handlerMap.get('fileSystem').samplesList,
+                this.symbol
+              );
+              this.handlerMap.get('fileSystem').freshCurrentCallChains(samplesList, this.isTopDown);
+              fsResults = this.handlerMap.get('fileSystem').allProcess;
+              this.symbol = undefined;
+            } else {
+              fsResults = this.handlerMap.get('fileSystem').resolvingAction([
+                {
+                  funcName: 'getCallChainsBySampleIds',
+                  funcArgs: [this.isTopDown],
+                },
+              ]);
+            }
             self.postMessage({
               id: this.currentEventId,
               action: data.action,
-              results: this.handlerMap.get('fileSystem').resolvingAction([
-                {
-                  funcName: 'getCallChainsBySampleIds',
-                  funcArgs: [true],
-                },
-              ]),
+              results: fsResults,
             });
           }
 
           break;
         case 'fileSystem-queryIoSamples':
           this.handlerMap.get('io').samplesList = convertJSON(data.params.list) || [];
+          let ioResults;
           if (this.isAnalysis) {
             this.isAnalysis = false;
             self.postMessage({
@@ -121,21 +147,35 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
               results: this.fileSystemAnalysis(BIO_TYPE, this.handlerMap.get('io').samplesList),
             });
           } else {
+            if (this.lib) {
+              let samplesList = this.fileSystemAnalysis(BIO_TYPE, this.handlerMap.get('io').samplesList, this.lib);
+              this.handlerMap.get('io').freshCurrentCallChains(samplesList, this.isTopDown);
+              ioResults = this.handlerMap.get('io').allProcess;
+              this.lib = undefined;
+            } else if (this.symbol) {
+              let samplesList = this.fileSystemAnalysis(BIO_TYPE, this.handlerMap.get('io').samplesList, this.symbol);
+              this.handlerMap.get('io').freshCurrentCallChains(samplesList, this.isTopDown);
+              ioResults = this.handlerMap.get('io').allProcess;
+              this.symbol = undefined;
+            } else {
+              ioResults = this.handlerMap.get('io').resolvingAction([
+                {
+                  funcName: 'getCallChainsBySampleIds',
+                  funcArgs: [this.isTopDown],
+                },
+              ]);
+            }
             self.postMessage({
               id: this.currentEventId,
               action: data.action,
-              results: this.handlerMap.get('io').resolvingAction([
-                {
-                  funcName: 'getCallChainsBySampleIds',
-                  funcArgs: [true],
-                },
-              ]),
+              results: ioResults,
             });
           }
 
           break;
         case 'fileSystem-queryVirtualMemorySamples':
           this.handlerMap.get('virtualMemory').samplesList = convertJSON(data.params.list) || [];
+          let vmResults;
           if (this.isAnalysis) {
             this.isAnalysis = false;
             self.postMessage({
@@ -144,21 +184,64 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
               results: this.fileSystemAnalysis(PF_TYPE, this.handlerMap.get('virtualMemory').samplesList),
             });
           } else {
+            if (this.lib) {
+              let samplesList = this.fileSystemAnalysis(
+                PF_TYPE,
+                this.handlerMap.get('virtualMemory').samplesList,
+                this.lib
+              );
+              this.handlerMap.get('virtualMemory').freshCurrentCallChains(samplesList, this.isTopDown);
+              vmResults = this.handlerMap.get('virtualMemory').allProcess;
+              this.lib = undefined;
+            } else if (this.symbol) {
+              let samplesList = this.fileSystemAnalysis(
+                PF_TYPE,
+                this.handlerMap.get('virtualMemory').samplesList,
+                this.symbol
+              );
+              this.handlerMap.get('virtualMemory').freshCurrentCallChains(samplesList, this.isTopDown);
+              vmResults = this.handlerMap.get('virtualMemory').allProcess;
+              this.symbol = undefined;
+            } else {
+              vmResults = this.handlerMap.get('virtualMemory').resolvingAction([
+                {
+                  funcName: 'getCallChainsBySampleIds',
+                  funcArgs: [this.isTopDown],
+                },
+              ]);
+            }
             self.postMessage({
               id: this.currentEventId,
               action: data.action,
-              results: this.handlerMap.get('virtualMemory').resolvingAction([
-                {
-                  funcName: 'getCallChainsBySampleIds',
-                  funcArgs: [true],
-                },
-              ]),
+              results: vmResults,
             });
           }
           break;
         case 'fileSystem-action':
           if (data.params) {
+            this.isTopDown = false;
+            this.handlerMap.get(data.params.callType).isHideEvent = false;
+            this.handlerMap.get(data.params.callType).isHideThread = false;
             let filter = data.params.args.filter((item: any) => item.funcName == 'getCurrentDataFromDb');
+            // 从lib层跳转
+            let libFilter = data.params.args.filter((item: any): boolean => item.funcName === 'showLibLevelData');
+            // 从fun层跳转
+            let funFilter = data.params.args.filter((item: any): boolean => item.funcName === 'showFunLevelData');
+            let callChainsFilter = data.params.args.filter(
+              (item: any): boolean => item.funcName === 'getCallChainsBySampleIds'
+            );
+            callChainsFilter.length > 0 ? (this.isTopDown = callChainsFilter[0].funcArgs[0]) : (this.isTopDown = true);
+            if (libFilter.length !== 0) {
+              this.lib = {
+                libId: libFilter[0].funcArgs[0],
+                libName: libFilter[0].funcArgs[1],
+              };
+            } else if (funFilter.length !== 0) {
+              this.symbol = {
+                symbolId: funFilter[0].funcArgs[0],
+                symbolName: funFilter[0].funcArgs[1],
+              };
+            }
             if (filter.length == 0) {
               // @ts-ignore
               self.postMessage({
@@ -447,9 +530,9 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       });
       this.handlerMap.clear();
     }
-    this.handlerMap.set('fileSystem', new FileSystemCallTreeHandler('fileSystem', this.queryData));
-    this.handlerMap.set('io', new FileSystemCallTreeHandler('io', this.queryData));
-    this.handlerMap.set('virtualMemory', new FileSystemCallTreeHandler('virtualMemory', this.queryData));
+    this.handlerMap.set('fileSystem', new FileSystemCallTreeHandler('fileSystem', this.queryData.bind(this)));
+    this.handlerMap.set('io', new FileSystemCallTreeHandler('io', this.queryData.bind(this)));
+    this.handlerMap.set('virtualMemory', new FileSystemCallTreeHandler('virtualMemory', this.queryData.bind(this)));
     this.queryData(
       this.currentEventId,
       'fileSystem-queryCallchains',
@@ -469,7 +552,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     });
   }
 
-  fileSystemAnalysis(type: number, samplesList: Array<FileSample>): Array<FileAnalysisSample> {
+  fileSystemAnalysis(type: number, samplesList: Array<FileSample>, obj?: any): Array<FileAnalysisSample> {
     let analysisSampleList = new Array<FileAnalysisSample>();
     for (let sample of samplesList) {
       let analysisSample = new FileAnalysisSample(sample);
@@ -503,7 +586,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
         }
       }
       if (!lastCallChain) {
-        continue;
+        lastCallChain = callChainList[callChainList.length - 1];
       }
       analysisSample.libId = lastCallChain.pathId;
       analysisSample.symbolId = lastCallChain.symbolsId;
@@ -515,7 +598,9 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
         symbolName = lastCallChain.ip + ' (' + analysisSample.libName + ')';
       }
       analysisSample.symbolName = symbolName;
-      analysisSampleList.push(analysisSample);
+      if ((obj && obj.libId === analysisSample.libId) || (obj && obj.symbolId === analysisSample.symbolId) || !obj) {
+        analysisSampleList.push(analysisSample);
+      }
     }
     return analysisSampleList;
   }
@@ -551,33 +636,37 @@ class FileSystemCallTreeHandler {
   setEventId(eventId: string): void {
     this.currentEventId = eventId;
   }
-  queryCallChainsSamples(selectionParam: any): void {
+  queryCallChainsSamples(selectionParam: any, sql?: string): void {
     switch (this.currentDataType) {
       case 'fileSystem':
-        this.queryFileSamples(selectionParam);
+        this.queryFileSamples(selectionParam, sql);
         break;
       case 'io':
-        this.queryIOSamples(selectionParam);
+        this.queryIOSamples(selectionParam, sql);
         break;
       case 'virtualMemory':
-        this.queryPageFaultSamples(selectionParam);
+        this.queryPageFaultSamples(selectionParam, sql);
         break;
     }
   }
 
-  queryFileSamples(selectionParam: any): void {
-    let sql = '';
-    if (selectionParam.fileSystemType !== undefined && selectionParam.fileSystemType.length > 0) {
-      sql += ' and s.type in (';
-      sql += selectionParam.fileSystemType.join(',');
-      sql += ')';
-    }
-    if (
-      selectionParam.diskIOipids.length > 0 &&
-      !selectionParam.diskIOLatency &&
-      selectionParam.fileSystemType.length === 0
-    ) {
-      sql += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
+  queryFileSamples(selectionParam: any, sql?: string): void {
+    let sqlFilter = '';
+    if (sql) {
+      sqlFilter = sql;
+    } else {
+      if (selectionParam.fileSystemType !== undefined && selectionParam.fileSystemType.length > 0) {
+        sqlFilter += ' and s.type in (';
+        sqlFilter += selectionParam.fileSystemType.join(',');
+        sqlFilter += ')';
+      }
+      if (
+        selectionParam.diskIOipids.length > 0 &&
+        !selectionParam.diskIOLatency &&
+        selectionParam.fileSystemType.length === 0
+      ) {
+        sqlFilter += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
+      }
     }
     this.queryData(
       this.currentEventId,
@@ -585,7 +674,7 @@ class FileSystemCallTreeHandler {
       `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from file_system_sample s,trace_range t 
 left join process p on p.id = s.ipid  
 left join thread h on h.id = s.itid 
-where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} and callchain_id != -1;`,
+where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -593,8 +682,8 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     );
   }
 
-  queryIOSamples(selectionParam: any): void {
-    let sql = '';
+  queryIOSamples(selectionParam: any, sql?: string): void {
+    let sqlFilter = '';
     const types: number[] = [];
     if (selectionParam.diskIOReadIds.length > 0) {
       types.push(...[1, 3]);
@@ -604,7 +693,13 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     }
     if (selectionParam.diskIOipids.length > 0) {
       types.push(...[5, 6]);
-      sql += `and (s.ipid in (${selectionParam.diskIOipids.join(',')}) and s.type in (${types.join(',')})) `;
+    }
+    if (sql) {
+      sqlFilter = sql;
+    } else {
+      if (selectionParam.diskIOipids.length > 0) {
+        sqlFilter += `and (s.ipid in (${selectionParam.diskIOipids.join(',')}) and s.type in (${types.join(',')})) `;
+      }
     }
 
     this.queryData(
@@ -613,7 +708,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.latency_dur as dur,s.type,p.pid,p.name as processName from bio_latency_sample s,trace_range t
 left join process p on p.id = s.ipid
 left join thread h on h.id = s.itid
-where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} and callchain_id != -1;`,
+where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -621,14 +716,18 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
     );
   }
 
-  queryPageFaultSamples(selectionParam: any): void {
-    let sql = '';
-    if (
-      selectionParam.diskIOipids.length > 0 &&
-      !selectionParam.diskIOLatency &&
-      !selectionParam.fileSysVirtualMemory
-    ) {
-      sql += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
+  queryPageFaultSamples(selectionParam: any, sql?: string): void {
+    let sqlFilter = '';
+    if (sql) {
+      sqlFilter = sql;
+    } else {
+      if (
+        selectionParam.diskIOipids.length > 0 &&
+        !selectionParam.diskIOLatency &&
+        !selectionParam.fileSysVirtualMemory
+      ) {
+        sqlFilter += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
+      }
     }
     this.queryData(
       this.currentEventId,
@@ -636,7 +735,7 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
       `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from paged_memory_sample s,trace_range t 
 left join process p on p.id = s.ipid  
 left join thread h on h.id = s.itid 
-where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} and callchain_id != -1;`,
+where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -815,7 +914,22 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${sql} 
               this.freshCurrentCallChains(this.samplesList, paramItem.funcArgs[0]);
               break;
             case 'getCurrentDataFromDb':
-              this.queryCallChainsSamples(paramItem.funcArgs[0]);
+              if (paramItem.funcArgs[1]) {
+                let funcArgs = paramItem.funcArgs[1];
+                let sql = '';
+                if (funcArgs.processId !== undefined) {
+                  sql += `and p.pid = ${funcArgs.processId}`;
+                }
+                if (funcArgs.typeId !== undefined) {
+                  sql += ` and s.type = ${funcArgs.typeId}`;
+                }
+                if (funcArgs.threadId !== undefined) {
+                  sql += ` and h.tid = ${funcArgs.threadId}`;
+                }
+                this.queryCallChainsSamples(paramItem.funcArgs[0], sql);
+              } else {
+                this.queryCallChainsSamples(paramItem.funcArgs[0]);
+              }
               break;
             case 'hideSystemLibrary':
               merageBeanDataSplit.hideSystemLibrary(this.allProcess, this.splitMapData);

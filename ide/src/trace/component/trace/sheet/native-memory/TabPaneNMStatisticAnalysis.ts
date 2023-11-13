@@ -24,6 +24,8 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import { TabPaneFilter } from '../TabPaneFilter.js';
 import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
 import { initSort } from '../SheetUtils.js';
+import { TabpaneNMCalltree } from './TabPaneNMCallTree.js';
+import { FilterByAnalysis } from '../../../../bean/NativeHook.js';
 
 const TYPE_ALLOC_STRING = 'AllocEvent';
 const TYPE_MAP_STRING = 'MmapEvent';
@@ -37,7 +39,7 @@ const PIE_CHART_LIMIT = 20;
 
 class AnalysisObj {
   tName?: string;
-  tid: number = 0;
+  tid?: number;
   typeName?: string;
   typeId?: number;
   libName?: string;
@@ -125,6 +127,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   private filterEl: TabPaneFilter | undefined | null;
   private hideThreadCheckBox: LitCheckBox | undefined | null;
 
+  get titleTxt(): string | null {
+    return this.titleEl!.textContent;
+  }
+
   set data(statisticAnalysisParam: SelectionParam) {
     if (statisticAnalysisParam === this.currentSelection) {
       // @ts-ignore
@@ -190,6 +196,9 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       this.getNMTypeSize(this.currentSelection, this.processData);
     });
     for (let nmTable of this.nmTableArray) {
+      nmTable!.addEventListener('contextmenu', function (event) {
+        event.preventDefault(); // 阻止默认的上下文菜单弹框
+      });
       nmTable!.addEventListener('column-click', (evt) => {
         // @ts-ignore
         this.nmSortColumn = evt.detail.key;
@@ -213,26 +222,83 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
     this.tableType!.addEventListener('row-click', (evt) => {
       // @ts-ignore
+      let button = evt.detail.button;
+      // @ts-ignore
       let data = evt.detail.data;
-      if (data.tableName !== '' && data.existSize !== 0) {
-        this.nativeProcessLevelClickEvent(data);
+      if (button === 0) {
+        if (data.tableName !== '' && data.existSize !== 0) {
+          this.nativeProcessLevelClickEvent(data);
+        }
+      } else if (button === 2) {
+        const typeName = data.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : data.typeName;
+        this.clickRight(evt, typeName);
       }
     });
     this.threadUsageTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.existSize !== 0) {
-        this.nativeThreadLevelClickEvent(data);
-      }
-    });
-
-    this.soUsageTbl!.addEventListener('row-click', (evt) => {
+      let button = evt.detail.button;
       // @ts-ignore
       let data = evt.detail.data;
-      if (data.tableName !== '' && data.existSize !== 0) {
-        this.nativeSoLevelClickEvent(data);
+      if (button === 0) {
+        if (data.tableName !== '' && data.existSize !== 0) {
+          this.nativeThreadLevelClickEvent(data);
+        }
+      } else if (button === 2) {
+        let title = `${this.titleEl!.textContent}/${data.tName}`;
+        this.clickRight(evt, title);
       }
     });
+    this.soUsageTbl!.addEventListener('row-click', (evt) => {
+      // @ts-ignore
+      let button = evt.detail.button;
+      // @ts-ignore
+      let data = evt.detail.data;
+      if (button === 0) {
+        if (data.tableName !== '' && data.existSize !== 0) {
+          this.nativeSoLevelClickEvent(data);
+        }
+      } else if (button === 2) {
+        let title = `${this.titleEl!.textContent}/${data.libName}`;
+        this.clickRight(evt, title);
+      }
+    });
+    this.functionUsageTbl?.addEventListener('row-click', (evt) => {
+      // @ts-ignore
+      let title = `${this.titleEl!.textContent}/${evt.detail.data.symbolName}`;
+      this.clickRight(evt, title);
+    });
+  }
+
+  private clickRight(evt: any, title: string): void {
+    if (evt.detail.button === 2) {
+      let treeTab = this.parentElement?.parentElement?.querySelector<TabpaneNMCalltree>(
+        '#box-native-calltree > tabpane-nm-calltree'
+      );
+      treeTab!.analysisTabWidth = this.clientWidth;
+      const data = evt.detail.data as AnalysisObj;
+      treeTab!.filterData = new FilterByAnalysis(
+        data.typeId,
+        data.typeName,
+        data.tName,
+        data.tid,
+        data.libId,
+        data.libName,
+        data.symbolId,
+        data.symbolName
+      );
+      // 首次打开初始化数据 非首次初始化UI
+      if (treeTab?.treeData && treeTab.treeData.length > 0) {
+        treeTab.initUI();
+        treeTab.filterByAnalysis();
+      } else {
+        treeTab!.initFromAnalysis = true;
+        treeTab!.data = this.currentSelection;
+      }
+
+      treeTab!.banTypeAndLidSelect();
+      treeTab!.titleBoxShow = true;
+      treeTab!.titleTxt = title;
+    }
   }
 
   private getDataFromWorker(val: SelectionParam, typeFilter: Array<number | string>): void {
@@ -549,8 +615,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     // @ts-ignore
     let title = typeName;
     if (!this.hideThreadCheckBox?.checked) {
-      this.threadName = `(Thread)${  it.tid}`;
-      title += ` / ${  this.threadName}`;
+      this.threadName = `(Thread)${it.tid}`;
+      title += ` / ${this.threadName}`;
     }
     this.titleEl!.textContent = title;
     this.nmPieChart?.hideTip();
@@ -563,10 +629,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     // @ts-ignore
     let title = typeName || '';
     if (!this.hideThreadCheckBox?.checked && this.threadName.length > 0) {
-      title += ` / ${  this.threadName}`;
+      title += ` / ${this.threadName}`;
     }
     if (it.libName.length > 0) {
-      title += ` / ${  it.libName}`;
+      title += ` / ${it.libName}`;
     }
     this.titleEl!.textContent = title;
     this.nmPieChart?.hideTip();
@@ -679,7 +745,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       analysis.typeId = item.typeId;
       analysis.typeName = item.typeName;
       analysis.tid = tid;
-      analysis.tName = `Thread ${  tid}`;
+      analysis.tName = `Thread ${tid}`;
       analysis.tableName = analysis.tName;
       this.threadData.push(analysis);
     });
@@ -737,6 +803,9 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           continue;
         }
       }
+      if (tid !== undefined && tid !== itemData.tid) {
+        continue;
+      }
       let libId = itemData.libId;
 
       if (libMap.has(libId)) {
@@ -747,6 +816,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         libMap.set(libId, dataArray);
       }
     }
+    this.soData = [];
     libMap.forEach((libItems, libId) => {
       let libPath = SpSystemTrace.DATA_DICT.get(libId)?.split('/');
       let libName = '';

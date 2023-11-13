@@ -89,6 +89,7 @@ import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnima
 import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
 import { type MemoryConfig } from '../bean/MemoryConfig.js';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
+import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent.js';
 
 class DataWorkerThread extends Worker {
   taskMap: any = {};
@@ -642,7 +643,6 @@ export const getTabBoxChildData = (
     and
       not ((B.ts - TR.start_ts + B.dur < ${leftNs}) or (B.ts - TR.start_ts > ${rightNs})) ${condition};
   `;
-  console.log(sql);
   return query('getTabBoxChildData', sql, {});
 };
 
@@ -864,7 +864,7 @@ export const getTabSlices = (
     on
       T.id = C.callid
     where
-      C.ts not null
+      C.ts > 0
     and
       c.dur >= 0
     and
@@ -908,7 +908,7 @@ export const getTabSlicesAsyncFunc = (
       A.id = C.callid
     left join process P on P.id = A.ipid
     where
-      C.ts not null
+      C.ts > 0
     and
       c.dur >= -1
     and 
@@ -2671,7 +2671,8 @@ export const queryPerfSampleListByTimeRange = (
   rightNs: number,
   cpus: Array<number>,
   processes: Array<number>,
-  threads: Array<number>
+  threads: Array<number>,
+  eventTypeId?: number
 ): Promise<Array<PerfSample>> => {
   let sql = `
 select A.callchain_id as sampleId,
@@ -2685,6 +2686,9 @@ from perf_sample A,trace_range R
 left join perf_thread C on A.thread_id = C.thread_id
 where time >= $leftNs and time <= $rightNs and A.thread_id != 0
     `;
+  if (eventTypeId !== undefined) {
+    sql = `${sql} and event_type_id = ${eventTypeId}`;
+  }
   if (cpus.length != 0 || processes.length != 0 || threads.length != 0) {
     let arg1 = cpus.length > 0 ? `or core in (${cpus.join(',')}) ` : '';
     let arg2 = processes.length > 0 ? `or pid in (${processes.join(',')}) ` : '';
@@ -2786,7 +2790,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
    select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
    ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r
-   where c.name like '%${search}%' and startTime > 0 and p.pid in (${processList.join(',')});
+   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
     `,
     { $search: search }
   );
@@ -5624,4 +5628,45 @@ export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
       or
         name='cpu_frequency'
     `
+  );
+
+export const queryRealTime = (): Promise<
+  Array<{
+    ts: number;
+    value: string;
+  }>
+  > =>
+  query(
+    'queryRealTime',
+    `select CS.ts -TR.start_ts as ts ,clock_name
+     from clock_snapshot as CS ,trace_range as TR
+     where clock_name = 'realtime';`
+  );
+export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
+  query(
+    'queryHiSysEventData',
+    `SELECT S.id,
+            D2.data AS domain, 
+            D.data AS eventName, 
+            type AS eventType, 
+            time_zone AS tz, 
+            pid,
+            tid,
+            uid,
+            info,
+            level,
+            seq,
+            contents,
+            S.ts - TR.start_ts AS ts,
+            1 AS dur,
+            CASE
+            WHEN level = 'MINOR' THEN
+             0
+            WHEN level = 'CRITICAL' THEN
+             1
+            END AS depth
+        FROM hisys_all_event AS S ,trace_range AS TR
+        LEFT JOIN data_dict AS D on S.event_name_id = D.id
+        LEFT JOIN data_dict AS D2 on S.domain_id = D2.id
+        ORDER BY S.ts`
   );

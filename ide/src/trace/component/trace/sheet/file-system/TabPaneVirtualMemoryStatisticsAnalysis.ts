@@ -24,11 +24,12 @@ import { procedurePool } from '../../../../database/Procedure.js';
 import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
 import { TabPaneFilter } from '../TabPaneFilter.js';
 import { initSort } from '../SheetUtils.js';
+import { TabPaneVMCallTree } from './TabPaneIOCallTree.js';
 
 @element('tabpane-virtual-memory-statistics-analysis')
 export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   private vmPieChart: LitChartPie | null | undefined;
-  private vmStatisticsAnalysisCurrentSelection: SelectionParam | null | undefined;
+  private vmCurrentSelection: SelectionParam | null | undefined;
   private vmStatisticsAnalysisProcessData: any;
   private vmStatisticsAnalysisPidData!: any[];
   private vmStatisticsAnalysisThreadData!: any[];
@@ -65,7 +66,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   private vmTableArray: NodeListOf<LitTable> | undefined | null;
 
   set data(vmStatisticsAnalysisSelection: SelectionParam) {
-    if (vmStatisticsAnalysisSelection === this.vmStatisticsAnalysisCurrentSelection) {
+    if (vmStatisticsAnalysisSelection === this.vmCurrentSelection) {
       this.vmStatisticsAnalysisPidData.unshift(this.processStatisticsData);
       this.vmStatisticsAnalysisTableProcess!.recycleDataSource = this.vmStatisticsAnalysisPidData;
       // @ts-ignore
@@ -80,7 +81,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.reset(this.vmStatisticsAnalysisTableProcess!, false);
     this.hideProcessCheckBox!.checked = false;
     this.hideThreadCheckBox!.checked = false;
-    this.vmStatisticsAnalysisCurrentSelection = vmStatisticsAnalysisSelection;
+    this.vmCurrentSelection = vmStatisticsAnalysisSelection;
     this.titleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.vmStatisticsAnalysisRange!.textContent =
@@ -135,6 +136,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         this.vmSortType = evt.detail.sort;
         this.sortByColumn();
       });
+      vmTable!.addEventListener('contextmenu', function (event) {
+        event.preventDefault(); // 阻止默认的上下文菜单弹框
+      });
       vmTable!.addEventListener('row-hover', (evt) => {
         // @ts-ignore
         let detail = evt.detail;
@@ -147,6 +151,34 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         }
         this.vmPieChart?.showHover();
         this.vmPieChart?.hideTip();
+      });
+      vmTable!.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.button === 2) {
+          let vmTab = this.parentElement?.parentElement?.querySelector<TabPaneVMCallTree>(
+            '#box-vm-calltree > tabpane-vm-calltree'
+          );
+          vmTab!.cWidth = this.clientWidth;
+          vmTab!.currentCallTreeLevel = this.currentLevel;
+          if (this.hideProcessCheckBox?.checked) {
+            detail.data.pid = undefined;
+          }
+          if (this.hideThreadCheckBox?.checked) {
+            detail.data.tid = undefined;
+          }
+          vmTab!.rowClickData = detail.data;
+          let title = '';
+          if (this.titleEl?.textContent === '') {
+            title = detail.data.tableName;
+          } else {
+            title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+          }
+          vmTab!.pieTitle = title;
+          //  是否是在表格上右键点击跳转到火焰图的
+          this.vmCurrentSelection!.isRowClick = true;
+          vmTab!.data = this.vmCurrentSelection;
+        }
       });
     }
     for (let box of this.checkBoxs) {
@@ -162,34 +194,20 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         }
       });
     }
-    this.vmStatisticsAnalysisTableProcess!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.vmProcessLevelClickEvent(data);
-      }
-    });
-    this.vmStatisticsAnalysisTableType!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.vmTypeLevelClickEvent(data);
-      }
-    });
-    this.vmStatisticsAnalysisTableThread!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.vmThreadLevelClickEvent(data);
-      }
-    });
-    this.vmStatisticsAnalysisTableSo!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.tableName !== '' && data.duration !== 0) {
-        this.vmSoLevelClickEvent(data);
-      }
-    });
+    const addRowClickEventListener = (vmTable: LitTable, clickEvent: Function) => {
+      vmTable.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        const detail = evt.detail;
+        if (detail.button === 0 && detail.data.tableName !== '' && detail.data.duration !== 0) {
+          clickEvent(detail.data, this.vmCurrentSelection);
+        }
+      });
+    };
+
+    addRowClickEventListener(this.vmStatisticsAnalysisTableProcess!, this.vmProcessLevelClickEvent.bind(this));
+    addRowClickEventListener(this.vmStatisticsAnalysisTableType!, this.vmTypeLevelClickEvent.bind(this));
+    addRowClickEventListener(this.vmStatisticsAnalysisTableThread!, this.vmThreadLevelClickEvent.bind(this));
+    addRowClickEventListener(this.vmStatisticsAnalysisTableSo!, this.vmSoLevelClickEvent.bind(this));
   }
 
   private reset(showTable: LitTable, isShowBack: boolean): void {
@@ -913,7 +931,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       }
       const symbolData = {
         pid: item.pid,
+        type: item.type,
         tid: item.tid,
+        libId: item.libId,
+        symbol: key,
         percent: ((dur / allDur) * 100).toFixed(2),
         tableName: symbolName,
         durFormat: Utils.getProbablyTime(dur),

@@ -152,6 +152,9 @@ export class LitTreeNode extends BaseElement {
     };
     this.checkboxElement!.onchange = (e: any): boolean => {
       e.stopPropagation();
+      if (this._data && this._data.disable === true) {
+        return false;
+      }
       this.onChange(e.detail.checked);
       return false;
     };
@@ -161,6 +164,9 @@ export class LitTreeNode extends BaseElement {
     };
     this.itemElement!.onclick = (e): void => {
       e.stopPropagation();
+      if (this._data && this._data.disable === true) {
+        return;
+      }
       this.onChange(!this.data?.checked);
     };
   }
@@ -467,7 +473,7 @@ export class LitTreeNode extends BaseElement {
       }
     } else if (name === 'checkable') {
       if (this.checkboxElement) {
-        if (newValue === 'true') {
+        if (newValue === 'true' && this._data!.disable !== true) {
           this.checkboxElement!.style.display = 'inline-block';
         } else {
           this.checkboxElement!.style.display = 'none';

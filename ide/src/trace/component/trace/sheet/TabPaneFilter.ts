@@ -572,7 +572,7 @@ export class TabPaneFilter extends BaseElement {
           inputs[0].value = '0';
           inputs[1].value = '∞';
         }
-        this.filterInputEL!.value = ''
+        this.filterInputEL!.value = '';
         this.transferChecked = radioList![idx].value;
         radioList![idx].checked = true;
         if (this.getCallTransfer) {

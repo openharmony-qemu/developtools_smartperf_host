@@ -18,7 +18,6 @@ import { Rect } from '../trace/timer-shaft/Rect.js';
 import { ChartMode, ChartStruct, draw, setFuncFrame } from '../../bean/FrameChartStruct.js';
 import { SpApplication } from '../../SpApplication.js';
 import { Utils } from '../trace/base/Utils.js';
-import { SpHiPerf } from './SpHiPerf.js';
 
 const scaleHeight = 30; // 刻度尺高度
 const depthHeight = 20; // 调用栈高度
@@ -780,6 +779,8 @@ export class FrameChart extends BaseElement {
     }
     const name = hoverNode?.symbol.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const percent = ((hoverNode?.percent || 0) * 100).toFixed(2);
+    const threadPercent = this.getCurrentPercentOfThread(hoverNode);
+    const processPercent = this.getCurrentPercentOfProcess(hoverNode);
     switch (this._mode) {
       case ChartMode.Byte:
         const size = Utils.getByteWithUnit(this.getNodeValue(hoverNode));
@@ -791,32 +792,6 @@ export class FrameChart extends BaseElement {
                     <span class="bold">Size: </span> <span>${size} (${percent}%) </span> <br>
                     <span class="bold">Count: </span> <span>${hoverNode?.count} (${countPercent}%)</span>`;
         break;
-      case ChartMode.Count:
-        const count = this.getNodeValue(hoverNode);
-        this.hintContent = `
-                    <span class="bold">Name: </span> <span class="text">${name} </span> <br>
-                    <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
-                    <br>
-                    <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span>
-                    <br>
-                    <span class="bold">Count: </span> <span> ${count}</span>`;
-        if (hoverNode.threadEventPercent) {
-          this.hintContent += ` 
-          <br>
-          <span class="bold">percentage in current Thread:</span> <span>${
-            hoverNode.threadPercent ? (hoverNode.threadPercent * 100).toFixed(2) : ''
-          }%</span>`;
-        }
-        if (hoverNode.processEventPercent) {
-          this.hintContent += `
-          <br>
-          <span class="bold">percentage in current Process:</span> <span>${
-            hoverNode.processPercent ? (hoverNode.processPercent * 100).toFixed(2) : ''
-          }%</span>`;
-        }
-        this.hintContent += `<br>
-        <span class="bold">percentage in all Process: </span> <span> ${percent}%</span>`;
-        break;
       case ChartMode.Duration:
         const duration = Utils.getProbablyTime(this.getNodeValue(hoverNode));
         this.hintContent = `
@@ -825,33 +800,80 @@ export class FrameChart extends BaseElement {
                     <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                     <span class="bold">Duration: </span> <span>${duration} (${percent}%)</span>`;
+        if (threadPercent) {
+          this.hintContent += ` 
+                        <br>
+                        <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
+        }
+        if (processPercent) {
+          this.hintContent += `
+                        <br>
+                        <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
+        }
+        this.hintContent += `<br>
+                      <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
         break;
       case ChartMode.EventCount:
-        const eventCount = this.getNodeValue(hoverNode);
+      case ChartMode.Count:
+        const label = ChartMode.Count === this._mode ? 'Count' : 'EventCount';
+        const count = this.getNodeValue(hoverNode);
         this.hintContent = `
                       <span class="bold">Name: </span> <span class="text">${name} </span> <br>
                       <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span>
                       <br>
                       <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span>
                       <br>
-                      <span class="bold">EventCount: </span> <span> ${eventCount}</span>`;
-        if (hoverNode.threadEventPercent) {
-          this.hintContent += `
-          <br>
-          <span class="bold">percentage in current Thread:</span> <span>${
-            hoverNode.threadEventPercent ? (hoverNode.threadEventPercent * 100).toFixed(2) + '%' : ''
-          }</span>`;
+                      <span class="bold">${label}: </span> <span> ${count}</span>`;
+        if (threadPercent) {
+          this.hintContent += ` 
+            <br>
+            <span class="bold">% in current Thread:</span> <span>${threadPercent}%</span>`;
         }
-        if (hoverNode.processEventPercent) {
+        if (processPercent) {
           this.hintContent += `
-          <br>
-          <span class="bold">percentage in current Process:</span> <span>${
-            hoverNode.processEventPercent ? (hoverNode.processEventPercent * 100).toFixed(2) + '%' : ''
-          }%</span>`;
+            <br>
+            <span class="bold">% in current Process:</span> <span>${processPercent}%</span>`;
         }
         this.hintContent += `<br>
-        <span class="bold">percentage in all Process: </span> <span> ${percent}%</span>`;
+          <span class="bold">% in all Process: </span> <span> ${percent}%</span>`;
+        break;
     }
+  }
+
+  private getCurrentPercentOfThread(node: ChartStruct): string {
+    const threadNode = this.findCurrentNodeThread(node);
+    if (threadNode) {
+      return ((this.getNodeValue(node) / this.getNodeValue(threadNode)) * 100).toFixed(2);
+    }
+    return '';
+  }
+
+  private getCurrentPercentOfProcess(node: ChartStruct): string {
+    const processNode = this.findCurrentNodeProcess(node);
+    if (processNode) {
+      return ((this.getNodeValue(node) / this.getNodeValue(processNode)) * 100).toFixed(2);
+    }
+    return '';
+  }
+
+  private findCurrentNodeThread(node: ChartStruct): ChartStruct | null {
+    while (node.parent) {
+      if (node.parent.isThread) {
+        return node.parent;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
+  private findCurrentNodeProcess(node: ChartStruct): ChartStruct | null {
+    while (node.parent) {
+      if (node.parent.isProcess) {
+        return node.parent;
+      }
+      node = node.parent;
+    }
+    return null;
   }
 
   /**
@@ -886,14 +908,21 @@ export class FrameChart extends BaseElement {
    */
   private listenerResize(): void {
     new ResizeObserver(() => {
-      if (this.canvas!.getBoundingClientRect()) {
-        const box = this.canvas!.getBoundingClientRect();
-        const element = document.documentElement;
-        this.startX = box.left + Math.max(element.scrollLeft, document.body.scrollLeft) - element.clientLeft;
-        this.startY =
-          box.top + Math.max(element.scrollTop, document.body.scrollTop) - element.clientTop + this.canvasScrollTop;
+      this.resizeChange();
+      if (this.rootNode) {
+        this.rootNode.frame!.width = this.canvas.clientWidth;
       }
-    }).observe(document.documentElement);
+    }).observe(this);
+  }
+
+  public resizeChange(): void {
+    if (this.canvas!.getBoundingClientRect()) {
+      const box = this.canvas!.getBoundingClientRect();
+      const element = document.documentElement;
+      this.startX = box.left + Math.max(element.scrollLeft, document.body.scrollLeft) - element.clientLeft;
+      this.startY =
+        box.top + Math.max(element.scrollTop, document.body.scrollTop) - element.clientTop + this.canvasScrollTop;
+    }
   }
 
   public initElements(): void {

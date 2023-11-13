@@ -28,6 +28,7 @@ import {
 import { Utils } from '../trace/base/Utils.js';
 import { PerfThread } from '../../bean/PerfProfile.js';
 import { HiperfCpuRender, HiPerfCpuStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCPU.js';
+import { HiPerfCallChartRender, HiPerfCallChartStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCallChart.js';
 import { HiperfThreadRender, HiPerfThreadStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfThread.js';
 import { HiperfProcessRender, HiPerfProcessStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfProcess.js';
 import { info } from '../../../log/Log.js';
@@ -37,6 +38,8 @@ import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 import { type HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfReport.js';
 import { SpChartManager } from './SpChartManager.js';
+import { procedurePool } from '../../database/Procedure.js';
+import { HiPerfChartFrame } from '../../bean/PerfStruct.js';
 
 export interface ResultData {
   existA: boolean | null | undefined;
@@ -58,6 +61,12 @@ export class SpHiPerf {
   private group: any;
   private rowList: TraceRow<any>[] | undefined;
   private eventTypeList: Array<{ id: number; report: string }> = [];
+  private allCombineDataMap = new Map<number, HiPerfChartFrame>();
+  private callChartType: number = 0;
+  private callChartId: number = 0;
+  private eventTypeId: number = -2;
+
+  public threadDataList: any = [];
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -65,15 +74,22 @@ export class SpHiPerf {
 
   async init() {
     await this.initCmdLine();
+    this.eventTypeList = await queryPerfEventType();
     this.rowList = [];
     this.perfThreads = await queryPerfThread();
-    this.eventTypeList = await queryPerfEventType();
     info('PerfThread Data size is: ', this.perfThreads!.length);
     this.group = Utils.groupBy(this.perfThreads || [], 'pid');
+    Reflect.ownKeys(this.group).forEach((v, i) => {
+      this.threadDataList.push((this.group[v] as Array<PerfThread>).filter((item: any) => { return item.pid === item.tid })[0])
+    })
     this.cpuData = await queryHiPerfCpuMergeData2();
+    this.callChartType = 0;
+    this.callChartId = 0;
+    this.eventTypeId = -2;
     this.maxCpuId = this.cpuData.length > 0 ? this.cpuData[0].cpu_id : -Infinity;
     if (this.cpuData.length > 0) {
       await this.initFolder();
+      await this.initCallChart();
       await this.initCpuMerge();
       await this.initCpu();
       await this.initProcess();
@@ -113,6 +129,7 @@ export class SpHiPerf {
     row.rowType = TraceRow.ROW_TYPE_HIPERF;
     row.rowParentId = '';
     row.folder = true;
+    row.drawType = -2;
     row.rowSetting = 'enable';
     row.rowSettingPopoverDirection = 'bottomLeft';
     row.rowSettingList = [
@@ -121,36 +138,35 @@ export class SpHiPerf {
         title: 'Cpu Usage',
         checked: true,
       },
-      {
-        key: '-1',
-        title: 'Event Type',
-        children: this.eventTypeList.map(et => {
-          return {
-            key: `${et.id}`,
-            title: et.report
-          };
-        }),
-      },
+      ...this.eventTypeList.map(et => {
+        return {
+          key: `${et.id}`,
+          title: et.report
+        };
+      }),
     ];
     row.onRowSettingChangeHandler = (value) => {
       let drawType = parseInt(value[0]);
-      row.childrenList.forEach((child) => {
-        if (child.drawType !== drawType) {
-          child.drawType = drawType;
-          child.dataList2 = [];
-          child.childrenList.forEach((sz) => {
-            sz.drawType = drawType
-            sz.dataList2 = [];
-          });
-        }
-      });
-      this.trace.getCollectRows((row) => row.rowType!.startsWith('hiperf-')).forEach((it) => {
-        if (it.drawType !== drawType) {
-          it.drawType = drawType;
-          it.dataList2 = [];
-        }
-      });
-      this.trace.refreshCanvas(false);
+      if (this.eventTypeId !== drawType) {
+        this.eventTypeId = drawType;
+        row.drawType = drawType;
+        row.childrenList.forEach((child) => {
+          if (child.drawType !== drawType) {
+            child.drawType = drawType;
+            if (child.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
+              this.resetChartData(child);
+            } else {
+              child.drawType = drawType;
+              child.dataList2 = [];
+              child.childrenList.forEach((sz) => {
+                sz.drawType = drawType
+                sz.dataList2 = [];
+              });
+            }
+          }
+        });
+        this.trace.refreshCanvas(false);
+      }
     };
     row.style.height = '40px';
     if (SpHiPerf.stringResult?.existA === true) {
@@ -184,6 +200,131 @@ export class SpHiPerf {
     };
     this.rowFolder = row;
     this.trace.rowsEL?.appendChild(row);
+  }
+
+  // callchart泳道
+  async initCallChart() {
+    let perfCallCutRow = TraceRow.skeleton<HiPerfCallChartStruct>();
+    perfCallCutRow.rowId = `HiPerf-callchart`;
+    perfCallCutRow.index = 0;
+    perfCallCutRow.rowType = TraceRow.ROW_TYPE_PERF_CALLCHART;
+    perfCallCutRow.enableCollapseChart();
+    perfCallCutRow.rowParentId = 'HiPerf';
+    perfCallCutRow.rowHidden = !this.rowFolder.expansion;
+    perfCallCutRow.folder = false;
+    perfCallCutRow.drawType = -2;
+    perfCallCutRow.name = 'CallChart [cpu0]';
+    perfCallCutRow.setAttribute('children', '');
+    perfCallCutRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    perfCallCutRow.selectChangeHandler = this.trace.selectChangeHandler;
+    this.rowFolder.addChildTraceRow(perfCallCutRow);
+    perfCallCutRow.focusHandler = (): void => {
+      let hoverStruct = HiPerfCallChartStruct.hoverPerfCallCutStruct;
+      if (hoverStruct) {
+        let selfDur = hoverStruct?.totalTime || 0;
+        hoverStruct?.children?.forEach(child => {
+          selfDur -= child.totalTime;
+        });
+        this.trace?.displayTip(
+          perfCallCutRow!,
+          HiPerfCallChartStruct.hoverPerfCallCutStruct,
+          `<span style="font-weight: bold;color:'#000'">Name: </span>
+        <span>${HiPerfCallChartStruct.hoverPerfCallCutStruct?.name || ''}</span><br>
+        <span style='font-weight: bold;'>Lib: </span>
+        <span>${perfDataQuery.getLibName(hoverStruct!.fileId,hoverStruct!.symbolId)}</span><br>
+        <span style='font-weight: bold;'>Self Time: </span>
+        <span>${Utils.getProbablyTime(selfDur || 0)}</span><br>
+        <span style='font-weight: bold;'>Event Count: </span>
+        <span>${HiPerfCallChartStruct.hoverPerfCallCutStruct?.eventCount || ''}</span><br>`
+        );
+      }
+    };
+    // @ts-ignore
+    perfCallCutRow.supplier = () => this.getHiPerfChartData(this.callChartType, this.callChartId, this.eventTypeId, perfCallCutRow);
+    perfCallCutRow.findHoverStruct = () => {
+      HiPerfCallChartStruct.hoverPerfCallCutStruct = perfCallCutRow.getHoverStruct();
+    };
+    await this.setCallTotalRow(perfCallCutRow, this.cpuData, this.threadDataList);
+  }
+
+  // callchart级联单选按钮
+  async setCallTotalRow(row: TraceRow<any>, cpuData: any = Array, threadData: any = Array) {
+    row.addTemplateTypes('hiperf-callchart');
+    row.rowSetting = 'enable';
+    row.rowSettingList = [
+      {
+        key: "cpu",
+        title: 'Cpu',
+        disable: true,
+        children: [
+          ...cpuData.reverse().map((it: any): {
+              key: string;
+              title: string;
+              checked?: boolean
+            } => {
+              return {
+                key: `${it.cpu_id}c`,
+                checked: it.cpu_id === 0,
+                title: `cpu${it.cpu_id}`,
+              };
+            }
+          ),
+        ]
+      },
+      {
+        key: "thread",
+        title: 'Thread',
+        disable: true,
+        children: [
+          ...threadData.map(
+            (it: any): {
+              key: string;
+              title: string;
+            } => {
+              return {
+                key: `${it.tid}t`,
+                title: `${it.threadName || 'Thread'}(${it.tid})`
+              }
+            }
+          )
+        ]
+      }
+    ];
+    row.onRowSettingChangeHandler = (setting: any, nodes): void => {
+      if (setting && setting.length > 0) {
+        // 0:cpu,1:thread
+        let key = setting[0];
+        let type = key.indexOf('c') > -1 ? 0 : 1;
+        let id = Number(key.indexOf('c') > -1 ?
+          key.substring(0, key.indexOf('c')) : key.substring(0, key.indexOf('t')));
+        if (this.callChartType === type && this.callChartId === id) {
+          return;
+        }
+        this.callChartType = type;
+        this.callChartId = id;
+        row.name = `CallChart [${nodes[0].title}]`;
+        this.resetChartData(row);
+        this.trace.refreshCanvas(false);
+      }
+    };
+    row.onThreadHandler = (useCache: any) => {
+      let context: CanvasRenderingContext2D;
+      if (row.currentContext) {
+        context = row.currentContext;
+      } else {
+        context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      row.canvasSave(context);
+      (renders['HiPerf-callchart'] as HiPerfCallChartRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: `HiPerf-callchart`,
+        },
+        row
+      );
+      row.canvasRestore(context);
+    };
   }
 
   async initCpuMerge() {
@@ -378,13 +519,79 @@ export class SpHiPerf {
     });
   }
 
-  updateChartData() {
-    this.rowList?.forEach((it) => {
-      it.dataList = [];
-      it.dataList2 = [];
-      it.dataListCache = [];
-      it.isComplete = false;
-    });
+  async getHiPerfChartData(type: number, id: number, eventTypeId: number, row: TraceRow<any>) {
+    let source: Array<HiPerfChartFrame> = [];
+    await new Promise((resolve) => {
+      procedurePool.submitWithName('logic0', 'perf-callstack-chart', [type, id, eventTypeId], undefined, (res: any) => {
+        this.onlyOneSampleHandler(res);
+        this.getAllCombineData(res, source);
+        this.allCombineDataMap = new Map<number, HiPerfChartFrame>();
+        for (let data of source) {
+          this.allCombineDataMap.set(data.id, data);
+        }
+        let max = 1;
+        for (let i = 0; i < source.length; i++) {
+          if (source[i].depth > max) {
+            max = source[i].depth
+          }
+        }
+        let maxHeight = max * 20;
+        row.funcMaxHeight = maxHeight;
+        if (row.funcExpand) {
+          row!.style.height = `${maxHeight}px`;
+          if (row.collect) {
+            window.publish(window.SmartEvent.UI.RowHeightChange, {
+              expand: true,
+              value: row.funcMaxHeight - 20,
+            });
+          }
+        }
+        resolve(source);
+      });
+    })
+    return source;
+  }
+
+  getAllCombineData(
+    combineData: Array<HiPerfChartFrame>,
+    allCombineData: Array<HiPerfChartFrame>
+  ): void {
+    for (let data of combineData) {
+      if (data.name != 'name') {
+        allCombineData.push(data);
+      }
+      if (data.children && data.children.length > 0) {
+        this.getAllCombineData(data.children, allCombineData);
+      }
+    }
+  }
+
+  onlyOneSampleHandler(res: Array<HiPerfChartFrame>) : void{
+    if (res.length === 1 && res[0].totalTime === 0) {
+      let deepFunc = (data: HiPerfChartFrame) => {
+        if (data.totalTime === 0) {
+          data.endTime = (window as any).totalNS;
+          data.totalTime = data.endTime - data.startTime;
+          if (data.children && data.children.length > 0) {
+            for (const child of data.children) {
+              deepFunc(child);
+            }
+          }
+        }
+      };
+      deepFunc(res[0]);
+    }
+  }
+
+  resetChartData(row: TraceRow<any>) {
+    row.dataList = [];
+    row.dataList2 = [];
+    row.dataListCache = [];
+    row.isComplete = false;
+  }
+
+  resetAllChartData() : void {
+    this.rowList?.forEach(row => this.resetChartData(row));
   }
 
   hoverTip(
@@ -414,7 +621,6 @@ export class SpHiPerf {
         } else {
           tip = `<span>${struct.eventCount} (10.00ms)</span>`;
         }
-
       } else {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);
         tip = `<span>${perfCall ? perfCall.name : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;

@@ -145,6 +145,9 @@ export class TraceSheet extends BaseElement {
 
   initElements(): void {
     this.litTabs = this.shadowRoot?.querySelector('#tabs');
+    this.litTabs!.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.switchDiv = this.shadowRoot?.querySelector('#select-process');
     this.processTree = this.shadowRoot?.querySelector('#processTree');
@@ -178,6 +181,48 @@ export class TraceSheet extends BaseElement {
     });
     this.getComponentByID<any>('box-spt')!.addEventListener('row-click', this.rowClickHandler.bind(this));
     this.getComponentByID<any>('box-pts')!.addEventListener('row-click', this.rowClickHandler.bind(this));
+    this.getComponentByID<any>('box-perf-analysis')!.addEventListener('row-click', (evt: MouseEvent) => {
+      // @ts-ignore
+      if (evt.detail.button === 2) {
+        let pane = this.getPaneByID('box-perf-profile');
+        this.litTabs!.activeByKey(pane.key);
+      }
+    });
+    this.getComponentByID<any>('box-native-statistic-analysis')!.addEventListener('row-click', (e: MouseEvent) => {
+      //@ts-ignore
+      if (e.detail.button === 2) {
+        let pane = this.getPaneByID('box-native-calltree');
+        pane.hidden = false;
+        this.litTabs!.activeByKey(pane.key);
+      }
+    });
+    this.getComponentByID<any>('box-io-tier-statistics-analysis')!.addEventListener('row-click', (evt: MouseEvent) => {
+      // @ts-ignore
+      if (evt.detail.button === 2) {
+        let pane = this.getPaneByID('box-io-calltree');
+        this.litTabs!.activeByKey(pane.key);
+      }
+    });
+    this.getComponentByID<any>('box-virtual-memory-statistics-analysis')!.addEventListener(
+      'row-click',
+      (evt: MouseEvent) => {
+        // @ts-ignore
+        if (evt.detail.button === 2) {
+          let pane = this.getPaneByID('box-vm-calltree');
+          this.litTabs!.activeByKey(pane.key);
+        }
+      }
+    );
+    this.getComponentByID<any>('box-file-system-statistics-analysis')!.addEventListener(
+      'row-click',
+      (evt: MouseEvent) => {
+        // @ts-ignore
+        if (evt.detail.button === 2) {
+          let pane = this.getPaneByID('box-file-system-calltree');
+          this.litTabs!.activeByKey(pane.key);
+        }
+      }
+    );
     this.getComponentByID<any>('box-native-statstics')!.addEventListener('row-click', (e: any) => {
       this.selection!.statisticsSelectData = e.detail;
       let pane = this.getPaneByID('box-native-memory');
@@ -460,9 +505,10 @@ export class TraceSheet extends BaseElement {
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStaticInitData(data, scrollCallback);
 
-  displayNativeHookData = (data: HeapStruct, rowType: string): void => {
+  displayNativeHookData = (data: HeapStruct, rowType: string, ipid: number): void => {
     let val = new SelectionParam();
     val.nativeMemoryStatistic.push(rowType);
+    val.nativeMemoryCurrentIPid = ipid;
     val.nativeMemory = [];
     val.leftNs = data.startTime!;
     val.rightNs = data.dur === 0 ? data.startTime! : data.startTime! + data.dur! - 1;
@@ -789,6 +835,7 @@ export class TraceSheet extends BaseElement {
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
     if (component) {
+      this.selection!.isRowClick = false;
       component.data = this.selection;
     }
   }
