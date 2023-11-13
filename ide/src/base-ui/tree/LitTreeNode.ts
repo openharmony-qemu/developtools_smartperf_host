@@ -144,6 +144,10 @@ export class LitTreeNode extends BaseElement {
     this.iconElement = this.shadowRoot!.querySelector<LitIcon>('#icon');
     this.itemElement = this.shadowRoot!.querySelector<HTMLDivElement>('#item');
     this.checkboxElement = this.shadowRoot!.querySelector<HTMLInputElement>('#checkbox');
+    this.arrowElement!.onclick = (e): void => {
+      e.stopPropagation();
+      this.autoExpand();
+    };
     this.itemElement!.onclick = (e): void => {
       e.stopPropagation();
       if (this._data && this._data.disable === true) {
@@ -315,6 +319,7 @@ export class LitTreeNode extends BaseElement {
         </style>
         <span id="arrow" style="margin-right: 2px"></span>
         <div id="item" style="display: flex;align-items: center;padding-left: 2px">
+<!--            <lit-check-box id="checkbox"></lit-check-box>-->
             <input id="checkbox" type="radio" style="cursor: pointer; pointer-events: none"/>
             <lit-icon id="icon" name="${this.iconName}"></lit-icon>
             <span id="title">${this.title}</span>

@@ -302,6 +302,12 @@ export class TabPaneNMSampleList extends BaseElement {
       }
     });
     TabPaneNMSampleList.filter!.firstSelect = TabPaneNMSampleList.filterSelect;
+    TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('totalGrowth', (value) => {
+      return `${value['total']}`;
+    });
+    TabPaneNMSampleList.sampleTbl!.exportTextHandleMap.set('growth', (value) => {
+      return `${value['heapSize']}`;
+    });
   }
 
   connectedCallback() {

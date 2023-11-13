@@ -279,6 +279,10 @@ export class TabPaneNMemory extends BaseElement {
     this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {
       return getByteWithUnit(heapSize);
     });
+    this.memoryTbl!.exportTextHandleMap.set('heapSize', (value) => {
+      return `${value['heapSize']}`;
+    });
+
     this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
       if (data.mark) {
         document.dispatchEvent(

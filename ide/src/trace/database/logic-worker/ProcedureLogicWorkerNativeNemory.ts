@@ -990,24 +990,22 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       let callChains = this.createThreadSample(nativeHookSample);
       let topIndex = isTopDown ? 0 : callChains.length - 1;
       if (callChains.length > 0) {
-        let root =
-          this.currentTreeMapData[
+        let key = '';
+        if (this.isHideThread) {
+          key = (callChains[topIndex].symbolId || '') + '-' + (callChains[topIndex].fileId || '');
+        } else {
+          key =
             nativeHookSample.tid +
-              '-' +
-              (callChains[topIndex].symbolId || '') +
-              '-' +
-              (callChains[topIndex].fileId || '')
-          ];
+            '-' +
+            (callChains[topIndex].symbolId || '') +
+            '-' +
+            (callChains[topIndex].fileId || '');
+        }
+        let root = this.currentTreeMapData[key];
         if (root === undefined) {
           root = new NativeHookCallInfo();
           root.threadName = nativeHookSample.threadName;
-          this.currentTreeMapData[
-            nativeHookSample.tid +
-              '-' +
-              (callChains[topIndex].symbolId || '') +
-              '-' +
-              (callChains[topIndex].fileId || '')
-          ] = root;
+          this.currentTreeMapData[key] = root;
           this.currentTreeList.push(root);
         }
         NativeHookCallInfo.merageCallChainSample(root, callChains[topIndex], nativeHookSample);

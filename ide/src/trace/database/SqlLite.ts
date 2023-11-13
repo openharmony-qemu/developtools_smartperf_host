@@ -5639,15 +5639,12 @@ export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
 
 export const queryRealTime = (): Promise<
   Array<{
-    ts: number;
-    value: string;
+    ts: number
   }>
   > =>
   query(
     'queryRealTime',
-    `select CS.ts -TR.start_ts as ts ,clock_name
-     from clock_snapshot as CS ,trace_range as TR
-     where clock_name = 'realtime';`
+    `select CS.ts as ts from clock_snapshot as CS where clock_name = 'realtime';`
   );
 export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
   query(

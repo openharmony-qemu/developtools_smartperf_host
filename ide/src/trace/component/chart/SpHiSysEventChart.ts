@@ -35,17 +35,14 @@ export class SpHiSysEventChart {
     this.trace.rowsEL?.appendChild(eventRow);
   }
   async initRow(hiSysEventData: HiSysEventStruct[]): Promise<TraceRow<HiSysEventStruct>> {
-    let unitIndex: number = 1;
-    let unitHeight: number = 20;
-    let maxHeight: number = (Math.max(...hiSysEventData.map((it) => it.depth || 0)) + unitIndex) * unitHeight;
     let hiSysEventRow = TraceRow.skeleton<HiSysEventStruct>();
     hiSysEventRow.rowParentId = '';
     hiSysEventRow.rowId = 'Hisysevent';
     hiSysEventRow.rowType = TraceRow.ROW_TYPE_HI_SYSEVENT;
     hiSysEventRow.name = 'Hisysevent';
     hiSysEventRow.style.width = '100%';
-    hiSysEventRow.style.height = `${maxHeight}px`;
-    hiSysEventRow.setAttribute('height', `${maxHeight}`);
+    hiSysEventRow.style.height = '40px';
+    hiSysEventRow.setAttribute('height', '40');
     hiSysEventRow.setAttribute('children', '');
     hiSysEventRow.dataList = hiSysEventData;
     hiSysEventRow.supplier = (): Promise<HiSysEventStruct[]> =>

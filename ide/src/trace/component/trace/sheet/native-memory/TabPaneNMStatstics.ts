@@ -242,6 +242,18 @@ export class TabPaneNMStatstics extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail.key, evt.detail.sort);
     });
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('existingString', (value) => {
+      return `${value['existing']}`;
+    });
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('freeByteString', (value) => {
+      return `${value['totalBytes'] - value['existing']}`;
+    });
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('totalBytesString', (value) => {
+      return `${value['totalBytes']}`;
+    });
+    this.nativeStatisticsTbl!.exportTextHandleMap.set('maxStr', (value) => {
+      return `${value['max']}`;
+    });
   }
 
   connectedCallback(): void {

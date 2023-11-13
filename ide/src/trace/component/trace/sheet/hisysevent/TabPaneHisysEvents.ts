@@ -60,15 +60,17 @@ export class TabPaneHisysEvents extends BaseElement {
     if (this.hiSysEventTable) {
       this.hiSysEventTable.recycleDataSource = [];
     }
+    if (this.detailsTbl) {
+      this.detailsTbl!.recycleDataSource = [];
+    }
     this.initTabSheetEl();
+    this.currentSelection = systemEventParam;
+    this.hiSysEventTable!.recycleDataSource = systemEventParam.hiSysEvents;
+    this.hisysEventSource = systemEventParam.hiSysEvents;
     queryRealTime().then((result) => {
       if (result && result.length > 0) {
         this.realTime = Math.floor(result[0].ts / millisecond);
       }
-      this.currentSelection = systemEventParam;
-      this.hiSysEventTable!.recycleDataSource = systemEventParam.hiSysEvents;
-      this.hisysEventSource = systemEventParam.hiSysEvents;
-      this.detailsTbl!.recycleDataSource = [];
     });
   }
 
@@ -487,7 +489,7 @@ export class TabPaneHisysEvents extends BaseElement {
     }];
     const content = JSON.parse(data.contents ?? '{}');
     if (content && typeof content === 'object') {
-      let isFirstTime = false;
+      let isFirstTime = true;
       let inputTimeTs = '';
       let keyList = Object.keys(content);
       keyList.forEach(key => {
@@ -495,15 +497,13 @@ export class TabPaneHisysEvents extends BaseElement {
         let contentValue = value;
         if (key.endsWith('_TIME')) {
           if (this.realTime === 0) {
-            contentValue = ((Number(value) - this.realTime) > 0) ? String(Number(value) - this.realTime) : value;
+            contentValue = value;
           }
           if (!isNaN(Number(value))) {
-            let diffTime = (Number(value) - this.realTime) * millisecond;
-            // @ts-ignore
-            contentValue = String(diffTime - (window.recordStartNS || 0));
-            if (!isFirstTime) {
+            contentValue = ((Number(value) - this.realTime) * millisecond).toString();
+            if (isFirstTime) {
               this.baseTime = contentValue;
-              isFirstTime = true;
+              isFirstTime = false;
             }
           }
           if (key === 'INPUT_TIME') {

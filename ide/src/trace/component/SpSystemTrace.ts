@@ -329,6 +329,7 @@ export class SpSystemTrace extends BaseElement {
         if (this.rowsEL!.contains(cpuFavoriteRow)) {
           this.rowsEL!.replaceChild(replaceRow, cpuFavoriteRow);
         }
+        cpuFavoriteRow.tampName = cpuFavoriteRow.name;
         this.favoriteChartListEL!.insertRow(cpuFavoriteRow, this.currentCollectGroup, true);
         this.collectRows.push(cpuFavoriteRow);
         this.timerShaftEL?.displayCollect(this.collectRows.length !== 0);
@@ -411,7 +412,7 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL?.modifySlicesList(event.detail);
       if (event.detail.hidden) {
         this.slicestime = null;
-        if (this._slicesList.length <= 1) {
+        if (this._slicesList.length <= 0) {
           if (TraceRow.rangeSelectObject) {
             let showTab = this.getShowTab();
             showTab = showTab.filter((it) => it !== 'tabpane-current');

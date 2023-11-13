@@ -267,6 +267,20 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       let title = `${this.titleEl!.textContent}/${evt.detail.data.symbolName}`;
       this.clickRight(evt, title);
     });
+    let exportHandlerMap = new Map<string, (value: any) => string>();
+    exportHandlerMap.set('existSizeFormat', (value) => {
+      return `${value['existSize']}`;
+    });
+    exportHandlerMap.set('applySizeFormat', (value) => {
+      return `${value['applySize']}`;
+    });
+    exportHandlerMap.set('releaseSizeFormat', (value) => {
+      return `${value['releaseSize']}`;
+    });
+    this.tableType!.exportTextHandleMap = exportHandlerMap;
+    this.threadUsageTbl!.exportTextHandleMap = exportHandlerMap;
+    this.soUsageTbl!.exportTextHandleMap = exportHandlerMap;
+    this.functionUsageTbl!.exportTextHandleMap = exportHandlerMap;
   }
 
   private clickRight(evt: any, title: string): void {
@@ -722,12 +736,34 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.progressEL!.loading = true;
     let threadMap = new Map<number, Array<number | string>>();
     let types = this.getTypes(item);
+    let typeName = item.typeName;
     this.resetCurrentLevelData(item);
 
     for (let itemData of this.processData) {
       // @ts-ignore
-      if (!types.includes(itemData.type)) {
-        continue;
+      if (typeName === TYPE_ALLOC_STRING) {
+        // @ts-ignore
+        if (!types.includes(itemData.type)) {
+          continue;
+        }
+      } else if (typeName === TYPE_MAP_STRING) {
+        if (!itemData.subType) {
+          // @ts-ignore
+          if (!types.includes(itemData.type)) {
+            continue;
+          }
+        } else {
+          continue;
+        }
+      } else {
+        if (itemData.subType) {
+          // @ts-ignore
+          if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
+            continue;
+          }
+        } else {
+          continue;
+        }
       }
       if (threadMap.has(itemData.tid)) {
         threadMap.get(itemData.tid)?.push(itemData);
@@ -890,6 +926,9 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         } else {
           continue;
         }
+      }
+      if (tid !== undefined && tid !== data.tid) {
+        continue;
       }
       if (symbolMap.has(data.symbolId)) {
         symbolMap.get(data.symbolId)?.push(data);

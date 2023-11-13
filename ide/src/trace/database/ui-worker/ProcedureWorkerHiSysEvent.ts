@@ -75,15 +75,7 @@ export function hiSysEvent(
       let item = hiSysEventList[index];
       if ((item.ts || 0) + (item.dur || 0) >= startNS && (item.ts || 0) <= endNS) {
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
-        if (
-          index > 0 &&
-          (hiSysEventList[index - 1].frame?.x || 0) === (item.frame?.x || 0) &&
-          (hiSysEventList[index - 1].frame?.width || 0) === (item.frame?.width || 0) &&
-          (hiSysEventList[index - 1].depth === item.depth)
-        ) {
-        } else {
-          hiSysEventFilter.push(item);
-        }
+        hiSysEventFilter.push(item);
       }
     }
   }

@@ -34,6 +34,7 @@ export class LitTable extends HTMLElement {
   public rememberScrollTop = false;
   public getItemTextColor?: (data: any) => string;
   public itemTextHandleMap: Map<string, (value: any) => string> = new Map<string, (value: any) => string>();
+  public exportTextHandleMap: Map<string, (value: any) => string> = new Map<string, (value: any) => string>();
   private ds: Array<any> = [];
   public recycleDs: Array<any> = [];
   private normalDs: Array<any> = [];
@@ -474,6 +475,7 @@ export class LitTable extends HTMLElement {
       tables: this.ds,
       fileName: `${date.getTime()}`,
       columnFormatter: this.itemTextHandleMap,
+      exportFormatter: this.exportTextHandleMap
     }).then((res) => {
       this.exportLoading = false;
       this.exportProgress!.loading = false;
