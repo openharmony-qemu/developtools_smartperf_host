@@ -155,7 +155,8 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   private restore(): void {
-    // 恢复全部的火焰图和表格，并隐藏title;
+    this.searchValue = '';
+    this.perfProfilerFilter!.filterValue = '';
     this.headLine!.isShow = false;
     this._rowClickData = undefined;
     this.initGetData(this.currentSelection, this.initWidth, this.currentSelection?.perfEventTypeId);

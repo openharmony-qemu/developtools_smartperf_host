@@ -188,7 +188,7 @@ export class TabpaneNMCalltree extends BaseElement {
         });
         if (that.currentSelection?.nativeMemory && that.currentSelection.nativeMemory.length > 0) {
           const typeName = SpSystemTrace.DATA_DICT.get(memory);
-          if (data.type === 'MmapEvent' && memory== -1 || data.type === typeName) {
+          if ((data.type === 'MmapEvent' && memory == -1) || data.type === typeName) {
             data.type = `${selections.length + 2}`;
           }
         } else {
@@ -612,7 +612,7 @@ export class TabpaneNMCalltree extends BaseElement {
     });
     this.nmCallTreeFilter!.getFilterData((nmCallTreeData: FilterData): void => {
       if (this.currentSelection!.nativeMemoryStatistic.length > 0) {
-        this.filterResponseSelect = '';
+        this.filterResponseSelect = '0';
       }
       if (
         (this.isChartShow && nmCallTreeData.icon === 'tree') ||
@@ -683,12 +683,14 @@ export class TabpaneNMCalltree extends BaseElement {
     //点击之后删除掉筛选条件  将所有重置  将目前的title隐藏 高度恢复
     this.headLine!.closeCallback = () => {
       this.headLine!.clear();
+      this.searchValue = '';
+      this.currentNMCallTreeFilter!.filterValue = '';
       this._filterData = undefined;
       this.currentNMCallTreeFilter!.firstSelect = '0';
       this.currentNMCallTreeFilter!.secondSelect = '0';
       this.currentNMCallTreeFilter!.thirdSelect = '0';
       this.filterAllocationType = '0';
-      this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+      this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData(), true);
       this.initFilterTypes();
       this.nmCallTreeFrameChart?.resizeChange();
     };
@@ -754,7 +756,7 @@ export class TabpaneNMCalltree extends BaseElement {
     }
   }
 
-  refreshAllNode(filterData: any): void {
+  refreshAllNode(filterData: any, isAnalysisReset?: boolean): void {
     let nmCallTreeArgs: any[] = [];
     let isTopDown: boolean = !filterData.callTree[0];
     let isHideSystemLibrary = filterData.callTree[1];
@@ -788,7 +790,7 @@ export class TabpaneNMCalltree extends BaseElement {
       'nativeHookType',
       this.currentSelection!.nativeMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'
     );
-    if (this.lastIsExpression && !this.expressionStruct) {
+    if ((this.lastIsExpression && !this.expressionStruct) || isAnalysisReset) {
       nmCallTreeArgs.push({
         funcName: 'setSearchValue',
         funcArgs: [this.searchValue],

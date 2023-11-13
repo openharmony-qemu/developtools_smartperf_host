@@ -370,34 +370,37 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   // 将perf_sample表的数据根据callchain_id分组并赋值startTime,endTime等等
   combinePerfSampleBycallChainId(sampleList: Array<HiPrefSample>) {
     let arr: any = new Array();
-    let num = undefined;
+    let newPerfData = (sample: any) : HiPerfSymbol => {
+      let perfSample = new HiPerfSymbol();
+      perfSample.children = new Array<HiPerfSymbol>();
+      perfSample.children[0] = new HiPerfSymbol();
+      perfSample.depth = -1;
+      perfSample.name = 'name';
+      perfSample.callchain_id = sample.callchain_id;
+      perfSample.thread_id = sample.thread_id;
+      perfSample.id = sample.id;
+      perfSample.startTime = sample.timeTip;
+      perfSample.eventCount = sample.eventCount;
+      return perfSample;
+    };
     for (let i = 0; i < sampleList.length; i++) {
-      // 若不是相同的callchain_id,赋值
-      if (sampleList[i].callchain_id != num) {
-        let perfSample = new HiPerfSymbol();
-        perfSample.children = new Array<HiPerfSymbol>();
-        perfSample.children[0] = new HiPerfSymbol();
-        perfSample.depth = -1;
-        perfSample.name = 'name';
-        perfSample.callchain_id = sampleList[i].callchain_id;
-        perfSample.thread_id = sampleList[i].thread_id;
-        perfSample.id = sampleList[i].id;
-        if (
-          i !== 0 &&
-          i !== sampleList.length - 1 &&
-          sampleList[i].callchain_id !== sampleList[i - 1].callchain_id &&
-          sampleList[i].callchain_id !== sampleList[i + 1].callchain_id
-        ) {
-          perfSample.startTime = sampleList[i - 1].timeTip;
+      if (arr.length > 0) {
+        let last = arr[arr.length -1];
+        last.endTime = sampleList[i].timeTip;
+        last.totalTime = last.endTime - last.startTime;
+        if (last.callchain_id === sampleList[i].callchain_id) {
+          last.eventCount += sampleList[i].eventCount;
         } else {
-          perfSample.startTime = sampleList[i].timeTip;
+          arr.push(newPerfData(sampleList[i]));
         }
-        arr.push(perfSample);
+      } else {
+        arr.push(newPerfData(sampleList[i]));
       }
-      arr[arr.length - 1].eventCount += sampleList[i].eventCount;
-      arr[arr.length - 1].endTime = sampleList[i].timeTip;
-      arr[arr.length - 1].totalTime = arr[arr.length - 1].endTime - arr[arr.length - 1].startTime;
-      num = sampleList[i].callchain_id;
+    }
+    let last = arr[arr.length -1];
+    if (last && last.endTime === 0) {
+      last.endTime = this.perfCallData[3];
+      last.totalTime = last.endTime - last.startTime;
     }
     return this.combineChartData(arr);
   }

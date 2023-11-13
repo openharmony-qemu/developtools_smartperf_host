@@ -456,6 +456,7 @@ export class SpSystemTrace extends BaseElement {
         }
         // 添加收藏时，在线程名前面追加父亲ID
         let rowParentId = currentRow.rowParentId;
+        currentRow.tampName = currentRow.name;
         if (rowParentId) {
           let parentRows = this.shadowRoot?.querySelectorAll<TraceRow<any>>(`trace-row[row-id='${rowParentId}']`);
           parentRows?.forEach((parentRow) => {
@@ -504,14 +505,7 @@ export class SpSystemTrace extends BaseElement {
           `div[row-id='${currentRow.rowId}-${currentRow.rowType}']`
         );
         // 取消收藏时，删除父亲ID
-        let rowNameArr = currentRow.name.split('(');
-        if (rowNameArr.length > 1) {
-          let tempName = '';
-          tempName += rowNameArr[0];
-          currentRow.name = tempName;
-        } else {
-          currentRow.name = rowNameArr[0];
-        }
+        currentRow.name = currentRow.tampName;
         if (replaceRow != null) {
           this.rowsEL!.replaceChild(currentRow, replaceRow);
           currentRow.style.boxShadow = `0 10px 10px #00000000`;

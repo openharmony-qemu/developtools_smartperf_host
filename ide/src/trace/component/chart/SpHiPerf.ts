@@ -228,6 +228,8 @@ export class SpHiPerf {
         <span>${perfDataQuery.getLibName(hoverStruct!.fileId,hoverStruct!.symbolId)}</span><br>
         <span style='font-weight: bold;'>Self Time: </span>
         <span>${Utils.getProbablyTime(selfDur || 0)}</span><br>
+        <span style='font-weight: bold;'>Duration: </span>
+        <span>${Utils.getProbablyTime(hoverStruct.totalTime)}</span><br>
         <span style='font-weight: bold;'>Event Count: </span>
         <span>${HiPerfCallChartStruct.hoverPerfCallCutStruct?.eventCount || ''}</span><br>`
         );
@@ -516,8 +518,7 @@ export class SpHiPerf {
     let source: Array<HiPerfChartFrame> = [];
     this.stackChartMaxDepth = 1;
     await new Promise((resolve) => {
-      procedurePool.submitWithName('logic0', 'perf-callstack-chart', [type, id, eventTypeId], undefined, (res: any) => {
-        this.onlyOneSampleHandler(res);
+      procedurePool.submitWithName('logic0', 'perf-callstack-chart', [type, id, eventTypeId, (window as any).totalNS], undefined, (res: any) => {
         this.getAllCombineData(res, source);
         let maxHeight = this.stackChartMaxDepth * 20;
         row.funcMaxHeight = maxHeight;
@@ -550,23 +551,6 @@ export class SpHiPerf {
       if (data.children && data.children.length > 0) {
         this.getAllCombineData(data.children, allCombineData);
       }
-    }
-  }
-
-  onlyOneSampleHandler(res: Array<HiPerfChartFrame>) : void{
-    if (res.length === 1 && res[0].totalTime === 0) {
-      let deepFunc = (data: HiPerfChartFrame) => {
-        if (data.totalTime === 0) {
-          data.endTime = (window as any).totalNS;
-          data.totalTime = data.endTime - data.startTime;
-          if (data.children && data.children.length > 0) {
-            for (const child of data.children) {
-              deepFunc(child);
-            }
-          }
-        }
-      };
-      deepFunc(res[0]);
     }
   }
 

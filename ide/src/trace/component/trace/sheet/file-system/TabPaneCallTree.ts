@@ -198,6 +198,8 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   private restore(): void {
+    this.searchValue = '';
+    this.callTreeFilter!.filterValue = '';
     this.headLine!.isShow = false;
     this._rowClickData = undefined;
     this.getCallTreeData(this.currentSelection, this.initWidth);

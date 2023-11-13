@@ -41,6 +41,7 @@ export class SpAllocations extends BaseElement {
   private recordStatisticsResult: HTMLDivElement | null | undefined;
 
   private filterSize: HTMLInputElement | null | undefined;
+  private maxProcessSize: number = 4;
 
   set startSamp(allocationStart: boolean) {
     if (allocationStart) {
@@ -129,14 +130,26 @@ export class SpAllocations extends BaseElement {
     return false;
   }
 
+  set startup_mode(value: boolean) {
+    if (this.startupMode) {
+      this.startupMode.checked = value;
+    }
+  }
+
   get expandPids(): number[] {
     let allPidList: number[] = [];
     if (this.processId?.value.length > 0) {
       let result = this.processId?.value.match(/\((.+?)\)/g);
-      result?.forEach((pid: string) => {
-        let currentPid = pid!.replace('(', '').replace(')', '');
-        allPidList.push(Number(currentPid));
-      });
+      if (result) {
+        for (let index = 0; index < result.length; index++) {
+          let item = result[index];
+          let currentPid = item!.replace('(', '').replace(')', '');
+          allPidList.push(Number(currentPid));
+          if (index === this.maxProcessSize - 1) {
+            break;
+          }
+        }
+      }
     }
     return allPidList;
   }
@@ -172,17 +185,24 @@ export class SpAllocations extends BaseElement {
     this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
     let process = this.processId.shadowRoot?.querySelector('input') as HTMLInputElement;
     process!.addEventListener('mousedown', (ev) => {
-      process.readOnly = true;
-      if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
+      if (this.startSamp) {
         process.readOnly = false;
-        this.processId?.dataSource([], '');
-      } else {
         Cmd.getProcess().then((processList) => {
           this.processId?.dataSource(processList, '');
-          if (processList.length > 0) {
+          if (processList.length > 0 && !this.startup_mode) {
             this.processId?.dataSource(processList, 'ALL-Process');
+          } else {
+            this.processId?.dataSource([], '');
           }
         });
+      } else {
+        process.readOnly = true;
+        return;
+      }
+      if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
+        this.processId?.dataSource([], '');
+      } else {
+
       }
     });
     this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;

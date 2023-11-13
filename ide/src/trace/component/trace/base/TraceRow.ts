@@ -153,6 +153,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private _collectGroup: string | undefined;
   public _frame: Rect | undefined;
   public isLoading: boolean = false;
+  public tampName: string = '';
   public readonly args: any;
   public templateType: Array<string> = [];
   private rootEL: HTMLDivElement | null | undefined;

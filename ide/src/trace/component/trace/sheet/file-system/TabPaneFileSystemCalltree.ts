@@ -174,7 +174,11 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcName: 'showLibLevelData',
         funcArgs: [this.FsCallTreeLevel.libId, this.FsCallTreeLevel.libName],
       });
-    } else if (this._fsRowClickData && this._fsRowClickData.symbolId !== undefined && this._currentFsCallTreeLevel === 4) {
+    } else if (
+      this._fsRowClickData &&
+      this._fsRowClickData.symbolId !== undefined &&
+      this._currentFsCallTreeLevel === 4
+    ) {
       this.FsCallTreeLevel.symbolName = this._fsRowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
@@ -195,6 +199,8 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   private restore(): void {
+    this.searchValue = '';
+    this.fsCallTreeFilter.filterValue = '';
     this.headLine!.isShow = false;
     this._fsRowClickData = undefined;
     this.getFsCallTreeData(this.currentSelection, this.initWidth);

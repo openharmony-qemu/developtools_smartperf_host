@@ -688,6 +688,7 @@ export class SpRecordTrace extends BaseElement {
     this.deviceVersion.onchange = (): void => {
       let versionItem = this.deviceVersion!.options[this.deviceVersion!.selectedIndex];
       SpRecordTrace.selectVersion = versionItem.getAttribute('device-version');
+      this.spAllocations!.startup_mode = false;
       this.nativeMemoryHideBySelectVersion();
       this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
         PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),
