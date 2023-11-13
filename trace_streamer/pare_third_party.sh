@@ -153,6 +153,7 @@ if [ ! -f "hiperf/BUILD.gn" ];then
         $sed -i '/return DoUnwind2/s/^/\/\/ /' hiperf/src/callstack.cpp
         $sed -i '/#if defined(is_ohos) && is_ohos/s/defined(is_ohos) && is_ohos/true/g' hiperf/src/virtual_runtime.cpp
         $sed -i '/#if defined(is_ohos) && is_ohos/s/defined(is_ohos) && is_ohos/true/g' hiperf/include/virtual_runtime.h
+        $sed -i '/symbolsTable, elfFile_, elfPath/s/symbolsTable, elfFile_, elfPath/symbolsTable, elfFile_, filePath_/g' hiperf/src/symbols_file.cpp
     fi
 fi
 

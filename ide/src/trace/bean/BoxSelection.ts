@@ -22,6 +22,7 @@ import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrame
 import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing.js';
 import { JsCpuProfilerChartFrame } from './JsStruct.js';
 import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
+import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 
 export class SelectionParam {
   recordStartNs: number = 0;
@@ -40,6 +41,7 @@ export class SelectionParam {
   isCurrentPane: boolean = false;
   startup: boolean = false;
   staticInit: boolean = false;
+  isRowClick: boolean = false;
 
   cpus: Array<number> = [];
   cpuStateRowsId: Array<object> = [];
@@ -58,11 +60,14 @@ export class SelectionParam {
   funAsync: Array<{ name: string; pid: number }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
+  nativeMemoryAllProcess: Array<{pid: number,ipid: number}> = [];
+  nativeMemoryCurrentIPid: number = -1;
   cpuAbilityIds: Array<string> = [];
   memoryAbilityIds: Array<string> = [];
   diskAbilityIds: Array<string> = [];
   networkAbilityIds: Array<string> = [];
   perfSampleIds: Array<number> = [];
+  perfEventTypeId?: number;
   perfCpus: Array<number> = [];
   perfProcess: Array<number> = [];
   perfThread: Array<number> = [];
@@ -107,6 +112,7 @@ export class SelectionParam {
   dmaVmTrackerData: Array<any> = [];
   gpuMemoryTrackerData: Array<any> = [];
   hiLogs: Array<LogStruct> = [];
+  hiSysEvents: Array<HiSysEventStruct> = [];
 }
 
 export class BoxJumpParam {

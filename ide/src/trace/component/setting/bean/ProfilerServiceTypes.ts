@@ -857,7 +857,7 @@ export enum Level {
 }
 
 export interface NativeHookConfig {
-  pid: number;
+  pid?: number;
   saveFile: boolean;
   fileName: string;
   filterSize: number;
@@ -872,6 +872,7 @@ export interface NativeHookConfig {
   callframeCompress?: boolean;
   startupMode?: boolean;
   statisticsInterval?: number;
+  expandPids?: number[];
 }
 
 export interface FpsConfig {
@@ -911,7 +912,8 @@ export interface HiperfPluginConfig {
 
 export interface HiSystemEventConfig {
   msg: string;
-  processName: string;
+  subscribe_domain: string;
+  subscribe_event: string;
 }
 
 export interface ArkTSConfig {
