@@ -283,11 +283,7 @@ self.onmessage = async (e: MessageEvent) => {
       const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
       Module.HEAPU8.set(dataSlice, reqBufferAddr);
       wrSize += sliceLen;
-      if (wrSize >= uint8Array.length) {
-        r2 = Module._TraceStreamerParseDataEx(sliceLen, 1);
-      } else {
-        r2 = Module._TraceStreamerParseDataEx(sliceLen, 0);
-      }
+      r2 = Module._TraceStreamerParseDataEx(sliceLen);
       if (r2 == -1) {
         break;
       }

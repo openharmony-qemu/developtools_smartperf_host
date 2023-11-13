@@ -112,7 +112,7 @@ export class TabPaneHiLogs extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.tagFilterInput?.addEventListener('keyup', this.tagFilterKeyEvent);
+    this.tagFilterInput?.addEventListener('keydown', this.tagFilterKeyEvent);
     new ResizeObserver((): void => {
       this.parentElement!.style.overflow = 'hidden';
       // @ts-ignore
@@ -124,7 +124,7 @@ export class TabPaneHiLogs extends BaseElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this.tagFilterInput?.removeEventListener('keyup', this.tagFilterKeyEvent);
+    this.tagFilterInput?.removeEventListener('keydown', this.tagFilterKeyEvent);
   }
 
   initHtml(): string {
@@ -179,6 +179,7 @@ export class TabPaneHiLogs extends BaseElement {
             let rowCount = frontTotalRowSize.toString().split('.');
             height += trEl.clientHeight - (Number(rowCount[1]) / 100 * trEl.clientHeight);
           }
+          firstRowHeight = trEl.clientHeight;
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
         allTdEl[0].style.color = '#3D88C7';

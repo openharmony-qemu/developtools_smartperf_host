@@ -23,7 +23,10 @@ import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
 import { procedurePool } from '../../../../database/Procedure.js';
 import { MerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { showButtonMenu } from '../SheetUtils.js';
-import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
+
+const InvertOptionIndex: number = 0;
+const hideEventOptionIndex: number = 2;
+const hideThreadOptionIndex: number = 3;
 
 @element('tabpane-calltree')
 export class TabPaneCallTree extends BaseElement {
@@ -35,14 +38,14 @@ export class TabPaneCallTree extends BaseElement {
   private callTreeRightSource: Array<MerageBean> = [];
   private callTreeFilter: any;
   private callTreeDataSource: any[] = [];
-  private callTreeSortKey = 'weight';
-  private callTreeSortType = 0;
+  private callTreeSortKey: string = 'weight';
+  private callTreeSortType: number = 0;
   private callTreeSelectedData: any = undefined;
   private frameChart: FrameChart | null | undefined;
   private isChartShow: boolean = false;
-  private systmeRuleName = '/system/';
-  private callTreeNumRuleName = '/max/min/';
-  private needShowMenu = true;
+  private systmeRuleName: string = '/system/';
+  private callTreeNumRuleName: string = '/max/min/';
+  private needShowMenu: boolean = true;
   private searchValue: string = '';
   private loadingList: number[] = [];
   private loadingPage: any;
@@ -63,6 +66,7 @@ export class TabPaneCallTree extends BaseElement {
     } else {
       this.callTreeFilter!.style.display = 'none';
     }
+    procedurePool.submitWithName('logic0', 'fileSystem-reset', [], undefined, () => {});
     this.callTreeFilter!.initializeFilterTree(true, true, true);
     this.callTreeFilter!.filterValue = '';
     this.callTreeProgressEL!.loading = true;
@@ -92,7 +96,7 @@ export class TabPaneCallTree extends BaseElement {
     );
   }
 
-  initModeAndAction() {
+  initModeAndAction(): void {
     if (this.procedureAction === '' && this.hasAttribute('action')) {
       this.procedureAction = this.getAttribute('action') || '';
     }
@@ -145,14 +149,14 @@ export class TabPaneCallTree extends BaseElement {
     return false;
   }
 
-  setRightTableData(bean: MerageBean) {
+  setRightTableData(bean: MerageBean): void {
     let parents: Array<MerageBean> = [];
     let children: Array<MerageBean> = [];
     this.getParentTree(this.callTreeDataSource, bean, parents);
-    let maxId = bean.id;
-    let maxDur = 0;
+    let maxId: string = bean.id;
+    let maxDur: number = 0;
 
-    function findMaxStack(bean: MerageBean) {
+    function findMaxStack(bean: MerageBean): void {
       if (bean.children.length === 0) {
         if (bean.dur > maxDur) {
           maxDur = bean.dur;
@@ -177,8 +181,8 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeTbr!.dataSource = len === 0 ? [] : callTreeArr;
   }
 
-  connectedCallback() {
-    this.parentElement!.onscroll = () => {
+  connectedCallback(): void {
+    this.parentElement!.onscroll = (): void => {
       this.frameChart!.tabPaneScrollTop = this.parentElement!.scrollTop;
     };
     this.frameChart!.addChartClickListener((needShowMenu: boolean) => {
@@ -187,7 +191,7 @@ export class TabPaneCallTree extends BaseElement {
       this.needShowMenu = needShowMenu;
     });
     let filterHeight = 0;
-    new ResizeObserver((entries) => {
+    new ResizeObserver((entries: ResizeObserverEntry[]): void => {
       let callTreeTabFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
       if (callTreeTabFilter.clientHeight > 0) filterHeight = callTreeTabFilter.clientHeight;
       if (this.parentElement!.clientHeight > filterHeight) {
@@ -198,7 +202,7 @@ export class TabPaneCallTree extends BaseElement {
       if (this.callTreeTbl!.style.visibility === 'hidden') {
         callTreeTabFilter.style.display = 'none';
       }
-      if (this.parentElement?.clientHeight != 0) {
+      if (this.parentElement?.clientHeight !== 0) {
         if (this.isChartShow) {
           this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.frameChart?.calculateChartData();
@@ -244,7 +248,7 @@ export class TabPaneCallTree extends BaseElement {
       }
     });
     this.callTreeTbr = this.shadowRoot?.querySelector<LitTable>('#tb-list');
-    this.callTreeTbr!.addEventListener('row-click', (evt: any) => {
+    this.callTreeTbr!.addEventListener('row-click', (evt: any): void => {
       // @ts-ignore
       let data = evt.detail.data as MerageBean;
       this.callTreeTbl?.clearAllSelection(data);
@@ -256,7 +260,7 @@ export class TabPaneCallTree extends BaseElement {
         (evt.detail as any).callBack(true);
       }
     });
-    let filterFunc = (data: any) => {
+    let filterFunc = (data: any): void => {
       let callTreeFuncArgs: any[] = [];
       if (data.type === 'check') {
         if (data.item.checked) {
@@ -296,7 +300,7 @@ export class TabPaneCallTree extends BaseElement {
           if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
             return;
           }
-          if (this.callTreeSelectedData != undefined) {
+          if (this.callTreeSelectedData !== undefined) {
             this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbolName }, data.item);
             callTreeFuncArgs.push({
               funcName: 'splitTree',
@@ -309,7 +313,7 @@ export class TabPaneCallTree extends BaseElement {
           if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
             return;
           }
-          if (this.callTreeSelectedData != undefined && this.callTreeSelectedData.libName != '') {
+          if (this.callTreeSelectedData !== undefined && this.callTreeSelectedData.libName !== '') {
             this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.libName }, data.item);
             callTreeFuncArgs.push({
               funcName: 'splitTree',
@@ -319,7 +323,7 @@ export class TabPaneCallTree extends BaseElement {
             return;
           }
         } else if (data.item === 'restore') {
-          if (data.remove != undefined && data.remove.length > 0) {
+          if (data.remove !== undefined && data.remove.length > 0) {
             let list = data.remove.map((item: any) => {
               return item.name;
             });
@@ -356,7 +360,7 @@ export class TabPaneCallTree extends BaseElement {
     this.callTreeFilter!.getDataLibrary(filterFunc);
     this.callTreeFilter!.getDataMining(filterFunc);
     this.callTreeFilter!.getCallTreeData((data: any) => {
-      if (data.value === 0) {
+      if ([InvertOptionIndex, hideThreadOptionIndex, hideEventOptionIndex].includes(data.value)) {
         this.refreshAllNode({
           ...this.callTreeFilter!.getFilterTreeData(),
           callTree: data.checks,
@@ -421,7 +425,7 @@ export class TabPaneCallTree extends BaseElement {
       });
     });
     this.callTreeFilter!.getFilterData((callTreeFilterData: FilterData) => {
-      if (this.searchValue != this.callTreeFilter!.filterValue) {
+      if (this.searchValue !== this.callTreeFilter!.filterValue) {
         this.searchValue = this.callTreeFilter!.filterValue;
         let callTreeArgs = [
           {
@@ -433,7 +437,7 @@ export class TabPaneCallTree extends BaseElement {
             funcArgs: [],
           },
         ];
-        this.getDataByWorker(callTreeArgs, (result: any[]) => {
+        this.getDataByWorker(callTreeArgs, (result: any[]): void => {
           this.callTreeTbl!.isSearch = true;
           this.callTreeTbl!.setStatus(result, true);
           this.setLTableData(result);
@@ -444,7 +448,7 @@ export class TabPaneCallTree extends BaseElement {
         this.switchFlameChart(callTreeFilterData);
       }
     });
-    this.callTreeTbl!.addEventListener('column-click', (evt) => {
+    this.callTreeTbl!.addEventListener('column-click', (evt: Event): void => {
       // @ts-ignore
       this.callTreeSortKey = evt.detail.key;
       // @ts-ignore
@@ -476,11 +480,21 @@ export class TabPaneCallTree extends BaseElement {
     }
   }
 
-  refreshAllNode(filterData: any) {
+  refreshAllNode(filterData: any): void {
     let callTreeArgs: any[] = [];
     let isTopDown: boolean = !filterData.callTree[0];
     let isHideSystemLibrary = filterData.callTree[1];
+    let isHideEvent: boolean = filterData.callTree[2];
+    let isHideThread: boolean = filterData.callTree[3];
     let list = filterData.dataMining.concat(filterData.dataLibrary);
+    callTreeArgs.push({
+      funcName: 'hideThread',
+      funcArgs: [isHideThread],
+    });
+    callTreeArgs.push({
+      funcName: 'hideEvent',
+      funcArgs: [isHideEvent],
+    });
     callTreeArgs.push({
       funcName: 'getCallChainsBySampleIds',
       funcArgs: [isTopDown, this.queryFuncName],
@@ -506,20 +520,20 @@ export class TabPaneCallTree extends BaseElement {
       funcName: 'resetAllNode',
       funcArgs: [],
     });
-    this.getDataByWorker(callTreeArgs, (result: any[]) => {
+    this.getDataByWorker(callTreeArgs, (result: any[]): void => {
       this.setLTableData(result);
       this.frameChart!.data = this.callTreeDataSource;
       if (this.isChartShow) this.frameChart?.calculateChartData();
     });
   }
 
-  setLTableData(resultData: any[]) {
+  setLTableData(resultData: any[]): void {
     this.callTreeDataSource = this.sortCallFnTree(resultData);
     this.callTreeTbl!.recycleDataSource = this.callTreeDataSource;
   }
 
   sortCallFnTree(arr: Array<any>): Array<any> {
-    let sortArr = arr.sort((compareFnA, compareFnB) => {
+    let sortArr = arr.sort((compareFnA: any, compareFnB: any): number => {
       if (this.callTreeSortKey === 'self') {
         if (this.callTreeSortType === 0) {
           return compareFnB.dur - compareFnA.dur;
@@ -538,13 +552,13 @@ export class TabPaneCallTree extends BaseElement {
         }
       }
     });
-    sortArr.map((call) => {
+    sortArr.map((call: any): void => {
       call.children = this.sortCallFnTree(call.children);
     });
     return sortArr;
   }
 
-  getDataByWorker(args: any[], handler: Function) {
+  getDataByWorker(args: any[], handler: Function): void {
     this.loadingList.push(1);
     this.loadingPage.style.visibility = 'visible';
     this.callTreeProgressEL!.loading = true;
@@ -553,7 +567,7 @@ export class TabPaneCallTree extends BaseElement {
       this.procedureAction,
       { args, callType: this.queryFuncName },
       undefined,
-      (callTreeResults: any) => {
+      (callTreeResults: any): void => {
         handler(callTreeResults);
         this.loadingList.splice(0, 1);
         if (this.loadingList.length === 0) {
@@ -631,11 +645,11 @@ export class TabPaneCallTree extends BaseElement {
         </div>
         </lit-slicer>
      </selector>
-     <tab-pane-filter id="filter" class="call-tree-filter" input inputLeftText icon tree></tab-pane-filter>
+     <tab-pane-filter id="filter" class="call-tree-filter" input inputLeftText icon tree fileSystem></tab-pane-filter>
      <lit-progress-bar class="progress call-tree-progress"></lit-progress-bar>
     <selector id='show_chart' class="call-tree-selector" >
         <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
-    </selector>  
+    </selector>
     <div class="loading call-tree-loading"></div>
     </div>`;
   }

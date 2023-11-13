@@ -89,7 +89,6 @@ import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnima
 import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
 import { type MemoryConfig } from '../bean/MemoryConfig.js';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
-import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent.js';
 
 class DataWorkerThread extends Worker {
   taskMap: any = {};
@@ -865,7 +864,7 @@ export const getTabSlices = (
     on
       T.id = C.callid
     where
-      C.ts > 0
+      C.ts not null
     and
       c.dur >= 0
     and
@@ -909,7 +908,7 @@ export const getTabSlicesAsyncFunc = (
       A.id = C.callid
     left join process P on P.id = A.ipid
     where
-      C.ts > 0
+      C.ts not null
     and
       c.dur >= -1
     and 
@@ -1515,7 +1514,11 @@ export const queryHeapAllData = (
     { ipids: ipids, $startTs: startTs, $endTs: endTs }
   );
 
-export const queryNativeHookStatistics = (leftNs: number, rightNs: number): Promise<Array<NativeHookMalloc>> =>
+export const queryNativeHookStatistics = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): Promise<Array<NativeHookMalloc>> =>
   query(
     'queryNativeHookStatistics',
     `
@@ -1533,11 +1536,16 @@ export const queryNativeHookStatistics = (leftNs: number, rightNs: number): Prom
     where
       (A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}
      and (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+     and 
     group by event_type;`,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticsMalloc = (leftNs: number, rightNs: number): Promise<Array<NativeHookMalloc>> =>
+export const queryNativeHookStatisticsMalloc = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): Promise<Array<NativeHookMalloc>> =>
   query(
     'queryNativeHookStatisticsMalloc',
     `
@@ -1557,6 +1565,7 @@ export const queryNativeHookStatisticsMalloc = (leftNs: number, rightNs: number)
       (event_type = 'AllocEvent' or event_type = 'MmapEvent')
     and 
       sub_type_id is null
+      and ipid = ${ipid}
     group by
       event_type,
       heap_size
@@ -1565,7 +1574,11 @@ export const queryNativeHookStatisticsMalloc = (leftNs: number, rightNs: number)
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number): Promise<Array<NativeHookMalloc>> =>
+export const queryNativeHookStatisticsSubType = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number
+): Promise<Array<NativeHookMalloc>> =>
   query(
     'queryNativeHookStatisticsSubType',
     `
@@ -1584,13 +1597,14 @@ export const queryNativeHookStatisticsSubType = (leftNs: number, rightNs: number
       (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
     and
       (event_type = 'MmapEvent')
+    and ipid = ${ipid}
     group by
       event_type,sub_type_id;
         `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookSubType = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const queryNativeHookSubType = (leftNs: number, rightNs: number, ipid: number): Promise<Array<any>> =>
   query(
     'queryNativeHookSubType',
     `select distinct(
@@ -1603,11 +1617,12 @@ export const queryNativeHookSubType = (leftNs: number, rightNs: number): Promise
       left join data_dict DD on NH.sub_type_id = DD.id
 where event_type = 'MmapEvent' and
         (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
+        and ipid = ${ipid}
         `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticSubType = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const queryNativeHookStatisticSubType = (leftNs: number, rightNs: number, ipid: number): Promise<Array<any>> =>
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT
@@ -1628,11 +1643,12 @@ export const queryNativeHookStatisticSubType = (leftNs: number, rightNs: number)
       WHERE
         NHS.type > 1 AND
         (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
+        AND ipid = ${ipid}
       `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticsCount = (): Promise<Array<NativeHookProcess>> =>
+export const queryNativeHookStatisticsCount = (): Promise<Array<{ num: number }>> =>
   query('queryNativeHookStatisticsCount', `select count(1) num from native_hook_statistic`, {});
 
 export const queryNativeHookProcess = (table: string): Promise<Array<NativeHookProcess>> => {
@@ -1651,7 +1667,7 @@ export const queryNativeHookProcess = (table: string): Promise<Array<NativeHookP
   return query('queryNativeHookProcess', sql, {});
 };
 
-export const queryNativeHookSnapshotTypes = (): Promise<Array<NativeHookSampleQueryInfo>> =>
+export const queryNativeHookSnapshotTypes = (ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(
     'queryNativeHookSnapshotTypes',
     `
@@ -1662,12 +1678,13 @@ select
       native_hook left join data_dict on native_hook.sub_type_id = data_dict.id
     where
       (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+      and ipid = ${ipid}
     group by
       event_type,data;`,
     {}
   );
 
-export const queryAllHookData = (rightNs: number): Promise<Array<NativeHookSampleQueryInfo>> =>
+export const queryAllHookData = (rightNs: number,ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(
     'queryAllHookData',
     `
@@ -1684,6 +1701,7 @@ export const queryAllHookData = (rightNs: number): Promise<Array<NativeHookSampl
       trace_range t
     where
       (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+      and ipid = ${ipid}
     and
       n.start_ts between t.start_ts and ${rightNs} + t.start_ts`,
     { $rightNs: rightNs }
@@ -1753,7 +1771,7 @@ export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
     'queryHiPerfCpuData',
     `
     select s.callchain_id,
-        (s.timestamp_trace-t.start_ts) startNS 
+        (s.timestamp_trace-t.start_ts) startNS, event_count, event_type_id 
     from perf_sample s,trace_range t 
     where 
         cpu_id=${cpu} 
@@ -1763,7 +1781,7 @@ export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
 export const queryHiPerfCpuMergeData = (): Promise<Array<any>> =>
   query(
     'queryHiPerfCpuData',
-    `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t 
+    `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS, event_count, event_type_id from perf_sample s,trace_range t 
 where s.thread_id != 0;`,
     {}
   );
@@ -1782,7 +1800,9 @@ SELECT sp.callchain_id,
        th.thread_name,
        th.thread_id                     tid,
        th.process_id                    pid,
-       sp.timestamp_trace - tr.start_ts startNS
+       sp.timestamp_trace - tr.start_ts startNS,
+       event_count,
+       event_type_id
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
@@ -1798,14 +1818,15 @@ SELECT sp.callchain_id,
        th.thread_name,
        th.thread_id                     tid,
        th.process_id                    pid,
-       sp.timestamp_trace - tr.start_ts startNS
+       sp.timestamp_trace - tr.start_ts startNS, 
+       event_count,
+       event_type_id
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
 where tid = ${tid} and sp.thread_id != 0 ;`,
     { $tid: tid }
   );
-
 export const querySelectTraceStats = (): Promise<
   Array<{
     event_name: string;
@@ -2727,6 +2748,15 @@ export const queryPerfCmdline = (): Promise<Array<PerfCmdLine>> =>
     `,
     {}
   );
+export const queryPerfEventType = (): Promise<Array<{ id: number; report: string }>> =>
+  query(
+    'queryPerfEventType',
+    `
+    select id,report_value as report from perf_report where id in (
+select distinct event_type_id from perf_sample);
+    `,
+    {}
+  );
 
 export const queryCPuAbilityMaxData = (): Promise<Array<any>> =>
   query(
@@ -2756,7 +2786,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
    select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
    ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r
-   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
+   where c.name like '%${search}%' and startTime > 0 and p.pid in (${processList.join(',')});
     `,
     { $search: search }
   );
@@ -5501,7 +5531,7 @@ export const queryTraceType = (): Promise<
 export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
   query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
 
-  export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabRunningPercent',
     `
@@ -5522,7 +5552,12 @@ export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string 
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const querySearchFuncData = (funcName: string, tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<SearchFuncBean>> =>
+export const querySearchFuncData = (
+  funcName: string,
+  tIds: Array<number>,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
   query(
     'querySearchFuncData',
     `
@@ -5589,45 +5624,4 @@ export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
       or
         name='cpu_frequency'
     `
-  );
-
-export const queryRealTime = (): Promise<
-  Array<{
-    ts: number;
-    value: string;
-  }>
-  > =>
-  query(
-    'queryRealTime',
-    `select CS.ts -TR.start_ts as ts ,clock_name
-     from clock_snapshot as CS ,trace_range as TR
-     where clock_name = 'realtime';`
-  );
-export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
-  query(
-    'queryHiSysEventData',
-    `SELECT S.id,
-            D2.data AS domain, 
-            D.data AS eventName, 
-            type AS eventType, 
-            time_zone AS tz, 
-            pid,
-            tid,
-            uid,
-            info,
-            level,
-            seq,
-            contents,
-            S.ts - TR.start_ts AS ts,
-            1 AS dur,
-            CASE
-            WHEN level = 'MINOR' THEN
-             0
-            WHEN level = 'CRITICAL' THEN
-             1
-            END AS depth
-        FROM hisys_all_event AS S ,trace_range AS TR
-        LEFT JOIN data_dict AS D on S.event_name_id = D.id
-        LEFT JOIN data_dict AS D2 on S.domain_id = D2.id
-        ORDER BY S.ts`
   );

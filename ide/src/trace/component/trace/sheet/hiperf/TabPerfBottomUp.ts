@@ -105,8 +105,6 @@ export class TabpanePerfBottomUp extends BaseElement {
       array.forEach((data) => {
         data.totalTimePercent = `${((data.totalTime / totalTime) * percentageDenominator).toFixed(percentFraction)}%`;
         data.selfTimePercent = `${((data.selfTime / totalTime) * percentageDenominator).toFixed(percentFraction)}%`;
-        data.selfTimeStr = `${data.selfTime.toFixed(timeFractionDigits)}ms`;
-        data.totalTimeStr = `${data.totalTime.toFixed(timeFractionDigits)}ms`;
         setTabData(data.children);
       });
     };
@@ -203,7 +201,7 @@ export class TabpanePerfBottomUp extends BaseElement {
       return callTreeRightData.totalTime - callTreeLeftData.totalTime;
     }
     const CallTreeSortArr = arr.sort((callTreeLeftData, callTreeRightData) => {
-      if (this.sortKey === 'selfTimeStr' || this.sortKey === 'selfTimePercent') {
+      if (this.sortKey === 'selfTime' || this.sortKey === 'selfTimePercent') {
         if (this.sortType === defaultSortType) {
           return defaultSort(callTreeLeftData, callTreeRightData);
         } else if (this.sortType === 1) {
@@ -268,11 +266,11 @@ export class TabpanePerfBottomUp extends BaseElement {
             <lit-table id="callTreeTable" style="height: 100%" tree>
                 <lit-table-column width="60%" title="Symbol" data-index="symbolName" key="symbolName"  
                 align="flex-start" order retract></lit-table-column>
-                <lit-table-column width="1fr" title="Local" data-index="selfTimeStr" key="selfTimeStr" 
+                <lit-table-column width="1fr" title="Local" data-index="selfTime" key="selfTime" 
                 align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="%" data-index="selfTimePercent" key="selfTimePercent"  
                 align="flex-start"  order></lit-table-column>
-                <lit-table-column width="1fr" title="Weight" data-index="totalTimeStr" key="totalTimeStr"  
+                <lit-table-column width="1fr" title="Sample Count" data-index="totalTime" key="totalTime"  
                 align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="%" data-index="totalTimePercent" key="totalTimePercent" 
                  align="flex-start"  order></lit-table-column>
@@ -285,7 +283,7 @@ export class TabpanePerfBottomUp extends BaseElement {
               <lit-table id="stackTable" style="height: auto;">
                   <lit-table-column width="50%" title="Symbol" data-index="symbolName" key="symbolName" 
                    align="flex-start"></lit-table-column>
-                  <lit-table-column width="1fr" title="Weight" data-index="totalTimeStr" key="totalTimeStr" 
+                  <lit-table-column width="1fr" title="Sample Count" data-index="totalTime" key="totalTime" 
                    align="flex-start" ></lit-table-column>
                   <lit-table-column width="1fr" title="%" data-index="totalTimePercent" key="totalTimePercent"
                     align="flex-start"></lit-table-column>

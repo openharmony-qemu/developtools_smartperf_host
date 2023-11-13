@@ -29,7 +29,7 @@ import { CpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerFreq.j
 import { CpuFreqLimitsStruct } from '../../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
 import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread.js';
 import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc.js';
-import { type ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem.js';
+import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem.js';
 import { CpuStateStruct } from '../../../database/ui-worker/ProcedureWorkerCpuState.js';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock.js';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq.js';
@@ -76,20 +76,26 @@ import { type TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatist
 import { type TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
 import { Utils } from './Utils.js';
 import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
-import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
 import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
 import { type LitPageTable } from '../../../../base-ui/table/LitPageTable.js';
+import '../../../../base-ui/popover/LitPopoverV.js';
+import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
+import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
   systemLogFlag: Flag | undefined | null;
   private litTabs: LitTabs | undefined | null;
+  private switchDiv: LitPopover | undefined | null;
+  private processTree: LitTree | undefined | null;
   private importDiv: HTMLDivElement | undefined | null;
   private exportBt: LitIcon | undefined | null;
   private nav: HTMLDivElement | undefined | null;
   private selection: SelectionParam | undefined | null;
   private currentPaneID: string = 'current-selection';
   private fragment: DocumentFragment | undefined;
+  private lastSelectIPid: number = -1;
+  private lastProcessSet: Set<number> = new Set<number>();
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -115,6 +121,7 @@ export class TraceSheet extends BaseElement {
   displayTab<T>(...names: string[]): T {
     this.setAttribute('mode', 'max');
     this.showUploadSoBt(null);
+    this.showSwitchProcessBt(null);
     this.shadowRoot
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
@@ -139,6 +146,20 @@ export class TraceSheet extends BaseElement {
   initElements(): void {
     this.litTabs = this.shadowRoot?.querySelector('#tabs');
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
+    this.switchDiv = this.shadowRoot?.querySelector('#select-process');
+    this.processTree = this.shadowRoot?.querySelector('#processTree');
+    this.processTree!.onChange = (e: any): void => {
+      const select = this.processTree!.getCheckdKeys();
+      const selectIPid = Number(select[0]);
+      if (selectIPid === this.lastSelectIPid) {
+        return;
+      }
+      this.switchDiv!.visible = 'false';
+      window.publish(window.SmartEvent.UI.ProcessSwitch, { ipid: selectIPid });
+      this.lastSelectIPid = selectIPid;
+    };
+
+    // };
     this.buildTabs(this.litTabs);
     this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
     this.litTabs!.addEventListener('close-handler', () => {
@@ -295,11 +316,11 @@ export class TraceSheet extends BaseElement {
         tabs!.style.height = navRoot!.offsetHeight + 'px';
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
-        tabsPackUp!.title = '恢复';
+        tabsPackUp!.title = 'Reset Tab';
         (window as any).isPackUpTable = true;
       } else {
         tabsPackUp!.name = 'down';
-        tabsPackUp!.title = '最小化';
+        tabsPackUp!.title = 'Minimize Tab';
         tabs!.style.height = initialHeight.tabs;
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = initialHeight.node));
       }
@@ -375,22 +396,38 @@ export class TraceSheet extends BaseElement {
                     height: 30vh;
                     background-color: var(--dark-background,#FFFFFF);
                 }
+                #check-popover[visible="true"] #check-des{
+                    color: #0A59F7;
+                }
+                .popover{
+                  color: var(--dark-color1,#4b5766);
+                  justify-content: center;
+                  align-items: center;
+                  margin-right: 10px;
+                  z-index: 2;
+              }
             </style>
             <div id="container" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
-                        <div title="SO导入" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
+                        <lit-popover placement="bottomRight" class="popover" haveRadio="true" trigger="click" id="select-process">
+                              <div slot="content">
+                                <lit-tree id="processTree" checkable="true"></lit-tree>
+                              </div>
+                              <lit-icon name="setting" size="20" id="setting"></lit-icon>
+                        </lit-popover>
+                        <div title="Import SO" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="import-file" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="import-file">
                                 <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
                                 </lit-icon>
                             </label>
                         </div>
-                        <lit-icon title="下载数据" id="export-btn" name="import-so" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
+                        <lit-icon title="Download Table" id="export-btn" name="import-so" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
                         </lit-icon>
-                        <lit-icon title="最大化" id="max-btn" name="vertical-align-top" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
+                        <lit-icon title="Maximize Tab" id="max-btn" name="vertical-align-top" style="font-weight: bold;cursor: pointer;margin-right: 10px" size="20">
                         </lit-icon>
-                        <lit-icon title="最小化" id="min-btn" name="down" style="font-weight: bold;cursor: pointer;" size="20">
+                        <lit-icon title="Minimize Tab" id="min-btn" name="down" style="font-weight: bold;cursor: pointer;" size="20">
                         </lit-icon>
                     </div>
                 </lit-tabs>
@@ -428,10 +465,11 @@ export class TraceSheet extends BaseElement {
     val.nativeMemoryStatistic.push(rowType);
     val.nativeMemory = [];
     val.leftNs = data.startTime!;
-    val.rightNs = data.dur === 0 ? data.startTime! : (data.startTime! + data.dur! - 1);
+    val.rightNs = data.dur === 0 ? data.startTime! : data.startTime! + data.dur! - 1;
     this.selection = val;
     this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
     this.showUploadSoBt(val);
+    this.showSwitchProcessBt(val);
   };
 
   displayGpuSelectedData = (type: string, startTs: number, dataList: Array<SnapshotStruct>): void => {
@@ -625,6 +663,7 @@ export class TraceSheet extends BaseElement {
     this.selection = selection;
     this.exportBt!.style.display = 'flex';
     this.showUploadSoBt(selection);
+    this.showSwitchProcessBt(selection);
     Reflect.ownKeys(tabConfig)
       .reverse()
       .forEach((id) => {
@@ -657,7 +696,7 @@ export class TraceSheet extends BaseElement {
     }
   }
 
-  updateRangeSelect(): boolean {
+  updateRangeSelect(data?: any): boolean {
     if (
       this.selection &&
       (this.selection.nativeMemory.length > 0 ||
@@ -674,6 +713,10 @@ export class TraceSheet extends BaseElement {
       Object.assign(param, this.selection);
       if (param.nativeMemory.length > 0 || param.nativeMemoryStatistic.length > 0) {
         Utils.getInstance().initResponseTypeList(param);
+        if (data) {
+          Utils.getInstance().setCurrentSelectIPid(Number(data.ipid));
+          param.nativeMemoryCurrentIPid = Number(data.ipid);
+        }
       }
       this.rangeSelect(param, true);
       return true;
@@ -698,6 +741,46 @@ export class TraceSheet extends BaseElement {
       this.importDiv!.style.display = 'flex';
     } else {
       this.importDiv!.style.display = 'none';
+    }
+  }
+  isProcessEqual(treeData: Array<{ pid: number; ipid: number }>): boolean {
+    if (treeData.length !== this.lastProcessSet.size) {
+      return false;
+    }
+    for (let process of treeData) {
+      if (!this.lastProcessSet.has(process.ipid)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  showSwitchProcessBt(selection: SelectionParam | null | undefined): void {
+    // 2个及以上进程再显示
+    if (selection && selection.nativeMemoryAllProcess.length > 1) {
+      this.switchDiv!.style.display = 'flex';
+      if (this.isProcessEqual(selection.nativeMemoryAllProcess)) {
+        return;
+      }
+      this.lastProcessSet = new Set<number>();
+      const processArray: Array<TreeItemData> = [];
+      let isFirst: boolean = true;
+      for (let process of selection.nativeMemoryAllProcess) {
+        const treeData: TreeItemData = {
+          key: `${process.ipid}`,
+          title: `Process ${process.pid}`,
+          checked: isFirst,
+        };
+        if (isFirst) {
+          this.lastSelectIPid = process.ipid;
+          isFirst = false;
+        }
+        processArray.push(treeData);
+        this.lastProcessSet.add(process.ipid);
+      }
+      this.processTree!.treeData = processArray;
+    } else {
+      this.switchDiv!.style.display = 'none';
     }
   }
 

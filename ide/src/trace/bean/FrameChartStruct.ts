@@ -51,6 +51,11 @@ export class ChartStruct extends BaseStruct {
   drawDur: number = 0;
   drawEventCount: number = 0;
 
+  threadPercent: number = 0;
+  threadEventPercent: number = 0;
+  processPercent: number = 0;
+  processEventPercent: number = 0;
+
   parent: ChartStruct | undefined;
   children: Array<ChartStruct> = [];
   percent: number = 0; // 0 - 1 该node所占整体的百分比

@@ -19,9 +19,9 @@ import {
   queryHiPerfCpuData,
   queryHiPerfCpuMergeData,
   queryHiPerfCpuMergeData2,
-  queryHiPerfEventList,
   queryHiPerfProcessData,
   queryHiPerfThreadData,
+  queryPerfEventType,
   queryPerfCmdline,
   queryPerfThread,
 } from '../../database/SqlLite.js';
@@ -57,7 +57,7 @@ export class SpHiPerf {
   private trace: SpSystemTrace;
   private group: any;
   private rowList: TraceRow<any>[] | undefined;
-  private eventTypeList: Array<{ id: number; report_value: string }> = [];
+  private eventTypeList: Array<{ id: number; report: string }> = [];
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -67,7 +67,7 @@ export class SpHiPerf {
     await this.initCmdLine();
     this.rowList = [];
     this.perfThreads = await queryPerfThread();
-    this.eventTypeList = await queryHiPerfEventList();
+    this.eventTypeList = await queryPerfEventType();
     info('PerfThread Data size is: ', this.perfThreads!.length);
     this.group = Utils.groupBy(this.perfThreads || [], 'pid');
     this.cpuData = await queryHiPerfCpuMergeData2();
@@ -113,6 +113,45 @@ export class SpHiPerf {
     row.rowType = TraceRow.ROW_TYPE_HIPERF;
     row.rowParentId = '';
     row.folder = true;
+    row.rowSetting = 'enable';
+    row.rowSettingPopoverDirection = 'bottomLeft';
+    row.rowSettingList = [
+      {
+        key: '-2',
+        title: 'Cpu Usage',
+        checked: true,
+      },
+      {
+        key: '-1',
+        title: 'Event Type',
+        children: this.eventTypeList.map(et => {
+          return {
+            key: `${et.id}`,
+            title: et.report
+          };
+        }),
+      },
+    ];
+    row.onRowSettingChangeHandler = (value) => {
+      let drawType = parseInt(value[0]);
+      row.childrenList.forEach((child) => {
+        if (child.drawType !== drawType) {
+          child.drawType = drawType;
+          child.dataList2 = [];
+          child.childrenList.forEach((sz) => {
+            sz.drawType = drawType
+            sz.dataList2 = [];
+          });
+        }
+      });
+      this.trace.getCollectRows((row) => row.rowType!.startsWith('hiperf-')).forEach((it) => {
+        if (it.drawType !== drawType) {
+          it.drawType = drawType;
+          it.dataList2 = [];
+        }
+      });
+      this.trace.refreshCanvas(false);
+    };
     row.style.height = '40px';
     if (SpHiPerf.stringResult?.existA === true) {
       row.name = `HiPerf (All)`;
@@ -155,6 +194,7 @@ export class SpHiPerf {
     cpuMergeRow.rowParentId = 'HiPerf';
     cpuMergeRow.rowHidden = !this.rowFolder.expansion;
     cpuMergeRow.folder = false;
+    cpuMergeRow.drawType = -2;
     cpuMergeRow.name = `HiPerf`;
     cpuMergeRow.style.height = '40px';
     cpuMergeRow.setAttribute('children', '');
@@ -200,6 +240,7 @@ export class SpHiPerf {
       perfCpuRow.rowParentId = 'HiPerf';
       perfCpuRow.rowHidden = !this.rowFolder.expansion;
       perfCpuRow.folder = false;
+      perfCpuRow.drawType = -2;
       perfCpuRow.name = `Cpu ${i}`;
       perfCpuRow.setAttribute('children', '');
       perfCpuRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -248,6 +289,7 @@ export class SpHiPerf {
       row.rowParentId = 'HiPerf';
       row.rowHidden = !this.rowFolder.expansion;
       row.folder = true;
+      row.drawType = -2;
       if (SpChartManager.APP_STARTUP_PID_ARR.find((pid) => pid === process.pid) !== undefined) {
         row.addTemplateTypes('AppStartup');
       }
@@ -297,6 +339,7 @@ export class SpHiPerf {
         thread.rowParentId = row.rowId;
         thread.rowHidden = !row.expansion;
         thread.folder = false;
+        thread.drawType = -2;
         thread.name = `${thObj.threadName || 'Thread'} [${thObj.tid}]`;
         thread.setAttribute('children', '');
         thread.folderPaddingLeft = 0;
@@ -355,15 +398,23 @@ export class SpHiPerf {
       | undefined
   ) {
     let tip = '';
+    let groupBy10MS = (TraceRow.range?.scale || 50) > 30_000_000;
     if (struct) {
-      let num = 0;
-      if (struct instanceof HiPerfEventStruct) {
-        num = Math.trunc(((struct.sum || 0) / (struct.max || 0)) * 100);
-      } else {
-        num = Math.trunc(((struct.height || 0) / 40) * 100);
-      }
-      if (num > 0) {
-        tip = `<span>${num * (this.maxCpuId + 1)}% (10.00ms)</span>`;
+      if (groupBy10MS) {
+        if (row.drawType === -2) {
+          let num = 0;
+          if (struct instanceof HiPerfEventStruct) {
+            num = Math.trunc(((struct.sum || 0) / (struct.max || 0)) * 100);
+          } else {
+            num = Math.trunc(((struct.height || 0) / 40) * 100);
+          }
+          if (num > 0) {
+            tip = `<span>${num * (this.maxCpuId + 1)}% (10.00ms)</span>`;
+          }
+        } else {
+          tip = `<span>${struct.eventCount} (10.00ms)</span>`;
+        }
+
       } else {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);
         tip = `<span>${perfCall ? perfCall.name : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;

@@ -44,7 +44,6 @@ import {
   drawLogsLineSegment,
   drawWakeUp,
   drawWakeUpList,
-  isFrameContainPoint,
   LineType,
   ns2x,
   ns2xByTimeShaft,
@@ -96,14 +95,13 @@ import { TabPaneSummary } from './trace/sheet/ark-ts/TabPaneSummary.js';
 import { JsCpuProfilerChartFrame } from '../bean/JsStruct.js';
 import { FileInfo } from '../../js-heap/model/UiStruct.js';
 import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { setSelectState, intersectData } from './Utils.js';
+import { setSelectState, intersectData, isExistPidInArray } from './Utils.js';
 import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
 import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample.js';
 import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js';
 import { LitSearch } from './trace/search/Search.js';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
-import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -698,6 +696,17 @@ export class SpSystemTrace extends BaseElement {
           if (!it.expansion) {
             memoryRows = [...it.childrenList];
           }
+          const rowKey =  it.rowId!.split(' ');
+          const process = {
+            ipid: Number(rowKey[rowKey.length - 1]),
+            pid: Number(rowKey[rowKey.length - 2])
+          }
+          if (!isExistPidInArray(selection.nativeMemoryAllProcess,process.pid)){
+            selection.nativeMemoryAllProcess.push(process);
+          }
+          if (selection.nativeMemoryCurrentIPid === -1){
+            selection.nativeMemoryCurrentIPid = process.ipid;
+          }
           memoryRows.forEach((th) => {
             th.rangeSelect = true;
             th.checkType = '2';
@@ -756,6 +765,19 @@ export class SpSystemTrace extends BaseElement {
           selection.hasFps = true;
           info('load FPS traceRow id is : ', it.rowId);
         } else if (it.rowType == TraceRow.ROW_TYPE_HEAP) {
+          const key = it.rowParentId!.split(' ');
+          const process = {
+            ipid: Number(key[key.length - 1]),
+            pid: Number(key[key.length - 2])
+          };
+
+          if (!isExistPidInArray(selection.nativeMemoryAllProcess,process.pid)){
+            selection.nativeMemoryAllProcess.push(process);
+          }
+          if (selection.nativeMemoryCurrentIPid === -1){
+            selection.nativeMemoryCurrentIPid = process.ipid;
+          }
+          if (selection.nativeMemoryAllProcess)
           if (it.getAttribute('heap-type') === 'native_hook_statistic') {
             selection.nativeMemoryStatistic.push(it.rowId!);
           } else {
@@ -1226,13 +1248,6 @@ export class SpSystemTrace extends BaseElement {
             selection.hiLogs.push(...batch);
             currentIndex += batchSize;
           }
-        } else if (it.rowType === TraceRow.ROW_TYPE_HI_SYSEVENT) {
-          let systemEvents: HiSysEventStruct[] = it.dataList.filter(
-            (systemEventStruct: HiSysEventStruct) =>
-              (systemEventStruct.ts ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
-              (systemEventStruct.ts ?? 0) <= TraceRow.rangeSelectObject!.endNS!
-          );
-          selection.hiSysEvents.push(...systemEvents);
         }
         if (this.rangeTraceRow!.length !== rows.length) {
           let event = this.createPointEvent(it);
@@ -3636,6 +3651,9 @@ export class SpSystemTrace extends BaseElement {
         it.checkType = data.isCheck ? '2' : '0';
       });
     });
+    window.subscribe(window.SmartEvent.UI.ProcessSwitch, (data) => {
+      this.traceSheetEL?.updateRangeSelect(data);
+    });
   }
 
   favoriteAreaSearchHandler(row: TraceRow<any>): void {
@@ -3885,10 +3903,10 @@ export class SpSystemTrace extends BaseElement {
         processList.push(row.rowId!);
       });
       if (query.includes('_')) {
-        query = query.replace(/_/g, '\\_');
+        query = query.replace('_', '\\_');
       }
       if (query.includes('%')) {
-        query = query.replace(/%/g, '\\%');
+        query = query.replace('%', '\\%');
       }
       let list = await querySceneSearchFunc(query, processList);
       cpuList = cpuList.concat(list);
