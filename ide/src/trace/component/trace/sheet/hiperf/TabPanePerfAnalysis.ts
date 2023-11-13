@@ -105,7 +105,10 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.checkBoxs = popover!.querySelectorAll<LitCheckBox>('.check-wrap > lit-check-box');
     this.tableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
     for (let perfTable of this.tableArray) {
-      perfTable.shadowRoot!.querySelector<HTMLDivElement>('.table')!.style.height = 'calc(100% - 31px)';
+      let querySelector = perfTable.shadowRoot?.querySelector<HTMLDivElement>('.table');
+      if (querySelector) {
+        querySelector.style.height = 'calc(100% - 31px)';
+      }
       perfTable!.addEventListener('column-click', (evt) => {
         // @ts-ignore
         this.sortColumn = evt.detail.key;

@@ -158,7 +158,7 @@ export class TraceSheet extends BaseElement {
         return;
       }
       this.switchDiv!.visible = 'false';
-      window.publish(window.SmartEvent.UI.ProcessSwitch, { ipid: selectIPid });
+      this.updateRangeSelect(selectIPid)
       this.lastSelectIPid = selectIPid;
     };
 
@@ -742,7 +742,7 @@ export class TraceSheet extends BaseElement {
     }
   }
 
-  updateRangeSelect(data?: any): boolean {
+  updateRangeSelect(ipid?: number): boolean {
     if (
       this.selection &&
       (this.selection.nativeMemory.length > 0 ||
@@ -759,9 +759,9 @@ export class TraceSheet extends BaseElement {
       Object.assign(param, this.selection);
       if (param.nativeMemory.length > 0 || param.nativeMemoryStatistic.length > 0) {
         Utils.getInstance().initResponseTypeList(param);
-        if (data) {
-          Utils.getInstance().setCurrentSelectIPid(Number(data.ipid));
-          param.nativeMemoryCurrentIPid = Number(data.ipid);
+        if (ipid) {
+          Utils.getInstance().setCurrentSelectIPid(ipid);
+          param.nativeMemoryCurrentIPid = ipid;
         }
       }
       this.rangeSelect(param, true);
@@ -806,6 +806,17 @@ export class TraceSheet extends BaseElement {
     if (selection && selection.nativeMemoryAllProcess.length > 1) {
       this.switchDiv!.style.display = 'flex';
       if (this.isProcessEqual(selection.nativeMemoryAllProcess)) {
+        if (this.processTree){
+          for (const data of this.processTree.treeData){
+            if (data.key === `${selection.nativeMemoryCurrentIPid}`){
+              data.checked = true;
+            } else {
+              data.checked = false;
+            }
+          }
+          //调用set重新更新界面
+          this.processTree.treeData = this.processTree.treeData;
+        }
         return;
       }
       this.lastProcessSet = new Set<number>();
@@ -834,7 +845,7 @@ export class TraceSheet extends BaseElement {
     let component: any = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
-    if (component) {
+    if (component) {  
       this.selection!.isRowClick = false;
       component.data = this.selection;
     }

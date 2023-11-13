@@ -51,16 +51,17 @@ export class PerfDataQuery {
   }
 
   getLibName(fileId: number, symbolId: number) {
+    let name = 'unknown';
     if (symbolId == -1) {
       if (this.filesData[fileId] && this.filesData[fileId].length > 0) {
-        return this.filesData[fileId][0].fileName;
+        name = this.filesData[fileId][0].fileName;
       }
     } else {
       if (this.filesData[fileId] && this.filesData[fileId].length > symbolId) {
-        return this.filesData[fileId][symbolId].fileName;
+        name = this.filesData[fileId][symbolId].fileName;
       }
     }
-    return 'unknown';
+    return name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 }
 

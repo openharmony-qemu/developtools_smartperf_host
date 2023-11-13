@@ -611,9 +611,6 @@ export class TabpaneNMCalltree extends BaseElement {
       });
     });
     this.nmCallTreeFilter!.getFilterData((nmCallTreeData: FilterData): void => {
-      if (this.currentSelection!.nativeMemoryStatistic.length > 0) {
-        this.filterResponseSelect = '0';
-      }
       if (
         (this.isChartShow && nmCallTreeData.icon === 'tree') ||
         (!this.isChartShow && nmCallTreeData.icon === 'block')
@@ -627,7 +624,7 @@ export class TabpaneNMCalltree extends BaseElement {
         ) {
           this.filterAllocationType = nmCallTreeData.firstSelect || '0';
           this.filterNativeType = nmCallTreeData.secondSelect || '0';
-          this.filterResponseSelect = nmCallTreeData.thirdSelect || "0'";
+          this.filterResponseSelect = nmCallTreeData.thirdSelect || '0';
           let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
           if (this.responseTypes.length > thirdIndex) {
             this.filterResponseType = this.responseTypes[thirdIndex].key || -1;

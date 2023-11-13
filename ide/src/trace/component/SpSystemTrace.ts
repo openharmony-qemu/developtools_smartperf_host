@@ -852,14 +852,15 @@ export class SpSystemTrace extends BaseElement {
           if (it.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
             let setting = it.getRowSettingKeys();
             if (setting && setting.length > 0) {
-              // 0:cpu,1:thread
-              let type = setting[0].indexOf('c') > -1 ? 0 : 1;
-              let id = Number(setting[0].indexOf('c') > -1 ?
-                setting[0].substring(0, setting[0].indexOf('c')) : setting[0].substring(0, setting[0].indexOf('t')));
-              if (type === 0) {
-                selection.perfCpus.push(id);
-              } else {
+              //type 0:cpu,1:process,2:thread
+              let key: string = setting[0];
+              let id = Number(key.split('-')[0]);
+              if (key.includes('p')) {
+                selection.perfProcess.push(id);
+              } else if (key.includes('t')) {
                 selection.perfThread.push(id);
+              } else {
+                selection.perfCpus.push(id);
               }
             }
           }
@@ -3675,9 +3676,6 @@ export class SpSystemTrace extends BaseElement {
       this.getCollectRows((row) => row.rowParentId === data.rowId).forEach((it) => {
         it.checkType = data.isCheck ? '2' : '0';
       });
-    });
-    window.subscribe(window.SmartEvent.UI.ProcessSwitch, (data) => {
-      this.traceSheetEL?.updateRangeSelect(data);
     });
     window.subscribe(window.SmartEvent.UI.HoverNull, () => this.hoverStructNull());
   }

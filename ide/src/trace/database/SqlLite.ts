@@ -3567,13 +3567,13 @@ export const queryStateData = (eventName: string): Promise<Array<EnergyStateStru
     { $eventName: eventName }
   );
 
-export const querySyseventAppName = (): Promise<
+export const queryEnergyAppName = (): Promise<
   Array<{
     string_value: string | null;
   }>
 > =>
   query(
-    'querySyseventAppName',
+    'queryEnergyAppName',
     `
     SELECT
     DISTINCT hisys_event_measure.string_value from data_dict 
@@ -3869,9 +3869,9 @@ export const getCpuLimitFreq = (maxId: number, minId: number, cpu: number): Prom
     { $maxId: maxId, $minId: minId, $cpu: cpu }
   );
 
-export const queryHisystemEventExits = (): Promise<Array<any>> =>
+export const queryEnergyEventExits = (): Promise<Array<any>> =>
   query(
-    'queryHisystemEventExits',
+    'queryEnergyEventExits',
     `select 
       event_name 
       from stat s 
@@ -3980,13 +3980,13 @@ export const queryBootTime = (): Promise<Array<any>> =>
     {}
   );
 
-export const queryConfigSysEventAppName = (): Promise<
+export const queryConfigEnergyAppName = (): Promise<
   Array<{
     process_name: string;
   }>
 > =>
   query(
-    'queryConfigSysEventAppName',
+    'queryConfigEnergyAppName',
     `
     SELECT value from trace_config where trace_source = 'hisys_event' and key = 'process_name'`
   );

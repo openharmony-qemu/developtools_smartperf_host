@@ -268,7 +268,7 @@ export class TabPaneHisysEvents extends BaseElement {
                    <div style="display: flex;">
                     <div id="eventNameTagFilter" style='display: flex;width: auto; height: 100%;flex-wrap: wrap;'>
                     </div>
-                    <input type="text" id="event-name-filter" class="filter-input" placeholder="Filter by eventName…">
+                    <input type="text" id="event-name-filter" class="filter-input" placeholder="Filter by eventname…">
                   </div>
                    <div class="level-content">
                        <select id="level-filter">
@@ -285,7 +285,7 @@ export class TabPaneHisysEvents extends BaseElement {
            </lit-table-column>
            <lit-table-column title="domain" width="1.5fr" data-index="domain" key="domain"  align="flex-start" >
            </lit-table-column>
-           <lit-table-column title="eventName" width="3fr" data-index="eventName" key="eventName" align="flex-start" >
+           <lit-table-column title="eventname" width="3fr" data-index="eventName" key="eventName" align="flex-start" >
            </lit-table-column>
            <lit-table-column title="type" width="0.5fr" data-index="eventType" key="eventType"  align="flex-start" >
            </lit-table-column>

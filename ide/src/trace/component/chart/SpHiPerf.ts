@@ -219,11 +219,13 @@ export class SpHiPerf {
         hoverStruct?.children?.forEach(child => {
           selfDur -= child.totalTime;
         });
+        let callName = HiPerfCallChartStruct.hoverPerfCallCutStruct?.name || '';
+        callName = callName.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         this.trace?.displayTip(
           perfCallCutRow!,
           HiPerfCallChartStruct.hoverPerfCallCutStruct,
           `<span style="font-weight: bold;color:'#000'">Name: </span>
-        <span>${HiPerfCallChartStruct.hoverPerfCallCutStruct?.name || ''}</span><br>
+        <span>${callName}</span><br>
         <span style='font-weight: bold;'>Lib: </span>
         <span>${perfDataQuery.getLibName(hoverStruct!.fileId,hoverStruct!.symbolId)}</span><br>
         <span style='font-weight: bold;'>Self Time: </span>
@@ -244,54 +246,58 @@ export class SpHiPerf {
   }
 
   async setCallTotalRow(row: TraceRow<any>, cpuData: any = Array, threadData: any = Array) {
+    let pt: Map<string, any> = threadData.reduce((map: Map<string, any>, current: any) => {
+      const key = `${current.processName || 'Process'}(${current.pid})`;
+      const thread = {
+        key: `${current.tid}-t`,
+        title: `${current.threadName || 'Thread'}(${current.tid})`
+      }
+      if (map.has(key)) {
+        if (map.get(key).children) {
+          map.get(key).children.push(thread);
+        } else {
+          map.get(key).children = [thread];
+        }
+      } else {
+        map.set(key, {
+          key: `${current.pid}-p`,
+          title: key,
+          children: [thread],
+          disable: true
+        });
+      }
+      return map;
+    }, new Map<string, any>());
     row.addTemplateTypes('hiperf-callchart');
     row.rowSetting = 'enable';
     row.rowSettingList = [
-      {
-        key: "cpu",
-        title: 'Cpu',
-        disable: true,
-        children: [
-          ...cpuData.reverse().map((it: any): {
-              key: string;
-              title: string;
-              checked?: boolean
-            } => {
-              return {
-                key: `${it.cpu_id}c`,
-                checked: it.cpu_id === 0,
-                title: `cpu${it.cpu_id}`,
-              };
-            }
-          ),
-        ]
-      },
-      {
-        key: "thread",
-        title: 'Thread',
-        disable: true,
-        children: [
-          ...threadData.map(
-            (it: any): {
-              key: string;
-              title: string;
-            } => {
-              return {
-                key: `${it.tid}t`,
-                title: `${it.threadName || 'Thread'}(${it.tid})`
-              }
-            }
-          )
-        ]
-      }
+      ...cpuData.reverse().map((it: any): {
+          key: string;
+          title: string;
+          checked?: boolean
+        } => {
+          return {
+            key: `${it.cpu_id}-c`,
+            checked: it.cpu_id === 0,
+            title: `cpu${it.cpu_id}`,
+          };
+        }
+      ),
+      ...Array.from(pt.values())
     ];
     row.onRowSettingChangeHandler = (setting: any, nodes): void => {
       if (setting && setting.length > 0) {
-        // 0:cpu,1:thread
-        let key = setting[0];
-        let type = key.indexOf('c') > -1 ? 0 : 1;
-        let id = Number(key.indexOf('c') > -1 ?
-          key.substring(0, key.indexOf('c')) : key.substring(0, key.indexOf('t')));
+        //type 0:cpu,1:process,2:thread
+        let key: string = setting[0];
+        let type = this.callChartType;
+        if (key.includes('p')) {
+          type = 1;
+        } else if (key.includes('t')) {
+          type = 2;
+        } else {
+          type = 0;
+        }
+        let id = Number(key.split('-')[0]);
         if (this.callChartType === type && this.callChartId === id) {
           return;
         }

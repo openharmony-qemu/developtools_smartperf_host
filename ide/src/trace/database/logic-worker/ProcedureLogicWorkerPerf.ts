@@ -245,18 +245,32 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.createCallChain();
   }
 
+
+  getQueryCallDataTypeCondition(type : number, id: number) : string {
+    if (type === 0) {
+      return `cpu_id = ${id}`;
+    } else if (type === 1) {
+      return `C.process_id = ${id}`;
+    } else if (type === 2) {
+      return  `A.thread_id = ${id}`;
+    } else {
+      return '';
+    }
+  }
   queryCallData(data: Array<number>) {
-    let condition = `${data[0] == 0 ? 'cpu_id=' : 'thread_id='}${data[1]} ${
+    let condition = `${this.getQueryCallDataTypeCondition(data[0], data[1])} ${
       data[2] === -2 ? '' : `and event_type_id=${data[2]}`
     }`;
-    const sql = `SELECT id,
+    const sql = `SELECT
     callchain_id,
     timestamp_trace - start_ts AS timeTip,
     event_count as eventCount,
-    thread_id,
+    A.thread_id,
     cpu_id
   FROM
-    perf_sample,trace_range where callchain_id != -1 and thread_id != 0 and ${condition}`;
+    perf_sample A,trace_range B
+    left join perf_thread C on A.thread_id = C.thread_id
+  where callchain_id != -1 and A.thread_id != 0 and ${condition}`;
     this.queryData(this.currentEventId!, 'perf-callstack-chart', sql, {});
   }
   initPerfFiles(): void {

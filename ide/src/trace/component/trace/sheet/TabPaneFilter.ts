@@ -65,9 +65,13 @@ export class TabPaneFilter extends BaseElement {
     return this.isStatisticsMem;
   }
   set isStatisticsMemory(value) {
+    let hideThreadEL = this.shadowRoot?.querySelector('.popover .tree-check:nth-child(4)');
     if (value) {
-      let hideThreadEL = this.shadowRoot?.querySelector('.popover .tree-check:nth-child(4)');
       hideThreadEL?.classList.add('hide');
+    } else {
+      if (hideThreadEL!.classList.contains('hide')) {
+        hideThreadEL!.classList.remove('hide');
+      }
     }
   }
 
