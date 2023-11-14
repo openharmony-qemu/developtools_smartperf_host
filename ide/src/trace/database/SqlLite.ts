@@ -5542,7 +5542,11 @@ export const queryTraceType = (): Promise<
 export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
   query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
 
-export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabRunningPercent = (
+  tIds: Array<number>, 
+  leftNS: number, 
+  rightNS: number
+): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabRunningPercent',
     `
@@ -5596,7 +5600,7 @@ export const querySearchFuncData = (
       left join 
         trace_range r
       where 
-        c.name like '${funcName}' 
+        c.name like '${funcName}%' 
       and 
         t.tid = ${tIds} 
       and
