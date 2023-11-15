@@ -17,11 +17,10 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, FLAG, APP_NAME, APP_KEY };
+enum class Index : int32_t { ID = 0, APP_NAME, APP_KEY };
 SysEventSubkeyTable::SysEventSubkeyTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("flag", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("app_name", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("app_key", "INTEGER"));
     tablePriKey_.push_back("id");
@@ -47,9 +46,6 @@ int32_t SysEventSubkeyTable::Cursor::Column(int32_t column) const
     switch (static_cast<Index>(column)) {
         case Index::ID:
             sqlite3_result_int64(context_, sysEventSubkeys_.IdsData()[CurrentRow()]);
-            break;
-        case Index::FLAG:
-            sqlite3_result_int(context_, sysEventSubkeys_.Falgs()[CurrentRow()]);
             break;
         case Index::APP_NAME:
             sqlite3_result_int64(context_, sysEventSubkeys_.SysEventNameId()[CurrentRow()]);

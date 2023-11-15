@@ -113,7 +113,7 @@ private:
     void UpdateSymbolTablePtrAndStValueToSymAddrMap(T* firstSymbolAddr,
                                                     const int size,
                                                     std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
-    void FillOfflineSymbolizationFrames(std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>>::iterator itor);
+    void FillOfflineSymbolizationFrames(std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator itor);
     void ReparseStacksWithAddrRange(uint64_t start, uint64_t end);
     void ReparseStacksWithDifferentMeans();
     void CompressStackAndFrames(uint64_t row, ProtoReader::RepeatedDataAreaIterator<ProtoReader::BytesView> frames);
@@ -129,14 +129,14 @@ private:
 
 private:
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
-    std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ = {};
-    std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>> allStackIdToFramesMap_ = {};
-    std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>> stackIdToFramesMap_ = {};
+    std::map<uint64_t /*ipidWithStackIdIndex*/, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ = {};
+    std::map<uint64_t /*ipidWithStackIdIndex*/, std::shared_ptr<std::vector<uint64_t>>> allStackIdToFramesMap_ = {};
+    std::map<uint64_t /*ipidWithStackIdIndex*/, std::shared_ptr<std::vector<uint64_t>>> stackIdToFramesMap_ = {};
     std::map<uint32_t, uint64_t> callChainIdToStackHashValueMap_ = {};
     DoubleMap<uint32_t, uint32_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
     std::unordered_map<uint64_t, std::vector<uint64_t>> stackHashValueToFramesHashMap_ = {};
     std::unordered_map<uint64_t, std::unique_ptr<NativeHookFrameInfo>> frameHashToFrameInfoMap_ = {};
-    std::unordered_map<uint32_t, uint64_t> threadNameIdToThreadNameIndex_ = {};
+    std::unordered_map<uint64_t /*ipidWithThreadNameIdIndex*/, uint64_t> threadNameIdToThreadNameIndex_ = {};
     std::unordered_map<uint32_t, std::tuple<uint64_t, uint64_t>> callIdToLastCallerPathIndex_ = {};
     std::unordered_map<uint64_t, std::string> functionNameIndexToVaddr_ = {};
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
@@ -161,11 +161,9 @@ private:
     bool isStringCompressedMode_ = false;
     bool isStatisticMode_ = false;
     const size_t MAX_CACHE_SIZE = 200000;
-    const uint32_t SINGLE_PROC_IPID = 0;
     uint32_t callChainId_ = 0;
     CommHookData commHookData_;
     std::unique_ptr<ProfilerPluginData> hookPluginData_ = nullptr;
-    bool isSingleProcData_ = true;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
