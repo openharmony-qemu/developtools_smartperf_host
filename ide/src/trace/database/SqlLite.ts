@@ -1751,6 +1751,28 @@ export const queryHiPerfEventListData = (eventTypeId: number): Promise<Array<any
 `,
     { $eventTypeId: eventTypeId }
   );
+export const querySfVSyncData = (): Promise<Array<any>> =>
+query(
+  'querySfVSyncData',
+  `SELECT ts,value,c.ts-tb.start_ts startTime
+  FROM
+  process_measure c,
+  trace_range tb
+  WHERE
+  c.filter_id IN (SELECT process_measure_filter.id AS traceId FROM process_measure_filter JOIN process USING (ipid) WHERE process.name = ${`'` + String.fromCharCode(115,117,114,102,97,99,101,102,108,105,110,103,101,114) + `'`}
+   AND process_measure_filter.name = ${`'` + String.fromCharCode(86,83,89,78,67,45,97,112,112) + `'`})`
+)
+export const querySingleVSyncData = ():Promise<Array<any>> =>
+query(
+  'querySingleVSyncData',
+  `SELECT ts,c.ts-tb.start_ts startTime
+  FROM
+  callstack c,
+  trace_range tb
+  WHERE
+  c.id IN (SELECT callstack.id AS trackId FROM callstack JOIN process WHERE process.name = ${`'` + String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101) + `'`}
+   AND callstack.name like ${`'` + String.fromCharCode(72,58,71,101,110,101,114,97,116,101,86,115,121,110,99,67,111,117,110,116,37) + `'`})`
+)
 export const queryHiPerfEventData = (eventTypeId: number, cpu: number): Promise<Array<any>> =>
   query(
     'queryHiPerfEventList',
