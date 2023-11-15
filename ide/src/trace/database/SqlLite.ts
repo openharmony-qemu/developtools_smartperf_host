@@ -297,8 +297,8 @@ export class DbPool {
             }
           }
         };
-        thread!.onmessageerror = (e) => {};
-        thread!.onerror = (e) => {};
+        thread!.onmessageerror = (e) => { };
+        thread!.onerror = (e) => { };
         thread!.id = i;
         thread!.busy = false;
         this.works?.push(thread!);
@@ -1271,8 +1271,7 @@ export const queryVirtualMemory = (): Promise<Array<any>> =>
 export const queryVirtualMemoryData = (filterId: number): Promise<Array<any>> =>
   query(
     'queryVirtualMemoryData',
-    `select ts-${
-      (window as any).recordStartNS
+    `select ts-${(window as any).recordStartNS
     } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );
@@ -1684,7 +1683,7 @@ select
     {}
   );
 
-export const queryAllHookData = (rightNs: number,ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
+export const queryAllHookData = (rightNs: number, ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(
     'queryAllHookData',
     `
@@ -3886,11 +3885,9 @@ export const queryEbpfSamplesCount = (startTime: number, endTime: number, ipids:
     select
 fsCount,
     vmCount from
-(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     })
-,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     });
 `,
     { $startTime: startTime, $endTime: endTime }
@@ -5641,7 +5638,7 @@ export const queryRealTime = (): Promise<
   Array<{
     ts: number
   }>
-  > =>
+> =>
   query(
     'queryRealTime',
     `select CS.ts as ts from clock_snapshot as CS where clock_name = 'realtime';`
@@ -5673,4 +5670,38 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         LEFT JOIN data_dict AS D on S.event_name_id = D.id
         LEFT JOIN data_dict AS D2 on S.domain_id = D2.id
         ORDER BY S.ts`
+  );
+
+export const querySearchRowFuncData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
+  query(
+    'querySearchFuncData',
+    `
+      select 
+        c.cookie,
+        c.id,
+        c.name as funName,
+        c.ts - r.start_ts as startTime,
+        c.dur,c.depth,
+        t.tid,
+        t.name as threadName,
+        p.pid,
+        'func' as type 
+      from 
+        callstack c 
+      left join 
+        thread t 
+      on 
+        c.callid = t.id 
+      left join 
+        process p 
+      on 
+        t.ipid = p.id
+      left join 
+        trace_range r
+      where 
+        c.name = '${funcName}' 
+      and 
+        t.tid = ${tIds};
+      `,
+    { $search: funcName }
   );

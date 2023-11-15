@@ -121,6 +121,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
   static ROW_TYPE_HI_SYSEVENT = 'hi-sysevent';
+  static docompositionData: Array<number> = []; // 存储查询到的docomposition数据
+  static currentRowId: number | undefined; // 存储当前行id
   public obj: TraceRowObject<any> | undefined | null;
   isHover: boolean = false;
   hoverX: number = 0;
@@ -186,12 +188,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-      canvasNumber: 1,
-      alpha: false,
-      contextId: '2d',
-      isOffScreen: true,
-      skeleton: false,
-    }
+        canvasNumber: 1,
+        alpha: false,
+        contextId: '2d',
+        isOffScreen: true,
+        skeleton: false,
+      }
   ) {
     super();
     this.args = args;
@@ -697,7 +699,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     });
   }
 
-  getRowSettingKeys() : Array<string> {
+  getRowSettingKeys(): Array<string> {
     if (this.rowSetting === 'enable') {
       return this.rowSettingTree!.getCheckdKeys();
     }
@@ -716,7 +718,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart() : void {
+  enableCollapseChart(): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcExpand) {
