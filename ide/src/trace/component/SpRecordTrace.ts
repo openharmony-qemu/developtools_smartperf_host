@@ -149,6 +149,9 @@ export class SpRecordTrace extends BaseElement {
     'MEMINFO_VMALLOC_USED',
     'MEMINFO_WRITEBACK',
     'MEMINFO_KERNEL_RECLAIMABLE',
+    'PMEM_ACTIVE_PURG',
+    'PMEM_INACTIVE_PURG',
+    'PMEM_PINED_PURG'
   ];
   static VMEM_INFO = [
     'VMEMINFO_UNSPECIFIED',
@@ -310,6 +313,9 @@ export class SpRecordTrace extends BaseElement {
     'MEMINFO_CMA_TOTAL',
     'MEMINFO_CMA_FREE',
     'MEMINFO_KERNEL_RECLAIMABLE',
+    'PMEM_ACTIVE_PURG',
+    'PMEM_INACTIVE_PURG',
+    'PMEM_PINED_PURG'
   ];
 
   schedulingEvents = [
@@ -2181,6 +2187,7 @@ export class SpRecordTrace extends BaseElement {
       fpUnwind: this.spAllocations!.fp_unwind,
       blocked: true,
     };
+    let maxProcessSize = 4;
     if (SpRecordTrace.selectVersion !== undefined && SpRecordTrace.selectVersion !== '3.2') {
       nativeConfig.callframeCompress = true;
       nativeConfig.recordAccurately = this.spAllocations!.record_accurately;
@@ -2189,9 +2196,16 @@ export class SpRecordTrace extends BaseElement {
         nativeConfig.statisticsInterval = this.spAllocations!.statistics_interval;
       }
       nativeConfig.startupMode = this.spAllocations!.startup_mode;
+      if (this.spAllocations!.response_lib_mode) {
+        nativeConfig.responseLibraryMode = this.spAllocations!.response_lib_mode;
+        maxProcessSize = 8;
+      }
+      if (this.spAllocations!.sample_interval) {
+        nativeConfig.sampleInterval = this.spAllocations!.sample_interval;
+      }
     }
     if (this.spAllocations!.expandPids.length > 0) {
-      nativeConfig.expandPids = this.spAllocations!.expandPids;
+      nativeConfig.expandPids = this.spAllocations!.expandPids.splice(0, maxProcessSize);
     }
     let nativePluginConfig: ProfilerPluginConfig<NativeHookConfig> = {
       pluginName: 'nativehook',

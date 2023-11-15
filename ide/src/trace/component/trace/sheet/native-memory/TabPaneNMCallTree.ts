@@ -77,10 +77,6 @@ export class TabpaneNMCalltree extends BaseElement {
     this.headLine!.titleTxt = value;
   }
 
-  get treeData(): Array<any> {
-    return this.nmCallTreeSource;
-  }
-
   set filterData(data: FilterByAnalysis) {
     // click from analysis
     this._filterData = data;
@@ -98,10 +94,15 @@ export class TabpaneNMCalltree extends BaseElement {
     if (nmCallTreeParam === this.currentSelection) {
       return;
     }
+    this.nmCallTreeSource = [];
     this.currentSelection = nmCallTreeParam;
     this.currentSelectIPid = nmCallTreeParam.nativeMemoryCurrentIPid;
+    this.init(nmCallTreeParam);
+  }
+
+  private async init(nmCallTreeParam: SelectionParam): Promise<void> {
     this.initUI();
-    this.initFilterTypes();
+    await this.initFilterTypes();
     let types: Array<string | number> = [];
     this.initTypes(nmCallTreeParam, types);
     const initWidth = this._analysisTabWidth > 0 ? this._analysisTabWidth : this.clientWidth;
