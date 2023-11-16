@@ -563,7 +563,7 @@ export class TabPaneHisysEvents extends BaseElement {
       TraceRow.range!.totalNS,
       new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
     );
-    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color, true, '');
+    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color,'', true, '');
     this.spSystemTrace?.refreshCanvas(false);
   }
 }

@@ -17,10 +17,9 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import '../../../StackBar.js';
-import { getTabThreadStates } from '../../../../database/SqlLite.js';
+import { getTabThreadStates, getTabThreadStatesDetail } from '../../../../database/SqlLite.js';
 import { Utils } from '../../base/Utils.js';
 import { StackBar } from '../../../StackBar.js';
-import { log } from '../../../../../log/Log.js';
 import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-thread-states')
@@ -43,48 +42,110 @@ export class TabPaneThreadStates extends BaseElement {
     this.range!.textContent =
       'Selected range: ' + ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.threadStatesTbl!.loading = true;
-    getTabThreadStates(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs).then(
-      (result) => {
-        if (result != null && result.length > 0) {
-          log('getTabThreadStates result size : ' + result.length);
-          let sumWall = 0.0;
-          let sumOcc = 0;
-          let targetList = [];
-          for (let e of result) {
-            if (threadStatesParam.processIds.includes(e.pid)) {
-              let process = Utils.PROCESS_MAP.get(e.pid);
-              let thread = Utils.THREAD_MAP.get(e.tid);
-              e.process = process == null || process.length == 0 ? '[NULL]' : process;
-              e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
-              sumWall += e.wallDuration;
-              sumOcc += e.occurrences;
-              e.stateJX = e.state;
-              e.state = Utils.getEndState(e.stateJX);
-              e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
-              e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
-              targetList.push(e);
-            }
-          }
-          if (targetList.length > 0) {
-            let count: any = {};
-            count.process = ' ';
-            count.state = ' ';
-            count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
-            count.occurrences = sumOcc;
-            targetList.splice(0, 0, count);
-          }
-          this.threadStatesTblSource = targetList;
-          this.threadStatesTbl!.recycleDataSource = targetList;
-          this.stackBar!.data = targetList;
-        } else {
-          this.threadStatesTblSource = [];
-          this.stackBar!.data = [];
-          this.threadStatesTbl!.recycleDataSource = [];
-        }
-        this.threadStatesTbl!.loading = false;
-      }
-    );
+    this.initThreadStates(threadStatesParam);
   }
+
+  async initThreadStates(threadStatesParam: SelectionParam | any){
+ 
+    let leftStartNs = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
+    let rightEndNs = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
+     
+    let threadStates = await getTabThreadStates(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs);
+    let threadStatesDetail = await getTabThreadStatesDetail(threadStatesParam.threadIds, threadStatesParam.leftNs, threadStatesParam.rightNs);
+     
+    let targetListTemp = this.updateThreadStates(threadStates,threadStatesDetail, leftStartNs, rightEndNs);
+
+    let compare = function(threadState1: SelectionData, threadState2: SelectionData){
+        let wallDuration1 = threadState1.wallDuration;
+        let wallDuration2 = threadState2.wallDuration;
+        if(wallDuration1 < wallDuration2){
+          return 1;
+        }else if(wallDuration1 > wallDuration2){
+          return -1;
+        }else {
+          return 0
+        } 
+    } 
+    targetListTemp.sort(compare);
+    
+    this.addSumLine(threadStatesParam, targetListTemp); 
+
+  }
+ 
+  updateThreadStates(threadStates: Array<any>, threadStatesDetail: Array<any>, leftStartNs:number, rightEndNs:number ): Array<SelectionData> {
+    let targetListTemp = []; 
+    if (threadStates.length > 0 && threadStatesDetail.length >0 ){        
+      let firstState = threadStatesDetail[0]; 
+      let lastState = threadStatesDetail[threadStatesDetail.length-1]; 
+      for (let e of threadStates) {
+
+        if(firstState.ts < leftStartNs 
+          && e.process == firstState.process
+          && e.thread == firstState.thread
+          && e.state == firstState.state){
+         
+          e.wallDuration = e.wallDuration - ( leftStartNs - firstState.ts );
+          e.avgDuration = e.wallDuration / e.occurrences;
+        }
+        
+        if( lastState.ts < rightEndNs 
+          && e.process == lastState.process
+          && e.thread == lastState.thread
+          && e.state == lastState.state ){
+         
+          e.wallDuration = e.wallDuration - ( lastState.ts + lastState.dur - rightEndNs );
+          e.avgDuration = e.wallDuration / e.occurrences;
+        } 
+        targetListTemp.push(e);
+      }  
+    }
+    return targetListTemp; 
+  }
+
+  addSumLine(threadStatesParam : SelectionParam | any,targetListTemp: Array<any>): void { 
+     
+   
+    
+    if (targetListTemp != null && targetListTemp.length > 0) {
+   
+      let sumWall = 0.0;
+      let sumOcc = 0;
+      let targetList = []; 
+
+      for (let e of targetListTemp) {
+        if (threadStatesParam.processIds.includes(e.pid)) {
+          let process = Utils.PROCESS_MAP.get(e.pid);
+          let thread = Utils.THREAD_MAP.get(e.tid);
+          e.process = process == null || process.length == 0 ? '[NULL]' : process;
+          e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
+          
+          e.stateJX = e.state;
+          e.state = Utils.getEndState(e.stateJX);
+          e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
+          e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+          sumWall += e.wallDuration;
+          sumOcc += e.occurrences; 
+          targetList.push(e);
+        }
+      }
+      if (targetList.length > 0) {
+        let count: any = {};
+        count.process = ' ';
+        count.state = ' ';
+        count.wallDuration = parseFloat(sumWall.toFixed(5)); 
+        count.occurrences = sumOcc;
+        targetList.splice(0, 0, count);
+      }
+      this.threadStatesTblSource = targetList;
+      this.threadStatesTbl!.recycleDataSource = targetList;
+      this.stackBar!.data = targetList;
+    } else {
+      this.threadStatesTblSource = [];
+      this.stackBar!.data = [];
+      this.threadStatesTbl!.recycleDataSource = [];
+    }
+    this.threadStatesTbl!.loading = false;
+  } 
 
   initElements(): void {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
