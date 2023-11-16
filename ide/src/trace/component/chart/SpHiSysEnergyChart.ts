@@ -43,6 +43,42 @@ export class SpHiSysEnergyChart {
   private trace: SpSystemTrace;
   private energyTraceRow: TraceRow<BaseStruct> | undefined;
   private timer: any;
+  private stateName: Array<string> = [
+    'BRIGHTNESS_NIT',
+    'SIGNAL_LEVEL',
+    'WIFI_EVENT_RECEIVED',
+    'AUDIO_STREAM_CHANGE',
+    'AUDIO_VOLUME_CHANGE',
+    'WIFI_STATE',
+    'BLUETOOTH_BR_SWITCH_STATE',
+    'BR_SWITCH_STATE',
+    'LOCATION_SWITCH_STATE',
+    'SENSOR_STATE',
+  ];
+  private initValueList: Array<string> = [
+    'brightness',
+    'nocolumn',
+    'nocolumn',
+    'nocolumn',
+    'nocolumn',
+    'wifi',
+    'bt_state',
+    'bt_state',
+    'location',
+    'nocolumn',
+  ];
+  private stateList: Array<string> = [
+    'Brightness Nit',
+    'Signal Level',
+    'Wifi Event Received',
+    'Audio Stream Change',
+    'Audio Volume Change',
+    'Wifi State',
+    'Bluetooth Br Switch State',
+    'Br Switch State',
+    'Location Switch State',
+    'Sensor State',
+  ];
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -51,11 +87,31 @@ export class SpHiSysEnergyChart {
   async init() {
     let result = await queryEnergyEventExits();
     if (result.length <= 0) return;
-    await this.initEnergyRow();
-    await this.initAnomaly();
-    await this.initSystem();
-    await this.initPower();
-    await this.initState();
+    let anomalyData = await queryAnomalyData();
+    let systemData = await Promise.all([querySystemLocationData(), querySystemLockData(), querySystemSchedulerData()]);
+    let systemDataList: any = {};
+    systemDataList[0] = this.handleLockData(systemData[1]);
+    systemDataList[1] = this.handleLocationData(systemData[0]);
+    systemDataList[2] = this.handleWorkData(systemData[2]);
+    let powerData = await queryPowerData();
+    let stateData: any = {};
+    let stateDataSize: number = 0;
+    for (let index = 0; index < this.stateList.length; index++) {
+      let stateResult = await Promise.all([
+        queryStateInitValue(this.stateName[index], this.initValueList[index]),
+        queryStateData(this.stateName[index]),
+      ]);
+      let stateInitValue = this.initValueList[index] == 'nocolumn' ? [] : stateResult[0];
+      stateData[index] = stateInitValue.concat(stateResult[1]);
+      stateDataSize += stateData[index].length;
+    }
+    if (anomalyData.length > 0 || systemDataList[0].length > 0 || systemDataList[1].length > 0 || systemDataList[2].length > 0 || powerData.length > 0 || stateDataSize > 0) {
+      await this.initEnergyRow();
+      this.initAnomaly(anomalyData);
+      this.initSystem(systemDataList);
+      this.initPower(powerData);
+      await this.initState(stateData);
+    }
   }
 
   private initEnergyRow = async () => {
@@ -76,7 +132,7 @@ export class SpHiSysEnergyChart {
     if (appNameFromTable.length > 0 && SpHiSysEnergyChart.app_name == '') {
       SpHiSysEnergyChart.app_name = appNameFromTable[0].string_value;
     }
-    this.energyTraceRow = TraceRow.skeleton<any>();
+    this.energyTraceRow = TraceRow.skeleton<BaseStruct>();
     let appNameList = this.energyTraceRow?.shadowRoot!.querySelector<LitPopover>('#appNameList');
     let addFlag = false;
     appNameList?.addEventListener('click', () => {
@@ -134,7 +190,7 @@ export class SpHiSysEnergyChart {
     this.energyTraceRow.style.height = '40px';
     this.energyTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     this.energyTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    this.energyTraceRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    this.energyTraceRow.supplier = () => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
     this.energyTraceRow.onThreadHandler = (useCache) => {
       this.energyTraceRow?.canvasSave(this.trace.canvasPanelCtx!);
       if (this.energyTraceRow!.expansion) {
@@ -164,7 +220,7 @@ export class SpHiSysEnergyChart {
     this.trace.rowsEL?.appendChild(this.energyTraceRow!);
   };
 
-  private initAnomaly = async () => {
+  private initAnomaly = (anomalyData: EnergyAnomalyStruct[]): void => {
     let time = new Date().getTime();
     let anomalyTraceRow = TraceRow.skeleton<EnergyAnomalyStruct>();
     anomalyTraceRow.rowParentId = `energy`;
@@ -179,7 +235,7 @@ export class SpHiSysEnergyChart {
     anomalyTraceRow.style.width = `100%`;
     anomalyTraceRow.setAttribute('children', '');
     anomalyTraceRow.name = 'Anomaly Event';
-    anomalyTraceRow.supplier = () => queryAnomalyData();
+    anomalyTraceRow.supplier = () => new Promise<Array<EnergyAnomalyStruct>>((resolve): void => resolve(anomalyData));
     anomalyTraceRow.focusHandler = () => {
       this.trace?.displayTip(
         anomalyTraceRow,
@@ -215,7 +271,7 @@ export class SpHiSysEnergyChart {
     info('The time to load the anomaly is: ', durTime);
   };
 
-  private initSystem = async () => {
+  private initSystem = (systemDataList: any): void => {
     let time = new Date().getTime();
     let systemTraceRow = TraceRow.skeleton<EnergySystemStruct>();
     systemTraceRow.rowParentId = `energy`;
@@ -230,10 +286,7 @@ export class SpHiSysEnergyChart {
     systemTraceRow.style.width = `100%`;
     systemTraceRow.setAttribute('children', '');
     systemTraceRow.name = 'System Event';
-    systemTraceRow.supplier = () =>
-      Promise.all([querySystemLocationData(), querySystemLockData(), querySystemSchedulerData()]).then((result) => {
-        return this.getSystemData(result);
-      });
+    systemTraceRow.supplier = () => new Promise<Array<EnergySystemStruct>>((resolve): void => resolve(systemDataList));
     systemTraceRow.focusHandler = () => {
       this.trace?.displayTip(
         systemTraceRow,
@@ -277,22 +330,16 @@ export class SpHiSysEnergyChart {
     info('The time to load the Ability Memory is: ', durTime);
   };
 
-  getSystemData(result: any): Promise<any> {
-    let systemDataList: any = {};
-    if (result.length == 0) {
-      return Promise.resolve([]);
-    }
-    systemDataList[0] = this.handleLockData(result);
-    systemDataList[1] = this.handleLocationData(result);
-    systemDataList[2] = this.handleWorkData(result);
-    return systemDataList;
-  }
-
-  private handleLocationData(result: Array<Array<any>>) {
+  private handleLocationData(result: Array<{
+    ts: string;
+    eventName: string;
+    appKey: string;
+    Value: string;
+  }>) {
     let locationIndex = -1;
     let locationCount = 0;
     let locationData: any[] = [];
-    result[0].forEach((item: any) => {
+    result.forEach((item: any) => {
       let da: any = {};
       if (item.Value == 'stop') {
         if (locationIndex == -1) {
@@ -317,11 +364,16 @@ export class SpHiSysEnergyChart {
     return locationData;
   }
 
-  private handleLockData(result: Array<Array<any>>) {
+  private handleLockData(result: Array<{
+    ts: string;
+    eventName: string;
+    appKey: string;
+    Value: string;
+  }>) {
     let lockCount = 0;
     let tokedIds: Array<string> = [];
     let lockData: any[] = [];
-    result[1].forEach((item: any) => {
+    result.forEach((item: any) => {
       let running: any = {};
       let split = item.Value.split(',');
       if (item.Value.indexOf('ADD') > -1) {
@@ -350,8 +402,7 @@ export class SpHiSysEnergyChart {
     return lockData;
   }
 
-  private handleWorkData(result: Array<Array<any>>) {
-    let workDataArray = result[2];
+  private handleWorkData(workDataArray: Array<any>) {
     let workCountMap: Map<string, number> = new Map<string, number>();
     let nameIdMap: Map<string, Array<any>> = new Map<string, []>();
     let workData: any[] = [];
@@ -411,7 +462,12 @@ export class SpHiSysEnergyChart {
     return workData;
   }
 
-  private initPower = async () => {
+  private initPower = (powerData: Array<{
+    startNS: number;
+    eventName: string;
+    appKey: string;
+    eventValue: string;
+  }>): void => {
     let time = new Date().getTime();
     let powerTraceRow = TraceRow.skeleton<EnergyPowerStruct>();
     powerTraceRow.rowParentId = `energy`;
@@ -426,10 +482,7 @@ export class SpHiSysEnergyChart {
     powerTraceRow.style.width = `100%`;
     powerTraceRow.setAttribute('children', '');
     powerTraceRow.name = 'Power';
-    powerTraceRow.supplier = () =>
-      queryPowerData().then((items) => {
-        return this.getPowerData(items);
-      });
+    powerTraceRow.supplier = () => this.getPowerData(powerData);
     powerTraceRow.findHoverStruct = () => {
       EnergyPowerStruct.hoverEnergyPowerStruct = powerTraceRow.getHoverStruct();
     };
@@ -545,47 +598,10 @@ export class SpHiSysEnergyChart {
     return Object.values(powerDataMap);
   }
 
-  private initState = async () => {
+  private initState = async (stateData: any) => {
     let time = new Date().getTime();
-    let stateList = [
-      'Brightness Nit',
-      'Signal Level',
-      'Wifi Event Received',
-      'Audio Stream Change',
-      'Audio Volume Change',
-      'Wifi State',
-      'Bluetooth Br Switch State',
-      'Br Switch State',
-      'Location Switch State',
-      'Sensor State',
-    ];
-    let stateName = [
-      'BRIGHTNESS_NIT',
-      'SIGNAL_LEVEL',
-      'WIFI_EVENT_RECEIVED',
-      'AUDIO_STREAM_CHANGE',
-      'AUDIO_VOLUME_CHANGE',
-      'WIFI_STATE',
-      'BLUETOOTH_BR_SWITCH_STATE',
-      'BR_SWITCH_STATE',
-      'LOCATION_SWITCH_STATE',
-      'SENSOR_STATE',
-    ];
-    let initValueList = [
-      'brightness',
-      'nocolumn',
-      'nocolumn',
-      'nocolumn',
-      'nocolumn',
-      'wifi',
-      'bt_state',
-      'bt_state',
-      'location',
-      'nocolumn',
-    ];
-
-    for (let index = 0; index < stateList.length; index++) {
-      let maxStateData = await queryMaxStateValue(stateName[index]);
+    for (let index = 0; index < this.stateList.length; index++) {
+      let maxStateData = await queryMaxStateValue(this.stateName[index]);
       if (!maxStateData[0]) {
         continue;
       }
@@ -601,22 +617,15 @@ export class SpHiSysEnergyChart {
       let stateTraceRow = TraceRow.skeleton<EnergyStateStruct>();
       stateTraceRow.rowParentId = `energy`;
       stateTraceRow.rowHidden = true;
-      stateTraceRow.rowId = `energy-state-${stateList[index]}`;
+      stateTraceRow.rowId = `energy-state-${this.stateList[index]}`;
       stateTraceRow.rowType = TraceRow.ROW_TYPE_STATE_ENERGY;
       stateTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       stateTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
       stateTraceRow.style.height = '40px';
       stateTraceRow.style.width = `100%`;
       stateTraceRow.setAttribute('children', '');
-      stateTraceRow.name = `${stateList[index]}`;
-      stateTraceRow.supplier = () =>
-        Promise.all([
-          queryStateInitValue(stateName[index], initValueList[index]),
-          queryStateData(stateName[index]),
-        ]).then((result) => {
-          let stateInitValue = initValueList[index] == 'nocolumn' ? [] : result[0];
-          return stateInitValue.concat(result[1]);
-        });
+      stateTraceRow.name = `${this.stateList[index]}`;
+      stateTraceRow.supplier = () => new Promise<Array<any>>((resolve): void => resolve(stateData[index]));
       stateTraceRow.findHoverStruct = () => {
         EnergyStateStruct.hoverEnergyStateStruct = stateTraceRow.getHoverStruct();
       };

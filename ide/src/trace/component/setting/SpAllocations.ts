@@ -38,10 +38,11 @@ export class SpAllocations extends BaseElement {
   private recordAccurately: LitSwitch | null | undefined;
   private offlineSymbol: LitSwitch | null | undefined;
   private startupMode: LitSwitch | null | undefined;
+  private responseLibMode: LitSwitch | null | undefined;
   private recordStatisticsResult: HTMLDivElement | null | undefined;
+  private sampleInterval: HTMLInputElement | null | undefined;
 
   private filterSize: HTMLInputElement | null | undefined;
-  private maxProcessSize: number = 4;
 
   set startSamp(allocationStart: boolean) {
     if (allocationStart) {
@@ -122,6 +123,14 @@ export class SpAllocations extends BaseElement {
     return 10;
   }
 
+  get response_lib_mode(): boolean {
+    let value = this.responseLibMode?.checked;
+    if (value != undefined) {
+      return value;
+    }
+    return false;
+  }
+
   get startup_mode(): boolean {
     let value = this.startupMode?.checked;
     if (value != undefined) {
@@ -145,13 +154,14 @@ export class SpAllocations extends BaseElement {
           let item = result[index];
           let currentPid = item!.replace('(', '').replace(')', '');
           allPidList.push(Number(currentPid));
-          if (index === this.maxProcessSize - 1) {
-            break;
-          }
         }
       }
     }
     return allPidList;
+  }
+
+  get sample_interval(): number {
+    return Number(this.sampleInterval!.value);
   }
 
   connectedCallback() {
@@ -214,6 +224,8 @@ export class SpAllocations extends BaseElement {
     this.recordAccurately = this.shadowRoot?.getElementById('use_record_accurately') as LitSwitch;
     this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
     this.startupMode = this.shadowRoot?.getElementById('use_startup_mode') as LitSwitch;
+    this.responseLibMode = this.shadowRoot?.getElementById('response_lib_mode') as LitSwitch;
+    this.sampleInterval = this.shadowRoot?.getElementById('sample-interval-input') as HTMLInputElement;
     let stepValue = [0, 1, 10, 30, 60, 300, 600, 1800, 3600];
     this.statisticsSlider = this.shadowRoot?.querySelector<LitSlider>('#interval-slider') as LitSlider;
 
@@ -374,6 +386,12 @@ export class SpAllocations extends BaseElement {
     if (this.startupMode) {
       this.startupMode.disabled = false;
     }
+    if (this.responseLibMode) {
+      this.responseLibMode.disabled = false;
+    }
+    if (this.sampleInterval) {
+      this.sampleInterval.disabled = false;
+    }
     this.processId!.removeAttribute('disabled');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
     inputBoxes!.forEach((item) => {
@@ -396,6 +414,12 @@ export class SpAllocations extends BaseElement {
     if (this.offlineSymbol) {
       this.offlineSymbol.disabled = true;
     }
+    if (this.responseLibMode) {
+      this.responseLibMode.disabled = true;
+    }
+    if (this.sampleInterval) {
+      this.sampleInterval.disabled = true;
+    }
     this.processId!.setAttribute('disabled', '');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
     inputBoxes!.forEach((item) => {
@@ -415,6 +439,7 @@ export class SpAllocations extends BaseElement {
         }
         .title {
             grid-column: span 2 / auto;
+            margin-top: 5vh;
         }
         .allocation-font-style{
             font-family: Helvetica-Bold;
@@ -424,13 +449,14 @@ export class SpAllocations extends BaseElement {
             font-weight: 700;
         }
         .root {
-            padding-top: 45px;
+            padding-top: 30px;
             margin-left: 40px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: min-content 1fr min-content;
             width: 90%;
             border-radius: 0px 16px 16px 0px;
+            margin-bottom: 30px;
         }
         .allocation-inner-font-style {
             font-family: Helvetica,serif;
@@ -600,7 +626,7 @@ export class SpAllocations extends BaseElement {
         
         </style>
         <div class="root">
-          <div class = "title" style="width: 92%;margin-top: 5vh;">
+          <div class = "title" style="width: 92%;">
             <span class="allocation-title">Start Native Memory Record</span>
             <lit-switch id="switch-disabled"></lit-switch>
           </div>
@@ -635,6 +661,11 @@ export class SpAllocations extends BaseElement {
               <span class="allocation-inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
               <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
           </div>
+          <div class="allocation-switchstyle version-controller" style="flex-wrap: wrap;grid-gap: 15px;">
+            <span class="allocation-inner-font-style" >Sample Interval (Available on recent OpenHarmony 4.0)</span>
+            <span class="value-range">Max Sample Interval Rang is 1 - 65535, default 256</span>
+            <input id= "sample-interval-input"  class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the sample interval" oninput="if(this.value > 65535){this.value = '65535'} if(this.value < 1 && this.value.toString().startsWith('0')){ this.value = '1'}"  onkeyup="this.value=this.value.replace(/\\D/g,'')" value="256">
+          </div>
           <div class="allocation-switchstyle version-controller">
               <span class="allocation-inner-font-style" id="record_accurately ">Use Record Accurately (Available on recent OpenHarmony 4.0)</span> 
               <lit-switch   class="lts" id="use_record_accurately" title="record_accurately" checked="true"></lit-switch>
@@ -647,7 +678,11 @@ export class SpAllocations extends BaseElement {
               <span class="allocation-inner-font-style" id="startup_mode">Use Startup Mode (Available on recent OpenHarmony 4.0)</span> 
               <lit-switch class="lts" id="use_startup_mode" title="startup_mode"></lit-switch>
           </div>   
-          <div class="allocation-switchstyle record-statistics-result version-controller" style="grid-row: 6; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
+          <div class="allocation-switchstyle version-controller">
+              <span class="allocation-inner-font-style" id="response_lib_mode_span">Use Response Lib Mode (Available on recent OpenHarmony 4.0)</span> 
+              <lit-switch class="lts" id="response_lib_mode" title="response_lib_mode"></lit-switch>
+          </div>
+          <div class="allocation-switchstyle record-statistics-result version-controller" style="grid-row: 8; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
             <div class="record-title">
                 <span class="record-mode">Use Record Statistics (Available on recent OpenHarmony 4.0)</span> 
                 <span class="allocation-record-prompt"> Time between following interval (0 = disabled) </span>

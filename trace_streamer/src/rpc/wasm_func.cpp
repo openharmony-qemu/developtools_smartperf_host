@@ -198,7 +198,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseData(const uint8_t* data, int32_t
 // return 0 while ok, -1 while failed
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFinish)
 {
-    if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, false)) {
+    if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }
     return -1;

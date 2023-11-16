@@ -1812,17 +1812,12 @@ const std::deque<uint64_t>& EbpfElfSymbol::StSizes() const
     return stSizes_;
 }
 #endif
-uint32_t HiSysEventSubkeys::AppendSysEventSubkey(uint8_t flags, DataIndex eventSource, DataIndex appName)
+uint32_t HiSysEventSubkeys::AppendSysEventSubkey(DataIndex eventSource, DataIndex appName)
 {
-    flags_.push_back(flags);
-    sysEventNameIds_.push_back(eventSource);
-    subkeyNameIds_.push_back(appName);
-    ids_.push_back(subkeyNameIds_.size() - 1);
+    sysEventNameIds_.emplace_back(eventSource);
+    subkeyNameIds_.emplace_back(appName);
+    ids_.emplace_back(subkeyNameIds_.size() - 1);
     return Size() - 1;
-}
-const std::deque<uint8_t>& HiSysEventSubkeys::Falgs() const
-{
-    return flags_;
 }
 const std::deque<DataIndex>& HiSysEventSubkeys::SysEventNameId() const
 {
@@ -1848,7 +1843,7 @@ void HiSysEventMeasureData::AppendData(uint64_t serial,
     types_.emplace_back(type);
     numValues_.emplace_back(numericValue);
     stringValues_.emplace_back(stringValue);
-    ids_.push_back(rowCount_);
+    ids_.emplace_back(rowCount_);
     rowCount_++;
 }
 const std::deque<uint64_t>& HiSysEventMeasureData::Serial() const
@@ -1920,7 +1915,7 @@ void HiSysEventDeviceStateData::AppendNewData(int32_t brightness,
     accessibilitys_.emplace_back(accessibility);
     recordings_.emplace_back(recording);
     streamAlls_.emplace_back(streamAll);
-    ids_.push_back(rowCounts_);
+    ids_.emplace_back(rowCounts_);
     rowCounts_++;
 }
 const std::deque<int32_t>& HiSysEventDeviceStateData::Brightness() const
@@ -2008,7 +2003,7 @@ void TraceConfig::AppendNewData(std::string traceSource, std::string key, std::s
     traceSource_.emplace_back(traceSource);
     key_.emplace_back(key);
     value_.emplace_back(value);
-    ids_.push_back(rowCounts_);
+    ids_.emplace_back(rowCounts_);
     rowCounts_++;
 }
 const std::deque<std::string>& TraceConfig::TraceSource() const
@@ -2146,7 +2141,7 @@ void SmapsData::AppendNewData(uint64_t timeStamp,
     swap_.emplace_back(swap);
     swapPss_.emplace_back(swapPss);
     type_.emplace_back(type);
-    ids_.push_back(rowCount_);
+    ids_.emplace_back(rowCount_);
     rowCount_++;
 }
 const std::deque<uint64_t>& SmapsData::TimeStamps() const
@@ -2467,8 +2462,8 @@ size_t FrameMaps::AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst)
 {
     timeStamps_.emplace_back(0);
     ids_.emplace_back(ids_.size());
-    srcs_.push_back(src);
-    dsts_.push_back(dst);
+    srcs_.emplace_back(src);
+    dsts_.emplace_back(dst);
     if (frameSlice->Types().at(dst) == FrameSlice::EXPECT_SLICE) {
         uint64_t expRsStartTime = frameSlice->TimeStampData().at(dst);
         uint64_t expUiEndTime = frameSlice->TimeStampData().at(src) + frameSlice->Durs().at(src);
@@ -3418,7 +3413,7 @@ void AshMemData::AppendNewData(InternalPid ipid,
     refCounts_.emplace_back(refCount);
     purgeds_.emplace_back(purged);
     flags_.emplace_back(flag);
-    ids_.push_back(rowCount_);
+    ids_.emplace_back(rowCount_);
     rowCount_++;
 }
 void AshMemData::SetFlag(uint64_t rowId, uint32_t flag)
@@ -3491,7 +3486,7 @@ void DmaMemData::AppendNewData(InternalPid ipid,
     bufNameIds_.emplace_back(bufNameId);
     expNameIds_.emplace_back(expNameId);
     flags_.emplace_back(flag);
-    ids_.push_back(rowCount_);
+    ids_.emplace_back(rowCount_);
     rowCount_++;
 }
 void DmaMemData::SetFlag(uint64_t rowId, uint32_t flag)
@@ -3550,7 +3545,7 @@ void GpuProcessMemData::AppendNewData(uint64_t ts,
     ipids_.emplace_back(ipid);
     itids_.emplace_back(itid);
     usedGpuSizes_.emplace_back(usedGpuSize);
-    ids_.push_back(rowCount_);
+    ids_.emplace_back(rowCount_);
     rowCount_++;
 }
 const std::deque<DataIndex>& GpuProcessMemData::GpuNameIds() const
@@ -3596,7 +3591,7 @@ void GpuWindowMemData::AppendNewData(uint64_t ts,
     counts_.emplace_back(count);
     purgeableSizes_.emplace_back(purgeableSize);
     ipids_.emplace_back(INVALID_IPID);
-    ids_.push_back(rowCount_);
+    ids_.emplace_back(rowCount_);
     rowCount_++;
 }
 const std::deque<DataIndex>& GpuWindowMemData::WindowNameIds() const
