@@ -925,8 +925,29 @@ export const getTabSlicesAsyncFunc = (
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
-
-export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+// 查询线程状态详细信息
+export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabThreadStates',
+    `select
+        B.pid,
+        B.tid,
+        B.state, 
+        B.ts, 
+        B.dur 
+      from
+        thread_state AS B
+      left join
+        trace_range AS TR
+      where
+        B.tid in (${tIds.join(',')})
+      and
+        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
+      order by ts;`,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+// 查询线程状态信息
+  export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `
@@ -951,6 +972,59 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
       wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
+
+  // 框选区域内running的时间
+export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+query<SelectionData>(
+  'getTabRunningPersent',
+  `
+  select
+    B.pid,
+    B.tid,
+    B.state,
+    B.cpu,
+    B.dur,
+    B.ts
+  from
+    thread_state AS  B
+  left join
+    trace_range AS TR
+  where
+    B.tid in (${tIds.join(',')})
+  and
+    B.state='Running'
+  and
+    not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+  order by
+    ts;`,
+  { $leftNS: leftNS, $rightNS: rightNS }
+);
+// 框选区域内sleeping的时间
+export const getTabSleepingTime=(tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>>=>
+query<SelectionData>(
+'getTabRunningPersent',
+`
+select
+  B.pid,
+  B.tid,
+  B.state,
+  B.cpu,
+  B.dur,
+  B.ts
+from
+  thread_state AS  B
+left join
+  trace_range AS TR
+where
+  B.tid in (${tIds.join(',')})
+and
+  B.state='Sleeping'
+and
+  not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+order by
+  ts;`,
+{ $leftNS: leftNS, $rightNS: rightNS }
+);
 
 export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
   let sql = `
@@ -3240,10 +3314,10 @@ export const queryAnomalyData = (): Promise<Array<EnergyAnomalyStruct>> =>
 
 export const querySystemLocationData = (): Promise<
   Array<{
-    startNs: string;
+    ts: string;
     eventName: string;
-    type: string;
-    state: string;
+    appKey: string;
+    Value: string;
   }>
 > =>
   query(
@@ -3270,10 +3344,10 @@ export const querySystemLocationData = (): Promise<
 
 export const querySystemLockData = (): Promise<
   Array<{
-    startNs: string;
+    ts: string;
     eventName: string;
-    type: string;
-    state: string;
+    appKey: string;
+    Value: string;
   }>
 > =>
   query(

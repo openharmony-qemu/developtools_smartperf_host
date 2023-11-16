@@ -490,15 +490,11 @@ export class TabPaneHisysEvents extends BaseElement {
     const content = JSON.parse(data.contents ?? '{}');
     if (content && typeof content === 'object') {
       let isFirstTime = true;
-      let inputTimeTs = '';
       let keyList = Object.keys(content);
       keyList.forEach(key => {
         const value: string = content[key];
         let contentValue = value;
         if (key.endsWith('_TIME')) {
-          if (this.realTime === 0) {
-            contentValue = value;
-          }
           if (!isNaN(Number(value))) {
             contentValue = ((Number(value) - this.realTime) * millisecond).toString();
             if (isFirstTime) {
@@ -507,7 +503,8 @@ export class TabPaneHisysEvents extends BaseElement {
             }
           }
           if (key === 'INPUT_TIME') {
-            inputTimeTs = contentValue;
+            this.baseTime = contentValue;
+            isFirstTime = false;
           }
         }
         this.currentDetailList.push({
@@ -515,9 +512,6 @@ export class TabPaneHisysEvents extends BaseElement {
           value: contentValue
         });
       });
-      if (keyList.indexOf('INPUT_TIME') >= 0) {
-        this.baseTime = inputTimeTs;
-      }
     }
     this.changeInput!.value = `${this.baseTime}`;
     this.detailsTbl!.recycleDataSource = this.currentDetailList;
@@ -569,7 +563,7 @@ export class TabPaneHisysEvents extends BaseElement {
       TraceRow.range!.totalNS,
       new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
     );
-    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color, true, '');
+    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color,'', true, '');
     this.spSystemTrace?.refreshCanvas(false);
   }
 }

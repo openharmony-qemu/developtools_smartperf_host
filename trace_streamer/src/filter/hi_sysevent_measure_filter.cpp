@@ -198,7 +198,6 @@ void HiSysEventMeasureFilter::NoArrayDataParse(JsonData jData,
     for (auto itor = noArrayIndex.begin(); itor != noArrayIndex.end(); itor++) {
         auto value = jData.value[*itor];
         auto key = jData.key[*itor];
-        streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
         DataIndex keyIndex = traceDataCache_->GetDataIndex(key);
         AppendStringValue(value, hiSysEventLineId, eventSourceIndex, keyIndex, jData.timeStamp);
     }
@@ -214,7 +213,6 @@ void HiSysEventMeasureFilter::ArrayDataParse(JsonData jData,
             auto value = jData.value[*itor][i];
             std::string key = jData.key[*itor];
             DataIndex keyIndex = traceDataCache_->GetDataIndex(key);
-            streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
             if (value.is_number()) {
                 double valueIndex = value;
                 streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(hiSysEventLineId, jData.timeStamp,
@@ -251,7 +249,6 @@ void HiSysEventMeasureFilter::CommonDataParser(JsonData jData, DataIndex eventSo
         std::string key = jData.key[i];
         auto value = jData.value[i];
         DataIndex keyIndex = traceDataCache_->GetDataIndex(key);
-        streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
         AppendStringValue(value, hiSysEventLineId, eventSourceIndex, keyIndex, jData.timeStamp);
     }
 }
@@ -259,51 +256,10 @@ DataIndex HiSysEventMeasureFilter::GetOrCreateFilterIdInternal(DataIndex appName
 {
     uint64_t appKeyId = appKey_.Find(appNameId, key);
     if (appKeyId == INVALID_DATAINDEX) {
-        appKeyId = traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(1, appNameId, key);
+        appKeyId = traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(appNameId, key);
         appKey_.Insert(appNameId, key, appKeyId);
     }
     return appKeyId;
-}
-
-DataIndex HiSysEventMeasureFilter::GetOrCreateFilterId(DataIndex eventNameId)
-{
-    DataIndex eventSourceFilterId = INVALID_DATAINDEX;
-    if (eventSource_.find(eventNameId) == eventSource_.end()) {
-        eventSourceFilterId = streamFilters_->sysEventSourceFilter_->AppendNewMeasureFilter(eventNameId);
-        eventSource_.insert(std::make_pair(eventNameId, eventSourceFilterId));
-    } else {
-        eventSourceFilterId = eventSource_.at(eventNameId);
-    }
-    return eventSourceFilterId;
-}
-DataIndex HiSysEventMeasureFilter::GetOrCreateFilterId(DataIndex eventNameId, DataIndex appName)
-{
-    DataIndex eventSourceFilterId = INVALID_DATAINDEX;
-    DataIndex appNameId = INVALID_DATAINDEX;
-    if (eventSource_.find(eventNameId) == eventSource_.end()) {
-        eventSourceFilterId = streamFilters_->sysEventSourceFilter_->AppendNewMeasureFilter(eventNameId);
-        eventSource_.insert(std::make_pair(eventNameId, eventSourceFilterId));
-    } else {
-        eventSourceFilterId = eventSource_.at(eventNameId);
-    }
-    appNameId = appName_.Find(eventSourceFilterId, appName);
-    if (appNameId == INVALID_DATAINDEX) {
-        appNameId = traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(0, eventSourceFilterId, appName);
-        appName_.Insert(eventSourceFilterId, appName, appNameId);
-    }
-    return appNameId;
-}
-std::tuple<DataIndex, DataIndex> HiSysEventMeasureFilter::GetOrCreateFilterId(DataIndex eventNameId,
-                                                                              DataIndex appName,
-                                                                              DataIndex key)
-{
-    DataIndex appNameId = GetOrCreateFilterId(eventNameId, appName);
-    uint64_t appKeyId = appKey_.Find(appNameId, key);
-    if (appKeyId == INVALID_DATAINDEX) {
-        appKeyId = traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(1, appNameId, key);
-        appKey_.Insert(appNameId, key, appKeyId);
-    }
-    return std::make_tuple(appNameId, appKeyId);
 }
 
 void HiSysEventMeasureFilter::Clear()

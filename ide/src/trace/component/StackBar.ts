@@ -31,11 +31,11 @@ export class StackBar extends BaseElement {
       if (map.has(v.state)) {
         let sv = map.get(v.state);
         sv!.value = sv!.value + v.wallDuration;
-        sv!.state = v.state + ' : ' + sv!.value.toFixed(7) + 'ms';
+        sv!.state = v.state + ' : ' + sv!.value.toFixed(5) + 'ms';
       } else {
         let sv = new StackValue();
         sv.value = v.wallDuration;
-        sv.state = v.state + ' : ' + sv.value.toFixed(7) + 'ms';
+        sv.state = v.state + ' : ' + sv.value.toFixed(5) + 'ms';
         sv.color = Utils.getStateColor(v.stateJX);
         map.set(v.state, sv);
       }

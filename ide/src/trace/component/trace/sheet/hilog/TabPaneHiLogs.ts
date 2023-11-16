@@ -82,7 +82,7 @@ export class TabPaneHiLogs extends BaseElement {
           TraceRow.range!.totalNS,
           new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
         );
-        this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, data.startTs!, '#999999', true, '');
+        this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, data.startTs!, '#999999', '', true, '');
         this.spSystemTrace?.refreshCanvas(false);
       }
     });

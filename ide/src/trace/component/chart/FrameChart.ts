@@ -890,7 +890,7 @@ export class FrameChart extends BaseElement {
   private listenerResize(): void {
     new ResizeObserver(() => {
       this.resizeChange();
-      if (this.rootNode) {
+      if (this.rootNode && this.canvas.clientWidth !== 0) {
         this.rootNode.frame!.width = this.canvas.clientWidth;
       }
     }).observe(this);

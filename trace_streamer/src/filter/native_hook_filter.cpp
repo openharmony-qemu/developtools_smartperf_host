@@ -46,7 +46,7 @@ void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView& protoData)
         isCallStackCompressedMode_ = true;
         isStringCompressedMode_ = true;
     }
-    if (configReader.has_offline_symbolization()) {
+    if (configReader.has_response_library_mode() || configReader.has_offline_symbolization()) {
         isOfflineSymbolizationMode_ = true;
         isCallStackCompressedMode_ = true;
         isStringCompressedMode_ = true;
@@ -586,7 +586,7 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
 }
 
 inline void NativeHookFilter::FillOfflineSymbolizationFrames(
-    std::map<uint32_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
+    std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
 {
     auto curCacheIpid = mapItor->second->back();
     stackIdToCallChainIdMap_.insert(std::make_pair(mapItor->first, ++callChainId_));
@@ -663,11 +663,9 @@ void NativeHookFilter::ParseMapsEvent(std::unique_ptr<NativeHookMetaData>& nativ
     auto endAddr = reader->end();
     uint64_t start = INVALID_UINT64;
     uint64_t end = INVALID_UINT64;
-    uint32_t ipid = INVALID_UINT32;
+    auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(reader->pid(), "");
     if (isSingleProcData_) {
         ipid = SINGLE_PROC_IPID;
-    } else {
-        ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(reader->pid(), "");
     }
     // Get [start, end) of ips addr range which need to update
     std::tie(start, end) = GetNeedUpdateProcessMapsAddrRange(ipid, startAddr, endAddr);
@@ -730,18 +728,13 @@ void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>
         return;
     }
     auto reader = std::make_shared<ProtoReader::SymbolTable_Reader>(symbolTableByteView);
-    uint32_t ipid = INVALID_UINT32;
-    uint64_t ipidWithPathIdIndex = INVALID_UINT64;
+    auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(reader->pid(), "");
     if (isSingleProcData_) {
         ipid = SINGLE_PROC_IPID;
-        ipidWithPathIdIndex = reader->file_path_id();
-    } else {
-        ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(reader->pid(), "");
-        ipidWithPathIdIndex =
-            traceDataCache_->GetDataIndex(std::to_string(ipid) + "_" + std::to_string(reader->file_path_id()));
     }
     auto filePathId = reader->file_path_id();
-    if (filePathIdToSymbolTableMap_.count(ipidWithPathIdIndex)) { // SymbolTable already exists.
+    auto symbolTablePtr = ipidTofilePathIdToSymbolTableMap_.Find(ipid, filePathId);
+    if (symbolTablePtr != nullptr) { // SymbolTable already exists.
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
         Note that when tsToMainEventsMap_.size() > MAX_CACHE_SIZE and main events need to be resolved, this logic
         should also be followed. */
@@ -776,10 +769,9 @@ void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>
             }
         }
         ReparseStacksWithAddrRange(start, end);
-
-        filePathIdToSymbolTableMap_.at(ipidWithPathIdIndex) = reader;
+        symbolTablePtr = reader;
     } else {
-        filePathIdToSymbolTableMap_.insert(std::make_pair(ipidWithPathIdIndex, reader));
+        ipidTofilePathIdToSymbolTableMap_.Insert(ipid, filePathId, reader);
     }
 
     auto symEntrySize = reader->sym_entry_size();

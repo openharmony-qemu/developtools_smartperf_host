@@ -48,9 +48,6 @@ public:
     HiSysEventMeasureFilter(const HiSysEventMeasureFilter&) = delete;
     HiSysEventMeasureFilter& operator=(const HiSysEventMeasureFilter&) = delete;
     ~HiSysEventMeasureFilter() override;
-    DataIndex GetOrCreateFilterId(DataIndex eventNameId);
-    DataIndex GetOrCreateFilterId(DataIndex eventNameId, DataIndex appName);
-    std::tuple<DataIndex, DataIndex> GetOrCreateFilterId(DataIndex eventNameId, DataIndex appName, DataIndex key);
     DataIndex AppendNewValue(uint64_t serial,
                              uint64_t timeStamp,
                              DataIndex appNameId,
