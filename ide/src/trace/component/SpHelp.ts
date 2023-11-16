@@ -502,7 +502,7 @@ export class SpHelp extends BaseElement {
   initHtml(): string {
     return `
         <style>
-        .sp-help-container {
+        .sp-help-vessel {
             min-height: 100%;
             display: grid;
             grid-template-columns: 1fr;
@@ -537,7 +537,7 @@ export class SpHelp extends BaseElement {
         }
 
         </style>
-        <div class="sp-help-container">
+        <div class="sp-help-vessel">
          <div class="body">
             <lit-main-menu id="main-menu" class="menugroup" data=''></lit-main-menu>
             <div id="app-content" class="content">

@@ -260,7 +260,7 @@ export class SpApplication extends BaseElement {
             box-shadow: 4px 0px 20px rgba(0,0,0,0.05);
             z-index: 2000;
         }
-        .search-container{
+        .search-vessel{
             z-index: 10;
             position: relative;
             cursor: default;
@@ -272,10 +272,10 @@ export class SpApplication extends BaseElement {
             left: 0;
             right: 0;
         }
-        :host(:not([search])) .search-container  {
+        :host(:not([search])) .search-vessel  {
            display: none;
         }
-        :host(:not([search])) .search-container .search  {
+        :host(:not([search])) .search-vessel .search  {
             background-color: var(--dark-background5,#F6F6F6);
         }
         .search{
@@ -507,7 +507,7 @@ export class SpApplication extends BaseElement {
             <lit-main-menu id="main-menu" class="menu" data=''></lit-main-menu>
             <sp-keyboard style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 8888" id="sp-keyboard">
             </sp-keyboard>
-            <div class="search-container">
+            <div class="search-vessel">
                 <div class="search" style="position: relative;">
                     <div class="sidebar-button" style="width: 0">
                         <svg class="icon" id="icon" aria-hidden="true" viewBox="0 0 1024 1024">

@@ -95,8 +95,8 @@ export class LitTabs extends HTMLElement {
             position:absolute;
         }
         
-        :host(:not([position])) .tab-nav-container,
-        :host([position^='top']) .tab-nav-container{
+        :host(:not([position])) .tab-nav-vessel,
+        :host([position^='top']) .tab-nav-vessel{
             display: flex;
             /*position: relative;*/
             /*flex-direction: column;*/
@@ -185,7 +185,7 @@ export class LitTabs extends HTMLElement {
             transform: translateY(-100%);
             transition: all 0.3s;
         }
-        :host([position^='bottom']) .tab-nav-container{
+        :host([position^='bottom']) .tab-nav-vessel{
             display: flex;
             position: relative;
             flex-direction: column;
@@ -252,7 +252,7 @@ export class LitTabs extends HTMLElement {
             transform: translateX(100%);
             transition: all 0.3s;
         }
-        :host([position^='left']) .tab-nav-container{
+        :host([position^='left']) .tab-nav-vessel{
             display: flex;
             position: relative;
             flex-direction: row;
@@ -325,7 +325,7 @@ export class LitTabs extends HTMLElement {
             transform: translateX(-100%);
             transition: all 0.3s;
         }
-        :host([position^='right']) .tab-nav-container{
+        :host([position^='right']) .tab-nav-vessel{
             display: flex;
             position: relative;
             flex-direction: row-reverse;
@@ -384,7 +384,7 @@ export class LitTabs extends HTMLElement {
         }
         
         
-        .tab-nav-container::-webkit-scrollbar {
+        .tab-nav-vessel::-webkit-scrollbar {
             display: none;
         }
         
@@ -411,7 +411,7 @@ export class LitTabs extends HTMLElement {
         <div class="tab" >
             <div class="nav-root" style="background-color: var(--dark-background4,#f2f2f2);">
                 <slot name="left" style="flex:1"></slot>
-                <div class="tab-nav-container" >
+                <div class="tab-nav-vessel" >
                     <div class="tab-nav-bg-line"></div>
                     <div class="tab-nav" id="nav" ></div>
                     <div class="tab-line" id="tab-line"></div>
@@ -649,7 +649,7 @@ export class LitTabs extends HTMLElement {
     new ResizeObserver((entries) => {
       let filling = this.shadowRoot!.querySelector<HTMLDivElement>('#tab-filling');
 
-      this.shadowRoot!.querySelector<HTMLDivElement>('.tab-nav-container')!.style.height = filling!.offsetWidth + 'px';
+      this.shadowRoot!.querySelector<HTMLDivElement>('.tab-nav-vessel')!.style.height = filling!.offsetWidth + 'px';
     }).observe(this.shadowRoot!.querySelector('#tab-filling')!);
   }
 

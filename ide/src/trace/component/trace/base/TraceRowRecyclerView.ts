@@ -21,7 +21,7 @@ import { log } from '../../../../log/Log.js';
 export class TraceRowRecyclerView extends BaseElement {
   private recycler: boolean = true;
   private gasketEL: HTMLDivElement | null | undefined;
-  private container: HTMLDivElement | null | undefined;
+  private vessel: HTMLDivElement | null | undefined;
   private visibleRowsCount: number = 0;
   private visibleObjects: TraceRowObject<any>[] = [];
   private totalHeight: number = 0;
@@ -76,11 +76,11 @@ export class TraceRowRecyclerView extends BaseElement {
   }
 
   initElements(): void {
-    this.container = this.shadowRoot?.querySelector<HTMLDivElement>('.container');
+    this.vessel = this.shadowRoot?.querySelector<HTMLDivElement>('.vessel');
     this.gasketEL = this.shadowRoot?.querySelector<HTMLDivElement>('.gasket');
     let els: Array<TraceRow<any>> | undefined | null;
-    this.container!.onscroll = (ev) => {
-      let top = this.container!.scrollTop;
+    this.vessel!.onscroll = (ev) => {
+      let top = this.vessel!.scrollTop;
       let skip = 0;
       for (let index = 0; index < this.visibleObjects.length; index++) {
         if (this.visibleObjects[index].top >= top) {
@@ -125,7 +125,7 @@ export class TraceRowRecyclerView extends BaseElement {
         isOffScreen: true,
       });
       el.className = 'recycler-cell';
-      this.container?.appendChild(el);
+      this.vessel?.appendChild(el);
       el.addEventListener('expansion-change', (ev: any) => {
         el.obj!.expansion = ev.detail.expansion;
         for (let j = 0; j < this.dataSource.length; j++) {
@@ -135,7 +135,7 @@ export class TraceRowRecyclerView extends BaseElement {
         }
         this.measureHeight();
         let els = [...this.shadowRoot!.querySelectorAll<TraceRow<any>>('.recycler-cell')];
-        let top = this.container!.scrollTop;
+        let top = this.vessel!.scrollTop;
         let skip = 0;
         for (let i = 0; i < this.visibleObjects.length; i++) {
           if (this.visibleObjects[i].top >= top) {
@@ -161,7 +161,7 @@ export class TraceRowRecyclerView extends BaseElement {
             display: block;
             position:relative;
         }
-        .container{
+        .vessel{
             width:100%;
             height:100%;
             overflow: auto;
@@ -185,7 +185,7 @@ export class TraceRowRecyclerView extends BaseElement {
             left: 0;
         }
         </style>
-        <div class="container">
+        <div class="vessel">
             <div class="gasket"></div>
         </div>
 

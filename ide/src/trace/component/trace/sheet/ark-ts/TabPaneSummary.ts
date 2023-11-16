@@ -633,18 +633,18 @@ export class TabPaneSummary extends BaseElement {
             padding: 10px 1px 0 0px;
             height: calc(100% - 25px);
         }
-        .container {
+        .vessel {
             /* overflow: hidden; */
             width: 100%;
             height: 100%;
         }
-        .container-left {
+        .vessel-left {
             height: 79.5vh;
             position: relative;
             float: left;
             max-width: 70%
         }
-        .container-right {
+        .vessel-right {
             height: 70vh;
             box-sizing: border-box;
             overflow: hidden;

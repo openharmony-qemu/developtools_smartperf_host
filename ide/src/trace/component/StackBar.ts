@@ -19,7 +19,7 @@ import { Utils } from './trace/base/Utils.js';
 
 @element('stack-bar')
 export class StackBar extends BaseElement {
-  private container: HTMLDivElement | undefined | null;
+  private vessel: HTMLDivElement | undefined | null;
 
   static get observedAttributes() {
     return ['mode']; // max min hidden show 三种状态
@@ -50,14 +50,14 @@ export class StackBar extends BaseElement {
       }
     }
     arr.sort((a, b) => a.value - b.value);
-    this.container!.innerHTML = '';
+    this.vessel!.innerHTML = '';
     for (let stackValue of arr) {
-      this.container!.appendChild(this.createBarElement(stackValue, totalDuration));
+      this.vessel!.appendChild(this.createBarElement(stackValue, totalDuration));
     }
   }
 
   initElements(): void {
-    this.container = this.shadowRoot?.querySelector('#container');
+    this.vessel = this.shadowRoot?.querySelector('#vessel');
   }
 
   initHtml(): string {
@@ -74,7 +74,7 @@ export class StackBar extends BaseElement {
                 width: 10%;display: inline-block;overflow: hidden;white-space: nowrap;padding: 5px; margin-right: 2px;font-size: 9pt;
             }
             </style>
-            <div style="display: flex;flex-direction: row;" id="container">
+            <div style="display: flex;flex-direction: row;" id="vessel">
             </div>
         `;
   }

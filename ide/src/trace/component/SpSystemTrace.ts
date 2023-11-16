@@ -4576,10 +4576,10 @@ export class SpSystemTrace extends BaseElement {
             background: var(--dark-background4,#ffffff);
             /*scroll-behavior: smooth;*/
         }
-        :host([disable]) .container{
+        :host([disable]) .vessel{
             pointer-events: none;
         }
-        .container{
+        .vessel{
             width: 100%;
             box-sizing: border-box;
             height: 100%;
@@ -4637,7 +4637,7 @@ export class SpSystemTrace extends BaseElement {
         }
 
         </style>
-        <div class="container">
+        <div class="vessel">
             <timer-shaft-element class="timer-shaft" style="position: relative;top: 0"></timer-shaft-element>
             <sp-chart-list id="favorite-chart-list"></sp-chart-list>
             <div class="rows-pane" style="position: relative;flex-direction: column;overflow-x: hidden;">

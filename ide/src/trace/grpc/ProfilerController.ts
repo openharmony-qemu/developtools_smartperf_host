@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export class ClientContainer {
+export class ClientVessel {
   private _port: string | number | undefined;
   private _host: string | undefined;
 
