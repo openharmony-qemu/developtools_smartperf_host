@@ -2176,17 +2176,33 @@ export class SpRecordTrace extends BaseElement {
         processName = appProcess;
       }
     }
-    let nativeConfig: NativeHookConfig = {
-      saveFile: false,
-      fileName: '',
-      filterSize: this.spAllocations!.filter,
-      smbPages: this.spAllocations!.shared,
-      maxStackDepth: this.spAllocations!.unwind,
-      processName: processName,
-      stringCompressed: true,
-      fpUnwind: this.spAllocations!.fp_unwind,
-      blocked: true,
-    };
+    let nativeConfig: NativeHookConfig;
+    if (this.spAllocations!.expandPids.length === 1) {
+      nativeConfig = {
+        pid: this.spAllocations!.expandPids[0],
+        saveFile: false,
+        fileName: '',
+        filterSize: this.spAllocations!.filter,
+        smbPages: this.spAllocations!.shared,
+        maxStackDepth: this.spAllocations!.unwind,
+        processName: processName,
+        stringCompressed: true,
+        fpUnwind: this.spAllocations!.fp_unwind,
+        blocked: true,
+      };
+    } else {
+      nativeConfig = {
+        saveFile: false,
+        fileName: '',
+        filterSize: this.spAllocations!.filter,
+        smbPages: this.spAllocations!.shared,
+        maxStackDepth: this.spAllocations!.unwind,
+        processName: processName,
+        stringCompressed: true,
+        fpUnwind: this.spAllocations!.fp_unwind,
+        blocked: true,
+      };
+    }
     let maxProcessSize = 4;
     if (SpRecordTrace.selectVersion !== undefined && SpRecordTrace.selectVersion !== '3.2') {
       nativeConfig.callframeCompress = true;
