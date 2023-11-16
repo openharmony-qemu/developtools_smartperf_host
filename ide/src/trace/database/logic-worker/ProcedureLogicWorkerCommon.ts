@@ -667,3 +667,14 @@ export class DataCache {
     this.perfSymbolMap.clear();
   }
 }
+
+export class InitAnalysis {
+  public static instance: InitAnalysis | undefined;
+  public isInitAnalysis: boolean = true;
+  public static getInstance(): InitAnalysis {
+    if (!this.instance) {
+      this.instance = new InitAnalysis();
+    }
+    return this.instance;
+  }
+}

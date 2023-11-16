@@ -898,6 +898,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         analysisSample.endTs = sample.endTs;
         analysisSample.addr = sample.addr;
         analysisSample.tid = sample.tid;
+        analysisSample.threadName = sample.threadName;
         analysisSample.subType = subType;
       }
 
@@ -1491,6 +1492,7 @@ class AnalysisSample {
   endTs?: number;
   subType?: string;
   tid?: number;
+  threadName?: string;
   addr?: string;
 
   libId!: number;

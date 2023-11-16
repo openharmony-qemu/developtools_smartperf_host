@@ -23,7 +23,8 @@ OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache* dataCache
       filePathIdAndStValueToSymAddr_(nullptr),
       symbolTablePtrAndStValueToSymAddr_(nullptr),
       ipidToStartAddrToMapsInfoMap_(nullptr),
-      ipidToIpToFrameInfo_(nullptr)
+      ipidToIpToFrameInfo_(nullptr),
+      ipidTofilePathIdToSymbolTableMap_(nullptr)
 {
 }
 std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolizationFilter::OfflineSymbolization(
@@ -88,6 +89,9 @@ bool OfflineSymbolizationFilter::FillFrameInfo(const std::shared_ptr<FrameInfo>&
 
 std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(uint64_t ipid, uint64_t ip)
 {
+    if (isSingleProcData_) {
+        ipid = SINGLE_PROC_IPID;
+    }
     auto frameInfoPtr = ipidToIpToFrameInfo_.Find(ipid, ip);
     if (frameInfoPtr != nullptr) {
         return frameInfoPtr;
@@ -100,16 +104,14 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
         return nullptr;
     }
     // find SymbolTable by filePathId
-    auto ipidWithPathIdIndex =
-        traceDataCache_->GetDataIndex(std::to_string(ipid) + "_" + std::to_string(frameInfo->filePathId_));
-    auto itor = filePathIdToSymbolTableMap_.find(ipidWithPathIdIndex);
-    if (itor == filePathIdToSymbolTableMap_.end()) {
+    auto symbolTable = ipidTofilePathIdToSymbolTableMap_.Find(ipid, frameInfo->filePathId_);
+    if (symbolTable == nullptr) {
         // find matching SymbolTable failed, but filePathId is availiable
         ipidToIpToFrameInfo_.Insert(ipid, ip, frameInfo);
-        TS_LOGD("find matching filePathId failed, ip = %lu, filePathId = %u", ip, frameInfo->filePathId_);
+        TS_LOGD("find matching filePathId failed, ipid = %" PRIu64 ", ip = %lu, filePathId = %u", ipid, ip,
+                frameInfo->filePathId_);
         return frameInfo;
     }
-    auto symbolTable = itor->second;
     // calculate symVaddr = ip - vmStart + vmOffset + phdrVaddr - phdrOffset
     uint64_t symVaddr =
         ip - vmStart + vmOffset + symbolTable->text_exec_vaddr() - symbolTable->text_exec_vaddr_file_offset();
@@ -145,7 +147,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
         frameInfo->offset_ = ip;
         frameInfo->symbolOffset_ = 0;
         ipidToIpToFrameInfo_.Insert(ipid, ip, frameInfo);
-        TS_LOGD("symbolStart is %lu invaliable!!!", symbolStart);
+        TS_LOGD("symbolStart is %u invaliable!!!", symbolStart);
         return frameInfo;
     }
 

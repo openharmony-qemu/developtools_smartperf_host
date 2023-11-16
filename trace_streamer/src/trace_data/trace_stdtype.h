@@ -1549,20 +1549,17 @@ private:
 #endif
 class HiSysEventSubkeys : public CacheBase {
 public:
-    uint32_t AppendSysEventSubkey(uint8_t flags, DataIndex eventSource, DataIndex appName);
-    const std::deque<uint8_t>& Falgs() const;
+    uint32_t AppendSysEventSubkey(DataIndex eventSource, DataIndex appName);
     const std::deque<DataIndex>& SysEventNameId() const;
     const std::deque<DataIndex>& SysEventSubkeyId() const;
     void Clear() override
     {
         CacheBase::Clear();
-        flags_.clear();
         sysEventNameIds_.clear();
         subkeyNameIds_.clear();
     }
 
 private:
-    std::deque<uint8_t> flags_ = {};
     std::deque<DataIndex> sysEventNameIds_ = {};
     std::deque<DataIndex> subkeyNameIds_ = {};
 };

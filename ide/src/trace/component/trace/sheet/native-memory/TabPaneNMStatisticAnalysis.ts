@@ -26,6 +26,7 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
 import { initSort } from '../SheetUtils.js';
 import { TabpaneNMCalltree } from './TabPaneNMCallTree.js';
 import { FilterByAnalysis } from '../../../../bean/NativeHook.js';
+import { InitAnalysis } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 
 const TYPE_ALLOC_STRING = 'AllocEvent';
 const TYPE_MAP_STRING = 'MmapEvent';
@@ -301,12 +302,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         data.symbolName
       );
       // 首次打开初始化数据 非首次初始化UI
-      if (treeTab?.treeData && treeTab.treeData.length > 0) {
-        treeTab.initUI();
-        treeTab.filterByAnalysis();
+      if (!InitAnalysis.getInstance().isInitAnalysis) {
+        treeTab?.initUI();
+        treeTab?.filterByAnalysis();
       } else {
         treeTab!.initFromAnalysis = true;
         treeTab!.data = this.currentSelection;
+        InitAnalysis.getInstance().isInitAnalysis = false;
       }
 
       treeTab!.banTypeAndLidSelect();
@@ -629,7 +631,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     // @ts-ignore
     let title = typeName;
     if (!this.hideThreadCheckBox?.checked) {
-      this.threadName = `(Thread)${it.tid}`;
+      this.threadName = `Thread(${it.tid})`;
       title += ` / ${this.threadName}`;
     }
     this.titleEl!.textContent = title;
@@ -774,14 +776,18 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       }
     }
     this.threadData = [];
-    threadMap.forEach((dbData: Array<number | string>, tid: number) => {
+    threadMap.forEach((dbData: Array<any>, tid: number) => {
       const sizeObj = this.calSizeObj(dbData);
       let analysis = new AnalysisObj(sizeObj.applySize, sizeObj.applyCount, sizeObj.releaseSize, sizeObj.releaseCount);
       this.calPercent(analysis);
       analysis.typeId = item.typeId;
       analysis.typeName = item.typeName;
       analysis.tid = tid;
-      analysis.tName = `Thread ${tid}`;
+      if (dbData[0].threadName && dbData[0].threadName.length > 0) {
+        analysis.tName = `${dbData[0].threadName}(${tid})`;
+      } else {
+        analysis.tName = `Thread ${tid}`;
+      }
       analysis.tableName = analysis.tName;
       this.threadData.push(analysis);
     });

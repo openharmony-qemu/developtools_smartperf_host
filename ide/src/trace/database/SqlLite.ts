@@ -3217,10 +3217,10 @@ export const queryAnomalyData = (): Promise<Array<EnergyAnomalyStruct>> =>
 
 export const querySystemLocationData = (): Promise<
   Array<{
-    startNs: string;
+    ts: string;
     eventName: string;
-    type: string;
-    state: string;
+    appKey: string;
+    Value: string;
   }>
 > =>
   query(
@@ -3247,10 +3247,10 @@ export const querySystemLocationData = (): Promise<
 
 export const querySystemLockData = (): Promise<
   Array<{
-    startNs: string;
+    ts: string;
     eventName: string;
-    type: string;
-    state: string;
+    appKey: string;
+    Value: string;
   }>
 > =>
   query(
