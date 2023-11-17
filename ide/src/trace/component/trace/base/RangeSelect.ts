@@ -19,6 +19,7 @@ import { ns2x, TimerShaftElement } from '../TimerShaftElement.js';
 import { info } from '../../../../log/Log.js';
 import './Extension.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
+import { querySearchRowFuncData } from '../../../database/SqlLite.js';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
@@ -78,6 +79,20 @@ export class RangeSelect {
     if (this.drag) {
       if (this.selectHandler) {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
+      }
+      //如果只框选了一条泳道，查询H:RSMainThread::DoComposition数据
+      if (this.rangeTraceRow?.length === 1) {
+        querySearchRowFuncData('H:RSMainThread::DoComposition', TraceRow.currentRowId!).then((res) => {
+          if (res.length) {
+            res.forEach((item) => {
+              TraceRow.docompositionData.push(item.startTime!);
+            });
+          }
+        })
+      } else {
+        if (TraceRow.docompositionData.length) {
+          TraceRow.docompositionData = []
+        }
       }
     }
     this.isMouseDown = false;
