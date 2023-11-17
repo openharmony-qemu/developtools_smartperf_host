@@ -14,10 +14,10 @@
  */
 
 // @ts-ignore
-import { ClientContainer, SettingRegistry } from '../../../dist/trace/grpc/ProfilerController.js';
+import { ClientVessel, SettingRegistry } from '../../../dist/trace/grpc/ProfilerController.js';
 
 describe('HiProfilerClient Test', () => {
-  let profilerController = new ClientContainer();
+  let profilerController = new ClientVessel();
 
   it('ProfilerClientTest01', function () {
     expect(profilerController.port).toBeUndefined();

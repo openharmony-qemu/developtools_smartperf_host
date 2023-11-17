@@ -29,7 +29,7 @@ export class SpFlags extends BaseElement {
   initHtml(): string {
     return `
         ${this.initHtmlStyle()}
-        <div class="sp-flags-container">
+        <div class="sp-flags-vessel">
          <div class="body">
            <h3 class="title">Feature flags</h3>
          </div>
@@ -40,7 +40,7 @@ export class SpFlags extends BaseElement {
   private initHtmlStyle(): string {
     return `
       <style>
-        .sp-flags-container {
+        .sp-flags-vessel {
           background-color: var(--dark-background5,#F6F6F6);
           min-height: 100%;
           display: grid;

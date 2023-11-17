@@ -59,9 +59,9 @@ describe('TabPaneHilogs Test', (): void => {
   TraceRow.range!.endNS = jest.fn(() => 27763331331);
   TraceRow.range!.totalNS = jest.fn(() => 27763331331);
   let hiLogsTab = new TabPaneHiLogs();
-  document.body.innerHTML = '<div id="container"></div>';
-  let container = document.querySelector<HTMLDivElement>('#container');
-  container!.append(hiLogsTab);
+  document.body.innerHTML = '<div id="vessel"></div>';
+  let vessel = document.querySelector<HTMLDivElement>('#vessel');
+  vessel!.append(hiLogsTab);
   let logsData = {
     leftNs: 0,
     rightNs: 33892044011,

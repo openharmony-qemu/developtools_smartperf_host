@@ -138,7 +138,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public sliceCache: number[] = [-1, -1];
   public describeEl: HTMLElement | null | undefined;
   public canvas: Array<HTMLCanvasElement> = [];
-  public canvasContainer: HTMLDivElement | null | undefined;
+  public canvasVessel: HTMLDivElement | null | undefined;
   public tipEL: HTMLDivElement | null | undefined;
   public checkBoxEL: LitCheckBox | null | undefined;
   public collectEL: LitIcon | null | undefined;
@@ -643,7 +643,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl = this.shadowRoot?.querySelector('.describe');
     this.folderIconEL = this.shadowRoot?.querySelector<LitIcon>('.icon');
     this.nameEL = this.shadowRoot?.querySelector('.name');
-    this.canvasContainer = this.shadowRoot?.querySelector('.panel-container');
+    this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
     this.rowSettingTree = this.shadowRoot?.querySelector('#rowSettingTree');
     this.rowSettingPop = this.shadowRoot?.querySelector('#rowSetting');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
@@ -653,8 +653,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         let canvas = document.createElement('canvas');
         canvas.className = 'panel';
         this.canvas.push(canvas);
-        if (this.canvasContainer) {
-          this.canvasContainer.appendChild(canvas);
+        if (this.canvasVessel) {
+          this.canvasVessel.appendChild(canvas);
         }
       }
     }
@@ -932,7 +932,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
     if (this.tipEL) {
       this.tipEL.style.display = 'flex';
-      if (x + this.tipEL.clientWidth > (this.canvasContainer!.clientWidth || 0)) {
+      if (x + this.tipEL.clientWidth > (this.canvasVessel!.clientWidth || 0)) {
         this.tipEL.style.transform = `translateX(${x - this.tipEL.clientWidth - 1}px)`;
       } else {
         this.tipEL.style.transform = `translateX(${x}px)`;
@@ -1208,7 +1208,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             background-color: transparent;
             display: block;
         }
-        .panel-container{
+        .panel-vessel{
             width: 100%;
             position: relative;
             pointer-events: none;
@@ -1271,7 +1271,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             border-right: 0px;
             background-color: var(--bark-expansion,#0C65D1);
         }
-        :host([expansion]:not(sleeping)) .panel-container{
+        :host([expansion]:not(sleeping)) .panel-vessel{
             display: none;
         }
         :host([expansion]) .children{
@@ -1292,7 +1292,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([sleeping]) .describe{
             display: none;
         }
-        :host([sleeping]) .panel-container{
+        :host([sleeping]) .panel-vessel{
             display: none;
         }
         :host([sleeping]) .children{
@@ -1301,7 +1301,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host(:not([sleeping])) .describe{
             display: flex;;
         }
-        :host(:not([sleeping])) .panel-container{
+        :host(:not([sleeping])) .panel-vessel{
             display: block;
         }
         :host(:not([sleeping])) .children{

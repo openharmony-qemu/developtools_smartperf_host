@@ -438,8 +438,8 @@ export class LitSearch extends BaseElement {
     let historyInfos = this.getSearchHistory();
     let fragment = document.createElement('div');
     historyInfos.forEach((historyInfo) => {
-      let searchContainer = document.createElement('div');
-      searchContainer.className = 'search-list';
+      let searchVessel = document.createElement('div');
+      searchVessel.className = 'search-list';
       let searchInfoOption = document.createElement('li');
       let closeOption = document.createElement('lit-icon');
       closeOption.setAttribute('name', 'close');
@@ -458,11 +458,11 @@ export class LitSearch extends BaseElement {
           }
         }
       });
-      searchContainer.append(searchInfoOption);
-      searchContainer.append(closeOption);
+      searchVessel.append(searchInfoOption);
+      searchVessel.append(closeOption);
       this.searchELList.push(searchInfoOption);
       this.searchELList.push(closeOption);
-      fragment.append(searchContainer);
+      fragment.append(searchVessel);
     });
     this.searchHistoryListEL?.append(fragment);
     if (this.searchList.length > 0) {
