@@ -58,329 +58,404 @@ export class SpHelp extends BaseElement {
         describe: '',
         children: [
           {
-            title: '设备端抓取trace说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'record',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_device_record.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: '抓取和导入',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: '设备端抓取trace说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'record',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_device_record.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'web端抓取trace说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'online_record',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_web_record.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'web端加载trace说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'load',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_systemtrace.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
           {
-            title: 'web端抓取trace说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'online_record',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_web_record.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: '内存',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: 'Js Memory抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'js_memory',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_Js_memory.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Native Memory抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  console.log('22222')
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'native',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_native_memory.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: '页内存抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'virtual_memory',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_page_fault.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: '进程smaps抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'smaps',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_smaps.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: '系统内存抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'memory_template',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_memory_template.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
           {
-            title: 'web端加载trace说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'load',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_systemtrace.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: 'Native栈',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: 'HiPerf的抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'perf',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_hiperf.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
           {
-            title: 'Native Memory抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'native',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_native_memory.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: 'TS栈',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: 'Cpuprofiler抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'arkts',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_arkts.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
           {
-            title: 'Ability Monitor抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'ability',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_ability_monitor.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: '分析模板',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: 'Frame timeline抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'frame_record',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_Frametimeline.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Animation的抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'animation',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_animation.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'TaskPool抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'taskpool',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_taskpool.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'App startup的抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'app_startup',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_app_startup.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Scheduling analysis抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'scheduling_record',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_schedulinganalysis.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
           {
-            title: 'HiPerf的抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'perf',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_hiperf.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: '文件',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: 'FileSystem抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'file_system',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_filesystem.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Bio抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'bio',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_bio.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
           {
-            title: 'Sql分析和Metrics说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'sql',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_sql_metrics.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'FileSystem抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'file_system',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_filesystem.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: '页内存抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'virtual_memory',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_page_fault.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Bio抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'bio',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_bio.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'HiSystemEvent抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'hisys',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_hisystemevent.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'sdk抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'sdk_record',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_sdk.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Frame timeline抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'frame_record',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_Frametimeline.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Scheduling analysis抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'scheduling_record',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_schedulinganalysis.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Js Memory抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'js_memory',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_Js_memory.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: '调用栈可视化和不同库函数调用占比说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'import_so',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_Import_so.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Animation的抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'animation',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_animation.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'TaskPool抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'taskpool',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_taskpool.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Cpuprofiler抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'arkts',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_arkts.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'App startup的抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'app_startup',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_app_startup.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: '系统内存抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'memory_template',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_memory_template.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Hilog抓取和展示说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'hilog',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_hilog.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: 'Trace解析能力增强',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'trace_parsing',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_parsing_ability.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: '应用操作技巧',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'operation_skills',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_Application_operation_skills.html?${that.dark} width="100%" height="100%"></object>`;
-            },
-          },
-          {
-            title: '快捷键说明',
-            icon: '',
-            clickHandler: function (item: MenuItem) {
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'keywords_shortcuts',
-                action: 'help_doc',
-              });
-              that.appContent!.innerHTML =
-                '<object type="text/html" data=' +
-                `/application/doc/quickstart_keywords_shortcuts.html?${that.dark} width="100%" height="100%"></object>`;
-            },
+            collapsed: false,
+            title: '其他',
+            describe: '',
+            second: true,
+            children: [
+              {
+                title: 'Sql分析和Metrics说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'sql',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_sql_metrics.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+
+
+
+              {
+                title: 'HiSystemEvent抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'hisys',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_hisystemevent.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'sdk抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'sdk_record',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_sdk.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+
+              {
+                title: '调用栈可视化和不同库函数调用占比说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'import_so',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_Import_so.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Hilog抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'hilog',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_hilog.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Ability Monitor抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  console.log('444444')
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'ability',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_ability_monitor.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: 'Trace解析能力增强',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'trace_parsing',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_parsing_ability.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: '应用操作技巧',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'operation_skills',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_Application_operation_skills.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: '快捷键说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'keywords_shortcuts',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_keywords_shortcuts.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+            ],
           },
         ],
       },
