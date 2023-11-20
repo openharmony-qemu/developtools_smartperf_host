@@ -105,7 +105,6 @@ import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js'
 import { LitSearch } from './trace/search/Search.js';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
-import { SpKeyboard } from '../component/SpKeyboard.js'
 import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart.js';
 import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon.js';
