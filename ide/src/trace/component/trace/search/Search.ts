@@ -15,6 +15,7 @@
 
 import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
+import { SpSystemTrace } from '../../../component/SpSystemTrace.js';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
 
@@ -35,6 +36,7 @@ export class LitSearch extends BaseElement {
   //定义翻页index
   private retarget_index: number = 0;
   private _retarge_index: HTMLInputElement | null | undefined;
+  private systemTrace: SpSystemTrace | null | undefined;
 
   get list(): Array<any> {
     return this._list;
@@ -191,9 +193,9 @@ export class LitSearch extends BaseElement {
     }, 200);
   }
 
-  private searchKeyupListener(e: KeyboardEvent) {
-    if (e.code === 'Enter') {
-      this.updateSearchList(this.search!.value);
+  private searchKeyupListener(e: KeyboardEvent) {       
+    if( e.key === 'Enter' ){ 
+      this.updateSearchList(this.search!.value);       
       if (e.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
@@ -220,6 +222,19 @@ export class LitSearch extends BaseElement {
     e.stopPropagation();
   }
 
+  clearTimes(){
+    if(this.systemTrace)
+    {
+      if(this.systemTrace.times.size > 0){ 
+        for(let timerId of this.systemTrace.times){
+          clearTimeout(timerId);
+        }
+        this.systemTrace.times.clear();
+      }
+    } 
+  }
+  
+
   initElements(): void {
     this.search = this.shadowRoot!.querySelector<HTMLInputElement>('input');
     this.totalEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#total');
@@ -229,7 +244,19 @@ export class LitSearch extends BaseElement {
     this._retarge_index = this.shadowRoot!.querySelector<HTMLInputElement>("input[name='retarge_index']");
     let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
     let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
+    this.systemTrace = document.querySelector('body > sp-application')?.
+                              shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
 
+    let searchKeyup = (e: KeyboardEvent)=> {
+      this.clearTimes();
+      this._retarge_index!.value = ""
+      this.index = -1;
+      document.removeEventListener('keyup', this.systemTrace!.documentOnKeyUp);
+      document.removeEventListener('keydown', this.systemTrace!.documentOnKeyDown);
+      this.searchKeyupListener(e);
+      document.addEventListener('keydown', this.systemTrace!.documentOnKeyDown);
+      document.addEventListener('keyup', this.systemTrace!.documentOnKeyUp);
+    }
     this.search!.addEventListener('focus', () => {
       this.searchFocusListener();
     });
@@ -240,11 +267,8 @@ export class LitSearch extends BaseElement {
       this.index = -1;
       this._retarge_index!.value = '';
     });
-    this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
-      this._retarge_index!.value = ""
-      this.index = -1;
-      this.searchKeyupListener(e);
-    });
+    this.search!.addEventListener('keyup', searchKeyup );
+    
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (e) => {
       this.dispatchEvent(
         new CustomEvent('previous-data', {
@@ -266,7 +290,12 @@ export class LitSearch extends BaseElement {
 
     // 添加翻页监听事件
     this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keyup', (e: any) => {
-      if (e.keyCode == 13) {
+      
+      if (e.key === 'Enter') {  
+        this.clearTimes();
+        document.removeEventListener('keyup', this.systemTrace!.documentOnKeyUp);
+        document.removeEventListener('keydown', this.systemTrace!.documentOnKeyDown);
+        this.search!.removeEventListener('keyup', searchKeyup);
         this.retarget_index = Number(this._retarge_index!.value);
         if (this.retarget_index <= this._list.length && this.retarget_index != 0) {
           this.dispatchEvent(
@@ -288,8 +317,12 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
-      }
-      e.stopPropagation();
+        this._retarge_index?.blur();
+        document.addEventListener('keyup', this.systemTrace!.documentOnKeyUp);
+        document.addEventListener('keydown', this.systemTrace!.documentOnKeyDown );
+        this.search!.addEventListener('keyup', searchKeyup);
+      } 
+      e.stopPropagation(); 
     });
   }
 

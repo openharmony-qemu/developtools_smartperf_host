@@ -113,23 +113,8 @@ import { type SpKeyboard } from '../component/SpKeyboard.js';
 function dpr() {
   return window.devicePixelRatio || 1;
 }
-//节流处理
-function throttle(fn: any, t: number, ev: any): any {
-  let timer: any = null;
-  return function () {
-    if (!timer) {
-      timer = setTimeout(function () {
-        if (ev) {
-          fn(ev);
-        } else {
-          fn();
-        }
-        timer = null;
-      }, t);
-    }
-  };
-}
 
+ 
 export class CurrentSlicesTime {
   startTime: number | undefined;
   endTime: number | undefined;
@@ -150,6 +135,7 @@ export class SpSystemTrace extends BaseElement {
   static SDK_CONFIG_MAP: any;
   static sliceRangeMark: any;
   static wakeupList: Array<WakeupBean> = [];
+  times: Set<number> = new Set<number>();
   currentSlicesTime: CurrentSlicesTime = new CurrentSlicesTime();
   intersectionObserver: IntersectionObserver | undefined;
   tipEL: HTMLDivElement | undefined | null;
@@ -1978,7 +1964,14 @@ export class SpSystemTrace extends BaseElement {
     ['d', false],
     ['f', false],
   ]);
-  documentOnKeyPress = (ev: KeyboardEvent) => {
+
+  documentOnKeyDown = (ev: KeyboardEvent) => {
+    document.removeEventListener('keyup', this.documentOnKeyUp);
+    this.debounce(this.continueSearch , 250 , ev )(); 
+    document.addEventListener('keyup', this.documentOnKeyUp);
+  };
+
+  documentOnKeyPress = (ev: KeyboardEvent) => {    
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
     TraceRow.isUserInteraction = true;
@@ -2145,6 +2138,29 @@ export class SpSystemTrace extends BaseElement {
     }, 100);
   };
 
+  // 一直按着回车键的时候执行搜索功能
+  private continueSearch = (ev: KeyboardEvent)=>{ 
+     console.log('key=' + ev.key + " , code="+ ev.code + ', keyCode=' + ev.keyCode);
+    
+    if (ev.key === 'Enter') {
+      if (ev.shiftKey) {
+        this.dispatchEvent(
+          new CustomEvent('previous-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      } else {
+        this.dispatchEvent(
+          new CustomEvent('next-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      }
+    }   
+  }
+  
   documentOnKeyUp = (ev: KeyboardEvent) => {
     if(ev.key.toLocaleLowerCase() === '?'){
       document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
@@ -2176,21 +2192,29 @@ export class SpSystemTrace extends BaseElement {
     this.observerScrollHeightEnable = false;
     this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
     if (ev.code == 'Enter') {
-      if (ev.shiftKey) {
-        this.dispatchEvent(
-          new CustomEvent('previous-data', {
-            detail: {},
-            composed: false,
-          })
-        );
-      } else {
-        this.dispatchEvent(
-          new CustomEvent('next-data', {
-            detail: {},
-            composed: false,
-          })
-        );
-      }
+		if(this.times.size > 0){ 
+		  for(let timerId of this.times){
+			clearTimeout(timerId);
+		  }
+		  this.times.clear();
+		}
+		document.removeEventListener('keydown', this.documentOnKeyDown); 
+		if (ev.shiftKey) {
+			this.dispatchEvent(
+			  new CustomEvent('previous-data', {
+				detail: {},
+				composed: false,
+			  })
+			);
+		} else {
+			this.dispatchEvent(
+			  new CustomEvent('next-data', {
+				detail: {},
+				composed: false,
+			  })
+			);
+		}
+		document.addEventListener('keydown', this.documentOnKeyDown); 
     }
 
     if (ev.ctrlKey) {
@@ -3737,6 +3761,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('mouseup', this.documentOnMouseUp);
     this.addEventListener('mouseout', this.documentOnMouseOut);
 
+    document.addEventListener('keydown', this.documentOnKeyDown );
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
@@ -3919,6 +3944,7 @@ export class SpSystemTrace extends BaseElement {
     this.removeEventListener('mouseup', this.documentOnMouseUp);
     this.removeEventListener('mouseout', this.documentOnMouseOut);
     document.removeEventListener('keypress', this.documentOnKeyPress);
+    document.removeEventListener('keydown', this.documentOnKeyDown);
     document.removeEventListener('keyup', this.documentOnKeyUp);
     document.removeEventListener('contextmenu', this.onContextMenuHandler);
     window.unsubscribe(window.SmartEvent.UI.SliceMark, this.sliceMarkEventHandler.bind(this));
