@@ -204,6 +204,43 @@ export class SpSystemTrace extends BaseElement {
   set flagList(list: Array<any>) {
     this._flagList = list;
   }
+   //节流处理
+  throttle(fn: Function, t: number, ev?: any ): Function {
+    let timerId: any = null;
+    return ()=> {
+      if (!timerId) {
+        timerId = setTimeout(function () {
+          if(ev){
+            fn(ev); 
+          }else{
+            fn();
+          } 
+          timerId = null;
+        }, t); 
+        this.times.add(timerId);
+      }
+    };
+  }
+  // 防抖处理
+  debounce(fn: Function, ms: number, ev?: any): Function {
+    let timerId: undefined | number;
+    return ()=>{
+      if(timerId){
+        window.clearTimeout(timerId);
+      }else{
+        timerId = window.setTimeout(()=>{
+          if(ev){
+            fn(ev); 
+          }else{
+            fn();
+          } 
+          timerId = undefined;
+        }, ms);
+        this.times.add(timerId);
+      }
+    }
+  }
+  
   async makeVsyncLine() {
     if (this._isVsync) {
       const range = this.timerShaftEL?.rangeRuler?.range;
