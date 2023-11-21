@@ -2177,8 +2177,6 @@ export class SpSystemTrace extends BaseElement {
 
   // 一直按着回车键的时候执行搜索功能
   private continueSearch = (ev: KeyboardEvent)=>{ 
-     console.log('key=' + ev.key + " , code="+ ev.code + ', keyCode=' + ev.keyCode);
-    
     if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
@@ -2199,6 +2197,12 @@ export class SpSystemTrace extends BaseElement {
   }
   
   documentOnKeyUp = (ev: KeyboardEvent) => {
+    if(this.times.size > 0){ 
+		  for(let timerId of this.times){
+			clearTimeout(timerId);
+		  } 
+		}
+
     if(ev.key.toLocaleLowerCase() === '?'){
       document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
@@ -2228,30 +2232,24 @@ export class SpSystemTrace extends BaseElement {
     TraceRow.isUserInteraction = false;
     this.observerScrollHeightEnable = false;
     this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
-    if (ev.code == 'Enter') {
-		if(this.times.size > 0){ 
-		  for(let timerId of this.times){
-			clearTimeout(timerId);
-		  }
-		  this.times.clear();
-		}
-		document.removeEventListener('keydown', this.documentOnKeyDown); 
-		if (ev.shiftKey) {
-			this.dispatchEvent(
-			  new CustomEvent('previous-data', {
-				detail: {},
-				composed: false,
-			  })
-			);
-		} else {
-			this.dispatchEvent(
-			  new CustomEvent('next-data', {
-				detail: {},
-				composed: false,
-			  })
-			);
-		}
-		document.addEventListener('keydown', this.documentOnKeyDown); 
+    if (ev.code == 'Enter') { 
+      document.removeEventListener('keydown', this.documentOnKeyDown); 
+      if (ev.shiftKey) {
+        this.dispatchEvent(
+          new CustomEvent('previous-data', {
+          detail: {},
+          composed: false,
+          })
+        );
+      } else {
+        this.dispatchEvent(
+          new CustomEvent('next-data', {
+          detail: {},
+          composed: false,
+          })
+        );
+      }
+      document.addEventListener('keydown', this.documentOnKeyDown); 
     }
 
     if (ev.ctrlKey) {
@@ -4507,6 +4505,7 @@ export class SpSystemTrace extends BaseElement {
     InitAnalysis.getInstance().isInitAnalysis = true;
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
     procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
+    this.times.clear();
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {

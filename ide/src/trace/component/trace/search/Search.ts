@@ -228,8 +228,7 @@ export class LitSearch extends BaseElement {
       if(this.systemTrace.times.size > 0){ 
         for(let timerId of this.systemTrace.times){
           clearTimeout(timerId);
-        }
-        this.systemTrace.times.clear();
+        } 
       }
     } 
   }
@@ -295,6 +294,7 @@ export class LitSearch extends BaseElement {
         this.clearTimes();
         document.removeEventListener('keyup', this.systemTrace!.documentOnKeyUp);
         document.removeEventListener('keydown', this.systemTrace!.documentOnKeyDown);
+        document.removeEventListener('keypress', this.systemTrace!.documentOnKeyPress);
         this.search!.removeEventListener('keyup', searchKeyup);
         this.retarget_index = Number(this._retarge_index!.value);
         if (this.retarget_index <= this._list.length && this.retarget_index != 0) {
@@ -317,10 +317,11 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
-        this._retarge_index?.blur();
+        this._retarge_index?.blur(); 
+        this.search!.addEventListener('keyup', searchKeyup);
         document.addEventListener('keyup', this.systemTrace!.documentOnKeyUp);
         document.addEventListener('keydown', this.systemTrace!.documentOnKeyDown );
-        this.search!.addEventListener('keyup', searchKeyup);
+        document.addEventListener('keypress', this.systemTrace!.documentOnKeyPress);
       } 
       e.stopPropagation(); 
     });
