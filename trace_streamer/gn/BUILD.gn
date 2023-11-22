@@ -95,8 +95,6 @@ config("default") {
     if (!use_wasm && !is_win && !is_mac && !is_test && !is_mingw) {
       cflags += [ "-D HAVE_LIBUNWIND" ]
     }
-
-    cflags += [ "-D USE_VTABLE" ]
     if (use_wasm) {
       cflags += [
         "-D IS_WASM",
@@ -104,7 +102,6 @@ config("default") {
         "-D target_cpu_x64",
         "-D target_cpu_x86_64",
         "-DHAVE_CONFIG_H",
-        "-DNDEBUG",
         "-DCC_IS_CLANG",
         "-D__x86_64__",
       ]
@@ -130,6 +127,9 @@ config("default") {
     libs += [ "wsock32" ]
     libs += [ "ws2_32" ]
     cflags += [ "-Wno-attributes" ]
+  }
+  if (is_linux) {
+    cflags += [ "-D is_linux" ]
   }
   if (with_ebpf_help_table) {
     cflags += [ "-D WITH_EBPF_HELP" ]
@@ -168,7 +168,6 @@ config("release") {
       "-pie",
     ]
   }
-  defines = [ "NDEBUG" ]
 }
 
 config("shared_library") {
@@ -240,6 +239,9 @@ config("ts_config") {
 
     libs = [ "wsock32" ]
     libs += [ "ws2_32" ]
+  }
+  if (is_linux) {
+    cflags += [ "-D is_linux=1" ]
   }
   if (!use_wasm && !is_win && !is_mac && !is_test && !is_mingw) {
     cflags += [ "-D HAVE_LIBUNWIND" ]

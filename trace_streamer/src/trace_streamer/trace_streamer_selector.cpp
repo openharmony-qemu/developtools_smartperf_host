@@ -278,7 +278,7 @@ void TraceStreamerSelector::EnableFileSave(bool enabled)
 
 void TraceStreamerSelector::SetCleanMode(bool cleanMode)
 {
-    g_cleanMode = true;
+    g_curLogLevel = LOG_OFF;
 }
 
 int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack)
@@ -420,7 +420,6 @@ bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOper
     if (!LoadQueryFile(sqlOperator, sqlStrings)) {
         return false;
     }
-    system("clear");
     for (auto& str : sqlStrings) {
         SearchDatabase(str, true);
     }
@@ -428,7 +427,6 @@ bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOper
 }
 bool TraceStreamerSelector::ParserAndPrintMetrics(const std::string& metrics)
 {
-    system("clear");
     auto metricsName = SplitStringToVec(metrics, ",");
     for (const auto& itemName : metricsName) {
         std::string result = SearchDatabase(MetricsSqlQuery(itemName));

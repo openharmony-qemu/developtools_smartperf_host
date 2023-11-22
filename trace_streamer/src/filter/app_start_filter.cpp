@@ -179,7 +179,7 @@ void APPStartupFilter::ParserAppStartup()
             if (!ProcAbilityLaunchData(nameString, i)) {
                 continue;
             }
-        } else if (StartWith(nameString, uiOnForegroundCmd_)) {
+        } else if (StartWith(nameString, uiOnForegroundFirstCmd_) || StartWith(nameString, uiOnForegroundSecCmd_)) {
             ProcForegroundData(i);
         }
     }

@@ -18,7 +18,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 EbpfBase::EbpfBase(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : EventParserBase(dataCache, ctx),
-      pidAndIpToSymbolAndFilePathIndex_(SymbolAndFilePathIndex(false)),
+      pidAndIpToEbpfSymbolInfo_(EbpfSymbolInfo(false)),
       filePathIndexAndStValueToSymAddr_(nullptr),
       pidAndipsToCallId_(INVALID_UINT64)
 {
@@ -26,7 +26,7 @@ EbpfBase::EbpfBase(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
 EbpfBase::~EbpfBase()
 {
     pidAndipsToCallId_.Clear();
-    pidAndIpToSymbolAndFilePathIndex_.Clear();
+    pidAndIpToEbpfSymbolInfo_.Clear();
     filePathIndexToPidAndIpMap_.clear();
     filePathIndexAndStValueToSymAddr_.Clear();
 }
@@ -47,11 +47,11 @@ void EbpfBase::ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, u
     uint64_t depth = 0;
     for (auto i = count - 1; i >= 0; i--) {
         if (userIpsAddr[i] > MIN_USER_IP) {
-            auto symbolAndFilePathIndex = GetSymbolAndFilePathIndex(pid, userIpsAddr[i]);
+            auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
             auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
             ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
-            traceDataCache_->GetEbpfCallStack()->AppendNewData(
-                callId, depth, ipIndex, symbolAndFilePathIndex.symbolIndex, symbolAndFilePathIndex.filePathIndex);
+            traceDataCache_->GetEbpfCallStack()->AppendNewData(callId, depth, ipIndex, ebpfSymbolInfo.symbolIndex,
+                                                               ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
             depth++;
         }
     }
@@ -59,9 +59,9 @@ void EbpfBase::ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, u
     callIdToPid_.insert(std::make_pair(callId, pid));
 }
 
-SymbolAndFilePathIndex EbpfBase::GetSymbolAndFilePathIndex(uint32_t pid, uint64_t ip)
+EbpfSymbolInfo EbpfBase::GetEbpfSymbolInfo(uint32_t pid, uint64_t ip)
 {
-    auto value = pidAndIpToSymbolAndFilePathIndex_.Find(pid, ip);
+    auto value = pidAndIpToEbpfSymbolInfo_.Find(pid, ip);
     if (value.flag) {
         return value;
     }
@@ -115,24 +115,24 @@ void EbpfBase::UpdateFilePathIndexToPidAndIpMap(DataIndex filePathIndex, uint32_
     }
 }
 
-SymbolAndFilePathIndex EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
+EbpfSymbolInfo EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
 {
-    SymbolAndFilePathIndex symbolAndFilePathIndex(false);
+    EbpfSymbolInfo ebpfSymbolInfo(false);
     // Follow the rules of front closing and rear opening, [start, end)
     if (ip < reader_->maxKernelAddr_ && ip >= reader_->minKernelAddr_) {
-        symbolAndFilePathIndex = reader_->GetSymbolNameIndexFromElfSym(ip);
-        pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-        UpdateFilePathIndexToPidAndIpMap(symbolAndFilePathIndex.filePathIndex, pid, ip);
-        return symbolAndFilePathIndex;
+        ebpfSymbolInfo = reader_->GetSymbolNameIndexFromElfSym(ip);
+        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+        return ebpfSymbolInfo;
     }
 
     auto& pidAndStartAddrToMapsAddr = reader_->GetPidAndStartAddrToMapsAddr();
     auto startToMapsAddr = pidAndStartAddrToMapsAddr.Find(pid);
     if (!startToMapsAddr) {
-        symbolAndFilePathIndex.flag = true;
-        pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-        UpdateFilePathIndexToPidAndIpMap(symbolAndFilePathIndex.filePathIndex, pid, ip);
-        return symbolAndFilePathIndex;
+        ebpfSymbolInfo.flag = true;
+        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+        return ebpfSymbolInfo;
     }
 
     uint64_t vmStart = INVALID_UINT64;
@@ -145,31 +145,32 @@ SymbolAndFilePathIndex EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint
         if (ip < end->second->end) {
             vmStart = end->first;
             vmOffset = end->second->offset;
-            symbolAndFilePathIndex.filePathIndex =
+            ebpfSymbolInfo.filePathIndex =
                 traceDataCache_->GetDataIndex(reinterpret_cast<const char*>((end->second) + 1));
         }
     }
-    symbolAndFilePathIndex.flag = true;
-    if (symbolAndFilePathIndex.filePathIndex == INVALID_INT64) {
-        pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-        UpdateFilePathIndexToPidAndIpMap(symbolAndFilePathIndex.filePathIndex, pid, ip);
-        return symbolAndFilePathIndex;
+    ebpfSymbolInfo.flag = true;
+    if (ebpfSymbolInfo.filePathIndex == INVALID_INT64) {
+        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+        return ebpfSymbolInfo;
     }
 
-    auto itor = reader_->GetElfPathIndexToElfAddr().find(symbolAndFilePathIndex.filePathIndex);
+    auto itor = reader_->GetElfPathIndexToElfAddr().find(ebpfSymbolInfo.filePathIndex);
     if (itor == reader_->GetElfPathIndexToElfAddr().end()) {
-        pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-        UpdateFilePathIndexToPidAndIpMap(symbolAndFilePathIndex.filePathIndex, pid, ip);
-        return symbolAndFilePathIndex;
+        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+        return ebpfSymbolInfo;
     }
     uint64_t symVaddr = ip - vmStart + vmOffset + itor->second->textVaddr - itor->second->textOffset;
+    ebpfSymbolInfo.vaddr = symVaddr;
     auto symbolIndex = GetSymbolNameIndexFromSymVaddr(itor->second, symVaddr);
     if (symbolIndex != INVALID_UINT64) {
-        symbolAndFilePathIndex.symbolIndex = symbolIndex;
+        ebpfSymbolInfo.symbolIndex = symbolIndex;
     }
-    pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-    UpdateFilePathIndexToPidAndIpMap(symbolAndFilePathIndex.filePathIndex, pid, ip);
-    return symbolAndFilePathIndex;
+    pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+    UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+    return ebpfSymbolInfo;
 }
 
 DataIndex EbpfBase::ConvertToHexTextIndex(uint64_t number)
@@ -191,70 +192,24 @@ void EbpfBase::UpdateFilePathIndexAndStValueToSymAddrMap(T* firstSymbolAddr, con
         }
     }
 }
-bool EbpfBase::EBPFReloadElfSymbolTable(std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables)
+bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>>& symbolsFiles)
 {
-    std::set<std::tuple<uint32_t, uint64_t>> resymbolizationPidAndIps;
-    for (auto elfSymbolTable : *elfSymbolTables) {
-        auto filePathIndex = elfSymbolTable->filePathIndex;
-        if (!filePathIndexToPidAndIpMap_.count(filePathIndex)) {
-            TS_LOGI("ebpf do not support resymbolizaiton use %s",
-                    traceDataCache_->GetDataFromDict(filePathIndex).c_str());
-            continue;
-        }
-
-        uint32_t pid = INVALID_UINT32;
-        uint64_t ip = INVALID_UINT64;
-        auto pidAndIpSet = filePathIndexToPidAndIpMap_.at(filePathIndex);
-        for (auto itor = pidAndIpSet->begin(); itor != pidAndIpSet->end(); itor++) {
-            std::tie(pid, ip) = *itor;
-            // only userspace ips need re symbolization
-            if (ip >= reader_->minKernelAddr_ && ip < reader_->maxKernelAddr_) {
+    auto ebpfCallStackDate = traceDataCache_->GetEbpfCallStack();
+    auto size = ebpfCallStackDate->Size();
+    auto filePathIndexs = ebpfCallStackDate->FilePathIds();
+    auto vaddrs = ebpfCallStackDate->Vaddrs();
+    for (const auto& symbolsFile : symbolsFiles) {
+        auto filePathIndex = traceDataCache_->GetDataIndex(symbolsFile->filePath_);
+        for (size_t row = 0; row < size; row++) {
+            if (filePathIndexs[row] != filePathIndex) {
                 continue;
             }
-            // delete symbolization result
-            pidAndIpToSymbolAndFilePathIndex_.Erase(pid, ip);
-            // update pids and ips which needs resymbolization
-            resymbolizationPidAndIps.insert(std::make_tuple(pid, ip));
+            auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddrs[row]);
+            if (dfxSymbol.IsValid()) {
+                auto symbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
+                ebpfCallStackDate->UpdateEbpfSymbolInfo(row, symbolIndex);
+            }
         }
-        // Update Symbolized Auxiliary Data
-        auto symEntrySize = elfSymbolTable->symEntSize;
-        auto size = elfSymbolTable->symTable.size() / symEntrySize;
-        if (symEntrySize == ELF32_SYM) {
-            UpdateFilePathIndexAndStValueToSymAddrMap(
-                reinterpret_cast<const Elf32_Sym*>(elfSymbolTable->symTable.data()), size, filePathIndex);
-        } else {
-            UpdateFilePathIndexAndStValueToSymAddrMap(
-                reinterpret_cast<const Elf64_Sym*>(elfSymbolTable->symTable.data()), size, filePathIndex);
-        }
-        if (filePathIndexToImportSymbolTableMap_.count(filePathIndex)) {
-            filePathIndexToImportSymbolTableMap_.at(filePathIndex) = elfSymbolTable;
-        } else {
-            filePathIndexToImportSymbolTableMap_.emplace(std::make_pair(filePathIndex, elfSymbolTable));
-        }
-    }
-    OfflineSymbolization(resymbolizationPidAndIps);
-    // Update Resymbolization Results
-    auto ebpfCallStack = traceDataCache_->GetEbpfCallStack();
-    for (auto i = 0; i < ebpfCallStack->Size(); i++) {
-        auto ipStrIndex = ebpfCallStack->Ips()[i];
-        if (!ipStrIndexToIpMap_.count(ipStrIndex)) {
-            continue;
-        }
-        auto ip = ipStrIndexToIpMap_.at(ipStrIndex);
-        auto callId = ebpfCallStack->CallChainIds()[i];
-        if (callId == INVALID_UINT32) {
-            continue;
-        }
-        if (!callIdToPid_.count(callId)) {
-            continue;
-        }
-        auto pid = callIdToPid_.at(callId);
-        auto symbolAndFilePathIndex = pidAndIpToSymbolAndFilePathIndex_.Find(pid, ip);
-        if (!symbolAndFilePathIndex.flag) {
-            continue;
-        }
-        ebpfCallStack->UpdateSymbolAndFilePathIndex(i, symbolAndFilePathIndex.symbolIndex,
-                                                    symbolAndFilePathIndex.filePathIndex);
     }
     return true;
 }
@@ -265,80 +220,6 @@ void EbpfBase::GetSymbolStartIndex(T* elfSym, uint32_t& symbolStart, uint64_t sy
     if (elfSym->st_value + elfSym->st_size >= symVaddr) {
         symbolStart = elfSym->st_name;
     }
-}
-void EbpfBase::OfflineSymbolization(std::set<std::tuple<uint32_t, uint64_t>>& pidAndIps)
-{
-    uint32_t pid = INVALID_UINT32;
-    uint64_t ip = INVALID_UINT64;
-    for (auto itor = pidAndIps.begin(); itor != pidAndIps.end(); itor++) {
-        SymbolAndFilePathIndex symbolAndFilePathIndex(false);
-        std::tie(pid, ip) = *itor;
-        auto startToMapsAddr = reader_->GetPidAndStartAddrToMapsAddr().Find(pid);
-        if (!startToMapsAddr) {
-            continue;
-        }
-        uint64_t vmStart = INVALID_UINT64;
-        uint64_t vmOffset = INVALID_UINT64;
-        auto end = startToMapsAddr->upper_bound(ip);
-        auto length = std::distance(startToMapsAddr->begin(), end);
-        DataIndex filePathIndex = INVALID_DATAINDEX;
-        if (length > 0) {
-            end--;
-            // Follow the rules of front closing and rear opening, [start, end)
-            if (ip < end->second->end) {
-                vmStart = end->first;
-                vmOffset = end->second->offset;
-                filePathIndex = traceDataCache_->GetDataIndex(reinterpret_cast<const char*>((end->second) + 1));
-            }
-        }
-        symbolAndFilePathIndex.flag = true;
-        symbolAndFilePathIndex.filePathIndex = filePathIndex;
-        if (!filePathIndexToImportSymbolTableMap_.count(filePathIndex)) {
-            pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-            TS_LOGD("can not find matching symbol table!");
-            continue;
-        }
-        auto& symbolTable = filePathIndexToImportSymbolTableMap_.at(filePathIndex);
-        // Calculate virtual address
-        uint64_t symVaddr = ip - vmStart + vmOffset + symbolTable->textVaddr - symbolTable->textOffset;
-        // pase sym_table to Elf32_Sym or Elf64_Sym array decided by sym_entry_size.
-        auto symEntLen = symbolTable->symEntSize;
-        auto startValueToSymAddrMap = filePathIndexAndStValueToSymAddr_.Find(filePathIndex);
-        if (!startValueToSymAddrMap) {
-            // find matching SymbolTable failed, but symVaddr is availiable
-            pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-            // find symbolTable failed!!!
-            TS_LOGD("find symbolTalbe failed!!!");
-            continue;
-        }
-        // Traverse array, st_value <= symVaddr and symVaddr <= st_value + st_size.  then you can get st_name
-        auto endItor = startValueToSymAddrMap->upper_bound(symVaddr);
-        length = std::distance(startValueToSymAddrMap->begin(), endItor);
-        uint32_t symbolStart = INVALID_UINT32;
-        if (length > 0) {
-            endItor--;
-            if (symEntLen == ELF32_SYM) {
-                GetSymbolStartIndex(reinterpret_cast<const Elf32_Sym*>(endItor->second), symbolStart, symVaddr);
-            } else {
-                GetSymbolStartIndex(reinterpret_cast<const Elf64_Sym*>(endItor->second), symbolStart, symVaddr);
-            }
-        }
-        if (symbolStart == INVALID_UINT32 || symbolStart >= symbolTable->strTable.size()) {
-            pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-            // find symbolStart failed, but some data is availiable.
-            TS_LOGD("symbolStart is : %lu invaliable!!!", symbolStart);
-            continue;
-        }
-        auto mangle = symbolTable->strTable.c_str() + symbolStart;
-        auto demangle = GetDemangleSymbolIndex(mangle);
-        symbolAndFilePathIndex.symbolIndex = traceDataCache_->GetDataIndex(demangle);
-        if (demangle != mangle) {
-            free(demangle);
-        }
-        pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
-    }
-    filePathIndexAndStValueToSymAddr_.Clear();
-    filePathIndexToImportSymbolTableMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

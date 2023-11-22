@@ -108,7 +108,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
     if (symbolTable == nullptr) {
         // find matching SymbolTable failed, but filePathId is availiable
         ipidToIpToFrameInfo_.Insert(ipid, ip, frameInfo);
-        TS_LOGD("find matching filePathId failed, ipid = %" PRIu64 ", ip = %lu, filePathId = %u", ipid, ip,
+        TS_LOGD("find matching filePathId failed, ipid = %" PRIu64 ", ip = %" PRIu64 ", filePathId = %u", ipid, ip,
                 frameInfo->filePathId_);
         return frameInfo;
     }

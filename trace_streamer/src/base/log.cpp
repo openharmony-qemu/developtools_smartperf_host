@@ -15,3 +15,24 @@
 
 #include "log.h"
 bool g_cleanMode = false;
+enum LogLevel g_curLogLevel = LOG_OFF;
+
+bool SetLogLevel(std::string level)
+{
+    if (level == "D" || level == "DEBUG") {
+        g_curLogLevel = LOG_DEBUG;
+    } else if (level == "I" || level == "INFO") {
+        g_curLogLevel = LOG_INFO;
+    } else if (level == "W" || level == "WARN") {
+        g_curLogLevel = LOG_WARN;
+    } else if (level == "E" || level == "ERROR") {
+        g_curLogLevel = LOG_ERROR;
+    } else if (level == "F" || level == "FATAL") {
+        g_curLogLevel = LOG_FATAL;
+    } else if (level == "O" || level == "OFF") {
+        g_curLogLevel = LOG_OFF;
+    } else {
+        return false;
+    }
+    return true;
+}

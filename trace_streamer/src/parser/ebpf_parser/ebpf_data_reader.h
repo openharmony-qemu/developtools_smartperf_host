@@ -15,7 +15,7 @@
 
 #ifndef EBPF_DATA_READER_H
 #define EBPF_DATA_READER_H
-#if is_mingw
+#ifndef is_linux
 #include "dfx_nonlinux_define.h"
 #else
 #include <elf.h>
@@ -46,7 +46,7 @@ public:
     const DoubleMap<const ElfEventFixedHeader*, uint64_t, const uint8_t*>& GetElfAddrAndStartValueToSymAddr() const;
     const std::map<DataIndex, const ElfEventFixedHeader*>& GetElfPathIndexToElfAddr() const;
     QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex>& GetTracerEventToStrIndexMap();
-    SymbolAndFilePathIndex GetSymbolNameIndexFromElfSym(uint64_t ip);
+    EbpfSymbolInfo GetSymbolNameIndexFromElfSym(uint64_t ip);
 
 private:
     bool ReadEbpfData();

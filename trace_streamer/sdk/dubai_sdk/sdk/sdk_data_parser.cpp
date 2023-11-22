@@ -112,11 +112,7 @@ int32_t SDKDataParser::UpdateJson()
 // create a corresponding table
 int32_t SDKDataParser::CreateTableByJson()
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "meta");
-#else
-    TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "_meta");
-#endif
     // create a corresponding table
     CreateCounterObjectTable(counterObjectTableName_);
     CreateCounterTable(counterTableName_);
@@ -128,44 +124,28 @@ int32_t SDKDataParser::CreateTableByJson()
 // create a couter object table based on the JSON configuration
 int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 
 // Create a couter table based on the JSON configuration
 int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 
 // Create a slice object table based on the JSON configuration
 int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 
 // Create a slice table based on the JSON configuration
 int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 

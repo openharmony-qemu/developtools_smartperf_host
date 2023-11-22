@@ -23,35 +23,36 @@
 #include "event_parser_base.h"
 #include "string_help.h"
 #include "string_to_numerical.h"
+#include "symbols_file.h"
 #include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
 using namespace SysTuning::EbpfStdtype;
+using namespace OHOS::Developtools::HiPerf;
 class EbpfBase : virtual public EventParserBase {
 public:
     EbpfBase(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~EbpfBase();
     bool InitEbpfDataParser(EbpfDataReader* reader);
-    bool EBPFReloadElfSymbolTable(std::shared_ptr<std::vector<std::shared_ptr<ElfSymbolTable>>> elfSymbolTables);
+    bool EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>>& symbolsFiles);
 
 protected:
     void ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, uint32_t pid, uint32_t callId);
     DataIndex GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* elfHeaderAddr, uint64_t symVaddr);
-    SymbolAndFilePathIndex GetSymbolAndFilePathIndex(uint32_t pid, uint64_t ip);
-    SymbolAndFilePathIndex GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip);
+    EbpfSymbolInfo GetEbpfSymbolInfo(uint32_t pid, uint64_t ip);
+    EbpfSymbolInfo GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip);
     void UpdateFilePathIndexToPidAndIpMap(DataIndex filePathIndex, uint32_t pid, uint64_t ip);
     DataIndex ConvertToHexTextIndex(uint64_t number);
     template <class T>
     void UpdateFilePathIndexAndStValueToSymAddrMap(T* firstSymbolAddr, const int size, uint32_t filePathIndex);
     template <class T>
     void GetSymbolStartIndex(T* elfSym, uint32_t& symbolStart, uint64_t symVaddr);
-    void OfflineSymbolization(std::set<std::tuple<uint32_t, uint64_t>>& pidAndIps);
     ClockId clockId_ = INVALID_UINT32;
     std::hash<std::string_view> hashFun_;
     EbpfDataReader* reader_ = nullptr;
-    DoubleMap<uint32_t, uint64_t, SymbolAndFilePathIndex> pidAndIpToSymbolAndFilePathIndex_;
+    DoubleMap<uint32_t, uint64_t, EbpfSymbolInfo> pidAndIpToEbpfSymbolInfo_;
     std::map<DataIndex, std::shared_ptr<std::set<std::tuple<uint32_t, uint64_t>>>> filePathIndexToPidAndIpMap_ = {};
     std::map<DataIndex, uint64_t> ipStrIndexToIpMap_ = {};
     std::map<uint32_t, uint32_t> callIdToPid_ = {};

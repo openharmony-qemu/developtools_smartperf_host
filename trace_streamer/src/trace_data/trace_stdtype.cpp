@@ -1651,24 +1651,25 @@ size_t EbpfCallStackData::AppendNewData(uint32_t callChainId,
                                         uint32_t depth,
                                         DataIndex ip,
                                         DataIndex symbolId,
-                                        DataIndex filePathId)
+                                        DataIndex filePathId,
+                                        uint64_t vaddr)
 {
     callChainIds_.emplace_back(callChainId);
     depths_.emplace_back(depth);
     ips_.emplace_back(ip);
     symbolIds_.emplace_back(symbolId);
     filePathIds_.emplace_back(filePathId);
+    vaddrs_.emplace_back(vaddr);
     ids_.emplace_back(Size());
     return Size() - 1;
 }
-void EbpfCallStackData::UpdateSymbolAndFilePathIndex(size_t row, DataIndex symbolId, DataIndex filePathId)
+void EbpfCallStackData::UpdateEbpfSymbolInfo(size_t row, DataIndex symbolId)
 {
     if (row >= Size()) {
         TS_LOGE("The updated row does not exist!");
         return;
     }
     symbolIds_[row] = symbolId;
-    filePathIds_[row] = filePathId;
 }
 const std::deque<uint32_t>& EbpfCallStackData::CallChainIds() const
 {
@@ -1689,6 +1690,10 @@ const std::deque<DataIndex>& EbpfCallStackData::SymbolIds() const
 const std::deque<DataIndex>& EbpfCallStackData::FilePathIds() const
 {
     return filePathIds_;
+}
+const std::deque<uint64_t>& EbpfCallStackData::Vaddrs() const
+{
+    return vaddrs_;
 }
 #if WITH_EBPF_HELP
 size_t EbpfProcessMaps::AppendNewData(uint64_t start,

@@ -66,6 +66,7 @@ void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView& protoData)
 void NativeHookFilter::AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t>& frames)
 {
     uint64_t ipidWithStackIdIndex = 0;
+    // the last element is ipid for this batch of frames/ips
     if (isSingleProcData_) {
         frames.emplace_back(SINGLE_PROC_IPID);
         ipidWithStackIdIndex = stackid;
@@ -308,7 +309,7 @@ void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::Byt
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
         freeHeapSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];
     } else {
-        TS_LOGD("func addr:%lu is empty", freeEventReader.addr());
+        TS_LOGD("func addr:%" PRIu64 " is empty", freeEventReader.addr());
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_DATA_INVALID);
         return;
     }
@@ -427,7 +428,7 @@ void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::B
         addrToMmapEventRow_.erase(mUnmapAddr);
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
     } else {
-        TS_LOGD("func addr:%lu is empty", mUnmapAddr);
+        TS_LOGD("func addr:%" PRIu64 " is empty", mUnmapAddr);
         streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_DATA_INVALID);
         return;
     }

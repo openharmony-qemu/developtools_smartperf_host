@@ -316,7 +316,7 @@ bool CpuDetailParser::BinderTractionAllocBufEvent(const RawTraceEventInfo& event
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, STAT_EVENT_RECEIVED);
     streamFilters_->binderFilter_->TransactionAllocBuf(event.msgPtr->timestamp(), eventTid_, allocBufMsg.data_size(),
                                                        allocBufMsg.offsets_size());
-    TS_LOGD("dataSize:%lu, offsetSize:%lu", allocBufMsg.data_size(), allocBufMsg.offsets_size());
+    TS_LOGD("dataSize:%" PRIu64 ", offsetSize:%" PRIu64 "", allocBufMsg.data_size(), allocBufMsg.offsets_size());
     return true;
 }
 bool CpuDetailParser::BinderTractionReceivedEvent(const RawTraceEventInfo& event) const

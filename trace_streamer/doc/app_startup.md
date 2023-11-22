@@ -17,7 +17,7 @@ Application Launching：在callstack表中查找包含"H:virtual void OHOS::AppE
 
 UI Ability Launching：在callstack表中查找包含"H:void OHOS::AppExecFwk::MainThread::HandleLaunchAbility(const std::shared_ptr `<AbilityLocalRecord>` &)##"字符的数据，即为启动的第5阶段，在这个阶段会上报包名和拉起该应用的ipid。如数据中缺少此阶段，可视为应用未启动。
 
-UI Ability OnForeground：在callstack表中查找包含"H:void OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, const OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##"字符的数据，即为启动的第6阶段，该阶段会上报ipid，同一个应用UIAbilityLaunching(加载UIAbility)阶段和当前阶段上报的ipid相同。
+UI Ability OnForeground：在callstack表中查找包含"H:void OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, const OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##"字符的数据，或"H:void OHOS::AbilityRuntime::UIAbilityThread::HandleAbilityTransaction"的数据，即为启动的第6阶段，该阶段会上报ipid，同一个应用UIAbilityLaunching(加载UIAbility)阶段和当前阶段上报的ipid相同。
 
 后两个阶段的计算方式如下：
 

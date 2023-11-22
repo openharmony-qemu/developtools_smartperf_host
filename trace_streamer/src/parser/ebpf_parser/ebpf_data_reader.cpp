@@ -338,26 +338,28 @@ QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex>& EbpfDataReader::Ge
     return tracerEventToStrIndex_;
 }
 
-SymbolAndFilePathIndex EbpfDataReader::GetSymbolNameIndexFromElfSym(uint64_t ip)
+EbpfSymbolInfo EbpfDataReader::GetSymbolNameIndexFromElfSym(uint64_t ip)
 {
-    SymbolAndFilePathIndex symbolAndFilePathIndex(false);
+    EbpfSymbolInfo ebpfSymbolInfo(false);
     auto end = kernelSymbolMap_.upper_bound(ip);
     auto length = std::distance(kernelSymbolMap_.begin(), end);
     if (length > 0) {
         end--;
         // Follow the rules of front closing and rear opening, [start, end)
         if (ip < end->first + end->second.size) {
-            symbolAndFilePathIndex.flag = true;
-            symbolAndFilePathIndex.symbolIndex = end->second.name;
-            symbolAndFilePathIndex.filePathIndex = kernelFilePath_;
+            ebpfSymbolInfo.flag = true;
+            ebpfSymbolInfo.symbolIndex = end->second.name;
+            ebpfSymbolInfo.filePathIndex = kernelFilePath_;
         } else {
-            TS_LOGD("failed for ip:%lu, kernelip:%lu, size:%lu", ip, end->first, end->second.size);
+            TS_LOGD("failed for ip:%" PRIu64 ", kernelip:%" PRIu64
+                    ", size:%" PRIu64 "",
+                    ip, end->first, end->second.size);
         }
     }
-    if (!symbolAndFilePathIndex.flag) {
-        TS_LOGD("failed for ip:%lu", ip);
+    if (!ebpfSymbolInfo.flag) {
+        TS_LOGD("failed for ip:%" PRIu64 "", ip);
     }
-    return symbolAndFilePathIndex;
+    return ebpfSymbolInfo;
 }
 const DoubleMap<uint32_t, uint64_t, const MapsFixedHeader*>& EbpfDataReader::GetPidAndStartAddrToMapsAddr() const
 {

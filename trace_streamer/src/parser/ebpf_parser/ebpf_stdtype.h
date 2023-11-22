@@ -14,7 +14,7 @@
  */
 #ifndef EBPF_DATA_STD_TYPE_H
 #define EBPF_DATA_STD_TYPE_H
-#if is_mingw
+#ifndef is_linux
 #include "dfx_nonlinux_define.h"
 #else
 #include <elf.h>
@@ -168,12 +168,13 @@ const std::map<uint32_t, uint32_t> ebpfToTSClockType_ = {
     {EBPF_CLOCK_MONOTONIC_RAW, TS_MONOTONIC_RAW},
 };
 
-struct SymbolAndFilePathIndex {
-    SymbolAndFilePathIndex() {}
-    explicit SymbolAndFilePathIndex(bool invalidValue) : flag(invalidValue) {}
+struct EbpfSymbolInfo {
+    EbpfSymbolInfo() {}
+    explicit EbpfSymbolInfo(bool invalidValue) : flag(invalidValue) {}
     bool flag = false;
     DataIndex symbolIndex = INVALID_UINT64;
     DataIndex filePathIndex = INVALID_UINT64;
+    DataIndex vaddr = INVALID_UINT64;
 };
 // file system event type
 enum FUC_SUB_TYPE {

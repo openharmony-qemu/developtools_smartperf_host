@@ -26,30 +26,22 @@
         __builtin_trap();        \
         __builtin_unreachable(); \
     } while (0)
-enum LogLevel { LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL };
-const enum LogLevel CURRENT_LOG_LEVEL = LOG_DEBUG;
-extern bool g_cleanMode;
-#define LOGWITHLEVEL(level, motify, fmt, ...)                                                               \
-    do {                                                                                                    \
-        if (level >= CURRENT_LOG_LEVEL) {                                                                   \
-            if (!g_cleanMode) {                                                                             \
-                fprintf(stdout, "[-%c][%s][%d]: " fmt "\n", motify, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
-            }                                                                                               \
-            if (level == LOG_FATAL) {                                                                       \
-                TS_CRASH;                                                                                   \
-            }                                                                                               \
-        }                                                                                                   \
+enum LogLevel { LOG_DEBUG = 0, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL, LOG_OFF };
+extern enum LogLevel g_curLogLevel;
+bool SetLogLevel(std::string level);
+#define LOGWITHLEVEL(level, motify, fmt, ...)                                                           \
+    do {                                                                                                \
+        if (level >= g_curLogLevel) {                                                                   \
+            fprintf(stdout, "[-%c][%s][%d]: " fmt "\n", motify, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+            if (level == LOG_FATAL) {                                                                   \
+                TS_CRASH;                                                                               \
+            }                                                                                           \
+        }                                                                                               \
     } while (0)
 #define TS_LOGE(fmt, ...) LOGWITHLEVEL(LOG_ERROR, 'E', fmt, ##__VA_ARGS__)
 #define TS_LOGF(fmt, ...) LOGWITHLEVEL(LOG_FATAL, 'F', fmt, ##__VA_ARGS__)
-#ifdef NDEBUG
-#define TS_LOGI(fmt, ...) LOGWITHLEVEL(LOG_DEBUG, 'I', fmt, ##__VA_ARGS__)
-#define TS_LOGD(format, ...)
-#define TS_ASSERT(x)
-#define TS_LOGW(fmt, ...) LOGWITHLEVEL(LOG_WARN, 'W', fmt, ##__VA_ARGS__)
-#else
 #define TS_LOGD(fmt, ...) LOGWITHLEVEL(LOG_DEBUG, 'D', fmt, ##__VA_ARGS__)
-#define TS_LOGI(fmt, ...) LOGWITHLEVEL(LOG_DEBUG, 'I', fmt, ##__VA_ARGS__)
+#define TS_LOGI(fmt, ...) LOGWITHLEVEL(LOG_INFO, 'I', fmt, ##__VA_ARGS__)
 #define TS_LOGW(fmt, ...) LOGWITHLEVEL(LOG_WARN, 'W', fmt, ##__VA_ARGS__)
 
 #define TS_ASSERT(x)  \
@@ -58,8 +50,6 @@ extern bool g_cleanMode;
             TS_CRASH; \
         }             \
     } while (0)
-
-#endif
 
 #define TS_CHECK_TRUE_RET(expression, retval, ...) \
     do {                                           \

@@ -112,11 +112,7 @@ int32_t SDKDataParser::UpdateJson()
 // 创建对应的表
 int32_t SDKDataParser::CreateTableByJson()
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "meta");
-#else
-    TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "_meta");
-#endif
     // 创建对应的表
     CreateCounterObjectTable(counterObjectTableName_);
     CreateCounterTable(counterTableName_);
@@ -128,44 +124,28 @@ int32_t SDKDataParser::CreateTableByJson()
 // 根据Json配置创建couter object表
 int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 
 // 根据Json配置创建couter表
 int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 
 // 根据Json配置创建slice object表
 int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 
 // 根据Json配置创建slice表
 int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
 {
-#ifdef USE_VTABLE
     TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
-#else
-    TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, "_" + tableName);
-#endif
     return 0;
 }
 

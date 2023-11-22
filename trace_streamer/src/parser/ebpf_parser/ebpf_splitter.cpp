@@ -30,7 +30,7 @@ void EbpfSplitter::SetSpliteTimeRange(uint64_t splitFileMinTs, uint64_t splitFil
 {
     splitFileMinTs_ = splitFileMinTs;
     splitFileMaxTs_ = splitFileMaxTs;
-    TS_LOGE("splitFileMinTs_ = %llu, splitFileMaxTs_ = %llu", splitFileMinTs_, splitFileMaxTs_);
+    TS_LOGI("splitFileMinTs_ = %" PRIu64 ", splitFileMaxTs_ = %" PRIu64 "", splitFileMinTs_, splitFileMaxTs_);
 }
 bool EbpfSplitter::SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer)
 {

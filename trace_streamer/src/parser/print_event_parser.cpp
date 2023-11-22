@@ -361,10 +361,8 @@ void PrintEventParser::HandleFrameSliceEndEvent(uint64_t ts, uint64_t pid, uint6
     auto iTid = streamFilters_->processFilter_->GetInternalTid(tid);
     auto pos = std::find(vsyncSliceIds_.begin(), vsyncSliceIds_.end(), callStackRow);
     if (pos != vsyncSliceIds_.end()) {
-        TS_LOGD("ts:%" PRIu64 ", RenderSliceEnd:%" PRIu64 ", callStackRow:%zu", ts, tid, callStackRow);
         if (!streamFilters_->frameFilter_->EndVsyncEvent(ts, iTid)) {
             streamFilters_->statFilter_->IncreaseStat(TRACE_VSYNC, STAT_EVENT_NOTMATCH);
-            TS_LOGW("ts:%" PRIu64 ", RenderSliceEnd:%" PRIu64 ", callStackRow:%zu failed", ts, tid, callStackRow);
         }
         vsyncSliceIds_.erase(pos);
     }
