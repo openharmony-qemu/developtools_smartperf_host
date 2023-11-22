@@ -15,7 +15,7 @@
 
 #ifndef OFFLINE_SYMBOLIZATION_FILTER_H
 #define OFFLINE_SYMBOLIZATION_FILTER_H
-#if is_mingw
+#ifndef is_linux
 #include "dfx_nonlinux_define.h"
 #else
 #include <elf.h>

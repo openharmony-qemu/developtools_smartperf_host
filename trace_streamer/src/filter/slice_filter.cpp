@@ -365,7 +365,6 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
     SlicesStack& stack = stackInfo.sliceStack;
     CloseUnMatchedSlice(timeStamp, stack, internalTid);
     if (stack.empty()) {
-        TS_LOGE("a slice end do not match a slice start event");
         callEventDisMatchCount++;
         return SIZE_MAX;
     }

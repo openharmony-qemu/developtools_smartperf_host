@@ -69,7 +69,7 @@ void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
 }
 void ShowHelpInfo(const char* argv)
 {
-    TS_LOGI(
+    printf(
         "trace analyze tool, it can transfer a bytrace/htrace file into a "
         "SQLite database and save result to a local file trace_streamer.log.\n"
         "Usage: %s FILE -e sqlite_out.pb\n"
@@ -79,13 +79,18 @@ void ShowHelpInfo(const char* argv)
         " -c    command line mode.\n"
         " -d    dump perf readable text.\n"
         " -h    start HTTP server.\n"
+        " -l <level>, --level=<level>\n"
+        "       Show specific level/levels logs with format: level1,level2,level3\n"
+        "       Long level string coule be: DEBUG/INFO/WARN/ERROR/FATAL/OFF.\n"
+        "       Short level string coule be: D/I/W/E/F/O.\n"
+        "       Default level is OFF.\n"
         " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"
         " -p    Specify the port of HTTP server, default is 9001.\n"
         " -q    select sql from file.\n"
         " -m    Perform operations that query metrics through linux,supports querying multiple metrics items.For "
         "example:-m x,y,z.\n"
         " -i    show information.\n"
-        " -v    show version.",
+        " -v    show version.\n",
         argv, argv);
 }
 void PrintInformation()
@@ -131,14 +136,14 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
         if (!ta.ParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize), false, isFinish)) {
             return false;
         };
-        printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
+        TS_LOGI("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
     }
     ta.WaitForParserEnd();
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
-    (void)fprintf(stdout, "\nParserDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    (void)fprintf(stdout, "ParserSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
+    TS_LOGI("\nParserDuration:\t%u ms", static_cast<unsigned int>(endTime - startTime));
+    TS_LOGI("ParserSpeed:\t%.2f MB/s", (g_loadSize / (endTime - startTime) / 1E3));
     return true;
 }
 bool SetFileSize(const std::string& traceFilePath)
@@ -199,20 +204,20 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
         metaData->SetParserToolVersion(g_traceStreamerVersion);
         metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion);
         metaData->SetTraceDataSize(g_loadSize);
-        fprintf(stdout, "ExportDatabase begin...\n");
+        TS_LOGI("ExportDatabase begin...\n");
         if (ts.ExportDatabase(sqliteFilePath)) {
             fprintf(stdout, "ExportDatabase failed\n");
             ExportStatusToLog(sqliteFilePath, TRACE_PARSER_ABNORMAL);
             return 1;
         }
-        fprintf(stdout, "ExportDatabase end\n");
+        TS_LOGI("ExportDatabase end\n");
     }
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
     endTime += 1; // for any exception of endTime == startTime
-    fprintf(stdout, "ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
+    TS_LOGI("ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
+    TS_LOGI("ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
     return 0;
 }
 
@@ -261,7 +266,7 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
         } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
             traceExportOption.interactiveState = true;
             continue;
-        } else if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "--command")) {
+        } else if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "--dump")) {
             TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
             traceExportOption.perfReadableTextFilePath = std::string(argv[i]);
             continue;
@@ -271,6 +276,13 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
             continue;
         } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
             PrintInformation();
+        } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
+            TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
+            if (!SetLogLevel(std::string(argv[i]))) {
+                ShowHelpInfo(argv[0]);
+                return 1;
+            }
+            continue;
         } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
             traceExportOption.separateFile = true;
             continue;

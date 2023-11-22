@@ -85,6 +85,10 @@ bool HtraceParser::ReparseSymbolFilesAndResymbolization(std::string& symbolsPath
         htraceNativeHookParser_->NativeHookReloadElfSymbolTable(symbolsFiles_);
         parseStatus = true;
     }
+    if (traceDataCache_->GetEbpfCallStack()->Size() > 0) {
+        ebpfDataParser_->EBPFReloadElfSymbolTable(symbolsFiles_);
+        parseStatus = true;
+    }
     symbolsFiles_.clear();
     return parseStatus;
 }

@@ -330,9 +330,6 @@ bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack re
     metaData->SetTraceType((ts_->DataType() == TRACE_FILETYPE_H_TRACE) ? "proto-based-trace" : "txt-based-trace");
     TS_LOGI("RPC ParseDataOver, has parsed len %zu", lenParseData_);
     ts_->WaitForParserEnd();
-#ifndef USE_VTABLE
-    ts_->Clear();
-#endif
     if (resultCallBack) {
         resultCallBack("ok\r\n", SEND_FINISH);
     }

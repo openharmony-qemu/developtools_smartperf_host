@@ -128,7 +128,6 @@ void TraceDataCache::InitDB()
     if (dbInited_) {
         return;
     }
-#ifdef USE_VTABLE
     TableBase::TableDeclare<AnimationTable>(*db_, this, "animation");
     TableBase::TableDeclare<DynamicFrameTable>(*db_, this, "dynamic_frame");
     TableBase::TableDeclare<ProcessTable>(*db_, this, "process");
@@ -223,100 +222,6 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
     TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
     TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
-#else
-    TableBase::TableDeclare<AnimationTable>(*db_, this, "_animation");
-    TableBase::TableDeclare<DynamicFrameTable>(*db_, this, "_dynamic_frame");
-    TableBase::TableDeclare<ProcessTable>(*db_, this, "_process");
-    TableBase::TableDeclare<SchedSliceTable>(*db_, this, "_sched_slice");
-    TableBase::TableDeclare<CallStackTable>(*db_, this, "_callstack");
-    TableBase::TableDeclare<ThreadTable>(*db_, this, "_thread");
-    TableBase::TableDeclare<ThreadStateTable>(*db_, this, "_thread_state");
-    TableBase::TableDeclare<ThreadFilterTable>(*db_, this, "_thread_filter");
-    TableBase::TableDeclare<ProcessFilterTable>(*db_, this, "_process_filter");
-    TableBase::TableDeclare<MeasureFilterTable>(*db_, this, "_measure_filter");
-    TableBase::TableDeclare<IrqTable>(*db_, this, "_irq");
-    TableBase::TableDeclare<DataDictTable>(*db_, this, "_data_dict");
-    TableBase::TableDeclare<RawTable>(*db_, this, "_raw");
-    TableBase::TableDeclare<SymbolsTable>(*db_, this, "_symbols");
-    TableBase::TableDeclare<DataTypeTable>(*db_, this, "_data_type");
-    TableBase::TableDeclare<HidumpTable>(*db_, this, "_hidump");
-    TableBase::TableDeclare<NativeHookTable>(*db_, this, "_native_hook");
-    TableBase::TableDeclare<NativeHookFrameTable>(*db_, this, "_native_hook_frame");
-    TableBase::TableDeclare<NativeHookStatisticTable>(*db_, this, "_native_hook_statistic");
-    TableBase::TableDeclare<SpanJoin>(*db_, this, "_span_join");
-
-    // no id
-    TableBase::TableDeclare<DeviceInfoTable>(*db_, this, "_device_info");
-    TableBase::TableDeclare<InstantsTable>(*db_, this, "_instant");
-    TableBase::TableDeclare<MeasureTable>(*db_, this, "_measure");
-    TableBase::TableDeclare<MeasureTable>(*db_, this, "_sys_mem_measure");
-    TableBase::TableDeclare<MeasureTable>(*db_, this, "_process_measure");
-    TableBase::TableDeclare<RangeTable>(*db_, this, "_trace_range");
-    TableBase::TableDeclare<StatTable>(*db_, this, "_stat");
-    TableBase::TableDeclare<SystemCallTable>(*db_, this, "_syscall");
-    TableBase::TableDeclare<MetaTable>(*db_, this, "_meta");
-    TableBase::TableDeclare<LogTable>(*db_, this, "_log");
-    TableBase::TableDeclare<NetworkTable>(*db_, this, "_network");
-
-    // id is not real id
-    TableBase::TableDeclare<CpuMeasureFilterTable>(*db_, this, "_cpu_measure_filter");
-    TableBase::TableDeclare<FilterTable>(*db_, this, "_measure_filter");
-    TableBase::TableDeclare<ProcessMeasureFilterTable>(*db_, this, "_process_measure_filter");
-    TableBase::TableDeclare<ClockEventFilterTable>(*db_, this, "_clock_event_filter");
-    TableBase::TableDeclare<ClkEventFilterTable>(*db_, this, "_clk_event_filter");
-    TableBase::TableDeclare<TaskPoolTable>(*db_, this, "_task_pool");
-    TableBase::TableDeclare<JsHeapFilesTable>(*db_, this, "_js_heap_files");
-    TableBase::TableDeclare<JsHeapEdgesTable>(*db_, this, "_js_heap_edges");
-    TableBase::TableDeclare<JsHeapInfoTable>(*db_, this, "_js_heap_info");
-    TableBase::TableDeclare<JsHeapLocationTable>(*db_, this, "_js_heap_location");
-    TableBase::TableDeclare<JsHeapNodesTable>(*db_, this, "_js_heap_nodes");
-    TableBase::TableDeclare<JsHeapSampleTable>(*db_, this, "_js_heap_sample");
-    TableBase::TableDeclare<JsHeapStringTable>(*db_, this, "_js_heap_string");
-    TableBase::TableDeclare<JsHeapTraceFunctionInfoTable>(*db_, this, "_js_heap_trace_function_info");
-    TableBase::TableDeclare<JsHeapTraceNodeTable>(*db_, this, "_js_heap_trace_node");
-    TableBase::TableDeclare<JsCpuProfilerNodeTable>(*db_, this, "_js_cpu_Perfiler_Node");
-    TableBase::TableDeclare<JsCpuProfilerSampleTable>(*db_, this, "_js_cpu_Perfiler_Sample");
-    TableBase::TableDeclare<JsConfigTable>(*db_, this, "_js_config");
-    TableBase::TableDeclare<ArgsTable>(*db_, this, "_args");
-    TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "_sys_event_filter");
-    TableBase::TableDeclare<DiskIOTable>(*db_, this, "_diskio");
-    TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "_cpu_usage");
-    TableBase::TableDeclare<LiveProcessTable>(*db_, this, "_live_process");
-    TableBase::TableDeclare<FileSystemSampleTable>(*db_, this, "_file_system_sample");
-    TableBase::TableDeclare<EbpfCallStackTable>(*db_, this, "_ebpf_callstack");
-    TableBase::TableDeclare<PagedMemorySampleTable>(*db_, this, "_paged_memory_sample");
-    TableBase::TableDeclare<SmapsTable>(*db_, this, "_smaps");
-    TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "_bio_latency_sample");
-    TableBase::TableDeclare<DataSourceClockIdTableTable>(*db_, this, "_datasource_clockid");
-    TableBase::TableDeclare<ClockSnapShotTable>(*db_, this, "_clock_snapshot");
-    TableBase::TableDeclare<FrameSliceTable>(*db_, this, "_frame_slice");
-    TableBase::TableDeclare<FrameMapsTable>(*db_, this, "_frame_maps");
-    TableBase::TableDeclare<GPUSliceTable>(*db_, this, "_gpu_slice");
-    TableBase::TableDeclare<AppStartupTable>(*db_, this, "_app_startup");
-    TableBase::TableDeclare<SoStaticInitalizationTable>(*db_, this, "_static_initalize");
-    TableBase::TableDeclare<MemoryAshMemTable>(*db_, this, "_memory_ashmem");
-    TableBase::TableDeclare<MemoryDmaTable>(*db_, this, "_memory_dma");
-    TableBase::TableDeclare<MemoryProcessGpuTable>(*db_, this, "_memory_process_gpu");
-    TableBase::TableDeclare<MemoryWindowGpuTable>(*db_, this, "_memory_window_gpu");
-    TableBase::TableDeclare<MemoryCpuTable>(*db_, this, "_memory_cpu");
-    TableBase::TableDeclare<MemoryProfileTable>(*db_, this, "_memory_profile");
-    TableBase::TableDeclare<MemoryRSImageTable>(*db_, this, "_memory_rs_image");
-#if WITH_EBPF_HELP
-    TableBase::TableDeclare<EbpfProcessMapsTable>(*db_, this, "_ebpf_process_maps");
-    TableBase::TableDeclare<EbpfElfTable>(*db_, this, "_ebpf_elf");
-    TableBase::TableDeclare<EbpfElfSymbolTable>(*db_, this, "_ebpf_elf_symbol");
-#endif
-    TableBase::TableDeclare<SysEventSubkeyTable>(*db_, this, "_app_name");
-    TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "_hisys_event_measure");
-    TableBase::TableDeclare<SysEventAllEventTable>(*db_, this, "_hisys_all_event");
-    TableBase::TableDeclare<DeviceStateTable>(*db_, this, "_device_state");
-    TableBase::TableDeclare<TraceConfigTable>(*db_, this, "_trace_config");
-    TableBase::TableDeclare<PerfReportTable>(*db_, this, "_perf_report");
-    TableBase::TableDeclare<PerfSampleTable>(*db_, this, "_perf_sample");
-    TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "_perf_callchain");
-    TableBase::TableDeclare<PerfThreadTable>(*db_, this, "_perf_thread");
-    TableBase::TableDeclare<PerfFilesTable>(*db_, this, "_perf_files");
-#endif
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const
@@ -385,7 +290,7 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
     TS_CHECK_TRUE(ftruncate(fd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
                   strerror(errno));
 #endif
-    fprintf(stdout, "ExportPerfReadableText begin...\n");
+    TS_LOGI("ExportPerfReadableText begin...\n");
     uint8_t curTimePrecision = 6;
     std::string buffLine;
     for (uint64_t row = 0; row < perfSample_.Size(); ++row) {
@@ -422,7 +327,7 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
 #endif
         buffLine.clear();
     }
-    fprintf(stdout, "ExportPerfReadableText end...\n");
+    TS_LOGI("ExportPerfReadableText end...\n");
     return 0;
 }
 void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string& buffLine)

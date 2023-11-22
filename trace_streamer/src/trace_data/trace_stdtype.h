@@ -1377,13 +1377,19 @@ private:
 };
 class EbpfCallStackData : public CacheBase {
 public:
-    size_t AppendNewData(uint32_t callChainId, uint32_t depth, DataIndex ip, DataIndex symbolId, DataIndex filePathId);
-    void UpdateSymbolAndFilePathIndex(size_t row, DataIndex symbolId, DataIndex filePathId);
+    size_t AppendNewData(uint32_t callChainId,
+                         uint32_t depth,
+                         DataIndex ip,
+                         DataIndex symbolId,
+                         DataIndex filePathId,
+                         uint64_t vaddr);
+    void UpdateEbpfSymbolInfo(size_t row, DataIndex symbolId);
     const std::deque<uint32_t>& CallChainIds() const;
     const std::deque<uint32_t>& Depths() const;
     const std::deque<DataIndex>& Ips() const;
     const std::deque<DataIndex>& SymbolIds() const;
     const std::deque<DataIndex>& FilePathIds() const;
+    const std::deque<uint64_t>& Vaddrs() const;
     void Clear() override
     {
         CacheBase::Clear();
@@ -1391,6 +1397,7 @@ public:
         depths_.clear();
         symbolIds_.clear();
         filePathIds_.clear();
+        vaddrs_.clear();
     }
 
 private:
@@ -1399,6 +1406,7 @@ private:
     std::deque<DataIndex> ips_ = {};
     std::deque<DataIndex> symbolIds_ = {};
     std::deque<DataIndex> filePathIds_ = {};
+    std::deque<uint64_t> vaddrs_ = {};
 };
 class PagedMemorySampleData : public CacheBase {
 public:

@@ -118,22 +118,12 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
     ExecuteSql(attachSql);
 
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
-#ifndef USE_VTABLE
-        if (*itor == "_meta" && !exportMetaTable_) {
-            continue;
-        } else {
-            std::string exportSql("CREATE TABLE systuning_export." + (*itor).substr(1, -1) + " AS SELECT * FROM " +
-                                  *itor);
-            ExecuteSql(exportSql);
-        }
-#else
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
         } else {
             std::string exportSql("CREATE TABLE systuning_export." + (*itor) + " AS SELECT * FROM " + *itor);
             ExecuteSql(exportSql);
         }
-#endif
     }
     std::string createArgsView =
         "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
@@ -160,12 +150,6 @@ void TraceDataDB::Prepare()
         return;
     }
     pared_ = true;
-#ifndef USE_VTABLE
-    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
-        std::string exportSql("CREATE TABLE " + (*itor).substr(1, -1) + " AS SELECT * FROM " + *itor);
-        ExecuteSql(exportSql);
-    }
-#endif
     ExecuteSql(
         "update thread set ipid = \
         (select id from process where \

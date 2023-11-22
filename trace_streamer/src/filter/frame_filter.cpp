@@ -56,11 +56,11 @@ bool FrameFilter::MarkRSOnDoCompositionEvent(uint64_t ts, uint32_t itid)
 {
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGW("BeginOnDoCompositionEvent find for itid:%u failed, ts:%" PRIu64 "", itid, ts);
+        TS_LOGD("BeginOnDoCompositionEvent find for itid:%u failed, ts:%" PRIu64 "", itid, ts);
         return false;
     }
     if (!frame->second.size()) {
-        TS_LOGW("BeginOnDoCompositionEvent find for itid:%u failed", itid);
+        TS_LOGD("BeginOnDoCompositionEvent find for itid:%u failed", itid);
         return false;
     }
     auto lastFrameSlice = frame->second.back();
@@ -72,11 +72,11 @@ bool FrameFilter::BeginRSTransactionData(uint64_t ts, uint32_t itid, uint32_t fr
 {
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGW("BeginRSTransactionData find for itid:%u failed", itid);
+        TS_LOGD("BeginRSTransactionData find for itid:%u failed", itid);
         return false;
     }
     if (!frame->second.size()) {
-        TS_LOGW("BeginRSTransactionData find for itid:%u failed", itid);
+        TS_LOGD("BeginRSTransactionData find for itid:%u failed", itid);
         return false;
     }
     frame->second.begin()->get()->frameNum_ = franeNum;
@@ -96,16 +96,13 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
 {
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGW("BeginProcessCommandUni find for itid:%u failed", itid);
         return false;
     }
     if (!frame->second.size()) {
-        TS_LOGW("BeginProcessCommandUni find for itid:%u failed", itid);
         return false;
     }
     auto lastFrameSlice = frame->second.back();
     if (lastFrameSlice->vsyncEnd_) {
-        TS_LOGW("BeginProcessCommandUni finished for vsyncId:%u", lastFrameSlice->vsyncId_);
         return false;
     }
     std::vector<uint64_t> fromSlices = {};
@@ -113,14 +110,10 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
     for (auto& it : frames) {
         auto sourceFrameMap = dstRenderSlice_.find(it.sourceItid);
         if (sourceFrameMap == dstRenderSlice_.end()) {
-            // error
-            TS_LOGE("BeginProcessCommandUni find for itid:%u framenum:%u failed", it.sourceItid, it.frameNum);
             continue;
         }
         auto srcFrame = sourceFrameMap->second.find(it.frameNum);
         if (srcFrame == sourceFrameMap->second.end()) {
-            // error
-            TS_LOGE("BeginProcessCommandUni find for itid:%u framenum:%u failed", it.sourceItid, it.frameNum);
             continue;
         }
         fromSlices.push_back(srcFrame->second.get()->frameSliceRow_);
@@ -190,11 +183,11 @@ bool FrameFilter::StartFrameQueue(uint64_t ts, uint32_t itid)
 {
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGW("StartFrameQueue find for itid:%u failed", itid);
+        TS_LOGD("StartFrameQueue find for itid:%u failed", itid);
         return false;
     }
     if (!frame->second.size()) {
-        TS_LOGW("StartFrameQueue find for itid:%u failed", itid);
+        TS_LOGD("StartFrameQueue find for itid:%u failed", itid);
         return false;
     }
     auto firstFrameSlice = frame->second.front();
