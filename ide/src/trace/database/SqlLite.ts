@@ -947,7 +947,7 @@ export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, ri
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 // 查询线程状态信息
-  export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `
@@ -973,11 +973,11 @@ export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, ri
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-  // 框选区域内running的时间
+// 框选区域内running的时间
 export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
-query<SelectionData>(
-  'getTabRunningPersent',
-  `
+  query<SelectionData>(
+    'getTabRunningPersent',
+    `
   select
     B.pid,
     B.tid,
@@ -997,13 +997,13 @@ query<SelectionData>(
     not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
   order by
     ts;`,
-  { $leftNS: leftNS, $rightNS: rightNS }
-);
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
 // 框选区域内sleeping的时间
-export const getTabSleepingTime=(tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>>=>
-query<SelectionData>(
-'getTabRunningPersent',
-`
+export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabRunningPersent',
+    `
 select
   B.pid,
   B.tid,
@@ -1023,8 +1023,8 @@ and
   not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
 order by
   ts;`,
-{ $leftNS: leftNS, $rightNS: rightNS }
-);
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
 
 export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
   let sql = `
@@ -1825,27 +1825,27 @@ export const queryHiPerfEventListData = (eventTypeId: number): Promise<Array<any
     { $eventTypeId: eventTypeId }
   );
 export const querySfVSyncData = (): Promise<Array<any>> =>
-query(
-  'querySfVSyncData',
-  `SELECT ts,value,c.ts-tb.start_ts startTime
+  query(
+    'querySfVSyncData',
+    `SELECT ts,value,c.ts-tb.start_ts startTime
   FROM
   process_measure c,
   trace_range tb
   WHERE
-  c.filter_id IN (SELECT process_measure_filter.id AS traceId FROM process_measure_filter JOIN process USING (ipid) WHERE process.name = ${`'` + String.fromCharCode(115,117,114,102,97,99,101,102,108,105,110,103,101,114) + `'`}
-   AND process_measure_filter.name = ${`'` + String.fromCharCode(86,83,89,78,67,45,97,112,112) + `'`})`
-)
-export const querySingleVSyncData = ():Promise<Array<any>> =>
-query(
-  'querySingleVSyncData',
-  `SELECT ts,c.ts-tb.start_ts startTime
+  c.filter_id IN (SELECT process_measure_filter.id AS traceId FROM process_measure_filter JOIN process USING (ipid) WHERE process.name = ${`'` + String.fromCharCode(115, 117, 114, 102, 97, 99, 101, 102, 108, 105, 110, 103, 101, 114) + `'`}
+   AND process_measure_filter.name = ${`'` + String.fromCharCode(86, 83, 89, 78, 67, 45, 97, 112, 112) + `'`})`
+  )
+export const querySingleVSyncData = (): Promise<Array<any>> =>
+  query(
+    'querySingleVSyncData',
+    `SELECT ts,c.ts-tb.start_ts startTime
   FROM
   callstack c,
   trace_range tb
   WHERE
-  c.id IN (SELECT callstack.id AS trackId FROM callstack JOIN process WHERE process.name = ${`'` + String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101) + `'`}
-   AND callstack.name like ${`'` + String.fromCharCode(72,58,71,101,110,101,114,97,116,101,86,115,121,110,99,67,111,117,110,116,37) + `'`})`
-)
+  c.id IN (SELECT callstack.id AS trackId FROM callstack JOIN process WHERE process.name = ${`'` + String.fromCharCode(114, 101, 110, 100, 101, 114, 95, 115, 101, 114, 118, 105, 99, 101) + `'`}
+   AND callstack.name like ${`'` + String.fromCharCode(72, 58, 71, 101, 110, 101, 114, 97, 116, 101, 86, 115, 121, 110, 99, 67, 111, 117, 110, 116, 37) + `'`})`
+  )
 export const queryHiPerfEventData = (eventTypeId: number, cpu: number): Promise<Array<any>> =>
   query(
     'queryHiPerfEventList',
@@ -5636,8 +5636,8 @@ export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string 
   query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
 
 export const getTabRunningPercent = (
-  tIds: Array<number>, 
-  leftNS: number, 
+  tIds: Array<number>,
+  leftNS: number,
   rightNS: number
 ): Promise<Array<any>> =>
   query<SelectionData>(
@@ -5772,36 +5772,40 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         ORDER BY S.ts`
   );
 
-export const querySearchRowFuncData = (funcName: string, tIds: number): Promise<Array<SearchFuncBean>> =>
+export const querySearchRowFuncData = (
+  funcName: string,
+  tIds: number,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
   query(
-    'querySearchFuncData',
+    'querySearchRowFuncData',
     `
-      select 
-        c.cookie,
-        c.id,
-        c.name as funName,
-        c.ts - r.start_ts as startTime,
-        c.dur,c.depth,
-        t.tid,
-        t.name as threadName,
-        p.pid,
-        'func' as type 
-      from 
-        callstack c 
-      left join 
-        thread t 
-      on 
-        c.callid = t.id 
-      left join 
-        process p 
-      on 
-        t.ipid = p.id
-      left join 
-        trace_range r
-      where 
-        c.name = '${funcName}' 
-      and 
-        t.tid = ${tIds};
-      `,
+        select 
+          c.name as funName,
+          c.ts - r.start_ts as startTime,
+          t.tid,
+          t.name as threadName,
+          'func' as type 
+        from 
+          callstack c 
+        left join 
+          thread t 
+        on 
+          c.callid = t.id 
+        left join 
+          process p 
+        on 
+          t.ipid = p.id
+        left join 
+          trace_range r
+        where 
+          c.name like '${funcName}' 
+        and 
+          t.tid = ${tIds} 
+        and
+          not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+    `,
     { $search: funcName }
   );
+
