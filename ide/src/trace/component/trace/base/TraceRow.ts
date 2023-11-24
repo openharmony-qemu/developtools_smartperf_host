@@ -117,6 +117,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PURGEABLE_TOTAL_VM = 'purgeable-total-vm';
   static ROW_TYPE_PURGEABLE_PIN_VM = 'purgeable-pin-vm';
   static ROW_TYPE_LOGS = 'logs';
+  static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups'
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
