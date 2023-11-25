@@ -92,7 +92,6 @@ export class AllAppStartupStruct extends BaseStruct {
                 let textColor =
                   ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.stepName || '', 0, ColorUtils.FUNC_COLOR.length)];
                 ctx.fillStyle = ColorUtils.funcTextColor(textColor);
-                // ctx.fillStyle = '#000';
                 drawString(ctx, draAppName, 2, data.frame, data);
             }
             if (data === AllAppStartupStruct.selectStartupStruct) {

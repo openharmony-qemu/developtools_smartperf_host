@@ -838,11 +838,11 @@ export class TabPaneCurrentSelection extends BaseElement {
       value:((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's'
       });
     list.push({
-      name: "endTime(Relative)",
+      name: "EndTime(Relative)",
       value: getTimeString((data.startTs || 0) + (data.dur || 0))
     });
     list.push({
-      name: "endTime(Abslute)",
+      name: "EndTime(Abslute)",
       value: ((data.startTs || 0) + (data.dur || 0) + (window as any).recordStartNS) / 1000000000 + 's'
     })
     list.push({

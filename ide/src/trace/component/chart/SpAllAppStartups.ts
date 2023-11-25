@@ -17,9 +17,12 @@ import { SpSystemTrace } from '../SpSystemTrace.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq.js';
-import { queryAppStartupProcessIds,queryProcessAllAppStartup,queryProcessStartup,querySingleAppStartupsName } from '../../database/SqlLite.js';
+import {
+    queryAppStartupProcessIds,
+    queryProcessStartup,
+    querySingleAppStartupsName,
+} from '../../database/SqlLite.js';
 import { FlagsConfig } from '../SpFlags.js';
-// import { AppStartupStruct, AppStartupRender } from '../../database/ui-worker/ProcedureWorkerAppStartup.js';
 import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
 
 export class SpAllAppStartupsChart {
@@ -27,7 +30,7 @@ export class SpAllAppStartupsChart {
     static APP_STARTUP_PID_ARR: Array<number> = [];
     static jsonRow: TraceRow<CpuFreqStruct> | undefined;
     static trace: SpSystemTrace;
-    static AllAppStartupsNameArr :any[] = [];
+    static AllAppStartupsNameArr: any[] = [];
     static allAppStartupsAva: number[] = [];
 
     constructor(trace: SpSystemTrace) {
@@ -44,11 +47,12 @@ export class SpAllAppStartupsChart {
         appStartUpPids.forEach((it) => SpAllAppStartupsChart.APP_STARTUP_PID_ARR.push(it.pid));
         SpAllAppStartupsChart.AllAppStartupsNameArr = [];
         SpAllAppStartupsChart.allAppStartupsAva = [];
-        for(let i = 0; i < SpAllAppStartupsChart.APP_STARTUP_PID_ARR.length; i++){
-            let tmpAppName:any[] = await querySingleAppStartupsName(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
-            if(tmpAppName![0].name.includes(String.fromCharCode(99,111,109,46)) && !tmpAppName![0].name.includes(String.fromCharCode(99,111,109,46,104,117,97,119,101,105,46,104,109,111,115))){
+        for (let i = 0; i < SpAllAppStartupsChart.APP_STARTUP_PID_ARR.length; i++) {
+            let tmpSingleApp: any[] = await queryProcessStartup(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
+            if (tmpSingleApp.length == 8) {
+                let avilSingleName = await querySingleAppStartupsName(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
                 SpAllAppStartupsChart.allAppStartupsAva.push(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]);
-                SpAllAppStartupsChart.AllAppStartupsNameArr.push(tmpAppName![0].name);
+                SpAllAppStartupsChart.AllAppStartupsNameArr.push(avilSingleName![0].name);
             }
         }
         let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
@@ -59,7 +63,6 @@ export class SpAllAppStartupsChart {
         let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
         row.setAttribute('hasStartup', 'true');
         row.rowId = `all-app-start-${SpAllAppStartupsChart.APP_STARTUP_PID_ARR![0]}`;
-        // row.rowId = '16499';
         row.index = 0;
         row.rowType = TraceRow.ROW_TYPE_ALL_APPSTARTUPS;
         row.rowParentId = '';
@@ -68,29 +71,29 @@ export class SpAllAppStartupsChart {
         row.name = `All App Startups`;
         row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
         row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
-        row.supplier = async (): Promise<Array<AllAppStartupStruct>> =>{
+        row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
             let sendRes: AllAppStartupStruct[] | PromiseLike<AllAppStartupStruct[]> = [];
-            for(let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++){
+            for (let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++) {
                 let tmpResArr = await queryProcessStartup(SpAllAppStartupsChart.allAppStartupsAva[i]);
                 let maxStartTs: number | undefined = tmpResArr[0].startTs;
                 let minStartTs: number | undefined = tmpResArr[0].startTs;
                 let singleDur = tmpResArr[0].dur;
-                let endTs :number | undefined = tmpResArr[0].startTs;
-                if(tmpResArr.length > 1){
-                    for(let j = 0;j < tmpResArr.length; j++){
-                        if(Number(tmpResArr[j].startTs) > Number(maxStartTs)){
+                let endTs: number | undefined = tmpResArr[0].startTs;
+                if (tmpResArr.length > 1) {
+                    for (let j = 0; j < tmpResArr.length; j++) {
+                        if (Number(tmpResArr[j].startTs) > Number(maxStartTs)) {
                             maxStartTs = tmpResArr[j].startTs;
-                        }else if(Number(tmpResArr[j].startTs) < Number(minStartTs)){
+                        } else if (Number(tmpResArr[j].startTs) < Number(minStartTs)) {
                             minStartTs = tmpResArr[j].startTs;
                         }
                     }
-                    tmpResArr.forEach((item)=>{
-                        if(item.startTs == maxStartTs){
-                            endTs = Number(item.startTs)+Number(item.dur);
-                            singleDur = Number(endTs)-Number(minStartTs);
+                    tmpResArr.forEach((item) => {
+                        if (item.startTs == maxStartTs) {
+                            endTs = Number(item.startTs) + Number(item.dur);
+                            singleDur = Number(endTs) - Number(minStartTs);
                         }
                     })
-                }else if(tmpResArr.length === 1){
+                } else if (tmpResArr.length === 1) {
                     minStartTs = tmpResArr[0].startTs;
                     singleDur = tmpResArr[0].dur;
                 }
@@ -114,7 +117,7 @@ export class SpAllAppStartupsChart {
             }
             return sendRes
         }
-            
+
         row.onThreadHandler = (useCache): void => {
             let context: CanvasRenderingContext2D;
             if (row.currentContext) {
