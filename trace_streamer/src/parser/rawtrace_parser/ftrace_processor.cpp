@@ -647,7 +647,7 @@ static inline int RmqEntryTotalSize(unsigned int size)
 bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
     CpuDetailParser& cpuDetailParser, uint8_t* &data)
 {
-    struct RmqConsumerData *rmqData = (struct RmqConsumerData *)data;
+    struct RmqConsumerData *rmqData  = reinterpret_cast<struct RmqConsumerData *>(data);
     uint64_t timeStampBase = rmqData->timeStamp;
     struct RmqEntry *event;
     struct HmTraceHeader *header;
@@ -662,13 +662,13 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
     auto curPtr = rmqData->data;
     auto endPtr = rmqData->data + rmqData->length;
     while (curPtr < endPtr) {
-        event = (struct RmqEntry *)curPtr;
+        event = reinterpret_cast<RmqEntry *>(curPtr);
         evtSize = event->size;
         if (evtSize == 0U) {
             break;
         }
 
-        header = (struct HmTraceHeader *)event->data;
+        header = reinterpret_cast<struct HmTraceHeader *>(event->data);
         eventId = header->commonType;
         if (!GetEventFormatById(eventId, format)) {
             curPtr += RmqEntryTotalSize(evtSize);
@@ -680,7 +680,7 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
             ftraceEvent->set_timestamp(event->timeStampOffset + timeStampBase);
             ftraceEvent->set_tgid(header->tgid);
             ftraceEvent->set_comm(header->tcbName);
-            HandleFtraceEvent(*ftraceEvent, (uint8_t *)header, evtSize, format);
+            HandleFtraceEvent(*ftraceEvent, reinterpret_cast<uint8_t *>(header), evtSize, format);
             std::unique_ptr<RawTraceEventInfo> eventInfo = std::make_unique<RawTraceEventInfo>();
             eventInfo->cpuId = cpuMsg.cpu();
             eventInfo->eventId = eventId;
