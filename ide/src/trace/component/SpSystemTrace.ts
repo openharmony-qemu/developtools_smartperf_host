@@ -114,7 +114,7 @@ function dpr() {
   return window.devicePixelRatio || 1;
 }
 
- 
+
 export class CurrentSlicesTime {
   startTime: number | undefined;
   endTime: number | undefined;
@@ -204,19 +204,19 @@ export class SpSystemTrace extends BaseElement {
   set flagList(list: Array<any>) {
     this._flagList = list;
   }
-   //节流处理
-  throttle(fn: Function, t: number, ev?: any ): Function {
+  //节流处理
+  throttle(fn: Function, t: number, ev?: any): Function {
     let timerId: any = null;
-    return ()=> {
+    return () => {
       if (!timerId) {
         timerId = setTimeout(function () {
-          if(ev){
-            fn(ev); 
-          }else{
+          if (ev) {
+            fn(ev);
+          } else {
             fn();
-          } 
+          }
           timerId = null;
-        }, t); 
+        }, t);
         this.times.add(timerId);
       }
     };
@@ -224,23 +224,23 @@ export class SpSystemTrace extends BaseElement {
   // 防抖处理
   debounce(fn: Function, ms: number, ev?: any): Function {
     let timerId: undefined | number;
-    return ()=>{
-      if(timerId){
+    return () => {
+      if (timerId) {
         window.clearTimeout(timerId);
-      }else{
-        timerId = window.setTimeout(()=>{
-          if(ev){
-            fn(ev); 
-          }else{
+      } else {
+        timerId = window.setTimeout(() => {
+          if (ev) {
+            fn(ev);
+          } else {
             fn();
-          } 
+          }
           timerId = undefined;
         }, ms);
         this.times.add(timerId);
       }
     }
   }
-  
+
   async makeVsyncLine() {
     if (this._isVsync) {
       const range = this.timerShaftEL?.rangeRuler?.range;
@@ -2004,11 +2004,11 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnKeyDown = (ev: KeyboardEvent) => {
     document.removeEventListener('keyup', this.documentOnKeyUp);
-    this.debounce(this.continueSearch , 250 , ev )(); 
+    this.debounce(this.continueSearch, 250, ev)();
     document.addEventListener('keyup', this.documentOnKeyUp);
   };
 
-  documentOnKeyPress = (ev: KeyboardEvent) => {    
+  documentOnKeyPress = (ev: KeyboardEvent) => {
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
     TraceRow.isUserInteraction = true;
@@ -2176,7 +2176,7 @@ export class SpSystemTrace extends BaseElement {
   };
 
   // 一直按着回车键的时候执行搜索功能
-  private continueSearch = (ev: KeyboardEvent)=>{ 
+  private continueSearch = (ev: KeyboardEvent) => {
     if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
@@ -2193,22 +2193,18 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       }
-    }   
-  }
-  
-  documentOnKeyUp = (ev: KeyboardEvent) => {
-    if(this.times.size > 0){ 
-		  for(let timerId of this.times){
-			clearTimeout(timerId);
-		  } 
-		}
-
-    if(ev.key.toLocaleLowerCase() === '?'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
-    if(ev.key.toLocaleLowerCase() === 'escape'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-welcome')!.style.visibility = 'visible';
+  }
+
+  documentOnKeyUp = (ev: KeyboardEvent) => {
+    if (this.times.size > 0) {
+      for (let timerId of this.times) {
+        clearTimeout(timerId);
+      }
+    }
+
+    if (ev.key.toLocaleLowerCase() === '?') {
+      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
@@ -2232,24 +2228,24 @@ export class SpSystemTrace extends BaseElement {
     TraceRow.isUserInteraction = false;
     this.observerScrollHeightEnable = false;
     this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
-    if (ev.code == 'Enter') { 
-      document.removeEventListener('keydown', this.documentOnKeyDown); 
+    if (ev.code == 'Enter') {
+      document.removeEventListener('keydown', this.documentOnKeyDown);
       if (ev.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
-          detail: {},
-          composed: false,
+            detail: {},
+            composed: false,
           })
         );
       } else {
         this.dispatchEvent(
           new CustomEvent('next-data', {
-          detail: {},
-          composed: false,
+            detail: {},
+            composed: false,
           })
         );
       }
-      document.addEventListener('keydown', this.documentOnKeyDown); 
+      document.addEventListener('keydown', this.documentOnKeyDown);
     }
 
     if (ev.ctrlKey) {
@@ -3796,7 +3792,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('mouseup', this.documentOnMouseUp);
     this.addEventListener('mouseout', this.documentOnMouseOut);
 
-    document.addEventListener('keydown', this.documentOnKeyDown );
+    document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
@@ -4503,8 +4499,8 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
-    procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
+    procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => { });
     this.times.clear();
   }
 
