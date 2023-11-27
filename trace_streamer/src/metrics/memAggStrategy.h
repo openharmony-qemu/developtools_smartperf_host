@@ -23,7 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 struct TypeItem {
     uint64_t ts;
-    uint32_t oom_score;
+    uint32_t oomScore;
     uint32_t value;
 };
 

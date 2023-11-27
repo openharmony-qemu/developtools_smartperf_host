@@ -122,6 +122,19 @@ HWTEST_F(HtraceHisysEventParserTest, ParseHaveArrayData, TestSize.Level1)
     auto anticipate = stream_.traceDataCache_->GetConstHiSyseventMeasureData().Serial()[0];
     EXPECT_EQ(anticipate, serial);
 }
+const std::string JS_MESSAGE1 =
+    "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_BATTERY\",\"type_\":1,\"time_\":22611696002,\"tz_\":\"+"
+    "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"
+    "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","
+    "\"id_\":\"16494176919818340149\",\"info_\":\"\"}";
+const std::string JS_MESSAGE2 =
+    "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_WIFISCAN\",\"type_\":2,\"time_\":16611696002,\"tz_\":\"+"
+    "0000\",\"pid_\":722,\"tid_\":17827,\"uid_\":1201,\"START_TIME\":1661783047454,\"END_TIME\":1661783050455,"
+    "\"COUNT\":1,\"APPNAME\":[\"com.ohos.settings\",\"com.ohos.settings_js\",\"com.ohos.settings_app\"],"
+    "\"FOREGROUND_COUNT\":[43,41,65],\"FOREGROUND_ENERGY\":[120,134,532],\"BACKGROUND_COUNT\":[27,856,378],"
+    "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"
+    "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"
+    "\"17560016619580787102\",\"info_\":\"\"}";
 /**
  * @tc.name: MixedDataAnalysis
  * @tc.desc: Mixed data analysis
@@ -130,22 +143,9 @@ HWTEST_F(HtraceHisysEventParserTest, ParseHaveArrayData, TestSize.Level1)
 HWTEST_F(HtraceHisysEventParserTest, MixedDataAnalysis, TestSize.Level1)
 {
     TS_LOGI("test9-3");
-    std::string jsMessage1 =
-        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_BATTERY\",\"type_\":1,\"time_\":22611696002,\"tz_\":\"+"
-        "0000\",\"pid_\":722,\"tid_\":3462,\"uid_\":1201,\"START_TIME\":22611696002,\"END_TIME\":23617705010,\"GAS_"
-        "GAUGE\":124,\"LEVEL\":33,\"SCREEN\":11,\"CHARGE\":21,\"CURRENT\":-404,\"CAPACITY\":9898,\"level_\":\"MINOR\","
-        "\"id_\":\"16494176919818340149\",\"info_\":\"\"}";
-    std::string jsMessage2 =
-        "{\"domain_\":\"POWERTHERMAL\",\"name_\":\"POWER_IDE_WIFISCAN\",\"type_\":2,\"time_\":16611696002,\"tz_\":\"+"
-        "0000\",\"pid_\":722,\"tid_\":17827,\"uid_\":1201,\"START_TIME\":1661783047454,\"END_TIME\":1661783050455,"
-        "\"COUNT\":1,\"APPNAME\":[\"com.ohos.settings\",\"com.ohos.settings_js\",\"com.ohos.settings_app\"],"
-        "\"FOREGROUND_COUNT\":[43,41,65],\"FOREGROUND_ENERGY\":[120,134,532],\"BACKGROUND_COUNT\":[27,856,378],"
-        "\"BACKGROUND_ENERGY\":[638,65,12],\"SCREEN_ON_COUNT\":[23,558,75],\"SCREEN_ON_ENERGY\":[552,142,120],\"SCREEN_"
-        "OFF_COUNT\":[78,354,21],\"SCREEN_OFF_ENERGY\":[352,65,436],\"level_\":\"MINOR\",\"id_\":"
-        "\"17560016619580787102\",\"info_\":\"\"}";
     std::vector<std::string> jsMessage;
-    jsMessage.push_back(jsMessage1);
-    jsMessage.push_back(jsMessage2);
+    jsMessage.push_back(JS_MESSAGE1);
+    jsMessage.push_back(JS_MESSAGE2);
     uint64_t serial = 1;
     for (auto i = jsMessage.begin(); i != jsMessage.end(); i++) {
         json jMessage;

@@ -155,15 +155,11 @@ export class TraceSheet extends BaseElement {
     this.processTree!.onChange = (e: any): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
-      if (selectIPid === this.lastSelectIPid) {
-        return;
-      }
       this.switchDiv!.visible = 'false';
       this.updateRangeSelect(selectIPid)
       this.lastSelectIPid = selectIPid;
     };
 
-    // };
     this.buildTabs(this.litTabs);
     this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
     this.litTabs!.addEventListener('close-handler', () => {

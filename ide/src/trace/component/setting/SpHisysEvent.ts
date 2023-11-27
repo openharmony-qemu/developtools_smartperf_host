@@ -53,7 +53,7 @@ export class SpHisysEvent extends BaseElement {
   }
 
   get eventName(): string {
-    if (this.eventNameInputEL!.value.length > 0) {
+    if (this.eventNameInputEL!.value.length > 0 && this.eventNameInputEL!.value !== 'ALL-Event') {
       return this.eventNameInputEL!.value;
     }
     return '';
@@ -133,12 +133,22 @@ export class SpHisysEvent extends BaseElement {
         let eventNameList = Object.keys(eventConfigElement);
         if (eventNameList?.length > 0 && this.startSamp) {
           this.nameInputEl!.setAttribute('readonly', 'readonly');
+          eventNameList.unshift('ALL-Event');
           this.eventNameInputEL!.processData = eventNameList;
           this.eventNameInputEL!.initData();
         }
       } else {
-        this.eventNameInputEL!.value = '';
-        this.eventNameInputEL!.processData = [];
+        let currentData: string[] = [];
+        if (domain === '' || domain === 'ALL-Domain') {
+          let domainKey = Object.keys(this.eventConfig);
+          domainKey.forEach(item  => {
+            let currentEvent = this.eventConfig[item];
+            let eventList = Object.keys(currentEvent);
+            currentData.push(...eventList);
+          });
+          currentData.unshift('ALL-Event');
+        }
+        this.eventNameInputEL!.processData = currentData;
         this.eventNameInputEL!.initData();
       }
     }
@@ -237,7 +247,7 @@ export class SpHisysEvent extends BaseElement {
                  <span class="event-des">Record Domain Name</span>
               </div>
               <lit-allocation-select default-value="" rounded="" class="record-domain-input record-input" 
-              mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="" readonly="readonly">
+              mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="ALL-Domain" readonly="readonly">
               </lit-allocation-select>
           </div>
           <div class="hisys-event-config">
@@ -246,7 +256,7 @@ export class SpHisysEvent extends BaseElement {
                  <span class="event-des">Record Event Name</span>
               </div>
               <lit-allocation-select default-value="" rounded="" class="record-event-input record-input" 
-              mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="" readonly="readonly">
+              mode="multiple" canInsert="" title="Select Proces" placement="bottom" placeholder="ALL-Event" readonly="readonly">
               </lit-allocation-select>
           </div>
         </div>

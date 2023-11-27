@@ -295,7 +295,7 @@ from thread_state A,
 where (A.ts - B.start_ts) > 0
   and A.dur > 0
   and (A.ts + A.dur) > B.start_ts
-  and cpu is not null
+  and cpu >= 0
   and A.ts < B.end_ts
 group by cpu
 order by cpu;
@@ -325,11 +325,10 @@ select st.tid,
        dur,
        ts - tr.start_ts as ts
 from thread_state st,trace_range tr
-where cpu not null
+where cpu = ${cpu}
   and dur > 0
   and ts > tr.start_ts
   and ts + st.dur < tr.end_ts
-  and cpu = ${cpu}
 order by ts;`;
     this.queryData(this.currentEventId, 'scheduling-CPU Frequency Thread', sql, {});
   }

@@ -351,9 +351,8 @@ EbpfSymbolInfo EbpfDataReader::GetSymbolNameIndexFromElfSym(uint64_t ip)
             ebpfSymbolInfo.symbolIndex = end->second.name;
             ebpfSymbolInfo.filePathIndex = kernelFilePath_;
         } else {
-            TS_LOGD("failed for ip:%" PRIu64 ", kernelip:%" PRIu64
-                    ", size:%" PRIu64 "",
-                    ip, end->first, end->second.size);
+            TS_LOGD("failed for ip:%" PRIu64 ", kernelip:%" PRIu64 ", size:%" PRIu64 "", ip, end->first,
+                    end->second.size);
         }
     }
     if (!ebpfSymbolInfo.flag) {

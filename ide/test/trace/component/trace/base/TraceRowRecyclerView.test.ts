@@ -93,7 +93,7 @@ describe('TraceRow Test', () => {
   it('Test10', function () {
     let traceRow = new TraceRowRecyclerView();
     let mouseScrollEvent: MouseEvent = new MouseEvent('scroll', <MouseEventInit>{ clientX: 1, clientY: 2 });
-    traceRow.vessel.dispatchEvent(mouseScrollEvent);
+    traceRow.container.dispatchEvent(mouseScrollEvent);
   });
 
 });

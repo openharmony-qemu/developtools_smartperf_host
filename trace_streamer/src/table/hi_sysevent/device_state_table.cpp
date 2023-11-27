@@ -86,69 +86,67 @@ int32_t DeviceStateTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, dataCache_->GetConstHiSysEventDeviceStateData().IdsData()[CurrentRow()]);
+            sqlite3_result_int64(context_, deviceStateData_.IdsData()[CurrentRow()]);
             break;
         case Index::BRIGHTNESS:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Brightness()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Brightness()[CurrentRow()]);
             break;
         case Index::BT_STATE:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().BtState()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.BtState()[CurrentRow()]);
             break;
         case Index::LOCATION:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Location()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Location()[CurrentRow()]);
             break;
         case Index::WIFI:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Wifi()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Wifi()[CurrentRow()]);
             break;
         case Index::STREAM_DEFAULT:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().StreamDefault()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.StreamDefault()[CurrentRow()]);
             break;
         case Index::VOICE_CALL:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().VoiceCall()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.VoiceCall()[CurrentRow()]);
             break;
         case Index::MUSIC:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Music()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Music()[CurrentRow()]);
             break;
         case Index::STREAM_RING:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().StreamRing()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.StreamRing()[CurrentRow()]);
             break;
         case Index::MEDIA:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Media()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Media()[CurrentRow()]);
             break;
         case Index::VOICE_ASSISTANT:
-            sqlite3_result_int(context_,
-                               dataCache_->GetConstHiSysEventDeviceStateData().VoiceAssistant()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.VoiceAssistant()[CurrentRow()]);
             break;
         case Index::SYSTEM:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().System()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.System()[CurrentRow()]);
             break;
         case Index::ALARM:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Alarm()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Alarm()[CurrentRow()]);
             break;
         case Index::NOTIFICATION:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Notification()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Notification()[CurrentRow()]);
             break;
         case Index::BT_SCO:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().BtSco()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.BtSco()[CurrentRow()]);
             break;
         case Index::ENFORCED_AUDIBLE:
-            sqlite3_result_int(context_,
-                               dataCache_->GetConstHiSysEventDeviceStateData().EnforcedAudible()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.EnforcedAudible()[CurrentRow()]);
             break;
         case Index::STREAM_DTMF:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().StreamDtmf()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.StreamDtmf()[CurrentRow()]);
             break;
         case Index::STREAM_TTS:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().StreamTts()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.StreamTts()[CurrentRow()]);
             break;
         case Index::ACCESSIBILITY:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Accessibility()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Accessibility()[CurrentRow()]);
             break;
         case Index::RECORDING:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().Recording()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.Recordings()[CurrentRow()]);
             break;
         case Index::STREAM_ALL:
-            sqlite3_result_int(context_, dataCache_->GetConstHiSysEventDeviceStateData().StreamAll()[CurrentRow()]);
+            sqlite3_result_int(context_, deviceStateData_.StreamAll()[CurrentRow()]);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

@@ -46,8 +46,9 @@ bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packa
     RawTraceFileHeader header;
     auto ret = memcpy_s(&header, sizeof(RawTraceFileHeader), &(*packagesBuffer_.begin()), sizeof(RawTraceFileHeader));
     TS_CHECK_TRUE(ret == EOK, false, "Memcpy FAILED!Error code is %d, data size is %zu.", ret, packagesBuffer_.size());
-    TS_LOGI("magicNumber=%d", header.magicNumber);
+    TS_LOGI("magicNumber=%d fileType=%d", header.magicNumber, header.fileType);
 
+    fileType_ = header.fileType;
     packagesCurIter += sizeof(RawTraceFileHeader);
     packagesCurIter = packagesBuffer_.erase(packagesBuffer_.begin(), packagesCurIter);
     hasGotHeader_ = true;
@@ -76,6 +77,7 @@ bool RawTraceParser::UpdateCpuCoreMax(uint32_t cpuId)
     }
     return true;
 }
+
 bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer)
 {
     UpdateCpuCoreMax(cpuId);
@@ -90,6 +92,22 @@ bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer)
     cpuDetailParser_->FilterAllEvents(*cpuDetail_.get());
     return true;
 }
+
+bool RawTraceParser::HmParseCpuRawData(const std::string& buffer)
+{
+    TS_CHECK_TRUE(buffer.size() > 0, true, "hm raw data is null!");
+    auto startPtr = reinterpret_cast<const uint8_t*>(buffer.c_str());
+    auto endPtr = startPtr + buffer.size();
+
+    for (uint8_t* data = const_cast<uint8_t*>(startPtr); data < endPtr;) {
+        TS_CHECK_TRUE(ftraceProcessor_->HmParsePageData(*cpuDetail_.get(), *cpuDetailParser_.get(), data),
+            false, "hm parse page failed!");
+        cpuDetailParser_->FilterAllEvents(*cpuDetail_.get());
+    }
+    TS_LOGD("mark.debug. HmParseCpuRawData end success");
+    return true;
+}
+
 bool RawTraceParser::ParseLastCommData(uint8_t type, const std::string& buffer)
 {
     TS_CHECK_TRUE_RET(restCommDataCnt_ != INVALID_UINT8, false);
@@ -147,8 +165,12 @@ bool RawTraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& package
             continue;
         }
         if (curType >= CONTENT_TYPE_CPU_RAW && curType < CONTENT_TYPE_HEADER_PAGE) {
-            auto cpuId = curType - CONTENT_TYPE_CPU_RAW;
-            TS_CHECK_TRUE(ParseCpuRawData(cpuId, bufferLine), false, "cpu raw parse failed");
+            if (fileType_ == FILE_RAW_TRACE) {
+                auto cpuId = curType - CONTENT_TYPE_CPU_RAW;
+                TS_CHECK_TRUE(ParseCpuRawData(cpuId, bufferLine), false, "cpu raw parse failed");
+            } else if (fileType_ == HM_FILE_RAW_TRACE) {
+                TS_CHECK_TRUE(HmParseCpuRawData(bufferLine), false, "hm raw trace parse failed");
+            }
         } else if (curType == CONTENT_TYPE_EVENTS_FORMAT) {
             TS_CHECK_TRUE(InitEventFormats(bufferLine), false, "init event format failed");
         } else if (curType == CONTENT_TYPE_HEADER_PAGE) {

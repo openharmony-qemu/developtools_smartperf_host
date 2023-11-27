@@ -30,13 +30,13 @@ import {
 import { info } from '../../../log/Log.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
 import { BaseStruct } from '../../bean/BaseStruct.js';
-import { LitPopover } from '../../../base-ui/popover/LitPopoverV.js';
 import { EnergyAnomalyRender, EnergyAnomalyStruct } from '../../database/ui-worker/ProcedureWorkerEnergyAnomaly.js';
 import { EnergySystemStruct, EnergySystemRender } from '../../database/ui-worker/ProcedureWorkerEnergySystem.js';
 import { EnergyPowerStruct, EnergyPowerRender } from '../../database/ui-worker/ProcedureWorkerEnergyPower.js';
 import { EnergyStateStruct, EnergyStateRender } from '../../database/ui-worker/ProcedureWorkerEnergyState.js';
 import { renders } from '../../database/ui-worker/ProcedureWorker.js';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import { TreeItemData } from '../../../base-ui/tree/LitTree.js';
 
 export class SpHiSysEnergyChart {
   static app_name: string | null;
@@ -133,54 +133,23 @@ export class SpHiSysEnergyChart {
       SpHiSysEnergyChart.app_name = appNameFromTable[0].string_value;
     }
     this.energyTraceRow = TraceRow.skeleton<BaseStruct>();
-    let appNameList = this.energyTraceRow?.shadowRoot!.querySelector<LitPopover>('#appNameList');
-    let addFlag = false;
-    appNameList?.addEventListener('click', () => {
-      let itemDiv = appNameList!.querySelector('div');
-      if (!addFlag) {
-        for (let index = 0; index < appNameFromTable.length; index++) {
-          let div = document.createElement('div');
-          div.setAttribute('style', 'margin-bottom: 5px');
-          let appName = appNameFromTable[index].string_value;
-          // @ts-ignore
-          let formatAppName = 'appName' + index;
-          div.setAttribute('id', formatAppName);
-          let inputId = 'appName' + index + 1;
-          div.innerHTML =
-            "<input class='radio'  name='processoption' " +
-            (index == 0 ? 'checked' : '') +
-            " type='radio'" +
-            'id=' +
-            inputId +
-            ' app_name=' +
-            formatAppName +
-            ' value= ' +
-            appName +
-            '> <label for=' +
-            inputId +
-            '>' +
-            appName +
-            '</label>';
-          itemDiv!.append(div);
-          let appList = this.energyTraceRow?.shadowRoot!.querySelectorAll<HTMLInputElement>(
-            'input[type=radio][name=processoption]'
-          );
-          appList!.forEach((appName) => [
-            (appName.onclick = (e: MouseEvent) => {
-              if (appName.checked) {
-                SpHiSysEnergyChart.app_name = appName.getAttribute('value');
-                TraceRow.range!.refresh = true;
-                // @ts-ignore
-                appNameList!.visible = false;
-                this.trace.refreshCanvas(false);
-              }
-            }),
-          ]);
-        }
-        addFlag = true;
-      }
-    });
-
+    this.energyTraceRow.addRowSettingPop();
+    this.energyTraceRow.rowSetting = 'enable';
+    this.energyTraceRow.rowSettingPopoverDirection = 'bottomLeft';
+    let nameList: Array<TreeItemData> = [];
+    for (let index = 0; index < appNameFromTable.length; index++) {
+      let appName = appNameFromTable[index].string_value;
+      nameList.push({
+        key: `${appName}`,
+        title: `${appName}`,
+        checked: index === 0,
+      })
+    }
+    this.energyTraceRow.rowSettingList = nameList;
+    this.energyTraceRow.onRowSettingChangeHandler = (value): void => {
+      SpHiSysEnergyChart.app_name = value[0];
+      this.trace.refreshCanvas(false);
+    };
     this.energyTraceRow.rowId = `energy`;
     this.energyTraceRow.rowType = TraceRow.ROW_TYPE_ENERGY;
     this.energyTraceRow.rowParentId = '';

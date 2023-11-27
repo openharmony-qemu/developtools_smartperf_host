@@ -18,6 +18,7 @@
 #include <hwext/gtest-tag.h>
 #include <memory>
 
+#include "export_test.h"
 #include "file.h"
 #include "htrace_native_hook_parser.h"
 #include "native_hook_result.pb.h"
@@ -31,7 +32,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
-extern bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath);
+bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath);
 const uint64_t TV_SEC_01 = 1632675525;
 const uint64_t TV_SEC_02 = 1632675526;
 const uint64_t TV_SEC_03 = 1632675527;

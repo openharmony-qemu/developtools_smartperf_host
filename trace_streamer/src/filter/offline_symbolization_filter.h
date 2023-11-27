@@ -68,9 +68,9 @@ protected:
     enum SYSTEM_ENTRY_VALUE { ELF32_SYM = 16, ELF64_SYM = 24 };
     using StartAddrToMapsInfoType = std::map<uint64_t, std::shared_ptr<ProtoReader::MapsInfo_Reader>>;
     // first is ipid, second is startAddr, third is MapsInfo ptr
-    DoubleMap<uint64_t /*ipid*/, uint64_t /*startAddr*/, std::shared_ptr<ProtoReader::MapsInfo_Reader>>
+    DoubleMap<uint64_t /* ipid */, uint64_t /* startAddr */, std::shared_ptr<ProtoReader::MapsInfo_Reader>>
         ipidToStartAddrToMapsInfoMap_;
-    DoubleMap<uint64_t /*ipid*/, uint32_t /*filePathId*/, std::shared_ptr<ProtoReader::SymbolTable_Reader>>
+    DoubleMap<uint64_t /* ipid */, uint32_t /* filePathId */, std::shared_ptr<ProtoReader::SymbolTable_Reader>>
         ipidTofilePathIdToSymbolTableMap_;
     std::unordered_map<uint32_t, std::shared_ptr<ElfSymbolTable>> filePathIdToImportSymbolTableMap_ = {};
     DoubleMap<uint32_t, uint64_t, const uint8_t*> filePathIdAndStValueToSymAddr_;
@@ -80,6 +80,8 @@ protected:
     // first is ipid, second is ip, third is FrameInfo
     DoubleMap<uint64_t, uint64_t, std::shared_ptr<FrameInfo>> ipidToIpToFrameInfo_;
     std::vector<std::shared_ptr<const std::string>> segs_ = {};
+    const uint32_t SINGLE_PROC_IPID = 0;
+    bool isSingleProcData_ = true;
 
 private:
     template <class T>
@@ -93,10 +95,6 @@ private:
                        uint64_t& vmStart,
                        uint64_t& vmOffset,
                        uint64_t ipid);
-
-protected:
-    const uint32_t SINGLE_PROC_IPID = 0;
-    bool isSingleProcData_ = true;
 };
 
 } // namespace TraceStreamer

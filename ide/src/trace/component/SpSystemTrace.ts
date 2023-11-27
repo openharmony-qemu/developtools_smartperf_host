@@ -23,8 +23,6 @@ import {
   querySceneSearchFunc,
   querySearchFunc,
   threadPool,
-  querySfVSyncData,
-  querySingleVSyncData
 } from '../database/SqlLite.js';
 import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow.js';
 import { TimerShaftElement } from './trace/TimerShaftElement.js';
@@ -51,7 +49,6 @@ import {
   ns2xByTimeShaft,
   PairPoint,
   Rect,
-  drawVsync
 } from '../database/ui-worker/ProcedureWorkerCommon.js';
 import { SpChartManager } from './chart/SpChartManager.js';
 import { CpuStruct, WakeupBean } from '../database/ui-worker/ProcedureWorkerCPU.js';
@@ -110,12 +107,28 @@ import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPe
 import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { type SpKeyboard } from '../component/SpKeyboard.js';
+import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
 }
+//节流处理
+function throttle(fn: any, t: number, ev: any): any {
+  let timer: any = null;
+  return function () {
+    if (!timer) {
+      timer = setTimeout(function () {
+        if (ev) {
+          fn(ev);
+        } else {
+          fn();
+        }
+        timer = null;
+      }, t);
+    }
+  };
+}
 
- 
 export class CurrentSlicesTime {
   startTime: number | undefined;
   endTime: number | undefined;
@@ -188,11 +201,6 @@ export class SpSystemTrace extends BaseElement {
   private expandRowList: Array<TraceRow<any>> = [];
   private _slicesList: Array<SlicesTime> = [];
   private _flagList: Array<any> = [];
-  private _frameList: Array<any> = [];
-  private _isVsync: boolean = false;
-  private queryFunData: Array<any> = [];
-  private querydbData: Array<any> = [];
-  private singleVSyncData: Array<any> = [];
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -205,19 +213,20 @@ export class SpSystemTrace extends BaseElement {
   set flagList(list: Array<any>) {
     this._flagList = list;
   }
-   //节流处理
-  throttle(fn: Function, t: number, ev?: any ): Function {
+
+  //节流处理
+  throttle(fn: Function, t: number, ev?: any): Function {
     let timerId: any = null;
-    return ()=> {
+    return () => {
       if (!timerId) {
         timerId = setTimeout(function () {
-          if(ev){
-            fn(ev); 
-          }else{
+          if (ev) {
+            fn(ev);
+          } else {
             fn();
-          } 
+          }
           timerId = null;
-        }, t); 
+        }, t);
         this.times.add(timerId);
       }
     };
@@ -225,67 +234,21 @@ export class SpSystemTrace extends BaseElement {
   // 防抖处理
   debounce(fn: Function, ms: number, ev?: any): Function {
     let timerId: undefined | number;
-    return ()=>{
-      if(timerId){
+    return () => {
+      if (timerId) {
         window.clearTimeout(timerId);
-      }else{
-        timerId = window.setTimeout(()=>{
-          if(ev){
-            fn(ev); 
-          }else{
+      } else {
+        timerId = window.setTimeout(() => {
+          if (ev) {
+            fn(ev);
+          } else {
             fn();
-          } 
+          }
           timerId = undefined;
         }, ms);
         this.times.add(timerId);
       }
-    }
-  }
-  
-  async makeVsyncLine() {
-    if (this._isVsync) {
-      const range = this.timerShaftEL?.rangeRuler?.range;
-      const totalTime = range!.endNS - range!.startNS;
-      const totalHeight = this.canvasPanel!.clientHeight;
-      const drawData = [];
-      if (this.singleVSyncData.length === 0) {
-        if (this.querydbData.length === 0) {
-          this.querydbData = await querySfVSyncData();
-        }
-      } else {
-        if (this.queryFunData.length === 0) {
-          this.queryFunData = await querySingleVSyncData();
-        }
-        for (let i = 0; i < this.queryFunData.length; i++) {
-          this.queryFunData[i].color = '#808080';
-        }
-      }
-      let allShowData = this.querydbData.length > 0 ? this.querydbData.filter((data: any) => data.startTime > range!.startNS && data.startTime < range!.endNS) : this.queryFunData.filter((data: any) => data.startTime > range!.startNS && data.startTime < range!.endNS);
-      for (let i = 0; i < allShowData.length; i++) {
-        let data = allShowData[i];
-        const x1 = ns2x(data.startTime, range!.startNS, range!.endNS, totalTime, this.timerShaftEL!.sportRuler!.frame);
-        let x0 = 0;
-        if (i === allShowData.length - 1) {
-          x0 = ns2x(range!.endNS, range!.startNS, range!.endNS, totalTime, this.timerShaftEL!.sportRuler!.frame);
-        } else {
-          x0 = ns2x(allShowData[i + 1].startTime, range!.startNS, range!.endNS, totalTime, this.timerShaftEL!.sportRuler!.frame);
-        }
-        if ((data.value && data.value === 1) || data.color) {
-          const x = x1;
-          const y = 0;
-          const width = x0 - x1;
-          const height = totalHeight;
-          data.frame = new Rect(x, y, width, height);
-        }
-        if (data.color && i % 2) {
-          data.color = '#ffffff'
-        }
-        drawData.push(data);
-      }
-      this.refreshCanvas(true, '', drawData);
-    } else {
-      this.refreshCanvas(true, '', [])
-    }
+    };
   }
 
   addPointPair(startPoint: PairPoint, endPoint: PairPoint) {
@@ -400,7 +363,7 @@ export class SpSystemTrace extends BaseElement {
         }
         cpuFavoriteRow!.setAttribute('collect-type', '');
         let replaceRow = document.createElement('div');
-        replaceRow.setAttribute('row-id', cpuFavoriteRow.rowId + '-' + cpuFavoriteRow.rowType);
+        replaceRow.setAttribute('row-id', `${cpuFavoriteRow.rowId}-${cpuFavoriteRow.rowType}`);
         replaceRow.setAttribute('type', 'replaceRow');
         replaceRow.setAttribute('row-parent-id', cpuFavoriteRow.rowParentId);
         replaceRow.style.display = 'none';
@@ -819,8 +782,8 @@ export class SpSystemTrace extends BaseElement {
 
           let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-            Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-            filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+              Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
             filterFunc.funName!.indexOf('H:Task ') >= 0;
           let taskData = it.dataList.filter((taskData: FuncStruct) => {
             taskData!.tid = parseInt(it.rowId!);
@@ -1205,7 +1168,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_JANK) {
           let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-            Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+              Math.min(filterJank.ts!, rangeData!.startNS || 0) <
             filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
           if (it.name == 'Actual Timeline') {
             selection.jankFramesData = [];
@@ -1288,7 +1251,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
           let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
             Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-            Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+              Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
             animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
           let frameAnimationList = it.dataList.filter((frameAnimationBean: FrameAnimationStruct) => {
             return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
@@ -1385,15 +1348,6 @@ export class SpSystemTrace extends BaseElement {
       }
       this.timerShaftEL!.selectionList.push(selection); // 保持选中对象，为后面的再次选中该框选区域做准备。
       this.selectionParam = selection;
-
-      let currentRangeTid: Array<number> = this.selectionParam.funTids
-      // 如果只框选了一个方法行
-      if (currentRangeTid.length === 1) {
-        TraceRow.currentRowId = currentRangeTid[0]
-        setTimeout(() => {
-          this.refreshCanvas(true)
-        }, 50);
-      }
     };
     // @ts-ignore
     new ResizeObserver((entries) => {
@@ -1477,7 +1431,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.SliceMark, (data) => {
       this.sliceMarkEventHandler(data);
     });
-    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
     window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => {
       this.refreshCanvas(false);
     });
@@ -1736,13 +1690,9 @@ export class SpSystemTrace extends BaseElement {
   }
 
   // refresh main canvas and favorite canvas
-  refreshCanvas(cache: boolean, from?: string, frameList?: any[] | undefined) {
+  refreshCanvas(cache: boolean, from?: string) {
     if (this.visibleRows.length == 0) {
       return;
-    }
-    if (frameList) {
-      this._frameList = [];
-      this._frameList.push(...frameList);
     }
     //clear main canvas
     this.canvasPanelCtx?.clearRect(0, 0, this.canvasPanel!.offsetWidth, this.canvasPanel!.offsetHeight);
@@ -1828,29 +1778,7 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL!
     );
     this.favoriteChartListEL?.drawLogsLineSegment(this.traceSheetEL!.systemLogFlag, this.timerShaftEL!);
-    //---------------------------新增代码开始--------------------------
 
-    if (this._frameList.length > 0) {
-      for (let i = 0; i < this._frameList.length; i++) {
-        if (this._frameList[i].frame) {
-          drawVsync(
-            this.canvasPanelCtx,
-            TraceRow.range!.startNS,
-            TraceRow.range!.endNS,
-            TraceRow.range!.totalNS,
-            {
-              x: this._frameList[i].frame!.x!,
-              y: this._frameList[i].frame!.y!,
-              width: this._frameList[i].frame!.width!,
-              height: this.canvasPanel!.clientHeight!
-            } as Rect,
-            this._frameList[i]!.color!
-          );
-        }
-      }
-    }
-
-    //---------------------------新增代码结束--------------------------
     // Draw the connection curve
     if (this.linkNodes) {
       drawLinkLines(
@@ -1867,6 +1795,11 @@ export class SpSystemTrace extends BaseElement {
         this.favoriteChartListEL!.clientHeight
       );
     }
+    drawVSync(this.canvasPanelCtx!, this.timerShaftEL?.canvas?.clientWidth || 0, canvasHeight);
+    this.favoriteChartListEL?.drawVSync(
+      this.timerShaftEL?.canvas?.clientWidth || 0,
+      this.favoriteChartListEL!.clientHeight
+    );
   }
 
   documentOnMouseDown = (ev: MouseEvent) => {
@@ -1876,13 +1809,16 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
-    this.isMouseLeftDown = true;
-    if (ev.ctrlKey) {
-      ev.preventDefault();
-      this.style.cursor = 'move';
-      this.mouseCurrentPosition = ev.clientX;
-      return;
+    if (ev.button === 0) {
+      this.isMouseLeftDown = true;
+      if (ev.ctrlKey) {
+        ev.preventDefault();
+        this.style.cursor = 'move';
+        this.mouseCurrentPosition = ev.clientX;
+        return;
+      }
     }
+
     TraceRow.isUserInteraction = true;
     if (this.isMouseInSheet(ev)) return;
     this.observerScrollHeightEnable = false;
@@ -1938,11 +1874,6 @@ export class SpSystemTrace extends BaseElement {
       this.offsetMouse = 0;
       this.mouseCurrentPosition = 0;
       this.style.cursor = 'default';
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          this.makeVsyncLine();
-        }, 100)
-      })
       return;
     }
     TraceRow.isUserInteraction = false;
@@ -1962,7 +1893,7 @@ export class SpSystemTrace extends BaseElement {
           // 如果没有找到帽子，则绘制一个旗子
           let time = Math.round(
             (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
-            TraceRow.range?.startNS!
+              TraceRow.range?.startNS!
           );
           this.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
         }
@@ -1988,6 +1919,7 @@ export class SpSystemTrace extends BaseElement {
   documentOnMouseOut = (ev: MouseEvent) => {
     if (!this.loadTraceCompleted) return;
     TraceRow.isUserInteraction = false;
+    this.isMouseLeftDown = false;
     if (this.isMouseInSheet(ev)) return;
     if (ev.offsetX > this.timerShaftEL!.canvas!.offsetLeft) {
       this.rangeSelect.mouseOut(ev);
@@ -2005,11 +1937,11 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnKeyDown = (ev: KeyboardEvent) => {
     document.removeEventListener('keyup', this.documentOnKeyUp);
-    this.debounce(this.continueSearch , 250 , ev )(); 
+    this.debounce(this.continueSearch, 250, ev)();
     document.addEventListener('keyup', this.documentOnKeyUp);
   };
 
-  documentOnKeyPress = (ev: KeyboardEvent) => {    
+  documentOnKeyPress = (ev: KeyboardEvent) => {
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
     TraceRow.isUserInteraction = true;
@@ -2039,11 +1971,6 @@ export class SpSystemTrace extends BaseElement {
       if (keyPressWASD) {
         this.keyPressMap.set(keyPress, true);
         this.hoverFlag = null;
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            this.makeVsyncLine();
-          }, 100)
-        })
       }
       this.timerShaftEL!.documentOnKeyPress(ev, this.currentSlicesTime);
       if (keyPress === 'f') {
@@ -2151,13 +2078,13 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL?.setSlicesMark(
         FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
         (FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0) +
-        (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
+          (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
       );
     } else if (JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
       this.timerShaftEL?.setSlicesMark(
         JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0,
         (JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0) +
-        (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
+          (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
       );
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
@@ -2177,7 +2104,7 @@ export class SpSystemTrace extends BaseElement {
   };
 
   // 一直按着回车键的时候执行搜索功能
-  private continueSearch = (ev: KeyboardEvent)=>{ 
+  private continueSearch = (ev: KeyboardEvent) => {
     if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
@@ -2194,63 +2121,48 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       }
-    }   
-  }
-  
-  documentOnKeyUp = (ev: KeyboardEvent) => {
-    if(this.times.size > 0){ 
-		  for(let timerId of this.times){
-			clearTimeout(timerId);
-		  } 
-		}
-
-    if(ev.key.toLocaleLowerCase() === '?'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
-    if(ev.key.toLocaleLowerCase() === 'escape'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-welcome')!.style.visibility = 'visible';
+  };
+
+  documentOnKeyUp = (ev: KeyboardEvent) => {
+    if (this.times.size > 0) {
+      for (let timerId of this.times) {
+        clearTimeout(timerId);
+      }
+    }
+
+    if (ev.key.toLocaleLowerCase() === '?') {
+      document
+        .querySelector('body > sp-application')!
+        .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
-    if (keyPress === 'v') {
-      this._isVsync = !this._isVsync;
-      if (this._isVsync) {
-        this.makeVsyncLine();
-      } else {
-        this.refreshCanvas(true, '', [])
-      }
-
-    }
+    enableVSync(false, keyPress, () => this.refreshCanvas(true));
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
       this.keyPressMap.set(keyPress, false);
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          this.makeVsyncLine();
-        }, 100)
-      })
     }
     TraceRow.isUserInteraction = false;
     this.observerScrollHeightEnable = false;
     this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
-    if (ev.code == 'Enter') { 
-      document.removeEventListener('keydown', this.documentOnKeyDown); 
+    if (ev.code === 'Enter') {
+      document.removeEventListener('keydown', this.documentOnKeyDown);
       if (ev.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
-          detail: {},
-          composed: false,
+            detail: {},
+            composed: false,
           })
         );
       } else {
         this.dispatchEvent(
           new CustomEvent('next-data', {
-          detail: {},
-          composed: false,
+            detail: {},
+            composed: false,
           })
         );
       }
-      document.addEventListener('keydown', this.documentOnKeyDown); 
+      document.addEventListener('keydown', this.documentOnKeyDown);
     }
 
     if (ev.ctrlKey) {
@@ -3796,6 +3708,9 @@ export class SpSystemTrace extends BaseElement {
     this.rowsPaneEL?.addEventListener('scroll', this.rowsElOnScroll, {
       passive: true,
     });
+    this.favoriteChartListEL?.addEventListener('scroll', this.favoriteRowsElOnScroll, {
+      passive: true,
+    });
     /**
      * 监听document的mousemove事件 坐标通过换算后找到当前鼠标所在的trace-row组件，将坐标传入
      */
@@ -3805,7 +3720,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('mouseup', this.documentOnMouseUp);
     this.addEventListener('mouseout', this.documentOnMouseOut);
 
-    document.addEventListener('keydown', this.documentOnKeyDown );
+    document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
@@ -3821,11 +3736,6 @@ export class SpSystemTrace extends BaseElement {
       (e) => {
         if (e.ctrlKey) {
           if (e.deltaY > 0) {
-            requestAnimationFrame(() => {
-              setTimeout(() => {
-                this.makeVsyncLine();
-              }, 100)
-            })
             e.preventDefault();
             e.stopPropagation();
             let eventS = new KeyboardEvent('keypress', {
@@ -3839,11 +3749,6 @@ export class SpSystemTrace extends BaseElement {
             }, 200);
           }
           if (e.deltaY < 0) {
-            requestAnimationFrame(() => {
-              setTimeout(() => {
-                this.makeVsyncLine();
-              }, 100)
-            })
             e.preventDefault();
             e.stopPropagation();
             let eventW = new KeyboardEvent('keypress', {
@@ -3982,6 +3887,7 @@ export class SpSystemTrace extends BaseElement {
   disconnectedCallback() {
     this.timerShaftEL?.removeEventListener('range-change', this.timerShaftELRangeChange);
     this.rowsPaneEL?.removeEventListener('scroll', this.rowsElOnScroll);
+    this.favoriteChartListEL?.removeEventListener('scroll', this.favoriteRowsElOnScroll);
     this.removeEventListener('mousemove', this.documentOnMouseMove);
     this.removeEventListener('click', this.documentOnClick);
     this.removeEventListener('mousedown', this.documentOnMouseDown);
@@ -4471,10 +4377,6 @@ export class SpSystemTrace extends BaseElement {
   }
 
   reset(progress: Function | undefined | null) {
-    this._frameList = [];
-    this.queryFunData = [];
-    this.querydbData = [];
-    this._isVsync = false;
     this.visibleRows.length = 0;
     this.tipEL!.style.display = 'none';
     this.canvasPanelCtx?.clearRect(0, 0, this.canvasPanel!.clientWidth, this.canvasPanel!.offsetHeight);
@@ -4515,12 +4417,10 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
     procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
     this.times.clear();
+    setVSyncDisable();
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {
-    setTimeout(async () => {
-      this.singleVSyncData = await querySingleVSyncData();
-    }, 500)
     progress('Load database', 6);
     this.rowsPaneEL!.scroll({
       top: 0,

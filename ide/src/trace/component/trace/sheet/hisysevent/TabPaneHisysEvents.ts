@@ -49,7 +49,7 @@ export class TabPaneHisysEvents extends BaseElement {
   private tableElement: HTMLDivElement | undefined | null;
   private detailbox: HTMLDivElement | null | undefined;
   private changeInput: HTMLInputElement | null | undefined;
-  private currentDetailList: Array<{ key: string, value: string }> = [];
+  private currentDetailList: Array<{ key: string; value: string }> = [];
   private realTime: number = 0;
   private baseTime: string = '';
 
@@ -85,7 +85,8 @@ export class TabPaneHisysEvents extends BaseElement {
     this.domainFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#domain-filter');
     this.eventNameFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#event-name-filter');
     this.levelFilter = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
-    this.spSystemTrace = document.querySelector('body > sp-application')
+    this.spSystemTrace = document
+      .querySelector('body > sp-application')
       ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.traceSheetEl = this.spSystemTrace?.shadowRoot?.querySelector('.trace-sheet');
     this.contentFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#contents-filter');
@@ -104,7 +105,7 @@ export class TabPaneHisysEvents extends BaseElement {
       this.hiSysEventTable?.setCurrentSelection(data);
       this.updateDetail(this.baseTime);
     });
-    this.boxDetails!.addEventListener('click', ev => {
+    this.boxDetails!.addEventListener('click', (ev) => {
       if (ev.target !== this.hiSysEventTable) {
         this.hiSysEventTable?.clearAllSelection();
         this.detailsTbl!.dataSource = [];
@@ -312,7 +313,7 @@ export class TabPaneHisysEvents extends BaseElement {
      <lit-slicer-track></lit-slicer-track>
      <div class="detail-box" style="flex-grow: 1;" > 
         <div class="detail-content">
-          <input type="text" id="contents-change" class="change-input" placeholder=" ">
+          <input type="text" id="contents-change" class="change-input" placeholder="base time">
         </div>
         <lit-table id="tb-hisysevent-data" no-head hideDownload>
           <lit-table-column class="sys-detail-column" width="50%" title="key" 
@@ -466,16 +467,16 @@ export class TabPaneHisysEvents extends BaseElement {
     } else {
       this.updateDetail(this.changeInput!.value);
     }
-  }
+  };
 
   updateDetail(baseTime: string): void {
     const latencySuffix = '_LATENCY';
-    let detailList: Array<{ key: string, value: string }> = [];
-    this.currentDetailList.forEach(item => {
+    let detailList: Array<{ key: string; value: string }> = [];
+    this.currentDetailList.forEach((item) => {
       const latencyValue = item.key && item.key.endsWith(latencySuffix) ? item.value + Number(baseTime) : item.value;
       detailList.push({
         key: item.key,
-        value: latencyValue
+        value: latencyValue,
       });
     });
     this.detailsTbl!.recycleDataSource = detailList;
@@ -483,15 +484,17 @@ export class TabPaneHisysEvents extends BaseElement {
 
   convertData = (data: HiSysEventStruct): void => {
     this.baseTime = '';
-    this.currentDetailList = [{
-      key: 'key',
-      value: 'value'
-    }];
+    this.currentDetailList = [
+      {
+        key: 'key',
+        value: 'value',
+      },
+    ];
     const content = JSON.parse(data.contents ?? '{}');
     if (content && typeof content === 'object') {
       let isFirstTime = true;
       let keyList = Object.keys(content);
-      keyList.forEach(key => {
+      keyList.forEach((key) => {
         const value: string = content[key];
         let contentValue = value;
         if (key.endsWith('_TIME')) {
@@ -509,7 +512,7 @@ export class TabPaneHisysEvents extends BaseElement {
         }
         this.currentDetailList.push({
           key: key,
-          value: contentValue
+          value: contentValue,
         });
       });
     }
@@ -519,14 +522,11 @@ export class TabPaneHisysEvents extends BaseElement {
     this.detailsTbl!.style.paddingLeft = '20px';
     this.boxDetails!.style.width = '65%';
     this.detailbox!.style.display = 'block';
-  }
+  };
 
   sortByColumn(framesDetail: { sort: number; key: string }): void {
     let compare = function (property: string, sort: number, type: string) {
-      return function (
-        eventLeftData: HiSysEventStruct,
-        eventRightData: HiSysEventStruct
-      ): number {
+      return function (eventLeftData: HiSysEventStruct, eventRightData: HiSysEventStruct): number {
         let firstSortNumber: number = -1;
         let SecondSortNumber: number = 1;
         let thirdSortNumber: number = 2;
@@ -535,9 +535,9 @@ export class TabPaneHisysEvents extends BaseElement {
         // @ts-ignore
         let leftEventData = eventLeftData[property];
         if (type === 'number') {
-          return sort === thirdSortNumber ?
-            parseFloat(rightEventData) - parseFloat(leftEventData) :
-            parseFloat(leftEventData) - parseFloat(rightEventData);
+          return sort === thirdSortNumber
+            ? parseFloat(rightEventData) - parseFloat(leftEventData)
+            : parseFloat(leftEventData) - parseFloat(rightEventData);
         } else {
           if (rightEventData > leftEventData) {
             return sort === thirdSortNumber ? SecondSortNumber : firstSortNumber;
@@ -563,7 +563,7 @@ export class TabPaneHisysEvents extends BaseElement {
       TraceRow.range!.totalNS,
       new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
     );
-    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color,'', true, '');
+    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color, '', true, '');
     this.spSystemTrace?.refreshCanvas(false);
   }
 }

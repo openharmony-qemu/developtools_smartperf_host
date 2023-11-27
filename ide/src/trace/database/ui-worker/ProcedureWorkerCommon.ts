@@ -48,10 +48,10 @@ export class RequestMessage {
   totalNS: any;
   slicesTime:
     | {
-      startTime: number | null;
-      endTime: number | null;
-      color: string | null;
-    }
+        startTime: number | null;
+        endTime: number | null;
+        color: string | null;
+      }
     | undefined;
   range: any;
   scale: any;
@@ -64,9 +64,9 @@ export class RequestMessage {
   id: any;
   postMessage:
     | {
-      (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-      (message: any, options?: WindowPostMessageOptions): void;
-    }
+        (message: any, targetOrigin: string, transfer?: Transferable[]): void;
+        (message: any, options?: WindowPostMessageOptions): void;
+      }
     | undefined;
 }
 
@@ -99,8 +99,8 @@ export function ns2Timestamp(ns: number): string {
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
     .toString()
     .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-      .toString()
-      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+    .toString()
+    .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -537,10 +537,10 @@ export function drawFlagLine(
   frame: any,
   slicesTime:
     | {
-      startTime: number | null | undefined;
-      endTime: number | null | undefined;
-      color: string | null | undefined;
-    }
+        startTime: number | null | undefined;
+        endTime: number | null | undefined;
+        color: string | null | undefined;
+      }
     | undefined
 ) {
   if (commonCtx) {
@@ -743,99 +743,96 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
       context.globalAlpha = 1;
     }
 
-    // 绘制方法H:RSMainThread::DoComposition平均帧率的箭头指示线条
-    if (TraceRow.docompositionData.length && params.getAttribute('row-type') === 'func') {
-      let rateList: Array<number> = TraceRow.docompositionData.filter(function (item: number) {
-        return item >= TraceRow.rangeSelectObject!.startNS! && item <= TraceRow.rangeSelectObject!.endNS!
-      })
-      rateList = [...new Set(rateList)];
-      if (rateList.length >= 2) {
-        // 计算平均帧率  
-        let cutres: number = (rateList[rateList.length - 1]! - rateList[0]!);
-        let avgFrameRate: string = ((rateList.length - 1) / cutres * 1000000000).toFixed(1) + 'fps';
+   // 绘制方法H:RSMainThread::DoComposition平均帧率的箭头指示线条
+   if (params._docompositionList?.length) {
+    const rateList: Array<number> = [...new Set(params.docompositionList)];
+    if (rateList.length >= 2) {
+      // 计算平均帧率  
+      let cutres: number = (rateList[rateList.length - 1]! - rateList[0]!);
+      let avgFrameRate: string = ((rateList.length - 1) / cutres * 1000000000).toFixed(1) + 'fps';
 
-        let avgRateStartX = Math.floor(
-          ns2x(
-            rateList[0]!,
-            TraceRow.range?.startNS ?? 0,
-            TraceRow.range?.endNS ?? 0,
-            TraceRow.range?.totalNS ?? 0,
-            params.frame
-          )
-        );
-        let avgRateEndX = Math.floor(
-          ns2x(
-            rateList[rateList.length - 1]!,
-            TraceRow.range?.startNS ?? 0,
-            TraceRow.range?.endNS ?? 0,
-            TraceRow.range?.totalNS ?? 0,
-            params.frame
-          )
-        );
-        const textWidth = context.measureText(avgFrameRate).width;
-        const textHeight = 25;
-        const padding = 5;
-        let textX = Math.floor(ns2x(
-          (rateList[0]! + rateList[rateList.length - 1]!) / 2,
+      let avgRateStartX = Math.floor(
+        ns2x(
+          rateList[0]!,
           TraceRow.range?.startNS ?? 0,
           TraceRow.range?.endNS ?? 0,
           TraceRow.range?.totalNS ?? 0,
           params.frame
-        )) - textWidth / 2;
-        const textY = params.frame.y + 25;
+        )
+      );
+      let avgRateEndX = Math.floor(
+        ns2x(
+          rateList[rateList.length - 1]!,
+          TraceRow.range?.startNS ?? 0,
+          TraceRow.range?.endNS ?? 0,
+          TraceRow.range?.totalNS ?? 0,
+          params.frame
+        )
+      );
+      const textWidth = context.measureText(avgFrameRate).width;
+      const textHeight = 25;
+      const padding = 5;
+      let textX = Math.floor(ns2x(
+        (rateList[0]! + rateList[rateList.length - 1]!) / 2,
+        TraceRow.range?.startNS ?? 0,
+        TraceRow.range?.endNS ?? 0,
+        TraceRow.range?.totalNS ?? 0,
+        params.frame
+      )) - textWidth / 2;
+      const textY = params.frame.y + 25;
 
-        //左移到边界，不画线和文字
-        if (avgRateStartX <= 0) {
-          avgRateStartX = -100;
-        }
-        if (avgRateEndX <= 0) {
-          avgRateEndX = -100;
-        }
-        if (textX <= 0) {
-          textX = -100;
-        }
-        //右移到边界，不画线和文字
-        if (textX + textWidth / 2 >= params.frame.width) {
-          textX = params.frame.width + 100
-        }
-        if (avgRateStartX >= params.frame.width) {
-          avgRateStartX = params.frame.width + 100;
-        }
-        if (avgRateEndX >= params.frame.width) {
-          avgRateEndX = params.frame.width + 100;
-        }
-        // 绘制文字背景矩形  
-        context.fillStyle = 'red';
-        context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
-
-        context.lineWidth = 2;
-        context.strokeStyle = 'yellow';
-        context.beginPath();
-        context.moveTo(avgRateStartX, textY);
-        context.lineTo(avgRateEndX, textY);
-        context.stroke();
-
-        const arrowSize = 5.5;
-        const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
-          context.beginPath();
-          const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
-          const headY = y - arrowSize / 2;
-          context.moveTo(x, y);
-          context.lineTo(headX, headY);
-          context.lineTo(headX, y + arrowSize);
-          context.closePath();
-
-          context.fillStyle = 'yellow';
-          context.fill();
-        };
-        arrowHead(avgRateStartX, textY - 1, 'left');
-        arrowHead(avgRateEndX, textY - 1, 'right');
-
-        context.fillStyle = 'white';
-        context.fillText(avgFrameRate, textX, textY - 8);
+      //左移到边界，不画线和文字
+      if (avgRateStartX <= 0) {
+        avgRateStartX = -100;
       }
+      if (avgRateEndX <= 0) {
+        avgRateEndX = -100;
+      }
+      if (textX <= 0) {
+        textX = -100;
+      }
+      //右移到边界，不画线和文字
+      if (textX + textWidth / 2 >= params.frame.width) {
+        textX = params.frame.width + 100
+      }
+      if (avgRateStartX >= params.frame.width) {
+        avgRateStartX = params.frame.width + 100;
+      }
+      if (avgRateEndX >= params.frame.width) {
+        avgRateEndX = params.frame.width + 100;
+      }
+      // 绘制文字背景矩形  
+      context.fillStyle = 'red';
+      context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
+
+      context.lineWidth = 2;
+      context.strokeStyle = 'yellow';
+      context.beginPath();
+      context.moveTo(avgRateStartX, textY);
+      context.lineTo(avgRateEndX, textY);
+      context.stroke();
+
+      const arrowSize = 5.5;
+      const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
+        context.beginPath();
+        const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
+        const headY = y - arrowSize / 2;
+        context.moveTo(x, y);
+        context.lineTo(headX, headY);
+        context.lineTo(headX, y + arrowSize);
+        context.closePath();
+
+        context.fillStyle = 'yellow';
+        context.fill();
+      };
+      arrowHead(avgRateStartX, textY - 1, 'left');
+      arrowHead(avgRateEndX, textY - 1, 'right');
+
+      context.fillStyle = 'white';
+      context.fillText(avgFrameRate, textX, textY - 8);
     }
   }
+}
 }
 
 export function drawWakeUp(
@@ -1140,7 +1137,7 @@ export function drawLoading(
   frame: any,
   left: number,
   right: number
-) { }
+) {}
 
 export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
   if (data.textMetricsWidth === undefined) {
@@ -1467,24 +1464,6 @@ export function mem(
     }
   }
 }
-
-//---------------------------新增代码开始--------------------------
-
-export function drawVsync(
-  vsyncContext: CanvasRenderingContext2D | any,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame:Rect,
-  color:string
-){
-  vsyncContext.lineWidth = 2;
-  vsyncContext.fillStyle = color?color:"#808080";
-  vsyncContext.globalAlpha = 0.4;
-  vsyncContext.fillRect(frame.x,frame.y,frame.width,frame.height);
-}
-
-//---------------------------新增代码结束--------------------------
 
 export function drawWakeUpList(
   wakeUpListContext: CanvasRenderingContext2D | any,

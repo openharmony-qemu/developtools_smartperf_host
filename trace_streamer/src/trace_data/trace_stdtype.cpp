@@ -1995,7 +1995,7 @@ const std::deque<int32_t>& HiSysEventDeviceStateData::Accessibility() const
 {
     return accessibilitys_;
 }
-const std::deque<int32_t>& HiSysEventDeviceStateData::Recording() const
+const std::deque<int32_t>& HiSysEventDeviceStateData::Recordings() const
 {
     return recordings_;
 }

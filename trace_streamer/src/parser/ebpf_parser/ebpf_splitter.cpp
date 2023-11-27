@@ -67,7 +67,7 @@ bool EbpfSplitter::AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer)
                                           .buffer = {.address = reinterpret_cast<uint8_t*>(splitEbpfHeader_.get()),
                                                      .size = EbpfDataHeader::EBPF_DATA_HEADER_SIZE}};
             ebpfSplitResult_.emplace_back(ebpfHead);
-            TS_ASSERT(!ret);
+            TS_ASSERT(ret);
         } else {
             return false;
         }

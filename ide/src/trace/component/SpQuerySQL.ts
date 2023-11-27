@@ -63,6 +63,7 @@ export class SpQuerySQL extends BaseElement {
     });
     let closeButtonEl = this.shadowRoot?.querySelector('#close-button') as HTMLButtonElement;
     closeButtonEl.addEventListener('click', () => {
+      this.pagination!.style.display = 'none';
       this.querySize!.textContent = 'Query result - 0 counts.';
       this.queryTableEl!.dataSource = [];
       this.response!.innerHTML = '';

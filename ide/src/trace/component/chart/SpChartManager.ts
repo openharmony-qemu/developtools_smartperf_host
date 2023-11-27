@@ -50,6 +50,7 @@ import { FlagsConfig } from '../SpFlags.js';
 import { SpLogChart } from './SpLogChart.js';
 import { SpHiSysEventChart } from './SpHiSysEventChart.js';
 import { SpAllAppStartupsChart } from './SpAllAppStartups.js';
+import {setVSyncData} from './VSync.js';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -174,6 +175,8 @@ export class SpChartManager {
     await this.process.init();
     info('Process Data initialized');
     progress('display', 95);
+    await setVSyncData();
+    progress('SingleVSync', 96);
   }
 
   async importSoFileUpdate() {

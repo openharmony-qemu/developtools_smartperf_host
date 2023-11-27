@@ -122,8 +122,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
   static ROW_TYPE_HI_SYSEVENT = 'hi-sysevent';
-  static docompositionData: Array<number> = []; // 存储查询到的docomposition数据
-  static currentRowId: number | undefined; // 存储当前行id
   public obj: TraceRowObject<any> | undefined | null;
   isHover: boolean = false;
   hoverX: number = 0;
@@ -175,6 +173,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   childrenList: Array<TraceRow<any>> = [];
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
+  _docompositionList: Array<number> | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -189,12 +188,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-        canvasNumber: 1,
-        alpha: false,
-        contextId: '2d',
-        isOffScreen: true,
-        skeleton: false,
-      }
+      canvasNumber: 1,
+      alpha: false,
+      contextId: '2d',
+      isOffScreen: true,
+      skeleton: false,
+    }
   ) {
     super();
     this.args = args;
@@ -235,6 +234,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-list',
       'row-setting-popover-direction',
     ];
+  }
+  get docompositionList(): Array<number> | undefined {
+    return this._docompositionList;
+  }
+
+  set docompositionList(value: Array<number> | undefined) {
+    this._docompositionList = value;
   }
 
   get funcExpand(): boolean {
@@ -281,7 +287,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   set rowSettingPopoverDirection(value: string) {
-    this.rowSettingPop!.placement = value;
+    if (this.rowSettingPop) {
+      this.rowSettingPop.placement = value;
+    }
   }
 
   get rowSettingPopoverDirection(): string {
@@ -290,7 +298,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   set rowSettingList(value: Array<TreeItemData> | null | undefined) {
     this._rowSettingList = value;
-    this.rowSettingTree!.treeData = value || [];
+    if (this.rowSettingTree) {
+      this.rowSettingTree.treeData = value || [];
+    }
   }
 
   set rowSettingMultiple(value: boolean) {
@@ -645,8 +655,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.folderIconEL = this.shadowRoot?.querySelector<LitIcon>('.icon');
     this.nameEL = this.shadowRoot?.querySelector('.name');
     this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
-    this.rowSettingTree = this.shadowRoot?.querySelector('#rowSettingTree');
-    this.rowSettingPop = this.shadowRoot?.querySelector('#rowSetting');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
     let canvasNumber = this.args['canvasNumber'];
     if (!this.args['skeleton']) {
@@ -682,25 +690,39 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     });
     this.funcExpand = true;
-    this.rowSettingTree!.onChange = (e: any): void => {
+    this.checkType = '-1';
+  }
+
+  addRowSettingPop(): void{
+    this.rowSettingPop = document.createElement('lit-popover') as LitPopover;
+    this.rowSettingPop.innerHTML = `<div slot="content" id="settingList" style="display: block;height: auto;max-height:200px;overflow-y:auto">
+      <lit-tree id="rowSettingTree" checkable="true"></lit-tree>
+      </div>
+      <lit-icon name="setting" size="19" id="setting"></lit-icon>`;
+    this.rowSettingPop.id = 'rowSetting';
+    this.rowSettingPop.className = 'popover setting';
+    this.rowSettingPop.setAttribute('placement', 'bottomLeft');
+    this.rowSettingPop.setAttribute('trigger', 'click');
+    this.rowSettingPop.setAttribute('haveRadio', 'true');
+    this.rowSettingTree = this.rowSettingPop.querySelector('#rowSettingTree') as LitTree;
+    this.rowSettingTree.onChange = (): void => {
+      let isVisible = false;
       // @ts-ignore
-      this.rowSettingPop!.visible = false;
+      this.rowSettingPop!.visible = isVisible;
       if (this.rowSettingTree?.multiple) {
-        // @ts-ignore
-        this.rowSettingPop!.visible = true;
-      } else {
-        // @ts-ignore
-        this.rowSettingPop!.visible = false;
+        isVisible = true;
       }
+      // @ts-ignore
+      this.rowSettingPop!.visible = isVisible;
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
     };
-    this.checkType = '-1';
     this.rowSettingPop?.addEventListener('mouseenter', (e) => {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
     });
+    this.describeEl?.appendChild(this.rowSettingPop);
   }
 
-  getRowSettingKeys(): Array<string> {
+  getRowSettingKeys() : Array<string> {
     if (this.rowSetting === 'enable') {
       return this.rowSettingTree!.getCheckdKeys();
     }
@@ -719,7 +741,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart(): void {
+  enableCollapseChart() : void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcExpand) {
@@ -1368,9 +1390,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([highlight]) .flash{
             background-color: #ffe263;
         }
-        :host([row-type="energy"]) #appNameList{
-            display: flex;
-        }
          #listprocess::-webkit-scrollbar{
          width: 6px;
         }
@@ -1408,17 +1427,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 <lit-icon class="icon" name="caret-down" size="19"></lit-icon>
                 <label class="name"></label>
                 <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
-                <lit-popover placement="bottomLeft" trigger="click" id="appNameList" class="popover" haveRadio="true" style="z-index: 1;position: absolute;left: 230px">
-                    <div slot="content" id="listprocess" style="height:200px;overflow-y:auto">
-                    </div>
-                    <lit-icon name="setting" size="19" id="setting"></lit-icon>
-                </lit-popover>
-                <lit-popover placement="bottomLeft" trigger="click" id="rowSetting" class="popover setting" haveRadio="true">
-                    <div slot="content" id="settingList" style="display: block;height: auto;max-height:200px;overflow-y:auto">
-                        <lit-tree id="rowSettingTree" checkable="true"></lit-tree>
-                    </div>
-                    <lit-icon name="setting" size="19" id="setting"></lit-icon>
-                </lit-popover>
                 <lit-check-box class="lit-check-box"></lit-check-box>
             </div>
         </div>
