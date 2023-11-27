@@ -166,8 +166,8 @@ export class SpChartManager {
     progress('ark ts', 90);
     await this.arkTsChart.initFolder();
     info('ark ts initialized');
-    await this.frameTimeChart.init();
     await this.SpAllAppStartupsChart.init();
+    await this.frameTimeChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();
