@@ -81,26 +81,22 @@ export class RangeSelect {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }
       //如果只框选了一条泳道，查询H:RSMainThread::DoComposition数据
-      let docompositionData: Array<number> = []
+      let docompositionData: Array<number> = [];
       if (this.rangeTraceRow) {
         this.rangeTraceRow.forEach((row) => {
           row.docompositionList = [];
         });
-        docompositionData = []
-        if (
-          this.rangeTraceRow.length === 1 &&
-          this.rangeTraceRow[0]?.getAttribute('row-type') === 'func' &&
-          this.rangeTraceRow[0]?.getAttribute('name')?.startsWith('render_service')
-        ) {
+        docompositionData = [];
+        if (this.rangeTraceRow.length === 1 && this.rangeTraceRow[0]?.getAttribute('row-type') === 'func') {
           querySearchRowFuncData(
             'H:RSMainThread::DoComposition',
             Number(this.rangeTraceRow[0]?.getAttribute('row-id')),
             TraceRow.rangeSelectObject!.startNS!,
-            TraceRow.rangeSelectObject!.endNS!,
+            TraceRow.rangeSelectObject!.endNS!
           ).then((res) => {
             res.forEach((item) => {
-              docompositionData.push(item.startTime!)
-            })
+              docompositionData.push(item.startTime!);
+            });
             this.rangeTraceRow![0].docompositionList = docompositionData;
           });
         }

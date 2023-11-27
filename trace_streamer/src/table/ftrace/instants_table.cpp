@@ -135,6 +135,30 @@ bool InstantsTable::CanFilterSorted(const char op, size_t& rowCount) const
     return true;
 }
 
+void InstantsTable::Cursor::SortOfIndexMap(const FilterConstraints& fc)
+{
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
+        i--;
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
+            case Index::TS:
+                indexMap_->SortBy(orderbys[i].desc);
+                break;
+            case Index::NAME:
+                indexMap_->SortBy(orderbys[i].desc);
+                break;
+            case Index::REF:
+                indexMap_->SortBy(orderbys[i].desc);
+                break;
+            case Index::WAKEUP_FROM:
+                indexMap_->SortBy(orderbys[i].desc);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset
@@ -169,27 +193,7 @@ int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
                 break;
         }
     }
-
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
-        i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::TS:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            case Index::NAME:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            case Index::REF:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            case Index::WAKEUP_FROM:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            default:
-                break;
-        }
-    }
+    SortOfIndexMap(fc);
 
     return SQLITE_OK;
 }

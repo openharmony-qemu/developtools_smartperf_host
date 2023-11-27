@@ -247,6 +247,9 @@ export class VmTrackerChart {
       case 'RSS':
         keyName = 'resident_size';
         break;
+      case 'Swapped':
+        keyName = 'swap + swap_pss';
+        break;
       default:
         keyName = columnName;
     }
@@ -390,6 +393,7 @@ export class VmTrackerChart {
     );
     gpuTotalRow.folderTextLeft = 40;
     gpuTotalRow.addTemplateTypes('sys-memory');
+    gpuTotalRow.addRowSettingPop();
     gpuTotalRow.rowSetting = 'enable';
     gpuTotalRow.rowSettingList = [
       {
@@ -464,6 +468,7 @@ export class VmTrackerChart {
       this.gpuFolder.rowId!
     );
     gpuWindowRow.folderTextLeft = 40;
+    gpuWindowRow.addRowSettingPop();
     gpuWindowRow.rowSetting = 'enable';
     gpuWindowRow.rowSettingList = settings;
     gpuWindowRow.addTemplateTypes('sys-memory');
@@ -479,10 +484,7 @@ export class VmTrackerChart {
       }
     };
     gpuWindowRow.supplier = () => {
-      return queryGpuWindowData(
-        VmTrackerChart.gpuWindow!,
-        VmTrackerChart.gpuWindowModule
-      ).then((res) => {
+      return queryGpuWindowData(VmTrackerChart.gpuWindow!, VmTrackerChart.gpuWindowModule).then((res) => {
         res.forEach((window, index) => {
           (window as any).name = `SnapShot ${index}`;
         });

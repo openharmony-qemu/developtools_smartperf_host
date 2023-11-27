@@ -255,7 +255,7 @@ export class LitTable extends HTMLElement {
           background: var(--dark-background1,#f5f5f5)
         }
         .mouse-select{
-            background-color: var(--dark-background6,#a2c4ed);
+            background-color: var(--dark-background6,#DEEDFF);
         }
         .mouse-in{
             background-color: var(--dark-background6,#DEEDFF);

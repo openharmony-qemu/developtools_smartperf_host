@@ -16,7 +16,6 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import { Utils } from '../../base/Utils.js';
 import { resizeObserver } from '../SheetUtils.js';
 
 @element('tabpane-irq-counter')
@@ -38,7 +37,11 @@ export class TabPaneIrqCounter extends BaseElement {
       let counters = collect.get(key);
       let selectCounterData = this.createSelectCounterData(key, counters);
       sumCount += Number.parseInt(selectCounterData.count || '0');
-      selectCounterData.avgDuration = (selectCounterData.wallDuration / parseInt(selectCounterData.count) / 1000).toFixed(2);
+      selectCounterData.avgDuration = (
+        selectCounterData.wallDuration /
+        parseInt(selectCounterData.count) /
+        1000
+      ).toFixed(2);
       dataSource.push(selectCounterData);
     }
     this.irqCounterSource = dataSource;
@@ -96,7 +99,8 @@ export class TabPaneIrqCounter extends BaseElement {
         selectData.wallDuration += list[index].dur;
       }
       list.sort((a, b) => b.dur - a.dur);
-      selectData.maxDuration = (list[0].dur / 1000).toFixed(2);
+      selectData.maxDuration = list[0].dur / 1000;
+      selectData.maxDurationFormat = (list[0].dur / 1000).toFixed(2);
       selectData.wallDurationFormat = (selectData.wallDuration / 1000).toFixed(2);
     }
     return selectData;
@@ -121,6 +125,12 @@ export class TabPaneIrqCounter extends BaseElement {
             return parseInt(irqCounterLeftData.count) >= parseInt(irqCounterRightData.count) ? 1 : -1;
           } else {
             return parseInt(irqCounterRightData.count) >= parseInt(irqCounterLeftData.count) ? 1 : -1;
+          }
+        } else if (key == 'maxDurationFormat') {
+          if (type == 1) {
+            return irqCounterLeftData.maxDuration - irqCounterRightData.maxDuration;
+          } else {
+            return irqCounterRightData.maxDuration - irqCounterLeftData.maxDuration;
           }
         } else if (key == 'avgDuration') {
           if (type == 1) {

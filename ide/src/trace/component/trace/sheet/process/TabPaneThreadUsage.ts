@@ -18,7 +18,6 @@ import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import '../../../StackBar.js';
 import { getTabRunningPersent, getTabThreadStatesCpu } from '../../../../database/SqlLite.js';
-import { StackBar } from '../../../StackBar.js';
 import { log } from '../../../../../log/Log.js';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { Utils } from '../../base/Utils.js';
@@ -29,7 +28,6 @@ import { resizeObserver } from '../SheetUtils.js';
 export class TabPaneThreadUsage extends BaseElement {
   private threadUsageTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
-  private stackBar: StackBar | null | undefined;
   private threadUsageSource: Array<SelectionData> = [];
   private cpuCount = 0;
   private currentSelectionParam: SelectionParam | undefined;
@@ -58,21 +56,18 @@ export class TabPaneThreadUsage extends BaseElement {
     //@ts-ignore
     this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height =
       this.parentElement!.clientHeight - 45 + 'px';
-    // // @ts-ignore
-  
-      // ¿òÑ¡ÇøÓòÄÚrunningµÄÊ±¼ä
-      getTabRunningPersent(threadUsageParam.threadIds,threadUsageParam.leftNs, threadUsageParam.rightNs).then(
-        (result)=>{ 
-	  // ¿ªÊ¼µÄÊ±¼äleftStartNs
-          let leftStartNs=threadUsageParam.leftNs+threadUsageParam.recordStartNs
-          // ½áÊøµÄÊ±¼ärightEndNs
-          let rightEndNs=threadUsageParam.rightNs+threadUsageParam.recordStartNs
-         
-          let sum =judgement(result,leftStartNs,rightEndNs)
-          this.range!.textContent =
-            'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
-        }
-      )  
+    // æ¡†é€‰åŒºåŸŸå†…runningçš„æ—¶é—´
+    getTabRunningPersent(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then(
+      (result) => {
+        // æ•°ç»„å¥—å¯¹è±¡
+        // å¼€å§‹çš„æ—¶é—´leftStartNs
+        let leftStartNs = threadUsageParam.leftNs + threadUsageParam.recordStartNs;
+        // ç»“æŸçš„æ—¶é—´rightEndNs
+        let rightEndNs = threadUsageParam.rightNs + threadUsageParam.recordStartNs;
+        let sum = judgement(result, leftStartNs, rightEndNs);
+        this.range!.textContent = 'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
+      }
+    );
     this.threadUsageTbl!.loading = true;
     getTabThreadStatesCpu(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then(
       (result) => {
@@ -146,7 +141,6 @@ export class TabPaneThreadUsage extends BaseElement {
   initElements(): void {
     this.threadUsageTbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
     this.range = this.shadowRoot?.querySelector('#thread-usage-time-range');
-    this.stackBar = this.shadowRoot?.querySelector('#thread-usage-stack-bar');
     this.threadUsageTbl!.addEventListener('column-click', (evt: any) => {
       this.sortByColumn(evt.detail);
     });
@@ -217,73 +211,50 @@ export class TabPaneThreadUsage extends BaseElement {
   }
 }
 
-export function judgement(result:Array<any>,leftStart:any,rightEnd:any){
-  let sum=0
-  if(result!=null && result.length>0){
-      log('getTabRunningTime result size : ' + result.length);
-      let rightEndNs=rightEnd
-      let leftStartNs=leftStart
-      // Î²²¿runningµÄ½áÊøÊ±¼ä
-      let RunningEnds=result[result.length-1].dur-(rightEndNs-result[result.length-1].ts)+rightEndNs
-      // Èç¹û½ØÈ¡ÁË¿ªÍ·ºÍ½áÎ²µÄ³¤¶È
-      let beigin=result[0].dur-(leftStartNs-result[0].ts)
-      let end=rightEndNs-result[result.length-1].ts
-      // ÓÃÀ´´æ´¢Êı¾İµÄĞÂÊı×é
-      let arr=[]
-      console.log('Î²²¿runningµÄ½áÊøÊ±¼ä:',RunningEnds);
-      console.log('¿ªÍ·¿òÑ¡²¿·ÖµÄ³¤¶È:',beigin);
-      console.log('½áÎ²¿òÑ¡²¿·ÖµÄ³¤¶È:',end)
-      // Èç¹û¿ªÍ·ºÍ½áÎ²¶¼½ØÈ¡ÁË
-      if(leftStartNs>result[0].ts && rightEndNs <RunningEnds){
-        // Ê×Î²µÄrunning³¤¶È
-        let beginAndEnd=beigin+end
-        console.log('Ê×Î²µÄrunning×ÜºÍ³¤¶È:',beginAndEnd);
-        
-        // ½ØÈ¡µÄ³ıÁË¿ªÍ·ºÍ½áÎ²µÄÊı¾İ
-        arr=result.slice(1,result.length-1)
-        let res=arr.reduce((total,item)=>{
-          return total+item.dur
-        },0)
-        sum=beginAndEnd+res
-        console.log('ÕâÊÇÖĞ¼ä½ØÈ¡²¿·ÖµÄÊı×éarr:',arr);
-        console.log('ÕâÊÇ½ØÈ¡µÄresºÍsum',res,sum)
-        // this.range!.textContent =
-        //   'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
-      }else if(leftStartNs>result[0].ts){
-        // Èç¹ûÖ»ÊÇ½ØÈ¡ÁË¿ªÍ·
-        arr=result.slice(1)
-        let res=arr.reduce((total,item)=>{
-          return total+item.dur
-        },0)
-       sum=beigin+res
-        console.log('ÕâÊÇ½ØÈ¡ÁË¿ªÍ·µÄÊı×éarr:',arr);
-        console.log('ÕâÊÇ½ØÈ¡µÄresºÍsum',res,sum)
-        // this.range!.textContent =
-        //   'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
-        
-      }else if(rightEndNs <RunningEnds){
-        // Èç¹ûÖ»ÊÇ½ØÈ¡ÁË½áÎ²
-        arr=result.slice(0,result.length-1)
-        let res=arr.reduce((total,item)=>{
-          return total+item.dur
-        },0)
-        sum=end+res
-        console.log('ÕâÊÇ½ØÈ¡ÁË½áÎ²µÄÊı×éarr:',arr);
-        console.log('ÕâÊÇ½ØÈ¡µÄresºÍsum',res,sum)
-        // this.range!.textContent =
-        //   'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
-      }else{
-        // Èç¹û¶¼Ã»½ØÈ¡
-        for(let i of result){
-          sum+=i.dur
-          console.log('ÕâÊÇÕı³£µÄsumÖµ:',sum);
-           // tsÊÇÊÂ¼ş¿ªÊ¼µÄÊ±¼ä
-          console.log('ÕâÊÇiºÍts:',i,i.ts);
-          console.log('ÕâÊÇresult2:',result,1111111);
-          // this.range!.textContent =
-          //   'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
-        }
+export function judgement(result: Array<any>, leftStart: any, rightEnd: any) {
+  let sum = 0;
+  if (result != null && result.length > 0) {
+    log('getTabRunningTime result size : ' + result.length);
+    let rightEndNs = rightEnd;
+    let leftStartNs = leftStart;
+    // å°¾éƒ¨runningçš„ç»“æŸæ—¶é—´
+    let RunningEnds = result[result.length - 1].dur - (rightEndNs - result[result.length - 1].ts) + rightEndNs;
+    // å¦‚æœæˆªå–äº†å¼€å¤´å’Œç»“å°¾çš„é•¿åº¦
+    let beigin = result[0].dur - (leftStartNs - result[0].ts);
+    let end = rightEndNs - result[result.length - 1].ts;
+    // ç”¨æ¥å­˜å‚¨æ•°æ®çš„æ–°æ•°ç»„
+    let arr = [];
+    // å¦‚æœå¼€å¤´å’Œç»“å°¾éƒ½æˆªå–äº†
+    if (leftStartNs > result[0].ts && rightEndNs < RunningEnds) {
+      // é¦–å°¾çš„runningé•¿åº¦
+      let beginAndEnd = beigin + end;
+
+      // æˆªå–çš„é™¤äº†å¼€å¤´å’Œç»“å°¾çš„æ•°æ®
+      arr = result.slice(1, result.length - 1);
+      let res = arr.reduce((total, item) => {
+        return total + item.dur;
+      }, 0);
+      sum = beginAndEnd + res;
+    } else if (leftStartNs > result[0].ts) {
+      // å¦‚æœåªæ˜¯æˆªå–äº†å¼€å¤´
+      arr = result.slice(1);
+      let res = arr.reduce((total, item) => {
+        return total + item.dur;
+      }, 0);
+      sum = beigin + res;
+    } else if (rightEndNs < RunningEnds) {
+      // å¦‚æœåªæ˜¯æˆªå–äº†ç»“å°¾
+      arr = result.slice(0, result.length - 1);
+      let res = arr.reduce((total, item) => {
+        return total + item.dur;
+      }, 0);
+      sum = end + res;
+    } else {
+      // å¦‚æœéƒ½æ²¡æˆªå–
+      for (let i of result) {
+        sum += i.dur;
       }
+    }
   }
-  return sum
+  return sum;
 }

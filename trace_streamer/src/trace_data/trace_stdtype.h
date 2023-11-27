@@ -1649,7 +1649,7 @@ public:
     const std::deque<int32_t>& StreamDtmf() const;
     const std::deque<int32_t>& StreamTts() const;
     const std::deque<int32_t>& Accessibility() const;
-    const std::deque<int32_t>& Recording() const;
+    const std::deque<int32_t>& Recordings() const;
     const std::deque<int32_t>& StreamAll() const;
     void Clear() override
     {

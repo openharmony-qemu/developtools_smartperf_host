@@ -162,6 +162,13 @@ EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCa
     return g_sendDataBuf;
 }
 
+EMSCRIPTEN_KEEPALIVE void TraceStreamer_Set_Log_Level(uint32_t level)
+{
+    if (level >= LOG_DEBUG && level <= LOG_OFF) {
+        g_curLogLevel = static_cast<enum LogLevel>(level);
+    }
+}
+
 int32_t TraceStreamer_Plugin_Out_Filter(const char* pluginData, int32_t len, const std::string& componentName)
 {
     std::map<int32_t, std::string>::iterator itor = g_wasmTraceStreamer.g_thirdPartyConfig.begin();

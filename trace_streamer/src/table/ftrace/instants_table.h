@@ -40,6 +40,7 @@ private:
         int32_t Column(int32_t column) const override;
 
     private:
+        void SortOfIndexMap(const FilterConstraints& fc);
         const Instants& InstantsObj_;
     };
 };

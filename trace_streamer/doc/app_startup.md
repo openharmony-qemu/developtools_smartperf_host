@@ -7,7 +7,7 @@ TraceStreamer支持解析应用启动数据，数据包含应用拉起的8个阶
 ![1689415472707](image/app_startup/app_start_up.png)
 
 前四个阶段对应的标志事件字符串：
-ProcessTouchEvent：在callstack表中查找包含"H:client dispatch touchId:"的字符，即为启动第1阶段。注：**一次点击存在多个，取后面trace前的最后一个**
+ProcessTouchEvent：在callstack表中查找包含"H:client dispatch touchId:"的字符，即为启动第1阶段。注：一次点击存在多个，取后面trace前的最后一个。
 
 StartUIAbilityBySCB：在callstack表中查找包含"H:OHOS::ErrCode OHOS::AAFwk::AbilityManagerClient::StartUIAbilityBySCB"的字符，即为启动第2阶段。
 

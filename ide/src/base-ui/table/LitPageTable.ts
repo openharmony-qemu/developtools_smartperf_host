@@ -385,7 +385,7 @@ export class LitPageTable extends BaseElement {
             height: 15px;
         }
         .mouse-select{
-            background-color: var(--dark-background6,#a2c4ed);
+            background-color: var(--dark-background6,#DEEDFF);
         }
         .mouse-in{
             background-color: var(--dark-background6,#DEEDFF);

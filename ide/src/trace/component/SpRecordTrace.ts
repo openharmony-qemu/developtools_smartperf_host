@@ -2220,7 +2220,7 @@ export class SpRecordTrace extends BaseElement {
         nativeConfig.sampleInterval = this.spAllocations!.sample_interval;
       }
     }
-    if (this.spAllocations!.expandPids.length > 0) {
+    if (this.spAllocations!.expandPids.length > 1) {
       nativeConfig.expandPids = this.spAllocations!.expandPids.splice(0, maxProcessSize);
     }
     let nativePluginConfig: ProfilerPluginConfig<NativeHookConfig> = {

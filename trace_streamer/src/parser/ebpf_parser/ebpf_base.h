@@ -60,6 +60,9 @@ protected:
     std::map<DataIndex, std::shared_ptr<ElfSymbolTable>> filePathIndexToImportSymbolTableMap_ = {};
     DoubleMap<uint32_t, uint64_t, uint64_t> pidAndipsToCallId_;
     uint64_t callChainId_ = 0;
+
+private:
+    std::unordered_map<DataIndex, std::shared_ptr<std::set<size_t>>> filePathIndexToCallStackRowMap_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

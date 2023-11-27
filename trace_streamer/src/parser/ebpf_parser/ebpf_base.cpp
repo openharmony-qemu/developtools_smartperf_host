@@ -50,9 +50,18 @@ void EbpfBase::ParseCallStackData(const uint64_t* userIpsAddr, uint16_t count, u
             auto ebpfSymbolInfo = GetEbpfSymbolInfo(pid, userIpsAddr[i]);
             auto ipIndex = ConvertToHexTextIndex(userIpsAddr[i]);
             ipStrIndexToIpMap_.insert(std::make_pair(ipIndex, userIpsAddr[i]));
-            traceDataCache_->GetEbpfCallStack()->AppendNewData(callId, depth, ipIndex, ebpfSymbolInfo.symbolIndex,
-                                                               ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
-            depth++;
+            auto row =
+                traceDataCache_->GetEbpfCallStack()->AppendNewData(callId, depth++, ipIndex, ebpfSymbolInfo.symbolIndex,
+                                                                   ebpfSymbolInfo.filePathIndex, ebpfSymbolInfo.vaddr);
+            if (ebpfSymbolInfo.filePathIndex != INVALID_UINT64) {
+                if (filePathIndexToCallStackRowMap_.count(ebpfSymbolInfo.filePathIndex) == 0) {
+                    auto rows = std::make_shared<std::set<size_t>>();
+                    rows->insert(row);
+                    filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex] = rows;
+                } else {
+                    filePathIndexToCallStackRowMap_[ebpfSymbolInfo.filePathIndex]->insert(row);
+                }
+            }
         }
     }
     // Only one successful insertion is required, without considering repeated insertion failures
@@ -199,11 +208,18 @@ bool EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<Symbol
     auto filePathIndexs = ebpfCallStackDate->FilePathIds();
     auto vaddrs = ebpfCallStackDate->Vaddrs();
     for (const auto& symbolsFile : symbolsFiles) {
-        auto filePathIndex = traceDataCache_->GetDataIndex(symbolsFile->filePath_);
-        for (size_t row = 0; row < size; row++) {
-            if (filePathIndexs[row] != filePathIndex) {
-                continue;
+        std::shared_ptr<std::set<size_t>> rows = nullptr;
+        for (const auto& item : filePathIndexToCallStackRowMap_) {
+            auto originFilePath = traceDataCache_->GetDataFromDict(item.first);
+            if (EndWith(originFilePath, symbolsFile->filePath_)) {
+                rows = item.second;
+                break;
             }
+        }
+        if (rows == nullptr) {
+            continue;
+        }
+        for (auto row : *rows) {
             auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddrs[row]);
             if (dfxSymbol.IsValid()) {
                 auto symbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());

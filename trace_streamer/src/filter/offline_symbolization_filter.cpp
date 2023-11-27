@@ -14,7 +14,7 @@
  */
 
 #include "offline_symbolization_filter.h"
-#include <inttypes.h>
+#include <cinttypes>
 
 namespace SysTuning {
 namespace TraceStreamer {
