@@ -81,17 +81,28 @@ export class RangeSelect {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }
       //如果只框选了一条泳道，查询H:RSMainThread::DoComposition数据
-      if (this.rangeTraceRow?.length === 1) {
-        querySearchRowFuncData('H:RSMainThread::DoComposition', TraceRow.currentRowId!).then((res) => {
-          if (res.length) {
+      let docompositionData: Array<number> = []
+      if (this.rangeTraceRow) {
+        this.rangeTraceRow.forEach((row) => {
+          row.docompositionList = [];
+        });
+        docompositionData = []
+        if (
+          this.rangeTraceRow.length === 1 &&
+          this.rangeTraceRow[0]?.getAttribute('row-type') === 'func' &&
+          this.rangeTraceRow[0]?.getAttribute('name')?.startsWith('render_service')
+        ) {
+          querySearchRowFuncData(
+            'H:RSMainThread::DoComposition',
+            Number(this.rangeTraceRow[0]?.getAttribute('row-id')),
+            TraceRow.rangeSelectObject!.startNS!,
+            TraceRow.rangeSelectObject!.endNS!,
+          ).then((res) => {
             res.forEach((item) => {
-              TraceRow.docompositionData.push(item.startTime!);
-            });
-          }
-        })
-      } else {
-        if (TraceRow.docompositionData.length) {
-          TraceRow.docompositionData = []
+              docompositionData.push(item.startTime!)
+            })
+            this.rangeTraceRow![0].docompositionList = docompositionData;
+          });
         }
       }
     }
@@ -230,6 +241,11 @@ export class RangeSelect {
         return false;
       }
     });
+    if (this.rangeTraceRow && this.rangeTraceRow.length) {
+      this.rangeTraceRow!.forEach((row) => {
+        row.docompositionList = [];
+      });
+    }
     this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.length > 0;
     this.timerShaftEL!.sportRuler!.draw();
   }

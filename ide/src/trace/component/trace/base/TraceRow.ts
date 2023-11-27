@@ -121,8 +121,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
   static ROW_TYPE_HI_SYSEVENT = 'hi-sysevent';
-  static docompositionData: Array<number> = []; // 存储查询到的docomposition数据
-  static currentRowId: number | undefined; // 存储当前行id
   public obj: TraceRowObject<any> | undefined | null;
   isHover: boolean = false;
   hoverX: number = 0;
@@ -174,6 +172,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   childrenList: Array<TraceRow<any>> = [];
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
+  _docompositionList: Array<number> | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -413,6 +412,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         },
       })
     );
+  }
+
+  get docompositionList(): Array<number> | undefined {
+    return this._docompositionList;
+  }
+
+  set docompositionList(value: Array<number> | undefined) {
+    this._docompositionList = value;
   }
 
   childRowToFragment(expansion: boolean): void {

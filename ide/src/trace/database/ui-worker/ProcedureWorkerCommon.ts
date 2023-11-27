@@ -744,11 +744,8 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
     }
 
     // 绘制方法H:RSMainThread::DoComposition平均帧率的箭头指示线条
-    if (TraceRow.docompositionData.length && params.getAttribute('row-type') === 'func') {
-      let rateList: Array<number> = TraceRow.docompositionData.filter(function (item: number) {
-        return item >= TraceRow.rangeSelectObject!.startNS! && item <= TraceRow.rangeSelectObject!.endNS!
-      })
-      rateList = [...new Set(rateList)];
+    if (params._docompositionList?.length) {
+      const rateList: Array<number> = [...new Set(params.docompositionList)];
       if (rateList.length >= 2) {
         // 计算平均帧率  
         let cutres: number = (rateList[rateList.length - 1]! - rateList[0]!);
@@ -1475,13 +1472,13 @@ export function drawVsync(
   startNS: number,
   endNS: number,
   totalNS: number,
-  frame:Rect,
-  color:string
-){
+  frame: Rect,
+  color: string
+) {
   vsyncContext.lineWidth = 2;
-  vsyncContext.fillStyle = color?color:"#808080";
+  vsyncContext.fillStyle = color ? color : "#808080";
   vsyncContext.globalAlpha = 0.4;
-  vsyncContext.fillRect(frame.x,frame.y,frame.width,frame.height);
+  vsyncContext.fillRect(frame.x, frame.y, frame.width, frame.height);
 }
 
 //---------------------------新增代码结束--------------------------

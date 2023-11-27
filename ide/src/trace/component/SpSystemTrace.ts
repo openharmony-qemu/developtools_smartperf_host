@@ -1384,15 +1384,6 @@ export class SpSystemTrace extends BaseElement {
       }
       this.timerShaftEL!.selectionList.push(selection); // 保持选中对象，为后面的再次选中该框选区域做准备。
       this.selectionParam = selection;
-
-      let currentRangeTid: Array<number> = this.selectionParam.funTids
-      // 如果只框选了一个方法行
-      if (currentRangeTid.length === 1) {
-        TraceRow.currentRowId = currentRangeTid[0]
-        setTimeout(() => {
-          this.refreshCanvas(true)
-        }, 50);
-      }
     };
     // @ts-ignore
     new ResizeObserver((entries) => {
