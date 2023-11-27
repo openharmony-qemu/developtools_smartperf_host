@@ -17,8 +17,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
 import { LitTable } from '../../../../../base-ui/table/lit-table.js';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
 import '../../../StackBar.js';
-import { getTabThreadStatesCpu } from '../../../../database/SqlLite.js';
-import { StackBar } from '../../../StackBar.js';
+import { getTabRunningPersent, getTabThreadStatesCpu } from '../../../../database/SqlLite.js';
 import { log } from '../../../../../log/Log.js';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { Utils } from '../../base/Utils.js';
@@ -29,7 +28,6 @@ import { resizeObserver } from '../SheetUtils.js';
 export class TabPaneThreadUsage extends BaseElement {
   private threadUsageTbl: LitTable | null | undefined;
   private range: HTMLLabelElement | null | undefined;
-  private stackBar: StackBar | null | undefined;
   private threadUsageSource: Array<SelectionData> = [];
   private cpuCount = 0;
   private currentSelectionParam: SelectionParam | undefined;
@@ -58,9 +56,18 @@ export class TabPaneThreadUsage extends BaseElement {
     //@ts-ignore
     this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height =
       this.parentElement!.clientHeight - 45 + 'px';
-    // // @ts-ignore
-    this.range!.textContent =
-      'Selected range: ' + ((threadUsageParam.rightNs - threadUsageParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
+    // 框选区域内running的时间
+    getTabRunningPersent(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then(
+      (result) => {
+        // 数组套对象
+        // 开始的时间leftStartNs
+        let leftStartNs = threadUsageParam.leftNs + threadUsageParam.recordStartNs;
+        // 结束的时间rightEndNs
+        let rightEndNs = threadUsageParam.rightNs + threadUsageParam.recordStartNs;
+        let sum = judgement(result, leftStartNs, rightEndNs);
+        this.range!.textContent = 'Selected range: ' + (sum / 1000000.0).toFixed(5) + ' ms';
+      }
+    );
     this.threadUsageTbl!.loading = true;
     getTabThreadStatesCpu(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then(
       (result) => {
@@ -134,7 +141,6 @@ export class TabPaneThreadUsage extends BaseElement {
   initElements(): void {
     this.threadUsageTbl = this.shadowRoot?.querySelector<LitTable>('#tb-thread-states');
     this.range = this.shadowRoot?.querySelector('#thread-usage-time-range');
-    this.stackBar = this.shadowRoot?.querySelector('#thread-usage-stack-bar');
     this.threadUsageTbl!.addEventListener('column-click', (evt: any) => {
       this.sortByColumn(evt.detail);
     });
@@ -203,4 +209,52 @@ export class TabPaneThreadUsage extends BaseElement {
     }
     this.threadUsageTbl!.recycleDataSource = this.threadUsageSource;
   }
+}
+
+export function judgement(result: Array<any>, leftStart: any, rightEnd: any) {
+  let sum = 0;
+  if (result != null && result.length > 0) {
+    log('getTabRunningTime result size : ' + result.length);
+    let rightEndNs = rightEnd;
+    let leftStartNs = leftStart;
+    // 尾部running的结束时间
+    let RunningEnds = result[result.length - 1].dur - (rightEndNs - result[result.length - 1].ts) + rightEndNs;
+    // 如果截取了开头和结尾的长度
+    let beigin = result[0].dur - (leftStartNs - result[0].ts);
+    let end = rightEndNs - result[result.length - 1].ts;
+    // 用来存储数据的新数组
+    let arr = [];
+    // 如果开头和结尾都截取了
+    if (leftStartNs > result[0].ts && rightEndNs < RunningEnds) {
+      // 首尾的running长度
+      let beginAndEnd = beigin + end;
+
+      // 截取的除了开头和结尾的数据
+      arr = result.slice(1, result.length - 1);
+      let res = arr.reduce((total, item) => {
+        return total + item.dur;
+      }, 0);
+      sum = beginAndEnd + res;
+    } else if (leftStartNs > result[0].ts) {
+      // 如果只是截取了开头
+      arr = result.slice(1);
+      let res = arr.reduce((total, item) => {
+        return total + item.dur;
+      }, 0);
+      sum = beigin + res;
+    } else if (rightEndNs < RunningEnds) {
+      // 如果只是截取了结尾
+      arr = result.slice(0, result.length - 1);
+      let res = arr.reduce((total, item) => {
+        return total + item.dur;
+      }, 0);
+      sum = end + res;
+    } else {
+      // 如果都没截取
+      for (let i of result) {
+        sum += i.dur;
+      }
+    }
+  }
+  return sum;
 }

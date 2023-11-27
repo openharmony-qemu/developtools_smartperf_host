@@ -125,6 +125,7 @@ export class SpHiPerf {
     row.rowParentId = '';
     row.folder = true;
     row.drawType = -2;
+    row.addRowSettingPop();
     row.rowSetting = 'enable';
     row.rowSettingPopoverDirection = 'bottomLeft';
     row.rowSettingList = [
@@ -269,6 +270,7 @@ export class SpHiPerf {
       return map;
     }, new Map<string, any>());
     row.addTemplateTypes('hiperf-callchart');
+    row.addRowSettingPop();
     row.rowSetting = 'enable';
     row.rowSettingList = [
       ...cpuData.reverse().map((it: any): {

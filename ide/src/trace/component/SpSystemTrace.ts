@@ -106,6 +106,7 @@ import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPe
 import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { type SpKeyboard } from '../component/SpKeyboard.js';
+import { drawVSync, enableVSync } from './chart/SingleVSync.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -323,7 +324,7 @@ export class SpSystemTrace extends BaseElement {
         }
         cpuFavoriteRow!.setAttribute('collect-type', '');
         let replaceRow = document.createElement('div');
-        replaceRow.setAttribute('row-id', cpuFavoriteRow.rowId + '-' + cpuFavoriteRow.rowType);
+        replaceRow.setAttribute('row-id', `${cpuFavoriteRow.rowId  }-${  cpuFavoriteRow.rowType}`);
         replaceRow.setAttribute('type', 'replaceRow');
         replaceRow.setAttribute('row-parent-id', cpuFavoriteRow.rowParentId);
         replaceRow.style.display = 'none';
@@ -1755,6 +1756,7 @@ export class SpSystemTrace extends BaseElement {
         this.favoriteChartListEL!.clientHeight
       );
     }
+    drawVSync(this.canvasPanelCtx!, this.timerShaftEL?.canvas?.clientWidth || 0, canvasHeight);
   }
 
   documentOnMouseDown = (ev: MouseEvent) => {
@@ -2057,6 +2059,7 @@ export class SpSystemTrace extends BaseElement {
     }
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
+    enableVSync(false, keyPress, () => this.refreshCanvas(true));
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
       this.keyPressMap.set(keyPress, false);
     }
@@ -4580,10 +4583,10 @@ export class SpSystemTrace extends BaseElement {
             background: var(--dark-background4,#ffffff);
             /*scroll-behavior: smooth;*/
         }
-        :host([disable]) .container{
+        :host([disable]) .vessel{
             pointer-events: none;
         }
-        .container{
+        .vessel{
             width: 100%;
             box-sizing: border-box;
             height: 100%;
@@ -4641,7 +4644,7 @@ export class SpSystemTrace extends BaseElement {
         }
 
         </style>
-        <div class="container">
+        <div class="vessel">
             <timer-shaft-element class="timer-shaft" style="position: relative;top: 0"></timer-shaft-element>
             <sp-chart-list id="favorite-chart-list"></sp-chart-list>
             <div class="rows-pane" style="position: relative;flex-direction: column;overflow-x: hidden;">

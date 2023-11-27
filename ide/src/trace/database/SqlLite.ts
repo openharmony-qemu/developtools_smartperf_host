@@ -952,6 +952,81 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
+// 查询线程状态详细信息
+export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabThreadStates',
+    `select
+        B.pid,
+        B.tid,
+        B.state, 
+        B.ts, 
+        B.dur 
+      from
+        thread_state AS B
+      left join
+        trace_range AS TR
+      where
+        B.tid in (${tIds.join(',')})
+      and
+        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
+      order by ts;`,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+
+// 框选区域内running的时间
+export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabRunningPersent',
+    `
+   select
+     B.pid,
+     B.tid,
+     B.state,
+     B.cpu,
+     B.dur,
+     B.ts
+   from
+     thread_state AS  B
+   left join
+     trace_range AS TR
+   where
+     B.tid in (${tIds.join(',')})
+   and
+     B.state='Running'
+   and
+     not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+   order by
+     ts;`,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+// 框选区域内sleeping的时间
+export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabRunningPersent',
+    `
+ select
+   B.pid,
+   B.tid,
+   B.state,
+   B.cpu,
+   B.dur,
+   B.ts
+ from
+   thread_state AS  B
+ left join
+   trace_range AS TR
+ where
+   B.tid in (${tIds.join(',')})
+ and
+   B.state='Sleeping'
+ and
+   not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+ order by
+   ts;`,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+
 export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
   let sql = `
 select 
@@ -1684,7 +1759,7 @@ select
     {}
   );
 
-export const queryAllHookData = (rightNs: number,ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
+export const queryAllHookData = (rightNs: number, ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(
     'queryAllHookData',
     `
@@ -5596,7 +5671,7 @@ export const querySearchFuncData = (
       left join 
         trace_range r
       where 
-        c.name like '${funcName}' 
+        c.name like '${funcName}%' 
       and 
         t.tid = ${tIds} 
       and
@@ -5639,13 +5714,9 @@ export const queryCpuFreqFilterId = (): Promise<Array<any>> =>
 
 export const queryRealTime = (): Promise<
   Array<{
-    ts: number
+    ts: number;
   }>
-  > =>
-  query(
-    'queryRealTime',
-    `select CS.ts as ts from clock_snapshot as CS where clock_name = 'realtime';`
-  );
+> => query('queryRealTime', `select CS.ts as ts from clock_snapshot as CS where clock_name = 'realtime';`);
 export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
   query(
     'queryHiSysEventData',

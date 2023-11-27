@@ -29,7 +29,6 @@ import {
 } from '../../database/SqlLite.js';
 import { JanksStruct } from '../../bean/JanksStruct.js';
 import { ns2xByTimeShaft, type PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon.js';
-import { type LitPopover } from '../../../base-ui/popover/LitPopoverV.js';
 import { FrameDynamicRender, FrameDynamicStruct } from '../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
 import { FrameAnimationRender, FrameAnimationStruct } from '../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
 import { type BaseStruct } from '../../bean/BaseStruct.js';
@@ -37,6 +36,7 @@ import { FrameSpacingRender, FrameSpacingStruct } from '../../database/ui-worker
 import { FlagsConfig, type Params } from '../SpFlags.js';
 import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean.js';
 import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import { TreeItemData } from '../../../base-ui/tree/LitTree.js';
 
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;
@@ -226,26 +226,7 @@ export class SpFrameTimeChart {
     let frameChart: TraceRow<BaseStruct> = TraceRow.skeleton<BaseStruct>();
     let labelName = frameChart.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     labelName.style.marginRight = '77px';
-    let systemPopover = this.addSystemConfigButton(frameChart, nameArr);
-    systemPopover.style.zIndex = '101';
-    let radioList = systemPopover.querySelectorAll<HTMLInputElement>('.radio');
-    let divElement = systemPopover.querySelectorAll<HTMLDivElement>('.option');
-    radioList[0].checked = true;
-    divElement.forEach((divEl, index) => {
-      divEl.addEventListener('click', () => {
-        if (radioList[index]) {
-          radioList[index].checked = true;
-          frameChart.name = radioList[index].value;
-          frameChart.childrenList.forEach((childrenRow) => {
-            childrenRow.setAttribute('model-name', `${radioList[index].value}`);
-          });
-          systemPopover.blur();
-          TraceRow.range!.refresh = true;
-          this.trace.refreshCanvas(true);
-          this.trace.clickEmptyArea();
-        }
-      });
-    });
+    this.addSystemConfigButton(frameChart, nameArr, 'model-name', true);
     frameChart.rowId = 'frame';
     frameChart.rowType = TraceRow.ROW_TYPE_FRAME;
     frameChart.rowHidden = !processRow.expansion;
@@ -377,8 +358,8 @@ export class SpFrameTimeChart {
       name: string;
     }[] = [{ name: 'x' }, { name: 'y' }, { name: 'width' }, { name: 'height' }, { name: 'alpha' }];
     let dynamicCurveRow: TraceRow<FrameDynamicStruct> = TraceRow.skeleton<FrameDynamicStruct>();
-    let systemPopover = this.addSystemConfigButton(dynamicCurveRow, systemConfigList);
-    this.initSystemConfig(systemPopover, dynamicCurveRow);
+    this.addSystemConfigButton(dynamicCurveRow, systemConfigList, 'model-type');
+    dynamicCurveRow.setAttribute('model-type', systemConfigList[0].name);
     dynamicCurveRow.rowId = 'animation-Effect-Curve';
     dynamicCurveRow.rowType = TraceRow.ROW_TYPE_FRAME_DYNAMIC;
     dynamicCurveRow.rowHidden = !frameChart.expansion;
@@ -398,9 +379,6 @@ export class SpFrameTimeChart {
       new Promise((resolve): void => {
         resolve(frameDynamicCurveData);
       });
-    dynamicCurveRow.favoriteChangeHandler = (): void => {
-      this.favoriteSelect(systemPopover, dynamicCurveRow);
-    };
     dynamicCurveRow.selectChangeHandler = this.trace.selectChangeHandler;
     dynamicCurveRow.onThreadHandler = (useCache: boolean): void => {
       let context: CanvasRenderingContext2D = dynamicCurveRow!.collect
@@ -419,36 +397,6 @@ export class SpFrameTimeChart {
       dynamicCurveRow!.canvasRestore(context);
     };
     frameChart.addChildTraceRow(dynamicCurveRow);
-  }
-
-  private initSystemConfig(systemPopover: LitPopover, dynamicCurveRow: TraceRow<FrameDynamicStruct>): void {
-    let radioList = systemPopover.querySelectorAll<HTMLInputElement>('.radio');
-    let divElement = systemPopover.querySelectorAll<HTMLDivElement>('.option');
-    radioList[0].checked = true;
-    dynamicCurveRow.setAttribute('model-type', radioList[0].value);
-    divElement.forEach((divEl, index) => {
-      divEl.addEventListener('click', () => {
-        if (radioList[index]) {
-          radioList[index].checked = true;
-          dynamicCurveRow.setAttribute('model-type', `${radioList[index].value}`);
-          systemPopover.blur();
-          TraceRow.range!.refresh = true;
-          this.trace.refreshCanvas(true);
-          this.trace.clickEmptyArea();
-        }
-      });
-    });
-  }
-
-  private favoriteSelect(systemPopover: LitPopover, dynamicCurveRow: TraceRow<FrameDynamicStruct>): void {
-    let popover = systemPopover.querySelector('.dynamicPopover') as HTMLDivElement;
-    if (dynamicCurveRow.collect) {
-      systemPopover.setAttribute('placement', 'right');
-      popover.style.display = 'flex';
-    } else {
-      systemPopover.setAttribute('placement', 'bottomLeft');
-      popover.style.display = 'block';
-    }
   }
 
   async initFrameSpacing(
@@ -539,30 +487,35 @@ export class SpFrameTimeChart {
     }
   }
 
-  addSystemConfigButton(systemTraceRow: TraceRow<BaseStruct>, systemConfigList: { name: string }[]): LitPopover {
-    let rowContent: HTMLDivElement = systemTraceRow.shadowRoot?.querySelector('.describe') as HTMLDivElement;
-    let systemPopover: LitPopover = document.createElement('lit-popover') as LitPopover;
-    systemPopover.style.zIndex = '100';
-    systemPopover.style.position = 'absolute';
-    systemPopover.style.left = '165px';
-    systemPopover.style.display = 'flex';
-    systemPopover.setAttribute('placement', 'bottomLeft');
-    systemPopover.setAttribute('trigger', 'click');
-    systemPopover.setAttribute('haveRadio', 'true');
-    systemPopover.innerHTML = `
-    <div style="display: block; overflow: auto" slot="content" class="dynamicPopover">
-      ${systemConfigList
-        .map(
-          (it): string => `
-              <div class="option" style="margin-bottom: 5px; color: black;">
-                <input class="radio" name="status" type="radio" value='${it.name}' 
-                style="margin-right: 10px;"/>${it.name}</div>`
-        )
-        .join('')}
-    </div>
-    <lit-icon name="setting" size="19" id="setting"></lit-icon>`;
-    rowContent.appendChild(systemPopover);
-    return systemPopover;
+  addSystemConfigButton(
+    systemTraceRow: TraceRow<BaseStruct>,
+    systemConfigList: { name: string }[],
+    attributeKey: string,
+    allowChangeName: boolean = false
+  ): void {
+    let componentList: Array<TreeItemData> = [];
+    for (let index = 0; index < systemConfigList.length; index++) {
+      let componentName = systemConfigList[index].name;
+      componentList.push({
+        key: `${componentName}`,
+        title: `${componentName}`,
+        checked: index === 0,
+      })
+    }
+    systemTraceRow.addRowSettingPop();
+    systemTraceRow.rowSetting = 'enable';
+    systemTraceRow.rowSettingPopoverDirection = 'bottomLeft';
+    systemTraceRow.rowSettingList = componentList;
+    systemTraceRow.onRowSettingChangeHandler = (value: string[]): void => {
+      if (allowChangeName) {
+        systemTraceRow.name = value[0];
+      }
+      systemTraceRow.setAttribute(attributeKey, `${value[0]}`);
+      systemTraceRow.childrenList.forEach((row): void => {
+        row.setAttribute(attributeKey, `${value[0]}`);
+      });
+      this.trace.refreshCanvas(false);
+    };
   }
 
   private frameNoExpandTimeOut(

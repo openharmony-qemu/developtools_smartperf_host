@@ -1835,7 +1835,7 @@ export class SpRecordTrace extends BaseElement {
             width: 100%;
             background-color: var(--dark-background5,#F6F6F6);
         }
-        .container {
+        .vessel {
             background-color: var(--dark-background5,#F6F6F6);
             height:100%;
         }
@@ -1975,7 +1975,7 @@ export class SpRecordTrace extends BaseElement {
           opacity: 0.6;
         }
         </style>
-        <div class="container">
+        <div class="vessel">
          <div class="header">
            <div style="display: flex;margin-bottom: 24px;margin-left:20px;">
              <span class="target">Target Platform:</span>

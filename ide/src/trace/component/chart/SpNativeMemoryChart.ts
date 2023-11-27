@@ -93,6 +93,7 @@ export class SpNativeMemoryChart {
     nativeRow.name = `Native Memory (${process})`;
     nativeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     nativeRow.selectChangeHandler = this.trace.selectChangeHandler;
+    nativeRow.addRowSettingPop();
     nativeRow.rowSetting = 'enable';
     nativeRow.rowSettingPopoverDirection = 'bottomLeft';
     nativeRow.rowSettingList = [

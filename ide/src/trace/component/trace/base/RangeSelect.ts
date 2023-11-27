@@ -114,6 +114,7 @@ export class RangeSelect {
   }
 
   mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent) {
+    
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
     if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {

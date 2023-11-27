@@ -252,14 +252,14 @@ export class TraceSheet extends BaseElement {
   }
 
   connectedCallback(): void {
-    this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-container');
+    this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-vessel');
     let tabs: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#tabs');
     let navRoot: HTMLDivElement | null | undefined = this.shadowRoot
       ?.querySelector('#tabs')
       ?.shadowRoot?.querySelector('.nav-root');
     let search: HTMLDivElement | undefined | null = document
       .querySelector('body > sp-application')
-      ?.shadowRoot?.querySelector('div > div.search-container');
+      ?.shadowRoot?.querySelector('div > div.search-vessel');
     let timerShaft: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.timer-shaft');
     let spacer: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.spacer');
     let rowsPaneEL: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.rows-pane');
@@ -448,7 +448,7 @@ export class TraceSheet extends BaseElement {
                   z-index: 2;
               }
             </style>
-            <div id="container" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
+            <div id="vessel" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
                         <lit-popover placement="bottomRight" class="popover" haveRadio="true" trigger="click" id="select-process">
