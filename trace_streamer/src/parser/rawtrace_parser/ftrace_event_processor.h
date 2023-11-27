@@ -23,6 +23,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr uint32_t HM_EVENT_ID_OFFSET = 32768;
 using namespace TraceCfg;
 class FtraceEventProcessor {
 public:

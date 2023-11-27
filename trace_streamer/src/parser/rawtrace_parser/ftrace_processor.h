@@ -27,6 +27,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint32_t FTRACE_PAGE_SIZE = 4096;
+constexpr uint32_t RMQ_ENTRY_ALIGN_MASK = (1 << 2) - 1;
 class FtraceProcessor {
 public:
     FtraceProcessor();
@@ -38,6 +39,8 @@ public:
                     CpuDetailParser& cpuDetailParser,
                     uint8_t page[],
                     size_t size = FTRACE_PAGE_SIZE);
+    bool HmParsePageData(FtraceCpuDetailMsg& cpuDetailMsg,
+        CpuDetailParser& cpuDetailParser, uint8_t* &data);
 
     bool HandleTgids(const std::string& tgids);
     bool HandleCmdlines(const std::string& cmdlines);
