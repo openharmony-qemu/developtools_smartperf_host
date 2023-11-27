@@ -19,7 +19,7 @@ import { Utils } from './trace/base/Utils.js';
 
 @element('stack-bar')
 export class StackBar extends BaseElement {
-  private vessel: HTMLDivElement | undefined | null;
+  private container: HTMLDivElement | undefined | null;
 
   static get observedAttributes() {
     return ['mode']; // max min hidden show 三种状态
@@ -31,11 +31,11 @@ export class StackBar extends BaseElement {
       if (map.has(v.state)) {
         let sv = map.get(v.state);
         sv!.value = sv!.value + v.wallDuration;
-        sv!.state = v.state + ' : ' + sv!.value.toFixed(5) + 'ms';
+        sv!.state = v.state + ' : ' + sv!.value.toFixed(7) + 'ms';
       } else {
         let sv = new StackValue();
         sv.value = v.wallDuration;
-        sv.state = v.state + ' : ' + sv.value.toFixed(5) + 'ms';
+        sv.state = v.state + ' : ' + sv.value.toFixed(7) + 'ms';
         sv.color = Utils.getStateColor(v.stateJX);
         map.set(v.state, sv);
       }
@@ -50,14 +50,14 @@ export class StackBar extends BaseElement {
       }
     }
     arr.sort((a, b) => a.value - b.value);
-    this.vessel!.innerHTML = '';
+    this.container!.innerHTML = '';
     for (let stackValue of arr) {
-      this.vessel!.appendChild(this.createBarElement(stackValue, totalDuration));
+      this.container!.appendChild(this.createBarElement(stackValue, totalDuration));
     }
   }
 
   initElements(): void {
-    this.vessel = this.shadowRoot?.querySelector('#vessel');
+    this.container = this.shadowRoot?.querySelector('#container');
   }
 
   initHtml(): string {
@@ -74,7 +74,7 @@ export class StackBar extends BaseElement {
                 width: 10%;display: inline-block;overflow: hidden;white-space: nowrap;padding: 5px; margin-right: 2px;font-size: 9pt;
             }
             </style>
-            <div style="display: flex;flex-direction: row;" id="vessel">
+            <div style="display: flex;flex-direction: row;" id="container">
             </div>
         `;
   }

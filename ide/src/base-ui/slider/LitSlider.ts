@@ -178,7 +178,7 @@ export class LitSlider extends BaseElement {
             pointer-events:none;
         }
         /*
-         * Currently the entire sliding vessel is controlled
+         * Currently the entire sliding container is controlled
          */
         #slider-con{ 
             cursor:pointer;

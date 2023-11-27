@@ -1835,7 +1835,7 @@ export class SpRecordTrace extends BaseElement {
             width: 100%;
             background-color: var(--dark-background5,#F6F6F6);
         }
-        .vessel {
+        .container {
             background-color: var(--dark-background5,#F6F6F6);
             height:100%;
         }
@@ -1975,7 +1975,7 @@ export class SpRecordTrace extends BaseElement {
           opacity: 0.6;
         }
         </style>
-        <div class="vessel">
+        <div class="container">
          <div class="header">
            <div style="display: flex;margin-bottom: 24px;margin-left:20px;">
              <span class="target">Target Platform:</span>
@@ -2220,7 +2220,7 @@ export class SpRecordTrace extends BaseElement {
         nativeConfig.sampleInterval = this.spAllocations!.sample_interval;
       }
     }
-    if (this.spAllocations!.expandPids.length > 0) {
+    if (this.spAllocations!.expandPids.length > 1) {
       nativeConfig.expandPids = this.spAllocations!.expandPids.splice(0, maxProcessSize);
     }
     let nativePluginConfig: ProfilerPluginConfig<NativeHookConfig> = {

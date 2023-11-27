@@ -74,14 +74,6 @@ export class TabPaneFreqUsage extends BaseElement {
                                     threadArr.push({ 'process': Utils.PROCESS_MAP.get(e.pid) == null ? 'Process ' + e.pid : Utils.PROCESS_MAP.get(e.pid) + ' ' + e.pid, 'thread': Utils.THREAD_MAP.get(e.tid) + ' ' + e.tid, 'pid': e.pid, 'tid': e.tid, 'count': 0, 'cpu': '', 'freq': '', 'dur': 0, 'percent': 0, 'state': 'Running', children: new Array() });
                                     needDeal.set(e.pid + '_' + e.tid, new Array());
                                 }
-                                if ((e.ts < (threadStatesParam.leftNs + threadStatesParam.recordStartNs)) && ((e.ts + e.dur) > (threadStatesParam.leftNs + threadStatesParam.recordStartNs))) {
-                                    const ts = e.ts;
-                                    e.ts = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
-                                    e.dur = ts + e.dur - (threadStatesParam.leftNs + threadStatesParam.recordStartNs);
-                                }
-                                if ((e.ts + e.dur) > (threadStatesParam.rightNs + threadStatesParam.recordStartNs)) {
-                                    e.dur = threadStatesParam.rightNs + threadStatesParam.recordStartNs - e.ts;
-                                }
                                 let arr = needDeal.get(e.pid + '_' + e.tid);
                                 let process = Utils.PROCESS_MAP.get(e.pid);
                                 let thread = Utils.THREAD_MAP.get(e.tid);
@@ -192,6 +184,7 @@ export class TabPaneFreqUsage extends BaseElement {
                         j--;
                     }
                 }
+                resultList[i].percent = Number((resultList[i].percent).toFixed(2));
                 resultList[i].ts = resultList[i].ts - threadStatesParam.recordStartNs;
             }
             resultList.sort((a, b) => b.count - a.count);
@@ -211,6 +204,7 @@ export class TabPaneFreqUsage extends BaseElement {
                         value[i].percent += arr[j].percent;
                     }
                 }
+                value[i].percent = Number(value[i].percent.toFixed(2));
             }
         });
     }
@@ -223,6 +217,7 @@ export class TabPaneFreqUsage extends BaseElement {
                 threadArr[i].dur += cpuMapData[j].dur;
                 threadArr[i].percent += cpuMapData[j].percent;
             }
+            threadArr[i].percent = Number(threadArr[i].percent.toFixed(2));
         }
     }
     mergePidData(pidArr: any, threadArr: any) {
@@ -235,6 +230,7 @@ export class TabPaneFreqUsage extends BaseElement {
                     pidArr[i].percent += threadArr[j].percent;
                 }
             }
+            pidArr[i].percent = Number(pidArr[i].percent.toFixed(2));
         }
     }
     fixedDeal(arr: any) {

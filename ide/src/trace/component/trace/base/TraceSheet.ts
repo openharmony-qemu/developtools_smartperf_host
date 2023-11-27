@@ -154,15 +154,11 @@ export class TraceSheet extends BaseElement {
     this.processTree!.onChange = (e: any): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
-      if (selectIPid === this.lastSelectIPid) {
-        return;
-      }
       this.switchDiv!.visible = 'false';
       this.updateRangeSelect(selectIPid)
       this.lastSelectIPid = selectIPid;
     };
 
-    // };
     this.buildTabs(this.litTabs);
     this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
     this.litTabs!.addEventListener('close-handler', () => {
@@ -256,14 +252,14 @@ export class TraceSheet extends BaseElement {
   }
 
   connectedCallback(): void {
-    this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-vessel');
+    this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-container');
     let tabs: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#tabs');
     let navRoot: HTMLDivElement | null | undefined = this.shadowRoot
       ?.querySelector('#tabs')
       ?.shadowRoot?.querySelector('.nav-root');
     let search: HTMLDivElement | undefined | null = document
       .querySelector('body > sp-application')
-      ?.shadowRoot?.querySelector('div > div.search-vessel');
+      ?.shadowRoot?.querySelector('div > div.search-container');
     let timerShaft: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.timer-shaft');
     let spacer: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.spacer');
     let rowsPaneEL: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.rows-pane');
@@ -452,7 +448,7 @@ export class TraceSheet extends BaseElement {
                   z-index: 2;
               }
             </style>
-            <div id="vessel" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
+            <div id="container" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
                         <lit-popover placement="bottomRight" class="popover" haveRadio="true" trigger="click" id="select-process">

@@ -39,7 +39,7 @@ export class SpKeyboard extends BaseElement {
   initHtml(): string {
     return `
             ${this.initHtmlStyle()}
-            <div class="sp-keyboard-vessel">
+            <div class="sp-keyboard-container">
             <div class='shadow-box'></div>
              <div class="body">
               <header style="display">
@@ -156,7 +156,7 @@ export class SpKeyboard extends BaseElement {
               height : 100%;
               background-color: rgba(0, 0, 0, 0.8);
             }
-            .sp-keyboard-vessel {
+            .sp-keyboard-container {
               width: 100%;
               height: 100%;
               display: flex;

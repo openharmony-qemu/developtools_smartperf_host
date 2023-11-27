@@ -42,7 +42,6 @@ export class SelectionParam {
   startup: boolean = false;
   staticInit: boolean = false;
   isRowClick: boolean = false;
-  eventTypeId: string = '';
 
   cpus: Array<number> = [];
   cpuStateRowsId: Array<object> = [];
@@ -134,7 +133,6 @@ export class SelectionData {
   wallDuration: number = 0;
   wallDurationFormat: string = '';
   avgDuration: string = '';
-  maxDuration: string = '';
   occurrences: number = 0;
   state: string = '';
   trackId: number = 0;
@@ -148,13 +146,6 @@ export class SelectionData {
   max: string = '';
   stateJX: string = '';
   cpu: number = 0;
-
-  recordStartNs: number = 0;
-  leftNs: number = 0;
-  rightNs: number = 0;
-  threadIds: Array<number> = [];
-  ts: number = 0;
-  dur: number = 0;
 }
 
 export class Counter {

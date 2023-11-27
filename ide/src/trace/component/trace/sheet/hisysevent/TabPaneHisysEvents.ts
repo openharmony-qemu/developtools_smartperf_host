@@ -312,7 +312,7 @@ export class TabPaneHisysEvents extends BaseElement {
      <lit-slicer-track></lit-slicer-track>
      <div class="detail-box" style="flex-grow: 1;" > 
         <div class="detail-content">
-          <input type="text" id="contents-change" class="change-input" placeholder=" ">
+          <input type="text" id="contents-change" class="change-input" placeholder="base time">
         </div>
         <lit-table id="tb-hisysevent-data" no-head hideDownload>
           <lit-table-column class="sys-detail-column" width="50%" title="key" 
@@ -563,7 +563,7 @@ export class TabPaneHisysEvents extends BaseElement {
       TraceRow.range!.totalNS,
       new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
     );
-    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color,'', true, '');
+    this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, value!, color, true, '');
     this.spSystemTrace?.refreshCanvas(false);
   }
 }

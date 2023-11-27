@@ -57,6 +57,7 @@ HWTEST_F(AnimationFilterTest, NonRsUniProcessEvent, TestSize.Level1)
         "H:ProcessDisplayRenderNode[0](0,",
         "H:RSBaseRenderEngine::RequestFrame(RSSurface)",
         "H:DisplayNode:4",
+        "H:AddContainerDirtyToGlobalDirty",
     };
     for (size_t i = 0; i < nonRsUniProcessEvents.size(); i++) {
         point.funcPrefix_ = nonRsUniProcessEvents[i];

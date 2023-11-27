@@ -21,7 +21,6 @@ import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElem
 import { TraceRow } from '../base/TraceRow.js';
 import { SpApplication } from '../../../SpApplication.js';
 import { Utils } from '../base/Utils.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
 
 export enum StType {
   TEMP, //临时的
@@ -49,7 +48,6 @@ export class SlicesTime {
     startX: number,
     endX: number,
     color: string,
-    text: string,
     selected: boolean = true
   ) {
     this._id = Utils.uuid();
@@ -60,7 +58,6 @@ export class SlicesTime {
     this.color = color;
     this.startX = startX;
     this.endX = endX;
-    this.text = text;
     this.selected = selected;
   }
 
@@ -69,8 +66,7 @@ export class SlicesTime {
   }
 }
 
-const TRIWIDTH: number = 10; // 定义三角形的边长
-const TEXT_FONT: string = '12px Microsoft YaHei' // 文本字体格式
+const TRIWIDTH = 10; // 定义三角形的边长
 export class SportRuler extends Graph {
   static isMouseInSportRuler = false;
   public flagList: Array<Flag> = [];
@@ -364,7 +360,7 @@ export class SportRuler extends Graph {
         } else {
           if (triangle == -1) {
             this.flagList.forEach((it) => (it.selected = false));
-            this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), '' , true, 'triangle'));
+            this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, 'triangle'));
           } else {
             this.flagList.forEach((it) => (it.selected = false));
             this.flagList[triangle].time = time;
@@ -448,7 +444,6 @@ export class SportRuler extends Graph {
         let endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
         let color = randomRgbColor() || '#ff0000';
         this.slicesTime.color = color;
-        let text = '';
         newSlicestime = new SlicesTime(
           this.slicesTime.startTime || 0,
           this.slicesTime.endTime || 0,
@@ -457,7 +452,6 @@ export class SportRuler extends Graph {
           startX,
           endX,
           color,
-          text,
           true
         );
         if (!shiftKey) {
@@ -520,7 +514,7 @@ export class SportRuler extends Graph {
       // 放大、缩小、左右移动之后重置小三角的x轴坐标
       slicesTime.startX = startX;
       slicesTime.endX = endX;
-      // 画外框线---begin-----------------
+
       this.context2D.beginPath();
       this.context2D.strokeStyle = slicesTime.color;
       this.context2D.fillStyle = slicesTime.color;
@@ -538,9 +532,7 @@ export class SportRuler extends Graph {
       this.context2D.closePath();
       slicesTime.selected && this.context2D.fill();
       this.context2D.stroke();
-      // 画外框线---end-----------------
 
-      // 画框选的时间文字---begin-----------------
       this.context2D.beginPath();
       if (document.querySelector<SpApplication>('sp-application')!.dark) {
         this.context2D.strokeStyle = '#FFF';
@@ -572,38 +564,6 @@ export class SportRuler extends Graph {
       }
       this.context2D.stroke();
       this.context2D.closePath();
-      // 画框选的时间文字---end-----------------
-
-      // 画框选的备注文字---begin----------------- 
-      let text = slicesTime.text;
-      if(text){ 
-        this.context2D.beginPath();
-        if (document.querySelector<SpApplication>('sp-application')!.dark) {
-          this.context2D.strokeStyle = '#FFF';
-          this.context2D.fillStyle = '#FFF';
-        } else {
-          this.context2D.strokeStyle = '#000';
-          this.context2D.fillStyle = '#000';
-        }
-      
-        let textWidth = this.context2D.measureText(text).width; 
-        if(textWidth>0){ 
-          this.context2D.fillStyle = 'black'; 
-          this.context2D.font = TEXT_FONT;
-          if (lineWidth > txtWidth) {
-            this.context2D.fillText(`${text}`, startX + (lineWidth - textWidth) / 2, this.frame.y + 43);
-          } else {
-            if (endX + textWidth >= this.frame.width) {
-              this.context2D.fillText(`${text}`, startX - 5 - textWidth, this.frame.y + 43);
-            } else {
-              this.context2D.fillText(`${text}`, endX + 5, this.frame.y + 43);
-            }
-          }
-        }
-        this.context2D.stroke();
-        this.context2D.closePath();
-      }
-      // 画框选的备注文字---end-----------------
     }
   }
 
@@ -631,7 +591,7 @@ export class SportRuler extends Graph {
     isFill && this.context2D.fill();
     this.context2D.stroke();
     if (textStr !== '') {
-      this.context2D.font = TEXT_FONT;
+      this.context2D.font = '10px Microsoft YaHei';
       const { width } = this.context2D.measureText(textStr);
       this.context2D.fillStyle = 'rgba(255, 255, 255, 0.8)'; //
       this.context2D.fillRect(x + 21, 132, width + 4, 12);
@@ -683,7 +643,7 @@ export class SportRuler extends Graph {
           findFlag.selected = true;
         } else {
           let flagAtRulerTime = Math.round(((this.range.endNS - this.range.startNS) * x) / this.rulerW);
-          let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(),'',true, '');
+          let flag = new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true, '');
           this.flagList.push(flag);
         }
         this.flagClickHandler && this.flagClickHandler(this.flagList.find((it) => it.selected)); // 绘制旗子

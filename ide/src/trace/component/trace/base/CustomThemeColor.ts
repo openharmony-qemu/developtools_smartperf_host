@@ -335,7 +335,7 @@ export class CustomThemeColor extends BaseElement {
             color: white;
         }
         </style>
-        <div class="vessel">
+        <div class="container">
          <div class="config-title">
             <span class="title-text">Color Setting</span>
             <lit-icon class="page-close" name="close-light" title="Page Close" color='#fff'></lit-icon>

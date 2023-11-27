@@ -38,7 +38,9 @@ export class TabPaneIrqCounter extends BaseElement {
       let counters = collect.get(key);
       let selectCounterData = this.createSelectCounterData(key, counters);
       sumCount += Number.parseInt(selectCounterData.count || '0');
-      selectCounterData.avgDuration = (selectCounterData.wallDuration / parseInt(selectCounterData.count) / 1000).toFixed(2);
+      selectCounterData.avgDuration = Utils.getProbablyTime(
+        selectCounterData.wallDuration / parseInt(selectCounterData.count)
+      );
       dataSource.push(selectCounterData);
     }
     this.irqCounterSource = dataSource;
@@ -75,11 +77,9 @@ export class TabPaneIrqCounter extends BaseElement {
         <lit-table id="tb-irq-counter" style="height: auto">
             <lit-table-column width="30%" title="Name" data-index="name" key="name"  align="flex-start" order>
             </lit-table-column>
-            <lit-table-column width="1fr" title="Duration(μs)" data-index="wallDurationFormat" key="wallDurationFormat"  align="flex-start" order >
+            <lit-table-column width="1fr" title="Duration" data-index="wallDurationFormat" key="wallDurationFormat"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Duration(μs)" data-index="maxDuration" key="maxDuration"  align="flex-start" order >
-            </lit-table-column>
-            <lit-table-column width="1fr" title="Average Duration(μs)" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
+            <lit-table-column width="1fr" title="Average Duration" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
             </lit-table-column>
             <lit-table-column width="1fr" title="Occurrences" data-index="count" key="count"  align="flex-start" order >
             </lit-table-column>
@@ -95,9 +95,7 @@ export class TabPaneIrqCounter extends BaseElement {
       for (let index = 0; index < list.length; index++) {
         selectData.wallDuration += list[index].dur;
       }
-      list.sort((a, b) => b.dur - a.dur);
-      selectData.maxDuration = (list[0].dur / 1000).toFixed(2);
-      selectData.wallDurationFormat = (selectData.wallDuration / 1000).toFixed(2);
+      selectData.wallDurationFormat = Utils.getProbablyTime(selectData.wallDuration);
     }
     return selectData;
   }

@@ -32,7 +32,6 @@ export class Flag {
     height: number,
     time: number,
     color: string = '#999999',
-    text: string = '',
     selected = false,
     type: string = ''
   ) {
@@ -44,6 +43,5 @@ export class Flag {
     this.color = color;
     this.selected = selected;
     this.type = type;
-    this.text = text;
   }
 }

@@ -136,7 +136,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public sliceCache: number[] = [-1, -1];
   public describeEl: HTMLElement | null | undefined;
   public canvas: Array<HTMLCanvasElement> = [];
-  public canvasVessel: HTMLDivElement | null | undefined;
+  public canvasContainer: HTMLDivElement | null | undefined;
   public tipEL: HTMLDivElement | null | undefined;
   public checkBoxEL: LitCheckBox | null | undefined;
   public collectEL: LitIcon | null | undefined;
@@ -172,7 +172,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   childrenList: Array<TraceRow<any>> = [];
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
-  _docompositionList: Array<number> | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -187,12 +186,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-        canvasNumber: 1,
-        alpha: false,
-        contextId: '2d',
-        isOffScreen: true,
-        skeleton: false,
-      }
+      canvasNumber: 1,
+      alpha: false,
+      contextId: '2d',
+      isOffScreen: true,
+      skeleton: false,
+    }
   ) {
     super();
     this.args = args;
@@ -412,14 +411,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         },
       })
     );
-  }
-
-  get docompositionList(): Array<number> | undefined {
-    return this._docompositionList;
-  }
-
-  set docompositionList(value: Array<number> | undefined) {
-    this._docompositionList = value;
   }
 
   childRowToFragment(expansion: boolean): void {
@@ -650,7 +641,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl = this.shadowRoot?.querySelector('.describe');
     this.folderIconEL = this.shadowRoot?.querySelector<LitIcon>('.icon');
     this.nameEL = this.shadowRoot?.querySelector('.name');
-    this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
+    this.canvasContainer = this.shadowRoot?.querySelector('.panel-container');
     this.rowSettingTree = this.shadowRoot?.querySelector('#rowSettingTree');
     this.rowSettingPop = this.shadowRoot?.querySelector('#rowSetting');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
@@ -660,8 +651,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         let canvas = document.createElement('canvas');
         canvas.className = 'panel';
         this.canvas.push(canvas);
-        if (this.canvasVessel) {
-          this.canvasVessel.appendChild(canvas);
+        if (this.canvasContainer) {
+          this.canvasContainer.appendChild(canvas);
         }
       }
     }
@@ -706,7 +697,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     });
   }
 
-  getRowSettingKeys(): Array<string> {
+  getRowSettingKeys() : Array<string> {
     if (this.rowSetting === 'enable') {
       return this.rowSettingTree!.getCheckdKeys();
     }
@@ -725,7 +716,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart(): void {
+  enableCollapseChart() : void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcExpand) {
@@ -939,7 +930,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
     if (this.tipEL) {
       this.tipEL.style.display = 'flex';
-      if (x + this.tipEL.clientWidth > (this.canvasVessel!.clientWidth || 0)) {
+      if (x + this.tipEL.clientWidth > (this.canvasContainer!.clientWidth || 0)) {
         this.tipEL.style.transform = `translateX(${x - this.tipEL.clientWidth - 1}px)`;
       } else {
         this.tipEL.style.transform = `translateX(${x}px)`;
@@ -1215,7 +1206,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             background-color: transparent;
             display: block;
         }
-        .panel-vessel{
+        .panel-container{
             width: 100%;
             position: relative;
             pointer-events: none;
@@ -1278,7 +1269,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             border-right: 0px;
             background-color: var(--bark-expansion,#0C65D1);
         }
-        :host([expansion]:not(sleeping)) .panel-vessel{
+        :host([expansion]:not(sleeping)) .panel-container{
             display: none;
         }
         :host([expansion]) .children{
@@ -1299,7 +1290,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([sleeping]) .describe{
             display: none;
         }
-        :host([sleeping]) .panel-vessel{
+        :host([sleeping]) .panel-container{
             display: none;
         }
         :host([sleeping]) .children{
@@ -1308,7 +1299,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host(:not([sleeping])) .describe{
             display: flex;;
         }
-        :host(:not([sleeping])) .panel-vessel{
+        :host(:not([sleeping])) .panel-container{
             display: block;
         }
         :host(:not([sleeping])) .children{
