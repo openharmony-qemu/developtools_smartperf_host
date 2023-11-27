@@ -31,6 +31,7 @@ import { TimerShaftElement } from './TimerShaftElement.js';
 import { CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU.js';
 import { WakeupBean } from '../../bean/WakeupBean.js';
 import { LitIcon } from '../../../base-ui/icon/LitIcon.js';
+import { drawVSync } from '../chart/VSync.js';
 
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
@@ -145,7 +146,7 @@ export class SpChartList extends BaseElement {
     return (this.parentElement!.clientHeight - topHeight) * maxScale;
   }
 
-  getCollectRows(filter?: (row: TraceRow<any>) => boolean) : Array<TraceRow<any>> | [] {
+  getCollectRows(filter?: (row: TraceRow<any>) => boolean): Array<TraceRow<any>> | [] {
     if (filter) {
       return [...this.collectRowList1.filter(filter), ...this.collectRowList2.filter(filter)];
     } else {
@@ -153,7 +154,7 @@ export class SpChartList extends BaseElement {
     }
   }
 
-  expandSearchRowGroup(row: TraceRow<any>) : void {
+  expandSearchRowGroup(row: TraceRow<any>): void {
     this.updateGroupDisplay();
     if (row.collectGroup === SpChartList.COLLECT_G1) {
       if (!this.collect1Expand) {
@@ -172,7 +173,7 @@ export class SpChartList extends BaseElement {
     this.resizeHeight();
   }
 
-  getCollectRow(filter: (row: TraceRow<any>) => boolean) : TraceRow<any> | undefined {
+  getCollectRow(filter: (row: TraceRow<any>) => boolean): TraceRow<any> | undefined {
     return this.collectRowList1.find(filter) || this.collectRowList2.find(filter);
   }
 
@@ -214,18 +215,18 @@ export class SpChartList extends BaseElement {
     this.collect2Expand = true;
     this.icon1!.style.transform = 'rotateZ(0deg)';
     this.icon2!.style.transform = 'rotateZ(0deg)';
-    this.collectRowList1.forEach(row => {
+    this.collectRowList1.forEach((row) => {
       row.clearMemory();
     });
-    this.collectRowList2.forEach(row => {
+    this.collectRowList2.forEach((row) => {
       row.clearMemory();
     });
     this.collectRowList1 = [];
     this.collectRowList2 = [];
     this.fragmentGroup1 = document.createDocumentFragment();
     this.fragmentGroup2 = document.createDocumentFragment();
-    this.collectEl1!.innerHTML = ''
-    this.collectEl2!.innerHTML = ''
+    this.collectEl1!.innerHTML = '';
+    this.collectEl2!.innerHTML = '';
     this.updateGroupDisplay();
     this.style.height = 'auto';
   }
@@ -287,7 +288,8 @@ export class SpChartList extends BaseElement {
 
   onMouseMove = (ev: MouseEvent): void => {
     if (this.containPoint(ev)) {
-      let inResizeArea = this.getBoundingClientRect().bottom > ev.pageY - mouseMoveRange &&
+      let inResizeArea =
+        this.getBoundingClientRect().bottom > ev.pageY - mouseMoveRange &&
         this.getBoundingClientRect().bottom < ev.pageY + mouseMoveRange;
       if ((this.isPress && this.canResize) || inResizeArea) {
         this.style.cursor = 'row-resize';
@@ -397,7 +399,7 @@ export class SpChartList extends BaseElement {
     }
   }
 
-  hideCollectArea() : void {
+  hideCollectArea(): void {
     if (this.collect1Expand) {
       this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
     }
@@ -409,7 +411,7 @@ export class SpChartList extends BaseElement {
     this.resizeHeight();
   }
 
-  showCollectArea() : void {
+  showCollectArea(): void {
     if (this.collect1Expand) {
       this.collectEl1?.appendChild(this.fragmentGroup1);
     }
@@ -425,7 +427,7 @@ export class SpChartList extends BaseElement {
     this.groupTitle2!.style.display = this.collectRowList2.length === 0 ? 'none' : 'flex';
   }
 
-  hasCollectRow() : boolean {
+  hasCollectRow(): boolean {
     return this.collectRowList2.length > 0 || this.collectRowList1.length > 0;
   }
 
@@ -497,6 +499,10 @@ export class SpChartList extends BaseElement {
 
   drawLinkLines(nodes: PairPoint[][], tse: TimerShaftElement, isFavorite: boolean, favoriteHeight: number): void {
     drawLinkLines(this.canvasCtx!, nodes, tse, isFavorite, favoriteHeight);
+  }
+
+  drawVSync(width: number, height: number) {
+    drawVSync(this.canvasCtx!, width, height);
   }
 
   refreshFavoriteCanvas(): void {

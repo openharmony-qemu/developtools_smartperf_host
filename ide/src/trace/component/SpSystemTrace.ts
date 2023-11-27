@@ -1795,6 +1795,10 @@ export class SpSystemTrace extends BaseElement {
       );
     }
     drawVSync(this.canvasPanelCtx!, this.timerShaftEL?.canvas?.clientWidth || 0, canvasHeight);
+    this.favoriteChartListEL?.drawVSync(
+      this.timerShaftEL?.canvas?.clientWidth || 0,
+      this.favoriteChartListEL!.clientHeight
+    );
   }
 
   documentOnMouseDown = (ev: MouseEvent) => {
@@ -1932,7 +1936,7 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnKeyDown = (ev: KeyboardEvent) => {
     document.removeEventListener('keyup', this.documentOnKeyUp);
-    this.debounce(this.continueSearch , 250 , ev )(); 
+    this.debounce(this.continueSearch, 250, ev)();
     document.addEventListener('keyup', this.documentOnKeyUp);
   };
 
@@ -2099,7 +2103,7 @@ export class SpSystemTrace extends BaseElement {
   };
 
   // 一直按着回车键的时候执行搜索功能
-  private continueSearch = (ev: KeyboardEvent)=>{ 
+  private continueSearch = (ev: KeyboardEvent) => {
     if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
@@ -2116,18 +2120,20 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       }
-    }   
-  }
+    }
+  };
 
   documentOnKeyUp = (ev: KeyboardEvent) => {
-    if(this.times.size > 0){ 
-		  for(let timerId of this.times){
-			clearTimeout(timerId);
-		  } 
-		}
+    if (this.times.size > 0) {
+      for (let timerId of this.times) {
+        clearTimeout(timerId);
+      }
+    }
 
-    if(ev.key.toLocaleLowerCase() === '?'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
+    if (ev.key.toLocaleLowerCase() === '?') {
+      document
+        .querySelector('body > sp-application')!
+        .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
@@ -2139,7 +2145,7 @@ export class SpSystemTrace extends BaseElement {
     this.observerScrollHeightEnable = false;
     this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
     if (ev.code === 'Enter') {
-      document.removeEventListener('keydown', this.documentOnKeyDown); 
+      document.removeEventListener('keydown', this.documentOnKeyDown);
       if (ev.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
@@ -2155,7 +2161,7 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       }
-      document.addEventListener('keydown', this.documentOnKeyDown); 
+      document.addEventListener('keydown', this.documentOnKeyDown);
     }
 
     if (ev.ctrlKey) {
@@ -3705,7 +3711,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('mouseup', this.documentOnMouseUp);
     this.addEventListener('mouseout', this.documentOnMouseOut);
 
-    document.addEventListener('keydown', this.documentOnKeyDown );
+    document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
@@ -4394,7 +4400,7 @@ export class SpSystemTrace extends BaseElement {
     this.traceSheetEL?.setAttribute('mode', 'hidden');
     progress && progress('rest timershaft', 8);
     this.timerShaftEL?.reset();
-  progress && progress('clear cache', 10);
+    progress && progress('clear cache', 10);
     HeapDataInterface.getInstance().clearData();
     procedurePool.clearCache();
     Utils.clearData();

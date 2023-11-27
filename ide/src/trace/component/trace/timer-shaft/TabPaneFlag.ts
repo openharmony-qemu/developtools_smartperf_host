@@ -133,11 +133,11 @@ export class TabPaneFlag extends BaseElement {
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
     tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
-      this.systemTrace!.slicesList = [];
-      let slicesTimeList = [...this.flagList];
-      for (let i = 0; i < slicesTimeList.length; i++) {
-        slicesTimeList[i].hidden = true;
-        document.dispatchEvent(new CustomEvent('slices-change', { detail: slicesTimeList[i] }));
+      this.systemTrace!.flagList = [];
+      let flagList = [...this.flagList];
+      for (let i = 0; i < flagList.length; i++) {
+        flagList[i].hidden = true;
+        document.dispatchEvent(new CustomEvent('flag-change', { detail: flagList[i] }));
       }
       this.flagList = [];
       return;
