@@ -514,7 +514,6 @@ export class SpApplication extends BaseElement {
                              <use id="use" xlink:href="./base-ui/icon.svg#icon-menu"></use>
                         </svg>
                     </div>
-                    <img class="import-key-path" title="Import Key Path" src="img/menu-cut.svg" style="display: block;text-align: right;position: absolute;left: 1.2em; cursor: pointer;top: 20px">
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
                     <div class="long_trace_page" style="display: none;">

@@ -134,6 +134,8 @@ export class SelectionData {
   wallDuration: number = 0;
   wallDurationFormat: string = '';
   avgDuration: string = '';
+  maxDuration: number = 0;
+  maxDurationFormat: string = '';
   occurrences: number = 0;
   state: string = '';
   trackId: number = 0;

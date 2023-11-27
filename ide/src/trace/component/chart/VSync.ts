@@ -12,19 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { query } from '../../database/SqlLite.js';
 import { TraceRow } from '../trace/base/TraceRow.js';
-
 interface VSyncData {
   startTime: number;
   dur: number;
   value?: number;
 }
 
-export let vSyncDataList: VSyncData[] = [];
-let enable = false;
+let vSyncDataList: VSyncData[] = [];
+let vSyncEnable = false;
 let isSingle = false;
+
+export function setVSyncDisable(): void{
+  vSyncEnable = false;
+}
 
 export const querySfVSyncData = (): Promise<Array<VSyncData>> =>
   query(
@@ -44,6 +46,7 @@ export const querySfVSyncData = (): Promise<Array<VSyncData>> =>
                                `'` + String.fromCharCode(86, 83, 89, 78, 67, 45, 97, 112, 112) + `'`
                              })`
   );
+
 export const querySingleVSyncData = (): Promise<Array<VSyncData>> =>
   query(
     'querySingleVSyncData',
@@ -60,7 +63,7 @@ export const querySingleVSyncData = (): Promise<Array<VSyncData>> =>
 /**
  * load single vsync data
  */
-export async function setVSyncData() {
+export async function setVSyncData(): Promise<void> {
   let sfvSyncData = await querySfVSyncData();
   if (sfvSyncData.length === 0) {
     sfvSyncData = await querySingleVSyncData();
@@ -80,29 +83,27 @@ export async function setVSyncData() {
  * draw chart
  */
 export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: number): void {
-  if (!enable) {
+  if (!vSyncEnable) {
     return;
   }
-  function draw(it: VSyncData) {
+  function draw(it: VSyncData): void {
     let x = ns2x(it.startTime, width);
     let x2 = ns2x(it.startTime + it.dur, width);
     ctx.fillRect(x, 0, x2 - x, height);
   }
   ctx.beginPath();
+  ctx.fillStyle = '#999999';
   ctx.lineWidth = 1;
   ctx.globalAlpha = 0.5;
   if (isSingle) {
     // 单框架灰白交替
     for (let i = 0; i < vSyncDataList.length; i++) {
-      if (i % 2 === 0) {
-        ctx.fillStyle = '#ffffff';
-      } else {
-        ctx.fillStyle = '#999999';
+      if (i % 2 === 1) {
+        continue;
       }
       draw(vSyncDataList[i]);
     }
   } else {
-    ctx.fillStyle = '#999999';
     // 双框架绘制vSync 信号为1的数据为灰
     vSyncDataList
       ?.filter((it) => it.value === 1)
@@ -110,7 +111,6 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
         draw(it);
       });
   }
-
   ctx.stroke();
   ctx.closePath();
 }
@@ -120,7 +120,7 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
  */
 export function enableVSync(press: boolean, key: string, handler?: Function): void {
   if (key.toLocaleLowerCase() === 'v') {
-    enable = !enable;
+    vSyncEnable = !vSyncEnable;
     handler?.();
   }
 }

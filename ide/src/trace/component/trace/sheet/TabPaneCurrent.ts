@@ -19,6 +19,7 @@ import { MarkStruct } from '../../../bean/MarkStruct.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
 import { ns2s } from '../TimerShaftElement.js';
 import { SlicesTime, StType } from '../timer-shaft/SportRuler.js';
+import { getTimeString } from './TabPaneCurrentSelection.js';
 
 @element('tabpane-current')
 export class TabPaneCurrent extends BaseElement {
@@ -142,9 +143,9 @@ export class TabPaneCurrent extends BaseElement {
         btn,
         color,
         text,
-        ns2s(slice.startTime),
+        getTimeString(slice.startTime),
         slice.startTime,
-        ns2s(slice.endTime),
+        getTimeString(slice.endTime),
         slice.endTime
       );
       color!.value = slice.color;
@@ -311,11 +312,11 @@ export class TabPaneCurrent extends BaseElement {
         }
         </style>
         <lit-table class="notes-editor-panel" style="height: auto">
-            <lit-table-column width="10%" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="StartTime">
+            <lit-table-column width="15%" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="StartTime">
             </lit-table-column>
-            <lit-table-column width="10%" data-index="endTimeStr" key="endTimeStr" align="flex-start" title="EndTime">
+            <lit-table-column width="15%" data-index="endTimeStr" key="endTimeStr" align="flex-start" title="EndTime">
             </lit-table-column>
-            <lit-table-column width="20%" data-index="color" key="color" align="flex-start" title="Color">
+            <lit-table-column width="10%" data-index="color" key="color" align="flex-start" title="Color">
                 <template>
                     <div style='width:50px; height: 21px; position: relative;overflow: hidden;'>
                         <input type="color" id="color-input" style='

@@ -19,6 +19,7 @@ import { ns2x, TimerShaftElement } from '../TimerShaftElement.js';
 import { info } from '../../../../log/Log.js';
 import './Extension.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
+import { querySearchRowFuncData } from '../../../database/SqlLite.js';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
@@ -79,6 +80,27 @@ export class RangeSelect {
       if (this.selectHandler) {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }
+      //如果只框选了一条泳道，查询H:RSMainThread::DoComposition数据
+      let docompositionData: Array<number> = [];
+      if (this.rangeTraceRow) {
+        this.rangeTraceRow.forEach((row) => {
+          row.docompositionList = [];
+        });
+        docompositionData = [];
+        if (this.rangeTraceRow.length === 1 && this.rangeTraceRow[0]?.getAttribute('row-type') === 'func') {
+          querySearchRowFuncData(
+            'H:RSMainThread::DoComposition',
+            Number(this.rangeTraceRow[0]?.getAttribute('row-id')),
+            TraceRow.rangeSelectObject!.startNS!,
+            TraceRow.rangeSelectObject!.endNS!
+          ).then((res) => {
+            res.forEach((item) => {
+              docompositionData.push(item.startTime!);
+            });
+            this.rangeTraceRow![0].docompositionList = docompositionData;
+          });
+        }
+      }
     }
     this.isMouseDown = false;
   }
@@ -114,7 +136,6 @@ export class RangeSelect {
   }
 
   mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent) {
-    
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
     if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {
@@ -216,6 +237,11 @@ export class RangeSelect {
         return false;
       }
     });
+    if (this.rangeTraceRow && this.rangeTraceRow.length) {
+      this.rangeTraceRow!.forEach((row) => {
+        row.docompositionList = [];
+      });
+    }
     this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.length > 0;
     this.timerShaftEL!.sportRuler!.draw();
   }

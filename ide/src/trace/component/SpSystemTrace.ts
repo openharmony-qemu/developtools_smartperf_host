@@ -106,7 +106,7 @@ import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPe
 import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon.js';
 import { type SpKeyboard } from '../component/SpKeyboard.js';
-import { drawVSync, enableVSync } from './chart/SingleVSync.js';
+import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync.js';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -148,6 +148,7 @@ export class SpSystemTrace extends BaseElement {
   static SDK_CONFIG_MAP: any;
   static sliceRangeMark: any;
   static wakeupList: Array<WakeupBean> = [];
+  times: Set<number> = new Set<number>();
   currentSlicesTime: CurrentSlicesTime = new CurrentSlicesTime();
   intersectionObserver: IntersectionObserver | undefined;
   tipEL: HTMLDivElement | undefined | null;
@@ -210,6 +211,43 @@ export class SpSystemTrace extends BaseElement {
 
   set flagList(list: Array<any>) {
     this._flagList = list;
+  }
+
+  //节流处理
+  throttle(fn: Function, t: number, ev?: any): Function {
+    let timerId: any = null;
+    return () => {
+      if (!timerId) {
+        timerId = setTimeout(function () {
+          if (ev) {
+            fn(ev);
+          } else {
+            fn();
+          }
+          timerId = null;
+        }, t);
+        this.times.add(timerId);
+      }
+    };
+  }
+  // 防抖处理
+  debounce(fn: Function, ms: number, ev?: any): Function {
+    let timerId: undefined | number;
+    return () => {
+      if (timerId) {
+        window.clearTimeout(timerId);
+      } else {
+        timerId = window.setTimeout(() => {
+          if (ev) {
+            fn(ev);
+          } else {
+            fn();
+          }
+          timerId = undefined;
+        }, ms);
+        this.times.add(timerId);
+      }
+    };
   }
 
   addPointPair(startPoint: PairPoint, endPoint: PairPoint) {
@@ -324,7 +362,7 @@ export class SpSystemTrace extends BaseElement {
         }
         cpuFavoriteRow!.setAttribute('collect-type', '');
         let replaceRow = document.createElement('div');
-        replaceRow.setAttribute('row-id', `${cpuFavoriteRow.rowId  }-${  cpuFavoriteRow.rowType}`);
+        replaceRow.setAttribute('row-id', `${cpuFavoriteRow.rowId}-${cpuFavoriteRow.rowType}`);
         replaceRow.setAttribute('type', 'replaceRow');
         replaceRow.setAttribute('row-parent-id', cpuFavoriteRow.rowParentId);
         replaceRow.style.display = 'none';
@@ -1766,13 +1804,16 @@ export class SpSystemTrace extends BaseElement {
       ev.stopPropagation();
       return;
     }
-    this.isMouseLeftDown = true;
-    if (ev.ctrlKey) {
-      ev.preventDefault();
-      this.style.cursor = 'move';
-      this.mouseCurrentPosition = ev.clientX;
-      return;
+    if (ev.button === 0) {
+      this.isMouseLeftDown = true;
+      if (ev.ctrlKey) {
+        ev.preventDefault();
+        this.style.cursor = 'move';
+        this.mouseCurrentPosition = ev.clientX;
+        return;
+      }
     }
+
     TraceRow.isUserInteraction = true;
     if (this.isMouseInSheet(ev)) return;
     this.observerScrollHeightEnable = false;
@@ -1873,6 +1914,7 @@ export class SpSystemTrace extends BaseElement {
   documentOnMouseOut = (ev: MouseEvent) => {
     if (!this.loadTraceCompleted) return;
     TraceRow.isUserInteraction = false;
+    this.isMouseLeftDown = false;
     if (this.isMouseInSheet(ev)) return;
     if (ev.offsetX > this.timerShaftEL!.canvas!.offsetLeft) {
       this.rangeSelect.mouseOut(ev);
@@ -1887,6 +1929,13 @@ export class SpSystemTrace extends BaseElement {
     ['d', false],
     ['f', false],
   ]);
+
+  documentOnKeyDown = (ev: KeyboardEvent) => {
+    document.removeEventListener('keyup', this.documentOnKeyUp);
+    this.debounce(this.continueSearch , 250 , ev )(); 
+    document.addEventListener('keyup', this.documentOnKeyUp);
+  };
+
   documentOnKeyPress = (ev: KeyboardEvent) => {
     if (!this.loadTraceCompleted) return;
     let keyPress = ev.key.toLocaleLowerCase();
@@ -2049,24 +2098,9 @@ export class SpSystemTrace extends BaseElement {
     }, 100);
   };
 
-  documentOnKeyUp = (ev: KeyboardEvent) => {
-    if(ev.key.toLocaleLowerCase() === '?'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
-    }
-    if(ev.key.toLocaleLowerCase() === 'escape'){
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
-      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-welcome')!.style.visibility = 'visible';
-    }
-    if (!this.loadTraceCompleted) return;
-    let keyPress = ev.key.toLocaleLowerCase();
-    enableVSync(false, keyPress, () => this.refreshCanvas(true));
-    if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
-      this.keyPressMap.set(keyPress, false);
-    }
-    TraceRow.isUserInteraction = false;
-    this.observerScrollHeightEnable = false;
-    this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
-    if (ev.code == 'Enter') {
+  // 一直按着回车键的时候执行搜索功能
+  private continueSearch = (ev: KeyboardEvent)=>{ 
+    if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
           new CustomEvent('previous-data', {
@@ -2082,6 +2116,46 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       }
+    }   
+  }
+
+  documentOnKeyUp = (ev: KeyboardEvent) => {
+    if(this.times.size > 0){ 
+		  for(let timerId of this.times){
+			clearTimeout(timerId);
+		  } 
+		}
+
+    if(ev.key.toLocaleLowerCase() === '?'){
+      document.querySelector('body > sp-application')!.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
+    }
+    if (!this.loadTraceCompleted) return;
+    let keyPress = ev.key.toLocaleLowerCase();
+    enableVSync(false, keyPress, () => this.refreshCanvas(true));
+    if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
+      this.keyPressMap.set(keyPress, false);
+    }
+    TraceRow.isUserInteraction = false;
+    this.observerScrollHeightEnable = false;
+    this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
+    if (ev.code === 'Enter') {
+      document.removeEventListener('keydown', this.documentOnKeyDown); 
+      if (ev.shiftKey) {
+        this.dispatchEvent(
+          new CustomEvent('previous-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      } else {
+        this.dispatchEvent(
+          new CustomEvent('next-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      }
+      document.addEventListener('keydown', this.documentOnKeyDown); 
     }
 
     if (ev.ctrlKey) {
@@ -3631,6 +3705,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('mouseup', this.documentOnMouseUp);
     this.addEventListener('mouseout', this.documentOnMouseOut);
 
+    document.addEventListener('keydown', this.documentOnKeyDown );
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
@@ -3804,6 +3879,7 @@ export class SpSystemTrace extends BaseElement {
     this.removeEventListener('mouseup', this.documentOnMouseUp);
     this.removeEventListener('mouseout', this.documentOnMouseOut);
     document.removeEventListener('keypress', this.documentOnKeyPress);
+    document.removeEventListener('keydown', this.documentOnKeyDown);
     document.removeEventListener('keyup', this.documentOnKeyUp);
     document.removeEventListener('contextmenu', this.onContextMenuHandler);
     window.unsubscribe(window.SmartEvent.UI.SliceMark, this.sliceMarkEventHandler.bind(this));
@@ -4318,13 +4394,15 @@ export class SpSystemTrace extends BaseElement {
     this.traceSheetEL?.setAttribute('mode', 'hidden');
     progress && progress('rest timershaft', 8);
     this.timerShaftEL?.reset();
-    progress && progress('clear cache', 10);
+  progress && progress('clear cache', 10);
     HeapDataInterface.getInstance().clearData();
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
     procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
+    this.times.clear();
+    setVSyncDisable();
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {

@@ -18,6 +18,7 @@ import { LitTable } from '../../../../base-ui/table/lit-table.js';
 import { MarkStruct } from '../../../bean/MarkStruct.js';
 import { SpSystemTrace } from '../../SpSystemTrace.js';
 import { ns2s } from '../TimerShaftElement.js';
+import { getTimeString } from '../sheet/TabPaneCurrentSelection.js';
 import { Flag } from './Flag.js';
 
 @element('tabpane-flag')
@@ -34,6 +35,9 @@ export class TabPaneFlag extends BaseElement {
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
     this.panelTable!.addEventListener('row-click', (evt: any) => {
+      if (evt.detail.data.startTime === undefined) {
+        return;
+      }
       this.flagList = this.systemTrace?.timerShaftEL!.sportRuler?.flagList || [];
       // 点击表格某一行后，背景变色
       // @ts-ignore
@@ -49,21 +53,14 @@ export class TabPaneFlag extends BaseElement {
         }
         this.systemTrace?.timerShaftEL!.sportRuler!.drawTriangle(flag.time, flag.type);
       });
-      // 如果点击RemoveAll，隐藏所有旗子，清空数组，隐藏tab页
-      if (data.operate.innerHTML === 'RemoveAll') {
-        this.systemTrace!.flagList = [];
-        let flagList = [...this.flagList];
-        for (let i = 0; i < flagList.length; i++) {
-          flagList[i].hidden = true;
-          document.dispatchEvent(new CustomEvent('flag-change', { detail: flagList[i] }));
-        }
-        this.flagList = [];
-      }
     });
     // 当鼠标移出panel时重新加载备注信息
     this.systemTrace?.shadowRoot?.querySelector('trace-sheet')?.addEventListener(
       'mouseout',
       (event: any) => {
+        if (this.flagList.length === 0) {
+          return;
+        }
         let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
         //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicestimeList数组的第一个对应……，所以i从1开始，在this.slicestimeList数组中取值时用i-1
         for (let i = 1; i < tr.length; i++) {
@@ -106,7 +103,8 @@ export class TabPaneFlag extends BaseElement {
       let text = document.createElement('input');
       text.type = 'text';
       color!.value = flag.color;
-      let flagData = new MarkStruct(btn, color, text, ns2s(flag.time), flag.time);
+      text!.value = flag.text;
+      let flagData = new MarkStruct(btn, color, text, getTimeString(flag.time), flag.time);
       flag.selected === true ? (flagData.isSelected = true) : (flagData.isSelected = false);
       this.systemTrace?.timerShaftEL!.sportRuler!.drawTriangle(flag.time, flag.type);
       this.tableDataSource.push(flagData);
@@ -133,9 +131,23 @@ export class TabPaneFlag extends BaseElement {
    * 修改旗子颜色事件和移除旗子的事件处理
    */
   private eventHandler(): void {
+    let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+    tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
+      this.systemTrace!.slicesList = [];
+      let slicesTimeList = [...this.flagList];
+      for (let i = 0; i < slicesTimeList.length; i++) {
+        slicesTimeList[i].hidden = true;
+        document.dispatchEvent(new CustomEvent('slices-change', { detail: slicesTimeList[i] }));
+      }
+      this.flagList = [];
+      return;
+    });
+
     // 更新备注信息
     this.panelTable!.addEventListener('click', (event: any) => {
-      let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+      if (this.flagList.length === 0) {
+        return;
+      }
       for (let i = 1; i < tr.length; i++) {
         let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
         if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
@@ -147,7 +159,7 @@ export class TabPaneFlag extends BaseElement {
       }
       event.stopPropagation();
     });
-    let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+
     //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
     for (let i = 1; i < tr.length; i++) {
       tr[i].querySelector<HTMLInputElement>('#color-input')!.value = this.flagList[i - 1].color;
@@ -232,9 +244,9 @@ export class TabPaneFlag extends BaseElement {
         }
         </style>
         <lit-table class="notes-editor-panel" style="height: auto">
-            <lit-table-column width="1fr" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="TimeStamp">
+            <lit-table-column width="20%" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="TimeStamp">
             </lit-table-column>
-            <lit-table-column width="1fr" data-index="color" key="color" align="flex-start" title="Color">
+            <lit-table-column width="10%" data-index="color" key="color" align="flex-start" title="Color">
                 <template>
                     <div style='width:50px; height: 21px; position: relative;overflow: hidden;'>
                         <input type="color" id="color-input" style='
@@ -249,7 +261,12 @@ export class TabPaneFlag extends BaseElement {
                     </div>
                 </template>
             </lit-table-column>
-            <lit-table-column width="1fr" data-index="operate" key="operate" align="flex-start" title="Operate">
+            <lit-table-column width="40%" data-index="text" key="text" align="flex-start" title="Remarks">
+              <template>
+                  <input type="text" id="text-input"  style="width: 100%; border: none" /> 
+              </template>
+            </lit-table-column>
+            <lit-table-column width="10%" data-index="operate" key="operate" align="flex-start" title="Operate">
                 <template>
                     <button class="remove" style='
                         background: var(--dark-border1,#262f3c);

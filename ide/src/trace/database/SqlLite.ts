@@ -723,48 +723,53 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) =>
-  query<Counter>(
-    'getTabCounters',
-    `
-    select
-      t1.filter_id as trackId,
-      t2.name,
-      value,
-      t1.ts - t3.start_ts as startTime
-    from
-      process_measure t1
-    left join
-      process_measure_filter t2
-    on
-      t1.filter_id = t2.id
-    left join
-      trace_range t3
-    where
-      filter_id in (${processFilterIds.join(',')})
-    and
-      startTime <= $startTime
-union
- select
-      t1.filter_id as trackId,
-      t2.name,
-      value,
-      t1.ts - t3.start_ts as startTime
-    from
-      sys_mem_measure t1
-    left join
-      sys_event_filter t2
-    on
-      t1.filter_id = t2.id
-    left join
-      trace_range t3
-    where
-      filter_id in (${virtualFilterIds.join(',')})
-    and
-      startTime <= $startTime
-    `,
-    { $startTime: startTime }
-  );
+  export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
+    let processSql = `select
+        t1.filter_id as trackId,
+        t2.name,
+        value,
+        t1.ts - t3.start_ts as startTime
+      from
+        process_measure t1
+      left join
+        process_measure_filter t2
+      on
+        t1.filter_id = t2.id
+      left join
+        trace_range t3
+      where
+        filter_id in (${processFilterIds.join(',')})
+      and
+        startTime <= ${startTime}` ;
+    let virtualSql = `select
+        t1.filter_id as trackId,
+        t2.name,
+        value,
+        t1.ts - t3.start_ts as startTime
+      from
+        sys_mem_measure t1
+      left join
+        sys_event_filter t2
+      on
+        t1.filter_id = t2.id
+      left join
+        trace_range t3
+      where
+        filter_id in (${virtualFilterIds.join(',')})
+      and
+        startTime <= ${startTime}`;
+    let sql = '';
+    if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
+      sql = `${processSql} union ${virtualSql}`;
+    } else {
+      if (processFilterIds.length > 0) {
+        sql = processSql;
+      } else {
+        sql = virtualSql;
+      }
+    }
+    return query<Counter>('getTabCounters', sql, {});
+  }
 
 export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
   query<Counter>(
@@ -5745,3 +5750,40 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         LEFT JOIN data_dict AS D2 on S.domain_id = D2.id
         ORDER BY S.ts`
   );
+
+  export const querySearchRowFuncData = (
+    funcName: string,
+    tIds: number,
+    leftNS: number,
+    rightNS: number
+  ): Promise<Array<SearchFuncBean>> =>
+    query(
+      'querySearchRowFuncData',
+      `
+          select 
+            c.name as funName,
+            c.ts - r.start_ts as startTime,
+            t.tid,
+            t.name as threadName,
+            'func' as type 
+          from 
+            callstack c 
+          left join 
+            thread t 
+          on 
+            c.callid = t.id 
+          left join 
+            process p 
+          on 
+            t.ipid = p.id
+          left join 
+            trace_range r
+          where 
+            c.name like '${funcName}' 
+          and 
+            t.tid = ${tIds} 
+          and
+            not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+      `,
+      { $search: funcName }
+    );

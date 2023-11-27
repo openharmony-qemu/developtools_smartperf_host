@@ -172,6 +172,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   childrenList: Array<TraceRow<any>> = [];
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
+  _docompositionList: Array<number> | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -232,6 +233,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-list',
       'row-setting-popover-direction',
     ];
+  }
+  get docompositionList(): Array<number> | undefined {
+    return this._docompositionList;
+  }
+
+  set docompositionList(value: Array<number> | undefined) {
+    this._docompositionList = value;
   }
 
   get funcExpand(): boolean {
