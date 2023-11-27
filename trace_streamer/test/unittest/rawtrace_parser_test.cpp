@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "export_test.h"
 #include "file.h"
 #include "rawtrace_parser.h"
 #include "parser/common_types.h"
@@ -32,7 +33,7 @@ using namespace SysTuning::base;
 
 namespace SysTuning {
 namespace TraceStreamer {
-extern bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath);
+bool ParseTraceFile(TraceStreamerSelector& ts, const std::string& tracePath);
 
 constexpr uint64_t PRINTK_VALID_ADDR = 0xffffffc011bdd3ea;
 class RawTraceParserTest : public ::testing::Test {

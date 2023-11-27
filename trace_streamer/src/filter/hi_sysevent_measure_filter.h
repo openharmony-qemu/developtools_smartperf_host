@@ -42,6 +42,23 @@ typedef struct {
 
 enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
 
+struct JsonMessage {
+    DataIndex domainId = INVALID_DATAINDEX;
+    DataIndex eventNameId = INVALID_DATAINDEX;
+    uint64_t timeStamp = INVALID_UINT64;
+    uint32_t type = INVALID_UINT32;
+    std::string timeZone = "";
+    uint32_t pid = INVALID_UINT32;
+    uint32_t tid = INVALID_UINT32;
+    uint32_t uid = INVALID_UINT32;
+    std::string level = "";
+    std::string tag = "";
+    std::string eventId = "";
+    uint64_t seq = INVALID_UINT64;
+    std::string info = "";
+    json content;
+};
+
 class HiSysEventMeasureFilter : private FilterBase, public HtracePluginTimeParser {
 public:
     HiSysEventMeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);

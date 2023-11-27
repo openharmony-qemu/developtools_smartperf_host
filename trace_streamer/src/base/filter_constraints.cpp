@@ -68,7 +68,8 @@ void FilterConstraints::GetColAndOp(const char** p, char** pNext, int32_t& col, 
 {
     *p = *pNext;
     errno = 0;
-    col = static_cast<int32_t>(strtol(*p, pNext, 10));
+    const uint32_t INTEGER_RADIX_TYPE_DEC = 10;
+    col = static_cast<int32_t>(strtol(*p, pNext, INTEGER_RADIX_TYPE_DEC));
     if (errno != 0) {
         TS_LOGW("strtol failed!");
         return;
@@ -76,7 +77,7 @@ void FilterConstraints::GetColAndOp(const char** p, char** pNext, int32_t& col, 
     TS_ASSERT(*p != *pNext);
     *p = *pNext;
     errno = 0;
-    op = static_cast<unsigned char>(strtol(*p, pNext, 10));
+    op = static_cast<unsigned char>(strtol(*p, pNext, INTEGER_RADIX_TYPE_DEC));
     if (errno != 0) {
         TS_LOGW("strtol failed!");
         return;

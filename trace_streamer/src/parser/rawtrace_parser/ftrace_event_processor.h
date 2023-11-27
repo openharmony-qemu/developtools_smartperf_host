@@ -21,6 +21,8 @@
 #include "trace_plugin_result.pb.h"
 #include "trace_streamer_config.h"
 
+#define HM_EVENT_ID_OFFSET 32768
+
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceCfg;

@@ -75,11 +75,11 @@ struct ProfilerPluginDataHeader {
         CLOCKID_PROCESS_CPUTIME_ID, // since Linux 2.6.12
         CLOCKID_THREAD_CPUTIME_ID   // since Linux 2.6.12
     };
-    ClockId clock_id;
-    uint64_t tv_sec;
-    uint64_t tv_nsec;
-    uint8_t* version;         // "1.01"
-    uint32_t sample_interval; // Polling plugin collection interval(ms)
+    ClockId clockId;
+    uint64_t tvSec;
+    uint64_t tvNsec;
+    uint8_t* version;        // "1.01"
+    uint32_t sampleInterval; // Polling plugin collection interval(ms)
 };
 const std::string EBPF_PLUGIN_NAME = "hiebpf-plugin";
 } // namespace TraceStreamer

@@ -335,9 +335,9 @@ void HtraceJSMemoryParser::SerializeToString(const ProfilerPluginDataHeader& pro
     ArkTSResult jsHeapResult;
     profilerPluginDataResult.set_name("arkts-plugin");
     profilerPluginDataResult.set_status(profilerPluginData.status);
-    profilerPluginDataResult.set_clock_id(::ProfilerPluginData_ClockId(profilerPluginData.clock_id));
+    profilerPluginDataResult.set_clock_id(::ProfilerPluginData_ClockId(profilerPluginData.clockId));
     profilerPluginDataResult.set_version("1.01");
-    profilerPluginDataResult.set_sample_interval(profilerPluginData.sample_interval);
+    profilerPluginDataResult.set_sample_interval(profilerPluginData.sampleInterval);
     if (!jsMemorySplitFileData_.size() && !cpuProfilerSplitFileData_.size()) {
         return;
     }

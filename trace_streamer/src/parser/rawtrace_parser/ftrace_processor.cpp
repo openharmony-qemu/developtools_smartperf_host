@@ -120,9 +120,10 @@ bool FtraceProcessor::HandleHeaderPageFormat(const std::string& formatInfo)
 int FtraceProcessor::HeaderPageCommitSize(void)
 {
     // return the size value (8B on 64bit device, 4B on 32bit device) of commit field read from events/header_page
+    const uint16_t DEFAULT_SIZE = 8;
     if (pageHeaderFormat_.commit.size == 0) {
         TS_LOGW("haven't header_page infos, set defalut size is 8B");
-        pageHeaderFormat_.commit.size = 8;
+        pageHeaderFormat_.commit.size = DEFAULT_SIZE;
     }
     return pageHeaderFormat_.commit.size;
 }
@@ -150,6 +151,15 @@ bool FtraceProcessor::HandleEventFormat(const std::string& formatInfo, EventForm
     TS_CHECK_TRUE(format.fields.size() > 0, false, "HandleEventFormat from %s failed!", formatInfo.c_str());
     auto lastFiledIndex = format.fields.size() - 1;
     format.eventSize = format.fields[lastFiledIndex].offset + format.fields[lastFiledIndex].size;
+    if (format.eventId >= HM_EVENT_ID_OFFSET) {
+        for (auto &fmt: format.commonFields) {
+            fmt.offset += offsetof(struct HmTraceHeader, commonType);
+        }
+        for (auto &fmt: format.fields) {
+            fmt.offset += offsetof(struct HmTraceHeader, commonType);
+        }
+        format.eventSize += offsetof(struct HmTraceHeader, commonType);
+    }
     return true;
 }
 
@@ -627,6 +637,66 @@ bool FtraceProcessor::HandlePage(FtraceCpuDetailMsg& cpuMsg,
         }
         TS_LOGD("parsed %ld bytes of page data.", static_cast<long>(curPos_ - curPage_));
     }
+    return true;
+}
+
+static inline int RmqEntryTotalSize(unsigned int size)
+{
+    return sizeof(struct RmqEntry) + ((size + RMQ_ENTRY_ALIGN_MASK) & (~RMQ_ENTRY_ALIGN_MASK));
+}
+
+bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
+    CpuDetailParser& cpuDetailParser, uint8_t* &data)
+{
+    struct RmqConsumerData *rmqData = (struct RmqConsumerData *)data;
+    uint64_t timeStampBase = rmqData->timeStamp;
+    struct RmqEntry *event;
+    struct HmTraceHeader *header;
+    unsigned int evtSize;
+    unsigned int eventId;
+    EventFormat format = {};
+    int num = 0;
+
+    cpuMsg.set_cpu(rmqData->coreId);
+    cpuMsg.set_overwrite(0);
+
+    auto curPtr = rmqData->data;
+    auto endPtr = rmqData->data + rmqData->length;
+    while (curPtr < endPtr) {
+        event = (struct RmqEntry *)curPtr;
+        evtSize = event->size;
+        if (evtSize == 0U) {
+            break;
+        }
+
+        header = (struct HmTraceHeader *)event->data;
+        eventId = header->commonType;
+        if (!GetEventFormatById(eventId, format)) {
+            curPtr += RmqEntryTotalSize(evtSize);
+            TS_LOGD("mark.debug. evtId = %u evtSize = %u", eventId, evtSize);
+            continue;
+        }
+        if (FtraceEventProcessor::GetInstance().IsSupported(format.eventId)) {
+            std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
+            ftraceEvent->set_timestamp(event->timeStampOffset + timeStampBase);
+            ftraceEvent->set_tgid(header->tgid);
+            ftraceEvent->set_comm(header->tcbName);
+            HandleFtraceEvent(*ftraceEvent, (uint8_t *)header, evtSize, format);
+            std::unique_ptr<RawTraceEventInfo> eventInfo = std::make_unique<RawTraceEventInfo>();
+            eventInfo->cpuId = cpuMsg.cpu();
+            eventInfo->eventId = eventId;
+            eventInfo->msgPtr = std::move(ftraceEvent);
+            cpuDetailParser.EventAppend(std::move(eventInfo));
+            num++;
+        } else {
+            TS_LOGD("mark.debug. evtId = %u evtSize = %u format.eventId = %u format.evtSize = %u"
+            "format.eventName = %s format.eventType = %s", eventId, evtSize, format.eventId, format.eventSize,
+            format.eventName.c_str(), format.eventType.c_str());
+        }
+        curPtr += RmqEntryTotalSize(evtSize);
+    }
+
+    data += FTRACE_PAGE_SIZE;
     return true;
 }
 

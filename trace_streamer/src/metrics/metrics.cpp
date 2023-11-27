@@ -56,14 +56,18 @@ void Metrics::ParserJson(const std::string& metrics, std::string& result)
 void Metrics::InitMemoryStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
+    const uint32_t TYPE_INFO_ITEM_MAX = 0;
+    const uint32_t TYPE_INFO_ITEM_MIN = 1;
+    const uint32_t TYPE_INFO_ITEM_AVG = 2;
+    const uint32_t PROCESS_METRICES_ITEMS_NAME = 4;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         TypeInfoItem typeInfoItem;
-        typeInfoItem.max = jMessage.at("values")[i].at(0);
-        typeInfoItem.min = jMessage.at("values")[i].at(1);
-        typeInfoItem.avg = jMessage.at("values")[i].at(2);
+        typeInfoItem.max = jMessage.at("values")[i].at(TYPE_INFO_ITEM_MAX);
+        typeInfoItem.min = jMessage.at("values")[i].at(TYPE_INFO_ITEM_MIN);
+        typeInfoItem.avg = jMessage.at("values")[i].at(TYPE_INFO_ITEM_AVG);
         ProcessMetricsItems processMetricsItems;
         processMetricsItems.overallCounters = typeInfoItem;
-        processMetricsItems.processName = jMessage.at("values")[i].at(4);
+        processMetricsItems.processName = jMessage.at("values")[i].at(PROCESS_METRICES_ITEMS_NAME);
         memStrategy_.emplace_back(std::move(processMetricsItems));
     }
     return;
@@ -71,16 +75,20 @@ void Metrics::InitMemoryStrategy(const std::string& result)
 void Metrics::InitMemoryUnAggStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
+    const uint32_t PROCESS_VALUES_ITEM_NAME = 0;
+    const uint32_t NAMES = 1;
+    const uint32_t VALUES = 2;
+    const uint32_t TIMES = 3;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         ProcessValuesItem processValuesItem;
         if (jMessage.at("values")[i].at(0).is_null()) {
             processValuesItem.processName = "";
         } else {
-            processValuesItem.processName = jMessage.at("values")[i].at(0);
+            processValuesItem.processName = jMessage.at("values")[i].at(PROCESS_VALUES_ITEM_NAME);
         }
-        auto names = SplitStringToVec(jMessage.at("values")[i].at(1), ",");
-        auto values = SplitStringToVec(jMessage.at("values")[i].at(2), ",");
-        auto times = SplitStringToVec(jMessage.at("values")[i].at(3), ",");
+        auto names = SplitStringToVec(jMessage.at("values")[i].at(NAMES), ",");
+        auto values = SplitStringToVec(jMessage.at("values")[i].at(VALUES), ",");
+        auto times = SplitStringToVec(jMessage.at("values")[i].at(TIMES), ",");
         auto oomScoreValue = 0;
         for (auto index = 0; index < names.size(); index++) {
             if (names[index] == "oom_score_adj") {
@@ -88,7 +96,7 @@ void Metrics::InitMemoryUnAggStrategy(const std::string& result)
             }
             TypeItem typeItem;
             typeItem.ts = atoll(times.at(index).c_str());
-            typeItem.oom_score = oomScoreValue;
+            typeItem.oomScore = oomScoreValue;
             typeItem.value = atoi(values.at(index).c_str());
             if (names.at(index) == "mem.rss.anon") {
                 processValuesItem.anonRss = typeItem;
@@ -107,16 +115,19 @@ void Metrics::InitMemoryUnAggStrategy(const std::string& result)
 void Metrics::InitMemoryTaskNameStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
+    const uint32_t JMESSAGE_VALUE_SIZE_ONE = 1;
+    const uint32_t JMESSAGE_VALUE_SIZE_TWO = 2;
+    const uint32_t JMESSAGE_VALUE_SIZE_THREE = 3;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         TaskProcessItem taskProcessItem;
-        taskProcessItem.pid = jMessage.at("values")[i].at(1);
-        if (jMessage.at("values")[i].at(2).is_null()) {
+        taskProcessItem.pid = jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_ONE);
+        if (jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_TWO).is_null()) {
             taskProcessItem.processName = "";
         } else {
-            taskProcessItem.processName = jMessage.at("values")[i].at(2);
+            taskProcessItem.processName = jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_TWO);
         }
-        if (!jMessage.at("values")[i].at(3).is_null()) {
-            taskProcessItem.threadName = SplitStringToVec(jMessage.at("values")[i].at(3), ",");
+        if (!jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE).is_null()) {
+            taskProcessItem.threadName = SplitStringToVec(jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE), ",");
         }
         taskNameStrategy_.emplace_back(taskProcessItem);
     }
@@ -125,12 +136,16 @@ void Metrics::InitMemoryTaskNameStrategy(const std::string& result)
 void Metrics::InitTraceStatsStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
+    const uint32_t STAT_ITEM_NAME = 0;
+    const uint32_t STAT_ITEM_COUNT = 2;
+    const uint32_t STAT_ITEM_SOURCE = 3;
+    const uint32_t STAT_ITEM_SEVERITY = 4;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         StatItem statItem;
-        statItem.name = jMessage.at("values")[i].at(0);
-        statItem.count = jMessage.at("values")[i].at(2);
-        statItem.source = jMessage.at("values")[i].at(3);
-        statItem.severity = jMessage.at("values")[i].at(4);
+        statItem.name = jMessage.at("values")[i].at(STAT_ITEM_NAME);
+        statItem.count = jMessage.at("values")[i].at(STAT_ITEM_COUNT);
+        statItem.source = jMessage.at("values")[i].at(STAT_ITEM_SOURCE);
+        statItem.severity = jMessage.at("values")[i].at(STAT_ITEM_SEVERITY);
         statStrategy_.emplace_back(statItem);
     }
     return;
@@ -138,10 +153,12 @@ void Metrics::InitTraceStatsStrategy(const std::string& result)
 void Metrics::InitTraceMetaDataStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
+    const uint32_t TRACE_METADATA_ITEM_NAME = 0;
+    const uint32_t TRACE_METADATA_ITEM_VALUE = 1;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         TraceMetadataItem traceMetadataItem;
-        traceMetadataItem.name = jMessage.at("values")[i].at(0);
-        traceMetadataItem.value = jMessage.at("values")[i].at(1);
+        traceMetadataItem.name = jMessage.at("values")[i].at(TRACE_METADATA_ITEM_NAME);
+        traceMetadataItem.value = jMessage.at("values")[i].at(TRACE_METADATA_ITEM_VALUE);
         metaDataStrategy_.emplace_back(traceMetadataItem);
     }
     return;
@@ -149,12 +166,16 @@ void Metrics::InitTraceMetaDataStrategy(const std::string& result)
 void Metrics::InitSysCallStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
+    const uint32_t FUNCTION_ITEM_DUR_MIN = 1;
+    const uint32_t FUNCTION_ITEM_DUR_MAX = 2;
+    const uint32_t FUNCTION_ITEM_DUR_AVG = 3;
+    const uint32_t FUNCTION_ITEM_FUNCTION_NAME = 4;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         FunctionItem functionItem;
-        functionItem.functionName = jMessage.at("values")[i].at(4);
-        functionItem.durMax = jMessage.at("values")[i].at(2);
-        functionItem.durMin = jMessage.at("values")[i].at(1);
-        functionItem.durAvg = jMessage.at("values")[i].at(3);
+        functionItem.functionName = jMessage.at("values")[i].at(FUNCTION_ITEM_FUNCTION_NAME);
+        functionItem.durMax = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MAX);
+        functionItem.durMin = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MIN);
+        functionItem.durAvg = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_AVG);
         sysCallStrategy_.emplace_back(functionItem);
     }
     return;
@@ -188,11 +209,11 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback)
             for (auto item : memAggStrategy_) {
                 repeateValue +=
                     PROCESS_VALUES + PROCESS_NAME + "\"" + item.processName + "\"," + ANON_RSS + TS +
-                    std::to_string(item.anonRss.ts) + "," + OOM_SCORE + std::to_string(item.anonRss.oom_score) + "," +
+                    std::to_string(item.anonRss.ts) + "," + OOM_SCORE + std::to_string(item.anonRss.oomScore) + "," +
                     VALUE + std::to_string(item.anonRss.value) + "}," + FILE_RSS + TS +
-                    std::to_string(item.fileRss.ts) + "," + OOM_SCORE + std::to_string(item.fileRss.oom_score) + "," +
+                    std::to_string(item.fileRss.ts) + "," + OOM_SCORE + std::to_string(item.fileRss.oomScore) + "," +
                     VALUE + std::to_string(item.fileRss.value) + "}," + SWAP + TS + std::to_string(item.swap.ts) + "," +
-                    OOM_SCORE + std::to_string(item.swap.oom_score) + "," + VALUE + std::to_string(item.swap.value) +
+                    OOM_SCORE + std::to_string(item.swap.oomScore) + "," + VALUE + std::to_string(item.swap.value) +
                     "}},";
             }
             break;
@@ -261,7 +282,7 @@ std::string Metrics::JsonFormat(std::string json)
     int level = 0;
     for (std::string::size_type index = 0; index < json.size(); index++) {
         char value = json[index];
-        if (level > 0 && '\n' == json[json.size() - 1]) {
+        if (level > 0 && json[json.size() - 1] == '\n') {
             result += GetLevelSpace(level);
         }
         switch (value) {

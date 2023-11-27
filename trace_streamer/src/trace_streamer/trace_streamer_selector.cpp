@@ -16,9 +16,9 @@
 #include "trace_streamer_selector.h"
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <functional>
 #include <regex>
-#include <stdlib.h>
 #include "animation_filter.h"
 #include "app_start_filter.h"
 #include "args_filter.h"
@@ -333,13 +333,13 @@ std::string TraceStreamerSelector::SearchDatabase(const std::string& sql)
 }
 void TraceStreamerSelector::InitMetricsMap(std::map<std::string, std::string>& metricsMap)
 {
-    metricsMap.emplace(TRACE_MEM_UNAGG, memUnaggQuery);
-    metricsMap.emplace(TRACE_MEM, memQuery);
-    metricsMap.emplace(TRACE_MEM_TOP_TEN, memTopQuery);
-    metricsMap.emplace(TRACE_METADATA, metaDataQuery);
-    metricsMap.emplace(SYS_CALLS, sysCallQuery);
-    metricsMap.emplace(TRACE_STATS, traceStateQuery);
-    metricsMap.emplace(TRACE_TASK_NAMES, traceTaskName);
+    metricsMap.emplace(TRACE_MEM_UNAGG, MEM_UNAGG_QUERY);
+    metricsMap.emplace(TRACE_MEM, MEM_QUERY);
+    metricsMap.emplace(TRACE_MEM_TOP_TEN, MEM_TOP_QUERY);
+    metricsMap.emplace(TRACE_METADATA, META_DATA_QUERY);
+    metricsMap.emplace(SYS_CALLS, SYS_CALL_QUERY);
+    metricsMap.emplace(TRACE_STATS, TRACE_STATE_QUERY);
+    metricsMap.emplace(TRACE_TASK_NAMES, TRACE_TASK_NAME);
 }
 const std::string TraceStreamerSelector::MetricsSqlQuery(const std::string& metrics)
 {

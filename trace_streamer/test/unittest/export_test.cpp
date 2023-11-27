@@ -21,6 +21,7 @@
 #include <string>
 #include <unistd.h>
 
+#include "export_test.h"
 #include "file.h"
 #include "trace_streamer_selector.h"
 
@@ -29,9 +30,6 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
-constexpr size_t G_FILE_PERMISSION = 664;
-constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
-constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 
 class ExportTest : public ::testing::Test {
 public:
@@ -46,7 +44,7 @@ public:
     TraceStreamerSelector ts_;
 };
 
-bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath)
+bool ParseTraceFile(TraceStreamerSelector& ts, const std::string& tracePath)
 {
     int32_t fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
     TS_CHECK_TRUE(fd >= 0, false, "Failed to open trace file (errno: %d, %s)", errno, strerror(errno));
@@ -58,7 +56,7 @@ bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath)
     auto curParseCnt = 1;
     while (true) {
         // for rawtrace next parse.the first parse is for last comm dats_;
-        if (isFinish && ts_.GetFileType() == TRACE_FILETYPE_RAW_TRACE && curParseCnt < RAW_TRACE_PARSE_MAX) {
+        if (isFinish && ts.GetFileType() == TRACE_FILETYPE_RAW_TRACE && curParseCnt < RAW_TRACE_PARSE_MAX) {
             ++curParseCnt;
             isFinish = false;
             curLoadSize = 0;
@@ -78,13 +76,13 @@ bool ParseTraceFile(TraceStreamerSelector& ts_, const std::string& tracePath)
         if (curLoadSize == curFileSize) {
             isFinish = true;
         }
-        if (!ts_.ParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize), false, isFinish)) {
+        if (!ts.ParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize), false, isFinish)) {
             return false;
         };
         printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(curLoadSize) / 1E6);
     }
     close(fd);
-    ts_.WaitForParserEnd();
+    ts.WaitForParserEnd();
     return true;
 }
 

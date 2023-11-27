@@ -196,42 +196,42 @@ uint32_t HtraceMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& s
     if (EndWith(path, ".so")) {
         if (hasX) {
             if (StartWith(path, "/data/app/") || hasAppNmae) {
-                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_APP;
+                return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_APP);
             } else {
-                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS;
+                return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS);
             }
         } else {
             if (StartWith(path, "[anon:.bss]/data/app/") || StartWith(path, "/data/app/") || hasAppNmae) {
-                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_APP;
+                return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP);
             } else {
-                return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS;
+                return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
             }
         }
     }
     if ((EndWith(path, ".jar")) || (EndWith(path, ".apk")) || (EndWith(path, ".vdex")) || (EndWith(path, ".odex")) ||
         (EndWith(path, ".oat")) || (path.find("dex") != std::string::npos)) {
-        return hasX ? (hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_APP
-                                  : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS)
-                    : (hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_APP
-                                  : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
+        return hasX ? (hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_APP)
+                                  : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS))
+                    : (hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP)
+                                  : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS));
     }
     if (hasX && path.find("/bin/") != std::string::npos) {
-        return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS;
+        return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS);
     }
     if ((!hasX) && (path.find("/bin/") != std::string::npos || path.find("[anon:.bss]") != std::string::npos)) {
-        return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS;
+        return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
     }
     if (path.find("[bss]") != std::string::npos) {
-        return hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_APP
-                          : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS;
+        return hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP)
+                          : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
     }
     if ((path.find("[anon]") != std::string::npos) || (path.find("[anon:") != std::string::npos)) {
         if (std::find(g_unknownAnonMemInfo.begin(), g_unknownAnonMemInfo.end(), path) != g_unknownAnonMemInfo.end()) {
-            return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_UNKNOWN_ANON;
+            return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_UNKNOWN_ANON);
         }
-        return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP;
+        return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_NATIVE_HEAP);
     }
-    return (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_INVALID;
+    return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID);
 }
 
 uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const
@@ -259,11 +259,11 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
     }
     bool hasAppNmae = path.find("com.huawei.wx") != std::string::npos;
     uint32_t detailRet = ParseSmapsBlockDetail(smapsInfo, path, hasAppNmae);
-    if (detailRet != (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_INVALID) {
+    if (detailRet != static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID)) {
         return detailRet;
     }
-    return hasAppNmae ? (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_OTHER_APP
-                      : (uint32_t)SmapsMemType::SMAPS_MEM_TYPE_OTHER_SYS;
+    return hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_OTHER_APP)
+                      : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_OTHER_SYS);
 }
 
 void HtraceMemParser::ParseSmapsInfoEasy(const ProtoReader::ProcessMemoryInfo_Reader* memInfo,

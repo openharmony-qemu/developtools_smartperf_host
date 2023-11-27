@@ -49,7 +49,7 @@ HWTEST_F(TableTest, AppnameTableTest, TestSize.Level1)
     uint8_t flags = 0;
     DataIndex eventSource = stream_.traceDataCache_->GetDataIndex("eventSource");
     DataIndex appName = stream_.traceDataCache_->GetDataIndex("app1");
-    stream_.traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(flags, eventSource, appName);
+    stream_.traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(eventSource, appName);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
@@ -411,8 +411,8 @@ HWTEST_F(TableTest, EbpfCallstackTableTest, TestSize.Level1)
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect6, false);
     EXPECT_EQ(row, 2);
 
-    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(callChainId, depth, ip, symbolId, filePathId);
-    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(callChainId1, depth1, ip1, symbolId1, filePathId1);
+    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(callChainId, depth, ip, symbolId, filePathId, 0);
+    stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(callChainId1, depth1, ip1, symbolId1, filePathId1, 0);
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
