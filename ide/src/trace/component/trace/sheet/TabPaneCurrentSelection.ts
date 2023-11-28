@@ -456,7 +456,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     scrollCallback: ((d: any) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
     scrollPreviousData: (d: any) => void | undefined,
-    scrollNextData: (d: any) => void | undefined
+    scrollNextData: (d: any) => void | undefined,
+    callback: ((data: Array<any>) => void) | undefined = undefined
   ): void {
     //线程信息
     this.setTableHeight('550px');
@@ -467,6 +468,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       leftTitle.innerText = 'Thread State';
     }
     let list: any[] = [];
+    let jankJumperList = new Array<ThreadTreeNode>();
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTime || 0),
@@ -584,12 +586,17 @@ export class TabPaneCurrentSelection extends BaseElement {
           });
         });
       }
+      let timeLineNode = new ThreadTreeNode(data.tid!, data.pid!, data.startTime!);
+      jankJumperList.push(timeLineNode);
       if (args.length > 0) {
         args.forEach((arg) => {
           list.push({ name: arg.keyName, value: arg.strValue });
         });
       }
       this.currentSelectionTbl!.dataSource = list;
+      if (callback) {
+        callback(jankJumperList);
+      }
       this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
         if (scrollNextData) {
           scrollNextData(data);
@@ -816,27 +823,27 @@ export class TabPaneCurrentSelection extends BaseElement {
       this.currentSelectionTbl!.dataSource = list;
     }
   }
-  setAllStartupData(data: AllAppStartupStruct,scrollCallback: Function): void{
+  setAllStartupData(data: AllAppStartupStruct, scrollCallback: Function): void {
     this.setTableHeight('550px');
     this.initCanvas();
     let allStartUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
     let allStartUpmiddleTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightText');
-    let allStartUpRightButton:HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightButton');
-    if(allStartUpmiddleTitle) allStartUpmiddleTitle.style.visibility = 'hidden';
-    if(allStartUpRightButton) allStartUpRightButton.style.visibility = 'hidden';
+    let allStartUpRightButton: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightButton');
+    if (allStartUpmiddleTitle) allStartUpmiddleTitle.style.visibility = 'hidden';
+    if (allStartUpRightButton) allStartUpRightButton.style.visibility = 'hidden';
     if (allStartUpLeftTitle) {
       allStartUpLeftTitle.innerText = 'Details';
     }
     let list: any[] = [];
-    list.push({name: "Name", value: data.stepName!})
+    list.push({ name: "Name", value: data.stepName! })
     list.push({
       name: "StartTime(Relative)",
       value: getTimeString(data.startTs || 0)
-      });
+    });
     list.push({
       name: "StartTime(Absolute)",
-      value:((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's'
-      });
+      value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's'
+    });
     list.push({
       name: "EndTime(Relative)",
       value: getTimeString((data.startTs || 0) + (data.dur || 0))
@@ -846,7 +853,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: ((data.startTs || 0) + (data.dur || 0) + (window as any).recordStartNS) / 1000000000 + 's'
     })
     list.push({
-      name:"Dur",
+      name: "Dur",
       value: getTimeString(data.dur || 0)
     })
     this.currentSelectionTbl!.dataSource = list;
@@ -1260,7 +1267,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => { });
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 
@@ -1443,4 +1450,15 @@ export class JankTreeNode {
   }
 
   children: Array<JankTreeNode> = [];
+}
+
+export class ThreadTreeNode {
+  tid: number = 0;
+  pid: number = -1;
+  startTime: number = 1;
+  constructor(tid: number, pid: number, startTime: number) {
+    this.tid = tid;
+    this.pid = pid;
+    this.startTime = startTime;
+  }
 }
