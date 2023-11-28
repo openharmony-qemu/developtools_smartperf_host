@@ -58,7 +58,7 @@ export class ThreadRender extends Render {
     threadReq.context.closePath();
   }
 
-  render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) {}
+  render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) { }
 }
 
 const padding = 3;
@@ -71,6 +71,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
+  static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;

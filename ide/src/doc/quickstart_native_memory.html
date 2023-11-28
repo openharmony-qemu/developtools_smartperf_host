@@ -891,12 +891,12 @@ Memory Type：内存的类型。
       </li>
       <li>
           <pre class="smartperf-text fontColor light">
-Exsiting：框选区域内申请没有释放的大小。
+Existing：框选区域内申请没有释放的大小。
 </pre>
       </li>
       <li>
           <pre class="smartperf-text fontColor light">
-#Exsiting：框选区域内申请没有释放的次数。
+#Existing：框选区域内申请没有释放的次数。
 </pre>
       </li>
       <li>
@@ -926,7 +926,7 @@ Peak Value： 框选区间内内存申请的峰值。
       </li>
       <li>
           <pre class="smartperf-text fontColor light">
-Exsiting/Total：框选区间内剩余的内存比上申请的内存，其中浅紫色是框选区间内申请的大小/整个时间轴（申请+释放的总大小)，深紫色是框选区间内(申请+释放)的大小/整个时间轴（申请+释放的总大小）。
+Existing/Total：框选区间内剩余的内存比上申请的内存，其中浅紫色是框选区间内申请的大小/整个时间轴（申请+释放的总大小)，深紫色是框选区间内(申请+释放)的大小/整个时间轴（申请+释放的总大小）。
 </pre>
       </li>
     </ul>
@@ -937,7 +937,7 @@ Exsiting/Total：框选区间内剩余的内存比上申请的内存，其中浅
     <ul class="fontColor">
       <li>
           <pre class="smartperf-text fontColor light">
-Symble Name：每个内存分配的调用栈。
+Symbol Name：每个内存分配的调用栈。
 </pre>
       </li>
       <li>
@@ -1009,7 +1009,7 @@ Timestamp ：时间戳信息。
       </li>
       <li>
           <pre class="smartperf-text fontColor light">
-Net Growth ：自从上次Snapshot的增长量，是计算的分配和释放的。
+Net Growth ：自从上次Snapshot的增长量，是计算分配和释放的。
 </pre>
       </li>
       <li>
@@ -1019,7 +1019,7 @@ Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配�
       </li>
       <li>
           <pre class="smartperf-text fontColor light">
-#Exsiting  ：仍然存在的内存数。
+#Existing  ：仍然存在的内存数。
 </pre>
       </li>
     </ul>
@@ -1032,8 +1032,8 @@ Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配�
     <h3 class="mume-header fontColor">Native Memory详细显示的过滤功能</h3>
 
     <p class="fontColor">
-      点击下方的All Allocations可以对Allocation的lifeSpan进行过滤，有三个选择：All Allocatios，Create &amp;
-      Exsiting，Create &amp; Destroyed。<br />
+      点击下方的All Allocations可以对Allocation lifeSpan进行过滤，有三个选择：All Allocations，Created &amp;
+      Existing，Created &amp; Destroyed。<br />
       <img src="../figures/NativeMemory/lifespan.jpg" alt="GitHub Logo" />
     </p>
     <ul class="fontColor">
@@ -1044,7 +1044,7 @@ Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配�
       </li>
       <li>
           <pre class="smartperf-text fontColor light">
- Created &amp; Exsiting：创建且被存活的内存。
+ Created &amp; Existing：创建且存活的内存。
 </pre>
       </li>
       <li>
@@ -1054,7 +1054,7 @@ Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配�
       </li>
     </ul>
     <p class="fontColor">
-      点击下方的All Heap&amp;Anonymous可以对内存类型进行过滤。<br />
+      点击下方的All Heap&amp;Anonymous VM可以对内存类型进行过滤。<br />
       <img src="../figures/NativeMemory/AllocationType.jpg" alt="GitHub Logo" />
     </p>
     <ul class="fontColor">

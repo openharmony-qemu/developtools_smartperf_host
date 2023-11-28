@@ -53,14 +53,14 @@ Native Memory是查看内存的分配和释放等情况。
 Statistics的Tab页，主要显示了统计明细类型。
 ![GitHub Logo](../../figures/NativeMemory/Statistics.jpg)
 +     Memory Type：内存的类型。
-+     Exsiting：框选区域内申请没有释放的大小。
-+     #Exsiting：框选区域内申请没有释放的次数。
++     Existing：框选区域内申请没有释放的大小。
++     #Existing：框选区域内申请没有释放的次数。
 +     Transient：框选区域内释放的大小。
 +     #Transient：框选区域内释放的次数。
 +     Total Bytes：框选区间内申请的大小。
 +     #Total： 框选区间内申请的次数。
 +     Peak Value： 框选区间内内存申请的峰值。
-+     Exsiting/Total：框选区间内剩余的内存比上申请的内存，其中浅紫色是框选区间内申请的大小/整个时间轴（申请+释放的总大小)，深紫色是框选区间内(申请+释放)的大小/整个时间轴（申请+释放的总大小）。
++     Existing/Total：框选区间内剩余的内存比上申请的内存，其中浅紫色是框选区间内申请的大小/整个时间轴（申请+释放的总大小)，深紫色是框选区间内(申请+释放)的大小/整个时间轴（申请+释放的总大小）。
 
 Call Info的Tab页，主要显示了调用树详细类型。
 ![GitHub Logo](../../figures/NativeMemory/CallInfo.jpg)
@@ -82,15 +82,15 @@ Snapshot List的Tab页，主要显示了各时刻内存的增长的差值。
 +     Timestamp ：时间戳信息。
 +     Net Growth ：自从上次Snapshot的增长量，是计算的分配和释放的。
 +     Total Growth ：自从上次Snapshot的增长量，是计算的每一次分配的。
-+     #Exsiting  ：仍然存在的内存数。
++     #Existing  ：仍然存在的内存数。
 ### Native Memory的辅助信息功能
 在Call Info和Native Memory的Tab页，点击选中某一行，右边画红线处会显示出该行调用栈的树结构信息。
 ![GitHub Logo](../../figures/NativeMemory/nativecallstack.jpg)
 ### Native Memory详细显示的过滤功能
-点击下方的All Allocations可以对Allocation的lifeSpan进行过滤，有三个选择：All Allocatios，Create & Exsiting，Create & Destroyed。
+点击下方的All Allocations可以对Allocation的lifeSpan进行过滤，有三个选择：All Allocatios，Create & Existing，Create & Destroyed。
 ![GitHub Logo](../../figures/NativeMemory/lifespan.jpg)
 +      All Allocations：所有的内存。
-+      Created & Exsiting：创建且被存活的内存。
++      Created & Existing：创建且被存活的内存。
 +      Created & Destroyed： 创建且被销毁的内存。
 点击下方的All Heap&Anonymous可以对内存类型进行过滤。
 ![GitHub Logo](../../figures/NativeMemory/AllocationType.jpg)

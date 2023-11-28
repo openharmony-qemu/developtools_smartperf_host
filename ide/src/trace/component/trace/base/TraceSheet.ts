@@ -283,7 +283,7 @@ export class TraceSheet extends BaseElement {
           } else if (
             navRoot!.offsetHeight <= moveY &&
             search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight <=
-              window.innerHeight - moveY
+            window.innerHeight - moveY
           ) {
             tabs!.style.height = moveY + 'px';
             node!.style.height = moveY - navRoot!.offsetHeight + 'px';
@@ -482,14 +482,16 @@ export class TraceSheet extends BaseElement {
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
     scrollPreviousData: (d: ThreadStruct) => void,
-    scrollNextData: (d: ThreadStruct) => void
+    scrollNextData: (d: ThreadStruct) => void,
+    callback: ((data: Array<any>) => void) | undefined = undefined,
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
       scrollCallback,
       scrollWakeUp,
       scrollPreviousData,
-      scrollNextData
+      scrollNextData,
+      callback
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
@@ -805,9 +807,9 @@ export class TraceSheet extends BaseElement {
     if (selection && selection.nativeMemoryAllProcess.length > 1) {
       this.switchDiv!.style.display = 'flex';
       if (this.isProcessEqual(selection.nativeMemoryAllProcess)) {
-        if (this.processTree){
-          for (const data of this.processTree.treeData){
-            if (data.key === `${selection.nativeMemoryCurrentIPid}`){
+        if (this.processTree) {
+          for (const data of this.processTree.treeData) {
+            if (data.key === `${selection.nativeMemoryCurrentIPid}`) {
               data.checked = true;
             } else {
               data.checked = false;
@@ -844,7 +846,7 @@ export class TraceSheet extends BaseElement {
     let component: any = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
-    if (component) {  
+    if (component) {
       this.selection!.isRowClick = false;
       component.data = this.selection;
     }

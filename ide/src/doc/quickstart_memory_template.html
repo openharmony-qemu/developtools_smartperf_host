@@ -1126,8 +1126,8 @@ MinSize：Gpu内存的最小值。
       <h3 class="mume-header fontColor">VM Tracker下的smaps泳道图的点选和框选功能</h3>
 
       <p class="fontColor">
-        点选和框选Dirty，Swapped，RSS，PSS，USS的5个泳道图中任一个显示的都是一样的内容，会显示Smaps Statistic和Smaps
-        sample的tab页。
+        点选Dirty，Swapped，RSS，PSS，USS的5个泳道图中任一个显示的都是一样的内容，会显示Smaps Statistic，Smaps
+        sample，Smaps Comparison，Native Heap的tab页。
         <br />
         Smaps Statistic的tab页展示。
         <br />
@@ -1304,10 +1304,60 @@ Protection： 内存块的权限(读写执行执行)。
           >
         </li>
       </ul>
+      <p class="fontColor">
+        Native Heap的tab页展示。
+        <br />
+        <img src="../figures/Allmemory/snativeheaptab.jpg" alt="GitHub Logo" />
+      </p>
+      <ul class="fontColor">
+        <li>
+          <pre class="smartperf-text fontColor light">
+TimeStamp： 时间戳信息。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Total： 该时间点Smaps中type为NATIVE_HEAP的Size。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+RenderServiceCpu：渲染框架数据，计算规则为该时间点上memroy_rs_image表中type!="pixelmap"的所有项累加Size。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+SkiaCpu：渲染框架数据，取该时间点memory_cpu表中total_size的值。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+GLESHostCache： GLES-CPU缓存，取该时间点memory_profile表中total_size之和。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+ProcessCache： Total-RenderServiceCpu-SkiaCpu-GLESHostCache的值。
+</pre
+          >
+        </li>
+      </ul>
+      <p class="fontColor">
+        框选Dirty，Swapped，RSS，PSS，USS的5个泳道图中任一个显示的都是一样的内容，会显示Smaps Statistic和Smaps
+        sample的tab页。
+        <br />
+        Smaps Statistic的tab页和Smaps sample的tab页展示（同点选）。
+        <br />
+      </p>
       <h3 class="mume-header fontColor">VM Tracker下的GPU泳道图展示</h3>
 
       <p class="fontColor">
-        smaps泳道图分为GL，Skia Gpu Dump Toal，Skia Gpu Dump Window，Skia Gpu Memory泳道图。
+        GPU泳道图分为GL，Skia Gpu Dump Toal，Skia Gpu Dump Window，Skia Gpu Memory泳道图。
         <br />
         <img src="../figures/Allmemory/gpurow.jpg" alt="GitHub Logo" />
         <br />
