@@ -49,6 +49,7 @@ import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerApp
 import { SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit.js';
 import { type SelectionParam } from '../../../bean/BoxSelection.js';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
+import { AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -814,6 +815,41 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.currentSelectionTbl!.dataSource = list;
     }
+  }
+  setAllStartupData(data: AllAppStartupStruct,scrollCallback: Function): void{
+    this.setTableHeight('550px');
+    this.initCanvas();
+    let allStartUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
+    let allStartUpmiddleTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightText');
+    let allStartUpRightButton:HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightButton');
+    if(allStartUpmiddleTitle) allStartUpmiddleTitle.style.visibility = 'hidden';
+    if(allStartUpRightButton) allStartUpRightButton.style.visibility = 'hidden';
+    if (allStartUpLeftTitle) {
+      allStartUpLeftTitle.innerText = 'Details';
+    }
+    let list: any[] = [];
+    list.push({name: "Name", value: data.stepName!})
+    list.push({
+      name: "StartTime(Relative)",
+      value: getTimeString(data.startTs || 0)
+      });
+    list.push({
+      name: "StartTime(Absolute)",
+      value:((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's'
+      });
+    list.push({
+      name: "EndTime(Relative)",
+      value: getTimeString((data.startTs || 0) + (data.dur || 0))
+    });
+    list.push({
+      name: "EndTime(Abslute)",
+      value: ((data.startTs || 0) + (data.dur || 0) + (window as any).recordStartNS) / 1000000000 + 's'
+    })
+    list.push({
+      name:"Dur",
+      value: getTimeString(data.dur || 0)
+    })
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   setStartupData(data: AppStartupStruct, scrollCallback: Function): void {

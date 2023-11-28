@@ -84,6 +84,7 @@ import { TabPaneCurrentSelection } from './trace/sheet/TabPaneCurrentSelection.j
 import { SpChartList } from './trace/SpChartList.js';
 import './trace/SpChartList.js';
 import { AppStartupStruct } from '../database/ui-worker/ProcedureWorkerAppStartup.js';
+import { AllAppStartupStruct } from '../database/ui-worker/ProcedureWorkerAllAppStartup.js';
 import { SoStruct } from '../database/ui-worker/ProcedureWorkerSoInit.js';
 import { TabPaneTaskFrames } from './trace/sheet/task/TabPaneTaskFrames.js';
 import { FlagsConfig } from './SpFlags.js';
@@ -2571,6 +2572,10 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_APP_STARTUP,
       () => AppStartupStruct.hoverStartupStruct !== null && AppStartupStruct.hoverStartupStruct !== undefined,
     ],
+    [
+      TraceRow.ROW_TYPE_ALL_APPSTARTUPS,
+      () => AllAppStartupStruct.hoverStartupStruct !== null && AllAppStartupStruct.hoverStartupStruct !== undefined,
+    ],
     [TraceRow.ROW_TYPE_STATIC_INIT, () => SoStruct.hoverSoStruct !== null && SoStruct.hoverSoStruct !== undefined],
     [TraceRow.ROW_TYPE_JANK, () => JankStruct.hoverJankStruct !== null && JankStruct.hoverJankStruct !== undefined],
     [TraceRow.ROW_TYPE_HEAP, () => HeapStruct.hoverHeapStruct !== null && HeapStruct.hoverHeapStruct !== undefined],
@@ -3133,6 +3138,10 @@ export class SpSystemTrace extends BaseElement {
     } else if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
       this.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    }else if(clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct){
+      AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
+      this.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler)
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;

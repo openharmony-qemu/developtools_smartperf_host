@@ -42,6 +42,7 @@ import { type TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneN
 import { type TabPaneCurrent } from '../sheet/TabPaneCurrent.js';
 import { type SlicesTime } from '../timer-shaft/SportRuler.js';
 import { type AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup.js';
+import { type AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
 import { type SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit.js';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
 import { type TraceRow } from './TraceRow.js';
@@ -498,6 +499,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
   displayStartupData = (data: AppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback);
+  displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStaticInitData(data, scrollCallback);
 
