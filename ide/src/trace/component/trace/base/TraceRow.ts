@@ -44,6 +44,11 @@ let dragDirection: string = '';
 
 @element('trace-row')
 export class TraceRow<T extends BaseStruct> extends HTMLElement {
+  static ROW_TYPE_SEGMENTATION = 'segmentation';
+  static ROW_TYPE_CPU_COMPUTILITY = 'cpu_computility';
+  static ROW_TYPE_GPU_COMPUTILITY = 'gpu_computility';
+  static ROW_TYPE_SCHED_SWITCH = 'sched_switch';
+  static ROW_TYPE_BINDER_COUNT = 'binder';
   static ROW_TYPE_CPU = 'cpu-data';
   static ROW_TYPE_CPU_STATE = 'cpu-state';
   static ROW_TYPE_CPU_FREQ = 'cpu-freq';
@@ -174,6 +179,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
   _docompositionList: Array<number> | undefined;
+  public rowCheckFileEL: LitIcon | null | undefined;
+  public inputEL: any;
+  public onRowCheckFileChangeHandler: ((file: any) => void) | undefined | null;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -188,12 +196,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-      canvasNumber: 1,
-      alpha: false,
-      contextId: '2d',
-      isOffScreen: true,
-      skeleton: false,
-    }
+        canvasNumber: 1,
+        alpha: false,
+        contextId: '2d',
+        isOffScreen: true,
+        skeleton: false,
+      }
   ) {
     super();
     this.args = args;
@@ -235,6 +243,15 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-popover-direction',
     ];
   }
+
+  get checkFile(): string {
+    return this.getAttribute('row-file') || 'disable'
+  }
+
+  set checkFile(value: string) {
+    this.setAttribute('row-file', value)
+  }
+
   get docompositionList(): Array<number> | undefined {
     return this._docompositionList;
   }
@@ -657,6 +674,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
     let canvasNumber = this.args['canvasNumber'];
+    this.rowCheckFileEL = this.shadowRoot?.querySelector('.checkfile');
+    this.inputEL = this.shadowRoot?.querySelector('#fileinput');
     if (!this.args['skeleton']) {
       for (let i = 0; i < canvasNumber; i++) {
         let canvas = document.createElement('canvas');
@@ -667,6 +686,24 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       }
     }
+
+    this.rowCheckFileEL!.onclick = () => {
+      this.inputEL.click();
+      this.inputEL.addEventListener('change', (e: any) => {
+        let file = e.target.files[0];
+        if (file.type === 'application/json') {
+          let file_reader = new FileReader();
+          file_reader.readAsText(file, 'UTF-8');
+          file_reader.onload = () => {
+            let fc = file_reader.result;
+            this.onRowCheckFileChangeHandler?.(fc)
+          };
+        } else {
+          return
+        }
+      }, false)
+    }
+
     this.checkBoxEL!.onchange = (ev: any) => {
       info('checkBoxEL onchange ');
       if (!ev.target.checked) {
@@ -693,7 +730,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.checkType = '-1';
   }
 
-  addRowSettingPop(): void{
+  addRowSettingPop(): void {
     this.rowSettingPop = document.createElement('lit-popover') as LitPopover;
     this.rowSettingPop.innerHTML = `<div slot="content" id="settingList" style="display: block;height: auto;max-height:200px;overflow-y:auto">
       <lit-tree id="rowSettingTree" checkable="true"></lit-tree>
@@ -722,7 +759,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl?.appendChild(this.rowSettingPop);
   }
 
-  getRowSettingKeys() : Array<string> {
+  getRowSettingKeys(): Array<string> {
     if (this.rowSetting === 'enable') {
       return this.rowSettingTree!.getCheckdKeys();
     }
@@ -741,7 +778,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart() : void {
+  enableCollapseChart(): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcExpand) {
@@ -1421,14 +1458,34 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([row-setting='enable']:not([check-type='-1'])) .collect{
             margin-right: 5px;
         } 
+        :host(:not([row-file='json'])) .checkfile{
+          display:none;
+        }
+        :host(:not([row-file='json'])) input{
+          display:none;
+        }
+        :host([row-file='json']) .checkfile{
+          display:flex;
+        }
+        :host([row-file='json']) input{
+          display:flex;
+        }
+        :host([row-file='json']) .folder{
+          display:none;
+        }
+        :host([row-file="json"]) .describe:hover .checkfile{
+            color:#000;
+        }
         </style>
         <div class="root">
             <div class="describe flash" style="position: inherit">
                 <lit-icon class="icon" name="caret-down" size="19"></lit-icon>
                 <label class="name"></label>
                 <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
+                <lit-icon class="checkfile" name="folder" size="19"></lit-icon>
                 <lit-check-box class="lit-check-box"></lit-check-box>
             </div>
+            <input type="file" id="fileinput" style="width:0px;height:0px"placeholder=''/>
         </div>
         `;
   }
