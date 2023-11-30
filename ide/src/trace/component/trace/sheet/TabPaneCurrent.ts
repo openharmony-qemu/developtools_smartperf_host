@@ -33,7 +33,7 @@ export class TabPaneCurrent extends BaseElement {
     this.systemTrace = document
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: any) => {
+        this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: any) => {
       event.stopPropagation();
       if (event.keyCode == '13') {
         if (this.slicesTime) {
@@ -60,7 +60,7 @@ export class TabPaneCurrent extends BaseElement {
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
       });
-    });
+    }); 
     this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
     this.panelTable!.addEventListener('row-click', (evt: any) => {
       if (evt.detail.data.startTime === undefined) {
@@ -176,6 +176,7 @@ export class TabPaneCurrent extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+    tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
     tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
       this.systemTrace!.slicesList = [];
       let slicesTimeList = [...this.slicesTimeList];
@@ -185,13 +186,13 @@ export class TabPaneCurrent extends BaseElement {
       }
       this.slicesTimeList = [];
       return;
-    });
+    }); 
 
     // 更新备注信息
     this.panelTable!.addEventListener('click', (event: any) => {
       if (this.slicesTimeList.length === 0) {
         return;
-      }
+      } 
       for (let i = 1; i < tr.length; i++) {
         let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
         if (
