@@ -7,8 +7,7 @@ import { querySingleFuncNameCycle, queryBinderByThreadId, queryLoopFuncNameCycle
 import { resizeObserver } from '../SheetUtils.js';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn.js';
 import '../../../../../base-ui/chart/column/LitChartColumn.js';
-import { SegMenTaTion } from '../../../chart/SpSegmentationChart.js';
-import { TraceRow } from '../../base/TraceRow.js';
+// import { SegMenTaTion } from '../../../chart/SpSegmentationChart.js';
 
 @element('tabpane-binder-datacut')
 export class TabPaneBinderDataCut extends BaseElement {
@@ -77,7 +76,7 @@ export class TabPaneBinderDataCut extends BaseElement {
         let leftNS = this.currentSelectionParam.leftNs;
         let rightNS = this.currentSelectionParam.rightNs;
         if (threadIdValue != '' && threadFuncName != '') {
-            SegMenTaTion.setChartData("BINDER", []);
+            // SegMenTaTion.setChartData("BINDER", []);
             this.clickLoop(true);
             this.clickSingle(false);
             this.threadBindersTbl!.loading = true;
@@ -139,7 +138,7 @@ export class TabPaneBinderDataCut extends BaseElement {
         let leftNS = this.currentSelectionParam.leftNs;
         let rightNS = this.currentSelectionParam.rightNs;
         if (threadIdValue != '' && threadFuncName != '') {
-            SegMenTaTion.setChartData("BINDER", []);
+            // SegMenTaTion.setChartData("BINDER", []);
             this.clickLoop(false);
             this.clickSingle(true);
             threadId.style.border = '1px solid rgb(151,151,151)';
@@ -488,14 +487,14 @@ export class TabPaneBinderDataCut extends BaseElement {
                 let threaId = currentData.tid;
                 let rowThreadBinderArr = this.findThreadByThreadId(this.cacheBinderArr!, threaId);
                 let binderList = this.binderWithCountList(rowThreadBinderArr!);
-                SegMenTaTion.setChartData('BINDER', binderList);
+                // SegMenTaTion.setChartData('BINDER', binderList);
             }
 
             if (currentData.type === 'cycle' && currentData.tid + '' + currentData.pid === this.currentThreadId) {
                 currentData.isSelected = true;
                 this.threadBindersTbl!.clearAllSelection(currentData);
                 this.threadBindersTbl!.setCurrentSelection(currentData);
-                SegMenTaTion.tabHover('BINDER', true, currentData.idx);
+                // SegMenTaTion.tabHover('BINDER', true, currentData.idx);
             }
         });
 
