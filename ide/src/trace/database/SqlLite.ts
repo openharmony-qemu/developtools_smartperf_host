@@ -90,6 +90,7 @@ import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
 import { type MemoryConfig } from '../bean/MemoryConfig.js';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
 import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent.js';
+import { FuncNameCycle } from '../bean/BinderProcessThread.js';
 
 class DataWorkerThread extends Worker {
   taskMap: any = {};
@@ -297,8 +298,8 @@ export class DbPool {
             }
           }
         };
-        thread!.onmessageerror = (e) => {};
-        thread!.onerror = (e) => {};
+        thread!.onmessageerror = (e) => { };
+        thread!.onerror = (e) => { };
         thread!.id = i;
         thread!.busy = false;
         this.works?.push(thread!);
@@ -723,8 +724,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-  export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
-    let processSql = `select
+export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
+  let processSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -740,8 +741,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
       where
         filter_id in (${processFilterIds.join(',')})
       and
-        startTime <= ${startTime}` ;
-    let virtualSql = `select
+        startTime <= ${startTime}`;
+  let virtualSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -758,18 +759,18 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
         filter_id in (${virtualFilterIds.join(',')})
       and
         startTime <= ${startTime}`;
-    let sql = '';
-    if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
-      sql = `${processSql} union ${virtualSql}`;
+  let sql = '';
+  if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
+    sql = `${processSql} union ${virtualSql}`;
+  } else {
+    if (processFilterIds.length > 0) {
+      sql = processSql;
     } else {
-      if (processFilterIds.length > 0) {
-        sql = processSql;
-      } else {
-        sql = virtualSql;
-      }
+      sql = virtualSql;
     }
-    return query<Counter>('getTabCounters', sql, {});
   }
+  return query<Counter>('getTabCounters', sql, {});
+}
 
 export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
   query<Counter>(
@@ -1351,8 +1352,7 @@ export const queryVirtualMemory = (): Promise<Array<any>> =>
 export const queryVirtualMemoryData = (filterId: number): Promise<Array<any>> =>
   query(
     'queryVirtualMemoryData',
-    `select ts-${
-      (window as any).recordStartNS
+    `select ts-${(window as any).recordStartNS
     } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );
@@ -1428,7 +1428,7 @@ order by start_name;`,
     { $pid: pid }
   );
 
-  export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
+export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
   query(
     'queryProcessStartup',
     `
@@ -1449,7 +1449,7 @@ order by start_name;`,
     { $pid: pids }
   );
 
-  export const querySingleAppStartupsName = (pid:number): Promise<Array<any>> =>
+export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
   query(
     'queryAllAppStartupsName',
     `select name from process
@@ -3995,11 +3995,9 @@ export const queryEbpfSamplesCount = (startTime: number, endTime: number, ipids:
     select
 fsCount,
     vmCount from
-(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     })
-,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
-      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     });
 `,
     { $startTime: startTime, $endTime: endTime }
@@ -5648,9 +5646,6 @@ export const queryTraceType = (): Promise<
                 m.name = 'source_type';`
   );
 
-export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
-  query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
-
 export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabRunningPercent',
@@ -5780,15 +5775,15 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         ORDER BY S.ts`
   );
 
-  export const querySearchRowFuncData = (
-    funcName: string,
-    tIds: number,
-    leftNS: number,
-    rightNS: number
-  ): Promise<Array<SearchFuncBean>> =>
-    query(
-      'querySearchRowFuncData',
-      `
+export const querySearchRowFuncData = (
+  funcName: string,
+  tIds: number,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
+  query(
+    'querySearchRowFuncData',
+    `
           select 
             c.name as funName,
             c.ts - r.start_ts as startTime,
@@ -5814,5 +5809,177 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
           and
             not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
       `,
-      { $search: funcName }
-    );
+    { $search: funcName }
+  );
+
+export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
+  query(
+    'queryTransferList',
+    `SELECT 
+            id, 
+            report_value as cmdStr 
+          FROM 
+            perf_report 
+          WHERE 
+            report_type = 'config_name'`
+  );
+
+export const getTabBindersCount = (pIds: number[], tIds: number[], leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'getTabBindersCount',
+    `
+      SELECT 
+          c.name,
+          c.dur,
+          1 AS count,
+          c.ts,
+          c.ts - r.start_ts AS startTime, 
+          c.ts -r.start_ts + c.dur AS endTime,
+          t.tid, 
+          p.pid, 
+          ${leftNS} AS cycleStartTime,
+          (${rightNS} - ${leftNS}) AS cycleDur
+        FROM 
+            callstack c, trace_range r 
+          LEFT JOIN
+            thread t 
+          ON 
+            c.callid = t.id 
+          LEFT JOIN
+            process p 
+          ON
+            t.ipid = p.id 
+        WHERE 
+            c.name in ('binder transaction', 'binder async rcv', 'binder reply', 'binder transaction async') 
+          AND 
+            t.tid in (${tIds.join(',')})
+          AND 
+            p.pid in (${pIds.join(',')})
+          AND NOT 
+            ((startTime < ${leftNS}) 
+          OR 
+            (endTime > ${rightNS}));
+      `,
+    {
+      $leftNS: leftNS,
+      $rightNS: rightNS
+    }
+  );
+
+export const queryBinderByThreadId = (pIds: number[], tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+  query<SelectionData>(
+    'queryBinderByThreadId',
+    `
+      SELECT 
+            c.name, 
+            c.ts - r.start_ts AS ts, 
+            c.dur, 
+            c.ts - r.start_ts AS startTime, 
+            c.ts - r.start_ts + c.dur AS endTime,
+            t.tid,
+            p.pid
+          FROM 
+              callstack c, trace_range r 
+          LEFT JOIN 
+              thread t 
+          ON 
+              c.callid = t.id 
+          LEFT JOIN
+              process p 
+          ON
+              t.ipid = p.id  
+          WHERE 
+              c.name in ('binder transaction', 'binder async rcv', 'binder reply', 'binder transaction async') 
+          AND 
+              t.tid in (${tIds.join(',')})
+          AND 
+              p.pid in (${pIds.join(',')})
+          AND NOT 
+              ((startTime < ${leftNS}) 
+          OR 
+              (endTime > ${rightNS}))
+        `,
+    {
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS
+    }
+  );
+
+
+export const querySingleFuncNameCycle = (funcName: string, tIds: string, leftNS: number, rightNS: number): Promise<Array<FuncNameCycle>> =>
+  query(
+    'querySingleFuncNameCycle',
+    `
+      SELECT 
+            c.name AS funcName, 
+            c.ts - r.start_ts AS cycleStartTime, 
+            c.dur AS cycleDur,
+            c.id,
+            t.tid,
+            p.pid,
+            c.ts - r.start_ts + c.dur AS endTime
+          FROM 
+              callstack c, trace_range r 
+          LEFT JOIN 
+              thread t 
+          ON 
+              c.callid = t.id 
+          LEFT JOIN
+              process p 
+          ON
+              t.ipid = p.id  
+          WHERE 
+              c.name = '${funcName}'
+          AND 
+              t.tid = ${tIds} 
+          AND NOT 
+              ((cycleStartTime < ${leftNS}) 
+          OR 
+              (endTime > ${rightNS}))
+        `,
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS
+    }
+  );
+
+export const queryLoopFuncNameCycle = (funcName: string, tIds: string, leftNS: number, rightNS: number): Promise<Array<FuncNameCycle>> =>
+  query(
+    'queryLoopFuncNameCycle',
+    `
+      SELECT 
+          c.name AS funcName,
+          c.ts - r.start_ts AS cycleStartTime,
+          0 AS cycleDur,
+          c.id,
+          t.tid,
+          p.pid
+        FROM
+            callstack c, trace_range r 
+          LEFT JOIN 
+            thread t 
+          ON 
+            c.callid = t.id 
+          LEFT JOIN  
+            process p 
+          ON 
+            t.ipid = p.id  
+        WHERE 
+            c.name = '${funcName}' 
+          AND 
+            t.tid = ${tIds}
+          AND NOT 
+            ((cycleStartTime < ${leftNS}) 
+          OR  
+            (cycleStartTime > ${rightNS})) 
+        `,
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS
+    }
+  );

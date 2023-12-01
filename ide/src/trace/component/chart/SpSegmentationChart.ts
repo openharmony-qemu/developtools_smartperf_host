@@ -96,17 +96,17 @@ export class SegMenTaTion {
             SegMenTaTion.schedRow!.supplier = (): Promise<Array<any>> =>
                 new Promise<Array<any>>((resolve) => resolve(chartData));
         } else if (type === 'BINDER') {
+            binderStruct.maxHeight = 0;
             let binderList: any = [];
             let chartData: any;
             data.map((v: any) => {
-                let listCount = 0
+                let listCount = 0;
                 v.map((t: any) => {
                     listCount += t.count
                     if (t.name === 'binder transaction') {
                         t.depth = t.count
                     }
                     if (t.name === 'binder transaction async') {
-                        console.log(t, 'ttttttttt')
                         t.depth = t.count + ((v.filter((i: any) => {
                             return i.name === 'binder transaction'
                         }).length > 0) ? (v.filter((i: any) => {
@@ -181,6 +181,7 @@ export class SegMenTaTion {
                 CpuFreqExtendStruct.hoverCpuFreqStruct = undefined
             }
         } else if (type === 'BINDER') {
+            binderStruct.isTableHover = tableIsHover;
             if (tableIsHover) {
                 binderStruct.hoverCycle = cycle
             } else {
@@ -211,7 +212,7 @@ export class SegMenTaTion {
     async initFolder() {
         let row = TraceRow.skeleton();
         row.setAttribute('disabled-check', '');
-        row.rowId = `unkown`;
+        row.rowId = `segmentation`;
         row.index = 0;
         row.rowType = TraceRow.ROW_TYPE_SEGMENTATION;
         row.rowParentId = '';
@@ -266,7 +267,9 @@ export class SegMenTaTion {
             SegMenTaTion.trace?.displayTip(
                 SegMenTaTion.jsonRow!,
                 CpuFreqExtendStruct.hoverCpuFreqStruct,
-                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct!.value || 0)}</span>`
+                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct
+                    && CpuFreqExtendStruct.hoverCpuFreqStruct.value
+                    ? CpuFreqExtendStruct.hoverCpuFreqStruct.value : 0)}</span>`
             );
         };
         SegMenTaTion.jsonRow.findHoverStruct = () => {
@@ -389,18 +392,28 @@ export class SegMenTaTion {
         SegMenTaTion.binderRow.style.height = '40px';
         SegMenTaTion.binderRow.favoriteChangeHandler = SegMenTaTion.trace.favoriteChangeHandler;
         SegMenTaTion.binderRow.selectChangeHandler = SegMenTaTion.trace.selectChangeHandler;
-        SegMenTaTion.binderRow.findHoverStruct = () => {
-            binderStruct.hoverCpuFreqStruct = SegMenTaTion.binderRow!.getHoverStruct();
+        SegMenTaTion.binderRow.focusHandler = (ev) => {
+            SegMenTaTion.trace?.displayTip(
+                SegMenTaTion.binderRow!,
+                binderStruct.hoverCpuFreqStruct,
+                `<span style='font-weight: bold;'>Cycle: ${binderStruct.hoverCpuFreqStruct?.cycle}</span><br>
+                <span style='font-weight: bold;'>Name: ${binderStruct.hoverCpuFreqStruct?.name || ''}</span><br>
+                <span style='font-weight: bold;'>Count: ${binderStruct.hoverCpuFreqStruct?.value || ''}</span>`
+            );
         };
-        // SegMenTaTion.binderRow.focusHandler = (ev) => {
-        //     SegMenTaTion.trace?.displayTip(
-        //         SegMenTaTion.binderRow!,
-        //         binderStruct.hoverCpuFreqStruct,
-        //         `<span style='font-weight: bold;'>Cycle: ${binderStruct.hoverCpuFreqStruct?.cycle}</span><br>
-        //         <span style='font-weight: bold;'>Name: ${binderStruct.hoverCpuFreqStruct?.name || ''}</span><br>
-        //         <span style='font-weight: bold;'>Count: ${binderStruct.hoverCpuFreqStruct?.value || ''}</span>`
-        //     );
-        // };
+        SegMenTaTion.binderRow.findHoverStruct = () => {
+            binderStruct.hoverCpuFreqStruct = SegMenTaTion.binderRow?.dataListCache.find((v: any) => {
+                if (SegMenTaTion.binderRow?.isHover) {
+                    if (v.frame.x < SegMenTaTion.binderRow.hoverX
+                        && v.frame.x + v.frame.width > SegMenTaTion.binderRow.hoverX
+                        && (binderStruct.maxHeight * 20 - v.depth * 20 + 20) < SegMenTaTion.binderRow!.hoverY
+                        && binderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SegMenTaTion.binderRow!.hoverY) {
+                        console
+                        return v
+                    }
+                }
+            })
+        };
         SegMenTaTion.binderRow.supplier = (): Promise<Array<any>> =>
             new Promise<Array<any>>((resolve) => resolve([]));
         SegMenTaTion.binderRow.onThreadHandler = (useCache) => {
