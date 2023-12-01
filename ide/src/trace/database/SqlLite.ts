@@ -5816,3 +5816,88 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
       `,
       { $search: funcName }
     );
+
+        
+    export const querySchedThreadStates = (tIds: Array<number>, leftStartNs: number, rightEndNs: number): Promise<Array<any>> =>
+    query(
+      'getTabThreadStates',
+      `
+      select
+        B.id,
+        B.pid,
+        B.tid,
+        B.state,
+        B.type,
+        B.dur,
+        B.ts,
+        B.dur + B.ts as endTs
+      from
+        thread_state AS B
+      where
+        B.tid in (${tIds.join(',')})
+      and
+        not ((B.ts + ifnull(B.dur,0) < $leftStartNs) or (B.ts > $rightEndNs))
+      order by
+        B.pid;
+      `,
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    );
+    
+    export const querySingleCutData = (funcName: string, tIds: string, leftStartNs: number, rightEndNs: number): Promise<Array<any>> => 
+    query(
+      'querySingleCutData',
+      `
+      select 
+      c.id,
+      c.name,
+      c.ts as cycleStartTime,
+      c.ts + c.dur as cycleEndTime,
+      c.depth,
+      t.tid,
+      p.pid,
+      c.dur
+      from
+      callstack c 
+      left join
+      thread t on c.callid = t.id 
+      left join
+      process p on t.ipid = p.id
+      left join
+      trace_range r
+      where
+      c.name = '${funcName}'
+      and 
+      t.tid = '${tIds}'
+      and
+      not ((c.ts < $leftStartNs) or (c.ts + ifnull(c.dur, 0) > $rightEndNs))
+      `,
+      {$leftStartNs: leftStartNs, $rightEndNs: rightEndNs}
+    )
+    
+    export const queryLoopCutData = ( funcName: string, tIds: string, leftStartNs: number, rightEndNs: number): Promise<Array<any>> => 
+    query (
+      'queryLoopCutData',
+      `
+      select 
+        c.id,
+        c.name,
+        c.ts as cycleStartTime,
+        c.depth,
+        t.tid,
+        p.pid
+      from callstack c 
+      left join
+      thread t on c.callid = t.id 
+      left join
+      process p on t.ipid = p.id
+      where 
+        c.name = '${funcName}' 
+      and
+        t.tid = '${tIds}' 
+      and
+        not ((c.ts < $leftStartNs) or (c.ts > $rightEndNs))
+      order by
+        c.ts
+      `,
+      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+    )

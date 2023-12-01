@@ -122,6 +122,7 @@ import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
 import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
 import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents.js';
 import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary.js';
+import {TabPaneSchedSwitch} from '../sheet/schedswitch/TabPaneSchedSwitch.js';
 
 export let tabConfig: any = {
   'current-selection': {
@@ -649,5 +650,10 @@ export let tabConfig: any = {
     title: 'Statistics',
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
+  },
+  'tabpane-schedswitch': {
+    title: 'Sched Switch',
+    type: TabPaneSchedSwitch,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
   },
 };
