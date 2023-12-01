@@ -34,6 +34,7 @@ export class SegMenTaTion {
     static chartData: any;
     // 数据切割联动
     static setChartData(type: string, data: any) {
+        this.tabHover(type, false)
         let currentMaxValue = 0;
         if (type === 'CPU-FREQ') {
             let chartData = data.map((v: any) => {
@@ -58,16 +59,17 @@ export class SegMenTaTion {
         }
         else if (type === 'GPU-FREQ') {
             let chartData = data.map((v: any) => {
-
-                if (v.count > currentMaxValue) {
-                    currentMaxValue = v.count
+                let _count = Number(v.count)
+                if (_count > currentMaxValue) {
+                    currentMaxValue = _count
                 }
                 return {
                     cpu: 7,
-                    dur: v.dur * 1000000,
-                    value: v.count,
+                    dur: Number(v.dur * 1000000),
+                    value: _count,
                     startNS: v.startNS,
                     cycle: v.cycle,
+                    type
                 }
             })
             CpuFreqExtendStruct.maxValue = currentMaxValue;
@@ -76,6 +78,7 @@ export class SegMenTaTion {
             SegMenTaTion.GpuRow!.isComplete = false;
             SegMenTaTion.GpuRow!.supplier = (): Promise<Array<any>> =>
                 new Promise<Array<any>>((resolve) => resolve(chartData));
+            SegMenTaTion.trace.refreshCanvas(true)
         } else if (type === 'SCHED-SWITCH') {
             let chartData = data.map((v: any) => {
                 if (v.count > currentMaxValue) {
@@ -87,6 +90,7 @@ export class SegMenTaTion {
                     value: v.count,
                     startNS: Number(v.cycleStartTime) * 1000 * 1000,
                     cycle: v.cycle,
+                    type
                 }
             })
             CpuFreqExtendStruct.maxValue = currentMaxValue;
@@ -171,10 +175,11 @@ export class SegMenTaTion {
     }
 
     // 悬浮联动
-    static tabHover(type: String, tableIsHover: any = false, cycle: any) {
+    static tabHover(type: String, tableIsHover: any = false, cycle: number = -1) {
         CpuFreqExtendStruct.isTabHover = tableIsHover;
         if (type === 'CPU-FREQ' || type === 'GPU-FREQ' || type === 'SCHED-SWITCH') {
             if (tableIsHover) {
+                SegMenTaTion.GpuRow!.isHover = false;
                 CpuFreqExtendStruct.cycle = cycle
             } else {
                 CpuFreqExtendStruct.cycle = -1
@@ -266,7 +271,7 @@ export class SegMenTaTion {
             SegMenTaTion.trace?.displayTip(
                 SegMenTaTion.jsonRow!,
                 CpuFreqExtendStruct.hoverCpuFreqStruct,
-                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct!.value || 0)}</span>`
+                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value! || 0)}</span>`
             );
         };
         SegMenTaTion.jsonRow.findHoverStruct = () => {
@@ -309,7 +314,7 @@ export class SegMenTaTion {
             SegMenTaTion.trace?.displayTip(
                 SegMenTaTion.GpuRow!,
                 CpuFreqExtendStruct.hoverCpuFreqStruct,
-                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct?.value!)} Hz·ms</span>`
+                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!)} Hz·ms</span>`
             );
         };
         SegMenTaTion.GpuRow.findHoverStruct = () => {

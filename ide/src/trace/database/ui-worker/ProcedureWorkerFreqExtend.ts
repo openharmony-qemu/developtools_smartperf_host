@@ -41,6 +41,7 @@ export class FreqExtendRender extends Render {
 
     if (row.isHover) {
       CpuFreqExtendStruct.cycle = -1;
+      CpuFreqExtendStruct.isTabHover = false;
     }
     freqReq.context.beginPath();
     for (let re of freqFilter) {
@@ -74,8 +75,8 @@ export class CpuFreqExtendStruct extends BaseStruct {
       index += 2;
       freqContext.fillStyle = ColorUtils.colorForTid(index);
       freqContext.strokeStyle = ColorUtils.colorForTid(index);
-      if (data === CpuFreqExtendStruct.hoverCpuFreqStruct 
-        || data === CpuFreqExtendStruct.selectCpuFreqStruct 
+      if (data === CpuFreqExtendStruct.hoverCpuFreqStruct
+        || data === CpuFreqExtendStruct.selectCpuFreqStruct
         || data === CpuFreqExtendStruct.selectCpuFreqStruct
         || (data.cycle === CpuFreqExtendStruct.cycle
           && CpuFreqExtendStruct.cycle !== -1)) {
