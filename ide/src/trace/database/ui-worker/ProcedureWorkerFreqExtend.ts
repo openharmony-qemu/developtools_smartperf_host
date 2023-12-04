@@ -41,6 +41,7 @@ export class FreqExtendRender extends Render {
 
     if (row.isHover) {
       CpuFreqExtendStruct.cycle = -1;
+      CpuFreqExtendStruct.isTabHover = false;
     }
     freqReq.context.beginPath();
     for (let re of freqFilter) {
@@ -66,16 +67,18 @@ export class CpuFreqExtendStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; //自补充，数据库没有返回
   cycle: number | undefined;
+  type: string | undefined;
 
   static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.cpu || 0;
       index += 2;
-      freqContext.fillStyle = ColorUtils.colorForTid(index);
-      freqContext.strokeStyle = ColorUtils.colorForTid(index);
-      if (data === CpuFreqExtendStruct.hoverCpuFreqStruct 
-        || data === CpuFreqExtendStruct.selectCpuFreqStruct 
+      let color = ColorUtils.colorForTid(index)
+      freqContext.fillStyle = color;
+      freqContext.strokeStyle = color;
+      if (data === CpuFreqExtendStruct.hoverCpuFreqStruct
+        || data === CpuFreqExtendStruct.selectCpuFreqStruct
         || data === CpuFreqExtendStruct.selectCpuFreqStruct
         || (data.cycle === CpuFreqExtendStruct.cycle
           && CpuFreqExtendStruct.cycle !== -1)) {
@@ -83,6 +86,11 @@ export class CpuFreqExtendStruct extends BaseStruct {
         freqContext.strokeStyle = '#ff0000';
         freqContext.lineWidth = 3;
         freqContext.globalAlpha = 0.6;
+        if (data.type === 'SCHED-SWITCH' || data.type === 'GPU-FREQ') {
+          freqContext.globalAlpha = 1;
+          freqContext.fillStyle = color;
+          freqContext.strokeStyle = color;
+        }
         let drawHeight: number = Math.floor(
           ((data.value || 0) * (data.frame.height || 0) * 1.0) / CpuFreqExtendStruct.maxValue
         );
