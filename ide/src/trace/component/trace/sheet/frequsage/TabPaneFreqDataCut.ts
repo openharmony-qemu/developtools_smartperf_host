@@ -584,9 +584,9 @@ export class TabPaneFreqDataCut extends BaseElement {
                     arr[i].freq = arr[i].freq / 1000;
                 }
             }
-            if(!(SegMenTaTion.freqInfoMapData.size > 0)) {
+            if (!(SegMenTaTion.freqInfoMapData.size > 0)) {
                 arr[i].count = (arr[i].count / 1000).toFixed(3);
-            }else{
+            } else {
                 arr[i].count = (arr[i].count).toFixed(3);
             }
             this.fixedDeal(arr[i].children);
@@ -673,44 +673,7 @@ export class TabPaneFreqDataCut extends BaseElement {
                         cycleB.push([count, count / dur, i, dur, r_dur]);
                     }
                 }
-                this.statisticsScatter!.config = {
-                    // 纵轴坐标值
-                    yAxisLabel: [Math.round(yAxis / 5), Math.round(yAxis * 2 / 5), Math.round(yAxis * 3 / 5), Math.round(yAxis * 4 / 5), Math.round(yAxis)],
-                    // 横轴坐标值
-                    xAxisLabel: [Math.round(xAxis / 5), Math.round(xAxis * 2 / 5), Math.round(xAxis * 3 / 5), Math.round(xAxis * 4 / 5), Math.round(xAxis), Math.round(xAxis * 6 / 5)],
-                    // 横轴字段、纵轴字段
-                    AxisLabel: ['负载', '算力供给'],
-                    // 是否加载最大负载线及均衡线
-                    drawload: true,
-                    // 最大负载线及均衡线值
-                    load: [xAxis, Number(maxHz.value)],
-                    // 绘制点数据信息存储数组
-                    paintingData: [],
-                    // 当前移入点坐标信息
-                    hoverData: {},
-                    // 颜色池
-                    colorPool: () => ['#2f72f8', '#ffab67', '#a285d2'],
-                    // 移入数据点时是否触发函数
-                    //@ts-ignore
-                    hoverEvent: SegMenTaTion.tabHover,
-                    // 渐变色背景信息
-                    globalGradient: undefined,
-                    // 渲染数据点
-                    data: [scatterArr, cycleA, cycleB],
-                    // 散点图title
-                    title: str,
-                    colorPoolText: () => ['Total', 'CycleA', 'CycleB'],
-                    tip: (data: any) => {
-                        return `
-                            <div>
-                                <span>Cycle: ${data.c[2]};</span></br>
-                                <span>Comsumption: ${data.c[0]};</span></br>
-                                <span>Cycle_dur: ${data.c[3]} ms;</span></br>
-                                <span>Running_dur: ${data.c[4]} ms;</span></br>
-                            </div>
-                        `
-                    }
-                };
+                this.setConfig(Number(maxHz.value), str, scatterArr, yAxis, xAxis, cycleA, cycleB);
                 SegMenTaTion.setChartData('CPU-FREQ', traceRowdata);
             } else {
                 if (!/^[0-9]*$/.test(maxFreq.value)) {
@@ -730,8 +693,52 @@ export class TabPaneFreqDataCut extends BaseElement {
                 maxHz.setAttribute('placeholder', 'Please input Fps');
             }
             SegMenTaTion.setChartData('CPU-FREQ', []);
-
         }
+    }
+
+    /**
+     * 配置散点图
+     */
+    setConfig(maxHz: number, str: string, scatterArr: Array<Array<number>>, yAxis: number, xAxis: number, cycleA: Array<Array<number>>, cycleB: Array<Array<number>>): void {
+        this.statisticsScatter!.config = {
+            // 纵轴坐标值
+            yAxisLabel: [Math.round(yAxis / 5), Math.round(yAxis * 2 / 5), Math.round(yAxis * 3 / 5), Math.round(yAxis * 4 / 5), Math.round(yAxis)],
+            // 横轴坐标值
+            xAxisLabel: [Math.round(xAxis / 5), Math.round(xAxis * 2 / 5), Math.round(xAxis * 3 / 5), Math.round(xAxis * 4 / 5), Math.round(xAxis), Math.round(xAxis * 6 / 5)],
+            // 横轴字段、纵轴字段
+            AxisLabel: ['负载', '算力供给'],
+            // 是否加载最大负载线及均衡线
+            drawload: true,
+            // 最大负载线及均衡线值
+            load: [xAxis, maxHz],
+            // 绘制点数据信息存储数组
+            paintingData: [],
+            // 当前移入点坐标信息
+            hoverData: {},
+            // 颜色池
+            colorPool: () => ['#2f72f8', '#ffab67', '#a285d2'],
+            // 移入数据点时是否触发函数
+            //@ts-ignore
+            hoverEvent: SegMenTaTion.tabHover,
+            // 渐变色背景信息
+            globalGradient: undefined,
+            // 渲染数据点
+            data: [scatterArr, cycleA, cycleB],
+            // 散点图title
+            title: str,
+            colorPoolText: () => ['Total', 'CycleA', 'CycleB'],
+            tip: (data: any) => {
+                return `
+                    <div>
+                        <span>Cycle: ${data.c[2]};</span></br>
+                        <span>Comsumption: ${data.c[0]};</span></br>
+                        <span>Cycle_dur: ${data.c[3]} ms;</span></br>
+                        <span>Running_dur: ${data.c[4]} ms;</span></br>
+                    </div>
+                `
+            }
+        };
+
     }
 
     initElements(): void {
