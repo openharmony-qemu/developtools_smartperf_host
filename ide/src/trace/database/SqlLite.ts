@@ -5682,16 +5682,8 @@ export const querySearchFuncData = (
     'querySearchFuncData',
     `
       select 
-        c.cookie,
-        c.id,
-        c.name as funName,
         c.ts - r.start_ts as startTime,
-        c.dur,
-        c.depth,
-        t.tid,
-        t.name as threadName,
-        p.pid,
-        'func' as type 
+        c.dur
       from 
         callstack c 
       left join 
@@ -5710,8 +5702,7 @@ export const querySearchFuncData = (
         t.tid = ${tIds} 
       and
         not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-  `,
-    { $search: funcName }
+  `
   );
 
 export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =>
