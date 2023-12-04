@@ -274,7 +274,7 @@ export class TabPaneFreqDataCut extends BaseElement {
                 // 时间倍数值
                 const countMutiple = 1000000;
                 cpuMap.set(key, new Array());
-                cycleMap.get(key)?.push(new TabPaneFreqUsageConfig('cycle' + (i + 1) + '—' + value[0].thread, ((dealArr[i].ts - timeDur) / 1000000).toFixed(3), '', '', 0, '', '', 0, (dealArr[i].dur / 1000000).toFixed(3), 0, 'cycle', i + 1, []));
+                cycleMap.get(key)?.push(new TabPaneFreqUsageConfig('cycle' + (i + 1) + '—' + value[0].thread, ((dealArr[i].ts - timeDur) / 1000000).toFixed(3), key.split('_')[0], key.split('_')[1], 0, '', '', 0, (dealArr[i].dur / 1000000).toFixed(3), 0, 'cycle', i + 1, []));
                 for (let j = 0; j < value.length; j++) {
                     // 判断若用户导入json文件，则替换为对应cpu下的对应频点的算力值进行算力消耗计算
                     let consumptionMap: Map<number, number> = SegMenTaTion.freqInfoMapData.size > 0 && SegMenTaTion.freqInfoMapData.get(value[j].cpu);
@@ -386,7 +386,7 @@ export class TabPaneFreqDataCut extends BaseElement {
                 const countMutiple = 1000000;
                 cpuMap.set(key, new Array());
                 // 创建周期层级数据
-                cycleMap.get(key)?.push(new TabPaneFreqUsageConfig('cycle' + (i + 1) + '—' + value[0].thread, ((cutArr[i].ts - timeDur) / 1000000).toFixed(3), '', '', 0, '', '', 0, (cutArr[i].dur / 1000000).toFixed(3), 0, 'cycle', i + 1, []));
+                cycleMap.get(key)?.push(new TabPaneFreqUsageConfig('cycle' + (i + 1) + '—' + value[0].thread, ((cutArr[i].ts - timeDur) / 1000000).toFixed(3), key.split('_')[0], key.split('_')[1], 0, '', '', 0, (cutArr[i].dur / 1000000).toFixed(3), 0, 'cycle', i + 1, []));
                 for (let j = 0; j < value.length; j++) {
                     // 判断若用户导入json文件，则替换为对应cpu下的对应频点的算力值进行算力消耗计算
                     let consumptionMap: Map<number, number> = SegMenTaTion.freqInfoMapData.size > 0 && SegMenTaTion.freqInfoMapData.get(value[j].cpu);
@@ -769,7 +769,7 @@ export class TabPaneFreqDataCut extends BaseElement {
                 this.render(scatterData, str, []);
             }
             // @ts-ignore
-            if (evt.detail.flag === 'cycle') {
+            if (evt.detail.flag === 'cycle' && evt.detail.pid === scatterData[evt.detail.id - 1].pid && evt.detail.tid === scatterData[evt.detail.id - 1].tid) {
                 // @ts-ignore
                 SegMenTaTion.tabHover('CPU-FREQ', true, evt.detail.id - 1);
 
