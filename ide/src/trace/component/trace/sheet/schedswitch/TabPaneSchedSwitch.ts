@@ -248,26 +248,22 @@ export class TabPaneSchedSwitch extends BaseElement {
                     this.clickTreeTitleFn(this.schedSwitchTbl!.recycleDataSource);
                     return
                 };
-                for (let idx = 0; idx < res.length; idx++) {
-                    if (idx + 1 == res.length) {
-                        res.splice(idx, 1);
-                    } else {
-                        res[idx].cycleEndTime = res[idx + 1].cycleStartTime;
-                        for (let i = 0; i < this.loopSourceData.length; i++) {
-                            let loopItem = this.loopSourceData[i]
-                            if (!(loopItem.endTs < res[idx].cycleStartTime || loopItem.ts > res[idx].cycleEndTime)) {
-                                let info = {
-                                    pid: loopItem.pid,
-                                    tid: loopItem.tid,
-                                    state: loopItem.state,
-                                    cycleStartTime: res[idx].cycleStartTime,
-                                    cycleEndTime: res[idx + 1].cycleStartTime,
-                                    name: res[idx].name,
-                                    funId: res[idx].id,
-                                    runningCnt: loopItem.state == 'Running' ? 1 : 0,
-                                }
-                                cutData.push(info)
+                for (let idx = 0; idx < res.length - 1; idx++) {
+                    res[idx].cycleEndTime = res[idx + 1].cycleStartTime;
+                    for (let i = 0; i < this.loopSourceData.length; i++) {
+                        let loopItem = this.loopSourceData[i]
+                        if (!(loopItem.endTs < res[idx].cycleStartTime || loopItem.ts > res[idx].cycleEndTime)) {
+                            let info = {
+                                pid: loopItem.pid,
+                                tid: loopItem.tid,
+                                state: loopItem.state,
+                                cycleStartTime: res[idx].cycleStartTime,
+                                cycleEndTime: res[idx + 1].cycleStartTime,
+                                name: res[idx].name,
+                                funId: res[idx].id,
+                                runningCnt: loopItem.state == 'Running' ? 1 : 0,
                             }
+                            cutData.push(info)
                         }
                     }
                 }
