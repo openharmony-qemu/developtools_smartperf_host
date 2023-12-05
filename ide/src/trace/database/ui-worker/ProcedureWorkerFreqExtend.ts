@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,14 +67,17 @@ export class CpuFreqExtendStruct extends BaseStruct {
   startNS: number | undefined;
   dur: number | undefined; //自补充，数据库没有返回
   cycle: number | undefined;
+  type: string | undefined;
+  frame:any;
 
   static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.cpu || 0;
       index += 2;
-      freqContext.fillStyle = ColorUtils.colorForTid(index);
-      freqContext.strokeStyle = ColorUtils.colorForTid(index);
+      let color = ColorUtils.colorForTid(index)
+      freqContext.fillStyle = color;
+      freqContext.strokeStyle = color;
       if (data === CpuFreqExtendStruct.hoverCpuFreqStruct
         || data === CpuFreqExtendStruct.selectCpuFreqStruct
         || data === CpuFreqExtendStruct.selectCpuFreqStruct
@@ -84,6 +87,11 @@ export class CpuFreqExtendStruct extends BaseStruct {
         freqContext.strokeStyle = '#ff0000';
         freqContext.lineWidth = 3;
         freqContext.globalAlpha = 0.6;
+        if (data.type === 'SCHED-SWITCH' || data.type === 'GPU-FREQ') {
+          freqContext.globalAlpha = 1;
+          freqContext.fillStyle = color;
+          freqContext.strokeStyle = color;
+        }
         let drawHeight: number = Math.floor(
           ((data.value || 0) * (data.frame.height || 0) * 1.0) / CpuFreqExtendStruct.maxValue
         );

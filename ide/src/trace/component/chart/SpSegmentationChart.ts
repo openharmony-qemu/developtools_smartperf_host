@@ -31,7 +31,7 @@ export class SegMenTaTion {
     static schedRow: TraceRow<CpuFreqExtendStruct> | undefined;
     static freqInfoMapData: any = new Map();
     private rowFolder!: TraceRow<any>;
-    static chartData: any;
+    static chartData: Array<Object> = [];;
     // 数据切割联动
     static setChartData(type: string, data: any) {
         this.tabHover(type, false)
@@ -167,9 +167,7 @@ export class SegMenTaTion {
             SegMenTaTion.binderRow!.isComplete = false;
             SegMenTaTion.binderRow!.style.height = `${binderStruct.maxHeight > 2 ? binderStruct.maxHeight * 20 + 20 : 40}px`;
             SegMenTaTion.binderRow!.supplier = (): Promise<Array<any>> =>
-                new Promise<Array<any>>((resolve) => resolve(chartData));
-        } else {
-            return
+                new Promise<Array<any>>((resolve) => resolve([]));
         }
         SegMenTaTion.trace.refreshCanvas(true)
     }
@@ -209,8 +207,6 @@ export class SegMenTaTion {
             await this.initFolder();
             await this.initCpuFreq();
             await this.initGpuTrace();
-            await this.initSchedTrace();
-            await this.initBinderTrace();
         }
     }
 
@@ -255,7 +251,8 @@ export class SegMenTaTion {
         SegMenTaTion.jsonRow.style.height = '40px';
         SegMenTaTion.jsonRow.name = `Cpu Computility`;
         SegMenTaTion.jsonRow.favoriteChangeHandler = SegMenTaTion.trace.favoriteChangeHandler;
-        SegMenTaTion.jsonRow.checkFile = 'json';
+        SegMenTaTion.jsonRow.addRowCheckFilePop();
+        SegMenTaTion.jsonRow.rowSetting = 'checkFile';
         // 拿到了用户传递的数据
         SegMenTaTion.jsonRow.onRowCheckFileChangeHandler = (e: any) => {
             let chartData = JSON.parse(e);
@@ -339,105 +336,7 @@ export class SegMenTaTion {
             );
             SegMenTaTion.GpuRow!.canvasRestore(context);
         };
-        SegMenTaTion.trace.rowsEL!.appendChild(SegMenTaTion.GpuRow);
+        SegMenTaTion.trace.rowsEL.appendChild(SegMenTaTion.GpuRow);
         this.rowFolder!.addChildTraceRow(SegMenTaTion.GpuRow);
-    }
-
-    async initSchedTrace() {
-        SegMenTaTion.schedRow = TraceRow.skeleton<CpuFreqExtendStruct>();
-        SegMenTaTion.schedRow.rowId = `sched_switch Count`;
-        SegMenTaTion.schedRow.rowType = TraceRow.ROW_TYPE_SCHED_SWITCH;
-        SegMenTaTion.schedRow.rowParentId = '';
-        SegMenTaTion.schedRow.style.height = '40px';
-        SegMenTaTion.schedRow.name = `Sched_switch Count`;
-        SegMenTaTion.schedRow.favoriteChangeHandler = SegMenTaTion.trace.favoriteChangeHandler;
-        SegMenTaTion.schedRow.selectChangeHandler = SegMenTaTion.trace.selectChangeHandler;
-        SegMenTaTion.schedRow.focusHandler = (ev) => {
-            SegMenTaTion.trace!.displayTip(
-                SegMenTaTion.schedRow!,
-                CpuFreqExtendStruct.hoverCpuFreqStruct,
-                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct!.value!)} Hz·ms</span>`
-            );
-        };
-        SegMenTaTion.schedRow.findHoverStruct = () => {
-            CpuFreqExtendStruct.hoverCpuFreqStruct = SegMenTaTion.schedRow!.getHoverStruct();
-        };
-        SegMenTaTion.schedRow.supplier = (): Promise<Array<any>> =>
-            new Promise<Array<any>>((resolve) => resolve([]));
-        SegMenTaTion.schedRow.onThreadHandler = (useCache) => {
-            let context: CanvasRenderingContext2D;
-            if (SegMenTaTion.schedRow!.currentContext) {
-                context = SegMenTaTion.schedRow!.currentContext;
-            } else {
-                context = SegMenTaTion.schedRow!.collect ? SegMenTaTion.trace.canvasFavoritePanelCtx! : SegMenTaTion.trace.canvasPanelCtx!;
-            }
-            SegMenTaTion.schedRow!.canvasSave(context);
-            (renders['freq-extend'] as FreqExtendRender).renderMainThread(
-                {
-                    context: context,
-                    useCache: useCache,
-                    type: `json0`,
-                },
-                SegMenTaTion.schedRow!
-            );
-            SegMenTaTion.schedRow!.canvasRestore(context);
-        };
-        SegMenTaTion.trace.rowsEL!.appendChild(SegMenTaTion.schedRow);
-        this.rowFolder!.addChildTraceRow(SegMenTaTion.schedRow);
-    }
-
-    async initBinderTrace() {
-        SegMenTaTion.binderRow = TraceRow.skeleton<binderStruct>();
-        SegMenTaTion.binderRow.rowId = `binderrow`;
-        SegMenTaTion.binderRow.rowType = TraceRow.ROW_TYPE_BINDER_COUNT;
-        SegMenTaTion.binderRow.rowParentId = '';
-        SegMenTaTion.binderRow.name = `Binder Count`;
-        SegMenTaTion.binderRow.style.height = '40px';
-        SegMenTaTion.binderRow.favoriteChangeHandler = SegMenTaTion.trace.favoriteChangeHandler;
-        SegMenTaTion.binderRow.selectChangeHandler = SegMenTaTion.trace.selectChangeHandler;
-        SegMenTaTion.binderRow.focusHandler = (ev) => {
-            SegMenTaTion.trace!.displayTip(
-                SegMenTaTion.binderRow!,
-                binderStruct.hoverCpuFreqStruct,
-                `<span style='font-weight: bold;'>Cycle: ${binderStruct.hoverCpuFreqStruct!.cycle}</span><br>
-                <span style='font-weight: bold;'>Name: ${binderStruct.hoverCpuFreqStruct!.name || ''}</span><br>
-                <span style='font-weight: bold;'>Count: ${binderStruct.hoverCpuFreqStruct!.value || ''}</span>`
-            );
-        };
-        SegMenTaTion.binderRow.findHoverStruct = () => {
-            binderStruct.hoverCpuFreqStruct = SegMenTaTion.binderRow!.dataListCache.find((v: any) => {
-                if (SegMenTaTion.binderRow!.isHover) {
-                    if (v.frame.x < SegMenTaTion.binderRow.hoverX
-                        && v.frame.x + v.frame.width > SegMenTaTion.binderRow.hoverX
-                        && (binderStruct.maxHeight * 20 - v.depth * 20 + 20) < SegMenTaTion.binderRow!.hoverY
-                        && binderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SegMenTaTion.binderRow!.hoverY) {
-                        console
-                        return v
-                    }
-                }
-            })
-        };
-        SegMenTaTion.binderRow.supplier = (): Promise<Array<any>> =>
-            new Promise<Array<any>>((resolve) => resolve([]));
-        SegMenTaTion.binderRow.onThreadHandler = (useCache) => {
-            let context: CanvasRenderingContext2D;
-            if (SegMenTaTion.binderRow!.currentContext) {
-                context = SegMenTaTion.binderRow!.currentContext;
-            } else {
-                context = SegMenTaTion.binderRow!.collect ? SegMenTaTion.trace.canvasFavoritePanelCtx! : SegMenTaTion.trace.canvasPanelCtx!;
-            }
-            SegMenTaTion.binderRow!.canvasSave(context);
-            (renders['binder'] as BinderRender).renderMainThread(
-                {
-                    context: context,
-                    useCache: useCache,
-                    type: `binder`,
-                },
-                SegMenTaTion.binderRow!
-            );
-            SegMenTaTion.binderRow!.canvasRestore(context);
-        };
-        SegMenTaTion.trace.rowsEL!.appendChild(SegMenTaTion.binderRow);
-        this.rowFolder!.addChildTraceRow(SegMenTaTion.binderRow);
     }
 }

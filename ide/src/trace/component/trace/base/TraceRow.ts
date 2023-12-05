@@ -179,9 +179,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
   _docompositionList: Array<number> | undefined;
-  public rowCheckFileEL: LitIcon | null | undefined;
-  public inputEL: any;
   public onRowCheckFileChangeHandler: ((file: any) => void) | undefined | null;
+  private rowCheckFilePop: LitPopover | null | undefined;
+  public fileEL: any;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -242,14 +242,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-list',
       'row-setting-popover-direction',
     ];
-  }
-
-  get checkFile(): string {
-    return this.getAttribute('row-file') || 'disable'
-  }
-
-  set checkFile(value: string) {
-    this.setAttribute('row-file', value)
   }
 
   get docompositionList(): Array<number> | undefined {
@@ -674,8 +666,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
     let canvasNumber = this.args['canvasNumber'];
-    this.rowCheckFileEL = this.shadowRoot?.querySelector('.checkfile');
-    this.inputEL = this.shadowRoot?.querySelector('#fileinput');
     if (!this.args['skeleton']) {
       for (let i = 0; i < canvasNumber; i++) {
         let canvas = document.createElement('canvas');
@@ -685,23 +675,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           this.canvasVessel.appendChild(canvas);
         }
       }
-    }
-
-    this.rowCheckFileEL!.onclick = () => {
-      this.inputEL.click();
-      this.inputEL.addEventListener('change', (e: any) => {
-        let file = e.target.files[0];
-        if (file.type === 'application/json') {
-          let file_reader = new FileReader();
-          file_reader.readAsText(file, 'UTF-8');
-          file_reader.onload = () => {
-            let fc = file_reader.result;
-            this.onRowCheckFileChangeHandler?.(fc)
-          };
-        } else {
-          return
-        }
-      }, false)
     }
 
     this.checkBoxEL!.onchange = (ev: any) => {
@@ -757,6 +730,38 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
     });
     this.describeEl?.appendChild(this.rowSettingPop);
+  }
+
+  addRowCheckFilePop(): void {
+    this.rowCheckFilePop = document.createElement('litpopover') as LitPopover;
+    this.rowCheckFilePop.innerHTML = `<div slot="content" id="jsonFile" style="display: block;height: auto;max-height:200px;overflow-y:auto">
+    </div>
+    <lit-icon name="copy-csv" size="19" id="myfolder"></lit-icon>
+    <input type="file" id="jsoninput" style="width:0px;height:0px"placeholder=''/>`;
+    this.rowCheckFilePop.id = 'rowCheckFile';
+    this.rowCheckFilePop.className = 'popover checkFile';
+    this.rowCheckFilePop.setAttribute('trigger', 'click');
+    this.rowCheckFilePop?.addEventListener('mouseenter', (e) => {
+      window.publish(window.SmartEvent.UI.HoverNull, undefined);
+    });
+    this.fileEL = this.rowCheckFilePop.querySelector('#jsoninput');
+    this.rowCheckFilePop.onclick = (): void => {
+      this.fileEL.click();
+      this.fileEL.addEventListener('change', (e: any) => {
+        let file = e.target.files[0];
+        if (file.type === 'application/json') {
+          let file_reader = new FileReader();
+          file_reader.readAsText(file, 'UTF-8');
+          file_reader.onload = () => {
+            let fc = file_reader.result;
+            this.onRowCheckFileChangeHandler?.(fc)
+          };
+        } else {
+          return
+        }
+      }, false)
+    }
+    this.describeEl?.appendChild(this.rowCheckFilePop);
   }
 
   getRowSettingKeys(): Array<string> {
@@ -1458,23 +1463,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([row-setting='enable']:not([check-type='-1'])) .collect{
             margin-right: 5px;
         } 
-        :host(:not([row-file='json'])) .checkfile{
-          display:none;
-        }
-        :host(:not([row-file='json'])) input{
-          display:none;
-        }
-        :host([row-file='json']) .checkfile{
+        :host([row-setting='checkFile']) #rowCheckFile{
           display:flex;
         }
-        :host([row-file='json']) input{
-          display:flex;
-        }
-        :host([row-file='json']) .folder{
-          display:none;
-        }
-        :host([row-file="json"]) .describe:hover .checkfile{
-            color:#000;
+        :host([row-setting='checkFile']) #myfolder{
+          color:#4b5766;
         }
         </style>
         <div class="root">
@@ -1482,10 +1475,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 <lit-icon class="icon" name="caret-down" size="19"></lit-icon>
                 <label class="name"></label>
                 <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
-                <lit-icon class="checkfile" name="folder" size="19"></lit-icon>
                 <lit-check-box class="lit-check-box"></lit-check-box>
             </div>
-            <input type="file" id="fileinput" style="width:0px;height:0px"placeholder=''/>
         </div>
         `;
   }
