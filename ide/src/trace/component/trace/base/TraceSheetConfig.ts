@@ -122,6 +122,7 @@ import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
 import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
 import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents.js';
 import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary.js';
+import {TabPaneSchedSwitch} from '../sheet/schedswitch/TabPaneSchedSwitch.js';
 import { TabPaneThreadBinders } from '../sheet/binder/TabPaneThreadBinders.js';
 import { TabPaneBinderDataCut } from '../sheet/binder/TabPaneBinderDataCut.js';
 import {TabPaneGpufreq} from '../sheet/gpufreq/tabPaneGpufreqUsage.js'
@@ -654,6 +655,10 @@ export let tabConfig: any = {
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
   },
+  'tabpane-schedswitch': {
+    title: 'Sched Switch',
+    type: TabPaneSchedSwitch,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
   'tabpane-Thrbinders': {
     title: 'Thread Binders',
     type: TabPaneThreadBinders,
