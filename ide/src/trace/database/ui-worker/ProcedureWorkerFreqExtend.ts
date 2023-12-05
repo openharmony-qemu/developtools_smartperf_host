@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ export class CpuFreqExtendStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   cycle: number | undefined;
   type: string | undefined;
+  frame:any;
 
   static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct) {
     if (data.frame) {

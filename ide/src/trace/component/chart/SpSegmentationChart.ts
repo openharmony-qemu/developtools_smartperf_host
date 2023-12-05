@@ -34,6 +34,7 @@ export class SegMenTaTion {
     static chartData: Array<Object> = [];;
     // 数据切割联动
     static setChartData(type: string, data: any) {
+        this.tabHover(type, false)
         let currentMaxValue = 0;
         if (type === 'CPU-FREQ') {
             let chartData = data.map((v: any) => {
@@ -58,13 +59,14 @@ export class SegMenTaTion {
         }
         else if (type === 'GPU-FREQ') {
             let chartData = data.map((v: any) => {
-                if (v.count > currentMaxValue) {
-                    currentMaxValue = v.count
+                let _count = Number(v.count)
+                if (_count > currentMaxValue) {
+                    currentMaxValue = _count
                 }
                 return {
                     cpu: 7,
-                    dur: v.dur * 1000000,
-                    value: v.count,
+                    dur: Number(v.dur * 1000000),
+                    value: _count,
                     startNS: v.startNS,
                     cycle: v.cycle,
                     type
@@ -76,7 +78,89 @@ export class SegMenTaTion {
             SegMenTaTion.GpuRow!.isComplete = false;
             SegMenTaTion.GpuRow!.supplier = (): Promise<Array<any>> =>
                 new Promise<Array<any>>((resolve) => resolve(chartData));
-        } else {
+            SegMenTaTion.trace.refreshCanvas(true)
+        } else if (type === 'SCHED-SWITCH') {
+            let chartData = data.map((v: any) => {
+                if (v.count > currentMaxValue) {
+                    currentMaxValue = v.count
+                }
+                return {
+                    cpu: 5,
+                    dur: Number(v.duration) * 1000 * 1000,
+                    value: v.count,
+                    startNS: Number(v.cycleStartTime) * 1000 * 1000,
+                    cycle: v.cycle,
+                    type
+                }
+            })
+            CpuFreqExtendStruct.maxValue = currentMaxValue;
+            SegMenTaTion.schedRow!.dataList = [];
+            SegMenTaTion.schedRow!.dataListCache = [];
+            SegMenTaTion.schedRow!.isComplete = false;
+            SegMenTaTion.schedRow!.supplier = (): Promise<Array<any>> =>
+                new Promise<Array<any>>((resolve) => resolve(chartData));
+        } else if (type === 'BINDER') {
+            let binderList: any = [];
+            let chartData: any;
+            data.map((v: any) => {
+                let listCount = 0
+                v.map((t: any) => {
+                    listCount += t.count
+                    if (t.name === 'binder transaction') {
+                        t.depth = t.count
+                    }
+                    if (t.name === 'binder transaction async') {
+                        t.depth = t.count + ((v.filter((i: any) => {
+                            return i.name === 'binder transaction'
+                        }).length > 0) ? (v.filter((i: any) => {
+                            return i.name === 'binder transaction'
+                        })[0].count) : 0);
+                    }
+                    if (t.name === 'binder reply') {
+                        t.depth = t.count + ((v.filter((i: any) => {
+                            return i.name === 'binder transaction'
+                        }).length > 0) ? (v.filter((i: any) => {
+                            return i.name === 'binder transaction'
+                        })[0].count) : 0) + ((v.filter((i: any) => {
+                            return i.name === 'binder transaction async'
+                        }).length > 0) ? (v.filter((i: any) => {
+                            return i.name === 'binder transaction async'
+                        })[0].count) : 0);
+                    }
+                    if (t.name === 'binder async rcv') {
+                        t.depth = t.count + ((v.filter((i: any) => {
+                            return i.name === 'binder transaction'
+                        }).length > 0) ? (v.filter((i: any) => {
+                            return i.name === 'binder transaction'
+                        })[0].count) : 0) + ((v.filter((i: any) => {
+                            return i.name === 'binder transaction async'
+                        }).length > 0) ? (v.filter((i: any) => {
+                            return i.name === 'binder transaction async'
+                        })[0].count) : 0) + ((v.filter((i: any) => {
+                            return i.name === 'binder reply'
+                        }).length > 0) ? (v.filter((i: any) => {
+                            return i.name === 'binder reply'
+                        })[0].count) : 0)
+                    }
+                    binderList.push(t);
+                });
+                binderStruct.maxHeight = binderStruct.maxHeight > listCount ? binderStruct.maxHeight : JSON.parse(JSON.stringify(listCount));
+                listCount = 0
+            })
+            chartData = binderList.map((v: any) => {
+                return {
+                    cpu: v.name === 'binder transaction' ?
+                        0 : v.name === 'binder transaction async' ?
+                            1 : v.name === 'binder reply' ?
+                                2 : 3,
+                    startNS: v.startNS,
+                    dur: v.dur,
+                    name: `${v.name}`,
+                    value: v.count,
+                    depth: v.depth,
+                    cycle: v.idx,
+                }
+            })
             SegMenTaTion.binderRow!.dataList = [];
             SegMenTaTion.binderRow!.dataListCache = [];
             SegMenTaTion.binderRow!.isComplete = false;
@@ -88,11 +172,10 @@ export class SegMenTaTion {
     }
 
     // 悬浮联动
-    static tabHover(type: String, tableIsHover: any = false, cycle: any) {
+    static tabHover(type: String, tableIsHover: any = false, cycle: number = -1) {
         CpuFreqExtendStruct.isTabHover = tableIsHover;
         if (type === 'CPU-FREQ' || type === 'GPU-FREQ' || type === 'SCHED-SWITCH') {
             if (tableIsHover) {
-                SegMenTaTion.jsonRow!.isHover = false;
                 SegMenTaTion.GpuRow!.isHover = false;
                 CpuFreqExtendStruct.cycle = cycle
             } else {
@@ -139,7 +222,7 @@ export class SegMenTaTion {
         row.onThreadHandler = (useCache) => {
             row.canvasSave(SegMenTaTion.trace.canvasPanelCtx!);
             if (row.expansion) {
-                SegMenTaTion.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
+                SegMenTaTion.trace.canvasPanelCtx!.clearRect(0, 0, row.frame.width, row.frame.height);
             } else {
                 (renders['empty'] as EmptyRender).renderMainThread(
                     {
@@ -153,7 +236,7 @@ export class SegMenTaTion {
             row.canvasRestore(SegMenTaTion.trace.canvasPanelCtx!);
         };
         this.rowFolder = row;
-        SegMenTaTion.trace.rowsEL?.appendChild(row);
+        SegMenTaTion.trace.rowsEL!.appendChild(row);
 
     }
 
@@ -181,10 +264,10 @@ export class SegMenTaTion {
             })
         }
         SegMenTaTion.jsonRow.focusHandler = (ev) => {
-            SegMenTaTion.trace?.displayTip(
+            SegMenTaTion.trace!.displayTip(
                 SegMenTaTion.jsonRow!,
                 CpuFreqExtendStruct.hoverCpuFreqStruct,
-                `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!}</span>`
+                `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value! || 0)}</span>`
             );
         };
         SegMenTaTion.jsonRow.findHoverStruct = () => {
@@ -208,7 +291,7 @@ export class SegMenTaTion {
             );
             SegMenTaTion.jsonRow!.canvasRestore(context);
         };
-        SegMenTaTion.trace.rowsEL?.appendChild(SegMenTaTion.jsonRow);
+        SegMenTaTion.trace.rowsEL!.appendChild(SegMenTaTion.jsonRow);
         this.rowFolder!.addChildTraceRow(SegMenTaTion.jsonRow);
     }
 
@@ -224,7 +307,7 @@ export class SegMenTaTion {
         SegMenTaTion.GpuRow.supplier = (): Promise<Array<any>> =>
             new Promise<Array<any>>((resolve) => resolve([]));
         SegMenTaTion.GpuRow.focusHandler = (ev) => {
-            SegMenTaTion.trace?.displayTip(
+            SegMenTaTion.trace!.displayTip(
                 SegMenTaTion.GpuRow!,
                 CpuFreqExtendStruct.hoverCpuFreqStruct,
                 `<span>${ColorUtils.formatNumberComma(CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!)} Hz·ms</span>`
@@ -251,7 +334,7 @@ export class SegMenTaTion {
             );
             SegMenTaTion.GpuRow!.canvasRestore(context);
         };
-        SegMenTaTion.trace.rowsEL?.appendChild(SegMenTaTion.GpuRow);
+        SegMenTaTion.trace.rowsEL.appendChild(SegMenTaTion.GpuRow);
         this.rowFolder!.addChildTraceRow(SegMenTaTion.GpuRow);
     }
 }

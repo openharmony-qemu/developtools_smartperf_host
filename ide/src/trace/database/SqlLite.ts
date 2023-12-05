@@ -5682,16 +5682,8 @@ export const querySearchFuncData = (
     'querySearchFuncData',
     `
       select 
-        c.cookie,
-        c.id,
-        c.name as funName,
         c.ts - r.start_ts as startTime,
-        c.dur,
-        c.depth,
-        t.tid,
-        t.name as threadName,
-        p.pid,
-        'func' as type 
+        c.dur
       from 
         callstack c 
       left join 
@@ -5710,8 +5702,7 @@ export const querySearchFuncData = (
         t.tid = ${tIds} 
       and
         not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-  `,
-    { $search: funcName }
+  `
   );
 
 export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =>
@@ -5816,3 +5807,108 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
       `,
       { $search: funcName }
     );
+
+    export const getGpufreqData = (leftNS: number, rightNS: number, earliest: boolean): Promise<Array<any>> => {
+      let queryCondition = '';
+      if (!earliest) {
+        queryCondition += ` where  not  ((s.ts - r.start_ts + ifnull(s.dur,0) < ${leftNS}) or (s.ts - r.start_ts > ${rightNS}))`
+      }
+      return query<SelectionData>(
+        'getGpufreqData',
+        `
+          with state as 
+          (select 
+           name,
+           filter_id, 
+           ts, 
+           endts, 
+           endts-ts as dur, 
+           type, 
+           value 
+           from
+           (select 
+           measure.filter_id,
+           clock_event_filter.name, 
+           measure.ts, 
+           lead(ts, 1, null) over( order by measure.ts) endts, 
+           measure.type, 
+           measure.value 
+           from 
+           clock_event_filter,
+           trace_range
+           left join 
+           measure
+           where 
+           clock_event_filter.name = 'gpufreq' 
+           and 
+           clock_event_filter.type = 'clock_set_rate' 
+           and
+           clock_event_filter.id = measure.filter_id
+           order by measure.ts)
+           where endts is not null
+           )
+           select 
+           s.name as thread,
+           s.filter_id as filterId,
+           s.value/1000000 as freq,
+           s.value*s.dur as count,
+           s.value,
+           s.ts,
+           s.ts-r.start_ts as startNS,
+           s.dur,
+           s.endts- r.start_ts as endTime
+           from 
+           state s,
+           trace_range r 
+           ${queryCondition} 
+           order by ts
+        `,
+        { $leftNS: leftNS, $rightNS: rightNS }
+      );
+    }
+    
+    export const getGpufreqDataCut = (tIds: string, funcName: string, leftNS: number, rightNS: number, single: boolean, loop: boolean): Promise<Array<SearchFuncBean>> => {
+      let queryCondition = '';
+      if (single) {
+        queryCondition += `select s.funName,s.startTime,s.dur,s.startTime+s.dur as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
+          where endTime between ${leftNS} and ${rightNS}`;
+      }
+      if (loop) {
+        queryCondition += `select s.funName,s.startTime,s.loopEndTime-s.startTime as dur,s.loopEndTime as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
+          where endTime between ${leftNS} and ${rightNS} `;
+      }
+      return query(
+        'getGpufreqDataCut',
+        `
+          with state as
+          (select 
+           * 
+           from
+           (select
+           c.name as funName,
+           c.ts - r.start_ts as startTime,
+           c.dur,
+           lead(c.ts - r.start_ts, 1, null) over( order by c.ts - r.start_ts) loopEndTime,
+           c.depth,
+           t.tid,
+           t.name as threadName,
+           p.pid
+           from 
+           callstack c 
+           left join 
+           thread t on c.callid = t.id 
+           left join 
+           process p on t.ipid = p.id
+           left join 
+           trace_range r
+           where 
+           c.name like '%${funcName}%'
+           and 
+           tid = '${tIds}' 
+           and 
+           startTime between ${leftNS} and ${rightNS}))
+           ${queryCondition}  
+        `,
+        { $search: funcName }
+      );
+    }

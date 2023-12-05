@@ -122,6 +122,8 @@ import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
 import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
 import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents.js';
 import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary.js';
+import {TabPaneGpufreq} from '../sheet/gpufreq/tabPaneGpufreqUsage.js'
+import {TabPaneGpufreqDataCut} from '../sheet/gpufreq/tabPaneGpufreqDataCut.js'
 
 export let tabConfig: any = {
   'current-selection': {
@@ -650,4 +652,14 @@ export let tabConfig: any = {
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
   },
+  'tabpane-Gpufreq':{
+    title: 'Gpufreq Usage',
+    type: TabPaneGpufreq,
+    require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,
+  },
+  'tabpane-FreqDataCut':{
+    title: 'Gpufreq DataCut',
+    type: TabPaneGpufreqDataCut,
+    require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,
+  }
 };
