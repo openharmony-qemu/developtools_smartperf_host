@@ -41,10 +41,14 @@ export class BinderRender extends Render {
         });
         freqReq.context.beginPath();
         for (let re of freqFilter) {
-            if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+            if (row.isHover
+                && re.frame
+                && (re.frame.x < row.hoverX
+                    && (binderStruct.maxHeight * 20 - re.depth * 20 + 20) < row.hoverY
+                    && re.frame.x + re.frame.width > row.hoverX
+                    && binderStruct.maxHeight * 20 - re.depth * 20 + re.value * 20 + 20 > row.hoverY)) {
                 binderStruct.hoverCpuFreqStruct = re;
-            }
-            if (!row.isHover) {
+            } else {
                 binderStruct.hoverCpuFreqStruct = undefined;
             }
             binderStruct.draw(freqReq.context, re);
@@ -57,9 +61,10 @@ export class binderStruct extends BaseStruct {
     static selectCpuFreqStruct: binderStruct | undefined;
     static maxHeight: number = 0;
     static hoverCycle: number = -1;
+    static isTableHover: boolean = false;
     cpu: number | undefined;
     value: number = 0;
-    cycle: number = 0;
+    cycle: number = -1;
     startNS: number | undefined;
     dur: number | undefined; //自补充，数据库没有返回
     name: string | undefined;
@@ -72,16 +77,16 @@ export class binderStruct extends BaseStruct {
                 color = '#e86b6a';
             }
             if (data.name === 'binder transaction async') {
-                color = '#36baa4';
+                color = '#7da6f4';
             }
             if (data.name === 'binder reply') {
-                color = '#8770d3';
-            }
-            if (data.name === 'binder async rcv') {
                 color = '#0cbdd4';
             }
+            if (data.name === 'binder async rcv') {
+                color = '#8770d3';
+            }
             freqContext.fillStyle = color
-            if (data === binderStruct.hoverCpuFreqStruct || data === binderStruct.selectCpuFreqStruct || data.cycle === binderStruct.hoverCycle) {
+            if (data === binderStruct.hoverCpuFreqStruct || data === binderStruct.selectCpuFreqStruct || (data.cycle === binderStruct.hoverCycle && binderStruct.isTableHover)) {
                 freqContext.globalAlpha = 1;
                 freqContext.lineWidth = 1;
                 freqContext.fillRect(data.frame.x, binderStruct.maxHeight * 20 - data.depth * 20 + 20, data.frame.width, data.value * 20);

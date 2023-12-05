@@ -127,7 +127,6 @@ export class SpHelp extends BaseElement {
                 title: 'Native Memory抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
-                  console.log('22222');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'native',
                     action: 'help_doc',
@@ -391,7 +390,6 @@ export class SpHelp extends BaseElement {
                 title: 'Ability Monitor抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
-                  console.log('444444');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'ability',
                     action: 'help_doc',

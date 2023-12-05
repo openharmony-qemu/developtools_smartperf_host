@@ -82,6 +82,7 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable.js';
 import '../../../../base-ui/popover/LitPopoverV.js';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree.js';
+import { SegMenTaTion } from '../../chart/SpSegmentationChart.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -843,6 +844,7 @@ export class TraceSheet extends BaseElement {
   }
 
   loadTabPaneData(key: string): void {
+    SegMenTaTion.setChartData('BINDER',[]);
     let component: any = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
