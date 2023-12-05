@@ -100,10 +100,11 @@ export class SegMenTaTion {
             SegMenTaTion.schedRow!.supplier = (): Promise<Array<any>> =>
                 new Promise<Array<any>>((resolve) => resolve(chartData));
         } else if (type === 'BINDER') {
+            binderStruct.maxHeight = 0;
             let binderList: any = [];
             let chartData: any;
             data.map((v: any) => {
-                let listCount = 0
+                let listCount = 0;
                 v.map((t: any) => {
                     listCount += t.count
                     if (t.name === 'binder transaction') {
@@ -183,6 +184,7 @@ export class SegMenTaTion {
                 CpuFreqExtendStruct.hoverCpuFreqStruct = undefined
             }
         } else if (type === 'BINDER') {
+            binderStruct.isTableHover = tableIsHover;
             if (tableIsHover) {
                 binderStruct.hoverCycle = cycle
             } else {
@@ -211,7 +213,7 @@ export class SegMenTaTion {
     async initFolder() {
         let row = TraceRow.skeleton();
         row.setAttribute('disabled-check', '');
-        row.rowId = `unkown`;
+        row.rowId = `segmentation`;
         row.index = 0;
         row.rowType = TraceRow.ROW_TYPE_SEGMENTATION;
         row.rowParentId = '';

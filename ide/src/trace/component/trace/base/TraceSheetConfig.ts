@@ -122,6 +122,8 @@ import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
 import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
 import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents.js';
 import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary.js';
+import { TabPaneThreadBinders } from '../sheet/binder/TabPaneThreadBinders.js';
+import { TabPaneBinderDataCut } from '../sheet/binder/TabPaneBinderDataCut.js';
 import {TabPaneGpufreq} from '../sheet/gpufreq/tabPaneGpufreqUsage.js'
 import {TabPaneGpufreqDataCut} from '../sheet/gpufreq/tabPaneGpufreqDataCut.js'
 
@@ -651,6 +653,16 @@ export let tabConfig: any = {
     title: 'Statistics',
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
+  },
+  'tabpane-Thrbinders': {
+    title: 'Thread Binders',
+    type: TabPaneThreadBinders,
+    require: (param: SelectionParam) => param.threadIds.length > 0
+  },
+  'tabpane-Thrfreqdatacut': {
+    title: 'Binder DataCut',
+    type: TabPaneBinderDataCut,
+    require: (param: SelectionParam) => param.threadIds.length > 0
   },
   'tabpane-Gpufreq':{
     title: 'Gpufreq Usage',
