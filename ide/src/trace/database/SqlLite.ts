@@ -4842,7 +4842,7 @@ export const queryVmTrackerShmSelectionData = (startNs: number, ipid: number): P
              where startNS = ${startNs} and ipid = ${ipid};`,
     {}
   );
-export const getTabSmapsSampleData = (rightNs: number): Promise<Array<Smaps>> =>
+export const getTabSmapsSampleData = (leftNs: number): Promise<Array<Smaps>> =>
   query<Smaps>(
     'getTabSmapsSampleData',
     `
@@ -4858,8 +4858,8 @@ export const getTabSmapsSampleData = (rightNs: number): Promise<Array<Smaps>> =>
      private_dirty * 1024 as privateDirty,swap * 1024 as swap,swap_pss * 1024 as swapPss
      FROM smaps A,
      trace_range AS t
-     WHERE (startNs) = $rightNs`,
-    { $rightNs: rightNs },
+     WHERE (startNs) = ${leftNs}`,
+    { $leftNs: leftNs },
     'exec'
   );
 

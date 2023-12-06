@@ -54,7 +54,8 @@ export class TabPaneSmapsSample extends BaseElement {
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tblSmapsSample?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight  - 15+ 'px';
+        this.tblSmapsSample?.shadowRoot?.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 15 + 'px';
         this.tblSmapsSample?.reMeauseHeight();
       }
     }).observe(this.parentElement!);
@@ -69,7 +70,7 @@ export class TabPaneSmapsSample extends BaseElement {
     );
   }
   setSmaps(data: SelectionParam): void {
-    getTabSmapsSampleData(data.rightNs).then((result) => {
+    getTabSmapsSampleData(data.leftNs).then((result) => {
       this.tblSmapsSample!.loading = false;
       this.filteredData(result);
     });
@@ -185,11 +186,7 @@ export class TabPaneSmapsSample extends BaseElement {
         }
       };
     }
-    if (
-      detail.key === 'rssStr' ||
-      detail.key === 'sizeStr' ||
-      detail.key === 'resideStr'
-    ) {
+    if (detail.key === 'rssStr' || detail.key === 'sizeStr' || detail.key === 'resideStr') {
       let key = detail.key.substring(0, detail.key.indexOf('Str'));
       this.sourceSmapsSample.sort(compare(key, detail.sort, 'number'));
     } else {
