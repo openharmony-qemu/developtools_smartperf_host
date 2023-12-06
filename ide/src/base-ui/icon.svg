@@ -475,71 +475,70 @@
             </g>
         </g>
     </symbol>
-</svg>
-<symbol id="icon-download-file" viewBox="0 0 24 24">
-    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
-        <g id="hisysevent_timeline-details" transform="translate(-1404.000000, -412.000000)" fill="#000000">
-            <g transform="translate(956.000000, 48.000000)">
-                <g transform="translate(0.000000, 352.000000)">
-                    <g id="download" transform="translate(448.000000, 12.000000)">
-                        <g id="download_dark" transform="translate(2.000000, 2.000000)">
-                            <polygon transform="translate(6.000000, 4.500000) scale(-1, 1) translate(-6.000000, -4.500000) " points="7 5 10 5 6 9 2 5 5 5 5 0 7 0"></polygon>
-                            <rect x="0" y="10" width="12" height="2"></rect>
+    <symbol id="icon-download-file" viewBox="0 0 24 24">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
+            <g id="hisysevent_timeline-details" transform="translate(-1404.000000, -412.000000)" fill="#000000">
+                <g transform="translate(956.000000, 48.000000)">
+                    <g transform="translate(0.000000, 352.000000)">
+                        <g id="download" transform="translate(448.000000, 12.000000)">
+                            <g id="download_dark" transform="translate(2.000000, 2.000000)">
+                                <polygon transform="translate(6.000000, 4.500000) scale(-1, 1) translate(-6.000000, -4.500000) " points="7 5 10 5 6 9 2 5 5 5 5 0 7 0"></polygon>
+                                <rect x="0" y="10" width="12" height="2"></rect>
+                            </g>
                         </g>
                     </g>
                 </g>
             </g>
         </g>
-    </g>
-</symbol>
-<symbol id="icon-open-file" viewBox="0 0 24 24">
-    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
-        <g id="hisysevent_timeline-details" transform="translate(-1376.000000, -412.000000)" fill="#000000">
-            <g transform="translate(956.000000, 48.000000)">
-                <g transform="translate(0.000000, 352.000000)">
-                    <g id="file" transform="translate(420.000000, 12.000000)">
-                        <g id="addFile" transform="translate(1.502572, 0.506108)">
-                            <polygon points="4 0 0 4 4 4"></polygon>
-                            <polygon points="7 13 7 14 0 14 0 5 5 5 5 0 10 0 10 6 7 6 7 9 4 9 4 13"></polygon>
-                            <polygon points="10 10 13 10 13 12 10 12 10 15 8 15 8 12 5 12 5 10 8 10 8 7 10 7"></polygon>
+    </symbol>
+    <symbol id="icon-open-file" viewBox="0 0 24 24">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
+            <g id="hisysevent_timeline-details" transform="translate(-1376.000000, -412.000000)" fill="#000000">
+                <g transform="translate(956.000000, 48.000000)">
+                    <g transform="translate(0.000000, 352.000000)">
+                        <g id="file" transform="translate(420.000000, 12.000000)">
+                            <g id="addFile" transform="translate(1.502572, 0.506108)">
+                                <polygon points="4 0 0 4 4 4"></polygon>
+                                <polygon points="7 13 7 14 0 14 0 5 5 5 5 0 10 0 10 6 7 6 7 9 4 9 4 13"></polygon>
+                                <polygon points="10 10 13 10 13 12 10 12 10 15 8 15 8 12 5 12 5 10 8 10 8 7 10 7"></polygon>
+                            </g>
                         </g>
                     </g>
                 </g>
             </g>
         </g>
-    </g>
-</symbol>
-<symbol id="icon-load-file" viewBox="0 0 24 24">
-    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
-        <g id="hisysevent_timeline-details" transform="translate(-1348.000000, -412.000000)" fill="#000000">
-            <g transform="translate(956.000000, 48.000000)">
-                <g transform="translate(0.000000, 352.000000)">
-                    <g id="load" transform="translate(392.000000, 12.000000)">
-                        <g id="addList" transform="translate(1.502724, 1.506072)">
-                            <rect x="0" y="0" width="10" height="2"></rect>
-                            <rect x="0" y="4" width="7" height="2"></rect>
-                            <rect x="0" y="8" width="4" height="2"></rect>
-                            <polygon points="10 5 8 5 8 8 5 8 5 10 8 10 8 13 10 13 10 10 13 10 13 8 10 8"></polygon>
+    </symbol>
+    <symbol id="icon-load-file" viewBox="0 0 24 24">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
+            <g id="hisysevent_timeline-details" transform="translate(-1348.000000, -412.000000)" fill="#000000">
+                <g transform="translate(956.000000, 48.000000)">
+                    <g transform="translate(0.000000, 352.000000)">
+                        <g id="load" transform="translate(392.000000, 12.000000)">
+                            <g id="addList" transform="translate(1.502724, 1.506072)">
+                                <rect x="0" y="0" width="10" height="2"></rect>
+                                <rect x="0" y="4" width="7" height="2"></rect>
+                                <rect x="0" y="8" width="4" height="2"></rect>
+                                <polygon points="10 5 8 5 8 8 5 8 5 10 8 10 8 13 10 13 10 10 13 10 13 8 10 8"></polygon>
+                            </g>
                         </g>
                     </g>
                 </g>
             </g>
         </g>
-    </g>
-</symbol>
-<symbol id="icon-restore" viewBox="0 0 24 24">
-    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
-        <g id="hisysevent_timeline-details" transform="translate(-1320.000000, -412.000000)" fill="#000000">
-            <g transform="translate(956.000000, 48.000000)">
-                <g transform="translate(0.000000, 352.000000)">
-                    <g transform="translate(364.000000, 12.000000)">
-                        <g id="buildLoadChanges" transform="translate(1.000000, 2.000000)">
-                            <path d="M12.6485264,6.76718116 L12.9102007,11.7602244 L11.1801035,10.2024503 C10.0795356,11.4989119 8.43786269,12.3216199 6.60403724,12.3216199 C3.64458966,12.3216199 1.18558157,10.1789709 0.693654963,7.36032378 L2.55336831,7.42576898 C3.03965157,9.20748185 4.66963695,10.5172332 6.60553207,10.5172332 C7.90707532,10.5172332 9.07034255,9.92520505 9.84072885,8.99575275 L7.65537864,7.02886094 L12.6485264,6.76718116 Z M6.60403724,0.321619919 C9.52384535,0.321619919 11.9565302,2.40725506 12.4935975,5.17002268 L10.628006,5.10522405 C10.1078423,3.37651849 8.50374554,2.11725875 6.60553207,2.11725875 C5.30421537,2.11725875 4.14112656,2.70908091 3.37073759,3.63825403 L5.56020048,5.61022461 L0.567052813,5.87190439 L0.305378503,0.878861079 L2.03305964,2.43480301 C3.13359587,1.14179586 4.77303595,0.321619919 6.60403724,0.321619919 Z" id="形状" transform="translate(6.607790, 6.321620) rotate(3.000000) translate(-6.607790, -6.321620) "></path>
+    </symbol>
+    <symbol id="icon-restore" viewBox="0 0 24 24">
+        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.600880941">
+            <g id="hisysevent_timeline-details" transform="translate(-1320.000000, -412.000000)" fill="#000000">
+                <g transform="translate(956.000000, 48.000000)">
+                    <g transform="translate(0.000000, 352.000000)">
+                        <g transform="translate(364.000000, 12.000000)">
+                            <g id="buildLoadChanges" transform="translate(1.000000, 2.000000)">
+                                <path d="M12.6485264,6.76718116 L12.9102007,11.7602244 L11.1801035,10.2024503 C10.0795356,11.4989119 8.43786269,12.3216199 6.60403724,12.3216199 C3.64458966,12.3216199 1.18558157,10.1789709 0.693654963,7.36032378 L2.55336831,7.42576898 C3.03965157,9.20748185 4.66963695,10.5172332 6.60553207,10.5172332 C7.90707532,10.5172332 9.07034255,9.92520505 9.84072885,8.99575275 L7.65537864,7.02886094 L12.6485264,6.76718116 Z M6.60403724,0.321619919 C9.52384535,0.321619919 11.9565302,2.40725506 12.4935975,5.17002268 L10.628006,5.10522405 C10.1078423,3.37651849 8.50374554,2.11725875 6.60553207,2.11725875 C5.30421537,2.11725875 4.14112656,2.70908091 3.37073759,3.63825403 L5.56020048,5.61022461 L0.567052813,5.87190439 L0.305378503,0.878861079 L2.03305964,2.43480301 C3.13359587,1.14179586 4.77303595,0.321619919 6.60403724,0.321619919 Z" id="形状" transform="translate(6.607790, 6.321620) rotate(3.000000) translate(-6.607790, -6.321620) "></path>
+                            </g>
                         </g>
                     </g>
                 </g>
             </g>
         </g>
-    </g>
-</symbol>
+    </symbol>
 </svg>

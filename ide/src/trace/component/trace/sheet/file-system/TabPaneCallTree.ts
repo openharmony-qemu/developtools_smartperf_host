@@ -558,6 +558,8 @@ export class TabPaneCallTree extends BaseElement {
           this.switchFlameChart(callTreeFilterData);
         });
       } else {
+        this.callTreeTbl!.setStatus(this.callTreeDataSource, true);
+        this.setLTableData(this.callTreeDataSource);
         this.switchFlameChart(callTreeFilterData);
       }
     });

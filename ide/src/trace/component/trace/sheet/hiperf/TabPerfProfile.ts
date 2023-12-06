@@ -516,6 +516,8 @@ export class TabpanePerfProfile extends BaseElement {
           this.switchFlameChart(data);
         });
       } else {
+        this.perfProfilerTbl!.setStatus(this.perfProfilerDataSource, true);
+        this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
         this.switchFlameChart(data);
       }
     });

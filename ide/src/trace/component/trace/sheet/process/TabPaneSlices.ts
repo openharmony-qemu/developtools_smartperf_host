@@ -125,7 +125,7 @@ export class TabPaneSlices extends BaseElement {
         for (const searchItem of search.list) {
           for (const traceRow of sliceRowList) {
             if (
-              Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <
+              Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
                 Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
               !rangeSelectList.includes(searchItem)
             ) {

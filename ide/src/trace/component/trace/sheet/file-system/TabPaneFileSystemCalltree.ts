@@ -506,6 +506,8 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           this.switchFlameChart(data);
         });
       } else {
+        this.fsCallTreeTbl!.setStatus(this.fsCallTreeDataSource, true);
+        this.setLTableData(this.fsCallTreeDataSource);
         this.switchFlameChart(data);
       }
     });

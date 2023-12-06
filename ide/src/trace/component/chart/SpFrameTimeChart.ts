@@ -321,7 +321,7 @@ export class SpFrameTimeChart {
     frameAnimationRow.name = 'Animation';
     frameAnimationRow.style.height = `${maxHeight}px`;
     frameAnimationRow.setAttribute('height', `${maxHeight}`);
-    frameAnimationRow.addTemplateTypes('Animation Effect');
+    frameAnimationRow.addTemplateTypes('AnimationEffect');
     frameAnimationRow.setAttribute('children', '');
     frameAnimationRow.supplier = (): Promise<FrameAnimationStruct[]> =>
       new Promise((resolve) => {
@@ -370,7 +370,7 @@ export class SpFrameTimeChart {
     let labelName = dynamicCurveRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     labelName.style.marginRight = '77px';
     dynamicCurveRow.name = 'Animation Effect Curve';
-    dynamicCurveRow.addTemplateTypes('Animation Effect');
+    dynamicCurveRow.addTemplateTypes('AnimationEffect');
     dynamicCurveRow.setAttribute('height', '100px');
     dynamicCurveRow.setAttribute('children', '');
     dynamicCurveRow.setAttribute('model-type', systemConfigList[0].name);
@@ -423,7 +423,7 @@ export class SpFrameTimeChart {
     frameSpacingRow.style.width = '100%';
     frameSpacingRow.style.height = '140px';
     frameSpacingRow.name = 'Frame spacing';
-    frameSpacingRow.addTemplateTypes('Animation Effect');
+    frameSpacingRow.addTemplateTypes('AnimationEffect');
     frameSpacingRow.setAttribute('height', '140');
     frameSpacingRow.setAttribute('children', '');
     frameSpacingRow.setAttribute('model-name', name);

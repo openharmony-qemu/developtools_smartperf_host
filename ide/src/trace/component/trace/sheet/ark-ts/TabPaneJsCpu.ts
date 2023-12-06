@@ -183,9 +183,9 @@ export class TabPaneJsCpuCallTree extends BaseElement {
       if (this.searchValue !== this.profilerFilter!.filterValue) {
         this.searchValue = this.profilerFilter!.filterValue;
         findSearchNode(this.callTreeSource, this.searchValue, false);
-        this.callTreeTable!.setStatus(this.callTreeSource, true);
-        this.setCallTreeTableData(this.callTreeSource);
       }
+      this.callTreeTable!.setStatus(this.callTreeSource, true);
+      this.setCallTreeTableData(this.callTreeSource);
     });
   }
 

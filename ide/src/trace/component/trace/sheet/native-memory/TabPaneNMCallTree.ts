@@ -668,6 +668,8 @@ export class TabpaneNMCalltree extends BaseElement {
             this.switchFlameChart(nmCallTreeData);
           });
         } else {
+          this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
+          this.setLTableData(this.nmCallTreeSource);
           this.switchFlameChart(nmCallTreeData);
         }
       }

@@ -19,7 +19,7 @@ import { HiPerfChartFrame } from '../../bean/PerfStruct';
 
 const systemRuleName: string = '/system/';
 const numRuleName: string = '/max/min/';
-const maxDepth: number = 128;
+const maxDepth: number = 256;
 
 export class ProcedureLogicWorkerPerf extends LogicHandler {
   filesData: any = {};

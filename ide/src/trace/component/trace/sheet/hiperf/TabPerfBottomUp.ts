@@ -51,9 +51,9 @@ export class TabpanePerfBottomUp extends BaseElement {
       if (this.searchValue !== this.bottomUpFilter!.filterValue) {
         this.searchValue = this.bottomUpFilter!.filterValue;
         findSearchNode(this.bottomUpSource, this.searchValue, false);
-        this.bottomUpTable!.setStatus(this.bottomUpSource, true);
-        this.setBottomUpTableData(this.bottomUpSource);
       }
+      this.bottomUpTable!.setStatus(this.bottomUpSource, true);
+      this.setBottomUpTableData(this.bottomUpSource);
     });
   }
 
@@ -98,18 +98,25 @@ export class TabpanePerfBottomUp extends BaseElement {
     const percentageDenominator = 100;
     const percentFraction = 1;
     this.stackTable!.recycleDataSource = [];
-    let sum = results.reduce((sum, struct) => {
-      sum.totalCount += struct.selfTime;
-      sum.totalEvent += struct.eventCount;
-      return sum;
-    }, {
-      totalCount: 0,
-      totalEvent: 0
-    });
+    let sum = results.reduce(
+      (sum, struct) => {
+        sum.totalCount += struct.selfTime;
+        sum.totalEvent += struct.eventCount;
+        return sum;
+      },
+      {
+        totalCount: 0,
+        totalEvent: 0,
+      }
+    );
     const setTabData = (array: Array<PerfBottomUpStruct>): void => {
       array.forEach((data) => {
-        data.totalTimePercent = `${((data.totalTime / sum.totalCount) * percentageDenominator).toFixed(percentFraction)}%`;
-        data.selfTimePercent = `${((data.selfTime / sum.totalCount) * percentageDenominator).toFixed(percentFraction)}%`;
+        data.totalTimePercent = `${((data.totalTime / sum.totalCount) * percentageDenominator).toFixed(
+          percentFraction
+        )}%`;
+        data.selfTimePercent = `${((data.selfTime / sum.totalCount) * percentageDenominator).toFixed(
+          percentFraction
+        )}%`;
         data.eventPercent = `${((data.eventCount / sum.totalEvent) * percentageDenominator).toFixed(percentFraction)}%`;
         setTabData(data.children);
       });

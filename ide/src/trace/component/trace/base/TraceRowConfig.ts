@@ -46,7 +46,6 @@ export class TraceRowConfig extends BaseElement {
   private otherRowNames: Array<SceneNode> = [];
   private sceneList = [
     'FrameTimeline',
-    'TaskPool',
     'AnimationEffect',
     'AppStartup',
     'HiSysEvent',
@@ -68,6 +67,9 @@ export class TraceRowConfig extends BaseElement {
     this.subsystemSelectList = [];
     this.otherRowNames = [];
     this.inputElement!.value = '';
+    this.exportFileIcon!.style.display = 'none';
+    this.backTemp!.style.display = 'none';
+    this.configTitle!.innerHTML = 'Timeline Details';
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
     this.traceRowList =
       this.spSystemTrace!.shadowRoot?.querySelector('div[class=rows-pane]')!.querySelectorAll<TraceRow<BaseStruct>>(
@@ -81,14 +83,19 @@ export class TraceRowConfig extends BaseElement {
     isRefreshTopTable: boolean = false,
     isRefreshBottomTable: boolean = false,
     isSubSysConfig: boolean = false
-  ): void{
+  ): void {
     let allowSceneList: Array<string> = [];
     this.selectTypeList = [];
+    this.subsystemSelectList = [];
     let topPanel = new DocumentFragment();
     let bottomPanel = new DocumentFragment();
     this.traceRowList!.forEach((traceRow: TraceRow<BaseStruct>) => {
       traceRow.setAttribute('scene', '');
       this.otherRowNames.push({
+        nodeName: traceRow.name,
+        scene: [...traceRow.templateType]
+      });
+      this.subsystemSelectList!.push({
         nodeName: traceRow.name,
         scene: [...traceRow.templateType]
       });
@@ -130,6 +137,7 @@ export class TraceRowConfig extends BaseElement {
     optionCheckBox.style.height = '100%';
     optionCheckBox.title = item;
     optionCheckBox.addEventListener('change', () => {
+      this.subsystemSelectList = [];
       this.clearLines(optionCheckBox.title);
       if (optionCheckBox.checked) {
         this.selectTypeList!.push(item);
@@ -228,6 +236,27 @@ export class TraceRowConfig extends BaseElement {
       }
       litCheckBox.checked = isShowCheck;
     });
+    if (this.hasAttribute('temp_config')) {
+      this.refreshNodes(this.treeNodes);
+      this.refreshSelectList(this.treeNodes);
+      this.refreshTable();
+    }
+  }
+
+  refreshSelectList(nodes: SubsystemNode[]): void {
+    nodes.forEach((item) => {
+      if (item.depth === 3) {
+        if (item.isCheck) {
+          this.subsystemSelectList!.push({
+            nodeName: item.nodeName,
+            scene: item.scene
+          });
+        }
+      }
+      if (item.children.length > 0) {
+        this.refreshSelectList(item.children);
+      }
+    });
   }
 
   resetChartTable(): void {
@@ -280,17 +309,12 @@ export class TraceRowConfig extends BaseElement {
           }
         }
       });
-      if(this.hasAttribute('temp_config')) {
-        // 按照this.selectTypeList 更新treeNodes
-        this.refreshNodes(this.treeNodes);
-        this.refreshTable();
-      }
     }
     this.refreshSystemPanel();
   }
 
   refreshNodes(nodes: SubsystemNode[]): void {
-    if(this.selectTypeList?.length !== 0) {
+    if (this.selectTypeList?.length !== 0) {
       for (let index = 0; index < nodes.length; index++) {
         let item = nodes[index];
         let exists = false;
@@ -300,7 +324,7 @@ export class TraceRowConfig extends BaseElement {
             return;
           }
         });
-        if(exists) {
+        if (exists) {
           item.isCheck = true;
         } else {
           item.isCheck = false;
@@ -376,7 +400,7 @@ export class TraceRowConfig extends BaseElement {
     let openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
     this.configTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#config_title');
     let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.
-      location.port}/application/trace/config/customTempConfig.json`;
+      location.port}/application/trace/config/custom_temp_config.json`;
     loadTemp!.addEventListener('click', () => {
       fetch(jsonUrl).then((res) => {
         if (res.ok) {
@@ -419,7 +443,7 @@ export class TraceRowConfig extends BaseElement {
       this.filterFilterSearch();
     });
     this.backTemp!.addEventListener('click', () => {
-      this.init();
+      this.refreshAllConfig(true, true);
       this.resetChartTable();
       this.backTemp!.style.display = 'none';
       this.exportFileIcon!.style.display = 'none';
@@ -450,14 +474,13 @@ export class TraceRowConfig extends BaseElement {
     let encoder = new TextEncoder();
     let tempBuffer = encoder.encode(this.tempString!);
     a.href = URL.createObjectURL(new Blob([tempBuffer]));
-    a.download = 'customTempConfig';
+    a.download = 'custom_config';
     a.click();
     window.URL.revokeObjectURL(a.href);
   }
 
   loadTempConfig(): void {
     this.selectTypeList = [];
-    this.subsystemSelectList = [];
     this.otherRowNames = [];
     this.refreshAllConfig(true, true);
     this.resetChartTable();
@@ -468,7 +491,7 @@ export class TraceRowConfig extends BaseElement {
       configJson = JSON.parse(this.tempString!);
       this.configTitle!.innerHTML = 'SubSystem Template';
       let subsystemsKey: string = 'subsystems';
-      if(!configJson[subsystemsKey]) {
+      if (!configJson[subsystemsKey]) {
         this.exportFileIcon!.style.display = 'none';
         this.backTemp!.style.display = 'none';
         this.configTitle!.innerHTML = 'Timeline Details';
@@ -486,7 +509,6 @@ export class TraceRowConfig extends BaseElement {
     this.treeNodes = this.buildSubSystemTreeData(id, configJson);
     this.buildTempOtherList(id);
     this.setAttribute('temp_config', '');
-    this.subsystemSelectList = [];
     this.expandedNodeList.clear();
     this.refreshTable();
   }
@@ -506,7 +528,8 @@ export class TraceRowConfig extends BaseElement {
           nodeName: currentSubName,
           children: [],
           depth: 1,
-          isCheck: true
+          isCheck: true,
+          scene: []
         };
         if (subSystems.indexOf(subsystemStruct) < 0) {
           let currentCompDates = currentSystemData.components;
@@ -521,7 +544,8 @@ export class TraceRowConfig extends BaseElement {
               nodeName: currentCompName,
               children: [],
               depth: 2,
-              isCheck: true
+              isCheck: true,
+              scene: []
             };
             for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
               let currentChartDate = currentChartDates[chartIndex];
@@ -591,7 +615,6 @@ export class TraceRowConfig extends BaseElement {
 
   refreshTable(): void {
     this.chartTable!.innerHTML = '';
-    this.subsystemSelectList = [];
     for (let index = 0; index < this.treeNodes.length; index++) {
       this.buildSubsystem(this.treeNodes[index]);
     }
@@ -638,7 +661,7 @@ export class TraceRowConfig extends BaseElement {
     let configCheckBox: LitCheckBox = new LitCheckBox();
     configCheckBox.className = 'scene-check-box temp-chart-item';
     configCheckBox.setAttribute('search_text', subsystemNode.nodeName!);
-    if(subsystemNode.scene) {
+    if (subsystemNode.scene) {
       configCheckBox.title = subsystemNode.scene.toString();
     }
     configCheckBox.checked = subsystemNode.isCheck!;
@@ -661,18 +684,55 @@ export class TraceRowConfig extends BaseElement {
             }
           }
         });
+        let chartNumber = this.subsystemSelectList?.findIndex(item => item.nodeName === subsystemNode.nodeName!);
         if (configCheckBox.checked) {
-          this.subsystemSelectList?.push({
-            nodeName: subsystemNode.nodeName!,
-            scene: Array(configCheckBox.title)
-          });
+          if(chartNumber === -1) {
+            this.subsystemSelectList?.push({
+              nodeName: subsystemNode.nodeName!,
+              scene: configCheckBox.title.split(',')
+            });
+          }
         } else {
-          let chartNumber = this.subsystemSelectList?.findIndex(row => row.nodeName === subsystemNode.nodeName!);
           if (chartNumber !== undefined && chartNumber !== null) {
             this.subsystemSelectList?.splice(chartNumber, 1);
           }
         }
       }
+
+      this.spSystemTrace?.collectRows.forEach((favoriteRow) => {
+        let isShowRow: boolean = false;
+        let favoriteName = '';
+        if (this.subsystemSelectList!.length === 0) {
+          favoriteRow.removeAttribute('scene');
+          favoriteRow.rowHidden = true;
+        } else {
+          if (favoriteRow.parentRowEl) {
+            favoriteRow.parentRowEl.expansion = false;
+            favoriteName = favoriteRow.parentRowEl!.name;
+            for (let i = 0; i < this.subsystemSelectList!.length; i++) {
+              if (this.subsystemSelectList![i].nodeName === favoriteName) {
+                isShowRow = true;
+                break;
+              }
+            }
+          } else {
+            favoriteName = favoriteRow.name;
+            for (let i = 0; i < this.subsystemSelectList!.length; i++) {
+              if (this.subsystemSelectList![i].nodeName === favoriteName) {
+                isShowRow = true;
+                break;
+              }
+            }
+          }
+          if (isShowRow) {
+            favoriteRow.rowHidden = false;
+            favoriteRow.setAttribute('scene', '');
+          } else {
+            favoriteRow.removeAttribute('scene');
+            favoriteRow.rowHidden = true;
+          }
+        }
+      });
       this.refreshSystemPanel();
     });
     subsystemDiv.appendChild(configCheckBox);
@@ -686,7 +746,7 @@ export class TraceRowConfig extends BaseElement {
 
   private buildTempOtherList(id: number): void {
     let otherRootNode: SubsystemNode = {
-      children: [], depth: 1, id: id, nodeName: 'other', isCheck: true
+      children: [], depth: 1, id: id, nodeName: 'other', isCheck: true, scene: []
     };
     for (let index = 0; index < this.otherRowNames!.length; index++) {
       otherRootNode.children.push({
@@ -707,13 +767,15 @@ export class TraceRowConfig extends BaseElement {
     if (node.children.length > 0) {
       node.children.forEach(childItem => {
         if (childItem.depth === 3) {
+          let chartNumber = this.subsystemSelectList?.findIndex(item => item.nodeName === childItem.nodeName!);
           if (configCheckBox.checked) {
-            this.subsystemSelectList?.push({
-              nodeName: childItem.nodeName!,
-              scene: Array(configCheckBox.title)
-            });
+            if(chartNumber === -1) {
+              this.subsystemSelectList?.push({
+                nodeName: childItem.nodeName!,
+                scene: configCheckBox.title.split(',')
+              });
+            }
           } else {
-            let chartNumber = this.subsystemSelectList?.findIndex(row => row.nodeName === node.nodeName!);
             if (chartNumber !== undefined && chartNumber !== null) {
               this.subsystemSelectList?.splice(chartNumber, 1);
             }

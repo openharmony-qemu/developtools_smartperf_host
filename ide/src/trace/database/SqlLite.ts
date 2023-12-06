@@ -889,10 +889,6 @@ export const getTabSlices = (
     and
       P.pid in (${pids.join(',')})
     and
-      c.name != 'binder transaction async'
-    and
-      c.name != 'binder async rcv'
-    and
       c.cookie is null
     and
       not ((C.ts - TR.start_ts + C.dur < $leftNS) or (C.ts - TR.start_ts > $rightNS))
