@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { FormatCommand } from '../hdcclient/FormatCommand.js';
-import { warn } from '../../log/Log.js';
+import { FormatCommand } from '../hdcclient/FormatCommand';
+import { warn } from '../../log/Log';
 
 export class Utils {
   private static localId = 1;

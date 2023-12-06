@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
-import { Rect } from '../component/trace/timer-shaft/Rect.js';
-import { ColorUtils } from '../component/trace/base/ColorUtils.js';
-import { drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
+import { BaseStruct } from './BaseStruct';
+import { Rect } from '../component/trace/timer-shaft/Rect';
+import { ColorUtils } from '../component/trace/base/ColorUtils';
+import { drawString } from '../database/ui-worker/ProcedureWorkerCommon';
 
 export class FuncStruct extends BaseStruct {
   static hoverFuncStruct: FuncStruct | undefined;

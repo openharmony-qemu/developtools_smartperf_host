@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitCheckBox, LitCheckBoxChangeEvent } from '../../../base-ui/checkbox/LitCheckBox.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitCheckBox, LitCheckBoxChangeEvent } from '../../../base-ui/checkbox/LitCheckBox';
 
 @element('check-des-box')
 export class SpCheckDesBox extends BaseElement {

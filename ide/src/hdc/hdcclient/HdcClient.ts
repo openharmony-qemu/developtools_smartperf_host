@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { Serialize } from '../common/Serialize.js';
-import { HdcCommand } from './HdcCommand.js';
-import { Utils } from '../common/Utils.js';
-import { HANDSHAKE_MESSAGE } from '../common/ConstantType.js';
-import { PayloadHead } from '../message/PayloadHead.js';
-import { TransmissionInterface } from '../transmission/TransmissionInterface.js';
-import { DataProcessing } from '../transmission/DataProcessing.js';
-import { DataListener } from './DataListener.js';
-import { DataMessage } from '../message/DataMessage.js';
-import { SessionHandShake } from '../message/SessionHandShake.js';
-import { AuthType } from '../message/AuthType.js';
-import { debug, log } from '../../log/Log.js';
-import { HdcStream } from './HdcStream.js';
-import { toHex16 } from '../common/BaseConversion.js';
-import { USBHead } from '../message/USBHead.js';
+import { Serialize } from '../common/Serialize';
+import { HdcCommand } from './HdcCommand';
+import { Utils } from '../common/Utils';
+import { HANDSHAKE_MESSAGE } from '../common/ConstantType';
+import { PayloadHead } from '../message/PayloadHead';
+import { TransmissionInterface } from '../transmission/TransmissionInterface';
+import { DataProcessing } from '../transmission/DataProcessing';
+import { DataListener } from './DataListener';
+import { DataMessage } from '../message/DataMessage';
+import { SessionHandShake } from '../message/SessionHandShake';
+import { AuthType } from '../message/AuthType';
+import { debug, log } from '../../log/Log';
+import { HdcStream } from './HdcStream';
+import { toHex16 } from '../common/BaseConversion';
+import { USBHead } from '../message/USBHead';
 
 export class HdcClient implements DataListener {
   // @ts-ignore

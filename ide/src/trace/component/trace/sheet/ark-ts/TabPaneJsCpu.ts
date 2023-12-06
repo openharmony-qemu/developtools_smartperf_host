@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable, TableMode } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { type JsCpuProfilerChartFrame, JsCpuProfilerTabStruct } from '../../../../bean/JsStruct.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { findSearchNode, ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { type FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import '../TabPaneFilter.js';
+import { BaseElement } from '../../../../../base-ui/BaseElement';
+import { type LitTable, TableMode } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { type JsCpuProfilerChartFrame, JsCpuProfilerTabStruct } from '../../../../bean/JsStruct';
+import { procedurePool } from '../../../../database/Procedure';
+import { findSearchNode, ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { type FilterData, TabPaneFilter } from '../TabPaneFilter';
+import '../TabPaneFilter';
 
 export class TabPaneJsCpuCallTree extends BaseElement {
   protected TYPE_TOP_DOWN = 0;

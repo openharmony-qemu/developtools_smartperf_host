@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../base-ui/table/lit-table.js';
-import { MarkStruct } from '../../../bean/MarkStruct.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { ns2s } from '../TimerShaftElement.js';
-import { getTimeString } from '../sheet/TabPaneCurrentSelection.js';
-import { Flag } from './Flag.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../base-ui/table/lit-table';
+import { MarkStruct } from '../../../bean/MarkStruct';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { ns2s } from '../TimerShaftElement';
+import { getTimeString } from '../sheet/TabPaneCurrentSelection';
+import { Flag } from './Flag';
 
 @element('tabpane-flag')
 export class TabPaneFlag extends BaseElement {

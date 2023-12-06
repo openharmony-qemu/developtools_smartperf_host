@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { checkDesBean, SpCheckDesBox } from './SpCheckDesBox.js';
-import { LitCheckBox, LitCheckBoxChangeEvent } from '../../../base-ui/checkbox/LitCheckBox.js';
-import { LitRadioGroup } from '../../../base-ui/radiobox/LitRadioGroup.js';
-import { info, log } from '../../../log/Log.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { checkDesBean, SpCheckDesBox } from './SpCheckDesBox';
+import { LitCheckBox, LitCheckBoxChangeEvent } from '../../../base-ui/checkbox/LitCheckBox';
+import { LitRadioGroup } from '../../../base-ui/radiobox/LitRadioGroup';
+import { info, log } from '../../../log/Log';
 import { LitSlider } from '../../../base-ui/slider/LitSlider';
-import LitSwitch from '../../../base-ui/switch/lit-switch.js';
+import LitSwitch from '../../../base-ui/switch/lit-switch';
 
 @element('probes-config')
 export class SpProbesConfig extends BaseElement {

@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { HiSysEventStruct } from '../../../../database/ui-worker/ProcedureWorkerHiSysEvent.js';
-import { ns2x, Rect } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { LitPageTable } from '../../../../../base-ui/table/LitPageTable.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer.js';
-import { TraceRow } from '../../base/TraceRow.js';
-import { Flag } from '../../timer-shaft/Flag.js';
-import { TraceSheet } from '../../base/TraceSheet.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { queryRealTime } from '../../../../database/SqlLite.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { HiSysEventStruct } from '../../../../database/ui-worker/ProcedureWorkerHiSysEvent';
+import { ns2x, Rect } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer';
+import { TraceRow } from '../../base/TraceRow';
+import { Flag } from '../../timer-shaft/Flag';
+import { TraceSheet } from '../../base/TraceSheet';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { ColorUtils } from '../../base/ColorUtils';
+import { queryRealTime } from '../../../../database/SqlLite';
 
 @element('tab-hisysevents')
 export class TabPaneHisysEvents extends BaseElement {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
+import { BaseStruct } from './BaseStruct';
 
 export class JanksStruct extends BaseStruct {
   static hoverJankStruct: JanksStruct | undefined;

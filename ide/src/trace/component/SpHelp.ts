@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup.js';
-import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup';
+import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu';
 import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('sp-help')
 export class SpHelp extends BaseElement {

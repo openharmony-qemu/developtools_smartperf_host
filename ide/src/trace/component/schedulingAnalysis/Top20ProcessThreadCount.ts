@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../base-ui/table/lit-table.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { info } from '../../../log/Log.js';
-import '../../../base-ui/chart/pie/LitChartPie.js';
-import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie.js';
-import '../../../base-ui/progress-bar/LitProgressBar.js';
-import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
-import './TableNoData.js';
-import { TableNoData } from './TableNoData.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitTable } from '../../../base-ui/table/lit-table';
+import { procedurePool } from '../../database/Procedure';
+import { info } from '../../../log/Log';
+import '../../../base-ui/chart/pie/LitChartPie';
+import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie';
+import '../../../base-ui/progress-bar/LitProgressBar';
+import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
+import './TableNoData';
+import { TableNoData } from './TableNoData';
 
 @element('top20-process-thread-count')
 export class Top20ProcessThreadCount extends BaseElement {

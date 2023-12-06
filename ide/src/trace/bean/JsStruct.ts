@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SampleType } from '../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler.js';
+import { SampleType } from '../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler';
 const ROW_TYPE = 'cpu-profiler';
 export class JsCpuProfilerUIStruct {
   name: string;

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import './LitMainMenuItem.js';
-import './LitMainMenuGroup.js';
-import { LitMainMenuGroup } from './LitMainMenuGroup.js';
-import { LitMainMenuItem } from './LitMainMenuItem.js';
+import { BaseElement, element } from '../BaseElement';
+import './LitMainMenuItem';
+import './LitMainMenuGroup';
+import { LitMainMenuGroup } from './LitMainMenuGroup';
+import { LitMainMenuItem } from './LitMainMenuItem';
 
 @element('lit-main-menu')
 export class LitMainMenu extends BaseElement {

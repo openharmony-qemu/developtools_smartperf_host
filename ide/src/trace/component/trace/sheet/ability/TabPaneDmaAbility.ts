@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { Dma } from '../../../../bean/AbilityMonitor.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { getTabDmaAbilityData } from '../../../../database/SqlLite.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { Dma } from '../../../../bean/AbilityMonitor';
+import { resizeObserver } from '../SheetUtils';
+import { getTabDmaAbilityData } from '../../../../database/SqlLite';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-dma-ability')
 export class TabPaneDmaAbility extends BaseElement {

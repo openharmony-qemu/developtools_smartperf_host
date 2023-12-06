@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
-import { Utils } from '../component/trace/base/Utils.js';
-import { drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
+import { BaseStruct } from './BaseStruct';
+import { Utils } from '../component/trace/base/Utils';
+import { drawString } from '../database/ui-worker/ProcedureWorkerCommon';
 
 const padding = 1;
 

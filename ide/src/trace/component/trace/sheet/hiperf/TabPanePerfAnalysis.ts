@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { LitChartPie } from '../../../../../base-ui/chart/pie/LitChartPie.js';
-import '../../../../../base-ui/chart/pie/LitChartPie.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { TabPaneFilter } from '../TabPaneFilter.js';
-import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
-import { initSort } from '../SheetUtils.js';
-import { TabpanePerfProfile } from './TabPerfProfile.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { LitChartPie } from '../../../../../base-ui/chart/pie/LitChartPie';
+import '../../../../../base-ui/chart/pie/LitChartPie';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { procedurePool } from '../../../../database/Procedure';
+import { TabPaneFilter } from '../TabPaneFilter';
+import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
+import { initSort } from '../SheetUtils';
+import { TabpanePerfProfile } from './TabPerfProfile';
 
 @element('tabpane-perf-analysis')
 export class TabPanePerfAnalysis extends BaseElement {

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { resizeCanvas } from '../helper.js';
-import { BaseElement, element } from '../../BaseElement.js';
-import { LitChartPieConfig } from './LitChartPieConfig.js';
-import { isPointIsCircle, pieChartColors, randomRgbColor } from './LitChartPieData.js';
-import { Utils } from '../../../trace/component/trace/base/Utils.js';
+import { resizeCanvas } from '../helper';
+import { BaseElement, element } from '../../BaseElement';
+import { LitChartPieConfig } from './LitChartPieConfig';
+import { isPointIsCircle, pieChartColors, randomRgbColor } from './LitChartPieData';
+import { Utils } from '../../../trace/component/trace/base/Utils';
 
 interface Rectangle {
   x: number;

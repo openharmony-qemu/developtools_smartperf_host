@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../base-ui/table/lit-table.js';
-import '../../../../base-ui/table/lit-table-column.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../base-ui/table/lit-table';
+import '../../../../base-ui/table/lit-table-column';
 
 import {
   queryBinderArgsByArgset,
@@ -30,25 +30,25 @@ import {
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
   queryWakeupListPriority,
-} from '../../../database/SqlLite.js';
-import { type WakeupBean } from '../../../bean/WakeupBean.js';
-import { SpApplication } from '../../../SpApplication.js';
-import { TraceRow } from '../base/TraceRow.js';
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
-import { ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread.js';
-import { FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc.js';
-import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem.js';
-import { ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock.js';
-import { ColorUtils } from '../base/ColorUtils.js';
-import { IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq.js';
-import { BinderArgBean } from '../../../bean/BinderArgBean.js';
-import { JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank.js';
-import { Utils } from '../base/Utils.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup.js';
-import { SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit.js';
-import { type SelectionParam } from '../../../bean/BoxSelection.js';
-import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
+} from '../../../database/SqlLite';
+import { type WakeupBean } from '../../../bean/WakeupBean';
+import { SpApplication } from '../../../SpApplication';
+import { TraceRow } from '../base/TraceRow';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
+import { ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread';
+import { FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
+import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
+import { ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
+import { ColorUtils } from '../base/ColorUtils';
+import { IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
+import { BinderArgBean } from '../../../bean/BinderArgBean';
+import { JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
+import { Utils } from '../base/Utils';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup';
+import { SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
+import { type SelectionParam } from '../../../bean/BoxSelection';
+import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';

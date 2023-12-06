@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { queryGpuResourceTabData } from '../../../../database/SqlLite.js';
-import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { queryGpuResourceTabData } from '../../../../database/SqlLite';
+import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { resizeObserver } from '../SheetUtils';
 @element('tabpane-gpu-resource')
 export class TabPaneGpuResourceVmTracker extends BaseElement {
   private gpuResourceTable: LitTable | undefined | null;

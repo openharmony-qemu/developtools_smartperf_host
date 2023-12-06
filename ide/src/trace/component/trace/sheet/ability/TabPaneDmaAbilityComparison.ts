@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitSelect } from '../../../../../base-ui/select/LitSelect.js';
-import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { DmaComparison } from '../../../../bean/AbilityMonitor.js';
-import { getTabDmaAbilityComparisonData } from '../../../../database/SqlLite.js';
-import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { Utils } from '../../base/Utils.js';
-import { compare, resizeObserverFromMemory } from '../SheetUtils.js';
-import '../TabPaneJsMemoryFilter.js';
-import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
+import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { DmaComparison } from '../../../../bean/AbilityMonitor';
+import { getTabDmaAbilityComparisonData } from '../../../../database/SqlLite';
+import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
+import { Utils } from '../../base/Utils';
+import { compare, resizeObserverFromMemory } from '../SheetUtils';
+import '../TabPaneJsMemoryFilter';
+import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 
 @element('tabpane-dma-ability-comparison')
 export class TabPaneDmaAbilityComparison extends BaseElement {

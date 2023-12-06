@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import '../../../base-ui/radiobox/LitRadioBox.js';
-import { LitRadioBox } from '../../../base-ui/radiobox/LitRadioBox.js';
-import '../../../base-ui/slider/LitSlider.js';
-import { LitSlider } from '../../../base-ui/slider/LitSlider.js';
-import '../../../base-ui/popover/LitPopover.js';
-import { info } from '../../../log/Log.js';
-import { SpApplication } from '../../SpApplication.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import '../../../base-ui/radiobox/LitRadioBox';
+import { LitRadioBox } from '../../../base-ui/radiobox/LitRadioBox';
+import '../../../base-ui/slider/LitSlider';
+import { LitSlider } from '../../../base-ui/slider/LitSlider';
+import '../../../base-ui/popover/LitPopover';
+import { info } from '../../../log/Log';
+import { SpApplication } from '../../SpApplication';
 
 @element('record-setting')
 export class SpRecordSetting extends BaseElement {

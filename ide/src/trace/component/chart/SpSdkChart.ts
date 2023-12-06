@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
 
-import { BaseStruct } from '../../bean/BaseStruct.js';
+import { BaseStruct } from '../../bean/BaseStruct';
 import {
   queryCounterMax,
   querySdkCount,
   querySdkCounterData,
   querySdkSliceData,
   queryStartTime,
-} from '../../database/SqlLite.js';
-import { CounterStruct, SdkCounterRender } from '../../database/ui-worker/ProduceWorkerSdkCounter.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { SdkSliceRender, SdkSliceStruct } from '../../database/ui-worker/ProduceWorkerSdkSlice.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { TabUtil } from '../trace/sheet/sdk/TabUtil.js';
+} from '../../database/SqlLite';
+import { CounterStruct, SdkCounterRender } from '../../database/ui-worker/ProduceWorkerSdkCounter';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { SdkSliceRender, SdkSliceStruct } from '../../database/ui-worker/ProduceWorkerSdkSlice';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { TabUtil } from '../trace/sheet/sdk/TabUtil';
 
 export class SpSdkChart {
   private trace: SpSystemTrace;

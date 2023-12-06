@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
-import { resizeObserver } from '../SheetUtils.js';
-import { FuncStruct } from '../../../../database/ui-worker/ProcedureWorkerFunc.js';
+import { resizeObserver } from '../SheetUtils';
+import { FuncStruct } from '../../../../database/ui-worker/ProcedureWorkerFunc';
 import {
   queryConcurrencyTask,
   queryTaskListByExecuteTaskIds,
   queryTaskPoolTotalNum,
-} from '../../../../database/SqlLite.js';
-import { BaseStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
+} from '../../../../database/SqlLite';
+import { BaseStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 
 const ALLOCATION_TASK = 'H:Task Allocation:';
 const PERFORM_TASK = 'H:Task Perform:';

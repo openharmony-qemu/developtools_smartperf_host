@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { log } from '../../../../../log/Log.js';
-import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { log } from '../../../../../log/Log';
+import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 @element('tabpane-smaps-sample')
 export class TabPaneSmapsSample extends BaseElement {
   private tblSmapsSample: LitTable | null | undefined;

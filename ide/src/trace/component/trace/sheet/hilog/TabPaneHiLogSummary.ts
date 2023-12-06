@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { LitIcon } from '../../../../../base-ui/icon/LitIcon.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
+import { ColorUtils } from '../../base/ColorUtils';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { LitIcon } from '../../../../../base-ui/icon/LitIcon';
 
 @element('tab-hi-log-summary')
 export class TabPaneHiLogSummary extends BaseElement {

@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabSdkCounterData, getTabSdkCounterLeftData, queryStartTime } from '../../../../database/SqlLite.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabSdkCounterData, getTabSdkCounterLeftData, queryStartTime } from '../../../../database/SqlLite';
 import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column';
-import { Utils } from '../../base/Utils.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { TabUtil } from './TabUtil.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { Utils } from '../../base/Utils';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { TabUtil } from './TabUtil';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-sdk-counter')
 export class TabPaneSdkCounter extends BaseElement {

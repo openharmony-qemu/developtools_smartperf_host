@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { LitTableColumn } from './lit-table-column.js';
-import { LitProgressBar } from './../progress-bar/LitProgressBar.js';
-import { element } from '../BaseElement.js';
-import '../utils/Template.js';
-import { TableRowObject } from './TableRowObject.js';
-import { ExcelFormater } from '../utils/ExcelFormater.js';
-import { JSONToCSV } from '../utils/CSVFormater.js';
-import { NodeType } from '../../js-heap/model/DatabaseStruct.js';
-import { ConstructorType } from '../../js-heap/model/UiStruct.js';
-import { LitIcon } from '../icon/LitIcon.js';
-import { JsCpuProfilerStatisticsStruct } from '../../trace/bean/JsStruct.js';
+import { LitTableColumn } from './lit-table-column';
+import { LitProgressBar } from './../progress-bar/LitProgressBar';
+import { element } from '../BaseElement';
+import '../utils/Template';
+import { TableRowObject } from './TableRowObject';
+import { ExcelFormater } from '../utils/ExcelFormater';
+import { JSONToCSV } from '../utils/CSVFormater';
+import { NodeType } from '../../js-heap/model/DatabaseStruct';
+import { ConstructorType } from '../../js-heap/model/UiStruct';
+import { LitIcon } from '../icon/LitIcon';
+import { JsCpuProfilerStatisticsStruct } from '../../trace/bean/JsStruct';
 const iconWidth = 20;
 const iconPadding = 5;
 @element('lit-table')

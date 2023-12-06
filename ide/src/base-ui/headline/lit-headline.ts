@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
+import { BaseElement, element } from '../BaseElement';
 
 @element('lit-headline')
 export class LitHeadLine extends BaseElement {

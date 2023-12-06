@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import '../../../base-ui/select/LitSelectV.js';
-import '../../../base-ui/select/LitSelect.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import '../../../base-ui/select/LitSelectV';
+import '../../../base-ui/select/LitSelect';
 
-import '../../../base-ui/switch/lit-switch.js';
-import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch.js';
-import { LitSelectV } from '../../../base-ui/select/LitSelectV.js';
-import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
-
+import '../../../base-ui/switch/lit-switch';
+import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
 @element('sp-sdk-config')
 export class SpSdkConfig extends BaseElement {
   private worker: Worker | undefined;
@@ -168,7 +167,8 @@ export class SpSdkConfig extends BaseElement {
         if (window.useWb) {
           return;
         }
-        this.worker = new Worker('trace/database/ConfigWorker.js');
+
+        this.worker = new Worker(new URL('../../database/ConfigWorker',import.meta.url));
       }
     } catch (e) {}
     this.customConfig = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');

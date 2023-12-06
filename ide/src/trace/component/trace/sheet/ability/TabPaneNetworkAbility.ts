@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabNetworkAbilityData } from '../../../../database/SqlLite.js';
-import { SystemNetworkSummary } from '../../../../bean/AbilityMonitor.js';
-import { Utils } from '../../base/Utils.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { log } from '../../../../../log/Log.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabNetworkAbilityData } from '../../../../database/SqlLite';
+import { SystemNetworkSummary } from '../../../../bean/AbilityMonitor';
+import { Utils } from '../../base/Utils';
+import { ColorUtils } from '../../base/ColorUtils';
+import { log } from '../../../../../log/Log';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-network-ability')
 export class TabPaneNetworkAbility extends BaseElement {

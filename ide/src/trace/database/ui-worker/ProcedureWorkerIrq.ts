@@ -20,9 +20,9 @@ import {
   Rect,
   Render,
   drawString,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class IrqRender extends Render {
   renderMainThread(

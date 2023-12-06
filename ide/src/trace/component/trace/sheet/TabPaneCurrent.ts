@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../base-ui/table/lit-table.js';
-import { MarkStruct } from '../../../bean/MarkStruct.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { ns2s } from '../TimerShaftElement.js';
-import { SlicesTime, StType } from '../timer-shaft/SportRuler.js';
-import { getTimeString } from './TabPaneCurrentSelection.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../base-ui/table/lit-table';
+import { MarkStruct } from '../../../bean/MarkStruct';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { ns2s } from '../TimerShaftElement';
+import { SlicesTime, StType } from '../timer-shaft/SportRuler';
+import { getTimeString } from './TabPaneCurrentSelection';
 
 @element('tabpane-current')
 export class TabPaneCurrent extends BaseElement {

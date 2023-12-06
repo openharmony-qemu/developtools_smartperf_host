@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { DataMessage } from '../message/DataMessage.js';
+import { DataMessage } from '../message/DataMessage';
 
 export class DataMessageQueue<T> {
   private eleArray: Array<T>;

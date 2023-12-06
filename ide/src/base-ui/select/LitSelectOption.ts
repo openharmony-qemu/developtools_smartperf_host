@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement } from '../BaseElement.js';
-import '../icon/LitIcon.js';
+import { BaseElement } from '../BaseElement';
+import '../icon/LitIcon';
 
 export class LitSelectOption extends BaseElement {
   static get observedAttributes() {

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { Counter, Fps, SelectionData } from '../bean/BoxSelection.js';
-import { WakeupBean } from '../bean/WakeupBean.js';
-import { BinderArgBean } from '../bean/BinderArgBean.js';
-import { SPTChild } from '../bean/StateProcessThread.js';
-import { CpuUsage, Freq } from '../bean/CpuUsage.js';
+import { Counter, Fps, SelectionData } from '../bean/BoxSelection';
+import { WakeupBean } from '../bean/WakeupBean';
+import { BinderArgBean } from '../bean/BinderArgBean';
+import { SPTChild } from '../bean/StateProcessThread';
+import { CpuUsage, Freq } from '../bean/CpuUsage';
 
 import {
   NativeEvent,
@@ -26,7 +26,7 @@ import {
   NativeHookProcess,
   NativeHookSampleQueryInfo,
   NativeHookStatistics,
-} from '../bean/NativeHook.js';
+} from '../bean/NativeHook';
 import {
   Dma,
   DmaComparison,
@@ -37,7 +37,7 @@ import {
   SystemCpuSummary,
   SystemDiskIOSummary,
   SystemNetworkSummary,
-} from '../bean/AbilityMonitor.js';
+} from '../bean/AbilityMonitor';
 
 import {
   PerfCall,
@@ -47,29 +47,29 @@ import {
   PerfSample,
   PerfStack,
   PerfThread,
-} from '../bean/PerfProfile.js';
-import { SearchFuncBean } from '../bean/SearchFuncBean.js';
-import { CounterSummary, SdkSliceSummary } from '../bean/SdkSummary.js';
-import { Smaps } from '../bean/SmapsStruct.js';
-import { CpuFreqRowLimit } from '../component/chart/SpFreqChart.js';
-import { CpuFreqLimitsStruct } from './ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { CpuStruct } from './ui-worker/ProcedureWorkerCPU.js';
-import { CpuFreqStruct } from './ui-worker/ProcedureWorkerFreq.js';
-import { ThreadStruct } from './ui-worker/ProcedureWorkerThread.js';
-import { FuncStruct } from './ui-worker/ProcedureWorkerFunc.js';
-import { ProcessMemStruct } from './ui-worker/ProcedureWorkerMem.js';
-import { FpsStruct } from './ui-worker/ProcedureWorkerFPS.js';
-import { CpuAbilityMonitorStruct } from './ui-worker/ProcedureWorkerCpuAbility.js';
-import { MemoryAbilityMonitorStruct } from './ui-worker/ProcedureWorkerMemoryAbility.js';
-import { DiskAbilityMonitorStruct } from './ui-worker/ProcedureWorkerDiskIoAbility.js';
-import { NetworkAbilityMonitorStruct } from './ui-worker/ProcedureWorkerNetworkAbility.js';
-import { EnergyAnomalyStruct } from './ui-worker/ProcedureWorkerEnergyAnomaly.js';
-import { EnergyStateStruct } from './ui-worker/ProcedureWorkerEnergyState.js';
-import { CounterStruct } from './ui-worker/ProduceWorkerSdkCounter.js';
-import { SdkSliceStruct } from './ui-worker/ProduceWorkerSdkSlice.js';
-import { SystemDetailsEnergy } from '../bean/EnergyStruct.js';
-import { ClockStruct } from './ui-worker/ProcedureWorkerClock.js';
-import { IrqStruct } from './ui-worker/ProcedureWorkerIrq.js';
+} from '../bean/PerfProfile';
+import { SearchFuncBean } from '../bean/SearchFuncBean';
+import { CounterSummary, SdkSliceSummary } from '../bean/SdkSummary';
+import { Smaps } from '../bean/SmapsStruct';
+import { CpuFreqRowLimit } from '../component/chart/SpFreqChart';
+import { CpuFreqLimitsStruct } from './ui-worker/ProcedureWorkerCpuFreqLimits';
+import { CpuStruct } from './ui-worker/ProcedureWorkerCPU';
+import { CpuFreqStruct } from './ui-worker/ProcedureWorkerFreq';
+import { ThreadStruct } from './ui-worker/ProcedureWorkerThread';
+import { FuncStruct } from './ui-worker/ProcedureWorkerFunc';
+import { ProcessMemStruct } from './ui-worker/ProcedureWorkerMem';
+import { FpsStruct } from './ui-worker/ProcedureWorkerFPS';
+import { CpuAbilityMonitorStruct } from './ui-worker/ProcedureWorkerCpuAbility';
+import { MemoryAbilityMonitorStruct } from './ui-worker/ProcedureWorkerMemoryAbility';
+import { DiskAbilityMonitorStruct } from './ui-worker/ProcedureWorkerDiskIoAbility';
+import { NetworkAbilityMonitorStruct } from './ui-worker/ProcedureWorkerNetworkAbility';
+import { EnergyAnomalyStruct } from './ui-worker/ProcedureWorkerEnergyAnomaly';
+import { EnergyStateStruct } from './ui-worker/ProcedureWorkerEnergyState';
+import { CounterStruct } from './ui-worker/ProduceWorkerSdkCounter';
+import { SdkSliceStruct } from './ui-worker/ProduceWorkerSdkSlice';
+import { SystemDetailsEnergy } from '../bean/EnergyStruct';
+import { ClockStruct } from './ui-worker/ProcedureWorkerClock';
+import { IrqStruct } from './ui-worker/ProcedureWorkerIrq';
 import {
   HeapEdge,
   HeapLocation,
@@ -77,23 +77,26 @@ import {
   HeapSample,
   HeapTraceFunctionInfo,
 } from '../../js-heap/model/DatabaseStruct';
-import { FileInfo } from '../../js-heap/model/UiStruct.js';
-import { AppStartupStruct } from './ui-worker/ProcedureWorkerAppStartup.js';
-import { SoStruct } from './ui-worker/ProcedureWorkerSoInit.js';
-import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerCommon.js';
-import { TaskTabStruct } from '../component/trace/sheet/task/TabPaneTaskFrames.js';
-import { type DeviceStruct } from '../bean/FrameComponentBean.js';
-import { type FrameSpacingStruct } from './ui-worker/ProcedureWorkerFrameSpacing.js';
-import { type FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic.js';
-import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation.js';
-import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
-import { type MemoryConfig } from '../bean/MemoryConfig.js';
-import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
-import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent.js';
+import { FileInfo } from '../../js-heap/model/UiStruct';
+import { AppStartupStruct } from './ui-worker/ProcedureWorkerAppStartup';
+import { SoStruct } from './ui-worker/ProcedureWorkerSoInit';
+import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerCommon';
+import { TaskTabStruct } from '../component/trace/sheet/task/TabPaneTaskFrames';
+import { type DeviceStruct } from '../bean/FrameComponentBean';
+import { type FrameSpacingStruct } from './ui-worker/ProcedureWorkerFrameSpacing';
+import { type FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic';
+import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation';
+import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
+import { type MemoryConfig } from '../bean/MemoryConfig';
+import { LogStruct } from './ui-worker/ProcedureWorkerLog';
+import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
 
-class DataWorkerThread extends Worker {
+class DataWorkerThread {
   taskMap: any = {};
-
+  worker?:Worker;
+  constructor(worker:Worker) {
+    this.worker = worker;
+  }
   uuid(): string {
     // @ts-ignore
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
@@ -110,16 +113,20 @@ class DataWorkerThread extends Worker {
       action: action,
       args: args,
     };
-    this.postMessage(msg);
+    this.worker!.postMessage(msg);
   }
 }
 
-class DbThread extends Worker {
+class DbThread {
   busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
   taskMap: any = {};
   cacheArray: Array<any> = [];
+  worker?:Worker;
+  constructor(worker:Worker) {
+    this.worker=worker;
+  }
 
   uuid(): string {
     // @ts-ignore
@@ -139,7 +146,7 @@ class DbThread extends Worker {
       sql: sql,
       params: args,
     };
-    this.postMessage(msg);
+    this.worker!.postMessage(msg);
   }
 
   cutFileByRange(
@@ -157,7 +164,7 @@ class DbThread extends Worker {
         handler(res.cutStatus, res.msg);
       }
     };
-    this.postMessage(
+    this.worker!.postMessage(
       {
         id: id,
         action: 'cut-file',
@@ -192,7 +199,7 @@ class DbThread extends Worker {
           resolve({ status: res.init, msg: res.msg });
         }
       };
-      this.postMessage(
+      this.worker!.postMessage(
         {
           id: id,
           action: 'open',
@@ -206,7 +213,7 @@ class DbThread extends Worker {
   };
 
   resetWASM() {
-    this.postMessage({
+    this.worker!.postMessage({
       id: this.uuid(),
       action: 'reset',
     });
@@ -246,16 +253,17 @@ export class DbPool {
         thread = threadBuild();
       } else {
         if (type === 'wasm') {
-          thread = new DbThread('trace/database/TraceWorker.js');
+          thread = new DbThread(new Worker(new URL('./TraceWorker',import.meta.url)));
         } else if (type === 'server') {
-          thread = new DbThread('trace/database/SqlLiteWorker.js');
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker',import.meta.url)));
         } else if (type === 'sqlite') {
-          thread = new DbThread('trace/database/SqlLiteWorker.js');
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker',import.meta.url)));
         }
       }
+
       if (thread) {
         this.currentWasmThread = thread;
-        thread!.onmessage = (event: MessageEvent) => {
+        thread!.worker!.onmessage = (event: MessageEvent) => {
           thread!.busy = false;
           if (Reflect.has(thread!.taskMap, event.data.id)) {
             if (event.data.results) {
@@ -297,8 +305,12 @@ export class DbPool {
             }
           }
         };
-        thread!.onmessageerror = (e) => {};
-        thread!.onerror = (e) => {};
+        thread!.worker!.onmessageerror = (e) => {
+          console.log(e);
+        };
+        thread!.worker!.onerror = (e) => {
+          console.log(e);
+        };
         thread!.id = i;
         thread!.busy = false;
         this.works?.push(thread!);
@@ -345,7 +357,7 @@ export class DbPool {
     clearInterval(this.cutDownTimer);
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
-      thread.terminate();
+      thread.worker!.terminate();
     }
     this.works.length = 0;
   };

@@ -12,19 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
 import {
   getTabSmapsMaxSize,
   getTabSmapsStatisticData,
   getTabSmapsStatisticMaxSize,
   getTabSmapsStatisticSelectData,
-} from '../../../../database/SqlLite.js';
-import { type Smaps, SmapsTreeObj, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
-import { Utils } from '../../base/Utils.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
+} from '../../../../database/SqlLite';
+import { type Smaps, SmapsTreeObj, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+import { Utils } from '../../base/Utils';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 @element('tabpane-smaps-statistics')
 export class TabPaneSmapsStatistics extends BaseElement {
   private tblSmapsStatistics: LitTable | null | undefined;

@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import '../../../../base-ui/select/LitSelect.js';
-import '../../../../base-ui/select/LitSelectOption.js';
-import '../../../../base-ui/icon/LitIcon.js';
-import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
-import '../../../../base-ui/popover/LitPopoverV.js';
-import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import '../../../../base-ui/select/LitSelect';
+import '../../../../base-ui/select/LitSelectOption';
+import '../../../../base-ui/icon/LitIcon';
+import { LitIcon } from '../../../../base-ui/icon/LitIcon';
+import '../../../../base-ui/popover/LitPopoverV';
+import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
-import { queryTransferList } from '../../../database/SqlLite.js';
+import { queryTransferList } from '../../../database/SqlLite';
 
 export interface FilterData {
   inputValue: string;

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon.js';
+import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon';
 
 export class ProcedureLogicWorkerCpuState extends LogicHandler {
   currentEventId: string = '';

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseBean } from './BaseBean.js';
+import { BaseBean } from './BaseBean';
 
 export class PayloadHead extends Object implements BaseBean {
   private _flag: Array<number> = [0, 0]; //uint8_t  ct.c_uint8 * 2

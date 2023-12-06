@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
-import { Flag } from '../../component/trace/timer-shaft/Flag.js';
+import { Flag } from '../../component/trace/timer-shaft/Flag';
 
 export abstract class Render {
   abstract renderMainThread(req: any, row: TraceRow<any>): void;

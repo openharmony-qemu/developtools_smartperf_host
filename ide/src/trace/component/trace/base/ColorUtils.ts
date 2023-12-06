@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
 
 export class ColorUtils {
   public static GREY_COLOR: string = '#f0f0f0';

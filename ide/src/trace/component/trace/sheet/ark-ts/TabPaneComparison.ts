@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface.js';
-import { ConstructorComparison, ConstructorItem, ConstructorType } from '../../../../../js-heap/model/UiStruct.js';
-import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column.js';
-import '../../../../../base-ui/table/lit-table-column.js';
-import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
-import '../TabPaneJsMemoryFilter.js';
-import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption.js';
-import { LitSelect } from '../../../../../base-ui/select/LitSelect.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface';
+import { ConstructorComparison, ConstructorItem, ConstructorType } from '../../../../../js-heap/model/UiStruct';
+import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column';
+import '../../../../../base-ui/table/lit-table-column';
+import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import '../TabPaneJsMemoryFilter';
+import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot';
+import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
+import { LitSelect } from '../../../../../base-ui/select/LitSelect';
 
 @element('tabpane-comparison')
 export class TabPaneComparison extends BaseElement {

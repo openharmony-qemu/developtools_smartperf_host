@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { WireType } from '../message/WireType.js';
-import { SessionHandShake } from '../message/SessionHandShake.js';
-import { PayloadProtect } from '../message/PayloadProtect.js';
-import { TransferConfig } from '../message/TransferConfig.js';
-import { TransferPayload } from '../message/TransferPayload.js';
-import { log } from '../../log/Log.js';
+import { WireType } from '../message/WireType';
+import { SessionHandShake } from '../message/SessionHandShake';
+import { PayloadProtect } from '../message/PayloadProtect';
+import { TransferConfig } from '../message/TransferConfig';
+import { TransferPayload } from '../message/TransferPayload';
+import { log } from '../../log/Log';
 
 export class Serialize {
   static bannerByteLength: number = 8;

@@ -23,8 +23,8 @@ import {
   RequestMessage,
   drawSelection,
   isFrameContainPoint,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyPowerRender extends Render {
   renderMainThread(

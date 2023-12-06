@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { HdcClient } from './hdcclient/HdcClient.js';
-import { UsbTransmissionChannel } from './transmission/UsbTransmissionChannel.js';
-import { HDC_DEVICE_FILTERS } from './common/ConstantType.js';
-import { FormatCommand } from './hdcclient/FormatCommand.js';
-import { log } from '../log/Log.js';
-import { HdcStream } from './hdcclient/HdcStream.js';
-import { HdcCommand } from './hdcclient/HdcCommand.js';
-import { SpRecordTrace } from '../trace/component/SpRecordTrace.js';
-import { DataMessage } from './message/DataMessage.js';
+import { HdcClient } from './hdcclient/HdcClient';
+import { UsbTransmissionChannel } from './transmission/UsbTransmissionChannel';
+import { HDC_DEVICE_FILTERS } from './common/ConstantType';
+import { FormatCommand } from './hdcclient/FormatCommand';
+import { log } from '../log/Log';
+import { HdcStream } from './hdcclient/HdcStream';
+import { HdcCommand } from './hdcclient/HdcCommand';
+import { SpRecordTrace } from '../trace/component/SpRecordTrace';
+import { DataMessage } from './message/DataMessage';
 
 export class HdcDeviceManager {
   static escapeCharacterDict = {

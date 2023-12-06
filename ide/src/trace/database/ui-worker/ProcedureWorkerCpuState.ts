@@ -25,10 +25,10 @@ import {
   PerfRender,
   Render,
   RequestMessage,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { convertJSON } from '../logic-worker/ProcedureLogicWorkerCommon.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { convertJSON } from '../logic-worker/ProcedureLogicWorkerCommon';
 
 export class CpuStateRender extends PerfRender {
   renderMainThread(

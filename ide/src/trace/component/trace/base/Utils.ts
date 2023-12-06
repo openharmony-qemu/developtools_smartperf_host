@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { SelectionParam } from '../../../bean/BoxSelection.js';
-import { procedurePool } from '../../../database/Procedure.js';
-import { queryNativeHookResponseTypes } from '../../../database/SqlLite.js';
+import { SelectionParam } from '../../../bean/BoxSelection';
+import { procedurePool } from '../../../database/Procedure';
+import { queryNativeHookResponseTypes } from '../../../database/SqlLite';
 
 export class Utils {
   private static statusMap: Map<string, string> = new Map<string, string>();

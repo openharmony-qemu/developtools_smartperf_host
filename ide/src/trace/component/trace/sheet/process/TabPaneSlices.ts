@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabSlices, getTabSlicesAsyncFunc } from '../../../../database/SqlLite.js';
-import { SpAllocations } from '../../../setting/SpAllocations.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { TraceRow } from '../../base/TraceRow.js';
-import { LitSearch } from '../../search/Search.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabSlices, getTabSlicesAsyncFunc } from '../../../../database/SqlLite';
+import { SpAllocations } from '../../../setting/SpAllocations';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { TraceRow } from '../../base/TraceRow';
+import { LitSearch } from '../../search/Search';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {

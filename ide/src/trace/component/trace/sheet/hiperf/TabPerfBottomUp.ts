@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import '../TabPaneFilter.js';
-import { type FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import '../../../chart/FrameChart.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { type PerfBottomUpStruct } from '../../../../bean/PerfBottomUpStruct.js';
-import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import '../TabPaneFilter';
+import { type FilterData, TabPaneFilter } from '../TabPaneFilter';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import '../../../chart/FrameChart';
+import '../../../../../base-ui/slicer/lit-slicer';
+import '../../../../../base-ui/progress-bar/LitProgressBar';
+import { procedurePool } from '../../../../database/Procedure';
+import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { type PerfBottomUpStruct } from '../../../../bean/PerfBottomUpStruct';
+import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 
 @element('tabpane-perf-bottom-up')
 export class TabpanePerfBottomUp extends BaseElement {

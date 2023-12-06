@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { LitChartPie } from '../../../../../base-ui/chart/pie/LitChartPie.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import '../../../../../base-ui/chart/pie/LitChartPie.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { LitChartPie } from '../../../../../base-ui/chart/pie/LitChartPie';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import '../../../../../base-ui/chart/pie/LitChartPie';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import { Utils } from '../../base/Utils.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox.js';
-import { TabPaneFilter } from '../TabPaneFilter.js';
-import { initSort } from '../SheetUtils.js';
-import { TabpaneFilesystemCalltree } from './TabPaneFileSystemCalltree.js';
+import { Utils } from '../../base/Utils';
+import { procedurePool } from '../../../../database/Procedure';
+import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
+import { TabPaneFilter } from '../TabPaneFilter';
+import { initSort } from '../SheetUtils';
+import { TabpaneFilesystemCalltree } from './TabPaneFileSystemCalltree';
 
 @element('tabpane-file-statistics-analysis')
 export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {

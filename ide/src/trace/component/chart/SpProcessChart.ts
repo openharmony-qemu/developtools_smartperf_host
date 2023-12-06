@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   getFunDataByTid,
   getMaxDepthByTid,
@@ -36,22 +36,22 @@ import {
   queryProcessThreadsByTable,
   queryStartupPidArray,
   queryThreadData,
-} from '../../database/SqlLite.js';
-import { Utils } from '../trace/base/Utils.js';
-import { info } from '../../../log/Log.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { ProcessRender, ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess.js';
-import { ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread.js';
-import { FuncRender, FuncStruct } from '../../database/ui-worker/ProcedureWorkerFunc.js';
-import { MemRender, ProcessMemStruct } from '../../database/ui-worker/ProcedureWorkerMem.js';
-import { FolderSupplier, FolderThreadHandler, SpChartManager } from './SpChartManager.js';
-import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank.js';
-import { ns2xByTimeShaft } from '../../database/ui-worker/ProcedureWorkerCommon.js';
-import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/ProcedureWorkerAppStartup.js';
-import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit.js';
-import { FlagsConfig } from '../SpFlags.js';
-import { JanksStruct } from '../../bean/JanksStruct.js';
+} from '../../database/SqlLite';
+import { Utils } from '../trace/base/Utils';
+import { info } from '../../../log/Log';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { ProcessRender, ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
+import { ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
+import { FuncRender, FuncStruct } from '../../database/ui-worker/ProcedureWorkerFunc';
+import { MemRender, ProcessMemStruct } from '../../database/ui-worker/ProcedureWorkerMem';
+import { FolderSupplier, FolderThreadHandler, SpChartManager } from './SpChartManager';
+import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
+import { ns2xByTimeShaft } from '../../database/ui-worker/ProcedureWorkerCommon';
+import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/ProcedureWorkerAppStartup';
+import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit';
+import { FlagsConfig } from '../SpFlags';
+import { JanksStruct } from '../../bean/JanksStruct';
 
 export class SpProcessChart {
   private readonly trace: SpSystemTrace;

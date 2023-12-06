@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   drawLines,
@@ -25,8 +25,8 @@ import {
   drawFlagLine,
   RequestMessage,
   dataFilterHandler,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class DiskIoAbilityRender extends Render {
   renderMainThread(

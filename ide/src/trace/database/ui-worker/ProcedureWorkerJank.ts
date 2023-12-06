@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { JanksStruct } from '../../bean/JanksStruct.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { BaseStruct, isFrameContainPoint, ns2x, Render, RequestMessage, drawString } from './ProcedureWorkerCommon.js';
+import { JanksStruct } from '../../bean/JanksStruct';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { BaseStruct, isFrameContainPoint, ns2x, Render, RequestMessage, drawString } from './ProcedureWorkerCommon';
 
 export class JankRender extends Render {
   renderMainThread(

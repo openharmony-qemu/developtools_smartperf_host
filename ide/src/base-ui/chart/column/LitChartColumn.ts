@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../BaseElement.js';
-import { LitChartColumnConfig } from './LitChartColumnConfig.js';
-import { resizeCanvas } from '../helper.js';
-import { getProbablyTime } from '../../../trace/database/logic-worker/ProcedureLogicWorkerCommon.js';
+import { BaseElement, element } from '../../BaseElement';
+import { LitChartColumnConfig } from './LitChartColumnConfig';
+import { resizeCanvas } from '../helper';
+import { getProbablyTime } from '../../../trace/database/logic-worker/ProcedureLogicWorkerCommon';
 
 class Pillar {
   obj?: any;

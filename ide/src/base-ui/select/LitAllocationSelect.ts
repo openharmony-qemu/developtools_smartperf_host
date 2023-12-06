@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
+import { BaseElement, element } from '../BaseElement';
 
 @element('lit-allocation-select')
 export class LitAllocationSelect extends BaseElement {

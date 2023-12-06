@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { AllocationLogic } from './Allocation.js';
-import { AllocationFunction, ConstructorComparison, ConstructorItem, ConstructorType } from '../model/UiStruct.js';
+import { AllocationLogic } from './Allocation';
+import { AllocationFunction, ConstructorComparison, ConstructorItem, ConstructorType } from '../model/UiStruct';
 import {
   DetachedNessState,
   EdgeType,
@@ -24,8 +24,8 @@ import {
   HeapSample,
   HeapTraceFunctionInfo,
   NodeType,
-} from '../model/DatabaseStruct.js';
-import { HeapNodeToConstructorItem } from '../utils/Utils.js';
+} from '../model/DatabaseStruct';
+import { HeapNodeToConstructorItem } from '../utils/Utils';
 
 const BASE_SYSTEM_DISTANCE = 100000000;
 const CAN_BE_QUERIED = 1;

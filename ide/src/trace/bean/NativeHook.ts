@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { Utils } from '../component/trace/base/Utils.js';
-import { ChartStruct } from '../bean/FrameChartStruct.js';
+import { Utils } from '../component/trace/base/Utils';
+import { ChartStruct } from '../bean/FrameChartStruct';
 
 export class NativeHookStatistics {
   eventId: number = 0;

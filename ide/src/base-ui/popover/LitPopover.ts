@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { LitPopContent } from './LitPopContent.js';
-import { LitPopoverTitle } from './LitPopoverTitle.js';
-import { LitRadioGroup } from '../radiobox/LitRadioGroup.js';
-import { LitRadioBox } from '../radiobox/LitRadioBox.js';
-import { LitCheckBox } from '../checkbox/LitCheckBox.js';
-import { LitCheckGroup } from '../checkbox/LitCheckGroup.js';
-import { LitCheckBoxWithText } from '../checkbox/LitCheckBoxWithText.js';
+import { BaseElement, element } from '../BaseElement';
+import { LitPopContent } from './LitPopContent';
+import { LitPopoverTitle } from './LitPopoverTitle';
+import { LitRadioGroup } from '../radiobox/LitRadioGroup';
+import { LitRadioBox } from '../radiobox/LitRadioBox';
+import { LitCheckBox } from '../checkbox/LitCheckBox';
+import { LitCheckGroup } from '../checkbox/LitCheckGroup';
+import { LitCheckBoxWithText } from '../checkbox/LitCheckBoxWithText';
 
 @element('lit-popover')
 export class LitPopover extends BaseElement {

@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { procedurePool } from '../../database/Procedure.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { procedurePool } from '../../database/Procedure';
 import {
   getDiskIOLatencyChartDataByProcess,
   getDiskIOProcess,
   getFileSysChartDataByType,
   getFileSysVirtualMemoryChartData,
   hasFileSysData,
-} from '../../database/SqlLite.js';
-import { FileSysChartStruct, FileSystemRender } from '../../database/ui-worker/ProcedureWorkerFileSystem.js';
-import { ColorUtils } from '../trace/base/ColorUtils.js';
-import { Utils } from '../trace/base/Utils.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+} from '../../database/SqlLite';
+import { FileSysChartStruct, FileSystemRender } from '../../database/ui-worker/ProcedureWorkerFileSystem';
+import { ColorUtils } from '../trace/base/ColorUtils';
+import { Utils } from '../trace/base/Utils';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 
 export class SpFileSystemChart {
   private trace: SpSystemTrace;

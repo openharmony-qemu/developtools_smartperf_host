@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type LitSelect } from '../../../../../base-ui/select/LitSelect.js';
-import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { queryProcessPurgeableSelectionTab } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils.js';
-import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
+import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { queryProcessPurgeableSelectionTab } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
+import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 @element('tabpane-purgeable-pin-comparison-vm')
 export class TabPanePurgPinComparisonVM extends BaseElement {
   private purgeablePinTable: LitTable | null | undefined;

@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import '../../../base-ui/select/LitAllocationSelect.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import '../../../base-ui/select/LitAllocationSelect';
 
-import '../../../base-ui/switch/lit-switch.js';
-import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { Cmd } from '../../../command/Cmd.js';
-import { LitRadioBox } from '../../../base-ui/radiobox/LitRadioBox.js';
-import { SpCheckDesBox } from './SpCheckDesBox.js';
-import LitSwitch from '../../../base-ui/switch/lit-switch.js';
-import { SpApplication } from '../../SpApplication.js';
+import '../../../base-ui/switch/lit-switch';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { Cmd } from '../../../command/Cmd';
+import { LitRadioBox } from '../../../base-ui/radiobox/LitRadioBox';
+import { SpCheckDesBox } from './SpCheckDesBox';
+import LitSwitch from '../../../base-ui/switch/lit-switch';
+import { SpApplication } from '../../SpApplication';
 
 @element('sp-ark-ts')
 export class SpArkTs extends BaseElement {

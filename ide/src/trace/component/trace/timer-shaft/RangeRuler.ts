@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { Graph } from './Graph.js';
-import { Rect } from './Rect.js';
-import { ns2s, ns2UnitS, TimerShaftElement } from '../TimerShaftElement.js';
-import { ColorUtils, interpolateColorBrightness } from '../base/ColorUtils.js';
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
-import { CurrentSlicesTime, SpSystemTrace } from '../../SpSystemTrace.js';
+import { Graph } from './Graph';
+import { Rect } from './Rect';
+import { ns2s, ns2UnitS, TimerShaftElement } from '../TimerShaftElement';
+import { ColorUtils, interpolateColorBrightness } from '../base/ColorUtils';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
+import { CurrentSlicesTime, SpSystemTrace } from '../../SpSystemTrace';
 
 const MarkPadding = 5;
 const FIT_TOTALX_MIN: number = 280;
@@ -412,17 +412,17 @@ export class RangeRuler extends Graph {
       this.animaStartTime = dat.getTime();
     }
     this.currentDuration = new Date().getTime() - this.animaStartTime;
-    this.setCacheInterval();
-    this.range.refresh = this.cacheInterval.flag;
+    this.setCacheInterval(new Date().getTime() - this.animaStartTime);
   }
 
-  setCacheInterval() {
-    if (Math.trunc(this.currentDuration / this.cacheInterval.interval) !== this.cacheInterval.value) {
+  setCacheInterval(offsetTime:number) {
+    if (Math.trunc(offsetTime / this.cacheInterval.interval) !== this.cacheInterval.value) {
       this.cacheInterval.flag = true;
-      this.cacheInterval.value = Math.trunc(this.currentDuration / this.cacheInterval.interval);
+      this.cacheInterval.value = Math.trunc(offsetTime / this.cacheInterval.interval);
     } else {
       this.cacheInterval.flag = false;
     }
+    this.range.refresh = this.cacheInterval.flag;
   }
 
   delayDraw() {
@@ -481,49 +481,21 @@ export class RangeRuler extends Graph {
   }
 
   cancelTimeOut: any = undefined;
+  isKeyPress: boolean = false;
 
   keyPress(keyboardEvent: KeyboardEvent, currentSlicesTime?: CurrentSlicesTime) {
-    if (currentSlicesTime) {
-      this.currentSlicesTime = currentSlicesTime;
-    }
-    if (
-      this.animaStartTime == undefined ||
-      (this.pressedKeys.length > 0 &&
-        this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase())
-    ) {
-      let dat = new Date();
-      dat.setTime(dat.getTime() - 400);
-      this.animaStartTime = dat.getTime();
-    }
-    this.currentDuration = new Date().getTime() - this.animaStartTime;
-    this.setCacheInterval();
-    this.range.refresh = this.cacheInterval.flag;
-    if (this.pressedKeys.length > 0) {
-      if (this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()) {
-        this.cancelPressFrame();
-        this.cancelUpFrame();
-        this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
-        let date = new Date();
-        date.setTime(date.getTime() - 400);
-        this.animaStartTime = date.getTime();
-        this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
+    //第一个按键或者最后一个按下的和当前按键不一致
+    if (this.pressedKeys.length == 0 || this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()) {
+      if (currentSlicesTime) {
+        this.currentSlicesTime = currentSlicesTime;
       }
-    } else {
       this.cancelPressFrame();
       this.cancelUpFrame();
       this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
-      let dat = new Date();
-      dat.setTime(dat.getTime() - 400);
-      this.animaStartTime = dat.getTime();
+      this.animaStartTime = new Date().getTime();//记录按下的时间
       this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
     }
     this.isPress = true;
-    if (this.cancelTimeOut) {
-      clearTimeout(this.cancelTimeOut);
-    }
-    this.cancelTimeOut = setTimeout(() => {
-      this.keyUp({ key: keyboardEvent.key } as KeyboardEvent);
-    }, 1000);
   }
 
   keyPressF(): void {
@@ -615,11 +587,11 @@ export class RangeRuler extends Graph {
         x++;
         if (sliceMidX >= midX - MID_OFFSET && sliceMidX <= midX + MID_OFFSET) {
           /*  把 endNS 转换为 endX ， startNS 转化 startX，
-              totalX = ( endX - startX )  280px <= totalX  <= 300px
-              此时，如果slice的比例或者宽度不合适，则进行调整校正，缩放到合适的比例。
-              不能使用固定的 scale， 因为调整slice的宽度时，scale、 startNS 和  endNS 都在变化,
-              所以要使用  totalX 来判断slice是否缩放到合适的大小了。
-          */
+           totalX = ( endX - startX )  280px <= totalX  <= 300px
+           此时，如果slice的比例或者宽度不合适，则进行调整校正，缩放到合适的比例。
+           不能使用固定的 scale， 因为调整slice的宽度时，scale、 startNS 和  endNS 都在变化,
+           所以要使用  totalX 来判断slice是否缩放到合适的大小了。
+           */
           if (
             (totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0) ||
             Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET
@@ -709,8 +681,13 @@ export class RangeRuler extends Graph {
     this.pressFrameIdF = requestAnimationFrame(animF);
     this.zoomFit(startTime, endTime);
   }
+
+  fixReg = 76;//速度上线
+  f = 11;//加速度系数,值越小加速度越大
   keyPressW() {
     let animW = () => {
+      let offset = Date.now() - this.animaStartTime!;
+      this.setCacheInterval(offset);
       if (this.scale === 50) {
         this.fillX();
         this.range.refresh = true;
@@ -718,8 +695,11 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.range.startNS += (this.centerXPercentage * this.currentDuration * this.scale) / this.p;
-      this.range.endNS -= ((1 - this.centerXPercentage) * this.currentDuration * this.scale) / this.p;
+      this.currentDuration = (offset) / this.f;//reg
+      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
+      this.range.startNS += (this.centerXPercentage * bb * this.scale);
+      this.range.endNS -= ((1 - this.centerXPercentage) * bb * this.scale);
       this.fillX();
       this.draw();
       this.range.refresh = false;
@@ -730,6 +710,8 @@ export class RangeRuler extends Graph {
 
   keyPressS() {
     let animS = () => {
+      let offset = Date.now() - this.animaStartTime!;
+      this.setCacheInterval(offset);
       if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.range.refresh = true;
@@ -737,8 +719,11 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.range.startNS -= ((this.centerXPercentage * this.scale) / this.p) * this.currentDuration;
-      this.range.endNS += (((1 - this.centerXPercentage) * this.scale) / this.p) * this.currentDuration;
+      this.currentDuration = (offset) / this.f
+      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
+      this.range.startNS -= ((this.centerXPercentage * bb * this.scale));
+      this.range.endNS += (((1 - this.centerXPercentage) * bb * this.scale));
       this.fillX();
       this.draw();
       this.range.refresh = false;
@@ -749,6 +734,8 @@ export class RangeRuler extends Graph {
 
   keyPressA() {
     let animA = () => {
+      let offset = Date.now() - this.animaStartTime!;
+      this.setCacheInterval(offset);
       if (this.range.startNS <= 0) {
         this.fillX();
         this.range.refresh = true;
@@ -756,7 +743,10 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      let s = (this.scale / this.p) * this.currentDuration * 0.4;
+      this.currentDuration = (offset) / this.f
+      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
+      let s = this.scale * bb;
       this.range.startNS -= s;
       this.range.endNS -= s;
       this.fillX();
@@ -769,6 +759,8 @@ export class RangeRuler extends Graph {
 
   keyPressD() {
     let animD = () => {
+      let offset = Date.now() - this.animaStartTime!;
+      this.setCacheInterval(offset);
       if (this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.range.refresh = true;
@@ -776,7 +768,10 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      let s = (this.scale / this.p) * this.currentDuration * 0.4;
+      this.currentDuration = (offset) / this.f
+      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
+      let s = this.scale * bb;
       this.range.startNS += s;
       this.range.endNS += s;
       this.fillX();
@@ -823,23 +818,21 @@ export class RangeRuler extends Graph {
     let animW = () => {
       if (this.scale === 50) {
         this.fillX();
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
         return;
       }
       let dur = new Date().getTime() - startTime;
-      this.range.startNS += (this.centerXPercentage * 100 * this.scale) / this.p;
-      this.range.endNS -= ((1 - this.centerXPercentage) * 100 * this.scale) / this.p;
+      if (dur > 150) dur = 150;
+      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.2) * this.scale;
+      this.range.startNS += (this.centerXPercentage * offset);
+      this.range.endNS -= ((1 - this.centerXPercentage) * offset);
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 100) {
+      if (dur < 150) {
         this.upFrameIdW = requestAnimationFrame(animW);
       } else {
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
       }
     };
     this.upFrameIdW = requestAnimationFrame(animW);
@@ -850,23 +843,21 @@ export class RangeRuler extends Graph {
     let animS = () => {
       if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
         this.fillX();
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
         return;
       }
       let dur = new Date().getTime() - startTime;
-      this.range.startNS -= (this.centerXPercentage * 100 * this.scale) / this.p;
-      this.range.endNS += ((1 - this.centerXPercentage) * 100 * this.scale) / this.p;
+      if (dur > 150) dur = 150;
+      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.2) * this.scale;
+      this.range.startNS -= (this.centerXPercentage * offset);
+      this.range.endNS += ((1 - this.centerXPercentage) * offset);
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 100) {
+      if (dur < 150) {
         this.upFrameIdS = requestAnimationFrame(animS);
       } else {
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
       }
     };
     this.upFrameIdS = requestAnimationFrame(animS);
@@ -877,51 +868,52 @@ export class RangeRuler extends Graph {
     let animA = () => {
       if (this.range.startNS <= 0) {
         this.fillX();
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
         return;
       }
       let dur = new Date().getTime() - startTime;
-      let s = (this.scale * 80) / this.p;
-      this.range.startNS -= s;
-      this.range.endNS -= s;
+      if (dur > 150) dur = 150;
+      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.15) * this.scale;
+      this.range.startNS -= offset;
+      this.range.endNS -= offset;
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 100) {
+      if (dur < 150) {
         this.upFrameIdA = requestAnimationFrame(animA);
       } else {
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
       }
     };
     this.upFrameIdA = requestAnimationFrame(animA);
+  }
+
+  keyUpEnd() {
+    this.range.refresh = true;
+    // window.isLastFrame = true;
+    this.notifyHandler(this.range);
+    this.range.refresh = false;
+    // window.isLastFrame = false;
   }
 
   keyUpD(): void {
     let startTime = new Date().getTime();
     let animD = () => {
       if (this.range.endNS >= this.range.totalNS) {
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
         return;
       }
       let dur = new Date().getTime() - startTime;
-      let s = (this.scale * 80) / this.p;
-      this.range.startNS += s;
-      this.range.endNS += s;
+      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.15) * this.scale;
+      this.range.startNS += offset;
+      this.range.endNS += offset;
       this.fillX();
       this.draw();
       this.range.refresh = false;
-      if (dur < 100) {
+      if (dur < 150) {
         this.upFrameIdD = requestAnimationFrame(animD);
       } else {
-        this.range.refresh = true;
-        this.notifyHandler(this.range);
-        this.range.refresh = false;
+        this.keyUpEnd();
       }
     };
     this.upFrameIdD = requestAnimationFrame(animD);

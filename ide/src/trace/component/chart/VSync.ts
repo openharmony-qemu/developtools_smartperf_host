@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { query } from '../../database/SqlLite.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
+import { query } from '../../database/SqlLite';
+import { TraceRow } from '../trace/base/TraceRow';
 interface VSyncData {
   startTime: number;
   dur: number;

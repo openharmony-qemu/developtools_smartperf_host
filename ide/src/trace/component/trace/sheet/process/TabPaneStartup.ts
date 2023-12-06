@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabStartups } from '../../../../database/SqlLite.js';
-import { log } from '../../../../../log/Log.js';
-import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { AppStartupStruct } from '../../../../database/ui-worker/ProcedureWorkerAppStartup.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabStartups } from '../../../../database/SqlLite';
+import { log } from '../../../../../log/Log';
+import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { resizeObserver } from '../SheetUtils';
+import { AppStartupStruct } from '../../../../database/ui-worker/ProcedureWorkerAppStartup';
 
 interface StartupTreeItem {
   name: string;

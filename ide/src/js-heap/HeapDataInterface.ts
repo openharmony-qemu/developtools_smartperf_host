@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { HeapLoader } from './logic/HeapLoader.js';
+import { HeapLoader } from './logic/HeapLoader';
 import {
   AllocationFunction,
   ConstructorComparison,
   ConstructorItem,
   ConstructorType,
   FileInfo,
-} from './model/UiStruct.js';
-import { HeapNodeToConstructorItem } from './utils/Utils.js';
-import { FileStruct, HeapSample, HeapTraceFunctionInfo } from './model/DatabaseStruct.js';
+} from './model/UiStruct';
+import { HeapNodeToConstructorItem } from './utils/Utils';
+import { FileStruct, HeapSample, HeapTraceFunctionInfo } from './model/DatabaseStruct';
 
 export interface ParseListener {
   parseDone(fileModule: Array<FileInfo>): void;

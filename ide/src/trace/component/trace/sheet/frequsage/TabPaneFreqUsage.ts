@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import '../../../StackBar.js';
-import { getTabRunningPercent, queryCpuFreqUsageData, queryCpuFreqFilterId } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { SliceGroup } from '../../../../bean/StateProcessThread.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import '../../../StackBar';
+import { getTabRunningPercent, queryCpuFreqUsageData, queryCpuFreqFilterId } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
+import { SliceGroup } from '../../../../bean/StateProcessThread';
 
 @element('tabpane-frequsage')
 export class TabPaneFreqUsage extends BaseElement {

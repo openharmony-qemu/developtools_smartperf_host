@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { getFps } from '../../database/SqlLite.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { info } from '../../../log/Log.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { FpsRender, FpsStruct } from '../../database/ui-worker/ProcedureWorkerFPS.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { getFps } from '../../database/SqlLite';
+import { TraceRow } from '../trace/base/TraceRow';
+import { info } from '../../../log/Log';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { FpsRender, FpsStruct } from '../../database/ui-worker/ProcedureWorkerFPS';
 
 export class SpFpsChart {
   private trace: SpSystemTrace;

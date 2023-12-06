@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { BaseStruct, computeUnitWidth, isSurroundingPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon.js';
-import { type AnimationRanges } from '../../bean/FrameComponentBean.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { BaseStruct, computeUnitWidth, isSurroundingPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import { type AnimationRanges } from '../../bean/FrameComponentBean';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class FrameSpacingRender extends Render {
   renderMainThread(

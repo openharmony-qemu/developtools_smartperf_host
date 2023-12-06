@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
+import { BaseElement, element } from '../BaseElement';
 
 @element('lit-main-menu-group')
 export class LitMainMenuGroup extends BaseElement {

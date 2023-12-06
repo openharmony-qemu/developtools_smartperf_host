@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { Rect } from '../component/trace/timer-shaft/Rect.js';
-import { BaseStruct } from './BaseStruct.js';
+import { Rect } from '../component/trace/timer-shaft/Rect';
+import { BaseStruct } from './BaseStruct';
 
-import { ns2x } from '../component/trace/TimerShaftElement.js';
+import { ns2x } from '../component/trace/TimerShaftElement';
 
 export class FpsStruct extends BaseStruct {
   static maxFps: number = 0;

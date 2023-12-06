@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { queryVmTrackerShmSelectionData } from '../../../../database/SqlLite.js';
-import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { Utils } from '../../base/Utils.js';
-import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption.js';
-import { type LitSelect } from '../../../../../base-ui/select/LitSelect.js';
-import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
-import { resizeObserverFromMemory } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { queryVmTrackerShmSelectionData } from '../../../../database/SqlLite';
+import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { Utils } from '../../base/Utils';
+import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
+import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
+import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import { resizeObserverFromMemory } from '../SheetUtils';
 
 @element('tabpane-vmtracker-shm-comparison')
 export class TabPaneVmTrackerShmComparison extends BaseElement {

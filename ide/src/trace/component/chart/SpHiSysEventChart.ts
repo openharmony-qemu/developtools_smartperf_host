@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { HiSysEventRender, HiSysEventStruct } from '../../database/ui-worker/ProcedureWorkerHiSysEvent.js';
-import { queryHiSysEventData } from '../../database/SqlLite.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { HiSysEventRender, HiSysEventStruct } from '../../database/ui-worker/ProcedureWorkerHiSysEvent';
+import { queryHiSysEventData } from '../../database/SqlLite';
 
 export class SpHiSysEventChart {
   private trace: SpSystemTrace;

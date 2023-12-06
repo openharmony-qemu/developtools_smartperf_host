@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
-import { SpSystemTrace } from '../../../component/SpSystemTrace.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { LitIcon } from '../../../../base-ui/icon/LitIcon';
+import { SpSystemTrace } from '../../../component/SpSystemTrace';
 
 const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
 

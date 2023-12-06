@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type GpuMemory } from '../../../../bean/AbilityMonitor.js';
-import { getTabGpuMemoryAbilityClickData } from '../../../../database/SqlLite.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type GpuMemory } from '../../../../bean/AbilityMonitor';
+import { getTabGpuMemoryAbilityClickData } from '../../../../database/SqlLite';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-gpu-memory-selection-ability')
 export class TabPaneGpuMemorySelectAbility extends BaseElement {

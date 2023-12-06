@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch.js';
-import '../../../base-ui/select/LitAllocationSelect.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
+import '../../../base-ui/select/LitAllocationSelect';
 
-import '../../../base-ui/switch/lit-switch.js';
-import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { Cmd } from '../../../command/Cmd.js';
+import '../../../base-ui/switch/lit-switch';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { Cmd } from '../../../command/Cmd';
 
 @element('sp-vm-tracker')
 export class SpVmTracker extends BaseElement {

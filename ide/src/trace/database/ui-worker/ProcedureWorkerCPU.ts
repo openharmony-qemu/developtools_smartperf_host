@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   dataFilterHandler,
@@ -25,9 +25,9 @@ import {
   drawWakeUpList,
   Render,
   RequestMessage,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { SpSystemTrace } from '../../component/SpSystemTrace.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class EmptyRender extends Render {
   renderMainThread(req: any, row: TraceRow<any>) {

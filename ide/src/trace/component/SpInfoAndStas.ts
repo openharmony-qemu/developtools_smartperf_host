@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import { querySelectTraceStats, queryTraceMetaData } from '../database/SqlLite.js';
-import { LitTable } from '../../base-ui/table/lit-table.js';
-import '../../base-ui/table/lit-table.js';
-import { info } from '../../log/Log.js';
-import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import { querySelectTraceStats, queryTraceMetaData } from '../database/SqlLite';
+import { LitTable } from '../../base-ui/table/lit-table';
+import '../../base-ui/table/lit-table';
+import { info } from '../../log/Log';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 
 @element('sp-info-and-stats')
 export class SpInfoAndStats extends BaseElement {

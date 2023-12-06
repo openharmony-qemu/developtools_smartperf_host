@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import './TabCpuDetailsFrequency.js';
-import './TabCpuDetailsIdle.js';
-import './TabCpuDetailsIrq.js';
-import { TabCpuDetailsFrequency } from './TabCpuDetailsFrequency.js';
-import { TabCpuDetailsIdle } from './TabCpuDetailsIdle.js';
-import { LitTabs } from '../../../base-ui/tabs/lit-tabs.js';
-import { TabCpuDetailsIrq } from './TabCpuDetailsIrq.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import './TabCpuDetailsFrequency';
+import './TabCpuDetailsIdle';
+import './TabCpuDetailsIrq';
+import { TabCpuDetailsFrequency } from './TabCpuDetailsFrequency';
+import { TabCpuDetailsIdle } from './TabCpuDetailsIdle';
+import { LitTabs } from '../../../base-ui/tabs/lit-tabs';
+import { TabCpuDetailsIrq } from './TabCpuDetailsIrq';
 
 @element('drawer-cpu-tabs')
 export class DrawerCpuTabs extends BaseElement {

@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { LitIcon } from '../../../../../base-ui/icon/LitIcon.js';
-import { HiSysEventStruct } from '../../../../database/ui-worker/ProcedureWorkerHiSysEvent.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { LitIcon } from '../../../../../base-ui/icon/LitIcon';
+import { HiSysEventStruct } from '../../../../database/ui-worker/ProcedureWorkerHiSysEvent';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { ColorUtils } from '../../base/ColorUtils';
 
 @element('tab-hi-sysevent-summary')
 export class TabPaneHiSysEventSummary extends BaseElement {

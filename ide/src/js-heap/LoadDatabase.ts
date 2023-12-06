@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HeapDataInterface, ParseListener } from './HeapDataInterface.js';
-import { AllocationFunction, FileType } from './model/UiStruct.js';
-import { getTimeForLog } from './utils/Utils.js';
-import { HeapNode, FileStruct } from './model/DatabaseStruct.js';
+import { HeapDataInterface, ParseListener } from './HeapDataInterface';
+import { AllocationFunction, FileType } from './model/UiStruct';
+import { getTimeForLog } from './utils/Utils';
+import { HeapNode, FileStruct } from './model/DatabaseStruct';
 import {
   queryHeapFile,
   queryHeapInfo,
@@ -25,8 +25,8 @@ import {
   queryHeapTraceNode,
   queryHeapSample,
   queryHeapString,
-} from '../trace/database/SqlLite.js';
-import { info } from '../log/Log.js';
+} from '../trace/database/SqlLite';
+import { info } from '../log/Log';
 
 export class LoadDatabase {
   private static loadDB: LoadDatabase;

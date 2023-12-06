@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { RangeSelectStruct, TraceRow } from './TraceRow.js';
-import { Rect } from '../timer-shaft/Rect.js';
-import { ns2x, TimerShaftElement } from '../TimerShaftElement.js';
-import { info } from '../../../../log/Log.js';
-import './Extension.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { querySearchRowFuncData } from '../../../database/SqlLite.js';
+import { RangeSelectStruct, TraceRow } from './TraceRow';
+import { Rect } from '../timer-shaft/Rect';
+import { ns2x, TimerShaftElement } from '../TimerShaftElement';
+import { info } from '../../../../log/Log';
+import './Extension';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { querySearchRowFuncData } from '../../../database/SqlLite';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;

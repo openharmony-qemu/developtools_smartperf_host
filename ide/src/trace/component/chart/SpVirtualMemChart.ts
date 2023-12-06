@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { queryVirtualMemory, queryVirtualMemoryData } from '../../database/SqlLite.js';
-import { VirtualMemoryRender, VirtualMemoryStruct } from '../../database/ui-worker/ProcedureWorkerVirtualMemory.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { queryVirtualMemory, queryVirtualMemoryData } from '../../database/SqlLite';
+import { VirtualMemoryRender, VirtualMemoryStruct } from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 
 export class SpVirtualMemChart {
   private trace: SpSystemTrace;

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox.js';
-import '../../../base-ui/checkbox/LitCheckBox.js';
-import { SpSchedulingAnalysis } from './SpSchedulingAnalysis.js';
-import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox';
+import '../../../base-ui/checkbox/LitCheckBox';
+import { SpSchedulingAnalysis } from './SpSchedulingAnalysis';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class CpuSetting {
   cpu: number = 0;

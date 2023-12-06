@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { LitTabs } from './lit-tabs.js';
+import { BaseElement, element } from '../BaseElement';
+import { LitTabs } from './lit-tabs';
 
 @element('lit-tabpane')
 export class LitTabpane extends BaseElement {

@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { queryGpuDataByTs } from '../../../../database/SqlLite.js';
-import { VmTrackerChart } from '../../../chart/SpVmTrackerChart.js';
-import { log } from '../../../../../log/Log.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { resizeObserver } from '../SheetUtils';
+import { queryGpuDataByTs } from '../../../../database/SqlLite';
+import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
+import { log } from '../../../../../log/Log';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { Utils } from '../../base/Utils';
 interface GpuTreeItem {
   name: string;
   id: number;

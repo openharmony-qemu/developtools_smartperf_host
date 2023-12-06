@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import { queryCustomizeSelect } from '../database/SqlLite.js';
-import { LitTable } from '../../base-ui/table/lit-table.js';
-import '../../base-ui/table/lit-table.js';
-import { LitTableColumn } from '../../base-ui/table/lit-table-column.js';
-import { info } from '../../log/Log.js';
-import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
-import { PageNation } from '../../base-ui/chart/pagenation/PageNation.js';
-import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox.js';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
-import { getAllSql } from './trace/base/CommonSql.js';
-import { LitIcon } from '../../base-ui/icon/LitIcon.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import { queryCustomizeSelect } from '../database/SqlLite';
+import { LitTable } from '../../base-ui/table/lit-table';
+import '../../base-ui/table/lit-table';
+import { LitTableColumn } from '../../base-ui/table/lit-table-column';
+import { info } from '../../log/Log';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
+import { PageNation } from '../../base-ui/chart/pagenation/PageNation';
+import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { getAllSql } from './trace/base/CommonSql';
+import { LitIcon } from '../../base-ui/icon/LitIcon';
 
 @element('sp-query-sql')
 export class SpQuerySQL extends BaseElement {

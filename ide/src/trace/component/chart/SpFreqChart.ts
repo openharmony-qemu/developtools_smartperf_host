@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   getCpuLimitFreq,
   getCpuLimitFreqId,
@@ -24,16 +24,16 @@ import {
   queryCpuMaxFreq,
   queryCpuState,
   queryCpuStateFilter,
-} from '../../database/SqlLite.js';
-import { info } from '../../../log/Log.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { ColorUtils } from '../trace/base/ColorUtils.js';
-import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWorkerFreq.js';
-import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState.js';
-import { FolderSupplier, FolderThreadHandler } from './SpChartManager.js';
-import { Utils } from '../trace/base/Utils.js';
+} from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { TraceRow } from '../trace/base/TraceRow';
+import { ColorUtils } from '../trace/base/ColorUtils';
+import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWorkerFreq';
+import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState';
+import { FolderSupplier, FolderThreadHandler } from './SpChartManager';
+import { Utils } from '../trace/base/Utils';
 export class SpFreqChart {
   private trace: SpSystemTrace;
   private folderRow: TraceRow<any> | undefined;

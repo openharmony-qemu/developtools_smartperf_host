@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-import { element } from '../../../../base-ui/BaseElement.js';
-import { TimeRange } from '../timer-shaft/RangeRuler.js';
-import '../../../../base-ui/icon/LitIcon.js';
-import { Rect } from '../timer-shaft/Rect.js';
-import { BaseStruct } from '../../../bean/BaseStruct.js';
-import { ns2x } from '../TimerShaftElement.js';
-import { TraceRowObject } from './TraceRowObject.js';
-import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
+import { element } from '../../../../base-ui/BaseElement';
+import { TimeRange } from '../timer-shaft/RangeRuler';
+import '../../../../base-ui/icon/LitIcon';
+import { Rect } from '../timer-shaft/Rect';
+import { BaseStruct } from '../../../bean/BaseStruct';
+import { ns2x } from '../TimerShaftElement';
+import { TraceRowObject } from './TraceRowObject';
+import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
-import '../../../../base-ui/popover/LitPopoverV.js';
-import '../../../../base-ui/tree/LitTree.js';
-import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
-import { info } from '../../../../log/Log.js';
-import { ColorUtils } from './ColorUtils.js';
-import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { TraceRowConfig } from './TraceRowConfig.js';
-import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree.js';
+import '../../../../base-ui/popover/LitPopoverV';
+import '../../../../base-ui/tree/LitTree';
+import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
+import { info } from '../../../../log/Log';
+import { ColorUtils } from './ColorUtils';
+import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
+import { TraceRowConfig } from './TraceRowConfig';
+import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 
 export class RangeSelectStruct {
   startX: number | undefined;
@@ -215,6 +215,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static get observedAttributes() {
     return [
       'folder',
+      'sticky',
       'name',
       'expansion',
       'children',
@@ -249,7 +250,16 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   set funcExpand(b: boolean) {
     this.setAttribute('func-expand', b ? 'true' : 'false');
   }
-
+  get sticky():boolean{
+    return this.hasAttribute('sticky');
+  }
+  set sticky(fixed:boolean){
+    if (fixed) {
+      this.setAttribute('sticky', '');
+    }else{
+      this.removeAttribute('sticky');
+    }
+  }
   get hasParentRowEl(): boolean {
     return this.parentRowEl !== undefined;
   }
@@ -690,6 +700,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl?.addEventListener('click', () => {
       if (this.folder) {
         this.expansion = !this.expansion;
+        this.sticky = this.expansion;
       }
     });
     this.funcExpand = true;
@@ -1286,6 +1297,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
 
         :host(:not([folder])[children]) .name{
+        }
+        :host([sticky]) {
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
         :host([expansion]) {
             background-color: var(--bark-expansion,#0C65D1);

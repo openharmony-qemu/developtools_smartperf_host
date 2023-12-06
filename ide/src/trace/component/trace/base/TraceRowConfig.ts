@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import '../../../../base-ui/checkbox/LitCheckBox.js';
-import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
-import { TraceRow } from './TraceRow.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { LitSearch } from '../search/Search.js';
-import { TraceSheet } from './TraceSheet.js';
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
-import { type BaseStruct } from '../../../bean/BaseStruct.js';
-import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import '../../../../base-ui/checkbox/LitCheckBox';
+import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
+import { TraceRow } from './TraceRow';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { LitSearch } from '../search/Search';
+import { TraceSheet } from './TraceSheet';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
+import { type BaseStruct } from '../../../bean/BaseStruct';
+import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 
 @element('trace-row-config')
 export class TraceRowConfig extends BaseElement {

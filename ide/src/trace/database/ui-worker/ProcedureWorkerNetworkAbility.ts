@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { dataFilterHandler, isFrameContainPoint, Render, RequestMessage, BaseStruct } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { dataFilterHandler, isFrameContainPoint, Render, RequestMessage, BaseStruct } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 export class NetworkAbilityRender extends Render {
   renderMainThread(
     req: {

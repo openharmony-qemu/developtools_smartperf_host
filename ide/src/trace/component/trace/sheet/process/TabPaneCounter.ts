@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabCounters, getTabVirtualCounters } from '../../../../database/SqlLite.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabCounters, getTabVirtualCounters } from '../../../../database/SqlLite';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-counter')
 export class TabPaneCounter extends BaseElement {

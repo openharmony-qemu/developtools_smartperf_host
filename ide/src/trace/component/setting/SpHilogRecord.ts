@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import LitSwitch from '../../../base-ui/switch/lit-switch.js';
-import '../../../base-ui/select/LitAllocationSelect.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import LitSwitch from '../../../base-ui/switch/lit-switch';
+import '../../../base-ui/select/LitAllocationSelect';
 
-import '../../../base-ui/switch/lit-switch.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { Cmd } from '../../../command/Cmd.js';
-import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
-import { LitSelect } from '../../../base-ui/select/LitSelect.js';
+import '../../../base-ui/switch/lit-switch';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { Cmd } from '../../../command/Cmd';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
+import { LitSelect } from '../../../base-ui/select/LitSelect';
 
 @element('sp-hi-log')
 export class SpHilogRecord extends BaseElement {

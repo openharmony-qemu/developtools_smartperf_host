@@ -13,14 +13,19 @@
  * limitations under the License.
  */
 
-import { query } from './SqlLite.js';
+import { query } from './SqlLite';
 
-class ProcedureThread extends Worker {
+class ProcedureThread{
   busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
   taskMap: any = {};
   name: string | undefined;
+  worker?:Worker;
+
+  constructor(worker:Worker) {
+    this.worker = worker;
+  }
 
   uuid(): string {
     // @ts-ignore
@@ -42,22 +47,22 @@ class ProcedureThread extends Worker {
       try {
         if (Array.isArray(transfer)) {
           if (transfer.length > 0) {
-            this.postMessage(pam, [...transfer]);
+            this.worker!.postMessage(pam, [...transfer]);
           } else {
-            this.postMessage(pam);
+            this.worker!.postMessage(pam);
           }
         } else {
-          this.postMessage(pam, [transfer]);
+          this.worker!.postMessage(pam, [transfer]);
         }
       } catch (e: any) {}
     } else {
-      this.postMessage(pam);
+      this.worker!.postMessage(pam);
     }
   }
 
   cancel() {
     this.isCancelled = true;
-    this.terminate();
+    this.worker!.terminate();
   }
 }
 
@@ -98,11 +103,11 @@ class ProcedurePool {
     if (window.useWb) {
       return;
     }
-    let newThread: ProcedureThread = new ProcedureThread('trace/database/ui-worker/ProcedureWorker.js', {
+    let newThread: ProcedureThread = new ProcedureThread(new Worker(new URL('./ui-worker/ProcedureWorker',import.meta.url), {
       type: 'module',
-    });
+    }));
     newThread.name = this.names[this.works.length];
-    newThread.onmessage = (event: MessageEvent) => {
+    newThread.worker!.onmessage = (event: MessageEvent) => {
       newThread.busy = false;
       if ((event.data.type as string) == 'timeline-range-changed') {
         this.timelineChange && this.timelineChange(event.data.results);
@@ -122,8 +127,8 @@ class ProcedurePool {
         this.onComplete();
       }
     };
-    newThread.onmessageerror = (e) => {};
-    newThread.onerror = (e) => {};
+    newThread.worker!.onmessageerror = (e) => {};
+    newThread.worker!.onerror = (e) => {};
     newThread.id = this.works.length;
     newThread.busy = false;
     this.works?.push(newThread);
@@ -135,15 +140,15 @@ class ProcedurePool {
     if (window.useWb) {
       return;
     }
-    let thread: ProcedureThread = new ProcedureThread('trace/database/logic-worker/ProcedureLogicWorker.js', {
+    let thread: ProcedureThread = new ProcedureThread(new Worker(new URL('./logic-worker/ProcedureLogicWorker',import.meta.url), {
       type: 'module',
-    });
+    }));
     thread.name = this.logicDataHandles[this.works.length - this.names.length];
-    thread.onmessage = (event: MessageEvent) => {
+    thread.worker!.onmessage = (event: MessageEvent) => {
       thread.busy = false;
       if (event.data.isQuery) {
         query(event.data.type, event.data.sql, event.data.args, 'exec-buf').then((res: any) => {
-          thread.postMessage({
+          thread.worker!.postMessage({
             type: event.data.type,
             params: {
               list: res,
@@ -177,8 +182,8 @@ class ProcedurePool {
         this.onComplete();
       }
     };
-    thread.onmessageerror = (e) => {};
-    thread.onerror = (e) => {};
+    thread.worker!.onmessageerror = (e) => {};
+    thread.worker!.onerror = (e) => {};
     thread.id = this.works.length;
     thread.busy = false;
     this.works?.push(thread);
@@ -188,7 +193,7 @@ class ProcedurePool {
   close = () => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
-      thread.terminate();
+      thread.worker!.terminate();
     }
     this.works.length = 0;
   };

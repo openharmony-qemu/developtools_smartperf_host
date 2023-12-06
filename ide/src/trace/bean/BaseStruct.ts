@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Rect } from '../component/trace/timer-shaft/Rect.js';
+import { Rect } from '../component/trace/timer-shaft/Rect';
 
 export class BaseStruct {
   frame: Rect | undefined;

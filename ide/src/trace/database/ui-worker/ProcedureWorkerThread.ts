@@ -21,10 +21,10 @@ import {
   Render,
   RequestMessage,
   drawString,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { Utils } from '../../component/trace/base/Utils.js';
-import { ThreadStruct as BaseThreadStruct } from '../../bean/ThreadStruct.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
+import { ThreadStruct as BaseThreadStruct } from '../../bean/ThreadStruct';
 export class ThreadRender extends Render {
   renderMainThread(
     threadReq: {

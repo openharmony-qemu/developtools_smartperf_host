@@ -12,22 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { info } from '../../../log/Log.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { type HeapTimelineRender, HeapTimelineStruct } from '../../database/ui-worker/ProcedureWorkerHeapTimeline.js';
-import { HeapDataInterface, type ParseListener } from '../../../js-heap/HeapDataInterface.js';
-import { LoadDatabase } from '../../../js-heap/LoadDatabase.js';
-import { type FileInfo } from '../../../js-heap/model/UiStruct.js';
-import { type HeapSnapshotRender, HeapSnapshotStruct } from '../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { Utils } from '../trace/base/Utils.js';
-import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct.js';
-import { type JsCpuProfilerRender, JsCpuProfilerStruct } from '../../database/ui-worker/ProcedureWorkerCpuProfiler.js';
-import { ns2s } from '../../database/ui-worker/ProcedureWorkerCommon.js';
-import { queryJsCpuProfilerConfig, queryJsCpuProfilerData, queryJsMemoryData } from '../../database/SqlLite.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { info } from '../../../log/Log';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type HeapTimelineRender, HeapTimelineStruct } from '../../database/ui-worker/ProcedureWorkerHeapTimeline';
+import { HeapDataInterface, type ParseListener } from '../../../js-heap/HeapDataInterface';
+import { LoadDatabase } from '../../../js-heap/LoadDatabase';
+import { type FileInfo } from '../../../js-heap/model/UiStruct';
+import { type HeapSnapshotRender, HeapSnapshotStruct } from '../../database/ui-worker/ProcedureWorkerHeapSnapshot';
+import { procedurePool } from '../../database/Procedure';
+import { Utils } from '../trace/base/Utils';
+import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct';
+import { type JsCpuProfilerRender, JsCpuProfilerStruct } from '../../database/ui-worker/ProcedureWorkerCpuProfiler';
+import { ns2s } from '../../database/ui-worker/ProcedureWorkerCommon';
+import { queryJsCpuProfilerConfig, queryJsCpuProfilerData, queryJsMemoryData } from '../../database/SqlLite';
 const TYPE_SNAPSHOT = 0;
 const TYPE_TIMELINE = 1;
 export class SpArkTsChart implements ParseListener {

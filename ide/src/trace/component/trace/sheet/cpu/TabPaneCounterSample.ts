@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabPaneCounterSampleData } from '../../../../database/SqlLite.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { dataFilterHandler, drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { TraceRow } from '../../base/TraceRow.js';
-import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq.js';
-import { CpuState } from '../../../../database/logic-worker/ProcedureLogicWorkerCpuState.js';
-import { CpuStateStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuState.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPaneCounterSampleData } from '../../../../database/SqlLite';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { dataFilterHandler, drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { TraceRow } from '../../base/TraceRow';
+import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
+import { CpuState } from '../../../../database/logic-worker/ProcedureLogicWorkerCpuState';
+import { CpuStateStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuState';
 
 @element('tabpane-counter-sample')
 export class TabPaneCounterSample extends BaseElement {
