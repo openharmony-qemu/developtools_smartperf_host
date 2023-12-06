@@ -138,7 +138,7 @@ public:
     LiveProcessDetailData liveProcessDetailData_;
     FileSystemSample fileSamplingTableData_;
     EbpfCallStackData ebpfCallStackData_;
-    PagedMemorySampleData PagedMemorySampleData_;
+    PagedMemorySampleData pagedMemorySampleData_;
 #if WITH_EBPF_HELP
     EbpfProcessMaps ebpfProcessMaps_;
     EbpfElf ebpfElf_;

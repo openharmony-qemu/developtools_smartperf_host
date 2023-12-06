@@ -83,6 +83,7 @@
 #include "native_hook_statistic_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
+#include "parser/ebpf_parser/ebpf_stdtype.h"
 #include "perf_call_chain_table.h"
 #include "perf_files_table.h"
 #include "perf_report_table.h"
@@ -116,6 +117,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint8_t CPU_ID_FORMAT_WIDTH = 3;
+constexpr uint8_t TIME_PRECISION_SIX = 6;
 TraceDataCache::TraceDataCache()
 {
     InitDB();
@@ -283,29 +285,27 @@ void TraceDataCache::ClearHookCommProtos()
 int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
                                                TraceDataDB::ResultCallBack resultCallBack)
 {
-#if !IS_WASM
-    int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
-    TS_CHECK_TRUE(fd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
-    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&fd, [](int32_t* fp) { close(*fp); });
-    TS_CHECK_TRUE(ftruncate(fd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
+    int32_t perfFd = base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW);
+    TS_CHECK_TRUE(perfFd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
+    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&perfFd, [](int32_t* fp) { close(*fp); });
+    TS_CHECK_TRUE(ftruncate(perfFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
                   strerror(errno));
-#endif
-    TS_LOGI("ExportPerfReadableText begin...\n");
-    uint8_t curTimePrecision = 6;
-    std::string buffLine;
-    for (uint64_t row = 0; row < perfSample_.Size(); ++row) {
-        std::string procName;
+    TS_LOGI("ExportPerfReadableText begin...");
+    std::string perfBufferLine;
+    perfBufferLine.reserve(G_CHUNK_SIZE);
+    for (uint64_t row = 0; row < perfSample_.Size();) {
+        std::string perfTaskName;
         std::string cpuIdStr = std::to_string(perfSample_.CpuIds()[row]);
         std::string eventTypeName;
-        auto threadId = perfSample_.Tids()[row];
-        if (threadId == 0) {
+        auto perfTaskId = perfSample_.Tids()[row];
+        if (perfTaskId == 0) {
             auto threadDataRow = 0;
-            procName = GetDataFromDict(GetConstThreadData(threadDataRow).nameIndex_);
+            perfTaskName = GetDataFromDict(GetConstThreadData(threadDataRow).nameIndex_);
         } else {
-            auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), threadId);
+            auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), perfTaskId);
             if (perfThreadTidItor != perfThread_.Tids().end()) {
                 auto perfThreadRow = std::distance(perfThread_.Tids().begin(), perfThreadTidItor);
-                procName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
+                perfTaskName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
             }
         }
         auto perfReportIdItor =
@@ -314,23 +314,29 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
             auto perfReportRow = std::distance(perfReport_.IdsData().begin(), perfReportIdItor);
             eventTypeName = GetDataFromDict(perfReport_.Values()[perfReportRow]);
         }
-        buffLine += procName;
-        buffLine += ("  " + std::to_string(threadId));
-        buffLine += (" [" + std::string(CPU_ID_FORMAT_WIDTH - cpuIdStr.size(), '0') + cpuIdStr + "]");
-        buffLine += (" " + base::ConvertTimestampToSecStr(perfSample_.TimeStampData()[row], curTimePrecision) + ":");
-        buffLine += ("          " + std::to_string(perfSample_.EventCounts()[row]));
-        buffLine += (" " + eventTypeName + " \r\n");
-        ExportPerfCallChaninText(perfSample_.SampleIds()[row], buffLine);
-#if !IS_WASM
-        TS_CHECK_TRUE(write(fd, buffLine.data(), buffLine.size()) != -1, 1, "Failed to write file: %s, err:%s",
-                      outputName.c_str(), strerror(errno));
-#endif
-        buffLine.clear();
+        perfBufferLine.append(perfTaskName);
+        perfBufferLine.append("  ").append(std::to_string(perfTaskId));
+        perfBufferLine.append(" [")
+            .append(std::string(CPU_ID_FORMAT_WIDTH - cpuIdStr.size(), '0'))
+            .append(cpuIdStr)
+            .append("]");
+        perfBufferLine.append(" ")
+            .append(base::ConvertTimestampToSecStr(perfSample_.TimeStampData()[row], TIME_PRECISION_SIX))
+            .append(":");
+        perfBufferLine.append("          ").append(std::to_string(perfSample_.EventCounts()[row]));
+        perfBufferLine.append(" ").append(eventTypeName).append(" \r\n");
+        ExportPerfCallChaninText(perfSample_.SampleIds()[row], perfBufferLine);
+        if (++row != perfSample_.Size() && perfBufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
+        TS_CHECK_TRUE(write(perfFd, perfBufferLine.data(), perfBufferLine.size()) != -1, 1,
+                      "Failed to write file: %s, err:%s", outputName.c_str(), strerror(errno));
+        perfBufferLine.clear();
     }
-    TS_LOGI("ExportPerfReadableText end...\n");
+    TS_LOGI("ExportPerfReadableText end...");
     return 0;
 }
-void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string& buffLine)
+void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string& bufferLine)
 {
     std::stack<uint64_t> callChainStackRows;
     auto perfCallChainItor =
@@ -352,11 +358,247 @@ void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string&
             auto perfFileRow = std::distance(perfFiles_.FileIds().begin(), perfFileIdItor);
             filePath = GetDataFromDict(perfFiles_.FilePaths()[perfFileRow]);
         }
-        buffLine += ("\t" + formatIp);
-        buffLine += (" [" + perfCallChain_.Names()[perfCallChainRow] + "]");
-        buffLine += (" (" + filePath + ")\r\n");
+        bufferLine.append("\t").append(formatIp);
+        bufferLine.append(" [").append(perfCallChain_.Names()[perfCallChainRow]).append("]");
+        bufferLine.append(" (").append(filePath).append(")\r\n");
     }
-    buffLine += "\r\n";
+    bufferLine.append("\r\n");
+}
+int32_t TraceDataCache::ExportHookReadableText(const std::string& outputName,
+                                               TraceDataDB::ResultCallBack resultCallBack)
+{
+    int32_t hookFd = base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW);
+    TS_CHECK_TRUE(hookFd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
+    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&hookFd, [](int32_t* fp) { close(*fp); });
+    TS_CHECK_TRUE(ftruncate(hookFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
+                  strerror(errno));
+    TS_LOGI("ExportHookReadableText begin...");
+    std::string hookBufferLine;
+    hookBufferLine.reserve(G_CHUNK_SIZE);
+    ExportHookDataReadableText(hookFd, hookBufferLine);
+    ExportHookStatisticReadableText(hookFd, hookBufferLine);
+    TS_LOGI("ExportHookReadableText end...");
+    return 0;
+}
+bool TraceDataCache::ExportHookDataReadableText(int32_t fd, std::string& bufferLine)
+{
+    for (uint64_t row = 0; row < nativeHookData_.Size();) {
+        auto itid = nativeHookData_.InternalTidsData()[row];
+        auto hookTaskId = internalThreadsData_[itid].tid_;
+        auto hookTaskName = GetDataFromDict(internalThreadsData_[itid].nameIndex_);
+        bufferLine.append(hookTaskName);
+        bufferLine.append("  ").append(std::to_string(hookTaskId));
+        bufferLine.append(" ").append("[---]"); // default HookData event cpu id
+        bufferLine.append(" ")
+            .append(base::ConvertTimestampToSecStr(nativeHookData_.TimeStampData()[row], TIME_PRECISION_SIX))
+            .append(":");
+        bufferLine.append("          ").append("1"); // default HookData event event cnt
+        bufferLine.append(" ").append(nativeHookData_.EventTypes()[row]).append(" \r\n");
+        ExportHookCallChaninText(nativeHookData_.CallChainIds()[row], bufferLine);
+        if (++row != nativeHookData_.Size() && bufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
+        TS_CHECK_TRUE(write(fd, bufferLine.data(), bufferLine.size()) != -1, false,
+                      "Failed to write HookData file, err:%s", strerror(errno));
+        bufferLine.clear();
+    }
+    return true;
+}
+bool TraceDataCache::ExportHookStatisticReadableText(int32_t fd, std::string& bufferLine)
+{
+    std::map<uint32_t, std::string_view> statisticEventTypeMap = {
+        {HookMemoryType::MALLOC, "AllocEvent"},
+        {HookMemoryType::MMAP, "MmapEvent"},
+        {HookMemoryType::FILE_PAGE_MSG, "FilePageEvent"},
+        {HookMemoryType::MEMORY_USING_MSG, "MemoryUsingEvent"}};
+    for (uint64_t row = 0; row < nativeHookStatisticData_.Size();) {
+        auto ipid = nativeHookStatisticData_.Ipids()[row];
+        auto statisticTaskId = internalProcessesData_[ipid].pid_;
+        auto statisticTaskName = internalProcessesData_[ipid].cmdLine_;
+        std::string_view eventType;
+        auto statisticEventTypeItor = statisticEventTypeMap.find(nativeHookStatisticData_.MemoryTypes()[row]);
+        if (statisticEventTypeItor != statisticEventTypeMap.end()) {
+            eventType = statisticEventTypeItor->second;
+        }
+        bufferLine.append(statisticTaskName);
+        bufferLine.append("  ").append(std::to_string(statisticTaskId));
+        bufferLine.append(" ").append("[---]"); // default HookStatistic event cpu id
+        bufferLine.append(" ")
+            .append(base::ConvertTimestampToSecStr(nativeHookStatisticData_.TimeStampData()[row], TIME_PRECISION_SIX))
+            .append(":");
+        bufferLine.append("          ").append("1"); // default HookStatistic event event cnt
+        bufferLine.append(" ").append(eventType).append(" \r\n");
+        ExportHookCallChaninText(nativeHookStatisticData_.CallChainIds()[row], bufferLine);
+        if (++row != nativeHookStatisticData_.Size() && bufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
+        TS_CHECK_TRUE(write(fd, bufferLine.data(), bufferLine.size()) != -1, false,
+                      "Failed to write HookStatistic file, err:%s", strerror(errno));
+        bufferLine.clear();
+    }
+    return true;
+}
+void TraceDataCache::ExportHookCallChaninText(uint32_t callChainId, std::string& bufferLine)
+{
+    auto hookFrameCallChainItor = std::lower_bound(nativeHookFrameData_.CallChainIds().begin(),
+                                                   nativeHookFrameData_.CallChainIds().end(), callChainId);
+    while (hookFrameCallChainItor != nativeHookFrameData_.CallChainIds().end() &&
+           callChainId == *hookFrameCallChainItor) {
+        auto hookCallChainRow = std::distance(nativeHookFrameData_.CallChainIds().begin(), hookFrameCallChainItor);
+        auto hookFrameIp = base::number(nativeHookFrameData_.Ips()[hookCallChainRow], base::INTEGER_RADIX_TYPE_HEX);
+        hookFrameIp = std::string(base::INTEGER_RADIX_TYPE_HEX - hookFrameIp.size(), ' ') + hookFrameIp;
+        std::string hookSymName("unknown");
+        std::string hookFilePath("[unknown]");
+        if (nativeHookFrameData_.SymbolNames()[hookCallChainRow] != INVALID_UINT64) {
+            hookSymName = GetDataFromDict(nativeHookFrameData_.SymbolNames()[hookCallChainRow]);
+        }
+        if (nativeHookFrameData_.FilePaths()[hookCallChainRow] != INVALID_UINT64) {
+            hookFilePath = GetDataFromDict(nativeHookFrameData_.FilePaths()[hookCallChainRow]);
+        }
+        bufferLine.append("\t").append(hookFrameIp);
+        bufferLine.append(" [").append(hookSymName).append("]");
+        bufferLine.append(" (").append(hookFilePath).append(")\r\n");
+        ++hookFrameCallChainItor;
+    }
+    bufferLine.append("\r\n");
+}
+int32_t TraceDataCache::ExportEbpfReadableText(const std::string& outputName,
+                                               TraceDataDB::ResultCallBack resultCallBack)
+{
+    int32_t ebpfFd = base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW);
+    TS_CHECK_TRUE(ebpfFd != -1, 1, "Failed to create file: %s, err:%s", outputName.c_str(), strerror(errno));
+    std::unique_ptr<int32_t, std::function<void(int32_t*)>> fp(&ebpfFd, [](int32_t* fp) { close(*fp); });
+    TS_CHECK_TRUE(ftruncate(ebpfFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
+                  strerror(errno));
+    TS_LOGI("ExportEbpfReadableText begin...");
+    EbpfEventTypeMap ebpfEventTypeMap = {
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_MAPS, "MapsEvent"},
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_SYMBOL_INFO, "SymbolEvent"},
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_FS, "FsEvent"},
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_VM, "VmEvent"},
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_BIO, "BioEvent"},
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_STR, "StrEvent"},
+        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_KENEL_SYMBOL_INFO, "KernelSymbolEvent"}};
+    std::string ebpfBufferLine;
+    ebpfBufferLine.reserve(G_CHUNK_SIZE);
+    ExportEbpfFileSystemReadableText(ebpfFd, ebpfBufferLine, ebpfEventTypeMap);
+    ExportEbpfPagedMemReadableText(ebpfFd, ebpfBufferLine, ebpfEventTypeMap);
+    ExportEbpfBIOReadableText(ebpfFd, ebpfBufferLine, ebpfEventTypeMap);
+    TS_LOGI("ExportEbpfReadableText end...");
+    return 0;
+}
+bool TraceDataCache::ExportEbpfFileSystemReadableText(int32_t fd,
+                                                      std::string& bufferLine,
+                                                      const EbpfEventTypeMap& ebpfEventTypeMap)
+{
+    for (uint64_t row = 0; row < fileSamplingTableData_.Size();) {
+        auto fileSysTaskId = internalThreadsData_[fileSamplingTableData_.Itids()[row]].tid_;
+        auto fileSysTaskName = GetDataFromDict(internalThreadsData_[fileSamplingTableData_.Itids()[row]].nameIndex_);
+        std::string_view fileSampleEventType;
+        auto ebpfEventTypeItor = ebpfEventTypeMap.find(fileSamplingTableData_.Types()[row]);
+        if (ebpfEventTypeItor != ebpfEventTypeMap.end()) {
+            fileSampleEventType = ebpfEventTypeItor->second;
+        }
+        bufferLine.append(fileSysTaskName);
+        bufferLine.append("  ").append(std::to_string(fileSysTaskId));
+        bufferLine.append(" ").append("[---]"); // default FileSystem event cpu id
+        bufferLine.append(" ")
+            .append(base::ConvertTimestampToSecStr(fileSamplingTableData_.StartTs()[row], TIME_PRECISION_SIX))
+            .append(":");
+        bufferLine.append("          ").append("1"); // default FileSystem event cnt
+        bufferLine.append(" ").append(fileSampleEventType).append(" \r\n");
+        ExportEbpfCallChaninText(fileSamplingTableData_.CallChainIds()[row], bufferLine);
+        if (++row != fileSamplingTableData_.Size() && bufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
+        TS_CHECK_TRUE(write(fd, bufferLine.data(), bufferLine.size()) != -1, false,
+                      "Failed to write FileSystem event file err:%s", strerror(errno));
+        bufferLine.clear();
+    }
+    return true;
+}
+bool TraceDataCache::ExportEbpfPagedMemReadableText(int32_t fd,
+                                                    std::string& bufferLine,
+                                                    const EbpfEventTypeMap& ebpfEventTypeMap)
+{
+    for (uint64_t row = 0; row < pagedMemorySampleData_.Size();) {
+        auto pagedMemTaskId = internalThreadsData_[pagedMemorySampleData_.Itids()[row]].tid_;
+        auto pagedMemTaskName = GetDataFromDict(internalThreadsData_[pagedMemorySampleData_.Itids()[row]].nameIndex_);
+        std::string_view pageMemEventType;
+        auto ebpfEventTypeItor = ebpfEventTypeMap.find(pagedMemorySampleData_.Types()[row]);
+        if (ebpfEventTypeItor != ebpfEventTypeMap.end()) {
+            pageMemEventType = ebpfEventTypeItor->second;
+        }
+        bufferLine.append(pagedMemTaskName);
+        bufferLine.append("  ").append(std::to_string(pagedMemTaskId));
+        bufferLine.append(" ").append("[---]"); // default PagedMem event cpu id
+        bufferLine.append(" ")
+            .append(base::ConvertTimestampToSecStr(pagedMemorySampleData_.StartTs()[row], TIME_PRECISION_SIX))
+            .append(":");
+        bufferLine.append("          ").append("1"); // default PagedMem event cnt
+        bufferLine.append(" ").append(pageMemEventType).append(" \r\n");
+        ExportEbpfCallChaninText(pagedMemorySampleData_.CallChainIds()[row], bufferLine);
+        if (++row != pagedMemorySampleData_.Size() && bufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
+        TS_CHECK_TRUE(write(fd, bufferLine.data(), bufferLine.size()) != -1, false,
+                      "Failed to write PagedMem event file err:%s", strerror(errno));
+        bufferLine.clear();
+    }
+    return true;
+}
+bool TraceDataCache::ExportEbpfBIOReadableText(int32_t fd,
+                                               std::string& bufferLine,
+                                               const EbpfEventTypeMap& ebpfEventTypeMap)
+{
+    for (uint64_t row = 0; row < bioLatencySampleData_.Size();) {
+        auto bioTaskId = internalThreadsData_[bioLatencySampleData_.Itids()[row]].tid_;
+        auto bioTaskName = GetDataFromDict(internalThreadsData_[bioLatencySampleData_.Itids()[row]].nameIndex_);
+        std::string_view bioEventType;
+        auto ebpfEventTypeItor = ebpfEventTypeMap.find(bioLatencySampleData_.Types()[row]);
+        if (ebpfEventTypeItor != ebpfEventTypeMap.end()) {
+            bioEventType = ebpfEventTypeItor->second;
+        }
+        bufferLine.append(bioTaskName);
+        bufferLine.append("  ").append(std::to_string(bioTaskId));
+        bufferLine.append(" ").append("[---]"); // default BIO event cpu id
+        bufferLine.append(" ")
+            .append(base::ConvertTimestampToSecStr(bioLatencySampleData_.StartTs()[row], TIME_PRECISION_SIX))
+            .append(":");
+        bufferLine.append("          ").append("1"); // default BIO event cnt
+        bufferLine.append(" ").append(bioEventType).append(" \r\n");
+        ExportEbpfCallChaninText(bioLatencySampleData_.CallChainIds()[row], bufferLine);
+        if (++row != bioLatencySampleData_.Size() && bufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
+        TS_CHECK_TRUE(write(fd, bufferLine.data(), bufferLine.size()) != -1, false,
+                      "Failed to write BIO event file err:%s", strerror(errno));
+        bufferLine.clear();
+    }
+    return true;
+}
+void TraceDataCache::ExportEbpfCallChaninText(uint32_t callChainId, std::string& bufferLine)
+{
+    auto ebpfCallChainItor = std::lower_bound(ebpfCallStackData_.CallChainIds().begin(),
+                                              ebpfCallStackData_.CallChainIds().end(), callChainId);
+    while (ebpfCallChainItor != ebpfCallStackData_.CallChainIds().end() && callChainId == *ebpfCallChainItor) {
+        auto ebpfCallChainRow = std::distance(ebpfCallStackData_.CallChainIds().begin(), ebpfCallChainItor);
+        auto ebpfFrameIp = GetDataFromDict(ebpfCallStackData_.Ips()[ebpfCallChainRow]).substr(HEX_PREFIX.size());
+        ebpfFrameIp = std::string(base::INTEGER_RADIX_TYPE_HEX - ebpfFrameIp.size(), ' ') + ebpfFrameIp;
+        std::string ebpfSymName("unknown");
+        std::string ebpfFilePath("[unknown]");
+        if (ebpfCallStackData_.SymbolIds()[ebpfCallChainRow] != INVALID_UINT64) {
+            ebpfSymName = GetDataFromDict(ebpfCallStackData_.SymbolIds()[ebpfCallChainRow]);
+        }
+        if (ebpfCallStackData_.FilePathIds()[ebpfCallChainRow] != INVALID_UINT64) {
+            ebpfFilePath = GetDataFromDict(ebpfCallStackData_.FilePathIds()[ebpfCallChainRow]);
+        }
+        bufferLine.append("\t").append(ebpfFrameIp);
+        bufferLine.append(" [").append(ebpfSymName).append("]");
+        bufferLine.append(" (").append(ebpfFilePath).append(")\r\n");
+        ++ebpfCallChainItor;
+    }
+    bufferLine.append("\r\n");
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

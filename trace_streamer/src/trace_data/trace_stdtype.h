@@ -825,17 +825,15 @@ private:
 class NativeHookFrame {
 public:
     size_t AppendNewNativeHookFrame(uint32_t callChainId,
-                                    uint64_t depth,
+                                    uint16_t depth,
                                     uint64_t ip,
-                                    uint64_t sp,
                                     DataIndex symbolName,
                                     DataIndex filePath,
                                     uint64_t offset,
                                     uint64_t symbolOffset);
     size_t AppendNewNativeHookFrame(uint32_t callChainId,
-                                    uint64_t depth,
+                                    uint16_t depth,
                                     uint64_t ip,
-                                    uint64_t sp,
                                     DataIndex symbolName,
                                     DataIndex filePath,
                                     uint64_t offset,
@@ -852,9 +850,8 @@ public:
     void UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFilePathName);
     void UpdateVaddrs(std::deque<std::string>& vaddrs);
     const std::deque<uint32_t>& CallChainIds() const;
-    const std::deque<uint64_t>& Depths() const;
+    const std::deque<uint16_t>& Depths() const;
     const std::deque<uint64_t>& Ips() const;
-    const std::deque<uint64_t>& Sps() const;
     const std::deque<DataIndex>& SymbolNames() const;
     const std::deque<DataIndex>& FilePaths() const;
     const std::deque<uint64_t>& Offsets() const;
@@ -869,7 +866,6 @@ public:
         callChainIds_.clear();
         depths_.clear();
         ips_.clear();
-        sps_.clear();
         symbolNames_.clear();
         filePaths_.clear();
         offsets_.clear();
@@ -879,9 +875,8 @@ public:
 
 private:
     std::deque<uint32_t> callChainIds_ = {};
-    std::deque<uint64_t> depths_ = {};
+    std::deque<uint16_t> depths_ = {};
     std::deque<uint64_t> ips_ = {};
-    std::deque<uint64_t> sps_ = {};
     std::deque<DataIndex> symbolNames_ = {};
     std::deque<DataIndex> filePaths_ = {};
     std::deque<uint64_t> offsets_ = {};

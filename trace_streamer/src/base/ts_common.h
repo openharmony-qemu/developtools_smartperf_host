@@ -21,6 +21,8 @@
 #include <map>
 #include <string>
 using ClockId = uint32_t;
+constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
+constexpr size_t FLUSH_CHUNK_THRESHOLD = G_CHUNK_SIZE - 10000;
 const std::string INVALID_STRING = "INVALID_STRING";
 const uint64_t INVALID_ITID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_IPID = std::numeric_limits<uint32_t>::max();
@@ -40,6 +42,7 @@ const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
 const int32_t STR_DEFAULT_LEN = -1;
 const auto INVALID_CPU = INVALID_UINT32;
 const auto INVALID_TIME = INVALID_UINT64;
+const std::string HEX_PREFIX = "0x";
 const std::string MEM_QUERY =
     "select max(value) as maxNum, min(value) as minNum, avg(value) as avgNum, filter.name as name, p.name as "
     "processName from process_measure left join process_measure_filter as filter on filter.id= filter_id left join "
@@ -200,6 +203,7 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_JSMEMORY_CONFIG,
     DATA_SOURCE_TYPE_MEM_CONFIG
 };
+enum HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };
 using DataIndex = uint64_t;
 using TableRowId = int32_t;
 using InternalPid = uint32_t;

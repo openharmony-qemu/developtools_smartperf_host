@@ -281,7 +281,7 @@ const EbpfCallStackData& TraceDataCacheReader::GetConstEbpfCallStackData() const
 }
 const PagedMemorySampleData& TraceDataCacheReader::GetConstPagedMemorySampleData() const
 {
-    return PagedMemorySampleData_;
+    return pagedMemorySampleData_;
 }
 #if WITH_EBPF_HELP
 const EbpfProcessMaps& TraceDataCacheReader::GetConstEbpfProcessMaps() const

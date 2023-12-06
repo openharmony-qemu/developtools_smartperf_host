@@ -46,7 +46,6 @@ namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::TraceStreamer;
 using namespace SysTuning::base;
-constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
@@ -72,18 +71,19 @@ void ShowHelpInfo(const char* argv)
     printf(
         "trace analyze tool, it can transfer a bytrace/htrace file into a "
         "SQLite database and save result to a local file trace_streamer.log.\n"
-        "Usage: %s FILE -e sqlite_out.pb\n"
+        "Usage: %s FILE -e sqlite_out.db\n"
         " or    %s FILE -c\n"
         "Options:\n"
         " -e    transfer a trace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
-        " -d    dump perf readable text.\n"
+        " -d    dump perf/hook/ebpf readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
         " -h    start HTTP server.\n"
         " -l <level>, --level=<level>\n"
         "       Show specific level/levels logs with format: level1,level2,level3\n"
         "       Long level string coule be: DEBUG/INFO/WARN/ERROR/FATAL/OFF.\n"
         "       Short level string coule be: D/I/W/E/F/O.\n"
         "       Default level is OFF.\n"
+        " -o    set dump file path.\n"
         " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"
         " -p    Specify the port of HTTP server, default is 9001.\n"
         " -q    select sql from file.\n"
@@ -136,14 +136,14 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
         if (!ta.ParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize), false, isFinish)) {
             return false;
         };
-        TS_LOGI("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
+        printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
     }
     ta.WaitForParserEnd();
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
-    TS_LOGI("\nParserDuration:\t%u ms", static_cast<unsigned int>(endTime - startTime));
-    TS_LOGI("ParserSpeed:\t%.2f MB/s", (g_loadSize / (endTime - startTime) / 1E3));
+    (void)fprintf(stdout, "\nParserDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
+    (void)fprintf(stdout, "ParserSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
     return true;
 }
 bool SetFileSize(const std::string& traceFilePath)
@@ -204,27 +204,27 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
         metaData->SetParserToolVersion(g_traceStreamerVersion);
         metaData->SetParserToolPublishDateTime(g_traceStreamerPublishVersion);
         metaData->SetTraceDataSize(g_loadSize);
-        TS_LOGI("ExportDatabase begin...\n");
         if (ts.ExportDatabase(sqliteFilePath)) {
             fprintf(stdout, "ExportDatabase failed\n");
             ExportStatusToLog(sqliteFilePath, TRACE_PARSER_ABNORMAL);
             return 1;
         }
-        TS_LOGI("ExportDatabase end\n");
     }
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
     endTime += 1; // for any exception of endTime == startTime
-    TS_LOGI("ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    TS_LOGI("ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
+    fprintf(stdout, "ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
+    fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
     return 0;
 }
 
+enum DumpFileType { UNKONW_TYPE = 0, PERF_TYPE, NATIVE_HOOK_TYPE, EBPF_TYPE };
 struct TraceExportOption {
     std::string traceFilePath;
     std::string sqliteFilePath;
-    std::string perfReadableTextFilePath;
+    DumpFileType dumpFileType = DumpFileType::UNKONW_TYPE;
+    std::string outputFilePath;
     std::string metricsIndex;
     std::string sqlOperatorFilePath;
     bool interactiveState = false;
@@ -235,12 +235,27 @@ struct HttpOption {
     bool enable = false;
     int port = 9001;
 };
+bool SetDumpFileType(char** argv, const std::string& dumpFileType, TraceExportOption& traceExportOption)
+{
+    if (dumpFileType == "perf") {
+        traceExportOption.dumpFileType = DumpFileType::PERF_TYPE;
+    } else if (dumpFileType == "hook") {
+        traceExportOption.dumpFileType = DumpFileType::NATIVE_HOOK_TYPE;
+    } else if (dumpFileType == "ebpf") {
+        traceExportOption.dumpFileType = DumpFileType::EBPF_TYPE;
+    } else {
+        ShowHelpInfo(argv[0]);
+        return false;
+    }
+    return true;
+}
 int CheckFinal(char** argv, TraceExportOption& traceExportOption, HttpOption& httpOption)
 {
     if ((traceExportOption.traceFilePath.empty() ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
         !httpOption.enable && !traceExportOption.separateFile && traceExportOption.metricsIndex.empty() &&
-        traceExportOption.sqlOperatorFilePath.empty() && traceExportOption.perfReadableTextFilePath.empty()) {
+        traceExportOption.sqlOperatorFilePath.empty() && traceExportOption.outputFilePath.empty() &&
+        traceExportOption.dumpFileType == DumpFileType::UNKONW_TYPE) {
         ShowHelpInfo(argv[0]);
         return 1;
     }
@@ -268,11 +283,15 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
             continue;
         } else if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "--dump")) {
             TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
-            traceExportOption.perfReadableTextFilePath = std::string(argv[i]);
+            TS_CHECK_TRUE_RET(SetDumpFileType(argv, std::string(argv[i]), traceExportOption), 1);
             continue;
         } else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--query-file")) {
             TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
             traceExportOption.sqlOperatorFilePath = std::string(argv[i]);
+            continue;
+        } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--out")) {
+            TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
+            traceExportOption.outputFilePath = std::string(argv[i]);
             continue;
         } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
             PrintInformation();
@@ -306,6 +325,8 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
             continue;
         }
         traceExportOption.traceFilePath = std::string(argv[i]);
+        auto strVec = SplitStringToVec(traceExportOption.traceFilePath, ".");
+        traceExportOption.outputFilePath = strVec.front() + "_ReadableText.txt";
     }
     return CheckFinal(argv, traceExportOption, httpOption);
 }
@@ -344,8 +365,12 @@ int main(int argc, char** argv)
         }
         return 1;
     }
-    if (!tsOption.perfReadableTextFilePath.empty()) {
-        ts.ExportPerfReadableText(tsOption.perfReadableTextFilePath);
+    if (tsOption.dumpFileType == DumpFileType::PERF_TYPE) {
+        ts.ExportPerfReadableText(tsOption.outputFilePath);
+    } else if (tsOption.dumpFileType == DumpFileType::NATIVE_HOOK_TYPE) {
+        ts.ExportHookReadableText(tsOption.outputFilePath);
+    } else if (tsOption.dumpFileType == DumpFileType::EBPF_TYPE) {
+        ts.ExportEbpfReadableText(tsOption.outputFilePath);
     }
     if (tsOption.interactiveState) {
         MetaData* metaData = ts.GetMetaData();
