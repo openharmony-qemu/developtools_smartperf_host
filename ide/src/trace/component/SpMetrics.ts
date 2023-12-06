@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
 
-import { queryMetric } from '../database/SqlLite.js';
+import { queryMetric } from '../database/SqlLite';
 
-import '../../base-ui/table/lit-table.js';
-import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
+import '../../base-ui/table/lit-table';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('sp-metrics')
 export class SpMetrics extends BaseElement {

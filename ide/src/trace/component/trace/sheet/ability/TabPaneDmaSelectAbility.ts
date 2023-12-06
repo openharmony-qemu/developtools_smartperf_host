@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type Dma } from '../../../../bean/AbilityMonitor.js';
-import { getTabDmaAbilityClickData } from '../../../../database/SqlLite.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type Dma } from '../../../../bean/AbilityMonitor';
+import { getTabDmaAbilityClickData } from '../../../../database/SqlLite';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-dma-selection-ability')
 export class TabPaneDmaSelectAbility extends BaseElement {

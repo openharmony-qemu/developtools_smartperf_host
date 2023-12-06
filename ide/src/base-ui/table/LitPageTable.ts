@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { LitTableColumn } from './lit-table-column.js';
-import { LitProgressBar } from './../progress-bar/LitProgressBar.js';
-import { BaseElement, element } from '../BaseElement.js';
-import '../utils/Template.js';
-import { TableRowObject } from './TableRowObject.js';
-import { JSONToCSV } from '../utils/CSVFormater.js';
+import { LitTableColumn } from './lit-table-column';
+import { LitProgressBar } from './../progress-bar/LitProgressBar';
+import { BaseElement, element } from '../BaseElement';
+import '../utils/Template';
+import { TableRowObject } from './TableRowObject';
+import { JSONToCSV } from '../utils/CSVFormater';
 
 @element('lit-page-table')
 export class LitPageTable extends BaseElement {

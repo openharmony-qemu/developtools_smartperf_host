@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   drawFlagLine,
@@ -23,8 +23,8 @@ import {
   isFrameContainPoint,
   PerfRender,
   RequestMessage,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyAnomalyRender extends PerfRender {
   renderMainThread(

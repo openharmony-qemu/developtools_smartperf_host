@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabPaneFrequencySampleData, getTabPaneCounterSampleData } from '../../../../database/SqlLite.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { TraceRow } from '../../base/TraceRow.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPaneFrequencySampleData, getTabPaneCounterSampleData } from '../../../../database/SqlLite';
+import { ColorUtils } from '../../base/ColorUtils';
+import { resizeObserver } from '../SheetUtils';
+import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { TraceRow } from '../../base/TraceRow';
 import {
   drawLines,
-} from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
+} from '../../../../database/ui-worker/ProcedureWorkerCommon';
 
 @element('tabpane-frequency-sample')
 export class TabPaneFrequencySample extends BaseElement {
@@ -187,7 +186,7 @@ export class TabPaneFrequencySample extends BaseElement {
         stateFiliterIds
       );
       //开启一个线程计算busyTime
-      this.worker = new Worker('trace/database/StateBusyTimeWorker.js');
+      this.worker = new Worker(new URL('../../../../database/StateBusyTimeWorker',import.meta.url));
       let msg = {
         frqSampleParam,
         result,

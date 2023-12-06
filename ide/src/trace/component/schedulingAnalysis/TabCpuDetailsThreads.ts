@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { LitTable } from '../../../base-ui/table/lit-table.js';
-import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
-import '../../../base-ui/progress-bar/LitProgressBar.js';
-import { getDataNo } from './utils/Utils.js';
-import './TableNoData.js';
-import { TableNoData } from './TableNoData.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie';
+import { procedurePool } from '../../database/Procedure';
+import { LitTable } from '../../../base-ui/table/lit-table';
+import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
+import '../../../base-ui/progress-bar/LitProgressBar';
+import { getDataNo } from './utils/Utils';
+import './TableNoData';
+import { TableNoData } from './TableNoData';
 
 @element('tab-cpu-details-threads')
 export class TabCpuDetailsThreads extends BaseElement {

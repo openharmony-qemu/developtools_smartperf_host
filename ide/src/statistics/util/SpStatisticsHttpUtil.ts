@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BurialPointRequestBody } from './SpStatisticsHttpBean.js';
+import { BurialPointRequestBody } from './SpStatisticsHttpBean';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';

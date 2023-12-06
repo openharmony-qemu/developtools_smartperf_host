@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { SystemDetailsEnergy } from '../../../../bean/EnergyStruct.js';
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { SystemDetailsEnergy } from '../../../../bean/EnergyStruct';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
 import {
   querySysLocationDetailsData,
   querySysLockDetailsData,
   querySystemWorkData,
-} from '../../../../database/SqlLite.js';
-import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { type LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer.js';
+} from '../../../../database/SqlLite';
+import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
+import { resizeObserver } from '../SheetUtils';
+import { type LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer';
 
 @element('tabpane-system-details')
 export class TabPaneSystemDetails extends BaseElement {

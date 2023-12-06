@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabFps } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { log } from '../../../../../log/Log.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabFps } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { log } from '../../../../../log/Log';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-fps')
 export class TabPaneFps extends BaseElement {

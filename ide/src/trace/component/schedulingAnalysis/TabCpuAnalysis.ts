@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { SpSchedulingAnalysis } from './SpSchedulingAnalysis.js';
-import { DrawerCpuTabs } from './DrawerCpuTabs.js';
-import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie.js';
-import { LitDrawer } from '../../../base-ui/drawer/LitDrawer.js';
-import '../../../base-ui/drawer/LitDrawer.js';
-import './DrawerCpuTabs.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { info } from '../../../log/Log.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { SpSchedulingAnalysis } from './SpSchedulingAnalysis';
+import { DrawerCpuTabs } from './DrawerCpuTabs';
+import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie';
+import { LitDrawer } from '../../../base-ui/drawer/LitDrawer';
+import '../../../base-ui/drawer/LitDrawer';
+import './DrawerCpuTabs';
+import { procedurePool } from '../../database/Procedure';
+import { info } from '../../../log/Log';
 import { LitSelect } from '../../../base-ui/select/LitSelect';
-import '../../../base-ui/progress-bar/LitProgressBar.js';
-import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
-import { pieChartColors } from '../../../base-ui/chart/pie/LitChartPieData.js';
-import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil.js';
+import '../../../base-ui/progress-bar/LitProgressBar';
+import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
+import { pieChartColors } from '../../../base-ui/chart/pie/LitChartPieData';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 @element('tab-cpu-analysis')
 export class TabCpuAnalysis extends BaseElement {

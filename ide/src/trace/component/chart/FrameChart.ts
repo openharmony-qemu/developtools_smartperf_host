@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { Rect } from '../trace/timer-shaft/Rect.js';
-import { ChartMode, ChartStruct, draw, setFuncFrame } from '../../bean/FrameChartStruct.js';
-import { SpApplication } from '../../SpApplication.js';
-import { Utils } from '../trace/base/Utils.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { Rect } from '../trace/timer-shaft/Rect';
+import { ChartMode, ChartStruct, draw, setFuncFrame } from '../../bean/FrameChartStruct';
+import { SpApplication } from '../../SpApplication';
+import { Utils } from '../trace/base/Utils';
 
 const scaleHeight = 30; // 刻度尺高度
 const depthHeight = 20; // 调用栈高度

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Rect } from './Rect.js';
+import { Rect } from './Rect';
 
 export abstract class Graph {
   frame: Rect;

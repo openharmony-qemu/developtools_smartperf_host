@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { SpRecordTrace } from '../trace/component/SpRecordTrace.js';
-import { CmdConstant } from './CmdConstant.js';
-import { HdcDeviceManager } from '../hdc/HdcDeviceManager.js';
+import { SpRecordTrace } from '../trace/component/SpRecordTrace';
+import { CmdConstant } from './CmdConstant';
+import { HdcDeviceManager } from '../hdc/HdcDeviceManager';
 
 export class Cmd {
   static CmdSendPostUtils(uri: string, callback: Function, requestData: any) {

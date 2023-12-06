@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { getTabDmaVmTrackerData } from '../../../../database/SqlLite.js';
-import { type Dma } from '../../../../bean/AbilityMonitor.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { resizeObserver } from '../SheetUtils';
+import { getTabDmaVmTrackerData } from '../../../../database/SqlLite';
+import { type Dma } from '../../../../bean/AbilityMonitor';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-dma-vmtracker')
 export class TabPaneDmaVmTracker extends BaseElement {

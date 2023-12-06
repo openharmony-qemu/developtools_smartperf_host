@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch.js';
-import { HiperfPluginConfig, ProfilerPluginConfig, TracePluginConfig } from './bean/ProfilerServiceTypes.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
+import { HiperfPluginConfig, ProfilerPluginConfig, TracePluginConfig } from './bean/ProfilerServiceTypes';
+import { SpRecordTrace } from '../SpRecordTrace';
 
 @element('sp-record-template')
 export class SpRecordTemplate extends BaseElement {
@@ -152,7 +152,7 @@ export class SpRecordTemplate extends BaseElement {
         hitraceCategories: hitraceCategories,
         flushIntervalMs: 1000,
         hitraceApps: [],
-        bufferSizeKb: 2048,
+        bufferSizeKb: 102400,
         debugOn: false,
         flushThresholdKb: 4096,
         clock: 'boot',

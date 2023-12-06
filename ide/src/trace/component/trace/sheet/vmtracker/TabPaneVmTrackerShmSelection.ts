@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { queryVmTrackerShmSelectionData } from '../../../../database/SqlLite.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { queryVmTrackerShmSelectionData } from '../../../../database/SqlLite';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { Utils } from '../../base/Utils';
 import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 
 @element('tabpane-vmtracker-shm-selection')
 export class TabPaneVmTrackerShmSelection extends BaseElement {

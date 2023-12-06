@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank.js';
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryActualFrameDate,
   queryExpectedFrameDate,
@@ -26,17 +26,17 @@ import {
   queryFrameSpacing,
   queryFrameTimeData,
   queryPhysicalData,
-} from '../../database/SqlLite.js';
-import { JanksStruct } from '../../bean/JanksStruct.js';
-import { ns2xByTimeShaft, type PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon.js';
-import { FrameDynamicRender, FrameDynamicStruct } from '../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
-import { FrameAnimationRender, FrameAnimationStruct } from '../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
-import { type BaseStruct } from '../../bean/BaseStruct.js';
-import { FrameSpacingRender, FrameSpacingStruct } from '../../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { FlagsConfig, type Params } from '../SpFlags.js';
-import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean.js';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { TreeItemData } from '../../../base-ui/tree/LitTree.js';
+} from '../../database/SqlLite';
+import { JanksStruct } from '../../bean/JanksStruct';
+import { ns2xByTimeShaft, type PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon';
+import { FrameDynamicRender, FrameDynamicStruct } from '../../database/ui-worker/ProcedureWorkerFrameDynamic';
+import { FrameAnimationRender, FrameAnimationStruct } from '../../database/ui-worker/ProcedureWorkerFrameAnimation';
+import { type BaseStruct } from '../../bean/BaseStruct';
+import { FrameSpacingRender, FrameSpacingStruct } from '../../database/ui-worker/ProcedureWorkerFrameSpacing';
+import { FlagsConfig, type Params } from '../SpFlags';
+import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { TreeItemData } from '../../../base-ui/tree/LitTree';
 
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;
@@ -321,7 +321,7 @@ export class SpFrameTimeChart {
     frameAnimationRow.name = 'Animation';
     frameAnimationRow.style.height = `${maxHeight}px`;
     frameAnimationRow.setAttribute('height', `${maxHeight}`);
-    frameAnimationRow.addTemplateTypes('Animation Effect');
+    frameAnimationRow.addTemplateTypes('AnimationEffect');
     frameAnimationRow.setAttribute('children', '');
     frameAnimationRow.supplier = (): Promise<FrameAnimationStruct[]> =>
       new Promise((resolve) => {
@@ -370,7 +370,7 @@ export class SpFrameTimeChart {
     let labelName = dynamicCurveRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     labelName.style.marginRight = '77px';
     dynamicCurveRow.name = 'Animation Effect Curve';
-    dynamicCurveRow.addTemplateTypes('Animation Effect');
+    dynamicCurveRow.addTemplateTypes('AnimationEffect');
     dynamicCurveRow.setAttribute('height', '100px');
     dynamicCurveRow.setAttribute('children', '');
     dynamicCurveRow.setAttribute('model-type', systemConfigList[0].name);
@@ -423,7 +423,7 @@ export class SpFrameTimeChart {
     frameSpacingRow.style.width = '100%';
     frameSpacingRow.style.height = '140px';
     frameSpacingRow.name = 'Frame spacing';
-    frameSpacingRow.addTemplateTypes('Animation Effect');
+    frameSpacingRow.addTemplateTypes('AnimationEffect');
     frameSpacingRow.setAttribute('height', '140');
     frameSpacingRow.setAttribute('children', '');
     frameSpacingRow.setAttribute('model-name', name);

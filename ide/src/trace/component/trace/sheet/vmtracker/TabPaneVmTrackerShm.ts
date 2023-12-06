@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
-import { queryVmTrackerShmSizeData } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
+import { queryVmTrackerShmSizeData } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 
 @element('tabpane-vmtracker-shm')
 export class TabPaneVmTrackerShm extends BaseElement {

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../component/trace/base/ColorUtils.js';
-import { BaseStruct } from './BaseStruct.js';
-import { WakeupBean } from './WakeupBean.js';
+import { ColorUtils } from '../component/trace/base/ColorUtils';
+import { BaseStruct } from './BaseStruct';
+import { WakeupBean } from './WakeupBean';
 
 export class CpuStruct extends BaseStruct {
   static cpuCount: number; //最大cpu数量

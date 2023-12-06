@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { HdcCommand } from './HdcCommand.js';
-import { CMDSTR_FILE_RECV, CMDSTR_FILE_SEND, CMDSTR_SHELL } from '../common/ConstantType.js';
-import { log } from '../../log/Log.js';
+import { HdcCommand } from './HdcCommand';
+import { CMDSTR_FILE_RECV, CMDSTR_FILE_SEND, CMDSTR_SHELL } from '../common/ConstantType';
+import { log } from '../../log/Log';
 
 export class FormatCommand {
   cmdFlag: number; // uint16_t

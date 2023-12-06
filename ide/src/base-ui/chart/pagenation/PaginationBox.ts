@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../BaseElement.js';
+import { BaseElement, element } from '../../BaseElement';
 
 @element('pagination-box')
 export class PaginationBox extends BaseElement {

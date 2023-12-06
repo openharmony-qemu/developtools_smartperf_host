@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { HeapNode } from '../model/DatabaseStruct.js';
-import { ConstructorComparison } from '../model/UiStruct.js';
+import { HeapNode } from '../model/DatabaseStruct';
+import { ConstructorComparison } from '../model/UiStruct';
 
 export function HeapNodeToConstructorItem(node: HeapNode): ConstructorComparison {
   let constructor = new ConstructorComparison();

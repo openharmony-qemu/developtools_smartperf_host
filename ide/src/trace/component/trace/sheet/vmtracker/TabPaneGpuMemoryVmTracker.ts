@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { getTabGpuMemoryData } from '../../../../database/SqlLite.js';
-import { GpuMemory } from '../../../../bean/AbilityMonitor.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { Utils } from '../../base/Utils.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { resizeObserver } from '../SheetUtils';
+import { getTabGpuMemoryData } from '../../../../database/SqlLite';
+import { GpuMemory } from '../../../../bean/AbilityMonitor';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { Utils } from '../../base/Utils';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-gpu-memory-vmtracker')
 export class TabPaneGpuMemoryVmTracker extends BaseElement {

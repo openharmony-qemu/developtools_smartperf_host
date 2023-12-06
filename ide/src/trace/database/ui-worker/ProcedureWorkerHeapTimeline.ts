@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseStruct, Rect, isFrameContainPoint } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { HeapSample } from '../../../js-heap/model/DatabaseStruct.js';
+import { BaseStruct, Rect, isFrameContainPoint } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { HeapSample } from '../../../js-heap/model/DatabaseStruct';
 
 export class HeapTimelineRender {
   renderMainThread(

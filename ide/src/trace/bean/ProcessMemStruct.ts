@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
-import { ColorUtils } from '../component/trace/base/ColorUtils.js';
+import { BaseStruct } from './BaseStruct';
+import { ColorUtils } from '../component/trace/base/ColorUtils';
 
 export class ProcessMemStruct extends BaseStruct {
   static hoverProcessMemStruct: ProcessMemStruct | undefined;

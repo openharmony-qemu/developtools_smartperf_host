@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { TraceRow } from '../../base/TraceRow.js';
-import { TraceSheet } from '../../base/TraceSheet.js';
-import { Flag } from '../../timer-shaft/Flag.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { ns2Timestamp, ns2x, Rect } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { LitPageTable } from '../../../../../base-ui/table/LitPageTable.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { TraceRow } from '../../base/TraceRow';
+import { TraceSheet } from '../../base/TraceSheet';
+import { Flag } from '../../timer-shaft/Flag';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { ns2Timestamp, ns2x, Rect } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
+import { ColorUtils } from '../../base/ColorUtils';
+import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
 
 @element('tab-hi-log')
 export class TabPaneHiLogs extends BaseElement {

@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { queryProcessPurgeableSelectionTab, querySysPurgeableSelectionTab } from '../../../../database/SqlLite.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { queryProcessPurgeableSelectionTab, querySysPurgeableSelectionTab } from '../../../../database/SqlLite';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-purg-total-selection')
 export class TabPanePurgTotalSelection extends BaseElement {

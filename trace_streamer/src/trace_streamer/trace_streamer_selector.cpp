@@ -294,6 +294,20 @@ int32_t TraceStreamerSelector::ExportPerfReadableText(const std::string& outputN
     return traceDataCache_->ExportPerfReadableText(outputName, resultCallBack);
 }
 
+int32_t TraceStreamerSelector::ExportHookReadableText(const std::string& outputName,
+                                                      TraceDataDB::ResultCallBack resultCallBack)
+{
+    traceDataCache_->UpdateTraceRange();
+    return traceDataCache_->ExportHookReadableText(outputName, resultCallBack);
+}
+
+int32_t TraceStreamerSelector::ExportEbpfReadableText(const std::string& outputName,
+                                                      TraceDataDB::ResultCallBack resultCallBack)
+{
+    traceDataCache_->UpdateTraceRange();
+    return traceDataCache_->ExportEbpfReadableText(outputName, resultCallBack);
+}
+
 bool TraceStreamerSelector::ReloadSymbolFiles(std::string& directory, std::vector<std::string>& symbolsPaths)
 {
     TS_LOGE("directory is %s", directory.c_str());

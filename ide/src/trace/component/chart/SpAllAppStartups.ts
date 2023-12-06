@@ -22,9 +22,9 @@ import {
     queryAppStartupProcessIds,
     queryProcessStartup,
     querySingleAppStartupsName,
-} from '../../database/SqlLite.js';
-import { FlagsConfig } from '../SpFlags.js';
-import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
+} from '../../database/SqlLite';
+import { FlagsConfig } from '../SpFlags';
+import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
 export class SpAllAppStartupsChart {
     private readonly trace: SpSystemTrace | undefined;

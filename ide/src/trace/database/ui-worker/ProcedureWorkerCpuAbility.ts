@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   dataFilterHandler,
@@ -21,9 +21,9 @@ import {
   ns2x,
   RequestMessage,
   Render,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { DiskAbilityMonitorStruct } from './ProcedureWorkerDiskIoAbility.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { DiskAbilityMonitorStruct } from './ProcedureWorkerDiskIoAbility';
 
 export class CpuAbilityRender extends Render {
   renderMainThread(

@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import '../../../../base-ui/icon/LitIcon.js';
-import { LitIcon } from '../../../../base-ui/icon/LitIcon.js';
-import '../../../../base-ui/popover/LitPopoverV.js';
-import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox.js';
-import { LitSelect } from '../../../../base-ui/select/LitSelect.js';
-import '../../../../base-ui/select/LitSelect.js';
-import { LitSelectOption } from '../../../../base-ui/select/LitSelectOption.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import '../../../../base-ui/icon/LitIcon';
+import { LitIcon } from '../../../../base-ui/icon/LitIcon';
+import '../../../../base-ui/popover/LitPopoverV';
+import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
+import { LitSelect } from '../../../../base-ui/select/LitSelect';
+import '../../../../base-ui/select/LitSelect';
+import { LitSelectOption } from '../../../../base-ui/select/LitSelectOption';
 @element('tab-pane-js-memory-filter')
 export class TabPaneJsMemoryFilter extends BaseElement {
   initElements(): void {}

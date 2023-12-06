@@ -13,120 +13,115 @@
  * limitations under the License.
  */
 
-import { TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection.js';
-import { TabPaneFreq } from '../sheet/freq/TabPaneFreq.js';
-import { TabPaneCpuByThread } from '../sheet/cpu/TabPaneCpuByThread.js';
-import { SelectionParam } from '../../../bean/BoxSelection.js';
-import { TabPaneCpuByProcess } from '../sheet/cpu/TabPaneCpuByProcess.js';
-import { TabPaneCpuUsage } from '../sheet/cpu/TabPaneCpuUsage.js';
-import { TabPaneSPT } from '../sheet/cpu/TabPaneSPT.js';
-import { TabPanePTS } from '../sheet/cpu/TabPanePTS.js';
-import { TabPaneSlices } from '../sheet/process/TabPaneSlices.js';
-import { TabPaneCounter } from '../sheet/process/TabPaneCounter.js';
-import { TabPaneFps } from '../sheet/fps/TabPaneFps.js';
-import { TabPaneFlag } from '../timer-shaft/TabPaneFlag.js';
-import { TabPaneBoxChild } from '../sheet/cpu/TabPaneBoxChild.js';
-import { TabPaneNMStatstics } from '../sheet/native-memory/TabPaneNMStatstics.js';
-import { TabPaneNMemory } from '../sheet/native-memory/TabPaneNMemory.js';
-import { TabPaneNMSampleList } from '../sheet/native-memory/TabPaneNMSampleList.js';
-import { TabpanePerfProfile } from '../sheet/hiperf/TabPerfProfile.js';
-import { TabPanePerfSample } from '../sheet/hiperf/TabPerfSampleList.js';
-import { TabPaneLiveProcesses } from '../sheet/ability/TabPaneLiveProcesses.js';
-import { TabPaneHistoryProcesses } from '../sheet/ability/TabPaneHistoryProcesses.js';
-import { TabPaneCpuAbility } from '../sheet/ability/TabPaneCpuAbility.js';
-import { TabPaneMemoryAbility } from '../sheet/ability/TabPaneMemoryAbility.js';
-import { TabPaneDiskAbility } from '../sheet/ability/TabPaneDiskAbility.js';
-import { TabPaneNetworkAbility } from '../sheet/ability/TabPaneNetworkAbility.js';
-import { TabPaneFileStatistics } from '../sheet/file-system/TabPaneFilesystemStatistics.js';
-import { TabpaneFilesystemCalltree } from '../sheet/file-system/TabPaneFileSystemCalltree.js';
-import { TabPaneFileSystemEvents } from '../sheet/file-system/TabPaneFileSystemEvents.js';
-import { TabPaneFileSystemDescHistory } from '../sheet/file-system/TabPaneFileSystemDescHistory.js';
-import { TabPaneFileSystemDescTimeSlice } from '../sheet/file-system/TabPaneFileSystemDescTimeSlice.js';
-import { TabPaneSdkSlice } from '../sheet/sdk/TabPaneSdkSlice.js';
-import { TabPaneSdkCounter } from '../sheet/sdk/TabPaneSdkCounter.js';
-import { TabPaneCounterSample } from '../sheet/cpu/TabPaneCounterSample.js';
-import { TabPaneThreadStates } from '../sheet/process/TabPaneThreadStates.js';
-import { TabPaneThreadUsage } from '../sheet/process/TabPaneThreadUsage.js';
-import { TabPaneFrequencySample } from '../sheet/cpu/TabPaneFrequencySample.js';
-import { TabPaneEnergyAnomaly } from '../sheet/energy/TabPaneEnergyAnomaly.js';
-import { TabPaneSystemDetails } from '../sheet/energy/TabPaneSystemDetails.js';
-import { TabPanePowerDetails } from '../sheet/energy/TabPanePowerDetails.js';
-import { TabPanePowerBattery } from '../sheet/energy/TabPanePowerBattery.js';
-import { TabPaneCpuStateClick } from '../sheet/cpu/TabPaneCpuStateClick.js';
-import { TabPaneVirtualMemoryStatistics } from '../sheet/file-system/TabPaneVirtualMemoryStatistics.js';
-import { TabPaneIOTierStatistics } from '../sheet/file-system/TabPaneIOTierStatistics.js';
-import { TabPaneIOCallTree, TabPaneVMCallTree } from '../sheet/file-system/TabPaneIOCallTree.js';
-import { TabPaneIoCompletionTimes } from '../sheet/file-system/TabPaneIoCompletionTimes.js';
-import { TabPaneVirtualMemoryEvents } from '../sheet/file-system/TabPaneVMEvents.js';
-import { TabPaneSmapsStatistics } from '../sheet/smaps/TabPaneSmapsStatistics.js';
-import { TabPaneSmapsSample } from '../sheet/smaps/TabPaneSmapsSample.js';
-import { TabPaneFreqLimit } from '../sheet/freq/TabPaneFreqLimit.js';
-import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits.js';
-import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree.js';
-import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter.js';
-import { TabPaneIrqCounter } from '../sheet/irq/TabPaneIrqCounter.js';
-import { TabPaneFrames } from '../sheet/jank/TabPaneFrames.js';
-import { TabPanePerfAnalysis } from '../sheet/hiperf/TabPanePerfAnalysis.js';
-import { TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStatisticAnalysis.js';
-import { TabPaneFilesystemStatisticsAnalysis } from '../sheet/file-system/TabPaneFilesystemStatisticsAnalysis.js';
-import { TabPaneIOTierStatisticsAnalysis } from '../sheet/file-system/TabPaneIOTierStatisticsAnalysis.js';
-import { TabPaneVirtualMemoryStatisticsAnalysis } from '../sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis.js';
-import { TabPaneCurrent } from '../sheet/TabPaneCurrent.js';
-import { TabPaneStartup } from '../sheet/process/TabPaneStartup.js';
-import { TabPaneStaticInit } from '../sheet/process/TabPaneStaticInit.js';
-import { TabPaneTaskFrames } from '../sheet/task/TabPaneTaskFrames.js';
-import { TabPaneFrameDynamic } from '../sheet/frame/TabPaneFrameDynamic.js';
-import { TabFrameSpacing } from '../sheet/frame/TabFrameSpacing.js';
-import { TabPaneSummary } from '../sheet/ark-ts/TabPaneSummary.js';
-import { TabPaneComparison } from '../sheet/ark-ts/TabPaneComparison.js';
-import { TabPaneJsCpuTopDown } from '../sheet/ark-ts/TabPaneJsCpuCallTree.js';
-import { TabPaneJsCpuBottomUp } from '../sheet/ark-ts/TabPaneJsCpuBottomUp.js';
-import { TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.js';
-import { TabPaneGpuClickSelect } from '../sheet/gpu/TabPaneGpuClickSelect.js';
-import { TabPaneGpuTotalBoxSelect } from '../sheet/gpu/TabPaneGpuTotalBoxSelect.js';
-import { TabPaneGpuWindowBoxSelect } from '../sheet/gpu/TabPaneGpuWindowBoxSelect.js';
-import { TabPaneGpuGL } from '../sheet/gpu/TabPaneGpuGL.js';
-import { TabPanePurgTotal } from '../sheet/ability/TabPanePurgTotal.js';
-import { TabPanePurgTotalSelection } from '../sheet/ability/TabPanePurgTotalSelection.js';
-import { TabPanePurgPin } from '../sheet/ability/TabPanePurgPin.js';
-import { TabPanePurgPinSelection } from '../sheet/ability/TabPanePurgPinSelection.js';
-import { TabPaneVmTrackerShmSelection } from '../sheet/vmtracker/TabPaneVmTrackerShmSelection.js';
-import { TabPaneVmTrackerShm } from '../sheet/vmtracker/TabPaneVmTrackerShm.js';
-import { TabPaneDmaAbility } from '../sheet/ability/TabPaneDmaAbility.js';
-import { TabPaneDmaSelectAbility } from '../sheet/ability/TabPaneDmaSelectAbility.js';
-import { TabPaneGpuMemoryAbility } from '../sheet/ability/TabPaneGpuMemoryAbility.js';
-import { TabPaneDmaVmTracker } from '../sheet/vmtracker/TabPaneDmaVmTracker.js';
-import { TabPaneGpuMemoryVmTracker } from '../sheet/vmtracker/TabPaneGpuMemoryVmTracker.js';
-import { TabPaneGpuMemorySelectAbility } from '../sheet/ability/TabPaneGpuMemorySelectAbility.js';
-import { TabPaneGpuMemorySelectVmTracker } from '../sheet/vmtracker/TabPaneGpuMemorySelectVmTracker.js';
-import { TabPaneDmaSelectVmTracker } from '../sheet/vmtracker/TabPaneDmaSelectVmTracker.js';
-import { TabpanePerfBottomUp } from '../sheet/hiperf/TabPerfBottomUp.js';
-import { TabPanePurgTotalComparisonAbility } from '../sheet/ability/TabPanePurgTotalComparisonAbility.js';
-import { TabPanePurgPinComparisonAbility } from '../sheet/ability/TabPanePurgPinComparisonAbility.js';
-import { TabPanePurgTotalComparisonVM } from '../sheet/vmtracker/TabPanePurgTotalComparisonVM.js';
-import { TabPanePurgPinComparisonVM } from '../sheet/vmtracker/TabPanePurgPinComparisonVM.js';
-import { TabPaneDmaAbilityComparison } from '../sheet/ability/TabPaneDmaAbilityComparison.js';
-import { TabPaneGpuMemoryComparison } from '../sheet/ability/TabPaneGpuMemoryComparison.js';
-import { TabPaneDmaVmTrackerComparison } from '../sheet/vmtracker/TabPaneDmaVmTrackerComparison.js';
-import { TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneGpuMemoryVmTrackerComparison.js';
-import { TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison.js';
-import { TabPaneSmapsComparison } from '../sheet/smaps/TabPaneSmapsComparison.js';
-import { TabPaneSmapsRecord } from '../sheet/smaps/TabPaneSmapsRecord.js';
-import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
-import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
-import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary.js';
-import { TabPaneSchedPriority } from '../sheet/cpu/TabPaneSchedPriority.js';
-import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
-import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph.js';
-import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage.js';
-import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut.js';
-import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents.js';
-import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary.js';
-import {TabPaneSchedSwitch} from '../sheet/schedswitch/TabPaneSchedSwitch.js';
-import { TabPaneThreadBinders } from '../sheet/binder/TabPaneThreadBinders.js';
-import { TabPaneBinderDataCut } from '../sheet/binder/TabPaneBinderDataCut.js';
-import {TabPaneGpufreq} from '../sheet/gpufreq/tabPaneGpufreqUsage.js'
-import {TabPaneGpufreqDataCut} from '../sheet/gpufreq/tabPaneGpufreqDataCut.js'
+import { TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
+import { TabPaneFreq } from '../sheet/freq/TabPaneFreq';
+import { TabPaneCpuByThread } from '../sheet/cpu/TabPaneCpuByThread';
+import { SelectionParam } from '../../../bean/BoxSelection';
+import { TabPaneCpuByProcess } from '../sheet/cpu/TabPaneCpuByProcess';
+import { TabPaneCpuUsage } from '../sheet/cpu/TabPaneCpuUsage';
+import { TabPaneSPT } from '../sheet/cpu/TabPaneSPT';
+import { TabPanePTS } from '../sheet/cpu/TabPanePTS';
+import { TabPaneSlices } from '../sheet/process/TabPaneSlices';
+import { TabPaneCounter } from '../sheet/process/TabPaneCounter';
+import { TabPaneFps } from '../sheet/fps/TabPaneFps';
+import { TabPaneFlag } from '../timer-shaft/TabPaneFlag';
+import { TabPaneBoxChild } from '../sheet/cpu/TabPaneBoxChild';
+import { TabPaneNMStatstics } from '../sheet/native-memory/TabPaneNMStatstics';
+import { TabPaneNMemory } from '../sheet/native-memory/TabPaneNMemory';
+import { TabPaneNMSampleList } from '../sheet/native-memory/TabPaneNMSampleList';
+import { TabpanePerfProfile } from '../sheet/hiperf/TabPerfProfile';
+import { TabPanePerfSample } from '../sheet/hiperf/TabPerfSampleList';
+import { TabPaneLiveProcesses } from '../sheet/ability/TabPaneLiveProcesses';
+import { TabPaneHistoryProcesses } from '../sheet/ability/TabPaneHistoryProcesses';
+import { TabPaneCpuAbility } from '../sheet/ability/TabPaneCpuAbility';
+import { TabPaneMemoryAbility } from '../sheet/ability/TabPaneMemoryAbility';
+import { TabPaneDiskAbility } from '../sheet/ability/TabPaneDiskAbility';
+import { TabPaneNetworkAbility } from '../sheet/ability/TabPaneNetworkAbility';
+import { TabPaneFileStatistics } from '../sheet/file-system/TabPaneFilesystemStatistics';
+import { TabpaneFilesystemCalltree } from '../sheet/file-system/TabPaneFileSystemCalltree';
+import { TabPaneFileSystemEvents } from '../sheet/file-system/TabPaneFileSystemEvents';
+import { TabPaneFileSystemDescHistory } from '../sheet/file-system/TabPaneFileSystemDescHistory';
+import { TabPaneFileSystemDescTimeSlice } from '../sheet/file-system/TabPaneFileSystemDescTimeSlice';
+import { TabPaneSdkSlice } from '../sheet/sdk/TabPaneSdkSlice';
+import { TabPaneSdkCounter } from '../sheet/sdk/TabPaneSdkCounter';
+import { TabPaneCounterSample } from '../sheet/cpu/TabPaneCounterSample';
+import { TabPaneThreadStates } from '../sheet/process/TabPaneThreadStates';
+import { TabPaneThreadUsage } from '../sheet/process/TabPaneThreadUsage';
+import { TabPaneFrequencySample } from '../sheet/cpu/TabPaneFrequencySample';
+import { TabPaneEnergyAnomaly } from '../sheet/energy/TabPaneEnergyAnomaly';
+import { TabPaneSystemDetails } from '../sheet/energy/TabPaneSystemDetails';
+import { TabPanePowerDetails } from '../sheet/energy/TabPanePowerDetails';
+import { TabPanePowerBattery } from '../sheet/energy/TabPanePowerBattery';
+import { TabPaneCpuStateClick } from '../sheet/cpu/TabPaneCpuStateClick';
+import { TabPaneVirtualMemoryStatistics } from '../sheet/file-system/TabPaneVirtualMemoryStatistics';
+import { TabPaneIOTierStatistics } from '../sheet/file-system/TabPaneIOTierStatistics';
+import { TabPaneIOCallTree, TabPaneVMCallTree } from '../sheet/file-system/TabPaneIOCallTree';
+import { TabPaneIoCompletionTimes } from '../sheet/file-system/TabPaneIoCompletionTimes';
+import { TabPaneVirtualMemoryEvents } from '../sheet/file-system/TabPaneVMEvents';
+import { TabPaneSmapsStatistics } from '../sheet/smaps/TabPaneSmapsStatistics';
+import { TabPaneSmapsSample } from '../sheet/smaps/TabPaneSmapsSample';
+import { TabPaneFreqLimit } from '../sheet/freq/TabPaneFreqLimit';
+import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
+import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
+import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
+import { TabPaneIrqCounter } from '../sheet/irq/TabPaneIrqCounter';
+import { TabPaneFrames } from '../sheet/jank/TabPaneFrames';
+import { TabPanePerfAnalysis } from '../sheet/hiperf/TabPanePerfAnalysis';
+import { TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStatisticAnalysis';
+import { TabPaneFilesystemStatisticsAnalysis } from '../sheet/file-system/TabPaneFilesystemStatisticsAnalysis';
+import { TabPaneIOTierStatisticsAnalysis } from '../sheet/file-system/TabPaneIOTierStatisticsAnalysis';
+import { TabPaneVirtualMemoryStatisticsAnalysis } from '../sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis';
+import { TabPaneCurrent } from '../sheet/TabPaneCurrent';
+import { TabPaneStartup } from '../sheet/process/TabPaneStartup';
+import { TabPaneStaticInit } from '../sheet/process/TabPaneStaticInit';
+import { TabPaneTaskFrames } from '../sheet/task/TabPaneTaskFrames';
+import { TabPaneFrameDynamic } from '../sheet/frame/TabPaneFrameDynamic';
+import { TabFrameSpacing } from '../sheet/frame/TabFrameSpacing';
+import { TabPaneSummary } from '../sheet/ark-ts/TabPaneSummary';
+import { TabPaneComparison } from '../sheet/ark-ts/TabPaneComparison';
+import { TabPaneJsCpuTopDown } from '../sheet/ark-ts/TabPaneJsCpuCallTree';
+import { TabPaneJsCpuBottomUp } from '../sheet/ark-ts/TabPaneJsCpuBottomUp';
+import { TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics';
+import { TabPaneGpuClickSelect } from '../sheet/gpu/TabPaneGpuClickSelect';
+import { TabPaneGpuTotalBoxSelect } from '../sheet/gpu/TabPaneGpuTotalBoxSelect';
+import { TabPaneGpuWindowBoxSelect } from '../sheet/gpu/TabPaneGpuWindowBoxSelect';
+import { TabPaneGpuGL } from '../sheet/gpu/TabPaneGpuGL';
+import { TabPanePurgTotal } from '../sheet/ability/TabPanePurgTotal';
+import { TabPanePurgTotalSelection } from '../sheet/ability/TabPanePurgTotalSelection';
+import { TabPanePurgPin } from '../sheet/ability/TabPanePurgPin';
+import { TabPanePurgPinSelection } from '../sheet/ability/TabPanePurgPinSelection';
+import { TabPaneVmTrackerShmSelection } from '../sheet/vmtracker/TabPaneVmTrackerShmSelection';
+import { TabPaneVmTrackerShm } from '../sheet/vmtracker/TabPaneVmTrackerShm';
+import { TabPaneDmaAbility } from '../sheet/ability/TabPaneDmaAbility';
+import { TabPaneDmaSelectAbility } from '../sheet/ability/TabPaneDmaSelectAbility';
+import { TabPaneGpuMemoryAbility } from '../sheet/ability/TabPaneGpuMemoryAbility';
+import { TabPaneDmaVmTracker } from '../sheet/vmtracker/TabPaneDmaVmTracker';
+import { TabPaneGpuMemoryVmTracker } from '../sheet/vmtracker/TabPaneGpuMemoryVmTracker';
+import { TabPaneGpuMemorySelectAbility } from '../sheet/ability/TabPaneGpuMemorySelectAbility';
+import { TabPaneGpuMemorySelectVmTracker } from '../sheet/vmtracker/TabPaneGpuMemorySelectVmTracker';
+import { TabPaneDmaSelectVmTracker } from '../sheet/vmtracker/TabPaneDmaSelectVmTracker';
+import { TabpanePerfBottomUp } from '../sheet/hiperf/TabPerfBottomUp';
+import { TabPanePurgTotalComparisonAbility } from '../sheet/ability/TabPanePurgTotalComparisonAbility';
+import { TabPanePurgPinComparisonAbility } from '../sheet/ability/TabPanePurgPinComparisonAbility';
+import { TabPanePurgTotalComparisonVM } from '../sheet/vmtracker/TabPanePurgTotalComparisonVM';
+import { TabPanePurgPinComparisonVM } from '../sheet/vmtracker/TabPanePurgPinComparisonVM';
+import { TabPaneDmaAbilityComparison } from '../sheet/ability/TabPaneDmaAbilityComparison';
+import { TabPaneGpuMemoryComparison } from '../sheet/ability/TabPaneGpuMemoryComparison';
+import { TabPaneDmaVmTrackerComparison } from '../sheet/vmtracker/TabPaneDmaVmTrackerComparison';
+import { TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneGpuMemoryVmTrackerComparison';
+import { TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison';
+import { TabPaneSmapsComparison } from '../sheet/smaps/TabPaneSmapsComparison';
+import { TabPaneSmapsRecord } from '../sheet/smaps/TabPaneSmapsRecord';
+import { TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison';
+import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs';
+import { TabPaneHiLogSummary } from '../sheet/hilog/TabPaneHiLogSummary';
+import { TabPaneSchedPriority } from '../sheet/cpu/TabPaneSchedPriority';
+import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker';
+import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph';
+import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage';
+import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut';
+import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents';
+import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary';
 
 export let tabConfig: any = {
   'current-selection': {
@@ -655,28 +650,4 @@ export let tabConfig: any = {
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
   },
-  'tabpane-schedswitch': {
-    title: 'Sched Switch',
-    type: TabPaneSchedSwitch,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  'tabpane-Thrbinders': {
-    title: 'Thread Binders',
-    type: TabPaneThreadBinders,
-    require: (param: SelectionParam) => param.threadIds.length > 0
-  },
-  'tabpane-Thrfreqdatacut': {
-    title: 'Binder DataCut',
-    type: TabPaneBinderDataCut,
-    require: (param: SelectionParam) => param.threadIds.length > 0
-  },
-  'tabpane-Gpufreq':{
-    title: 'Gpufreq Usage',
-    type: TabPaneGpufreq,
-    require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,
-  },
-  'tabpane-FreqDataCut':{
-    title: 'Gpufreq DataCut',
-    type: TabPaneGpufreqDataCut,
-    require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,
-  }
 };

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { LitRadioBox } from './LitRadioBox.js';
+import { BaseElement, element } from '../BaseElement';
+import { LitRadioBox } from './LitRadioBox';
 
 @element('lit-radio-group')
 export class LitRadioGroup extends BaseElement {

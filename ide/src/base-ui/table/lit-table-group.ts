@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { element } from '../BaseElement.js';
+import { element } from '../BaseElement';
 
 @element('lit-table-group')
 export class LitTableGroup extends HTMLElement {

@@ -13,15 +13,17 @@
  * limitations under the License.
  */
 
-import { DbPool } from './SqlLite.js';
-
-class ConvertThread extends Worker {
+import { DbPool } from './SqlLite';
+class ConvertThread {
   busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
   taskMap: any = {};
   name: string | undefined;
-
+  worker?:Worker;
+  constructor(worker:Worker) {
+    this.worker = worker;
+  }
   uuid(): string {
     // @ts-ignore
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
@@ -42,7 +44,7 @@ class ConvertThread extends Worker {
       buffer: DbPool.sharedBuffer!,
     };
     try {
-      this.postMessage(pam, [DbPool.sharedBuffer!]);
+      this.worker!.postMessage(pam, [DbPool.sharedBuffer!]);
     } catch (e: any) {}
   }
 }
@@ -62,9 +64,9 @@ class ConvertPool {
     for (let i = 0; i < this.maxThreadNumber; i++) {
       let thread: ConvertThread;
       if (type === 'convert') {
-        thread = new ConvertThread('trace/database/ConvertTraceWorker.js');
+        thread = new ConvertThread(new Worker(new URL('./ConvertTraceWorker',import.meta.url)));
       }
-      thread!.onmessage = (event: MessageEvent) => {
+      thread!.worker!.onmessage = (event: MessageEvent) => {
         thread.busy = false;
         ConvertPool.data = event.data.results;
         if (Reflect.has(thread.taskMap, event.data.id)) {
@@ -83,8 +85,8 @@ class ConvertPool {
           }
         }
       };
-      thread!.onmessageerror = (e) => {};
-      thread!.onerror = (e) => {};
+      thread!.worker!.onmessageerror = (e) => {};
+      thread!.worker!.onerror = (e) => {};
       thread!.id = i;
       thread!.busy = false;
       this.works?.push(thread!);
@@ -94,7 +96,7 @@ class ConvertPool {
   close = () => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
-      thread.terminate();
+      thread.worker!.terminate();
     }
     this.works.length = 0;
   };

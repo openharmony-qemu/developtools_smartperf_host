@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
 import {
   queryNativeHookStatistics,
   queryNativeHookStatisticsMalloc,
   queryNativeHookStatisticsSubType,
-} from '../../../../database/SqlLite.js';
-import { NativeHookMalloc, NativeHookStatisticsTableData } from '../../../../bean/NativeHook.js';
-import { Utils } from '../../base/Utils.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import '../TabProgressBar.js';
-import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { TabPaneNMSampleList } from './TabPaneNMSampleList.js';
+} from '../../../../database/SqlLite';
+import { NativeHookMalloc, NativeHookStatisticsTableData } from '../../../../bean/NativeHook';
+import { Utils } from '../../base/Utils';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import '../TabProgressBar';
+import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
+import { resizeObserver } from '../SheetUtils';
+import { TabPaneNMSampleList } from './TabPaneNMSampleList';
 import { env } from 'process';
 
 @element('tabpane-native-statistics')

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { HeapLoader } from '../logic/HeapLoader.js';
-import { AllocationFunction, FileInfo } from './UiStruct.js';
+import { HeapLoader } from '../logic/HeapLoader';
+import { AllocationFunction, FileInfo } from './UiStruct';
 
 export enum EdgeType {
   CONTEXT = 0,

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, isFrameContainPoint, Render } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { BaseStruct, dataFilterHandler, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class ClockRender extends Render {
   renderMainThread(

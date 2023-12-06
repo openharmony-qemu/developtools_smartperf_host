@@ -119,8 +119,6 @@ export let renders: any = {
   snapshot: new SnapshotRender(),
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
-  'freq-extend': new FreqExtendRender(),
-  'binder' : new BinderRender()
 };
 
 function match(type: string, req: RequestMessage): void {

@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { queryGpuDataByRange } from '../../../../database/SqlLite.js';
-import { log } from '../../../../../log/Log.js';
-import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { queryGpuDataByRange } from '../../../../database/SqlLite';
+import { log } from '../../../../../log/Log';
+import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { resizeObserver } from '../SheetUtils';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { Utils } from '../../base/Utils';
 
 interface Gpu {
   startTs: number;

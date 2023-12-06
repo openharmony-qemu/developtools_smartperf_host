@@ -590,7 +590,7 @@ inline void NativeHookFilter::FillOfflineSymbolizationFrames(
     auto curCacheIpid = mapItor->second->back();
     stackIdToCallChainIdMap_.insert(std::make_pair(mapItor->first, ++callChainId_));
     auto framesInfo = OfflineSymbolization(mapItor->second);
-    uint64_t depth = 0;
+    uint16_t depth = 0;
     uint64_t filePathIndex = INVALID_UINT64;
     if (isSingleProcData_) {
         curCacheIpid = SINGLE_PROC_IPID;
@@ -602,8 +602,8 @@ inline void NativeHookFilter::FillOfflineSymbolizationFrames(
         std::string vaddr = base::Uint64ToHexText(frameInfo->symVaddr_);
 
         auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-            callChainId_, depth, frameInfo->ip_, INVALID_UINT64, frameInfo->symbolIndex_, filePathIndex,
-            frameInfo->offset_, frameInfo->symbolOffset_, vaddr);
+            callChainId_, depth++, frameInfo->ip_, frameInfo->symbolIndex_, filePathIndex, frameInfo->offset_,
+            frameInfo->symbolOffset_, vaddr);
         UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
     }
 }
@@ -853,7 +853,7 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
     for (auto stackIdToFramesItor = stackIdToFramesMap_.begin(); stackIdToFramesItor != stackIdToFramesMap_.end();
          stackIdToFramesItor++) {
         auto frameIds = stackIdToFramesItor->second;
-        uint64_t depth = 0;
+        uint16_t depth = 0;
         auto curCacheIpid = frameIds->back();
         if (isSingleProcData_) {
             curCacheIpid = SINGLE_PROC_IPID;
@@ -880,8 +880,8 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
                 continue;
             }
             auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                stackIdToFramesItor->first, depth++, reader.ip(), reader.sp(), symbolIndex, filePathIndex,
-                reader.offset(), reader.symbol_offset());
+                stackIdToFramesItor->first, depth++, reader.ip(), symbolIndex, filePathIndex, reader.offset(),
+                reader.symbol_offset());
             UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
         }
     }
@@ -895,7 +895,7 @@ void NativeHookFilter::ParseFramesWithOutCallStackCompressedMode()
             continue;
         }
         auto& framesHash = stackHashValueToFramesHashMap_.at(itor->second);
-        uint64_t depth = 0;
+        uint16_t depth = 0;
         for (auto frameHashValueVectorItor = framesHash.crbegin(); frameHashValueVectorItor != framesHash.crend();
              frameHashValueVectorItor++) {
             if (!frameHashToFrameInfoMap_.count(*frameHashValueVectorItor)) {
@@ -904,8 +904,8 @@ void NativeHookFilter::ParseFramesWithOutCallStackCompressedMode()
             }
             auto& frameInfo = frameHashToFrameInfoMap_.at(*frameHashValueVectorItor);
             auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                callChainId, depth++, frameInfo->ip_, frameInfo->sp_, frameInfo->symbolIndex_,
-                frameInfo->filePathIndex_, frameInfo->offset_, frameInfo->symbolOffset_);
+                callChainId, depth++, frameInfo->ip_, frameInfo->symbolIndex_, frameInfo->filePathIndex_,
+                frameInfo->offset_, frameInfo->symbolOffset_);
             UpdateFilePathIndexToCallStackRowMap(row, frameInfo->filePathIndex_);
         }
     }

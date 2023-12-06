@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
 import {
   queryHiPerfCpuData,
   queryHiPerfCpuMergeData,
@@ -24,22 +24,22 @@ import {
   queryPerfEventType,
   queryPerfCmdline,
   queryPerfThread,
-} from '../../database/SqlLite.js';
-import { Utils } from '../trace/base/Utils.js';
-import { PerfThread } from '../../bean/PerfProfile.js';
-import { HiperfCpuRender, HiPerfCpuStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCPU.js';
-import { HiPerfCallChartRender, HiPerfCallChartStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCallChart.js';
-import { HiperfThreadRender, HiPerfThreadStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfThread.js';
-import { HiperfProcessRender, HiPerfProcessStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfProcess.js';
-import { info } from '../../../log/Log.js';
-import { HiPerfEventStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfEvent.js';
-import { perfDataQuery } from './PerfDataQuery.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { type HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfReport.js';
-import { SpChartManager } from './SpChartManager.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { HiPerfChartFrame } from '../../bean/PerfStruct.js';
+} from '../../database/SqlLite';
+import { Utils } from '../trace/base/Utils';
+import { PerfThread } from '../../bean/PerfProfile';
+import { HiperfCpuRender, HiPerfCpuStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCPU';
+import { HiPerfCallChartRender, HiPerfCallChartStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCallChart';
+import { HiperfThreadRender, HiPerfThreadStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfThread';
+import { HiperfProcessRender, HiPerfProcessStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfProcess';
+import { info } from '../../../log/Log';
+import { HiPerfEventStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfEvent';
+import { perfDataQuery } from './PerfDataQuery';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfReport';
+import { SpChartManager } from './SpChartManager';
+import { procedurePool } from '../../database/Procedure';
+import { HiPerfChartFrame } from '../../bean/PerfStruct';
 
 export interface ResultData {
   existA: boolean | null | undefined;

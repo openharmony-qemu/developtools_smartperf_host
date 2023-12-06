@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { TraceRowObject } from './TraceRowObject.js';
-import { TraceRow } from './TraceRow.js';
-import { log } from '../../../../log/Log.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { TraceRowObject } from './TraceRowObject';
+import { TraceRow } from './TraceRow';
+import { log } from '../../../../log/Log';
 
 @element('trace-row-recycler-view')
 export class TraceRowRecyclerView extends BaseElement {

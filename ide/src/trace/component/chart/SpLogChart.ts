@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { queryLogData } from '../../database/SqlLite.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { queryLogData } from '../../database/SqlLite';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog';
 
 const ONE_DAY_NS = 86400000000000;
 

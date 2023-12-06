@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { FrameChart } from '../../../chart/FrameChart.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { ChartMode } from '../../../../bean/FrameChartStruct.js';
-import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
-import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite.js';
-import { ParseExpression } from '../SheetUtils.js';
-import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import '../../../../../base-ui/headline/lit-headline.js';
-import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { FrameChart } from '../../../chart/FrameChart';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { ChartMode } from '../../../../bean/FrameChartStruct';
+import { FilterData, TabPaneFilter } from '../TabPaneFilter';
+import { procedurePool } from '../../../../database/Procedure';
+import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
+import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite';
+import { ParseExpression } from '../SheetUtils';
+import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import '../../../../../base-ui/headline/lit-headline';
+import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 
 const InvertOpyionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
@@ -668,6 +668,8 @@ export class TabpaneNMCalltree extends BaseElement {
             this.switchFlameChart(nmCallTreeData);
           });
         } else {
+          this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
+          this.setLTableData(this.nmCallTreeSource);
           this.switchFlameChart(nmCallTreeData);
         }
       }

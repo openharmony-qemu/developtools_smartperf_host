@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseStruct } from '../../../bean/BaseStruct.js';
-import { Rect } from '../timer-shaft/Rect.js';
-import { TraceRow } from './TraceRow.js';
+import { BaseStruct } from '../../../bean/BaseStruct';
+import { Rect } from '../timer-shaft/Rect';
+import { TraceRow } from './TraceRow';
 
 export class TraceRowObject<T extends BaseStruct> {
   public rowId: string | undefined;

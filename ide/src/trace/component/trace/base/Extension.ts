@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { EventCenter } from './EventCenter.js';
+import { EventCenter } from './EventCenter';
 
 declare global {
   interface Number {

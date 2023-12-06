@@ -24,10 +24,10 @@ import {
   drawFlagLine,
   RequestMessage,
   drawSelection,
-} from './ProcedureWorkerCommon.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { convertJSON } from '../logic-worker/ProcedureLogicWorkerCommon.js';
+} from './ProcedureWorkerCommon';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { convertJSON } from '../logic-worker/ProcedureLogicWorkerCommon';
 
 export class CpuFreqLimitRender extends Render {
   renderMainThread(

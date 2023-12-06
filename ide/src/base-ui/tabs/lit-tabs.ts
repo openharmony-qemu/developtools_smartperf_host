@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { element } from '../BaseElement.js';
-import { LitTabpane } from './lit-tabpane.js';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
+import { element } from '../BaseElement';
+import { LitTabpane } from './lit-tabpane';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('lit-tabs')
 export class LitTabs extends HTMLElement {

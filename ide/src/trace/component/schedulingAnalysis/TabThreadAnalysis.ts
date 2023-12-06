@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import './Top20ThreadCpuUsage.js';
-import './Top20ThreadRunTime.js';
-import './Top20ProcessSwitchCount.js';
-import './Top20ProcessThreadCount.js';
-import './Top20FrequencyThread.js';
-import { Top20ThreadCpuUsage } from './Top20ThreadCpuUsage.js';
-import { Top20ThreadRunTime } from './Top20ThreadRunTime.js';
-import { Top20ProcessThreadCount } from './Top20ProcessThreadCount.js';
-import { Top20ProcessSwitchCount } from './Top20ProcessSwitchCount.js';
-import { Top20FrequencyThread } from './Top20FrequencyThread.js';
-import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import './Top20ThreadCpuUsage';
+import './Top20ThreadRunTime';
+import './Top20ProcessSwitchCount';
+import './Top20ProcessThreadCount';
+import './Top20FrequencyThread';
+import { Top20ThreadCpuUsage } from './Top20ThreadCpuUsage';
+import { Top20ThreadRunTime } from './Top20ThreadRunTime';
+import { Top20ProcessThreadCount } from './Top20ProcessThreadCount';
+import { Top20ProcessSwitchCount } from './Top20ProcessSwitchCount';
+import { Top20FrequencyThread } from './Top20FrequencyThread';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 @element('tab-thread-analysis')
 export class TabThreadAnalysis extends BaseElement {

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import '../../../../base-ui/BaseElement.js';
-import '../../../../base-ui/icon/LitIcon.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import '../../../../base-ui/BaseElement';
+import '../../../../base-ui/icon/LitIcon';
 
 @element('collapse-button')
 export default class CollapseButton extends BaseElement {

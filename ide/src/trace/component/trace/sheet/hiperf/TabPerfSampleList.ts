@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { perfDataQuery } from '../../../chart/PerfDataQuery.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { perfDataQuery } from '../../../chart/PerfDataQuery';
 import {
   queryPerfProcess,
   queryPerfSampleCallChain,
   queryPerfSampleListByTimeRange,
-} from '../../../../database/SqlLite.js';
-import { PerfFile, PerfSample, PerfStack, PerfThread } from '../../../../bean/PerfProfile.js';
-import { Utils } from '../../base/Utils.js';
-import { SpApplication } from '../../../../SpApplication.js';
-import { log } from '../../../../../log/Log.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import { Cmd } from '../../../../../command/Cmd.js';
+} from '../../../../database/SqlLite';
+import { PerfFile, PerfSample, PerfStack, PerfThread } from '../../../../bean/PerfProfile';
+import { Utils } from '../../base/Utils';
+import { SpApplication } from '../../../../SpApplication';
+import { log } from '../../../../../log/Log';
+import '../../../../../base-ui/slicer/lit-slicer';
+import { Cmd } from '../../../../../command/Cmd';
 
 @element('tabpane-perf-sample')
 export class TabPanePerfSample extends BaseElement {

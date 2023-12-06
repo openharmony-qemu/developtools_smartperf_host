@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CompareStruct } from '../component/trace/sheet/SheetUtils.js';
+import { CompareStruct } from '../component/trace/sheet/SheetUtils';
 
 export class SystemCpuSummary {
   startTime: number = -1;

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import './LitTreeNode.js';
-import { BaseElement, element } from '../BaseElement.js';
-import { type LitTreeNode } from './LitTreeNode.js';
+import './LitTreeNode';
+import { BaseElement, element } from '../BaseElement';
+import { type LitTreeNode } from './LitTreeNode';
 
 export interface TreeItemData {
   key: string;

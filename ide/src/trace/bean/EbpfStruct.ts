@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { PerfLevelStruct } from './PerfProfile.js';
+import { PerfLevelStruct } from './PerfProfile';
 
 export class CallTreeLevelStruct extends PerfLevelStruct {
   typeId?: number;

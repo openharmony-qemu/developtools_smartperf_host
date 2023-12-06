@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { LitTable } from '../../../../base-ui/table/lit-table.js';
-import { NativeMemoryExpression } from '../../../bean/NativeHook.js';
+import { LitTable } from '../../../../base-ui/table/lit-table';
+import { NativeMemoryExpression } from '../../../bean/NativeHook';
 
 export function resizeObserver(
   parentEl: HTMLElement,

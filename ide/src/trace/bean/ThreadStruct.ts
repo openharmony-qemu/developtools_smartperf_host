@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
-import { Utils } from '../component/trace/base/Utils.js';
-import { drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
+import { BaseStruct } from './BaseStruct';
+import { Utils } from '../component/trace/base/Utils';
+import { drawString } from '../database/ui-worker/ProcedureWorkerCommon';
 
 const padding = 1;
 
@@ -26,7 +26,7 @@ export class ThreadStruct extends BaseStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
-  static selectThreaStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
+  static selectThreaStructList: Array<ThreadStruct> = [];
   hasSched: number | undefined;
   pid: number | undefined;
   processName: string | undefined;

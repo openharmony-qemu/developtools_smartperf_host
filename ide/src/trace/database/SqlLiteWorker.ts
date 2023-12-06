@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-importScripts('sql-wasm.js', 'TempSql.js');
+importScripts('sql-wasm.js');
+import {temp_init_sql_list} from "./TempSql";
 let conn: any = null;
 let encoder = new TextEncoder();
 function initIndexedDB() {

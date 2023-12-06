@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { SpSchedulingAnalysis } from './SpSchedulingAnalysis.js';
-import { info } from '../../../log/Log.js';
-import { LitTable } from '../../../base-ui/table/lit-table.js';
-import '../../../base-ui/progress-bar/LitProgressBar.js';
-import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
-import { getDataNo } from './utils/Utils.js';
-import './TableNoData.js';
-import { TableNoData } from './TableNoData.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie';
+import { procedurePool } from '../../database/Procedure';
+import { SpSchedulingAnalysis } from './SpSchedulingAnalysis';
+import { info } from '../../../log/Log';
+import { LitTable } from '../../../base-ui/table/lit-table';
+import '../../../base-ui/progress-bar/LitProgressBar';
+import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
+import { getDataNo } from './utils/Utils';
+import './TableNoData';
+import { TableNoData } from './TableNoData';
 
 @element('tab-cpu-details-irq')
 export class TabCpuDetailsIrq extends BaseElement {

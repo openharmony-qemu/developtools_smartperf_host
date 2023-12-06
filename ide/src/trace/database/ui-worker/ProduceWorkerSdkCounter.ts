@@ -23,8 +23,8 @@ import {
   RequestMessage,
   drawLines,
   drawLoading,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class SdkCounterRender extends Render {
   renderMainThread(

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseStruct } from './BaseStruct.js';
-import { ns2x } from '../component/trace/TimerShaftElement.js';
-import { Rect } from '../component/trace/timer-shaft/Rect.js';
+import { BaseStruct } from './BaseStruct';
+import { ns2x } from '../component/trace/TimerShaftElement';
+import { Rect } from '../component/trace/timer-shaft/Rect';
 
 export class HeapStruct extends BaseStruct {
   static hoverHeapStruct: HeapStruct | undefined;

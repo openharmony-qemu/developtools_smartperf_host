@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { SpHiPerf } from './SpHiPerf.js';
-import { SpCpuChart } from './SpCpuChart.js';
-import { SpFreqChart } from './SpFreqChart.js';
-import { SpFpsChart } from './SpFpsChart.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { SpHiPerf } from './SpHiPerf';
+import { SpCpuChart } from './SpCpuChart';
+import { SpFreqChart } from './SpFreqChart';
+import { SpFpsChart } from './SpFpsChart';
 import {
   getCpuUtilizationRate,
   queryAppStartupProcessIds,
@@ -78,7 +78,6 @@ export class SpChartManager {
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
-  private SegMenTaTion:SegMenTaTion;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -146,7 +145,6 @@ export class SpChartManager {
     await this.clockChart.init();
     progress('Irq init', 84);
     await this.irqChart.init();
-    await this.SegMenTaTion.init();
     info('Cpu Freq Data initialized');
     await this.virtualMemChart.init();
     progress('fps', 85);
@@ -177,6 +175,7 @@ export class SpChartManager {
     await this.SpAllAppStartupsChart.init();
     await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
+    await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();

@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { FrameSpacingStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { FrameSpacingStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameSpacing';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { resizeObserver } from '../SheetUtils';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-frames-spacing')
 export class TabFrameSpacing extends BaseElement {

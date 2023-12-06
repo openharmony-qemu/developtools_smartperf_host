@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup.js';
-import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup';
+import { LitMainMenu, MenuItem } from '../../base-ui/menu/LitMainMenu';
 import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('sp-help')
 export class SpHelp extends BaseElement {
@@ -127,6 +127,7 @@ export class SpHelp extends BaseElement {
                 title: 'Native Memory抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
+                  console.log('22222');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'native',
                     action: 'help_doc',
@@ -390,6 +391,7 @@ export class SpHelp extends BaseElement {
                 title: 'Ability Monitor抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
+                  console.log('444444');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'ability',
                     action: 'help_doc',

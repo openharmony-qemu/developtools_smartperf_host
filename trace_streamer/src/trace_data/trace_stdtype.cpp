@@ -662,9 +662,8 @@ const std::deque<uint64_t>& NativeHook::CurrentSizeDurs() const
     return currentSizeDurs_;
 }
 size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
-                                                 uint64_t depth,
+                                                 uint16_t depth,
                                                  uint64_t ip,
-                                                 uint64_t sp,
                                                  DataIndex symbolName,
                                                  DataIndex filePath,
                                                  uint64_t offset,
@@ -673,7 +672,6 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
 {
     callChainIds_.emplace_back(callChainId);
     ips_.emplace_back(ip);
-    sps_.emplace_back(sp);
     depths_.emplace_back(depth);
     symbolNames_.emplace_back(symbolName);
     filePaths_.emplace_back(filePath);
@@ -683,9 +681,8 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
     return Size() - 1;
 }
 size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
-                                                 uint64_t depth,
+                                                 uint16_t depth,
                                                  uint64_t ip,
-                                                 uint64_t sp,
                                                  DataIndex symbolName,
                                                  DataIndex filePath,
                                                  uint64_t offset,
@@ -693,7 +690,6 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
 {
     callChainIds_.emplace_back(callChainId);
     ips_.emplace_back(ip);
-    sps_.emplace_back(sp);
     depths_.emplace_back(depth);
     symbolNames_.emplace_back(symbolName);
     filePaths_.emplace_back(filePath);
@@ -759,17 +755,13 @@ const std::deque<uint32_t>& NativeHookFrame::CallChainIds() const
 {
     return callChainIds_;
 }
-const std::deque<uint64_t>& NativeHookFrame::Depths() const
+const std::deque<uint16_t>& NativeHookFrame::Depths() const
 {
     return depths_;
 }
 const std::deque<uint64_t>& NativeHookFrame::Ips() const
 {
     return ips_;
-}
-const std::deque<uint64_t>& NativeHookFrame::Sps() const
-{
-    return sps_;
 }
 const std::deque<DataIndex>& NativeHookFrame::SymbolNames() const
 {

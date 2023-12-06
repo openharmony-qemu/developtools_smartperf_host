@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { query } from '../../database/SqlLite.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
+import { query } from '../../database/SqlLite';
+import { TraceRow } from '../trace/base/TraceRow';
 interface VSyncData {
   startTime: number;
   dur: number;
@@ -24,7 +24,7 @@ let vSyncDataList: VSyncData[] = [];
 let vSyncEnable = false;
 let isSingle = false;
 
-export function setVSyncDisable(): void{
+export function setVSyncDisable(): void {
   vSyncEnable = false;
 }
 
@@ -57,7 +57,7 @@ export const querySingleVSyncData = (): Promise<Array<VSyncData>> =>
                     FROM callstack
                              JOIN process
                     WHERE process.name = 'render_service'
-                      AND callstack.name like 'H:GenerateVsyncCount%')`
+                      AND (callstack.name like 'H:GenerateVsyncCount%' or callstack.name like 'H:VSyncGenerator::ThreadLoop::Continue%'))`
   );
 
 /**

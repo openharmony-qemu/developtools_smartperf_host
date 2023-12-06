@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { TimeRuler } from './timer-shaft/TimeRuler.js';
-import { Rect } from './timer-shaft/Rect.js';
-import { RangeRuler, TimeRange } from './timer-shaft/RangeRuler.js';
-import { SlicesTime, SportRuler } from './timer-shaft/SportRuler.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { Flag } from './timer-shaft/Flag.js';
-import { info } from '../../../log/Log.js';
-import { TraceSheet } from './base/TraceSheet.js';
-import { SelectionParam } from '../../bean/BoxSelection.js';
-import { type SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace.js';
-import './timer-shaft/CollapseButton.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { TimeRuler } from './timer-shaft/TimeRuler';
+import { Rect } from './timer-shaft/Rect';
+import { RangeRuler, TimeRange } from './timer-shaft/RangeRuler';
+import { SlicesTime, SportRuler } from './timer-shaft/SportRuler';
+import { procedurePool } from '../../database/Procedure';
+import { Flag } from './timer-shaft/Flag';
+import { info } from '../../../log/Log';
+import { TraceSheet } from './base/TraceSheet';
+import { SelectionParam } from '../../bean/BoxSelection';
+import { type SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace';
+import './timer-shaft/CollapseButton';
 //随机生成十六位进制颜色
 export function randomRgbColor() {
   let r = Math.floor(Math.random() * 255);

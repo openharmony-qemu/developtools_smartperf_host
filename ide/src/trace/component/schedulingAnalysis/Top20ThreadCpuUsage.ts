@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../base-ui/table/lit-table.js';
-import { LitChartColumn } from '../../../base-ui/chart/column/LitChartColumn.js';
-import '../../../base-ui/chart/column/LitChartColumn.js';
-import './CheckCpuSetting.js';
-import '../../../base-ui/icon/LitIcon.js';
-import { CheckCpuSetting } from './CheckCpuSetting.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { info } from '../../../log/Log.js';
-import '../../../base-ui/progress-bar/LitProgressBar.js';
-import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar.js';
-import './TableNoData.js';
-import { TableNoData } from './TableNoData.js';
-import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { SpSchedulingAnalysis } from './SpSchedulingAnalysis.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitTable } from '../../../base-ui/table/lit-table';
+import { LitChartColumn } from '../../../base-ui/chart/column/LitChartColumn';
+import '../../../base-ui/chart/column/LitChartColumn';
+import './CheckCpuSetting';
+import '../../../base-ui/icon/LitIcon';
+import { CheckCpuSetting } from './CheckCpuSetting';
+import { procedurePool } from '../../database/Procedure';
+import { info } from '../../../log/Log';
+import '../../../base-ui/progress-bar/LitProgressBar';
+import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
+import './TableNoData';
+import { TableNoData } from './TableNoData';
+import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { SpSchedulingAnalysis } from './SpSchedulingAnalysis';
 
 @element('top20-thread-cpu-usage')
 export class Top20ThreadCpuUsage extends BaseElement {

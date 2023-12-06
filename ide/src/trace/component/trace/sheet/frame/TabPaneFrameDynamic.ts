@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { type FrameDynamicStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
-import { type FrameAnimationSelect } from '../../../../bean/FrameComponentBean.js';
-import { Utils } from '../../base/Utils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { resizeObserver } from '../SheetUtils';
+import { type FrameDynamicStruct } from '../../../../database/ui-worker/ProcedureWorkerFrameDynamic';
+import { type FrameAnimationSelect } from '../../../../bean/FrameComponentBean';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-frame-dynamic')
 export class TabPaneFrameDynamic extends BaseElement {

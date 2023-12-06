@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { LitSelectOption } from './LitSelectOption.js';
-import { selectHtmlStr } from './LitSelectHtml.js';
+import { BaseElement, element } from '../BaseElement';
+import { LitSelectOption } from './LitSelectOption';
+import { selectHtmlStr } from './LitSelectHtml';
 
 @element('lit-select-v')
 export class LitSelectV extends BaseElement {

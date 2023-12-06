@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import { SelectionData } from '../bean/BoxSelection.js';
-import { Utils } from './trace/base/Utils.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import { SelectionData } from '../bean/BoxSelection';
+import { Utils } from './trace/base/Utils';
 
 @element('stack-bar')
 export class StackBar extends BaseElement {

@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { Graph } from './Graph.js';
-import { Rect } from './Rect.js';
-import { TimeRange } from './RangeRuler.js';
-import { Flag } from './Flag.js';
-import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElement.js';
-import { TraceRow } from '../base/TraceRow.js';
-import { SpApplication } from '../../../SpApplication.js';
-import { Utils } from '../base/Utils.js';
+import { Graph } from './Graph';
+import { Rect } from './Rect';
+import { TimeRange } from './RangeRuler';
+import { Flag } from './Flag';
+import { ns2s, ns2x, randomRgbColor, TimerShaftElement } from '../TimerShaftElement';
+import { TraceRow } from '../base/TraceRow';
+import { SpApplication } from '../../../SpApplication';
+import { Utils } from '../base/Utils';
 
 export enum StType {
   TEMP, //临时的

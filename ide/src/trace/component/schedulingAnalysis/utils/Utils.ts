@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Utils } from '../../trace/base/Utils.js';
+import { Utils } from '../../trace/base/Utils';
 
 export const getFormatData = (data: Array<any>) => {
   let arrData: Array<any> = [];

@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import { queryCustomizeSelect } from '../database/SqlLite.js';
-import { LitTable } from '../../base-ui/table/lit-table.js';
-import '../../base-ui/table/lit-table.js';
-import { LitTableColumn } from '../../base-ui/table/lit-table-column.js';
-import { info } from '../../log/Log.js';
-import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
-import { PageNation } from '../../base-ui/chart/pagenation/PageNation.js';
-import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox.js';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
-import { getAllSql } from './trace/base/CommonSql.js';
-import { LitIcon } from '../../base-ui/icon/LitIcon.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import { queryCustomizeSelect } from '../database/SqlLite';
+import { LitTable } from '../../base-ui/table/lit-table';
+import '../../base-ui/table/lit-table';
+import { LitTableColumn } from '../../base-ui/table/lit-table-column';
+import { info } from '../../log/Log';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
+import { PageNation } from '../../base-ui/chart/pagenation/PageNation';
+import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { getAllSql } from './trace/base/CommonSql';
+import { LitIcon } from '../../base-ui/icon/LitIcon';
 
 @element('sp-query-sql')
 export class SpQuerySQL extends BaseElement {
@@ -164,11 +164,14 @@ export class SpQuerySQL extends BaseElement {
 
   private executeSql(sql: string): void {
     this.progressLoad!.loading = true;
+    if (this.querySize){
+      this.querySize!.title = `${sql}`;
+    }
     queryCustomizeSelect(sql).then((resultList): void => {
       if (resultList && resultList.length > 0) {
         this.statDataArray = resultList;
         this.keyList = Object.keys(resultList[0]);
-        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
+        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.` + `(${sql})`;
         this.initDataElement();
         this.response!.appendChild(this.queryTableEl!);
         this.setPageNationTableEl();
@@ -179,7 +182,7 @@ export class SpQuerySQL extends BaseElement {
           }
         }, 300);
       } else {
-        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
+        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.` + `(${sql})`;
         this.progressLoad!.loading = false;
       }
     });
@@ -414,6 +417,9 @@ export class SpQuerySQL extends BaseElement {
           line-height: 20px;
           font-weight: 400;
           text-align: left;
+          white-space: nowrap; 
+          overflow: hidden; 
+          text-overflow: ellipsis;
         }
         #response-json{
           margin-top: 20px;

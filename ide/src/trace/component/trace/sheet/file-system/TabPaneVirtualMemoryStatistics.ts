@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabPaneVirtualMemoryStatisticsData } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { TabPaneFilter } from '../TabPaneFilter.js';
-import '../TabPaneFilter.js';
-import { VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPaneVirtualMemoryStatisticsData } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { TabPaneFilter } from '../TabPaneFilter';
+import '../TabPaneFilter';
+import { VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 
 @element('tabpane-virtual-memory-statistics')
 export class TabPaneVirtualMemoryStatistics extends BaseElement {

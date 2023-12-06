@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { queryIrqData, queryIrqList } from '../../database/SqlLite.js';
-import { info } from '../../../log/Log.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { IrqRender, IrqStruct } from '../../database/ui-worker/ProcedureWorkerIrq.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { queryIrqData, queryIrqList } from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { IrqRender, IrqStruct } from '../../database/ui-worker/ProcedureWorkerIrq';
 
 export class SpIrqChart {
   private trace: SpSystemTrace;

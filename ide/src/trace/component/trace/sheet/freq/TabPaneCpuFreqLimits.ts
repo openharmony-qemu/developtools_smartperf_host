@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { Utils } from '../../base/Utils.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { Utils } from '../../base/Utils';
+import { ColorUtils } from '../../base/ColorUtils';
+import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-cpu-freq-limits')
 export class TabPaneCpuFreqLimits extends BaseElement {

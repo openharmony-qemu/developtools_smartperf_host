@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { SmapsType } from '../../../../bean/SmapsStruct.js';
-import { querySmapsRecordTabData } from '../../../../database/SqlLite.js';
-import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { SmapsType } from '../../../../bean/SmapsStruct';
+import { querySmapsRecordTabData } from '../../../../database/SqlLite';
+import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { resizeObserver } from '../SheetUtils';
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
   private smapsRecordTable: LitTable | undefined | null;

@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import '../../base-ui/popover/LitPopover.js';
-import '../../base-ui/button/LitButton.js';
-import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup.js';
-import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem.js';
-import { SpRecordSetting } from './setting/SpRecordSetting.js';
-import { LitMainMenu, MenuGroup, MenuItem } from '../../base-ui/menu/LitMainMenu.js';
-import { SpProbesConfig } from './setting/SpProbesConfig.js';
-import { SpTraceCommand } from './setting/SpTraceCommand.js';
-import { FlagsConfig } from './SpFlags.js';
-import LitSwitch from '../../base-ui/switch/lit-switch.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import '../../base-ui/popover/LitPopover';
+import '../../base-ui/button/LitButton';
+import { LitMainMenuGroup } from '../../base-ui/menu/LitMainMenuGroup';
+import { LitMainMenuItem } from '../../base-ui/menu/LitMainMenuItem';
+import { SpRecordSetting } from './setting/SpRecordSetting';
+import { LitMainMenu, MenuGroup, MenuItem } from '../../base-ui/menu/LitMainMenu';
+import { SpProbesConfig } from './setting/SpProbesConfig';
+import { SpTraceCommand } from './setting/SpTraceCommand';
+import { FlagsConfig } from './SpFlags';
+import LitSwitch from '../../base-ui/switch/lit-switch';
 import { LitSlider } from '../../base-ui/slider/LitSlider';
 
 import {
@@ -50,28 +50,28 @@ import {
   sysVMeminfoTypeFromJSON,
   TracePluginConfig,
   Type,
-} from './setting/bean/ProfilerServiceTypes.js';
-import { PluginConvertUtils } from './setting/utils/PluginConvertUtils.js';
-import { SpAllocations } from './setting/SpAllocations.js';
-import { SpRecordPerf } from './setting/SpRecordPerf.js';
-import { HdcDeviceManager } from '../../hdc/HdcDeviceManager.js';
-import { LitButton } from '../../base-ui/button/LitButton.js';
-import { SpApplication } from '../SpApplication.js';
-import { LitSearch } from './trace/search/Search.js';
-import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar.js';
-import { info, log } from '../../log/Log.js';
-import { CmdConstant } from '../../command/CmdConstant.js';
-import { Cmd } from '../../command/Cmd.js';
-import { SpFileSystem } from './setting/SpFileSystem.js';
-import { SpSdkConfig } from './setting/SpSdkConfig.js';
-import { SpVmTracker } from './setting/SpVmTracker.js';
-import { SpHisysEvent } from './setting/SpHisysEvent.js';
-import { SpRecordTemplate } from './setting/SpRecordTemplate.js';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
-import { SpArkTs } from './setting/SpArkTs.js';
-import { SpWebHdcShell } from './setting/SpWebHdcShell.js';
-import { SpHilogRecord } from './setting/SpHilogRecord.js';
-import { LongTraceDBUtils } from '../database/LongTraceDBUtils.js';
+} from './setting/bean/ProfilerServiceTypes';
+import { PluginConvertUtils } from './setting/utils/PluginConvertUtils';
+import { SpAllocations } from './setting/SpAllocations';
+import { SpRecordPerf } from './setting/SpRecordPerf';
+import { HdcDeviceManager } from '../../hdc/HdcDeviceManager';
+import { LitButton } from '../../base-ui/button/LitButton';
+import { SpApplication } from '../SpApplication';
+import { LitSearch } from './trace/search/Search';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
+import { info, log } from '../../log/Log';
+import { CmdConstant } from '../../command/CmdConstant';
+import { Cmd } from '../../command/Cmd';
+import { SpFileSystem } from './setting/SpFileSystem';
+import { SpSdkConfig } from './setting/SpSdkConfig';
+import { SpVmTracker } from './setting/SpVmTracker';
+import { SpHisysEvent } from './setting/SpHisysEvent';
+import { SpRecordTemplate } from './setting/SpRecordTemplate';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { SpArkTs } from './setting/SpArkTs';
+import { SpWebHdcShell } from './setting/SpWebHdcShell';
+import { SpHilogRecord } from './setting/SpHilogRecord';
+import { LongTraceDBUtils } from '../database/LongTraceDBUtils';
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {

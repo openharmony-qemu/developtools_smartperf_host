@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { BaseStruct, dataFilterHandler, ns2x, Rect, Render } from './ProcedureWorkerCommon.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { BaseStruct, dataFilterHandler, ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class HiSysEventRender extends Render {
   renderMainThread(
