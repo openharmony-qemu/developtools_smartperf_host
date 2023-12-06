@@ -2840,7 +2840,6 @@ export class SpSystemTrace extends BaseElement {
             );
           }
           this.hoverStructNull();
-          let flag = JSON.parse(JSON.stringify(ThreadStruct.selectThreadStruct));
           this.selectStructNull();
           this.wakeupListNull();
           ThreadStruct.hoverThreadStruct = findEntry;
@@ -2858,7 +2857,7 @@ export class SpSystemTrace extends BaseElement {
                 let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
                   `trace-row[row-id='${data.pid}'][folder]`
                 );
-                this.drawThreadLine(endParentRow, flag, data);
+                //this.drawThreadLine(endParentRow, ThreadStruct.selectThreadStruct, data);
               });
             }
           );
@@ -3703,7 +3702,8 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct, data: any) {
+  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct 
+    | undefined, data: any) {
     let collectList = this.favoriteChartListEL!.getCollectRows();
     let startRow: any;
     if (selectThreadStruct == undefined || selectThreadStruct == null) {

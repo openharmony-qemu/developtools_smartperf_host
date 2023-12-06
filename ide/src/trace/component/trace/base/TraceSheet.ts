@@ -847,8 +847,10 @@ export class TraceSheet extends BaseElement {
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
     if (component) {
-      this.selection!.isRowClick = false;
       component.data = this.selection;
+      if (this.selection) {
+        this.selection.isRowClick = false;
+      }
     }
   }
 

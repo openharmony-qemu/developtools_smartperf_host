@@ -859,7 +859,7 @@ export class TraceRowConfig extends BaseElement {
                   padding-right: 20px;
                   background-color: #F6F6F6;
                   height: 3.4em;
-                  flex-wrap: wrap;
+                  flex-wrap: nowrap;
                 }
                 .config-scene-select {
                   height: auto;
@@ -936,9 +936,10 @@ export class TraceRowConfig extends BaseElement {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    transition: all 0.3s;
+                    /*transition: all 0s;*/
                     user-select:none;
-                    width: max-content;
+                    width: 80%;
+                    margin-top: 2px;
                     color: #ffffff;
                     cursor: pointer;
                     line-height: 40px;
@@ -960,6 +961,7 @@ export class TraceRowConfig extends BaseElement {
                   height: 100%;
                 }
                 .temp-icon {
+                  padding-top:6px;
                   margin-left: 20px;
                   width: 20px;
                 }
@@ -978,8 +980,8 @@ export class TraceRowConfig extends BaseElement {
             <div class="config-select config-scene-select" id="scene-select"></div>
             <div class="config-chart" style="display: contents;">
                  <div class="title_div" style='justify-content: space-between;'>
-                    <div style='display: flex;'>
-                      <img class="config-img" title="Timeline Details" src="img/config_chart.png">
+                    <div style='display: flex;align-items: center'>
+                      <img class="config-img" title="Timeline Details" src="img/config_chart.png" style="width:24px;height: 24px">
                       <div id="config_title">Timeline Details</div> 
                     </div>
                     <div style='display: flex;'>
