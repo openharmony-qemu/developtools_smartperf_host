@@ -58,6 +58,7 @@ import { SnapshotRender } from './ProcedureWorkerSnapshot';
 import { LogRender } from './ProcedureWorkerLog';
 import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart';
 import { HiSysEventRender } from './ProcedureWorkerHiSysEvent';
+import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -77,6 +78,7 @@ export let renders: any = {
   'file-system-cell': new FileSystemRender(),
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
+  'all-app-start-up': new AllAppStartupRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),

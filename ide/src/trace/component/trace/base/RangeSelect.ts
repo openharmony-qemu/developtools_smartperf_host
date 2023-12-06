@@ -87,7 +87,11 @@ export class RangeSelect {
           row.docompositionList = [];
         });
         docompositionData = [];
-        if (this.rangeTraceRow.length === 1 && this.rangeTraceRow[0]?.getAttribute('row-type') === 'func') {
+        if (
+          this.rangeTraceRow.length === 1 &&
+          this.rangeTraceRow[0]?.getAttribute('row-type') === 'func' &&
+          this.rangeTraceRow[0]?.getAttribute('name')?.startsWith('render_service')
+        ) {
           querySearchRowFuncData(
             'H:RSMainThread::DoComposition',
             Number(this.rangeTraceRow[0]?.getAttribute('row-id')),

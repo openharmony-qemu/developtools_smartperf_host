@@ -1449,7 +1449,7 @@ export class SpApplication extends BaseElement {
                   },
                   {
                     title: 'Keyboard shortcuts',
-                    icon: 'menu',
+                    icon: 'smart-help',
                     clickHandler: function (item: MenuItem) {
                       SpStatisticsHttpUtil.addOrdinaryVisitAction({
                         event: 'Keyboard shortcuts',

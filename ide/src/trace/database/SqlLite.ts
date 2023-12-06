@@ -1436,6 +1436,35 @@ order by start_name;`,
     { $pid: pid }
   );
 
+  export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
+  query(
+    'queryProcessStartup',
+    `
+    select
+    P.pid,
+    A.tid,
+    A.call_id as itid,
+    (case when A.start_time < B.start_ts then 0 else (A.start_time - B.start_ts) end) as startTs,
+    (case 
+        when A.start_time < B.start_ts then (A.end_time - B.start_ts) 
+        when A.end_time = -1 then 0
+        else (A.end_time - A.start_time) end) as dur,
+    A.start_name as startName
+from app_startup A,trace_range B
+left join process P on A.ipid = P.ipid
+where P.pid in(${pids.join(',')}) 
+order by start_name;`,
+    { $pid: pids }
+  );
+
+  export const querySingleAppStartupsName = (pid:number): Promise<Array<any>> =>
+  query(
+    'queryAllAppStartupsName',
+    `select name from process
+    where pid=$pid`,
+    { $pid: pid }
+  );
+
 export const queryProcessSoMaxDepth = (): Promise<Array<{ pid: number; maxDepth: number }>> =>
   query(
     'queryProcessSoMaxDepth',

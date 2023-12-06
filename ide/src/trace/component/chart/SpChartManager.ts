@@ -49,6 +49,7 @@ import { MemoryConfig } from '../../bean/MemoryConfig';
 import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
+import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import {setVSyncData} from './VSync';
 
 export class SpChartManager {
@@ -69,6 +70,7 @@ export class SpChartManager {
   private smapsChart: VmTrackerChart;
   private clockChart: SpClockChart;
   private irqChart: SpIrqChart;
+  private spAllAppStartupsChart!: SpAllAppStartupsChart;
   frameTimeChart: SpFrameTimeChart;
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
@@ -94,6 +96,7 @@ export class SpChartManager {
     this.arkTsChart = new SpArkTsChart(trace);
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
+    this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
   }
 
   async init(progress: Function) {
@@ -165,6 +168,7 @@ export class SpChartManager {
     await this.arkTsChart.initFolder();
     info('ark ts initialized');
     await this.frameTimeChart.init();
+    await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();

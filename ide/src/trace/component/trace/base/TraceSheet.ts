@@ -42,6 +42,7 @@ import { type TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneN
 import { type TabPaneCurrent } from '../sheet/TabPaneCurrent';
 import { type SlicesTime } from '../timer-shaft/SportRuler';
 import { type AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup';
+import { type AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup';
 import { type SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
 import { type TraceRow } from './TraceRow';
@@ -155,7 +156,7 @@ export class TraceSheet extends BaseElement {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
       this.switchDiv!.visible = 'false';
-      this.updateRangeSelect(selectIPid)
+      this.updateRangeSelect(selectIPid);
       this.lastSelectIPid = selectIPid;
     };
 
@@ -481,14 +482,16 @@ export class TraceSheet extends BaseElement {
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
     scrollPreviousData: (d: ThreadStruct) => void,
-    scrollNextData: (d: ThreadStruct) => void
+    scrollNextData: (d: ThreadStruct) => void,
+    callback: ((data: Array<any>) => void) | undefined = undefined
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
       scrollCallback,
       scrollWakeUp,
       scrollPreviousData,
-      scrollNextData
+      scrollNextData,
+      callback
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
@@ -498,6 +501,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
   displayStartupData = (data: AppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback);
+  displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStaticInitData(data, scrollCallback);
 
@@ -802,9 +807,9 @@ export class TraceSheet extends BaseElement {
     if (selection && selection.nativeMemoryAllProcess.length > 1) {
       this.switchDiv!.style.display = 'flex';
       if (this.isProcessEqual(selection.nativeMemoryAllProcess)) {
-        if (this.processTree){
-          for (const data of this.processTree.treeData){
-            if (data.key === `${selection.nativeMemoryCurrentIPid}`){
+        if (this.processTree) {
+          for (const data of this.processTree.treeData) {
+            if (data.key === `${selection.nativeMemoryCurrentIPid}`) {
               data.checked = true;
             } else {
               data.checked = false;
@@ -841,7 +846,7 @@ export class TraceSheet extends BaseElement {
     let component: any = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
-    if (component) {  
+    if (component) {
       this.selection!.isRowClick = false;
       component.data = this.selection;
     }

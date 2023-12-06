@@ -132,6 +132,7 @@ export class TabPaneFlag extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+    tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
     tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
       this.systemTrace!.flagList = [];
       let flagList = [...this.flagList];

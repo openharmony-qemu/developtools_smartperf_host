@@ -84,6 +84,7 @@ import { TabPaneCurrentSelection } from './trace/sheet/TabPaneCurrentSelection';
 import { SpChartList } from './trace/SpChartList';
 import './trace/SpChartList';
 import { AppStartupStruct } from '../database/ui-worker/ProcedureWorkerAppStartup';
+import { AllAppStartupStruct } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
 import { SoStruct } from '../database/ui-worker/ProcedureWorkerSoInit';
 import { TabPaneTaskFrames } from './trace/sheet/task/TabPaneTaskFrames';
 import { FlagsConfig } from './SpFlags';
@@ -264,6 +265,8 @@ export class SpSystemTrace extends BaseElement {
     }
     startPoint.y = startPoint.rowEL!.translateY! + startPoint.offsetY;
     endPoint.y = endPoint.rowEL!.translateY! + endPoint.offsetY;
+    startPoint.backrowEL = startPoint.rowEL;
+    endPoint.backrowEL = endPoint.rowEL;
     this.linkNodes.push([startPoint, endPoint]);
   }
 
@@ -1395,11 +1398,11 @@ export class SpSystemTrace extends BaseElement {
         let tr = it.target as TraceRow<any>;
         if (!it.isIntersecting) {
           tr.sleeping = true;
-          this.invisibleRows.push(tr);
+          this.invisibleRows.indexOf(tr) == -1 && this.invisibleRows.push(tr);
           this.visibleRows = this.visibleRows.filter((it) => !it.sleeping);
         } else {
           tr.sleeping = false;
-          this.visibleRows.push(tr);
+          this.visibleRows.indexOf(tr) == -1 && this.visibleRows.push(tr);
           this.invisibleRows = this.invisibleRows.filter((it) => it.sleeping);
         }
         this.visibleRows
@@ -2543,7 +2546,7 @@ export class SpSystemTrace extends BaseElement {
     if (!SportRuler.isMouseInSportRuler) {
       this.traceSheetEL?.setAttribute('mode', 'hidden');
     }
-    this.removeLinkLinesByBusinessType('task');
+    this.removeLinkLinesByBusinessType('task','thread');
     this.refreshCanvas(true);
     JankStruct.delJankLineFlag = true;
   }
@@ -2578,6 +2581,10 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_APP_STARTUP,
       () => AppStartupStruct.hoverStartupStruct !== null && AppStartupStruct.hoverStartupStruct !== undefined,
+    ],
+    [
+      TraceRow.ROW_TYPE_ALL_APPSTARTUPS,
+      () => AllAppStartupStruct.hoverStartupStruct !== null && AllAppStartupStruct.hoverStartupStruct !== undefined,
     ],
     [TraceRow.ROW_TYPE_STATIC_INIT, () => SoStruct.hoverSoStruct !== null && SoStruct.hoverSoStruct !== undefined],
     [TraceRow.ROW_TYPE_JANK, () => JankStruct.hoverJankStruct !== null && JankStruct.hoverJankStruct !== undefined],
@@ -2744,6 +2751,7 @@ export class SpSystemTrace extends BaseElement {
       this.traceSheetEL?.displayCpuData(
         CpuStruct.selectCpuStruct!,
         (wakeUpBean) => {
+          this.removeLinkLinesByBusinessType('thread');
           CpuStruct.wakeupBean = wakeUpBean;
           this.refreshCanvas(true);
         },
@@ -2832,6 +2840,7 @@ export class SpSystemTrace extends BaseElement {
             );
           }
           this.hoverStructNull();
+          let flag = JSON.parse(JSON.stringify(ThreadStruct.selectThreadStruct));
           this.selectStructNull();
           this.wakeupListNull();
           ThreadStruct.hoverThreadStruct = findEntry;
@@ -2842,7 +2851,16 @@ export class SpSystemTrace extends BaseElement {
             threadClickHandler,
             cpuClickHandler,
             threadClickPreviousHandler,
-            threadClickNextHandler
+            threadClickNextHandler,
+            (datas) => {
+              this.removeLinkLinesByBusinessType('thread');
+              datas.forEach((data) => {
+                let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
+                  `trace-row[row-id='${data.pid}'][folder]`
+                );
+                this.drawThreadLine(endParentRow, flag, data);
+              });
+            }
           );
           this.scrollToProcess(`${d.tid}`, `${d.processId}`, 'thread', true);
         }
@@ -2959,6 +2977,7 @@ export class SpSystemTrace extends BaseElement {
       );
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
+      this.removeLinkLinesByBusinessType('thread');
       ThreadStruct.selectThreadStruct = ThreadStruct.hoverThreadStruct;
       this.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
       this.traceSheetEL?.displayThreadData(
@@ -3142,6 +3161,10 @@ export class SpSystemTrace extends BaseElement {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
       this.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
       this.timerShaftEL?.modifyFlagList(undefined);
+    } else if(clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct){
+      AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
+      this.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler)
+      this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
       this.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct, scrollToFuncHandler);
@@ -3233,6 +3256,9 @@ export class SpSystemTrace extends BaseElement {
     }
     if (!JankStruct.selectJankStruct) {
       this.removeLinkLinesByBusinessType('janks');
+    }
+    if (!ThreadStruct.selectThreadStruct) {
+      this.removeLinkLinesByBusinessType('thread');
     }
     if (row) {
       let pointEvent = this.createPointEvent(row);
@@ -3671,6 +3697,110 @@ export class SpSystemTrace extends BaseElement {
             }
             this.drawJankLine(endP, findJankEntry, data.children[0]);
           }
+          this.refreshCanvas(true);
+        }
+      }
+    }
+  }
+
+  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct, data: any) {
+    let collectList = this.favoriteChartListEL!.getCollectRows();
+    let startRow: any;
+    if (selectThreadStruct == undefined || selectThreadStruct == null) {
+      return;
+    }
+    let selectRowId = selectThreadStruct?.tid;
+    startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      `trace-row[row-id='${selectRowId}'][row-type='thread']`
+    );
+    if (!startRow) {
+      for (let index = 0; index < collectList.length; index++) {
+        let collectChart = collectList[index];
+        if (collectChart.rowId === selectRowId?.toString() && collectChart.rowType === 'thread') {
+          startRow = collectChart;
+          break;
+        }
+      }
+    }
+    function collectionHasThread(threadRow: any): boolean {
+      for (let item of collectList!) {
+        if (item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (endParentRow) {
+      //终点的父泳道过滤出选中的Struct
+      let endRowStruct: any;
+      //泳道展开的情况，查找endRowStruct
+      endRowStruct = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+        `trace-row[row-id='${data.tid}'][row-type='thread']`
+      );
+      //泳道未展开的情况，查找endRowStruct
+      if (!endRowStruct) {
+        endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
+          return item.rowId === `${data.tid}` && item.rowType === 'thread'
+        });
+      }
+      if (endRowStruct) {
+        let findJankEntry = endRowStruct!.dataList!.find((dat: any) => dat.startTime == data.startTime && dat.dur! > 0);
+        //连线规则
+        let ts: number = 0;
+        if (findJankEntry) {
+          ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
+          let startParentRow: any;
+          // startRow为子泳道，子泳道不存在，使用父泳道
+          if (startRow) {
+            startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+              `trace-row[row-id='${startRow.rowParentId}'][folder]`
+            );
+          } else {
+            startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+              `trace-row[row-id='${selectThreadStruct?.pid}'][folder]`
+            );
+          }
+          let endY = endRowStruct!.translateY!;
+          let endRowEl = endRowStruct;
+          let endOffSetY = 20 * 0.5;
+          let expansionFlag = collectionHasThread(endRowStruct);
+          if (!endParentRow.expansion && expansionFlag) {
+            endY = endParentRow!.translateY!;
+            endRowEl = endParentRow;
+            endOffSetY = 10 * 0.5;
+          }
+          let startY = startRow!.translateY!;
+          let startRowEl = startRow;
+          let startOffSetY = 20 * 0.5;
+          expansionFlag = collectionHasThread(startRow);
+          if (startParentRow && !startParentRow.expansion && expansionFlag) {
+            startY = startParentRow!.translateY!;
+            startRowEl = startParentRow;
+            startOffSetY = 10 * 0.5;
+          }
+          this.addPointPair(
+            this.makePoint(
+              ns2xByTimeShaft(ts, this.timerShaftEL!),
+              ts,
+              startY,
+              startRowEl!,
+              startOffSetY,
+              'thread',
+              LineType.StraightLine,
+              selectThreadStruct.startTime == ts,
+            ),
+            this.makePoint(
+              ns2xByTimeShaft(findJankEntry.startTime!, this.timerShaftEL!),
+              findJankEntry.startTime!,
+              endY,
+              endRowEl,
+              endOffSetY,
+              'thread',
+              LineType.StraightLine,
+              true,
+            )
+          );
           this.refreshCanvas(true);
         }
       }
@@ -4465,6 +4595,12 @@ export class SpSystemTrace extends BaseElement {
       if (it.folder) {
         let offsetYTimeOut: any = undefined;
         it.addEventListener('expansion-change', (event: any) => {
+          let max = [...this.rowsPaneEL!.querySelectorAll('trace-row')].reduce(
+            (pre, cur) => pre + cur.clientHeight!,
+            0
+          );
+          let offset = this.rowsPaneEL!.scrollHeight - max;
+          this.rowsPaneEL!.scrollTop = this.rowsPaneEL!.scrollTop - offset;
           JankStruct.delJankLineFlag = false;
           if (offsetYTimeOut) {
             clearTimeout(offsetYTimeOut);
