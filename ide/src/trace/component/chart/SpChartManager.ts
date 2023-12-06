@@ -52,6 +52,7 @@ import { SpHiSysEventChart } from './SpHiSysEventChart.js';
 import { SpAllAppStartupsChart } from './SpAllAppStartups.js';
 import {setVSyncData} from './VSync.js';
 import { SegMenTaTion } from './SpSegmentationChart.js';
+import { SpLtpoChart } from './SpLTPO.js';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -72,6 +73,7 @@ export class SpChartManager {
   private clockChart: SpClockChart;
   private irqChart: SpIrqChart;
   private SpAllAppStartupsChart!: SpAllAppStartupsChart;
+  private SpLtpoChart!: SpLtpoChart;
   frameTimeChart: SpFrameTimeChart;
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
@@ -100,6 +102,7 @@ export class SpChartManager {
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.SpAllAppStartupsChart = new SpAllAppStartupsChart(trace);
     this.SegMenTaTion = new SegMenTaTion(trace);
+    this.SpLtpoChart = new SpLtpoChart(trace)
   }
 
   async init(progress: Function) {
@@ -172,6 +175,7 @@ export class SpChartManager {
     await this.arkTsChart.initFolder();
     info('ark ts initialized');
     await this.SpAllAppStartupsChart.init();
+    await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();

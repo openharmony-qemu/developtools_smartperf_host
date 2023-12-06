@@ -1457,6 +1457,33 @@ export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
     { $pid: pid }
   )
 
+  export const queryPresentInfo =(): Promise <Array<any>> =>
+  query(
+    'queryPresentInfo',
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(112,114,101,115,101,110,116,37)}'))`
+  )
+
+  export const queryVsNameList = ():Promise<Array<string>> => 
+  query(
+    'queryVsNameList',
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101,37)}')) 
+    AND name LIKE('${String.fromCharCode(72,58,82,101,99,101,105,118,101,86,115,121,110,99,37)}')`
+  )
+
+  export const queryFanceNameList = ():Promise<Array<string>> =>
+  query(
+    'queryFanceNameList',
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101,37)}')) 
+    AND name LIKE('${String.fromCharCode(72,58,65,99,113,117,105,114,101,32,70,101,110,99,101,37)}')`
+  )
+
+  export const queryFpsNameList = ():Promise<Array<string>> =>
+  query(
+    'queryFpsNameList',
+    `SELECT name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101,37)}')) 
+    AND name LIKE('${String.fromCharCode(37,68,97,116,97,32,114,101,102,114,101,115,104,82,97,116,101,37)}')`
+  )
+
 export const queryProcessSoMaxDepth = (): Promise<Array<{ pid: number; maxDepth: number }>> =>
   query(
     'queryProcessSoMaxDepth',

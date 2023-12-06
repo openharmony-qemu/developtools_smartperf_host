@@ -61,6 +61,7 @@ import { HiSysEventRender } from './ProcedureWorkerHiSysEvent.js';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup.js';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend.js';
 import { BinderRender } from './procedureWorkerBinder.js';
+import { LtpoRender } from './ProcedureWorkerLTPO.js';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -81,6 +82,7 @@ export let renders: any = {
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
+  'ltpo-present': new LtpoRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
