@@ -58,9 +58,6 @@ import { SnapshotRender } from './ProcedureWorkerSnapshot.js';
 import { LogRender } from './ProcedureWorkerLog.js';
 import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart.js';
 import { HiSysEventRender } from './ProcedureWorkerHiSysEvent.js';
-import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup.js';
-import { FreqExtendRender } from './ProcedureWorkerFreqExtend.js';
-import { BinderRender } from './procedureWorkerBinder.js';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -80,7 +77,6 @@ export let renders: any = {
   'file-system-cell': new FileSystemRender(),
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
-  'all-app-start-up': new AllAppStartupRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -117,8 +113,6 @@ export let renders: any = {
   snapshot: new SnapshotRender(),
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
-  'freq-extend': new FreqExtendRender(),
-  'binder' : new BinderRender()
 };
 
 function match(type: string, req: RequestMessage): void {

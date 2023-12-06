@@ -431,146 +431,75 @@ export class SpProcessChart {
         if (offsetYTimeOut) {
           clearTimeout(offsetYTimeOut);
         }
-        if (JankStruct.selectJankStruct !== null && JankStruct.selectJankStruct !== undefined) {
-          if (e.detail.expansion) {
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes.forEach((linkNodeItem) => {
-                JankStruct.selectJankStructList?.forEach((selectProcessStruct: any) => {
-                  if (e.detail.rowId == selectProcessStruct.pid) {
-                    JankStruct.selectJankStruct = selectProcessStruct;
-                    JankStruct.hoverJankStruct = selectProcessStruct;
-                  }
-                });
-                if (linkNodeItem[0].rowEL.collect) {
-                  linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkNodeItem[0].y = linkNodeItem[0].rowEL!.translateY! + linkNodeItem[0].offsetY;
-                if (linkNodeItem[1].rowEL.collect) {
-                  linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkNodeItem[1].y = linkNodeItem[1].rowEL!.translateY! + linkNodeItem[1].offsetY;
-                if (actualRow) {
-                  if (linkNodeItem[0].rowEL.rowId == e.detail.rowId) {
-                    linkNodeItem[0].x = ns2xByTimeShaft(linkNodeItem[0].ns, this.trace.timerShaftEL!);
-                    linkNodeItem[0].y = actualRow!.translateY! + linkNodeItem[0].offsetY * 2;
-                    linkNodeItem[0].offsetY = linkNodeItem[0].offsetY * 2;
-                    linkNodeItem[0].rowEL = actualRow!;
-                  } else if (linkNodeItem[1].rowEL.rowId == e.detail.rowId) {
-                    linkNodeItem[1].x = ns2xByTimeShaft(linkNodeItem[1].ns, this.trace.timerShaftEL!);
-                    linkNodeItem[1].y = actualRow!.translateY! + linkNodeItem[1].offsetY * 2;
-                    linkNodeItem[1].offsetY = linkNodeItem[1].offsetY * 2;
-                    linkNodeItem[1].rowEL = actualRow!;
-                  }
+        if (e.detail.expansion) {
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes.forEach((linkNodeItem) => {
+              JankStruct.selectJankStructList?.forEach((selectProcessStruct: any) => {
+                if (e.detail.rowId == selectProcessStruct.pid) {
+                  JankStruct.selectJankStruct = selectProcessStruct;
+                  JankStruct.hoverJankStruct = selectProcessStruct;
                 }
               });
-            }, 300);
-          } else {
-            if (JankStruct!.selectJankStruct) {
-              JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
-            }
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes?.forEach((linkProcessItem) => {
-                if (linkProcessItem[0].rowEL.collect) {
-                  linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[0].rowEL.translateY =
-                    linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[0].y = linkProcessItem[0].rowEL!.translateY! + linkProcessItem[0].offsetY;
-                if (linkProcessItem[1].rowEL.collect) {
-                  linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[1].rowEL.translateY =
-                    linkProcessItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY! + linkProcessItem[1].offsetY;
-                if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
-                  linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
-                  linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
-                  linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
-                  linkProcessItem[0].rowEL = processRow!;
-                } else if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
-                  linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
-                  linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
-                  linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
-                  linkProcessItem[1].rowEL = processRow!;
-                }
-              });
-            }, 300);
-          }
-        } else {
-          if (e.detail.expansion) {
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes.forEach((linkNodeItem) => {
-                ThreadStruct.selectThreadStructList?.forEach((selectProcessStruct: any) => {
-                  if (e.detail.rowId == selectProcessStruct.pid) {
-                    ThreadStruct.selectThreadStruct = selectProcessStruct;
-                    ThreadStruct.hoverThreadStruct = selectProcessStruct;
-                  }
-                });
-                if (linkNodeItem[0].rowEL.expansion && linkNodeItem[0].backrowEL) {
-                  linkNodeItem[0].rowEL = linkNodeItem[0].backrowEL;
-                  if (linkNodeItem[0].rowEL.collect) {
-                    linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
-                  } else {
-                    linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                  }
+              if (linkNodeItem[0].rowEL.collect) {
+                linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkNodeItem[0].y = linkNodeItem[0].rowEL!.translateY! + linkNodeItem[0].offsetY;
+              if (linkNodeItem[1].rowEL.collect) {
+                linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkNodeItem[1].y = linkNodeItem[1].rowEL!.translateY! + linkNodeItem[1].offsetY;
+              if (actualRow) {
+                if (linkNodeItem[0].rowEL.rowId == e.detail.rowId) {
                   linkNodeItem[0].x = ns2xByTimeShaft(linkNodeItem[0].ns, this.trace.timerShaftEL!);
+                  linkNodeItem[0].y = actualRow!.translateY! + linkNodeItem[0].offsetY * 2;
                   linkNodeItem[0].offsetY = linkNodeItem[0].offsetY * 2;
-                  linkNodeItem[0].y = linkNodeItem[0].rowEL.translateY + linkNodeItem[0].offsetY;
-                }
-                if (linkNodeItem[1].rowEL.expansion && linkNodeItem[1].backrowEL) {
-                  linkNodeItem[1].rowEL = linkNodeItem[1].backrowEL;
-                  if (linkNodeItem[1].rowEL.collect) {
-                    linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
-                  } else {
-                    linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                  }
+                  linkNodeItem[0].rowEL = actualRow!;
+                } else if (linkNodeItem[1].rowEL.rowId == e.detail.rowId) {
                   linkNodeItem[1].x = ns2xByTimeShaft(linkNodeItem[1].ns, this.trace.timerShaftEL!);
+                  linkNodeItem[1].y = actualRow!.translateY! + linkNodeItem[1].offsetY * 2;
                   linkNodeItem[1].offsetY = linkNodeItem[1].offsetY * 2;
-                  linkNodeItem[1].y = linkNodeItem[1].rowEL!.translateY! + linkNodeItem[1].offsetY;
+                  linkNodeItem[1].rowEL = actualRow!;
                 }
-              });
-            }, 300);
-          } else {
-            if (ThreadStruct!.selectThreadStruct) {
-              ThreadStruct.selectThreadStructList?.push(<ThreadStruct>ThreadStruct!.selectThreadStruct);
-            }
-            offsetYTimeOut = setTimeout(() => {
-              this.trace.linkNodes?.forEach((linkProcessItem) => {
-                if (linkProcessItem[0].rowEL.collect) {
-                  linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[0].rowEL.translateY =
-                    linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[0].y = processRow!.translateY + linkProcessItem[0].offsetY;//11
-                if (linkProcessItem[1].rowEL.collect) {
-                  linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
-                } else {
-                  linkProcessItem[1].rowEL.translateY =
-                    linkProcessItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
-                }
-                linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY + linkProcessItem[1].offsetY;
-                if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
-                  linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
-                  linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
-                  linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
-                  linkProcessItem[0].rowEL = processRow!;
-                }
-                if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
-                  linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
-                  linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
-                  linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
-                  linkProcessItem[1].rowEL = processRow!;
-                }
-              });
-            }, 300);
+              }
+            });
+          }, 300);
+        } else {
+          if (JankStruct!.selectJankStruct) {
+            JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
           }
+          offsetYTimeOut = setTimeout(() => {
+            this.trace.linkNodes?.forEach((linkProcessItem) => {
+              if (linkProcessItem[0].rowEL.collect) {
+                linkProcessItem[0].rowEL.translateY = linkProcessItem[0].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkProcessItem[0].rowEL.translateY =
+                  linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkProcessItem[0].y = linkProcessItem[0].rowEL!.translateY! + linkProcessItem[0].offsetY;
+              if (linkProcessItem[1].rowEL.collect) {
+                linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
+              } else {
+                linkProcessItem[1].rowEL.translateY =
+                  linkProcessItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+              }
+              linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY! + linkProcessItem[1].offsetY;
+              if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
+                linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
+                linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
+                linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
+                linkProcessItem[0].rowEL = processRow!;
+              } else if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
+                linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
+                linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
+                linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
+                linkProcessItem[1].rowEL = processRow!;
+              }
+            });
+          }, 300);
         }
         let refreshTimeOut = setTimeout(() => {
           this.trace.refreshCanvas(true);

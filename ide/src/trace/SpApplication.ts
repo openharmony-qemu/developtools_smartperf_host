@@ -57,7 +57,6 @@ import { convertPool } from './database/Convert.js';
 import { LongTraceDBUtils } from './database/LongTraceDBUtils.js';
 import { type SpKeyboard } from './component/SpKeyboard.js';
 import './component/SpKeyboard.js';
-import "../base-ui/chart/scatter/LitChartScatter.js";
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -1450,7 +1449,7 @@ export class SpApplication extends BaseElement {
                   },
                   {
                     title: 'Keyboard shortcuts',
-                    icon: 'smart-help',
+                    icon: 'menu',
                     clickHandler: function (item: MenuItem) {
                       SpStatisticsHttpUtil.addOrdinaryVisitAction({
                         event: 'Keyboard shortcuts',

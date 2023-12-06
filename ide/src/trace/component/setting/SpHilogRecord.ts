@@ -55,6 +55,7 @@ export class SpHilogRecord extends BaseElement {
         configVisibility = 'block';
       }
       if (hiLogConfigList) {
+        console.log(configVisibility);
         hiLogConfigList!.forEach(configEl => {
           configEl.style.display = configVisibility;
         });

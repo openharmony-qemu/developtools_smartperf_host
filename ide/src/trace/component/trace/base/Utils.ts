@@ -97,20 +97,6 @@ export class Utils {
     }
   }
 
-  public static transferBinderTitle(value: any) {
-    if (value.startsWith('P-')) {
-      let pid = value.replace('P-', '');
-      let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;
-    } else if (value.startsWith('T-')) {
-      let tid = value.replace('T-', '');
-      let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
-      return `${thread} [${tid}]`;
-    } else {
-      return '';
-    }
-  }
-
   public static getStateColor(state: string): string {
     if (state === 'D-NIO' || state === 'DK-NIO') {
       return '#795548';
@@ -497,11 +483,11 @@ export class Utils {
       }
     }
     queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res) => {
-      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => { });
+      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => {});
     });
   }
 
-  setCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic1', 'native-memory-set-current_ipid', ipid, undefined, () => { });
+  setCurrentSelectIPid(ipid: number): void{
+    procedurePool.submitWithName('logic1', 'native-memory-set-current_ipid', ipid, undefined, () => {});
   }
 }

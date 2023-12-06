@@ -26,7 +26,6 @@ export class ThreadStruct extends BaseStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
-  static selectThreaStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
   hasSched: number | undefined;
   pid: number | undefined;
   processName: string | undefined;

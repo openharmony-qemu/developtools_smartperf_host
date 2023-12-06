@@ -33,7 +33,7 @@ export class TabPaneFlag extends BaseElement {
     this.systemTrace = document
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');     
+    this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
     this.panelTable!.addEventListener('row-click', (evt: any) => {
       if (evt.detail.data.startTime === undefined) {
         return;
@@ -132,7 +132,6 @@ export class TabPaneFlag extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
-    tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
     tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
       this.systemTrace!.flagList = [];
       let flagList = [...this.flagList];
@@ -148,7 +147,7 @@ export class TabPaneFlag extends BaseElement {
     this.panelTable!.addEventListener('click', (event: any) => {
       if (this.flagList.length === 0) {
         return;
-      } 
+      }
       for (let i = 1; i < tr.length; i++) {
         let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
         if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {

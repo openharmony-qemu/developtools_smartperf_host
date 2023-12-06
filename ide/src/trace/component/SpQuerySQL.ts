@@ -168,7 +168,7 @@ export class SpQuerySQL extends BaseElement {
       if (resultList && resultList.length > 0) {
         this.statDataArray = resultList;
         this.keyList = Object.keys(resultList[0]);
-        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
+        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.` + `(${sql})`;
         this.initDataElement();
         this.response!.appendChild(this.queryTableEl!);
         this.setPageNationTableEl();
@@ -179,7 +179,7 @@ export class SpQuerySQL extends BaseElement {
           }
         }, 300);
       } else {
-        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.`;
+        this.querySize!.textContent = `Query result - ${this.statDataArray.length} counts.` + `(${sql})`;
         this.progressLoad!.loading = false;
       }
     });
@@ -414,6 +414,9 @@ export class SpQuerySQL extends BaseElement {
           line-height: 20px;
           font-weight: 400;
           text-align: left;
+          white-space: nowrap; 
+          overflow: hidden; 
+          text-overflow: ellipsis;
         }
         #response-json{
           margin-top: 20px;

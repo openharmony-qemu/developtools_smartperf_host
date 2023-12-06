@@ -207,42 +207,40 @@ export class LitChartColumn extends BaseElement {
       for (let i = 0; i <= 5; i++) {
         this.rowLines.push({
           y: gap * i,
-          label: this.litChartColumnCfg.removeUnit === true ? `${maxValue - valGap * i}` : `${getProbablyTime(maxValue - valGap * i)}`,
+          label: `${getProbablyTime(maxValue - valGap * i)}`,
         });
       }
-      if (!this.litChartColumnCfg.notSort) {
-        this.litChartColumnCfg?.data
-          .sort((a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]);
-      }
-      this.litChartColumnCfg?.data.forEach((litChartColumnItem, litChartColumnIndex, array) => {
-        this.data.push({
-          color: this.litChartColumnCfg!.color(litChartColumnItem),
-          obj: litChartColumnItem,
-          root: true,
-          xLabel: litChartColumnItem[this.litChartColumnCfg!.xField],
-          yLabel: litChartColumnItem[this.litChartColumnCfg!.yField],
-          bgFrame: {
-            x: this.offset!.x! + partWidth * litChartColumnIndex,
-            y: 0,
-            w: partWidth,
-            h: partHeight,
-          },
-          centerX: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 2,
-          centerY:
-            partHeight -
-            (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
-            (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
-          frame: {
-            x: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 6,
-            y: partHeight - (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
-            w: partWidth - partWidth / 3,
-            h: (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
-          },
-          height: 0,
-          heightStep: Math.ceil((litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
-          process: true,
+      this.litChartColumnCfg?.data
+        .sort((a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField])
+        .forEach((litChartColumnItem, litChartColumnIndex, array) => {
+          this.data.push({
+            color: this.litChartColumnCfg!.color(litChartColumnItem),
+            obj: litChartColumnItem,
+            root: true,
+            xLabel: litChartColumnItem[this.litChartColumnCfg!.xField],
+            yLabel: litChartColumnItem[this.litChartColumnCfg!.yField],
+            bgFrame: {
+              x: this.offset!.x! + partWidth * litChartColumnIndex,
+              y: 0,
+              w: partWidth,
+              h: partHeight,
+            },
+            centerX: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 2,
+            centerY:
+              partHeight -
+              (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
+              (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
+            frame: {
+              x: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 6,
+              y: partHeight - (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
+              w: partWidth - partWidth / 3,
+              h: (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
+            },
+            height: 0,
+            heightStep: Math.ceil((litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
+            process: true,
+          });
         });
-      });
     } else {
       let reduceGroup = this.litChartColumnCfg.data.reduce((pre, current, index, arr) => {
         (pre[current[this.litChartColumnCfg!.xField]] = pre[current[this.litChartColumnCfg!.xField]] || []).push(
@@ -261,7 +259,7 @@ export class LitChartColumn extends BaseElement {
       for (let index = 0; index <= 5; index++) {
         this.rowLines.push({
           y: gap * index,
-          label: `${getProbablyTime(maxValue - valGap * index)}`,
+          label: `${getProbablyTime(maxValue - valGap * index)} `,
         });
       }
       Reflect.ownKeys(reduceGroup)

@@ -44,11 +44,6 @@ let dragDirection: string = '';
 
 @element('trace-row')
 export class TraceRow<T extends BaseStruct> extends HTMLElement {
-  static ROW_TYPE_SEGMENTATION = 'segmentation';
-  static ROW_TYPE_CPU_COMPUTILITY = 'cpu_computility';
-  static ROW_TYPE_GPU_COMPUTILITY = 'gpu_computility';
-  static ROW_TYPE_SCHED_SWITCH = 'sched_switch';
-  static ROW_TYPE_BINDER_COUNT = 'binder';
   static ROW_TYPE_CPU = 'cpu-data';
   static ROW_TYPE_CPU_STATE = 'cpu-state';
   static ROW_TYPE_CPU_FREQ = 'cpu-freq';
@@ -122,7 +117,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PURGEABLE_TOTAL_VM = 'purgeable-total-vm';
   static ROW_TYPE_PURGEABLE_PIN_VM = 'purgeable-pin-vm';
   static ROW_TYPE_LOGS = 'logs';
-  static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups'
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
@@ -179,9 +173,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
   _docompositionList: Array<number> | undefined;
-  public onRowCheckFileChangeHandler: ((file: any) => void) | undefined | null;
-  private rowCheckFilePop: LitPopover | null | undefined;
-  public fileEL: any;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -196,12 +187,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       isOffScreen: boolean;
       skeleton?: boolean;
     } = {
-        canvasNumber: 1,
-        alpha: false,
-        contextId: '2d',
-        isOffScreen: true,
-        skeleton: false,
-      }
+      canvasNumber: 1,
+      alpha: false,
+      contextId: '2d',
+      isOffScreen: true,
+      skeleton: false,
+    }
   ) {
     super();
     this.args = args;
@@ -243,7 +234,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-popover-direction',
     ];
   }
-
   get docompositionList(): Array<number> | undefined {
     return this._docompositionList;
   }
@@ -676,7 +666,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       }
     }
-
     this.checkBoxEL!.onchange = (ev: any) => {
       info('checkBoxEL onchange ');
       if (!ev.target.checked) {
@@ -703,7 +692,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.checkType = '-1';
   }
 
-  addRowSettingPop(): void {
+  addRowSettingPop(): void{
     this.rowSettingPop = document.createElement('lit-popover') as LitPopover;
     this.rowSettingPop.innerHTML = `<div slot="content" id="settingList" style="display: block;height: auto;max-height:200px;overflow-y:auto">
       <lit-tree id="rowSettingTree" checkable="true"></lit-tree>
@@ -732,39 +721,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl?.appendChild(this.rowSettingPop);
   }
 
-  addRowCheckFilePop(): void {
-    this.rowCheckFilePop = document.createElement('litpopover') as LitPopover;
-    this.rowCheckFilePop.innerHTML = `<div slot="content" id="jsonFile" style="display: block;height: auto;max-height:200px;overflow-y:auto">
-    </div>
-    <lit-icon name="copy-csv" size="19" id="myfolder"></lit-icon>
-    <input type="file" id="jsoninput" style="width:0px;height:0px"placeholder=''/>`;
-    this.rowCheckFilePop.id = 'rowCheckFile';
-    this.rowCheckFilePop.className = 'popover checkFile';
-    this.rowCheckFilePop.setAttribute('trigger', 'click');
-    this.rowCheckFilePop?.addEventListener('mouseenter', (e) => {
-      window.publish(window.SmartEvent.UI.HoverNull, undefined);
-    });
-    this.fileEL = this.rowCheckFilePop.querySelector('#jsoninput');
-    this.rowCheckFilePop.onclick = (): void => {
-      this.fileEL.click();
-      this.fileEL.addEventListener('change', (e: any) => {
-        let file = e.target.files[0];
-        if (file.type === 'application/json') {
-          let file_reader = new FileReader();
-          file_reader.readAsText(file, 'UTF-8');
-          file_reader.onload = () => {
-            let fc = file_reader.result;
-            this.onRowCheckFileChangeHandler?.(fc)
-          };
-        } else {
-          return
-        }
-      }, false)
-    }
-    this.describeEl?.appendChild(this.rowCheckFilePop);
-  }
-
-  getRowSettingKeys(): Array<string> {
+  getRowSettingKeys() : Array<string> {
     if (this.rowSetting === 'enable') {
       return this.rowSettingTree!.getCheckdKeys();
     }
@@ -783,7 +740,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart(): void {
+  enableCollapseChart() : void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcExpand) {
@@ -1463,12 +1420,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([row-setting='enable']:not([check-type='-1'])) .collect{
             margin-right: 5px;
         } 
-        :host([row-setting='checkFile']) #rowCheckFile{
-          display:flex;
-        }
-        :host([row-setting='checkFile']) #myfolder{
-          color:#4b5766;
-        }
         </style>
         <div class="root">
             <div class="describe flash" style="position: inherit">

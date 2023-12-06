@@ -350,6 +350,7 @@ export class SpChartList extends BaseElement {
         this.fragmentGroup1.appendChild(row);
       }
       this.collectEl1?.appendChild(this.fragmentGroup1);
+      this.scrollTo({ top: this.collectEl1?.clientHeight || 0 });
     } else {
       if (!this.collect2Expand) {
         this.collect2Expand = true;
@@ -362,10 +363,10 @@ export class SpChartList extends BaseElement {
         this.fragmentGroup2.appendChild(row);
       }
       this.collectEl2!.appendChild(this.fragmentGroup2);
+      this.scrollTo({ top: this.scrollHeight });
     }
     this.updateGroupDisplay();
     this.resizeHeight();
-    this.scrollTo({ top: this.scrollHeight });
     this.refreshFavoriteCanvas();
     row.currentContext = this.canvasCtx;
   }

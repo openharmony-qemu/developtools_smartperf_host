@@ -127,6 +127,7 @@ export class SpHelp extends BaseElement {
                 title: 'Native Memory抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
+                  console.log('22222');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'native',
                     action: 'help_doc',
@@ -147,6 +148,19 @@ export class SpHelp extends BaseElement {
                   that.appContent!.innerHTML =
                     '<object type="text/html" data=' +
                     `/application/doc/quickstart_page_fault.html?${that.dark} width="100%" height="100%"></object>`;
+                },
+              },
+              {
+                title: '进程smaps抓取和展示说明',
+                icon: '',
+                clickHandler: function (item: MenuItem) {
+                  SpStatisticsHttpUtil.addOrdinaryVisitAction({
+                    event: 'smaps',
+                    action: 'help_doc',
+                  });
+                  that.appContent!.innerHTML =
+                    '<object type="text/html" data=' +
+                    `/application/doc/quickstart_smaps.html?${that.dark} width="100%" height="100%"></object>`;
                 },
               },
               {
@@ -390,6 +404,7 @@ export class SpHelp extends BaseElement {
                 title: 'Ability Monitor抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
+                  console.log('444444');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'ability',
                     action: 'help_doc',

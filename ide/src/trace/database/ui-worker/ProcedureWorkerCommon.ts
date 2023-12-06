@@ -48,10 +48,10 @@ export class RequestMessage {
   totalNS: any;
   slicesTime:
     | {
-      startTime: number | null;
-      endTime: number | null;
-      color: string | null;
-    }
+        startTime: number | null;
+        endTime: number | null;
+        color: string | null;
+      }
     | undefined;
   range: any;
   scale: any;
@@ -64,9 +64,9 @@ export class RequestMessage {
   id: any;
   postMessage:
     | {
-      (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-      (message: any, options?: WindowPostMessageOptions): void;
-    }
+        (message: any, targetOrigin: string, transfer?: Transferable[]): void;
+        (message: any, options?: WindowPostMessageOptions): void;
+      }
     | undefined;
 }
 
@@ -99,8 +99,8 @@ export function ns2Timestamp(ns: number): string {
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
     .toString()
     .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-      .toString()
-      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+    .toString()
+    .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -476,7 +476,6 @@ export class Point {
 export enum LineType {
   brokenLine,
   bezierCurve,
-  StraightLine
 }
 
 export class PairPoint {
@@ -489,7 +488,6 @@ export class PairPoint {
   lineType?: LineType;
   business: string = '';
   hidden?: boolean = false;
-  backrowEL?: TraceRow<any>;
   constructor(
     rowEL: TraceRow<any>,
     x: number,
@@ -539,10 +537,10 @@ export function drawFlagLine(
   frame: any,
   slicesTime:
     | {
-      startTime: number | null | undefined;
-      endTime: number | null | undefined;
-      color: string | null | undefined;
-    }
+        startTime: number | null | undefined;
+        endTime: number | null | undefined;
+        color: string | null | undefined;
+      }
     | undefined
 ) {
   if (commonCtx) {
@@ -745,96 +743,96 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
       context.globalAlpha = 1;
     }
 
-    // 绘制方法H:RSMainThread::DoComposition平均帧率的箭头指示线条
-    if (params._docompositionList?.length) {
-      const rateList: Array<number> = [...new Set(params.docompositionList)];
-      if (rateList.length >= 2) {
-        // 计算平均帧率  
-        let cutres: number = (rateList[rateList.length - 1]! - rateList[0]!);
-        let avgFrameRate: string = ((rateList.length - 1) / cutres * 1000000000).toFixed(1) + 'fps';
+   // 绘制方法H:RSMainThread::DoComposition平均帧率的箭头指示线条
+   if (params._docompositionList?.length) {
+    const rateList: Array<number> = [...new Set(params.docompositionList)];
+    if (rateList.length >= 2) {
+      // 计算平均帧率  
+      let cutres: number = (rateList[rateList.length - 1]! - rateList[0]!);
+      let avgFrameRate: string = ((rateList.length - 1) / cutres * 1000000000).toFixed(1) + 'fps';
 
-        let avgRateStartX = Math.floor(
-          ns2x(
-            rateList[0]!,
-            TraceRow.range?.startNS ?? 0,
-            TraceRow.range?.endNS ?? 0,
-            TraceRow.range?.totalNS ?? 0,
-            params.frame
-          )
-        );
-        let avgRateEndX = Math.floor(
-          ns2x(
-            rateList[rateList.length - 1]!,
-            TraceRow.range?.startNS ?? 0,
-            TraceRow.range?.endNS ?? 0,
-            TraceRow.range?.totalNS ?? 0,
-            params.frame
-          )
-        );
-        const textWidth = context.measureText(avgFrameRate).width;
-        const textHeight = 25;
-        const padding = 5;
-        let textX = Math.floor(ns2x(
-          (rateList[0]! + rateList[rateList.length - 1]!) / 2,
+      let avgRateStartX = Math.floor(
+        ns2x(
+          rateList[0]!,
           TraceRow.range?.startNS ?? 0,
           TraceRow.range?.endNS ?? 0,
           TraceRow.range?.totalNS ?? 0,
           params.frame
-        )) - textWidth / 2;
-        const textY = params.frame.y + 25;
+        )
+      );
+      let avgRateEndX = Math.floor(
+        ns2x(
+          rateList[rateList.length - 1]!,
+          TraceRow.range?.startNS ?? 0,
+          TraceRow.range?.endNS ?? 0,
+          TraceRow.range?.totalNS ?? 0,
+          params.frame
+        )
+      );
+      const textWidth = context.measureText(avgFrameRate).width;
+      const textHeight = 25;
+      const padding = 5;
+      let textX = Math.floor(ns2x(
+        (rateList[0]! + rateList[rateList.length - 1]!) / 2,
+        TraceRow.range?.startNS ?? 0,
+        TraceRow.range?.endNS ?? 0,
+        TraceRow.range?.totalNS ?? 0,
+        params.frame
+      )) - textWidth / 2;
+      const textY = params.frame.y + 25;
 
-        //左移到边界，不画线和文字
-        if (avgRateStartX <= 0) {
-          avgRateStartX = -100;
-        }
-        if (avgRateEndX <= 0) {
-          avgRateEndX = -100;
-        }
-        if (textX <= 0) {
-          textX = -100;
-        }
-        //右移到边界，不画线和文字
-        if (textX + textWidth / 2 >= params.frame.width) {
-          textX = params.frame.width + 100
-        }
-        if (avgRateStartX >= params.frame.width) {
-          avgRateStartX = params.frame.width + 100;
-        }
-        if (avgRateEndX >= params.frame.width) {
-          avgRateEndX = params.frame.width + 100;
-        }
-        // 绘制文字背景矩形  
-        context.fillStyle = 'red';
-        context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
-
-        context.lineWidth = 2;
-        context.strokeStyle = 'yellow';
-        context.beginPath();
-        context.moveTo(avgRateStartX, textY);
-        context.lineTo(avgRateEndX, textY);
-        context.stroke();
-
-        const arrowSize = 5.5;
-        const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
-          context.beginPath();
-          const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
-          const headY = y - arrowSize / 2;
-          context.moveTo(x, y);
-          context.lineTo(headX, headY);
-          context.lineTo(headX, y + arrowSize);
-          context.closePath();
-
-          context.fillStyle = 'yellow';
-          context.fill();
-        };
-        arrowHead(avgRateStartX, textY - 1, 'left');
-        arrowHead(avgRateEndX, textY - 1, 'right');
-
-        context.fillStyle = 'white';
-        context.fillText(avgFrameRate, textX, textY - 8);
+      //左移到边界，不画线和文字
+      if (avgRateStartX <= 0) {
+        avgRateStartX = -100;
       }
+      if (avgRateEndX <= 0) {
+        avgRateEndX = -100;
+      }
+      if (textX <= 0) {
+        textX = -100;
+      }
+      //右移到边界，不画线和文字
+      if (textX + textWidth / 2 >= params.frame.width) {
+        textX = params.frame.width + 100
+      }
+      if (avgRateStartX >= params.frame.width) {
+        avgRateStartX = params.frame.width + 100;
+      }
+      if (avgRateEndX >= params.frame.width) {
+        avgRateEndX = params.frame.width + 100;
+      }
+      // 绘制文字背景矩形  
+      context.fillStyle = 'red';
+      context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
+
+      context.lineWidth = 2;
+      context.strokeStyle = 'yellow';
+      context.beginPath();
+      context.moveTo(avgRateStartX, textY);
+      context.lineTo(avgRateEndX, textY);
+      context.stroke();
+
+      const arrowSize = 5.5;
+      const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
+        context.beginPath();
+        const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
+        const headY = y - arrowSize / 2;
+        context.moveTo(x, y);
+        context.lineTo(headX, headY);
+        context.lineTo(headX, y + arrowSize);
+        context.closePath();
+
+        context.fillStyle = 'yellow';
+        context.fill();
+      };
+      arrowHead(avgRateStartX, textY - 1, 'left');
+      arrowHead(avgRateEndX, textY - 1, 'right');
+
+      context.fillStyle = 'white';
+      context.fillText(avgFrameRate, textX, textY - 8);
     }
   }
+}
 }
 
 export function drawWakeUp(
@@ -975,9 +973,6 @@ export function drawLinkLines(
       case LineType.bezierCurve:
         drawBezierCurve([newFirstNode, newSecondNode], maxWidth, context, percentage);
         break;
-      case LineType.StraightLine:
-        drawStraightLine([newFirstNode, newSecondNode], maxWidth, context);
-        break;
       default:
         drawBezierCurve([newFirstNode, newSecondNode], maxWidth, context, percentage);
     }
@@ -1064,65 +1059,6 @@ function drawBezierCurve(it: PairPoint[], maxWidth: number, context: CanvasRende
   }
 }
 
-function drawStraightLine(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D) {
-  let startPoint = it[0].x > it[1].x ? it[1] : it[0];
-  let endPoint = it[0].x > it[1].x ? it[0] : it[1];
-
-  let arrowSize = 8;
-  if (startPoint && endPoint) {
-    //左移到边界，不画线
-    if (startPoint.x <= 0) {
-      startPoint.x = -100;
-    }
-    if (endPoint.x <= 0) {
-      endPoint.x = -100;
-    }
-    //右移到边界，不画线
-    if (startPoint.x >= maxWidth) {
-      startPoint.x = maxWidth + 100;
-    }
-    if (endPoint.x >= maxWidth) {
-      endPoint.x = maxWidth + 100;
-    }
-
-    context.beginPath();
-    context.lineWidth = 2;
-    context.strokeStyle = '#0000FF';
-
-    context.moveTo(startPoint.x, startPoint.y);
-    context.lineTo(endPoint.x, endPoint.y);
-
-    // 绘制箭头
-    let arrow = Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
-    context.moveTo(endPoint.x, endPoint.y);
-    context.lineTo(
-      endPoint.x - arrowSize * Math.cos(arrow - Math.PI / 6),
-      endPoint.y - arrowSize * Math.sin(arrow - Math.PI / 6)
-    );
-    context.moveTo(endPoint.x, endPoint.y);
-    context.lineTo(
-      endPoint.x - arrowSize * Math.cos(arrow + Math.PI / 6),
-      endPoint.y - arrowSize * Math.sin(arrow + Math.PI / 6)
-    );
-
-    // 绘制另一端箭头
-    arrow = Math.atan2(startPoint.y - endPoint.y, startPoint.x - endPoint.x);
-    context.moveTo(startPoint.x, startPoint.y);
-    context.lineTo(
-      startPoint.x - arrowSize * Math.cos(arrow - Math.PI / 6),
-      startPoint.y - arrowSize * Math.sin(arrow - Math.PI / 6)
-    );
-    context.moveTo(startPoint.x, startPoint.y);
-    context.lineTo(
-      startPoint.x - arrowSize * Math.cos(arrow + Math.PI / 6),
-      startPoint.y - arrowSize * Math.sin(arrow + Math.PI / 6)
-    );
-
-    context.stroke();
-    context.closePath();
-  }
-}
-
 function drawBrokenLine(it: PairPoint[], maxWidth: number, context: CanvasRenderingContext2D): void {
   let brokenLineStart = it[0].x > it[1].x ? it[1] : it[0];
   let brokenLineEnd = it[0].x > it[1].x ? it[0] : it[1];
@@ -1201,7 +1137,7 @@ export function drawLoading(
   frame: any,
   left: number,
   right: number
-) { }
+) {}
 
 export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
   if (data.textMetricsWidth === undefined) {

@@ -137,12 +137,6 @@ export class SpKeyboard extends BaseElement {
                       </td>
                       <td class="describe-td">展示快捷方式</td>
                     </tr>
-                    <tr>
-                      <td>
-                        <div class="keycap">v</div>
-                      </td>
-                      <td class="describe-td">展示/隐藏Vsync信号</td>
-                    </tr>
                   </table>
                 </div>
               </main>

@@ -42,7 +42,6 @@ import { type TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneN
 import { type TabPaneCurrent } from '../sheet/TabPaneCurrent.js';
 import { type SlicesTime } from '../timer-shaft/SportRuler.js';
 import { type AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup.js';
-import { type AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
 import { type SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit.js';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
 import { type TraceRow } from './TraceRow.js';
@@ -82,7 +81,6 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable.js';
 import '../../../../base-ui/popover/LitPopoverV.js';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree.js';
-import { SegMenTaTion } from '../../chart/SpSegmentationChart.js';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -284,7 +282,7 @@ export class TraceSheet extends BaseElement {
           } else if (
             navRoot!.offsetHeight <= moveY &&
             search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight <=
-            window.innerHeight - moveY
+              window.innerHeight - moveY
           ) {
             tabs!.style.height = moveY + 'px';
             node!.style.height = moveY - navRoot!.offsetHeight + 'px';
@@ -483,16 +481,14 @@ export class TraceSheet extends BaseElement {
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
     scrollPreviousData: (d: ThreadStruct) => void,
-    scrollNextData: (d: ThreadStruct) => void,
-    callback: ((data: Array<any>) => void) | undefined = undefined,
+    scrollNextData: (d: ThreadStruct) => void
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
       scrollCallback,
       scrollWakeUp,
       scrollPreviousData,
-      scrollNextData,
-      callback
+      scrollNextData
     );
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
@@ -502,8 +498,6 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
   displayStartupData = (data: AppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback);
-  displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStaticInitData(data, scrollCallback);
 
@@ -808,9 +802,9 @@ export class TraceSheet extends BaseElement {
     if (selection && selection.nativeMemoryAllProcess.length > 1) {
       this.switchDiv!.style.display = 'flex';
       if (this.isProcessEqual(selection.nativeMemoryAllProcess)) {
-        if (this.processTree) {
-          for (const data of this.processTree.treeData) {
-            if (data.key === `${selection.nativeMemoryCurrentIPid}`) {
+        if (this.processTree){
+          for (const data of this.processTree.treeData){
+            if (data.key === `${selection.nativeMemoryCurrentIPid}`){
               data.checked = true;
             } else {
               data.checked = false;
@@ -844,11 +838,10 @@ export class TraceSheet extends BaseElement {
   }
 
   loadTabPaneData(key: string): void {
-    SegMenTaTion.setChartData('BINDER',[]);
     let component: any = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
-    if (component) {
+    if (component) {  
       this.selection!.isRowClick = false;
       component.data = this.selection;
     }
