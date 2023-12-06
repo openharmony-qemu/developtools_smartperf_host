@@ -1,0 +1,54 @@
+{
+  "subsystems": [
+    {
+      "subsystem": "Cpu",
+      "components": [
+        {
+          "component": "Cpu",
+          "charts": [
+            {"chartName": "Cpu", "chartId": ""}
+          ]
+        },
+        {
+          "component": "Cpu Frequency",
+          "charts": [
+            {"chartName": "Cpu Frequency", "chartId": ""}
+          ]
+        },
+        {
+          "component": "Cpu State",
+          "charts": [
+            {"chartName": "Cpu State", "chartId": ""}
+          ]
+        },
+        {
+          "component": "Cpu Freq Limit",
+          "charts": [
+            {"chartName": "Cpu Freq Limit", "chartId": ""}
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "Irqs",
+      "components": [
+        {
+          "component": "Irqs",
+          "charts": [
+            {"chartName": "Irqs", "chartId": ""}
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "FrameTimeline",
+      "components": [
+        {
+          "component": "FrameTimeline",
+          "charts": [
+            {"chartName": "FrameTimeline", "chartId": ""}
+          ]
+        }
+      ]
+    }]
+}

@@ -155,7 +155,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public isLoading: boolean = false;
   public tampName: string = '';
   public readonly args: any;
-  public templateType: Array<string> = [];
+  public templateType: Set<string> = new Set<string>();
   private rootEL: HTMLDivElement | null | undefined;
   private nameEL: HTMLLabelElement | null | undefined;
   private rowSettingTree: LitTree | null | undefined;
@@ -462,7 +462,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   addTemplateTypes(...type: string[]): void {
-    this.templateType.push(...type);
+    type.forEach(item => {
+      this.templateType.add(item);
+    })
     if (this.hasParentRowEl) {
       this.toParentAddTemplateType(this);
     }
@@ -471,7 +473,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   toParentAddTemplateType = (currentRowEl: TraceRow<any>): void => {
     let parentRow = currentRowEl.parentRowEl;
     if (parentRow !== undefined) {
-      parentRow.templateType.push(...currentRowEl.templateType);
+      currentRowEl.templateType.forEach(item => {
+        parentRow!.templateType.add(item);
+      });
       if (parentRow.parentRowEl !== undefined) {
         this.toParentAddTemplateType(parentRow);
       }
