@@ -274,7 +274,7 @@ EbpfCallStackData* TraceDataCacheWriter::GetEbpfCallStack()
 }
 PagedMemorySampleData* TraceDataCacheWriter::GetPagedMemorySampleData()
 {
-    return &PagedMemorySampleData_;
+    return &pagedMemorySampleData_;
 }
 #if WITH_EBPF_HELP
 EbpfProcessMaps* TraceDataCacheWriter::GetEbpfProcessMaps()
@@ -487,7 +487,7 @@ void TraceDataCacheWriter::Clear()
     liveProcessDetailData_.Clear();
     fileSamplingTableData_.Clear();
     ebpfCallStackData_.Clear();
-    PagedMemorySampleData_.Clear();
+    pagedMemorySampleData_.Clear();
     jsHeapFilesData_.Clear();
     jsHeapEdgesData_.Clear();
     jsHeapInfoData_.Clear();

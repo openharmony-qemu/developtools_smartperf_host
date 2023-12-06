@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock.js';
-import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq.js';
-import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc.js';
-import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic.js';
-import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation.js';
-import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { JsCpuProfilerChartFrame } from './JsStruct.js';
-import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
-import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
+import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
+import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
+import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
+import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
+import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
+import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing';
+import { JsCpuProfilerChartFrame } from './JsStruct';
+import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog';
+import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent';
 
 export class SelectionParam {
   recordStartNs: number = 0;

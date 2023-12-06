@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { DataMessage } from '../message/DataMessage.js';
-import { HdcClient } from './HdcClient.js';
-import { FormatCommand } from './FormatCommand.js';
-import { HdcCommand } from './HdcCommand.js';
-import { Utils } from '../common/Utils.js';
-import { AsyncQueue } from './AsyncQueue.js';
-import { PayloadHead } from '../message/PayloadHead.js';
-import { Serialize } from '../common/Serialize.js';
+import { DataMessage } from '../message/DataMessage';
+import { HdcClient } from './HdcClient';
+import { FormatCommand } from './FormatCommand';
+import { HdcCommand } from './HdcCommand';
+import { Utils } from '../common/Utils';
+import { AsyncQueue } from './AsyncQueue';
+import { PayloadHead } from '../message/PayloadHead';
+import { Serialize } from '../common/Serialize';
 
 export class HdcStream {
   private dataMessages: AsyncQueue<DataMessage> = new AsyncQueue<DataMessage>();

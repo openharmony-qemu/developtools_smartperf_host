@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/SqlLite.js';
-import { CpuUsage, Freq } from '../../../../bean/CpuUsage.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/SqlLite';
+import { CpuUsage, Freq } from '../../../../bean/CpuUsage';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {

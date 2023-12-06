@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { querySysPurgeableTab, queryProcessPurgeableTab } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { querySysPurgeableTab, queryProcessPurgeableTab } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-purg-total')
 export class TabPanePurgTotal extends BaseElement {

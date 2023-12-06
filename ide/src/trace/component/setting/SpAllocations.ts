@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { log } from '../../../log/Log.js';
-import { SpApplication } from '../../SpApplication.js';
-import { LitSearch } from '../trace/search/Search.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { Cmd } from '../../../command/Cmd.js';
-import LitSwitch from '../../../base-ui/switch/lit-switch.js';
-import { LitSlider } from '../../../base-ui/slider/LitSlider.js';
-import { LitSelectV } from '../../../base-ui/select/LitSelectV.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { log } from '../../../log/Log';
+import { SpApplication } from '../../SpApplication';
+import { LitSearch } from '../trace/search/Search';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { Cmd } from '../../../command/Cmd';
+import LitSwitch from '../../../base-ui/switch/lit-switch';
+import { LitSlider } from '../../../base-ui/slider/LitSlider';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {

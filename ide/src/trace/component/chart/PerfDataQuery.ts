@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { queryPerfFiles } from '../../database/SqlLite.js';
-import { PerfCall, PerfFile } from '../../bean/PerfProfile.js';
-import { info } from '../../../log/Log.js';
-import { SpHiPerf } from './SpHiPerf.js';
-import { procedurePool } from '../../database/Procedure.js';
+import { queryPerfFiles } from '../../database/SqlLite';
+import { PerfCall, PerfFile } from '../../bean/PerfProfile';
+import { info } from '../../../log/Log';
+import { SpHiPerf } from './SpHiPerf';
+import { procedurePool } from '../../database/Procedure';
 import {PerfCallChain} from "../../database/logic-worker/ProcedureLogicWorkerPerf";
 
 export class PerfDataQuery {

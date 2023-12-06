@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { AuthType } from './AuthType.js';
-import { HANDSHAKE_MESSAGE } from '../common/ConstantType.js';
-import { BaseBean } from './BaseBean.js';
+import { AuthType } from './AuthType';
+import { HANDSHAKE_MESSAGE } from '../common/ConstantType';
+import { BaseBean } from './BaseBean';
 
 export class SessionHandShake extends Object implements BaseBean {
   private _banner: string = HANDSHAKE_MESSAGE; //  string  must first index

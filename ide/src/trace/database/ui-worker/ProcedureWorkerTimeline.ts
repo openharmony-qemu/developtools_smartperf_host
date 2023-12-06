@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { ns2s, Rect, Render, RequestMessage } from './ProcedureWorkerCommon.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { CpuStruct } from './ProcedureWorkerCPU.js';
+import { ns2s, Rect, Render, RequestMessage } from './ProcedureWorkerCommon';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { CpuStruct } from './ProcedureWorkerCPU';
 
 //绘制时间轴
 let timeRuler: TimeRuler | undefined;

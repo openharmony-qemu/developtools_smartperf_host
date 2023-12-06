@@ -12,10 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-class PerfCallChainThread extends Worker {
+class PerfCallChainThread{
   busy: boolean = false;
   taskMap: any = {};
+  worker?:Worker;
+
+  constructor(worker:Worker) {
+    this.worker=worker;
+  }
+
   uuid(): string {
     // @ts-ignore
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
@@ -33,7 +38,7 @@ class PerfCallChainThread extends Worker {
       action: action || 'exec',
       params: args,
     };
-    this.postMessage(msg);
+    this.worker!.postMessage(msg);
   }
 }
 
@@ -44,15 +49,15 @@ export class PerfCallChainPool {
   close = async () => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
-      thread.terminate();
+      thread.worker!.terminate();
     }
     this.works.length = 0;
   };
 
   init = async () => {
     await this.close();
-    let thread = new PerfCallChainThread('trace/component/chart/PerfDataQuery.js', { type: 'module' }); //trace/component/chart/PerfDataQuery.js
-    thread!.onmessage = (event: MessageEvent) => {
+    let thread = new PerfCallChainThread(new Worker(new URL('../../component/chart/PerfDataQuery',import.meta.url), { type: 'module' })); //trace/component/chart/PerfDataQuery.js
+    thread!.worker!.onmessage = (event: MessageEvent) => {
       thread.busy = false;
       let fun = thread.taskMap[event.data.id];
       if (fun) {
@@ -60,8 +65,8 @@ export class PerfCallChainPool {
       }
       Reflect.deleteProperty(thread.taskMap, event.data.id);
     };
-    thread!.onmessageerror = (e) => {};
-    thread!.onerror = (e) => {};
+    thread!.worker!.onmessageerror = (e) => {};
+    thread!.worker!.onerror = (e) => {};
     thread!.busy = false;
     this.works?.push(thread!);
   };

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { SpApplication } from '../SpApplication.js';
-import { Rect } from '../component/trace/timer-shaft/Rect.js';
-import { warn } from '../../log/Log.js';
-import { BaseStruct, drawString } from '../database/ui-worker/ProcedureWorkerCommon.js';
+import { SpApplication } from '../SpApplication';
+import { Rect } from '../component/trace/timer-shaft/Rect';
+import { warn } from '../../log/Log';
+import { BaseStruct, drawString } from '../database/ui-worker/ProcedureWorkerCommon';
 
 const padding: number = 1;
 const rectHeight = 20;

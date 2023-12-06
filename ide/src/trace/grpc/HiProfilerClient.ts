@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Address, ProfilerClient } from './ProfilerClient.js';
+import { Address, ProfilerClient } from './ProfilerClient';
 
 export class HiProfilerClient {
   private _client: ProfilerClient;

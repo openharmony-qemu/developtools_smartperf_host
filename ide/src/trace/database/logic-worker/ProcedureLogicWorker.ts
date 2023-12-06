@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { ProcedureLogicWorkerPerf } from './ProcedureLogicWorkerPerf.js';
-import { ProcedureLogicWorkerNativeMemory } from './ProcedureLogicWorkerNativeNemory.js';
-import { ProcedureLogicWorkerFileSystem } from './ProcedureLogicWorkerFileSystem.js';
-import { ProcedureLogicWorkerSPT } from './ProcedureLogicWorkerSPT.js';
-import { ProcedureLogicWorkerCpuState } from './ProcedureLogicWorkerCpuState.js';
-import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSchedulingAnalysis.js';
-import { DataCache } from './ProcedureLogicWorkerCommon.js';
-import { ProcedureLogicWorkerJsCpuProfiler } from './ProcedureLogicWorkerJsCpuProfiler.js';
+import { ProcedureLogicWorkerPerf } from './ProcedureLogicWorkerPerf';
+import { ProcedureLogicWorkerNativeMemory } from './ProcedureLogicWorkerNativeNemory';
+import { ProcedureLogicWorkerFileSystem } from './ProcedureLogicWorkerFileSystem';
+import { ProcedureLogicWorkerSPT } from './ProcedureLogicWorkerSPT';
+import { ProcedureLogicWorkerCpuState } from './ProcedureLogicWorkerCpuState';
+import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSchedulingAnalysis';
+import { DataCache } from './ProcedureLogicWorkerCommon';
+import { ProcedureLogicWorkerJsCpuProfiler } from './ProcedureLogicWorkerJsCpuProfiler';
 
 let logicWorker: any = {
   perf: new ProcedureLogicWorkerPerf(),

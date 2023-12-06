@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryDmaSampsData,
   queryGpuMemoryData,
@@ -27,17 +27,17 @@ import {
   queryGpuWindowType,
   queryGpuData,
   queryGpuResourceData,
-} from '../../database/SqlLite.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { type BaseStruct } from '../../bean/BaseStruct.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { Utils } from '../trace/base/Utils.js';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { info } from '../../../log/Log.js';
-import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { type TreeItemData } from '../../../base-ui/tree/LitTree.js';
-import { MemoryConfig } from '../../bean/MemoryConfig.js';
-import { TabPaneSmapsRecord } from '../trace/sheet/smaps/TabPaneSmapsRecord.js';
+} from '../../database/SqlLite';
+import { TraceRow } from '../trace/base/TraceRow';
+import { type BaseStruct } from '../../bean/BaseStruct';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { Utils } from '../trace/base/Utils';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { info } from '../../../log/Log';
+import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot';
+import { type TreeItemData } from '../../../base-ui/tree/LitTree';
+import { MemoryConfig } from '../../bean/MemoryConfig';
+import { TabPaneSmapsRecord } from '../trace/sheet/smaps/TabPaneSmapsRecord';
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;

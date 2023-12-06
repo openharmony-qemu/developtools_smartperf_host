@@ -13,23 +13,23 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryBootTime,
   queryHeapGroupByEvent,
   queryNativeHookProcess,
   queryNativeHookStatisticsCount,
   queryNativeMemoryRealTime,
-} from '../../database/SqlLite.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { info } from '../../../log/Log.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { type NativeEventHeap } from '../../bean/NativeHook.js';
-import { HeapRender, HeapStruct } from '../../database/ui-worker/ProcedureWorkerHeap.js';
-import { Utils } from '../trace/base/Utils.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { type BaseStruct } from '../../bean/BaseStruct.js';
+} from '../../database/SqlLite';
+import { TraceRow } from '../trace/base/TraceRow';
+import { info } from '../../../log/Log';
+import { procedurePool } from '../../database/Procedure';
+import { type NativeEventHeap } from '../../bean/NativeHook';
+import { HeapRender, HeapStruct } from '../../database/ui-worker/ProcedureWorkerHeap';
+import { Utils } from '../trace/base/Utils';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type BaseStruct } from '../../bean/BaseStruct';
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];

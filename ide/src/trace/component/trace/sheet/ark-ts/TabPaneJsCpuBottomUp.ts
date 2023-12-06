@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { element } from '../../../../../base-ui/BaseElement.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { type JsCpuProfilerChartFrame } from '../../../../bean/JsStruct.js';
-import { TabPaneJsCpuCallTree } from './TabPaneJsCpu.js';
+import { element } from '../../../../../base-ui/BaseElement';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { type JsCpuProfilerChartFrame } from '../../../../bean/JsStruct';
+import { TabPaneJsCpuCallTree } from './TabPaneJsCpu';
 
 @element('tabpane-js-cpu-bottom-up')
 export class TabPaneJsCpuBottomUp extends TabPaneJsCpuCallTree {

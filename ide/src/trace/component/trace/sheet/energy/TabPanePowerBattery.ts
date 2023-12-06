@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabPowerBatteryData } from '../../../../database/SqlLite.js';
-import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart.js';
-import '../../../../../base-ui/table/lit-table.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPowerBatteryData } from '../../../../database/SqlLite';
+import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
+import '../../../../../base-ui/table/lit-table';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-power-battery')
 export class TabPanePowerBattery extends BaseElement {

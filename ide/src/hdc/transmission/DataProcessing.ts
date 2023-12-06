@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { TransmissionInterface } from './TransmissionInterface.js';
-import { PACKET_FLAG, USB_PACKET_FLAG } from '../common/ConstantType.js';
-import { USBHead } from '../message/USBHead.js';
-import { DataMessage } from '../message/DataMessage.js';
-import { DataListener } from '../hdcclient/DataListener.js';
-import { PayloadProtect } from '../message/PayloadProtect.js';
-import { Serialize } from '../common/Serialize.js';
-import { PayloadHead } from '../message/PayloadHead.js';
-import { UsbProtocolOption } from '../hdcclient/UsbProtocolOption.js';
-import { toHex16 } from '../common/BaseConversion.js';
-import { error, log } from '../../log/Log.js';
+import { TransmissionInterface } from './TransmissionInterface';
+import { PACKET_FLAG, USB_PACKET_FLAG } from '../common/ConstantType';
+import { USBHead } from '../message/USBHead';
+import { DataMessage } from '../message/DataMessage';
+import { DataListener } from '../hdcclient/DataListener';
+import { PayloadProtect } from '../message/PayloadProtect';
+import { Serialize } from '../common/Serialize';
+import { PayloadHead } from '../message/PayloadHead';
+import { UsbProtocolOption } from '../hdcclient/UsbProtocolOption';
+import { toHex16 } from '../common/BaseConversion';
+import { error, log } from '../../log/Log';
 
 export class DataProcessing {
   private readonly transmissionChannel: TransmissionInterface;

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseBean } from './BaseBean.js';
+import { BaseBean } from './BaseBean';
 
 export class PayloadProtect extends Object implements BaseBean {
   // reserve for encrypt and decrypt

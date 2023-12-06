@@ -320,5 +320,8 @@ if (use_wasm) {
       "-Wno-sign-compare",
       "-D HAVE_PTHREAD",
     ]
+    if (is_mingw) {
+      output_extension = "exe"
+    }
   }
 }

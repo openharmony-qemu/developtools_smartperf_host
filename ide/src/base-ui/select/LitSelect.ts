@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { selectHtmlStr } from './LitSelectHtml.js';
+import { BaseElement, element } from '../BaseElement';
+import { selectHtmlStr } from './LitSelectHtml';
 
 @element('lit-select')
 export class LitSelect extends BaseElement {

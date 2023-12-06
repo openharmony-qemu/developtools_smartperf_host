@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabPaneIOTierStatisticsData } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { TabPaneFilter } from '../TabPaneFilter.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPaneIOTierStatisticsData } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { TabPaneFilter } from '../TabPaneFilter';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 
 @element('tabpane-io-tier-statistics')
 export class TabPaneIOTierStatistics extends BaseElement {

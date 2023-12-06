@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { BaseStruct, isFrameContainPoint, ns2x, Render, RequestMessage, drawString } from './ProcedureWorkerCommon.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { BaseStruct, isFrameContainPoint, ns2x, Render, RequestMessage, drawString } from './ProcedureWorkerCommon';
 
 export class SoRender extends Render {
   renderMainThread(

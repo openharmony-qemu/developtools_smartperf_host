@@ -13,76 +13,75 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { type LitTabs } from '../../../../base-ui/tabs/lit-tabs.js';
-import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane.js';
-import { BoxJumpParam, SelectionParam } from '../../../bean/BoxSelection.js';
-import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection.js';
-import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag.js';
-import { type Flag } from '../timer-shaft/Flag.js';
-import { type WakeupBean } from '../../../bean/WakeupBean.js';
-import { type LitIcon } from '../../../../base-ui/icon/LitIcon.js';
-import { tabConfig } from './TraceSheetConfig.js';
-import { type TabPaneBoxChild } from '../sheet/cpu/TabPaneBoxChild.js';
-import { type CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU.js';
-import { CpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerFreq.js';
-import { CpuFreqLimitsStruct } from '../../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread.js';
-import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc.js';
-import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem.js';
-import { CpuStateStruct } from '../../../database/ui-worker/ProcedureWorkerCpuState.js';
-import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock.js';
-import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq.js';
-import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank.js';
-import { type HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap.js';
-import { type LitTable } from '../../../../base-ui/table/lit-table.js';
-import { threadPool } from '../../../database/SqlLite.js';
-import { type HeapSnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import { type TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStatisticAnalysis.js';
-import { type TabPaneCurrent } from '../sheet/TabPaneCurrent.js';
-import { type SlicesTime } from '../timer-shaft/SportRuler.js';
-import { type AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup.js';
-import { type AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
-import { type SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit.js';
-import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation.js';
-import { type TraceRow } from './TraceRow.js';
-import { type FrameDynamicStruct } from '../../../database/ui-worker/ProcedureWorkerFrameDynamic.js';
-import { type TabPaneFrameDynamic } from '../sheet/frame/TabPaneFrameDynamic.js';
-import { type FrameSpacingStruct } from '../../../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { type TabFrameSpacing } from '../sheet/frame/TabFrameSpacing.js';
-import { type JsCpuProfilerChartFrame } from '../../../bean/JsStruct.js';
-import { type TabPaneComparison } from '../sheet/ark-ts/TabPaneComparison.js';
-import { type TabPaneSummary } from '../sheet/ark-ts/TabPaneSummary.js';
-import { type TabPaneGpuClickSelect } from '../sheet/gpu/TabPaneGpuClickSelect.js';
-import { type TabPanePurgTotalSelection } from '../sheet/ability/TabPanePurgTotalSelection.js';
-import { type TabPanePurgPinSelection } from '../sheet/ability/TabPanePurgPinSelection.js';
-import { type TabPaneVmTrackerShmSelection } from '../sheet/vmtracker/TabPaneVmTrackerShmSelection.js';
-import { type TabPaneSmapsStatistics } from '../sheet/smaps/TabPaneSmapsStatistics.js';
-import { type TabPaneSmapsComparison } from '../sheet/smaps/TabPaneSmapsComparison.js';
-import { type SnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { type TabPaneDmaSelectAbility } from '../sheet/ability/TabPaneDmaSelectAbility.js';
-import { type TabPaneGpuMemorySelectAbility } from '../sheet/ability/TabPaneGpuMemorySelectAbility.js';
-import { type TabPaneDmaSelectVmTracker } from '../sheet/vmtracker/TabPaneDmaSelectVmTracker.js';
-import { type TabPanePurgTotalComparisonAbility } from '../sheet/ability/TabPanePurgTotalComparisonAbility.js';
-import { type TabPanePurgPinComparisonAbility } from '../sheet/ability/TabPanePurgPinComparisonAbility.js';
-import { type TabPanePurgTotalComparisonVM } from '../sheet/vmtracker/TabPanePurgTotalComparisonVM.js';
-import { type TabPanePurgPinComparisonVM } from '../sheet/vmtracker/TabPanePurgPinComparisonVM.js';
-import { type TabPaneDmaAbilityComparison } from '../sheet/ability/TabPaneDmaAbilityComparison.js';
-import { type TabPaneGpuMemoryComparison } from '../sheet/ability/TabPaneGpuMemoryComparison.js';
-import { type TabPaneDmaVmTrackerComparison } from '../sheet/vmtracker/TabPaneDmaVmTrackerComparison.js';
-import { type TabPaneGpuMemorySelectVmTracker } from '../sheet/vmtracker/TabPaneGpuMemorySelectVmTracker.js';
-import { type TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneGpuMemoryVmTrackerComparison.js';
-import { type TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison.js';
-import { type TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics.js';
-import { type TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison.js';
-import { Utils } from './Utils.js';
-import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs.js';
-import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker.js';
-import { type LitPageTable } from '../../../../base-ui/table/LitPageTable.js';
-import '../../../../base-ui/popover/LitPopoverV.js';
-import { LitPopover } from '../../../../base-ui/popover/LitPopoverV.js';
-import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree.js';
-import { SegMenTaTion } from '../../chart/SpSegmentationChart.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { type LitTabs } from '../../../../base-ui/tabs/lit-tabs';
+import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane';
+import { BoxJumpParam, SelectionParam } from '../../../bean/BoxSelection';
+import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
+import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag';
+import { type Flag } from '../timer-shaft/Flag';
+import { type WakeupBean } from '../../../bean/WakeupBean';
+import { type LitIcon } from '../../../../base-ui/icon/LitIcon';
+import { tabConfig } from './TraceSheetConfig';
+import { type TabPaneBoxChild } from '../sheet/cpu/TabPaneBoxChild';
+import { type CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
+import { CpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerFreq';
+import { CpuFreqLimitsStruct } from '../../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread';
+import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
+import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
+import { CpuStateStruct } from '../../../database/ui-worker/ProcedureWorkerCpuState';
+import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
+import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
+import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
+import { type HeapStruct } from '../../../database/ui-worker/ProcedureWorkerHeap';
+import { type LitTable } from '../../../../base-ui/table/lit-table';
+import { threadPool } from '../../../database/SqlLite';
+import { type HeapSnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerHeapSnapshot';
+import { type TabPaneNMStatisticAnalysis } from '../sheet/native-memory/TabPaneNMStatisticAnalysis';
+import { type TabPaneCurrent } from '../sheet/TabPaneCurrent';
+import { type SlicesTime } from '../timer-shaft/SportRuler';
+import { type AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup';
+import { type AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup';
+import { type SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
+import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
+import { type TraceRow } from './TraceRow';
+import { type FrameDynamicStruct } from '../../../database/ui-worker/ProcedureWorkerFrameDynamic';
+import { type TabPaneFrameDynamic } from '../sheet/frame/TabPaneFrameDynamic';
+import { type FrameSpacingStruct } from '../../../database/ui-worker/ProcedureWorkerFrameSpacing';
+import { type TabFrameSpacing } from '../sheet/frame/TabFrameSpacing';
+import { type JsCpuProfilerChartFrame } from '../../../bean/JsStruct';
+import { type TabPaneComparison } from '../sheet/ark-ts/TabPaneComparison';
+import { type TabPaneSummary } from '../sheet/ark-ts/TabPaneSummary';
+import { type TabPaneGpuClickSelect } from '../sheet/gpu/TabPaneGpuClickSelect';
+import { type TabPanePurgTotalSelection } from '../sheet/ability/TabPanePurgTotalSelection';
+import { type TabPanePurgPinSelection } from '../sheet/ability/TabPanePurgPinSelection';
+import { type TabPaneVmTrackerShmSelection } from '../sheet/vmtracker/TabPaneVmTrackerShmSelection';
+import { type TabPaneSmapsStatistics } from '../sheet/smaps/TabPaneSmapsStatistics';
+import { type TabPaneSmapsComparison } from '../sheet/smaps/TabPaneSmapsComparison';
+import { type SnapshotStruct } from '../../../database/ui-worker/ProcedureWorkerSnapshot';
+import { type TabPaneDmaSelectAbility } from '../sheet/ability/TabPaneDmaSelectAbility';
+import { type TabPaneGpuMemorySelectAbility } from '../sheet/ability/TabPaneGpuMemorySelectAbility';
+import { type TabPaneDmaSelectVmTracker } from '../sheet/vmtracker/TabPaneDmaSelectVmTracker';
+import { type TabPanePurgTotalComparisonAbility } from '../sheet/ability/TabPanePurgTotalComparisonAbility';
+import { type TabPanePurgPinComparisonAbility } from '../sheet/ability/TabPanePurgPinComparisonAbility';
+import { type TabPanePurgTotalComparisonVM } from '../sheet/vmtracker/TabPanePurgTotalComparisonVM';
+import { type TabPanePurgPinComparisonVM } from '../sheet/vmtracker/TabPanePurgPinComparisonVM';
+import { type TabPaneDmaAbilityComparison } from '../sheet/ability/TabPaneDmaAbilityComparison';
+import { type TabPaneGpuMemoryComparison } from '../sheet/ability/TabPaneGpuMemoryComparison';
+import { type TabPaneDmaVmTrackerComparison } from '../sheet/vmtracker/TabPaneDmaVmTrackerComparison';
+import { type TabPaneGpuMemorySelectVmTracker } from '../sheet/vmtracker/TabPaneGpuMemorySelectVmTracker';
+import { type TabPaneGpuMemoryVmTrackerComparison } from '../sheet/vmtracker/TabPaneGpuMemoryVmTrackerComparison';
+import { type TabPaneVmTrackerShmComparison } from '../sheet/vmtracker/TabPaneVmTrackerShmComparison';
+import { type TabPaneJsCpuStatistics } from '../sheet/ark-ts/TabPaneJsCpuStatistics';
+import { type TabPaneGpuClickSelectComparison } from '../sheet/gpu/TabPaneGpuClickSelectComparison';
+import { Utils } from './Utils';
+import { TabPaneHiLogs } from '../sheet/hilog/TabPaneHiLogs';
+import { TabPaneGpuResourceVmTracker } from '../sheet/vmtracker/TabPaneGpuResourceVmTracker';
+import { type LitPageTable } from '../../../../base-ui/table/LitPageTable';
+import '../../../../base-ui/popover/LitPopoverV';
+import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
+import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -157,7 +156,7 @@ export class TraceSheet extends BaseElement {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
       this.switchDiv!.visible = 'false';
-      this.updateRangeSelect(selectIPid)
+      this.updateRangeSelect(selectIPid);
       this.lastSelectIPid = selectIPid;
     };
 
@@ -284,7 +283,7 @@ export class TraceSheet extends BaseElement {
           } else if (
             navRoot!.offsetHeight <= moveY &&
             search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight <=
-            window.innerHeight - moveY
+              window.innerHeight - moveY
           ) {
             tabs!.style.height = moveY + 'px';
             node!.style.height = moveY - navRoot!.offsetHeight + 'px';
@@ -484,7 +483,7 @@ export class TraceSheet extends BaseElement {
     scrollWakeUp: (d: any) => void | undefined,
     scrollPreviousData: (d: ThreadStruct) => void,
     scrollNextData: (d: ThreadStruct) => void,
-    callback: ((data: Array<any>) => void) | undefined = undefined,
+    callback: ((data: Array<any>) => void) | undefined = undefined
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
@@ -844,13 +843,14 @@ export class TraceSheet extends BaseElement {
   }
 
   loadTabPaneData(key: string): void {
-    SegMenTaTion.setChartData('BINDER',[]);
     let component: any = this.shadowRoot
       ?.querySelector<LitTabpane>(`#tabs lit-tabpane[key='${key}']`)
       ?.children.item(0);
     if (component) {
-      this.selection!.isRowClick = false;
       component.data = this.selection;
+      if (this.selection) {
+        this.selection.isRowClick = false;
+      }
     }
   }
 

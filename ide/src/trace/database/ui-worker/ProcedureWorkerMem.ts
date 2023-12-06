@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 import {
   BaseStruct,
   drawFlagLine,
@@ -28,9 +28,9 @@ import {
   Render,
   RequestMessage,
   mem,
-} from './ProcedureWorkerCommon.js';
-import { CpuStruct } from './ProcedureWorkerCPU.js';
-import { ProcessMemStruct as BaseProcessMemStruct } from '../../bean/ProcessMemStruct.js';
+} from './ProcedureWorkerCommon';
+import { CpuStruct } from './ProcedureWorkerCPU';
+import { ProcessMemStruct as BaseProcessMemStruct } from '../../bean/ProcessMemStruct';
 export class MemRender extends Render {
   renderMainThread(
     req: {

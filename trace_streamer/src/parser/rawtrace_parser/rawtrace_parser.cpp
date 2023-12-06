@@ -100,8 +100,8 @@ bool RawTraceParser::HmParseCpuRawData(const std::string& buffer)
     auto endPtr = startPtr + buffer.size();
 
     for (uint8_t* data = const_cast<uint8_t*>(startPtr); data < endPtr;) {
-        TS_CHECK_TRUE(ftraceProcessor_->HmParsePageData(*cpuDetail_.get(), *cpuDetailParser_.get(), data),
-            false, "hm parse page failed!");
+        TS_CHECK_TRUE(ftraceProcessor_->HmParsePageData(*cpuDetail_.get(), *cpuDetailParser_.get(), data), false,
+                      "hm parse page failed!");
         cpuDetailParser_->FilterAllEvents(*cpuDetail_.get());
     }
     TS_LOGD("mark.debug. HmParseCpuRawData end success");

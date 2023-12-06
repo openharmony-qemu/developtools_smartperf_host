@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabCpuByThread } from '../../../../database/SqlLite.js';
-import { log } from '../../../../../log/Log.js';
-import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabCpuByThread } from '../../../../database/SqlLite';
+import { log } from '../../../../../log/Log';
+import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {

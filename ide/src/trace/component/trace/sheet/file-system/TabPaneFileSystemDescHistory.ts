@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import { FileSysEvent } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
-import { procedurePool } from '../../../../database/Procedure.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import '../../../../../base-ui/slicer/lit-slicer';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { FilterData, TabPaneFilter } from '../TabPaneFilter';
+import { FileSysEvent } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
+import { procedurePool } from '../../../../database/Procedure';
 
 @element('tabpane-filesystem-desc-history')
 export class TabPaneFileSystemDescHistory extends BaseElement {

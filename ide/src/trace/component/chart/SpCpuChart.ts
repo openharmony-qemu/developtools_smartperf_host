@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryCpuCount,
   queryCpuData,
   queryCpuDataCount,
   queryCpuMax,
   queryCpuSchedSlice,
-} from '../../database/SqlLite.js';
-import { info } from '../../../log/Log.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { procedurePool } from '../../database/Procedure.js';
-import { CpuRender, CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { Utils } from '../trace/base/Utils.js';
+} from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { TraceRow } from '../trace/base/TraceRow';
+import { procedurePool } from '../../database/Procedure';
+import { CpuRender, CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { Utils } from '../trace/base/Utils';
 
 export class SpCpuChart {
   private trace: SpSystemTrace;

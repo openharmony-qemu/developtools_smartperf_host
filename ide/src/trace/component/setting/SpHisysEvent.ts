@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch.js';
-import '../../../base-ui/select/LitAllocationSelect.js';
-import '../../../base-ui/switch/lit-switch.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
-import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
+import '../../../base-ui/select/LitAllocationSelect';
+import '../../../base-ui/switch/lit-switch';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager';
+import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
 
 @element('sp-hisys-event')
 export class SpHisysEvent extends BaseElement {

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseStruct, type Rect, Render, drawString, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct.js';
+import { BaseStruct, type Rect, Render, drawString, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct';
 
 export class JsCpuProfilerRender extends Render {
   renderMainThread(

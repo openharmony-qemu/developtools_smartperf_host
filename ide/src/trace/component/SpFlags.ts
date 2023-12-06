@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
 
 @element('sp-flags')
 export class SpFlags extends BaseElement {

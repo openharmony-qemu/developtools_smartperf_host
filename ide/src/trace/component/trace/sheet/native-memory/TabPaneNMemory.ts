@@ -13,25 +13,25 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type LitPageTable } from '../../../../../base-ui/table/LitPageTable.js';
-import '../../../../../base-ui/table/LitPageTable.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { type NativeMemory, NativeHookCallInfo } from '../../../../bean/NativeHook.js';
-import '../TabPaneFilter.js';
-import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import { TabPaneNMSampleList } from './TabPaneNMSampleList.js';
-import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { procedurePool } from '../../../../database/Procedure.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type LitPageTable } from '../../../../../base-ui/table/LitPageTable';
+import '../../../../../base-ui/table/LitPageTable';
+import '../../../../../base-ui/slicer/lit-slicer';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { type NativeMemory, NativeHookCallInfo } from '../../../../bean/NativeHook';
+import '../TabPaneFilter';
+import { FilterData, TabPaneFilter } from '../TabPaneFilter';
+import { TabPaneNMSampleList } from './TabPaneNMSampleList';
+import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { procedurePool } from '../../../../database/Procedure';
 import {
   formatRealDateMs,
   getByteWithUnit,
   getTimeString,
-} from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart.js';
-import { Utils } from '../../base/Utils.js';
+} from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
+import { Utils } from '../../base/Utils';
 
 @element('tabpane-native-memory')
 export class TabPaneNMemory extends BaseElement {

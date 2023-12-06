@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { Graph } from './Graph.js';
-import { Rect } from './Rect.js';
-import { ns2s, TimerShaftElement } from '../TimerShaftElement.js';
+import { Graph } from './Graph';
+import { Rect } from './Rect';
+import { ns2s, TimerShaftElement } from '../TimerShaftElement';
 
 export class TimeRuler extends Graph {
   totalNS: number;

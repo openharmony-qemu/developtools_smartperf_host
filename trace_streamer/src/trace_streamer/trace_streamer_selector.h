@@ -36,6 +36,8 @@ public:
     static void SetCleanMode(bool cleanMode);
     int32_t ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportPerfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportHookReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     bool ReloadSymbolFiles(std::string& symbolsPath, std::vector<std::string>& symbolsPaths);
     std::vector<std::string> SearchData();
     int32_t OperateDatabase(const std::string& sql);

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { info } from '../../../log/Log.js';
-import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil.js';
-import { PluginConvertUtils } from './utils/PluginConvertUtils.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { info } from '../../../log/Log';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
+import { PluginConvertUtils } from './utils/PluginConvertUtils';
 
 @element('trace-command')
 export class SpTraceCommand extends BaseElement {

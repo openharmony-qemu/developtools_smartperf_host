@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { RangeSelectStruct, TraceRow } from './TraceRow.js';
-import { Rect } from '../timer-shaft/Rect.js';
-import { ns2x, TimerShaftElement } from '../TimerShaftElement.js';
-import { info } from '../../../../log/Log.js';
-import './Extension.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { querySearchRowFuncData } from '../../../database/SqlLite.js';
+import { RangeSelectStruct, TraceRow } from './TraceRow';
+import { Rect } from '../timer-shaft/Rect';
+import { ns2x, TimerShaftElement } from '../TimerShaftElement';
+import { info } from '../../../../log/Log';
+import './Extension';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { querySearchRowFuncData } from '../../../database/SqlLite';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
@@ -87,7 +87,11 @@ export class RangeSelect {
           row.docompositionList = [];
         });
         docompositionData = [];
-        if (this.rangeTraceRow.length === 1 && this.rangeTraceRow[0]?.getAttribute('row-type') === 'func') {
+        if (
+          this.rangeTraceRow.length === 1 &&
+          this.rangeTraceRow[0]?.getAttribute('row-type') === 'func' &&
+          this.rangeTraceRow[0]?.getAttribute('name')?.startsWith('render_service')
+        ) {
           querySearchRowFuncData(
             'H:RSMainThread::DoComposition',
             Number(this.rangeTraceRow[0]?.getAttribute('row-id')),

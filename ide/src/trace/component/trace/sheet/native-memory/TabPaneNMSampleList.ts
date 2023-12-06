@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-import '../../../../../base-ui/table/lit-table-column.js';
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { queryAllHookData, queryNativeHookSnapshotTypes } from '../../../../database/SqlLite.js';
+import '../../../../../base-ui/table/lit-table-column';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { queryAllHookData, queryNativeHookSnapshotTypes } from '../../../../database/SqlLite';
 import {
   NativeHookCallInfo,
   NativeHookSampleQueryInfo,
   NativeHookSamplerInfo,
   NativeMemory,
-} from '../../../../bean/NativeHook.js';
-import { Utils } from '../../base/Utils.js';
-import '../TabPaneFilter.js';
-import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { formatRealDateMs, getTimeString } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart.js';
+} from '../../../../bean/NativeHook';
+import { Utils } from '../../base/Utils';
+import '../TabPaneFilter';
+import { FilterData, TabPaneFilter } from '../TabPaneFilter';
+import '../../../../../base-ui/slicer/lit-slicer';
+import { procedurePool } from '../../../../database/Procedure';
+import { formatRealDateMs, getTimeString } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 
 @element('tabpane-native-sample')
 export class TabPaneNMSampleList extends BaseElement {

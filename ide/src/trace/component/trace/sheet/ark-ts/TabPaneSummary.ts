@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import '../../../../../base-ui/table/lit-table.js';
-import { type ConstructorItem, FileInfo } from '../../../../../js-heap/model/UiStruct.js';
-import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface.js';
-import '../../../../../base-ui/table/lit-table-column.js';
-import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
-import '../TabPaneJsMemoryFilter.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import { HeapTraceFunctionInfo } from '../../../../../js-heap/model/DatabaseStruct.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import '../../../../../base-ui/table/lit-table';
+import { type ConstructorItem, FileInfo } from '../../../../../js-heap/model/UiStruct';
+import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface';
+import '../../../../../base-ui/table/lit-table-column';
+import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import '../TabPaneJsMemoryFilter';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import '../../../../../base-ui/progress-bar/LitProgressBar';
+import '../../../../../base-ui/slicer/lit-slicer';
+import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot';
+import { HeapTraceFunctionInfo } from '../../../../../js-heap/model/DatabaseStruct';
 
 @element('tabpane-summary')
 export class TabPaneSummary extends BaseElement {

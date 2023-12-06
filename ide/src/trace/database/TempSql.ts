@@ -399,3 +399,4 @@ let delete_callstack_binder_data = `DELETE
                                        or name = 'binder async rcv';`;
 
 let temp_init_sql_list = [temp_query_process];
+export { temp_init_sql_list };

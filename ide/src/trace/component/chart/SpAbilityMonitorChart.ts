@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryAbilityExits,
   queryBytesInAbilityData,
@@ -37,27 +37,27 @@ import {
   queryPurgeableSysData,
   queryReadAbilityData,
   queryWrittenAbilityData,
-} from '../../database/SqlLite.js';
-import { info } from '../../../log/Log.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { Utils } from '../trace/base/Utils.js';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { type ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess.js';
-import { CpuAbilityMonitorStruct, CpuAbilityRender } from '../../database/ui-worker/ProcedureWorkerCpuAbility.js';
+} from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { TraceRow } from '../trace/base/TraceRow';
+import { Utils } from '../trace/base/Utils';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
+import { CpuAbilityMonitorStruct, CpuAbilityRender } from '../../database/ui-worker/ProcedureWorkerCpuAbility';
 import {
   MemoryAbilityMonitorStruct,
   MemoryAbilityRender,
-} from '../../database/ui-worker/ProcedureWorkerMemoryAbility.js';
+} from '../../database/ui-worker/ProcedureWorkerMemoryAbility';
 import {
   DiskAbilityMonitorStruct,
   DiskIoAbilityRender,
-} from '../../database/ui-worker/ProcedureWorkerDiskIoAbility.js';
+} from '../../database/ui-worker/ProcedureWorkerDiskIoAbility';
 import {
   NetworkAbilityMonitorStruct,
   NetworkAbilityRender,
-} from '../../database/ui-worker/ProcedureWorkerNetworkAbility.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot.js';
+} from '../../database/ui-worker/ProcedureWorkerNetworkAbility';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot';
 
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;

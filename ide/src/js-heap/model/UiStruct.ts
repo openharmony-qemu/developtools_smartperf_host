@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { HeapDataInterface } from '../HeapDataInterface.js';
-import { EdgeType, NodeType } from './DatabaseStruct.js';
+import { HeapDataInterface } from '../HeapDataInterface';
+import { EdgeType, NodeType } from './DatabaseStruct';
 const ROW_TYPE = 'js-memory';
 export enum FileType {
   SNAPSHOT,

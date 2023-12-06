@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { element } from '../../../../../base-ui/BaseElement.js';
-import { type LitSelect } from '../../../../../base-ui/select/LitSelect.js';
-import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { type SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabSmapsStatisticData } from '../../../../database/SqlLite.js';
-import { resizeObserverFromMemory } from '../SheetUtils.js';
-import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter.js';
-import { TabPaneSmapsStatistics } from './TabPaneSmapsStatistics.js';
-import { type SmapsType } from '../../../../bean/SmapsStruct.js';
+import { element } from '../../../../../base-ui/BaseElement';
+import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
+import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabSmapsStatisticData } from '../../../../database/SqlLite';
+import { resizeObserverFromMemory } from '../SheetUtils';
+import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import { TabPaneSmapsStatistics } from './TabPaneSmapsStatistics';
+import { type SmapsType } from '../../../../bean/SmapsStruct';
 
 @element('tabpane-smaps-comparison')
 export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {

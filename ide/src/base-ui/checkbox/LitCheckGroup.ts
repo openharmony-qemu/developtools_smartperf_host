@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { LitCheckBox } from './LitCheckBox.js';
+import { BaseElement, element } from '../BaseElement';
+import { LitCheckBox } from './LitCheckBox';
 
 @element('lit-check-group')
 export class LitCheckGroup extends BaseElement {

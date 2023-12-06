@@ -25,7 +25,7 @@ import {
   merageBeanDataSplit,
   postMessage,
   setFileName,
-} from './ProcedureLogicWorkerCommon.js';
+} from './ProcedureLogicWorkerCommon';
 
 export let FILE_TYPE_MAP = {
   '0': 'OPEN',

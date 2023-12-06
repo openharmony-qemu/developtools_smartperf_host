@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../base-ui/table/lit-table.js';
-import { MarkStruct } from '../../../bean/MarkStruct.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { ns2s } from '../TimerShaftElement.js';
-import { SlicesTime, StType } from '../timer-shaft/SportRuler.js';
-import { getTimeString } from './TabPaneCurrentSelection.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../base-ui/table/lit-table';
+import { MarkStruct } from '../../../bean/MarkStruct';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { ns2s } from '../TimerShaftElement';
+import { SlicesTime, StType } from '../timer-shaft/SportRuler';
+import { getTimeString } from './TabPaneCurrentSelection';
 
 @element('tabpane-current')
 export class TabPaneCurrent extends BaseElement {
@@ -33,7 +33,7 @@ export class TabPaneCurrent extends BaseElement {
     this.systemTrace = document
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-        this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: any) => {
+    this.shadowRoot?.querySelector('#text')?.addEventListener('keyup', (event: any) => {
       event.stopPropagation();
       if (event.keyCode == '13') {
         if (this.slicesTime) {
@@ -60,7 +60,7 @@ export class TabPaneCurrent extends BaseElement {
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
       });
-    }); 
+    });
     this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
     this.panelTable!.addEventListener('row-click', (evt: any) => {
       if (evt.detail.data.startTime === undefined) {
@@ -186,13 +186,13 @@ export class TabPaneCurrent extends BaseElement {
       }
       this.slicesTimeList = [];
       return;
-    }); 
+    });
 
     // 更新备注信息
     this.panelTable!.addEventListener('click', (event: any) => {
       if (this.slicesTimeList.length === 0) {
         return;
-      } 
+      }
       for (let i = 1; i < tr.length; i++) {
         let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
         if (

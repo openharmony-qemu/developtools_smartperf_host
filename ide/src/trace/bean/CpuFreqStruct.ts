@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../component/trace/base/ColorUtils.js';
-import { BaseStruct } from './BaseStruct.js';
+import { ColorUtils } from '../component/trace/base/ColorUtils';
+import { BaseStruct } from './BaseStruct';
 
 export class CpuFreqStruct extends BaseStruct {
   static maxFreq: number = 0;

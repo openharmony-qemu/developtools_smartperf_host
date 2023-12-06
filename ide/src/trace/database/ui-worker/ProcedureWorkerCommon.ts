@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
-import { Flag } from '../../component/trace/timer-shaft/Flag.js';
+import { Flag } from '../../component/trace/timer-shaft/Flag';
 
 export abstract class Render {
   abstract renderMainThread(req: any, row: TraceRow<any>): void;
@@ -48,10 +48,10 @@ export class RequestMessage {
   totalNS: any;
   slicesTime:
     | {
-      startTime: number | null;
-      endTime: number | null;
-      color: string | null;
-    }
+        startTime: number | null;
+        endTime: number | null;
+        color: string | null;
+      }
     | undefined;
   range: any;
   scale: any;
@@ -64,9 +64,9 @@ export class RequestMessage {
   id: any;
   postMessage:
     | {
-      (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-      (message: any, options?: WindowPostMessageOptions): void;
-    }
+        (message: any, targetOrigin: string, transfer?: Transferable[]): void;
+        (message: any, options?: WindowPostMessageOptions): void;
+      }
     | undefined;
 }
 
@@ -99,8 +99,8 @@ export function ns2Timestamp(ns: number): string {
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
     .toString()
     .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-      .toString()
-      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+    .toString()
+    .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -476,7 +476,7 @@ export class Point {
 export enum LineType {
   brokenLine,
   bezierCurve,
-  StraightLine
+  StraightLine,
 }
 
 export class PairPoint {
@@ -539,10 +539,10 @@ export function drawFlagLine(
   frame: any,
   slicesTime:
     | {
-      startTime: number | null | undefined;
-      endTime: number | null | undefined;
-      color: string | null | undefined;
-    }
+        startTime: number | null | undefined;
+        endTime: number | null | undefined;
+        color: string | null | undefined;
+      }
     | undefined
 ) {
   if (commonCtx) {
@@ -749,9 +749,9 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
     if (params._docompositionList?.length) {
       const rateList: Array<number> = [...new Set(params.docompositionList)];
       if (rateList.length >= 2) {
-        // 计算平均帧率  
-        let cutres: number = (rateList[rateList.length - 1]! - rateList[0]!);
-        let avgFrameRate: string = ((rateList.length - 1) / cutres * 1000000000).toFixed(1) + 'fps';
+        // 计算平均帧率
+        let cutres: number = rateList[rateList.length - 1]! - rateList[0]!;
+        let avgFrameRate: string = (((rateList.length - 1) / cutres) * 1000000000).toFixed(1) + 'fps';
 
         let avgRateStartX = Math.floor(
           ns2x(
@@ -774,13 +774,17 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
         const textWidth = context.measureText(avgFrameRate).width;
         const textHeight = 25;
         const padding = 5;
-        let textX = Math.floor(ns2x(
-          (rateList[0]! + rateList[rateList.length - 1]!) / 2,
-          TraceRow.range?.startNS ?? 0,
-          TraceRow.range?.endNS ?? 0,
-          TraceRow.range?.totalNS ?? 0,
-          params.frame
-        )) - textWidth / 2;
+        let textX =
+          Math.floor(
+            ns2x(
+              (rateList[0]! + rateList[rateList.length - 1]!) / 2,
+              TraceRow.range?.startNS ?? 0,
+              TraceRow.range?.endNS ?? 0,
+              TraceRow.range?.totalNS ?? 0,
+              params.frame
+            )
+          ) -
+          textWidth / 2;
         const textY = params.frame.y + 25;
 
         //左移到边界，不画线和文字
@@ -795,7 +799,7 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
         }
         //右移到边界，不画线和文字
         if (textX + textWidth / 2 >= params.frame.width) {
-          textX = params.frame.width + 100
+          textX = params.frame.width + 100;
         }
         if (avgRateStartX >= params.frame.width) {
           avgRateStartX = params.frame.width + 100;
@@ -803,9 +807,14 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
         if (avgRateEndX >= params.frame.width) {
           avgRateEndX = params.frame.width + 100;
         }
-        // 绘制文字背景矩形  
+        // 绘制文字背景矩形
         context.fillStyle = 'red';
-        context.fillRect(textX - padding, textY - textHeight + padding, textWidth + padding * 2, textHeight - padding * 2);
+        context.fillRect(
+          textX - padding,
+          textY - textHeight + padding,
+          textWidth + padding * 2,
+          textHeight - padding * 2
+        );
 
         context.lineWidth = 2;
         context.strokeStyle = 'yellow';
@@ -1201,7 +1210,7 @@ export function drawLoading(
   frame: any,
   left: number,
   right: number
-) { }
+) {}
 
 export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
   if (data.textMetricsWidth === undefined) {

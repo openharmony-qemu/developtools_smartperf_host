@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
 
-import { queryAnomalyDetailedData } from '../../../../database/SqlLite.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { EnergyAnomalyStruct } from '../../../../database/ui-worker/ProcedureWorkerEnergyAnomaly.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { queryAnomalyDetailedData } from '../../../../database/SqlLite';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { EnergyAnomalyStruct } from '../../../../database/ui-worker/ProcedureWorkerEnergyAnomaly';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-anomaly-details')
 export class TabPaneEnergyAnomaly extends BaseElement {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
+import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryAnomalyData,
   queryConfigEnergyAppName,
@@ -26,17 +26,17 @@ import {
   querySystemLocationData,
   querySystemLockData,
   querySystemSchedulerData,
-} from '../../database/SqlLite.js';
-import { info } from '../../../log/Log.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { BaseStruct } from '../../bean/BaseStruct.js';
-import { EnergyAnomalyRender, EnergyAnomalyStruct } from '../../database/ui-worker/ProcedureWorkerEnergyAnomaly.js';
-import { EnergySystemStruct, EnergySystemRender } from '../../database/ui-worker/ProcedureWorkerEnergySystem.js';
-import { EnergyPowerStruct, EnergyPowerRender } from '../../database/ui-worker/ProcedureWorkerEnergyPower.js';
-import { EnergyStateStruct, EnergyStateRender } from '../../database/ui-worker/ProcedureWorkerEnergyState.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { TreeItemData } from '../../../base-ui/tree/LitTree.js';
+} from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { TraceRow } from '../trace/base/TraceRow';
+import { BaseStruct } from '../../bean/BaseStruct';
+import { EnergyAnomalyRender, EnergyAnomalyStruct } from '../../database/ui-worker/ProcedureWorkerEnergyAnomaly';
+import { EnergySystemStruct, EnergySystemRender } from '../../database/ui-worker/ProcedureWorkerEnergySystem';
+import { EnergyPowerStruct, EnergyPowerRender } from '../../database/ui-worker/ProcedureWorkerEnergyPower';
+import { EnergyStateStruct, EnergyStateRender } from '../../database/ui-worker/ProcedureWorkerEnergyState';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { TreeItemData } from '../../../base-ui/tree/LitTree';
 
 export class SpHiSysEnergyChart {
   static app_name: string | null;

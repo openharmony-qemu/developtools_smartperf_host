@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { ns2x, Rect, Render } from './ProcedureWorkerCommon.js';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { ns2x, Rect, Render } from './ProcedureWorkerCommon';
 
-import { BaseStruct } from '../../bean/BaseStruct.js';
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { BaseStruct } from '../../bean/BaseStruct';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 const LOG_STRUCT_HEIGHT = 7;
 const X_PADDING = 5;

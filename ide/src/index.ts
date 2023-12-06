@@ -13,24 +13,6 @@
  * limitations under the License.
  */
 
-let worker: Worker;
-self.onmessage = (e) => {
-  if (e.data.action === 'open') {
-    worker = new Worker('TraceWorker.js');
-    worker.onmessage = (msg) => {
-      self.postMessage(msg.data);
-    };
-    worker.postMessage(e.data, [e.data.buffer]);
-  } else if (e.data.action === 'exec') {
-    worker.postMessage(e.data);
-  } else if (e.data.action == 'exec-buf') {
-    // @ts-ignore
-    worker.postMessage(e.data);
-  }
-};
-self.onerror = (event) => {
-  worker.terminate();
-};
-self.onclose = () => {
-  worker.terminate();
-};
+import "./trace/SpApplication";
+import { SpApplication } from "./trace/SpApplication";
+document.body.innerHTML = "<sp-application wasm query-sql></sp-application>";

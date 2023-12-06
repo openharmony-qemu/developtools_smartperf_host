@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   drawFlagLine,
@@ -24,9 +24,9 @@ import {
   ns2x,
   Render,
   RequestMessage,
-} from './ProcedureWorkerCommon.js';
-import { CpuStruct } from './ProcedureWorkerCPU.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { CpuStruct } from './ProcedureWorkerCPU';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class ProcessRender extends Render {
   renderMainThread(req: any, row: TraceRow<ProcessStruct>) {

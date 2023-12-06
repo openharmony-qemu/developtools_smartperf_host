@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../base-ui/BaseElement.js';
-import './trace/TimerShaftElement.js';
-import './trace/base/TraceRow.js';
+import { BaseElement, element } from '../../base-ui/BaseElement';
+import './trace/TimerShaftElement';
+import './trace/base/TraceRow';
 import {
   queryBySelectAllocationOrReturn,
   queryBySelectExecute,
@@ -23,20 +23,20 @@ import {
   querySceneSearchFunc,
   querySearchFunc,
   threadPool,
-} from '../database/SqlLite.js';
-import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow.js';
-import { TimerShaftElement } from './trace/TimerShaftElement.js';
-import './trace/base/TraceSheet.js';
-import { TraceSheet } from './trace/base/TraceSheet.js';
-import { RangeSelect } from './trace/base/RangeSelect.js';
-import { SelectionParam } from '../bean/BoxSelection.js';
-import { procedurePool } from '../database/Procedure.js';
-import { SpApplication } from '../SpApplication.js';
-import { Flag } from './trace/timer-shaft/Flag.js';
-import { SlicesTime, SportRuler } from './trace/timer-shaft/SportRuler.js';
-import { SpHiPerf } from './chart/SpHiPerf.js';
-import { SearchSdkBean, SearchThreadProcessBean } from '../bean/SearchFuncBean.js';
-import { error, info } from '../../log/Log.js';
+} from '../database/SqlLite';
+import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow';
+import { TimerShaftElement } from './trace/TimerShaftElement';
+import './trace/base/TraceSheet';
+import { TraceSheet } from './trace/base/TraceSheet';
+import { RangeSelect } from './trace/base/RangeSelect';
+import { SelectionParam } from '../bean/BoxSelection';
+import { procedurePool } from '../database/Procedure';
+import { SpApplication } from '../SpApplication';
+import { Flag } from './trace/timer-shaft/Flag';
+import { SlicesTime, SportRuler } from './trace/timer-shaft/SportRuler';
+import { SpHiPerf } from './chart/SpHiPerf';
+import { SearchSdkBean, SearchThreadProcessBean } from '../bean/SearchFuncBean';
+import { error, info } from '../../log/Log';
 import {
   drawFlagLineSegment,
   drawLines,
@@ -49,66 +49,65 @@ import {
   ns2xByTimeShaft,
   PairPoint,
   Rect,
-} from '../database/ui-worker/ProcedureWorkerCommon.js';
-import { SpChartManager } from './chart/SpChartManager.js';
-import { CpuStruct, WakeupBean } from '../database/ui-worker/ProcedureWorkerCPU.js';
-import { ProcessStruct } from '../database/ui-worker/ProcedureWorkerProcess.js';
-import { CpuFreqStruct } from '../database/ui-worker/ProcedureWorkerFreq.js';
-import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread.js';
-import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc.js';
-import { CpuStateStruct } from '../database/ui-worker/ProcedureWorkerCpuState.js';
-import { HiPerfCpuStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCPU.js';
-import { HiPerfProcessStruct } from '../database/ui-worker/ProcedureWorkerHiPerfProcess.js';
-import { HiPerfThreadStruct } from '../database/ui-worker/ProcedureWorkerHiPerfThread.js';
-import { HiPerfEventStruct } from '../database/ui-worker/ProcedureWorkerHiPerfEvent.js';
-import { HiPerfReportStruct } from '../database/ui-worker/ProcedureWorkerHiPerfReport.js';
-import { FpsStruct } from '../database/ui-worker/ProcedureWorkerFPS.js';
-import { CpuAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerCpuAbility.js';
-import { DiskAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerDiskIoAbility.js';
-import { MemoryAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerMemoryAbility.js';
-import { NetworkAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerNetworkAbility.js';
-import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock.js';
-import { Utils } from './trace/base/Utils.js';
-import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq.js';
-import { JanksStruct } from '../bean/JanksStruct.js';
-import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank.js';
-import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent.js';
-import { HeapStruct } from '../database/ui-worker/ProcedureWorkerHeap.js';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil.js';
-import { HeapSnapshotStruct } from '../database/ui-worker/ProcedureWorkerHeapSnapshot.js';
-import { HeapDataInterface } from '../../js-heap/HeapDataInterface.js';
-import { LitTabs } from '../../base-ui/tabs/lit-tabs.js';
-import { TraceRowConfig } from './trace/base/TraceRowConfig.js';
-import { TabPaneCurrentSelection } from './trace/sheet/TabPaneCurrentSelection.js';
-import { SpChartList } from './trace/SpChartList.js';
-import './trace/SpChartList.js';
-import { AppStartupStruct } from '../database/ui-worker/ProcedureWorkerAppStartup.js';
-import { AllAppStartupStruct } from '../database/ui-worker/ProcedureWorkerAllAppStartup.js';
-import { SoStruct } from '../database/ui-worker/ProcedureWorkerSoInit.js';
-import { TabPaneTaskFrames } from './trace/sheet/task/TabPaneTaskFrames.js';
-import { FlagsConfig } from './SpFlags.js';
-import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic.js';
-import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation.js';
-import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing.js';
-import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler.js';
-import { TabPaneSummary } from './trace/sheet/ark-ts/TabPaneSummary.js';
-import { JsCpuProfilerChartFrame } from '../bean/JsStruct.js';
-import { FileInfo } from '../../js-heap/model/UiStruct.js';
-import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { setSelectState, intersectData, isExistPidInArray } from './Utils.js';
-import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog.js';
-import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample.js';
-import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample.js';
-import { LitSearch } from './trace/search/Search.js';
-import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag.js';
-import { LitTabpane } from '../../base-ui/tabs/lit-tabpane.js';
-import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart.js';
-import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent.js';
-import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { type SpKeyboard } from '../component/SpKeyboard.js';
-import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync.js';
-import { binderStruct } from '../database/ui-worker/procedureWorkerBinder.js';
+} from '../database/ui-worker/ProcedureWorkerCommon';
+import { SpChartManager } from './chart/SpChartManager';
+import { CpuStruct, WakeupBean } from '../database/ui-worker/ProcedureWorkerCPU';
+import { ProcessStruct } from '../database/ui-worker/ProcedureWorkerProcess';
+import { CpuFreqStruct } from '../database/ui-worker/ProcedureWorkerFreq';
+import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread';
+import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
+import { CpuStateStruct } from '../database/ui-worker/ProcedureWorkerCpuState';
+import { HiPerfCpuStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCPU';
+import { HiPerfProcessStruct } from '../database/ui-worker/ProcedureWorkerHiPerfProcess';
+import { HiPerfThreadStruct } from '../database/ui-worker/ProcedureWorkerHiPerfThread';
+import { HiPerfEventStruct } from '../database/ui-worker/ProcedureWorkerHiPerfEvent';
+import { HiPerfReportStruct } from '../database/ui-worker/ProcedureWorkerHiPerfReport';
+import { FpsStruct } from '../database/ui-worker/ProcedureWorkerFPS';
+import { CpuAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerCpuAbility';
+import { DiskAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerDiskIoAbility';
+import { MemoryAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerMemoryAbility';
+import { NetworkAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerNetworkAbility';
+import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
+import { Utils } from './trace/base/Utils';
+import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
+import { JanksStruct } from '../bean/JanksStruct';
+import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank';
+import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent';
+import { HeapStruct } from '../database/ui-worker/ProcedureWorkerHeap';
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { HeapSnapshotStruct } from '../database/ui-worker/ProcedureWorkerHeapSnapshot';
+import { HeapDataInterface } from '../../js-heap/HeapDataInterface';
+import { LitTabs } from '../../base-ui/tabs/lit-tabs';
+import { TraceRowConfig } from './trace/base/TraceRowConfig';
+import { TabPaneCurrentSelection } from './trace/sheet/TabPaneCurrentSelection';
+import { SpChartList } from './trace/SpChartList';
+import './trace/SpChartList';
+import { AppStartupStruct } from '../database/ui-worker/ProcedureWorkerAppStartup';
+import { AllAppStartupStruct } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
+import { SoStruct } from '../database/ui-worker/ProcedureWorkerSoInit';
+import { TabPaneTaskFrames } from './trace/sheet/task/TabPaneTaskFrames';
+import { FlagsConfig } from './SpFlags';
+import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
+import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
+import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing';
+import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
+import { TabPaneSummary } from './trace/sheet/ark-ts/TabPaneSummary';
+import { JsCpuProfilerChartFrame } from '../bean/JsStruct';
+import { FileInfo } from '../../js-heap/model/UiStruct';
+import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot';
+import { setSelectState, intersectData, isExistPidInArray } from './Utils';
+import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog';
+import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample';
+import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample';
+import { LitSearch } from './trace/search/Search';
+import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag';
+import { LitTabpane } from '../../base-ui/tabs/lit-tabpane';
+import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart';
+import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent';
+import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon';
+import { type SpKeyboard } from '../component/SpKeyboard';
+import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -159,6 +158,7 @@ export class SpSystemTrace extends BaseElement {
   stateRowsId: Array<object> = [];
   spacerEL: HTMLDivElement | undefined | null;
   visibleRows: Array<TraceRow<any>> = [];
+  invisibleRows: Array<TraceRow<any>> = [];
   collectRows: Array<TraceRow<any>> = [];
   currentRow: TraceRow<any> | undefined | null;
   keyboardEnable = true;
@@ -306,9 +306,9 @@ export class SpSystemTrace extends BaseElement {
     let rightStar: HTMLElement | null | undefined = this.traceSheetEL?.shadowRoot
       ?.querySelector('#current-selection > tabpane-current-selection')
       ?.shadowRoot?.querySelector('#right-star');
-    this.rowsEL = this.shadowRoot?.querySelector<HTMLDivElement>('.rows');
     this.tipEL = this.shadowRoot?.querySelector<HTMLDivElement>('.tip');
     this.rowsPaneEL = this.shadowRoot?.querySelector<HTMLDivElement>('.rows-pane');
+    this.rowsEL = this.rowsPaneEL;
     this.spacerEL = this.shadowRoot?.querySelector<HTMLDivElement>('.spacer');
     this.timerShaftEL = this.shadowRoot?.querySelector('.timer-shaft');
     this.favoriteChartListEL = this.shadowRoot?.querySelector('#favorite-chart-list');
@@ -785,8 +785,8 @@ export class SpSystemTrace extends BaseElement {
 
           let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-            Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-            filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+              Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
             filterFunc.funName!.indexOf('H:Task ') >= 0;
           let taskData = it.dataList.filter((taskData: FuncStruct) => {
             taskData!.tid = parseInt(it.rowId!);
@@ -1171,7 +1171,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_JANK) {
           let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-            Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+              Math.min(filterJank.ts!, rangeData!.startNS || 0) <
             filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
           if (it.name == 'Actual Timeline') {
             selection.jankFramesData = [];
@@ -1254,7 +1254,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
           let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
             Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-            Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+              Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
             animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
           let frameAnimationList = it.dataList.filter((frameAnimationBean: FrameAnimationStruct) => {
             return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
@@ -1398,18 +1398,24 @@ export class SpSystemTrace extends BaseElement {
         let tr = it.target as TraceRow<any>;
         if (!it.isIntersecting) {
           tr.sleeping = true;
+          this.invisibleRows.indexOf(tr) == -1 && this.invisibleRows.push(tr);
           this.visibleRows = this.visibleRows.filter((it) => !it.sleeping);
         } else {
-          if (
-            !this.visibleRows.find(
-              (vr) => vr.rowId === tr.rowId && vr.rowType === tr.rowType && vr.rowParentId === tr.rowParentId
-            )
-          ) {
-            this.visibleRows.push(tr);
-          }
           tr.sleeping = false;
+          this.visibleRows.indexOf(tr) == -1 && this.visibleRows.push(tr);
+          this.invisibleRows = this.invisibleRows.filter((it) => it.sleeping);
         }
-        if (this.handler) clearTimeout(this.handler);
+        this.visibleRows
+          .filter((vr) => vr.expansion)
+          .forEach((vr) => {
+            vr.sticky = this.visibleRows.some((vro) => vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0);
+          });
+        this.visibleRows
+          .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion)
+          .forEach((vr) => (vr.parentRowEl!.sticky = true));
+        if (this.handler) {
+          clearTimeout(this.handler);
+        }
         this.handler = setTimeout(() => this.refreshCanvas(false), 100);
       });
     });
@@ -1434,7 +1440,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.SliceMark, (data) => {
       this.sliceMarkEventHandler(data);
     });
-    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
     window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => {
       this.refreshCanvas(false);
     });
@@ -1469,6 +1475,7 @@ export class SpSystemTrace extends BaseElement {
       this.currentCollectGroup = group;
     });
   }
+
   // 清除上一次点击调用栈产生的三角旗子
   private clearTriangle(flagList: Array<Flag>) {
     this.timerShaftEL!.sportRuler!.times = [];
@@ -1896,7 +1903,7 @@ export class SpSystemTrace extends BaseElement {
           // 如果没有找到帽子，则绘制一个旗子
           let time = Math.round(
             (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
-            TraceRow.range?.startNS!
+              TraceRow.range?.startNS!
           );
           this.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
         }
@@ -2081,13 +2088,13 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL?.setSlicesMark(
         FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
         (FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0) +
-        (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
+          (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
       );
     } else if (JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
       this.timerShaftEL?.setSlicesMark(
         JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0,
         (JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0) +
-        (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
+          (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
       );
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
@@ -2539,7 +2546,7 @@ export class SpSystemTrace extends BaseElement {
     if (!SportRuler.isMouseInSportRuler) {
       this.traceSheetEL?.setAttribute('mode', 'hidden');
     }
-    this.removeLinkLinesByBusinessType('task', 'thread');
+    this.removeLinkLinesByBusinessType('task','thread');
     this.refreshCanvas(true);
     JankStruct.delJankLineFlag = true;
   }
@@ -2833,7 +2840,6 @@ export class SpSystemTrace extends BaseElement {
             );
           }
           this.hoverStructNull();
-          let flag = JSON.parse(JSON.stringify(ThreadStruct.selectThreadStruct));
           this.selectStructNull();
           this.wakeupListNull();
           ThreadStruct.hoverThreadStruct = findEntry;
@@ -2851,7 +2857,7 @@ export class SpSystemTrace extends BaseElement {
                 let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
                   `trace-row[row-id='${data.pid}'][folder]`
                 );
-                this.drawThreadLine(endParentRow, flag, data);
+                //this.drawThreadLine(endParentRow, ThreadStruct.selectThreadStruct, data);
               });
             }
           );
@@ -3154,7 +3160,7 @@ export class SpSystemTrace extends BaseElement {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
       this.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
       this.timerShaftEL?.modifyFlagList(undefined);
-    } else if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {
+    } else if(clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct){
       AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
       this.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler)
       this.timerShaftEL?.modifyFlagList(undefined);
@@ -3696,7 +3702,8 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct, data: any) {
+  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct 
+    | undefined, data: any) {
     let collectList = this.favoriteChartListEL!.getCollectRows();
     let startRow: any;
     if (selectThreadStruct == undefined || selectThreadStruct == null) {
@@ -4515,7 +4522,6 @@ export class SpSystemTrace extends BaseElement {
         row.clearMemory();
         this.rowsEL!.removeChild(row);
       });
-      this.rowsEL.innerHTML = '';
     }
     this.traceSheetEL?.clearMemory();
     this.spacerEL!.style.height = '0px';
@@ -4536,8 +4542,8 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
-    procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => { });
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
     this.times.clear();
     setVSyncDisable();
   }
@@ -4589,6 +4595,12 @@ export class SpSystemTrace extends BaseElement {
       if (it.folder) {
         let offsetYTimeOut: any = undefined;
         it.addEventListener('expansion-change', (event: any) => {
+          let max = [...this.rowsPaneEL!.querySelectorAll('trace-row')].reduce(
+            (pre, cur) => pre + cur.clientHeight!,
+            0
+          );
+          let offset = this.rowsPaneEL!.scrollHeight - max;
+          this.rowsPaneEL!.scrollTop = this.rowsPaneEL!.scrollTop - offset;
           JankStruct.delJankLineFlag = false;
           if (offsetYTimeOut) {
             clearTimeout(offsetYTimeOut);
@@ -4696,15 +4708,12 @@ export class SpSystemTrace extends BaseElement {
     }
     if (this.tipEL) {
       this.tipEL.innerHTML = html;
-      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART || row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
+      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
         this.tipEL.style.maxWidth = row.clientWidth / 3 + 'px';
         this.tipEL.style.wordBreak = ' break-all';
         this.tipEL.style.height = 'unset';
         this.tipEL.style.display = 'block';
         y = y + struct.depth * 20;
-        if (row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
-          y = row.hoverY + row.getBoundingClientRect().top - this.getBoundingClientRect().top;
-        }
       } else {
         this.tipEL.style.display = 'flex';
         this.tipEL.style.height = row.style.height;

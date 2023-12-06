@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
 import {
     queryAppStartupProcessIds,
     queryProcessStartup,
     querySingleAppStartupsName,
-} from '../../database/SqlLite.js';
-import { FlagsConfig } from '../SpFlags.js';
-import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup.js';
+} from '../../database/SqlLite';
+import { FlagsConfig } from '../SpFlags';
+import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
 export class SpAllAppStartupsChart {
     private readonly trace: SpSystemTrace | undefined;

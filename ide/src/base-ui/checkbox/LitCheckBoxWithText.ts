@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../BaseElement.js';
-import { SpCheckDesBox } from '../../trace/component/setting/SpCheckDesBox.js';
+import { BaseElement, element } from '../BaseElement';
+import { SpCheckDesBox } from '../../trace/component/setting/SpCheckDesBox';
 
 @element('lit-check-text')
 export class LitCheckBoxWithText extends BaseElement {

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 import {
   BaseStruct,
   isFrameContainPoint,
@@ -23,9 +23,9 @@ import {
   Render,
   RequestMessage,
   drawString,
-} from './ProcedureWorkerCommon.js';
-import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct.js';
-import { FlagsConfig } from '../../component/SpFlags.js';
+} from './ProcedureWorkerCommon';
+import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
+import { FlagsConfig } from '../../component/SpFlags';
 export class FuncRender extends Render {
   renderMainThread(
     req: {

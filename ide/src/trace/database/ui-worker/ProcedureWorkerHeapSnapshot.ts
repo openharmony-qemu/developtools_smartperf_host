@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseStruct, Rect, Render, isFrameContainPoint } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { Utils } from '../../component/trace/base/Utils.js';
+import { BaseStruct, Rect, Render, isFrameContainPoint } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
 export class HeapSnapshotRender extends Render {
   renderMainThread(
     req: {

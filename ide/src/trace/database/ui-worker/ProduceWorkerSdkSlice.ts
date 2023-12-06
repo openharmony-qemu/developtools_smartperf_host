@@ -24,9 +24,9 @@ import {
   isFrameContainPoint,
   ns2x,
   drawSelection,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { CounterStruct } from './ProduceWorkerSdkCounter.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { CounterStruct } from './ProduceWorkerSdkCounter';
 
 export class SdkSliceRender extends Render {
   renderMainThread(

@@ -1,4 +1,4 @@
-import { info } from '../../log/Log.js';
+import { info } from '../../log/Log';
 
 /**
  * 数据缓存期限

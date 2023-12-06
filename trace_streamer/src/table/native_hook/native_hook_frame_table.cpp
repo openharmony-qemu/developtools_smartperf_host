@@ -176,7 +176,7 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t column) const
             }
             break;
         case Index::DEPTH:
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Depths()[CurrentRow()]));
+            sqlite3_result_int(context_, static_cast<int32_t>(nativeHookFrameInfoObj_.Depths()[CurrentRow()]));
             break;
         case Index::IP:
             if (nativeHookFrameInfoObj_.Ips()[CurrentRow()] != INVALID_UINT64) {

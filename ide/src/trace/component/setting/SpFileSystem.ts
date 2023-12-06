@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { LitSelectV } from '../../../base-ui/select/LitSelectV.js';
-import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch.js';
-import '../../../base-ui/select/LitSelectV.js';
-import '../../../base-ui/select/LitSelect.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
+import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
+import '../../../base-ui/select/LitSelectV';
+import '../../../base-ui/select/LitSelect';
 
-import '../../../base-ui/switch/lit-switch.js';
-import { LitSelect } from '../../../base-ui/select/LitSelect.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { Cmd } from '../../../command/Cmd.js';
-import { CmdConstant } from '../../../command/CmdConstant.js';
-import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
-import { SpApplication } from '../../SpApplication.js';
+import '../../../base-ui/switch/lit-switch';
+import { LitSelect } from '../../../base-ui/select/LitSelect';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { Cmd } from '../../../command/Cmd';
+import { CmdConstant } from '../../../command/CmdConstant';
+import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager';
+import { SpApplication } from '../../SpApplication';
 
 @element('sp-file-system')
 export class SpFileSystem extends BaseElement {

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FilterByAnalysis, NativeMemoryExpression } from '../../bean/NativeHook.js';
+import { FilterByAnalysis, NativeMemoryExpression } from '../../bean/NativeHook';
 import {
   convertJSON,
   DataCache,
@@ -23,7 +23,7 @@ import {
   merageBeanDataSplit,
   postMessage,
   setFileName,
-} from './ProcedureLogicWorkerCommon.js';
+} from './ProcedureLogicWorkerCommon';
 
 export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   selectTotalSize = 0;

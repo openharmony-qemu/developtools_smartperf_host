@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { log } from '../../../../../log/Log.js';
-import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct.js';
-import { MemoryConfig } from '../../../../bean/MemoryConfig.js';
-import { SpSystemTrace } from '../../../SpSystemTrace.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { log } from '../../../../../log/Log';
+import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
+import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 @element('tabpane-smaps-sample')
 export class TabPaneSmapsSample extends BaseElement {
   private tblSmapsSample: LitTable | null | undefined;
@@ -54,7 +54,8 @@ export class TabPaneSmapsSample extends BaseElement {
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight != 0) {
         // @ts-ignore
-        this.tblSmapsSample?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight  - 15+ 'px';
+        this.tblSmapsSample?.shadowRoot?.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 15 + 'px';
         this.tblSmapsSample?.reMeauseHeight();
       }
     }).observe(this.parentElement!);
@@ -69,7 +70,7 @@ export class TabPaneSmapsSample extends BaseElement {
     );
   }
   setSmaps(data: SelectionParam): void {
-    getTabSmapsSampleData(data.rightNs).then((result) => {
+    getTabSmapsSampleData(data.leftNs).then((result) => {
       this.tblSmapsSample!.loading = false;
       this.filteredData(result);
     });
@@ -185,11 +186,7 @@ export class TabPaneSmapsSample extends BaseElement {
         }
       };
     }
-    if (
-      detail.key === 'rssStr' ||
-      detail.key === 'sizeStr' ||
-      detail.key === 'resideStr'
-    ) {
+    if (detail.key === 'rssStr' || detail.key === 'sizeStr' || detail.key === 'resideStr') {
       let key = detail.key.substring(0, detail.key.indexOf('Str'));
       this.sourceSmapsSample.sort(compare(key, detail.sort, 'number'));
     } else {

@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection.js';
-import '../../../StackBar.js';
-import { getTabThreadStates, getTabThreadStatesDetail } from '../../../../database/SqlLite.js';
-import { Utils } from '../../base/Utils.js';
-import { StackBar } from '../../../StackBar.js';
-import { log } from '../../../../../log/Log.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import '../../../StackBar';
+import { getTabThreadStates, getTabThreadStatesDetail } from '../../../../database/SqlLite';
+import { Utils } from '../../base/Utils';
+import { StackBar } from '../../../StackBar';
+import { log } from '../../../../../log/Log';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {

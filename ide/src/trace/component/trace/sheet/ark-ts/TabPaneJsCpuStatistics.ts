@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { type LitChartPie } from '../../../../../base-ui/chart/pie/LitChartPie.js';
-import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { type LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { type JsCpuProfilerChartFrame, JsCpuProfilerStatisticsStruct } from '../../../../bean/JsStruct.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { type SampleType } from '../../../../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler.js';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { type LitChartPie } from '../../../../../base-ui/chart/pie/LitChartPie';
+import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { type JsCpuProfilerChartFrame, JsCpuProfilerStatisticsStruct } from '../../../../bean/JsStruct';
+import { procedurePool } from '../../../../database/Procedure';
+import { type SampleType } from '../../../../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler';
+import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-js-cpu-statistics')
 export class TabPaneJsCpuStatistics extends BaseElement {

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
-import { HiPerfStruct, PerfRender, type RequestMessage } from './ProcedureWorkerCommon.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { HiPerfStruct, PerfRender, type RequestMessage } from './ProcedureWorkerCommon';
 
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class HiperfReportRender extends PerfRender {
   renderMainThread(hiPerfReportReq: any, row: TraceRow<HiPerfReportStruct>): void {

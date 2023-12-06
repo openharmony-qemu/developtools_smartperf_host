@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { SelectionParam } from '../../../bean/BoxSelection.js';
-import { procedurePool } from '../../../database/Procedure.js';
-import { queryNativeHookResponseTypes } from '../../../database/SqlLite.js';
+import { SelectionParam } from '../../../bean/BoxSelection';
+import { procedurePool } from '../../../database/Procedure';
+import { queryNativeHookResponseTypes } from '../../../database/SqlLite';
 
 export class Utils {
   private static statusMap: Map<string, string> = new Map<string, string>();
@@ -85,20 +85,6 @@ export class Utils {
     if (value.startsWith('S-')) {
       return Utils.getEndState(value.replace('S-', ''));
     } else if (value.startsWith('P-')) {
-      let pid = value.replace('P-', '');
-      let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
-      return `${process} [${pid}]`;
-    } else if (value.startsWith('T-')) {
-      let tid = value.replace('T-', '');
-      let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
-      return `${thread} [${tid}]`;
-    } else {
-      return '';
-    }
-  }
-
-  public static transferBinderTitle(value: any) {
-    if (value.startsWith('P-')) {
       let pid = value.replace('P-', '');
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
       return `${process} [${pid}]`;
@@ -497,11 +483,11 @@ export class Utils {
       }
     }
     queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res) => {
-      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => { });
+      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => {});
     });
   }
 
-  setCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic1', 'native-memory-set-current_ipid', ipid, undefined, () => { });
+  setCurrentSelectIPid(ipid: number): void{
+    procedurePool.submitWithName('logic1', 'native-memory-set-current_ipid', ipid, undefined, () => {});
   }
 }

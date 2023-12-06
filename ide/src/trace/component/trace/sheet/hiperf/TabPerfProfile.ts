@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import '../TabPaneFilter.js';
-import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { PerfCallChainMerageData, PerfLevelStruct } from '../../../../bean/PerfProfile.js';
-import '../../../chart/FrameChart.js';
-import { FrameChart } from '../../../chart/FrameChart.js';
-import { ChartMode } from '../../../../bean/FrameChartStruct.js';
-import '../../../../../base-ui/slicer/lit-slicer.js';
-import '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { showButtonMenu } from '../SheetUtils.js';
-import '../../../../../base-ui/headline/lit-headline.js';
-import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import '../TabPaneFilter';
+import { FilterData, TabPaneFilter } from '../TabPaneFilter';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { PerfCallChainMerageData, PerfLevelStruct } from '../../../../bean/PerfProfile';
+import '../../../chart/FrameChart';
+import { FrameChart } from '../../../chart/FrameChart';
+import { ChartMode } from '../../../../bean/FrameChartStruct';
+import '../../../../../base-ui/slicer/lit-slicer';
+import '../../../../../base-ui/progress-bar/LitProgressBar';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { procedurePool } from '../../../../database/Procedure';
+import { showButtonMenu } from '../SheetUtils';
+import '../../../../../base-ui/headline/lit-headline';
+import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 
 const InvertOptionIndex: number = 0;
 const hideThreadOptionIndex: number = 3;
@@ -516,6 +516,8 @@ export class TabpanePerfProfile extends BaseElement {
           this.switchFlameChart(data);
         });
       } else {
+        this.perfProfilerTbl!.setStatus(this.perfProfilerDataSource, true);
+        this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
         this.switchFlameChart(data);
       }
     });

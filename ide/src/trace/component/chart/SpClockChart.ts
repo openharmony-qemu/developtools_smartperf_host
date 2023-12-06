@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { queryClockData, queryClockFrequency, queryClockState, queryScreenState } from '../../database/SqlLite.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { info } from '../../../log/Log.js';
-import { ClockRender, ClockStruct } from '../../database/ui-worker/ProcedureWorkerClock.js';
-import { ColorUtils } from '../trace/base/ColorUtils.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { Utils } from '../trace/base/Utils.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { queryClockData, queryClockFrequency, queryClockState, queryScreenState } from '../../database/SqlLite';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { info } from '../../../log/Log';
+import { ClockRender, ClockStruct } from '../../database/ui-worker/ProcedureWorkerClock';
+import { ColorUtils } from '../trace/base/ColorUtils';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { Utils } from '../trace/base/Utils';
 
 export class SpClockChart {
   private trace: SpSystemTrace;

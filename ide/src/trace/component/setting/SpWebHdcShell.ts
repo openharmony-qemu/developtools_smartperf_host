@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager.js';
-import { SpRecordTrace } from '../SpRecordTrace.js';
-import { DataMessage } from '../../../hdc/message/DataMessage.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager';
+import { SpRecordTrace } from '../SpRecordTrace';
+import { DataMessage } from '../../../hdc/message/DataMessage';
 
 @element('sp-web-hdc-shell')
 export class SpWebHdcShell extends BaseElement {

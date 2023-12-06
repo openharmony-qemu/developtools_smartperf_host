@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon.js';
-import { SliceGroup } from '../../bean/StateProcessThread.js';
+import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon';
+import { SliceGroup } from '../../bean/StateProcessThread';
 
 export class ProcedureLogicWorkerSPT extends LogicHandler {
   threadSlice: Array<ThreadSlice> = [];

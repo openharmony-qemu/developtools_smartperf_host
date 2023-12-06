@@ -21,8 +21,8 @@ import {
   drawSelection,
   PerfRender,
   RequestMessage,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class FileSystemRender extends PerfRender {
   renderMainThread(

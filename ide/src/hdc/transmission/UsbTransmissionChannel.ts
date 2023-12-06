@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { TransmissionInterface } from './TransmissionInterface.js';
-import { info } from '../../log/Log.js';
-import { HDC_DEVICE_FILTER } from '../common/ConstantType.js';
+import { TransmissionInterface } from './TransmissionInterface';
+import { info } from '../../log/Log';
+import { HDC_DEVICE_FILTER } from '../common/ConstantType';
 
 export interface matchingUsbDevice {
   configurationValue: number;

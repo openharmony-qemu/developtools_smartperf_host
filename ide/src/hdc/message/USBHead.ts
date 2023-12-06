@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseBean } from './BaseBean.js';
+import { BaseBean } from './BaseBean';
 
 export class USBHead extends Object implements BaseBean {
   private _flag: number[]; // uint8_t 'flag', ct.c_uint8 * 2 flag[2] 2

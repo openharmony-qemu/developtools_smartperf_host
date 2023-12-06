@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { AllocationFunction } from '../model/UiStruct.js';
-import { FileStruct, HeapTraceFunctionInfo } from '../model/DatabaseStruct.js';
+import { AllocationFunction } from '../model/UiStruct';
+import { FileStruct, HeapTraceFunctionInfo } from '../model/DatabaseStruct';
 
 export class AllocationLogic {
   private fileStruct: FileStruct;

@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-importScripts('trace_streamer_builtin.js', 'TempSql.js');
+importScripts('trace_streamer_builtin.js');
+import {temp_init_sql_list} from "./TempSql";
 
 let Module: any = null;
 let enc = new TextEncoder();
@@ -340,7 +341,11 @@ self.onmessage = async (e: MessageEvent) => {
         const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
         Module.HEAPU8.set(dataSlice, reqBufferAddr);
         wrSize += sliceLen;
-        r2 = Module._TraceStreamerParseDataEx(sliceLen);
+        if (wrSize >= uint8Array.length) {
+          r2 = Module._TraceStreamerParseDataEx(sliceLen, 1);
+        } else {
+          r2 = Module._TraceStreamerParseDataEx(sliceLen, 0);
+        }
         if (r2 == -1) {
           break;
         }
@@ -360,7 +365,6 @@ self.onmessage = async (e: MessageEvent) => {
       });
       return;
     }
-    // @ts-ignore
     temp_init_sql_list.forEach((item, index) => {
       let r = createView(item);
       // @ts-ignore

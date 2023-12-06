@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { getTabStaticInit } from '../../../../database/SqlLite.js';
-import { log } from '../../../../../log/Log.js';
-import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { SoStruct } from '../../../../database/ui-worker/ProcedureWorkerSoInit.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabStaticInit } from '../../../../database/SqlLite';
+import { log } from '../../../../../log/Log';
+import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { resizeObserver } from '../SheetUtils';
+import { SoStruct } from '../../../../database/ui-worker/ProcedureWorkerSoInit';
 
 interface SoTreeItem {
   name: string;

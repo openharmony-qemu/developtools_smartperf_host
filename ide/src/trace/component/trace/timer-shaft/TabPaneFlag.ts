@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../base-ui/table/lit-table.js';
-import { MarkStruct } from '../../../bean/MarkStruct.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
-import { ns2s } from '../TimerShaftElement.js';
-import { getTimeString } from '../sheet/TabPaneCurrentSelection.js';
-import { Flag } from './Flag.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../base-ui/table/lit-table';
+import { MarkStruct } from '../../../bean/MarkStruct';
+import { SpSystemTrace } from '../../SpSystemTrace';
+import { ns2s } from '../TimerShaftElement';
+import { getTimeString } from '../sheet/TabPaneCurrentSelection';
+import { Flag } from './Flag';
 
 @element('tabpane-flag')
 export class TabPaneFlag extends BaseElement {
@@ -33,7 +33,7 @@ export class TabPaneFlag extends BaseElement {
     this.systemTrace = document
       .querySelector('body > sp-application')
       ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
-    this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');     
+    this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
     this.panelTable!.addEventListener('row-click', (evt: any) => {
       if (evt.detail.data.startTime === undefined) {
         return;
@@ -148,7 +148,7 @@ export class TabPaneFlag extends BaseElement {
     this.panelTable!.addEventListener('click', (event: any) => {
       if (this.flagList.length === 0) {
         return;
-      } 
+      }
       for (let i = 1; i < tr.length; i++) {
         let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
         if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {

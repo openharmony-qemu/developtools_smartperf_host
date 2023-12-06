@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../component/trace/base/ColorUtils.js';
-import { BaseStruct } from './BaseStruct.js';
-import { CpuStruct } from '../database/ui-worker/ProcedureWorkerCPU.js';
+import { ColorUtils } from '../component/trace/base/ColorUtils';
+import { BaseStruct } from './BaseStruct';
+import { CpuStruct } from '../database/ui-worker/ProcedureWorkerCPU';
 
 const padding = 1;
 

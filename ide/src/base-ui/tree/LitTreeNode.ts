@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import '../icon/LitIcon.js';
-import { BaseElement, element } from '../BaseElement.js';
-import { type LitIcon } from '../icon/LitIcon.js';
-import { type TreeItemData } from './LitTree.js';
+import '../icon/LitIcon';
+import { BaseElement, element } from '../BaseElement';
+import { type LitIcon } from '../icon/LitIcon';
+import { type TreeItemData } from './LitTree';
 
 @element('lit-tree-node')
 export class LitTreeNode extends BaseElement {

@@ -26,9 +26,9 @@ import {
   RequestMessage,
   isFrameContainPoint,
   ns2x,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
 export class NativeMemoryRender extends Render {
   renderMainThread(req: any, row: TraceRow<any>) {}
 }

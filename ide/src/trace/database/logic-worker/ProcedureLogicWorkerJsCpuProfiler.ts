@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsCpuProfilerChartFrame, JsCpuProfilerTabStruct, type JsCpuProfilerUIStruct } from '../../bean/JsStruct.js';
-import { DataCache, type JsProfilerSymbol, LogicHandler, convertJSON } from './ProcedureLogicWorkerCommon.js';
+import { JsCpuProfilerChartFrame, JsCpuProfilerTabStruct, type JsCpuProfilerUIStruct } from '../../bean/JsStruct';
+import { DataCache, type JsProfilerSymbol, LogicHandler, convertJSON } from './ProcedureLogicWorkerCommon';
 
 const ROOT_ID = 1;
 const LAMBDA_FUNCTION_NAME = '(anonymous)';

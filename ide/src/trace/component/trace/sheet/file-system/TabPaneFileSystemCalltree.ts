@@ -13,21 +13,21 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar.js';
-import { FrameChart } from '../../../chart/FrameChart.js';
-import '../../../chart/FrameChart.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { ChartMode } from '../../../../bean/FrameChartStruct.js';
-import { FilterData, TabPaneFilter } from '../TabPaneFilter.js';
-import '../TabPaneFilter.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js';
-import { showButtonMenu } from '../SheetUtils.js';
-import { CallTreeLevelStruct } from '../../../../bean/EbpfStruct.js';
-import '../../../../../base-ui/headline/lit-headline.js';
-import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { FrameChart } from '../../../chart/FrameChart';
+import '../../../chart/FrameChart';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { ChartMode } from '../../../../bean/FrameChartStruct';
+import { FilterData, TabPaneFilter } from '../TabPaneFilter';
+import '../TabPaneFilter';
+import { procedurePool } from '../../../../database/Procedure';
+import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
+import { showButtonMenu } from '../SheetUtils';
+import { CallTreeLevelStruct } from '../../../../bean/EbpfStruct';
+import '../../../../../base-ui/headline/lit-headline';
+import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 
 const InvertOptionIndex: number = 0;
 const hideEventOptionIndex: number = 2;
@@ -506,6 +506,8 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           this.switchFlameChart(data);
         });
       } else {
+        this.fsCallTreeTbl!.setStatus(this.fsCallTreeDataSource, true);
+        this.setLTableData(this.fsCallTreeDataSource);
         this.switchFlameChart(data);
       }
     });

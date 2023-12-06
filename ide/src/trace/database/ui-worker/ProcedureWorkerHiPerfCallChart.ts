@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from '../../component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   type Rect,
@@ -21,9 +21,9 @@ import {
   drawString,
   Render,
   isFrameContainPoint
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { HiPerfChartFrame } from '../../bean/PerfStruct.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { HiPerfChartFrame } from '../../bean/PerfStruct';
 
 export class HiPerfCallChartRender extends Render {
   renderMainThread(req: any, row: TraceRow<HiPerfCallChartStruct>): void {

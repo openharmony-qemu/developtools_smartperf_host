@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../base-ui/BaseElement.js';
-import { ColorUtils } from './ColorUtils.js';
-import { LitRadioBox } from '../../../../base-ui/radiobox/LitRadioBox.js';
-import { SpApplication } from '../../../SpApplication.js';
-import { SpSystemTrace } from '../../SpSystemTrace.js';
+import { BaseElement, element } from '../../../../base-ui/BaseElement';
+import { ColorUtils } from './ColorUtils';
+import { LitRadioBox } from '../../../../base-ui/radiobox/LitRadioBox';
+import { SpApplication } from '../../../SpApplication';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 @element('custom-theme-color')
 export class CustomThemeColor extends BaseElement {

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable } from '../../../../../base-ui/table/lit-table.js';
-import { ColorUtils } from '../../base/ColorUtils.js';
-import { Utils } from '../../base/Utils.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { ColorUtils } from '../../base/ColorUtils';
+import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-freq-limit')
 export class TabPaneFreqLimit extends BaseElement {

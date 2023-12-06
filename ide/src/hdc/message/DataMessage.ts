@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { USBHead } from './USBHead.js';
-import { debug, log } from '../../log/Log.js';
-import { PayloadHead } from './PayloadHead.js';
-import { Serialize } from '../common/Serialize.js';
-import { Utils } from '../common/Utils.js';
-import { HdcCommand } from '../hdcclient/HdcCommand.js';
+import { USBHead } from './USBHead';
+import { debug, log } from '../../log/Log';
+import { PayloadHead } from './PayloadHead';
+import { Serialize } from '../common/Serialize';
+import { Utils } from '../common/Utils';
+import { HdcCommand } from '../hdcclient/HdcCommand';
 
 export class DataMessage extends Object {
   body?: DataView;

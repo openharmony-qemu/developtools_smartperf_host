@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../base-ui/BaseElement.js';
-import './TabThreadAnalysis.js';
-import './TabCpuAnalysis.js';
-import { TabCpuAnalysis } from './TabCpuAnalysis.js';
-import { TabThreadAnalysis } from './TabThreadAnalysis.js';
-import { LitTabs } from '../../../base-ui/tabs/lit-tabs.js';
-import { CheckCpuSetting } from './CheckCpuSetting.js';
-import { Top20FrequencyThread } from './Top20FrequencyThread.js';
-import { procedurePool } from '../../database/Procedure.js';
+import { BaseElement, element } from '../../../base-ui/BaseElement';
+import './TabThreadAnalysis';
+import './TabCpuAnalysis';
+import { TabCpuAnalysis } from './TabCpuAnalysis';
+import { TabThreadAnalysis } from './TabThreadAnalysis';
+import { LitTabs } from '../../../base-ui/tabs/lit-tabs';
+import { CheckCpuSetting } from './CheckCpuSetting';
+import { Top20FrequencyThread } from './Top20FrequencyThread';
+import { procedurePool } from '../../database/Procedure';
 
 @element('sp-scheduling-analysis')
 export class SpSchedulingAnalysis extends BaseElement {

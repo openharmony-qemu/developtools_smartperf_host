@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table.js';
-import { SelectionParam } from '../../../../bean/BoxSelection.js';
-import { resizeObserver } from '../SheetUtils.js';
-import { procedurePool } from '../../../../database/Procedure.js';
-import { Utils } from '../../base/Utils.js';
-import { queryThreadStateArgsByName } from '../../../../database/SqlLite.js';
-import { Priority } from '../../../../bean/StateProcessThread.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
+import { SelectionParam } from '../../../../bean/BoxSelection';
+import { resizeObserver } from '../SheetUtils';
+import { procedurePool } from '../../../../database/Procedure';
+import { Utils } from '../../base/Utils';
+import { queryThreadStateArgsByName } from '../../../../database/SqlLite';
+import { Priority } from '../../../../bean/StateProcessThread';
 
 @element('tabpane-sched-priority')
 export class TabPaneSchedPriority extends BaseElement {

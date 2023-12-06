@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
-import './TabPaneCallTree.js';
-import { TabPaneCallTree } from './TabPaneCallTree.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import './TabPaneCallTree';
+import { TabPaneCallTree } from './TabPaneCallTree';
 
 @element('tabpane-io-calltree')
 export class TabPaneIOCallTree extends TabPaneCallTree {

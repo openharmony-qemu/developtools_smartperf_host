@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndexedDBHelp } from './IndexedDBHelp.js';
+import { IndexedDBHelp } from './IndexedDBHelp';
 
 export class LongTraceDBUtils {
   public static instance: LongTraceDBUtils | undefined;

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { LogicHandler, ChartStruct, convertJSON, DataCache, HiPerfSymbol } from './ProcedureLogicWorkerCommon.js';
-import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct.js';
-import { HiPerfChartFrame } from '../../bean/PerfStruct.js';
+import { LogicHandler, ChartStruct, convertJSON, DataCache, HiPerfSymbol } from './ProcedureLogicWorkerCommon';
+import { PerfBottomUpStruct } from '../../bean/PerfBottomUpStruct';
+import { HiPerfChartFrame } from '../../bean/PerfStruct';
 
 const systemRuleName: string = '/system/';
 const numRuleName: string = '/max/min/';
-const maxDepth: number = 128;
+const maxDepth: number = 256;
 
 export class ProcedureLogicWorkerPerf extends LogicHandler {
   filesData: any = {};

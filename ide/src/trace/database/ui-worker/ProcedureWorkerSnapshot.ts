@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseStruct, Rect, Render, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
-import { Utils } from '../../component/trace/base/Utils.js';
-import { MemoryConfig } from '../../bean/MemoryConfig.js';
+import { BaseStruct, Rect, Render, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
+import { Utils } from '../../component/trace/base/Utils';
+import { MemoryConfig } from '../../bean/MemoryConfig';
 
 export class SnapshotRender extends Render {
   renderMainThread(

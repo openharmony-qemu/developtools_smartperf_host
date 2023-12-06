@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { convertJSON, getProbablyTime, LogicHandler } from './ProcedureLogicWorkerCommon.js';
+import { convertJSON, getProbablyTime, LogicHandler } from './ProcedureLogicWorkerCommon';
 
 export class ProcedureLogicWorkerSchedulingAnalysis extends LogicHandler {
   currentEventId: string = '';

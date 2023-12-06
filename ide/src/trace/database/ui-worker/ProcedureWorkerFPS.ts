@@ -24,8 +24,8 @@ import {
   Rect,
   Render,
   RequestMessage,
-} from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+} from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class FpsRender extends Render {
   renderMainThread(

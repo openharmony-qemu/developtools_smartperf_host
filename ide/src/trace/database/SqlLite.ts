@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { Counter, Fps, SelectionData } from '../bean/BoxSelection.js';
-import { WakeupBean } from '../bean/WakeupBean.js';
-import { BinderArgBean } from '../bean/BinderArgBean.js';
-import { SPTChild } from '../bean/StateProcessThread.js';
-import { CpuUsage, Freq } from '../bean/CpuUsage.js';
+import { Counter, Fps, SelectionData } from '../bean/BoxSelection';
+import { WakeupBean } from '../bean/WakeupBean';
+import { BinderArgBean } from '../bean/BinderArgBean';
+import { SPTChild } from '../bean/StateProcessThread';
+import { CpuUsage, Freq } from '../bean/CpuUsage';
 
 import {
   NativeEvent,
@@ -26,7 +26,7 @@ import {
   NativeHookProcess,
   NativeHookSampleQueryInfo,
   NativeHookStatistics,
-} from '../bean/NativeHook.js';
+} from '../bean/NativeHook';
 import {
   Dma,
   DmaComparison,
@@ -37,7 +37,7 @@ import {
   SystemCpuSummary,
   SystemDiskIOSummary,
   SystemNetworkSummary,
-} from '../bean/AbilityMonitor.js';
+} from '../bean/AbilityMonitor';
 
 import {
   PerfCall,
@@ -47,29 +47,29 @@ import {
   PerfSample,
   PerfStack,
   PerfThread,
-} from '../bean/PerfProfile.js';
-import { SearchFuncBean } from '../bean/SearchFuncBean.js';
-import { CounterSummary, SdkSliceSummary } from '../bean/SdkSummary.js';
-import { Smaps } from '../bean/SmapsStruct.js';
-import { CpuFreqRowLimit } from '../component/chart/SpFreqChart.js';
-import { CpuFreqLimitsStruct } from './ui-worker/ProcedureWorkerCpuFreqLimits.js';
-import { CpuStruct } from './ui-worker/ProcedureWorkerCPU.js';
-import { CpuFreqStruct } from './ui-worker/ProcedureWorkerFreq.js';
-import { ThreadStruct } from './ui-worker/ProcedureWorkerThread.js';
-import { FuncStruct } from './ui-worker/ProcedureWorkerFunc.js';
-import { ProcessMemStruct } from './ui-worker/ProcedureWorkerMem.js';
-import { FpsStruct } from './ui-worker/ProcedureWorkerFPS.js';
-import { CpuAbilityMonitorStruct } from './ui-worker/ProcedureWorkerCpuAbility.js';
-import { MemoryAbilityMonitorStruct } from './ui-worker/ProcedureWorkerMemoryAbility.js';
-import { DiskAbilityMonitorStruct } from './ui-worker/ProcedureWorkerDiskIoAbility.js';
-import { NetworkAbilityMonitorStruct } from './ui-worker/ProcedureWorkerNetworkAbility.js';
-import { EnergyAnomalyStruct } from './ui-worker/ProcedureWorkerEnergyAnomaly.js';
-import { EnergyStateStruct } from './ui-worker/ProcedureWorkerEnergyState.js';
-import { CounterStruct } from './ui-worker/ProduceWorkerSdkCounter.js';
-import { SdkSliceStruct } from './ui-worker/ProduceWorkerSdkSlice.js';
-import { SystemDetailsEnergy } from '../bean/EnergyStruct.js';
-import { ClockStruct } from './ui-worker/ProcedureWorkerClock.js';
-import { IrqStruct } from './ui-worker/ProcedureWorkerIrq.js';
+} from '../bean/PerfProfile';
+import { SearchFuncBean } from '../bean/SearchFuncBean';
+import { CounterSummary, SdkSliceSummary } from '../bean/SdkSummary';
+import { Smaps } from '../bean/SmapsStruct';
+import { CpuFreqRowLimit } from '../component/chart/SpFreqChart';
+import { CpuFreqLimitsStruct } from './ui-worker/ProcedureWorkerCpuFreqLimits';
+import { CpuStruct } from './ui-worker/ProcedureWorkerCPU';
+import { CpuFreqStruct } from './ui-worker/ProcedureWorkerFreq';
+import { ThreadStruct } from './ui-worker/ProcedureWorkerThread';
+import { FuncStruct } from './ui-worker/ProcedureWorkerFunc';
+import { ProcessMemStruct } from './ui-worker/ProcedureWorkerMem';
+import { FpsStruct } from './ui-worker/ProcedureWorkerFPS';
+import { CpuAbilityMonitorStruct } from './ui-worker/ProcedureWorkerCpuAbility';
+import { MemoryAbilityMonitorStruct } from './ui-worker/ProcedureWorkerMemoryAbility';
+import { DiskAbilityMonitorStruct } from './ui-worker/ProcedureWorkerDiskIoAbility';
+import { NetworkAbilityMonitorStruct } from './ui-worker/ProcedureWorkerNetworkAbility';
+import { EnergyAnomalyStruct } from './ui-worker/ProcedureWorkerEnergyAnomaly';
+import { EnergyStateStruct } from './ui-worker/ProcedureWorkerEnergyState';
+import { CounterStruct } from './ui-worker/ProduceWorkerSdkCounter';
+import { SdkSliceStruct } from './ui-worker/ProduceWorkerSdkSlice';
+import { SystemDetailsEnergy } from '../bean/EnergyStruct';
+import { ClockStruct } from './ui-worker/ProcedureWorkerClock';
+import { IrqStruct } from './ui-worker/ProcedureWorkerIrq';
 import {
   HeapEdge,
   HeapLocation,
@@ -77,24 +77,26 @@ import {
   HeapSample,
   HeapTraceFunctionInfo,
 } from '../../js-heap/model/DatabaseStruct';
-import { FileInfo } from '../../js-heap/model/UiStruct.js';
-import { AppStartupStruct } from './ui-worker/ProcedureWorkerAppStartup.js';
-import { SoStruct } from './ui-worker/ProcedureWorkerSoInit.js';
-import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerCommon.js';
-import { TaskTabStruct } from '../component/trace/sheet/task/TabPaneTaskFrames.js';
-import { type DeviceStruct } from '../bean/FrameComponentBean.js';
-import { type FrameSpacingStruct } from './ui-worker/ProcedureWorkerFrameSpacing.js';
-import { type FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic.js';
-import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation.js';
-import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot.js';
-import { type MemoryConfig } from '../bean/MemoryConfig.js';
-import { LogStruct } from './ui-worker/ProcedureWorkerLog.js';
-import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent.js';
-import { FuncNameCycle } from '../bean/BinderProcessThread.js';
+import { FileInfo } from '../../js-heap/model/UiStruct';
+import { AppStartupStruct } from './ui-worker/ProcedureWorkerAppStartup';
+import { SoStruct } from './ui-worker/ProcedureWorkerSoInit';
+import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerCommon';
+import { TaskTabStruct } from '../component/trace/sheet/task/TabPaneTaskFrames';
+import { type DeviceStruct } from '../bean/FrameComponentBean';
+import { type FrameSpacingStruct } from './ui-worker/ProcedureWorkerFrameSpacing';
+import { type FrameDynamicStruct } from './ui-worker/ProcedureWorkerFrameDynamic';
+import { type FrameAnimationStruct } from './ui-worker/ProcedureWorkerFrameAnimation';
+import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
+import { type MemoryConfig } from '../bean/MemoryConfig';
+import { LogStruct } from './ui-worker/ProcedureWorkerLog';
+import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
 
-class DataWorkerThread extends Worker {
+class DataWorkerThread {
   taskMap: any = {};
-
+  worker?:Worker;
+  constructor(worker:Worker) {
+    this.worker = worker;
+  }
   uuid(): string {
     // @ts-ignore
     return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: any) =>
@@ -111,16 +113,20 @@ class DataWorkerThread extends Worker {
       action: action,
       args: args,
     };
-    this.postMessage(msg);
+    this.worker!.postMessage(msg);
   }
 }
 
-class DbThread extends Worker {
+class DbThread {
   busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
   taskMap: any = {};
   cacheArray: Array<any> = [];
+  worker?:Worker;
+  constructor(worker:Worker) {
+    this.worker=worker;
+  }
 
   uuid(): string {
     // @ts-ignore
@@ -140,7 +146,7 @@ class DbThread extends Worker {
       sql: sql,
       params: args,
     };
-    this.postMessage(msg);
+    this.worker!.postMessage(msg);
   }
 
   cutFileByRange(
@@ -158,7 +164,7 @@ class DbThread extends Worker {
         handler(res.cutStatus, res.msg);
       }
     };
-    this.postMessage(
+    this.worker!.postMessage(
       {
         id: id,
         action: 'cut-file',
@@ -193,7 +199,7 @@ class DbThread extends Worker {
           resolve({ status: res.init, msg: res.msg });
         }
       };
-      this.postMessage(
+      this.worker!.postMessage(
         {
           id: id,
           action: 'open',
@@ -207,7 +213,7 @@ class DbThread extends Worker {
   };
 
   resetWASM() {
-    this.postMessage({
+    this.worker!.postMessage({
       id: this.uuid(),
       action: 'reset',
     });
@@ -247,16 +253,17 @@ export class DbPool {
         thread = threadBuild();
       } else {
         if (type === 'wasm') {
-          thread = new DbThread('trace/database/TraceWorker.js');
+          thread = new DbThread(new Worker(new URL('./TraceWorker',import.meta.url)));
         } else if (type === 'server') {
-          thread = new DbThread('trace/database/SqlLiteWorker.js');
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker',import.meta.url)));
         } else if (type === 'sqlite') {
-          thread = new DbThread('trace/database/SqlLiteWorker.js');
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker',import.meta.url)));
         }
       }
+
       if (thread) {
         this.currentWasmThread = thread;
-        thread!.onmessage = (event: MessageEvent) => {
+        thread!.worker!.onmessage = (event: MessageEvent) => {
           thread!.busy = false;
           if (Reflect.has(thread!.taskMap, event.data.id)) {
             if (event.data.results) {
@@ -298,8 +305,12 @@ export class DbPool {
             }
           }
         };
-        thread!.onmessageerror = (e) => { };
-        thread!.onerror = (e) => { };
+        thread!.worker!.onmessageerror = (e) => {
+          console.log(e);
+        };
+        thread!.worker!.onerror = (e) => {
+          console.log(e);
+        };
         thread!.id = i;
         thread!.busy = false;
         this.works?.push(thread!);
@@ -346,7 +357,7 @@ export class DbPool {
     clearInterval(this.cutDownTimer);
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
-      thread.terminate();
+      thread.worker!.terminate();
     }
     this.works.length = 0;
   };
@@ -724,8 +735,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
-  let processSql = `select
+  export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
+    let processSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -741,8 +752,8 @@ export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds
       where
         filter_id in (${processFilterIds.join(',')})
       and
-        startTime <= ${startTime}`;
-  let virtualSql = `select
+        startTime <= ${startTime}` ;
+    let virtualSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -759,18 +770,18 @@ export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds
         filter_id in (${virtualFilterIds.join(',')})
       and
         startTime <= ${startTime}`;
-  let sql = '';
-  if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
-    sql = `${processSql} union ${virtualSql}`;
-  } else {
-    if (processFilterIds.length > 0) {
-      sql = processSql;
+    let sql = '';
+    if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
+      sql = `${processSql} union ${virtualSql}`;
     } else {
-      sql = virtualSql;
+      if (processFilterIds.length > 0) {
+        sql = processSql;
+      } else {
+        sql = virtualSql;
+      }
     }
+    return query<Counter>('getTabCounters', sql, {});
   }
-  return query<Counter>('getTabCounters', sql, {});
-}
 
 export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
   query<Counter>(
@@ -877,10 +888,6 @@ export const getTabSlices = (
       T.tid in (${funTids.join(',')})
     and
       P.pid in (${pids.join(',')})
-    and
-      c.name != 'binder transaction async'
-    and
-      c.name != 'binder async rcv'
     and
       c.cookie is null
     and
@@ -1352,7 +1359,8 @@ export const queryVirtualMemory = (): Promise<Array<any>> =>
 export const queryVirtualMemoryData = (filterId: number): Promise<Array<any>> =>
   query(
     'queryVirtualMemoryData',
-    `select ts-${(window as any).recordStartNS
+    `select ts-${
+      (window as any).recordStartNS
     } as startTime,value,filter_id as filterID from sys_mem_measure where filter_id=$filter_id`,
     { $filter_id: filterId }
   );
@@ -1428,7 +1436,7 @@ order by start_name;`,
     { $pid: pid }
   );
 
-export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
+  export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
   query(
     'queryProcessStartup',
     `
@@ -1449,13 +1457,13 @@ order by start_name;`,
     { $pid: pids }
   );
 
-export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
+  export const querySingleAppStartupsName = (pid:number): Promise<Array<any>> =>
   query(
     'queryAllAppStartupsName',
     `select name from process
     where pid=$pid`,
     { $pid: pid }
-  )
+  );
 
 export const queryProcessSoMaxDepth = (): Promise<Array<{ pid: number; maxDepth: number }>> =>
   query(
@@ -2776,7 +2784,7 @@ export const queryPerfThread = (): Promise<Array<PerfThread>> =>
        a.process_id as pid,
        b.thread_name as processName
 from perf_thread a
-         left join (select distinct process_id, thread_name from perf_thread) b 
+         left join (select distinct process_id, thread_name from perf_thread where process_id = thread_id ) b 
          on a.process_id = b.process_id
 order by pid;`,
     {}
@@ -3995,9 +4003,11 @@ export const queryEbpfSamplesCount = (startTime: number, endTime: number, ipids:
     select
 fsCount,
     vmCount from
-(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
+      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     })
-,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${
+      ipids.length > 0 ? `and s.ipid in (${ipids.join(',')})` : ''
     });
 `,
     { $startTime: startTime, $endTime: endTime }
@@ -4832,7 +4842,7 @@ export const queryVmTrackerShmSelectionData = (startNs: number, ipid: number): P
              where startNS = ${startNs} and ipid = ${ipid};`,
     {}
   );
-export const getTabSmapsSampleData = (rightNs: number): Promise<Array<Smaps>> =>
+export const getTabSmapsSampleData = (leftNs: number): Promise<Array<Smaps>> =>
   query<Smaps>(
     'getTabSmapsSampleData',
     `
@@ -4848,8 +4858,8 @@ export const getTabSmapsSampleData = (rightNs: number): Promise<Array<Smaps>> =>
      private_dirty * 1024 as privateDirty,swap * 1024 as swap,swap_pss * 1024 as swapPss
      FROM smaps A,
      trace_range AS t
-     WHERE (startNs) = $rightNs`,
-    { $rightNs: rightNs },
+     WHERE (startNs) = ${leftNs}`,
+    { $leftNs: leftNs },
     'exec'
   );
 
@@ -5646,6 +5656,9 @@ export const queryTraceType = (): Promise<
                 m.name = 'source_type';`
   );
 
+export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
+  query('queryTransferList', `select id, report_value as cmdStr from perf_report where report_type = 'config_name'`);
+
 export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabRunningPercent',
@@ -5677,8 +5690,16 @@ export const querySearchFuncData = (
     'querySearchFuncData',
     `
       select 
+        c.cookie,
+        c.id,
+        c.name as funName,
         c.ts - r.start_ts as startTime,
-        c.dur
+        c.dur,
+        c.depth,
+        t.tid,
+        t.name as threadName,
+        p.pid,
+        'func' as type 
       from 
         callstack c 
       left join 
@@ -5697,7 +5718,8 @@ export const querySearchFuncData = (
         t.tid = ${tIds} 
       and
         not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-  `
+  `,
+    { $search: funcName }
   );
 
 export const queryCpuFreqUsageData = (Ids: Array<number>): Promise<Array<any>> =>
@@ -5766,15 +5788,15 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         ORDER BY S.ts`
   );
 
-export const querySearchRowFuncData = (
-  funcName: string,
-  tIds: number,
-  leftNS: number,
-  rightNS: number
-): Promise<Array<SearchFuncBean>> =>
-  query(
-    'querySearchRowFuncData',
-    `
+  export const querySearchRowFuncData = (
+    funcName: string,
+    tIds: number,
+    leftNS: number,
+    rightNS: number
+  ): Promise<Array<SearchFuncBean>> =>
+    query(
+      'querySearchRowFuncData',
+      `
           select 
             c.name as funName,
             c.ts - r.start_ts as startTime,
@@ -5800,366 +5822,5 @@ export const querySearchRowFuncData = (
           and
             not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
       `,
-    { $search: funcName }
-  );
-
-export const queryTransferList = (): Promise<Array<{ id: number; cmdStr: string }>> =>
-  query(
-    'queryTransferList',
-    `SELECT 
-            id, 
-            report_value as cmdStr 
-          FROM 
-            perf_report 
-          WHERE 
-            report_type = 'config_name'`
-  );
-
-export const getTabBindersCount = (pIds: number[], tIds: number[], leftNS: number, rightNS: number): Promise<Array<any>> =>
-  query<SelectionData>(
-    'getTabBindersCount',
-    `
-      SELECT 
-          c.name,
-          c.dur,
-          1 AS count,
-          c.ts,
-          c.ts - r.start_ts AS startTime, 
-          c.ts -r.start_ts + c.dur AS endTime,
-          t.tid, 
-          p.pid, 
-          ${leftNS} AS cycleStartTime,
-          (${rightNS} - ${leftNS}) AS cycleDur
-        FROM 
-            callstack c, trace_range r 
-          LEFT JOIN
-            thread t 
-          ON 
-            c.callid = t.id 
-          LEFT JOIN
-            process p 
-          ON
-            t.ipid = p.id 
-        WHERE 
-            c.name in ('binder transaction', 'binder async rcv', 'binder reply', 'binder transaction async') 
-          AND 
-            t.tid in (${tIds.join(',')})
-          AND 
-            p.pid in (${pIds.join(',')})
-          AND NOT 
-            ((startTime < ${leftNS}) 
-          OR 
-            (endTime > ${rightNS}));
-      `,
-    {
-      $leftNS: leftNS,
-      $rightNS: rightNS
-    }
-  );
-
-export const queryBinderByThreadId = (pIds: number[], tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
-  query<SelectionData>(
-    'queryBinderByThreadId',
-    `
-      SELECT 
-            c.name, 
-            c.ts - r.start_ts AS ts, 
-            c.dur, 
-            c.ts - r.start_ts AS startTime, 
-            c.ts - r.start_ts + c.dur AS endTime,
-            t.tid,
-            p.pid
-          FROM 
-              callstack c, trace_range r 
-          LEFT JOIN 
-              thread t 
-          ON 
-              c.callid = t.id 
-          LEFT JOIN
-              process p 
-          ON
-              t.ipid = p.id  
-          WHERE 
-              c.name in ('binder transaction', 'binder async rcv', 'binder reply', 'binder transaction async') 
-          AND 
-              t.tid in (${tIds.join(',')})
-          AND 
-              p.pid in (${pIds.join(',')})
-          AND NOT 
-              ((startTime < ${leftNS}) 
-          OR 
-              (endTime > ${rightNS}))
-        `,
-    {
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS
-    }
-  );
-
-
-export const querySingleFuncNameCycle = (funcName: string, tIds: string, leftNS: number, rightNS: number): Promise<Array<FuncNameCycle>> =>
-  query(
-    'querySingleFuncNameCycle',
-    `
-      SELECT 
-            c.name AS funcName, 
-            c.ts - r.start_ts AS cycleStartTime, 
-            c.dur AS cycleDur,
-            c.id,
-            t.tid,
-            p.pid,
-            c.ts - r.start_ts + c.dur AS endTime
-          FROM 
-              callstack c, trace_range r 
-          LEFT JOIN 
-              thread t 
-          ON 
-              c.callid = t.id 
-          LEFT JOIN
-              process p 
-          ON
-              t.ipid = p.id  
-          WHERE 
-              c.name = '${funcName}'
-          AND 
-              t.tid = ${tIds} 
-          AND NOT 
-              ((cycleStartTime < ${leftNS}) 
-          OR 
-              (endTime > ${rightNS}))
-        `,
-    {
-      $funcName: funcName,
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS
-    }
-  );
-
-export const queryLoopFuncNameCycle = (funcName: string, tIds: string, leftNS: number, rightNS: number): Promise<Array<FuncNameCycle>> =>
-  query(
-    'queryLoopFuncNameCycle',
-    `
-      SELECT 
-          c.name AS funcName,
-          c.ts - r.start_ts AS cycleStartTime,
-          0 AS cycleDur,
-          c.id,
-          t.tid,
-          p.pid
-        FROM
-            callstack c, trace_range r 
-          LEFT JOIN 
-            thread t 
-          ON 
-            c.callid = t.id 
-          LEFT JOIN  
-            process p 
-          ON 
-            t.ipid = p.id  
-        WHERE 
-            c.name = '${funcName}' 
-          AND 
-            t.tid = ${tIds}
-          AND NOT 
-            ((cycleStartTime < ${leftNS}) 
-          OR  
-            (cycleStartTime > ${rightNS})) 
-        `,
-    {
-      $funcName: funcName,
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS
-    }
-  );
-
-        
-    export const querySchedThreadStates = (tIds: Array<number>, leftStartNs: number, rightEndNs: number): Promise<Array<any>> =>
-    query(
-      'getTabThreadStates',
-      `
-      select
-        B.id,
-        B.pid,
-        B.tid,
-        B.state,
-        B.type,
-        B.dur,
-        B.ts,
-        B.dur + B.ts as endTs
-      from
-        thread_state AS B
-      where
-        B.tid in (${tIds.join(',')})
-      and
-        not ((B.ts + ifnull(B.dur,0) < $leftStartNs) or (B.ts > $rightEndNs))
-      order by
-        B.pid;
-      `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
+      { $search: funcName }
     );
-    
-    export const querySingleCutData = (funcName: string, tIds: string, leftStartNs: number, rightEndNs: number): Promise<Array<any>> => 
-    query(
-      'querySingleCutData',
-      `
-      select 
-      c.id,
-      c.name,
-      c.ts as cycleStartTime,
-      c.ts + c.dur as cycleEndTime,
-      c.depth,
-      t.tid,
-      p.pid,
-      c.dur
-      from
-      callstack c 
-      left join
-      thread t on c.callid = t.id 
-      left join
-      process p on t.ipid = p.id
-      left join
-      trace_range r
-      where
-      c.name = '${funcName}'
-      and 
-      t.tid = '${tIds}'
-      and
-      not ((c.ts < $leftStartNs) or (c.ts + ifnull(c.dur, 0) > $rightEndNs))
-      `,
-      {$leftStartNs: leftStartNs, $rightEndNs: rightEndNs}
-    )
-    
-    export const queryLoopCutData = ( funcName: string, tIds: string, leftStartNs: number, rightEndNs: number): Promise<Array<any>> => 
-    query (
-      'queryLoopCutData',
-      `
-      select 
-        c.id,
-        c.name,
-        c.ts as cycleStartTime,
-        c.depth,
-        t.tid,
-        p.pid
-      from callstack c 
-      left join
-      thread t on c.callid = t.id 
-      left join
-      process p on t.ipid = p.id
-      where 
-        c.name = '${funcName}' 
-      and
-        t.tid = '${tIds}' 
-      and
-        not ((c.ts < $leftStartNs) or (c.ts > $rightEndNs))
-      order by
-        c.ts
-      `,
-      { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-    )
-    export const getGpufreqData = (leftNS: number, rightNS: number, earliest: boolean): Promise<Array<any>> => {
-      let queryCondition = '';
-      if (!earliest) {
-        queryCondition += ` where  not  ((s.ts - r.start_ts + ifnull(s.dur,0) < ${leftNS}) or (s.ts - r.start_ts > ${rightNS}))`
-      }
-      return query<SelectionData>(
-        'getGpufreqData',
-        `
-          with state as 
-          (select 
-           name,
-           filter_id, 
-           ts, 
-           endts, 
-           endts-ts as dur, 
-           type, 
-           value 
-           from
-           (select 
-           measure.filter_id,
-           clock_event_filter.name, 
-           measure.ts, 
-           lead(ts, 1, null) over( order by measure.ts) endts, 
-           measure.type, 
-           measure.value 
-           from 
-           clock_event_filter,
-           trace_range
-           left join 
-           measure
-           where 
-           clock_event_filter.name = 'gpufreq' 
-           and 
-           clock_event_filter.type = 'clock_set_rate' 
-           and
-           clock_event_filter.id = measure.filter_id
-           order by measure.ts)
-           where endts is not null
-           )
-           select 
-           s.name as thread,
-           s.filter_id as filterId,
-           s.value/1000000 as freq,
-           s.value*s.dur as count,
-           s.value,
-           s.ts,
-           s.ts-r.start_ts as startNS,
-           s.dur,
-           s.endts- r.start_ts as endTime
-           from 
-           state s,
-           trace_range r 
-           ${queryCondition} 
-           order by ts
-        `,
-        { $leftNS: leftNS, $rightNS: rightNS }
-      );
-    }
-    
-    export const getGpufreqDataCut = (tIds: string, funcName: string, leftNS: number, rightNS: number, single: boolean, loop: boolean): Promise<Array<SearchFuncBean>> => {
-      let queryCondition = '';
-      if (single) {
-        queryCondition += `select s.funName,s.startTime,s.dur,s.startTime+s.dur as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
-          where endTime between ${leftNS} and ${rightNS}`;
-      }
-      if (loop) {
-        queryCondition += `select s.funName,s.startTime,s.loopEndTime-s.startTime as dur,s.loopEndTime as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
-          where endTime between ${leftNS} and ${rightNS} `;
-      }
-      return query(
-        'getGpufreqDataCut',
-        `
-          with state as
-          (select 
-           * 
-           from
-           (select
-           c.name as funName,
-           c.ts - r.start_ts as startTime,
-           c.dur,
-           lead(c.ts - r.start_ts, 1, null) over( order by c.ts - r.start_ts) loopEndTime,
-           c.depth,
-           t.tid,
-           t.name as threadName,
-           p.pid
-           from 
-           callstack c 
-           left join 
-           thread t on c.callid = t.id 
-           left join 
-           process p on t.ipid = p.id
-           left join 
-           trace_range r
-           where 
-           c.name like '%${funcName}%'
-           and 
-           tid = '${tIds}' 
-           and 
-           startTime between ${leftNS} and ${rightNS}))
-           ${queryCondition}  
-        `,
-        { $search: funcName }
-      );
-    }

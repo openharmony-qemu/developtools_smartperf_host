@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type JsCpuProfilerChartFrame } from '../bean/JsStruct.js';
-import { type SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot.js';
-import { type RangeSelectStruct, TraceRow } from './trace/base/TraceRow.js';
+import { type JsCpuProfilerChartFrame } from '../bean/JsStruct';
+import { type SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot';
+import { type RangeSelectStruct, TraceRow } from './trace/base/TraceRow';
 
 export function setSelectState(
   data: JsCpuProfilerChartFrame,

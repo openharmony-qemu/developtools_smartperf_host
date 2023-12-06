@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { BaseElement, element } from '../../../../../base-ui/BaseElement.js';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
-import { JankFramesStruct } from '../../../../bean/JankFramesStruct.js';
-import { JanksStruct } from '../../../../bean/JanksStruct.js';
-import { resizeObserver } from '../SheetUtils.js';
+import { JankFramesStruct } from '../../../../bean/JankFramesStruct';
+import { JanksStruct } from '../../../../bean/JanksStruct';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
