@@ -64,6 +64,8 @@ const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader
 
     });
   }
+  runCommand(`cp ./bin/* dist/`);
+
   let rs;
   if (os.type() === 'Windows_NT') {
     rs = childProcess.spawnSync('go', ['build', '-o', outPath, serverSrc], {
@@ -118,36 +120,8 @@ const config = {
           to: 'base-ui/icon.svg',
         },
         {
-          from: './bin/trace_converter_builtin.js',
-          to: 'trace_converter_builtin.js',
-        },
-        {
-          from: './bin/trace_converter_builtin.wasm',
-          to: 'trace_converter_builtin.wasm',
-        },
-        {
-          from: './bin/trace_streamer_builtin.js',
-          to: 'trace_streamer_builtin.js',
-        },
-        {
-          from: './bin/trace_streamer_builtin.wasm',
-          to: 'trace_streamer_builtin.wasm',
-        },
-        {
-          from: './bin/trace_streamer_dubai_builtin.js',
-          to: 'trace_streamer_dubai_builtin.js',
-        },
-        {
-          from: './bin/trace_streamer_dubai_builtin.wasm',
-          to: 'trace_streamer_dubai_builtin.wasm',
-        },
-        {
-          from: './bin/trace_streamer_sdk_builtin.js',
-          to: 'trace_streamer_sdk_builtin.js',
-        },
-        {
-          from: './bin/trace_streamer_sdk_builtin.wasm',
-          to: 'trace_streamer_sdk_builtin.wasm',
+          from: './src/trace/config/custom_temp_config.json',
+          to: 'trace/config/custom_temp_config.json',
         },
         {
           from: './third-party/sql-wasm.js',
