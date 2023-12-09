@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq.js';
-import { ColorUtils } from '../trace/base/ColorUtils.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
 import {
     queryAppStartupProcessIds,
     queryProcessStartup,
@@ -70,8 +69,9 @@ export class SpAllAppStartupsChart {
         row.folder = false;
         row.style.height = '40px';
         row.name = `All App Startups`;
-        row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
+        row.addTemplateTypes('AppStartup');
         row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
+        row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
         row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
             let sendRes: AllAppStartupStruct[] | PromiseLike<AllAppStartupStruct[]> = [];
             for (let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++) {

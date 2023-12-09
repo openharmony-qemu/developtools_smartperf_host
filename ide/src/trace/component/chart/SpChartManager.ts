@@ -26,33 +26,33 @@ import {
   queryTaskPoolCallStack,
   queryThreadAndProcessName,
   queryTotalTime,
-} from '../../database/SqlLite.js';
-import { info } from '../../../log/Log.js';
-import { SpNativeMemoryChart } from './SpNativeMemoryChart.js';
-import { SpAbilityMonitorChart } from './SpAbilityMonitorChart.js';
-import { SpProcessChart } from './SpProcessChart.js';
-import { perfDataQuery } from './PerfDataQuery.js';
-import { SpVirtualMemChart } from './SpVirtualMemChart.js';
-import { SpFileSystemChart } from './SpFileSystemChart.js';
-import { SpSdkChart } from './SpSdkChart.js';
-import { SpHiSysEnergyChart } from './SpHiSysEnergyChart.js';
-import { VmTrackerChart } from './SpVmTrackerChart.js';
-import { SpClockChart } from './SpClockChart.js';
-import { SpIrqChart } from './SpIrqChart.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { SpFrameTimeChart } from './SpFrameTimeChart.js';
-import { Utils } from '../trace/base/Utils.js';
-import { SpArkTsChart } from './SpArkTsChart.js';
-import { MemoryConfig } from '../../bean/MemoryConfig.js';
-import { FlagsConfig } from '../SpFlags.js';
-import { SpLogChart } from './SpLogChart.js';
-import { SpHiSysEventChart } from './SpHiSysEventChart.js';
-import { SpAllAppStartupsChart } from './SpAllAppStartups.js';
-import {setVSyncData} from './VSync.js';
-import { SegMenTaTion } from './SpSegmentationChart.js';
-import { SpLtpoChart } from './SpLTPO.js';
+} from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { SpNativeMemoryChart } from './SpNativeMemoryChart';
+import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
+import { SpProcessChart } from './SpProcessChart';
+import { perfDataQuery } from './PerfDataQuery';
+import { SpVirtualMemChart } from './SpVirtualMemChart';
+import { SpFileSystemChart } from './SpFileSystemChart';
+import { SpSdkChart } from './SpSdkChart';
+import { SpHiSysEnergyChart } from './SpHiSysEnergyChart';
+import { VmTrackerChart } from './SpVmTrackerChart';
+import { SpClockChart } from './SpClockChart';
+import { SpIrqChart } from './SpIrqChart';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { TraceRow } from '../trace/base/TraceRow';
+import { SpFrameTimeChart } from './SpFrameTimeChart';
+import { Utils } from '../trace/base/Utils';
+import { SpArkTsChart } from './SpArkTsChart';
+import { MemoryConfig } from '../../bean/MemoryConfig';
+import { FlagsConfig } from '../SpFlags';
+import { SpLogChart } from './SpLogChart';
+import { SpHiSysEventChart } from './SpHiSysEventChart';
+import { SpAllAppStartupsChart } from './SpAllAppStartups';
+import {setVSyncData} from './VSync';
+// import { SegMenTaTion } from './SpSegmentationChart';
+import { SpLtpoChart } from './SpLTPO';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -78,6 +78,7 @@ export class SpChartManager {
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
+  SegMenTaTion: any;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -100,7 +101,6 @@ export class SpChartManager {
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.SpAllAppStartupsChart = new SpAllAppStartupsChart(trace);
-    this.SegMenTaTion = new SegMenTaTion(trace);
     this.SpLtpoChart = new SpLtpoChart(trace)
   }
 
@@ -175,7 +175,6 @@ export class SpChartManager {
     await this.SpAllAppStartupsChart.init();
     await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
-    await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();

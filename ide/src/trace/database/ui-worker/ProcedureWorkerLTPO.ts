@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon.js';
-import { TraceRow } from '../../component/trace/base/TraceRow.js';
+import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
+import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class LtpoRender {
     renderMainThread(

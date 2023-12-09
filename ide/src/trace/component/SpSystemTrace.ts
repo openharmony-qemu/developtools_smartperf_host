@@ -2078,6 +2078,12 @@ export class SpSystemTrace extends BaseElement {
         (AppStartupStruct.selectStartupStruct.startTs || 0) + (AppStartupStruct.selectStartupStruct.dur || 0),
         shiftKey
       );
+    }else if (AllAppStartupStruct.selectStartupStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        AllAppStartupStruct.selectStartupStruct.startTs || 0,
+        (AllAppStartupStruct.selectStartupStruct.startTs || 0) + (AllAppStartupStruct.selectStartupStruct.dur || 0),
+        shiftKey
+      );
     } else if (SoStruct.selectSoStruct) {
       this.slicestime = this.timerShaftEL?.setSlicesMark(
         SoStruct.selectSoStruct.startTs || 0,

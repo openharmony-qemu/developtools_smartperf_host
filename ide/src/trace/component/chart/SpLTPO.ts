@@ -13,18 +13,18 @@
  * limitations under the License.翻译
  */
 
-import { SpSystemTrace } from '../SpSystemTrace.js';
-import { TraceRow } from '../trace/base/TraceRow.js';
-import { renders } from '../../database/ui-worker/ProcedureWorker.js';
-import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq.js';
-import { ColorUtils } from '../trace/base/ColorUtils.js';
+import { SpSystemTrace } from '../SpSystemTrace';
+import { TraceRow } from '../trace/base/TraceRow';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
+import { ColorUtils } from '../trace/base/ColorUtils';
 import {
     queryPresentInfo,
     queryVsNameList,
     queryFanceNameList,
     queryFpsNameList
-} from '../../database/SqlLite.js';
-import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO.js'
+} from '../../database/SqlLite';
+import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO'
 
 export class SpLtpoChart {
     private readonly trace: SpSystemTrace | undefined;
@@ -126,7 +126,7 @@ export class SpLtpoChart {
         row.rowParentId = '';
         row.folder = false;
         row.style.height = '40px';
-        row.name = `LTPO`;
+        row.name = `Lost Frames`;
         row.favoriteChangeHandler = SpLtpoChart.trace.favoriteChangeHandler;
         row.supplier = async (): Promise<Array<LtpoStruct>> => {
             SpLtpoChart.presentArr = await queryPresentInfo();

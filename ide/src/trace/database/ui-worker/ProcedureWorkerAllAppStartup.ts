@@ -61,7 +61,6 @@ export class AllAppStartupRender {
     }
 }
 
-const padding = 3;
 
 export class AllAppStartupStruct extends BaseStruct {
     static hoverStartupStruct: AllAppStartupStruct | undefined;
