@@ -2484,6 +2484,7 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.selectJsCpuProfilerStruct = undefined;
     SnapshotStruct.selectSnapshotStruct = undefined;
     HiPerfCallChartStruct.selectStruct = undefined;
+    AllAppStartupStruct.selectStartupStruct = undefined;
   }
 
   isWASDKeyPress() {
