@@ -90,6 +90,7 @@ import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
 import { type MemoryConfig } from '../bean/MemoryConfig';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog';
 import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
+import { LtpoStruct } from './ui-worker/ProcedureWorkerLTPO';
 
 class DataWorkerThread {
   taskMap: any = {};
@@ -1465,27 +1466,27 @@ order by start_name;`,
     { $pid: pid }
   );
 
-  export const queryPresentInfo =(): Promise <Array<any>> =>
+  export const queryPresentInfo =(): Promise <Array<LtpoStruct>> =>
   query(
     'queryPresentInfo',
     `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(112,114,101,115,101,110,116,37)}'))`
   )
 
-  export const queryVsNameList = ():Promise<Array<string>> => 
+  export const queryVsNameList = ():Promise<Array<LtpoStruct>> => 
   query(
     'queryVsNameList',
     `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101,37)}')) 
     AND name LIKE('${String.fromCharCode(72,58,82,101,99,101,105,118,101,86,115,121,110,99,37)}')`
   )
 
-  export const queryFanceNameList = ():Promise<Array<string>> =>
+  export const queryFanceNameList = ():Promise<Array<LtpoStruct>> =>
   query(
     'queryFanceNameList',
     `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101,37)}')) 
     AND name LIKE('${String.fromCharCode(72,58,65,99,113,117,105,114,101,32,70,101,110,99,101,37)}')`
   )
 
-  export const queryFpsNameList = ():Promise<Array<string>> =>
+  export const queryFpsNameList = ():Promise<Array<LtpoStruct>> =>
   query(
     'queryFpsNameList',
     `SELECT name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(114,101,110,100,101,114,95,115,101,114,118,105,99,101,37)}')) 

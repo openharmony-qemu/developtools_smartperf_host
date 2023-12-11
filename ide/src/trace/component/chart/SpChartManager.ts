@@ -51,7 +51,6 @@ import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import {setVSyncData} from './VSync';
-// import { SegMenTaTion } from './SpSegmentationChart';
 import { SpLtpoChart } from './SpLTPO';
 
 export class SpChartManager {

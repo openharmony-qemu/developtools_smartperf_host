@@ -76,12 +76,18 @@ export class LtpoStruct extends BaseStruct {
     static selectLtpoStruct: LtpoStruct | undefined;
     static maxVal: number | undefined;
     dur: number | undefined;
-    value: string | undefined;
     name: string | undefined;
     presentFance: number | undefined;
     ts: number | undefined;
     vsyncId: number | undefined;
     fanceId: number | undefined;
+    fps: number | undefined;
+    startTs: number | undefined;
+    nextStartTs: string | number | undefined;
+    nextDur: number | undefined;
+    value: number | undefined ;
+    pid: number | undefined;
+    itid: number | undefined;
 
     static draw(ctx: CanvasRenderingContext2D, data: LtpoStruct): void {
         if (data.frame) {

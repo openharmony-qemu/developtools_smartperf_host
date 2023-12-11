@@ -31,12 +31,12 @@ export class SpLtpoChart {
     static APP_STARTUP_PID_ARR: Array<number> = [];
     static jsonRow: TraceRow<CpuFreqStruct> | undefined;
     static trace: SpSystemTrace;
-    static presentArr: Array<any> = [];
-    static vsyncNameList: Array<any> = [];
-    static fanceNameList: Array<any> = [];
-    static fpsnameList: Array<any> = [];
-    static ltpoDataArr: Array<any> = [];
-    static sendDataArr: Array<any> = [];
+    static presentArr: Array<LtpoStruct> = [];
+    static vsyncNameList: Array<LtpoStruct> = [];
+    static fanceNameList: Array<LtpoStruct> = [];
+    static fpsnameList: Array<LtpoStruct> = [];
+    static ltpoDataArr: Array<LtpoStruct> = [];
+    static sendDataArr: Array<LtpoStruct> = [];
     constructor(trace: SpSystemTrace) {
         SpLtpoChart.trace = trace;
     }
@@ -48,15 +48,15 @@ export class SpLtpoChart {
         SpLtpoChart.fpsnameList = await queryFpsNameList();
         SpLtpoChart.vsyncNameList.map((item) => {
             let cutNameArr = item.name!.split(":");
-            item.vsyncId = cutNameArr[cutNameArr.length - 1];
+            item.vsyncId = Number(cutNameArr[cutNameArr.length - 1]);
         })
         SpLtpoChart.fanceNameList.map((item) => {
             let cutFanceNameArr = item.name!.split(" ");
-            item.fanceId = cutFanceNameArr[cutFanceNameArr.length - 1];
+            item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1]);
         })
         SpLtpoChart.fpsnameList.map((item) => {
             let cutFpsNameArr = item.name!.split(",")[0].split(":");
-            item.fps = cutFpsNameArr[cutFpsNameArr.length - 1]
+            item.fps = Number(cutFpsNameArr[cutFpsNameArr.length - 1])
         })
         let vsyncIndex = 0;
         let fanceIndex = 0;
@@ -131,8 +131,8 @@ export class SpLtpoChart {
         row.supplier = async (): Promise<Array<LtpoStruct>> => {
             SpLtpoChart.presentArr = await queryPresentInfo();
             SpLtpoChart.presentArr.map((item) => {
-                let cutPresentArr = item.name.split(" ")
-                item.presentFance = cutPresentArr[cutPresentArr.length - 1]
+                let cutPresentArr = item.name!.split(" ")
+                item.presentFance = Number(cutPresentArr[cutPresentArr.length - 1])
             })
             let ltpoIndex = 0;
             let presentIndex = 0;
@@ -140,9 +140,9 @@ export class SpLtpoChart {
             if (SpLtpoChart.presentArr && SpLtpoChart.presentArr.length) {
                 while (ltpoIndex < SpLtpoChart.ltpoDataArr.length) {
                     if (SpLtpoChart.ltpoDataArr[ltpoIndex].fanceId === Number(SpLtpoChart.presentArr[presentIndex].presentFance)) {
-                        SpLtpoChart.ltpoDataArr[ltpoIndex].startTs = SpLtpoChart.presentArr[presentIndex].ts - (window as any).recordStartNS;
+                        SpLtpoChart.ltpoDataArr[ltpoIndex].startTs = Number(SpLtpoChart.presentArr[presentIndex].ts) - (window as any).recordStartNS;
                         SpLtpoChart.ltpoDataArr[ltpoIndex].dur = SpLtpoChart.presentArr[presentIndex].dur;
-                        SpLtpoChart.ltpoDataArr[ltpoIndex].nextStartTs = SpLtpoChart.presentArr[presentIndex + 1] ? SpLtpoChart.presentArr[presentIndex + 1].ts - (window as any).recordStartNS : '';
+                        SpLtpoChart.ltpoDataArr[ltpoIndex].nextStartTs = SpLtpoChart.presentArr[presentIndex + 1] ? Number(SpLtpoChart.presentArr[presentIndex + 1].ts) - (window as any).recordStartNS : '';
                         SpLtpoChart.ltpoDataArr[ltpoIndex].nextDur = SpLtpoChart.presentArr[presentIndex + 1] ? SpLtpoChart.presentArr[presentIndex + 1].dur : 0;
                         ltpoIndex++;
                         if (presentIndex < SpLtpoChart.presentArr.length - 1) presentIndex++;
@@ -160,7 +160,7 @@ export class SpLtpoChart {
                     sendStartTs = Number(SpLtpoChart.ltpoDataArr[i].startTs) + Number(SpLtpoChart.ltpoDataArr[i].dur);
                     sendDur = Number(SpLtpoChart.ltpoDataArr[i].nextStartTs) + Number(SpLtpoChart.ltpoDataArr[i].nextDur) - sendStartTs;
                     let tmpDur = Math.ceil(sendDur / 1000000)
-                    sendLossFrames = (tmpDur * SpLtpoChart.ltpoDataArr[i].fps / 1000 - 1) < 1 ? 0 : Math.floor(tmpDur * SpLtpoChart.ltpoDataArr[i].fps / 1000 - 1)
+                    sendLossFrames = (tmpDur * Number(SpLtpoChart.ltpoDataArr[i].fps) / 1000 - 1) < 1 ? 0 : Math.floor(tmpDur * Number(SpLtpoChart.ltpoDataArr[i].fps) / 1000 - 1)
                     if (tmpDur < 170) {
                         SpLtpoChart.sendDataArr.push(
                             {
@@ -168,12 +168,18 @@ export class SpLtpoChart {
                                 value: sendLossFrames,
                                 startTs: sendStartTs,
                                 pid: SpLtpoChart.ltpoDataArr[i].vsyncId,
-                                process: undefined,
                                 itid: SpLtpoChart.ltpoDataArr[i].vsyncId,
-                                endItid: undefined,
-                                tid: undefined,
-                                startName: undefined,
-                                stepName: undefined,
+                                name: undefined,
+                                presentFance: undefined,
+                                ts: undefined,
+                                vsyncId: undefined,
+                                fanceId: undefined,
+                                fps: undefined,
+                                nextStartTs: undefined,
+                                nextDur: undefined,
+                                translateY: undefined,
+                                frame: undefined,
+                                isHover: false
                             }
                         )
                     }

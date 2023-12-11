@@ -101,7 +101,7 @@ export class AllAppStartupStruct extends BaseStruct {
         }
     }
 
-    static async getStartupName(pid: number): Promise<any> {
+    static async getStartupName(pid: number): Promise<string> {
         let singleAppName = await querySingleAppStartupsName(pid);
         return singleAppName[0].name;
     }

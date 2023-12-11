@@ -30,7 +30,7 @@ export class SpAllAppStartupsChart {
     static APP_STARTUP_PID_ARR: Array<number> = [];
     static jsonRow: TraceRow<CpuFreqStruct> | undefined;
     static trace: SpSystemTrace;
-    static AllAppStartupsNameArr: any[] = [];
+    static AllAppStartupsNameArr: string[] = [];
     static allAppStartupsAva: number[] = [];
 
     constructor(trace: SpSystemTrace) {
