@@ -38,6 +38,7 @@ let arkTsDataSize: number = 0;
 
 let currentAction: string = '';
 let currentActionId: string = '';
+let ffrtFileCacheKey = '-1';
 
 function clear() {
   if (Module != null) {
@@ -167,12 +168,12 @@ let convertJSON = () => {
   }
 };
 
-function saveTraceFileFFRTBuffer(buffer: ArrayBuffer): void {
-  caches.open('Trace_File_FFRT_Buffer').then(cache => {
+function saveTraceFileBuffer(key: string,buffer: ArrayBuffer): void {
+  caches.open(key).then(cache => {
     let headers = new Headers();
     headers.append('Content-Length', `${buffer.byteLength}`);
     headers.append('Content-Type', 'application/octet-stream');
-    cache.put('Trace_File_FFRT_Buffer', new Response(buffer,{
+    cache.put(key, new Response(buffer,{
       status: 200,
       headers: headers
     })).then();
@@ -186,6 +187,7 @@ self.onmessage = async (e: MessageEvent) => {
     clear();
   } else if (e.data.action === 'open') {
     await initWASM();
+    ffrtFileCacheKey = '-1';
     // @ts-ignore
     self.postMessage({
       id: e.data.id,
@@ -209,7 +211,8 @@ self.onmessage = async (e: MessageEvent) => {
       } else {
         arr = merged();
         bufferSlice.length = 0;
-        saveTraceFileFFRTBuffer(arr.buffer);
+        ffrtFileCacheKey = `ffrt/${new Date().getTime()}`;
+        saveTraceFileBuffer(ffrtFileCacheKey, arr.buffer);
       }
     };
     let fn1 = Module.addFunction(callback, 'viii');
@@ -375,7 +378,7 @@ self.onmessage = async (e: MessageEvent) => {
     for (let value of thirdWasmMap.values()) {
       value.model._TraceStreamer_In_ParseDataOver();
     }
-    if (r2 == -1) {
+    if (r2 === -1) {
       // @ts-ignore
       self.postMessage({
         id: e.data.id,
@@ -390,6 +393,7 @@ self.onmessage = async (e: MessageEvent) => {
       // @ts-ignore
       self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
     });
+
     self.postMessage(
       {
         id: e.data.id,
@@ -398,6 +402,7 @@ self.onmessage = async (e: MessageEvent) => {
         msg: 'ok',
         configSqlMap: thirdJsonResult,
         buffer: e.data.buffer,
+        fileKey: ffrtFileCacheKey
       },
       // @ts-ignore
       [e.data.buffer]

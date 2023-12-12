@@ -164,16 +164,22 @@ class DbThread {
         handler(res.cutStatus, res.msg);
       }
     };
-    this.worker!.postMessage(
-      {
-        id: id,
-        action: 'cut-file',
-        leftTs: leftTs,
-        rightTs: rightTs,
-        buffer: DbPool.sharedBuffer!,
-      },
-      [DbPool.sharedBuffer!]
-    );
+    caches.match(DbPool.fileCacheKey).then(resData => {
+      if (resData) {
+        resData.arrayBuffer().then(buffer => {
+          this.worker!.postMessage(
+            {
+              id: id,
+              action: 'cut-file',
+              leftTs: leftTs,
+              rightTs: rightTs,
+              buffer: buffer!,
+            },
+            [buffer!]
+          );
+        });
+      }
+    });
   }
 
   dbOpen = async (
@@ -184,6 +190,7 @@ class DbThread {
     msg: string;
     buffer: ArrayBuffer;
     sdkConfigMap: any;
+    fileKey: string;
   }> => {
     return new Promise<any>((resolve, reject) => {
       let id = this.uuid();
@@ -194,6 +201,7 @@ class DbThread {
             msg: res.msg,
             sdkConfigMap: res.configSqlMap,
             buffer: res.buffer,
+            fileKey: res.fileKey
           });
         } else {
           resolve({ status: res.init, msg: res.msg });
@@ -222,6 +230,7 @@ class DbThread {
 
 export class DbPool {
   static sharedBuffer: ArrayBuffer | null = null;
+  static fileCacheKey: string = 'null';
   maxThreadNumber: number = 0;
   works: Array<DbThread> = [];
   progress: Function | undefined | null;
@@ -341,17 +350,36 @@ export class DbPool {
     let configMap;
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
-      let { status, msg, buffer, sdkConfigMap } = await thread.dbOpen(parseConfig, sdkWasmConfig);
+      let { status, msg, buffer, sdkConfigMap, fileKey } = await thread.dbOpen(parseConfig, sdkWasmConfig);
       if (!status) {
         DbPool.sharedBuffer = null;
         return { status, msg };
       } else {
         configMap = sdkConfigMap;
         DbPool.sharedBuffer = buffer;
+        if (fileKey !== '-1') {
+          DbPool.fileCacheKey = fileKey;
+        } else {
+          DbPool.fileCacheKey = `trace/${new Date().getTime()}`;
+          this.saveTraceFileBuffer(DbPool.fileCacheKey, buffer);
+        }
       }
     }
     return { status: true, msg: 'ok', sdkConfigMap: configMap };
   };
+
+  saveTraceFileBuffer(key: string,buffer: ArrayBuffer): void {
+    caches.open(key).then(cache => {
+      let headers = new Headers();
+      headers.append('Content-Length', `${buffer.byteLength}`);
+      headers.append('Content-Type', 'application/octet-stream');
+      cache.put(key, new Response(buffer,{
+        status: 200,
+        headers: headers
+      })).then();
+    });
+  }
+
 
   close = async () => {
     clearInterval(this.cutDownTimer);
