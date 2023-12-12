@@ -59,6 +59,7 @@ export class HdcDeviceManager {
   /**
    * findDevice
    */
+  // @ts-ignore
   public static findDevice(): Promise<USBDevice> {
     if (!('usb' in navigator)) {
       throw new Error('WebUSB not supported by the browser (requires HTTPS)');

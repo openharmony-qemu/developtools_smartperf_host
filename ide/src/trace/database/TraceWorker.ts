@@ -167,6 +167,18 @@ let convertJSON = () => {
   }
 };
 
+function saveTraceFileFFRTBuffer(buffer: ArrayBuffer): void {
+  caches.open('Trace_File_FFRT_Buffer').then(cache => {
+    let headers = new Headers();
+    headers.append('Content-Length', `${buffer.byteLength}`);
+    headers.append('Content-Type', 'application/octet-stream');
+    cache.put('Trace_File_FFRT_Buffer', new Response(buffer,{
+      status: 200,
+      headers: headers
+    })).then();
+  });
+}
+
 self.onmessage = async (e: MessageEvent) => {
   currentAction = e.data.action;
   currentActionId = e.data.id;
@@ -190,8 +202,19 @@ self.onmessage = async (e: MessageEvent) => {
         bufferSlice.length = 0;
       }
     };
-    let fn = Module.addFunction(callback, 'viii');
-    reqBufferAddr = Module._Initialize(fn, REQ_BUF_SIZE);
+    let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number) => {
+      if (isEnd !== 1) {
+        let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+        bufferSlice.push(out);
+      } else {
+        arr = merged();
+        bufferSlice.length = 0;
+        saveTraceFileFFRTBuffer(arr.buffer);
+      }
+    };
+    let fn1 = Module.addFunction(callback, 'viii');
+    let fn2 = Module.addFunction(ffrtConvertCallback, 'viii');
+    reqBufferAddr = Module._Initialize(fn1, REQ_BUF_SIZE, fn2);
     let parseConfig = e.data.parseConfig;
     if (parseConfig !== '') {
       let parseConfigArray = enc.encode(parseConfig);
@@ -330,7 +353,7 @@ self.onmessage = async (e: MessageEvent) => {
         const dataSlice = final.subarray(wrSize, wrSize + sliceLen);
         Module.HEAPU8.set(dataSlice, reqBufferAddr);
         wrSize += sliceLen;
-        r2 = Module._TraceStreamerParseDataEx(sliceLen);
+        r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === final.length ? 1 : 0);
         if (r2 == -1) {
           break;
         }
@@ -341,11 +364,7 @@ self.onmessage = async (e: MessageEvent) => {
         const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
         Module.HEAPU8.set(dataSlice, reqBufferAddr);
         wrSize += sliceLen;
-        if (wrSize >= uint8Array.length) {
-          r2 = Module._TraceStreamerParseDataEx(sliceLen, 1);
-        } else {
-          r2 = Module._TraceStreamerParseDataEx(sliceLen, 0);
-        }
+        r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === uint8Array.length ? 1 : 0);
         if (r2 == -1) {
           break;
         }

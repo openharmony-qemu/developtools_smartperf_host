@@ -2331,6 +2331,20 @@ export class SpApplication extends BaseElement {
     );
   }
 
+  readTraceFileFFRTBuffer(): Promise<ArrayBuffer | undefined> {
+    return new Promise((resolve) => {
+      caches.match('Trace_File_FFRT_Buffer').then(res => {
+        if (res) {
+          res.arrayBuffer().then(buffer => {
+            resolve(buffer);
+          })
+        } else {
+          resolve(undefined);
+        }
+      });
+    });
+  };
+
   private async download(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
     let a = document.createElement('a');
     if (isServer) {
@@ -2341,7 +2355,14 @@ export class SpApplication extends BaseElement {
         return;
       }
     } else {
-      a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+      if (FlagsConfig.getFlagsConfigEnableStatus('FfrtConvert')) {
+        let buffer = await this.readTraceFileFFRTBuffer();
+        if (buffer) {
+          a.href = URL.createObjectURL(new Blob([buffer]));
+        }
+      } else {
+        a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+      }
     }
     a.download = fileName;
     a.click();

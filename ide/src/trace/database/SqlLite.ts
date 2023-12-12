@@ -2784,7 +2784,7 @@ export const queryPerfThread = (): Promise<Array<PerfThread>> =>
        a.process_id as pid,
        b.thread_name as processName
 from perf_thread a
-         left join (select distinct process_id, thread_name from perf_thread where process_id = thread_id ) b 
+         left join (select distinct process_id, thread_name from perf_thread) b 
          on a.process_id = b.process_id
 order by pid;`,
     {}
