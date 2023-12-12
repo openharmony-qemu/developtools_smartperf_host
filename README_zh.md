@@ -60,7 +60,7 @@ Smartperf_Host网站trace解析完成后在线数据库使用说明，详见《[
 ### 下载链接
 https://gitee.com/openharmony/developtools_smartperf_host/releases
 ### 使用说明
-点击上述链接下载工具包，解压后直接执行main.exe启动程序，通过浏览器访问 https://[部署机器ip地址]:9000/application/ 即可使用Smartperf_Host的全部功能。
+点击上述链接下载工具包，解压后直接执行 main.exe 启动程序，通过浏览器访问 https://[部署机器ip地址]:9000/application/ 即可使用Smartperf_Host的全部功能。
 ## 编译指南
 项目编译主要包括两部分，Trace Streamer编译和Smartperf_Host编译部署。
 ### 构建约束
