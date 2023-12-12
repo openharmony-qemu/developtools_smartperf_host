@@ -56,6 +56,11 @@ PC端以Smartperf_Host网站的形式进行发布，内部分为Trace Streamer�
 使用Smartperf_Host抓取单个进程的smaps数据（类别、Pss、Rss、Vss等），数据源为/proc/$pid/smaps，详见《[进程smaps的抓取和展示说明](./ide/src/doc/md/quickstart_smaps.md)》。
 ### Sql分析和Metrics说明
 Smartperf_Host网站trace解析完成后在线数据库使用说明，详见《[Sql分析和Metrics说明](./ide/src/doc/md/quickstart_sql_metrics.md)》。
+## 发行版指南
+### 发行版链接 
+https://gitee.com/openharmony/developtools_smartperf_host/releases
+### 说明
+111
 ## 编译指南
 项目编译主要包括两部分，Trace Streamer编译和Smartperf_Host编译部署。
 ### 构建约束
