@@ -84,7 +84,6 @@ public:
 
 private:
     void InitFilter();
-    void Remove_Folders(const char* dir);
     bool LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings);
     TraceFileType fileType_;
     std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};

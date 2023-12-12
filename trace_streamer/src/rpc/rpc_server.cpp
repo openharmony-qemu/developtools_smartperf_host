@@ -29,6 +29,7 @@
 #include "log.h"
 #include "string_help.h"
 #include "trace_streamer_selector.h"
+#include "ts_common.h"
 #include "version.h"
 
 #define UNUSED(expr)             \
@@ -51,6 +52,7 @@ struct ParserConfig {
     int32_t appConfigValue;
     int32_t aniConfigValue;
     int32_t binderConfigValue;
+    int32_t ffrtConvertConfigValue;
 };
 void from_json(const json& j, ParserConfig& v)
 {
@@ -58,17 +60,104 @@ void from_json(const json& j, ParserConfig& v)
     j.at("AppStartup").get_to(v.appConfigValue);
     j.at("AnimationAnalysis").get_to(v.aniConfigValue);
     j.at("BinderRunnable").get_to(v.binderConfigValue);
+    j.at("FfrtConvert").get_to(v.ffrtConvertConfigValue);
 }
 } // namespace jsonns
+#if IS_WASM
+bool RpcServer::SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish)
+{
+    auto ffrtFileName = "ffrtFile.txt";
+    static std::ofstream ffrtFile(ffrtFileName, std::ios::binary | std::ios::app);
+    if (!ffrtFile.is_open()) {
+        TS_LOGE("ffrtFile open filed!");
+        return false;
+    }
+    ffrtFile.write(reinterpret_cast<const char*>(data), len);
+    if (ffrtFile.fail() || ffrtFile.bad()) {
+        TS_LOGE("Failed to write data!");
+        ffrtFile.close();
+        return false;
+    }
+    if (!isFinish) {
+        return true;
+    }
+    ffrtFile.close();
+    auto outTraceName = "outTrace.txt";
+    std::ofstream outFile(outTraceName);
+    if (!outFile.is_open()) {
+        ffrtFile.close();
+        std::filesystem::remove_all(ffrtFileName);
+        TS_LOGE("prepare outFile failed.");
+        return false;
+    }
+    FfrtConverter ffrtConverter;
+    auto ret = ffrtConverter.RecoverTraceAndGenerateNewFile(ffrtFileName, outFile);
+    outFile.close();
+    std::filesystem::remove_all(ffrtFileName);
+    if (!ret) {
+        std::filesystem::remove_all(outTraceName);
+        return false;
+    }
+    outFile.close();
+    if (ReadAndParseData(outTraceName) && SendConvertedFfrtFile(outTraceName, resultCallBack)) {
+        std::filesystem::remove_all(outTraceName);
+        return false;
+    }
+    std::filesystem::remove_all(outTraceName);
+    return true;
+}
+bool RpcServer::SendConvertedFfrtFile(const std::string& fileName, ResultCallBack resultCallBack)
+{
+    if (!resultCallBack) {
+        TS_LOGE("resultCallBack is nullptr!");
+        return false;
+    }
+    std::ifstream inputFile(fileName);
+    if (!inputFile.is_open()) {
+        TS_LOGE("open file : %s failed!", fileName.c_str());
+        return false;
+    }
+    char outData[G_CHUNK_SIZE];
+    while (true) {
+        inputFile.read(outData, G_CHUNK_SIZE);
+        auto readSize = inputFile.gcount();
+        resultCallBack(std::string(outData, readSize), SEND_CONTINUE);
+        if (inputFile.eof()) {
+            break;
+        }
+    }
+    resultCallBack("ok\r\n", SEND_FINISH);
+    return true;
+}
+bool RpcServer::ReadAndParseData(const std::string& filePath)
+{
+    std::ifstream inputFile(filePath);
+    if (!inputFile.is_open()) {
+        TS_LOGE("can not open %s.", filePath.c_str());
+        return false;
+    }
+    while (true) {
+        std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
+        inputFile.read(reinterpret_cast<char*>(buf.get()), G_CHUNK_SIZE);
+        auto readSize = inputFile.gcount();
+        ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof());
+        if (inputFile.eof()) {
+            break;
+        }
+    }
+    ts_->WaitForParserEnd();
+    inputFile.close();
+    return true;
+}
+#endif
 bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish)
 {
     g_loadSize += len;
-    size_t blockSize = 1024 * 1024;
     do {
-        size_t parseSize = std::min(len, blockSize);
+        size_t parseSize = std::min(len, G_CHUNK_SIZE);
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(parseSize);
         std::copy(data, data + parseSize, buf.get());
-        if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize, false, isFinish && (len <= blockSize))) {
+        if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize, false, isFinish && (len <= G_CHUNK_SIZE))) {
             if (resultCallBack) {
                 resultCallBack("formaterror\r\n", SEND_FINISH);
             }
@@ -86,9 +175,8 @@ bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack result
 bool RpcServer::ParseDataWithoutCallback(const uint8_t* data, size_t len, int32_t isFinish, bool isSplitFile)
 {
     g_loadSize += len;
-    size_t blockSize = 1024 * 1024;
     do {
-        size_t parseSize = std::min(len, blockSize);
+        size_t parseSize = std::min(len, G_CHUNK_SIZE);
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(parseSize);
         std::copy(data, data + parseSize, buf.get());
         if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize, isSplitFile, isFinish && (len == parseSize))) {
@@ -150,6 +238,25 @@ bool RpcServer::LongTraceSplitFile(const uint8_t* data,
     ts_->maxTs_ = vTraceTimeSnap_[pageNum]->endTime;
     ParseSplitFileData(data, len, isFinish, splitFileCallBack, true);
     return true;
+}
+
+bool RpcServer::DetermineSystrace(const uint8_t* data, size_t len)
+{
+    std::string startStr(reinterpret_cast<const char*>(data), std::min<size_t>(len, 20));
+    if (startStr.find("# tracer") != std::string::npos) {
+        return true;
+    }
+    if (startStr.find("# TRACE") != std::string::npos) {
+        return true;
+    }
+    const std::regex systraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
+                                                  R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
+    std::smatch matcheLine;
+    std::string bytraceMode(reinterpret_cast<const char*>(data), len);
+    if (std::regex_search(bytraceMode, matcheLine, systraceMatcher)) {
+        return true;
+    }
+    return false;
 }
 
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
@@ -525,6 +632,7 @@ bool RpcServer::ParserConfig(std::string parserConfigJson)
     ts_->UpdateAnimationTraceStatus(parserConfig.aniConfigValue);
     ts_->UpdateTaskPoolTraceStatus(parserConfig.taskConfigValue);
     ts_->UpdateBinderRunnableTraceStatus(parserConfig.binderConfigValue);
+    ffrtConvertEnabled_ = parserConfig.ffrtConvertConfigValue;
     return true;
 }
 } // namespace TraceStreamer

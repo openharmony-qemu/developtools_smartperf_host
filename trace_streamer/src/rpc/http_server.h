@@ -23,6 +23,7 @@
 #include <thread>
 #include "http_socket.h"
 #include "rpc_server.h"
+#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class HttpServer {
