@@ -214,6 +214,7 @@ self.onmessage = async (e: MessageEvent) => {
     };
     let fn1 = Module.addFunction(callback, 'viii');
     let fn2 = Module.addFunction(ffrtConvertCallback, 'viii');
+    Module._TraceStreamer_Set_Log_Level(5);
     reqBufferAddr = Module._Initialize(fn1, REQ_BUF_SIZE, fn2);
     let parseConfig = e.data.parseConfig;
     if (parseConfig !== '') {

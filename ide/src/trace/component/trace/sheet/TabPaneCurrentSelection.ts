@@ -86,7 +86,7 @@ export function getTimeString(ns: number): string {
     currentTimeNs = currentTimeNs - Math.floor(currentTimeNs / microsecond1) * microsecond1;
   }
   if (currentTimeNs > 0) {
-    res += currentTimeNs + 'ns ';
+    res += currentTimeNs.toFixed(0) + 'ns ';
   }
   return res;
 }
