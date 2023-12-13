@@ -27,6 +27,7 @@
 #include "sysCallStrategy.h"
 #include "traceStateStrategy.h"
 #include "traceTaskStrategy.h"
+#include "ts_common.h"
 
 enum METRICS_INDEX {
     METRICS_TRACE_MEM,

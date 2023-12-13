@@ -15,7 +15,6 @@
 #ifndef FILE_SYSTEM_DATA_PARSER_H
 #define FILE_SYSTEM_DATA_PARSER_H
 #include "clock_filter_ex.h"
-#include "double_map.h"
 #include "ebpf_base.h"
 #include "htrace_plugin_time_parser.h"
 

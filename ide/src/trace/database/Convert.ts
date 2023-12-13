@@ -38,14 +38,20 @@ class ConvertThread {
       DbPool.sharedBuffer = res.buffer;
       handler(res.status, res.msg, res.results);
     };
-    let pam = {
-      id: id,
-      action: 'getConvertData',
-      buffer: DbPool.sharedBuffer!,
-    };
-    try {
-      this.worker!.postMessage(pam, [DbPool.sharedBuffer!]);
-    } catch (e: any) {}
+    caches.match(DbPool.fileCacheKey).then(resData => {
+      if (resData) {
+        resData.arrayBuffer().then(buffer => {
+          this.worker!.postMessage(
+            {
+              id: id,
+              action: 'getConvertData',
+              buffer: buffer!,
+            },
+            [buffer!]
+          );
+        });
+      }
+    });
   }
 }
 

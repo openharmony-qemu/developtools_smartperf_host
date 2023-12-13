@@ -623,7 +623,7 @@ export class TabPaneFilter extends BaseElement {
       };
       e.addEventListener('keyup', (event: any): void => {
         event.stopPropagation();
-        if (event.keyCode === '13') {
+        if (event.keyCode === 13) {
           if (event?.target.value === '') {
             inputs[idx].value = idx === 0 ? '0' : '∞';
           }

@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
 const path = require('path');
@@ -26,16 +25,6 @@ const childProcess = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
 
-
-function directoryExists(path) {
-  try {
-    fs.accessSync(path);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
 function runCommand(command) {
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, stderr) => {
@@ -48,6 +37,42 @@ function runCommand(command) {
   });
 }
 
+function cpFile(sourcePath, targetPath) {
+  fs.readdir(sourcePath, (err, files) => {
+    if (err) {
+      console.error('无法读取目录', err);
+      return;
+    }
+    files.forEach((file) => {
+      const source = `${sourcePath}/${file}`;
+      const target = `${targetPath}/${file}`;
+      fs.copyFile(source, target, (err) => {
+        if (err) {
+          console.error('无法复制文件', err);
+          return;
+        }
+      });
+    });
+  });
+}
+
+function clearDirectory(directoryPath) {
+  const isDirectoryExists = fs.existsSync(directoryPath);
+
+  if (!isDirectoryExists) {
+    fs.mkdirSync(directoryPath);
+  } else {
+    fs.readdirSync(directoryPath).forEach((file) => {
+      const filePath = path.join(directoryPath, file);
+      if (fs.lstatSync(filePath).isDirectory()) {
+        return;
+      } else {
+        fs.unlinkSync(filePath); // 删除文件
+      }
+    });
+  }
+}
+
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
 //compile server
 ((flag) => {
@@ -57,15 +82,9 @@ const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader
   console.log('start compile server');
   let outPath = path.normalize(path.join(__dirname, '/', 'dist'));
   let serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
-  if (!directoryExists(outPath)) {
-    runCommand(`mkdir ${outPath}`);
-  } else {
-    runCommand(`rm  -rf ${outPath}/* `).then((result) => {
-
-    });
-  }
-  runCommand(`cp ./bin/* dist/`);
-
+  let binPath = path.normalize(path.join(__dirname, '/', 'bin'));
+  clearDirectory(outPath);
+  cpFile(binPath, outPath);
   let rs;
   if (os.type() === 'Windows_NT') {
     rs = childProcess.spawnSync('go', ['build', '-o', outPath, serverSrc], {

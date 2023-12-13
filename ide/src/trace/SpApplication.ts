@@ -1404,6 +1404,7 @@ export class SpApplication extends BaseElement {
                 if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
                   isAllowTrace = false;
                 }
+                DbPool.sharedBuffer = null;
               }
               let index = 2;
               if (existFtrace.length > 0 && isAllowTrace) {
@@ -1492,6 +1493,7 @@ export class SpApplication extends BaseElement {
     }
 
     let openFileInit = () => {
+      this.clearTraceFileCache();
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'open_trace',
         action: 'open_trace',
@@ -2331,6 +2333,39 @@ export class SpApplication extends BaseElement {
     );
   }
 
+  readTraceFileBuffer(): Promise<ArrayBuffer | undefined> {
+    return new Promise((resolve) => {
+      caches.match(DbPool.fileCacheKey).then(res => {
+        if (res) {
+          res.arrayBuffer().then(buffer => {
+            resolve(buffer);
+          })
+        } else {
+          resolve(undefined);
+        }
+      });
+    });
+  };
+
+  clearTraceFileCache(): void {
+    caches.keys().then(keys => {
+      keys.forEach(key => {
+        if (key === DbPool.fileCacheKey) {
+          caches.delete(key).then();
+        } else if (key.includes('/')) {
+          let splits = key.split('/');
+          let fileDate = new Date(parseInt(splits[splits.length - 1]));
+          if (fileDate.toLocaleDateString() !== new Date().toLocaleDateString()) {
+            //如果不是当天的缓存则删去缓存文件
+            caches.delete(key).then();
+          }
+        } else {
+          caches.delete(key).then();
+        }
+      })
+    });
+  }
+
   private async download(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
     let a = document.createElement('a');
     if (isServer) {
@@ -2341,7 +2376,10 @@ export class SpApplication extends BaseElement {
         return;
       }
     } else {
-      a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+      let buffer = await this.readTraceFileBuffer();
+      if (buffer) {
+        a.href = URL.createObjectURL(new Blob([buffer]));
+      }
     }
     a.download = fileName;
     a.click();
