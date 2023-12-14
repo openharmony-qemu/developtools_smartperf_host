@@ -59,6 +59,7 @@ declare global {
         DeviceConnect: string;
         DeviceDisConnect: string;
         HoverNull: string;
+        KeyPath: string;
       };
     };
 
@@ -115,6 +116,7 @@ window.SmartEvent = {
     DeviceConnect: 'SmartEvent-DEVICE_CONNECT',
     DeviceDisConnect: 'SmartEvent-DEVICE_DISCONNECT',
     HoverNull: 'SmartEvent-Hover-NULL',
+    KeyPath: 'SmartEvent-UI-UploadKeyPath',
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

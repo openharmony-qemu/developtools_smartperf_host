@@ -1056,7 +1056,7 @@ export class FileMerageBean extends MerageBean {
       currentNode.selfDur += sample.dur;
       currentNode.self = getProbablyTime(currentNode.selfDur);
     }
-    if (callChain.isThread && !currentNode.isThread){
+    if (callChain.isThread && !currentNode.isThread) {
       currentNode.isThread = callChain.isThread;
     }
     currentNode.dur += sample.dur;

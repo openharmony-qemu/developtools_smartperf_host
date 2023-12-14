@@ -61,7 +61,7 @@ export class SelectionParam {
   funAsync: Array<{ name: string; pid: number }> = [];
   nativeMemory: Array<String> = [];
   nativeMemoryStatistic: Array<String> = [];
-  nativeMemoryAllProcess: Array<{pid: number,ipid: number}> = [];
+  nativeMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
   nativeMemoryCurrentIPid: number = -1;
   cpuAbilityIds: Array<string> = [];
   memoryAbilityIds: Array<string> = [];

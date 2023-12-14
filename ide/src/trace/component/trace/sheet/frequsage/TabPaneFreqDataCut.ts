@@ -349,39 +349,35 @@ export class TabPaneFreqDataCut extends BaseElement {
               // 算力倍数值
               const countMutiple = 1000;
               cpuMap.set(key, new Array());
-              cycleMap
-                .get(key)
-                .push({
-                  thread: '周期' + (i + 1) + '—' + item[0].thread,
-                  ts: (dealArr[i].ts - timeDur) / multiple,
-                  count: 0,
-                  cpu: '',
-                  freq: '',
-                  dur: 0,
-                  percent: 0,
-                  state: 'Running',
-                  children: new Array(),
-                });
+              cycleMap.get(key).push({
+                thread: '周期' + (i + 1) + '—' + item[0].thread,
+                ts: (dealArr[i].ts - timeDur) / multiple,
+                count: 0,
+                cpu: '',
+                freq: '',
+                dur: 0,
+                percent: 0,
+                state: 'Running',
+                children: new Array(),
+              });
               let value = JSON.parse(JSON.stringify(item));
               for (let j = 0; j < value.length; j++) {
                 value[j].ts = value[j].ts * multiple;
                 value[j].freq = value[j].freq == 'unknown' ? 0 : value[j].freq;
                 if (!cpuArr.includes(value[j].cpu)) {
                   cpuArr.push(value[j].cpu);
-                  cpuMap
-                    .get(key)
-                    .push({
-                      thread: '周期' + (i + 1) + '—' + value[j].thread,
-                      pid: value[j].pid,
-                      tid: value[j].tid,
-                      count: 0,
-                      cpu: value[j].cpu,
-                      freq: '',
-                      dur: 0,
-                      percent: 0,
-                      state: 'Running',
-                      children: new Array(),
-                    });
+                  cpuMap.get(key).push({
+                    thread: '周期' + (i + 1) + '—' + value[j].thread,
+                    pid: value[j].pid,
+                    tid: value[j].tid,
+                    count: 0,
+                    cpu: value[j].cpu,
+                    freq: '',
+                    dur: 0,
+                    percent: 0,
+                    state: 'Running',
+                    children: new Array(),
+                  });
                 }
                 if (dealArr[i].ts < value[j].ts) {
                   if (dealArr[i].ts + dealArr[i].dur > value[j].ts) {
@@ -398,20 +394,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                         state: 'Running',
                         id: i,
                       });
-                      totalList
-                        .get(key)
-                        .push({
-                          thread: value[j].thread,
-                          pid: value[j].pid,
-                          tid: value[j].tid,
-                          count: (value[j].freq * value[j].dur) / countMutiple,
-                          cpu: value[j].cpu,
-                          freq: value[j].freq,
-                          dur: value[j].dur,
-                          percent: value[j].percent,
-                          state: 'Running',
-                          id: i,
-                        });
+                      totalList.get(key).push({
+                        thread: value[j].thread,
+                        pid: value[j].pid,
+                        tid: value[j].tid,
+                        count: (value[j].freq * value[j].dur) / countMutiple,
+                        cpu: value[j].cpu,
+                        freq: value[j].freq,
+                        dur: value[j].dur,
+                        percent: value[j].percent,
+                        state: 'Running',
+                        id: i,
+                      });
                     } else {
                       resList.push({
                         thread: '周期' + (i + 1) + '—' + value[j].thread,
@@ -425,20 +419,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                         state: 'Running',
                         id: i,
                       });
-                      totalList
-                        .get(key)
-                        .push({
-                          thread: value[j].thread,
-                          pid: value[j].pid,
-                          tid: value[j].tid,
-                          count: ((dealArr[i].ts + dealArr[i].dur - value[j].ts) * value[j].freq) / countMutiple,
-                          cpu: value[j].cpu,
-                          freq: value[j].freq,
-                          dur: dealArr[i].ts + dealArr[i].dur - value[j].ts,
-                          percent: ((dealArr[i].ts + dealArr[i].dur - value[j].ts) / value[j].dur) * value[j].percent,
-                          state: 'Running',
-                          id: i,
-                        });
+                      totalList.get(key).push({
+                        thread: value[j].thread,
+                        pid: value[j].pid,
+                        tid: value[j].tid,
+                        count: ((dealArr[i].ts + dealArr[i].dur - value[j].ts) * value[j].freq) / countMutiple,
+                        cpu: value[j].cpu,
+                        freq: value[j].freq,
+                        dur: dealArr[i].ts + dealArr[i].dur - value[j].ts,
+                        percent: ((dealArr[i].ts + dealArr[i].dur - value[j].ts) / value[j].dur) * value[j].percent,
+                        state: 'Running',
+                        id: i,
+                      });
                       break;
                     }
                   }
@@ -457,20 +449,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                         state: 'Running',
                         id: i,
                       });
-                      totalList
-                        .get(key)
-                        .push({
-                          thread: value[j].thread,
-                          pid: value[j].pid,
-                          tid: value[j].tid,
-                          count: (dealArr[i].dur * value[j].freq) / countMutiple,
-                          cpu: value[j].cpu,
-                          freq: value[j].freq,
-                          dur: dealArr[i].dur,
-                          percent: (dealArr[i].dur / value[j].dur) * value[j].percent,
-                          state: 'Running',
-                          id: i,
-                        });
+                      totalList.get(key).push({
+                        thread: value[j].thread,
+                        pid: value[j].pid,
+                        tid: value[j].tid,
+                        count: (dealArr[i].dur * value[j].freq) / countMutiple,
+                        cpu: value[j].cpu,
+                        freq: value[j].freq,
+                        dur: dealArr[i].dur,
+                        percent: (dealArr[i].dur / value[j].dur) * value[j].percent,
+                        state: 'Running',
+                        id: i,
+                      });
                       break;
                     } else {
                       resList.push({
@@ -485,20 +475,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                         state: 'Running',
                         id: i,
                       });
-                      totalList
-                        .get(key)
-                        .push({
-                          thread: value[j].thread,
-                          pid: value[j].pid,
-                          tid: value[j].tid,
-                          count: ((value[j].ts + value[j].dur - dealArr[i].ts) * value[j].freq) / countMutiple,
-                          cpu: value[j].cpu,
-                          freq: value[j].freq,
-                          dur: value[j].ts + value[j].dur - dealArr[i].ts,
-                          percent: ((value[j].ts + value[j].dur - dealArr[i].ts) / value[j].dur) * value[j].percent,
-                          state: 'Running',
-                          id: i,
-                        });
+                      totalList.get(key).push({
+                        thread: value[j].thread,
+                        pid: value[j].pid,
+                        tid: value[j].tid,
+                        count: ((value[j].ts + value[j].dur - dealArr[i].ts) * value[j].freq) / countMutiple,
+                        cpu: value[j].cpu,
+                        freq: value[j].freq,
+                        dur: value[j].ts + value[j].dur - dealArr[i].ts,
+                        percent: ((value[j].ts + value[j].dur - dealArr[i].ts) / value[j].dur) * value[j].percent,
+                        state: 'Running',
+                        id: i,
+                      });
                     }
                   }
                 }
@@ -592,39 +580,35 @@ export class TabPaneFreqDataCut extends BaseElement {
               // 算力倍数值
               const countMutiple = 1000;
               cpuMap.set(key, new Array());
-              cycleMap
-                .get(key)
-                .push({
-                  thread: '周期' + (i + 1) + '—' + item[0].thread,
-                  ts: (cutArr[i].ts - timeDur) / multiple,
-                  count: 0,
-                  cpu: '',
-                  freq: '',
-                  dur: 0,
-                  percent: 0,
-                  state: 'Running',
-                  children: new Array(),
-                });
+              cycleMap.get(key).push({
+                thread: '周期' + (i + 1) + '—' + item[0].thread,
+                ts: (cutArr[i].ts - timeDur) / multiple,
+                count: 0,
+                cpu: '',
+                freq: '',
+                dur: 0,
+                percent: 0,
+                state: 'Running',
+                children: new Array(),
+              });
               let value = JSON.parse(JSON.stringify(item));
               for (let j = 0; j < value.length; j++) {
                 value[j].ts = value[j].ts * multiple;
                 value[j].freq = value[j].freq == 'unknown' ? 0 : value[j].freq;
                 if (!cpuArr.includes(value[j].cpu)) {
                   cpuArr.push(value[j].cpu);
-                  cpuMap
-                    .get(key)
-                    .push({
-                      thread: '周期' + (i + 1) + '—' + value[j].thread,
-                      pid: value[j].pid,
-                      tid: value[j].tid,
-                      count: 0,
-                      cpu: value[j].cpu,
-                      freq: '',
-                      dur: 0,
-                      percent: 0,
-                      state: 'Running',
-                      children: new Array(),
-                    });
+                  cpuMap.get(key).push({
+                    thread: '周期' + (i + 1) + '—' + value[j].thread,
+                    pid: value[j].pid,
+                    tid: value[j].tid,
+                    count: 0,
+                    cpu: value[j].cpu,
+                    freq: '',
+                    dur: 0,
+                    percent: 0,
+                    state: 'Running',
+                    children: new Array(),
+                  });
                 }
                 if (value[j].ts >= cutArr[i].ts) {
                   if (value[j].ts + value[j].dur <= cutArr[i + 1].ts) {
@@ -640,20 +624,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                       state: 'Running',
                       id: i,
                     });
-                    totalList
-                      .get(key)
-                      .push({
-                        thread: value[j].thread,
-                        pid: value[j].pid,
-                        tid: value[j].tid,
-                        count: (value[j].freq * value[j].dur) / countMutiple,
-                        cpu: value[j].cpu,
-                        freq: value[j].freq,
-                        dur: value[j].dur,
-                        percent: value[j].percent,
-                        state: 'Running',
-                        id: i,
-                      });
+                    totalList.get(key).push({
+                      thread: value[j].thread,
+                      pid: value[j].pid,
+                      tid: value[j].tid,
+                      count: (value[j].freq * value[j].dur) / countMutiple,
+                      cpu: value[j].cpu,
+                      freq: value[j].freq,
+                      dur: value[j].dur,
+                      percent: value[j].percent,
+                      state: 'Running',
+                      id: i,
+                    });
                   } else {
                     if (cutArr[i + 1].ts - value[j].ts > 0) {
                       resList.push({
@@ -668,20 +650,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                         state: 'Running',
                         id: i,
                       });
-                      totalList
-                        .get(key)
-                        .push({
-                          thread: value[j].thread,
-                          pid: value[j].pid,
-                          tid: value[j].tid,
-                          count: (value[j].freq * (cutArr[i + 1].ts - value[j].ts)) / countMutiple,
-                          cpu: value[j].cpu,
-                          freq: value[j].freq,
-                          dur: cutArr[i + 1].ts - value[j].ts,
-                          percent: value[j].percent * ((cutArr[i + 1].ts - value[j].ts) / value[j].dur),
-                          state: 'Running',
-                          id: i,
-                        });
+                      totalList.get(key).push({
+                        thread: value[j].thread,
+                        pid: value[j].pid,
+                        tid: value[j].tid,
+                        count: (value[j].freq * (cutArr[i + 1].ts - value[j].ts)) / countMutiple,
+                        cpu: value[j].cpu,
+                        freq: value[j].freq,
+                        dur: cutArr[i + 1].ts - value[j].ts,
+                        percent: value[j].percent * ((cutArr[i + 1].ts - value[j].ts) / value[j].dur),
+                        state: 'Running',
+                        id: i,
+                      });
                       break;
                     }
                   }
@@ -699,20 +679,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                       state: 'Running',
                       id: i,
                     });
-                    totalList
-                      .get(key)
-                      .push({
-                        thread: value[j].thread,
-                        pid: value[j].pid,
-                        tid: value[j].tid,
-                        count: (value[j].freq * (cutArr[i + 1].ts - cutArr[i].ts)) / countMutiple,
-                        cpu: value[j].cpu,
-                        freq: value[j].freq,
-                        dur: cutArr[i + 1].ts - cutArr[i].ts,
-                        percent: value[j].percent * ((cutArr[i + 1].ts - cutArr[i].ts) / value[j].dur),
-                        state: 'Running',
-                        id: i,
-                      });
+                    totalList.get(key).push({
+                      thread: value[j].thread,
+                      pid: value[j].pid,
+                      tid: value[j].tid,
+                      count: (value[j].freq * (cutArr[i + 1].ts - cutArr[i].ts)) / countMutiple,
+                      cpu: value[j].cpu,
+                      freq: value[j].freq,
+                      dur: cutArr[i + 1].ts - cutArr[i].ts,
+                      percent: value[j].percent * ((cutArr[i + 1].ts - cutArr[i].ts) / value[j].dur),
+                      state: 'Running',
+                      id: i,
+                    });
                   }
                   if (value[j].ts + value[j].dur > cutArr[i].ts && value[j].ts + value[j].dur < cutArr[i + 1].ts) {
                     resList.push({
@@ -727,20 +705,18 @@ export class TabPaneFreqDataCut extends BaseElement {
                       state: 'Running',
                       id: i,
                     });
-                    totalList
-                      .get(key)
-                      .push({
-                        thread: value[j].thread,
-                        pid: value[j].pid,
-                        tid: value[j].tid,
-                        count: (value[j].freq * (value[j].dur + value[j].ts - cutArr[i].ts)) / countMutiple,
-                        cpu: value[j].cpu,
-                        freq: value[j].freq,
-                        dur: value[j].dur + value[j].ts - cutArr[i].ts,
-                        percent: value[j].percent * ((value[j].dur + value[j].ts - cutArr[i].ts) / value[j].dur),
-                        state: 'Running',
-                        id: i,
-                      });
+                    totalList.get(key).push({
+                      thread: value[j].thread,
+                      pid: value[j].pid,
+                      tid: value[j].tid,
+                      count: (value[j].freq * (value[j].dur + value[j].ts - cutArr[i].ts)) / countMutiple,
+                      cpu: value[j].cpu,
+                      freq: value[j].freq,
+                      dur: value[j].dur + value[j].ts - cutArr[i].ts,
+                      percent: value[j].percent * ((value[j].dur + value[j].ts - cutArr[i].ts) / value[j].dur),
+                      state: 'Running',
+                      id: i,
+                    });
                   }
                 }
               }

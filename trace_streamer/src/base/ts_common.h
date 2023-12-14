@@ -16,6 +16,7 @@
 #ifndef SRC_TRACE_BASE_TS_COMMON_H
 #define SRC_TRACE_BASE_TS_COMMON_H
 
+#include <atomic>
 #include <cstdint>
 #include <limits>
 #include <map>
@@ -222,6 +223,22 @@ struct ArgsData {
 struct TraceTimeSnap {
     uint64_t startTime;
     uint64_t endTime;
+};
+class SpinLock {
+public:
+    void lock()
+    {
+        while (flag_.test_and_set(std::memory_order_acquire)) {
+            ;
+        }
+    }
+    void unlock()
+    {
+        flag_.clear(std::memory_order_release);
+    }
+
+private:
+    std::atomic_flag flag_{0};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

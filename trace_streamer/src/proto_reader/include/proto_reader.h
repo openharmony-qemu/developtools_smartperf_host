@@ -262,12 +262,16 @@ protected:
 
 private:
     const uint8_t* GetNextProtoTag(const uint8_t* const startAddr, const uint8_t* const endAddr, uint64_t* dataAreaTag);
-    bool ParseVarIntValue(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
-    bool ParseLengthDelimitedValue(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
-    bool ParseFixed64Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
-    bool ParseFixed32Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
+    static bool ParseVarIntValue(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
+    static bool ParseLengthDelimitedValue(ParseDataAreaResult& result,
+                                          const uint8_t* startAddr,
+                                          const uint8_t* const endAddr);
+    static bool ParseFixed64Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
+    static bool ParseFixed32Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
+
+public:
     using ParseDataAreaValueByType = std::function<bool(ParseDataAreaResult&, const uint8_t*, const uint8_t* const)>;
-    std::map<ProtoWireType, ParseDataAreaValueByType> dataAreaTypeToParseFuncMap_ = {};
+    static std::map<ProtoWireType, ParseDataAreaValueByType> DATA_AREA_TYPE_TO_PARSE_FUNC_MAP;
 };
 
 template <int32_t MAX_DATA_AREA_ID>

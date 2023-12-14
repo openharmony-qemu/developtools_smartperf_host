@@ -177,7 +177,7 @@ export class FilterByAnalysis {
   typeId?: number;
 
   constructor(
-    typeId: number| undefined,
+    typeId: number | undefined,
     type: string | undefined,
     tName: string | undefined,
     tid: number | undefined,

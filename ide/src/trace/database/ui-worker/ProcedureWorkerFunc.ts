@@ -86,7 +86,7 @@ export function func(
   totalNS: number,
   frame: any,
   use: boolean,
-  expand: boolean,
+  expand: boolean
 ) {
   if (use && funcFilter.length > 0) {
     for (let i = 0, len = funcFilter.length; i < len; i++) {
@@ -101,7 +101,12 @@ export function func(
   funcFilter.length = 0;
   if (funcList) {
     let groups = funcList
-      .filter((it) => (it.startTs ?? 0) + (it.dur ?? 0) >= startNS && (it.startTs ?? 0) <= endNS && ((!expand && it.depth === 0) || expand))
+      .filter(
+        (it) =>
+          (it.startTs ?? 0) + (it.dur ?? 0) >= startNS &&
+          (it.startTs ?? 0) <= endNS &&
+          ((!expand && it.depth === 0) || expand)
+      )
       .map((it) => {
         FuncStruct.setFuncFrame(it, 0, startNS, endNS, totalNS, frame);
         return it;

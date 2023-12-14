@@ -26,6 +26,7 @@ declare_args() {
   ar = "ar"
   is_debug = true
   use_wasm = false
+  wasm_use_thread = false
   is_test = false
   is_sdkdemo = false
   is_dubai_sdk = false

@@ -62,7 +62,7 @@ export class FrameSpacingRender extends Render {
       let smallTickStandard = {
         firstLine: 0,
         secondLine: 0,
-        thirdLine: 0
+        thirdLine: 0,
       };
       if (req.frameRate) {
         // @ts-ignore

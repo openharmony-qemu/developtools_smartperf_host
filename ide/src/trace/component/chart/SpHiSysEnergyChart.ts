@@ -105,7 +105,14 @@ export class SpHiSysEnergyChart {
       stateData[index] = stateInitValue.concat(stateResult[1]);
       stateDataSize += stateData[index].length;
     }
-    if (anomalyData.length > 0 || systemDataList[0].length > 0 || systemDataList[1].length > 0 || systemDataList[2].length > 0 || powerData.length > 0 || stateDataSize > 0) {
+    if (
+      anomalyData.length > 0 ||
+      systemDataList[0].length > 0 ||
+      systemDataList[1].length > 0 ||
+      systemDataList[2].length > 0 ||
+      powerData.length > 0 ||
+      stateDataSize > 0
+    ) {
       await this.initEnergyRow();
       this.initAnomaly(anomalyData);
       this.initSystem(systemDataList);
@@ -143,7 +150,7 @@ export class SpHiSysEnergyChart {
         key: `${appName}`,
         title: `${appName}`,
         checked: index === 0,
-      })
+      });
     }
     this.energyTraceRow.rowSettingList = nameList;
     this.energyTraceRow.onRowSettingChangeHandler = (value): void => {
@@ -299,12 +306,14 @@ export class SpHiSysEnergyChart {
     info('The time to load the Ability Memory is: ', durTime);
   };
 
-  private handleLocationData(result: Array<{
-    ts: string;
-    eventName: string;
-    appKey: string;
-    Value: string;
-  }>) {
+  private handleLocationData(
+    result: Array<{
+      ts: string;
+      eventName: string;
+      appKey: string;
+      Value: string;
+    }>
+  ) {
     let locationIndex = -1;
     let locationCount = 0;
     let locationData: any[] = [];
@@ -333,12 +342,14 @@ export class SpHiSysEnergyChart {
     return locationData;
   }
 
-  private handleLockData(result: Array<{
-    ts: string;
-    eventName: string;
-    appKey: string;
-    Value: string;
-  }>) {
+  private handleLockData(
+    result: Array<{
+      ts: string;
+      eventName: string;
+      appKey: string;
+      Value: string;
+    }>
+  ) {
     let lockCount = 0;
     let tokedIds: Array<string> = [];
     let lockData: any[] = [];
@@ -431,12 +442,14 @@ export class SpHiSysEnergyChart {
     return workData;
   }
 
-  private initPower = (powerData: Array<{
-    startNS: number;
-    eventName: string;
-    appKey: string;
-    eventValue: string;
-  }>): void => {
+  private initPower = (
+    powerData: Array<{
+      startNS: number;
+      eventName: string;
+      appKey: string;
+      eventValue: string;
+    }>
+  ): void => {
     let time = new Date().getTime();
     let powerTraceRow = TraceRow.skeleton<EnergyPowerStruct>();
     powerTraceRow.rowParentId = `energy`;
@@ -628,8 +641,9 @@ export class SpHiSysEnergyChart {
             useCache: useCache,
             type: `energyState${index}`,
             maxState: maxStateData[0].maxValue,
-            maxStateName:
-              maxStateData[0].type.toLocaleLowerCase().endsWith('br_switch_state') ? '-1' : maxStateTotal.toString(),
+            maxStateName: maxStateData[0].type.toLocaleLowerCase().endsWith('br_switch_state')
+              ? '-1'
+              : maxStateTotal.toString(),
           },
           stateTraceRow
         );

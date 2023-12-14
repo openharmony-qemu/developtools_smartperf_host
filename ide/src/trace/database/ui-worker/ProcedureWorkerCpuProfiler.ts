@@ -190,7 +190,10 @@ export class JsCpuProfilerStruct extends BaseStruct {
           jsCpuProfilerCtx.textBaseline = 'middle';
           drawString(jsCpuProfilerCtx, `${data.name || ''}`, 4, data.frame, data);
         }
-        if (data === JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
+        if (
+          JsCpuProfilerStruct.selectJsCpuProfilerStruct &&
+          JsCpuProfilerStruct.equals(JsCpuProfilerStruct.selectJsCpuProfilerStruct, data)
+        ) {
           jsCpuProfilerCtx.strokeStyle = '#000';
           jsCpuProfilerCtx.lineWidth = 2;
           jsCpuProfilerCtx.strokeRect(
@@ -202,5 +205,19 @@ export class JsCpuProfilerStruct extends BaseStruct {
         }
       }
     }
+  }
+  static equals(d1: JsCpuProfilerStruct, d2: JsCpuProfilerStruct): boolean {
+    return (
+      d1 &&
+      d2 &&
+      d1.id === d2.id &&
+      d1.name === d2.name &&
+      d1.url === d2.url &&
+      d1.depth === d2.depth &&
+      d1.totalTime === d2.totalTime &&
+      d1.selfTime === d2.selfTime &&
+      d1.startTime === d2.startTime &&
+      d1.endTime === d2.endTime
+    );
   }
 }

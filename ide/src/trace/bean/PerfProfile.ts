@@ -115,7 +115,7 @@ export class PerfSample {
 }
 
 export class PerfStack {
-  symbol: string = '';
+  symbol: string | number = 0;
   symbolId: number = 0;
   path: string = '';
   fileId: number = 0;

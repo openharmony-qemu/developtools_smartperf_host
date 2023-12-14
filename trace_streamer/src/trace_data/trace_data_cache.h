@@ -48,6 +48,9 @@ public:
     int32_t ExportPerfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportHookReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
+    void ClearAllPrevCacheData();
+    void UpdateAllPrevSize();
+    void UpdateAllDatabaseStableSize();
 
 private:
     void InitDB();

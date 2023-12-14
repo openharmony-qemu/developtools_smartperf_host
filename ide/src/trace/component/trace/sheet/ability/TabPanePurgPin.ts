@@ -33,8 +33,9 @@ export class TabPanePurgPin extends BaseElement {
 
   set data(selection: SelectionParam) {
     //@ts-ignore
-    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
-      }px`;
+    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     this.init();
     this.purgPinTimeRange!.textContent =
       'Selected range: ' + ((selection.rightNs - selection.leftNs) / 1000000.0).toFixed(5) + ' ms';

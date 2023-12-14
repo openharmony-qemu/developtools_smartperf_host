@@ -55,7 +55,6 @@ config("default") {
   ldflags = []
   cflags = [
     "-fstrict-aliasing",
-    "-g",
     "-Wformat",
     "-Wno-unused-variable",
   ]
@@ -64,7 +63,7 @@ config("default") {
   }
   if (is_debug && is_linux && !use_wasm) {
     cflags += [
-      "-fsanitize=address",
+      "-g",
       "-fno-omit-frame-pointer",
       "-fstandalone-debug",
     ]
@@ -120,6 +119,16 @@ config("default") {
   }
   if (use_wasm) {
     cflags += [ "-D IS_WASM" ]
+    if (wasm_use_thread) {
+      cflags += [
+        "-D SUPPORTTHREAD",
+        "-mbulk-memory",
+        "-matomics",
+      ]
+    }
+  }
+  if (!use_wasm) {
+    cflags += [ "-D SUPPORTTHREAD" ]
   }
   if (is_win) {
     cflags += [ "-D is_mingw" ]
@@ -148,7 +157,6 @@ config("release") {
     "-fdata-sections",
     "-ffunction-sections",
   ]
-
   cflags += [ "-O3" ]
   ldflags = [ "-fstack-protector" ]
   if (!is_mac) {

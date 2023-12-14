@@ -14,7 +14,7 @@
  */
 
 importScripts('trace_streamer_builtin.js');
-import {temp_init_sql_list} from "./TempSql";
+import { temp_init_sql_list } from './TempSql';
 
 let Module: any = null;
 let enc = new TextEncoder();
@@ -168,15 +168,20 @@ let convertJSON = () => {
   }
 };
 
-function saveTraceFileBuffer(key: string,buffer: ArrayBuffer): void {
-  caches.open(key).then(cache => {
+function saveTraceFileBuffer(key: string, buffer: ArrayBuffer): void {
+  caches.open(key).then((cache) => {
     let headers = new Headers();
     headers.append('Content-Length', `${buffer.byteLength}`);
     headers.append('Content-Type', 'application/octet-stream');
-    cache.put(key, new Response(buffer,{
-      status: 200,
-      headers: headers
-    })).then();
+    cache
+      .put(
+        key,
+        new Response(buffer, {
+          status: 200,
+          headers: headers,
+        })
+      )
+      .then();
   });
 }
 
@@ -312,17 +317,17 @@ self.onmessage = async (e: MessageEvent) => {
     let rowTraceStr = Array.from(new Uint32Array(e.data.buffer.slice(0, 4)));
     if (rowTraceStr[0] === 57161) {
       let commonDataOffsetList: Array<{
-        startOffset: number
-        endOffset: number
+        startOffset: number;
+        endOffset: number;
       }> = [];
       let offset = 12;
       let tlvTypeLength = 4;
       let headArray = uint8Array.slice(0, offset);
       let commonTotalLength = 0;
       while (offset < uint8Array.length) {
-        let commonDataOffset  = {
+        let commonDataOffset = {
           startOffset: offset,
-          endOffset: offset
+          endOffset: offset,
         };
         let dataTypeData = e.data.buffer.slice(offset, offset + tlvTypeLength);
         offset += tlvTypeLength;
@@ -342,7 +347,7 @@ self.onmessage = async (e: MessageEvent) => {
       frontData.set(headArray, 0);
       let lengthOffset = headArray.byteLength;
       // common Data
-      commonDataOffsetList.forEach(item => {
+      commonDataOffsetList.forEach((item) => {
         let commonData = uint8Array.slice(item.startOffset, item.endOffset);
         frontData.set(commonData, lengthOffset);
         lengthOffset += commonData.byteLength;
@@ -402,7 +407,7 @@ self.onmessage = async (e: MessageEvent) => {
         msg: 'ok',
         configSqlMap: thirdJsonResult,
         buffer: e.data.buffer,
-        fileKey: ffrtFileCacheKey
+        fileKey: ffrtFileCacheKey,
       },
       // @ts-ignore
       [e.data.buffer]
@@ -629,7 +634,10 @@ self.onmessage = async (e: MessageEvent) => {
                     isBeforeCutFinish = false;
                     nowCutInfoList.length = 0;
                   }
-                  if (cutInfo.offset + cutInfo.size - startOffset >= (maxSize * 10) || needCutIndex === needCutMessage.length - 1) {
+                  if (
+                    cutInfo.offset + cutInfo.size - startOffset >= maxSize * 10 ||
+                    needCutIndex === needCutMessage.length - 1
+                  ) {
                     nowCutInfoList.push(cutInfo);
                     let nowStartCutOffset = nowCutInfoList[0].offset;
                     let nowEndCutOffset = cutInfo.offset + cutInfo.size;
@@ -782,7 +790,12 @@ async function splitFileAndSave(
     const transaction = db.transaction(STORE_NAME, 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const index = store.index('QueryCompleteFile');
-    let range = IDBKeyRange.bound([timStamp, fileType, 0, queryStartIndex], [timStamp, fileType, 0, queryEndIndex], false, false);
+    let range = IDBKeyRange.bound(
+      [timStamp, fileType, 0, queryStartIndex],
+      [timStamp, fileType, 0, queryEndIndex],
+      false,
+      false
+    );
     const getRequest = index.openCursor(range);
     let res = await queryDataFromIndexeddb(getRequest);
     queryStartIndex = queryEndIndex + 1;

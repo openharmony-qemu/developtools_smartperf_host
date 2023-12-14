@@ -191,24 +191,22 @@ export class TabPaneFreqUsage extends BaseElement {
       for (let i = 0; i < value.length; i++) {
         if (!cpuArr.includes(value[i].cpu)) {
           cpuArr.push(value[i].cpu);
-          cpuMap
-            .get(key)
-            .push({
-              process:
-                Utils.PROCESS_MAP.get(value[i].pid) == null
-                  ? 'Process ' + value[i].pid
-                  : Utils.PROCESS_MAP.get(value[i].pid) + ' ' + value[i].pid,
-              thread: value[i].tid + '_' + Utils.THREAD_MAP.get(value[i].tid),
-              pid: value[i].pid,
-              tid: value[i].tid,
-              count: 0,
-              cpu: value[i].cpu,
-              freq: '',
-              dur: 0,
-              percent: 0,
-              state: 'Running',
-              children: new Array(),
-            });
+          cpuMap.get(key).push({
+            process:
+              Utils.PROCESS_MAP.get(value[i].pid) == null
+                ? 'Process ' + value[i].pid
+                : Utils.PROCESS_MAP.get(value[i].pid) + ' ' + value[i].pid,
+            thread: value[i].tid + '_' + Utils.THREAD_MAP.get(value[i].tid),
+            pid: value[i].pid,
+            tid: value[i].tid,
+            count: 0,
+            cpu: value[i].cpu,
+            freq: '',
+            dur: 0,
+            percent: 0,
+            state: 'Running',
+            children: new Array(),
+          });
         }
         for (let j = 0; j < dealArr.length; j++) {
           if (value[i].cpu == dealArr[j].cpu) {

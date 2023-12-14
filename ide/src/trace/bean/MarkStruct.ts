@@ -19,7 +19,7 @@ export class MarkStruct {
   endTime: number | undefined;
   colorEl: HTMLInputElement | undefined;
   text: HTMLInputElement | undefined;
-operate: HTMLButtonElement | undefined;
+  operate: HTMLButtonElement | undefined;
   isSelected: boolean = false;
   constructor(
     operate: HTMLButtonElement,

@@ -47,11 +47,11 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
       hisyseventParser_(std::make_unique<HtraceHisyseventParser>(dataCache, filters)),
       jsMemoryParser_(std::make_unique<HtraceJSMemoryParser>(dataCache, filters)),
       perfDataParser_(std::make_unique<PerfDataParser>(dataCache, filters)),
+      ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
 #ifdef SUPPORTTHREAD
       supportThread_(true),
       dataSegArray_(std::make_unique<HtraceDataSegment[]>(MAX_SEG_ARRAY_SIZE))
 #else
-      ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
       dataSegArray_(std::make_unique<HtraceDataSegment[]>(1))
 #endif
 {
@@ -92,6 +92,7 @@ bool HtraceParser::ReparseSymbolFilesAndResymbolization(std::string& symbolsPath
     symbolsFiles_.clear();
     return parseStatus;
 }
+
 void HtraceParser::WaitForParserEnd()
 {
     if (parseThreadStarted_ || filterThreadStarted_) {
@@ -143,7 +144,7 @@ void HtraceParser::WaitForParserEnd()
 void HtraceParser::ParseTraceDataItem(const std::string& buffer)
 {
     int32_t head = rawDataHead_;
-    if (!supportThread_) {
+    if (!supportThread_ || traceDataCache_->isSplitFile_) {
         dataSegArray_[head].seg = std::make_shared<std::string>(std::move(buffer));
         dataSegArray_[head].status = TS_PARSE_STATUS_SEPRATED;
         ParserData(dataSegArray_[head], traceDataCache_->isSplitFile_);
@@ -166,7 +167,7 @@ void HtraceParser::ParseTraceDataItem(const std::string& buffer)
             parserThreadCount_++;
             std::thread ParseTypeThread(&HtraceParser::ParseThread, this);
             ParseTypeThread.detach();
-            TS_LOGD("parser Thread:%d/%d start working ...\n", maxThread_ - tmp, maxThread_);
+            TS_LOGI("parser Thread:%d/%d start working ...\n", maxThread_ - tmp, maxThread_);
         }
     }
 }
@@ -183,18 +184,7 @@ void HtraceParser::FilterData(HtraceDataSegment& seg, bool isSplitFile)
     } else if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG) {
         htraceNativeHookParser_->ParseConfigInfo(seg);
     } else if (seg.dataType == DATA_SOURCE_TYPE_TRACE) {
-        ProtoReader::TracePluginResult_Reader tracePluginResult(seg.protoData);
-        if (tracePluginResult.has_ftrace_cpu_detail()) {
-            htraceCpuDetailParser_->Parse(seg, seg.clockId, haveSplitSeg);
-        }
-        if (tracePluginResult.has_symbols_detail()) {
-            htraceSymbolsDetailParser_->Parse(seg.protoData); // has Event
-            haveSplitSeg = true;
-        }
-        if (tracePluginResult.has_clocks_detail()) {
-            htraceClockDetailParser_->Parse(seg.protoData); // has Event
-            haveSplitSeg = true;
-        }
+        htraceCpuDetailParser_->FilterAllEventsReader();
     } else if (seg.dataType == DATA_SOURCE_TYPE_MEM) {
         htraceMemParser_->Parse(seg, seg.timeStamp, seg.clockId);
     } else if (seg.dataType == DATA_SOURCE_TYPE_HILOG) {
@@ -227,7 +217,7 @@ void HtraceParser::FilterData(HtraceDataSegment& seg, bool isSplitFile)
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
         mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + PACKET_SEG_LENGTH);
     }
-    if (supportThread_) {
+    if (supportThread_ && !traceDataCache_->isSplitFile_) {
         filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
     }
     seg.status = TS_PARSE_STATUS_INIT;
@@ -240,7 +230,6 @@ void HtraceParser::FilterThread()
         if (seg.status.load() == TS_PARSE_STATUS_INVALID) {
             seg.status = TS_PARSE_STATUS_INIT;
             filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
-            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
             TS_LOGD("seprateHead_d:\t%d, parseHead_:\t%d, filterHead_:\t%d\n", rawDataHead_, parseHead_, filterHead_);
             continue;
         }
@@ -305,9 +294,11 @@ void HtraceParser::ParserData(HtraceDataSegment& dataSeg, bool isSplitFile)
             dataSourceType_ = DATA_SOURCE_TYPE_NATIVEHOOK;
         }
         dataSeg.protoData = pluginDataZero.data();
+        dataSeg.status = TS_PARSE_STATUS_PARSED;
     } else if (pluginName == "nativehook_config") {
         dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG;
         dataSeg.protoData = pluginDataZero.data();
+        dataSeg.status = TS_PARSE_STATUS_PARSED;
     } else if (isFtrace) { // ok
         dataSeg.dataType = DATA_SOURCE_TYPE_TRACE;
         dataSeg.protoData = pluginDataZero.data();
@@ -358,6 +349,7 @@ void HtraceParser::ParserData(HtraceDataSegment& dataSeg, bool isSplitFile)
         }
         dataSeg.dataType = DATA_SOURCE_TYPE_MEM_CONFIG;
         dataSeg.protoData = pluginDataZero.data();
+        dataSeg.status = TS_PARSE_STATUS_PARSED;
     } else {
 #if IS_WASM
         TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(pluginDataZero.data().data_),
@@ -367,11 +359,7 @@ void HtraceParser::ParserData(HtraceDataSegment& dataSeg, bool isSplitFile)
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
         return;
     }
-    if (!supportThread_) { // do it only in wasm mode, wasm noThead_ will be true
-        if (dataSeg.status == TS_PARSE_STATUS_INVALID) {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
-            return;
-        }
+    if (!supportThread_ || traceDataCache_->isSplitFile_) { // do it only in wasm mode, wasm noThead_ will be true
         FilterData(dataSeg, isSplitFile);
     }
 }
@@ -381,14 +369,14 @@ void HtraceParser::ParseThread()
     while (true) {
         if (supportThread_ && !filterThreadStarted_) {
             filterThreadStarted_ = true;
-            std::thread ParserThread(&HtraceParser::FilterThread, this);
-            TS_LOGD("FilterThread start working ...\n");
-            ParserThread.detach();
+            std::thread FilterTypeThread(&HtraceParser::FilterThread, this);
+            TS_LOGI("FilterThread start working ...");
+            FilterTypeThread.detach();
         }
         int32_t head = GetNextSegment();
         if (head < 0) {
             if (head == ERROR_CODE_EXIT) {
-                TS_LOGI("parse thread exit\n");
+                TS_LOGI("parse thread exit");
                 return;
             } else if (head == ERROR_CODE_NODATA) {
                 continue;
@@ -439,15 +427,28 @@ void HtraceParser::ParseFtrace(HtraceDataSegment& dataSeg)
             return;
         }
         dataSeg.clockId = clock_;
+        dataSourceTypeTraceClockid_ = clock_;
         dataSeg.status = TS_PARSE_STATUS_PARSED;
         return;
     }
+    bool haveSplitSeg = false;
     dataSeg.clockId = clock_;
-    dataSourceTypeTraceClockid_ = clock_;
-    if (tracePluginResult.has_clocks_detail() || tracePluginResult.has_ftrace_cpu_detail() ||
-        tracePluginResult.has_symbols_detail()) {
+    if (tracePluginResult.has_ftrace_cpu_detail()) {
+        htraceCpuDetailParser_->Parse(dataSeg, tracePluginResult, haveSplitSeg);
         dataSeg.status = TS_PARSE_STATUS_PARSED;
-        return;
+    }
+    if (tracePluginResult.has_symbols_detail()) {
+        htraceSymbolsDetailParser_->Parse(dataSeg.protoData); // has Event
+        haveSplitSeg = true;
+        dataSeg.status = TS_PARSE_STATUS_PARSED;
+    }
+    if (tracePluginResult.has_clocks_detail()) {
+        htraceClockDetailParser_->Parse(dataSeg.protoData); // has Event
+        haveSplitSeg = true;
+        dataSeg.status = TS_PARSE_STATUS_PARSED;
+    }
+    if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + PACKET_SEG_LENGTH);
     }
     dataSeg.status = TS_PARSE_STATUS_INVALID;
 }
@@ -514,33 +515,29 @@ void HtraceParser::ParseJSMemoryConfig(HtraceDataSegment& dataSeg)
 int32_t HtraceParser::GetNextSegment()
 {
     int32_t head;
-    htraceDataSegMux_.lock();
+    std::unique_lock<std::mutex> muxLockGuard(htraceDataSegMux_);
     head = parseHead_;
     HtraceDataSegment& htraceDataSegmentSeg = dataSegArray_[head];
     if (htraceDataSegmentSeg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
             TS_LOGI("exiting parser, parserThread Count:%d\n", parserThreadCount_);
-            TS_LOGD("seprateHead_x:\t%d, parseHead_:\t%d, filterHead_:\t%d status:%d\n", rawDataHead_, parseHead_,
+            TS_LOGI("seprateHead_x:\t%d, parseHead_:\t%d, filterHead_:\t%d status:%d\n", rawDataHead_, parseHead_,
                     filterHead_, htraceDataSegmentSeg.status.load());
-            htraceDataSegMux_.unlock();
             if (!parserThreadCount_ && !filterThreadStarted_) {
                 exited_ = true;
             }
             return ERROR_CODE_EXIT;
         }
         if (htraceDataSegmentSeg.status.load() == TS_PARSE_STATUS_PARSING) {
-            htraceDataSegMux_.unlock();
             usleep(sleepDur_);
             return ERROR_CODE_NODATA;
         }
-        htraceDataSegMux_.unlock();
         usleep(sleepDur_);
         return ERROR_CODE_NODATA;
     }
     parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
     htraceDataSegmentSeg.status = TS_PARSE_STATUS_PARSING;
-    htraceDataSegMux_.unlock();
     return head;
 }
 bool HtraceParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)

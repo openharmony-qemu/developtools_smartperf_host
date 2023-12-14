@@ -195,7 +195,7 @@ int32_t RawTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(rawObj_.CpuData()[CurrentRow()]));
             break;
         case Index::INTERNAL_TID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(rawObj_.InternalTidData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int32_t>(rawObj_.InternalTidsData()[CurrentRow()]));
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

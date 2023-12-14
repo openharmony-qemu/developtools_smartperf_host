@@ -446,7 +446,7 @@ size_t Raw::AppendRawData(uint32_t id, uint64_t timeStamp, uint32_t name, uint32
     timeStamps_.emplace_back(timeStamp);
     nameDeque_.emplace_back(name);
     cpuDeque_.emplace_back(cpu);
-    itidDeque_.emplace_back(internalTid);
+    internalTids_.emplace_back(internalTid);
     return Size() - 1;
 }
 
@@ -521,7 +521,7 @@ void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId,
                                                       uint32_t itid,
                                                       uint64_t timeStamp)
 {
-    ids_.emplace_back(Size());
+    ids_.emplace_back(id_++);
     callChainIds_.emplace_back(callChainId);
     ipids_.emplace_back(ipid);
     internalTids_.emplace_back(itid);
@@ -531,7 +531,7 @@ void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId,
 }
 void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint64_t timeStamp)
 {
-    ids_.emplace_back(Size());
+    ids_.emplace_back(id_++);
     callChainIds_.emplace_back(callChainId);
     ipids_.emplace_back(ipid);
     timeStamps_.emplace_back(timeStamp);
@@ -853,7 +853,7 @@ size_t PerfCallChain::AppendNewPerfCallChain(uint32_t callChainId,
     vaddrInFiles_.emplace_back(vaddrInFile);
     fileIds_.emplace_back(fileId);
     symbolIds_.emplace_back(symbolId);
-    names_.emplace_back("");
+    names_.emplace_back(INVALID_UINT64);
     return Size() - 1;
 }
 const std::deque<uint32_t>& PerfCallChain::CallChainIds() const
@@ -881,11 +881,11 @@ const std::deque<uint64_t>& PerfCallChain::SymbolIds() const
     return symbolIds_;
 }
 
-const std::deque<std::string>& PerfCallChain::Names() const
+const std::deque<DataIndex>& PerfCallChain::Names() const
 {
     return names_;
 }
-void PerfCallChain::SetName(uint64_t index, const std::string& name)
+void PerfCallChain::SetName(uint64_t index, DataIndex name)
 {
     names_[index] = name;
 }
@@ -1114,6 +1114,9 @@ StatAndInfo::StatAndInfo()
 }
 void StatAndInfo::IncreaseStat(SupportedTraceEventType eventType, StatType type)
 {
+#ifdef SUPPORTTHREAD
+    std::unique_lock<SpinLock> lockGurand(spinlock_);
+#endif
     statCount_[eventType][type]++;
 }
 const uint32_t& StatAndInfo::GetValue(SupportedTraceEventType eventType, StatType type) const

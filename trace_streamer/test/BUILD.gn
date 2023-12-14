@@ -66,12 +66,14 @@ if (is_test) {
       "unittest/smaps_parser_test.cpp",
       "unittest/span_join_test.cpp",
       "unittest/split_file_data_test.cpp",
+      "unittest/sqllite_prepar_cache_data_test.cpp",
       "unittest/table_test.cpp",
       "unittest/task_pool_filter_test.cpp",
       "unittest/wasm_func_test.cpp",
     ]
 
     deps = [
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/smartperf_host:ts_all_sph_cpp",
       "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/cpu_data:ts_cpu_data_cpp",
       "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/diskio_data:ts_diskio_data_cpp",
       "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ts_ftrace_data_cpp",

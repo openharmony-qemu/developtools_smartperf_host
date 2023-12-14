@@ -27,7 +27,7 @@ PerfCallChainTable::PerfCallChainTable(const TraceDataCache* dataCache) : TableB
     tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -185,7 +185,7 @@ int32_t PerfCallChainTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.SymbolIds()[CurrentRow()]));
             break;
         case Index::NAME:
-            sqlite3_result_text(context_, perfCallChainObj_.Names()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.Names()[CurrentRow()]));
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

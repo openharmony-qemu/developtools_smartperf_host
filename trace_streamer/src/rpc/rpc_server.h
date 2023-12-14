@@ -47,6 +47,7 @@ public:
     int32_t WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen);
     bool SqlMetricsQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
     int32_t WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
+    int32_t WasmSqlQueryToProtoCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
     int32_t UpdateTraceTime(const uint8_t* data, int32_t len);
     int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
@@ -86,6 +87,8 @@ private:
     std::vector<std::string> symbolsPathFiles_;
     std::vector<std::unique_ptr<TraceTimeSnap>> vTraceTimeSnap_;
     bool ffrtConvertEnabled_ = false;
+    int64_t startParseTime_ = 0;
+    int64_t endParseTime_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

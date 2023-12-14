@@ -151,7 +151,7 @@ export class SpRecordTrace extends BaseElement {
     'MEMINFO_KERNEL_RECLAIMABLE',
     'PMEM_ACTIVE_PURG',
     'PMEM_INACTIVE_PURG',
-    'PMEM_PINED_PURG'
+    'PMEM_PINED_PURG',
   ];
   static VMEM_INFO = [
     'VMEMINFO_UNSPECIFIED',
@@ -315,7 +315,7 @@ export class SpRecordTrace extends BaseElement {
     'MEMINFO_KERNEL_RECLAIMABLE',
     'PMEM_ACTIVE_PURG',
     'PMEM_INACTIVE_PURG',
-    'PMEM_PINED_PURG'
+    'PMEM_PINED_PURG',
   ];
 
   schedulingEvents = [

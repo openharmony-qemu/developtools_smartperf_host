@@ -116,6 +116,12 @@ if (use_wasm) {
       "-D HAVE_PTHREAD",
       "-std=c++17",
     ]
+    if (wasm_use_thread) {
+      cflags += [
+        "-mbulk-memory",
+        "-matomics",
+      ]
+    }
     public_configs = [ ":protobuf_config" ]
   }
 } else {
@@ -150,6 +156,12 @@ if (use_wasm) {
       "-D HAVE_PTHREAD",
       "-std=c++17",
     ]
+    if (wasm_use_thread) {
+      cflags += [
+        "-mbulk-memory",
+        "-matomics",
+      ]
+    }
 
     deps = [ ":protobuf_lite_static" ]
     public_configs = [ ":protobuf_config" ]

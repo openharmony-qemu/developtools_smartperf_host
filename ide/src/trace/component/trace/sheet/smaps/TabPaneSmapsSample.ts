@@ -170,7 +170,11 @@ export class TabPaneSmapsSample extends BaseElement {
       return function (aSmapsSample: Smaps, bSmapsSample: Smaps) {
         if (type === 'number') {
           // @ts-ignore
-          return sort === 2 ? parseFloat(bSmapsSample[property]) - parseFloat(aSmapsSample[property]) : parseFloat(aSmapsSample[property]) - parseFloat(bSmapsSample[property]);
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(bSmapsSample[property]) - parseFloat(aSmapsSample[property])
+            : // @ts-ignore
+              parseFloat(aSmapsSample[property]) - parseFloat(bSmapsSample[property]);
         } else {
           // @ts-ignore
           if (bSmapsSample[property] > aSmapsSample[property]) {

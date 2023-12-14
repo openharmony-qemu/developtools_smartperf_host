@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
-import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { RedrawTreeForm, type LitTable } from '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
 import { queryGpuDataByTs } from '../../../../database/SqlLite';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
@@ -36,7 +36,12 @@ export class TabPaneGpuClickSelect extends BaseElement {
     let title = gpu.type === 'total' ? 'Module / Category' : 'Window / Module / Category';
     let titleArr = title.split('/');
     if (td) {
-      td.innerHTML = '';
+      let labelEls = td.querySelectorAll('label');
+      if (labelEls) {
+        for (let el of labelEls) {
+          td.removeChild(el);
+        }
+      }
       for (let i = 0; i < titleArr.length; i++) {
         let label = document.createElement('label');
         label.style.cursor = 'pointer';
@@ -56,6 +61,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
         let items = this.createTreeData(result);
         this.gpuSource = (gpu.type === 'total' ? items[0].children : items) || [];
         this.gpuTbl!.recycleDataSource = this.gpuSource;
+        this.theadClick(this.gpuTbl!, this.gpuSource);
       } else {
         this.gpuSource = [];
         this.gpuTbl!.recycleDataSource = [];
@@ -127,6 +133,32 @@ export class TabPaneGpuClickSelect extends BaseElement {
     this.parentElement!.style.overflow = 'hidden';
     resizeObserver(this.parentElement!, this.gpuTbl!, 18);
   }
+  public theadClick(table: LitTable, data: Array<any>) {
+    let labels = table?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    if (labels) {
+      for (let i = 0; i < labels.length; i++) {
+        let label = labels[i].innerHTML;
+        labels[i].addEventListener('click', (e) => {
+          if ((label.includes('Window') && i === 0) || (label.includes('Module') && i === 0)) {
+            table!.setStatus(data, false);
+            table!.recycleDs = table!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('Module') && i === 1) {
+            for (let item of data) {
+              item.status = true;
+              if (item.children != undefined && item.children.length > 0) {
+                table!.setStatus(item.children, false);
+              }
+            }
+            table!.recycleDs = table!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if ((label.includes('Category') && i === 2) || (label.includes('Category') && i === 1)) {
+            table!.setStatus(data, true);
+            table!.recycleDs = table!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+          }
+          e.stopPropagation();
+        });
+      }
+    }
+  }
   initHtml(): string {
     return `
         <style>
@@ -137,9 +169,9 @@ export class TabPaneGpuClickSelect extends BaseElement {
         }
         </style>
         <lit-table id="tb-gpu" style="height: auto" tree>
-                <lit-table-column width="50%" title="" data-index="name" key="name" align="flex-start">
+                <lit-table-column width="50%" title="" data-index="name" key="name" align="flex-start" order retract>
                 </lit-table-column>
-                <lit-table-column width="1fr" title="Size" data-index="sizeStr" key="sizeStr"  align="flex-start" order >
+                <lit-table-column width="1fr" title="Size" data-index="sizeStr" key="sizeStr"  align="flex-start" order>
                 </lit-table-column>
         </lit-table>
         `;

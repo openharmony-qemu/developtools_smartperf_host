@@ -147,8 +147,8 @@ private:
     std::unordered_map<uint64_t, uint32_t> stackHashValueToCallChainIdMap_ = {};
     std::unordered_map<uint32_t, uint64_t> itidToThreadNameId_ = {};
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
-    std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_;
-    std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_;
+    std::unordered_map<uint64_t, uint64_t>* addrToAllocEventRow_ = nullptr;
+    std::unordered_map<uint64_t, uint64_t>* addrToMmapEventRow_ = nullptr;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value
@@ -157,8 +157,6 @@ private:
     // mmap update anonymous memory tag always use the anonMmapData_ value
     DoubleMap<uint64_t, uint32_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
     std::hash<std::string_view> hashFun_;
-    uint64_t lastMallocEventRaw_ = INVALID_UINT64;
-    uint64_t lastMmapEventRaw_ = INVALID_UINT64;
     bool isOfflineSymbolizationMode_ = false;
     bool isCallStackCompressedMode_ = false;
     bool isStringCompressedMode_ = false;

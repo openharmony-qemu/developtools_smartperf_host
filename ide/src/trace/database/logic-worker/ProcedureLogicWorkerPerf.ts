@@ -54,6 +54,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       switch (data.type) {
         case 'perf-init':
           this.dataCache.perfCountToMs = data.params.fValue;
+          this.dataCache.dataDict = data.params.dataDict;
           this.initPerfFiles();
           break;
         case 'perf-queryPerfFiles':
@@ -245,14 +246,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.createCallChain();
   }
 
-
-  getQueryCallDataTypeCondition(type : number, id: number) : string {
+  getQueryCallDataTypeCondition(type: number, id: number): string {
     if (type === 0) {
       return `cpu_id = ${id}`;
     } else if (type === 1) {
       return `C.process_id = ${id}`;
     } else if (type === 2) {
-      return  `A.thread_id = ${id}`;
+      return `A.thread_id = ${id}`;
     } else {
       return '';
     }
@@ -384,7 +384,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   // 将perf_sample表的数据根据callchain_id分组并赋值startTime,endTime等等
   combinePerfSampleBycallChainId(sampleList: Array<HiPrefSample>) {
     let arr: any = new Array();
-    let newPerfData = (sample: any) : HiPerfSymbol => {
+    let newPerfData = (sample: any): HiPerfSymbol => {
       let perfSample = new HiPerfSymbol();
       perfSample.children = new Array<HiPerfSymbol>();
       perfSample.children[0] = new HiPerfSymbol();
@@ -399,7 +399,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     };
     for (let i = 0; i < sampleList.length; i++) {
       if (arr.length > 0) {
-        let last = arr[arr.length -1];
+        let last = arr[arr.length - 1];
         last.endTime = sampleList[i].timeTip;
         last.totalTime = last.endTime - last.startTime;
         if (last.callchain_id === sampleList[i].callchain_id) {
@@ -411,7 +411,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         arr.push(newPerfData(sampleList[i]));
       }
     }
-    let last = arr[arr.length -1];
+    let last = arr[arr.length - 1];
     if (last && last.endTime === 0) {
       last.endTime = this.perfCallData[3];
       last.totalTime = last.endTime - last.startTime;
@@ -970,9 +970,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       const lastCallChain = callChains[callChains.length - 1];
       const threadName = this.threadData[sample.tid].threadName || 'Thread';
       const processName = this.threadData[sample.pid].threadName || 'Process';
+      const funcName = this.dataCache.dataDict.get(lastCallChain.name);
       if (
         (obj && obj.libId === lastCallChain.fileId && obj.libName === lastCallChain.fileName) ||
-        (obj && obj.symbolId === lastCallChain.symbolId && obj.symbolName === lastCallChain.name) ||
+        (obj && obj.symbolId === lastCallChain.symbolId && obj.symbolName === funcName) ||
         !obj
       ) {
         let analysisSample = new PerfAnalysisSample(
@@ -981,7 +982,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           lastCallChain.fileId,
           lastCallChain.fileName,
           lastCallChain.symbolId,
-          lastCallChain.name
+          this.dataCache.dataDict.get(lastCallChain.name) || ''
         );
         analysisSample.tid = sample.tid;
         analysisSample.pid = sample.pid;
@@ -1020,7 +1021,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           existingNode.calculateSelfTime();
           existingNode.notifyParentUpdateSelfTime();
         } else {
-          let newNode = new PerfBottomUpStruct(`${item.name}(${item.fileName})`);
+          const symbolName = this.dataCache.dataDict.get(item.name) || '';
+          let newNode = new PerfBottomUpStruct(`${symbolName}(${item.fileName})`);
           newNode.totalTime = perfTime * sample.count;
           newNode.eventCount = sample.eventCount;
           newNode.tsArray = sample.ts.split(',').map(Number);
@@ -1170,7 +1172,7 @@ export class PerfCallChain {
   vaddrInFile: number = 0;
   tid: number = 0;
   pid: number = 0;
-  name: string = '';
+  name: string| number = '';
   fileName: string = '';
   threadState: string = '';
   fileId: number = 0;
@@ -1266,28 +1268,6 @@ export class PerfCallChainMerageData extends ChartStruct {
     return this.#totalEvent;
   }
 
-  static merageCallChain(currentNode: PerfCallChainMerageData, callChain: PerfCallChain, isTopDown: boolean): void {
-    if (currentNode.symbolName === '') {
-      currentNode.symbol = `${callChain.name}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
-      currentNode.symbolName = callChain.name;
-      currentNode.pid = callChain.pid;
-      currentNode.tid = callChain.tid;
-      currentNode.libName = callChain.fileName;
-      currentNode.vaddrInFile = callChain.vaddrInFile;
-      currentNode.addr = `${'0x'}${callChain.vaddrInFile.toString(16)}`;
-      currentNode.lib = currentNode.libName;
-      currentNode.canCharge = callChain.canCharge;
-      if (callChain.path) {
-        currentNode.path = callChain.path;
-      }
-    }
-    if (callChain[isTopDown ? 'nextNode' : 'previousNode'] === undefined) {
-      currentNode.selfDur += callChain.count;
-    }
-    currentNode.dur += callChain.count;
-    currentNode.count += callChain.count;
-    currentNode.eventCount += callChain.eventCount;
-  }
   static merageCallChainSample(
     currentNode: PerfCallChainMerageData,
     callChain: PerfCallChain,
@@ -1295,8 +1275,14 @@ export class PerfCallChainMerageData extends ChartStruct {
     isEnd: boolean
   ): void {
     if (currentNode.symbolName === '') {
-      currentNode.symbol = `${callChain.name}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
-      currentNode.symbolName = callChain.name;
+      let symbolName = '';
+      if ( typeof callChain.name === 'number'){
+        symbolName = DataCache.getInstance().dataDict.get(callChain.name) || '';
+      } else {
+        symbolName = callChain.name;
+      }
+      currentNode.symbol = `${symbolName}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
+      currentNode.symbolName = symbolName;
       currentNode.pid = sample.pid;
       currentNode.tid = sample.tid;
       currentNode.libName = callChain.fileName;

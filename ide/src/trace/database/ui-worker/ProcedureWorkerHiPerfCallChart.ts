@@ -14,16 +14,10 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {
-  BaseStruct,
-  type Rect,
-  ns2x,
-  drawString,
-  Render,
-  isFrameContainPoint
-} from './ProcedureWorkerCommon';
+import { BaseStruct, type Rect, ns2x, drawString, Render, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HiPerfChartFrame } from '../../bean/PerfStruct';
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class HiPerfCallChartRender extends Render {
   renderMainThread(req: any, row: TraceRow<HiPerfCallChartStruct>): void {
@@ -39,32 +33,36 @@ export class HiPerfCallChartRender extends Render {
       req.useCache || !TraceRow.range!.refresh,
       row.funcExpand
     );
-    req.context.beginPath();;
+    req.context.beginPath();
     let find = false;
     let offset = 5;
     for (let re of filter) {
       HiPerfCallChartStruct.draw(req.context, re);
       if (row.isHover) {
-        if (re.endTime - re.startTime === 0 ||
+        if (
+          re.endTime - re.startTime === 0 ||
           re.endTime - re.startTime == null ||
-          re.endTime - re.startTime === undefined) {
-          if (re.frame &&
+          re.endTime - re.startTime === undefined
+        ) {
+          if (
+            re.frame &&
             row.hoverX >= re.frame.x - offset &&
             row.hoverX <= re.frame.x + re.frame.width + offset &&
             row.hoverY >= re.frame.y &&
-            row.hoverY <= re.frame.y + re.frame.height) {
+            row.hoverY <= re.frame.y + re.frame.height
+          ) {
             HiPerfCallChartStruct.hoverPerfCallCutStruct = re;
             find = true;
           }
         } else {
           if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
             HiPerfCallChartStruct.hoverPerfCallCutStruct = re;
-            find = true
+            find = true;
           }
         }
       }
       if (!find && row.isHover) {
-        HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined
+        HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
       }
     }
     req.context.closePath();
@@ -77,7 +75,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
   static selectStruct: HiPerfCallChartStruct | undefined;
   static hoverPerfCallCutStruct: HiPerfCallChartStruct | undefined;
   id: number = 0;
-  name: string = '';
+  name: string | number = '';
   startTime: number = 0;
   endTime: number = 0;
   eventCount: number = 0;
@@ -87,15 +85,9 @@ export class HiPerfCallChartStruct extends BaseStruct {
   children!: Array<HiPerfChartFrame>;
   isSelect: boolean = false;
   totalTime: number = 0;
-  callchain_id:number = 0;
+  callchain_id: number = 0;
 
-  static setPerfFrame(
-    hiPerfNode: any,
-    startNS: number,
-    endNS: number,
-    totalNS: number,
-    frame: Rect
-  ): void {
+  static setPerfFrame(hiPerfNode: any, startNS: number, endNS: number, totalNS: number, frame: Rect): void {
     let x1: number, x2: number;
     if ((hiPerfNode.startTime || 0) > startNS && (hiPerfNode.startTime || 0) < endNS) {
       x1 = ns2x(hiPerfNode.startTime || 0, startNS, endNS, totalNS, frame);
@@ -106,13 +98,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
       (hiPerfNode.startTime || 0) + (hiPerfNode.totalTime || 0) > startNS &&
       (hiPerfNode.startTime || 0) + (hiPerfNode.totalTime || 0) < endNS
     ) {
-      x2 = ns2x(
-        (hiPerfNode.startTime || 0) + (hiPerfNode.totalTime || 0),
-        startNS,
-        endNS,
-        totalNS,
-        frame
-      );
+      x2 = ns2x((hiPerfNode.startTime || 0) + (hiPerfNode.totalTime || 0), startNS, endNS, totalNS, frame);
     } else {
       x2 = frame.width;
     }
@@ -128,6 +114,9 @@ export class HiPerfCallChartStruct extends BaseStruct {
 
   static draw(ctx: CanvasRenderingContext2D, data: HiPerfCallChartStruct): void {
     if (data.frame) {
+      if (typeof data.name === 'number'){
+        data.name = SpSystemTrace.DATA_DICT.get(data.name) || '';
+      }
       if (data.endTime - data.startTime === undefined || data.endTime - data.startTime === null) {
       } else {
         ctx.globalAlpha = 1;
@@ -136,8 +125,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
         } else if (data.name === '(idle)') {
           ctx.fillStyle = '#f0f0f0';
         } else {
-          ctx.fillStyle =
-            ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', 0, ColorUtils.FUNC_COLOR.length)];
+          ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.name || '', 0, ColorUtils.FUNC_COLOR.length)];
         }
         let miniHeight = 20;
         if (HiPerfCallChartStruct.hoverPerfCallCutStruct && data === HiPerfCallChartStruct.hoverPerfCallCutStruct) {
@@ -153,12 +141,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
         if (data === HiPerfCallChartStruct.selectStruct) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
-          ctx.strokeRect(
-            data.frame.x + 1,
-            data.frame.y + 1,
-            data.frame.width - 2,
-            miniHeight - padding * 2 - 2
-          );
+          ctx.strokeRect(data.frame.x + 1, data.frame.y + 1, data.frame.width - 2, miniHeight - padding * 2 - 2);
         }
       }
     }
@@ -177,9 +160,11 @@ export function hiperf(
 ): void {
   if (use && filter.length > 0) {
     for (let i = 0, len = filter.length; i < len; i++) {
-      if (filter[i].totalTime > 0
-        && (filter[i].startTime || 0) + (filter[i].totalTime || 0) >= startNS
-        && (filter[i].startTime || 0) <= endNS) {
+      if (
+        filter[i].totalTime > 0 &&
+        (filter[i].startTime || 0) + (filter[i].totalTime || 0) >= startNS &&
+        (filter[i].startTime || 0) <= endNS
+      ) {
         HiPerfCallChartStruct.setPerfFrame(filter[i], startNS, endNS, totalNS, frame);
       } else {
         filter[i].frame = null;
@@ -190,10 +175,13 @@ export function hiperf(
   filter.length = 0;
   if (list) {
     let groups = list
-      .filter((it) => it.totalTime > 0
-        && (it.startTime ?? 0) + (it.totalTime ?? 0) >= startNS
-        && (it.startTime ?? 0) <= endNS
-        && ((!expand && it.depth === 0) || expand))
+      .filter(
+        (it) =>
+          it.totalTime > 0 &&
+          (it.startTime ?? 0) + (it.totalTime ?? 0) >= startNS &&
+          (it.startTime ?? 0) <= endNS &&
+          ((!expand && it.depth === 0) || expand)
+      )
       .map((it) => {
         HiPerfCallChartStruct.setPerfFrame(it, startNS, endNS, totalNS, frame);
         return it;

@@ -64,7 +64,7 @@ struct HilogLine {
 struct HtraceDataSegment {
     std::shared_ptr<std::string> seg;
     uint64_t timeStamp{INVALID_TIME};
-    BuiltinClocks clockId;
+    std::atomic<BuiltinClocks> clockId;
     DataSourceType dataType;
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
     ProtoReader::BytesView protoData;

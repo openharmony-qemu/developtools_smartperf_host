@@ -24,9 +24,15 @@ HtraceCpuDetailParser::HtraceCpuDetailParser(TraceDataCache* dataCache, const Tr
 }
 
 HtraceCpuDetailParser::~HtraceCpuDetailParser() = default;
-void HtraceCpuDetailParser::Parse(HtraceDataSegment& tracePacket, BuiltinClocks clock, bool& haveSplitSeg)
+void HtraceCpuDetailParser::Parse(HtraceDataSegment& tracePacket,
+                                  ProtoReader::TracePluginResult_Reader& tracePluginResult,
+                                  bool& haveSplitSeg)
 {
-    eventParser_->ParseDataItem(tracePacket, clock, haveSplitSeg);
+    eventParser_->ParseDataItem(tracePacket, tracePluginResult, haveSplitSeg);
+}
+void HtraceCpuDetailParser::FilterAllEventsReader()
+{
+    eventParser_->FilterAllEventsReader();
 }
 void HtraceCpuDetailParser::FilterAllEvents()
 {

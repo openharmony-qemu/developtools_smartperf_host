@@ -15,6 +15,8 @@
 import { type JsCpuProfilerChartFrame } from '../bean/JsStruct';
 import { type SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot';
 import { type RangeSelectStruct, TraceRow } from './trace/base/TraceRow';
+import { warn } from '../../log/Log';
+import { KeyPathStruct } from '../bean/KeyPathStruct';
 
 export function setSelectState(
   data: JsCpuProfilerChartFrame,
@@ -54,13 +56,39 @@ export function setSelectState(
 export function intersectData(row: TraceRow<any>): any[] {
   let isIntersect = (snapshotStruct: SnapshotStruct, rangeSelectStruct: RangeSelectStruct): boolean =>
     Math.max(snapshotStruct.startNs! + snapshotStruct.dur!, rangeSelectStruct!.endNS || 0) -
-    Math.min(snapshotStruct.startNs!, rangeSelectStruct!.startNS || 0) <
+      Math.min(snapshotStruct.startNs!, rangeSelectStruct!.startNS || 0) <
     snapshotStruct.dur! + (rangeSelectStruct!.endNS || 0) - (rangeSelectStruct!.startNS || 0);
   let intersectData = row.dataList.filter((struct: SnapshotStruct) => {
     return isIntersect(struct, TraceRow.rangeSelectObject!);
   });
   return intersectData;
 }
-export function isExistPidInArray(arr: Array<{pid: number,ipid:number}>,pid:number): boolean{
+export function isExistPidInArray(arr: Array<{ pid: number; ipid: number }>, pid: number): boolean {
   return arr.some((item) => item.pid === pid);
+}
+
+/**
+ * 校验导入的json, 导出数据结构, 不匹配的不导入
+ * @param content json 内容
+ * @returns Array<KeyPathStruct>
+ */
+export function parseKeyPathJson(content: string): Array<KeyPathStruct> {
+  const threads = JSON.parse(content);
+  const parseResult = [];
+  for (let threadKey in threads) {
+    const tsArray = threads[threadKey];
+    threadKey = threadKey.trim();
+    const regex = /\[(\d+)\]/;
+    const matches = threadKey.match(regex);
+    const tid = matches ? parseInt(matches[1]) : -1;
+    const spaceIndex = threadKey.indexOf(' ');
+    const threadName = spaceIndex !== -1 ? threadKey.substring(0, spaceIndex) : '';
+    if (tid && threadName && tsArray.length > 0) {
+      const keyPath = new KeyPathStruct(tid, threadName, tsArray);
+      parseResult.push(keyPath);
+    } else {
+      warn('parse key path fail ', threadKey);
+    }
+  }
+  return parseResult;
 }

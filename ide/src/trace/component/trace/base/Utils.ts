@@ -487,7 +487,7 @@ export class Utils {
     });
   }
 
-  setCurrentSelectIPid(ipid: number): void{
+  setCurrentSelectIPid(ipid: number): void {
     procedurePool.submitWithName('logic1', 'native-memory-set-current_ipid', ipid, undefined, () => {});
   }
 }

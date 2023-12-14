@@ -231,8 +231,8 @@ export class LitSelect extends BaseElement {
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
             <input placeholder="${this.placeholder}" autocomplete="off" ${
-      this.showSearch || this.canInsert ? '' : 'readonly'
-    } tabindex="0"></div>
+              this.showSearch || this.canInsert ? '' : 'readonly'
+            } tabindex="0"></div>
             <lit-loading class="loading" size="12"></lit-loading>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
             <lit-icon class="clear" name='close-circle-fill'></lit-icon>

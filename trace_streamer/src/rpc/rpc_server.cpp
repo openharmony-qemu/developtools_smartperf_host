@@ -440,6 +440,11 @@ bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack re
     if (resultCallBack) {
         resultCallBack("ok\r\n", SEND_FINISH);
     }
+    endParseTime_ =
+        (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
+            .count();
+    TS_LOGW("ExportDuration:\t%u ms", static_cast<unsigned int>(endParseTime_ - startParseTime_));
+    TS_LOGW("ExportSpeed:\t%.2f MB/s", (lenParseData_ / (endParseTime_ - startParseTime_)) / 1E3);
     lenParseData_ = 0;
     g_loadSize = 0;
     return true;
@@ -528,6 +533,14 @@ int32_t RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, Res
     TS_LOGI("WASM RPC SqlQuery sql(%zu:%s)", len, sql.c_str());
 
     int32_t ret = ts_->SearchDatabase(sql, callback);
+    return ret;
+}
+int32_t RpcServer::WasmSqlQueryToProtoCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
+{
+    ts_->SetCancel(false);
+    std::string strData(reinterpret_cast<const char*>(data), len);
+
+    int32_t ret = ts_->SearchDatabaseToProto(strData, callback);
     return ret;
 }
 
@@ -633,6 +646,9 @@ bool RpcServer::ParserConfig(std::string parserConfigJson)
     ts_->UpdateTaskPoolTraceStatus(parserConfig.taskConfigValue);
     ts_->UpdateBinderRunnableTraceStatus(parserConfig.binderConfigValue);
     ffrtConvertEnabled_ = parserConfig.ffrtConvertConfigValue;
+    startParseTime_ =
+        (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
+            .count();
     return true;
 }
 } // namespace TraceStreamer

@@ -19,6 +19,12 @@
 
 namespace SysTuning {
 namespace ProtoReader {
+std::map<ProtoWireType, ProtoReaderBase::ParseDataAreaValueByType> ProtoReaderBase::DATA_AREA_TYPE_TO_PARSE_FUNC_MAP = {
+    {ProtoWireType::kVarInt, ProtoReaderBase::ParseVarIntValue},
+    {ProtoWireType::kLengthDelimited, ProtoReaderBase::ParseLengthDelimitedValue},
+    {ProtoWireType::kFixed32, ProtoReaderBase::ParseFixed32Value},
+    {ProtoWireType::kFixed64, ProtoReaderBase::ParseFixed64Value},
+};
 ProtoReaderBase::ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, const uint8_t* buffer, size_t length)
     : startAddr_(buffer),
       endAddr_(startAddr_ + length),
@@ -30,16 +36,6 @@ ProtoReaderBase::ProtoReaderBase(DataArea* storage, uint32_t dataAreasCount, con
 {
     auto dataAreasSize = sizeof(DataArea) * dataAreasCount_;
     (void)memset_s(dataAreas_, dataAreasSize, 0, dataAreasSize);
-    dataAreaTypeToParseFuncMap_ = {
-        {ProtoWireType::kVarInt, std::bind(&ProtoReaderBase::ParseVarIntValue, this, std::placeholders::_1,
-                                           std::placeholders::_2, std::placeholders::_3)},
-        {ProtoWireType::kLengthDelimited,
-         std::bind(&ProtoReaderBase::ParseLengthDelimitedValue, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3)},
-        {ProtoWireType::kFixed64, std::bind(&ProtoReaderBase::ParseFixed64Value, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3)},
-        {ProtoWireType::kFixed32, std::bind(&ProtoReaderBase::ParseFixed32Value, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3)}};
 }
 
 // return next parse addr and dataAreaTag. if failed returns nullptr
@@ -159,8 +155,8 @@ ParseDataAreaResult ProtoReaderBase::ParseOneDataArea(const uint8_t* const start
     auto dataAreaType = static_cast<uint8_t>(dataAreaTag) & DATA_AREA_TYPE_VALUE;
     result.dataArea.SetDataAreaType(dataAreaType);
 
-    auto itor = dataAreaTypeToParseFuncMap_.find(static_cast<ProtoWireType>(dataAreaType));
-    if (itor == dataAreaTypeToParseFuncMap_.end()) {
+    auto itor = DATA_AREA_TYPE_TO_PARSE_FUNC_MAP.find(static_cast<ProtoWireType>(dataAreaType));
+    if (itor == DATA_AREA_TYPE_TO_PARSE_FUNC_MAP.end()) {
         return result;
     }
     itor->second(result, cursor, endAddr_);

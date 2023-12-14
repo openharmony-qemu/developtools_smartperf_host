@@ -33,13 +33,11 @@ template("wasm_lib") {
     "-s",
     "ALLOW_MEMORY_GROWTH=1",
     "-s",
-    "INITIAL_MEMORY=33554432",
+    "INITIAL_MEMORY=2048MB",
     "-s",
     "ALLOW_TABLE_GROWTH=1",
     "-s",
     "MEMFS_APPEND_TO_TYPED_ARRAYS=1",
-    "-s",
-    "WASM_ASYNC_COMPILATION=0",
     "-s",
     "EXPORTED_RUNTIME_METHODS=" + _exports,
     "-s",
@@ -50,6 +48,22 @@ template("wasm_lib") {
     "USE_ZLIB=1",
     "-lworkerfs.js",  # For FS.filesystems.WORKERFS
   ]
+  if (wasm_use_thread) {
+    _target_ldflags += [
+      "-s",
+      "USE_PTHREADS=1",
+      "-s",
+      "PTHREAD_POOL_SIZE=6",
+      "-s",
+      "-pthread",
+    ]
+  } else {
+    _target_ldflags += [
+      "-s",
+      "WASM_ASYNC_COMPILATION=0",
+    ]
+  }
+
   _lib_name = invoker.name
   if (is_debug) {
     _target_ldflags += [

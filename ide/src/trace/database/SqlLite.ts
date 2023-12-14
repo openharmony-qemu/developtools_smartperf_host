@@ -39,15 +39,7 @@ import {
   SystemNetworkSummary,
 } from '../bean/AbilityMonitor';
 
-import {
-  PerfCall,
-  PerfCallChain,
-  PerfCmdLine,
-  PerfFile,
-  PerfSample,
-  PerfStack,
-  PerfThread,
-} from '../bean/PerfProfile';
+import { PerfCall, PerfCallChain, PerfCmdLine, PerfFile, PerfSample, PerfStack, PerfThread } from '../bean/PerfProfile';
 import { SearchFuncBean } from '../bean/SearchFuncBean';
 import { CounterSummary, SdkSliceSummary } from '../bean/SdkSummary';
 import { Smaps } from '../bean/SmapsStruct';
@@ -90,11 +82,12 @@ import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
 import { type MemoryConfig } from '../bean/MemoryConfig';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog';
 import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
+import { KeyPathStruct } from '../bean/KeyPathStruct';
 
 class DataWorkerThread {
   taskMap: any = {};
-  worker?:Worker;
-  constructor(worker:Worker) {
+  worker?: Worker;
+  constructor(worker: Worker) {
     this.worker = worker;
   }
   uuid(): string {
@@ -123,9 +116,9 @@ class DbThread {
   id: number = -1;
   taskMap: any = {};
   cacheArray: Array<any> = [];
-  worker?:Worker;
-  constructor(worker:Worker) {
-    this.worker=worker;
+  worker?: Worker;
+  constructor(worker: Worker) {
+    this.worker = worker;
   }
 
   uuid(): string {
@@ -164,9 +157,9 @@ class DbThread {
         handler(res.cutStatus, res.msg);
       }
     };
-    caches.match(DbPool.fileCacheKey).then(resData => {
+    caches.match(DbPool.fileCacheKey).then((resData) => {
       if (resData) {
-        resData.arrayBuffer().then(buffer => {
+        resData.arrayBuffer().then((buffer) => {
           this.worker!.postMessage(
             {
               id: id,
@@ -201,7 +194,7 @@ class DbThread {
             msg: res.msg,
             sdkConfigMap: res.configSqlMap,
             buffer: res.buffer,
-            fileKey: res.fileKey
+            fileKey: res.fileKey,
           });
         } else {
           resolve({ status: res.init, msg: res.msg });
@@ -262,11 +255,11 @@ export class DbPool {
         thread = threadBuild();
       } else {
         if (type === 'wasm') {
-          thread = new DbThread(new Worker(new URL('./TraceWorker',import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./TraceWorker', import.meta.url)));
         } else if (type === 'server') {
-          thread = new DbThread(new Worker(new URL('./SqlLiteWorker',import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)));
         } else if (type === 'sqlite') {
-          thread = new DbThread(new Worker(new URL('./SqlLiteWorker',import.meta.url)));
+          thread = new DbThread(new Worker(new URL('./SqlLiteWorker', import.meta.url)));
         }
       }
 
@@ -368,18 +361,22 @@ export class DbPool {
     return { status: true, msg: 'ok', sdkConfigMap: configMap };
   };
 
-  saveTraceFileBuffer(key: string,buffer: ArrayBuffer): void {
-    caches.open(key).then(cache => {
+  saveTraceFileBuffer(key: string, buffer: ArrayBuffer): void {
+    caches.open(key).then((cache) => {
       let headers = new Headers();
       headers.append('Content-Length', `${buffer.byteLength}`);
       headers.append('Content-Type', 'application/octet-stream');
-      cache.put(key, new Response(buffer,{
-        status: 200,
-        headers: headers
-      })).then();
+      cache
+        .put(
+          key,
+          new Response(buffer, {
+            status: 200,
+            headers: headers,
+          })
+        )
+        .then();
     });
   }
-
 
   close = async () => {
     clearInterval(this.cutDownTimer);
@@ -424,15 +421,18 @@ export class DbPool {
   progressTimer(num: number, progress: Function) {
     let currentNum = num;
     clearInterval(this.cutDownTimer);
-    this.cutDownTimer = setInterval(() => {
-      currentNum += Math.floor(Math.random() * 3);
-      if (currentNum >= 50) {
-        progress('database opened', 40);
-        clearInterval(this.cutDownTimer);
-      } else {
-        progress('database opened', currentNum);
-      }
-    }, Math.floor(Math.random() * 2500 + 1000));
+    this.cutDownTimer = setInterval(
+      () => {
+        currentNum += Math.floor(Math.random() * 3);
+        if (currentNum >= 50) {
+          progress('database opened', 40);
+          clearInterval(this.cutDownTimer);
+        } else {
+          progress('database opened', currentNum);
+        }
+      },
+      Math.floor(Math.random() * 2500 + 1000)
+    );
   }
 }
 
@@ -763,8 +763,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-  export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
-    let processSql = `select
+export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
+  let processSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -780,8 +780,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
       where
         filter_id in (${processFilterIds.join(',')})
       and
-        startTime <= ${startTime}` ;
-    let virtualSql = `select
+        startTime <= ${startTime}`;
+  let virtualSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -798,18 +798,18 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
         filter_id in (${virtualFilterIds.join(',')})
       and
         startTime <= ${startTime}`;
-    let sql = '';
-    if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
-      sql = `${processSql} union ${virtualSql}`;
+  let sql = '';
+  if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
+    sql = `${processSql} union ${virtualSql}`;
+  } else {
+    if (processFilterIds.length > 0) {
+      sql = processSql;
     } else {
-      if (processFilterIds.length > 0) {
-        sql = processSql;
-      } else {
-        sql = virtualSql;
-      }
+      sql = virtualSql;
     }
-    return query<Counter>('getTabCounters', sql, {});
   }
+  return query<Counter>('getTabCounters', sql, {});
+};
 
 export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
   query<Counter>(
@@ -1390,8 +1390,7 @@ export const queryTaskPoolProcessIds = (): Promise<Array<{ pid: number }>> =>
         itid IN ( SELECT DISTINCT ( callid ) FROM callstack WHERE name LIKE 'H:Task%' ) 
       AND name = 'TaskWorkThread' 
       )`
-      ); 
-
+  );
 
 export const queryProcessContentCount = (): Promise<Array<any>> =>
   query(`queryProcessContentCount`, `select pid,switch_count,thread_count,slice_count,mem_count from process;`);
@@ -1484,7 +1483,7 @@ order by start_name;`,
     { $pid: pid }
   );
 
-  export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
+export const queryProcessAllAppStartup = (pids: Array<number>): Promise<Array<AppStartupStruct>> =>
   query(
     'queryProcessStartup',
     `
@@ -1505,7 +1504,7 @@ order by start_name;`,
     { $pid: pids }
   );
 
-  export const querySingleAppStartupsName = (pid:number): Promise<Array<any>> =>
+export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
   query(
     'queryAllAppStartupsName',
     `select name from process
@@ -5829,15 +5828,15 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         ORDER BY S.ts`
   );
 
-  export const querySearchRowFuncData = (
-    funcName: string,
-    tIds: number,
-    leftNS: number,
-    rightNS: number
-  ): Promise<Array<SearchFuncBean>> =>
-    query(
-      'querySearchRowFuncData',
-      `
+export const querySearchRowFuncData = (
+  funcName: string,
+  tIds: number,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
+  query(
+    'querySearchRowFuncData',
+    `
           select 
             c.name as funName,
             c.ts - r.start_ts as startTime,
@@ -5863,5 +5862,28 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
           and
             not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
       `,
-      { $search: funcName }
-    );
+    { $search: funcName }
+  );
+
+export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Array<CpuStruct>> => {
+  const sqlArray: Array<string> = [];
+  sqlArray.push(` 1 = 0`);
+  for (const thread of threads) {
+    sqlArray.push(` or  (tid = ${thread.tid} and ts in (${thread.tsArray}))`);
+  }
+  let sql = sqlArray.join(' ');
+  return query(
+    'queryCpuKeyPathData',
+    `SELECT B.pid as processId,
+          B.cpu,
+          B.tid,
+          B.itid  as id,
+          B.dur  AS dur,
+          B.ts - T.start_ts  AS startTime,
+          B.arg_setid   as argSetID,
+          1 as isKeyPath
+      from thread_state AS B
+      left join trace_range as T
+      where ${sql}`
+  );
+};

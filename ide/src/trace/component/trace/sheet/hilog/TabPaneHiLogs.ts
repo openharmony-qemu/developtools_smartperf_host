@@ -65,13 +65,13 @@ export class TabPaneHiLogs extends BaseElement {
     this.tableTitleTimeHandle = this.delayedRefresh(this.refreshLogsTitle);
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
     this.hiLogsTbl = this.shadowRoot!.querySelector<LitPageTable>('#tb-hilogs');
-    this.hiLogsTbl!.getItemTextColor = (data)=>{
+    this.hiLogsTbl!.getItemTextColor = (data) => {
       return ColorUtils.getHilogColor(data.level);
-    }
+    };
     this.hiLogsTbl!.itemTextHandleMap.set('startTs', (startTs) => {
       return ns2Timestamp(startTs);
     });
-    this.hiLogsTbl!.addEventListener('row-hover', (e): void=>{
+    this.hiLogsTbl!.addEventListener('row-hover', (e): void => {
       // @ts-ignore
       let data = e.detail.data;
       if (data) {
@@ -82,12 +82,22 @@ export class TabPaneHiLogs extends BaseElement {
           TraceRow.range!.totalNS,
           new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
         );
-        this.traceSheetEl!.systemLogFlag = new Flag(Math.floor(pointX), 0, 0, 0, data.startTs!, '#999999','', true, '');
+        this.traceSheetEl!.systemLogFlag = new Flag(
+          Math.floor(pointX),
+          0,
+          0,
+          0,
+          data.startTs!,
+          '#999999',
+          '',
+          true,
+          ''
+        );
         this.spSystemTrace?.refreshCanvas(false);
       }
     });
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
-    tbl!.addEventListener('scroll', ()=>{
+    tbl!.addEventListener('scroll', () => {
       this.tableTitleTimeHandle?.();
     });
     this.tagFilterDiv!.onclick = (ev): void => {
@@ -116,7 +126,8 @@ export class TabPaneHiLogs extends BaseElement {
     new ResizeObserver((): void => {
       this.parentElement!.style.overflow = 'hidden';
       // @ts-ignore
-      this.hiLogsTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 45 + 'px';
+      this.hiLogsTbl?.shadowRoot?.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 20 - 45 + 'px';
       this.tableTimeHandle?.();
       this.tableTitleTimeHandle?.();
     }).observe(this.parentElement!);
@@ -166,18 +177,18 @@ export class TabPaneHiLogs extends BaseElement {
         `;
   }
 
-  refreshLogsTitle(): void{
+  refreshLogsTitle(): void {
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     let firstRowHeight = 27;
     let tableHeadHeight = 26;
     if (tbl) {
-      tbl.querySelectorAll<HTMLElement>('.tr').forEach((trEl: HTMLElement, index: number): void=>{
+      tbl.querySelectorAll<HTMLElement>('.tr').forEach((trEl: HTMLElement, index: number): void => {
         if (index === 0) {
-          let frontTotalRowSize = Math.round(tbl!.scrollTop / trEl.clientHeight * 100) / 100;
+          let frontTotalRowSize = Math.round((tbl!.scrollTop / trEl.clientHeight) * 100) / 100;
           if (frontTotalRowSize.toString().indexOf('.') >= 0) {
             let rowCount = frontTotalRowSize.toString().split('.');
-            height += trEl.clientHeight - (Number(rowCount[1]) / 100 * trEl.clientHeight);
+            height += trEl.clientHeight - (Number(rowCount[1]) / 100) * trEl.clientHeight;
           }
         }
         let allTdEl = trEl.querySelectorAll<HTMLElement>('.td');
@@ -187,7 +198,7 @@ export class TabPaneHiLogs extends BaseElement {
         trEl.addEventListener('mouseout', (): void => {
           this.traceSheetEl!.systemLogFlag = undefined;
           this.spSystemTrace?.refreshCanvas(false);
-        })
+        });
       });
     }
     if (this.hiLogsTbl && this.hiLogsTbl.currentRecycleList.length > 0) {
