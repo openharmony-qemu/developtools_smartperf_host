@@ -108,6 +108,7 @@ public:
     {
         return ebpfDataParser_;
     }
+    void WaitForParserSplitedHtraceEnd();
 
 private:
     bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);

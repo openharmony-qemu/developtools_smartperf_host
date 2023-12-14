@@ -80,6 +80,14 @@ public:
     {
         return traceDataCache_.get();
     }
+    auto GetStreamFilter()
+    {
+        return streamFilters_.get();
+    }
+    int32_t CreatEmptyBatchDB(const std::string dbPath);
+    int32_t BatchExportDatabase(const std::string& outputName);
+    bool BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
+    void RevertTableName(const std::string& outputName);
     uint64_t minTs_ = INVALID_UINT64;
     uint64_t maxTs_ = INVALID_UINT64;
 

@@ -102,7 +102,97 @@ void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
     remove(wasmDBName_.c_str());
     wasmDBName_.clear();
 }
-
+int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
+{
+    {
+        int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
+        if (!fd) {
+            fprintf(stdout, "Failed to create file: %s", outputName.c_str());
+            return 1;
+        }
+        auto ret = ftruncate(fd, 0);
+        UNUSED(ret);
+        close(fd);
+    }
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
+        if (*itor == "meta" && !exportMetaTable_) {
+            continue;
+        } else {
+            std::string exportSql("CREATE TABLE systuning_export." + (*itor) + "_ AS SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
+        }
+    }
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+    return 0;
+}
+void TraceDataDB::CloseBatchDB()
+{
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+}
+int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
+{
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
+        if (*itor == "meta" && !exportMetaTable_) {
+            continue;
+        } else {
+            if (needClearTable_.count(*itor)) {
+                std::string clearSql("DELETE FROM systuning_export." + (*itor) + "_");
+                ExecuteSql(clearSql);
+            }
+            std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
+        }
+    }
+    std::string createArgsView =
+        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+        "A.datatype==1 then V.data else A.value end) as strValue from args_ as A left join data_type_ as D on "
+        "(D.typeId "
+        "= A.datatype) left join data_dict_ as V on V.id = A.value left join data_dict_ as V2 on V2.id = A.key";
+    ExecuteSql(createArgsView);
+    std::string updateProcessName =
+        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not null and "
+        "is_main_thread = 1)";
+    ExecuteSql(updateProcessName);
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+    return 0;
+}
+void TraceDataDB::RevertTableName(const std::string& outputName)
+{
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
+        if (*itor == "meta" && !exportMetaTable_) {
+            continue;
+        } else {
+            std::string revertTableNameSql("ALTER TABLE systuning_export." + (*itor) + "_ RENAME TO  " + (*itor));
+            ExecuteSql(revertTableNameSql);
+        }
+    }
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+}
 int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack)
 {
     {

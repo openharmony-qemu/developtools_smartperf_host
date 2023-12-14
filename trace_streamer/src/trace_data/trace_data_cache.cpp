@@ -601,5 +601,125 @@ void TraceDataCache::ExportEbpfCallChaninText(uint32_t callChainId, std::string&
     }
     bufferLine.append("\r\n");
 }
+void TraceDataCache::ClearAllPrevCacheData()
+{
+    // ftrace plugin
+    rawData_.ClearPrevData();
+    threadStateData_.ClearPrevData();
+    instantsData_.ClearPrevData();
+    filterData_.ClearPrevData();
+    processMeasureFilterData_.ClearPrevData();
+    clockEventFilterData_.ClearPrevData();
+    clkEventFilterData_.ClearPrevData();
+    processFilterData_.ClearPrevData();
+    threadMeasureFilterData_.ClearPrevData();
+    threadFilterData_.ClearPrevData();
+    schedSliceData_.ClearPrevData();
+    callstackData_.ClearPrevData();
+    irqData_.ClearPrevData();
+    measureData_.ClearPrevData();
+    sysMemMeasureData_.ClearPrevData();
+    processMeasureData_.ClearPrevData();
+    cpuMeasureData_.ClearPrevData();
+    taskPoolInfo_.ClearPrevData();
+    appStartupData_.ClearPrevData();
+    animation_.ClearPrevData();
+    dynamicFrame_.ClearPrevData();
+    rsImageDumpInfo_.ClearPrevData();
+    // hilog plugin
+    hilogData_.ClearPrevData();
+    // native_hook plugin
+    nativeHookData_.ClearPrevData();
+    nativeHookFrameData_.ClearPrevData();
+    nativeHookStatisticData_.ClearPrevData();
+    // hidump plugin
+    hidumpData_.ClearPrevData();
+
+    // hisysevent plugin
+    sysEventNameIds_.ClearPrevData();
+    sysEventMeasureData_.ClearPrevData();
+    deviceStateData_.ClearPrevData();
+    traceConfigData_.ClearPrevData();
+    hiSysEventAllEventData_.ClearPrevData();
+
+    sysCallData_.ClearPrevData();
+    sysEvent_.ClearPrevData();
+    networkData_.ClearPrevData();
+    networkDetailData_.ClearPrevData();
+    cpuUsageData_.ClearPrevData();
+    diskIOData_.ClearPrevData();
+    liveProcessDetailData_.ClearPrevData();
+    smapsData_.ClearPrevData();
+    frameSliceData_.ClearPrevData();
+    frameMapsData_.ClearPrevData();
+    gpuSliceData_.ClearPrevData();
+    staticInitalizationData_.ClearPrevData();
+    ashMemData_.ClearPrevData();
+    dmaMemData_.ClearPrevData();
+    gpuProcessMemData_.ClearPrevData();
+    gpuWindowMemData_.ClearPrevData();
+    cpuDumpInfo_.ClearPrevData();
+    profileMemInfo_.ClearPrevData();
+}
+void TraceDataCache::UpdateAllPrevSize()
+{
+    // ftrace plugin
+    rawData_.UpdatePrevSize(rawData_.Size());
+    threadStateData_.UpdatePrevSize(threadStateData_.Size());
+    instantsData_.UpdatePrevSize(instantsData_.Size());
+    filterData_.UpdatePrevSize(filterData_.Size());
+    processMeasureFilterData_.UpdatePrevSize(processMeasureFilterData_.Size());
+    clockEventFilterData_.UpdatePrevSize(clockEventFilterData_.Size());
+    clkEventFilterData_.UpdatePrevSize(clkEventFilterData_.Size());
+    processFilterData_.UpdatePrevSize(processFilterData_.Size());
+    threadMeasureFilterData_.UpdatePrevSize(threadMeasureFilterData_.Size());
+    threadFilterData_.UpdatePrevSize(threadFilterData_.Size());
+    schedSliceData_.UpdatePrevSize(schedSliceData_.Size());
+    callstackData_.UpdatePrevSize(callstackData_.Size());
+    irqData_.UpdatePrevSize(irqData_.Size());
+    measureData_.UpdatePrevSize(measureData_.Size());
+    sysMemMeasureData_.UpdatePrevSize(sysMemMeasureData_.Size());
+    processMeasureData_.UpdatePrevSize(processMeasureData_.Size());
+    cpuMeasureData_.UpdatePrevSize(cpuMeasureData_.Size());
+    rsImageDumpInfo_.UpdatePrevSize(rsImageDumpInfo_.Size());
+    animation_.UpdatePrevSize(animation_.Size());
+    dynamicFrame_.UpdatePrevSize(dynamicFrame_.Size());
+    taskPoolInfo_.UpdatePrevSize(taskPoolInfo_.Size());
+    appStartupData_.UpdatePrevSize(appStartupData_.Size());
+    // hilog plugin
+    hilogData_.UpdatePrevSize(hilogData_.Size());
+    // native_hook plugin
+    nativeHookData_.UpdatePrevSize(nativeHookData_.Size());
+    nativeHookFrameData_.UpdatePrevSize(nativeHookFrameData_.Size());
+    nativeHookStatisticData_.UpdatePrevSize(nativeHookStatisticData_.Size());
+    // hidump plugin
+    hidumpData_.UpdatePrevSize(hidumpData_.Size());
+
+    // hisysevent plugin
+    sysEventNameIds_.UpdatePrevSize(sysEventNameIds_.Size());
+    sysEventMeasureData_.UpdatePrevSize(sysEventMeasureData_.Size());
+    deviceStateData_.UpdatePrevSize(deviceStateData_.Size());
+    traceConfigData_.UpdatePrevSize(traceConfigData_.Size());
+    hiSysEventAllEventData_.UpdatePrevSize(hiSysEventAllEventData_.Size());
+
+    sysCallData_.UpdatePrevSize(sysCallData_.Size());
+    sysEvent_.UpdatePrevSize(sysEvent_.Size());
+    networkData_.UpdatePrevSize(networkData_.Size());
+    networkDetailData_.UpdatePrevSize(networkDetailData_.Size());
+    cpuUsageData_.UpdatePrevSize(cpuUsageData_.Size());
+    diskIOData_.UpdatePrevSize(diskIOData_.Size());
+    liveProcessDetailData_.UpdatePrevSize(liveProcessDetailData_.Size());
+    smapsData_.UpdatePrevSize(smapsData_.Size());
+    frameSliceData_.UpdatePrevSize(frameSliceData_.Size());
+    frameMapsData_.UpdatePrevSize(frameMapsData_.Size());
+    gpuSliceData_.UpdatePrevSize(gpuSliceData_.Size());
+    staticInitalizationData_.UpdatePrevSize(staticInitalizationData_.Size());
+    ashMemData_.UpdatePrevSize(ashMemData_.Size());
+    dmaMemData_.UpdatePrevSize(dmaMemData_.Size());
+    gpuProcessMemData_.UpdatePrevSize(gpuProcessMemData_.Size());
+    gpuWindowMemData_.UpdatePrevSize(gpuWindowMemData_.Size());
+    cpuDumpInfo_.UpdatePrevSize(cpuDumpInfo_.Size());
+    profileMemInfo_.UpdatePrevSize(profileMemInfo_.Size());
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

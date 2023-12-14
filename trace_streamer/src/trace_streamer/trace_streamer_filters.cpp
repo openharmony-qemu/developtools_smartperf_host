@@ -51,6 +51,7 @@ void TraceStreamerFilters::FilterClear()
     clockEnableFilter_->Clear();
     clockDisableFilter_->Clear();
     clkRateFilter_->Clear();
+    clkEnableFilter_->Clear();
     clkDisableFilter_->Clear();
     binderFilter_->Clear();
 }

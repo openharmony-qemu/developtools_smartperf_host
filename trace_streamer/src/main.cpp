@@ -14,6 +14,7 @@
  */
 #include <chrono>
 #include <cinttypes>
+#include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
@@ -76,6 +77,7 @@ void ShowHelpInfo(const char* argv)
         "Options:\n"
         " -e    transfer a trace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
+        " -D    Specify the directory path with multiple long trace files"
         " -d    dump perf/hook/ebpf readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
         " -h    start HTTP server.\n"
         " -l <level>, --level=<level>\n"
@@ -218,9 +220,26 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
     fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
     return 0;
 }
-
+bool LongTraceExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
+{
+    if (!sqliteFilePath.empty()) {
+        std::string fileNameTmp = sqliteFilePath;
+#ifdef _WIN32
+        if (!base::GetCoding(reinterpret_cast<const uint8_t*>(fileNameTmp.c_str()), fileNameTmp.length())) {
+            fileNameTmp = base::GbkToUtf8(fileNameTmp.c_str());
+        }
+#endif
+        if (ts.BatchExportDatabase(sqliteFilePath)) {
+            fprintf(stdout, "ExportDatabase failed\n");
+            ExportStatusToLog(sqliteFilePath, TRACE_PARSER_ABNORMAL);
+            return false;
+        }
+    }
+    return true;
+}
 enum DumpFileType { UNKONW_TYPE = 0, PERF_TYPE, NATIVE_HOOK_TYPE, EBPF_TYPE };
 struct TraceExportOption {
+    std::string longTraceDir;
     std::string traceFilePath;
     std::string sqliteFilePath;
     DumpFileType dumpFileType = DumpFileType::UNKONW_TYPE;
@@ -251,7 +270,7 @@ bool SetDumpFileType(char** argv, const std::string& dumpFileType, TraceExportOp
 }
 int CheckFinal(char** argv, TraceExportOption& traceExportOption, HttpOption& httpOption)
 {
-    if ((traceExportOption.traceFilePath.empty() ||
+    if (((traceExportOption.traceFilePath.empty() && traceExportOption.longTraceDir.empty()) ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
         !httpOption.enable && !traceExportOption.separateFile && traceExportOption.metricsIndex.empty() &&
         traceExportOption.sqlOperatorFilePath.empty() && traceExportOption.outputFilePath.empty() &&
@@ -280,6 +299,10 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
             continue;
         } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
             traceExportOption.interactiveState = true;
+            continue;
+        } else if (!strcmp(argv[i], "-D") || !strcmp(argv[i], "--directory")) {
+            TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
+            traceExportOption.longTraceDir = std::string(argv[i]);
             continue;
         } else if (!strcmp(argv[i], "-d") || !strcmp(argv[i], "--dump")) {
             TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
@@ -330,6 +353,116 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
     }
     return CheckFinal(argv, traceExportOption, httpOption);
 }
+bool GetLongTraceFilePaths(const TraceExportOption& traceExportOption, std::map<int, std::string>& seqToFilePathMap)
+{
+    std::regex traceInvalidStr("\\\\");
+    auto strEscape = std::regex_replace(traceExportOption.longTraceDir, traceInvalidStr, "\\\\\\\\");
+    DIR* dir = opendir(strEscape.c_str());
+    if (dir == nullptr) {
+        TS_LOGE("long trace dir is not exist or not dir");
+        return false;
+    }
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::regex pattern("^hiprofiler_data_(\\d{8})_(\\d{6})_(\\d+)\\.htrace$");
+        std::smatch matches;
+        std::string name = entry->d_name;
+        if (std::regex_match(name, matches, pattern)) {
+            std::string seqStr = matches[3].str();
+            int seq = std::stoi(seqStr);
+            std::string path = std::string(strEscape) + "/" + name;
+            seqToFilePathMap.insert({seq, path});
+        }
+    }
+    closedir(dir);
+    if (!seqToFilePathMap.size()) {
+        TS_LOGE("%s has no matched file!", strEscape.c_str());
+        return false;
+    }
+    auto seq = seqToFilePathMap.begin()->first;
+    for (auto itor = seqToFilePathMap.begin(); itor != seqToFilePathMap.end(); itor++) {
+        if (itor->first != seq++) {
+            seqToFilePathMap.erase(itor, seqToFilePathMap.end());
+            break;
+        }
+    }
+    return true;
+}
+
+bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector& ta,
+                            int fd,
+                            const std::string& traceFilePath)
+{
+    printf("Start Parse %s ...\n", traceFilePath.c_str());
+    g_loadSize = 0;
+    while (true) {
+        std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
+        auto rsize = Read(fd, buf.get(), G_CHUNK_SIZE);
+        if (rsize == 0) {
+            break;
+        }
+        if (rsize < 0) {
+            TS_LOGE("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
+            return false;
+        }
+        g_loadSize += rsize;
+        if (!ta.BatchParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize))) {
+            return false;
+        }
+        printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
+    }
+    return true;
+}
+bool OpenAndParserLongTraceFile(TraceStreamerSelector& ts, const std::string& traceFilePath)
+{
+    if (!SetFileSize(traceFilePath)) {
+        return false;
+    }
+    int fd(OpenFile(traceFilePath, O_RDONLY, G_FILE_PERMISSION));
+    if (fd < 0) {
+        TS_LOGE("%s does not exist", traceFilePath.c_str());
+        SetAnalysisResult(TRACE_PARSER_ABNORMAL);
+        return false;
+    }
+    if (!ReadAndParserLongTrace(ts, fd, traceFilePath)) {
+        close(fd);
+        SetAnalysisResult(TRACE_PARSER_ABNORMAL);
+        return false;
+    }
+    close(fd);
+    return true;
+}
+void ParseLongTrace(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
+{
+    std::map<int, std::string> seqToFilePathMap;
+    if (traceExportOption.sqliteFilePath.empty()) {
+        return;
+    }
+    if (!GetLongTraceFilePaths(traceExportOption, seqToFilePathMap)) {
+        return;
+    }
+    ts.CreatEmptyBatchDB(traceExportOption.sqliteFilePath);
+    for (auto itor = seqToFilePathMap.begin(); itor != seqToFilePathMap.end(); itor++) {
+        ts.GetTraceDataCache()->UpdateAllPrevSize();
+        if (!OpenAndParserLongTraceFile(ts, itor->second)) {
+            break;
+        }
+        if (std::distance(itor, seqToFilePathMap.end()) == 1) {
+            ts.WaitForParserEnd();
+        }
+        ts.GetTraceDataCache()->ClearAllPrevCacheData();
+        ts.GetStreamFilter()->FilterClear();
+        if (!LongTraceExportDatabase(ts, traceExportOption.sqliteFilePath)) {
+            return;
+        }
+        if (std::distance(itor, seqToFilePathMap.end()) == 1) {
+            ts.RevertTableName(traceExportOption.sqliteFilePath);
+        }
+    }
+    if (!traceExportOption.sqliteFilePath.empty()) {
+        ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
+    }
+}
 } // namespace TraceStreamer
 } // namespace SysTuning
 int main(int argc, char** argv)
@@ -357,6 +490,12 @@ int main(int argc, char** argv)
     TraceStreamerSelector ts;
     ts.EnableMetaTable(tsOption.exportMetaTable);
     ts.EnableFileSave(tsOption.separateFile);
+#ifndef IS_WASM
+    if (!tsOption.longTraceDir.empty()) {
+        ParseLongTrace(ts, tsOption);
+        return 0;
+    }
+#endif
     std::regex traceInvalidStr("\\\\");
     auto strEscape = std::regex_replace(tsOption.traceFilePath, traceInvalidStr, "\\\\\\\\");
     if (OpenAndParserFile(ts, strEscape)) {

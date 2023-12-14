@@ -446,7 +446,7 @@ size_t Raw::AppendRawData(uint32_t id, uint64_t timeStamp, uint32_t name, uint32
     timeStamps_.emplace_back(timeStamp);
     nameDeque_.emplace_back(name);
     cpuDeque_.emplace_back(cpu);
-    itidDeque_.emplace_back(internalTid);
+    internalTids_.emplace_back(internalTid);
     return Size() - 1;
 }
 
@@ -521,7 +521,7 @@ void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId,
                                                       uint32_t itid,
                                                       uint64_t timeStamp)
 {
-    ids_.emplace_back(Size());
+    ids_.emplace_back(id_++);
     callChainIds_.emplace_back(callChainId);
     ipids_.emplace_back(ipid);
     internalTids_.emplace_back(itid);
@@ -531,7 +531,7 @@ void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId,
 }
 void NativeHookSampleBase::AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint64_t timeStamp)
 {
-    ids_.emplace_back(Size());
+    ids_.emplace_back(id_++);
     callChainIds_.emplace_back(callChainId);
     ipids_.emplace_back(ipid);
     timeStamps_.emplace_back(timeStamp);

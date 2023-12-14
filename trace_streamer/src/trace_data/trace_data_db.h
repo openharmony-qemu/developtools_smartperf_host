@@ -20,6 +20,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 #include "sqlite3.h"
@@ -49,6 +50,10 @@ public:
 public:
     using ResultCallBack = std::function<void(const std::string /* json or proto result */, int32_t)>;
     int32_t ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack = nullptr);
+    int32_t BatchExportDatabase(const std::string& outputName);
+    int32_t CreatEmptyBatchDB(const std::string& outputName);
+    void RevertTableName(const std::string& outputName);
+    void CloseBatchDB();
     std::vector<std::string> SearchData();
     int32_t OperateDatabase(const std::string& sql);
     int32_t SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
@@ -79,6 +84,8 @@ private:
     bool pared_ = false;
     bool cancelQuery_ = false;
     std::string wasmDBName_;
+    std::set<std::string> needClearTable_ = {"data_type", "device_info", "data_dict", "meta",        "stat",
+                                             "symbols",   "thread",      "process",   "trace_range", "args_view"};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

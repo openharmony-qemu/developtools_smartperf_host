@@ -92,6 +92,7 @@ bool HtraceParser::ReparseSymbolFilesAndResymbolization(std::string& symbolsPath
     symbolsFiles_.clear();
     return parseStatus;
 }
+
 void HtraceParser::WaitForParserEnd()
 {
     if (parseThreadStarted_ || filterThreadStarted_) {
