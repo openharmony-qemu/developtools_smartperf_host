@@ -27,6 +27,7 @@ import { procedurePool } from '../../database/Procedure';
 import { CpuRender, CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { Utils } from '../trace/base/Utils';
+import { KeyPathStruct } from '../../bean/KeyPathStruct';
 
 export class SpCpuChart {
   private trace: SpSystemTrace;

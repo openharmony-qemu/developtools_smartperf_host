@@ -74,7 +74,14 @@ export class CpuRender {
   ) {
     let cpuList = row.dataList;
     let cpuFilter = row.dataListCache;
-    dataFilterHandler(cpuList, cpuFilter, {
+    const combineData = [...cpuList]
+    if (cpuList.length > 0 && SpSystemTrace.keyPathList.length > 0) {
+      const keyPathList = SpSystemTrace.keyPathList.filter((cpu: CpuStruct) => {
+        return cpu.cpu === cpuList[0].cpu && TraceRow.range!.startNS  < cpu.startTime! + cpu.dur! && TraceRow.range!.endNS > cpu.startTime! ;
+      });
+      combineData.push(...keyPathList);
+    }
+    dataFilterHandler(combineData, cpuFilter, {
       startKey: 'startTime',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -83,7 +90,7 @@ export class CpuRender {
       frame: row.frame,
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
-    });
+    });  
     req.cpuRenderContext.beginPath();
     req.cpuRenderContext.font = '11px sans-serif';
     cpuFilter.forEach((re) => {
@@ -304,6 +311,7 @@ export class CpuStruct extends BaseStruct {
   process: string | undefined;
   pid: number | undefined;
   thread: string | undefined;
+  isKeyPath?: number;
   static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number) {
     if (data.frame) {
       let width = data.frame.width || 0;
@@ -385,6 +393,15 @@ export class CpuStruct extends BaseStruct {
         }
         ctx.closePath();
         ctx.fill();
+      }
+      if (data.isKeyPath) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 40);
+        gradient.addColorStop(0, '#000000');
+        gradient.addColorStop(0.5, '#0000FF');
+        gradient.addColorStop(1, '#FF0000');
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(data.frame.x, data.frame.y - 2, width - 2, data.frame.height + 2);
       }
       if (CpuStruct.selectCpuStruct && CpuStruct.equals(CpuStruct.selectCpuStruct, data)) {
         ctx.strokeStyle = '#232c5d';

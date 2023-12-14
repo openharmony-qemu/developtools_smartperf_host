@@ -19,6 +19,7 @@ import './trace/base/TraceRow';
 import {
   queryBySelectAllocationOrReturn,
   queryBySelectExecute,
+  queryCpuKeyPathData,
   queryEbpfSamplesCount,
   querySceneSearchFunc,
   querySearchFunc,
@@ -149,6 +150,7 @@ export class SpSystemTrace extends BaseElement {
   static SDK_CONFIG_MAP: any;
   static sliceRangeMark: any;
   static wakeupList: Array<WakeupBean> = [];
+  static keyPathList: Array<CpuStruct> = [];
   times: Set<number> = new Set<number>();
   currentSlicesTime: CurrentSlicesTime = new CurrentSlicesTime();
   intersectionObserver: IntersectionObserver | undefined;
@@ -3907,6 +3909,40 @@ export class SpSystemTrace extends BaseElement {
         }
       });
     });
+    window.subscribe(window.SmartEvent.UI.KeyPath, (data) => {
+      let condition = `trace-row[row-type='${TraceRow.ROW_TYPE_CPU}']`;
+      let cpuRows = this.shadowRoot!.querySelectorAll<TraceRow<any>>(condition);
+      cpuRows.forEach((row: TraceRow<any>) => {
+        //row.isComplete = false;
+        row.dataListCache = [];
+      });
+      if (data.length === 0) {
+        // clear
+        SpSystemTrace.keyPathList = [];
+        this.refreshCanvas(false);
+      } else {
+        // draw
+        queryCpuKeyPathData(data).then((res) => {
+          res.forEach((it: CpuStruct) => {
+            let p = Utils.PROCESS_MAP.get(it.processId!);
+            let t = Utils.THREAD_MAP.get(it.tid!);
+            let slice = Utils.SCHED_SLICE_MAP.get(`${it.id}-${it.startTime}`);
+            if (slice) {
+              it.end_state = slice.endState;
+              it.priority = slice.priority;
+            }
+            it.processName = p;
+            it.processCmdLine = p;
+            it.name = t;
+            it.type = 'thread';
+          });
+          SpSystemTrace.keyPathList = res;
+          this.refreshCanvas(false);
+        });
+      }
+      
+    });
+
     window.subscribe(window.SmartEvent.UI.CheckALL, (data) => {
       this.getCollectRows((row) => row.rowParentId === data.rowId).forEach((it) => {
         it.checkType = data.isCheck ? '2' : '0';
@@ -4546,6 +4582,7 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
     this.times.clear();
     setVSyncDisable();
+    SpSystemTrace.keyPathList = [];
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {

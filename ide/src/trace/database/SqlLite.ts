@@ -90,6 +90,7 @@ import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
 import { type MemoryConfig } from '../bean/MemoryConfig';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog';
 import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
+import { KeyPathStruct } from '../bean/KeyPathStruct';
 
 class DataWorkerThread {
   taskMap: any = {};
@@ -763,8 +764,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
     { $leftNS: leftNs, $rightNS: rightNs }
   );
 
-  export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
-    let processSql = `select
+export const getTabCounters = (processFilterIds: Array<number>, virtualFilterIds: Array<number>, startTime: number) => {
+  let processSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -780,8 +781,8 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
       where
         filter_id in (${processFilterIds.join(',')})
       and
-        startTime <= ${startTime}` ;
-    let virtualSql = `select
+        startTime <= ${startTime}`;
+  let virtualSql = `select
         t1.filter_id as trackId,
         t2.name,
         value,
@@ -798,18 +799,18 @@ export const getTabFps = (leftNs: number, rightNs: number): Promise<Array<Fps>> 
         filter_id in (${virtualFilterIds.join(',')})
       and
         startTime <= ${startTime}`;
-    let sql = '';
-    if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
-      sql = `${processSql} union ${virtualSql}`;
+  let sql = '';
+  if (processFilterIds.length > 0 && virtualFilterIds.length > 0) {
+    sql = `${processSql} union ${virtualSql}`;
+  } else {
+    if (processFilterIds.length > 0) {
+      sql = processSql;
     } else {
-      if (processFilterIds.length > 0) {
-        sql = processSql;
-      } else {
-        sql = virtualSql;
-      }
+      sql = virtualSql;
     }
-    return query<Counter>('getTabCounters', sql, {});
   }
+  return query<Counter>('getTabCounters', sql, {});
+};
 
 export const getTabVirtualCounters = (virtualFilterIds: Array<number>, startTime: number) =>
   query<Counter>(
@@ -5829,15 +5830,15 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
         ORDER BY S.ts`
   );
 
-  export const querySearchRowFuncData = (
-    funcName: string,
-    tIds: number,
-    leftNS: number,
-    rightNS: number
-  ): Promise<Array<SearchFuncBean>> =>
-    query(
-      'querySearchRowFuncData',
-      `
+export const querySearchRowFuncData = (
+  funcName: string,
+  tIds: number,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
+  query(
+    'querySearchRowFuncData',
+    `
           select 
             c.name as funName,
             c.ts - r.start_ts as startTime,
@@ -5863,5 +5864,28 @@ export const queryHiSysEventData = (): Promise<Array<HiSysEventStruct>> =>
           and
             not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
       `,
-      { $search: funcName }
+    { $search: funcName }
+  );
+
+  export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Array<CpuStruct>> => {
+    const sqlArray: Array<string> = [];
+    sqlArray.push(` 1 = 0`);
+    for (const thread of threads) {
+      sqlArray.push(` or  (tid = ${thread.tid} and ts in (${thread.tsArray}))`);
+    }
+    let sql = sqlArray.join(' ');
+    return query(
+      'queryCpuKeyPathData',
+      `SELECT B.pid as processId,
+          B.cpu,
+          B.tid,
+          B.itid  as id,
+          B.dur  AS dur,
+          B.ts - T.start_ts  AS startTime,
+          B.arg_setid   as argSetID,
+          1 as isKeyPath
+      from thread_state AS B
+      left join trace_range as T
+      where ${sql}`
     );
+  };

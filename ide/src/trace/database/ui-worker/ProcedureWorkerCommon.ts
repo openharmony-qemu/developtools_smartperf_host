@@ -310,7 +310,7 @@ export function dataFilterHandler(fullData: Array<any>, filterData: Array<any>, 
       } else {
         if (i > 0) {
           let c = slice[i][condition.startKey] - slice[i - 1][condition.startKey] - slice[i - 1][condition.durKey];
-          if (c < pns && sum < pns) {
+          if (c < pns && sum < pns && !slice[i].isKeyPath) {
             sum += c + slice[i - 1][condition.durKey];
             slice[i].v = false;
           } else {

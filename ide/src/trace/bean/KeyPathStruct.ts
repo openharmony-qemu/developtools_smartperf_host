@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const nsToS = 1000000000;
 export class KeyPathStruct {
   tid: number;
   threadName: string;
   tsArray: Array<number>;
-
   constructor(tid: number, threadName: string, tsArray: Array<number>) {
     this.tid = tid;
     this.threadName = threadName;
-    this.tsArray = tsArray;
+    this.tsArray = [];
+    for (const ts of tsArray) {
+      this.tsArray.push(ts * nsToS);
+    }
   }
 }
