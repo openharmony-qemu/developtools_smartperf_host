@@ -92,9 +92,9 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
     ctx.fillRect(x, 0, x2 - x, height);
   }
   ctx.beginPath();
-  ctx.fillStyle = '#999999';
+  ctx.fillStyle = '#555555';
   ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.5;
+  ctx.globalAlpha = 0.3;
   if (isSingle) {
     // 单框架灰白交替
     for (let i = 0; i < vSyncDataList.length; i++) {
