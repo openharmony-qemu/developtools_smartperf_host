@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <list>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -46,13 +47,14 @@ public:
     void Prepare();
 
 public:
-    using ResultCallBack = std::function<void(const std::string /* json result */, int32_t)>;
+    using ResultCallBack = std::function<void(const std::string /* json or proto result */, int32_t)>;
     int32_t ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack = nullptr);
     std::vector<std::string> SearchData();
     int32_t OperateDatabase(const std::string& sql);
     int32_t SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int32_t SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
     int32_t SearchDatabase(std::string& sql, bool print);
+    int32_t SearchDatabaseToProto(const std::string& data, ResultCallBack resultCallBack);
     std::string SearchDatabase(const std::string& sql);
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
@@ -69,6 +71,9 @@ private:
     void ExecuteSql(const std::string_view& sql);
     void SendDatabase(ResultCallBack resultCallBack);
     static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
+    static void SqliteFinalize(sqlite3_stmt* ptr);
+
+private:
     std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = true;
     bool pared_ = false;

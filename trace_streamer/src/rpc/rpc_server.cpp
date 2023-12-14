@@ -535,6 +535,14 @@ int32_t RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, Res
     int32_t ret = ts_->SearchDatabase(sql, callback);
     return ret;
 }
+int32_t RpcServer::WasmSqlQueryToProtoCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
+{
+    ts_->SetCancel(false);
+    std::string strData(reinterpret_cast<const char*>(data), len);
+
+    int32_t ret = ts_->SearchDatabaseToProto(strData, callback);
+    return ret;
+}
 
 int32_t RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 {

@@ -471,8 +471,8 @@ bool HtraceEventParser::ParsePrintEvent(const EventInfo& event)
     line.tgid = event.tgid_;
     line.pid = event.comonFields_->pid();
     line.ts = event.timeStamp_;
-    printEventParser_.ParsePrintEvent(event.taskName_, event.timeStamp_, event.comonFields_->pid(), msg.buf().ToStdString(),
-                                      line);
+    printEventParser_.ParsePrintEvent(event.taskName_, event.timeStamp_, event.comonFields_->pid(),
+                                      msg.buf().ToStdString(), line);
     if (!tids_.count(event.comonFields_->pid())) {
         tids_.insert(event.comonFields_->pid());
     }

@@ -27,18 +27,25 @@
 #include "codec_cov.h"
 #include "file.h"
 #include "log.h"
+#include "sph_data.pb.h"
 #include "sqlite3.h"
 #include "sqlite_ext/sqlite_ext_funcs.h"
 #include "string_help.h"
+#include "sqllite_prepar_cache_data.h"
+#include "ts_common.h"
 
-const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
 namespace SysTuning {
 namespace TraceStreamer {
+const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
+constexpr int32_t DEFAULT_LEN_ROW_STRING = 1024;
+
+enum DBFiledType : uint8_t { INT = 0, TEXT };
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
     } while (0)
 using namespace SysTuning::base;
+
 TraceDataDB::TraceDataDB() : db_(nullptr)
 {
     if (sqlite3_threadsafe() > 0) {
@@ -309,6 +316,32 @@ int32_t TraceDataDB::OperateDatabase(const std::string& sql)
     return ret;
 }
 
+int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data, ResultCallBack resultCallBack)
+{
+    TS_CHECK_TRUE(data.size() > sizeof(uint32_t) && resultCallBack != nullptr, 1,
+                  "data.size(%zu) <= sizeof(uint32_t) or resultCallBack is nullptr", data.size());
+    uint32_t type = INVALID_UINT32;
+    auto sqlItor = data.begin() + sizeof(uint32_t);
+    std::copy(data.begin(), sqlItor, reinterpret_cast<uint8_t*>(&type));
+    std::string sql(sqlItor, data.end());
+    TS_LOGI("type(%u), sql(%s)", type, sql.data());
+    Prepare();
+    sqlite3_stmt* stmt = nullptr;
+    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtScope(stmt, SqliteFinalize);
+    int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
+    TS_CHECK_TRUE(ret == SQLITE_OK, ret, "sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
+    SqllitePreparCacheData sqllitePreparCacheData;
+    auto sphQueryFuncMap = sqllitePreparCacheData.GetSphQueryFuncMap();
+    auto queryFuncItor = sphQueryFuncMap.find(type);
+    if (queryFuncItor != sphQueryFuncMap.end()) {
+        queryFuncItor->second(stmt, type, resultCallBack);
+    } else {
+        TS_LOGE("Can't find sph query type:%u", type);
+        return 1;
+    }
+    return ret;
+}
+
 std::string TraceDataDB::SearchDatabase(const std::string& sql)
 {
     Prepare();
@@ -333,9 +366,8 @@ std::string TraceDataDB::SearchDatabase(const std::string& sql)
     res.pop_back();
     res += "],\"values\":[";
     bool hasRow = false;
-    constexpr int32_t defaultLenRowString = 1024;
     std::string row;
-    row.reserve(defaultLenRowString);
+    row.reserve(DEFAULT_LEN_ROW_STRING);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
@@ -379,9 +411,8 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resul
     res.pop_back(); // remove the last ","
     res += "],\"values\":[";
     bool hasRow = false;
-    constexpr int32_t defaultLenRowString = 1024;
     std::string row;
-    row.reserve(defaultLenRowString);
+    row.reserve(DEFAULT_LEN_ROW_STRING);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
@@ -404,12 +435,7 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
 {
     Prepare();
     sqlite3_stmt* stmt = nullptr;
-    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, [](sqlite3_stmt* ptr) {
-        if (ptr != nullptr) {
-            sqlite3_finalize(ptr);
-            ptr = nullptr;
-        }
-    });
+    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     stmtLocal.reset(stmt);
     if (ret != SQLITE_OK) {
@@ -449,9 +475,8 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     }
     pos += retSnprintf;
     bool hasRow = false;
-    constexpr int32_t defaultLenRowString = 1024;
     std::string row;
-    row.reserve(defaultLenRowString);
+    row.reserve(DEFAULT_LEN_ROW_STRING);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
@@ -509,6 +534,13 @@ void TraceDataDB::GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string
     }
     rowStr.pop_back(); // remove the last ','
     rowStr += "]";
+}
+void TraceDataDB::SqliteFinalize(sqlite3_stmt* ptr)
+{
+    if (ptr != nullptr) {
+        sqlite3_finalize(ptr);
+        ptr = nullptr;
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

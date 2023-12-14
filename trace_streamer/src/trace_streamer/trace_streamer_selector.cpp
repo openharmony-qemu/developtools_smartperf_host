@@ -333,6 +333,11 @@ int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataD
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }
+int32_t TraceStreamerSelector::SearchDatabaseToProto(const std::string& data,
+                                                     TraceDataDB::ResultCallBack resultCallBack)
+{
+    return traceDataCache_->SearchDatabaseToProto(data, resultCallBack);
+}
 int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);

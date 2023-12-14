@@ -47,6 +47,7 @@ int32_t TraceStreamer_Plugin_Out_Filter(const char* pluginData, int32_t len, con
 void TraceStreamer_Set_Log_Level(uint32_t level);
 
 int32_t TraceStreamerSqlQueryEx(int32_t sqlLen);
+int32_t TraceStreamerSqlQueryToProtoCallback(int32_t sqlLen);
 int32_t TraceStreamerCancel();
 } // extern "C"
 } // namespace TraceStreamer
