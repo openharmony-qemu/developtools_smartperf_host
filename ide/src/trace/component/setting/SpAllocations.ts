@@ -245,7 +245,7 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider.sliderStyle = {
       minRange: 0,
       maxRange: 3600,
-      defaultValue: '900',
+      defaultValue: '0',
       resultUnit: 'S',
       stepSize: 450,
       lineColor: 'var(--dark-color3,#46B1E3)',
@@ -258,7 +258,7 @@ export class SpAllocations extends BaseElement {
         ev.preventDefault();
       }
     });
-    this.intervalResultInput.value = '10';
+    this.intervalResultInput.value = '0';
     this.statisticsSlider.addEventListener('input', (evt) => {
       this.statisticsSlider!.sliderStyle = {
         minRange: 0,
