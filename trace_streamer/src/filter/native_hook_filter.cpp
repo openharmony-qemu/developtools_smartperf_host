@@ -33,6 +33,8 @@ NativeHookFilter::NativeHookFilter(TraceDataCache* dataCache, const TraceStreame
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/ld-musl-arm.so.1"));
     hookPluginData_->set_name("nativehook");
     commHookData_.datas = std::make_unique<BatchNativeHookData>();
+    addrToAllocEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToAllocEventRow();
+    addrToMmapEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToMmapEventRow();
 }
 
 void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView& protoData)
@@ -255,7 +257,7 @@ void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::By
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
         callChainId, ipid, itid, "AllocEvent", INVALID_UINT64, timeStamp, 0, 0, allocEventReader.addr(),
         allocEventReader.size());
-    addrToAllocEventRow_.insert(std::make_pair(allocEventReader.addr(), static_cast<uint64_t>(row)));
+    addrToAllocEventRow_->insert(std::make_pair(allocEventReader.addr(), static_cast<uint64_t>(row)));
     if (allocEventReader.size() != 0) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, true);
     }
@@ -301,11 +303,11 @@ void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::Byt
     int64_t freeHeapSize = 0;
     // Find a matching malloc event, and if the matching fails, do not write to the database
     uint64_t row = INVALID_UINT64;
-    if (addrToAllocEventRow_.count(freeEventReader.addr())) {
-        row = addrToAllocEventRow_.at(freeEventReader.addr());
+    if (addrToAllocEventRow_->count(freeEventReader.addr())) {
+        row = addrToAllocEventRow_->at(freeEventReader.addr());
     }
     if (row != INVALID_UINT64 && timeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
-        addrToAllocEventRow_.erase(freeEventReader.addr());
+        addrToAllocEventRow_->erase(freeEventReader.addr());
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
         freeHeapSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];
     } else {
@@ -372,7 +374,7 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
     if (subType == INVALID_UINT64) {
         UpdateAnonMmapDataDbIndex(mMapAddr, mMapSize, static_cast<uint64_t>(row));
     }
-    addrToMmapEventRow_.insert(std::make_pair(mMapAddr, static_cast<uint64_t>(row)));
+    addrToMmapEventRow_->insert(std::make_pair(mMapAddr, static_cast<uint64_t>(row)));
     // update currentSizeDur.
     if (mMapSize) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, false);
@@ -419,11 +421,11 @@ void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::B
     // Query for MMAP events that match the current data. If there are no matching MMAP events, the current data is not
     // written to the database.
     uint64_t row = INVALID_UINT64;
-    if (addrToMmapEventRow_.count(mUnmapEventReader.addr())) {
-        row = addrToMmapEventRow_.at(mUnmapEventReader.addr());
+    if (addrToMmapEventRow_->count(mUnmapEventReader.addr())) {
+        row = addrToMmapEventRow_->at(mUnmapEventReader.addr());
     }
     if (row != INVALID_UINT64 && timeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
-        addrToMmapEventRow_.erase(mUnmapEventReader.addr());
+        addrToMmapEventRow_->erase(mUnmapEventReader.addr());
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
     } else {
         TS_LOGD("func addr:%" PRIu64 " is empty", mUnmapEventReader.addr());
@@ -784,7 +786,8 @@ void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>
 
 void NativeHookFilter::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc)
 {
-    auto& lastAnyEventRaw = isMalloc ? lastMallocEventRaw_ : lastMmapEventRaw_;
+    auto& lastAnyEventRaw = isMalloc ? traceDataCache_->GetNativeHookData()->GetLastMallocEventRaw()
+                                     : traceDataCache_->GetNativeHookData()->GetLastMmapEventRaw();
     if (lastAnyEventRaw != INVALID_UINT64) {
         traceDataCache_->GetNativeHookData()->UpdateCurrentSizeDur(lastAnyEventRaw, timeStamp);
     }

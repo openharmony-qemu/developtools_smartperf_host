@@ -38,7 +38,7 @@ import './component/SpMetrics';
 import './component/SpInfoAndStas';
 import './component/trace/base/TraceRow';
 import './component/schedulingAnalysis/SpSchedulingAnalysis';
-import { info, log } from '../log/Log';
+import { error, info, log } from '../log/Log';
 import { LitMainMenuGroup } from '../base-ui/menu/LitMainMenuGroup';
 import { LitMainMenuItem } from '../base-ui/menu/LitMainMenuItem';
 import { LitIcon } from '../base-ui/icon/LitIcon';
@@ -57,6 +57,8 @@ import { convertPool } from './database/Convert';
 import { LongTraceDBUtils } from './database/LongTraceDBUtils';
 import { type SpKeyboard } from './component/SpKeyboard';
 import './component/SpKeyboard';
+import { parseKeyPathJson } from './component/Utils';
+import { Utils } from './component/trace/base/Utils';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -514,6 +516,16 @@ export class SpApplication extends BaseElement {
                              <use id="use" xlink:href="./base-ui/icon.svg#icon-menu"></use>
                         </svg>
                     </div>
+                    <div title="Import Key Path" id="import-key-path" style="display: none ;text-align: left;
+                    position:  absolute;left: 1.2em; cursor: pointer;top: 20px">
+                      <input id="import-config" style="display: none;pointer-events: none" type="file" accept=".json" >
+                      <label style="width: 20px;height: 20px;cursor: pointer;" for="import-config">
+                          <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
+                          </lit-icon>
+                      </label>
+                    </div>
+                    <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left; position: absolute;left: 2.5em; cursor: pointer;top: 20px ">
+                    </lit-icon>
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
                     <div class="long_trace_page" style="display: none;">
@@ -721,6 +733,43 @@ export class SpApplication extends BaseElement {
         customColor!.removeAttribute('hidden');
       }
     });
+
+    // 关键路径标识
+    const importConfigDiv = this.shadowRoot?.querySelector<HTMLInputElement>('#import-key-path');
+    const closeKeyPath = this.shadowRoot?.querySelector<HTMLDivElement>('#close-key-path');
+
+    const importFileBt = this.shadowRoot?.querySelector<HTMLInputElement>('#import-config');
+    importFileBt?.addEventListener('change', (): void => {
+      let files = importFileBt!.files;
+      if (files && files.length === 1) {
+        const reader = new FileReader();
+        reader.readAsText(files[0], 'UTF-8');
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            try {
+              const result = parseKeyPathJson(e.target.result as string);
+              window.publish(window.SmartEvent.UI.KeyPath, result);
+              closeKeyPath!.style.display = 'block';
+            } catch {
+              error('json Parse Failed');
+              litSearch.setPercent('Json Parse Failed!', -1);
+              window.setTimeout(() => {
+                litSearch.setPercent('Json Parse Failed!', 101);
+              }, 2000);
+            }
+          }
+        };
+      }
+      importFileBt!.files = null;
+      importFileBt!.value = '';
+    });
+
+    if (closeKeyPath) {
+      closeKeyPath.addEventListener('click', (): void => {
+        window.publish(window.SmartEvent.UI.KeyPath, []);
+        closeKeyPath.style.display = 'none';
+      });
+    }
 
     //打开侧边栏
     sidebarButton!.onclick = (e) => {
@@ -1404,6 +1453,7 @@ export class SpApplication extends BaseElement {
                 if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
                   isAllowTrace = false;
                 }
+                DbPool.sharedBuffer = null;
               }
               let index = 2;
               if (existFtrace.length > 0 && isAllowTrace) {
@@ -1470,6 +1520,11 @@ export class SpApplication extends BaseElement {
                   describe: 'Actions on the current trace',
                   children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
                 });
+                if (Utils.SCHED_SLICE_MAP.size > 0) {
+                  importConfigDiv!.style.display = 'block';
+                } else {
+                  importConfigDiv!.style.display = 'none';
+                }
                 showContent(spSystemTrace!);
                 litSearch.setPercent('', 101);
                 chartFilter!.setAttribute('mode', '');
@@ -1492,6 +1547,7 @@ export class SpApplication extends BaseElement {
     }
 
     let openFileInit = () => {
+      this.clearTraceFileCache();
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'open_trace',
         action: 'open_trace',
@@ -1679,6 +1735,10 @@ export class SpApplication extends BaseElement {
       let pageListDiv = that.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
       pageListDiv.innerHTML = '';
       openFileInit();
+      if (importConfigDiv && closeKeyPath) {
+        importConfigDiv.style.display = 'none';
+        closeKeyPath.style.display = 'none';
+      }
       if (that.vs && isClickHandle) {
         Cmd.openFileDialog().then((res: string) => {
           if (res != '') {
@@ -2331,6 +2391,39 @@ export class SpApplication extends BaseElement {
     );
   }
 
+  readTraceFileBuffer(): Promise<ArrayBuffer | undefined> {
+    return new Promise((resolve) => {
+      caches.match(DbPool.fileCacheKey).then((res) => {
+        if (res) {
+          res.arrayBuffer().then((buffer) => {
+            resolve(buffer);
+          });
+        } else {
+          resolve(undefined);
+        }
+      });
+    });
+  }
+
+  clearTraceFileCache(): void {
+    caches.keys().then((keys) => {
+      keys.forEach((key) => {
+        if (key === DbPool.fileCacheKey) {
+          caches.delete(key).then();
+        } else if (key.includes('/')) {
+          let splits = key.split('/');
+          let fileDate = new Date(parseInt(splits[splits.length - 1]));
+          if (fileDate.toLocaleDateString() !== new Date().toLocaleDateString()) {
+            //如果不是当天的缓存则删去缓存文件
+            caches.delete(key).then();
+          }
+        } else {
+          caches.delete(key).then();
+        }
+      });
+    });
+  }
+
   private async download(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
     let a = document.createElement('a');
     if (isServer) {
@@ -2341,7 +2434,10 @@ export class SpApplication extends BaseElement {
         return;
       }
     } else {
-      a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+      let buffer = await this.readTraceFileBuffer();
+      if (buffer) {
+        a.href = URL.createObjectURL(new Blob([buffer]));
+      }
     }
     a.download = fileName;
     a.click();

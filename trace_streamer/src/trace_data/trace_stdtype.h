@@ -41,6 +41,28 @@ using namespace SysTuning::TraceStreamer;
 constexpr uint32_t ONE_MILLION_NANOSECONDS = 1000000;
 constexpr uint32_t BILLION_NANOSECONDS = 1000000000;
 constexpr uint8_t DYNAMICFRAME_MATCH_LAST = 5;
+class BatchCacheBase {
+public:
+    void UpdatePrevSize(size_t size)
+    {
+        prevSize = size;
+    }
+    template <typename T, typename... changedata>
+    void EraseElements(T& deq, changedata&... args)
+    {
+        deq.erase(deq.begin(), deq.begin() + prevSize);
+        EraseElements(args...);
+        prevSize = 0;
+    }
+    template <typename T1>
+    void EraseElements(T1& deq)
+    {
+        deq.erase(deq.begin(), deq.begin() + prevSize);
+    }
+
+public:
+    size_t prevSize = 0;
+};
 class CacheBase {
 public:
     size_t Size() const
@@ -70,6 +92,7 @@ public:
     std::deque<InternalTid> internalTids_ = {};
     std::deque<uint64_t> timeStamps_ = {};
     std::deque<uint64_t> ids_ = {};
+    uint64_t id_ = 0;
 };
 
 class CpuCacheBase {
@@ -121,7 +144,7 @@ public:
     uint32_t cpuStatesCount_ = 0;
 };
 
-class ThreadStateData {
+class ThreadStateData : public BatchCacheBase {
 public:
     TableRowId
         AppendThreadState(InternalTime ts, InternalTime dur, InternalCpu cpu, InternalTid itid, TableRowId idState);
@@ -143,6 +166,10 @@ public:
         pids_.clear();
         states_.clear();
         cpus_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, durations_, itids_, tids_, pids_, states_, cpus_);
     }
     uint32_t Size() const
     {
@@ -193,7 +220,7 @@ private:
     std::deque<uint32_t> argSetIds_;
 };
 
-class SchedSlice : public CacheBase, public CpuCacheBase {
+class SchedSlice : public CacheBase, public CpuCacheBase, public BatchCacheBase {
 public:
     size_t AppendSchedSlice(uint64_t ts,
                             uint64_t dur,
@@ -243,6 +270,10 @@ public:
         internalPids_.clear();
         tsEnds_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(internalTids_, timeStamps_, durs_, cpus_, endStates_, priority_, internalPids_, tsEnds_);
+    }
 
 private:
     std::deque<InternalPid> internalPids_ = {};
@@ -252,7 +283,7 @@ private:
     std::deque<uint32_t> argSets_ = {};
 };
 
-class CallStack : public CacheBase, public CpuCacheBase {
+class CallStack : public CacheBase, public CpuCacheBase, public BatchCacheBase {
 public:
     size_t AppendInternalAsyncSlice(uint64_t startT,
                                     uint64_t durationNs,
@@ -307,7 +338,11 @@ public:
         args_.clear();
         argSet_.clear();
     }
-
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, durs_, cats_, cookies_, callIds_, names_, depths_, chainIds_, spanIds_,
+                      parentSpanIds_, flags_, args_, argSet_);
+    }
     const std::deque<std::optional<uint64_t>>& ParentIdData() const;
     const std::deque<DataIndex>& CatsData() const;
     const std::deque<DataIndex>& NamesData() const;
@@ -343,7 +378,7 @@ private:
     std::deque<uint32_t> argSet_ = {};
 };
 
-class Filter : public CacheBase {
+class Filter : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilterData(std::string type, std::string name, uint64_t sourceArgSetId);
     const std::deque<std::string>& NameData() const
@@ -365,6 +400,10 @@ public:
         typeDeque_.clear();
         sourceArgSetId_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, nameDeque_, typeDeque_, sourceArgSetId_);
+    }
 
 private:
     std::deque<std::string> nameDeque_ = {};
@@ -372,7 +411,7 @@ private:
     std::deque<uint64_t> sourceArgSetId_ = {};
 };
 
-class Measure : public CacheBase {
+class Measure : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendMeasureData(uint32_t type, uint64_t timeStamp, int64_t value, uint32_t filterId);
     const std::deque<uint32_t>& TypeData() const
@@ -400,6 +439,10 @@ public:
         valuesDeque_.clear();
         filterIdDeque_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, typeDeque_, durDeque_, valuesDeque_, filterIdDeque_);
+    }
 
 private:
     std::deque<uint32_t> typeDeque_ = {};
@@ -408,7 +451,7 @@ private:
     std::deque<uint32_t> filterIdDeque_ = {};
 };
 
-class Raw : public CacheBase {
+class Raw : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendRawData(uint32_t id, uint64_t timeStamp, uint32_t name, uint32_t cpu, uint32_t internalTid);
     const std::deque<uint32_t>& NameData() const
@@ -419,25 +462,23 @@ public:
     {
         return cpuDeque_;
     }
-    const std::deque<uint32_t>& InternalTidData() const
-    {
-        return itidDeque_;
-    }
     void Clear() override
     {
         CacheBase::Clear();
         nameDeque_.clear();
         cpuDeque_.clear();
-        itidDeque_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(internalTids_, timeStamps_, ids_, nameDeque_, cpuDeque_);
     }
 
 private:
     std::deque<uint32_t> nameDeque_ = {};
     std::deque<uint32_t> cpuDeque_ = {};
-    std::deque<uint32_t> itidDeque_ = {};
 };
 
-class ThreadMeasureFilter {
+class ThreadMeasureFilter : public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t filterId, uint32_t nameIndex, uint64_t internalTid);
     size_t Size() const
@@ -462,6 +503,10 @@ public:
         internalTids_.clear();
         nameIndex_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(filterId_, internalTids_, nameIndex_);
+    }
 
 private:
     std::deque<uint64_t> filterId_ = {};
@@ -469,7 +514,7 @@ private:
     std::deque<uint32_t> nameIndex_ = {};
 };
 
-class CpuMeasureFilter : public CacheBase {
+class CpuMeasureFilter : public CacheBase, public BatchCacheBase {
 public:
     inline size_t AppendNewFilter(uint64_t filterId, DataIndex name, uint32_t cpu)
     {
@@ -484,11 +529,6 @@ public:
         return cpu_;
     }
 
-    const std::deque<DataIndex>& TypeData() const
-    {
-        return type_;
-    }
-
     const std::deque<DataIndex>& NameData() const
     {
         return name_;
@@ -497,17 +537,19 @@ public:
     {
         CacheBase::Clear();
         cpu_.clear();
-        type_.clear();
         name_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, cpu_, name_);
     }
 
 private:
     std::deque<uint32_t> cpu_ = {};
-    std::deque<DataIndex> type_ = {};
     std::deque<DataIndex> name_ = {};
 };
 
-class Instants : public CacheBase {
+class Instants : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendInstantEventData(uint64_t timeStamp,
                                   DataIndex nameIndex,
@@ -528,13 +570,17 @@ public:
         NameIndexs_.clear();
         wakeupFromInternalPids_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(internalTids_, timeStamps_, NameIndexs_, wakeupFromInternalPids_);
+    }
 
 private:
     std::deque<DataIndex> NameIndexs_;
     std::deque<int64_t> wakeupFromInternalPids_;
 };
 
-class ProcessMeasureFilter : public CacheBase {
+class ProcessMeasureFilter : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t id, DataIndex name, uint32_t internalPid);
 
@@ -553,12 +599,16 @@ public:
         internalPids_.clear();
         names_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(internalTids_, ids_, internalPids_, names_);
+    }
 
 private:
     std::deque<uint32_t> internalPids_ = {};
     std::deque<DataIndex> names_ = {};
 };
-class ClockEventData : public CacheBase {
+class ClockEventData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t id, DataIndex type, DataIndex name, uint64_t cpu);
 
@@ -582,13 +632,17 @@ public:
         names_.clear();
         types_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, cpus_, names_, types_);
+    }
 
 private:
     std::deque<uint64_t> cpus_ = {}; // in clock_set_rate event, it save cpu
     std::deque<DataIndex> names_ = {};
     std::deque<DataIndex> types_ = {};
 };
-class ClkEventData : public CacheBase {
+class ClkEventData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t id, uint64_t rate, DataIndex name, uint64_t cpu);
 
@@ -611,13 +665,17 @@ public:
         rates_.clear();
         cpus_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, cpus_, names_, rates_);
+    }
 
 private:
     std::deque<DataIndex> names_;
     std::deque<uint64_t> rates_;
     std::deque<uint64_t> cpus_;
 };
-class SysCall : public CacheBase {
+class SysCall : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendSysCallData(int64_t sysCallNum, DataIndex type, uint32_t ipid, uint64_t timeStamp, int64_t ret);
     const std::deque<int64_t>& SysCallsData() const
@@ -644,6 +702,10 @@ public:
         ipids_.clear();
         rets_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, sysCallNums_, types_, ipids_, rets_);
+    }
 
 private:
     std::deque<int64_t> sysCallNums_ = {};
@@ -651,7 +713,7 @@ private:
     std::deque<uint32_t> ipids_ = {};
     std::deque<uint64_t> rets_ = {};
 };
-class ArgSet : public CacheBase {
+class ArgSet : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewArg(DataIndex nameId, BaseDataType dataType, int64_t value, size_t argSet);
     const std::deque<BaseDataType>& DataTypes() const;
@@ -667,6 +729,10 @@ public:
         values_.clear();
         argset_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(names_, dataTypes_, values_, argset_);
+    }
 
 private:
     std::deque<uint64_t> names_ = {};
@@ -674,7 +740,7 @@ private:
     std::deque<int64_t> values_ = {};
     std::deque<uint64_t> argset_ = {};
 };
-class SysMeasureFilter : public CacheBase {
+class SysMeasureFilter : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewFilter(uint64_t filterId, DataIndex type, DataIndex nameId);
     const std::deque<DataIndex>& NamesData() const;
@@ -685,12 +751,16 @@ public:
         types_.clear();
         names_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, types_, names_);
+    }
 
 private:
     std::deque<DataIndex> types_ = {};
     std::deque<DataIndex> names_ = {};
 };
-class DataType : public CacheBase {
+class DataType : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewDataType(BaseDataType dataType, DataIndex dataDescIndex);
     const std::deque<BaseDataType>& DataTypes() const;
@@ -701,12 +771,16 @@ public:
         dataTypes_.clear();
         descs_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, dataTypes_, descs_);
+    }
 
 private:
     std::deque<BaseDataType> dataTypes_ = {};
     std::deque<DataIndex> descs_ = {};
 };
-class LogInfo : public CacheBase {
+class LogInfo : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewLogInfo(uint64_t seq,
                             uint64_t timeStamp,
@@ -733,6 +807,10 @@ public:
         contexts_.clear();
         originTs_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, hilogLineSeqs_, pids_, tids_, levels_, tags_, contexts_, originTs_);
+    }
 
 private:
     std::deque<uint64_t> hilogLineSeqs_ = {};
@@ -743,7 +821,7 @@ private:
     std::deque<DataIndex> contexts_ = {};
     std::deque<uint64_t> originTs_ = {};
 };
-class NativeHookSampleBase : public CacheBase {
+class NativeHookSampleBase : public CacheBase, public BatchCacheBase {
 public:
     void AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint32_t itid, uint64_t timeStamp);
     void AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint64_t timeStamp);
@@ -804,6 +882,47 @@ public:
         allMemSizes_.clear();
         currentSizeDurs_.clear();
     }
+    void ClearPrevData()
+    {
+        auto clearSize = prevSize;
+        EraseElements(internalTids_, timeStamps_, ids_, callChainIds_, ipids_, lastCallerPathIndexs_, lastSymbolIndexs_,
+                      eventTypes_, subTypes_, endTimeStamps_, durations_, addrs_, memSizes_, allMemSizes_,
+                      currentSizeDurs_);
+        for (auto itor = addrToAllocEventRow_.begin(); itor != addrToAllocEventRow_.end();) {
+            if (itor->second < clearSize) {
+                itor = addrToAllocEventRow_.erase(itor);
+            } else {
+                itor->second -= clearSize;
+                itor++;
+            }
+        }
+        for (auto itor = addrToMmapEventRow_.begin(); itor != addrToMmapEventRow_.end();) {
+            if (itor->second < clearSize) {
+                itor = addrToMmapEventRow_.erase(itor);
+            } else {
+                itor->second -= clearSize;
+                itor++;
+            }
+        }
+        lastMallocEventRaw_ -= clearSize;
+        lastMmapEventRaw_ -= clearSize;
+    }
+    std::unordered_map<uint64_t, uint64_t>* GetAddrToAllocEventRow()
+    {
+        return &addrToAllocEventRow_;
+    }
+    std::unordered_map<uint64_t, uint64_t>* GetAddrToMmapEventRow()
+    {
+        return &addrToMmapEventRow_;
+    }
+    uint64_t& GetLastMallocEventRaw()
+    {
+        return lastMallocEventRaw_;
+    }
+    uint64_t& GetLastMmapEventRaw()
+    {
+        return lastMmapEventRaw_;
+    }
 
 private:
     std::deque<std::string> eventTypes_ = {};
@@ -820,9 +939,13 @@ private:
     const std::string FREE_EVENT = "FreeEvent";
     const std::string MMAP_EVENT = "MmapEvent";
     const std::string MUNMAP_EVENT = "MunmapEvent";
+    std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
+    std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
+    uint64_t lastMallocEventRaw_ = INVALID_UINT64;
+    uint64_t lastMmapEventRaw_ = INVALID_UINT64;
 };
 
-class NativeHookFrame {
+class NativeHookFrame : public BatchCacheBase {
 public:
     size_t AppendNewNativeHookFrame(uint32_t callChainId,
                                     uint16_t depth,
@@ -872,6 +995,10 @@ public:
         symbolOffsets_.clear();
         vaddrs_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(callChainIds_, depths_, ips_, symbolNames_, filePaths_, offsets_, symbolOffsets_, vaddrs_);
+    }
 
 private:
     std::deque<uint32_t> callChainIds_ = {};
@@ -911,6 +1038,11 @@ public:
         applySizes_.clear();
         releaseSizes_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(internalTids_, timeStamps_, ids_, callChainIds_, ipids_, lastCallerPathIndexs_, lastSymbolIndexs_,
+                      memoryTypes_, applyCounts_, releaseCounts_, applySizes_, releaseSizes_);
+    }
 
 private:
     std::deque<uint32_t> memoryTypes_ = {};
@@ -921,10 +1053,19 @@ private:
     std::deque<uint64_t> releaseSizes_ = {};
 };
 
-class Hidump : public CacheBase {
+class Hidump : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewHidumpInfo(uint64_t timeStamp, uint32_t fps);
     const std::deque<uint32_t>& Fpss() const;
+    void Clear()
+    {
+        CacheBase::Clear();
+        fpss_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, fpss_);
+    }
 
 private:
     std::deque<uint32_t> fpss_ = {};
@@ -944,8 +1085,8 @@ public:
     const std::deque<uint64_t>& VaddrInFiles() const;
     const std::deque<uint64_t>& FileIds() const;
     const std::deque<uint64_t>& SymbolIds() const;
-    const std::deque<std::string>& Names() const;
-    void SetName(uint64_t index, const std::string& name);
+    const std::deque<DataIndex>& Names() const;
+    void SetName(uint64_t index, DataIndex name);
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void Clear() override;
 
@@ -956,7 +1097,7 @@ private:
     std::deque<uint64_t> vaddrInFiles_ = {};
     std::deque<uint64_t> fileIds_ = {};
     std::deque<uint64_t> symbolIds_ = {};
-    std::deque<std::string> names_ = {};
+    std::deque<DataIndex> names_ = {};
 };
 
 class PerfFiles : public CacheBase {
@@ -1047,8 +1188,11 @@ private:
     std::string statSeverityDesc_[TRACE_EVENT_MAX][STAT_EVENT_MAX];
     StatSeverityLevel statSeverity_[TRACE_EVENT_MAX][STAT_EVENT_MAX];
     TraceStreamerConfig config_{};
+#ifdef SUPPORTTHREAD
+    SpinLock spinlock_;
+#endif
 };
-class SymbolsData {
+class SymbolsData : public BatchCacheBase {
 public:
     SymbolsData() = default;
     ~SymbolsData() = default;
@@ -1066,7 +1210,7 @@ private:
     std::deque<uint64_t> addrs_ = {};
     std::deque<DataIndex> funcName_ = {};
 };
-class DiskIOData : public CacheBase {
+class DiskIOData : public CacheBase, public BatchCacheBase {
 public:
     DiskIOData() = default;
     ~DiskIOData() = default;
@@ -1089,6 +1233,24 @@ public:
     const std::deque<double>& WrCountPerSecDatas() const;
     const std::deque<uint64_t>& RdCountDatas() const;
     const std::deque<uint64_t>& WrCountDatas() const;
+    void Clear()
+    {
+        CacheBase::Clear();
+        durs_.clear();
+        rdDatas_.clear();
+        wrDatas_.clear();
+        wrPerSec_.clear();
+        rdPerSec_.clear();
+        wrCountPerSec_.clear();
+        rdCountPerSec_.clear();
+        rdCountDatas_.clear();
+        wrCountDatas_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, durs_, rdDatas_, wrDatas_, wrPerSec_, rdPerSec_, wrCountPerSec_, rdCountPerSec_,
+                      rdCountDatas_, wrCountDatas_);
+    }
 
 private:
     std::deque<uint64_t> durs_ = {};
@@ -1134,7 +1296,7 @@ private:
     std::deque<std::string> columnNames_ = {};
     std::deque<std::string> values_ = {};
 };
-class DataDict {
+class DataDict : public BatchCacheBase {
 public:
     size_t Size() const
     {
@@ -1163,7 +1325,7 @@ private:
     const int8_t SPASCII_START = 0;
     const int8_t SPASCII_END = 32;
 };
-class NetDetailData : public CacheBase {
+class NetDetailData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewNetData(uint64_t newTimeStamp,
                             uint64_t tx,
@@ -1198,6 +1360,11 @@ public:
         packetOut_.clear();
         packetOutSec_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, durs_, rxSpeeds_, txSpeeds_, netTypes_, packetIn_, packetInSec_, packetOut_,
+                      packetOutSec_);
+    }
 
 private:
     std::deque<uint64_t> rxs_ = {};
@@ -1211,7 +1378,7 @@ private:
     std::deque<double> packetOutSec_ = {};
     std::deque<std::string> netTypes_ = {};
 };
-class LiveProcessDetailData : public CacheBase {
+class LiveProcessDetailData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewData(uint64_t newTimeStamp,
                          uint64_t dur,
@@ -1253,6 +1420,11 @@ public:
         diskWrites_.clear();
         diskReads_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, durs_, processID_, processName_, parentProcessID_, uid_, userName_, cpuUsage_,
+                      pssInfo_, threads_, diskWrites_, diskReads_);
+    }
 
 private:
     std::deque<uint64_t> durs_ = {};
@@ -1268,7 +1440,7 @@ private:
     std::deque<int64_t> diskReads_ = {};
     std::deque<uint64_t> cpuTimes_ = {};
 };
-class CpuUsageDetailData : public CacheBase {
+class CpuUsageDetailData : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewData(uint64_t newTimeStamp,
                          uint64_t dur,
@@ -1289,6 +1461,10 @@ public:
         userLoad_.clear();
         systemLoad_.clear();
         threads_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, durs_, totalLoad_, userLoad_, systemLoad_, threads_);
     }
 
 private:
@@ -1550,7 +1726,7 @@ private:
     std::deque<uint64_t> stSizes_ = {};
 };
 #endif
-class HiSysEventSubkeys : public CacheBase {
+class HiSysEventSubkeys : public CacheBase, public BatchCacheBase {
 public:
     uint32_t AppendSysEventSubkey(DataIndex eventSource, DataIndex appName);
     const std::deque<DataIndex>& SysEventNameId() const;
@@ -1561,12 +1737,16 @@ public:
         sysEventNameIds_.clear();
         subkeyNameIds_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, sysEventNameIds_, subkeyNameIds_);
+    }
 
 private:
     std::deque<DataIndex> sysEventNameIds_ = {};
     std::deque<DataIndex> subkeyNameIds_ = {};
 };
-class HiSysEventMeasureData : public CacheBase {
+class HiSysEventMeasureData : public CacheBase, public BatchCacheBase {
 public:
     void AppendData(uint64_t serial,
                     uint64_t ts,
@@ -1593,6 +1773,10 @@ public:
         numValues_.clear();
         stringValues_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, serial_, ts_, nameFilterIds_, appKeyFilterIds_, types_, numValues_, stringValues_);
+    }
 
 private:
     std::deque<uint64_t> serial_ = {};
@@ -1604,7 +1788,7 @@ private:
     std::deque<DataIndex> stringValues_ = {};
     uint32_t rowCount_ = 0;
 };
-class HiSysEventDeviceStateData : public CacheBase {
+class HiSysEventDeviceStateData : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(int32_t brightness,
                        int32_t btState,
@@ -1670,6 +1854,12 @@ public:
         recordings_.clear();
         streamAlls_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, brightness_, btStates_, locations_, wifis_, streamDefaults_, voiceCalls_, musics_,
+                      streamRings_, medias_, voiceAssistants_, systems_, alarms_, notifications_, btScos_,
+                      enforcedAudibles_, streamDtmfs_, streamTts_, accessibilitys_, recordings_, streamAlls_);
+    }
 
 private:
     std::deque<uint32_t> stringValues_ = {};
@@ -1695,7 +1885,7 @@ private:
     std::deque<int32_t> streamAlls_ = {};
     uint32_t rowCounts_ = 0;
 };
-class TraceConfig : public CacheBase {
+class TraceConfig : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(std::string traceSource, std::string key, std::string value);
     const std::deque<std::string>& TraceSource() const;
@@ -1708,6 +1898,10 @@ public:
         key_.clear();
         value_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, traceSource_, key_, value_);
+    }
 
 private:
     std::deque<std::string> traceSource_ = {};
@@ -1715,7 +1909,7 @@ private:
     std::deque<std::string> value_ = {};
     uint32_t rowCounts_ = 0;
 };
-class HiSysEventAllEventData : public CacheBase {
+class HiSysEventAllEventData : public CacheBase, public BatchCacheBase {
 public:
     uint32_t AppendHiSysEventData(DataIndex domainId,
                                   DataIndex eventNameId,
@@ -1744,6 +1938,28 @@ public:
     const std::deque<uint64_t>& Seqs() const;
     const std::deque<std::string>& Infos() const;
     const std::deque<std::string>& Contents() const;
+    void Clear()
+    {
+        CacheBase::Clear();
+        domainIds_.clear();
+        eventNameIds_.clear();
+        types_.clear();
+        timeZones_.clear();
+        pids_.clear();
+        tids_.clear();
+        uids_.clear();
+        levels_.clear();
+        tags_.clear();
+        eventIds_.clear();
+        seqs_.clear();
+        infos_.clear();
+        contents_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, domainIds_, eventNameIds_, types_, timeZones_, pids_, tids_, uids_, levels_,
+                      tags_, eventIds_, seqs_, infos_, contents_);
+    }
 
 private:
     std::deque<DataIndex> domainIds_ = {};
@@ -1760,7 +1976,7 @@ private:
     std::deque<std::string> infos_ = {};
     std::deque<std::string> contents_ = {};
 };
-class SmapsData : public CacheBase {
+class SmapsData : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(uint64_t timeStamp,
                        uint64_t ipid,
@@ -1823,6 +2039,12 @@ public:
         swapPss_.clear();
         type_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, ipids_, startAddrs_, endAddrs_, dirtys_, swappers_, rss_, pss_, sizes_,
+                      resides_, protectionIds_, pathIds_, sharedClean_, sharedDirty_, privateClean_, privateDirty_,
+                      swap_, swapPss_, type_);
+    }
 
 private:
     std::deque<uint64_t> ipids_ = {};
@@ -1859,7 +2081,6 @@ public:
                        uint64_t blockNumber,
                        uint64_t filePathId,
                        uint64_t durPer4k);
-    const std::deque<uint64_t>& Id() const;
     const std::deque<uint32_t>& CallChainIds() const;
     const std::deque<uint64_t>& Types() const;
     const std::deque<uint32_t>& Ipids() const;
@@ -1966,7 +2187,7 @@ private:
     std::map<DataSourceType, std::string> dataSource2PluginNameMap_ = {};
 };
 
-class FrameSlice : public CacheBase {
+class FrameSlice : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendFrame(uint64_t ts, uint32_t ipid, uint32_t itid, uint32_t vsyncId, uint64_t callStackSliceId);
     size_t AppendFrame(uint64_t ts,
@@ -1999,6 +2220,11 @@ public:
     {
         return abnormalStartEndTimeState_;
     }
+    void ClearPrevData()
+    {
+        EraseElements(internalTids_, timeStamps_, ids_, ipids_, dsts_, srcs_, vsyncIds_, callStackIds_, endTss_, durs_,
+                      types_, flags_, depths_, frameNos_);
+    }
 
 public:
     typedef enum FrameSliceType { ACTURAL_SLICE, EXPECT_SLICE } FrameSliceType;
@@ -2018,18 +2244,22 @@ private:
     const uint32_t INVALID_ROW = 2;
     static const uint32_t abnormalStartEndTimeState_ = 3;
 };
-class FrameMaps : public CacheBase {
+class FrameMaps : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst);
     const std::deque<uint64_t>& SrcIndexs() const;
     const std::deque<uint64_t>& DstIndexs() const;
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, srcs_, dsts_);
+    }
 
 private:
     std::deque<uint64_t> srcs_ = {};
     std::deque<uint64_t> dsts_ = {};
 };
 
-class AppStartup : public CacheBase {
+class AppStartup : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewData(uint32_t ipid,
                          uint32_t tid,
@@ -2057,6 +2287,10 @@ public:
         startNames_.clear();
         packedNames_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, ipids_, tids_, callIds_, startTimes_, endTimes_, startNames_, packedNames_);
+    }
 
 private:
     std::deque<uint32_t> ipids_ = {};
@@ -2068,7 +2302,7 @@ private:
     std::deque<DataIndex> packedNames_ = {};
 };
 
-class SoStaticInitalization : public CacheBase {
+class SoStaticInitalization : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNewData(uint32_t ipid,
                          uint32_t tid,
@@ -2095,6 +2329,10 @@ public:
         endTimes_.clear();
         soNames_.clear();
         depths_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, ipids_, tids_, callIds_, startTimes_, endTimes_, soNames_, depths_);
     }
 
 private:
@@ -2493,19 +2731,23 @@ private:
     std::deque<uint64_t> durs_ = {};
 };
 
-class GPUSlice {
+class GPUSlice : public BatchCacheBase {
 public:
     size_t AppendNew(uint32_t frameRow, uint64_t dur);
     const std::deque<uint32_t>& FrameRows() const;
     const std::deque<uint64_t>& Durs() const;
     size_t Size() const;
+    void ClearPrevData()
+    {
+        EraseElements(frameRows_, durs_);
+    }
 
 private:
     std::deque<uint32_t> frameRows_ = {};
     std::deque<uint64_t> durs_ = {};
 };
 
-class TaskPoolInfo : public CacheBase {
+class TaskPoolInfo : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendAllocationTaskData(uint32_t allocationTaskRow,
                                     uint32_t allocationItid,
@@ -2549,6 +2791,11 @@ public:
         returnStates_.clear();
         timeoutRows_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(ids_, allocationTaskRows_, executeTaskRows_, returnTaskRows_, allocationItids_, executeItids_,
+                      returnItids_, executeIds_, prioritys_, executeStates_, returnStates_, timeoutRows_);
+    }
 
 private:
     std::deque<uint32_t> allocationTaskRows_ = {};
@@ -2563,7 +2810,7 @@ private:
     std::deque<uint32_t> returnStates_ = {};
     std::deque<uint32_t> timeoutRows_ = {};
 };
-class Animation {
+class Animation : public BatchCacheBase {
 public:
     TableRowId AppendAnimation(InternalTime inputTime, InternalTime startPoint, DataIndex nameIndex);
     void UpdateStartPoint(TableRowId index, InternalTime startPoint);
@@ -2577,6 +2824,10 @@ public:
     const std::deque<DataIndex>& Names() const;
     const std::deque<uint64_t>& IdsData() const;
     void Clear();
+    void ClearPrevData()
+    {
+        EraseElements(inputTimes_, startPoints_, endPoins_, frameInfos_, names_, ids_);
+    }
 
 private:
     std::deque<InternalTime> inputTimes_ = {};
@@ -2601,7 +2852,7 @@ private:
     uint32_t physicalHeight_ = INVALID_UINT32;
     uint32_t physicalFrameRate_ = INVALID_UINT32;
 };
-class DynamicFrame {
+class DynamicFrame : public BatchCacheBase {
 public:
     TableRowId AppendDynamicFrame(DataIndex nameId);
     void UpdateNameIndex(TableRowId index, DataIndex nameId);
@@ -2618,6 +2869,10 @@ public:
     const std::deque<DataIndex>& Names() const;
     const std::deque<InternalTime>& EndTimes() const;
     void Clear();
+    void ClearPrevData()
+    {
+        EraseElements(xs_, ys_, widths_, heights_, alphas_, names_, endTimes_, ids_);
+    }
 
 private:
     std::deque<uint32_t> xs_ = {};
@@ -2630,7 +2885,7 @@ private:
     std::deque<uint64_t> ids_ = {};
 };
 
-class AshMemData : public CacheBase {
+class AshMemData : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(InternalPid ipid,
                        uint64_t ts,
@@ -2671,6 +2926,11 @@ public:
         flags_.clear();
     }
     void SetFlag(uint64_t rowId, uint32_t flag);
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, ipids_, adjs_, fds_, ashmemNameIds_, sizes_, psss_, ashmemIds_, times_,
+                      refCounts_, purgeds_, flags_);
+    }
 
 private:
     std::deque<InternalPid> ipids_ = {};
@@ -2687,7 +2947,7 @@ private:
     uint32_t rowCount_ = 0;
 };
 
-class DmaMemData : public CacheBase {
+class DmaMemData : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(InternalPid ipid,
                        uint64_t ts,
@@ -2722,6 +2982,11 @@ public:
         flags_.clear();
     }
     void SetFlag(uint64_t rowId, uint32_t flag);
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, ipids_, fds_, sizes_, inos_, expPids_, expTaskCommIds_, bufNameIds_,
+                      expNameIds_, flags_);
+    }
 
 private:
     std::deque<InternalPid> ipids_ = {};
@@ -2736,7 +3001,7 @@ private:
     uint32_t rowCount_ = 0;
 };
 
-class GpuProcessMemData : public CacheBase {
+class GpuProcessMemData : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(uint64_t ts,
                        DataIndex gpuNameId,
@@ -2761,6 +3026,10 @@ public:
         itids_.clear();
         usedGpuSizes_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, gpuNameIds_, allGpuSizes_, addrs_, ipids_, itids_, usedGpuSizes_);
+    }
 
 private:
     std::deque<DataIndex> gpuNameIds_ = {};
@@ -2772,7 +3041,7 @@ private:
     uint32_t rowCount_ = 0;
 };
 
-class GpuWindowMemData : public CacheBase {
+class GpuWindowMemData : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(uint64_t ts,
                        DataIndex windowNameId,
@@ -2803,6 +3072,11 @@ public:
         purgeableSizes_.clear();
         ipids_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, windowNameIds_, windowIds_, moduleNameIds_, categoryNameIds_, sizes_, counts_,
+                      purgeableSizes_, ipids_);
+    }
 
 private:
     std::deque<DataIndex> windowNameIds_ = {};
@@ -2815,7 +3089,7 @@ private:
     std::deque<InternalPid> ipids_ = {};
     uint32_t rowCount_ = 0;
 };
-class CpuDumpInfo : public CacheBase {
+class CpuDumpInfo : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(uint64_t timestamp, uint64_t size);
     const std::deque<uint64_t>& TotalSizes() const;
@@ -2824,11 +3098,15 @@ public:
         CacheBase::Clear();
         totalSizes_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, totalSizes_);
+    }
 
 private:
     std::deque<uint64_t> totalSizes_ = {};
 };
-class ProfileMemInfo : public CacheBase {
+class ProfileMemInfo : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(uint64_t timestamp, DataIndex channelIndex, uint64_t size);
     const std::deque<uint64_t>& ChannelIndexs() const;
@@ -2839,12 +3117,16 @@ public:
         channelIndexs_.clear();
         totalSizes_.clear();
     }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, channelIndexs_, totalSizes_);
+    }
 
 private:
     std::deque<DataIndex> channelIndexs_ = {};
     std::deque<uint64_t> totalSizes_ = {};
 };
-class RSImageDumpInfo : public CacheBase {
+class RSImageDumpInfo : public CacheBase, public BatchCacheBase {
 public:
     void AppendNewData(uint64_t timestamp, uint64_t memSize, DataIndex typeIndex, InternalPid ipid, DataIndex name);
     const std::deque<uint64_t>& MemSizes() const;
@@ -2858,6 +3140,10 @@ public:
         typeIndexs_.clear();
         ipids_.clear();
         surfaceNameIndexs_.clear();
+    }
+    void ClearPrevData()
+    {
+        EraseElements(timeStamps_, ids_, memSizes_, typeIndexs_, ipids_, surfaceNameIndexs_);
     }
 
 private:

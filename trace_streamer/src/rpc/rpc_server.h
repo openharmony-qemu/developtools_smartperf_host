@@ -19,11 +19,13 @@
 #include <functional>
 #include <mutex>
 #include "trace_streamer_selector.h"
+#include "ffrt_converter.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class RpcServer {
 public:
     using ResultCallBack = std::function<void(const std::string /* result */, int32_t)>;
+    using ExportDatabaseCallback = std::function<void(const std::string /* result */, int32_t)>;
     using ParseELFFileCallBack = std::function<void(const std::string, int32_t)>;
     using SendDataCallBack = std::function<void(const char*, int32_t, int32_t)>;
     using SplitFileCallBack = std::function<void(const std::string /* result */, int32_t, int32_t)>;
@@ -34,7 +36,6 @@ public:
                             int32_t isFinish,
                             SplitFileCallBack splitFileCallBack,
                             bool isSplitFile);
-    bool ParserFileTimeSnap(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool SqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
@@ -46,6 +47,7 @@ public:
     int32_t WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen);
     bool SqlMetricsQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
     int32_t WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
+    int32_t WasmSqlQueryToProtoCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
     int32_t UpdateTraceTime(const uint8_t* data, int32_t len);
     int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
@@ -60,7 +62,15 @@ public:
                             uint32_t pageNum,
                             SplitFileCallBack splitFileCallBack);
     bool GetTimeSnap(std::string dataString);
+    bool GetFfrtConvertStatus()
+    {
+        return ffrtConvertEnabled_;
+    };
+    bool DetermineSystrace(const uint8_t* data, size_t len);
 #ifdef IS_WASM
+    bool SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
+    bool ReadAndParseData(const std::string& filePath);
+    bool SendConvertedFfrtFile(const std::string& fileName, ResultCallBack resultCallBack);
     int32_t DownloadELFCallback(const std::string& fileName,
                                 size_t totalLen,
                                 const uint8_t* data,
@@ -72,11 +82,13 @@ public:
 
 private:
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
-
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;
     std::vector<std::string> symbolsPathFiles_;
     std::vector<std::unique_ptr<TraceTimeSnap>> vTraceTimeSnap_;
+    bool ffrtConvertEnabled_ = false;
+    int64_t startParseTime_ = 0;
+    int64_t endParseTime_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

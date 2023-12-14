@@ -44,14 +44,8 @@ import { Utils } from '../trace/base/Utils';
 import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { type ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
 import { CpuAbilityMonitorStruct, CpuAbilityRender } from '../../database/ui-worker/ProcedureWorkerCpuAbility';
-import {
-  MemoryAbilityMonitorStruct,
-  MemoryAbilityRender,
-} from '../../database/ui-worker/ProcedureWorkerMemoryAbility';
-import {
-  DiskAbilityMonitorStruct,
-  DiskIoAbilityRender,
-} from '../../database/ui-worker/ProcedureWorkerDiskIoAbility';
+import { MemoryAbilityMonitorStruct, MemoryAbilityRender } from '../../database/ui-worker/ProcedureWorkerMemoryAbility';
+import { DiskAbilityMonitorStruct, DiskIoAbilityRender } from '../../database/ui-worker/ProcedureWorkerDiskIoAbility';
 import {
   NetworkAbilityMonitorStruct,
   NetworkAbilityRender,

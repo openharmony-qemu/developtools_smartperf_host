@@ -27,18 +27,25 @@
 #include "codec_cov.h"
 #include "file.h"
 #include "log.h"
+#include "sph_data.pb.h"
 #include "sqlite3.h"
 #include "sqlite_ext/sqlite_ext_funcs.h"
 #include "string_help.h"
+#include "sqllite_prepar_cache_data.h"
+#include "ts_common.h"
 
-const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
 namespace SysTuning {
 namespace TraceStreamer {
+const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
+constexpr int32_t DEFAULT_LEN_ROW_STRING = 1024;
+
+enum DBFiledType : uint8_t { INT = 0, TEXT };
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
     } while (0)
 using namespace SysTuning::base;
+
 TraceDataDB::TraceDataDB() : db_(nullptr)
 {
     if (sqlite3_threadsafe() > 0) {
@@ -95,7 +102,97 @@ void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
     remove(wasmDBName_.c_str());
     wasmDBName_.clear();
 }
-
+int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
+{
+    {
+        int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
+        if (!fd) {
+            fprintf(stdout, "Failed to create file: %s", outputName.c_str());
+            return 1;
+        }
+        auto ret = ftruncate(fd, 0);
+        UNUSED(ret);
+        close(fd);
+    }
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
+        if (*itor == "meta" && !exportMetaTable_) {
+            continue;
+        } else {
+            std::string exportSql("CREATE TABLE systuning_export." + (*itor) + "_ AS SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
+        }
+    }
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+    return 0;
+}
+void TraceDataDB::CloseBatchDB()
+{
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+}
+int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
+{
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
+        if (*itor == "meta" && !exportMetaTable_) {
+            continue;
+        } else {
+            if (needClearTable_.count(*itor)) {
+                std::string clearSql("DELETE FROM systuning_export." + (*itor) + "_");
+                ExecuteSql(clearSql);
+            }
+            std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
+        }
+    }
+    std::string createArgsView =
+        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+        "A.datatype==1 then V.data else A.value end) as strValue from args_ as A left join data_type_ as D on "
+        "(D.typeId "
+        "= A.datatype) left join data_dict_ as V on V.id = A.value left join data_dict_ as V2 on V2.id = A.key";
+    ExecuteSql(createArgsView);
+    std::string updateProcessName =
+        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not null and "
+        "is_main_thread = 1)";
+    ExecuteSql(updateProcessName);
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+    return 0;
+}
+void TraceDataDB::RevertTableName(const std::string& outputName)
+{
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+    for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
+        if (*itor == "meta" && !exportMetaTable_) {
+            continue;
+        } else {
+            std::string revertTableNameSql("ALTER TABLE systuning_export." + (*itor) + "_ RENAME TO  " + (*itor));
+            ExecuteSql(revertTableNameSql);
+        }
+    }
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+}
 int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack)
 {
     {
@@ -309,6 +406,32 @@ int32_t TraceDataDB::OperateDatabase(const std::string& sql)
     return ret;
 }
 
+int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data, ResultCallBack resultCallBack)
+{
+    TS_CHECK_TRUE(data.size() > sizeof(uint32_t) && resultCallBack != nullptr, 1,
+                  "data.size(%zu) <= sizeof(uint32_t) or resultCallBack is nullptr", data.size());
+    uint32_t type = INVALID_UINT32;
+    auto sqlItor = data.begin() + sizeof(uint32_t);
+    std::copy(data.begin(), sqlItor, reinterpret_cast<uint8_t*>(&type));
+    std::string sql(sqlItor, data.end());
+    TS_LOGI("type(%u), sql(%s)", type, sql.data());
+    Prepare();
+    sqlite3_stmt* stmt = nullptr;
+    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtScope(stmt, SqliteFinalize);
+    int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
+    TS_CHECK_TRUE(ret == SQLITE_OK, ret, "sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
+    SqllitePreparCacheData sqllitePreparCacheData;
+    auto sphQueryFuncMap = sqllitePreparCacheData.GetSphQueryFuncMap();
+    auto queryFuncItor = sphQueryFuncMap.find(type);
+    if (queryFuncItor != sphQueryFuncMap.end()) {
+        queryFuncItor->second(stmt, type, resultCallBack);
+    } else {
+        TS_LOGE("Can't find sph query type:%u", type);
+        return 1;
+    }
+    return ret;
+}
+
 std::string TraceDataDB::SearchDatabase(const std::string& sql)
 {
     Prepare();
@@ -333,9 +456,8 @@ std::string TraceDataDB::SearchDatabase(const std::string& sql)
     res.pop_back();
     res += "],\"values\":[";
     bool hasRow = false;
-    constexpr int32_t defaultLenRowString = 1024;
     std::string row;
-    row.reserve(defaultLenRowString);
+    row.reserve(DEFAULT_LEN_ROW_STRING);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
@@ -379,9 +501,8 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resul
     res.pop_back(); // remove the last ","
     res += "],\"values\":[";
     bool hasRow = false;
-    constexpr int32_t defaultLenRowString = 1024;
     std::string row;
-    row.reserve(defaultLenRowString);
+    row.reserve(DEFAULT_LEN_ROW_STRING);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
@@ -404,12 +525,7 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
 {
     Prepare();
     sqlite3_stmt* stmt = nullptr;
-    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, [](sqlite3_stmt* ptr) {
-        if (ptr != nullptr) {
-            sqlite3_finalize(ptr);
-            ptr = nullptr;
-        }
-    });
+    std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     stmtLocal.reset(stmt);
     if (ret != SQLITE_OK) {
@@ -449,9 +565,8 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     }
     pos += retSnprintf;
     bool hasRow = false;
-    constexpr int32_t defaultLenRowString = 1024;
     std::string row;
-    row.reserve(defaultLenRowString);
+    row.reserve(DEFAULT_LEN_ROW_STRING);
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
@@ -509,6 +624,13 @@ void TraceDataDB::GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string
     }
     rowStr.pop_back(); // remove the last ','
     rowStr += "]";
+}
+void TraceDataDB::SqliteFinalize(sqlite3_stmt* ptr)
+{
+    if (ptr != nullptr) {
+        sqlite3_finalize(ptr);
+        ptr = nullptr;
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

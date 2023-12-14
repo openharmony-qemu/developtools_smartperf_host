@@ -155,7 +155,7 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
 
 void BytraceParser::ParseTraceDataItem(const std::string& buffer)
 {
-    if (!supportThread_) {
+    if (!supportThread_ || traceDataCache_->isSplitFile_) {
         dataSegArray_[rawDataHead_].seg = std::move(buffer);
         ParserData(dataSegArray_[rawDataHead_]);
         return;
@@ -188,25 +188,22 @@ void BytraceParser::ParseTraceDataItem(const std::string& buffer)
 int32_t BytraceParser::GetNextSegment()
 {
     int32_t head;
-    dataSegMux_.lock();
+    std::unique_lock<std::mutex> muxLockGuard(dataSegMux_);
     head = parseHead_;
     DataSegment& seg = dataSegArray_[head];
     if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
             TS_LOGI("exiting parser, parserThread Count:%d\n", parserThreadCount_);
-            dataSegMux_.unlock();
             if (!parserThreadCount_ && !filterThreadStarted_) {
                 exited_ = true;
             }
             return ERROR_CODE_EXIT;
         }
         if (seg.status.load() == TS_PARSE_STATUS_PARSING) {
-            dataSegMux_.unlock();
             usleep(sleepDur_);
             return ERROR_CODE_NODATA;
         }
-        dataSegMux_.unlock();
         TS_LOGD("ParseThread watting:\t%d, parseHead_:\t%d, filterHead_:\t%d status:\t%d\n", rawDataHead_, parseHead_,
                 filterHead_, seg.status.load());
         usleep(sleepDur_);
@@ -214,7 +211,6 @@ int32_t BytraceParser::GetNextSegment()
     }
     parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
     seg.status = TS_PARSE_STATUS_PARSING;
-    dataSegMux_.unlock();
     return head;
 }
 
@@ -298,7 +294,7 @@ void BytraceParser::ParserData(DataSegment& seg)
         return;
     }
 
-    if (!supportThread_) {
+    if (!supportThread_ || traceDataCache_->isSplitFile_) {
         FilterData(seg);
         return;
     }
@@ -319,7 +315,7 @@ void BytraceParser::FilterThread()
 }
 bool BytraceParser::FilterData(DataSegment& seg)
 {
-    if (!supportThread_) {
+    if (!supportThread_ || traceDataCache_->isSplitFile_) {
         if (seg.status.load() != TS_PARSE_STATUS_INVALID) {
             eventParser_->ParseDataItem(seg.bufLine);
             seg.status = TS_PARSE_STATUS_INIT;

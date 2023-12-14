@@ -24,6 +24,7 @@ RpcServer g_wasmTraceStreamer;
 extern "C" {
 using ReplyFunction = void (*)(const char* data, uint32_t len, int32_t finish);
 ReplyFunction g_reply;
+ReplyFunction g_ffrtConvertedReply;
 uint8_t* g_reqBuf;
 uint32_t g_reqBufferSize;
 
@@ -47,12 +48,17 @@ using ParseELFFunction = void (*)(const char* data, uint32_t len, int32_t finish
 ParseELFFunction g_parseELFCallback;
 uint8_t* g_FileNameBuf;
 uint32_t g_FileNameSize;
+bool g_IsSystrace = false;
+bool g_hasDeterminedSystrace = false;
 
 void ResultCallback(const std::string& jsonResult, int32_t finish)
 {
     g_reply(jsonResult.data(), jsonResult.size(), finish);
 }
-
+void FfrtConvertedResultCallback(const std::string& content, int32_t finish)
+{
+    g_ffrtConvertedReply(content.data(), content.size(), finish);
+}
 void SplitFileCallback(const std::string& jsonResult, int32_t dataType, int32_t finish)
 {
     g_splitFile(jsonResult.data(), jsonResult.size(), dataType, finish);
@@ -62,9 +68,12 @@ void ParseELFCallback(const std::string& SODataResult, int32_t finish)
 {
     g_parseELFCallback(SODataResult.data(), SODataResult.size(), finish);
 }
-EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction,
+                                         uint32_t reqBufferSize,
+                                         ReplyFunction ffrtConvertedReply)
 {
     g_reply = replyFunction;
+    g_ffrtConvertedReply = ffrtConvertedReply;
     g_reqBuf = new uint8_t[reqBufferSize];
     g_reqBufferSize = reqBufferSize;
     return g_reqBuf;
@@ -205,7 +214,13 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseData(const uint8_t* data, int32_t
 // return 0 while ok, -1 while failed
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFinish)
 {
-    if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
+    if (!g_hasDeterminedSystrace) {
+        g_IsSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
+        g_hasDeterminedSystrace = true;
+    }
+    if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_IsSystrace) {
+        return g_wasmTraceStreamer.SaveAndParseFfrtData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
+    } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }
     return -1;
@@ -258,6 +273,10 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQuery(const uint8_t* sql, int32_t s
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQueryEx(int32_t sqlLen)
 {
     return g_wasmTraceStreamer.WasmSqlQueryWithCallback(g_reqBuf, sqlLen, &ResultCallback);
+}
+EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQueryToProtoCallback(int32_t sqlLen)
+{
+    return g_wasmTraceStreamer.WasmSqlQueryToProtoCallback(g_reqBuf, sqlLen, &ResultCallback);
 }
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlMetricsQuery(int32_t sqlLen)
 {

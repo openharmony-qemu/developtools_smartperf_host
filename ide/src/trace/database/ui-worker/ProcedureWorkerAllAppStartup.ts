@@ -19,87 +19,87 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { querySingleAppStartupsName } from '../SqlLite';
 
 export class AllAppStartupRender {
-    renderMainThread(
-        req: {
-            appStartupContext: CanvasRenderingContext2D;
-            useCache: boolean;
-            type: string;
-        },
-        appStartUpRow: TraceRow<AllAppStartupStruct>
-    ): void {
-        let list = appStartUpRow.dataList;
-        let filter = appStartUpRow.dataListCache;
-        dataFilterHandler(list, filter, {
-            startKey: 'startTs',
-            durKey: 'dur',
-            startNS: TraceRow.range?.startNS ?? 0,
-            endNS: TraceRow.range?.endNS ?? 0,
-            totalNS: TraceRow.range?.totalNS ?? 0,
-            frame: appStartUpRow.frame,
-            paddingTop: 5,
-            useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
-        });
-        req.appStartupContext.globalAlpha = 0.6;
-        let find = false;
-        let offset = 3;
-        for (let re of filter) {
-            AllAppStartupStruct.draw(req.appStartupContext, re);
-            if (appStartUpRow.isHover) {
-                if (
-                    re.frame &&
-                    appStartUpRow.hoverX >= re.frame.x - offset &&
-                    appStartUpRow.hoverX <= re.frame.x + re.frame.width + offset
-                ) {
-                    AllAppStartupStruct.hoverStartupStruct = re;
-                    find = true;
-                }
-            }
+  renderMainThread(
+    req: {
+      appStartupContext: CanvasRenderingContext2D;
+      useCache: boolean;
+      type: string;
+    },
+    appStartUpRow: TraceRow<AllAppStartupStruct>
+  ): void {
+    let list = appStartUpRow.dataList;
+    let filter = appStartUpRow.dataListCache;
+    dataFilterHandler(list, filter, {
+      startKey: 'startTs',
+      durKey: 'dur',
+      startNS: TraceRow.range?.startNS ?? 0,
+      endNS: TraceRow.range?.endNS ?? 0,
+      totalNS: TraceRow.range?.totalNS ?? 0,
+      frame: appStartUpRow.frame,
+      paddingTop: 5,
+      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+    });
+    req.appStartupContext.globalAlpha = 0.6;
+    let find = false;
+    let offset = 3;
+    for (let re of filter) {
+      AllAppStartupStruct.draw(req.appStartupContext, re);
+      if (appStartUpRow.isHover) {
+        if (
+          re.frame &&
+          appStartUpRow.hoverX >= re.frame.x - offset &&
+          appStartUpRow.hoverX <= re.frame.x + re.frame.width + offset
+        ) {
+          AllAppStartupStruct.hoverStartupStruct = re;
+          find = true;
         }
-        if (!find && appStartUpRow.isHover) {
-            AllAppStartupStruct.hoverStartupStruct = undefined;
-        }
+      }
     }
+    if (!find && appStartUpRow.isHover) {
+      AllAppStartupStruct.hoverStartupStruct = undefined;
+    }
+  }
 }
 
 
 export class AllAppStartupStruct extends BaseStruct {
-    static hoverStartupStruct: AllAppStartupStruct | undefined;
-    static selectStartupStruct: AllAppStartupStruct | undefined;
-    dur: number | undefined;
-    value: string | undefined;
-    startTs: number | undefined;
-    pid: number | undefined;
-    process: string | undefined;
-    itid: number | undefined;
-    endItid: number | undefined;
-    tid: number | undefined;
-    startName: number | undefined;
-    stepName: string | undefined;
+  static hoverStartupStruct: AllAppStartupStruct | undefined;
+  static selectStartupStruct: AllAppStartupStruct | undefined;
+  dur: number | undefined;
+  value: string | undefined;
+  startTs: number | undefined;
+  pid: number | undefined;
+  process: string | undefined;
+  itid: number | undefined;
+  endItid: number | undefined;
+  tid: number | undefined;
+  startName: number | undefined;
+  stepName: string | undefined;
 
-    static draw(ctx: CanvasRenderingContext2D, data: AllAppStartupStruct): void {
-        if (data.frame) {
-            ctx.globalAlpha = 1.0;
-            ctx.fillStyle = ColorUtils.colorForTid(data.startName!);
-            ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
-            if (data.frame.width > 7) {
-                ctx.textBaseline = 'middle';
-                ctx.lineWidth = 1;
-                let draAppName: string | undefined = '';
-                if(data.stepName){
-                    draAppName = `${data.stepName} (${(data.dur! / 1000000).toFixed(2)}ms)`;  
-                }
-                let textColor =
-                  ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.stepName || '', 0, ColorUtils.FUNC_COLOR.length)];
-                ctx.fillStyle = ColorUtils.funcTextColor(textColor);
-                drawString(ctx, draAppName, 2, data.frame, data);
-            }
-            if (data === AllAppStartupStruct.selectStartupStruct) {
-                ctx.strokeStyle = '#232c5d';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
-            }
+  static draw(ctx: CanvasRenderingContext2D, data: AllAppStartupStruct): void {
+    if (data.frame) {
+      ctx.globalAlpha = 1.0;
+      ctx.fillStyle = ColorUtils.colorForTid(data.startName!);
+      ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
+      if (data.frame.width > 7) {
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 1;
+        let draAppName: string | undefined = '';
+        if (data.stepName) {
+          draAppName = `${data.stepName} (${(data.dur! / 1000000).toFixed(2)}ms)`;
         }
+        let textColor =
+          ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.stepName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        ctx.fillStyle = ColorUtils.funcTextColor(textColor);
+        drawString(ctx, draAppName, 2, data.frame, data);
+      }
+      if (data === AllAppStartupStruct.selectStartupStruct) {
+        ctx.strokeStyle = '#232c5d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
+      }
     }
+  }
 
     static async getStartupName(pid: number): Promise<string> {
         let singleAppName = await querySingleAppStartupsName(pid);

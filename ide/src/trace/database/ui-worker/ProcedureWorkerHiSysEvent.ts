@@ -101,7 +101,7 @@ export function hiSysEvent(
   }
 }
 
-export class HiSysEventStruct extends BaseStruct{
+export class HiSysEventStruct extends BaseStruct {
   static hoverHiSysEventStruct: HiSysEventStruct | undefined;
   static selectHiSysEventStruct: HiSysEventStruct | undefined;
   id: number | undefined;
@@ -132,8 +132,10 @@ export class HiSysEventStruct extends BaseStruct{
     } else {
       x1 = 0;
     }
-    if ((sysEventNode.ts || 0) + (sysEventNode.dur || 0) >= startNS && (sysEventNode.ts || 0) +
-      (sysEventNode.dur || 0) <= endNS) {
+    if (
+      (sysEventNode.ts || 0) + (sysEventNode.dur || 0) >= startNS &&
+      (sysEventNode.ts || 0) + (sysEventNode.dur || 0) <= endNS
+    ) {
       x2 = ns2x((sysEventNode.ts || 0) + (sysEventNode.dur || 0), startNS, endNS, totalNS, frame);
     } else {
       x2 = frame.width;
@@ -161,4 +163,3 @@ export class HiSysEventStruct extends BaseStruct{
 }
 const padding = 5;
 const rectHeight = 10;
-

@@ -17,11 +17,7 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
-import {
-    queryAppStartupProcessIds,
-    queryProcessStartup,
-    querySingleAppStartupsName,
-} from '../../database/SqlLite';
+import { queryAppStartupProcessIds, queryProcessStartup, querySingleAppStartupsName } from '../../database/SqlLite';
 import { FlagsConfig } from '../SpFlags';
 import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
@@ -40,6 +36,9 @@ export class SpAllAppStartupsChart {
 
 
 
+  constructor(trace: SpSystemTrace) {
+    SpAllAppStartupsChart.trace = trace;
+  }
 
     async init() {
         SpAllAppStartupsChart.APP_STARTUP_PID_ARR = [];
@@ -58,6 +57,9 @@ export class SpAllAppStartupsChart {
         let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
         if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
     }
+    let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
+    if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
+  }
 
     async initFolder() {
         let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
@@ -116,27 +118,50 @@ export class SpAllAppStartupsChart {
                     }
                 )
             }
-            return sendRes
+          });
+        } else if (tmpResArr.length === 1) {
+          minStartTs = tmpResArr[0].startTs;
+          singleDur = tmpResArr[0].dur;
         }
+        sendRes.push({
+          dur: singleDur,
+          value: undefined,
+          startTs: minStartTs,
+          pid: SpAllAppStartupsChart.allAppStartupsAva[i],
+          process: undefined,
+          itid: undefined,
+          endItid: undefined,
+          tid: SpAllAppStartupsChart.allAppStartupsAva[i],
+          startName: undefined,
+          stepName: SpAllAppStartupsChart.AllAppStartupsNameArr[i],
+          translateY: undefined,
+          frame: undefined,
+          isHover: false,
+        });
+      }
+      return sendRes;
+    };
 
-        row.onThreadHandler = (useCache): void => {
-            let context: CanvasRenderingContext2D;
-            if (row.currentContext) {
-                context = row.currentContext;
-            } else {
-                context = row.collect ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx! : SpAllAppStartupsChart.trace.canvasPanelCtx!;
-            }
-            row.canvasSave(context);
-            (renders['all-app-start-up'] as AllAppStartupRender).renderMainThread(
-                {
-                    appStartupContext: context,
-                    useCache: useCache,
-                    type: `app-startup ${row.rowId}`,
-                },
-                row
-            );
-            row.canvasRestore(context);
-        };
-        SpAllAppStartupsChart.trace.rowsEL?.appendChild(row);
-    }
+    row.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (row.currentContext) {
+        context = row.currentContext;
+      } else {
+        context = row.collect
+          ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx!
+          : SpAllAppStartupsChart.trace.canvasPanelCtx!;
+      }
+      row.canvasSave(context);
+      (renders['all-app-start-up'] as AllAppStartupRender).renderMainThread(
+        {
+          appStartupContext: context,
+          useCache: useCache,
+          type: `app-startup ${row.rowId}`,
+        },
+        row
+      );
+      row.canvasRestore(context);
+    };
+    SpAllAppStartupsChart.trace.rowsEL?.appendChild(row);
+  }
 }

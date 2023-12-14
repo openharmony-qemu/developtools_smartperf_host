@@ -28,6 +28,8 @@ import { SpApplication } from '../../../../SpApplication';
 import { log } from '../../../../../log/Log';
 import '../../../../../base-ui/slicer/lit-slicer';
 import { Cmd } from '../../../../../command/Cmd';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+
 
 @element('tabpane-perf-sample')
 export class TabPanePerfSample extends BaseElement {
@@ -86,6 +88,9 @@ export class TabPanePerfSample extends BaseElement {
             sample.backtrace.push('No Effective Call Stack');
           } else {
             sample.depth = call.depth;
+            if (typeof call.name === 'number'){
+              call.name = SpSystemTrace.DATA_DICT.get(call.name) || '';
+            }
             sample.backtrace.push(call.name);
             sample.backtrace.push(`(${sample.depth} other frames)`);
           }
@@ -99,6 +104,9 @@ export class TabPanePerfSample extends BaseElement {
   setRightTableData(sample: PerfSample) {
     queryPerfSampleCallChain(sample.sampleId).then((result) => {
       for (let stack of result) {
+        if (typeof stack.symbol === 'number'){
+          stack.symbol = SpSystemTrace.DATA_DICT.get(stack.symbol) || '';
+        }
         let files = (perfDataQuery.filesData[stack.fileId] ?? []) as Array<PerfFile>;
         stack.path = files[stack.symbolId]?.path || '';
         stack.type = stack.path.endsWith('.so.1') || stack.path.endsWith('.dll') || stack.path.endsWith('.so') ? 0 : 1;

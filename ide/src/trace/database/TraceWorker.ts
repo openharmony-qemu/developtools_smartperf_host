@@ -14,7 +14,7 @@
  */
 
 importScripts('trace_streamer_builtin.js');
-import {temp_init_sql_list} from "./TempSql";
+import { temp_init_sql_list } from './TempSql';
 
 let Module: any = null;
 let enc = new TextEncoder();
@@ -38,6 +38,7 @@ let arkTsDataSize: number = 0;
 
 let currentAction: string = '';
 let currentActionId: string = '';
+let ffrtFileCacheKey = '-1';
 
 function clear() {
   if (Module != null) {
@@ -167,6 +168,23 @@ let convertJSON = () => {
   }
 };
 
+function saveTraceFileBuffer(key: string, buffer: ArrayBuffer): void {
+  caches.open(key).then((cache) => {
+    let headers = new Headers();
+    headers.append('Content-Length', `${buffer.byteLength}`);
+    headers.append('Content-Type', 'application/octet-stream');
+    cache
+      .put(
+        key,
+        new Response(buffer, {
+          status: 200,
+          headers: headers,
+        })
+      )
+      .then();
+  });
+}
+
 self.onmessage = async (e: MessageEvent) => {
   currentAction = e.data.action;
   currentActionId = e.data.id;
@@ -174,6 +192,7 @@ self.onmessage = async (e: MessageEvent) => {
     clear();
   } else if (e.data.action === 'open') {
     await initWASM();
+    ffrtFileCacheKey = '-1';
     // @ts-ignore
     self.postMessage({
       id: e.data.id,
@@ -190,8 +209,21 @@ self.onmessage = async (e: MessageEvent) => {
         bufferSlice.length = 0;
       }
     };
-    let fn = Module.addFunction(callback, 'viii');
-    reqBufferAddr = Module._Initialize(fn, REQ_BUF_SIZE);
+    let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number) => {
+      if (isEnd !== 1) {
+        let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+        bufferSlice.push(out);
+      } else {
+        arr = merged();
+        bufferSlice.length = 0;
+        ffrtFileCacheKey = `ffrt/${new Date().getTime()}`;
+        saveTraceFileBuffer(ffrtFileCacheKey, arr.buffer);
+      }
+    };
+    let fn1 = Module.addFunction(callback, 'viii');
+    let fn2 = Module.addFunction(ffrtConvertCallback, 'viii');
+    Module._TraceStreamer_Set_Log_Level(5);
+    reqBufferAddr = Module._Initialize(fn1, REQ_BUF_SIZE, fn2);
     let parseConfig = e.data.parseConfig;
     if (parseConfig !== '') {
       let parseConfigArray = enc.encode(parseConfig);
@@ -285,17 +317,17 @@ self.onmessage = async (e: MessageEvent) => {
     let rowTraceStr = Array.from(new Uint32Array(e.data.buffer.slice(0, 4)));
     if (rowTraceStr[0] === 57161) {
       let commonDataOffsetList: Array<{
-        startOffset: number
-        endOffset: number
+        startOffset: number;
+        endOffset: number;
       }> = [];
       let offset = 12;
       let tlvTypeLength = 4;
       let headArray = uint8Array.slice(0, offset);
       let commonTotalLength = 0;
       while (offset < uint8Array.length) {
-        let commonDataOffset  = {
+        let commonDataOffset = {
           startOffset: offset,
-          endOffset: offset
+          endOffset: offset,
         };
         let dataTypeData = e.data.buffer.slice(offset, offset + tlvTypeLength);
         offset += tlvTypeLength;
@@ -315,7 +347,7 @@ self.onmessage = async (e: MessageEvent) => {
       frontData.set(headArray, 0);
       let lengthOffset = headArray.byteLength;
       // common Data
-      commonDataOffsetList.forEach(item => {
+      commonDataOffsetList.forEach((item) => {
         let commonData = uint8Array.slice(item.startOffset, item.endOffset);
         frontData.set(commonData, lengthOffset);
         lengthOffset += commonData.byteLength;
@@ -330,7 +362,7 @@ self.onmessage = async (e: MessageEvent) => {
         const dataSlice = final.subarray(wrSize, wrSize + sliceLen);
         Module.HEAPU8.set(dataSlice, reqBufferAddr);
         wrSize += sliceLen;
-        r2 = Module._TraceStreamerParseDataEx(sliceLen);
+        r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === final.length ? 1 : 0);
         if (r2 == -1) {
           break;
         }
@@ -341,11 +373,7 @@ self.onmessage = async (e: MessageEvent) => {
         const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
         Module.HEAPU8.set(dataSlice, reqBufferAddr);
         wrSize += sliceLen;
-        if (wrSize >= uint8Array.length) {
-          r2 = Module._TraceStreamerParseDataEx(sliceLen, 1);
-        } else {
-          r2 = Module._TraceStreamerParseDataEx(sliceLen, 0);
-        }
+        r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === uint8Array.length ? 1 : 0);
         if (r2 == -1) {
           break;
         }
@@ -355,7 +383,7 @@ self.onmessage = async (e: MessageEvent) => {
     for (let value of thirdWasmMap.values()) {
       value.model._TraceStreamer_In_ParseDataOver();
     }
-    if (r2 == -1) {
+    if (r2 === -1) {
       // @ts-ignore
       self.postMessage({
         id: e.data.id,
@@ -370,6 +398,7 @@ self.onmessage = async (e: MessageEvent) => {
       // @ts-ignore
       self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
     });
+
     self.postMessage(
       {
         id: e.data.id,
@@ -378,6 +407,7 @@ self.onmessage = async (e: MessageEvent) => {
         msg: 'ok',
         configSqlMap: thirdJsonResult,
         buffer: e.data.buffer,
+        fileKey: ffrtFileCacheKey,
       },
       // @ts-ignore
       [e.data.buffer]
@@ -604,7 +634,10 @@ self.onmessage = async (e: MessageEvent) => {
                     isBeforeCutFinish = false;
                     nowCutInfoList.length = 0;
                   }
-                  if (cutInfo.offset + cutInfo.size - startOffset >= (maxSize * 10) || needCutIndex === needCutMessage.length - 1) {
+                  if (
+                    cutInfo.offset + cutInfo.size - startOffset >= maxSize * 10 ||
+                    needCutIndex === needCutMessage.length - 1
+                  ) {
                     nowCutInfoList.push(cutInfo);
                     let nowStartCutOffset = nowCutInfoList[0].offset;
                     let nowEndCutOffset = cutInfo.offset + cutInfo.size;
@@ -757,7 +790,12 @@ async function splitFileAndSave(
     const transaction = db.transaction(STORE_NAME, 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const index = store.index('QueryCompleteFile');
-    let range = IDBKeyRange.bound([timStamp, fileType, 0, queryStartIndex], [timStamp, fileType, 0, queryEndIndex], false, false);
+    let range = IDBKeyRange.bound(
+      [timStamp, fileType, 0, queryStartIndex],
+      [timStamp, fileType, 0, queryEndIndex],
+      false,
+      false
+    );
     const getRequest = index.openCursor(range);
     let res = await queryDataFromIndexeddb(getRequest);
     queryStartIndex = queryEndIndex + 1;

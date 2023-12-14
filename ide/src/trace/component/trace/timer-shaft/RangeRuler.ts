@@ -239,7 +239,7 @@ export class RangeRuler extends Graph {
       if (rangeYu !== 0) {
         let first_NodeWidth = ((this.scale - rangeYu) / this.scale) * rangeRealW;
         rangeStartX += first_NodeWidth;
-        tempNs += (this.scale - rangeYu);
+        tempNs += this.scale - rangeYu;
         this.range.xs.push(rangeStartX);
         this.range.xsTxt.push(ns2UnitS(tempNs + this.range.startNS, this.scale));
       }
@@ -415,7 +415,7 @@ export class RangeRuler extends Graph {
     this.setCacheInterval(new Date().getTime() - this.animaStartTime);
   }
 
-  setCacheInterval(offsetTime:number) {
+  setCacheInterval(offsetTime: number) {
     if (Math.trunc(offsetTime / this.cacheInterval.interval) !== this.cacheInterval.value) {
       this.cacheInterval.flag = true;
       this.cacheInterval.value = Math.trunc(offsetTime / this.cacheInterval.interval);
@@ -485,14 +485,17 @@ export class RangeRuler extends Graph {
 
   keyPress(keyboardEvent: KeyboardEvent, currentSlicesTime?: CurrentSlicesTime) {
     //第一个按键或者最后一个按下的和当前按键不一致
-    if (this.pressedKeys.length == 0 || this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()) {
+    if (
+      this.pressedKeys.length == 0 ||
+      this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()
+    ) {
       if (currentSlicesTime) {
         this.currentSlicesTime = currentSlicesTime;
       }
       this.cancelPressFrame();
       this.cancelUpFrame();
       this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
-      this.animaStartTime = new Date().getTime();//记录按下的时间
+      this.animaStartTime = new Date().getTime(); //记录按下的时间
       this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
     }
     this.isPress = true;
@@ -682,8 +685,8 @@ export class RangeRuler extends Graph {
     this.zoomFit(startTime, endTime);
   }
 
-  fixReg = 76;//速度上线
-  f = 11;//加速度系数,值越小加速度越大
+  fixReg = 76; //速度上线
+  f = 11; //加速度系数,值越小加速度越大
   keyPressW() {
     let animW = () => {
       let offset = Date.now() - this.animaStartTime!;
@@ -695,11 +698,11 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = (offset) / this.f;//reg
+      this.currentDuration = offset / this.f; //reg
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
-      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
-      this.range.startNS += (this.centerXPercentage * bb * this.scale);
-      this.range.endNS -= ((1 - this.centerXPercentage) * bb * this.scale);
+      let bb = Math.tan((Math.PI / 180) * this.currentDuration);
+      this.range.startNS += this.centerXPercentage * bb * this.scale;
+      this.range.endNS -= (1 - this.centerXPercentage) * bb * this.scale;
       this.fillX();
       this.draw();
       this.range.refresh = false;
@@ -719,11 +722,11 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = (offset) / this.f
+      this.currentDuration = offset / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
-      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
-      this.range.startNS -= ((this.centerXPercentage * bb * this.scale));
-      this.range.endNS += (((1 - this.centerXPercentage) * bb * this.scale));
+      let bb = Math.tan((Math.PI / 180) * this.currentDuration);
+      this.range.startNS -= this.centerXPercentage * bb * this.scale;
+      this.range.endNS += (1 - this.centerXPercentage) * bb * this.scale;
       this.fillX();
       this.draw();
       this.range.refresh = false;
@@ -743,9 +746,9 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = (offset) / this.f
+      this.currentDuration = offset / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
-      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
+      let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       let s = this.scale * bb;
       this.range.startNS -= s;
       this.range.endNS -= s;
@@ -768,9 +771,9 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = (offset) / this.f
+      this.currentDuration = offset / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
-      let bb = Math.tan(Math.PI / 180 * this.currentDuration);
+      let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       let s = this.scale * bb;
       this.range.startNS += s;
       this.range.endNS += s;
@@ -823,9 +826,9 @@ export class RangeRuler extends Graph {
       }
       let dur = new Date().getTime() - startTime;
       if (dur > 150) dur = 150;
-      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.2) * this.scale;
-      this.range.startNS += (this.centerXPercentage * offset);
-      this.range.endNS -= ((1 - this.centerXPercentage) * offset);
+      let offset = Math.tan((Math.PI / 180) * (150 - dur) * 0.2) * this.scale;
+      this.range.startNS += this.centerXPercentage * offset;
+      this.range.endNS -= (1 - this.centerXPercentage) * offset;
       this.fillX();
       this.draw();
       this.range.refresh = false;
@@ -848,9 +851,9 @@ export class RangeRuler extends Graph {
       }
       let dur = new Date().getTime() - startTime;
       if (dur > 150) dur = 150;
-      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.2) * this.scale;
-      this.range.startNS -= (this.centerXPercentage * offset);
-      this.range.endNS += ((1 - this.centerXPercentage) * offset);
+      let offset = Math.tan((Math.PI / 180) * (150 - dur) * 0.2) * this.scale;
+      this.range.startNS -= this.centerXPercentage * offset;
+      this.range.endNS += (1 - this.centerXPercentage) * offset;
       this.fillX();
       this.draw();
       this.range.refresh = false;
@@ -873,7 +876,7 @@ export class RangeRuler extends Graph {
       }
       let dur = new Date().getTime() - startTime;
       if (dur > 150) dur = 150;
-      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.15) * this.scale;
+      let offset = Math.tan((Math.PI / 180) * (150 - dur) * 0.15) * this.scale;
       this.range.startNS -= offset;
       this.range.endNS -= offset;
       this.fillX();
@@ -904,7 +907,7 @@ export class RangeRuler extends Graph {
         return;
       }
       let dur = new Date().getTime() - startTime;
-      let offset = Math.tan(Math.PI / 180 * (150 - dur) * 0.15) * this.scale;
+      let offset = Math.tan((Math.PI / 180) * (150 - dur) * 0.15) * this.scale;
       this.range.startNS += offset;
       this.range.endNS += offset;
       this.fillX();

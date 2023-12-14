@@ -18,7 +18,7 @@ import { PerfCall, PerfFile } from '../../bean/PerfProfile';
 import { info } from '../../../log/Log';
 import { SpHiPerf } from './SpHiPerf';
 import { procedurePool } from '../../database/Procedure';
-import {PerfCallChain} from "../../database/logic-worker/ProcedureLogicWorkerPerf";
+import { SpSystemTrace } from '../SpSystemTrace';
 
 export class PerfDataQuery {
   filesData: any = {};
@@ -41,8 +41,12 @@ export class PerfDataQuery {
       PerfFile.setFileName(file);
       this.filesData[file.fileId].push(file);
     });
+    const data = {
+      fValue : SpHiPerf.stringResult?.fValue,
+      dataDict : SpSystemTrace.DATA_DICT
+    }
     let results = await new Promise<any>((resolve, reject) => {
-      procedurePool.submitWithName('logic0', 'perf-init', SpHiPerf.stringResult, undefined, (res: any) => {
+      procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: any) => {
         resolve(res);
       });
     });

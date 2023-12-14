@@ -475,7 +475,7 @@ export class LitTable extends HTMLElement {
       tables: this.ds,
       fileName: `${date.getTime()}`,
       columnFormatter: this.itemTextHandleMap,
-      exportFormatter: this.exportTextHandleMap
+      exportFormatter: this.exportTextHandleMap,
     }).then((res) => {
       this.exportLoading = false;
       this.exportProgress!.loading = false;

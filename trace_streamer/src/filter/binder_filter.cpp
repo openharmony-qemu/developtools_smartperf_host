@@ -200,7 +200,6 @@ void BinderFilter::Clear()
     transReplyWaitingReply_.clear();
     transNeedReply_.clear();
     asyncBinderEvents_.clear();
-    binderFlagDescs_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

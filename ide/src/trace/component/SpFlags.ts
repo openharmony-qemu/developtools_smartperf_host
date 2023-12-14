@@ -253,6 +253,11 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'support Cpu State Binder-Runnable',
     },
+    {
+      title: 'FfrtConvert',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: 'Ffrt Convert templates',
+    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

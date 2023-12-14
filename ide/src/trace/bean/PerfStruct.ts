@@ -16,21 +16,14 @@
 const ROW_TYPE = 'hiperf';
 
 export class PerfFireChartStruct {
-  thread_id:number;
+  thread_id: number;
   name: string;
   depth: number;
   selfTime: number;
   totalTime: number;
   id: number;
 
-  constructor(
-    id: number,
-    name: string,
-    depth: number,
-    selfTime: number,
-    totalTime: number,
-    thread_id:number,
-  ) {
+  constructor(id: number, name: string, depth: number, selfTime: number, totalTime: number, thread_id: number) {
     this.id = id;
     this.name = name;
     this.depth = depth;
@@ -48,7 +41,7 @@ export class HiPerfChartFrame extends PerfFireChartStruct {
   isSelect: boolean = false;
   line: number = 0;
   column: number = 0;
-  thread_id: number=0;
+  thread_id: number = 0;
 
   constructor(
     id: number,
@@ -57,9 +50,9 @@ export class HiPerfChartFrame extends PerfFireChartStruct {
     endTime: number,
     totalTime: number,
     depth: number,
-    thread_id:number,
+    thread_id: number
   ) {
-    super(id, name, depth, 0, totalTime,thread_id);
+    super(id, name, depth, 0, totalTime, thread_id);
     this.id = id;
     this.startTime = startTime;
     this.endTime = endTime;

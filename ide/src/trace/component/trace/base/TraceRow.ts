@@ -252,13 +252,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   set funcExpand(b: boolean) {
     this.setAttribute('func-expand', b ? 'true' : 'false');
   }
-  get sticky():boolean{
+  get sticky(): boolean {
     return this.hasAttribute('sticky');
   }
-  set sticky(fixed:boolean){
+  set sticky(fixed: boolean) {
     if (fixed) {
       this.setAttribute('sticky', '');
-    }else{
+    } else {
       this.removeAttribute('sticky');
     }
   }
@@ -474,9 +474,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   addTemplateTypes(...type: string[]): void {
-    type.forEach(item => {
+    type.forEach((item) => {
       this.templateType.add(item);
-    })
+    });
     if (this.hasParentRowEl) {
       this.toParentAddTemplateType(this);
     }
@@ -485,7 +485,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   toParentAddTemplateType = (currentRowEl: TraceRow<any>): void => {
     let parentRow = currentRowEl.parentRowEl;
     if (parentRow !== undefined) {
-      currentRowEl.templateType.forEach(item => {
+      currentRowEl.templateType.forEach((item) => {
         parentRow!.templateType.add(item);
       });
       if (parentRow.parentRowEl !== undefined) {
@@ -709,7 +709,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.checkType = '-1';
   }
 
-  addRowSettingPop(): void{
+  addRowSettingPop(): void {
     this.rowSettingPop = document.createElement('lit-popover') as LitPopover;
     this.rowSettingPop.innerHTML = `<div slot="content" id="settingList" style="display: block;height: auto;max-height:200px;overflow-y:auto">
       <lit-tree id="rowSettingTree" checkable="true"></lit-tree>
@@ -738,7 +738,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl?.appendChild(this.rowSettingPop);
   }
 
-  getRowSettingKeys() : Array<string> {
+  getRowSettingKeys(): Array<string> {
     if (this.rowSetting === 'enable') {
       return this.rowSettingTree!.getCheckdKeys();
     }
@@ -757,7 +757,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  enableCollapseChart() : void {
+  enableCollapseChart(): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
       if (this.funcExpand) {

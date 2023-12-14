@@ -98,6 +98,7 @@ ohos_source_set("trace_streamer_source") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [
     "cfg/trace_streamer_config.cpp",
+    "rpc/ffrt_converter.cpp",
     "rpc/http_server.cpp",
     "rpc/http_socket.cpp",
     "rpc/rpc_server.cpp",

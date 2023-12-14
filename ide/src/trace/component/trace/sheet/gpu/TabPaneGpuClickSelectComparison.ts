@@ -12,15 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { element } from '../../../../../base-ui/BaseElement';
 import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { queryGpuDataByTs } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
-import { SpSystemTrace } from '../../../SpSystemTrace';
-import { Utils } from '../../base/Utils';
 import { compare, CompareStruct, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
@@ -69,7 +67,12 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     let title = type === 'total' ? 'Module / Category' : 'Window / Module / Category';
     let titleArr = title.split('/');
     if (td) {
-      td.innerHTML = '';
+      let labelEls = td.querySelectorAll('label');
+      if (labelEls) {
+        for (let el of labelEls) {
+          td.removeChild(el);
+        }
+      }
       for (let i = 0; i < titleArr.length; i++) {
         let label = document.createElement('label');
         label.style.cursor = 'pointer';
@@ -138,6 +141,8 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     this.gpuComparisonSource = (type === 'total' ? items[0].children : items) || [];
     this.comparisonSortData = this.gpuComparisonSource;
     this.gpuComparisonTbl!.recycleDataSource = this.gpuComparisonSource;
+    let labels = this.gpuComparisonTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    this.theadClick(this.gpuComparisonTbl!, this.gpuComparisonSource);
     this.gpuComparisonTbl!.loading = false;
   }
 
@@ -178,9 +183,9 @@ export class TabPaneGpuClickSelectComparison extends TabPaneGpuClickSelect {
     }
     </style>
     <lit-table id="tb-gpu" style="height: auto" tree>
-            <lit-table-column width="50%" title="" data-index="name" key="name" align="flex-start" order>
+            <lit-table-column width="50%" title="" data-index="name" key="name" align="flex-start" order retract>
             </lit-table-column>
-            <lit-table-column width="1fr" title="SizeDelta" data-index="sizeStr" key="sizeDelta"  align="flex-start" order >
+            <lit-table-column width="1fr" title="SizeDelta" data-index="sizeStr" key="sizeDelta"  align="flex-start" order>
             </lit-table-column>
     </lit-table>
     <tab-pane-js-memory-filter id="filter" first hideFilter ></tab-pane-js-memory-filter>

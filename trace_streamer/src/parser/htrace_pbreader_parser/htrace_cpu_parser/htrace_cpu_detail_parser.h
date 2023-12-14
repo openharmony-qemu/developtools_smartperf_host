@@ -34,7 +34,10 @@ class HtraceCpuDetailParser {
 public:
     HtraceCpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceCpuDetailParser();
-    void Parse(HtraceDataSegment& tracePacket, BuiltinClocks clock, bool& haveSplitSeg);
+    void Parse(HtraceDataSegment& tracePacket,
+               ProtoReader::TracePluginResult_Reader& tracePluginResult,
+               bool& haveSplitSeg);
+    void FilterAllEventsReader();
     void FilterAllEvents();
 
 private:

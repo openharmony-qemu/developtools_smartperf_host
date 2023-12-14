@@ -220,6 +220,23 @@ void TraceStreamerSelector::SetDataType(TraceFileType type)
         rawTraceParser_ = std::make_unique<RawTraceParser>(traceDataCache_.get(), streamFilters_.get());
     }
 }
+// only support parse long trace profiler_data_xxxxxxxx_xxxxxx_x.htrace
+bool TraceStreamerSelector::BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size)
+{
+    if (size == 0) {
+        return true;
+    }
+    if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
+        fileType_ = GuessFileType(data.get(), size);
+        if (fileType_ != TRACE_FILETYPE_H_TRACE) {
+            TS_LOGE("File type is not supported in this mode!");
+            return false;
+        }
+        htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
+    }
+    htraceParser_->ParseTraceDataSegment(std::move(data), size);
+    return true;
+}
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
                                                   size_t size,
                                                   bool isSplitFile,
@@ -286,7 +303,19 @@ int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName, Tra
     traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportDatabase(outputName, resultCallBack);
 }
-
+int32_t TraceStreamerSelector::CreatEmptyBatchDB(const std::string dbPath)
+{
+    return traceDataCache_->CreatEmptyBatchDB(dbPath);
+}
+int32_t TraceStreamerSelector::BatchExportDatabase(const std::string& outputName)
+{
+    traceDataCache_->UpdateTraceRange();
+    return traceDataCache_->BatchExportDatabase(outputName);
+}
+void TraceStreamerSelector::RevertTableName(const std::string& outputName)
+{
+    return traceDataCache_->RevertTableName(outputName);
+}
 int32_t TraceStreamerSelector::ExportPerfReadableText(const std::string& outputName,
                                                       TraceDataDB::ResultCallBack resultCallBack)
 {
@@ -332,6 +361,11 @@ int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
 int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
+}
+int32_t TraceStreamerSelector::SearchDatabaseToProto(const std::string& data,
+                                                     TraceDataDB::ResultCallBack resultCallBack)
+{
+    return traceDataCache_->SearchDatabaseToProto(data, resultCallBack);
 }
 int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
 {

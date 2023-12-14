@@ -186,7 +186,7 @@ int32_t NativeHookTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
+            sqlite3_result_int64(context_, static_cast<int32_t>(nativeHookObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
             if (nativeHookObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {

@@ -15,7 +15,6 @@
 #ifndef PAGED_MEMORY_DATA_PARSER_H
 #define PAGED_MEMORY_DATA_PARSER_H
 #include "clock_filter_ex.h"
-#include "double_map.h"
 #include "ebpf_base.h"
 #include "ebpf_data_reader.h"
 #include "ebpf_stdtype.h"

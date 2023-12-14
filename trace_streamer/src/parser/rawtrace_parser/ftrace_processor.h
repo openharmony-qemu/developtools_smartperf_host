@@ -20,9 +20,9 @@
 #include <vector>
 #include "cpu_detail_parser.h"
 #include "ftrace_common_type.h"
+#include "ftrace_event_processor.h"
 #include "ftrace_field_processor.h"
 #include "printk_formats_processor.h"
-#include "ftrace_event_processor.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

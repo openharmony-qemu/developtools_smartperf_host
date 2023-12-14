@@ -49,14 +49,14 @@ export class SpHilogRecord extends BaseElement {
     this.processSelectEl = this.shadowRoot?.querySelector('.record-process-select') as LitAllocationSelect;
     this.logsSelectEl = this.shadowRoot?.querySelector('.record-logs-select') as LitSelect;
     let hiLogConfigList = this.shadowRoot?.querySelectorAll<HTMLDivElement>('.hilog-config-top');
-    this.vmTrackerSwitch.addEventListener('change', ()=>{
+    this.vmTrackerSwitch.addEventListener('change', () => {
       let configVisibility = 'none';
       if (this.vmTrackerSwitch?.checked) {
         configVisibility = 'block';
       }
       if (hiLogConfigList) {
         console.log(configVisibility);
-        hiLogConfigList!.forEach(configEl => {
+        hiLogConfigList!.forEach((configEl) => {
           configEl.style.display = configVisibility;
         });
       }
@@ -176,11 +176,12 @@ export class SpHilogRecord extends BaseElement {
                   <span class="config-title-des">Record logs level</span>
                 </div>
                 <lit-select default-value="" rounded="" class="record-logs-select config-select" canInsert="" title="Select Log Level" rounded placement = "bottom" placeholder=" ">
-                  ${this.getHiLogLevel().map(
-                    (level, index): string =>
-                      '<lit-select-option class="div-button" value="' + level + '">' + level + '</lit-select-option>'
-                  )
-                  .join('')}
+                  ${this.getHiLogLevel()
+                    .map(
+                      (level, index): string =>
+                        '<lit-select-option class="div-button" value="' + level + '">' + level + '</lit-select-option>'
+                    )
+                    .join('')}
                 </lit-select>
                
               </div>

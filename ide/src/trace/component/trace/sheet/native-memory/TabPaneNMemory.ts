@@ -319,7 +319,10 @@ export class TabPaneNMemory extends BaseElement {
                     args.set('startTs', this.rowSelectData.startTs);
                     args.set('actionType', 'native-memory-state-change');
                     this.startNmMemoryWorker('native-memory-action', args, (results: any[]) => {});
-                    TabPaneNMSampleList.addSampleData(this.rowSelectData,this.currentSelection!.nativeMemoryCurrentIPid);
+                    TabPaneNMSampleList.addSampleData(
+                      this.rowSelectData,
+                      this.currentSelection!.nativeMemoryCurrentIPid
+                    );
                     this.memoryTbl!.scrollToData(this.rowSelectData);
                   }
                 }

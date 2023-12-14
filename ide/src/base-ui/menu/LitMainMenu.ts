@@ -61,18 +61,19 @@ export class LitMainMenu extends BaseElement {
           if (item.second) {
             secondGroup.setAttribute('second', '');
           } else {
-            secondGroup.removeAttribute('second')
+            secondGroup.removeAttribute('second');
           }
           if (item.collapsed) {
-            secondGroup.setAttribute('collapsed', '')
+            secondGroup.setAttribute('collapsed', '');
           } else {
-            secondGroup.removeAttribute('collapsed')
+            secondGroup.removeAttribute('collapsed');
           }
-          group?.appendChild(secondGroup)
+          group?.appendChild(secondGroup);
           item.children?.forEach((v: any) => {
             let th = new LitMainMenuItem();
             th.setAttribute('icon', v.icon || '');
-            th.setAttribute('title', v.title || '');if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
+            th.setAttribute('title', v.title || '');
+            if (this.getAttribute('main_menu') === '1' && window.localStorage.getItem('Theme') === 'dark') {
               groupName.style.color = 'white';
               groupDescribe.style.color = 'white';
               th!.style.color = 'white';
@@ -99,8 +100,8 @@ export class LitMainMenu extends BaseElement {
             if (v.disabled != undefined) {
               th.disabled = v.disabled;
             }
-            secondGroup.appendChild(th)
-          })
+            secondGroup.appendChild(th);
+          });
         } else {
           let th = new LitMainMenuItem();
           th.setAttribute('icon', item.icon || '');
@@ -134,7 +135,6 @@ export class LitMainMenu extends BaseElement {
           }
           group?.appendChild(th);
         }
-
       });
     });
   }
@@ -144,7 +144,7 @@ export class LitMainMenu extends BaseElement {
     st?.addEventListener('slotchange', (e) => {
       this.slotElements = st?.assignedElements();
       this.slotElements?.forEach((it) => {
-        it.querySelectorAll('lit-main-menu-item').forEach((cell) => { });
+        it.querySelectorAll('lit-main-menu-item').forEach((cell) => {});
       });
     });
     let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');

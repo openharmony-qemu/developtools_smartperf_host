@@ -1,4 +1,3 @@
-
 {
   "subsystems": [
     {
@@ -7,25 +6,37 @@
         {
           "component": "Cpu",
           "charts": [
-            {"chartName": "Cpu", "chartId": ""}
+            {
+              "chartName": "Cpu",
+              "chartId": ""
+            }
           ]
         },
         {
           "component": "Cpu Frequency",
           "charts": [
-            {"chartName": "Cpu Frequency", "chartId": ""}
+            {
+              "chartName": "Cpu Frequency",
+              "chartId": ""
+            }
           ]
         },
         {
           "component": "Cpu State",
           "charts": [
-            {"chartName": "Cpu State", "chartId": ""}
+            {
+              "chartName": "Cpu State",
+              "chartId": ""
+            }
           ]
         },
         {
           "component": "Cpu Freq Limit",
           "charts": [
-            {"chartName": "Cpu Freq Limit", "chartId": ""}
+            {
+              "chartName": "Cpu Freq Limit",
+              "chartId": ""
+            }
           ]
         }
       ]
@@ -36,7 +47,10 @@
         {
           "component": "Irqs",
           "charts": [
-            {"chartName": "Irqs", "chartId": ""}
+            {
+              "chartName": "Irqs",
+              "chartId": ""
+            }
           ]
         }
       ]
@@ -47,9 +61,13 @@
         {
           "component": "FrameTimeline",
           "charts": [
-            {"chartName": "FrameTimeline", "chartId": ""}
+            {
+              "chartName": "FrameTimeline",
+              "chartId": ""
+            }
           ]
         }
       ]
-    }]
+    }
+  ]
 }

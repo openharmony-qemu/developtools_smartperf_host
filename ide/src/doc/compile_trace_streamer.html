@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <title>compile_trace_streamer</title>
@@ -805,33 +805,33 @@
       </p>
       <table class="fontColor">
         <thead>
-        <tr>
-          <th class="fontColor">系统</th>
-          <th class="fontColor">工具</th>
-          <th class="fontColor">版本号</th>
-        </tr>
+          <tr>
+            <th class="fontColor">系统</th>
+            <th class="fontColor">工具</th>
+            <th class="fontColor">版本号</th>
+          </tr>
         </thead>
         <tbody>
-        <tr>
-          <td>linux</td>
-          <td>clang/clang++</td>
-          <td>(Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0</td>
-        </tr>
-        <tr>
-          <td>macx</td>
-          <td>clang/clang++</td>
-          <td>14.0.3</td>
-        </tr>
-        <tr>
-          <td>windows</td>
-          <td>gcc.exe/g++.exe</td>
-          <td>(i686-posix-dwarf-rev0, Built by MinGW-W64 project) 8.1.0</td>
-        </tr>
-        <tr>
-          <td>wasm(linux下编译)</td>
-          <td>emcc/em++</td>
-          <td>3.1.12</td>
-        </tr>
+          <tr>
+            <td>linux</td>
+            <td>clang/clang++</td>
+            <td>(Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0</td>
+          </tr>
+          <tr>
+            <td>macx</td>
+            <td>clang/clang++</td>
+            <td>14.0.3</td>
+          </tr>
+          <tr>
+            <td>windows</td>
+            <td>gcc.exe/g++.exe</td>
+            <td>(i686-posix-dwarf-rev0, Built by MinGW-W64 project) 8.1.0</td>
+          </tr>
+          <tr>
+            <td>wasm(linux下编译)</td>
+            <td>emcc/em++</td>
+            <td>3.1.12</td>
+          </tr>
         </tbody>
       </table>
       <p class="fontColor">对于wasm环境（目前只支持linux下编译），build.sh会自行配置环境。</p>
@@ -846,38 +846,38 @@
       </p>
       <table class="fontColor">
         <thead>
-        <tr>
-          <th class="fontColor">系统</th>
-          <th class="fontColor">release版本</th>
-          <th class="fontColor">debug版本</th>
-          <th class="fontColor">生成二进制名称</th>
-        </tr>
+          <tr>
+            <th class="fontColor">系统</th>
+            <th class="fontColor">release版本</th>
+            <th class="fontColor">debug版本</th>
+            <th class="fontColor">生成二进制名称</th>
+          </tr>
         </thead>
         <tbody>
-        <tr>
-          <td>linux</td>
-          <td>out/linux</td>
-          <td>out/linux_debug</td>
-          <td>trace_streamer</td>
-        </tr>
-        <tr>
-          <td>macx</td>
-          <td>out/macx</td>
-          <td>out/macx_debug</td>
-          <td>trace_streamer</td>
-        </tr>
-        <tr>
-          <td>windows</td>
-          <td>out/windows</td>
-          <td>out/windows_debug</td>
-          <td>trace_streamer</td>
-        </tr>
-        <tr>
-          <td>wasm(linux下编译)</td>
-          <td>-</td>
-          <td>out/wasm</td>
-          <td>trace_streamer_builtin.wasm和trace_streamer_builtin.js</td>
-        </tr>
+          <tr>
+            <td>linux</td>
+            <td>out/linux</td>
+            <td>out/linux_debug</td>
+            <td>trace_streamer</td>
+          </tr>
+          <tr>
+            <td>macx</td>
+            <td>out/macx</td>
+            <td>out/macx_debug</td>
+            <td>trace_streamer</td>
+          </tr>
+          <tr>
+            <td>windows</td>
+            <td>out/windows</td>
+            <td>out/windows_debug</td>
+            <td>trace_streamer</td>
+          </tr>
+          <tr>
+            <td>wasm(linux下编译)</td>
+            <td>-</td>
+            <td>out/wasm</td>
+            <td>trace_streamer_builtin.wasm和trace_streamer_builtin.js</td>
+          </tr>
         </tbody>
       </table>
       <h4 class="mume-header fontColor">快速编译WebAssembly版本</h4>
@@ -889,24 +889,24 @@
       <p class="fontColor">WebAssembly版本目前只支持在linux平台下编译。</p>
     </div>
 
-  <script>
-    window.onload = () => {
-      let isDark = window.location.search;
-      if (isDark.indexOf('?') !== -1) {
-        isDark = isDark.substr(1, isDark.length - 1);
-      }
-      if (isDark === 'true') {
-        document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
-        let header = document.getElementsByClassName('fontColor');
-        for (let i = 0; i < header.length; i++) {
-          header[i].style.color = '#fff';
+    <script>
+      window.onload = () => {
+        let isDark = window.location.search;
+        if (isDark.indexOf('?') !== -1) {
+          isDark = isDark.substr(1, isDark.length - 1);
         }
-        let lightBackGround = document.getElementsByClassName('light');
-        for (let i = 0; i < lightBackGround.length; i++) {
-          lightBackGround[i].style.backgroundColor = '#32373F';
+        if (isDark === 'true') {
+          document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
+          let header = document.getElementsByClassName('fontColor');
+          for (let i = 0; i < header.length; i++) {
+            header[i].style.color = '#fff';
+          }
+          let lightBackGround = document.getElementsByClassName('light');
+          for (let i = 0; i < lightBackGround.length; i++) {
+            lightBackGround[i].style.backgroundColor = '#32373F';
+          }
         }
-      }
-    };
-  </script>
+      };
+    </script>
   </body>
 </html>

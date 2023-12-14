@@ -65,7 +65,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         this.refreshRowNodeTable(true);
       });
     });
-    this.eventSummaryTable?.addEventListener('scroll', ()=>{
+    this.eventSummaryTable?.addEventListener('scroll', () => {
       let treeTableEl = this.shadowRoot?.querySelector<HTMLDivElement>('.event-tree-table');
       if (treeTableEl) {
         treeTableEl.scrollTop = this.eventSummaryTable?.scrollTop || 0;
@@ -163,7 +163,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     this.expansionDiv?.addEventListener('click', this.expansionClickEvent);
   }
 
-  disconnectedCallback(): void  {
+  disconnectedCallback(): void {
     super.disconnectedCallback();
     this.expansionDiv?.removeEventListener('click', this.expansionClickEvent);
   }
@@ -193,8 +193,12 @@ export class TabPaneHiSysEventSummary extends BaseElement {
       }
     });
   }
-  private createRowNodeTableEL(rowNodeList: HiSysEventTreeNode[], tableTreeEl: HTMLDivElement,
-    tableCountEl: HTMLDivElement, rowColor: string = ''): void{
+  private createRowNodeTableEL(
+    rowNodeList: HiSysEventTreeNode[],
+    tableTreeEl: HTMLDivElement,
+    tableCountEl: HTMLDivElement,
+    rowColor: string = ''
+  ): void {
     let unitPadding: number = 20;
     let leftPadding: number = 5;
     rowNodeList.forEach((rowNode) => {

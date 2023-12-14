@@ -48,6 +48,7 @@ export class TraceRowConfig extends BaseElement {
     'FrameTimeline',
     'AnimationEffect',
     'AppStartup',
+    'TaskPool',
     'HiSysEvent',
     'EnergyEvent',
     'Memory',
@@ -93,11 +94,11 @@ export class TraceRowConfig extends BaseElement {
       traceRow.setAttribute('scene', '');
       this.otherRowNames.push({
         nodeName: traceRow.name,
-        scene: [...traceRow.templateType]
+        scene: [...traceRow.templateType],
       });
       this.subsystemSelectList!.push({
         nodeName: traceRow.name,
-        scene: [...traceRow.templateType]
+        scene: [...traceRow.templateType],
       });
       if (isRefreshTopTable) {
         this.sceneTable!.innerHTML = '';
@@ -249,7 +250,7 @@ export class TraceRowConfig extends BaseElement {
         if (item.isCheck) {
           this.subsystemSelectList!.push({
             nodeName: item.nodeName,
-            scene: item.scene
+            scene: item.scene,
           });
         }
       }
@@ -269,7 +270,7 @@ export class TraceRowConfig extends BaseElement {
           this.refreshChildRow(traceRow.childrenList, true);
         } else {
           let templateTypeList = [...traceRow.templateType];
-          isShowRow = templateTypeList.some(type => this.selectTypeList!.includes(type));
+          isShowRow = templateTypeList.some((type) => this.selectTypeList!.includes(type));
           traceRow.expansion = false;
           if (isShowRow) {
             if (traceRow.templateType.size > 0) {
@@ -295,10 +296,10 @@ export class TraceRowConfig extends BaseElement {
           if (favoriteRow.parentRowEl) {
             favoriteRow.parentRowEl.expansion = false;
             let favoriteList = [...favoriteRow.parentRowEl!.templateType];
-            isShowRow = favoriteList.some(type => this.selectTypeList!.includes(type));
+            isShowRow = favoriteList.some((type) => this.selectTypeList!.includes(type));
           } else {
             let typeList = [...favoriteRow.templateType];
-            isShowRow = typeList.some(type => this.selectTypeList!.includes(type));
+            isShowRow = typeList.some((type) => this.selectTypeList!.includes(type));
           }
           if (isShowRow) {
             favoriteRow.rowHidden = false;
@@ -318,8 +319,8 @@ export class TraceRowConfig extends BaseElement {
       for (let index = 0; index < nodes.length; index++) {
         let item = nodes[index];
         let exists = false;
-        item.scene?.forEach(sceneItem => {
-          if (this.selectTypeList!.some(elem => elem === sceneItem)) {
+        item.scene?.forEach((sceneItem) => {
+          if (this.selectTypeList!.some((elem) => elem === sceneItem)) {
             exists = true;
             return;
           }
@@ -339,7 +340,6 @@ export class TraceRowConfig extends BaseElement {
       }
     }
   }
-
 
   refreshChildRow(childRows: Array<TraceRow<BaseStruct>>, isShowScene: boolean = false): void {
     childRows.forEach((row) => {
@@ -399,19 +399,22 @@ export class TraceRowConfig extends BaseElement {
     let loadTemp = this.shadowRoot?.querySelector<LitIcon>('#custom-temp');
     let openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
     this.configTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#config_title');
-    let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.
-      location.port}/application/trace/config/custom_temp_config.json`;
+    let jsonUrl = `https://${window.location.host.split(':')[0]}:${
+      window.location.port
+    }/application/trace/config/custom_temp_config.json`;
     loadTemp!.addEventListener('click', () => {
-      fetch(jsonUrl).then((res) => {
-        if (res.ok) {
-          res.text().then((text) => {
-            this.tempString = text;
-            this.loadTempConfig();
-          });
-        }
-      })['catch']((err) => {
-        console.log(err);
-      });
+      fetch(jsonUrl)
+        .then((res) => {
+          if (res.ok) {
+            res.text().then((text) => {
+              this.tempString = text;
+              this.loadTempConfig();
+            });
+          }
+        })
+        ['catch']((err) => {
+          console.log(err);
+        });
     });
     openFileIcon!.addEventListener('click', () => {
       this.openTempFile!.value = '';
@@ -529,7 +532,7 @@ export class TraceRowConfig extends BaseElement {
           children: [],
           depth: 1,
           isCheck: true,
-          scene: []
+          scene: [],
         };
         if (subSystems.indexOf(subsystemStruct) < 0) {
           let currentCompDates = currentSystemData.components;
@@ -545,7 +548,7 @@ export class TraceRowConfig extends BaseElement {
               children: [],
               depth: 2,
               isCheck: true,
-              scene: []
+              scene: [],
             };
             for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
               let currentChartDate = currentChartDates[chartIndex];
@@ -582,7 +585,7 @@ export class TraceRowConfig extends BaseElement {
                   }
                 }
               }
-              findChartNames.forEach(currentChartName => {
+              findChartNames.forEach((currentChartName) => {
                 id++;
                 let chartStruct: SubsystemNode = {
                   id: id,
@@ -591,10 +594,10 @@ export class TraceRowConfig extends BaseElement {
                   children: [],
                   depth: 3,
                   isCheck: true,
-                  scene: scene
+                  scene: scene,
                 };
                 if (componentStruct.children.indexOf(chartStruct) < 0) {
-                  let rowNumber = this.otherRowNames.findIndex(row => row.nodeName === chartStruct.nodeName);
+                  let rowNumber = this.otherRowNames.findIndex((row) => row.nodeName === chartStruct.nodeName);
                   if (rowNumber >= 0) {
                     this.otherRowNames.splice(rowNumber, 1);
                   }
@@ -684,12 +687,12 @@ export class TraceRowConfig extends BaseElement {
             }
           }
         });
-        let chartNumber = this.subsystemSelectList?.findIndex(item => item.nodeName === subsystemNode.nodeName!);
+        let chartNumber = this.subsystemSelectList?.findIndex((item) => item.nodeName === subsystemNode.nodeName!);
         if (configCheckBox.checked) {
-          if(chartNumber === -1) {
+          if (chartNumber === -1) {
             this.subsystemSelectList?.push({
               nodeName: subsystemNode.nodeName!,
-              scene: configCheckBox.title.split(',')
+              scene: configCheckBox.title.split(','),
             });
           }
         } else {
@@ -738,7 +741,7 @@ export class TraceRowConfig extends BaseElement {
     subsystemDiv.appendChild(configCheckBox);
     this.chartTable?.appendChild(subsystemDiv);
     if (subsystemNode.children && this.expandedNodeList.has(subsystemNode.id)) {
-      subsystemNode.children.forEach(item => {
+      subsystemNode.children.forEach((item) => {
         this.buildSubsystem(item);
       });
     }
@@ -746,7 +749,12 @@ export class TraceRowConfig extends BaseElement {
 
   private buildTempOtherList(id: number): void {
     let otherRootNode: SubsystemNode = {
-      children: [], depth: 1, id: id, nodeName: 'other', isCheck: true, scene: []
+      children: [],
+      depth: 1,
+      id: id,
+      nodeName: 'other',
+      isCheck: true,
+      scene: [],
     };
     for (let index = 0; index < this.otherRowNames!.length; index++) {
       otherRootNode.children.push({
@@ -756,7 +764,7 @@ export class TraceRowConfig extends BaseElement {
         nodeName: this.otherRowNames![index].nodeName,
         isCheck: true,
         parent: otherRootNode,
-        scene: this.otherRowNames![index].scene
+        scene: this.otherRowNames![index].scene,
       });
     }
     this.treeNodes.push(otherRootNode);
@@ -765,14 +773,14 @@ export class TraceRowConfig extends BaseElement {
   private setChildIsSelect(node: SubsystemNode, configCheckBox: LitCheckBox): void {
     node.isCheck = configCheckBox.checked;
     if (node.children.length > 0) {
-      node.children.forEach(childItem => {
+      node.children.forEach((childItem) => {
         if (childItem.depth === 3) {
-          let chartNumber = this.subsystemSelectList?.findIndex(item => item.nodeName === childItem.nodeName!);
+          let chartNumber = this.subsystemSelectList?.findIndex((item) => item.nodeName === childItem.nodeName!);
           if (configCheckBox.checked) {
-            if(chartNumber === -1) {
+            if (chartNumber === -1) {
               this.subsystemSelectList?.push({
                 nodeName: childItem.nodeName!,
-                scene: configCheckBox.title.split(',')
+                scene: configCheckBox.title.split(','),
               });
             }
           } else {
@@ -1013,7 +1021,7 @@ export class TraceRowConfig extends BaseElement {
     if (name === 'mode' && newValue === '') {
       this.init();
     }
-  };
+  }
 }
 
 export interface SubsystemNode {

@@ -70,16 +70,16 @@ self.onmessage = async (e: MessageEvent) => {
       // raw trace
       let allRowTraceData = new Uint8Array(e.data.buffer);
       let commonDataOffsetList: Array<{
-        startOffset: number
-        endOffset: number
+        startOffset: number;
+        endOffset: number;
       }> = [];
       let commonOffset = 12;
       let tlvTypeLength = 4;
       let commonTotalLength = 0;
       while (commonOffset < allRowTraceData.length) {
-        let commonDataOffset  = {
+        let commonDataOffset = {
           startOffset: commonOffset,
-          endOffset: commonOffset
+          endOffset: commonOffset,
         };
         let dataTypeData = e.data.buffer.slice(commonOffset, commonOffset + tlvTypeLength);
         commonOffset += tlvTypeLength;
@@ -96,7 +96,7 @@ self.onmessage = async (e: MessageEvent) => {
       }
       let commonTotalOffset = 0;
       let commonTotalData = new Uint8Array(commonTotalLength);
-      commonDataOffsetList.forEach(item => {
+      commonDataOffsetList.forEach((item) => {
         commonTotalData.set(allRowTraceData.slice(item.startOffset, item.endOffset), commonTotalOffset);
         commonTotalOffset += item.endOffset - item.startOffset;
       });

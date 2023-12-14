@@ -56,31 +56,29 @@ export class TabPaneGpuTotalBoxSelect extends BaseElement {
     this.range!.textContent =
       'Selected range: ' + ((gpuTotalBoxParam.rightNs - gpuTotalBoxParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
     this.gpuBoxTbl!.loading = true;
-    queryGpuDataByRange(
-      gpuTotalBoxParam.leftNs,
-      gpuTotalBoxParam.rightNs,
-      MemoryConfig.getInstance().snapshotDur
-    ).then((result) => {
-      this.gpuBoxTbl!.loading = false;
-      if (result != null && result.length > 0) {
-        log('getTabStartups result size : ' + result.length);
-        let target = result.filter((it) => it.windowId === 0);
-        target.forEach((it: GpuTotal) => {
-          let moduleName = SpSystemTrace.DATA_DICT.get(it.moduleId) || 'NULL';
-          let categoryName = SpSystemTrace.DATA_DICT.get(it.categoryId) || 'NULL';
-          it.gpuName = `${moduleName} / ${categoryName}`;
-          it.startTsStr = getProbablyTime(it.startTs);
-          it.avgSizeStr = Utils.getBinaryByteWithUnit(it.avgSize);
-          it.minSizeStr = Utils.getBinaryByteWithUnit(it.minSize);
-          it.maxSizeStr = Utils.getBinaryByteWithUnit(it.maxSize);
-        });
-        this.gpuBoxSource = target;
-        this.gpuBoxTbl!.recycleDataSource = this.gpuBoxSource;
-      } else {
-        this.gpuBoxSource = [];
-        this.gpuBoxTbl!.recycleDataSource = [];
+    queryGpuDataByRange(gpuTotalBoxParam.leftNs, gpuTotalBoxParam.rightNs, MemoryConfig.getInstance().snapshotDur).then(
+      (result) => {
+        this.gpuBoxTbl!.loading = false;
+        if (result != null && result.length > 0) {
+          log('getTabStartups result size : ' + result.length);
+          let target = result.filter((it) => it.windowId === 0);
+          target.forEach((it: GpuTotal) => {
+            let moduleName = SpSystemTrace.DATA_DICT.get(it.moduleId) || 'NULL';
+            let categoryName = SpSystemTrace.DATA_DICT.get(it.categoryId) || 'NULL';
+            it.gpuName = `${moduleName} / ${categoryName}`;
+            it.startTsStr = getProbablyTime(it.startTs);
+            it.avgSizeStr = Utils.getBinaryByteWithUnit(it.avgSize);
+            it.minSizeStr = Utils.getBinaryByteWithUnit(it.minSize);
+            it.maxSizeStr = Utils.getBinaryByteWithUnit(it.maxSize);
+          });
+          this.gpuBoxSource = target;
+          this.gpuBoxTbl!.recycleDataSource = this.gpuBoxSource;
+        } else {
+          this.gpuBoxSource = [];
+          this.gpuBoxTbl!.recycleDataSource = [];
+        }
       }
-    });
+    );
   }
 
   initElements(): void {

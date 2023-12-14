@@ -168,7 +168,7 @@ export class SpSdkConfig extends BaseElement {
           return;
         }
 
-        this.worker = new Worker(new URL('../../database/ConfigWorker',import.meta.url));
+        this.worker = new Worker(new URL('../../database/ConfigWorker', import.meta.url));
       }
     } catch (e) {}
     this.customConfig = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');

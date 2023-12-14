@@ -20,7 +20,6 @@ import {
   queryAllActualData,
   queryAllExpectedData,
   queryAllJankProcess,
-  queryAllTaskPoolPid,
   queryEventCountMap,
   queryProcess,
   queryProcessAsyncFunc,
@@ -35,6 +34,7 @@ import {
   queryProcessThreads,
   queryProcessThreadsByTable,
   queryStartupPidArray,
+  queryTaskPoolProcessIds,
   queryThreadData,
 } from '../../database/SqlLite';
 import { Utils } from '../trace/base/Utils';
@@ -215,11 +215,10 @@ export class SpProcessChart {
       allExpectedProcess = await queryAllExpectedData();
       allActualProcess = await queryAllActualData();
     }
-    let allTaskPoolPid = await queryAllTaskPoolPid();
-    let allTaskPoolProcess: Array<number> = [];
-    allTaskPoolPid.forEach((value) => {
-      allTaskPoolProcess.push(value.pid);
-    });
+    let allTaskPoolPid: Array<{ pid: number }> = [];
+    if (FlagsConfig.getFlagsConfigEnableStatus('TaskPool')) {
+      allTaskPoolPid = await queryTaskPoolProcessIds();
+    }
     info('ProcessList Data size is: ', processList!.length);
     for (let i = 0; i < processList.length; i++) {
       const it = processList[i];
@@ -243,6 +242,9 @@ export class SpProcessChart {
         it.processName === 'render_service'
       ) {
         processRow.addTemplateTypes('AppStartup');
+      }
+      if (allTaskPoolPid.find((process) => process.pid === it.pid) !== undefined) {
+        processRow.addTemplateTypes('TaskPool');
       }
       processRow.name = `${it.processName || 'Process'} ${it.pid}`;
       processRow.supplier = (): Promise<Array<any>> => queryProcessData(it.pid || -1, 0, TraceRow.range?.totalNS || 0);
@@ -517,7 +519,8 @@ export class SpProcessChart {
                   if (linkNodeItem[0].rowEL.collect) {
                     linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.getBoundingClientRect().top - 195;
                   } else {
-                    linkNodeItem[0].rowEL.translateY = linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+                    linkNodeItem[0].rowEL.translateY =
+                      linkNodeItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
                   }
                   linkNodeItem[0].x = ns2xByTimeShaft(linkNodeItem[0].ns, this.trace.timerShaftEL!);
                   linkNodeItem[0].offsetY = linkNodeItem[0].offsetY * 2;
@@ -528,7 +531,8 @@ export class SpProcessChart {
                   if (linkNodeItem[1].rowEL.collect) {
                     linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.getBoundingClientRect().top - 195;
                   } else {
-                    linkNodeItem[1].rowEL.translateY = linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
+                    linkNodeItem[1].rowEL.translateY =
+                      linkNodeItem[1].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
                   }
                   linkNodeItem[1].x = ns2xByTimeShaft(linkNodeItem[1].ns, this.trace.timerShaftEL!);
                   linkNodeItem[1].offsetY = linkNodeItem[1].offsetY * 2;
@@ -548,7 +552,7 @@ export class SpProcessChart {
                   linkProcessItem[0].rowEL.translateY =
                     linkProcessItem[0].rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
                 }
-                linkProcessItem[0].y = processRow!.translateY + linkProcessItem[0].offsetY;//11
+                linkProcessItem[0].y = processRow!.translateY + linkProcessItem[0].offsetY; //11
                 if (linkProcessItem[1].rowEL.collect) {
                   linkProcessItem[1].rowEL.translateY = linkProcessItem[1].rowEL.getBoundingClientRect().top - 195;
                 } else {
@@ -782,11 +786,6 @@ export class SpProcessChart {
           funcRow.style.height = `${maxHeight}px`;
           funcRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
           funcRow.setAttribute('children', '');
-          if (allTaskPoolProcess.indexOf(it.pid) !== -1) {
-            if (funcRow.name.startsWith('TaskWorkThread') || thread.is_main_thread === 1) {
-              funcRow.addTemplateTypes('Task Pool');
-            }
-          }
           funcRow.supplier = (): Promise<Array<FuncStruct>> =>
             getFunDataByTid(thread.tid || 0, thread.upid || 0).then((funs: Array<FuncStruct>) => {
               if (funs.length > 0) {
