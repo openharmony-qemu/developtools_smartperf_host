@@ -85,7 +85,6 @@
 将获取到二进制文件放入到项目bin目录下，如果项目目录中无bin目录 先创建bin目录。
 然后将trace_streamer的二进制文件放入bin目录中。
 	   
-![](./src/figures/deploy/put_bin.png)
 ![](./src/figures/deploy/bin_files.png)
 
 
