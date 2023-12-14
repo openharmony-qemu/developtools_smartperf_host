@@ -477,7 +477,7 @@ export class LitPageTable extends BaseElement {
       tables: this.ds,
       fileName: date.getTime() + '',
       columnFormatter: this.itemTextHandleMap,
-      exportFormatter: this.exportTextHandleMap
+      exportFormatter: this.exportTextHandleMap,
     }).then((res) => {
       this.exportLoading = false;
       this.exportProgress!.loading = false;
@@ -915,7 +915,10 @@ export class LitPageTable extends BaseElement {
         if (reduce == 0) {
           return;
         }
-        while (reduce <= this.tableElement!.clientHeight && (this.currentRecycleList.length + skip) < visibleObjects.length) {
+        while (
+          reduce <= this.tableElement!.clientHeight &&
+          this.currentRecycleList.length + skip < visibleObjects.length
+        ) {
           let newTableElement = this.createNewTableElement(visibleObjects[skip]);
           this.tbodyElement?.append(newTableElement);
           this.currentRecycleList.push(newTableElement);

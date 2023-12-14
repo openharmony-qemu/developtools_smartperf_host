@@ -15,15 +15,15 @@
 
 import { query } from './SqlLite';
 
-class ProcedureThread{
+class ProcedureThread {
   busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
   taskMap: any = {};
   name: string | undefined;
-  worker?:Worker;
+  worker?: Worker;
 
-  constructor(worker:Worker) {
+  constructor(worker: Worker) {
     this.worker = worker;
   }
 
@@ -103,9 +103,11 @@ class ProcedurePool {
     if (window.useWb) {
       return;
     }
-    let newThread: ProcedureThread = new ProcedureThread(new Worker(new URL('./ui-worker/ProcedureWorker',import.meta.url), {
-      type: 'module',
-    }));
+    let newThread: ProcedureThread = new ProcedureThread(
+      new Worker(new URL('./ui-worker/ProcedureWorker', import.meta.url), {
+        type: 'module',
+      })
+    );
     newThread.name = this.names[this.works.length];
     newThread.worker!.onmessage = (event: MessageEvent) => {
       newThread.busy = false;
@@ -140,9 +142,11 @@ class ProcedurePool {
     if (window.useWb) {
       return;
     }
-    let thread: ProcedureThread = new ProcedureThread(new Worker(new URL('./logic-worker/ProcedureLogicWorker',import.meta.url), {
-      type: 'module',
-    }));
+    let thread: ProcedureThread = new ProcedureThread(
+      new Worker(new URL('./logic-worker/ProcedureLogicWorker', import.meta.url), {
+        type: 'module',
+      })
+    );
     thread.name = this.logicDataHandles[this.works.length - this.names.length];
     thread.worker!.onmessage = (event: MessageEvent) => {
       thread.busy = false;

@@ -22,7 +22,7 @@ import { type TreeItemData } from './LitTree';
 export class LitTreeNode extends BaseElement {
   private arrowElement: HTMLSpanElement | null | undefined;
   private itemElement: HTMLDivElement | null | undefined;
-  private checkboxElement: HTMLInputElement  | null | undefined;
+  private checkboxElement: HTMLInputElement | null | undefined;
   private iconElement: LitIcon | null | undefined;
   private _data: TreeItemData | null | undefined;
 

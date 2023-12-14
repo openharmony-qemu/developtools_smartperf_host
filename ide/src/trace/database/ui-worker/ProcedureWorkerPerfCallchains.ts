@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class PerfCallChainThread{
+class PerfCallChainThread {
   busy: boolean = false;
   taskMap: any = {};
-  worker?:Worker;
+  worker?: Worker;
 
-  constructor(worker:Worker) {
-    this.worker=worker;
+  constructor(worker: Worker) {
+    this.worker = worker;
   }
 
   uuid(): string {
@@ -56,7 +56,9 @@ export class PerfCallChainPool {
 
   init = async () => {
     await this.close();
-    let thread = new PerfCallChainThread(new Worker(new URL('../../component/chart/PerfDataQuery',import.meta.url), { type: 'module' })); //trace/component/chart/PerfDataQuery.js
+    let thread = new PerfCallChainThread(
+      new Worker(new URL('../../component/chart/PerfDataQuery', import.meta.url), { type: 'module' })
+    ); //trace/component/chart/PerfDataQuery.js
     thread!.worker!.onmessage = (event: MessageEvent) => {
       thread.busy = false;
       let fun = thread.taskMap[event.data.id];

@@ -2393,21 +2393,21 @@ export class SpApplication extends BaseElement {
 
   readTraceFileBuffer(): Promise<ArrayBuffer | undefined> {
     return new Promise((resolve) => {
-      caches.match(DbPool.fileCacheKey).then(res => {
+      caches.match(DbPool.fileCacheKey).then((res) => {
         if (res) {
-          res.arrayBuffer().then(buffer => {
+          res.arrayBuffer().then((buffer) => {
             resolve(buffer);
-          })
+          });
         } else {
           resolve(undefined);
         }
       });
     });
-  };
+  }
 
   clearTraceFileCache(): void {
-    caches.keys().then(keys => {
-      keys.forEach(key => {
+    caches.keys().then((keys) => {
+      keys.forEach((key) => {
         if (key === DbPool.fileCacheKey) {
           caches.delete(key).then();
         } else if (key.includes('/')) {
@@ -2420,7 +2420,7 @@ export class SpApplication extends BaseElement {
         } else {
           caches.delete(key).then();
         }
-      })
+      });
     });
   }
 

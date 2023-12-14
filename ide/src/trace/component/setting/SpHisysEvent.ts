@@ -102,8 +102,7 @@ export class SpHisysEvent extends BaseElement {
       this.domainInputEL!.processData = [];
       this.domainInputEL!.initData();
     } else {
-      HdcDeviceManager.fileRecv(this.sysEventConfigPath, () => {
-      }).then((pullRes) => {
+      HdcDeviceManager.fileRecv(this.sysEventConfigPath, () => {}).then((pullRes) => {
         pullRes.arrayBuffer().then((buffer) => {
           if (buffer.byteLength > 0) {
             let dec = new TextDecoder();
@@ -141,7 +140,7 @@ export class SpHisysEvent extends BaseElement {
         let currentData: string[] = [];
         if (domain === '' || domain === 'ALL-Domain') {
           let domainKey = Object.keys(this.eventConfig);
-          domainKey.forEach(item  => {
+          domainKey.forEach((item) => {
             let currentEvent = this.eventConfig[item];
             let eventList = Object.keys(currentEvent);
             currentData.push(...eventList);

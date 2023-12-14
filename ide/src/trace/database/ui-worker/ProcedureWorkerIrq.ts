@@ -13,14 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  BaseStruct,
-  dataFilterHandler,
-  isFrameContainPoint,
-  Rect,
-  Render,
-  drawString,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, isFrameContainPoint, Rect, Render, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 

@@ -14,12 +14,7 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {
-  HiPerfStruct,
-  hiPerf,
-  PerfRender,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { HiPerfStruct, hiPerf, PerfRender, RequestMessage } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class HiperfCpuRender extends PerfRender {

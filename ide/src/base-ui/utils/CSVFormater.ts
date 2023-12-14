@@ -52,11 +52,11 @@ export class JSONToCSV {
       // 如果存在自定义key值
       if (columns.key.length) {
         columns.key.map(function (m: any, idx: number) {
-          let strItem : any = '';
+          let strItem: any = '';
           if (obj.exportFormatter && obj.exportFormatter.has(m)) {
-            strItem = (obj.exportFormatter.get(m)?.(n) || n[m])
+            strItem = obj.exportFormatter.get(m)?.(n) || n[m];
           } else if (obj.formatter && obj.formatter.has(m)) {
-            strItem = (obj.formatter.get(m)?.(n[m]) || n[m])
+            strItem = obj.formatter.get(m)?.(n[m]) || n[m];
           } else {
             strItem = n[m];
           }
@@ -136,16 +136,16 @@ export class JSONToCSV {
     (has = agent.indexOf('edge') !== -1 ? (type.edge = 'edge') : agent.match(/rv:([\d.]+)\) like gecko/))
       ? (type.ie = has[1])
       : (has = agent.match(/msie ([\d.]+)/))
-      ? (type.ie = has[1])
-      : (has = agent.match(/firefox\/([\d.]+)/))
-      ? (type.firefox = has[1])
-      : (has = agent.match(/chrome\/([\d.]+)/))
-      ? (type.chrome = has[1])
-      : (has = agent.match(/opera.([\d.]+)/))
-      ? (type.opera = has[1])
-      : (has = agent.match(/version\/([\d.]+).*safari/))
-      ? (type.safari = has[1])
-      : 0;
+        ? (type.ie = has[1])
+        : (has = agent.match(/firefox\/([\d.]+)/))
+          ? (type.firefox = has[1])
+          : (has = agent.match(/chrome\/([\d.]+)/))
+            ? (type.chrome = has[1])
+            : (has = agent.match(/opera.([\d.]+)/))
+              ? (type.opera = has[1])
+              : (has = agent.match(/version\/([\d.]+).*safari/))
+                ? (type.safari = has[1])
+                : 0;
     return type;
   }
 
@@ -219,7 +219,7 @@ export class JSONToCSV {
               data: resultArr,
               fileName: `${dataSource.fileName}_${childIndex}`,
               columns: columns,
-              formatter: dataSource.columnFormatter
+              formatter: dataSource.columnFormatter,
             });
           });
         } else {
@@ -229,7 +229,7 @@ export class JSONToCSV {
             fileName: dataSource.fileName,
             columns: columns,
             formatter: dataSource.columnFormatter,
-            exportFormatter: dataSource.exportFormatter
+            exportFormatter: dataSource.exportFormatter,
           });
         }
       }

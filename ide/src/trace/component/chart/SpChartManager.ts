@@ -50,7 +50,7 @@ import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
-import {setVSyncData} from './VSync';
+import { setVSyncData } from './VSync';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];

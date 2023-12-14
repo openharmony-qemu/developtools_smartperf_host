@@ -194,7 +194,7 @@ export class SpNativeMemoryChart {
       procedurePool.submitWithName(
         'logic1',
         'native-memory-queryNativeHookStatistic',
-        { type: chartType, totalNS: TraceRow.range?.totalNS!,ipid: ipid},
+        { type: chartType, totalNS: TraceRow.range?.totalNS!, ipid: ipid },
         undefined,
         (res: any) => {
           nmStatisticArray = nmStatisticArray.concat(res.data);

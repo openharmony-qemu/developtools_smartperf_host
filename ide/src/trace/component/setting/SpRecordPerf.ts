@@ -448,7 +448,6 @@ export class SpRecordPerf extends BaseElement {
       }
     });
 
-
     this.frequencySetInput = this.shadowRoot?.querySelector<HTMLInputElement>("input[title='Frequency']");
     this.frequencySetInput!.onkeydown = (ev): void => {
       // @ts-ignore

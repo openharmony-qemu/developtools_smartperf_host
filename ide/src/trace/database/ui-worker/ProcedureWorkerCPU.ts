@@ -74,10 +74,14 @@ export class CpuRender {
   ) {
     let cpuList = row.dataList;
     let cpuFilter = row.dataListCache;
-    const combineData = [...cpuList]
+    const combineData = [...cpuList];
     if (cpuList.length > 0 && SpSystemTrace.keyPathList.length > 0) {
       const keyPathList = SpSystemTrace.keyPathList.filter((cpu: CpuStruct) => {
-        return cpu.cpu === cpuList[0].cpu && TraceRow.range!.startNS  < cpu.startTime! + cpu.dur! && TraceRow.range!.endNS > cpu.startTime! ;
+        return (
+          cpu.cpu === cpuList[0].cpu &&
+          TraceRow.range!.startNS < cpu.startTime! + cpu.dur! &&
+          TraceRow.range!.endNS > cpu.startTime!
+        );
       });
       combineData.push(...keyPathList);
     }
@@ -90,7 +94,7 @@ export class CpuRender {
       frame: row.frame,
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
-    });  
+    });
     req.cpuRenderContext.beginPath();
     req.cpuRenderContext.font = '11px sans-serif';
     cpuFilter.forEach((re) => {

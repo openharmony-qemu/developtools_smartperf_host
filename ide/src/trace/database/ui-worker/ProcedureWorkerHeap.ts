@@ -61,7 +61,7 @@ export class HeapRender {
       }
     }
     // 只有一条数据并且数据在结束点
-    if (heapFilter.length === 1 && row.frame.width === heapFilter[0].frame?.x){
+    if (heapFilter.length === 1 && row.frame.width === heapFilter[0].frame?.x) {
       heapFilter[0].frame!.x -= 1;
     }
     req.context.beginPath();

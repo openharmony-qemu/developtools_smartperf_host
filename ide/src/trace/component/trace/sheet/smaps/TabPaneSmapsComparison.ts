@@ -46,8 +46,9 @@ export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {
     }
     this.selectionParam = data;
     //@ts-ignore
-    this.smapsCompariosnTable?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
-      }px`;
+    this.smapsCompariosnTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     this.smapsCompariosnTable!.loading = true;
     this.init(this.tabTitle!);
     let fileArr: any[] = [];

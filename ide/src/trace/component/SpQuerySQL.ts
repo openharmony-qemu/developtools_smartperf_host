@@ -164,7 +164,7 @@ export class SpQuerySQL extends BaseElement {
 
   private executeSql(sql: string): void {
     this.progressLoad!.loading = true;
-    if (this.querySize){
+    if (this.querySize) {
       this.querySize!.title = `${sql}`;
     }
     queryCustomizeSelect(sql).then((resultList): void => {

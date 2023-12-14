@@ -2548,7 +2548,7 @@ export class SpSystemTrace extends BaseElement {
     if (!SportRuler.isMouseInSportRuler) {
       this.traceSheetEL?.setAttribute('mode', 'hidden');
     }
-    this.removeLinkLinesByBusinessType('task','thread');
+    this.removeLinkLinesByBusinessType('task', 'thread');
     this.refreshCanvas(true);
     JankStruct.delJankLineFlag = true;
   }
@@ -3162,9 +3162,9 @@ export class SpSystemTrace extends BaseElement {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
       this.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
       this.timerShaftEL?.modifyFlagList(undefined);
-    } else if(clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct){
+    } else if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {
       AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
-      this.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler)
+      this.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler);
       this.timerShaftEL?.modifyFlagList(undefined);
     } else if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
@@ -3704,8 +3704,7 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct 
-    | undefined, data: any) {
+  drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct | undefined, data: any) {
     let collectList = this.favoriteChartListEL!.getCollectRows();
     let startRow: any;
     if (selectThreadStruct == undefined || selectThreadStruct == null) {
@@ -3743,7 +3742,7 @@ export class SpSystemTrace extends BaseElement {
       //泳道未展开的情况，查找endRowStruct
       if (!endRowStruct) {
         endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
-          return item.rowId === `${data.tid}` && item.rowType === 'thread'
+          return item.rowId === `${data.tid}` && item.rowType === 'thread';
         });
       }
       if (endRowStruct) {
@@ -3790,7 +3789,7 @@ export class SpSystemTrace extends BaseElement {
               startOffSetY,
               'thread',
               LineType.StraightLine,
-              selectThreadStruct.startTime == ts,
+              selectThreadStruct.startTime == ts
             ),
             this.makePoint(
               ns2xByTimeShaft(findJankEntry.startTime!, this.timerShaftEL!),
@@ -3800,7 +3799,7 @@ export class SpSystemTrace extends BaseElement {
               endOffSetY,
               'thread',
               LineType.StraightLine,
-              true,
+              true
             )
           );
           this.refreshCanvas(true);
@@ -3940,7 +3939,6 @@ export class SpSystemTrace extends BaseElement {
           this.refreshCanvas(false);
         });
       }
-      
     });
 
     window.subscribe(window.SmartEvent.UI.CheckALL, (data) => {

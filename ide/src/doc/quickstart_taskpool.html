@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -818,17 +818,20 @@
         <li>
           <pre class="smartperf-text fontColor light">
 H:Task Allocation: taskId : 2, executeId : 2, priority : 1, executeState : 1：任务分发。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 H:Task Perform: taskId : 2, executeId : 2：任务执行。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 H:Task PerformTask End: taskId : 2, executeId : 2, performResult : Successful：任务返回。
-</pre>
+</pre
+          >
         </li>
       </ul>
       <h3 class="mume-header fontColor">TaskPool的并发度</h3>
@@ -847,22 +850,26 @@ H:Task PerformTask End: taskId : 2, executeId : 2, performResult : Successful：
         <li>
           <pre class="smartperf-text fontColor light">
 Name： 任务调用栈名称。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 StartTime： 任务调用栈开始时间。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 Duration：任务调用栈持续时间。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 depth：调用栈层级。
-</pre>
+</pre
+          >
         </li>
       </ul>
       <h3 class="mume-header fontColor">TaskPool泳道图的框选功能</h3>
@@ -875,27 +882,32 @@ depth：调用栈层级。
         <li>
           <pre class="smartperf-text fontColor light">
 Execute Id： 任务id。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 Task Priority： 任务优先级(HIGH，MEDIUM，LOW)。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 Scheduling Time(ms)：调度耗时(任务执行起始时间 - 任务分发起始时间)。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 Execution Time(ms)：执行耗时(任务执行的duration)。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 Return Time(ms)：返回耗时(任务返回的结束时间 – 任务执行的结束时间)。
-</pre>
+</pre
+          >
         </li>
       </ul>
       <h3 class="mume-header fontColor">TaskPool的队列任务数和线程池里线程状态统计</h3>
@@ -910,7 +922,7 @@ Return Time(ms)：返回耗时(任务返回的结束时间 – 任务执行的�
         在带有H:Thread Timeout Exit的调用栈的泳道图会采用黄色圆圈，中间为白色反叹号标记，代表任务超时退出。<br />
         <img src="../figures/Taskpool/taskpoolexit.jpg" alt="GitHub Logo" />
       </p>
-  </div>
+    </div>
 
     <script>
       window.onload = () => {

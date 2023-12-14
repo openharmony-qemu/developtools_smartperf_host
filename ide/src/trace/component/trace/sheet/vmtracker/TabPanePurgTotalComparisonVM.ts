@@ -36,8 +36,9 @@ export class TabPanePurgTotalComparisonVM extends BaseElement {
   }
   public totalData(data: SelectionParam | any, dataList: any): void {
     //@ts-ignore
-    this.purgeableTotalTable?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
-      }px`;
+    this.purgeableTotalTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     this.purgeableTotalSource = [];
     let fileArr: any[] = [];
     for (let file of dataList) {

@@ -500,7 +500,7 @@ export class SpFrameTimeChart {
         key: `${componentName}`,
         title: `${componentName}`,
         checked: index === 0,
-      })
+      });
     }
     systemTraceRow.addRowSettingPop();
     systemTraceRow.rowSetting = 'enable';

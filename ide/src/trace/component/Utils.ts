@@ -56,7 +56,7 @@ export function setSelectState(
 export function intersectData(row: TraceRow<any>): any[] {
   let isIntersect = (snapshotStruct: SnapshotStruct, rangeSelectStruct: RangeSelectStruct): boolean =>
     Math.max(snapshotStruct.startNs! + snapshotStruct.dur!, rangeSelectStruct!.endNS || 0) -
-    Math.min(snapshotStruct.startNs!, rangeSelectStruct!.startNS || 0) <
+      Math.min(snapshotStruct.startNs!, rangeSelectStruct!.startNS || 0) <
     snapshotStruct.dur! + (rangeSelectStruct!.endNS || 0) - (rangeSelectStruct!.startNS || 0);
   let intersectData = row.dataList.filter((struct: SnapshotStruct) => {
     return isIntersect(struct, TraceRow.rangeSelectObject!);

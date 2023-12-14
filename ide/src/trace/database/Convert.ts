@@ -20,8 +20,8 @@ class ConvertThread {
   id: number = -1;
   taskMap: any = {};
   name: string | undefined;
-  worker?:Worker;
-  constructor(worker:Worker) {
+  worker?: Worker;
+  constructor(worker: Worker) {
     this.worker = worker;
   }
   uuid(): string {
@@ -38,9 +38,9 @@ class ConvertThread {
       DbPool.sharedBuffer = res.buffer;
       handler(res.status, res.msg, res.results);
     };
-    caches.match(DbPool.fileCacheKey).then(resData => {
+    caches.match(DbPool.fileCacheKey).then((resData) => {
       if (resData) {
-        resData.arrayBuffer().then(buffer => {
+        resData.arrayBuffer().then((buffer) => {
           this.worker!.postMessage(
             {
               id: id,
@@ -70,7 +70,7 @@ class ConvertPool {
     for (let i = 0; i < this.maxThreadNumber; i++) {
       let thread: ConvertThread;
       if (type === 'convert') {
-        thread = new ConvertThread(new Worker(new URL('./ConvertTraceWorker',import.meta.url)));
+        thread = new ConvertThread(new Worker(new URL('./ConvertTraceWorker', import.meta.url)));
       }
       thread!.worker!.onmessage = (event: MessageEvent) => {
         thread.busy = false;

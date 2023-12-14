@@ -14,7 +14,7 @@
  */
 
 importScripts('sql-wasm.js');
-import {temp_init_sql_list} from "./TempSql";
+import { temp_init_sql_list } from './TempSql';
 let conn: any = null;
 let encoder = new TextEncoder();
 function initIndexedDB() {

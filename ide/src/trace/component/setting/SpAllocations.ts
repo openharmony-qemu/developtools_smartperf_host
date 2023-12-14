@@ -212,7 +212,6 @@ export class SpAllocations extends BaseElement {
       if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
         this.processId?.dataSource([], '');
       } else {
-
       }
     });
     this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;

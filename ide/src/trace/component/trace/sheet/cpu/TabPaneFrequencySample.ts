@@ -21,9 +21,7 @@ import { resizeObserver } from '../SheetUtils';
 import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
-import {
-  drawLines,
-} from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 
 @element('tabpane-frequency-sample')
 export class TabPaneFrequencySample extends BaseElement {
@@ -186,7 +184,7 @@ export class TabPaneFrequencySample extends BaseElement {
         stateFiliterIds
       );
       //开启一个线程计算busyTime
-      this.worker = new Worker(new URL('../../../../database/StateBusyTimeWorker',import.meta.url));
+      this.worker = new Worker(new URL('../../../../database/StateBusyTimeWorker', import.meta.url));
       let msg = {
         frqSampleParam,
         result,

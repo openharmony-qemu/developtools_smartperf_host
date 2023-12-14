@@ -35,8 +35,9 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
   }
   public totalData(purgePinComParam: SelectionParam | any, dataList: any): void {
     //@ts-ignore
-    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
-      }px`;
+    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     this.purgeablePinSource = [];
     let fileArr: any[] = [];
     for (let file of dataList) {

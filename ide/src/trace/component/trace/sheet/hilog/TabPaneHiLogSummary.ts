@@ -66,7 +66,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         this.refreshRowNodeTable(true);
       });
     });
-    this.logSummaryTable!.onscroll = (): void=>{
+    this.logSummaryTable!.onscroll = (): void => {
       let logTreeTableEl = this.shadowRoot?.querySelector<HTMLDivElement>('.log-tree-table');
       if (logTreeTableEl) {
         logTreeTableEl.scrollTop = this.logSummaryTable?.scrollTop || 0;
@@ -195,7 +195,12 @@ export class TabPaneHiLogSummary extends BaseElement {
     });
   }
 
-  private createRowNodeTableEL(rowNodeList: LogTreeNode[], tableTreeEl: HTMLDivElement, tableCountEl: HTMLDivElement, rowColor: string = ''): void {
+  private createRowNodeTableEL(
+    rowNodeList: LogTreeNode[],
+    tableTreeEl: HTMLDivElement,
+    tableCountEl: HTMLDivElement,
+    rowColor: string = ''
+  ): void {
     let unitPadding: number = 20;
     let leftPadding: number = 5;
     rowNodeList.forEach((rowNode): void => {

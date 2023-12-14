@@ -95,11 +95,9 @@ export class SpCpuChart {
             this.trace?.displayTip(
               traceRow,
               CpuStruct.hoverCpuStruct,
-              `<span>P：${CpuStruct.hoverCpuStruct?.processName || 'Process'} [${
-                CpuStruct.hoverCpuStruct?.processId
-              }]</span><span>T：${CpuStruct.hoverCpuStruct?.name} [${CpuStruct.hoverCpuStruct?.tid}] [Prio:${
-                CpuStruct.hoverCpuStruct?.priority || 0
-              }]</span>`
+              `<span>P：${CpuStruct.hoverCpuStruct?.processName || 'Process'} [${CpuStruct.hoverCpuStruct
+                ?.processId}]</span><span>T：${CpuStruct.hoverCpuStruct?.name} [${CpuStruct.hoverCpuStruct
+                ?.tid}] [Prio:${CpuStruct.hoverCpuStruct?.priority || 0}]</span>`
             );
           };
           traceRow.findHoverStruct = () => {

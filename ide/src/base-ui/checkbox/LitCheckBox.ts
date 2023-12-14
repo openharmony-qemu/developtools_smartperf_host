@@ -20,7 +20,7 @@ export class LitCheckBox extends BaseElement {
   private checkbox: HTMLInputElement | undefined;
 
   static get observedAttributes() {
-    return ['checked', 'value','disabled'];
+    return ['checked', 'value', 'disabled'];
   }
 
   get disabled() {

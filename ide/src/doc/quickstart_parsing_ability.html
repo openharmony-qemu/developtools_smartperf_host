@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-  <html>
+<!doctype html>
+<html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>quickstart_parsing_ability</title>
@@ -805,23 +805,33 @@
       </p>
       <h4 class="mume-header fontColor">超大trace浏览器用户数据目录配置说明</h4>
 
-      <p class="fontColor">由于大文件切割的数据是保存在浏览器的IndexedDb中，默认存储在系统盘，所以需要修改用户目录数据存放位置。</p>
-      <h5 class="mume-header fontColor">找到浏览器的exe执行文件位置(或者浏览器exe的快捷方式位置)， 在cmd窗口执行以下命令(edge浏览器)</h5>
+      <p class="fontColor">
+        由于大文件切割的数据是保存在浏览器的IndexedDb中，默认存储在系统盘，所以需要修改用户目录数据存放位置。
+      </p>
+      <h5 class="mume-header fontColor">
+        找到浏览器的exe执行文件位置(或者浏览器exe的快捷方式位置)， 在cmd窗口执行以下命令(edge浏览器)
+      </h5>
 
-      <pre class="smartperf-text fontColor light">D:\deskTop\msedge.exe.lnk --user-data-dir=D:\Edgedata
+      <pre class="smartperf-text fontColor light">
+D:\deskTop\msedge.exe.lnk --user-data-dir=D:\Edgedata
 	D:\deskTop\msedge.exe.lnk    浏览器的exe执行文件位置(或者浏览器exe的快捷方式位置)
 	--user-data-dir=D:\Edgedata   指定用户目录数据位置，本地除系统盘外的位置都可以，内存尽量大一点
-</pre>
+</pre
+      >
       <h5 class="mume-header fontColor">浏览器exe或者exe快捷方式目录和名称不能有带空格</h5>
 
-      <pre class="smartperf-text fontColor light">错误：D:\desk Top\Microsoft Edge.exe.lnk --user-data-dir=D:\Edgedata
+      <pre class="smartperf-text fontColor light">
+错误：D:\desk Top\Microsoft Edge.exe.lnk --user-data-dir=D:\Edgedata
 正确：D:\deskTop\MicrosoftEdge.exe.lnk --user-data-dir=D:\Edgedata
-</pre>
+</pre
+      >
       <h5 class="mume-header fontColor">配置完成后, 查看【用户配置路径】是否是配置的路径</h5>
 
-      <pre class="smartperf-text fontColor light">edge浏览器:     edge://version/
+      <pre class="smartperf-text fontColor light">
+edge浏览器:     edge://version/
 chrome浏览器: chrome://version/
-</pre>
+</pre
+      >
       <h4 class="mume-header fontColor">超大trace抓取配置说明</h4>
 
       <p class="fontColor"><img src="../figures/parsingability/bigtracerecord.jpg" alt="GitHub Logo" /></p>
@@ -829,12 +839,14 @@ chrome浏览器: chrome://version/
         <li>
           <pre class="smartperf-text fontColor light">
 Long Trace Mode： 超大trace抓取模式。
-</pre>
+</pre
+          >
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
 Single file max size： trace文件分割的大小。
-</pre>
+</pre
+          >
         </li>
       </ul>
       <h4 class="mume-header fontColor">本地导入超大trace</h4>
@@ -843,9 +855,7 @@ Single file max size： trace文件分割的大小。
         本地导入超大trace是导入文件夹，将该文件夹中所有文件导入。如下图从Open long trace file入口导入。<br />
         <img src="../figures/parsingability/longtraceload.jpg" alt="GitHub Logo" /><br />
         本地导入以后，点击右上方的切页图标可以切页。<br />
-        <img
-          src="../figures/parsingability/longtraceswitch.jpg"
-          alt="GitHub Logo" />
+        <img src="../figures/parsingability/longtraceswitch.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">web端支持已打开的trace文件转换成systrace，并可下载</h3>
 

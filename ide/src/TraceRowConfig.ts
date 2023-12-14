@@ -311,7 +311,7 @@ export class TraceRowConfig extends BaseElement {
     this.spSystemTrace!.selectFlag = undefined;
   }
 
-  initElements(): void { }
+  initElements(): void {}
 
   connectedCallback(): void {
     this.sceneTable = this.shadowRoot!.querySelector<HTMLDivElement>('#scene-select');
