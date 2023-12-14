@@ -67,8 +67,8 @@ void PerfDataFilter::Finish()
     flag = ~(flag << 63);
     for (auto i = 0; i < size; i++) {
         if (fileIds[i] == INVALID_UINT64) {
-            traceDataCache_->GetPerfCallChainData()->SetName(i, "@0x" +
-                                                                    base::number(ips[i], base::INTEGER_RADIX_TYPE_HEX));
+            auto nameIndex = traceDataCache_->GetDataIndex("@0x" + base::number(ips[i], base::INTEGER_RADIX_TYPE_HEX));
+            traceDataCache_->GetPerfCallChainData()->SetName(i, nameIndex);
             continue;
         }
         if (vaddrs[i] == 0 || symbolsIds[i] == -1) {
@@ -76,20 +76,22 @@ void PerfDataFilter::Finish()
             auto fullPath = traceDataCache_->GetDataFromDict(pathIndex);
             auto iPos = fullPath.find_last_of('/');
             fullPath = fullPath.substr(iPos + 1, -1);
-            traceDataCache_->GetPerfCallChainData()->SetName(
-                i, fullPath + "@0x" + base::number(ips[i] & flag, base::INTEGER_RADIX_TYPE_HEX));
+            auto nameIndex = traceDataCache_->GetDataIndex(fullPath + "@0x" +
+                                                           base::number(ips[i] & flag, base::INTEGER_RADIX_TYPE_HEX));
+            traceDataCache_->GetPerfCallChainData()->SetName(i, nameIndex);
             continue;
         }
         // if there has the file Id to which the function belongs,and the symboleid is not -1 and vaddrinfile is not -1.
         // Set the function name as the virtual address of this function
         auto value = fileIdToRowInFileTable_.Find(fileIds[i], symbolsIds[i]);
         if (value == INVALID_UINT64) {
-            traceDataCache_->GetPerfCallChainData()->SetName(
-                i, "+0x" + base::number(traceDataCache_->GetPerfCallChainData()->VaddrInFiles()[i] & flag));
+            auto nameIndex = traceDataCache_->GetDataIndex(
+                "+0x" + base::number(traceDataCache_->GetPerfCallChainData()->VaddrInFiles()[i] & flag));
+            traceDataCache_->GetPerfCallChainData()->SetName(i, nameIndex);
             continue;
         }
         // The function name is not empty
-        traceDataCache_->GetPerfCallChainData()->SetName(i, traceDataCache_->GetDataFromDict(sambols[value]));
+        traceDataCache_->GetPerfCallChainData()->SetName(i, sambols[value]);
     }
     fileIdToRowInFileTable_.Clear();
     fileIds_.clear();

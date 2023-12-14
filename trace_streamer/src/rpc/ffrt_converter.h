@@ -94,6 +94,7 @@ private:
 
 private:
     const std::regex indexPattern_ = std::regex("\\(.+\\)\\s+\\[\\d");
+    const std::regex matchPattern_ = std::regex(" \\(.+\\)\\s+\\[\\d");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

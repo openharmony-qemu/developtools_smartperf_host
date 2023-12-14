@@ -86,6 +86,8 @@ private:
     std::vector<std::string> symbolsPathFiles_;
     std::vector<std::unique_ptr<TraceTimeSnap>> vTraceTimeSnap_;
     bool ffrtConvertEnabled_ = false;
+    int64_t startParseTime_ = 0;
+    int64_t endParseTime_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

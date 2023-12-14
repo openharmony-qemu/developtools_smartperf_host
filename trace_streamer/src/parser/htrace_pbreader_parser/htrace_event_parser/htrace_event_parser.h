@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <mutex>
 
 #include "event_parser_base.h"
 #include "ftrace_event.pbreader.h"
@@ -40,91 +41,78 @@ class HtraceEventParser : private EventParserBase {
 public:
     HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~HtraceEventParser();
-    void ParseDataItem(HtraceDataSegment& tracePacket, BuiltinClocks clock, bool& haveSplitSeg);
+    void ParseDataItem(HtraceDataSegment& tracePacket,
+                       ProtoReader::TracePluginResult_Reader& tracePluginResult,
+                       bool& haveSplitSeg);
     void FilterAllEventsReader();
     void FilterAllEvents();
     void Clear();
 
 private:
-    void DealEvent(const ProtoReader::FtraceEvent_Reader& event,
-                   const ProtoReader::FtraceEvent_CommonFileds_Reader& comonFields);
-    bool BinderTractionEvent(const ProtoReader::DataArea& event) const;
-    bool BinderTractionReceivedEvent(const ProtoReader::DataArea& event) const;
-    bool BinderTractionAllocBufEvent(const ProtoReader::DataArea& event) const;
-    bool BinderTractionLockEvent(const ProtoReader::DataArea& event) const;
-    bool BinderTractionLockedEvent(const ProtoReader::DataArea& event) const;
-    bool BinderTractionUnLockEvent(const ProtoReader::DataArea& event) const;
-    bool SchedSwitchEvent(const ProtoReader::DataArea& event);
-    bool SchedBlockReasonEvent(const ProtoReader::DataArea& event);
-    bool ProcessExitEvent(const ProtoReader::DataArea& event) const;
-    bool ProcessFreeEvent(const ProtoReader::DataArea& event) const;
-    bool TaskRenameEvent(const ProtoReader::DataArea& event) const;
-    bool TaskNewtaskEvent(const ProtoReader::DataArea& event) const;
-    bool ParsePrintEvent(const ProtoReader::DataArea& event);
-    bool SchedWakeupEvent(const ProtoReader::DataArea& event) const;
-    bool SchedWakeupNewEvent(const ProtoReader::DataArea& event) const;
-    bool SchedWakingEvent(const ProtoReader::DataArea& event) const;
-    bool CpuIdleEvent(const ProtoReader::DataArea& event) const;
-    bool CpuFrequencyEvent(const ProtoReader::DataArea& event) const;
-    bool CpuFrequencyLimitsEvent(const ProtoReader::DataArea& event) const;
-    bool SuspendResumeEvent(const ProtoReader::DataArea& event) const;
-    bool WorkqueueExecuteStartEvent(const ProtoReader::DataArea& event) const;
-    bool WorkqueueExecuteEndEvent(const ProtoReader::DataArea& event) const;
-    bool ClockSetRateEvent(const ProtoReader::DataArea& event) const;
-    bool ClockEnableEvent(const ProtoReader::DataArea& event) const;
-    bool ClockDisableEvent(const ProtoReader::DataArea& event) const;
-    bool ClkSetRateEvent(const ProtoReader::DataArea& event) const;
-    bool ClkEnableEvent(const ProtoReader::DataArea& event) const;
-    bool ClkDisableEvent(const ProtoReader::DataArea& event) const;
-    bool IrqHandlerEntryEvent(const ProtoReader::DataArea& event) const;
-    bool IrqHandlerExitEvent(const ProtoReader::DataArea& event) const;
-    bool IpiHandlerEntryEvent(const ProtoReader::DataArea& event) const;
-    bool IpiHandlerExitEvent(const ProtoReader::DataArea& event) const;
-    bool SoftIrqEntryEvent(const ProtoReader::DataArea& event) const;
-    bool SoftIrqRaiseEvent(const ProtoReader::DataArea& event) const;
-    bool SoftIrqExitEvent(const ProtoReader::DataArea& event) const;
-    bool SysEnterEvent(const ProtoReader::DataArea& event) const;
-    bool SysExitEvent(const ProtoReader::DataArea& event) const;
-    bool OomScoreAdjUpdate(const ProtoReader::DataArea& event) const;
-    bool SignalGenerateEvent(const ProtoReader::DataArea& event) const;
-    bool SignalDeleverEvent(const ProtoReader::DataArea& event) const;
-    bool InvokeFunc(const SupportedTraceEventType& eventType, const ProtoReader::DataArea& msgBase);
-    class EventInfo {
-    public:
-        EventInfo(uint64_t eventTimestamp,
-                  uint32_t eventCpu,
-                  std::shared_ptr<std::string> cpuDetail,
-                  ProtoReader::BytesView ftraceEventBytes)
-            : eventTimeStamp_(eventTimestamp),
-              eventCpu_(eventCpu),
-              cpuDetail_(std::move(cpuDetail)),
-              ftraceEventBytes_(ftraceEventBytes)
-        {
-        }
-        uint64_t eventTimeStamp_;
-        uint32_t eventCpu_;
-        std::shared_ptr<std::string> cpuDetail_;
-        ProtoReader::BytesView ftraceEventBytes_;
+    struct EventInfo {
+        int32_t tgid_ = 0;
+        uint32_t cpu_ = 0;
+        SupportedTraceEventType eventType_ = TRACE_EVENT_OTHER;
+        uint64_t timeStamp_ = INVALID_UINT64;
+        std::shared_ptr<std::string> detail_;
+        ProtoReader::BytesView bytesView_;
+        std::string taskName_;
+        std::shared_ptr<ProtoReader::FtraceEvent_CommonFileds_Reader> comonFields_;
     };
-    using FuncCall = std::function<bool(const ProtoReader::DataArea& event)>;
-    uint32_t eventCpu_ = INVALID_UINT32;
-    uint64_t eventTimeStamp_ = INVALID_UINT64;
-    std::string comm_ = "";
-    uint32_t eventPid_ = INVALID_UINT32;
-    uint32_t eventTid_ = INVALID_UINT32;
-    std::map<std::string, FuncCall> eventToFunctionMap_ = {};
+    bool SetEventType(const ProtoReader::FtraceEvent_Reader& event, EventInfo& eventInfo);
+    void ProtoReaderDealEvent(EventInfo* eventInfo);
+    bool BinderTractionEvent(const EventInfo& event) const;
+    bool BinderTractionReceivedEvent(const EventInfo& event) const;
+    bool BinderTractionAllocBufEvent(const EventInfo& event) const;
+    bool BinderTractionLockEvent(const EventInfo& event) const;
+    bool BinderTractionLockedEvent(const EventInfo& event) const;
+    bool BinderTractionUnLockEvent(const EventInfo& event) const;
+    bool SchedSwitchEvent(const EventInfo& event);
+    bool SchedBlockReasonEvent(const EventInfo& event);
+    bool ProcessExitEvent(const EventInfo& event) const;
+    bool ProcessFreeEvent(const EventInfo& event) const;
+    bool TaskRenameEvent(const EventInfo& event) const;
+    bool TaskNewtaskEvent(const EventInfo& event) const;
+    bool ParsePrintEvent(const EventInfo& event);
+    bool SchedWakeupEvent(const EventInfo& event) const;
+    bool SchedWakeupNewEvent(const EventInfo& event) const;
+    bool SchedWakingEvent(const EventInfo& event) const;
+    bool CpuIdleEvent(const EventInfo& event) const;
+    bool CpuFrequencyEvent(const EventInfo& event) const;
+    bool CpuFrequencyLimitsEvent(const EventInfo& event) const;
+    bool SuspendResumeEvent(const EventInfo& event) const;
+    bool WorkqueueExecuteStartEvent(const EventInfo& event) const;
+    bool WorkqueueExecuteEndEvent(const EventInfo& event) const;
+    bool ClockSetRateEvent(const EventInfo& event) const;
+    bool ClockEnableEvent(const EventInfo& event) const;
+    bool ClockDisableEvent(const EventInfo& event) const;
+    bool ClkSetRateEvent(const EventInfo& event) const;
+    bool ClkEnableEvent(const EventInfo& event) const;
+    bool ClkDisableEvent(const EventInfo& event) const;
+    bool IrqHandlerEntryEvent(const EventInfo& event) const;
+    bool IrqHandlerExitEvent(const EventInfo& event) const;
+    bool IpiHandlerEntryEvent(const EventInfo& event) const;
+    bool IpiHandlerExitEvent(const EventInfo& event) const;
+    bool SoftIrqEntryEvent(const EventInfo& event) const;
+    bool SoftIrqRaiseEvent(const EventInfo& event) const;
+    bool SoftIrqExitEvent(const EventInfo& event) const;
+    bool SysEnterEvent(const EventInfo& event) const;
+    bool SysExitEvent(const EventInfo& event) const;
+    bool OomScoreAdjUpdate(const EventInfo& event) const;
+    bool SignalGenerateEvent(const EventInfo& event) const;
+    bool SignalDeleverEvent(const EventInfo& event) const;
+    using FuncCall = std::function<bool(const EventInfo& event)>;
+    std::map<uint32_t, FuncCall> eventToFunctionMap_ = {};
     std::unordered_set<uint32_t> tids_ = {};
     std::unordered_set<uint32_t> pids_ = {};
     DataIndex workQueueId_ = 0;
     PrintEventParser printEventParser_;
-    uint64_t lastOverwrite_ = 0;
-    uint64_t ftraceStartTime_ = std::numeric_limits<uint64_t>::max();
-    uint64_t ftraceEndTime_ = 0;
-    uint64_t ftraceOriginStartTime_ = std::numeric_limits<uint64_t>::max();
-    uint64_t ftraceOriginEndTime_ = 0;
-    void ProtoReaderDealEvent(const ProtoReader::FtraceEvent_Reader& ftraceEvent,
-                              const std::vector<std::unique_ptr<EventInfo>>::iterator& itor);
-    std::vector<std::unique_ptr<EventInfo>> htraceEventList_ = {};
+    std::atomic<uint64_t> lastOverwrite_{0};
+    std::atomic<uint64_t> ftraceStartTime_{std::numeric_limits<uint64_t>::max()};
+    std::atomic<uint64_t> ftraceEndTime_{0};
+    std::atomic<uint64_t> ftraceOriginStartTime_{std::numeric_limits<uint64_t>::max()};
+    std::atomic<uint64_t> ftraceOriginEndTime_{0};
+    std::deque<std::unique_ptr<EventInfo>> htraceEventList_ = {};
     const DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
     const DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
@@ -138,7 +126,8 @@ private:
     const DataIndex sysExitName_ = traceDataCache_->GetDataIndex("sys_exit");
     const DataIndex oomScoreAdjName_ = traceDataCache_->GetDataIndex("oom_score_adj");
     TraceStreamerConfig config_{};
-    BuiltinClocks clock_ = TS_CLOCK_BOOTTIME;
+    std::atomic<BuiltinClocks> clock_{TS_CLOCK_BOOTTIME};
+    std::mutex mutex_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

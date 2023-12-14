@@ -173,7 +173,7 @@ private:
     size_t htraceLength_ = 1024;
     const int32_t sleepDur_ = 100;
     bool parseThreadStarted_ = false;
-    const int32_t maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
+    const int32_t maxThread_ = 4;
     int32_t parserThreadCount_ = 0;
     std::mutex htraceDataSegMux_ = {};
     bool supportThread_ = false;

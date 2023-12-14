@@ -944,8 +944,8 @@ public:
     const std::deque<uint64_t>& VaddrInFiles() const;
     const std::deque<uint64_t>& FileIds() const;
     const std::deque<uint64_t>& SymbolIds() const;
-    const std::deque<std::string>& Names() const;
-    void SetName(uint64_t index, const std::string& name);
+    const std::deque<DataIndex>& Names() const;
+    void SetName(uint64_t index, DataIndex name);
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void Clear() override;
 
@@ -956,7 +956,7 @@ private:
     std::deque<uint64_t> vaddrInFiles_ = {};
     std::deque<uint64_t> fileIds_ = {};
     std::deque<uint64_t> symbolIds_ = {};
-    std::deque<std::string> names_ = {};
+    std::deque<DataIndex> names_ = {};
 };
 
 class PerfFiles : public CacheBase {
@@ -1047,6 +1047,9 @@ private:
     std::string statSeverityDesc_[TRACE_EVENT_MAX][STAT_EVENT_MAX];
     StatSeverityLevel statSeverity_[TRACE_EVENT_MAX][STAT_EVENT_MAX];
     TraceStreamerConfig config_{};
+#ifdef SUPPORTTHREAD
+    SpinLock spinlock_;
+#endif
 };
 class SymbolsData {
 public:

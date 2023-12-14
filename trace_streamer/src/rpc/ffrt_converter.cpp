@@ -288,7 +288,7 @@ void FfrtConverter::FindFfrtProcessAndClassifyLogs(std::string& log,
         return;
     }
     static std::smatch match;
-    if (std::regex_search(log, match, indexPattern_)) {
+    if (std::regex_search(log, match, matchPattern_)) {
         auto endPos = log.find(match.str());
         std::string res = log.substr(0, endPos);
         std::string begin = "-";

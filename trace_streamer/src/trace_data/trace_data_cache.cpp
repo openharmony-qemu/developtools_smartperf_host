@@ -359,7 +359,8 @@ void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string&
             filePath = GetDataFromDict(perfFiles_.FilePaths()[perfFileRow]);
         }
         bufferLine.append("\t").append(formatIp);
-        bufferLine.append(" [").append(perfCallChain_.Names()[perfCallChainRow]).append("]");
+        auto nameStr = GetDataFromDict(perfCallChain_.Names()[perfCallChainRow]);
+        bufferLine.append(" [").append(nameStr).append("]");
         bufferLine.append(" (").append(filePath).append(")\r\n");
     }
     bufferLine.append("\r\n");
