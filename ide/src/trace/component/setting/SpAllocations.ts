@@ -120,7 +120,7 @@ export class SpAllocations extends BaseElement {
     if (this.recordStatisticsResult?.hasAttribute('percentValue')) {
       return Number(this.recordStatisticsResult?.getAttribute('percentValue'));
     }
-    return 10;
+    return 0;
   }
 
   get response_lib_mode(): boolean {
