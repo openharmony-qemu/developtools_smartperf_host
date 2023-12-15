@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class LtpoRender {
@@ -45,10 +45,6 @@ export class LtpoRender {
         let find = false;
         let offset = 3;
         for (let re of filter) {
-            if (re.frame) {
-                re.frame.height = Number(re.value) === 0 ? 1 : Number(re.value) * 30 / LtpoStruct.maxVal;
-                re.frame.y = 35 - re.frame.height;
-            }
             if (ltpoRow.isHover) {
                 if (
                     re.frame &&
@@ -79,7 +75,6 @@ export class LtpoStruct extends BaseStruct {
     name: string | undefined;
     presentFance: number | undefined;
     ts: number | undefined;
-    vsyncId: number | undefined;
     fanceId: number | undefined;
     fps: number | undefined;
     startTs: number | undefined;

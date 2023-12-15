@@ -17,14 +17,13 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
-import { ColorUtils } from '../trace/base/ColorUtils';
 import {
     queryPresentInfo,
-    queryVsNameList,
     queryFanceNameList,
     queryFpsNameList
 } from '../../database/SqlLite';
 import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO'
+import { HitchTimeStruct, hitchTimeRender } from '../../database/ui-worker/ProcedureWorkerHitchTime';
 
 export class SpLtpoChart {
     private readonly trace: SpSystemTrace | undefined;
@@ -32,166 +31,145 @@ export class SpLtpoChart {
     static jsonRow: TraceRow<CpuFreqStruct> | undefined;
     static trace: SpSystemTrace;
     static presentArr: Array<LtpoStruct> = [];
-    static vsyncNameList: Array<LtpoStruct> = [];
     static fanceNameList: Array<LtpoStruct> = [];
     static fpsnameList: Array<LtpoStruct> = [];
     static ltpoDataArr: Array<LtpoStruct> = [];
-    static sendDataArr: Array<LtpoStruct> = [];
+    static sendLTPODataArr: Array<LtpoStruct> = [];
+    static sendHitchDataArr: Array<LtpoStruct> = [];
     constructor(trace: SpSystemTrace) {
         SpLtpoChart.trace = trace;
     }
 
     async init() {
         SpLtpoChart.ltpoDataArr = [];
-        SpLtpoChart.vsyncNameList = await queryVsNameList();
         SpLtpoChart.fanceNameList = await queryFanceNameList();
         SpLtpoChart.fpsnameList = await queryFpsNameList();
-        SpLtpoChart.vsyncNameList.map((item) => {
-            let cutNameArr = item.name!.split(":");
-            item.vsyncId = Number(cutNameArr[cutNameArr.length - 1]);
-        })
         SpLtpoChart.fanceNameList.map((item) => {
             let cutFanceNameArr = item.name!.split(" ");
             item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1]);
         })
         SpLtpoChart.fpsnameList.map((item) => {
             let cutFpsNameArr = item.name!.split(",")[0].split(":");
-            item.fps = Number(cutFpsNameArr[cutFpsNameArr.length - 1])
+            item.fps = Number(cutFpsNameArr[cutFpsNameArr.length - 1]);
         })
-        let vsyncIndex = 0;
-        let fanceIndex = 0;
-        if (SpLtpoChart.vsyncNameList && SpLtpoChart.vsyncNameList.length && SpLtpoChart.fanceNameList && SpLtpoChart.fanceNameList.length) {
-            while (vsyncIndex < SpLtpoChart.vsyncNameList.length) {
-                if ((Number(SpLtpoChart.vsyncNameList[vsyncIndex].ts!) + Number(SpLtpoChart.vsyncNameList[vsyncIndex].dur!)) > SpLtpoChart.fanceNameList[fanceIndex].ts!) {
-                    this.pushLtpoData(SpLtpoChart.ltpoDataArr,
-                        Number(SpLtpoChart.fanceNameList[fanceIndex].fanceId),
-                        Number(SpLtpoChart.vsyncNameList[vsyncIndex].vsyncId),
-                        0, 0, 0, 0, 0
-                    )
-                    vsyncIndex++;
-                    if (fanceIndex < SpLtpoChart.fanceNameList.length - 1) fanceIndex++;
-                } else {
-                    this.pushLtpoData(SpLtpoChart.ltpoDataArr,
-                        -1,
-                        Number(SpLtpoChart.vsyncNameList[vsyncIndex].vsyncId),
-                        0, 0, 0, 0, 0
-                    )
-                    vsyncIndex++;
-                }
+        if (SpLtpoChart.fanceNameList && SpLtpoChart.fanceNameList.length && SpLtpoChart.fpsnameList && SpLtpoChart.fpsnameList.length) {
+            for (let i = 0; i < SpLtpoChart.fanceNameList.length; i++) {
+                let tmpFps = SpLtpoChart.fpsnameList[i]!.fps ? Number(SpLtpoChart.fpsnameList[i]!.fps) : 60;
+                this.pushLtpoData(
+                    SpLtpoChart.ltpoDataArr,
+                    Number(SpLtpoChart.fanceNameList[i]!.fanceId!),
+                    tmpFps,
+                    0, 0, 0, 0
+                );
             }
         }
-        if (SpLtpoChart.fpsnameList && SpLtpoChart.fpsnameList.length && SpLtpoChart.ltpoDataArr && SpLtpoChart.ltpoDataArr.length) {
-            for (let i = 0; i < SpLtpoChart.ltpoDataArr.length; i++) {
-                if (i === 0) {
-                    SpLtpoChart.ltpoDataArr[i].fps = 60
-                } else {
-                    SpLtpoChart.ltpoDataArr[i].fps = SpLtpoChart.fpsnameList[i - 1]?SpLtpoChart.fpsnameList[i - 1].fps:60;
-                }
-            }
+        if (SpLtpoChart.fanceNameList && SpLtpoChart.fanceNameList.length) {
+            await this.initFolder();
+            await this.initHitchTime();
         }
-
-        if (SpLtpoChart.vsyncNameList && SpLtpoChart.vsyncNameList.length) await this.initFolder();
     }
     pushLtpoData(
         lptoArr: any[] | undefined,
         fanceId: Number,
-        vsyncId: Number,
         fps: Number,
         startTs: Number,
         dur: Number,
         nextStartTs: Number,
         nextDur: number
-    ):void {
+    ): void {
         lptoArr?.push(
             {
-                lptoArr: lptoArr,
                 fanceId: fanceId,
-                vsyncId: vsyncId,
                 fps: fps,
                 startTs: startTs,
                 dur: dur,
                 nextStartTs: nextStartTs,
                 nextDur: nextDur
             }
-        )
+        );
+    }
+    sendDataHandle(_presentArr: LtpoStruct[], _ltpoDataArr: LtpoStruct[]): Array<LtpoStruct> {
+        let ltpoIndex = 0;
+        let presentIndex = 0;
+        let sendDataArr = [];
+        if (_presentArr && _presentArr.length) {
+            while (ltpoIndex < _ltpoDataArr.length) {
+                if (_ltpoDataArr[ltpoIndex].fanceId === Number(_presentArr[presentIndex].presentFance)) {
+                    _ltpoDataArr[ltpoIndex].startTs = Number(_presentArr[presentIndex].ts) - (window as any).recordStartNS;
+                    _ltpoDataArr[ltpoIndex].dur = _presentArr[presentIndex].dur;
+                    _ltpoDataArr[ltpoIndex].nextStartTs = _presentArr[presentIndex + 1] ? Number(_presentArr[presentIndex + 1].ts) - (window as any).recordStartNS : '';
+                    _ltpoDataArr[ltpoIndex].nextDur = _presentArr[presentIndex + 1] ? _presentArr[presentIndex + 1].dur : 0;
+                    ltpoIndex++;
+                    if (presentIndex < _presentArr.length - 1) {
+                        presentIndex++;
+                    }
+                } else {
+                    ltpoIndex++;
+                }
+            }
+        }
+        for (let i = 0; i < _ltpoDataArr.length; i++) {
+            if (_ltpoDataArr[i].fanceId !== -1 && _ltpoDataArr[i].nextDur) {
+                let sendStartTs: number | undefined = 0;
+                let sendDur: number | undefined = 0;
+                sendStartTs = Number(SpLtpoChart.ltpoDataArr[i].startTs) + Number(SpLtpoChart.ltpoDataArr[i].dur);
+                sendDur = Number(SpLtpoChart.ltpoDataArr[i].nextStartTs) + Number(SpLtpoChart.ltpoDataArr[i].nextDur) - sendStartTs;
+                let tmpDur = (Math.ceil(sendDur / 100000)) / 10;
+                if (tmpDur < 170) {
+                    sendDataArr.push(
+                        {
+                            dur: sendDur,
+                            value: 0,
+                            startTs: sendStartTs,
+                            pid: SpLtpoChart.ltpoDataArr[i].fanceId,
+                            itid: SpLtpoChart.ltpoDataArr[i].fanceId,
+                            name: undefined,
+                            presentFance: SpLtpoChart.ltpoDataArr[i].fanceId,
+                            ts: undefined,
+                            fanceId: SpLtpoChart.ltpoDataArr[i].fanceId,
+                            fps: SpLtpoChart.ltpoDataArr[i].fps,
+                            nextStartTs: SpLtpoChart.ltpoDataArr[i].nextStartTs,
+                            nextDur: SpLtpoChart.ltpoDataArr[i].nextDur,
+                            translateY: undefined,
+                            frame: undefined,
+                            isHover: false
+                        }
+                    );
+                }
+            }
+        }
+        return sendDataArr;
     }
 
     async initFolder() {
         SpLtpoChart.presentArr = [];
         let row: TraceRow<LtpoStruct> = TraceRow.skeleton<LtpoStruct>();
-        row.setAttribute('hasStartup', 'true');
-        row.rowId = ``;
-        row.index = 0;
-        row.rowType = TraceRow.ROW_TYPE_LTPO;
+        row.rowId = `LTPO ${SpLtpoChart.fanceNameList[0].fanceId}`;
         row.rowParentId = '';
+        row.rowType = TraceRow.ROW_TYPE_LTPO;
         row.folder = false;
         row.style.height = '40px';
         row.name = `Lost Frames`;
         row.favoriteChangeHandler = SpLtpoChart.trace.favoriteChangeHandler;
+        row.selectChangeHandler = SpLtpoChart.trace.selectChangeHandler;
         row.supplier = async (): Promise<Array<LtpoStruct>> => {
             SpLtpoChart.presentArr = await queryPresentInfo();
             SpLtpoChart.presentArr.map((item) => {
-                let cutPresentArr = item.name!.split(" ")
-                item.presentFance = Number(cutPresentArr[cutPresentArr.length - 1])
+                let cutPresentArr = item.name!.split(" ");
+                item.presentFance = Number(cutPresentArr[cutPresentArr.length - 1]);
             })
-            let ltpoIndex = 0;
-            let presentIndex = 0;
-            SpLtpoChart.sendDataArr = [];
-            if (SpLtpoChart.presentArr && SpLtpoChart.presentArr.length) {
-                while (ltpoIndex < SpLtpoChart.ltpoDataArr.length) {
-                    if (SpLtpoChart.ltpoDataArr[ltpoIndex].fanceId === Number(SpLtpoChart.presentArr[presentIndex].presentFance)) {
-                        SpLtpoChart.ltpoDataArr[ltpoIndex].startTs = Number(SpLtpoChart.presentArr[presentIndex].ts) - (window as any).recordStartNS;
-                        SpLtpoChart.ltpoDataArr[ltpoIndex].dur = SpLtpoChart.presentArr[presentIndex].dur;
-                        SpLtpoChart.ltpoDataArr[ltpoIndex].nextStartTs = SpLtpoChart.presentArr[presentIndex + 1] ? Number(SpLtpoChart.presentArr[presentIndex + 1].ts) - (window as any).recordStartNS : '';
-                        SpLtpoChart.ltpoDataArr[ltpoIndex].nextDur = SpLtpoChart.presentArr[presentIndex + 1] ? SpLtpoChart.presentArr[presentIndex + 1].dur : 0;
-                        ltpoIndex++;
-                        if (presentIndex < SpLtpoChart.presentArr.length - 1) presentIndex++;
-                    } else {
-                        ltpoIndex++;
-                    }
-                }
+            SpLtpoChart.sendLTPODataArr = this.sendDataHandle(SpLtpoChart.presentArr, SpLtpoChart.ltpoDataArr);
+            for (let i = 0; i < SpLtpoChart.sendLTPODataArr.length; i++) {
+                let tmpDur = SpLtpoChart.sendLTPODataArr[i].dur! / 1000000;
+                SpLtpoChart.sendLTPODataArr[i].value = (Math.round(tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1)) < 1 ? 0 : Math.round(tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1);
             }
-
-            for (let i = 0; i < SpLtpoChart.ltpoDataArr.length; i++) {
-                if (SpLtpoChart.ltpoDataArr[i].fanceId != -1 && SpLtpoChart.ltpoDataArr[i].nextDur) {
-                    let sendStartTs: number | undefined = 0;
-                    let sendDur: number | undefined = 0;
-                    let sendLossFrames: number | undefined = 0;
-                    sendStartTs = Number(SpLtpoChart.ltpoDataArr[i].startTs) + Number(SpLtpoChart.ltpoDataArr[i].dur);
-                    sendDur = Number(SpLtpoChart.ltpoDataArr[i].nextStartTs) + Number(SpLtpoChart.ltpoDataArr[i].nextDur) - sendStartTs;
-                    let tmpDur = Math.ceil(sendDur / 1000000)
-                    sendLossFrames = (tmpDur * Number(SpLtpoChart.ltpoDataArr[i].fps) / 1000 - 1) < 1 ? 0 : Math.floor(tmpDur * Number(SpLtpoChart.ltpoDataArr[i].fps) / 1000 - 1)
-                    if (tmpDur < 170) {
-                        SpLtpoChart.sendDataArr.push(
-                            {
-                                dur: sendDur,
-                                value: sendLossFrames,
-                                startTs: sendStartTs,
-                                pid: SpLtpoChart.ltpoDataArr[i].vsyncId,
-                                itid: SpLtpoChart.ltpoDataArr[i].vsyncId,
-                                name: undefined,
-                                presentFance: undefined,
-                                ts: undefined,
-                                vsyncId: undefined,
-                                fanceId: undefined,
-                                fps: undefined,
-                                nextStartTs: undefined,
-                                nextDur: undefined,
-                                translateY: undefined,
-                                frame: undefined,
-                                isHover: false
-                            }
-                        )
-                    }
-                }
-            }
-            return SpLtpoChart.sendDataArr
+            return SpLtpoChart.sendLTPODataArr;
         }
         row.focusHandler = (ev) => {
             SpLtpoChart.trace?.displayTip(
                 row!,
                 LtpoStruct.hoverLtpoStruct,
-                `<span>${ColorUtils.formatNumberComma(Number(LtpoStruct.hoverLtpoStruct?.value!))}</span>`
+                `<span>${(LtpoStruct.hoverLtpoStruct?.value!)}</span>`
             )
         };
         row.onThreadHandler = (useCache): void => {
@@ -207,6 +185,57 @@ export class SpLtpoChart {
                     appStartupContext: context,
                     useCache: useCache,
                     type: `ltpo-present ${row.rowId}`,
+                },
+                row
+            );
+            row.canvasRestore(context);
+        };
+        SpLtpoChart.trace.rowsEL?.appendChild(row);
+    }
+    async initHitchTime() {
+        SpLtpoChart.presentArr = [];
+        let row: TraceRow<HitchTimeStruct> = TraceRow.skeleton<HitchTimeStruct>();
+        row.rowId = `hitch-time ${SpLtpoChart.fanceNameList[1].fanceId}`;
+        row.rowParentId = '';
+        row.rowType = TraceRow.ROW_TYPE_HITCH_TIME;
+        row.folder = false;
+        row.style.height = '40px';
+        row.name = `Hitch Time`;
+        row.favoriteChangeHandler = SpLtpoChart.trace.favoriteChangeHandler;
+        row.selectChangeHandler = SpLtpoChart.trace.selectChangeHandler;
+        row.supplier = async (): Promise<Array<HitchTimeStruct>> => {
+            SpLtpoChart.presentArr = await queryPresentInfo();
+            SpLtpoChart.presentArr.map((item) => {
+                let cutPresentArr = item.name!.split(" ");
+                item.presentFance = Number(cutPresentArr[cutPresentArr.length - 1]);
+            })
+            SpLtpoChart.sendHitchDataArr = this.sendDataHandle(SpLtpoChart.presentArr, SpLtpoChart.ltpoDataArr);
+            for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
+                let tmpVale = Number((Math.ceil(((SpLtpoChart.sendHitchDataArr[i].dur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!)) * 10)) / 10);
+                SpLtpoChart.sendHitchDataArr[i].value = tmpVale < 0 ? 0 : tmpVale;
+            }
+            return SpLtpoChart.sendHitchDataArr;
+        }
+        row.focusHandler = (ev) => {
+            SpLtpoChart.trace?.displayTip(
+                row!,
+                HitchTimeStruct.hoverHitchTimeStruct,
+                `<span>${(HitchTimeStruct.hoverHitchTimeStruct?.value!)}</span>`
+            )
+        };
+        row.onThreadHandler = (useCache): void => {
+            let context: CanvasRenderingContext2D;
+            if (row.currentContext) {
+                context = row.currentContext;
+            } else {
+                context = row.collect ? SpLtpoChart.trace.canvasFavoritePanelCtx! : SpLtpoChart.trace.canvasPanelCtx!;
+            }
+            row.canvasSave(context);
+            (renders['hitch'] as hitchTimeRender).renderMainThread(
+                {
+                    appStartupContext: context,
+                    useCache: useCache,
+                    type: `hitch ${row.rowId}`,
                 },
                 row
             );

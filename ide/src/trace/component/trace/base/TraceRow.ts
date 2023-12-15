@@ -119,6 +119,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_LOGS = 'logs';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
   static ROW_TYPE_LTPO = 'ltpo';
+  static ROW_TYPE_HITCH_TIME = 'hitch-time';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;

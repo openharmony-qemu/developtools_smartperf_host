@@ -109,6 +109,8 @@ import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSy
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon';
 import { type SpKeyboard } from '../component/SpKeyboard';
 import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync';
+import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
+import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime'
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -2271,6 +2273,7 @@ export class SpSystemTrace extends BaseElement {
   };
 
   favoriteChangeHandler = (row: TraceRow<any>) => {
+    console.log(row.offsetTop, row.offsetHeight,"------2-2-2--")
     info('favoriteChangeHandler', row.frame, row.offsetTop, row.offsetHeight);
   };
 
@@ -2487,6 +2490,8 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.selectSnapshotStruct = undefined;
     HiPerfCallChartStruct.selectStruct = undefined;
     AllAppStartupStruct.selectStartupStruct = undefined;
+    LtpoStruct.selectLtpoStruct = undefined;
+    HitchTimeStruct.selectHitchTimeStruct = undefined;
   }
 
   isWASDKeyPress() {
