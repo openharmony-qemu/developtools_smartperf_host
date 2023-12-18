@@ -654,7 +654,6 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
     unsigned int evtSize;
     unsigned int eventId;
     EventFormat format = {};
-    int num = 0;
 
     cpuMsg.set_cpu(rmqData->coreId);
     cpuMsg.set_overwrite(0);
@@ -678,15 +677,12 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
         if (FtraceEventProcessor::GetInstance().IsSupported(format.eventId)) {
             std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
             ftraceEvent->set_timestamp(event->timeStampOffset + timeStampBase);
-            ftraceEvent->set_tgid(header->tgid);
-            ftraceEvent->set_comm(header->tcbName);
             HandleFtraceEvent(*ftraceEvent, reinterpret_cast<uint8_t*>(header), evtSize, format);
             std::unique_ptr<RawTraceEventInfo> eventInfo = std::make_unique<RawTraceEventInfo>();
             eventInfo->cpuId = cpuMsg.cpu();
             eventInfo->eventId = eventId;
             eventInfo->msgPtr = std::move(ftraceEvent);
             cpuDetailParser.EventAppend(std::move(eventInfo));
-            num++;
         } else {
             TS_LOGD(
                 "mark.debug. evtId = %u evtSize = %u format.eventId = %u format.evtSize = %u"
