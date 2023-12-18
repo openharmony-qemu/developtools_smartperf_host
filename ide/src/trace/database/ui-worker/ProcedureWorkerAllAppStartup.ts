@@ -61,7 +61,6 @@ export class AllAppStartupRender {
   }
 }
 
-const padding = 3;
 
 export class AllAppStartupStruct extends BaseStruct {
   static hoverStartupStruct: AllAppStartupStruct | undefined;
@@ -102,8 +101,8 @@ export class AllAppStartupStruct extends BaseStruct {
     }
   }
 
-  static async getStartupName(pid: number): Promise<any> {
-    let singleAppName = await querySingleAppStartupsName(pid);
-    return singleAppName[0].name;
-  }
+    static async getStartupName(pid: number): Promise<string> {
+        let singleAppName = await querySingleAppStartupsName(pid);
+        return singleAppName[0].name;
+    }
 }

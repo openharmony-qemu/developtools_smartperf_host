@@ -70,6 +70,9 @@ export class CpuFreqStruct extends BaseStruct {
   value: number | undefined;
   startNS: number | undefined;
   dur: number | undefined; //自补充，数据库没有返回
+    name: any;
+    presentFance: any;
+    ts: any;
 
   static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqStruct) {
     if (data.frame) {

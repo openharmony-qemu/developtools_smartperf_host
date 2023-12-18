@@ -22,67 +22,101 @@ import { FlagsConfig } from '../SpFlags';
 import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
 export class SpAllAppStartupsChart {
-  private readonly trace: SpSystemTrace | undefined;
-  static APP_STARTUP_PID_ARR: Array<number> = [];
-  static jsonRow: TraceRow<CpuFreqStruct> | undefined;
-  static trace: SpSystemTrace;
-  static AllAppStartupsNameArr: any[] = [];
-  static allAppStartupsAva: number[] = [];
+    private readonly trace: SpSystemTrace | undefined;
+    static APP_STARTUP_PID_ARR: Array<number> = [];
+    static jsonRow: TraceRow<CpuFreqStruct> | undefined;
+    static trace: SpSystemTrace;
+    static AllAppStartupsNameArr: string[] = [];
+    static allAppStartupsAva: number[] = [];
+
+    constructor(trace: SpSystemTrace) {
+        SpAllAppStartupsChart.trace = trace;
+    }
+
+
+
 
   constructor(trace: SpSystemTrace) {
     SpAllAppStartupsChart.trace = trace;
   }
 
-  async init() {
-    SpAllAppStartupsChart.APP_STARTUP_PID_ARR = [];
-    let appStartUpPids = await queryAppStartupProcessIds();
-    appStartUpPids.forEach((it) => SpAllAppStartupsChart.APP_STARTUP_PID_ARR.push(it.pid));
-    SpAllAppStartupsChart.AllAppStartupsNameArr = [];
-    SpAllAppStartupsChart.allAppStartupsAva = [];
-    for (let i = 0; i < SpAllAppStartupsChart.APP_STARTUP_PID_ARR.length; i++) {
-      let tmpSingleApp: any[] = await queryProcessStartup(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
-      if (tmpSingleApp.length == 8) {
-        let avilSingleName = await querySingleAppStartupsName(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
-        SpAllAppStartupsChart.allAppStartupsAva.push(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]);
-        SpAllAppStartupsChart.AllAppStartupsNameArr.push(avilSingleName![0].name);
-      }
+    async init() {
+        SpAllAppStartupsChart.APP_STARTUP_PID_ARR = [];
+        let appStartUpPids = await queryAppStartupProcessIds();
+        appStartUpPids.forEach((it) => SpAllAppStartupsChart.APP_STARTUP_PID_ARR.push(it.pid));
+        SpAllAppStartupsChart.AllAppStartupsNameArr = [];
+        SpAllAppStartupsChart.allAppStartupsAva = [];
+        for (let i = 0; i < SpAllAppStartupsChart.APP_STARTUP_PID_ARR.length; i++) {
+            let tmpSingleApp: any[] = await queryProcessStartup(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
+            if (tmpSingleApp.length === 8) {
+                let avilSingleName = await querySingleAppStartupsName(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]!);
+                SpAllAppStartupsChart.allAppStartupsAva.push(SpAllAppStartupsChart.APP_STARTUP_PID_ARR[i]);
+                SpAllAppStartupsChart.AllAppStartupsNameArr.push(avilSingleName![0].name);
+            }
+        }
+        let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
+        if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
     }
     let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
     if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
   }
 
-  async initFolder() {
-    let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
-    row.setAttribute('hasStartup', 'true');
-    row.rowId = `all-app-start-${SpAllAppStartupsChart.APP_STARTUP_PID_ARR![0]}`;
-    row.index = 0;
-    row.rowType = TraceRow.ROW_TYPE_ALL_APPSTARTUPS;
-    row.rowParentId = '';
-    row.folder = false;
-    row.style.height = '40px';
-    row.name = `All App Startups`;
-    row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
-    row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
-    row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
-      let sendRes: AllAppStartupStruct[] | PromiseLike<AllAppStartupStruct[]> = [];
-      for (let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++) {
-        let tmpResArr = await queryProcessStartup(SpAllAppStartupsChart.allAppStartupsAva[i]);
-        let maxStartTs: number | undefined = tmpResArr[0].startTs;
-        let minStartTs: number | undefined = tmpResArr[0].startTs;
-        let singleDur = tmpResArr[0].dur;
-        let endTs: number | undefined = tmpResArr[0].startTs;
-        if (tmpResArr.length > 1) {
-          for (let j = 0; j < tmpResArr.length; j++) {
-            if (Number(tmpResArr[j].startTs) > Number(maxStartTs)) {
-              maxStartTs = tmpResArr[j].startTs;
-            } else if (Number(tmpResArr[j].startTs) < Number(minStartTs)) {
-              minStartTs = tmpResArr[j].startTs;
-            }
-          }
-          tmpResArr.forEach((item) => {
-            if (item.startTs == maxStartTs) {
-              endTs = Number(item.startTs) + Number(item.dur);
-              singleDur = Number(endTs) - Number(minStartTs);
+    async initFolder() {
+        let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
+        row.setAttribute('hasStartup', 'true');
+        row.rowId = `all-app-start-${SpAllAppStartupsChart.APP_STARTUP_PID_ARR![0]}`;
+        row.index = 0;
+        row.rowType = TraceRow.ROW_TYPE_ALL_APPSTARTUPS;
+        row.rowParentId = '';
+        row.folder = false;
+        row.style.height = '40px';
+        row.name = `All App Startups`;
+        row.addTemplateTypes('AppStartup');
+        row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
+        row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
+        row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
+            let sendRes: AllAppStartupStruct[] | PromiseLike<AllAppStartupStruct[]> = [];
+            for (let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++) {
+                let tmpResArr = await queryProcessStartup(SpAllAppStartupsChart.allAppStartupsAva[i]);
+                let maxStartTs: number | undefined = tmpResArr[0].startTs;
+                let minStartTs: number | undefined = tmpResArr[0].startTs;
+                let singleDur = tmpResArr[0].dur;
+                let endTs: number | undefined = tmpResArr[0].startTs;
+                if (tmpResArr.length > 1) {
+                    for (let j = 0; j < tmpResArr.length; j++) {
+                        if (Number(tmpResArr[j].startTs) > Number(maxStartTs)) {
+                            maxStartTs = tmpResArr[j].startTs;
+                        } else if (Number(tmpResArr[j].startTs) < Number(minStartTs)) {
+                            minStartTs = tmpResArr[j].startTs;
+                        }
+                    }
+                    tmpResArr.forEach((item) => {
+                        if (item.startTs === maxStartTs) {
+                            endTs = Number(item.startTs) + Number(item.dur);
+                            singleDur = Number(endTs) - Number(minStartTs);
+                        }
+                    })
+                } else if (tmpResArr.length === 1) {
+                    minStartTs = tmpResArr[0].startTs;
+                    singleDur = tmpResArr[0].dur;
+                }
+                sendRes.push(
+                    {
+                        dur: singleDur,
+                        value: undefined,
+                        startTs: minStartTs,
+                        pid: SpAllAppStartupsChart.allAppStartupsAva[i],
+                        process: undefined,
+                        itid: undefined,
+                        endItid: undefined,
+                        tid: SpAllAppStartupsChart.allAppStartupsAva[i],
+                        startName: undefined,
+                        stepName: SpAllAppStartupsChart.AllAppStartupsNameArr[i],
+                        translateY: undefined,
+                        frame: undefined,
+                        isHover: false
+                    }
+                )
             }
           });
         } else if (tmpResArr.length === 1) {

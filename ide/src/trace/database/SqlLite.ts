@@ -82,6 +82,7 @@ import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
 import { type MemoryConfig } from '../bean/MemoryConfig';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog';
 import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
+import { LtpoStruct } from './ui-worker/ProcedureWorkerLTPO';
 import { KeyPathStruct } from '../bean/KeyPathStruct';
 
 class DataWorkerThread {
@@ -1511,6 +1512,27 @@ export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
     where pid=$pid`,
     { $pid: pid }
   );
+
+  export const queryPresentInfo =(): Promise <Array<LtpoStruct>> =>
+  query(
+    'queryPresentInfo',
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(80,114,101,115,101,110,116,37)}'))
+    AND name LIKE('${String.fromCharCode(72,58,87,97,105,116,105,110,103,32,102,111,114,32,80,114,101,115,101,110,116,32,70,101,110,99,101,37)}')`
+  )
+
+  export const queryFanceNameList = ():Promise<Array<LtpoStruct>> =>
+  query(
+    'queryFanceNameList',
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(82,83,72,97,114,100,119,97,114,101,84,104,114,101,97,37)}'))
+    AND name LIKE('${String.fromCharCode(72,58,80,114,101,115,101,110,116,32,70,101,110,99,101,37)}')`
+  )
+
+  export const queryFpsNameList = ():Promise<Array<LtpoStruct>> =>
+  query(
+    'queryFpsNameList',
+    `SELECT name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(82,83,72,97,114,100,119,97,114,101,84,104,114,101,97,37)}'))
+    AND name LIKE('${String.fromCharCode(37,76,97,121,101,114,115,32,114,97,116,101,37)}')`
+  )
 
 export const queryProcessSoMaxDepth = (): Promise<Array<{ pid: number; maxDepth: number }>> =>
   query(
