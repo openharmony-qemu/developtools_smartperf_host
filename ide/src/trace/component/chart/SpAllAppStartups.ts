@@ -17,7 +17,11 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
-import { queryAppStartupProcessIds, queryProcessStartup, querySingleAppStartupsName } from '../../database/SqlLite';
+import {
+    queryAppStartupProcessIds,
+    queryProcessStartup,
+    querySingleAppStartupsName,
+} from '../../database/SqlLite';
 import { FlagsConfig } from '../SpFlags';
 import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
@@ -26,7 +30,7 @@ export class SpAllAppStartupsChart {
     static APP_STARTUP_PID_ARR: Array<number> = [];
     static jsonRow: TraceRow<CpuFreqStruct> | undefined;
     static trace: SpSystemTrace;
-    static AllAppStartupsNameArr: string[] = [];
+    static AllAppStartupsNameArr: any[] = [];
     static allAppStartupsAva: number[] = [];
 
     constructor(trace: SpSystemTrace) {
@@ -36,9 +40,6 @@ export class SpAllAppStartupsChart {
 
 
 
-  constructor(trace: SpSystemTrace) {
-    SpAllAppStartupsChart.trace = trace;
-  }
 
     async init() {
         SpAllAppStartupsChart.APP_STARTUP_PID_ARR = [];
@@ -57,9 +58,6 @@ export class SpAllAppStartupsChart {
         let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
         if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
     }
-    let loadAppStartup: boolean = FlagsConfig.getFlagsConfigEnableStatus('AppStartup');
-    if (loadAppStartup && SpAllAppStartupsChart.allAppStartupsAva.length) await this.initFolder();
-  }
 
     async initFolder() {
         let row: TraceRow<AllAppStartupStruct> = TraceRow.skeleton<AllAppStartupStruct>();
@@ -71,9 +69,8 @@ export class SpAllAppStartupsChart {
         row.folder = false;
         row.style.height = '40px';
         row.name = `All App Startups`;
-        row.addTemplateTypes('AppStartup');
-        row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
         row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
+        row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
         row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
             let sendRes: AllAppStartupStruct[] | PromiseLike<AllAppStartupStruct[]> = [];
             for (let i = 0; i < SpAllAppStartupsChart.allAppStartupsAva.length; i++) {
@@ -118,50 +115,27 @@ export class SpAllAppStartupsChart {
                     }
                 )
             }
-          });
-        } else if (tmpResArr.length === 1) {
-          minStartTs = tmpResArr[0].startTs;
-          singleDur = tmpResArr[0].dur;
+            return sendRes
         }
-        sendRes.push({
-          dur: singleDur,
-          value: undefined,
-          startTs: minStartTs,
-          pid: SpAllAppStartupsChart.allAppStartupsAva[i],
-          process: undefined,
-          itid: undefined,
-          endItid: undefined,
-          tid: SpAllAppStartupsChart.allAppStartupsAva[i],
-          startName: undefined,
-          stepName: SpAllAppStartupsChart.AllAppStartupsNameArr[i],
-          translateY: undefined,
-          frame: undefined,
-          isHover: false,
-        });
-      }
-      return sendRes;
-    };
 
-    row.onThreadHandler = (useCache): void => {
-      let context: CanvasRenderingContext2D;
-      if (row.currentContext) {
-        context = row.currentContext;
-      } else {
-        context = row.collect
-          ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx!
-          : SpAllAppStartupsChart.trace.canvasPanelCtx!;
-      }
-      row.canvasSave(context);
-      (renders['all-app-start-up'] as AllAppStartupRender).renderMainThread(
-        {
-          appStartupContext: context,
-          useCache: useCache,
-          type: `app-startup ${row.rowId}`,
-        },
-        row
-      );
-      row.canvasRestore(context);
-    };
-    SpAllAppStartupsChart.trace.rowsEL?.appendChild(row);
-  }
+        row.onThreadHandler = (useCache): void => {
+            let context: CanvasRenderingContext2D;
+            if (row.currentContext) {
+                context = row.currentContext;
+            } else {
+                context = row.collect ? SpAllAppStartupsChart.trace.canvasFavoritePanelCtx! : SpAllAppStartupsChart.trace.canvasPanelCtx!;
+            }
+            row.canvasSave(context);
+            (renders['all-app-start-up'] as AllAppStartupRender).renderMainThread(
+                {
+                    appStartupContext: context,
+                    useCache: useCache,
+                    type: `app-startup ${row.rowId}`,
+                },
+                row
+            );
+            row.canvasRestore(context);
+        };
+        SpAllAppStartupsChart.trace.rowsEL?.appendChild(row);
+    }
 }
