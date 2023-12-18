@@ -79,6 +79,39 @@ export class SpProcessChart {
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
   };
 
+  /**
+   * 更新无end方法的持续时间
+   * @param it 被更新的方法
+   * @param i 索引位置
+   * @param arr 被更新的方法集合
+   */
+  modifyNofinishDur(it: FuncStruct, i: number, arr: Array<FuncStruct>): void {
+    if (i !== arr.length - 1) { 
+      let nextIt = arr.find((item, idx) =>  item.depth === it.depth && idx >= i + 1 );
+      if (nextIt) {
+        if ((it.startTs! + it.dur! > nextIt!.startTs!)
+          || it.dur === -1
+        ) {
+          it.dur = nextIt.startTs! - it.startTs!;
+          it.flag = 'Did not end';
+          it.nofinish = true;
+        }
+      } else {
+        if (it.dur === -1) {
+          it.dur = TraceRow.range!.endNS - it.startTs!;
+          it.flag = 'Did not end';
+          it.nofinish = true;
+        }
+      }
+    } else {
+      if (it.dur === -1) {
+        it.dur = TraceRow.range!.endNS - it.startTs!;
+        it.flag = 'Did not end';
+        it.nofinish = true;
+      }
+    }
+  }
+
   initDeliverInputEvent = async (): Promise<void> => {
     let row = TraceRow.skeleton();
     row.setAttribute('disabled-check', '');
@@ -114,11 +147,9 @@ export class SpProcessChart {
             createDepth(++currentDepth, index);
           }
         };
-        asyncFuncGroups.forEach((it, i) => {
-          if (it.dur == -1) {
-            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-            it.flag = 'Did not end';
-          }
+        asyncFuncGroups.forEach((it, i, arr) => {
+          this.modifyNofinishDur(it, i, arr); 
+          
           createDepth(0, i);
         });
         let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
@@ -592,11 +623,9 @@ export class SpProcessChart {
           let isIntersect = (a: any, b: any): boolean =>
             Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
           let depthArray: any = [];
-          asyncFunctions.forEach((it, i) => {
-            if (it.dur === -1) {
-              it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
-              it.flag = 'Did not end';
-            }
+          asyncFunctions.forEach((it, i, arr) => {
+            this.modifyNofinishDur(it, i, arr);
+             
             let currentDepth = 0;
             let index = i;
             while (
@@ -797,13 +826,11 @@ export class SpProcessChart {
                       data.funName.toLowerCase().startsWith('binder reply'))
                   );
                 };
-                funs.forEach((fun) => {
+                funs.forEach((fun, i, arr) => {
                   if (isBinder(fun)) {
                   } else {
-                    if (fun.dur === -1) {
-                      fun.dur = (TraceRow.range?.totalNS || 0) - (fun.startTs || 0);
-                      fun.flag = 'Did not end';
-                    }
+                    this.modifyNofinishDur(fun, i, arr);
+                    
                   }
                 });
               } else {
