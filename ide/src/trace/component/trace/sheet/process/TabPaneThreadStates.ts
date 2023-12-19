@@ -45,7 +45,7 @@ export class TabPaneThreadStates extends BaseElement {
     this.threadStatesTbl!.loading = true;
     this.initThreadStates(threadStatesParam);
   }
- 
+
   async initThreadStates(threadStatesParam: SelectionParam | any) {
     let leftStartNs = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     let rightEndNs = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
@@ -88,13 +88,13 @@ export class TabPaneThreadStates extends BaseElement {
     targetListTemp.sort(compare);
     this.addSumLine(threadStatesParam, targetListTemp);
   }
- 
+
   updateOnlyNofinishState(threadState: any, rightEndNs: number, leftStartNs: number): Array<any> {
     threadState.wallDuration = threadState.wallDuration + 1 + (rightEndNs - leftStartNs);
     threadState.avgDuration = threadState.wallDuration / threadState.occurrences;
     return threadState;
   }
- 
+
   updateNormalState(threadStates: Array<any>, threadStatesDetail: Array<any>,
     rightEndNs: number, leftStartNs: number): Array<any> {
     let targetListTemp: Array<any> = [];
@@ -116,7 +116,7 @@ export class TabPaneThreadStates extends BaseElement {
         e.tid === lastState.tid &&
         e.state === lastState.state
       ) {
-        if (lastState.dur === -1) { 
+        if (lastState.dur === -1) {
           e.wallDuration = e.wallDuration + 1 + (rightEndNs - lastState.ts);
           e.avgDuration = e.wallDuration / e.occurrences;
         } else {
@@ -128,7 +128,7 @@ export class TabPaneThreadStates extends BaseElement {
     }
     return targetListTemp;
   }
- 
+
   updateThreadStates(
     threadStates: Array<any>,
     threadStatesDetail: Array<any>,
@@ -150,20 +150,16 @@ export class TabPaneThreadStates extends BaseElement {
   }
 
   addSumLine(threadStatesParam: SelectionParam | any, targetListTemp: Array<any>): void {
-    
-    if (targetListTemp != null && targetListTemp.length > 0) {
-      log('getTabThreadStates result size : ' + targetListTemp.length);
+    if (targetListTemp != null && targetListTemp.length > 0) {     
       let sumWall = 0.0;
       let sumOcc = 0;
-      let targetList = [];
-
+      let targetList: Array<any> = [];
       for (let e of targetListTemp) {
         if (threadStatesParam.processIds.includes(e.pid)) {
           let process = Utils.PROCESS_MAP.get(e.pid);
           let thread = Utils.THREAD_MAP.get(e.tid);
           e.process = process == null || process.length === 0 ? '[NULL]' : process;
           e.thread = thread == null || thread.length === 0 ? '[NULL]' : thread;
-
           e.stateJX = e.state;
           e.state = Utils.getEndState(e.stateJX);
           e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
