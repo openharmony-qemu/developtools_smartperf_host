@@ -195,7 +195,7 @@ export class FuncStruct extends BaseFuncStruct {
           FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 20, 10, data!);
         }
         let width = data.frame.width || 0;
-        // 如果该函数没有介绍时间，则绘制锯齿。
+        // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && width > 4) {
           FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y , data.frame.width, data.frame.height );
         }

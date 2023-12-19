@@ -49,7 +49,6 @@ export class TabPaneThreadStates extends BaseElement {
   async initThreadStates(threadStatesParam: SelectionParam | any) {
     let leftStartNs = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     let rightEndNs = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
- 
     let tidSet = new Set<number>(threadStatesParam.threadIds);
     let targetListTemp: Array<any> = [];
     for (let tid of tidSet) {
@@ -58,12 +57,10 @@ export class TabPaneThreadStates extends BaseElement {
         threadStatesParam.leftNs,
         threadStatesParam.rightNs
       );
-
       let set = new Set<string>();
       for (let threadState of threadStates) {
         set.add(threadState.pid + ":" + threadState.tid);
       }
-
       for (let item of set) {
         let pid = Number.parseInt(item.split(":")[0]);
         let tid = Number.parseInt(item.split(":")[1]);
@@ -71,15 +68,12 @@ export class TabPaneThreadStates extends BaseElement {
           threadStatesParam.leftNs,
           threadStatesParam.rightNs
         );
-
         if (threadStates.length > 0 && threadStatesDetail.length > 0) {
           threadStates = this.updateThreadStates(threadStates, threadStatesDetail, leftStartNs, rightEndNs);
         }
       }
-      
       targetListTemp = targetListTemp.concat(threadStates);
     }
-
     let compare = function (threadState1: SelectionData, threadState2: SelectionData) {
       let wallDuration1 = threadState1.wallDuration;
       let wallDuration2 = threadState2.wallDuration;
@@ -92,7 +86,6 @@ export class TabPaneThreadStates extends BaseElement {
       }
     };
     targetListTemp.sort(compare);
-
     this.addSumLine(threadStatesParam, targetListTemp);
   }
  
@@ -110,19 +103,18 @@ export class TabPaneThreadStates extends BaseElement {
     for (let e of threadStates) {
       if (
         firstState.ts < leftStartNs &&
-        e.pid == firstState.pid &&
-        e.tid == firstState.tid &&
-        e.state == firstState.state
+        e.pid === firstState.pid &&
+        e.tid === firstState.tid &&
+        e.state === firstState.state
       ) {
         e.wallDuration = e.wallDuration - (leftStartNs - firstState.ts);
         e.avgDuration = e.wallDuration / e.occurrences;
       }
-
       if (
         lastState.ts < rightEndNs &&
-        e.pid == lastState.pid &&
-        e.tid == lastState.tid &&
-        e.state == lastState.state
+        e.pid === lastState.pid &&
+        e.tid === lastState.tid &&
+        e.state === lastState.state
       ) {
         if (lastState.dur === -1) { 
           e.wallDuration = e.wallDuration + 1 + (rightEndNs - lastState.ts);
@@ -169,8 +161,8 @@ export class TabPaneThreadStates extends BaseElement {
         if (threadStatesParam.processIds.includes(e.pid)) {
           let process = Utils.PROCESS_MAP.get(e.pid);
           let thread = Utils.THREAD_MAP.get(e.tid);
-          e.process = process == null || process.length == 0 ? '[NULL]' : process;
-          e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
+          e.process = process == null || process.length === 0 ? '[NULL]' : process;
+          e.thread = thread == null || thread.length === 0 ? '[NULL]' : thread;
 
           e.stateJX = e.state;
           e.state = Utils.getEndState(e.stateJX);

@@ -86,29 +86,10 @@ export class SpProcessChart {
    * @param arr 被更新的方法集合
    */
   modifyNofinishDur(it: FuncStruct, i: number, arr: Array<FuncStruct>): void {
-    if (i !== arr.length - 1) { 
-      let nextIt = arr.find((item, idx) =>  item.depth === it.depth && idx >= i + 1 );
-      if (nextIt) {
-        if ((it.startTs! + it.dur! > nextIt!.startTs!)
-          || it.dur === -1
-        ) {
-          it.dur = nextIt.startTs! - it.startTs!;
-          it.flag = 'Did not end';
-          it.nofinish = true;
-        }
-      } else {
-        if (it.dur === -1) {
-          it.dur = TraceRow.range!.endNS - it.startTs!;
-          it.flag = 'Did not end';
-          it.nofinish = true;
-        }
-      }
-    } else {
-      if (it.dur === -1) {
-        it.dur = TraceRow.range!.endNS - it.startTs!;
-        it.flag = 'Did not end';
-        it.nofinish = true;
-      }
+    if (it.dur === -1) {
+      it.dur = TraceRow.range!.endNS - it.startTs!;
+      it.flag = 'Did not end';
+      it.nofinish = true;
     }
   }
 
