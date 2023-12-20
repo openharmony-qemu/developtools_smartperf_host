@@ -968,7 +968,7 @@ export const getTabSlicesAsyncFunc = (
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStates = (tid: number, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `
@@ -983,19 +983,19 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
       thread_state AS B
     left join
       trace_range AS TR
-    where
-      B.tid in (${tIds.join(',')})
-    and
-      not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))
-    group by
-      B.pid, B.tid, B.state
-    order by
-      wallDuration desc;`,
+    where  
+        B.tid = ${tid}             
+      and 
+        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))        
+      group by
+        B.pid, B.tid, B.state
+      order by
+        wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
 // 查询线程状态详细信息
-export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStatesDetail = (pid: number, tid: number, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `select
@@ -1008,11 +1008,13 @@ export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, ri
         thread_state AS B
       left join
         trace_range AS TR
-      where
-        B.tid in (${tIds.join(',')})
-      and
-        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
-      order by ts;`,
+      where 
+          B.pid = ${pid}
+        and 
+          B.tid = ${tid}            
+        and 
+          not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))            
+        order by ts;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
