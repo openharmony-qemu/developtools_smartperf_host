@@ -67,6 +67,11 @@ let log;
 
 function cpFile(from, to) {
   if (fs.existsSync(from)) {
+    let index = to.lastIndexOf('.');
+    let parent = to.substring(0, index);
+    if(!checkDirExist(parent)) {
+      fs.mkdirSync(parent, { recursive:true });
+    }
     fs.writeFileSync(to, fs.readFileSync(from));
     log.info('cp file %s  to  %s', from, to);
   } else {
