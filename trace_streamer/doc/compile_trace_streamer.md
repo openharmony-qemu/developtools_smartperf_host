@@ -7,14 +7,23 @@ TraceStreamer可以编译为命令行下的可执行程序，或者WebAssembly�
 
 #### 准备工作
 
-在码云上添加ssh公钥。  
-本工具工程组织方式是gn。编译需要对应的编译器，编译前请自行配置本地编译器。  
+在码云上添加ssh公钥。 
+
+windows下编译需要使用git bash 32位，且代码路径不要太深。
+
+编译时，本地需要python环境。
+
+mac上编译，需要先安装gsed命令。 
+
+本工具工程组织方式是gn。编译需要对应的编译器，编译前请自行配置本地编译器。 
+
 所需编译器和版本如下表所示：
+
 | 系统 | 工具 | 版本号|
 | ---  | --- | --- |
 |linux |clang/clang++| (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0|
 | macx |clang/clang++| 14.0.3 |
-|windows |gcc.exe/g++.exe| (i686-posix-dwarf-rev0, Built by MinGW-W64 project) 8.1.0|
+|windows |gcc.exe/g++.exe| (x86_64-8.5.0-release-posix-sjlj-rt_v10-rev0) |
 |wasm(linux下编译) |emcc/em++| 3.1.12|
 
 对于wasm环境（目前只支持linux下编译），build.sh会自行配置环境。
@@ -41,6 +50,6 @@ TraceStreamer可以编译为命令行下的可执行程序，或者WebAssembly�
 ```
 ./build.sh wasm
 ```
-emsdk请使用3.1.12版本。
+emsdk请使用3.1.12及以上版本。
 
 WebAssembly版本目前只支持在linux平台下编译。
