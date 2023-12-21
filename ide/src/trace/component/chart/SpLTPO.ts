@@ -52,7 +52,7 @@ export class SpLtpoChart {
             let cutFpsNameArr = item.name!.split(",")[0].split(":");
             item.fps = Number(cutFpsNameArr[cutFpsNameArr.length - 1]);
         })
-        if (SpLtpoChart.fanceNameList && SpLtpoChart.fanceNameList.length && SpLtpoChart.fpsnameList && SpLtpoChart.fpsnameList.length) {
+        if (SpLtpoChart.fanceNameList && SpLtpoChart.fanceNameList.length && SpLtpoChart.fpsnameList && SpLtpoChart.fpsnameList.length && SpLtpoChart.fpsnameList.length ===SpLtpoChart.fanceNameList.length) {
             for (let i = 0; i < SpLtpoChart.fanceNameList.length; i++) {
                 let tmpFps = SpLtpoChart.fpsnameList[i]!.fps ? Number(SpLtpoChart.fpsnameList[i]!.fps) : 60;
                 this.pushLtpoData(
@@ -62,6 +62,8 @@ export class SpLtpoChart {
                     0, 0, 0, 0
                 );
             }
+        }else{
+            return;
         }
         if (SpLtpoChart.fanceNameList && SpLtpoChart.fanceNameList.length) {
             await this.initFolder();
