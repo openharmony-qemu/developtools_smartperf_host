@@ -79,9 +79,13 @@ export class SpChartList extends BaseElement {
     this.rootEl = this.shadowRoot?.querySelector<HTMLDivElement>('.root');
     this.canvas = this.shadowRoot?.querySelector<HTMLCanvasElement>('.panel-canvas');
     this.canvasCtx = this.canvas?.getContext('2d');
-    window.subscribe(window.SmartEvent.UI.RowHeightChange, (data) => {
+    window.subscribe(window.SmartEvent.UI.RowHeightChange, (data: { expand: number; value: number }) => {
       this.resizeHeight();
-      this.scrollTop = 0;
+      if (!data.expand) {
+        let offset = this.scrollTop - data.value;
+        offset = offset < 0 ? 0 : offset;
+        this.scrollTop = offset;
+      }
       this.refreshFavoriteCanvas();
     });
     this.icon1?.addEventListener('click', () => {

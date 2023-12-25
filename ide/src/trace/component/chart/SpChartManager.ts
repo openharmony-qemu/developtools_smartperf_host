@@ -50,8 +50,7 @@ import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
-import {setVSyncData} from './VSync';
-import { SpLtpoChart } from './SpLTPO';
+import { setVSyncData } from './VSync';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -71,13 +70,11 @@ export class SpChartManager {
   private smapsChart: VmTrackerChart;
   private clockChart: SpClockChart;
   private irqChart: SpIrqChart;
-  private SpAllAppStartupsChart!: SpAllAppStartupsChart;
-  private SpLtpoChart!: SpLtpoChart;
+  private spAllAppStartupsChart!: SpAllAppStartupsChart;
   frameTimeChart: SpFrameTimeChart;
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
-  SegMenTaTion: any;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -99,8 +96,7 @@ export class SpChartManager {
     this.arkTsChart = new SpArkTsChart(trace);
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
-    this.SpAllAppStartupsChart = new SpAllAppStartupsChart(trace);
-    this.SpLtpoChart = new SpLtpoChart(trace)
+    this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
   }
 
   async init(progress: Function) {
@@ -171,9 +167,8 @@ export class SpChartManager {
     progress('ark ts', 90);
     await this.arkTsChart.initFolder();
     info('ark ts initialized');
-    await this.SpAllAppStartupsChart.init();
-    await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
+    await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();

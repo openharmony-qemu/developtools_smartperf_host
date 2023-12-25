@@ -59,11 +59,7 @@ export class Rect {
     let maxY = Math.max(rectA.y + rectA.height, rectB.y + rectB.height);
     let minX = Math.min(rectA.x, rectB.x);
     let minY = Math.min(rectA.y, rectB.y);
-    if (maxX - minX < rectB.width + rectA.width && maxY - minY < rectA.height + rectB.height) {
-      return true;
-    } else {
-      return false;
-    }
+    return maxX - minX < rectB.width + rectA.width && maxY - minY <= rectA.height + rectB.height;
   }
 
   static getIntersect(rectA: DOMRect | Rect, rectB: DOMRect | Rect): Rect {

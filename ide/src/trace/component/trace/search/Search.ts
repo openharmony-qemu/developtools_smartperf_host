@@ -427,6 +427,9 @@ export class LitSearch extends BaseElement {
              cursor: pointer;
         }  
         .search-history-list-item {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             cursor: pointer;
             width: 100%;
         }

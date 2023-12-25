@@ -517,14 +517,14 @@ export class SpApplication extends BaseElement {
                         </svg>
                     </div>
                     <div title="Import Key Path" id="import-key-path" style="display: none ;text-align: left;
-                    position:  absolute;left: 1.2em; cursor: pointer;top: 20px">
+                    position:  absolute;left: 5px ; cursor: pointer;top: 15px">
                       <input id="import-config" style="display: none;pointer-events: none" type="file" accept=".json" >
                       <label style="width: 20px;height: 20px;cursor: pointer;" for="import-config">
                           <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
                           </lit-icon>
                       </label>
                     </div>
-                    <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left; position: absolute;left: 2.5em; cursor: pointer;top: 20px ">
+                    <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left; position: absolute;left: 25px; cursor: pointer;top: 15px ">
                     </lit-icon>
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
@@ -567,8 +567,8 @@ export class SpApplication extends BaseElement {
                 </sp-help>
                 <sp-flags style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 104" id="sp-flags">
                 </sp-flags>
-                <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 999"></trace-row-config>
-                <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 106"></custom-theme-color>
+                <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></trace-row-config>
+                <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></custom-theme-color>
             </div>
         </div>
         `;
@@ -633,6 +633,12 @@ export class SpApplication extends BaseElement {
           that.changeTheme(Theme.LIGHT);
         }
       }
+    });
+    this.addEventListener('copy', function (event) {
+      let clipdata = event.clipboardData;
+      let value = clipdata!.getData('text/plain');
+      let searchValue = value.toString().trim();
+      clipdata!.setData('text/plain', searchValue);
     });
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => showContent(spSystemTrace!));
     window.subscribe(window.SmartEvent.UI.Error, (err) => {
@@ -783,6 +789,8 @@ export class SpApplication extends BaseElement {
       }
       if (menuButton) {
         menuButton.style.width = `0px`;
+        importConfigDiv!.style.left = '5px';
+        closeKeyPath!.style.left = '25px';
       }
     };
     let icon: HTMLDivElement | undefined | null = this.shadowRoot
@@ -800,6 +808,8 @@ export class SpApplication extends BaseElement {
       }
       if (menuButton) {
         menuButton.style.width = `48px`;
+        importConfigDiv!.style.left = '45px';
+        closeKeyPath!.style.left = '65px';
       }
     };
 
@@ -1498,12 +1508,12 @@ export class SpApplication extends BaseElement {
                     },
                   },
                   {
-                    title: 'Keyboard Shortcuts',
+                    title: 'Keyboard shortcuts',
                     icon: 'smart-help',
                     clickHandler: function (item: MenuItem) {
                       SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                        event: 'Keyboard Shortcuts',
-                        action: 'Keyboard Shortcuts',
+                        event: 'Keyboard shortcuts',
+                        action: 'Keyboard shortcuts',
                       });
                       that.search = false;
                       showContent(SpKeyboard);
@@ -1936,14 +1946,14 @@ export class SpApplication extends BaseElement {
             },
           },
           {
-            title: 'Keyboard Shortcuts',
+            title: 'Keyboard shortcuts',
             icon: 'smart-help',
             clickHandler: function (item: MenuItem) {
               that.search = false;
               showContent(SpKeyboard);
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'Keyboard Shortcuts',
-                action: 'Keyboard Shortcuts',
+                event: 'Keyboard shortcuts',
+                action: 'Keyboard shortcuts',
               });
             },
           },
@@ -2035,6 +2045,8 @@ export class SpApplication extends BaseElement {
       }
       if (sidebarButton) {
         sidebarButton.style.width = open ? `0px` : '48px';
+        importConfigDiv!.style.left = open ? '5px' : '45px';
+        closeKeyPath!.style.left = open ? '25px' : '65px';
       }
     };
     let urlParams = new URL(window.location.href).searchParams;

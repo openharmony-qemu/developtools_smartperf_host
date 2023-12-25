@@ -614,7 +614,10 @@ export class SpHiPerf {
         }
       } else {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);
-        tip = `<span>${perfCall ? perfCall.name : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;
+        if (perfCall) {
+          let perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name));
+          tip = `<span>${perfCall ? perfName : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;
+        }
       }
     }
     this.trace?.displayTip(row, struct, tip);

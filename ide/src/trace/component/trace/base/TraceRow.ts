@@ -44,6 +44,7 @@ let dragDirection: string = '';
 
 @element('trace-row')
 export class TraceRow<T extends BaseStruct> extends HTMLElement {
+  intersectionRatio:number = 0;
   static ROW_TYPE_CPU = 'cpu-data';
   static ROW_TYPE_CPU_STATE = 'cpu-state';
   static ROW_TYPE_CPU_FREQ = 'cpu-freq';
@@ -118,8 +119,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PURGEABLE_PIN_VM = 'purgeable-pin-vm';
   static ROW_TYPE_LOGS = 'logs';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
-  static ROW_TYPE_LTPO = 'ltpo';
-  static ROW_TYPE_HITCH_TIME = 'hitch-time';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;

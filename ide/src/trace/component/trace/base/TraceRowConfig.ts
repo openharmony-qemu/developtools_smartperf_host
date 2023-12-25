@@ -24,6 +24,8 @@ import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
 import { type BaseStruct } from '../../../bean/BaseStruct';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 
+const LOCAL_STORAGE_JSON = 'subsystem_config';
+
 @element('trace-row-config')
 export class TraceRowConfig extends BaseElement {
   static allTraceRowList: Array<TraceRow<BaseStruct>> = [];
@@ -36,12 +38,13 @@ export class TraceRowConfig extends BaseElement {
   private configTitle: HTMLDivElement | null | undefined;
   private traceRowList: NodeListOf<TraceRow<BaseStruct>> | undefined;
   private exportFileIcon: LitIcon | null | undefined;
+  private switchButton: LitIcon | null | undefined;
+  private openFileIcon: LitIcon | null | undefined;
   private openTempFile: HTMLInputElement | null | undefined;
   private treeNodes: SubsystemNode[] = [];
   private expandedNodeList: Set<number> = new Set();
   private tempString: string | null = null;
   private subSystemSearch: string | undefined;
-  private backTemp: LitIcon | null | undefined;
   private backTableHTML: string | undefined;
   private otherRowNames: Array<SceneNode> = [];
   private sceneList = [
@@ -69,7 +72,7 @@ export class TraceRowConfig extends BaseElement {
     this.otherRowNames = [];
     this.inputElement!.value = '';
     this.exportFileIcon!.style.display = 'none';
-    this.backTemp!.style.display = 'none';
+    this.openFileIcon!.style.display = 'none';
     this.configTitle!.innerHTML = 'Timeline Details';
     this.spSystemTrace = this.parentElement!.querySelector<SpSystemTrace>('sp-system-trace');
     this.traceRowList =
@@ -88,6 +91,8 @@ export class TraceRowConfig extends BaseElement {
     let allowSceneList: Array<string> = [];
     this.selectTypeList = [];
     this.subsystemSelectList = [];
+    this.otherRowNames = [];
+    this.switchButton!.title = 'Show subSystem template';
     let topPanel = new DocumentFragment();
     let bottomPanel = new DocumentFragment();
     this.traceRowList!.forEach((traceRow: TraceRow<BaseStruct>) => {
@@ -393,36 +398,53 @@ export class TraceRowConfig extends BaseElement {
     this.sceneTable = this.shadowRoot!.querySelector<HTMLDivElement>('#scene-select');
     this.chartTable = this.shadowRoot!.querySelector<HTMLDivElement>('#chart-select');
     this.inputElement = this.shadowRoot!.querySelector('input');
-    this.backTemp = this.shadowRoot?.querySelector<LitIcon>('#back-temp');
     this.openTempFile = this.shadowRoot?.querySelector<HTMLInputElement>('#open-temp-file');
     this.exportFileIcon = this.shadowRoot?.querySelector<LitIcon>('#export-file-icon');
-    let loadTemp = this.shadowRoot?.querySelector<LitIcon>('#custom-temp');
-    let openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
+    this.switchButton = this.shadowRoot?.querySelector<LitIcon>('#switch-button');
+    this.openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
     this.configTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#config_title');
     let jsonUrl = `https://${window.location.host.split(':')[0]}:${
       window.location.port
     }/application/trace/config/custom_temp_config.json`;
-    loadTemp!.addEventListener('click', () => {
-      fetch(jsonUrl)
-        .then((res) => {
-          if (res.ok) {
-            res.text().then((text) => {
-              this.tempString = text;
-              this.loadTempConfig();
-            });
-          }
-        })
-        ['catch']((err) => {
-          console.log(err);
-        });
+    this.switchButton!.addEventListener('click', () => {
+      if(this.switchButton!.title === 'Show charts template') {
+        this.switchButton!.title = 'Show subSystem template';
+        this.refreshAllConfig(true, true);
+        this.resetChartTable();
+        this.openFileIcon!.style.display = 'none';
+        this.exportFileIcon!.style.display = 'none';
+        this.configTitle!.innerHTML = 'Timeline Details';
+      } else {
+        this.switchButton!.title = 'Show charts template';
+        this.openFileIcon!.style.display = 'block';
+        this.exportFileIcon!.style.display = 'block';
+        this.configTitle!.innerHTML = 'SubSystem Template';
+        let localText = window.localStorage.getItem(LOCAL_STORAGE_JSON);
+        if(localText) {
+          this.loadTempConfig(localText);
+        } else {
+          fetch(jsonUrl)
+            .then((res) => {
+              if (res.ok) {
+                res.text().then((text) => {
+                  this.loadTempConfig(text);
+                });
+              }
+            })
+            ['catch']((err) => {
+            console.log(err);
+          });
+        }
+      }
     });
-    openFileIcon!.addEventListener('click', () => {
+
+    this.openFileIcon!.addEventListener('click', () => {
       this.openTempFile!.value = '';
       this.openTempFile?.click();
     });
   }
 
-  private filterFilterSearch(): void {
+  private filterSearch(): void {
     this.shadowRoot!.querySelectorAll<HTMLElement>('.temp-chart-item').forEach((subSystemOption: HTMLElement) => {
       this.subSystemSearch = subSystemOption.getAttribute('search_text') || '';
       if (this.subSystemSearch!.indexOf(this.inputElement!.value) < 0) {
@@ -443,14 +465,7 @@ export class TraceRowConfig extends BaseElement {
           elementOption.style.display = 'block';
         }
       });
-      this.filterFilterSearch();
-    });
-    this.backTemp!.addEventListener('click', () => {
-      this.refreshAllConfig(true, true);
-      this.resetChartTable();
-      this.backTemp!.style.display = 'none';
-      this.exportFileIcon!.style.display = 'none';
-      this.configTitle!.innerHTML = 'Timeline Details';
+      this.filterSearch();
     });
     this.openTempFile!.addEventListener('change', (event) => {
       let that = this;
@@ -460,8 +475,7 @@ export class TraceRowConfig extends BaseElement {
         if (file) {
           let reader = new FileReader();
           reader.onload = (): void => {
-            that.tempString = reader.result as string;
-            that.loadTempConfig();
+            that.loadTempConfig(reader.result as string);
           };
           reader.readAsText(file);
         }
@@ -482,32 +496,27 @@ export class TraceRowConfig extends BaseElement {
     window.URL.revokeObjectURL(a.href);
   }
 
-  loadTempConfig(): void {
+  loadTempConfig(text: string): void {
     this.selectTypeList = [];
-    this.otherRowNames = [];
-    this.refreshAllConfig(true, true);
-    this.resetChartTable();
     this.inputElement!.value = '';
     this.backTableHTML = this.chartTable?.innerHTML;
     let configJson;
+    let isTrulyJson = false;
     try {
-      configJson = JSON.parse(this.tempString!);
-      this.configTitle!.innerHTML = 'SubSystem Template';
+      configJson = JSON.parse(text);
       let subsystemsKey: string = 'subsystems';
-      if (!configJson[subsystemsKey]) {
-        this.exportFileIcon!.style.display = 'none';
-        this.backTemp!.style.display = 'none';
-        this.configTitle!.innerHTML = 'Timeline Details';
-        return;
+      if (configJson[subsystemsKey]) {
+        isTrulyJson = true;
+        window.localStorage.setItem(LOCAL_STORAGE_JSON, text);
+        this.tempString = text;
+        this.openFileIcon!.style.display = 'block';
       }
     } catch (e) {
-      this.exportFileIcon!.style.display = 'none';
-      this.backTemp!.style.display = 'none';
-      this.configTitle!.innerHTML = 'Timeline Details';
+      console.log(e);
+    }
+    if (!isTrulyJson) {
       return;
     }
-    this.exportFileIcon!.style.display = 'block';
-    this.backTemp!.style.display = 'block';
     let id = 0;
     this.treeNodes = this.buildSubSystemTreeData(id, configJson);
     this.buildTempOtherList(id);
@@ -516,6 +525,7 @@ export class TraceRowConfig extends BaseElement {
     this.refreshTable();
   }
 
+  // 构建节点关系
   private buildSubSystemTreeData(id: number, configJson: any): SubsystemNode[] {
     let subsystemsKey: string = 'subsystems';
     let keys = Object.keys(configJson);
@@ -621,7 +631,7 @@ export class TraceRowConfig extends BaseElement {
     for (let index = 0; index < this.treeNodes.length; index++) {
       this.buildSubsystem(this.treeNodes[index]);
     }
-    this.filterFilterSearch();
+    this.filterSearch();
   }
 
   buildSubsystem(subsystemNode: SubsystemNode): void {
@@ -674,34 +684,8 @@ export class TraceRowConfig extends BaseElement {
       this.setChildIsSelect(subsystemNode, configCheckBox);
       this.setParentSelect(subsystemNode, configCheckBox.checked);
       this.refreshTable();
-      if (subsystemNode.depth === 3) {
-        this.traceRowList?.forEach((row) => {
-          if (row.name === subsystemNode.nodeName) {
-            if (configCheckBox.checked) {
-              row.setAttribute('scene', '');
-              row.removeAttribute('row-hidden');
-            } else {
-              row.expansion = false;
-              row.removeAttribute('scene');
-              row.setAttribute('row-hidden', '');
-            }
-          }
-        });
-        let chartNumber = this.subsystemSelectList?.findIndex((item) => item.nodeName === subsystemNode.nodeName!);
-        if (configCheckBox.checked) {
-          if (chartNumber === -1) {
-            this.subsystemSelectList?.push({
-              nodeName: subsystemNode.nodeName!,
-              scene: configCheckBox.title.split(','),
-            });
-          }
-        } else {
-          if (chartNumber !== undefined && chartNumber !== null) {
-            this.subsystemSelectList?.splice(chartNumber, 1);
-          }
-        }
-      }
-
+      this.displayRow(subsystemNode, configCheckBox);
+      // 收藏后的泳道的展示或者隐藏
       this.spSystemTrace?.collectRows.forEach((favoriteRow) => {
         let isShowRow: boolean = false;
         let favoriteName = '';
@@ -773,44 +757,60 @@ export class TraceRowConfig extends BaseElement {
   private setChildIsSelect(node: SubsystemNode, configCheckBox: LitCheckBox): void {
     node.isCheck = configCheckBox.checked;
     if (node.children.length > 0) {
-      node.children.forEach((childItem) => {
-        if (childItem.depth === 3) {
-          let chartNumber = this.subsystemSelectList?.findIndex((item) => item.nodeName === childItem.nodeName!);
-          if (configCheckBox.checked) {
-            if (chartNumber === -1) {
-              this.subsystemSelectList?.push({
-                nodeName: childItem.nodeName!,
-                scene: configCheckBox.title.split(','),
-              });
-            }
-          } else {
-            if (chartNumber !== undefined && chartNumber !== null) {
-              this.subsystemSelectList?.splice(chartNumber, 1);
-            }
-          }
-          this.traceRowList?.forEach((item) => {
-            if (item.name === childItem.nodeName) {
-              if (configCheckBox.checked) {
-                item.setAttribute('scene', '');
-                item.removeAttribute('row-hidden');
-              } else {
-                item.expansion = false;
-                item.removeAttribute('scene');
-                item.setAttribute('row-hidden', '');
-              }
-            }
-          });
-        }
+      node.children.forEach(childItem => {
+        this.displayRow(childItem, configCheckBox);
         this.setChildIsSelect(childItem, configCheckBox);
       });
     }
   }
 
+  private displayRow(node:SubsystemNode, configCheckBox: LitCheckBox):void {
+    if (node.depth === 3) {
+      let chartNumber = this.subsystemSelectList?.findIndex(item => item.nodeName === node.nodeName!);
+      if (configCheckBox.checked) {
+        if(chartNumber === -1) {
+          this.subsystemSelectList?.push({
+            nodeName: node.nodeName!,
+            scene: configCheckBox.title.split(',')
+          });
+        }
+      } else {
+        if (chartNumber !== undefined && chartNumber !== null) {
+          this.subsystemSelectList?.splice(chartNumber, 1);
+        }
+      }
+      this.traceRowList?.forEach((item) => {
+        if (item.name === node.nodeName) {
+          if (configCheckBox.checked) {
+            item.setAttribute('scene', '');
+            item.removeAttribute('row-hidden');
+          } else {
+            item.expansion = false;
+            item.removeAttribute('scene');
+            item.setAttribute('row-hidden', '');
+          }
+        }
+      });
+    }
+  }
+
   private setParentSelect(node: SubsystemNode, isSelect: boolean): void {
-    if (!isSelect && node.parent) {
-      node.parent.isCheck = isSelect;
+    if (node.parent) {
+      if (isSelect) {
+        let isParentCheck = true;
+        for (let index = 0; index < node.parent!.children.length; index++) {
+          let childItem = node.parent!.children[index];
+          if (!childItem.isCheck) {
+            isParentCheck = false;
+            break;
+          }
+        }
+        node.parent.isCheck = isParentCheck;
+      } else {
+        node.parent.isCheck = isSelect;
+      }
       if (node.parent.parent) {
-        node.parent.parent.isCheck = isSelect;
+        this.setParentSelect(node.parent, isSelect);
       }
     }
   }
@@ -944,7 +944,6 @@ export class TraceRowConfig extends BaseElement {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                    /*transition: all 0s;*/
                     user-select:none;
                     width: 80%;
                     margin-top: 2px;
@@ -1000,14 +999,12 @@ export class TraceRowConfig extends BaseElement {
                           <lit-icon class="icon" name='search' color="#c3c3c3" style="margin-right: 10px;"></lit-icon>
                       </div>
                       <div style='display: flex;align-items: center;'>
-                          <lit-icon id="back-temp" class="temp-icon" title="restore configuration" style="display: none;" 
-                          name="restore"  size="30"></lit-icon>
-                          <lit-icon id="custom-temp" class="temp-icon" title="Load json" name="load-file" size="30"></lit-icon>
-                          <lit-icon id="open-file-icon" class="temp-icon" style="margin-left: 20px;" name="open-file"
-                          title="open json file" size="30"></lit-icon>
-                          <input id="open-temp-file" style="display:none;pointer-events: none;" type="file"/>
-                          <lit-icon id="export-file-icon" class="temp-icon" title="export json" style="margin-left: 20px;
-                          display: none;" size="30" name="download-file"></lit-icon>
+                        <lit-icon id="switch-button" class="temp-icon" title="Show subSystem template" name="restore" size="30"></lit-icon>
+                        <lit-icon id="open-file-icon" class="temp-icon" style="margin-left: 20px;display: none;" 
+                        name="open-file" title="upload json" size="30"></lit-icon>
+                        <input id="open-temp-file" style="display:none;pointer-events: none;" type="file"/>
+                        <lit-icon id="export-file-icon" class="temp-icon" title="export json" style="margin-left: 20px;
+                        display: none;" size="30" name="download-file"></lit-icon>
                       </div>
                     </div>
                 </div>

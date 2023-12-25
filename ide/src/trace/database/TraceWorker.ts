@@ -257,7 +257,7 @@ self.onmessage = async (e: MessageEvent) => {
         if (configs.length > 0) {
           let config = configs[0];
           let model = thirdWasmMap.get(componentID);
-          if (model == null && config.componentId == componentID) {
+          if (!model && config.componentId === componentID) {
             importScripts(config.wasmJsName);
             let thirdMode = initThirdWASM(config.wasmName);
             let configPluginName = config.pluginName;

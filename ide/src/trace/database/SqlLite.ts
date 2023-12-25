@@ -82,7 +82,6 @@ import { type SnapshotStruct } from './ui-worker/ProcedureWorkerSnapshot';
 import { type MemoryConfig } from '../bean/MemoryConfig';
 import { LogStruct } from './ui-worker/ProcedureWorkerLog';
 import { HiSysEventStruct } from './ui-worker/ProcedureWorkerHiSysEvent';
-import { LtpoStruct } from './ui-worker/ProcedureWorkerLTPO';
 import { KeyPathStruct } from '../bean/KeyPathStruct';
 
 class DataWorkerThread {
@@ -968,7 +967,7 @@ export const getTabSlicesAsyncFunc = (
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const getTabThreadStates = (tid: number, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `
@@ -983,19 +982,19 @@ export const getTabThreadStates = (tid: number, leftNS: number, rightNS: number)
       thread_state AS B
     left join
       trace_range AS TR
-    where  
-        B.tid = ${tid}             
-      and 
-        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))        
-      group by
-        B.pid, B.tid, B.state
-      order by
-        wallDuration desc;`,
+    where
+      B.tid in (${tIds.join(',')})
+    and
+      not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))
+    group by
+      B.pid, B.tid, B.state
+    order by
+      wallDuration desc;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
 // 查询线程状态详细信息
-export const getTabThreadStatesDetail = (pid: number, tid: number, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `select
@@ -1008,13 +1007,11 @@ export const getTabThreadStatesDetail = (pid: number, tid: number, leftNS: numbe
         thread_state AS B
       left join
         trace_range AS TR
-      where 
-          B.pid = ${pid}
-        and 
-          B.tid = ${tid}            
-        and 
-          not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))            
-        order by ts;`,
+      where
+        B.tid in (${tIds.join(',')})
+      and
+        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
+      order by ts;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
@@ -1514,27 +1511,6 @@ export const querySingleAppStartupsName = (pid: number): Promise<Array<any>> =>
     where pid=$pid`,
     { $pid: pid }
   );
-
-  export const queryPresentInfo =(): Promise <Array<LtpoStruct>> =>
-  query(
-    'queryPresentInfo',
-    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(80,114,101,115,101,110,116,37)}'))
-    AND name LIKE('${String.fromCharCode(72,58,87,97,105,116,105,110,103,32,102,111,114,32,80,114,101,115,101,110,116,32,70,101,110,99,101,37)}')`
-  )
-
-  export const queryFanceNameList = ():Promise<Array<LtpoStruct>> =>
-  query(
-    'queryFanceNameList',
-    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(82,83,72,97,114,100,119,97,114,101,84,104,114,101,97,37)}'))
-    AND name LIKE('${String.fromCharCode(72,58,80,114,101,115,101,110,116,32,70,101,110,99,101,37)}')`
-  )
-
-  export const queryFpsNameList = ():Promise<Array<LtpoStruct>> =>
-  query(
-    'queryFpsNameList',
-    `SELECT name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${String.fromCharCode(82,83,72,97,114,100,119,97,114,101,84,104,114,101,97,37)}'))
-    AND name LIKE('${String.fromCharCode(37,76,97,121,101,114,115,32,114,97,116,101,37)}')`
-  )
 
 export const queryProcessSoMaxDepth = (): Promise<Array<{ pid: number; maxDepth: number }>> =>
   query(

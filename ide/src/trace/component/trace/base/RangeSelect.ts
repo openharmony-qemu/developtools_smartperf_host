@@ -212,8 +212,16 @@ export class RangeSelect {
       return;
     }
     let rangeSelect: RangeSelectStruct | undefined;
-    this.rangeTraceRow = rows.filter((it) => {
+    let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
+    let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
+    this.rangeTraceRow = rows.filter(it => {
+      if (this.startPageY <= favoriteLimit && this.endPageY <= favoriteLimit) {
+        return it.collect
+      }
+      return true;
+    }).filter((it) => {
       if (
+        it.intersectionRatio == 1 &&
         Rect.intersect(it.getBoundingClientRect(), {
           x: Math.min(this.startPageX, this.endPageX),
           y: Math.min(this.startPageY, this.endPageY),
