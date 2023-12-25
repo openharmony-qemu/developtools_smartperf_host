@@ -378,7 +378,7 @@ export class TraceSheet extends BaseElement {
         }
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
-          window.publish(window.SmartEvent.UI.Loading, true);
+          window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
           threadPool.submit(
             'upload-so',
             '',

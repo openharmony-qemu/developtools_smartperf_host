@@ -27,7 +27,7 @@ import {
   queryThreadAndProcessName,
   queryTotalTime,
 } from '../../database/SqlLite';
-import { info } from '../../../log/Log';
+import { info, log } from '../../../log/Log';
 import { SpNativeMemoryChart } from './SpNativeMemoryChart';
 import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
 import { SpProcessChart } from './SpProcessChart';
@@ -50,9 +50,7 @@ import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
-import { setVSyncData } from './VSync';
 import { SpSegmentationChart } from './SpSegmentationChart';
-
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -104,6 +102,7 @@ export class SpChartManager {
   }
 
   async init(progress: Function) {
+    info('initData data parse end ');
     progress('load data dict', 50);
     SpSystemTrace.DATA_DICT.clear();
     SpChartManager.APP_STARTUP_PID_ARR = [];
@@ -121,10 +120,10 @@ export class SpChartManager {
     await this.initTotalTime();
     let ptArr = await queryThreadAndProcessName();
     this.handleProcessThread(ptArr);
-    info('timerShaftEL Data initialized');
+    info('initData timerShaftEL Data initialized');
     progress('cpu', 70);
     await this.cpu.init();
-    info('cpu Data initialized');
+    info('initData cpu Data initialized');
     progress('process/thread state', 73);
     await this.cpu.initProcessThreadStateData(progress);
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
@@ -132,10 +131,10 @@ export class SpChartManager {
       await this.cpu.initSchedulingPTData(progress);
       await this.cpu.initSchedulingFreqData(progress);
     }
-    info('ProcessThreadState Data initialized');
+    info('initData ProcessThreadState Data initialized');
     progress('cpu rate', 75);
     await this.initCpuRate();
-    info('Cpu Rate Data initialized');
+    info('initData Cpu Rate Data initialized');
     progress('cpu freq', 80);
     await this.freq.init();
     await this.logChart.init();
@@ -144,45 +143,45 @@ export class SpChartManager {
     await this.clockChart.init();
     progress('Irq init', 84);
     await this.irqChart.init();
-    info('Cpu Freq Data initialized');
+    info('initData Cpu Freq Data initialized');
     progress('SpSegmentationChart inin', 84.5);
     await this.spSegmentationChart.init();
     await this.virtualMemChart.init();
     progress('fps', 85);
     await this.fps.init();
-    info('FPS Data initialized');
+    info('initData FPS Data initialized');
     progress('native memory', 87);
     await this.nativeMemory.initChart();
-    info('Native Memory Data initialized');
+    info('initData Native Memory Data initialized');
     progress('ability monitor', 88);
     await this.abilityMonitor.init();
     progress('hiSysevent', 88.2);
     await this.hiSyseventChart.init();
-    info('Perf Files Data initialized');
     progress('vm tracker', 88.4);
     await this.smapsChart.init();
+    info('initData vm tracker Data initialized');
     progress('sdk', 88.6);
     await this.sdkChart.init();
+    info('initData sdk Data initialized');
     progress('perf', 88.8);
     await this.perf!.init();
+    await perfDataQuery.initPerfCache();
+    info('initData perf Data initialized');
     progress('file system', 89);
     await this.fileSystem!.init();
-    info('Ability Monitor Data initialized');
-    await perfDataQuery.initPerfCache();
-    info('HiPerf Data initialized');
+    info('initData file system initialized');
     progress('ark ts', 90);
     await this.arkTsChart.initFolder();
-    info('ark ts initialized');
+    info('initData ark ts initialized');
     await this.frameTimeChart.init();
+    info('initData frameTimeLine initialized');
     await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();
     await this.process.init();
-    info('Process Data initialized');
+    info('initData Process Data initialized');
     progress('display', 95);
-    await setVSyncData();
-    progress('SingleVSync', 96);
   }
 
   async importSoFileUpdate() {

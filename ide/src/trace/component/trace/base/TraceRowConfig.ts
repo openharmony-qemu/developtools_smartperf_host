@@ -447,7 +447,7 @@ export class TraceRowConfig extends BaseElement {
   private filterSearch(): void {
     this.shadowRoot!.querySelectorAll<HTMLElement>('.temp-chart-item').forEach((subSystemOption: HTMLElement) => {
       this.subSystemSearch = subSystemOption.getAttribute('search_text') || '';
-      if (this.subSystemSearch!.indexOf(this.inputElement!.value) < 0) {
+      if (this.subSystemSearch!.toLowerCase().indexOf(this.inputElement!.value.toLowerCase()) < 0) {
         subSystemOption.style.display = 'none';
       } else {
         subSystemOption.style.display = 'grid';
@@ -459,7 +459,7 @@ export class TraceRowConfig extends BaseElement {
     this.inputElement?.addEventListener('keyup', () => {
       this.shadowRoot!.querySelectorAll<HTMLElement>('.chart-item').forEach((elementOption: HTMLElement) => {
         let searchText = elementOption.getAttribute('search_text') || '';
-        if (searchText!.indexOf(this.inputElement!.value) < 0) {
+        if (searchText!.toLowerCase().indexOf(this.inputElement!.value.toLowerCase()) < 0) {
           elementOption.style.display = 'none';
         } else {
           elementOption.style.display = 'block';
@@ -797,17 +797,17 @@ export class TraceRowConfig extends BaseElement {
   private setParentSelect(node: SubsystemNode, isSelect: boolean): void {
     if (node.parent) {
       if (isSelect) {
-        let isParentCheck = true;
+        node.parent.isCheck = isSelect;
+      } else {
+        let isParentCheck = false;
         for (let index = 0; index < node.parent!.children.length; index++) {
           let childItem = node.parent!.children[index];
-          if (!childItem.isCheck) {
-            isParentCheck = false;
+          if (childItem.isCheck) {
+            isParentCheck = true;
             break;
           }
         }
         node.parent.isCheck = isParentCheck;
-      } else {
-        node.parent.isCheck = isSelect;
       }
       if (node.parent.parent) {
         this.setParentSelect(node.parent, isSelect);

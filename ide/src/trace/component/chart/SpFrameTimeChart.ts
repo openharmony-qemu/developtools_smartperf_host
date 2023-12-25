@@ -549,15 +549,19 @@ export class SpFrameTimeChart {
         }
         linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
         if (linkNode[0].rowEL.rowParentId === event.detail?.rowId) {
-          linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
-          linkNode[0].y = frameTimeLineRow!.translateY! + linkNode[0].offsetY / halfNumber;
-          linkNode[0].offsetY = linkNode[0].offsetY / halfNumber;
-          linkNode[0].rowEL = frameTimeLineRow;
+          if (!linkNode[0].rowEL.collect) {
+            linkNode[0].x = ns2xByTimeShaft(linkNode[0].ns, this.trace.timerShaftEL!);
+            linkNode[0].y = frameTimeLineRow!.translateY! + linkNode[0].offsetY / halfNumber;
+            linkNode[0].offsetY = linkNode[0].offsetY / halfNumber;
+            linkNode[0].rowEL = frameTimeLineRow;
+          }
         } else if (linkNode[1].rowEL.rowParentId === event.detail?.rowId) {
-          linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
-          linkNode[1].y = frameTimeLineRow!.translateY! + linkNode[1].offsetY / halfNumber;
-          linkNode[1].offsetY = linkNode[1].offsetY / halfNumber;
-          linkNode[1].rowEL = frameTimeLineRow!;
+          if (!linkNode[1].rowEL.collect) {
+            linkNode[1].x = ns2xByTimeShaft(linkNode[1].ns, this.trace.timerShaftEL!);
+            linkNode[1].y = frameTimeLineRow!.translateY! + linkNode[1].offsetY / halfNumber;
+            linkNode[1].offsetY = linkNode[1].offsetY / halfNumber;
+            linkNode[1].rowEL = frameTimeLineRow!;
+          }
         }
       });
     }, offsetYTime);

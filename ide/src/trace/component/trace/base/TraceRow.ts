@@ -804,23 +804,25 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   enableCollapseChart(): void {
     this._enableCollapseChart = true;
     this.nameEL!.onclick = () => {
-      if (this.funcExpand) {
-        this.funcMaxHeight = this.clientHeight;
-        this.style.height = '20px';
-        this.funcExpand = false;
-      } else {
-        this.style.height = `${this.funcMaxHeight}px`;
-        this.funcExpand = true;
-      }
-      setTimeout(() => {
-        TraceRow.range!.refresh = true;
-        this.draw(false);
-      }, 200);
-      if (this.collect) {
-        window.publish(window.SmartEvent.UI.RowHeightChange, {
-          expand: this.funcExpand,
-          value: this.funcMaxHeight - 20,
-        });
+      if (this.funcMaxHeight > 20 || this.clientHeight > 20) {
+        if (this.funcExpand) {
+          this.funcMaxHeight = this.clientHeight;
+          this.style.height = '20px';
+          this.funcExpand = false;
+        } else {
+          this.style.height = `${this.funcMaxHeight}px`;
+          this.funcExpand = true;
+        }
+        setTimeout(() => {
+          TraceRow.range!.refresh = true;
+          this.draw(false);
+        }, 200);
+        if (this.collect) {
+          window.publish(window.SmartEvent.UI.RowHeightChange, {
+            expand: this.funcExpand,
+            value: this.funcMaxHeight - 20,
+          });
+        }
       }
     };
   }
@@ -1047,23 +1049,21 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       if (this.supplier && !this.isLoading) {
         this.isLoading = true;
         this.must = true;
-        if (this.supplier) {
-          let promise = this.supplier();
-          if (promise) {
-            promise.then((res) => {
-              this.dataList = res;
-              if (this.onComplete) {
-                this.onComplete();
-              }
-              window.publish(window.SmartEvent.UI.TraceRowComplete, this);
-              this.isComplete = true;
-              this.isLoading = false;
-              this.draw(false);
-            });
-          } else {
+        let promise = this.supplier();
+        if (promise) {
+          promise.then((res) => {
+            this.dataList = res;
+            if (this.onComplete) {
+              this.onComplete();
+            }
+            window.publish(window.SmartEvent.UI.TraceRowComplete, this);
+            this.isComplete = true;
             this.isLoading = false;
             this.draw(false);
-          }
+          });
+        } else {
+          this.isLoading = false;
+          this.draw(false);
         }
       }
     } else {
@@ -1468,7 +1468,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([row-type="func"]) .name{
             cursor: pointer;
         }
-        :host(:not([func-expand])) .name{
+        :host([func-expand='false']) .name{
             color: #00a3f5;
         }
         .lit-check-box{

@@ -382,14 +382,14 @@ export class TabPaneHisysEvents extends BaseElement {
 
   domainKeyEvent = (e: KeyboardEvent): void => {
     let domainValue = this.domainFilterInput!.value.trim();
-    if (e.code === 'Enter') {
-      if (domainValue !== '' && !this.domainTag.has(domainValue.toLowerCase())) {
+    if (e.key === 'Enter') {
+      if (domainValue !== '' && !this.domainTag.has(domainValue.toLowerCase()) && this.domainTag.size < 10) {
         let tagElement = this.buildTag(domainValue);
         this.domainTag.add(domainValue.toLowerCase());
         this.domainTagDiv!.append(tagElement);
         this.domainFilterInput!.value = '';
       }
-    } else if (e.code === 'Backspace') {
+    } else if (e.key === 'Backspace') {
       let index = this.domainTagDiv!.childNodes.length - 1;
       if (index >= 0 && domainValue === '') {
         let childNode = this.domainTagDiv!.childNodes[index];
@@ -417,14 +417,14 @@ export class TabPaneHisysEvents extends BaseElement {
 
   eventNameKeyEvent = (e: KeyboardEvent): void => {
     let eventNameValue = this.eventNameFilterInput!.value.trim();
-    if (e.code === 'Enter') {
-      if (eventNameValue !== '' && !this.eventNameTag.has(eventNameValue.toLowerCase())) {
+    if (e.key === 'Enter') {
+      if (eventNameValue !== '' && !this.eventNameTag.has(eventNameValue.toLowerCase()) && this.eventNameTag.size < 10) {
         let tagElement = this.buildTag(eventNameValue);
         this.eventNameTag!.add(eventNameValue.toLowerCase());
         this.eventNameTagDiv!.append(tagElement);
         this.eventNameFilterInput!.value = '';
       }
-    } else if (e.code === 'Backspace') {
+    } else if (e.key === 'Backspace') {
       let index = this.eventNameTagDiv!.childNodes.length - 1;
       if (index >= 0 && eventNameValue === '') {
         let childNode = this.eventNameTagDiv!.childNodes[index];

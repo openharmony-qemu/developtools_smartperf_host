@@ -108,7 +108,7 @@ import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPe
 import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon';
 import { type SpKeyboard } from '../component/SpKeyboard';
-import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync';
+import { drawVSync, enableVSync, resetVSync } from './chart/VSync';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -2150,8 +2150,8 @@ export class SpSystemTrace extends BaseElement {
         .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
     if (!this.loadTraceCompleted) return;
+    this.keyboardEnable && enableVSync(false, ev, () => this.refreshCanvas(true));
     let keyPress = ev.key.toLocaleLowerCase();
-    enableVSync(false, keyPress, () => this.refreshCanvas(true));
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
       this.keyPressMap.set(keyPress, false);
     }
@@ -3900,7 +3900,7 @@ export class SpSystemTrace extends BaseElement {
     };
     window.subscribe(window.SmartEvent.UI.UploadSOFile, (data) => {
       this.chartManager?.importSoFileUpdate().then(() => {
-        window.publish(window.SmartEvent.UI.Loading, false);
+        window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Import So File' });
         let updateCanvas = this.traceSheetEL?.updateRangeSelect();
         if (updateCanvas) {
           this.refreshCanvas(true);
@@ -4579,7 +4579,7 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
     procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
     this.times.clear();
-    setVSyncDisable();
+    resetVSync();
     SpSystemTrace.keyPathList = [];
   }
 

@@ -648,13 +648,16 @@ export class SpApplication extends BaseElement {
       progressEL.loading = false;
       that.freshMenuDisable(false);
     });
-    window.subscribe(window.SmartEvent.UI.Loading, (loading) => {
-      litSearch.setPercent(loading ? 'Import So File' : '', loading ? -1 : 101);
+    window.subscribe(window.SmartEvent.UI.Loading, (arg: { loading: boolean; text?: string }) => {
+      if (arg.text) {
+        litSearch.setPercent(arg.text || '', arg.loading ? -1 : 101);
+      }
       window.publish(window.SmartEvent.UI.MouseEventEnable, {
-        mouseEnable: !loading,
+        mouseEnable: !arg.loading,
       });
-      progressEL.loading = loading;
+      progressEL.loading = arg.loading;
     });
+
     litSearch.addEventListener('focus', () => {
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
@@ -1448,6 +1451,7 @@ export class SpApplication extends BaseElement {
           SpApplication.loadingProgress = 0;
           SpApplication.progressStep = 3;
           let data = this.result as ArrayBuffer;
+          info('initData start Parse Data');
           spSystemTrace!.loadDatabaseArrayBuffer(
             data,
             wasmUrl,
@@ -1564,10 +1568,10 @@ export class SpApplication extends BaseElement {
     }
 
     const validateFileCacheLost = () => {
-      caches.has(DbPool.fileCacheKey).then(exist => {
+      caches.has(DbPool.fileCacheKey).then((exist) => {
         if (!exist) {
           //todo 缓存文件丢失，则禁止下载文件功能
-          mainMenu.menus?.forEach(mg => {
+          mainMenu.menus?.forEach((mg) => {
             mg.children.forEach((mi: any) => {
               if (mi.title === 'Download File') {
                 mi.disabled = true;
@@ -1578,7 +1582,7 @@ export class SpApplication extends BaseElement {
           mainMenu.menus = mainMenu.menus;
         }
       });
-    }
+    };
 
     let openFileInit = () => {
       this.clearTraceFileCache();
