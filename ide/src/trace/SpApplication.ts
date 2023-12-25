@@ -59,7 +59,7 @@ import { type SpKeyboard } from './component/SpKeyboard';
 import './component/SpKeyboard';
 import { parseKeyPathJson } from './component/Utils';
 import { Utils } from './component/trace/base/Utils';
-import "../base-ui/chart/scatter/LitChartScatter";
+import '../base-ui/chart/scatter/LitChartScatter';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -628,6 +628,7 @@ export class SpApplication extends BaseElement {
     ];
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') {
+        validateFileCacheLost();
         if (window.localStorage.getItem('Theme') == 'dark') {
           that.changeTheme(Theme.DARK);
         } else {
@@ -678,6 +679,7 @@ export class SpApplication extends BaseElement {
       litSearch.blur();
     });
     litSearch.valueChangeHandler = (value: string) => {
+      litSearch!.isClearValue = false;
       if (value.length > 0) {
         let list = spSystemTrace!.searchCPU(value);
         spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
@@ -1561,8 +1563,26 @@ export class SpApplication extends BaseElement {
       });
     }
 
+    const validateFileCacheLost = () => {
+      caches.has(DbPool.fileCacheKey).then(exist => {
+        if (!exist) {
+          //todo 缓存文件丢失，则禁止下载文件功能
+          mainMenu.menus?.forEach(mg => {
+            mg.children.forEach((mi: any) => {
+              if (mi.title === 'Download File') {
+                mi.disabled = true;
+              }
+            });
+          });
+          cutTraceFile.style.display = 'none';
+          mainMenu.menus = mainMenu.menus;
+        }
+      });
+    }
+
     let openFileInit = () => {
       this.clearTraceFileCache();
+      cutTraceFile.style.display = 'block';
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'open_trace',
         action: 'open_trace',

@@ -26,6 +26,7 @@ export class LitSearch extends BaseElement {
   private _total: number = 0;
   private _index: number = 0;
   private _list: Array<any> = [];
+  private _value: boolean = false;
   private totalEL: HTMLSpanElement | null | undefined;
   private indexEL: HTMLSpanElement | null | undefined;
   private searchHistoryListEL: HTMLUListElement | null | undefined;
@@ -87,6 +88,13 @@ export class LitSearch extends BaseElement {
     }
   }
 
+  set isClearValue(value: boolean) {
+    this._value = value;
+  }
+
+  get isClearValue(): boolean {
+    return this._value;
+  }
   setPercent(name: string = '', value: number) {
     let searchHide = this.shadowRoot!.querySelector<HTMLElement>('.root');
     let searchIcon = this.shadowRoot!.querySelector<HTMLElement>('#search-icon');

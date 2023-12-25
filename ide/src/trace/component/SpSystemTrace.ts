@@ -2387,12 +2387,10 @@ export class SpSystemTrace extends BaseElement {
       this.tabCpuFreq!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
       this.tabCpuState!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
     }
-    if (this.rangeSelect.isMouseDown) {
+    let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+    if (this.rangeSelect.isMouseDown && search?.isClearValue) {
       this.refreshCanvas(true);
       if (TraceRow.rangeSelectObject) {
-        let search = document
-          .querySelector('body > sp-application')!
-          .shadowRoot!.querySelector<LitSearch>('#lit-search');
         if (search && search.searchValue !== '') {
           search.clear();
           search.valueChangeHandler?.('');

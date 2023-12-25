@@ -761,6 +761,8 @@ export class LitPageTable extends BaseElement {
         }
         this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
+        let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
+        preNode.style.width = `${preWidth}px`;
         this.shadowRoot!.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
           tr.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         });
