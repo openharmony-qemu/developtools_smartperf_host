@@ -14,6 +14,7 @@
  */
 
 #include "rawtrace_parser.h"
+#include <inttypes.h>
 #if IS_WASM
 #include "../rpc/wasm_func.h"
 #endif
@@ -35,9 +36,26 @@ void RawTraceParser::ParseTraceDataItem(const std::string& buffer) {}
 void RawTraceParser::WaitForParserEnd()
 {
     cpuDetailParser_->FilterAllEvents(*cpuDetail_.get(), true);
+    UpdateTraceMinRange();
     restCommDataCnt_ = 0;
     hasGotHeader_ = false;
     TS_LOGI("Parser raw trace end!");
+}
+void RawTraceParser::UpdateTraceMinRange()
+{
+    auto schedSlice = traceDataCache_->GetConstSchedSliceData();
+    std::set<uint32_t> uniqueCpuIdSet;
+    uint64_t cpuRunningStatMinTime = INVALID_TIME;
+    for (size_t i = 0; i < schedSlice.Size() && uniqueCpuIdSet.size() <= cpuCoreMax_; i++) {
+        auto itor = uniqueCpuIdSet.find(schedSlice.CpusData()[i]);
+        if (itor != uniqueCpuIdSet.end()) {
+            continue;
+        }
+        uniqueCpuIdSet.emplace(schedSlice.CpusData()[i]);
+        cpuRunningStatMinTime = schedSlice.TimeStampData()[i];
+        TS_LOGW("curCpuId=%u, cpuRunningStatMinTime=%" PRIu64 "", schedSlice.CpusData()[i], cpuRunningStatMinTime);
+    }
+    traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
 }
 bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter)
 {

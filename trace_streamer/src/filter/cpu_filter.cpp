@@ -223,6 +223,7 @@ void CpuFilter::Clear()
     internalTidToRowThreadState_.clear();
     iTidToTransaction_.clear();
     transactionIdToInfo_.clear();
+    pidToThreadSliceRow_.clear();
 }
 void CpuFilter::InsertWakeupEvent(uint64_t ts, uint32_t internalTid, bool isWaking)
 {

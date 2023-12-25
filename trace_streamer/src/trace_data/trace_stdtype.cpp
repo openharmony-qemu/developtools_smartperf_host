@@ -1115,7 +1115,7 @@ StatAndInfo::StatAndInfo()
 void StatAndInfo::IncreaseStat(SupportedTraceEventType eventType, StatType type)
 {
 #ifdef SUPPORTTHREAD
-    std::unique_lock<SpinLock> lockGurand(spinlock_);
+    std::lock_guard<SpinLock> lockGurand(spinlock_);
 #endif
     statCount_[eventType][type]++;
 }

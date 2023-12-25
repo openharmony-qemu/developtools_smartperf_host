@@ -40,6 +40,7 @@ private:
     bool InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter);
     bool InitEventFormats(const std::string& buffer);
     bool UpdateCpuCoreMax(uint32_t cpuId);
+    void UpdateTraceMinRange();
 
 private:
     TraceDataCache* traceDataCache_;

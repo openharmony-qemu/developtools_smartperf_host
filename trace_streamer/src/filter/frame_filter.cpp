@@ -220,7 +220,7 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
     }
     return true;
 }
-void FrameFilter::Finish()
+void FrameFilter::Clear()
 {
     vsyncRenderSlice_.clear();
     dstRenderSlice_.clear();

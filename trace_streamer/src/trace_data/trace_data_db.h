@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include "sqlite3.h"
+#include "sqllite_prepar_cache_data.h"
 
 struct ElfSymbolTable {
     uint64_t filePathIndex;
@@ -36,8 +37,6 @@ struct ElfSymbolTable {
 
 namespace SysTuning {
 namespace TraceStreamer {
-const int32_t SEND_CONTINUE = 0;
-const int32_t SEND_FINISH = 1;
 constexpr int32_t DATABASE_BASE = (1U << 20);
 class TraceDataDB {
 public:
@@ -48,7 +47,7 @@ public:
     void Prepare();
 
 public:
-    using ResultCallBack = std::function<void(const std::string /* json or proto result */, int32_t)>;
+    using ResultCallBack = std::function<void(const std::string& /* json or proto result */, int32_t)>;
     int32_t ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack = nullptr);
     int32_t BatchExportDatabase(const std::string& outputName);
     int32_t CreatEmptyBatchDB(const std::string& outputName);
@@ -84,6 +83,7 @@ private:
     bool pared_ = false;
     bool cancelQuery_ = false;
     std::string wasmDBName_;
+    SqllitePreparCacheData sqlPreparCacheData_;
     std::set<std::string> needClearTable_ = {"data_type", "device_info", "data_dict", "meta",        "stat",
                                              "symbols",   "thread",      "process",   "trace_range", "args_view"};
 };

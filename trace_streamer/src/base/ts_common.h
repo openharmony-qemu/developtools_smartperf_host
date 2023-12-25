@@ -228,17 +228,17 @@ class SpinLock {
 public:
     void lock()
     {
-        while (flag_.test_and_set(std::memory_order_acquire)) {
+        while (valueCAS_.test_and_set(std::memory_order_acquire)) {
             ;
         }
     }
     void unlock()
     {
-        flag_.clear(std::memory_order_release);
+        valueCAS_.clear(std::memory_order_release);
     }
 
 private:
-    std::atomic_flag flag_{0};
+    std::atomic_flag valueCAS_{0};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

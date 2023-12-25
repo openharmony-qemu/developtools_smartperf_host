@@ -99,7 +99,7 @@ bool RpcServer::SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCall
         return false;
     }
     outFile.close();
-    if (ReadAndParseData(outTraceName) && SendConvertedFfrtFile(outTraceName, resultCallBack)) {
+    if (!ReadAndParseData(outTraceName) || !SendConvertedFfrtFile(outTraceName, resultCallBack)) {
         std::filesystem::remove_all(outTraceName);
         return false;
     }

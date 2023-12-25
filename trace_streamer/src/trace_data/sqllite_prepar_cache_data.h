@@ -22,21 +22,18 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-const int32_t SEND_CONTINUEE = 0;
-const int32_t SEND_FINISHH = 1;
+const int32_t SEND_CONTINUE = 0;
+const int32_t SEND_FINISH = 1;
 class SqllitePreparCacheData {
 
 public:
-    using ResultCallBack = std::function<void(const std::string /* json or proto result */, int32_t)>;
+    using ResultCallBack = std::function<void(const std::string& /* json or proto result */, int32_t)>;
     using SphQueryCallBack = std::function<void(sqlite3_stmt*, uint32_t, ResultCallBack)>;
 
 public:
     SqllitePreparCacheData();
     SqllitePreparCacheData(const SqllitePreparCacheData&) = delete;
     SqllitePreparCacheData& operator=(const SqllitePreparCacheData&) = delete;
-    std::map<uint32_t /*type*/, SphQueryCallBack> GetSphQueryFuncMap();
-
-private:
     std::map<uint32_t /*type*/, SphQueryCallBack> sphQueryFuncMap_;
 
 private:
