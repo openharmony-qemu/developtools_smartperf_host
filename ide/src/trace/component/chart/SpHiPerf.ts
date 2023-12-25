@@ -209,6 +209,7 @@ export class SpHiPerf {
     perfCallCutRow.folder = false;
     perfCallCutRow.drawType = -2;
     perfCallCutRow.name = 'CallChart [cpu0]';
+    perfCallCutRow.funcExpand = false;
     perfCallCutRow.setAttribute('children', '');
     perfCallCutRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     perfCallCutRow.selectChangeHandler = this.trace.selectChangeHandler;

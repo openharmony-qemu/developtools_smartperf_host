@@ -44,7 +44,12 @@ export class LitMainMenu extends BaseElement {
     value?.forEach((it) => {
       let group = new LitMainMenuGroup();
       group.setAttribute('title', it.title || '');
-      group.setAttribute('describe', it.describe || '');
+      if (it.describe !== '') {
+        group.setAttribute('describe', it.describe || '');
+      } else {
+        group.removeAttribute('describe');
+      }
+      group.setAttribute('icon', it.icon || '');
       if (it.collapsed) {
         group.setAttribute('collapsed', '');
       } else {
@@ -57,7 +62,12 @@ export class LitMainMenu extends BaseElement {
         if (item.children && item.children.length > 0) {
           let secondGroup = new LitMainMenuGroup();
           secondGroup.setAttribute('title', item.title || '');
-          secondGroup.setAttribute('describe', item.describe || '');
+          if (item.describe !== '') {
+            secondGroup.setAttribute('describe', item.describe || '');
+          } else {
+            secondGroup.removeAttribute('describe');
+          }
+          secondGroup.setAttribute('icon', item.icon || '');
           if (item.second) {
             secondGroup.setAttribute('second', '');
           } else {
@@ -245,6 +255,7 @@ export interface MenuGroup {
   second: boolean;
   collapsed: boolean;
   children: any;
+  icon: string;
 }
 
 export interface MenuItem {

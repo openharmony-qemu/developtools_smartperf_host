@@ -51,6 +51,8 @@ import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import { setVSyncData } from './VSync';
+import { SpSegmentationChart } from './SpSegmentationChart';
+
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -75,6 +77,7 @@ export class SpChartManager {
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
+  private spSegmentationChart: SpSegmentationChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -97,6 +100,7 @@ export class SpChartManager {
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
+    this.spSegmentationChart = new SpSegmentationChart(trace);
   }
 
   async init(progress: Function) {
@@ -141,6 +145,8 @@ export class SpChartManager {
     progress('Irq init', 84);
     await this.irqChart.init();
     info('Cpu Freq Data initialized');
+    progress('SpSegmentationChart inin', 84.5);
+    await this.spSegmentationChart.init();
     await this.virtualMemChart.init();
     progress('fps', 85);
     await this.fps.init();

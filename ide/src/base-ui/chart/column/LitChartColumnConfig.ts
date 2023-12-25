@@ -19,6 +19,8 @@ export interface LitChartColumnConfig {
   xField: string;
   yField: string;
   seriesField: string;
+  notSort?: boolean;
+  removeUnit?: boolean;
   color: (a: any) => string;
   tip: ((a: any) => string) | undefined;
   hoverHandler?: (no: number) => void;

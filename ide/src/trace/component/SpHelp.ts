@@ -55,6 +55,7 @@ export class SpHelp extends BaseElement {
         collapsed: false,
         title: 'QuickStart',
         second: false,
+        icon:'caret-down',
         describe: '',
         children: [
           {
@@ -62,6 +63,7 @@ export class SpHelp extends BaseElement {
             title: '抓取和导入',
             describe: '',
             second: true,
+            icon:'caret-down',
             children: [
               {
                 title: '设备端抓取trace说明',
@@ -108,6 +110,7 @@ export class SpHelp extends BaseElement {
             collapsed: false,
             title: '内存',
             describe: '',
+            icon:'caret-down',
             second: true,
             children: [
               {
@@ -170,6 +173,7 @@ export class SpHelp extends BaseElement {
             title: 'Native栈',
             describe: '',
             second: true,
+            icon:'caret-down',
             children: [
               {
                 title: 'HiPerf的抓取和展示说明',
@@ -191,6 +195,7 @@ export class SpHelp extends BaseElement {
             title: 'TS栈',
             describe: '',
             second: true,
+            icon:'caret-down',
             children: [
               {
                 title: 'Cpuprofiler抓取和展示说明',
@@ -212,6 +217,7 @@ export class SpHelp extends BaseElement {
             title: '分析模板',
             describe: '',
             second: true,
+            icon:'caret-down',
             children: [
               {
                 title: 'Frame timeline抓取和展示说明',
@@ -285,6 +291,7 @@ export class SpHelp extends BaseElement {
             title: '文件',
             describe: '',
             second: true,
+            icon:'caret-down',
             children: [
               {
                 title: 'FileSystem抓取和展示说明',
@@ -318,6 +325,7 @@ export class SpHelp extends BaseElement {
             collapsed: false,
             title: '其他',
             describe: '',
+            icon:'caret-down',
             second: true,
             children: [
               {
@@ -448,6 +456,7 @@ export class SpHelp extends BaseElement {
         collapsed: false,
         title: 'TraceStreamer',
         second: false,
+        icon:'caret-down',
         describe: '',
         children: [
           {
@@ -523,6 +532,7 @@ export class SpHelp extends BaseElement {
         collapsed: false,
         title: 'SmartPerf',
         second: false,
+        icon:'caret-down',
         describe: '',
         children: [
           {

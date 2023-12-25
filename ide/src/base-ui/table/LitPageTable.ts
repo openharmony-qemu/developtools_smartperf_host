@@ -748,25 +748,18 @@ export class LitPageTable extends BaseElement {
   private resizeColumnIndex: number = -1;
   private resizeDownX: number = 0;
   private columnMinWidth: number = 50;
-  private beforeResizeWidth1: number = 0;
-  private beforeResizeWidth2: number = 0;
+  private beforeResizeWidth: number = 0;
   resizeEventHandler(header: HTMLDivElement, element: HTMLDivElement, index: number) {
     header.addEventListener('mousemove', (event) => {
       if (this.isResize) {
         let width = event.clientX - this.resizeDownX;
         header.style.cursor = 'col-resize';
-        let preWidth = this.beforeResizeWidth1,
-          nowWidth = this.beforeResizeWidth2;
-        if (width < 0) {
-          preWidth = Math.max(this.beforeResizeWidth1 + width, this.columnMinWidth);
-          nowWidth = this.beforeResizeWidth1 - preWidth + this.beforeResizeWidth2;
-        }
-        if (width > 0) {
-          nowWidth = Math.max(this.beforeResizeWidth2 - width, this.columnMinWidth);
-          preWidth = this.beforeResizeWidth2 - nowWidth + this.beforeResizeWidth1;
+        let preWidth = Math.max(this.beforeResizeWidth + width, this.columnMinWidth);
+        for (let i = 0; i < header.childNodes.length; i++) {
+          let node = header.childNodes.item(i) as HTMLDivElement;
+          this.gridTemplateColumns[i] = `${node.clientWidth}px`;
         }
         this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
-        this.gridTemplateColumns[this.resizeColumnIndex] = `${nowWidth}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         this.shadowRoot!.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
           tr.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
@@ -800,9 +793,7 @@ export class LitPageTable extends BaseElement {
       this.resizeColumnIndex = index;
       this.resizeDownX = event.clientX;
       let pre = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
-      let now = header.childNodes.item(this.resizeColumnIndex) as HTMLDivElement;
-      this.beforeResizeWidth1 = pre.clientWidth;
-      this.beforeResizeWidth2 = now.clientWidth;
+      this.beforeResizeWidth = pre.clientWidth;
       event.stopPropagation();
     });
     element.addEventListener('click', (event) => {

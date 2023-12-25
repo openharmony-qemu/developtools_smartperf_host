@@ -59,6 +59,8 @@ import { LogRender } from './ProcedureWorkerLog';
 import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart';
 import { HiSysEventRender } from './ProcedureWorkerHiSysEvent';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
+import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
+import { BinderRender } from './procedureWorkerBinder';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -115,6 +117,8 @@ export let renders: any = {
   snapshot: new SnapshotRender(),
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
+  'freq-extend': new FreqExtendRender(),
+  binder: new BinderRender(),
 };
 
 function match(type: string, req: RequestMessage): void {
