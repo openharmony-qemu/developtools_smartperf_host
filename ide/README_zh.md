@@ -75,17 +75,16 @@
 ## 项目编译
 #### 先下载sql.js的二进制包
 从如下 https://github.com/sql-js/sql.js/releases/download/v1.6.2/sqljs-all.zip 获取到sql.js的二进制包。
-将压缩包解压后， 将文件放置到项目third-party 目录下。
+将压缩包解压后，将文件放置到项目third-party 目录下，如果项目中无third-party目录，先创建third-party目录
 
         
 ![](./src/figures/deploy/third_party.png)
 
 #### 先编译获取trace_streamer 的二进制包
-参照:smartperf/trace_streamer/compile_trace_streamer.md 编译出wasm、linux、Windows版本的二进制文件。
+参照:smartperf/trace_streamer/compile_trace_streamer.md 编译出wasm版本的二进制文件。
 将获取到二进制文件放入到项目bin目录下，如果项目目录中无bin目录 先创建bin目录。
 然后将trace_streamer的二进制文件放入bin目录中。
 	   
-![](./src/figures/deploy/put_bin.png)
 ![](./src/figures/deploy/bin_files.png)
 
 
@@ -96,18 +95,12 @@
 ```
 在项目目录下运行命令:
 ```
-        npm run compile 
+        npm run build 
 ```                
 ![](./src/figures/deploy/compile.png)
     编译成功后会有main 可执行文件生成。
     
 ## 项目部署
-linux版本部署需要给trace_stream程序赋予执行权限，cd dist/bin 目录下，执行如下命令：
-```
-        chmod +x trace_streamer_*
-```
-![](./src/figures/deploy/chomd+x.png)          
-
 直接运行 ./main 可执行程序，完成项目的部署。
 ![](./src/figures/deploy/run_main.png)
  ## 访问项目     
