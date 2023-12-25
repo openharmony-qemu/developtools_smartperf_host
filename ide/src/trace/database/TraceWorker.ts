@@ -168,21 +168,56 @@ let convertJSON = () => {
   }
 };
 
+/**
+ * 计算预留缓存空间，如果空间不够，则删除部分缓存
+ * @param size
+ */
 function saveTraceFileBuffer(key: string, buffer: ArrayBuffer): void {
-  caches.open(key).then((cache) => {
-    let headers = new Headers();
-    headers.append('Content-Length', `${buffer.byteLength}`);
-    headers.append('Content-Type', 'application/octet-stream');
-    cache
-      .put(
-        key,
-        new Response(buffer, {
-          status: 200,
-          headers: headers,
-        })
-      )
-      .then();
+  obligateFileBufferSpace(buffer.byteLength).then(() => {
+    caches.open(key).then((cache) => {
+      let headers = new Headers();
+      headers.append('Content-Length', `${buffer.byteLength}`);
+      headers.append('Content-Type', 'application/octet-stream');
+      cache
+        .put(
+          key,
+          new Response(buffer, {
+            status: 200,
+            headers: headers,
+          })
+        )
+        .then();
+    });
   });
+}
+
+async function obligateFileBufferSpace(size: number): Promise<void> {
+  let es = await navigator.storage.estimate();
+  let remainderByte = (es.quota || 0) - (es.usage || 0) - 20 * 1024 * 1024;
+  if (remainderByte < size) {
+    let keys = await caches.keys();
+    keys.sort((keyA, keyB) => {
+      if (keyA.includes('/') && keyB.includes('/')) {
+        let splitA = keyA.split('/');
+        let splitB = keyB.split('/');
+        let timeA = splitA[splitA.length - 1].split('-')[0];
+        let timeB = splitB[splitB.length - 1].split('-')[0];
+        return  parseInt(timeA) - parseInt(timeB)
+      } else {
+        return 0;
+      }
+    });
+    let needSize = size - remainderByte;
+    for (let key of keys) {
+      await caches.delete(key);
+      let keySize = parseInt(key.split('-')[1]);
+      if (keySize > needSize) {
+        return;
+      } else {
+        needSize -= keySize;
+      }
+    }
+  }
 }
 
 self.onmessage = async (e: MessageEvent) => {
@@ -216,7 +251,7 @@ self.onmessage = async (e: MessageEvent) => {
       } else {
         arr = merged();
         bufferSlice.length = 0;
-        ffrtFileCacheKey = `ffrt/${new Date().getTime()}`;
+        ffrtFileCacheKey = `ffrt/${new Date().getTime()}-${arr.buffer.byteLength}`;
         saveTraceFileBuffer(ffrtFileCacheKey, arr.buffer);
       }
     };

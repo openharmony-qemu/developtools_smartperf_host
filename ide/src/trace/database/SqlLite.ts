@@ -355,29 +355,61 @@ export class DbPool {
         if (fileKey !== '-1') {
           DbPool.fileCacheKey = fileKey;
         } else {
-          DbPool.fileCacheKey = `trace/${new Date().getTime()}`;
-          this.saveTraceFileBuffer(DbPool.fileCacheKey, buffer);
+          DbPool.fileCacheKey = `trace/${new Date().getTime()}-${buffer.byteLength}`;
+          this.saveTraceFileBuffer(DbPool.fileCacheKey, buffer).then();
         }
       }
     }
     return { status: true, msg: 'ok', sdkConfigMap: configMap };
   };
 
-  saveTraceFileBuffer(key: string, buffer: ArrayBuffer): void {
+  async saveTraceFileBuffer(key: string, buffer: ArrayBuffer): Promise<void> {
+    await this.obligateFileBufferSpace(buffer.byteLength);
     caches.open(key).then((cache) => {
       let headers = new Headers();
       headers.append('Content-Length', `${buffer.byteLength}`);
       headers.append('Content-Type', 'application/octet-stream');
-      cache
-        .put(
-          key,
-          new Response(buffer, {
-            status: 200,
-            headers: headers,
-          })
-        )
-        .then();
+      cache.put(
+        key,
+        new Response(buffer, {
+          status: 200,
+          headers: headers,
+        })
+      ).then();
     });
+  }
+
+  /**
+   * 计算预留缓存空间，如果空间不够，则删除部分缓存
+   * @param size
+   */
+  async obligateFileBufferSpace(size: number): Promise<void> {
+    let es = await navigator.storage.estimate();
+    let remainderByte = (es.quota || 0) - (es.usage || 0) - 20 * 1024 * 1024;
+    if (remainderByte < size) {
+      let keys = await caches.keys();
+      keys.sort((keyA, keyB) => {
+        if (keyA.includes('/') && keyB.includes('/')) {
+          let splitA = keyA.split('/');
+          let splitB = keyB.split('/');
+          let timeA = splitA[splitA.length - 1].split('-')[0];
+          let timeB = splitB[splitB.length - 1].split('-')[0];
+          return  parseInt(timeA) - parseInt(timeB)
+        } else {
+          return 0;
+        }
+      });
+      let needSize = size - remainderByte;
+      for (let key of keys) {
+        await caches.delete(key);
+        let keySize = parseInt(key.split('-')[1]);
+        if (keySize > needSize) {
+          return;
+        } else {
+          needSize -= keySize;
+        }
+      }
+    }
   }
 
   close = async () => {
@@ -4621,7 +4653,7 @@ export const queryConcurrencyTask = (
      FROM thread
             LEFT JOIN callstack ON thread.id = callstack.callid
             LEFT JOIN task_pool ON callstack.id = task_pool.execute_task_row
-     WHERE ipid = (SELECT thread.ipid
+     WHERE ipid in (SELECT thread.ipid
                    FROM thread
                    WHERE thread.itid = $itid)
        AND thread.name = 'TaskWorkThread'
@@ -4722,7 +4754,7 @@ export const queryTaskPoolTotalNum = (itid: number) =>
     `SELECT thread.tid
          FROM thread
                 LEFT JOIN callstack ON thread.id = callstack.callid
-         WHERE ipid = (SELECT thread.ipid
+         WHERE ipid in (SELECT thread.ipid
                        FROM thread
                        WHERE thread.itid = $itid)
            AND thread.name = 'TaskWorkThread'

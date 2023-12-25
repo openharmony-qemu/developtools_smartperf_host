@@ -769,6 +769,9 @@ export class SpApplication extends BaseElement {
                 litSearch.setPercent('Json Parse Failed!', 101);
               }, 2000);
             }
+          } else {
+            window.publish(window.SmartEvent.UI.KeyPath, []);
+            closeKeyPath!.style.display = 'none';
           }
         };
       }
@@ -1377,15 +1380,15 @@ export class SpApplication extends BaseElement {
                 let fileBlob = new Blob(finalData);
                 const file = new File([fileBlob], fileName);
                 let fileSize = (file.size / 1048576).toFixed(1);
-                document.title = `${fileName}(${fileSize}M)`;
-                handleWasmMode(file, file.name, `${fileSize}M`, fileName);
+                document.title = `${fileName}(${fileSize})`;
+                handleWasmMode(file, file.name, `${fileSize}`, fileName);
               }
             } else {
               let fileBlob = new Blob([traceArray, ebpfArray, arkTsArray, hiPerfArray]);
               const file = new File([fileBlob], fileName);
               let fileSize = (file.size / 1048576).toFixed(1);
-              document.title = `${fileName}(${fileSize}M)`;
-              handleWasmMode(file, file.name, `${fileSize}M`, file.name);
+              document.title = `${fileName}(${fileSize})`;
+              handleWasmMode(file, file.name, `${fileSize}`, file.name);
             }
             that.traceFileName = fileName;
           });
@@ -2454,9 +2457,11 @@ export class SpApplication extends BaseElement {
       keys.forEach((key) => {
         if (key === DbPool.fileCacheKey) {
           caches.delete(key).then();
-        } else if (key.includes('/')) {
+        } else if (key.includes('/') && key.includes('-')) {
           let splits = key.split('/');
-          let fileDate = new Date(parseInt(splits[splits.length - 1]));
+          let keyStr = splits[splits.length - 1];
+          let time = keyStr.split('-')[0];
+          let fileDate = new Date(parseInt(time));
           if (fileDate.toLocaleDateString() !== new Date().toLocaleDateString()) {
             //如果不是当天的缓存则删去缓存文件
             caches.delete(key).then();

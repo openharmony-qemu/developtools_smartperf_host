@@ -49,6 +49,8 @@ export class TabPaneHisysEvents extends BaseElement {
   private tableElement: HTMLDivElement | undefined | null;
   private detailbox: HTMLDivElement | null | undefined;
   private changeInput: HTMLInputElement | null | undefined;
+  private eventTableTitle: HTMLLabelElement | undefined | null;
+  tableTitleTimeHandle: (() => void) | undefined;
   private currentDetailList: Array<{ key: string; value: string }> = [];
   private realTime: number = 0;
   private baseTime: string = '';
@@ -95,6 +97,8 @@ export class TabPaneHisysEvents extends BaseElement {
     this.slicerTrack = this.shadowRoot?.querySelector<LitSlicerTrack>('lit-slicer-track');
     this.detailbox = this.shadowRoot?.querySelector<HTMLDivElement>('.detail-content');
     this.tableElement = this.hiSysEventTable?.shadowRoot?.querySelector('.table') as HTMLDivElement;
+    this.eventTableTitle = this.shadowRoot?.querySelector<HTMLLabelElement>('#event-title');
+    this.tableTitleTimeHandle = this.delayedRefresh(this.refreshEventsTitle);
     this.hiSysEventTable!.addEventListener('row-click', (event) => {
       this.changeInput!.value = '';
       // @ts-ignore
@@ -144,6 +148,50 @@ export class TabPaneHisysEvents extends BaseElement {
     });
   }
 
+  private delayedRefresh(optionFn: Function, dur: number = 50): () => void {
+    let timeOutId: number;
+    return (...args: []): void => {
+      window.clearTimeout(timeOutId);
+      timeOutId = window.setTimeout((): void => {
+        optionFn.apply(this, ...args);
+      }, dur);
+    };
+  }
+
+  private refreshEventsTitle() {
+    let tbl = this.hiSysEventTable?.shadowRoot?.querySelector<HTMLDivElement>('.table');
+    let height = 0;
+    let firstRowHeight = 27;
+    let tableHeadHeight = 26;
+    if (this.hiSysEventTable && this.hiSysEventTable.currentRecycleList.length > 0) {
+      let startDataIndex = this.hiSysEventTable.startSkip + 1;
+      let endDataIndex = startDataIndex;
+      if (height < firstRowHeight * 0.3) {
+        startDataIndex++;
+      }
+      let tableHeight = Number(tbl!.style.height.replace('px', '')) - tableHeadHeight;
+      while (height < tableHeight) {
+        if (firstRowHeight <= 0 || height + firstRowHeight > tableHeight) {
+          break;
+        }
+        height += firstRowHeight;
+        endDataIndex++;
+      }
+      if (tableHeight - height > firstRowHeight * 0.3) {
+        endDataIndex++;
+      }
+      if (endDataIndex >= this.filterDataList.length) {
+        endDataIndex = this.filterDataList.length;
+      } else {
+        endDataIndex = this.hiSysEventTable.startSkip === 0 ? endDataIndex - 1 : endDataIndex;
+      }
+      this.eventTableTitle!.textContent = `HisysEvents [${this.hiSysEventTable.startSkip === 0 ? 1 : startDataIndex}, 
+        ${endDataIndex}] / ${this.filterDataList.length || 0}`;
+    } else {
+      this.eventTableTitle!.textContent = 'HisysEvents [0, 0] / 0';
+    }
+  }
+
   initTabSheetEl(): void {
     this.levelFilter!.selectedIndex = 0;
     this.domainFilterInput!.value = '';
@@ -179,9 +227,10 @@ export class TabPaneHisysEvents extends BaseElement {
           flex-wrap: wrap;
           width: 100%;
           align-items: center;
-          justify-content: right;
+          justify-content: space-between;
           border-bottom: 1px solid #D5D5D5;
           padding-bottom: 10px;
+          padding-left: 10px;
         }
         .detail-content {
           display: flex;
@@ -262,6 +311,7 @@ export class TabPaneHisysEvents extends BaseElement {
         <div style="display: flex;flex-direction: row">
           <div class="box-details" style="width: auto">
             <div class="title-content">
+                <label id="event-title">HisysEvents [0, 0] / 0</label>
                 <div style="display: flex;flex-wrap: wrap;">
                    <div style="display: flex;">
                      <div id="domainTagFilter" style='display: flex;width: auto; height: 100%;flex-wrap: wrap;'>
@@ -343,6 +393,10 @@ export class TabPaneHisysEvents extends BaseElement {
       this.detailsTbl?.reMeauseHeight();
       this.updateData();
     }).observe(this.parentElement!);
+    let tbl = this.hiSysEventTable?.shadowRoot?.querySelector<HTMLDivElement>('.table');
+    tbl!.addEventListener('scroll', () => {
+      this.tableTitleTimeHandle?.();
+    });
   }
 
   disconnectedCallback(): void {
@@ -444,6 +498,7 @@ export class TabPaneHisysEvents extends BaseElement {
     } else {
       this.hiSysEventTable!.recycleDataSource = [];
     }
+    this.refreshEventsTitle();
   }
 
   filterData(data: HiSysEventStruct): boolean {
