@@ -43,7 +43,7 @@ public:
     bool EndVsyncEvent(uint64_t ts, uint32_t itid);
     bool StartFrameQueue(uint64_t ts, uint32_t itid);
     bool EndFrameQueue(uint64_t ts, uint32_t itid);
-    void Finish();
+    void Clear();
 
 private:
     class FrameSlice {

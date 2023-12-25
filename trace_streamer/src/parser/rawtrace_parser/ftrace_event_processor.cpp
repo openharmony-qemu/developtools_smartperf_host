@@ -199,7 +199,11 @@ bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent& ftraceEvent,
     uint8_t index = 0;
     auto schedBlockedMsg = ftraceEvent.mutable_sched_blocked_reason_format();
     schedBlockedMsg->set_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
-    schedBlockedMsg->set_caller(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    if (format.eventId >= HM_EVENT_ID_OFFSET) {
+        (void)FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size);
+    } else {
+        schedBlockedMsg->set_caller(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    }
     schedBlockedMsg->set_io_wait(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
     return true;
 }

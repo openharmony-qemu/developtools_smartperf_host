@@ -181,6 +181,7 @@ message SphEbpfData {
   int64 start_ns = 1;
   int64 end_ns = 2;
   int64 dur = 3;
+  int64 size = 4;
 }
 
 message SphTrackerData {

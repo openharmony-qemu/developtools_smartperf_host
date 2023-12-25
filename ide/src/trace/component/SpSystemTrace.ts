@@ -108,9 +108,7 @@ import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPe
 import { type HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon';
 import { type SpKeyboard } from '../component/SpKeyboard';
-import { drawVSync, enableVSync, setVSyncDisable } from './chart/VSync';
-import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
-import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime'
+import { drawVSync, enableVSync, resetVSync } from './chart/VSync';
 
 function dpr() {
   return window.devicePixelRatio || 1;
@@ -1400,6 +1398,7 @@ export class SpSystemTrace extends BaseElement {
     this.intersectionObserver = new IntersectionObserver((entries) => {
       entries.forEach((it) => {
         let tr = it.target as TraceRow<any>;
+        tr.intersectionRatio = it.intersectionRatio;
         if (!it.isIntersecting) {
           tr.sleeping = true;
           this.invisibleRows.indexOf(tr) == -1 && this.invisibleRows.push(tr);
@@ -2082,12 +2081,6 @@ export class SpSystemTrace extends BaseElement {
         (AppStartupStruct.selectStartupStruct.startTs || 0) + (AppStartupStruct.selectStartupStruct.dur || 0),
         shiftKey
       );
-    }else if (AllAppStartupStruct.selectStartupStruct) {
-      this.slicestime = this.timerShaftEL?.setSlicesMark(
-        AllAppStartupStruct.selectStartupStruct.startTs || 0,
-        (AllAppStartupStruct.selectStartupStruct.startTs || 0) + (AllAppStartupStruct.selectStartupStruct.dur || 0),
-        shiftKey
-      );
     } else if (SoStruct.selectSoStruct) {
       this.slicestime = this.timerShaftEL?.setSlicesMark(
         SoStruct.selectSoStruct.startTs || 0,
@@ -2157,8 +2150,8 @@ export class SpSystemTrace extends BaseElement {
         .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
     }
     if (!this.loadTraceCompleted) return;
+    this.keyboardEnable && enableVSync(false, ev, () => this.refreshCanvas(true));
     let keyPress = ev.key.toLocaleLowerCase();
-    enableVSync(false, keyPress, () => this.refreshCanvas(true));
     if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
       this.keyPressMap.set(keyPress, false);
     }
@@ -2273,7 +2266,6 @@ export class SpSystemTrace extends BaseElement {
   };
 
   favoriteChangeHandler = (row: TraceRow<any>) => {
-    console.log(row.offsetTop, row.offsetHeight,"------2-2-2--")
     info('favoriteChangeHandler', row.frame, row.offsetTop, row.offsetHeight);
   };
 
@@ -2395,12 +2387,10 @@ export class SpSystemTrace extends BaseElement {
       this.tabCpuFreq!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
       this.tabCpuState!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
     }
-    if (this.rangeSelect.isMouseDown) {
+    let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+    if (this.rangeSelect.isMouseDown && search?.isClearValue) {
       this.refreshCanvas(true);
       if (TraceRow.rangeSelectObject) {
-        let search = document
-          .querySelector('body > sp-application')!
-          .shadowRoot!.querySelector<LitSearch>('#lit-search');
         if (search && search.searchValue !== '') {
           search.clear();
           search.valueChangeHandler?.('');
@@ -2489,9 +2479,6 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.selectJsCpuProfilerStruct = undefined;
     SnapshotStruct.selectSnapshotStruct = undefined;
     HiPerfCallChartStruct.selectStruct = undefined;
-    AllAppStartupStruct.selectStartupStruct = undefined;
-    LtpoStruct.selectLtpoStruct = undefined;
-    HitchTimeStruct.selectHitchTimeStruct = undefined;
   }
 
   isWASDKeyPress() {
@@ -3913,7 +3900,7 @@ export class SpSystemTrace extends BaseElement {
     };
     window.subscribe(window.SmartEvent.UI.UploadSOFile, (data) => {
       this.chartManager?.importSoFileUpdate().then(() => {
-        window.publish(window.SmartEvent.UI.Loading, false);
+        window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Import So File' });
         let updateCanvas = this.traceSheetEL?.updateRangeSelect();
         if (updateCanvas) {
           this.refreshCanvas(true);
@@ -3971,7 +3958,7 @@ export class SpSystemTrace extends BaseElement {
 
   scrollToProcess(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true) {
     let traceRow =
-      this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowId}'][row-type='${rowType}']`) ||
+      this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowId}'][row-type='${rowType}']`) ||
       this.favoriteChartListEL!.getCollectRow((row) => row.rowId === rowId && row.rowType === rowType);
     if (traceRow?.collect) {
       this.favoriteChartListEL!.scroll({
@@ -3983,7 +3970,7 @@ export class SpSystemTrace extends BaseElement {
         behavior: smooth ? 'smooth' : undefined,
       });
     } else {
-      let row = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
+      let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row && !row.expansion) {
         row.expansion = true;
       }
@@ -3999,7 +3986,7 @@ export class SpSystemTrace extends BaseElement {
 
   scrollToDepth(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true, depth: number) {
     let rootRow =
-      this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowId}'][row-type='${rowType}']`) ||
+      this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowId}'][row-type='${rowType}']`) ||
       this.favoriteChartListEL!.getCollectRow((row) => row.rowId === rowId && row.rowType === rowType);
     if (rootRow && rootRow!.collect) {
       this.favoriteAreaSearchHandler(rootRow);
@@ -4010,7 +3997,7 @@ export class SpSystemTrace extends BaseElement {
         behavior: smooth ? 'smooth' : undefined,
       });
     } else {
-      let row = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
+      let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row && !row.expansion) {
         row.expansion = true;
       }
@@ -4018,8 +4005,9 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc();
       }
       if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
+        let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0);
         this.rowsPaneEL!.scroll({
-          top: (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0),
+          top: top,
           left: 0,
           behavior: smooth ? 'smooth' : undefined,
         });
@@ -4398,13 +4386,13 @@ export class SpSystemTrace extends BaseElement {
       toTargetDepth(searchEntry);
       return;
     }
-    let parentRow = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
+    let parentRow = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
     if (!parentRow) {
       return;
     }
     let filterRow = parentRow.childrenList.filter((child) => child.rowId == funcRowID && child.rowType == 'func')[0];
     if (filterRow == null) {
-      let funcRow = this.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
+      let funcRow = this.rowsEL?.querySelector<TraceRow<any>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
       if (funcRow) {
         filterRow = funcRow;
       } else {
@@ -4412,7 +4400,7 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     filterRow!.highlight = highlight;
-    let row = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
+    let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
     if (row && !row.expansion) {
       row.expansion = true;
     }
@@ -4591,7 +4579,7 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
     procedurePool.submitWithName('logic1', 'clear', {}, undefined, (res: any) => {});
     this.times.clear();
-    setVSyncDisable();
+    resetVSync();
     SpSystemTrace.keyPathList = [];
   }
 

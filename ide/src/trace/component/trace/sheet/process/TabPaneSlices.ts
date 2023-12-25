@@ -150,6 +150,7 @@ export class TabPaneSlices extends BaseElement {
         search.list = rangeSelectList;
         search.total = search.list.length;
         search.index = spSystemTrace!.showStruct(true, 1, search.list);
+        search.isClearValue = true;
         indexEL!.textContent = '1';
       });
     });

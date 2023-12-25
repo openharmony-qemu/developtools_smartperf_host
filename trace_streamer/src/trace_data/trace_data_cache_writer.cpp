@@ -63,6 +63,16 @@ void TraceDataCacheWriter::UpdateTraceTime(uint64_t timeStamp)
     }
 }
 
+void TraceDataCacheWriter::UpdateTraceMinTime(uint64_t timestampMin)
+{
+    if (isSplitFile_) {
+        return;
+    }
+    if (timestampMin) {
+        traceStartTime_ = timestampMin;
+    }
+}
+
 void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestampMax)
 {
     if (isSplitFile_) {

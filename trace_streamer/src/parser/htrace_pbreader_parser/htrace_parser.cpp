@@ -515,7 +515,7 @@ void HtraceParser::ParseJSMemoryConfig(HtraceDataSegment& dataSeg)
 int32_t HtraceParser::GetNextSegment()
 {
     int32_t head;
-    std::unique_lock<std::mutex> muxLockGuard(htraceDataSegMux_);
+    std::lock_guard<std::mutex> muxLockGuard(htraceDataSegMux_);
     head = parseHead_;
     HtraceDataSegment& htraceDataSegmentSeg = dataSegArray_[head];
     if (htraceDataSegmentSeg.status.load() != TS_PARSE_STATUS_SEPRATED) {

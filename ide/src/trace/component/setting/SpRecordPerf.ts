@@ -308,9 +308,6 @@ export class SpRecordPerf extends BaseElement {
         }
         Cmd.getProcess().then(
           (processList) => {
-            if (processList.length > 0 && this.startSamp) {
-              this.recordProcessInput!.setAttribute('readonly', 'readonly');
-            }
             this.processSelect?.dataSource(processList, 'ALL-Process');
           },
           (rejected) => {

@@ -64,14 +64,14 @@ private:
     std::string MakeBeginFakeLog(const std::string& mark,
                                  const int pid,
                                  const std::string& label,
-                                 const int gid,
+                                 const long long gid,
                                  const int tid,
                                  const std::string& tname,
                                  const int prio);
     std::string MakeEndFakeLog(const std::string& mark,
                                const int pid,
                                const std::string& label,
-                               const int gid,
+                               const long long gid,
                                const int tid,
                                const std::string& tname,
                                const int prio);
@@ -79,22 +79,27 @@ private:
                                       const std::string& mark,
                                       const int pid,
                                       const std::string& label,
-                                      const int gid,
+                                      const long long gid,
                                       const int tid);
-    std::string ReplaceSchedWakeLog(std::string& fakeLog, const std::string& label, const int pid, const int gid);
-    std::string ReplaceSchedBlockLog(std::string& fakeLog, const int pid, const int gid);
-    std::string ReplaceTracingMarkLog(std::string& fakeLog, const std::string& label, const int pid, const int gid);
+    std::string ReplaceSchedWakeLog(std::string& fakeLog, const std::string& label, const int pid, const long long gid);
+    std::string ReplaceSchedBlockLog(std::string& fakeLog, const int pid, const long long gid);
+    std::string ReplaceTracingMarkLog(std::string& fakeLog,
+                                      const std::string& label,
+                                      const int pid,
+                                      const long long gid);
     std::string ConvertWorkerLogToTask(const std::string& mark,
                                        const int pid,
                                        const std::string& label,
-                                       const int gid,
+                                       const long long gid,
                                        const int tid);
     void SupplementFfrtBlockAndWakeInfo(vector<std::string>& results);
     bool IsDigit(const std::string& str);
+    void CheckTraceMarker(vector<std::string>& lines);
 
 private:
-    const std::regex indexPattern_ = std::regex("\\(.+\\)\\s+\\[\\d");
-    const std::regex matchPattern_ = std::regex(" \\(.+\\)\\s+\\[\\d");
+    const std::regex indexPattern_ = std::regex(R"(\(.+\)\s+\[\d)");
+    const std::regex matchPattern_ = std::regex(R"( \(.+\)\s+\[\d)");
+    std::string TRACING_MARKER_KEY = "tracing_mark_write: ";
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

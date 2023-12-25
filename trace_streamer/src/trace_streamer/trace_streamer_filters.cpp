@@ -50,10 +50,12 @@ void TraceStreamerFilters::FilterClear()
     processFilterFilter_->Clear();
     clockEnableFilter_->Clear();
     clockDisableFilter_->Clear();
+    clockRateFilter_->Clear();
     clkRateFilter_->Clear();
     clkEnableFilter_->Clear();
     clkDisableFilter_->Clear();
     binderFilter_->Clear();
+    frameFilter_->Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

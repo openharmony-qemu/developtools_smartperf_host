@@ -188,7 +188,7 @@ void BytraceParser::ParseTraceDataItem(const std::string& buffer)
 int32_t BytraceParser::GetNextSegment()
 {
     int32_t head;
-    std::unique_lock<std::mutex> muxLockGuard(dataSegMux_);
+    std::lock_guard<std::mutex> muxLockGuard(dataSegMux_);
     head = parseHead_;
     DataSegment& seg = dataSegArray_[head];
     if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {

@@ -31,7 +31,6 @@
 #include "sqlite3.h"
 #include "sqlite_ext/sqlite_ext_funcs.h"
 #include "string_help.h"
-#include "sqllite_prepar_cache_data.h"
 #include "ts_common.h"
 
 namespace SysTuning {
@@ -420,10 +419,8 @@ int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data, ResultCallBa
     std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtScope(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
     TS_CHECK_TRUE(ret == SQLITE_OK, ret, "sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
-    SqllitePreparCacheData sqllitePreparCacheData;
-    auto sphQueryFuncMap = sqllitePreparCacheData.GetSphQueryFuncMap();
-    auto queryFuncItor = sphQueryFuncMap.find(type);
-    if (queryFuncItor != sphQueryFuncMap.end()) {
+    auto queryFuncItor = sqlPreparCacheData_.sphQueryFuncMap_.find(type);
+    if (queryFuncItor != sqlPreparCacheData_.sphQueryFuncMap_.end()) {
         queryFuncItor->second(stmt, type, resultCallBack);
     } else {
         TS_LOGE("Can't find sph query type:%u", type);

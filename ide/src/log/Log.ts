@@ -52,27 +52,32 @@ class SpLog {
   public static setLogLevel(logLevel: LogLevel) {
     SpLog.nowLogLevel = logLevel;
   }
+  private static now(): string {
+    const now = new Date();
+    const timeString = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}:${now.getMilliseconds()}`;
+    return timeString;
+  }
 
   public static logger(logLevel: LogLevel, message?: any, ...optionalParams: any[]) {
     if (logLevel >= SpLog.nowLogLevel) {
       switch (logLevel) {
         case LogLevel.ERROR:
-          console.error(message, ...optionalParams);
+          console.error(message, ...optionalParams, this.now());
           break;
         case LogLevel.WARN:
-          console.warn(message, ...optionalParams);
+          console.warn(message, ...optionalParams, this.now());
           break;
         case LogLevel.INFO:
-          console.info(message, ...optionalParams);
+          console.info(message, ...optionalParams, this.now());
           break;
         case LogLevel.DEBUG:
-          console.debug(message, ...optionalParams);
+          console.debug(message, ...optionalParams, this.now());
           break;
         case LogLevel.TRACE:
-          console.trace(message, ...optionalParams);
+          console.trace(message, ...optionalParams, this.now());
           break;
         default:
-          console.log(message);
+          console.log(message, this.now());
       }
     }
   }

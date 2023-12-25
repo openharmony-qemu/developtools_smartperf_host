@@ -59,6 +59,7 @@ import { type SpKeyboard } from './component/SpKeyboard';
 import './component/SpKeyboard';
 import { parseKeyPathJson } from './component/Utils';
 import { Utils } from './component/trace/base/Utils';
+import '../base-ui/chart/scatter/LitChartScatter';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -517,14 +518,14 @@ export class SpApplication extends BaseElement {
                         </svg>
                     </div>
                     <div title="Import Key Path" id="import-key-path" style="display: none ;text-align: left;
-                    position:  absolute;left: 1.2em; cursor: pointer;top: 20px">
+                    position:  absolute;left: 5px ; cursor: pointer;top: 15px">
                       <input id="import-config" style="display: none;pointer-events: none" type="file" accept=".json" >
                       <label style="width: 20px;height: 20px;cursor: pointer;" for="import-config">
                           <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
                           </lit-icon>
                       </label>
                     </div>
-                    <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left; position: absolute;left: 2.5em; cursor: pointer;top: 20px ">
+                    <lit-icon  id="close-key-path" name="close" title="Close Key Path" color='#fff' size="20" style="display: none;text-align: left; position: absolute;left: 25px; cursor: pointer;top: 15px ">
                     </lit-icon>
                     <lit-search id="lit-search"></lit-search>
                     <lit-search id="lit-record-search"></lit-search>
@@ -567,8 +568,8 @@ export class SpApplication extends BaseElement {
                 </sp-help>
                 <sp-flags style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 104" id="sp-flags">
                 </sp-flags>
-                <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 999"></trace-row-config>
-                <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 106"></custom-theme-color>
+                <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></trace-row-config>
+                <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></custom-theme-color>
             </div>
         </div>
         `;
@@ -627,6 +628,7 @@ export class SpApplication extends BaseElement {
     ];
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') {
+        validateFileCacheLost();
         if (window.localStorage.getItem('Theme') == 'dark') {
           that.changeTheme(Theme.DARK);
         } else {
@@ -634,19 +636,28 @@ export class SpApplication extends BaseElement {
         }
       }
     });
+    this.addEventListener('copy', function (event) {
+      let clipdata = event.clipboardData;
+      let value = clipdata!.getData('text/plain');
+      let searchValue = value.toString().trim();
+      clipdata!.setData('text/plain', searchValue);
+    });
     window.subscribe(window.SmartEvent.UI.MenuTrace, () => showContent(spSystemTrace!));
     window.subscribe(window.SmartEvent.UI.Error, (err) => {
       litSearch.setPercent(err, -1);
       progressEL.loading = false;
       that.freshMenuDisable(false);
     });
-    window.subscribe(window.SmartEvent.UI.Loading, (loading) => {
-      litSearch.setPercent(loading ? 'Import So File' : '', loading ? -1 : 101);
+    window.subscribe(window.SmartEvent.UI.Loading, (arg: { loading: boolean; text?: string }) => {
+      if (arg.text) {
+        litSearch.setPercent(arg.text || '', arg.loading ? -1 : 101);
+      }
       window.publish(window.SmartEvent.UI.MouseEventEnable, {
-        mouseEnable: !loading,
+        mouseEnable: !arg.loading,
       });
-      progressEL.loading = loading;
+      progressEL.loading = arg.loading;
     });
+
     litSearch.addEventListener('focus', () => {
       window.publish(window.SmartEvent.UI.KeyboardEnable, {
         enable: false,
@@ -671,6 +682,7 @@ export class SpApplication extends BaseElement {
       litSearch.blur();
     });
     litSearch.valueChangeHandler = (value: string) => {
+      litSearch!.isClearValue = false;
       if (value.length > 0) {
         let list = spSystemTrace!.searchCPU(value);
         spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
@@ -757,6 +769,9 @@ export class SpApplication extends BaseElement {
                 litSearch.setPercent('Json Parse Failed!', 101);
               }, 2000);
             }
+          } else {
+            window.publish(window.SmartEvent.UI.KeyPath, []);
+            closeKeyPath!.style.display = 'none';
           }
         };
       }
@@ -783,6 +798,8 @@ export class SpApplication extends BaseElement {
       }
       if (menuButton) {
         menuButton.style.width = `0px`;
+        importConfigDiv!.style.left = '5px';
+        closeKeyPath!.style.left = '25px';
       }
     };
     let icon: HTMLDivElement | undefined | null = this.shadowRoot
@@ -800,6 +817,8 @@ export class SpApplication extends BaseElement {
       }
       if (menuButton) {
         menuButton.style.width = `48px`;
+        importConfigDiv!.style.left = '45px';
+        closeKeyPath!.style.left = '65px';
       }
     };
 
@@ -1113,6 +1132,7 @@ export class SpApplication extends BaseElement {
                     collapsed: false,
                     title: 'Current Trace',
                     second: false,
+                    icon: '',
                     describe: 'Actions on the current trace',
                     children: getTraceOptionMenus(showFileName, fileSize, fileName, true, dbName),
                   });
@@ -1360,15 +1380,15 @@ export class SpApplication extends BaseElement {
                 let fileBlob = new Blob(finalData);
                 const file = new File([fileBlob], fileName);
                 let fileSize = (file.size / 1048576).toFixed(1);
-                document.title = `${fileName}(${fileSize}M)`;
-                handleWasmMode(file, file.name, `${fileSize}M`, fileName);
+                document.title = `${fileName}(${fileSize})`;
+                handleWasmMode(file, file.name, `${fileSize}`, fileName);
               }
             } else {
               let fileBlob = new Blob([traceArray, ebpfArray, arkTsArray, hiPerfArray]);
               const file = new File([fileBlob], fileName);
               let fileSize = (file.size / 1048576).toFixed(1);
-              document.title = `${fileName}(${fileSize}M)`;
-              handleWasmMode(file, file.name, `${fileSize}M`, file.name);
+              document.title = `${fileName}(${fileSize})`;
+              handleWasmMode(file, file.name, `${fileSize}`, file.name);
             }
             that.traceFileName = fileName;
           });
@@ -1434,6 +1454,7 @@ export class SpApplication extends BaseElement {
           SpApplication.loadingProgress = 0;
           SpApplication.progressStep = 3;
           let data = this.result as ArrayBuffer;
+          info('initData start Parse Data');
           spSystemTrace!.loadDatabaseArrayBuffer(
             data,
             wasmUrl,
@@ -1461,6 +1482,7 @@ export class SpApplication extends BaseElement {
                   collapsed: false,
                   title: 'Convert trace',
                   second: false,
+                  icon: '',
                   describe: 'Convert to other formats',
                   children: pushConvertTrace(fileName),
                 });
@@ -1470,6 +1492,7 @@ export class SpApplication extends BaseElement {
                 collapsed: false,
                 title: 'Support',
                 second: false,
+                icon: '',
                 describe: 'Support',
                 children: [
                   {
@@ -1498,12 +1521,12 @@ export class SpApplication extends BaseElement {
                     },
                   },
                   {
-                    title: 'Keyboard Shortcuts',
+                    title: 'Keyboard shortcuts',
                     icon: 'smart-help',
                     clickHandler: function (item: MenuItem) {
                       SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                        event: 'Keyboard Shortcuts',
-                        action: 'Keyboard Shortcuts',
+                        event: 'Keyboard shortcuts',
+                        action: 'Keyboard shortcuts',
                       });
                       that.search = false;
                       showContent(SpKeyboard);
@@ -1517,6 +1540,7 @@ export class SpApplication extends BaseElement {
                   collapsed: false,
                   title: 'Current Trace',
                   second: false,
+                  icon: '',
                   describe: 'Actions on the current trace',
                   children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
                 });
@@ -1546,8 +1570,26 @@ export class SpApplication extends BaseElement {
       });
     }
 
+    const validateFileCacheLost = () => {
+      caches.has(DbPool.fileCacheKey).then((exist) => {
+        if (!exist) {
+          //todo 缓存文件丢失，则禁止下载文件功能
+          mainMenu.menus?.forEach((mg) => {
+            mg.children.forEach((mi: any) => {
+              if (mi.title === 'Download File') {
+                mi.disabled = true;
+              }
+            });
+          });
+          cutTraceFile.style.display = 'none';
+          mainMenu.menus = mainMenu.menus;
+        }
+      });
+    };
+
     let openFileInit = () => {
       this.clearTraceFileCache();
+      cutTraceFile.style.display = 'block';
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'open_trace',
         action: 'open_trace',
@@ -1823,6 +1865,7 @@ export class SpApplication extends BaseElement {
                     collapsed: false,
                     title: 'Current Trace',
                     second: false,
+                    icon: '',
                     describe: 'Actions on the current trace',
                     children: getTraceOptionMenus(showFileName, fileSize, fileName, false),
                   });
@@ -1849,6 +1892,7 @@ export class SpApplication extends BaseElement {
         collapsed: false,
         title: 'Navigation',
         second: false,
+        icon: '',
         describe: 'Open or record a new trace',
         children: [
           {
@@ -1908,6 +1952,7 @@ export class SpApplication extends BaseElement {
         collapsed: false,
         title: 'Support',
         second: false,
+        icon: '',
         describe: 'Support',
         children: [
           {
@@ -1936,14 +1981,14 @@ export class SpApplication extends BaseElement {
             },
           },
           {
-            title: 'Keyboard Shortcuts',
+            title: 'Keyboard shortcuts',
             icon: 'smart-help',
             clickHandler: function (item: MenuItem) {
               that.search = false;
               showContent(SpKeyboard);
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'Keyboard Shortcuts',
-                action: 'Keyboard Shortcuts',
+                event: 'Keyboard shortcuts',
+                action: 'Keyboard shortcuts',
               });
             },
           },
@@ -2035,6 +2080,8 @@ export class SpApplication extends BaseElement {
       }
       if (sidebarButton) {
         sidebarButton.style.width = open ? `0px` : '48px';
+        importConfigDiv!.style.left = open ? '5px' : '45px';
+        closeKeyPath!.style.left = open ? '25px' : '65px';
       }
     };
     let urlParams = new URL(window.location.href).searchParams;
@@ -2410,9 +2457,11 @@ export class SpApplication extends BaseElement {
       keys.forEach((key) => {
         if (key === DbPool.fileCacheKey) {
           caches.delete(key).then();
-        } else if (key.includes('/')) {
+        } else if (key.includes('/') && key.includes('-')) {
           let splits = key.split('/');
-          let fileDate = new Date(parseInt(splits[splits.length - 1]));
+          let keyStr = splits[splits.length - 1];
+          let time = keyStr.split('-')[0];
+          let fileDate = new Date(parseInt(time));
           if (fileDate.toLocaleDateString() !== new Date().toLocaleDateString()) {
             //如果不是当天的缓存则删去缓存文件
             caches.delete(key).then();

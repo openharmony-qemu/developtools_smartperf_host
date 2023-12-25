@@ -23,7 +23,8 @@ jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => 
 import {
   CpuStateRender,
   CpuStateStruct,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuState';
+  cpuState,
+} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuState.js';
 
 describe('ProcedureWorkerCpuState Test', () => {
   it('ProcedureWorkerCpuStateTest01', function () {

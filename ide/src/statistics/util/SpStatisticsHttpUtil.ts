@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { warn } from '../../log/Log';
 import { BurialPointRequestBody } from './SpStatisticsHttpBean';
 
 export class SpStatisticsHttpUtil {
@@ -34,20 +35,24 @@ export class SpStatisticsHttpUtil {
   }
 
   static getRequestServerInfo(): string {
-    let req = new XMLHttpRequest();
-    req.open(
-      'GET',
-      `${window.location.protocol}//${window.location.host.split(':')[0]}:${
-        window.location.port
-      }/application/serverInfo`,
-      false
-    );
-    req.send(null);
-    if (req.status == 200) {
-      let requestInfo = req.getResponseHeader('request_info');
-      if (requestInfo && requestInfo.length > 0) {
-        return requestInfo;
+    try {
+      let req = new XMLHttpRequest();
+      req.open(
+        'GET',
+        `${window.location.protocol}//${window.location.host.split(':')[0]}:${
+          window.location.port
+        }/application/serverInfo`,
+        true
+      );
+      req.send(null);
+      if (req.status == 200) {
+        let requestInfo = req.getResponseHeader('request_info');
+        if (requestInfo && requestInfo.length > 0) {
+          return requestInfo;
+        }
       }
+    } catch {
+      warn('Connect Server Failed')
     }
     return '';
   }

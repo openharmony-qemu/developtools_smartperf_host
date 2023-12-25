@@ -50,16 +50,17 @@ public:
 
 private:
     struct EventInfo {
+        int32_t pid_ = 0;
         int32_t tgid_ = 0;
         uint32_t cpu_ = 0;
         SupportedTraceEventType eventType_ = TRACE_EVENT_OTHER;
         uint64_t timeStamp_ = INVALID_UINT64;
-        std::shared_ptr<std::string> detail_;
-        ProtoReader::BytesView bytesView_;
-        std::string taskName_;
-        std::shared_ptr<ProtoReader::FtraceEvent_CommonFileds_Reader> comonFields_;
+        DataIndex taskNameIndex_;
+        std::string detail_;
     };
-    bool SetEventType(const ProtoReader::FtraceEvent_Reader& event, EventInfo& eventInfo);
+    bool SetEventType(const ProtoReader::FtraceEvent_Reader& event,
+                      EventInfo& eventInfo,
+                      ProtoReader::BytesView& bytesView);
     void ProtoReaderDealEvent(EventInfo* eventInfo);
     bool BinderTractionEvent(const EventInfo& event) const;
     bool BinderTractionReceivedEvent(const EventInfo& event) const;

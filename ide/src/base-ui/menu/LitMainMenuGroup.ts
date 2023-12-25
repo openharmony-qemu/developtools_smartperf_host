@@ -21,9 +21,10 @@ export class LitMainMenuGroup extends BaseElement {
   private groupNameEl: HTMLElement | null | undefined;
   private groupDescEl: HTMLElement | null | undefined;
   private group: HTMLElement | null | undefined;
+  private iconEl: HTMLElement | null | undefined;
 
   static get observedAttributes() {
-    return ['title', 'describe', 'collapsed', 'nocollapse', 'radius', 'second'];
+    return ['title', 'describe', 'collapsed', 'nocollapse', 'radius', 'second', 'icon'];
   }
 
   get second() {
@@ -67,8 +68,9 @@ export class LitMainMenuGroup extends BaseElement {
   }
 
   initElements(): void {
-    this.groupNameEl = this.shadowRoot?.querySelector('.group-name');
+    this.groupNameEl = this.shadowRoot?.querySelector('.group-title');
     this.groupDescEl = this.shadowRoot?.querySelector('.group-describe');
+    this.iconEl = this.shadowRoot?.querySelector('.icon');
     this.group = this.shadowRoot?.querySelector('#group');
     this.group!.addEventListener('click', (e) => {
       if (this.nocollapsed) {
@@ -104,6 +106,7 @@ export class LitMainMenuGroup extends BaseElement {
         :host(:not([collapsed])) .group-describe{
             height: 0;
             visibility: hidden;
+            padding:0;
         }
         :host([collapsed]):hover){
             background-color: #FFFFFF;
@@ -128,25 +131,38 @@ export class LitMainMenuGroup extends BaseElement {
         :host([collapsed]) ::slotted(lit-main-menu-group){
           display:none;
         }
+        :host(:not([describe])) .group-describe{
+          display:none;
+        }
+        :host([describe]) .group-describe{
+          padding: 4px 24px 0 24px;
+          color: #999 !important;
+          font-size: 1rem;
+        }
+        :host([describe]) .group-name{
+          margin-top: 10px;
+        }
         .group-name{
+            display:flex;
             font-size: 14px;
             font-family: Helvetica;
             color: #000;
-            padding: 20px 24px 0px 24px;
+            padding: 15px 24px 5px 10px;
             line-height: 16px;
             font-weight: 400;
             text-align: left;
         }
-        .group-describe{
-            color: #000;
-            font-size: 0.6rem;
-            padding: 4px 24px 20px 24px;
+        :host([collapsed]) .icon{
+          transform: rotateZ(-90deg);
         }
         </style>
-       <div id="group">
-         <div class="group-name"></div>
-         <div class="group-describe"></div>
-       </div>
+        <div id="group">
+        <div class="group-name">
+          <lit-icon class="icon" name="user" size="20"></lit-icon>
+          <span class="group-title"></span>
+        </div>
+        <div class="group-describe"></div>
+      </div>
         <slot></slot>
         `;
   }
@@ -158,6 +174,9 @@ export class LitMainMenuGroup extends BaseElement {
         break;
       case 'describe':
         if (this.groupDescEl) this.groupDescEl.textContent = newValue;
+        break;
+      case 'icon':
+        if (this.iconEl) this.iconEl.setAttribute('name', newValue);
         break;
     }
   }

@@ -26,7 +26,7 @@ cd third_party
 
 if [ ! -f "sqlite/BUILD.gn" ];then
     rm -rf sqlite
-    git clone git@gitee.com:openharmony/third_party_sqlite.git
+    git clone --depth=1 git@gitee.com:openharmony/third_party_sqlite.git
     if [ -d "third_party_sqlite" ];then
         mv third_party_sqlite sqlite
         $cp ../prebuilts/patch_sqlite/sqlite3build.gn ../third_party/sqlite/BUILD.gn
@@ -34,7 +34,7 @@ if [ ! -f "sqlite/BUILD.gn" ];then
 fi
 if [ ! -f "protobuf/BUILD.gn" ];then
     rm -rf protobuf
-    git clone git@gitee.com:openharmony/third_party_protobuf.git
+    git clone --depth=1 git@gitee.com:openharmony/third_party_protobuf.git
     if [ -d "third_party_protobuf" ];then
         mv third_party_protobuf protobuf
         $cp ../prebuilts/patch_protobuf/protobufbuild.gn ../third_party/protobuf/BUILD.gn
@@ -43,7 +43,7 @@ fi
 
 if [ ! -f "googletest/BUILD.gn" ];then
     rm -rf googletest
-    git clone git@gitee.com:openharmony/third_party_googletest.git
+    git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git
     if [ -d "third_party_googletest" ];then
         mv third_party_googletest googletest
         $cp ../prebuilts/patch_googletest/googletestbuild.gn ../third_party/googletest/BUILD.gn
@@ -56,7 +56,7 @@ fi
 
 if [ ! -f "json/BUILD.gn" ];then
     rm -rf json
-    git clone git@gitee.com:openharmony/third_party_json.git
+    git clone --depth=1 git@gitee.com:openharmony/third_party_json.git
     if [ -d "third_party_json" ];then
         mv third_party_json json
     fi
@@ -64,7 +64,7 @@ fi
 
 if [ ! -f "libunwind/BUILD.gn" ];then
     rm -rf libunwind
-    git clone git@gitee.com:openharmony/third_party_libunwind.git
+    git clone --depth=1 git@gitee.com:openharmony/third_party_libunwind.git
     if [ -d "third_party_libunwind" ];then
         mv third_party_libunwind libunwind
         $cp ../prebuilts/patch_libunwind/libunwindbuild.gn libunwind/BUILD.gn
@@ -176,13 +176,13 @@ fi
 
 if [ ! -f "bounds_checking_function/BUILD.gn" ];then
     rm -rf bounds_checking_function
-    git clone git@gitee.com:openharmony/third_party_bounds_checking_function.git bounds_checking_function
+    git clone --depth=1 git@gitee.com:openharmony/third_party_bounds_checking_function.git bounds_checking_function
     $cp ../prebuilts/patch_bounds_checking_function/bounds_checking_functionbuild.gn bounds_checking_function/BUILD.gn
 fi
 
 if [ ! -f "commonlibrary/c_utils/base/include/nocopyable.h" ];then
     rm -rf commonlibrary
-    git clone git@gitee.com:openharmony/commonlibrary_c_utils.git
+    git clone --depth=1 git@gitee.com:openharmony/commonlibrary_c_utils.git
     if [ -d "commonlibrary_c_utils" ];then
         mkdir -p commonlibrary/c_utils/base/include
         $cp commonlibrary_c_utils/base/include/nocopyable.h commonlibrary/c_utils/base/include
@@ -192,7 +192,7 @@ fi
 
 if [ ! -f "profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h" ];then
     rm -rf profiler
-    git clone git@gitee.com:openharmony/developtools_profiler.git
+    git clone --depth=1 git@gitee.com:openharmony/developtools_profiler.git
     if [ -d "developtools_profiler" ];then
         mkdir -p profiler/device/plugins/ftrace_plugin/include
         $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h profiler/device/plugins/ftrace_plugin/include

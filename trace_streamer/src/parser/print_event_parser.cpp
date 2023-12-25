@@ -177,7 +177,7 @@ void PrintEventParser::Finish()
     frameCallIds_.clear();
     vsyncSliceIds_.clear();
     streamFilters_->animationFilter_->Clear();
-    streamFilters_->frameFilter_->Finish();
+    streamFilters_->frameFilter_->Clear();
 }
 ParseResult PrintEventParser::CheckTracePoint(std::string_view pointStr) const
 {

@@ -36,6 +36,7 @@ public:
     InternalTid NewInternalThread(uint32_t tid);
     Thread* GetThreadData(InternalTid internalTid);
     void UpdateTraceTime(uint64_t timeStamp);
+    void UpdateTraceMinTime(uint64_t timestampMin);
     void MixTraceTime(uint64_t timestampMin, uint64_t timestampMax);
     CallStack* GetInternalSlicesData();
     CallStack* GetIrqData();

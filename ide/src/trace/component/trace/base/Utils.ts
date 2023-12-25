@@ -97,6 +97,20 @@ export class Utils {
     }
   }
 
+  public static transferBinderTitle(value: any) {
+    if (value.startsWith('P-')) {
+      let pid = value.replace('P-', '');
+      let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
+      return `${process} [${pid}]`;
+    } else if (value.startsWith('T-')) {
+      let tid = value.replace('T-', '');
+      let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
+      return `${thread} [${tid}]`;
+    } else {
+      return '';
+    }
+  }
+
   public static getStateColor(state: string): string {
     if (state === 'D-NIO' || state === 'DK-NIO') {
       return '#795548';
