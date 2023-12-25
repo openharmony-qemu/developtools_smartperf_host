@@ -44,7 +44,7 @@ import (
 	"time"
 )
 
-const HttpPort = 9001
+const HttpPort = 9000
 
 var exPath string
 var serveInfo string
