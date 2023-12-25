@@ -14,7 +14,7 @@
  */
 
 #include "rawtrace_parser.h"
-#include <inttypes.h>
+#include <cinttypes>
 #if IS_WASM
 #include "../rpc/wasm_func.h"
 #endif
