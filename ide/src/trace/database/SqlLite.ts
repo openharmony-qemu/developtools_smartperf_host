@@ -1001,7 +1001,7 @@ export const getTabSlicesAsyncFunc = (
     { $leftNS: leftNS, $rightNS: rightNS }
   );
 
-export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStates = (tid: number, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `
@@ -1016,10 +1016,10 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
       thread_state AS B
     left join
       trace_range AS TR
-    where
-      B.tid in (${tIds.join(',')})
-    and
-      not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))
+      where  
+      B.tid = ${tid}             
+    and 
+      not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))        
     group by
       B.pid, B.tid, B.state
     order by
@@ -1028,7 +1028,7 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
   );
 
 // 查询线程状态详细信息
-export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
+export const getTabThreadStatesDetail = (pid: number, tid: number, leftNS: number, rightNS: number): Promise<Array<any>> =>
   query<SelectionData>(
     'getTabThreadStates',
     `select
@@ -1041,10 +1041,12 @@ export const getTabThreadStatesDetail = (tIds: Array<number>, leftNS: number, ri
         thread_state AS B
       left join
         trace_range AS TR
-      where
-        B.tid in (${tIds.join(',')})
-      and
-        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))     
+        where 
+        B.pid = ${pid}
+      and 
+        B.tid = ${tid}            
+      and 
+        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < $leftNS) or (B.ts - TR.start_ts > $rightNS))            
       order by ts;`,
     { $leftNS: leftNS, $rightNS: rightNS }
   );
@@ -6198,14 +6200,14 @@ export const queryLoopFuncNameCycle = (
       $rightNS: rightNS,
     }
   );
-export const getGpufreqData = (leftNS: number, rightNS: number, earliest: boolean): Promise<Array<GpuCountBean>> => {
-  let queryCondition: string = '';
-  if (!earliest) {
-    queryCondition += ` where  not  ((s.ts - r.start_ts + ifnull(s.dur,0) < ${leftNS}) or (s.ts - r.start_ts > ${rightNS}))`;
-  }
-  return query(
-    'getGpufreqData',
-    `
+  export const getGpufreqData = (leftNS: number, rightNS: number, earliest: boolean): Promise<Array<GpuCountBean>> => {
+    let queryCondition: string = '';
+    if (!earliest) {
+      queryCondition += ` where  not  ((s.ts - r.start_ts + ifnull(s.dur,0) < ${leftNS}) or (s.ts - r.start_ts > ${rightNS}))`;
+    }
+    return query(
+      'getGpufreqData',
+      `
             with state as 
               (select 
                  name,
@@ -6254,59 +6256,59 @@ export const getGpufreqData = (leftNS: number, rightNS: number, earliest: boolea
             ${queryCondition} 
             order by ts
           `,
-    { $leftNS: leftNS, $rightNS: rightNS }
-  );
-};
-
-export const getGpufreqDataCut = (
-  tIds: string,
-  funcName: string,
-  leftNS: number,
-  rightNS: number,
-  single: boolean,
-  loop: boolean
-): Promise<Array<SearchGpuFuncBean>> => {
-  let queryCondition: string = '';
-  if (single) {
-    queryCondition += `select s.funName,s.startTime,s.dur,s.startTime+s.dur as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
-            where endTime between ${leftNS} and ${rightNS}`;
-  }
-  if (loop) {
-    queryCondition += `select s.funName,s.startTime,s.loopEndTime-s.startTime as dur,s.loopEndTime as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
-            where endTime between ${leftNS} and ${rightNS} `;
-  }
-  return query(
-    'getGpufreqDataCut',
-    `
-            with state as
-              (select 
-                 * 
-              from
-                 (select
-                    c.name as funName,
-                    c.ts - r.start_ts as startTime,
-                    c.dur,
-                    lead(c.ts - r.start_ts, 1, null) over( order by c.ts - r.start_ts) loopEndTime,
-                    c.depth,
-                    t.tid,
-                    t.name as threadName,
-                    p.pid
-                 from 
-                    callstack c 
-                 left join 
-                    thread t on c.callid = t.id 
-                 left join 
-                    process p on t.ipid = p.id
-                 left join 
-                    trace_range r
-                 where 
-                    c.name like '%${funcName}%'
-                 and 
-                    tid = '${tIds}' 
-                 and 
-                    startTime between ${leftNS} and ${rightNS}))
-             ${queryCondition}  
-          `,
-    { $search: funcName }
-  );
-};
+      { $leftNS: leftNS, $rightNS: rightNS }
+    );
+  };
+  
+  export const getGpufreqDataCut = (
+    tIds: string,
+    funcName: string,
+    leftNS: number,
+    rightNS: number,
+    single: boolean,
+    loop: boolean
+  ): Promise<Array<SearchGpuFuncBean>> => {
+    let queryCondition: string = '';
+    if (single) {
+      queryCondition += `select s.funName,s.startTime,s.dur,s.startTime+s.dur as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
+              where endTime between ${leftNS} and ${rightNS}`;
+    }
+    if (loop) {
+      queryCondition += `select s.funName,s.startTime,s.loopEndTime-s.startTime as dur,s.loopEndTime as endTime,s.depth,s.tid,s.threadName,s.pid from state s 
+              where endTime between ${leftNS} and ${rightNS} `;
+    }
+    return query(
+      'getGpufreqDataCut',
+      `
+              with state as
+                (select 
+                   * 
+                from
+                   (select
+                      c.name as funName,
+                      c.ts - r.start_ts as startTime,
+                      c.dur,
+                      lead(c.ts - r.start_ts, 1, null) over( order by c.ts - r.start_ts) loopEndTime,
+                      c.depth,
+                      t.tid,
+                      t.name as threadName,
+                      p.pid
+                   from 
+                      callstack c 
+                   left join 
+                      thread t on c.callid = t.id 
+                   left join 
+                      process p on t.ipid = p.id
+                   left join 
+                      trace_range r
+                   where 
+                      c.name like '${funcName}%'
+                   and 
+                      tid = '${tIds}' 
+                   and 
+                      startTime between ${leftNS} and ${rightNS}))
+               ${queryCondition}  
+            `,
+      { $search: funcName }
+    );
+  };

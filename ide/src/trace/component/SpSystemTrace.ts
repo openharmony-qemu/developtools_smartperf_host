@@ -1986,9 +1986,6 @@ export class SpSystemTrace extends BaseElement {
         this.hoverFlag = null;
       }
       this.timerShaftEL!.documentOnKeyPress(ev, this.currentSlicesTime);
-      if (keyPress === 'f') {
-        this.verticalScrollToRow();
-      }
     } else {
       this.stopWASD();
     }
@@ -4743,12 +4740,15 @@ export class SpSystemTrace extends BaseElement {
     }
     if (this.tipEL) {
       this.tipEL.innerHTML = html;
-      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
+      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART || row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
         this.tipEL.style.maxWidth = row.clientWidth / 3 + 'px';
         this.tipEL.style.wordBreak = ' break-all';
         this.tipEL.style.height = 'unset';
         this.tipEL.style.display = 'block';
         y = y + struct.depth * 20;
+        if (row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
+          y = row.hoverY + row.getBoundingClientRect().top - this.getBoundingClientRect().top;
+        }
       } else {
         this.tipEL.style.display = 'flex';
         this.tipEL.style.height = row.style.height;
