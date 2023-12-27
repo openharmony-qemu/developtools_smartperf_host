@@ -675,7 +675,7 @@ export let tabConfig: any = {
     type: TabPaneGpufreq,
     require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,
   },
-  'tabpane-freqDataCut': {
+  'tabpane-gpufreqDataCut': {
     title: 'Gpufreq DataCut',
     type: TabPaneGpufreqDataCut,
     require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,

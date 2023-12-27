@@ -94,7 +94,7 @@ export class SpSegmentationChart {
                 BinderStruct.hoverCycle = -1;
             }
         }
-        SpSegmentationChart.trace.refreshCanvas(true, 'flagChange')
+        SpSegmentationChart.trace.refreshCanvas(false);
     }
 
     constructor(trace: SpSystemTrace) {

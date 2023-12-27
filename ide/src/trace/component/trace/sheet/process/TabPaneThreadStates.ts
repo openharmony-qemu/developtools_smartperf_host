@@ -49,19 +49,31 @@ export class TabPaneThreadStates extends BaseElement {
   async initThreadStates(threadStatesParam: SelectionParam | any) {
     let leftStartNs = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     let rightEndNs = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
-
-    let threadStates = await getTabThreadStates(
-      threadStatesParam.threadIds,
-      threadStatesParam.leftNs,
-      threadStatesParam.rightNs
-    );
-    let threadStatesDetail = await getTabThreadStatesDetail(
-      threadStatesParam.threadIds,
-      threadStatesParam.leftNs,
-      threadStatesParam.rightNs
-    );
-
-    let targetListTemp = this.updateThreadStates(threadStates, threadStatesDetail, leftStartNs, rightEndNs);
+    let tidSet = new Set<number>(threadStatesParam.threadIds);
+    let targetListTemp: Array<any> = [];
+    for (let tid of tidSet) {
+      let threadStates = await getTabThreadStates(
+        tid,
+        threadStatesParam.leftNs,
+        threadStatesParam.rightNs
+      );
+      let set = new Set<string>();
+      for (let threadState of threadStates) {
+        set.add(threadState.pid + ":" + threadState.tid);
+      }
+      for (let item of set) {
+        let pid = Number.parseInt(item.split(":")[0]);
+        let tid = Number.parseInt(item.split(":")[1]);
+        let threadStatesDetail = await getTabThreadStatesDetail(pid, tid,
+          threadStatesParam.leftNs,
+          threadStatesParam.rightNs
+        );
+        if (threadStates.length > 0 && threadStatesDetail.length > 0) {
+          threadStates = this.updateThreadStates(threadStates, threadStatesDetail, leftStartNs, rightEndNs);
+        }
+      }
+      targetListTemp = targetListTemp.concat(threadStates);
+    }
 
     let compare = function (threadState1: SelectionData, threadState2: SelectionData) {
       let wallDuration1 = threadState1.wallDuration;
@@ -75,9 +87,48 @@ export class TabPaneThreadStates extends BaseElement {
       }
     };
     targetListTemp.sort(compare);
-
     this.addSumLine(threadStatesParam, targetListTemp);
   }
+  updateOnlyNofinishState(threadState: any, rightEndNs: number, leftStartNs: number): Array<any> {
+    threadState.wallDuration = threadState.wallDuration + 1 + (rightEndNs - leftStartNs);
+    threadState.avgDuration = threadState.wallDuration / threadState.occurrences;
+    return threadState;
+  }
+
+  updateNormalState(threadStates: Array<any>, threadStatesDetail: Array<any>,
+    rightEndNs: number, leftStartNs: number): Array<any> {
+    let targetListTemp: Array<any> = [];
+    let firstState = threadStatesDetail[0];
+    let lastState = threadStatesDetail[threadStatesDetail.length - 1];
+    for (let e of threadStates) {
+      if (
+        firstState.ts < leftStartNs &&
+        e.pid === firstState.pid &&
+        e.tid === firstState.tid &&
+        e.state === firstState.state
+      ) {
+        e.wallDuration = e.wallDuration - (leftStartNs - firstState.ts);
+        e.avgDuration = e.wallDuration / e.occurrences;
+      }
+      if (
+        lastState.ts < rightEndNs &&
+        e.pid === lastState.pid &&
+        e.tid === lastState.tid &&
+        e.state === lastState.state
+      ) {
+        if (lastState.dur === -1) {
+          e.wallDuration = e.wallDuration + 1 + (rightEndNs - lastState.ts);
+          e.avgDuration = e.wallDuration / e.occurrences;
+        } else {
+          e.wallDuration = e.wallDuration - (lastState.ts + lastState.dur - rightEndNs);
+          e.avgDuration = e.wallDuration / e.occurrences;
+        }
+      }
+      targetListTemp.push(e);
+    }
+    return targetListTemp;
+  }
+
 
   updateThreadStates(
     threadStates: Array<any>,
@@ -85,52 +136,31 @@ export class TabPaneThreadStates extends BaseElement {
     leftStartNs: number,
     rightEndNs: number
   ): Array<SelectionData> {
-    let targetListTemp = [];
-    if (threadStates.length > 0 && threadStatesDetail.length > 0) {
-      let firstState = threadStatesDetail[0];
-      let lastState = threadStatesDetail[threadStatesDetail.length - 1];
-      for (let e of threadStates) {
-        if (
-          firstState.ts < leftStartNs &&
-          e.process == firstState.process &&
-          e.thread == firstState.thread &&
-          e.state == firstState.state
-        ) {
-          e.wallDuration = e.wallDuration - (leftStartNs - firstState.ts);
-          e.avgDuration = e.wallDuration / e.occurrences;
-        }
-
-        if (
-          lastState.ts < rightEndNs &&
-          e.process == lastState.process &&
-          e.thread == lastState.thread &&
-          e.state == lastState.state
-        ) {
-          e.wallDuration = e.wallDuration - (lastState.ts + lastState.dur - rightEndNs);
-          e.avgDuration = e.wallDuration / e.occurrences;
-        }
-        targetListTemp.push(e);
+    let targetListTemp: Array<any> = [];
+    if (threadStates.length === 1) {
+      let threadState = threadStates[0];
+      if (threadState.wallDuration === -1) {
+        targetListTemp = this.updateOnlyNofinishState(threadStates, rightEndNs, leftStartNs);
+      } else {
+        targetListTemp = this.updateNormalState(threadStates, threadStatesDetail, rightEndNs, leftStartNs);
       }
+    } else {
+      targetListTemp = this.updateNormalState(threadStates, threadStatesDetail, rightEndNs, leftStartNs);
     }
     return targetListTemp;
   }
 
   addSumLine(threadStatesParam: SelectionParam | any, targetListTemp: Array<any>): void {
-    log(targetListTemp);
-
     if (targetListTemp != null && targetListTemp.length > 0) {
-      log('getTabThreadStates result size : ' + targetListTemp.length);
       let sumWall = 0.0;
       let sumOcc = 0;
-      let targetList = [];
-
+      let targetList: Array<any> = [];
       for (let e of targetListTemp) {
         if (threadStatesParam.processIds.includes(e.pid)) {
           let process = Utils.PROCESS_MAP.get(e.pid);
           let thread = Utils.THREAD_MAP.get(e.tid);
-          e.process = process == null || process.length == 0 ? '[NULL]' : process;
-          e.thread = thread == null || thread.length == 0 ? '[NULL]' : thread;
-
+          e.process = process == null || process.length === 0 ? '[NULL]' : process;
+          e.thread = thread == null || thread.length === 0 ? '[NULL]' : thread;
           e.stateJX = e.state;
           e.state = Utils.getEndState(e.stateJX);
           e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
