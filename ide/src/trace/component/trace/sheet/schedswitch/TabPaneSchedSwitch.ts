@@ -168,6 +168,7 @@ export class TabPaneSchedSwitch extends BaseElement {
         this.cycleBLeftInput!.value = '';
         this.cycleBRightInput!.value = '';
         this.histogramSource = [];
+        SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1);
         this.clickThreadChildren = data.children;
         this.queryButton!.style.pointerEvents = 'none';
         this.isCanvansDisplayFn(true);
