@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import {
   getTimeString,
   TabPaneCurrentSelection,
-} from '../../../../../dist/trace/component/trace/sheet/TabPaneCurrentSelection.js';
-const sqlite = require('../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../dist/trace/database/SqlLite.js');
+} from '../../../../../src/trace/component/trace/sheet/TabPaneCurrentSelection';
+const sqlite = require('../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../src/trace/database/SqlLite');
 
 describe('TabPaneCurrentSelection Test', () => {
   let tabPaneCurrentSelection = new TabPaneCurrentSelection();

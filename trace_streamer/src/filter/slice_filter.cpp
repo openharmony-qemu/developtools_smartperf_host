@@ -51,7 +51,7 @@ size_t SliceFilter::BeginSlice(const std::string& comm,
         internalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(timeStamp, pid, comm);
     }
     // make a SliceData DataItem, {timeStamp, dur, internalTid, cat, nameIndex}
-    struct SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
+    SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
     ArgsSet args;
     return StartSlice(timeStamp, pid, cat, nameIndex, args, sliceData);
 }
@@ -60,7 +60,7 @@ void SliceFilter::IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex ca
 {
     // clear ipi for current cpu and nameIndex
     irqDataLinker_.erase(cpu);
-    struct SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
+    SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
     size_t index = slices->AppendInternalSlice(
         sliceData.timeStamp, sliceData.duration, sliceData.internalTid, sliceData.cat,
@@ -101,7 +101,7 @@ void SliceFilter::IrqHandlerExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args)
 void SliceFilter::IpiHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
 {
     irqDataLinker_.erase(cpu);
-    struct SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
+    SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
     size_t index = slices->AppendInternalSlice(
         sliceData.timeStamp, sliceData.duration, sliceData.internalTid, sliceData.cat,
@@ -129,7 +129,7 @@ void SliceFilter::IpiHandlerExit(uint64_t timeStamp, uint32_t cpu)
 }
 void SliceFilter::SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex)
 {
-    struct SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
+    SliceData sliceData = {timeStamp, 0, cpu, catalog, nameIndex};
     auto slices = traceDataCache_->GetIrqData();
     size_t index = slices->AppendInternalSlice(
         sliceData.timeStamp, sliceData.duration, sliceData.internalTid, sliceData.cat,
@@ -180,7 +180,7 @@ void SliceFilter::RememberSliceData(InternalTid internalTid,
 size_t SliceFilter::AsyncBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet& args)
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
-    struct SliceData sliceData = {timeStamp, 0, internalTid, cat, nameIndex};
+    SliceData sliceData = {timeStamp, 0, internalTid, cat, nameIndex};
     return StartSlice(timeStamp, pid, cat, nameIndex, args, std::move(sliceData));
 }
 uint8_t SliceFilter::CurrentDepth(InternalTid internalTid)
@@ -341,7 +341,7 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
 size_t SliceFilter::BeginBinder(uint64_t timeStamp, uint32_t pid, DataIndex cat, DataIndex nameIndex, ArgsSet args)
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
-    struct SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
+    SliceData sliceData = {timeStamp, -1, internalTid, cat, nameIndex};
     return StartSlice(timeStamp, pid, cat, nameIndex, args, std::move(sliceData));
 }
 

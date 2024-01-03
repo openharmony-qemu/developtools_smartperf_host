@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitChartPie } from '../../../../dist/base-ui/chart/pie/LitChartPie.js';
-// @ts-ignore
-import { Utils } from '../../../../dist/trace/component/trace/base/Utils.js';
-const LitChartPieData = require('../../../../dist/base-ui/chart/pie/LitChartPieData.js');
-jest.mock('../../../../dist/base-ui/chart/pie/LitChartPieData.js');
+import { LitChartPie } from '../../../../src/base-ui/chart/pie/LitChartPie';
+import { Utils } from '../../../../src/trace/component/trace/base/Utils';
+const LitChartPieData = require('../../../../src/base-ui/chart/pie/LitChartPieData');
+jest.mock('../../../../src/base-ui/chart/pie/LitChartPieData');
 
 const scrollHeight = 8000;
 const clientHeight = 1000;

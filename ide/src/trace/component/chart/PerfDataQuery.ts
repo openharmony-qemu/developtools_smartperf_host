@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { queryPerfFiles } from '../../database/SqlLite';
+import { queryPerfFiles, queryPerfCallChainName } from '../../database/SqlLite';
 import { PerfCall, PerfFile } from '../../bean/PerfProfile';
 import { info } from '../../../log/Log';
 import { SpHiPerf } from './SpHiPerf';
@@ -42,9 +42,8 @@ export class PerfDataQuery {
       this.filesData[file.fileId].push(file);
     });
     const data = {
-      fValue : SpHiPerf.stringResult?.fValue,
-      dataDict : SpSystemTrace.DATA_DICT
-    }
+      fValue: SpHiPerf.stringResult?.fValue,
+    };
     let results = await new Promise<any>((resolve, reject) => {
       procedurePool.submitWithName('logic0', 'perf-init', data, undefined, (res: any) => {
         resolve(res);

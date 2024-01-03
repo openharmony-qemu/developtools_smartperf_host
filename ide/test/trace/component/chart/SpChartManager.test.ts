@@ -18,13 +18,11 @@ const intersectionObserverMock = () => ({
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
 
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||

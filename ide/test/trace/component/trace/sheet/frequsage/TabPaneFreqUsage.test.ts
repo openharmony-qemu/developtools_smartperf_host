@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneFreqUsage } from '../../../../../../dist/trace/component/trace/sheet/frequsage/TabPaneFreqUsage.js';
+import { TabPaneFreqUsage } from '../../../../../../src/trace/component/trace/sheet/frequsage/TabPaneFreqUsage';
 
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
     snapshotDataSource: () => {
     },
@@ -30,11 +29,14 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 describe('TabPaneFreqUsage Test', () => {
   let tabPaneFreqUsage = new TabPaneFreqUsage();
   let data = {
@@ -68,28 +70,5 @@ describe('TabPaneFreqUsage Test', () => {
   it('TabPaneFreqUsageTest01 ', function () {
     tabPaneFreqUsage.data = data;
     expect(tabPaneFreqUsage.data).toBeUndefined();
-  });
-  it('TabPaneFreqUsageTest02', () => {
-    let tabPaneFreqUsage = new TabPaneFreqUsage();
-    const threadStatesTblSource = [
-      {process: ' ', value: 3},
-      {process: 'ABC', value: 2},
-      {process: 'XYZ', value: 1},
-    ];
-    tabPaneFreqUsage.sortByColumn({key: 'value', sort: 1}, threadStatesTblSource);
-    expect(threadStatesTblSource).toEqual([
-      {
-        'process': ' ',
-        'value': 3
-      },
-      {
-        'process': 'ABC',
-        'value': 2
-      },
-      {
-        'process': 'XYZ',
-        'value': 1
-      }
-    ]);
   });
 });

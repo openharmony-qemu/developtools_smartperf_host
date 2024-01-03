@@ -34,7 +34,7 @@ public:
     HtraceHisyseventParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceHisyseventParser();
     void Finish();
-    void Parse(ProtoReader::HisyseventInfo_Reader* tracePacket, uint64_t ts);
+    void Parse(ProtoReader::HisyseventInfo_Reader* tracePacket, uint64_t ts, bool& haveSplitSeg);
     void Parse(ProtoReader::HisyseventConfig_Reader* tracePacket, uint64_t ts);
 
 private:

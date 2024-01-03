@@ -18,6 +18,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
 import { getTabRunningPersent, getTabThreadStatesCpu } from '../../../../database/SqlLite';
+import { StackBar } from '../../../StackBar';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { Utils } from '../../base/Utils';

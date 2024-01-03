@@ -14,13 +14,12 @@
  */
 
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import { drawLoadingFrame, ns2x, Rect, Render } from './ProcedureWorkerCommon';
 
 import { BaseStruct } from '../../bean/BaseStruct';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 const LOG_STRUCT_HEIGHT = 7;
-const X_PADDING = 5;
 const Y_PADDING = 2;
 
 export class LogRender extends Render {
@@ -43,6 +42,7 @@ export class LogRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     for (let re of logFilter) {
       LogStruct.draw(req.context, re);
@@ -141,7 +141,7 @@ export class LogStruct extends BaseStruct {
       x2 = frame.width;
     }
     if (!logNode.frame) {
-      logNode.frame! = new Rect(0, 0, 0, 0);
+      logNode.frame = new Rect(0, 0, 0, 0);
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     logNode.frame!.x = Math.floor(x1);
@@ -156,7 +156,7 @@ export class LogStruct extends BaseStruct {
     }
     if (logData.frame) {
       ctx.globalAlpha = 1;
-      ctx.fillStyle = ColorUtils.getHilogColor(logData.level!);
+      ctx.fillStyle = ColorUtils.getHilogColor(logData.depth);
       ctx.fillRect(logData.frame.x, logData.frame.y, logData.frame.width, LOG_STRUCT_HEIGHT - Y_PADDING);
     }
   }

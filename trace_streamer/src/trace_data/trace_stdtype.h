@@ -1938,7 +1938,7 @@ public:
     const std::deque<uint64_t>& Seqs() const;
     const std::deque<std::string>& Infos() const;
     const std::deque<std::string>& Contents() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         domainIds_.clear();
@@ -2202,6 +2202,7 @@ public:
     void SetDst(uint64_t row, uint64_t dst);
     void SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices);
     void SetFlags(uint64_t row, const uint32_t flags);
+    void UpdateDepth();
     const std::deque<uint32_t> Ipids() const;
     const std::deque<uint32_t> VsyncIds() const;
     const std::deque<uint64_t> CallStackIds() const;
@@ -2241,8 +2242,9 @@ private:
     std::deque<uint8_t> flags_ = {};
     std::deque<uint8_t> depths_ = {};
     std::deque<uint32_t> frameNos_ = {};
-    const uint32_t INVALID_ROW = 2;
+    const uint32_t invalidRow_ = 2;
     static const uint32_t abnormalStartEndTimeState_ = 3;
+    const uint8_t flagValue_ = 2;
 };
 class FrameMaps : public CacheBase, public BatchCacheBase {
 public:

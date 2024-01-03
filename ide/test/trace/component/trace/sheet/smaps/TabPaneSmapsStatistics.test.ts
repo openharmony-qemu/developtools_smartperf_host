@@ -13,28 +13,26 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSmapsStatistics } from '../../../../../../dist/trace/component/trace/sheet/smaps/TabPaneSmapsStatistics.js';
-// @ts-ignore
-import { Smaps, SmapsTreeObj } from '../../../../../../dist/trace/bean/SmapsStruct.js';
-jest.mock('../../../../../../dist/trace/component/trace/sheet/smaps/TabPaneSmapsComparison.js', () => {
+import { TabPaneSmapsStatistics } from '../../../../../../src/trace/component/trace/sheet/smaps/TabPaneSmapsStatistics';
+import { Smaps, SmapsTreeObj } from '../../../../../../src/trace/bean/SmapsStruct';
+jest.mock('../../../../../../src/trace/component/trace/sheet/smaps/TabPaneSmapsComparison', () => {
   return {};
 });
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {};
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
-jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
+jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

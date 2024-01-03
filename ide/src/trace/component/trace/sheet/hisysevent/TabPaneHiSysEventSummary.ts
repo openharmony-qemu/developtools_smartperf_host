@@ -37,14 +37,13 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     if (systemEventParam === this.currentSelection) {
       return;
     }
-    this.currentSelection = systemEventParam;
     this.summarySource = [];
     this.expandedNodeList.clear();
     this.expansionUpIcon!.name = 'up';
     this.expansionDownIcon!.name = 'down';
     this.eventSummaryTable!.innerHTML = '';
     this.summaryTable!.recycleDataSource = [];
-    this.summarySource = systemEventParam.hiSysEvents;
+    this.summarySource = systemEventParam.sysAllEventsData;
     if (this.summarySource?.length !== 0 && systemEventParam) {
       this.refreshRowNodeTable();
     }

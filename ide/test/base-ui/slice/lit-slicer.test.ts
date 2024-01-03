@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitSlicer, LitSlicerTrack } from '../../../dist/base-ui/slicer/lit-slicer.js';
+import { LitSlicer, LitSlicerTrack } from '../../../src/base-ui/slicer/lit-slicer';
 
 describe('slicer Test', () => {
   it('slicerTest01', function () {

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INCLUDE_BASE_STRING_TO_NUMERICAL_H_
-#define INCLUDE_BASE_STRING_TO_NUMERICAL_H_
+#ifndef INCLUDE_BASE_STRING_TO_NUMERICAL_H
+#define INCLUDE_BASE_STRING_TO_NUMERICAL_H
 
 #include <iomanip>
 #include <iostream>

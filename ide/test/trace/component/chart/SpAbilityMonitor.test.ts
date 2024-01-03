@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpAbilityMonitorChart } from '../../../../dist/trace/component/chart/SpAbilityMonitorChart.js';
-import '../../../../dist/trace/component/chart/SpAbilityMonitorChart.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { SpAbilityMonitorChart } from '../../../../src/trace/component/chart/SpAbilityMonitorChart';
+import '../../../../src/trace/component/chart/SpAbilityMonitorChart';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../src/trace/database/SqlLite');
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||

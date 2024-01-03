@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import {
   NativeHookStatistics,
   NativeHookMalloc,
@@ -25,8 +24,8 @@ import {
   NativeHookSampleQueryInfo,
   NativeHookCallInfo,
   NativeEvent,
-} from '../../../dist/trace/bean/NativeHook.js';
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+} from '../../../src/trace/bean/NativeHook';
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

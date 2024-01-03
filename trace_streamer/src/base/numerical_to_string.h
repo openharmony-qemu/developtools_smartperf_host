@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef INCLUDE_BASE_NUMERICAL_TO_STRING_H_
-#define INCLUDE_BASE_NUMERICAL_TO_STRING_H_
+#ifndef INCLUDE_BASE_NUMERICAL_TO_STRING_H
+#define INCLUDE_BASE_NUMERICAL_TO_STRING_H
 #include <string>
 #include "string_to_numerical.h"
 #include "ts_common.h"

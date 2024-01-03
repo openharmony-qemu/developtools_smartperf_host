@@ -120,6 +120,7 @@ export class SoStruct extends BaseStruct {
   tid: number | undefined;
   pid: number | undefined;
   itid: number | undefined;
+  id: number | undefined;
 
   static setSoFrame(soNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any): void {
     let x1: number;

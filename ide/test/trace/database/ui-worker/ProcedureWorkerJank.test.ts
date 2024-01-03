@@ -12,14 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { jank, JankRender, JankStruct } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerJank.js';
-// @ts-ignore
-import { ColorUtils } from '../../../../dist/trace/component/trace/base/ColorUtils.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { jank, JankRender, JankStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerJank';
+import { ColorUtils } from '../../../../src/trace/component/trace/base/ColorUtils';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -357,6 +354,7 @@ describe('ProcedureWorkerJank Test', () => {
             },
           },
         ],
+        frame: { x: 7, y: 76, width: 610, height: 106 }
       }
     );
   });

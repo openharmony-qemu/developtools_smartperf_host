@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneThreadUsage } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneThreadUsage.js';
+import { TabPaneThreadUsage } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneThreadUsage';
+import sqlite, { getTabRunningPersent } from "../../../../../../src/trace/database/SqlLite";
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -24,12 +24,12 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {
   return {
     CpuStruct: {
       cpuCount: 0,
@@ -58,6 +58,18 @@ describe('TabPaneThreadUsage Test', () => {
       cpu: 3,
       wallDuration: 41852000,
     },
+  ]);
+
+  let tabRunningPersent = sqlit.getTabRunningPersent;
+  tabRunningPersent.mockResolvedValue([
+    {
+      pid: 1,
+      tid: 25,
+      state:"",
+      cpu: 1,
+      dur: 5825,
+      ts: 2556
+    }
   ]);
 
   it('TabPaneThreadUsageTest01', function () {

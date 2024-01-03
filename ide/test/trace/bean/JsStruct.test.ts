@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
     return {};
 });
 
-// @ts-ignore
-import { JsCpuProfilerUIStruct, JsCpuProfilerChartFrame, JsCpuProfilerTabStruct, JsCpuProfilerStatisticsStruct } from '../../../dist/trace/bean/JsStruct.js';
+import { JsCpuProfilerUIStruct, JsCpuProfilerChartFrame, JsCpuProfilerTabStruct, JsCpuProfilerStatisticsStruct } from '../../../src/trace/bean/JsStruct';
 
 describe('JsStruct Test', () => {
     let jsCpuProfilerUIStruct = new JsCpuProfilerUIStruct();

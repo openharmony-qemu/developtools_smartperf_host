@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { ProcessMemStruct } from '../../../dist/trace/bean/ProcessMemStruct.js';
+import { ProcessMemStruct } from '../../../src/trace/bean/ProcessMemStruct';
 
 describe('ProcessMemStruct Test', () => {
   const canvas = document.createElement('canvas');

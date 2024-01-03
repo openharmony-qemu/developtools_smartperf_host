@@ -168,7 +168,7 @@ export class TabPaneMemoryAbility extends BaseElement {
                   systemMemorySummary.kReclaimable = Utils.getBinaryKBWithUnit(Number(memorys[i]));
                   break;
                 case 'sys.mem.zram':
-                  systemMemorySummary.zram = Utils.getBinaryKBWithUnit(Number(memorys[i]) * 1000);
+                  systemMemorySummary.zram = Utils.getBinaryKBWithUnit(Number(memorys[i]));
                   break;
               }
             }

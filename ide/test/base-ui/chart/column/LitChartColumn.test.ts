@@ -13,11 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitChartColumn } from '../../../../dist/base-ui/chart/column/LitChartColumn.js';
-import '../../../../dist/base-ui/chart/column/LitChartColumn.js';
-// @ts-ignore
-import { getProbablyTime } from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerCommon.js';
+import { LitChartColumn } from '../../../../src/base-ui/chart/column/LitChartColumn';
+import '../../../../src/base-ui/chart/column/LitChartColumn';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -95,7 +92,6 @@ describe('litChartColumn Test', () => {
       label: null,
     };
     expect(clo.config).not.toBeUndefined();
-    LitChartColumn.contains = jest.fn().mockResolvedValue(true);
     clo.dataSource = [
       {
         pid: 110,

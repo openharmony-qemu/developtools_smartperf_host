@@ -13,18 +13,16 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-//@ts-ignore
 import {
   NetworkAbilityMonitorStruct,
   NetworkAbilityRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerNetworkAbility.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerNetworkAbility';
 
 describe('ProcedureWorkerNetworkAbility Test', () => {
   const canvas = document.createElement('canvas');

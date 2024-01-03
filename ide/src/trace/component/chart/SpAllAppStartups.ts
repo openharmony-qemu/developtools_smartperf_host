@@ -126,7 +126,7 @@ export class SpAllAppStartupsChart {
         },
         row
       );
-      row.canvasRestore(context);
+      row.canvasRestore(context, this.trace);
     };
     SpAllAppStartupsChart.trace.rowsEL?.appendChild(row);
   }

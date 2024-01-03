@@ -13,20 +13,17 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneTaskFrames } from '../../../../../../dist/trace/component/trace/sheet/task/TabPaneTaskFrames.js';
-// @ts-ignore
-import { FuncStruct } from '../../../../../../dist/trace/database/ui-worker/ProcedureWorkerFunc.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
-import { queryTaskListByExecuteTaskIds } from '../../../../../../src/trace/database/SqlLite.js';
+import { TabPaneTaskFrames } from '../../../../../../src/trace/component/trace/sheet/task/TabPaneTaskFrames';
+import { FuncStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerFunc';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { queryTaskListByExecuteTaskIds } from '../../../../../../src/trace/database/SqlLite';
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||

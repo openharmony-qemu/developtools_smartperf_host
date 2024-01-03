@@ -13,18 +13,14 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-// @ts-ignore
-import { FrameAnimationRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFrameAnimation.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { FrameAnimationStruct } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFrameAnimation.js';
+import { FrameAnimationRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameAnimation';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { FrameAnimationStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameAnimation';
 
 describe('FrameAnimation Test', () => {
   let frameAnimationRender = new FrameAnimationRender();

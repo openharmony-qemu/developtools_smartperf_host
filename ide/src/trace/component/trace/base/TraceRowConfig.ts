@@ -491,7 +491,7 @@ export class TraceRowConfig extends BaseElement {
     let encoder = new TextEncoder();
     let tempBuffer = encoder.encode(this.tempString!);
     a.href = URL.createObjectURL(new Blob([tempBuffer]));
-    a.download = 'custom_config';
+    a.download = 'custom_temp_config';
     a.click();
     window.URL.revokeObjectURL(a.href);
   }
@@ -535,6 +535,9 @@ export class TraceRowConfig extends BaseElement {
       for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
         let currentSystemData = subsystemsData[subIndex];
         let currentSubName = currentSystemData.subsystem;
+        if (!currentSubName) {
+          continue;
+        }
         id++;
         let subsystemStruct: SubsystemNode = {
           id: id,
@@ -546,10 +549,16 @@ export class TraceRowConfig extends BaseElement {
         };
         if (subSystems.indexOf(subsystemStruct) < 0) {
           let currentCompDates = currentSystemData.components;
+          if (!currentCompDates) {
+            continue;
+          }
           for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
             let currentCompDate = currentCompDates[compIndex];
             let currentCompName = currentCompDate.component;
             let currentChartDates = currentCompDate.charts;
+            if (!currentCompName || !currentChartDates) {
+              continue;
+            }
             id++;
             let componentStruct: SubsystemNode = {
               id: id,
@@ -564,6 +573,9 @@ export class TraceRowConfig extends BaseElement {
               let currentChartDate = currentChartDates[chartIndex];
               let currentChartName = currentChartDate.chartName;
               let currentChartId = currentChartDate.chartId;
+              if (!currentChartName || !currentChartId) {
+                continue;
+              }
               let findChartNames: Array<string> | undefined = [];
               let scene: string[] = [];
               if (this.traceRowList) {

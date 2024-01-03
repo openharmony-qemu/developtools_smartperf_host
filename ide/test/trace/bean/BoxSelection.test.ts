@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SelectionParam, BoxJumpParam, SelectionData, Counter, Fps } from '../../../dist/trace/bean/BoxSelection.js';
+import { SelectionParam, BoxJumpParam, SelectionData, Counter, Fps } from '../../../src/trace/bean/BoxSelection';
 
 describe('BoxSelection Test', () => {
   let selectionParam = new SelectionParam();

@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { perfDataQuery } from '../../../../dist/trace/component/chart/PerfDataQuery.js';
+import { perfDataQuery } from '../../../../src/trace/component/chart/PerfDataQuery';
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {}
 });
 

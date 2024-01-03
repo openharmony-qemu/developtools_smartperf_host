@@ -28,9 +28,16 @@ public:
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
+    int64_t GetSize() override
+    {
+        return dataCache_->ProcessSize();
+    }
+    void GetOrbyes(FilterConstraints& processfc, EstimatedIndexInfo& processei) override;
+    void FilterByConstraint(FilterConstraints& processfc,
+                            double& processfilterCost,
+                            size_t processrowCount,
+                            uint32_t processcurrenti) override;
     int32_t Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid) override;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
     public:

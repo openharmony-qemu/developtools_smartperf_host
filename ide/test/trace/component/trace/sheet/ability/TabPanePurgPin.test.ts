@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPanePurgPin } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPanePurgPin.js';
+import { TabPanePurgPin } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgPin';
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
     return {};
 });
 

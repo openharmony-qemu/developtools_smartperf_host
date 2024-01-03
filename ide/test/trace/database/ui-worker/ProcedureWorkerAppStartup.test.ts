@@ -12,16 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import {
   AppStartupRender,
   AppStartupStruct,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerAppStartup.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerAppStartup';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 

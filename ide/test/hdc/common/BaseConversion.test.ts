@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { toHex8, toHex16, toHex32, toHex64, uint8ArrayToString } from '../../../dist/hdc/common/BaseConversion.js';
+import { toHex8, toHex16, toHex32, toHex64, uint8ArrayToString } from '../../../src/hdc/common/BaseConversion';
 
 describe('BaseConversionTest', () => {
   it('BaseConversionTest_toHex8_01', () => {

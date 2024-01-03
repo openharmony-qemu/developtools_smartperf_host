@@ -22,6 +22,7 @@ import { type JsCpuProfilerChartFrame, JsCpuProfilerStatisticsStruct } from '../
 import { procedurePool } from '../../../../database/Procedure';
 import { type SampleType } from '../../../../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-js-cpu-statistics')
@@ -83,7 +84,7 @@ export class TabPaneJsCpuStatistics extends BaseElement {
       };
     }
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       'jsCpuProfiler-statistics',
       params,
       undefined,

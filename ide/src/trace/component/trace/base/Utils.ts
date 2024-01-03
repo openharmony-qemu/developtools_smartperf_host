@@ -81,6 +81,15 @@ export class Utils {
     }
   }
 
+  public static isBinder(data: any): boolean {
+    return (
+      data.funName != null &&
+      (data.funName.toLowerCase().startsWith('binder transaction async') || //binder transaction
+        data.funName.toLowerCase().startsWith('binder async') ||
+        data.funName.toLowerCase().startsWith('binder reply'))
+    );
+  }
+
   public static transferPTSTitle(value: any) {
     if (value.startsWith('S-')) {
       return Utils.getEndState(value.replace('S-', ''));
@@ -497,11 +506,11 @@ export class Utils {
       }
     }
     queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, isStatistic).then((res) => {
-      procedurePool.submitWithName('logic1', 'native-memory-init-responseType', res, undefined, () => {});
+      procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, () => {});
     });
   }
 
   setCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic1', 'native-memory-set-current_ipid', ipid, undefined, () => {});
+    procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, () => {});
   }
 }

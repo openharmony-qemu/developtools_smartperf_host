@@ -51,7 +51,7 @@ export class SpRecordSetting extends BaseElement {
   }
 
   get longOutPath(): string {
-    if (this.outputPath && this.outputPath.value !== '' && this.outputPath.value !== 'long_trace/') {
+    if (this.outputPath && this.outputPath.value !== '' && this.outputPath.value !== 'long_trace') {
       return `/data/local/tmp/${this.outputPath.value}/`;
     }
     return '/data/local/tmp/long_trace/';
@@ -228,7 +228,7 @@ export class SpRecordSetting extends BaseElement {
     this.longTraceRadio.addEventListener('click', () => {
       SpApplication.isLongTrace = true;
       rootEl.appendChild(longTraceMaxSlide);
-      this.outputPath!.value = 'long_trace/';
+      this.outputPath!.value = 'long_trace';
     });
   }
 

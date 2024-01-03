@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitAllocationSelect } from '../../../dist/base-ui/select/LitAllocationSelect.js';
+import { LitAllocationSelect } from '../../../src/base-ui/select/LitAllocationSelect';
 
 describe('LitAllocationSelect Test', () => {
   let litAllocationSelect = new LitAllocationSelect();
@@ -28,12 +27,12 @@ describe('LitAllocationSelect Test', () => {
     expect(litAllocationSelect.placement).toBe('');
   });
   it('LitAllocationSelectTest04', function () {
-    litAllocationSelect.placement = true;
+    litAllocationSelect.placement = 'bottom';
     expect(litAllocationSelect.placement).toBeTruthy();
   });
   it('LitAllocationSelectTest05', function () {
-    litAllocationSelect.placement = false;
-    expect(litAllocationSelect.placement).toBeFalsy();
+    litAllocationSelect.placement = 'bottom';
+    expect(litAllocationSelect.placement).toBe('bottom');
   });
   it('LitAllocationSelectTest06', function () {
     expect(litAllocationSelect.listHeight).toBe('256px');

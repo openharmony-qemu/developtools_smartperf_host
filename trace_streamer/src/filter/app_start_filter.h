@@ -19,12 +19,14 @@
 #include <cstdint>
 #include <vector>
 #include "filter_base.h"
+#include "string_help.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 enum StartupApp {
     PROCESS_TOUCH = 0,
     START_UI_ABILITY_BY_SCB,

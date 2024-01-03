@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseStruct, Rect, Render, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
+import { BaseStruct, Rect, Render, drawLoadingFrame, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 import { MemoryConfig } from '../../bean/MemoryConfig';
@@ -26,20 +26,19 @@ export class SnapshotRender extends Render {
     },
     row: TraceRow<SnapshotStruct>
   ): void {
-    let list = row.dataList;
     let filter = row.dataListCache;
     let maxValue = 0;
-    for (let item of list) {
+    for (let item of filter) {
       maxValue = Math.max(maxValue, item.value || 0);
     }
     snapshot(
-      list,
       filter,
       maxValue,
       TraceRow.range?.startNS ?? 0,
       (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),
       row.frame
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context!.beginPath();
     let find = false;
     for (let re of filter) {
@@ -56,21 +55,14 @@ export class SnapshotRender extends Render {
   }
 }
 export function snapshot(
-  list: Array<SnapshotStruct>,
   filter: Array<SnapshotStruct>,
   maxValue: number,
   startNs: number,
   totalNs: number,
   frame: Rect
 ): void {
-  for (let file of list) {
+  for (let file of filter) {
     SnapshotStruct.setFrame(file, maxValue, startNs || 0, totalNs || 0, frame);
-  }
-  filter.length = 0;
-  for (let i = 0, len = list.length; i < len; i++) {
-    if (list[i].frame) {
-      filter.push(list[i]);
-    }
   }
 }
 const padding = 2;

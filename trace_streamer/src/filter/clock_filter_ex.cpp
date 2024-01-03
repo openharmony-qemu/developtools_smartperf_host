@@ -30,7 +30,8 @@ ClockFilterEx::~ClockFilterEx() {}
 
 void ClockFilterEx::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
 {
-    ClockId srcId, desId;
+    ClockId srcId;
+    ClockId desId;
     const int32_t theDataBeforeLast = 2;
     for (srcId = 0; srcId < snapShot.size() - 1; ++srcId) {
         ClockId srcClockId = snapShot[srcId].clockId;

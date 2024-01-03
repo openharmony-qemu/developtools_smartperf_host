@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
 import {
   anomaly,
   EnergyAnomalyStruct,
   EnergyAnomalyRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerEnergyAnomaly.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerEnergyAnomaly';
 
 describe('ProcedureWorkerEnergyAnomaly Test', () => {
   it('ProcedureWorkerEnergyAnomalyTest01', function () {

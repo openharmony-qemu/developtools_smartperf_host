@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTree } from '../../../dist/base-ui/tree/LitTree.js';
+import { LitTree } from '../../../src/base-ui/tree/LitTree';
 
 describe('LitTree Test', () => {
   let litTree = new LitTree();

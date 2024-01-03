@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { SpCpuChart } from '../../../../dist/trace/component/chart/SpCpuChart.js';
-// @ts-ignore
-import { HeapNode } from '../../../../dist/js-heap/model/DatabaseStruct.js';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { SpCpuChart } from '../../../../src/trace/component/chart/SpCpuChart';
+import { HeapNode } from '../../../../src/js-heap/model/DatabaseStruct';
 
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -31,7 +28,7 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-jest.mock('../../../../dist/js-heap/utils/Utils.js', () => {
+jest.mock('../../../../src/js-heap/utils/Utils', () => {
   return {
     HeapNodeToConstructorItem: (node: HeapNode) => {},
   };

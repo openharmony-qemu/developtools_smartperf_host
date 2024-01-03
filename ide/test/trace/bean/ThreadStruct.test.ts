@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { ThreadStruct } from '../../../dist/trace/bean/ThreadStruct.js';
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { ThreadStruct } from '../../../src/trace/bean/ThreadStruct';
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SessionHandShake } from '../../../dist/hdc/message/SessionHandShake.js';
+import { SessionHandShake } from '../../../src/hdc/message/SessionHandShake';
 
 describe('SessionHandShake Test', () => {
   let sessionHandShake = new SessionHandShake();

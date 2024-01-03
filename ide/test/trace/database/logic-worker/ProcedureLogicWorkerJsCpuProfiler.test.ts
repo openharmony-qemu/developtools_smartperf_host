@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-//@ts-ignore
 import {
   ProcedureLogicWorkerJsCpuProfiler,
   JsCpuProfilerSample,
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerJsCpuProfiler.js';
+} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerJsCpuProfiler';
 
 describe('ProcedureLogicWorkerJsCpuProfiler Test', () => {
   it('ProcedureLogicWorkerJsCpuProfiler01', function () {
@@ -134,23 +133,8 @@ describe('ProcedureLogicWorkerJsCpuProfiler Test', () => {
     procedureLogicWorkerJsCpuProfiler.dataCache.clearAll = jest.fn(() => true);
     expect(procedureLogicWorkerJsCpuProfiler.clearAll()).toBeUndefined();
   });
-  it('ProcedureLogicWorkerJsCpuProfiler12', function () {
-    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
-    expect(procedureLogicWorkerJsCpuProfiler.getFullCallChainOfNode([])).toBeTruthy();
-  });
-  it('ProcedureLogicWorkerJsCpuProfiler13', function () {
-    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
-    expect(procedureLogicWorkerJsCpuProfiler.symbolToChartFrame([], [])).toBeTruthy();
-  });
   it('ProcedureLogicWorkerJsCpuProfiler14', function () {
     let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
     expect(procedureLogicWorkerJsCpuProfiler.chartFrameToTabStruct([], [])).toBeTruthy();
-  });
-  it('ProcedureLogicWorkerJsCpuProfiler15', function () {
-    let procedureLogicWorkerJsCpuProfiler = new ProcedureLogicWorkerJsCpuProfiler();
-    expect(procedureLogicWorkerJsCpuProfiler.isSymbolEqual([], [])).toBeTruthy();
-  });
-  it('ProcedureLogicWorkerJsCpuProfiler16', function () {
-    expect(JsCpuProfilerSample).toBeUndefined();
   });
 });

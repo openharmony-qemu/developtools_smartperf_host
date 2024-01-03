@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SliceGroup, SPTChild } from '../../../dist/trace/bean/StateProcessThread.js';
+import { SliceGroup, SPTChild } from '../../../src/trace/bean/StateProcessThread';
 
 describe('StateProcessThread Test', () => {
     it('StateProcessThreadTest01', function () {

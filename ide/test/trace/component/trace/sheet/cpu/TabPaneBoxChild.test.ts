@@ -15,10 +15,10 @@
 
 // @ts-ignore
 // import { it } from "mocha"
-import { TabPaneBoxChild } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneBoxChild.js';
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+import { TabPaneBoxChild } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneBoxChild';
+const sqlit = require('../../../../../../src/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/trace/bean/NativeHook.js', () => {
   return {};
 });
 

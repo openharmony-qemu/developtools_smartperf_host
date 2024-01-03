@@ -148,12 +148,12 @@ bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer
         return false;
     }
 
-    const int FETURE_MAX = 256;
-    const int SIZE_FETURE_COUNT = 8;
+    const int fetureMax = 256;
+    const int sizeFetureCount = 8;
     featureCount_ = 0;
-    for (auto i = 0; i < FETURE_MAX / SIZE_FETURE_COUNT; i++) {
-        std::bitset<SIZE_FETURE_COUNT> features(perfHeader_.features[i]);
-        for (auto j = 0; j < SIZE_FETURE_COUNT; j++) {
+    for (auto i = 0; i < fetureMax / sizeFetureCount; i++) {
+        std::bitset<sizeFetureCount> features(perfHeader_.features[i]);
+        for (auto j = 0; j < sizeFetureCount; j++) {
             if (features.test(j)) {
                 featureCount_++;
             }

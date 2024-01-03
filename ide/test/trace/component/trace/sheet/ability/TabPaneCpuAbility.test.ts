@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPaneCpuAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneCpuAbility.js';
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+import { TabPaneCpuAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneCpuAbility';
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
 

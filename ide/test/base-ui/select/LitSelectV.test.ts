@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitSelectV } from '../../../dist/base-ui/select/LitSelectV.js';
+import { LitSelectV } from '../../../src/base-ui/select/LitSelectV';
 
 describe('LitSelectV Test', () => {
   let litSelectV = new LitSelectV();

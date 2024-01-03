@@ -261,7 +261,7 @@ export class TabPaneNMSampleList extends BaseElement {
   }
 
   startWorker(args: Map<string, any>, handler: Function) {
-    procedurePool.submitWithName('logic1', 'native-memory-action', args, undefined, (res: any) => {
+    procedurePool.submitWithName('logic0', 'native-memory-action', args, undefined, (res: any) => {
       handler(res);
     });
   }

@@ -12,12 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { AllocationLogic } from '../../../dist/js-heap/logic/Allocation.js';
-//@ts-ignore
-import { AllocationFunction } from '../../../dist/js-heap/model/UiStruct.js';
+import { AllocationLogic } from '../../../src/js-heap/logic/Allocation';
+import { AllocationFunction } from '../../../src/js-heap/model/UiStruct';
 
-jest.mock('../../../dist/js-heap/model/UiStruct.js', () => {
+jest.mock('../../../src/js-heap/model/UiStruct', () => {
   return {
     AllocationFunction: {
       fileId: 0,

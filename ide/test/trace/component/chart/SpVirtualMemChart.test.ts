@@ -17,21 +17,17 @@ window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
       disconnect: jest.fn(), observe: jest.fn(), unobserve: jest.fn(),
     }));
-// @ts-ignore
-import { SpVirtualMemChart } from '../../../../dist/trace/component/chart/SpVirtualMemChart.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
+import { SpVirtualMemChart } from '../../../../src/trace/component/chart/SpVirtualMemChart';
+import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 const intersectionObserverMock = () => ({
   observe: () => null,
 });

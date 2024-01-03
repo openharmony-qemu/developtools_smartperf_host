@@ -27,6 +27,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 class TaskPoolFilter : private FilterBase {
 public:
     TaskPoolFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);

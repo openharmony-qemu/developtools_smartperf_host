@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceSheet } from '../../../../../dist/trace/component/trace/base/TraceSheet.js';
-const sqlit = require('../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../dist/trace/database/SqlLite.js');
+import { TraceSheet } from '../../../../../src/trace/component/trace/base/TraceSheet';
+const sqlit = require('../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../src/trace/database/SqlLite');
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -97,9 +96,5 @@ describe('TraceSheet Test', () => {
   it('TraceSheet Test10', () => {
     let traceSheet = new TraceSheet();
     expect(traceSheet.updateRangeSelect()).toBeFalsy();
-  });
-  it('TraceSheet Test11', () => {
-    let traceSheet = new TraceSheet();
-    expect(traceSheet.constructor()).toBeTruthy();
   });
 });

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-//@ts-ignore
 import {
   ProcedureLogicWorkerPerf,
   PerfCountSample,
@@ -24,11 +23,9 @@ import {
   PerfFile,
   PerfThread,
   PerfCallChain,
-  PerfAnalysisSample,
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerPerf.js';
+} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerPerf';
 
-//@ts-ignore
-import { PerfCall } from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerCommon.js';
+import { PerfCall } from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerCommon';
 
 describe('ProcedureLogicWorkerPerf Test', () => {
   it('ProcedureLogicWorkerPerfTest', function () {
@@ -359,63 +356,12 @@ describe('ProcedureLogicWorkerPerf Test', () => {
     let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
     expect(procedureLogicWorkerPerf.clearSplitMapData()).toBeUndefined();
   });
-  it('PerfFileTest01', function () {
-    let perfFile = new PerfFile();
-    expect(perfFile.constructor()).toBeUndefined();
-  });
   it('PerfFileTest02', function () {
     let perfFile = new PerfFile();
     perfFile.path = jest.fn(() => true);
     perfFile.path.lastIndexOf = jest.fn(() => true);
     perfFile.path.substring = jest.fn(() => true);
     expect(perfFile.setFileName()).toBeUndefined();
-  });
-  it('PerfThreadTest01', function () {
-    let perfThread = new PerfThread();
-    expect(perfThread.constructor()).toBeUndefined();
-  });
-  it('PerfCallChainTest01', function () {
-    let perfCallChain = new PerfCallChain();
-    expect(perfCallChain.constructor()).toBeUndefined();
-  });
-  it('PerfCallChainMerageDataTest01', function () {
-    let perfCallChainMerageData = new PerfCallChainMerageData();
-    expect(perfCallChainMerageData.constructor()).toEqual({
-      addr: '',
-      parent: undefined,
-      canCharge: true,
-      children: [],
-      count: 0,
-      countArray: [],
-      durArray: [],
-      tsArray: [],
-      depth: 0,
-      dur: 0,
-      id: '',
-      initChildren: [],
-      isSearch: false,
-      isSelected: false,
-      isStore: 0,
-      lib: '',
-      libName: '',
-      parentId: '',
-      path: '',
-      pid: 0,
-      searchShow: true,
-      selfDur: 0,
-      size: 0,
-      symbol: '',
-      symbolName: '',
-      tid: 0,
-      type: 0,
-      vaddrInFile: 0,
-      weight: '',
-      weightPercent: '',
-      eventCount: 0,
-      eventPercent: '',
-      isProcess: false,
-      isThread: false
-    });
   });
   it('PerfCallChainMerageDataTest03', function () {
     let perfCallChainMerageData = new PerfCallChainMerageData();
@@ -729,17 +675,6 @@ describe('ProcedureLogicWorkerPerf Test', () => {
   });
   it('PerfCallChainTest78', function () {
     expect(PerfCallChain.merageCallChain([], []));
-  });
-  it('PerfCallChainTest79', function () {
-    let currentNode = {
-      symbolName: '',
-    };
-    let callChain = {
-      vaddrInFile: {
-        toString: jest.fn(() => true),
-      },
-    };
-    expect(PerfCallChainMerageData.merageCallChain(currentNode, callChain, true));
   });
   it('PerfCallChainTest80', function () {
     let currentNode = {

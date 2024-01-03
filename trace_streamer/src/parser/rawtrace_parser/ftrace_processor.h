@@ -22,10 +22,12 @@
 #include "ftrace_common_type.h"
 #include "ftrace_event_processor.h"
 #include "ftrace_field_processor.h"
+#include "string_help.h"
 #include "printk_formats_processor.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 constexpr uint32_t FTRACE_PAGE_SIZE = 4096;
 constexpr uint32_t RMQ_ENTRY_ALIGN_MASK = (1 << 2) - 1;
 class FtraceProcessor {

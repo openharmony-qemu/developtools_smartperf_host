@@ -66,7 +66,7 @@ bool HttpSocket::Bind(int32_t port)
     }
 
     if (domain_ == AF_INET) {
-        struct sockaddr_in addr;
+        sockaddr_in addr;
         std::fill(reinterpret_cast<char*>(&addr), reinterpret_cast<char*>(&addr) + sizeof(addr), 0);
         addr.sin_family = AF_INET;
         addr.sin_addr.s_addr = htons(INADDR_ANY);
@@ -76,7 +76,7 @@ bool HttpSocket::Bind(int32_t port)
             return false;
         }
     } else if (domain_ == AF_INET6) {
-        struct sockaddr_in6 addr;
+        sockaddr_in6 addr;
         std::fill(reinterpret_cast<char*>(&addr), reinterpret_cast<char*>(&addr) + sizeof(addr), 0);
         addr.sin6_family = AF_INET6;
         addr.sin6_addr = in6addr_any;

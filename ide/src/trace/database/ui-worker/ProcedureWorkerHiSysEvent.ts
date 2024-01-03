@@ -14,7 +14,7 @@
  */
 
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { BaseStruct, dataFilterHandler, ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, ns2x, Rect, Render } from './ProcedureWorkerCommon';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class HiSysEventRender extends Render {
@@ -30,10 +30,10 @@ export class HiSysEventRender extends Render {
     let hiSysEventFilter = row.dataListCache;
     let minorFilter: HiSysEventStruct[] = [];
     let criticalFilter: HiSysEventStruct[] = [];
-    let minorList = hiSysEventList.filter((struct) => {
+    let minorList = hiSysEventFilter.filter((struct) => {
       return struct.depth === 0;
     });
-    let criticalList = hiSysEventList.filter((struct) => {
+    let criticalList = hiSysEventFilter.filter((struct) => {
       return struct.depth === 1;
     });
     dataFilterHandler(minorList, minorFilter, {
@@ -57,6 +57,7 @@ export class HiSysEventRender extends Render {
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
     hiSysEventFilter = minorFilter.concat(criticalFilter);
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find = false;
     for (let re of hiSysEventFilter) {
@@ -81,7 +82,7 @@ export function hiSysEvent(
   if (use && hiSysEventFilter.length > 0) {
     for (let i = 0, len = hiSysEventFilter.length; i < len; i++) {
       let item = hiSysEventFilter[i];
-      if ((item.ts || 0) + (item.dur || 0) >= startNS && (item.ts || 0) <= endNS) {
+      if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
       } else {
         item.frame = undefined;
@@ -93,7 +94,7 @@ export function hiSysEvent(
   if (hiSysEventList) {
     for (let index = 0; index < hiSysEventList.length; index++) {
       let item = hiSysEventList[index];
-      if ((item.ts || 0) + (item.dur || 0) >= startNS && (item.ts || 0) <= endNS) {
+      if ((item.startTs || 0) + (item.dur || 0) >= startNS && (item.startTs || 0) <= endNS) {
         HiSysEventStruct.setSysEventFrame(item, startNS, endNS, totalNS, row.frame);
         hiSysEventFilter.push(item);
       }
@@ -108,17 +109,18 @@ export class HiSysEventStruct extends BaseStruct {
   domain: string | undefined;
   eventName: string | undefined;
   eventType: string | undefined;
-  ts: number | undefined;
+  startTs: number | undefined;
   tz: string | undefined;
   pid: number | undefined;
   tid: number | undefined;
   uid: number | undefined;
   info: string | undefined;
   level: string | undefined;
-  seq: string | undefined;
+  seq: number | undefined;
   contents: string | undefined;
   dur: number | undefined;
   depth: number | undefined;
+
   static setSysEventFrame(
     sysEventNode: HiSysEventStruct,
     startNS: number,
@@ -127,16 +129,16 @@ export class HiSysEventStruct extends BaseStruct {
     frame: Rect
   ): void {
     let x1: number, x2: number;
-    if ((sysEventNode.ts || 0) >= startNS && (sysEventNode.ts || 0) <= endNS) {
-      x1 = ns2x(sysEventNode.ts || 0, startNS, endNS, totalNS, frame);
+    if ((sysEventNode.startTs || 0) >= startNS && (sysEventNode.startTs || 0) <= endNS) {
+      x1 = ns2x(sysEventNode.startTs || 0, startNS, endNS, totalNS, frame);
     } else {
       x1 = 0;
     }
     if (
-      (sysEventNode.ts || 0) + (sysEventNode.dur || 0) >= startNS &&
-      (sysEventNode.ts || 0) + (sysEventNode.dur || 0) <= endNS
+      (sysEventNode.startTs || 0) + (sysEventNode.dur || 0) >= startNS &&
+      (sysEventNode.startTs || 0) + (sysEventNode.dur || 0) <= endNS
     ) {
-      x2 = ns2x((sysEventNode.ts || 0) + (sysEventNode.dur || 0), startNS, endNS, totalNS, frame);
+      x2 = ns2x((sysEventNode.startTs || 0) + (sysEventNode.dur || 0), startNS, endNS, totalNS, frame);
     } else {
       x2 = frame.width;
     }
@@ -156,10 +158,11 @@ export class HiSysEventStruct extends BaseStruct {
     }
     if (data.frame) {
       ctx.globalAlpha = 1;
-      ctx.fillStyle = ColorUtils.getHisysEventColor(data.level!);
+      ctx.fillStyle = ColorUtils.getHisysEventColor(data.depth!);
       ctx.fillRect(data.frame.x, data.frame.y + padding * data.depth, data.frame.width, rectHeight);
     }
   }
 }
+
 const padding = 5;
 const rectHeight = 10;

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { USBHead } from '../../../dist/hdc/message/USBHead.js';
+import { USBHead } from '../../../src/hdc/message/USBHead';
 
 describe('USBHead Test', () => {
   let usbHead = new USBHead();

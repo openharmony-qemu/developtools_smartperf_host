@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitIcon } from '../../../dist/base-ui/icon/LitIcon.js';
+import { LitIcon } from '../../../src/base-ui/icon/LitIcon';
 
 describe('testLitIcon Test', () => {
   it('testLitIcon01', () => {

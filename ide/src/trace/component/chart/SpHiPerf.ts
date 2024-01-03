@@ -40,6 +40,17 @@ import { type HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorke
 import { SpChartManager } from './SpChartManager';
 import { procedurePool } from '../../database/Procedure';
 import { HiPerfChartFrame } from '../../bean/PerfStruct';
+import { HiperfCpuRender2 } from '../../database/ui-worker/ProcedureWorkerHiPerfCPU2';
+import { hiperfCpuDataSender } from '../../database/data-trafic/HiperfCpuDataSender';
+import { hiperfProcessDataSender } from '../../database/data-trafic/HiperfProcessDataSender';
+import { HiperfProcessRender2 } from '../../database/ui-worker/ProcedureWorkerHiPerfProcess2';
+import { hiperfThreadDataSender } from '../../database/data-trafic/HiperfThreadDataSender';
+import { HiperfThreadRender2 } from '../../database/ui-worker/ProcedureWorkerHiPerfThread2';
+import {
+  hiperfCallChartDataCacheSender,
+  hiperfCallChartDataSender,
+  hiperfCallStackCacheSender,
+} from '../../database/data-trafic/HiperfCallChartSender';
 
 export interface ResultData {
   existA: boolean | null | undefined;
@@ -93,7 +104,7 @@ export class SpHiPerf {
   }
 
   getStringResult(s: string = '') {
-    let list = s.split(' ').filter((e) => e);
+    let list = s.split(' ');
     let sA = list.findIndex((item) => item == '-a');
     let sF = list.findIndex((item) => item == '-f');
     SpHiPerf.stringResult = {
@@ -149,18 +160,16 @@ export class SpHiPerf {
         row.childrenList.forEach((child) => {
           if (child.drawType !== drawType) {
             child.drawType = drawType;
-            if (child.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
-              this.resetChartData(child);
-            } else {
-              child.drawType = drawType;
-              child.dataList2 = [];
-              child.childrenList.forEach((sz) => {
-                sz.drawType = drawType;
-                sz.dataList2 = [];
-              });
-            }
+            child.needRefresh = true;
+            child.isComplete = false;
+            child.childrenList.forEach((sz) => {
+              sz.drawType = drawType;
+              sz.isComplete = false;
+              sz.needRefresh = true;
+            });
           }
         });
+        TraceRow.range!.refresh = true;
         this.trace.refreshCanvas(false);
       }
     };
@@ -192,13 +201,15 @@ export class SpHiPerf {
           row
         );
       }
-      row.canvasRestore(this.trace.canvasPanelCtx!);
+      row.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.rowFolder = row;
     this.trace.rowsEL?.appendChild(row);
   }
 
   async initCallChart() {
+    await hiperfCallStackCacheSender();
+    await hiperfCallChartDataCacheSender();
     let perfCallCutRow = TraceRow.skeleton<HiPerfCallChartStruct>();
     perfCallCutRow.rowId = `HiPerf-callchart`;
     perfCallCutRow.index = 0;
@@ -217,36 +228,45 @@ export class SpHiPerf {
     perfCallCutRow.focusHandler = (): void => {
       let hoverStruct = HiPerfCallChartStruct.hoverPerfCallCutStruct;
       if (hoverStruct) {
-        let selfDur = hoverStruct?.totalTime || 0;
-        hoverStruct?.children?.forEach((child) => {
-          selfDur -= child.totalTime;
-        });
-        let callName = '';
-        if(typeof hoverStruct.name === 'number'){
-          callName = SpSystemTrace.DATA_DICT.get(hoverStruct.name as number) || '';
-        } else {
-          callName = HiPerfCallChartStruct.hoverPerfCallCutStruct?.name as string || '';
-        }
-        callName = callName!.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let callName = hoverStruct.name;
+        callName = callName.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         this.trace?.displayTip(
           perfCallCutRow!,
-          HiPerfCallChartStruct.hoverPerfCallCutStruct,
+          hoverStruct,
           `<span style="font-weight: bold;color:'#000'">Name: </span>
         <span>${callName}</span><br>
         <span style='font-weight: bold;'>Lib: </span>
         <span>${perfDataQuery.getLibName(hoverStruct!.fileId, hoverStruct!.symbolId)}</span><br>
         <span style='font-weight: bold;'>Self Time: </span>
-        <span>${Utils.getProbablyTime(selfDur || 0)}</span><br>
+        <span>${Utils.getProbablyTime(hoverStruct.selfDur || 0)}</span><br>
         <span style='font-weight: bold;'>Duration: </span>
         <span>${Utils.getProbablyTime(hoverStruct.totalTime)}</span><br>
         <span style='font-weight: bold;'>Event Count: </span>
-        <span>${HiPerfCallChartStruct.hoverPerfCallCutStruct?.eventCount || ''}</span><br>`
+        <span>${hoverStruct.eventCount || ''}</span><br>`
         );
       }
     };
-    // @ts-ignore
-    perfCallCutRow.supplier = () =>
-      this.getHiPerfChartData(this.callChartType, this.callChartId, this.eventTypeId, perfCallCutRow);
+    perfCallCutRow.supplierFrame = () => {
+      return hiperfCallChartDataSender(perfCallCutRow, {
+        startTime: window.recordStartNS,
+        eventTypeId: this.eventTypeId,
+        type: this.callChartType,
+        id: this.callChartId,
+      }).then((res) => {
+        let maxHeight = res.maxDepth * 20;
+        perfCallCutRow.funcMaxHeight = maxHeight;
+        if (perfCallCutRow.funcExpand) {
+          perfCallCutRow!.style.height = `${maxHeight}px`;
+          if (perfCallCutRow.collect) {
+            window.publish(window.SmartEvent.UI.RowHeightChange, {
+              expand: true,
+              value: perfCallCutRow.funcMaxHeight - 20,
+            });
+          }
+        }
+        return res.dataList;
+      });
+    };
     perfCallCutRow.findHoverStruct = () => {
       HiPerfCallChartStruct.hoverPerfCallCutStruct = perfCallCutRow.getHoverStruct();
     };
@@ -316,8 +336,9 @@ export class SpHiPerf {
         this.callChartType = type;
         this.callChartId = id;
         row.name = `CallChart [${nodes[0].title}]`;
-        this.resetChartData(row);
-        this.trace.refreshCanvas(false);
+        row.isComplete = false;
+        row.needRefresh = true;
+        row.drawFrame();
       }
     };
     row.onThreadHandler = (useCache: any) => {
@@ -336,7 +357,7 @@ export class SpHiPerf {
         },
         row
       );
-      row.canvasRestore(context);
+      row.canvasRestore(context, this.trace);
     };
   }
 
@@ -354,7 +375,16 @@ export class SpHiPerf {
     cpuMergeRow.setAttribute('children', '');
     cpuMergeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     cpuMergeRow.selectChangeHandler = this.trace.selectChangeHandler;
-    cpuMergeRow.supplier = () => queryHiPerfCpuMergeData();
+    cpuMergeRow.supplierFrame = () => {
+      return hiperfCpuDataSender(
+        -1,
+        cpuMergeRow.drawType,
+        this.maxCpuId + 1,
+        SpHiPerf.stringResult?.fValue || 1,
+        TraceRow.range?.scale || 50,
+        cpuMergeRow
+      );
+    };
     cpuMergeRow.focusHandler = () => this.hoverTip(cpuMergeRow, HiPerfCpuStruct.hoverStruct);
     cpuMergeRow.findHoverStruct = () => {
       HiPerfCpuStruct.hoverStruct = cpuMergeRow.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
@@ -367,7 +397,7 @@ export class SpHiPerf {
         context = cpuMergeRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       cpuMergeRow.canvasSave(context);
-      (renders['HiPerf-Cpu'] as HiperfCpuRender).renderMainThread(
+      (renders['HiPerf-Cpu-2'] as HiperfCpuRender2).renderMainThread(
         {
           context: context,
           useCache: useCache,
@@ -379,7 +409,7 @@ export class SpHiPerf {
         },
         cpuMergeRow
       );
-      cpuMergeRow.canvasRestore(context);
+      cpuMergeRow.canvasRestore(context, this.trace);
     };
     this.rowFolder.addChildTraceRow(cpuMergeRow);
     this.rowList?.push(cpuMergeRow);
@@ -400,7 +430,16 @@ export class SpHiPerf {
       perfCpuRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       perfCpuRow.selectChangeHandler = this.trace.selectChangeHandler;
       perfCpuRow.style.height = '40px';
-      perfCpuRow.supplier = () => queryHiPerfCpuData(i);
+      perfCpuRow.supplierFrame = () => {
+        return hiperfCpuDataSender(
+          i,
+          perfCpuRow.drawType,
+          this.maxCpuId + 1,
+          SpHiPerf.stringResult?.fValue || 1,
+          TraceRow.range?.scale || 50,
+          perfCpuRow
+        );
+      };
       perfCpuRow.focusHandler = () => this.hoverTip(perfCpuRow, HiPerfCpuStruct.hoverStruct);
       perfCpuRow.findHoverStruct = () => {
         HiPerfCpuStruct.hoverStruct = perfCpuRow.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
@@ -413,7 +452,7 @@ export class SpHiPerf {
           context = perfCpuRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
         }
         perfCpuRow.canvasSave(context);
-        (renders['HiPerf-Cpu'] as HiperfCpuRender).renderMainThread(
+        (renders['HiPerf-Cpu-2'] as HiperfCpuRender2).renderMainThread(
           {
             context: context,
             useCache: useCache,
@@ -425,7 +464,7 @@ export class SpHiPerf {
           },
           perfCpuRow
         );
-        perfCpuRow.canvasRestore(context);
+        perfCpuRow.canvasRestore(context, this.trace);
       };
       this.rowFolder.addChildTraceRow(perfCpuRow);
       this.rowList?.push(perfCpuRow);
@@ -433,103 +472,123 @@ export class SpHiPerf {
   }
 
   async initProcess() {
-    Reflect.ownKeys(this.group).forEach((key, index) => {
-      let array = this.group[key] as Array<PerfThread>;
-      let process = array.filter((th) => th.pid === th.tid)[0];
-      let row = TraceRow.skeleton<HiPerfProcessStruct>();
-      row.rowId = `${process.pid}-Perf-Process`;
-      row.index = index;
-      row.rowType = TraceRow.ROW_TYPE_HIPERF_PROCESS;
-      row.rowParentId = 'HiPerf';
-      row.rowHidden = !this.rowFolder.expansion;
-      row.folder = true;
-      row.drawType = -2;
-      if (SpChartManager.APP_STARTUP_PID_ARR.find((pid) => pid === process.pid) !== undefined) {
-        row.addTemplateTypes('AppStartup');
-      }
-      row.addTemplateTypes('HiPerf');
-      row.name = `${process.processName || 'Process'} [${process.pid}]`;
-      row.folderPaddingLeft = 6;
-      row.style.height = '40px';
-      row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      row.selectChangeHandler = this.trace.selectChangeHandler;
-      row.supplier = () => queryHiPerfProcessData(process.pid);
-      row.focusHandler = () => this.hoverTip(row, HiPerfProcessStruct.hoverStruct);
-      row.findHoverStruct = () => {
-        HiPerfProcessStruct.hoverStruct = row.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
-      };
-      row.onThreadHandler = (useCache) => {
-        let context: CanvasRenderingContext2D;
-        if (row.currentContext) {
-          context = row.currentContext;
-        } else {
-          context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+    Reflect.ownKeys(this.group)
+      .filter((it) => {
+        return true;
+      })
+      .forEach((key, index) => {
+        let array = this.group[key] as Array<PerfThread>;
+        let process = array.filter((th) => th.pid === th.tid)[0];
+        let row = TraceRow.skeleton<HiPerfProcessStruct>();
+        row.rowId = `${process.pid}-Perf-Process`;
+        row.index = index;
+        row.rowType = TraceRow.ROW_TYPE_HIPERF_PROCESS;
+        row.rowParentId = 'HiPerf';
+        row.rowHidden = !this.rowFolder.expansion;
+        row.folder = true;
+        row.drawType = -2;
+        if (SpChartManager.APP_STARTUP_PID_ARR.find((pid) => pid === process.pid) !== undefined) {
+          row.addTemplateTypes('AppStartup');
         }
-        row.canvasSave(context);
-        if (row.expansion) {
-          this.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
-        } else {
-          (renders['HiPerf-Process'] as HiperfProcessRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              scale: TraceRow.range?.scale || 50,
-              type: `HiPerf-Process-${row.index}`,
-              intervalPerf: SpHiPerf.stringResult?.fValue || 1,
-              range: TraceRow.range,
-            },
+        row.addTemplateTypes('HiPerf');
+        row.name = `${process.processName || 'Process'} [${process.pid}]`;
+        row.folderPaddingLeft = 6;
+        row.style.height = '40px';
+        row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        row.selectChangeHandler = this.trace.selectChangeHandler;
+        row.supplierFrame = () => {
+          return hiperfProcessDataSender(
+            process.pid,
+            row.drawType,
+            SpHiPerf.stringResult?.fValue || 1,
+            TraceRow.range?.scale || 50,
             row
           );
-        }
-        row.canvasRestore(context);
-      };
-      this.rowFolder.addChildTraceRow(row);
-      this.rowList?.push(row);
-      array.forEach((thObj, thIdx) => {
-        let thread = TraceRow.skeleton<HiPerfThreadStruct>();
-        thread.rowId = `${thObj.tid}-Perf-Thread`;
-        thread.index = thIdx;
-        thread.rowType = TraceRow.ROW_TYPE_HIPERF_THREAD;
-        thread.rowParentId = row.rowId;
-        thread.rowHidden = !row.expansion;
-        thread.folder = false;
-        thread.drawType = -2;
-        thread.name = `${thObj.threadName || 'Thread'} [${thObj.tid}]`;
-        thread.setAttribute('children', '');
-        thread.folderPaddingLeft = 0;
-        thread.style.height = '40px';
-        thread.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        thread.selectChangeHandler = this.trace.selectChangeHandler;
-        thread.supplier = () => queryHiPerfThreadData(thObj.tid);
-        thread.focusHandler = () => this.hoverTip(thread, HiPerfThreadStruct.hoverStruct);
-        thread.findHoverStruct = () => {
-          HiPerfThreadStruct.hoverStruct = thread.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
         };
-        thread.onThreadHandler = (useCache) => {
+        row.focusHandler = () => this.hoverTip(row, HiPerfProcessStruct.hoverStruct);
+        row.findHoverStruct = () => {
+          HiPerfProcessStruct.hoverStruct = row.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
+        };
+        row.onThreadHandler = (useCache) => {
           let context: CanvasRenderingContext2D;
-          if (thread.currentContext) {
-            context = thread.currentContext;
+          if (row.currentContext) {
+            context = row.currentContext;
           } else {
-            context = thread.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
           }
-          thread.canvasSave(context);
-          (renders['HiPerf-Thread'] as HiperfThreadRender).renderMainThread(
-            {
-              context: context,
-              useCache: useCache,
-              scale: TraceRow.range?.scale || 50,
-              type: `HiPerf-Thread-${row.index}-${thread.index}`,
-              intervalPerf: SpHiPerf.stringResult?.fValue || 1,
-              range: TraceRow.range,
-            },
-            thread
-          );
-          thread.canvasRestore(context);
+          row.canvasSave(context);
+          if (row.expansion) {
+            this.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
+          } else {
+            (renders['HiPerf-Process-2'] as HiperfProcessRender2).renderMainThread(
+              {
+                context: context,
+                useCache: useCache,
+                scale: TraceRow.range?.scale || 50,
+                type: `HiPerf-Process-${row.index}`,
+                intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                range: TraceRow.range,
+              },
+              row
+            );
+          }
+          row.canvasRestore(context, this.trace);
         };
-        row.addChildTraceRow(thread);
-        this.rowList?.push(thread);
+        this.rowFolder.addChildTraceRow(row);
+        this.rowList?.push(row);
+        array.forEach((thObj, thIdx) => {
+          let thread = TraceRow.skeleton<HiPerfThreadStruct>();
+          thread.rowId = `${thObj.tid}-Perf-Thread`;
+          thread.index = thIdx;
+          thread.rowType = TraceRow.ROW_TYPE_HIPERF_THREAD;
+          thread.rowParentId = row.rowId;
+          thread.rowHidden = !row.expansion;
+          thread.folder = false;
+          thread.drawType = -2;
+          thread.name = `${thObj.threadName || 'Thread'} [${thObj.tid}]`;
+          thread.setAttribute('children', '');
+          thread.folderPaddingLeft = 0;
+          thread.style.height = '40px';
+          thread.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+          thread.selectChangeHandler = this.trace.selectChangeHandler;
+          thread.supplierFrame = () => {
+            return hiperfThreadDataSender(
+              thObj.tid,
+              thread.drawType,
+              SpHiPerf.stringResult?.fValue || 1,
+              TraceRow.range?.scale || 50,
+              thread
+            );
+          };
+          thread.focusHandler = () => this.hoverTip(thread, HiPerfThreadStruct.hoverStruct);
+          thread.findHoverStruct = () => {
+            HiPerfThreadStruct.hoverStruct = thread.getHoverStruct(false, (TraceRow.range?.scale || 50) <= 30_000_000);
+          };
+          thread.onThreadHandler = (useCache) => {
+            let context: CanvasRenderingContext2D;
+            if (thread.currentContext) {
+              context = thread.currentContext;
+            } else {
+              context = thread.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            }
+            thread.canvasSave(context);
+            (renders['HiPerf-Thread-2'] as HiperfThreadRender2).renderMainThread(
+              {
+                context: context,
+                useCache: useCache,
+                scale: TraceRow.range?.scale || 50,
+                type: `HiPerf-Thread-${row.index}-${thread.index}`,
+                intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                range: TraceRow.range,
+              },
+              thread
+            );
+            thread.canvasRestore(context, this.trace);
+          };
+          row.addChildTraceRow(thread);
+          this.rowList?.push(thread);
+        });
       });
-    });
   }
 
   async getHiPerfChartData(type: number, id: number, eventTypeId: number, row: TraceRow<any>) {
@@ -611,7 +670,7 @@ export class SpHiPerf {
             tip = `<span>${num * (this.maxCpuId + 1)}% (10.00ms)</span>`;
           }
         } else {
-          tip = `<span>${struct.eventCount} (10.00ms)</span>`;
+          tip = `<span>${struct.event_count || struct.eventCount} (10.00ms)</span>`;
         }
       } else {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);

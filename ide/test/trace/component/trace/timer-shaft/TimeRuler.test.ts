@@ -13,12 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { EventCenter } from '../../../../../dist/trace/component/trace/base/EventCenter.js';
-// @ts-ignore
-import { TimeRuler } from '../../../../../dist/trace/component/trace/timer-shaft/TimeRuler.js';
-// @ts-ignore
-import { TimerShaftElement } from '../../../../../dist/trace/component/trace/TimerShaftElement.js';
+import { EventCenter } from '../../../../../src/trace/component/trace/base/EventCenter';
+import { TimeRuler } from '../../../../../src/trace/component/trace/timer-shaft/TimeRuler';
+import { TimerShaftElement } from '../../../../../src/trace/component/trace/TimerShaftElement';
 
 declare global {
   interface Window {
@@ -38,10 +35,10 @@ declare global {
     subscribeOnce(evt: string, fn: (b: any) => void): void;
   }
 }
-jest.mock('../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 window.SmartEvent = {

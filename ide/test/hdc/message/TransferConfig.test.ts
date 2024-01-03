@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TransferConfig } from '../../../dist/hdc/message/TransferConfig.js';
+import { TransferConfig } from '../../../src/hdc/message/TransferConfig';
 
 describe('TransferConfig Test', () => {
   let transferConfig = new TransferConfig();

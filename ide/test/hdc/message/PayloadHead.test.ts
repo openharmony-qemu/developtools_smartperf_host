@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { PayloadHead } from '../../../dist/hdc/message/PayloadHead.js';
+import { PayloadHead } from '../../../src/hdc/message/PayloadHead';
 
 describe('PayloadHead Test', () => {
   let payloadHead = new PayloadHead();

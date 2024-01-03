@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { AsyncQueue, DataMessageQueue } from '../../../dist/hdc/hdcclient/AsyncQueue.js';
+import { AsyncQueue, DataMessageQueue } from '../../../src/hdc/hdcclient/AsyncQueue';
 
 describe('AsyncQueueTest', () => {
   let queue = new DataMessageQueue();

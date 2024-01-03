@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
+
 import {
   SystemCpuSummary,
   SystemDiskIOSummary,
@@ -21,9 +21,11 @@ import {
   SystemNetworkSummary,
   SystemMemorySummary,
   Dma
-} from '../../../dist/trace/bean/AbilityMonitor.js';
+} from '../../../src/trace/bean/AbilityMonitor';
+import '@babel/preset-typescript';
+import '@babel/plugin-proposal-optional-chaining';
 
-jest.mock('../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 

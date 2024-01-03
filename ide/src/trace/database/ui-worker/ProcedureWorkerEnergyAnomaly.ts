@@ -19,6 +19,7 @@ import {
   drawFlagLine,
   drawLines,
   drawLoading,
+  drawLoadingFrame,
   drawSelection,
   isFrameContainPoint,
   PerfRender,
@@ -49,6 +50,13 @@ export class EnergyAnomalyRender extends PerfRender {
       req.appName,
       req.useCache || !TraceRow.range!.refresh
     );
+    if(list.length > 0) {
+      filter.length = 0;
+      list.forEach(item => {
+        filter.push(item);
+      });
+    }
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find = false;
     let spApplication = document.getElementsByTagName('sp-application')[0];
@@ -213,6 +221,7 @@ export function anomaly(
   appName: string | undefined,
   use: boolean
 ) {
+  arr.length = 0;
   if (use && res.length > 0) {
     let pns = (endNS - startNS) / frame.width;
     let y = frame.y;
@@ -223,36 +232,21 @@ export function anomaly(
           it.frame = {};
           it.frame.y = y;
         }
-        it.frame.height = it.height;
-        EnergyAnomalyStruct.setAnomalyFrame(it, pns, startNS, endNS, frame);
+        it.frame.height = 20 + radius * 2;
+        if (it.startNS + 50000 > (startNS || 0) && (it.startNS || 0) < (endNS || 0)) {
+          EnergyAnomalyStruct.setAnomalyFrame(it, pns, startNS || 0, endNS || 0, frame);
+          if (it.appKey === 'APPNAME' && it.eventValue.split(',').indexOf(appName) >= 0) {
+            arr.push(it);
+          }
+          if (it.appKey != 'APPNAME') {
+            arr.push(it);
+          }
+        }
       } else {
         it.frame = null;
       }
     }
     return;
-  }
-
-  res.length = 0;
-  if (arr) {
-    let y = frame.y;
-    let pns = (endNS - startNS) / frame.width;
-    for (let index = 0; index < arr.length; index++) {
-      let item = arr[index];
-      if (!item.frame) {
-        item.frame = {};
-        item.frame.y = y;
-      }
-      item.frame.height = item.height;
-      if (item.startNS + 50000 > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        EnergyAnomalyStruct.setAnomalyFrame(item, pns, startNS || 0, endNS || 0, frame);
-        if (item.appKey === 'APPNAME' && item.Value.split(',').indexOf(appName) >= 0) {
-          res.push(item);
-        }
-        if (item.appKey != 'APPNAME') {
-          res.push(item);
-        }
-      }
-    }
   }
 }
 
@@ -267,14 +261,17 @@ export class EnergyAnomalyStruct extends BaseStruct {
     'ANOMALY_WAKEUP',
   ]);
   static OFFSET_WIDTH: number = 266;
+  id: number | undefined;
   type: number | undefined;
   startNS: number | undefined;
   height: number | undefined;
   eventName: string | undefined;
+  appKey: string | undefined;
+  eventValue: string | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: EnergyAnomalyStruct) {
     if (data.frame) {
-      EnergyAnomalyStruct.drawRoundRectPath(ctx, data.frame.x - 7, 20 - 7, 12, data);
+      EnergyAnomalyStruct.drawRoundRectPath(ctx, data.frame.x - 7, 20 - 7, radius, data);
     }
   }
 
@@ -321,3 +318,4 @@ export class EnergyAnomalyStruct extends BaseStruct {
     }
   }
 }
+let radius = 12;

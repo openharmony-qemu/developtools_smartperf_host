@@ -21,8 +21,10 @@
 #include <cinttypes>
 namespace SysTuning {
 namespace TraceStreamer {
+const uint8_t POINT_LENGTH = 1;
+const uint8_t MAX_POINT_LENGTH = 2;
 PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : EventParserBase(dataCache, filter), pointLength_(1), maxPointLength_(2)
+    : EventParserBase(dataCache, filter)
 {
     eventToFrameFunctionMap_ = {
         {recvievVsync_, bind(&PrintEventParser::ReciveVsync, this, std::placeholders::_1, std::placeholders::_2,
@@ -129,7 +131,7 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
     if (point.name_ == onFrameQueeuStartEvent_ && index != INVALID_UINT64) {
         OnFrameQueueStart(ts, index, point.tgid_);
     } else if (traceDataCache_->AnimationTraceEnabled() && index != INVALID_UINT64 &&
-               EndWith(comm, onAnimationProcEvent_)) { // the comm is taskName
+               base::EndWith(comm, onAnimationProcEvent_)) { // the comm is taskName
         streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
     }
 }
@@ -203,7 +205,7 @@ ParseResult PrintEventParser::CheckTracePoint(std::string_view pointStr) const
         return PARSE_ERROR;
     }
 
-    if (pointStr.size() >= maxPointLength_) {
+    if (pointStr.size() >= MAX_POINT_LENGTH) {
         if ((pointStr[1] != '|') && (pointStr[1] != '\n')) {
             TS_LOGD("not support data formart!");
             return PARSE_ERROR;
@@ -215,7 +217,7 @@ ParseResult PrintEventParser::CheckTracePoint(std::string_view pointStr) const
 
 std::string_view PrintEventParser::GetPointNameForBegin(std::string_view pointStr, size_t tGidlength) const
 {
-    size_t index = maxPointLength_ + tGidlength + pointLength_;
+    size_t index = MAX_POINT_LENGTH + tGidlength + POINT_LENGTH;
 
     size_t length = pointStr.size() - index - ((pointStr.back() == '\n') ? 1 : 0);
     std::string_view name = std::string_view(pointStr.data() + index, length);
@@ -416,7 +418,7 @@ size_t PrintEventParser::GetValueLength(std::string_view pointStr, size_t valueI
         return 0;
     }
 
-    if (pointStr[valueIndex + valueLen - pointLength_] == '\n') {
+    if (pointStr[valueIndex + valueLen - POINT_LENGTH] == '\n') {
         valueLen--;
     }
 
@@ -426,7 +428,7 @@ size_t PrintEventParser::GetValueLength(std::string_view pointStr, size_t valueI
 ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const
 {
     // point name
-    size_t nameIndex = maxPointLength_ + tGidlength + pointLength_;
+    size_t nameIndex = MAX_POINT_LENGTH + tGidlength + POINT_LENGTH;
     size_t namelength = GetNameLength(pointStr, nameIndex);
     if (namelength == 0) {
         TS_LOGD("point name length is error!");
@@ -435,7 +437,7 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint& 
     outPoint.name_ = std::string_view(pointStr.data() + nameIndex, namelength);
 
     // point value
-    size_t valueIndex = nameIndex + namelength + pointLength_;
+    size_t valueIndex = nameIndex + namelength + POINT_LENGTH;
     size_t valueLen = GetValueLength(pointStr, valueIndex);
     if (valueLen == 0) {
         TS_LOGD("point value length is error!");
@@ -451,12 +453,12 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint& 
 
     size_t valuePipe = pointStr.find('|', valueIndex);
     if (valuePipe != std::string_view::npos) {
-        size_t groupLen = pointStr.size() - valuePipe - pointLength_;
+        size_t groupLen = pointStr.size() - valuePipe - POINT_LENGTH;
         if (groupLen == 0) {
             return PARSE_ERROR;
         }
 
-        if (pointStr[pointStr.size() - pointLength_] == '\n') {
+        if (pointStr[pointStr.size() - POINT_LENGTH] == '\n') {
             groupLen--;
         }
 
@@ -503,7 +505,7 @@ ParseResult PrintEventParser::GetTracePoint(std::string_view pointStr, TracePoin
 
 uint32_t PrintEventParser::GetThreadGroupId(std::string_view pointStr, size_t& length) const
 {
-    for (size_t i = maxPointLength_; i < pointStr.size(); i++) {
+    for (size_t i = MAX_POINT_LENGTH; i < pointStr.size(); i++) {
         if (pointStr[i] == '|' || pointStr[i] == '\n') {
             break;
         }
@@ -515,7 +517,7 @@ uint32_t PrintEventParser::GetThreadGroupId(std::string_view pointStr, size_t& l
         length++;
     }
 
-    std::string str(pointStr.data() + maxPointLength_, length);
+    std::string str(pointStr.data() + MAX_POINT_LENGTH, length);
     return base::StrToInt<uint32_t>(str).value_or(0);
 }
 } // namespace TraceStreamer

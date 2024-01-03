@@ -12,24 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneComparison } from '../../../../../../dist/trace/component/trace/sheet/ark-ts/TabPaneComparison.js';
-import '../../../../../../dist/trace/component/trace/sheet/ark-ts/TabPaneComparison.js';
+import { TabPaneComparison } from '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneComparison';
+import '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneComparison';
 
-//@ts-ignore
-import { HeapDataInterface } from '../../../../../../dist/js-heap/HeapDataInterface.js';
+import { HeapDataInterface } from '../../../../../../src/js-heap/HeapDataInterface';
 
-jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
+jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
     return {};
 });
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
     return {
         snapshotDataSource: () => {},
         removeAttribute: () => {},
     };
 });
 
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 // @ts-ignore
 window.ResizeObserver =

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { Smaps, SmapsTreeObj } from '../../../dist/trace/bean/SmapsStruct.js';
+import { Smaps, SmapsTreeObj } from '../../../src/trace/bean/SmapsStruct';
 
 describe('SmapsStruct Test', () => {
     it('SmapsStructTest01', function () {

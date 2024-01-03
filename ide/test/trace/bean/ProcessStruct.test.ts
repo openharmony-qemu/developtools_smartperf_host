@@ -13,14 +13,13 @@
  * limitations under the License.
  */
 
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
-import { ProcessStruct } from '../../../dist/trace/bean/ProcessStruct.js';
+import { ProcessStruct } from '../../../src/trace/bean/ProcessStruct';
 
-jest.mock('../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 

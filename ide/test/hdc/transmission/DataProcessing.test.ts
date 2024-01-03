@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { DataProcessing } from '../../../dist/hdc/transmission/DataProcessing.js';
+import { DataProcessing } from '../../../src/hdc/transmission/DataProcessing';
 
 describe('DataProcessing Test', () => {
     it('DataProcessingTest01', () => {

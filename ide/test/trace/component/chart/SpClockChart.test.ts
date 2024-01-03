@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { SpClockChart } from '../../../../dist/trace/component/chart/SpClockChart.js';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { SpClockChart } from '../../../../src/trace/component/chart/SpClockChart';
 
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||

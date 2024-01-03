@@ -83,7 +83,7 @@ export class TabPaneSchedPriority extends BaseElement {
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       'spt-getCpuPriorityByTime',
       { leftNs: sptParam.leftNs, rightNs: sptParam.rightNs },
       undefined,

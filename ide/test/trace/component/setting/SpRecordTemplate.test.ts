@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpRecordTemplate } from '../../../../dist/trace/component/setting/SpRecordTemplate.js';
+import { SpRecordTemplate } from '../../../../src/trace/component/setting/SpRecordTemplate';
 
 describe('SpRecordTemplate', () => {
   let recordTemplate = new SpRecordTemplate();

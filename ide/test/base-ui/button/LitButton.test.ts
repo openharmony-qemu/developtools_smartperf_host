@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitButton } from '../../../dist/base-ui/button/LitButton.js';
+
+import { LitButton } from '../../../src/base-ui/button/LitButton';
 
 describe('button Test', () => {
   it('buttonTest01', function () {

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitPopoverTitle } from '../../../dist/base-ui/popover/LitPopoverTitle';
+import { LitPopoverTitle } from '../../../src/base-ui/popover/LitPopoverTitle';
 
 describe('LitPopoverTitle Test', () => {
   it('LitPopoverTitle01', () => {

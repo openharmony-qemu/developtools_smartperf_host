@@ -13,21 +13,16 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-//@ts-ignore
 import {
-  hiPerfCpu,
   HiPerfCpuStruct,
   HiperfCpuRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHiPerfCPU.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { hiPerf } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfCPU';
+import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -62,7 +57,7 @@ describe('ProcedureWorkerHiPerfCPU Test', () => {
 
   it('ProcedureWorkerHiPerfCPUTest05', function () {
     expect(HiPerfCpuStruct.groupBy10MS([{ id: 1, NS: 3 }, { copy: '1' }], 10, '')).toEqual([
-      { dur: 10000000, height: NaN, eventCount: NaN ,startNS: NaN },
+      { dur: 10000000, height: NaN, eventCount: NaN ,startNS: NaN ,sampleCount: 2},
     ]);
   });
   it('ProcedureWorkerHiPerfCPUTest06', function () {

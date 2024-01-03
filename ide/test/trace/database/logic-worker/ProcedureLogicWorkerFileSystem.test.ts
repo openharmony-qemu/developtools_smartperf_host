@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-//@ts-ignore
 import {
   ProcedureLogicWorkerFileSystem,
   FileCallChain,
@@ -25,7 +24,7 @@ import {
   VirtualMemoryEvent,
   FileAnalysisSample,
   //@ts-ignore
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerFileSystem.js';
+} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerFileSystem';
 
 describe('ProcedureLogicWorkerFileSystem Test', () => {
   let procedureLogicWorkerF = new ProcedureLogicWorkerFileSystem();

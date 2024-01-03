@@ -23,6 +23,7 @@ import {
   Render,
   RequestMessage,
   drawString,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
@@ -47,6 +48,7 @@ export class FuncRender extends Render {
       req.useCache || !TraceRow.range!.refresh,
       row.funcExpand
     );
+    drawLoadingFrame(req.context, funcFilter, row, true);
     req.context.beginPath();
     let funcFind = false;
     for (let re of funcFilter) {
@@ -75,7 +77,7 @@ export class FuncRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>) { }
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {}
 }
 
 export function func(
@@ -127,8 +129,6 @@ export class FuncStruct extends BaseFuncStruct {
   static selectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
-  nofinish: boolean = false;
-
   static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
     if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) <= endNS) {
@@ -194,37 +194,8 @@ export class FuncStruct extends BaseFuncStruct {
         if (flagConfig!.TaskPool === 'Enabled' && data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
           FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 20, 10, data!);
         }
-        let width = data.frame.width || 0;
-        // 如果该函数没有结束时间，则绘制锯齿。
-        if (data.nofinish && width > 4) {
-          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y, data.frame.width, data.frame.height);
-        }
       }
     }
-  }
-
-  /**
- * 绘制锯齿
- * @param ctx 绘图上下文环境 
- * @param x 水平坐标
- * @param y 垂直坐标
- * @param width 函数矩形框的宽度
- * @param height 函数矩形框的高度
- */
-  static drawRupture(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
-    ctx.fillStyle = '#fff'; // 白色 
-    let ruptureWidth = 5;
-    let ruptureNode = height / ruptureWidth;
-    let len = height / ruptureNode;
-    ctx.moveTo(x + width - 1, y);
-    for (let i = 1; i <= ruptureNode; i++) {
-      ctx.lineTo(
-        x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
-        y + len * i - 2
-      );
-    }
-    ctx.closePath();
-    ctx.fill();
   }
 
   static drawTaskPoolUnSuccessFlag(

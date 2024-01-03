@@ -24,7 +24,7 @@ export class TabPaneClockCounter extends BaseElement {
   private clockCounterRange: HTMLLabelElement | null | undefined;
   private clockCounterSource: Array<SelectionData> = [];
 
-  set data(clockCounterValue: SelectionParam | any) {
+  set data(clockCounterValue: SelectionParam) {
     //@ts-ignore
     this.clockCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
       this.parentElement!.clientHeight - 45 + 'px';
@@ -32,12 +32,17 @@ export class TabPaneClockCounter extends BaseElement {
       'Selected range: ' +
       parseFloat(((clockCounterValue.rightNs - clockCounterValue.leftNs) / 1000000.0).toFixed(5)) +
       ' ms';
+    this.getCounterData(clockCounterValue).then();
+  }
+
+  async getCounterData(clockCounterValue: SelectionParam) {
     let dataSource: Array<SelectionData> = [];
     let collect = clockCounterValue.clockMapData;
     let sumCount = 0;
     for (let key of collect.keys()) {
       let counters = collect.get(key);
-      let sd = this.createSelectCounterData(key, counters, clockCounterValue.leftNs, clockCounterValue.rightNs);
+      let res = await counters?.({ startNS: clockCounterValue.leftNs, endNS: clockCounterValue.rightNs });
+      let sd = this.createSelectCounterData(key, res || [], clockCounterValue.leftNs, clockCounterValue.rightNs);
       sumCount += Number.parseInt(sd.count || '0');
       dataSource.push(sd);
     }

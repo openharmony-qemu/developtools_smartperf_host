@@ -401,7 +401,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
     let time = new Date().getTime();
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       option,
       {
         bigCores: CheckCpuSetting.big_cores,

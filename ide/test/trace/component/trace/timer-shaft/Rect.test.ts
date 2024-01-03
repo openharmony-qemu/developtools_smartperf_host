@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { Rect, Point } from '../../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+import { Rect, Point } from '../../../../../src/trace/component/trace/timer-shaft/Rect';
 
 describe('Rect Test', () => {
   let rect = new Rect(20, 20, 100, 100);

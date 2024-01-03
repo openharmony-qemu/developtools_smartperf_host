@@ -38,7 +38,7 @@ namespace TraceStreamer {
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
 constexpr int32_t DEFAULT_LEN_ROW_STRING = 1024;
 
-enum DBFiledType : uint8_t { INT = 0, TEXT };
+enum class DBFiledType : uint8_t { INT = 0, TEXT };
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
@@ -405,12 +405,13 @@ int32_t TraceDataDB::OperateDatabase(const std::string& sql)
     return ret;
 }
 
-int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data, ResultCallBack resultCallBack)
+int32_t TraceDataDB::SearchDatabaseToProto(const std::string& data,
+                                           SqllitePreparCacheData::TLVResultCallBack resultCallBack)
 {
-    TS_CHECK_TRUE(data.size() > sizeof(uint32_t) && resultCallBack != nullptr, 1,
+    TS_CHECK_TRUE(data.size() > SqllitePreparCacheData::TYPE_SIZE && resultCallBack != nullptr, 1,
                   "data.size(%zu) <= sizeof(uint32_t) or resultCallBack is nullptr", data.size());
     uint32_t type = INVALID_UINT32;
-    auto sqlItor = data.begin() + sizeof(uint32_t);
+    auto sqlItor = data.begin() + SqllitePreparCacheData::TYPE_SIZE;
     std::copy(data.begin(), sqlItor, reinterpret_cast<uint8_t*>(&type));
     std::string sql(sqlItor, data.end());
     TS_LOGI("type(%u), sql(%s)", type, sql.data());

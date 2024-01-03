@@ -56,68 +56,28 @@ MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 MeasureTable::Cursor::~Cursor() {}
 
-void MeasureTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void MeasureTable::FilterByConstraint(FilterConstraints& measurefc,
+                                      double& measurefilterCost,
+                                      size_t measurerowCount,
+                                      uint32_t measurecurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    auto rowCount = dataCache_->GetConstMeasureData().Size();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::TS:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void MeasureTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
+    // for loop
+    const auto& measurec = measurefc.GetConstraints()[measurecurrenti];
+    switch (static_cast<Index>(measurec.col)) {
+        case Index::TS: {
+            auto measureoldRowCount = measurerowCount;
+            if (CanFilterSorted(measurec.op, measurerowCount)) {
+                measurefc.UpdateConstraint(measurecurrenti, true);
+                measurefilterCost += log2(measureoldRowCount); // binary search
+            } else {
+                measurefilterCost += measureoldRowCount;
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::TS: {
-                auto oldRowCount = rowCount;
-                if (CanFilterSorted(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += log2(oldRowCount); // binary search
-                } else {
-                    filterCost += oldRowCount;
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                                  // other column
+            measurefilterCost += measurerowCount; // scan all rows
+            break;
     }
 }
 
@@ -207,6 +167,20 @@ int32_t MeasureTable::Cursor::Column(int32_t column) const
             break;
     }
     return SQLITE_OK;
+}
+
+void MeasureTable::GetOrbyes(FilterConstraints& measurefc, EstimatedIndexInfo& measureei)
+{
+    auto measureorderbys = measurefc.GetOrderBys();
+    for (auto i = 0; i < measureorderbys.size(); i++) {
+        switch (static_cast<Index>(measureorderbys[i].iColumn)) {
+            case Index::TS:
+                break;
+            default: // other columns can be sorted by SQLite
+                measureei.isOrdered = false;
+                break;
+        }
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

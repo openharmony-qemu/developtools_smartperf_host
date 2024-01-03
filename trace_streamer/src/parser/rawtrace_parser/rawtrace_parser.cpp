@@ -79,7 +79,7 @@ bool RawTraceParser::InitEventFormats(const std::string& buffer)
     std::stringstream eventFormat;
     while (std::getline(iss, line)) {
         eventFormat << line << '\n';
-        if (StartWith(line, eventEndCmd_)) {
+        if (base::StartWith(line, eventEndCmd_)) {
             ftraceProcessor_->SetupEvent(eventFormat.str());
             eventFormat.str("");
         }
@@ -130,11 +130,11 @@ bool RawTraceParser::ParseLastCommData(uint8_t type, const std::string& buffer)
 {
     TS_CHECK_TRUE_RET(restCommDataCnt_ != INVALID_UINT8, false);
     switch (type) {
-        case CONTENT_TYPE_CMDLINES:
+        case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_CMDLINES):
             TS_CHECK_TRUE(ftraceProcessor_->HandleCmdlines(buffer), false, "parse cmdlines failed");
             ++restCommDataCnt_;
             return true;
-        case CONTENT_TYPE_TGIDS:
+        case static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_TGIDS):
             TS_CHECK_TRUE(ftraceProcessor_->HandleTgids(buffer), false, "parse tgid failed");
             ++restCommDataCnt_;
             return true;
@@ -182,21 +182,22 @@ bool RawTraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& package
         if (ParseLastCommData(curType, bufferLine)) {
             continue;
         }
-        if (curType >= CONTENT_TYPE_CPU_RAW && curType < CONTENT_TYPE_HEADER_PAGE) {
-            if (fileType_ == FILE_RAW_TRACE) {
-                auto cpuId = curType - CONTENT_TYPE_CPU_RAW;
+        if (curType >= static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_CPU_RAW) &&
+            curType < static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_HEADER_PAGE)) {
+            if (fileType_ == static_cast<uint8_t>(RawTraceFileType::FILE_RAW_TRACE)) {
+                auto cpuId = curType - static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_CPU_RAW);
                 TS_CHECK_TRUE(ParseCpuRawData(cpuId, bufferLine), false, "cpu raw parse failed");
-            } else if (fileType_ == HM_FILE_RAW_TRACE) {
+            } else if (fileType_ == static_cast<uint8_t>(RawTraceFileType::HM_FILE_RAW_TRACE)) {
                 TS_CHECK_TRUE(HmParseCpuRawData(bufferLine), false, "hm raw trace parse failed");
             }
-        } else if (curType == CONTENT_TYPE_EVENTS_FORMAT) {
+        } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_EVENTS_FORMAT)) {
             TS_CHECK_TRUE(InitEventFormats(bufferLine), false, "init event format failed");
-        } else if (curType == CONTENT_TYPE_HEADER_PAGE) {
+        } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_HEADER_PAGE)) {
             TS_CHECK_TRUE(ftraceProcessor_->HandleHeaderPageFormat(bufferLine), false, "init header page failed");
-        } else if (curType == CONTENT_TYPE_PRINTK_FORMATS) {
+        } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_PRINTK_FORMATS)) {
             TS_CHECK_TRUE(PrintkFormatsProcessor::GetInstance().HandlePrintkSyms(bufferLine), false,
                           "init printk_formats failed");
-        } else if (curType == CONTENT_TYPE_KALLSYMS) {
+        } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_KALLSYMS)) {
             TS_CHECK_TRUE(ksymsProcessor_->HandleKallSyms(bufferLine), false, "init printk_formats failed");
         } else {
             TS_LOGW("Raw Trace Type(%d) Unknown or has been parsed.", curType);

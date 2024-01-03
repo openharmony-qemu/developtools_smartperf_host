@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneStartup } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneStartup.js';
+import { TabPaneStartup } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneStartup';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -24,12 +23,12 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorkerAppStartup.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerAppStartup', () => {
   return {
     AppStartupStruct: {
       getStartupName: jest.fn().mockReturnValue('Unknown Start Step'),

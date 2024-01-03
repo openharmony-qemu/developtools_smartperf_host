@@ -45,7 +45,7 @@ export class TabPaneHiLogSummary extends BaseElement {
     this.expansionDownIcon!.name = 'down';
     this.logSummaryTable!.innerHTML = '';
     this.summaryDownLoadTbl!.recycleDataSource = [];
-    this.systemLogSource = systemLogDetailParam.hiLogs;
+    this.systemLogSource = systemLogDetailParam.sysAlllogsData;
     if (this.systemLogSource?.length !== 0 && systemLogDetailParam) {
       this.refreshRowNodeTable();
     }

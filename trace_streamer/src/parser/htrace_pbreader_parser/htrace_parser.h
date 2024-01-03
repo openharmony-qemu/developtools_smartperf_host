@@ -145,8 +145,8 @@ private:
     bool hasGotSegLength_ = false;
     bool hasGotHeader_ = false;
     uint32_t nextLength_ = 0;
-    const size_t PACKET_SEG_LENGTH = 4;
-    const size_t PACKET_HEADER_LENGTH = 1024;
+    const size_t packetSegLength = 4;
+    const size_t packetHeaderLength = 1024;
     TraceDataCache* traceDataCache_;
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
     std::unique_ptr<HtraceSymbolsDetailParser> htraceSymbolsDetailParser_;
@@ -164,7 +164,7 @@ private:
     std::unique_ptr<PerfDataParser> perfDataParser_;
     std::unique_ptr<EbpfDataParser> ebpfDataParser_;
     std::atomic<bool> filterThreadStarted_{false};
-    const int32_t MAX_SEG_ARRAY_SIZE = 10000;
+    const int32_t maxSegArraySize = 10000;
     std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     int32_t rawDataHead_ = 0;
     bool toExit_ = false;
@@ -174,10 +174,8 @@ private:
     size_t htraceLength_ = 1024;
     const int32_t sleepDur_ = 100;
     bool parseThreadStarted_ = false;
-    const int32_t maxThread_ = 4;
     int32_t parserThreadCount_ = 0;
     std::mutex htraceDataSegMux_ = {};
-    bool supportThread_ = false;
     ClockId dataSourceTypeTraceClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeMemClockid_ = TS_CLOCK_UNKNOW;
     ClockId dataSourceTypeHilogClockid_ = TS_CLOCK_UNKNOW;

@@ -15,18 +15,15 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import {
-  queryDmaSampsData,
-  queryGpuMemoryData,
-  querySmapsData,
   querySmapsExits,
-  queryVmTrackerShmData,
-  queryPurgeableProcessData,
-  queryGpuTotalData,
   queryGpuTotalType,
-  queryGpuWindowData,
   queryGpuWindowType,
-  queryGpuData,
-  queryGpuResourceData,
+  queryisExistsGpuMemoryData,
+  queryisExistsGpuData,
+  queryisExistsGpuResourceData,
+  queryisExistsShmData,
+  queryisExistsDmaData,
+  queryisExistsPurgeableData,
 } from '../../database/SqlLite';
 import { TraceRow } from '../trace/base/TraceRow';
 import { type BaseStruct } from '../../bean/BaseStruct';
@@ -38,6 +35,18 @@ import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/Pr
 import { type TreeItemData } from '../../../base-ui/tree/LitTree';
 import { MemoryConfig } from '../../bean/MemoryConfig';
 import { TabPaneSmapsRecord } from '../trace/sheet/smaps/TabPaneSmapsRecord';
+import {
+  dmaDataSender,
+  gpuGpuDataSender,
+  gpuMemoryDataSender,
+  gpuResourceDataSender,
+  gpuTotalDataSender,
+  gpuWindowDataSender,
+  purgeableDataSender,
+  sMapsDataSender,
+  shmDataSender,
+} from '../../database/data-trafic/VmTrackerDataSender';
+import { resetVmTracker } from '../../database/data-trafic/VmTrackerDataReceiver';
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;
@@ -76,38 +85,49 @@ export class VmTrackerChart {
     for (const rowName of rowNameList) {
       await this.initSmapsRows(rowName);
     }
-    await this.initShmRows();
+    const isExistsShm = await queryisExistsShmData(this.memoryConfig.iPid);
+    const isExistsDma = await queryisExistsDmaData(this.memoryConfig.iPid);
+    if (isExistsShm[0].data_exists) {
+      await this.initShmRows();
+    }
     await this.initPurgeableVM();
-    await this.initDmaRow();
-    const gpuMemoryData = await queryGpuMemoryData(this.memoryConfig.iPid);
-    const gpuResource = await queryGpuResourceData(this.scratchId);
-    const graphArr = await queryGpuData(MemoryConfig.getInstance().iPid, "'mem.graph_pss'").then((res) => {
-      res.forEach((graph, index) => {
-        (graph as any).name = `SnapShot ${index}`;
-      });
-      return res as SnapshotStruct[];
-    });
-    const glArr = await queryGpuData(MemoryConfig.getInstance().iPid, "'mem.gl_pss'").then((res) => {
-      res.forEach((gl, index) => {
-        (gl as any).name = `SnapShot ${index}`;
-      });
-      return res as SnapshotStruct[];
-    });
-    if (gpuMemoryData.length > 0 || glArr.length > 0) {
+    // @ts-ignore
+    if (isExistsDma[0].data_exists) {
+      await this.initDmaRow();
+    }
+    const isExistsGpuMemory = await queryisExistsGpuMemoryData(this.memoryConfig.iPid);
+    const isExistsGpuResource = await queryisExistsGpuResourceData(this.scratchId);
+    const isExistsGraph = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.graph_pss'");
+    const isExistsGl = await queryisExistsGpuData(MemoryConfig.getInstance().iPid, "'mem.gl_pss'");
+
+    if (
+      // @ts-ignore
+      isExistsGpuMemory[0].data_exists ||
+      // @ts-ignore
+      isExistsGpuResource[0].data_exists ||
+      // @ts-ignore
+      isExistsGraph[0].data_exists ||
+      // @ts-ignore
+      isExistsGl[0].data_exists
+    ) {
       await this.initGpuFolder();
-      if (gpuMemoryData.length > 0) {
-        await this.initGpuMemoryRow(gpuMemoryData);
+      //   @ts-ignore
+      if (isExistsGpuMemory[0].data_exists) {
+        await this.initGpuMemoryRow();
       }
-      if (gpuResource.length > 0) {
-        await this.initGpuResourceRow(gpuResource);
+      // @ts-ignore
+      if (isExistsGpuResource[0].data_exists) {
+        await this.initGpuResourceRow(this.scratchId);
       } else {
         this.smapsRecordTab!.GLESHostCache = [];
       }
-      if (graphArr.length > 0) {
-        await this.addGpuGraphRow(graphArr);
+      // @ts-ignore
+      if (isExistsGraph[0].data_exists) {
+        await this.addGpuGraphRow();
       }
-      await this.addGpuGLRow(glArr);
-      if (glArr.length > 0) {
+      // @ts-ignore
+      if (isExistsGl[0].data_exists) {
+        await this.addGpuGLRow();
         await this.addGpuTotalRow();
         await this.addGpuWindowRow();
       }
@@ -127,7 +147,7 @@ export class VmTrackerChart {
     VmTrackerRow.name = `VM Tracker (${this.memoryConfig.processName} ${this.memoryConfig.pid})`;
     VmTrackerRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     VmTrackerRow.selectChangeHandler = this.trace.selectChangeHandler;
-    VmTrackerRow.supplier = (): Promise<Array<SnapshotStruct>> =>
+    VmTrackerRow.supplierFrame = (): Promise<Array<SnapshotStruct>> =>
       new Promise<Array<SnapshotStruct>>((resolve) => resolve([]));
     VmTrackerRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
@@ -149,7 +169,7 @@ export class VmTrackerChart {
           VmTrackerRow
         );
       }
-      VmTrackerRow.canvasRestore(context);
+      VmTrackerRow.canvasRestore(context, this.trace);
     };
     this.rowFolder = VmTrackerRow;
     this.trace.rowsEL?.appendChild(VmTrackerRow);
@@ -168,7 +188,7 @@ export class VmTrackerChart {
     sMapsRow.style.width = '100%';
     sMapsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     sMapsRow.selectChangeHandler = this.trace.selectChangeHandler;
-    sMapsRow.supplier = (): Promise<Array<SnapshotStruct>> =>
+    sMapsRow.supplierFrame = (): Promise<Array<SnapshotStruct>> =>
       new Promise<Array<SnapshotStruct>>((resolve) => resolve([]));
     sMapsRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
@@ -190,7 +210,7 @@ export class VmTrackerChart {
           sMapsRow
         );
       }
-      sMapsRow.canvasRestore(context);
+      sMapsRow.canvasRestore(context, this.trace);
     };
     this.sMapsFolder = sMapsRow;
     this.rowFolder?.addChildTraceRow(sMapsRow);
@@ -208,7 +228,7 @@ export class VmTrackerChart {
     gpuTraceRow.name = 'GPU';
     gpuTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     gpuTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    gpuTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
+    gpuTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> =>
       new Promise<Array<SnapshotStruct>>((resolve) => resolve([]));
     gpuTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
@@ -230,7 +250,7 @@ export class VmTrackerChart {
           gpuTraceRow
         );
       }
-      gpuTraceRow.canvasRestore(context);
+      gpuTraceRow.canvasRestore(context, this.trace);
     };
     this.gpuFolder = gpuTraceRow;
     this.rowFolder.addChildTraceRow(gpuTraceRow);
@@ -260,79 +280,74 @@ export class VmTrackerChart {
     let sMapsTraceRow = this.initTraceRow(rowName, TraceRow.ROW_TYPE_VM_TRACKER_SMAPS, 'smapsRow');
     sMapsTraceRow.rowHidden = !this.sMapsFolder.expansion;
     sMapsTraceRow.folderTextLeft = 40;
-    let sMapsData = await querySmapsData(this.getSmapsKeyName(rowName));
-    for (let i = 0; i < sMapsData.length; i++) {
-      sMapsData[i].name = `Snapshot${i}`;
-    }
-    sMapsTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-      new Promise<Array<SnapshotStruct>>((resolve) => resolve(sMapsData));
+    sMapsTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return sMapsDataSender(this.getSmapsKeyName(rowName), sMapsTraceRow).then((sMaps: any[]) => {
+        this.setName(sMaps);
+        return sMaps;
+      });
+    };
     this.sMapsFolder.addChildTraceRow(sMapsTraceRow);
   };
 
   private initShmRows = async (): Promise<void> => {
     let shmTraceRow = this.initTraceRow('SHM', TraceRow.ROW_TYPE_VMTRACKER_SHM, 'VmTrackerRow');
-    let shmData = await queryVmTrackerShmData(this.memoryConfig.iPid);
-    for (let i = 0; i < shmData.length; i++) {
-      shmData[i].name = `Snapshot${i}`;
-    }
-    shmTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-      new Promise<Array<SnapshotStruct>>((resolve) => resolve(shmData));
-    if (shmData.length > 0) {
-      this.rowFolder.addChildTraceRow(shmTraceRow);
-    }
+    shmTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return shmDataSender(this.memoryConfig.iPid, shmTraceRow).then((shmData: any[]) => {
+        this.setName(shmData);
+        return shmData;
+      });
+    };
+    this.rowFolder.addChildTraceRow(shmTraceRow);
   };
 
   private async initPurgeableTotal(): Promise<void> {
-    let purgeableTotalData = await queryPurgeableProcessData(this.memoryConfig.iPid);
-    if (purgeableTotalData.length > 0) {
-      for (let i = 0; i < purgeableTotalData.length; i++) {
-        purgeableTotalData[i].name = `Snapshot${i}`;
-      }
-      let totalTraceRow = this.initTraceRow('Purgeable Total', TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM, 'VmTrackerRow');
-      totalTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-        new Promise<Array<SnapshotStruct>>((resolve) => resolve(purgeableTotalData));
-      this.rowFolder.addChildTraceRow(totalTraceRow);
-    }
+    let totalTraceRow = this.initTraceRow('Purgeable Total', TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM, 'VmTrackerRow');
+    totalTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return purgeableDataSender(this.memoryConfig.iPid, totalTraceRow, false).then((purgeableTotalData: any[]) => {
+        this.setName(purgeableTotalData);
+        return purgeableTotalData;
+      });
+    };
+    this.rowFolder.addChildTraceRow(totalTraceRow);
   }
 
   private async initPurgeablePin(): Promise<void> {
-    let purgeablePinData = await queryPurgeableProcessData(this.memoryConfig.iPid, true);
-    if (purgeablePinData.length > 0) {
-      for (let i = 0; i < purgeablePinData.length; i++) {
-        purgeablePinData[i].name = `Snapshot${i}`;
-      }
-      let pinTraceRow = this.initTraceRow('Purgeable Pin', TraceRow.ROW_TYPE_PURGEABLE_PIN_VM, 'VmTrackerRow');
-      pinTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-        new Promise<Array<SnapshotStruct>>((resolve) => resolve(purgeablePinData));
-      this.rowFolder.addChildTraceRow(pinTraceRow);
-    }
+    let pinTraceRow = this.initTraceRow('Purgeable Pin', TraceRow.ROW_TYPE_PURGEABLE_PIN_VM, 'VmTrackerRow');
+    pinTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return purgeableDataSender(this.memoryConfig.iPid, pinTraceRow, true).then((purgeablePinData: any[]) => {
+        this.setName(purgeablePinData);
+        return purgeablePinData;
+      });
+    };
+    this.rowFolder.addChildTraceRow(pinTraceRow);
   }
 
   private initPurgeableVM = async (): Promise<void> => {
     let time = new Date().getTime();
-    await this.initPurgeableTotal();
-    await this.initPurgeablePin();
+    const isExistsPurgeableTotal = await queryisExistsPurgeableData(this.memoryConfig.iPid, false);
+    const isExistsPurgeablePin = await queryisExistsPurgeableData(this.memoryConfig.iPid, true);
+    if (isExistsPurgeableTotal[0].data_exists) {
+      await this.initPurgeableTotal();
+    }
+    if (isExistsPurgeablePin[0].data_exists) {
+      await this.initPurgeablePin();
+    }
     let durTime = new Date().getTime() - time;
     info('The time to load the VM Purgeable is: ', durTime);
   };
 
   private initDmaRow = async (): Promise<void> => {
-    let dmaData = await queryDmaSampsData(this.memoryConfig.iPid);
-    if (dmaData.length > 0) {
-      for (let i = 0; i < dmaData.length; i++) {
-        dmaData[i].name = `Snapshot${i}`;
-      }
-      let dmaTraceRow = this.initTraceRow('DMA', TraceRow.ROW_TYPE_DMA_VMTRACKER, 'VmTrackerRow');
-      dmaTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-        new Promise<Array<SnapshotStruct>>((resolve) => resolve(dmaData));
-      this.rowFolder.addChildTraceRow(dmaTraceRow);
-    }
+    let dmaTraceRow = this.initTraceRow('DMA', TraceRow.ROW_TYPE_DMA_VMTRACKER, 'VmTrackerRow');
+    dmaTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return dmaDataSender(this.memoryConfig.iPid, dmaTraceRow).then((dmaData: any[]) => {
+        this.setName(dmaData);
+        return dmaData;
+      });
+    };
+    this.rowFolder.addChildTraceRow(dmaTraceRow);
   };
 
-  private initGpuMemoryRow = async (gpuMemoryData: Array<SnapshotStruct>): Promise<void> => {
-    for (let i = 0; i < gpuMemoryData.length; i++) {
-      gpuMemoryData[i].name = `Snapshot${i}`;
-    }
+  private initGpuMemoryRow = async (): Promise<void> => {
     let gpuMemoryTraceRow = this.initTraceRow(
       'Skia Gpu Memory',
       TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER,
@@ -340,17 +355,16 @@ export class VmTrackerChart {
     );
     gpuMemoryTraceRow.rowHidden = !this.gpuFolder.expansion;
     gpuMemoryTraceRow.folderTextLeft = 40;
-    gpuMemoryTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-      new Promise<Array<SnapshotStruct>>((resolve) => resolve(gpuMemoryData));
+    gpuMemoryTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return gpuMemoryDataSender(this.memoryConfig.iPid, gpuMemoryTraceRow).then((gpuMemoryData: any[]) => {
+        this.setName(gpuMemoryData);
+        return gpuMemoryData;
+      });
+    };
     this.gpuFolder.addChildTraceRow(gpuMemoryTraceRow);
   };
 
-  private initGpuResourceRow = async (gpuResourceData: Array<SnapshotStruct>): Promise<void> => {
-    for (let i = 0; i < gpuResourceData.length; i++) {
-      gpuResourceData[i].name = `Snapshot${i}`;
-    }
-    // 将泳道图数据传递给Native Heap Tab页
-    this.smapsRecordTab!.GLESHostCache = gpuResourceData;
+  private initGpuResourceRow = async (scratchId: number): Promise<void> => {
     let gpuMemoryTraceRow = this.initTraceRow(
       'Gpu Resource',
       TraceRow.ROW_TYPE_GPU_RESOURCE_VMTRACKER,
@@ -358,32 +372,46 @@ export class VmTrackerChart {
     );
     gpuMemoryTraceRow.rowHidden = !this.gpuFolder.expansion;
     gpuMemoryTraceRow.folderTextLeft = 40;
-    gpuMemoryTraceRow.supplier = (): Promise<Array<SnapshotStruct>> =>
-      new Promise<Array<SnapshotStruct>>((resolve) => resolve(gpuResourceData));
+    gpuMemoryTraceRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return gpuResourceDataSender(scratchId, gpuMemoryTraceRow).then((gpuResourceData: any[]) => {
+        this.setName(gpuResourceData);
+        // 将泳道图数据传递给Native Heap Tab页
+        this.smapsRecordTab!.GLESHostCache = gpuResourceData;
+        return gpuResourceData;
+      });
+    };
     this.gpuFolder.addChildTraceRow(gpuMemoryTraceRow);
   };
 
-  private async addGpuGraphRow(graphArr: Array<SnapshotStruct>): Promise<void> {
+  private async addGpuGraphRow(): Promise<void> {
     let graphRow = this.initTraceRow('Graph', TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH, this.gpuFolder.rowId!);
     graphRow.addTemplateTypes('sys-memory');
     graphRow.folderTextLeft = 40;
-    graphRow.supplier = () => new Promise((resolve) => resolve(graphArr));
+    graphRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
+      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.graph_pss'", graphRow).then((graphData: any[]) => {
+        this.setName(graphData);
+        return graphData;
+      });
+    };
     this.gpuFolder.addChildTraceRow(graphRow);
   }
 
-  private async addGpuGLRow(glArr: Array<SnapshotStruct>): Promise<void> {
-    if (glArr.length > 0) {
-      let glRow = this.initTraceRow('GL', TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL, this.gpuFolder.rowId!);
-      glRow.addTemplateTypes('sys-memory');
-      glRow.folderTextLeft = 40;
-      glRow.supplier = (): Promise<SnapshotStruct[]> => new Promise((resolve) => resolve(glArr));
-      this.gpuFolder.addChildTraceRow(glRow);
-    }
+  private async addGpuGLRow(): Promise<void> {
+    let glRow = this.initTraceRow('GL', TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL, this.gpuFolder.rowId!);
+    glRow.addTemplateTypes('sys-memory');
+    glRow.folderTextLeft = 40;
+    glRow.supplierFrame = (): Promise<SnapshotStruct[]> => {
+      return gpuGpuDataSender(this.memoryConfig.iPid, "'mem.gl_pss'", glRow).then((glData: any[]) => {
+        this.setName(glData);
+        return glData;
+      });
+    };
+    this.gpuFolder.addChildTraceRow(glRow);
   }
 
   private async addGpuTotalRow(): Promise<void> {
     let types = await queryGpuTotalType();
-    if (!types || types.length == 0) {
+    if (!types || types.length === 0) {
       return;
     }
     let gpuTotalRow = this.initTraceRow(
@@ -421,15 +449,14 @@ export class VmTrackerChart {
         gpuTotalRow.dataList = [];
         gpuTotalRow.isComplete = false;
         VmTrackerChart.gpuTotalModule = setting[0] === 'total' ? null : parseInt(setting[0]);
-        this.trace.refreshCanvas(false);
+        gpuTotalRow.needRefresh = true;
+        gpuTotalRow.drawFrame();
       }
     };
-    gpuTotalRow.supplier = (): Promise<Array<SnapshotStruct>> => {
-      return queryGpuTotalData(VmTrackerChart.gpuTotalModule).then((res) => {
-        res.forEach((it, index) => {
-          (it as any).name = `SnapShot ${index}`;
-        });
-        return res as SnapshotStruct[];
+    gpuTotalRow.supplierFrame = (): Promise<Array<SnapshotStruct>> => {
+      return gpuTotalDataSender(VmTrackerChart.gpuTotalModule, gpuTotalRow).then((gpuTotalData: any[]) => {
+        this.setName(gpuTotalData);
+        return gpuTotalData;
       });
     };
     this.gpuFolder.addChildTraceRow(gpuTotalRow);
@@ -480,16 +507,17 @@ export class VmTrackerChart {
         gpuWindowRow.dataListCache = [];
         gpuWindowRow.dataList = [];
         gpuWindowRow.isComplete = false;
-        this.trace.refreshCanvas(false);
+        gpuWindowRow.needRefresh = true;
+        gpuWindowRow.drawFrame();
       }
     };
-    gpuWindowRow.supplier = () => {
-      return queryGpuWindowData(VmTrackerChart.gpuWindow!, VmTrackerChart.gpuWindowModule).then((res) => {
-        res.forEach((window, index) => {
-          (window as any).name = `SnapShot ${index}`;
-        });
-        return res as SnapshotStruct[];
-      });
+    gpuWindowRow.supplierFrame = () => {
+      return gpuWindowDataSender(VmTrackerChart.gpuWindow!, VmTrackerChart.gpuWindowModule, gpuWindowRow).then(
+        (gpuWindowData: any[]) => {
+          this.setName(gpuWindowData);
+          return gpuWindowData;
+        }
+      );
     };
     this.gpuFolder.addChildTraceRow(gpuWindowRow);
   }
@@ -528,7 +556,7 @@ export class VmTrackerChart {
         },
         vmTrackerTraceRow
       );
-      vmTrackerTraceRow.canvasRestore(context);
+      vmTrackerTraceRow.canvasRestore(context, this.trace);
     };
     return vmTrackerTraceRow;
   }
@@ -540,5 +568,13 @@ export class VmTrackerChart {
       `<span>Name: ${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
       <span>Size: ${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
     );
+  }
+
+  private setName(data: Array<any>): void {
+    if (data.length > 0) {
+      data.forEach((item, index) => {
+        item.name = `SnapShot ${index}`;
+      });
+    }
   }
 }

@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneVirtualMemoryStatistics } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics.js';
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+import { TabPaneVirtualMemoryStatistics } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics';
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||

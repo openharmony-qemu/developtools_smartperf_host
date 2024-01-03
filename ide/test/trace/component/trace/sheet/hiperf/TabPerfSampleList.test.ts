@@ -13,14 +13,13 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { TabPerfSampleList } from '../../../../../../dist/trace/component/trace/sheet/hiperf/TabPerfSampleList.js';
-import '../../../../../../dist/trace/component/trace/sheet/hiperf/TabPerfSampleList.js';
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { TabPerfSampleList } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfSampleList';
+import '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfSampleList';
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

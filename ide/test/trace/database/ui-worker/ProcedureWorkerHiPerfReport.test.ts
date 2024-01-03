@@ -13,19 +13,17 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
 import {
   HiPerfReport,
   HiPerfReportStruct,
   HiperfReportRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHiPerfReport.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon';
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfReport';
+import { Rect } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
 describe('ProcedureWorkerHiPerfReport Test', () => {
   it('ProcedureWorkerHiPerfReportTest01', () => {

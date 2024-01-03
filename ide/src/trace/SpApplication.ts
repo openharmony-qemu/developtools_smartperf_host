@@ -59,7 +59,7 @@ import { type SpKeyboard } from './component/SpKeyboard';
 import './component/SpKeyboard';
 import { parseKeyPathJson } from './component/Utils';
 import { Utils } from './component/trace/base/Utils';
-import '../base-ui/chart/scatter/LitChartScatter';
+import "../base-ui/chart/scatter/LitChartScatter";
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -158,6 +158,10 @@ export class SpApplication extends BaseElement {
 
   get wasm(): boolean {
     return this.hasAttribute('wasm');
+  }
+
+  set wasm(d: any) {
+    this.setAttribute('wasm', '');
   }
 
   get server(): boolean {
@@ -684,11 +688,17 @@ export class SpApplication extends BaseElement {
     litSearch.valueChangeHandler = (value: string) => {
       litSearch!.isClearValue = false;
       if (value.length > 0) {
-        let list = spSystemTrace!.searchCPU(value);
-        spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
-          if (litSearch.searchValue != '') {
-            litSearch.list = spSystemTrace!.searchSdk(mixedResults, value);
-          }
+        let list: any[] = [];
+        progressEL.loading = true;
+        spSystemTrace!.searchCPU(value).then((cpus) => {
+          list = cpus;
+          spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
+            if (litSearch.searchValue != '') {
+              litSearch.list = spSystemTrace!.searchSdk(mixedResults, value);
+              litSearch.index = spSystemTrace!.showStruct(false, -1, litSearch.list);
+            }
+            progressEL.loading = false;
+          });
         });
       } else {
         let indexEL = litSearch.shadowRoot!.querySelector<HTMLSpanElement>('#index');
@@ -701,10 +711,10 @@ export class SpApplication extends BaseElement {
         spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
       }
     };
-    spSystemTrace?.addEventListener('previous-data', (ev: any) => {
+    spSystemTrace?.addEventListener('trace-previous-data', (ev: any) => {
       litSearch.index = spSystemTrace!.showStruct(true, litSearch.index, litSearch.list);
     });
-    spSystemTrace?.addEventListener('next-data', (ev: any) => {
+    spSystemTrace?.addEventListener('trace-next-data', (ev: any) => {
       litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
     });
 
@@ -767,7 +777,7 @@ export class SpApplication extends BaseElement {
               litSearch.setPercent('Json Parse Failed!', -1);
               window.setTimeout(() => {
                 litSearch.setPercent('Json Parse Failed!', 101);
-              }, 2000);
+              }, 1000);
             }
           } else {
             window.publish(window.SmartEvent.UI.KeyPath, []);
@@ -869,7 +879,7 @@ export class SpApplication extends BaseElement {
 
     function postLog(filename: string, fileSize: string) {
       log('postLog filename is: ' + filename + ' fileSize: ' + fileSize);
-      fetch(`https://${window.location.host.split(':')[0]}:9000/logger`, {
+      fetch(`https://${window.location.host.split(':')[0]}:${window.location.port}/logger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -984,6 +994,7 @@ export class SpApplication extends BaseElement {
         //if cpu count > 1 or SchedulingAnalysis config 'enable'  then show Scheduling-Analysis menu else hide it
         menus.splice(1, 1);
       }
+
       return menus;
     }
 
@@ -1086,7 +1097,7 @@ export class SpApplication extends BaseElement {
         } else {
           fd.append('file', ev as any);
         }
-        let uploadPath = `https://${window.location.host.split(':')[0]}:9000/application/upload`;
+        let uploadPath = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/upload`;
         if (that.vs) {
           uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/application/upload`;
         }
@@ -1115,7 +1126,7 @@ export class SpApplication extends BaseElement {
             if (res != undefined) {
               dbName = res;
               info('get trace db');
-              let loadPath = `https://${window.location.host.split(':')[0]}:9000`;
+              let loadPath = `https://${window.location.host.split(':')[0]}:${window.location.port}`;
               if (that.vs) {
                 loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`;
               }
@@ -1283,6 +1294,11 @@ export class SpApplication extends BaseElement {
                 );
                 getTraceFileByPage(that.currentPageNum);
               });
+            } else {
+              progressEL.loading = false;
+              litSearch.setPercent('The basic trace file in the large-file scenario is missing!', -1);
+              that.freshMenuDisable(false);
+              return;
             }
           },
           'long_trace'
@@ -1474,6 +1490,7 @@ export class SpApplication extends BaseElement {
                 if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
                   isAllowTrace = false;
                 }
+                cutTraceFile.style.display = 'block';
                 DbPool.sharedBuffer = null;
               }
               let index = 2;
@@ -1589,7 +1606,6 @@ export class SpApplication extends BaseElement {
 
     let openFileInit = () => {
       this.clearTraceFileCache();
-      cutTraceFile.style.display = 'block';
       SpStatisticsHttpUtil.addOrdinaryVisitAction({
         event: 'open_trace',
         action: 'open_trace',
@@ -1643,27 +1659,46 @@ export class SpApplication extends BaseElement {
         let traceTypePage: Array<number> = [];
         let allFileSize = 0;
         let readSize = 0;
+        let normalTraceNames: Array<string> = [];
+        let specialTraceNames: Array<string> = [];
         for (let index = 0; index < detail.length; index++) {
           let file = detail[index];
           let fileName = file.name as string;
           allFileSize += file.size;
-          if (that.fileTypeList.some((fileType) => fileName.toLowerCase().includes(fileType))) {
-            continue;
+          let specialMatch = fileName.match(/_(arkts|ebpf|hiperf)\.htrace$/);
+          let normalMatch = fileName.match(/_\d{8}_\d{6}_\d+\.htrace$/);
+          if (normalMatch) {
+            normalTraceNames.push(fileName);
+            let fileNameStr = fileName.split('.')[0];
+            let pageMatch = fileNameStr.match(/\d+$/);
+            if (pageMatch) {
+              traceTypePage.push(Number(pageMatch[0]));
+            }
+          } else if (specialMatch) {
+            specialTraceNames.push(fileName);
           }
-          let firstLastIndexOf = fileName.lastIndexOf('.');
-          let firstText = fileName.slice(0, firstLastIndexOf);
-          let resultLastIndexOf = firstText.lastIndexOf('_');
-          traceTypePage.push(Number(firstText.slice(resultLastIndexOf + 1, firstText.length)) - 1);
+        }
+        if (normalTraceNames.length <= 0) {
+          progressEL.loading = false;
+          litSearch.setPercent('No large trace files exists in the folder!', -1);
+          that.freshMenuDisable(false);
+          return;
         }
         traceTypePage.sort((leftNum: number, rightNum: number) => leftNum - rightNum);
-        const readFiles = async (files: FileList, traceTypePage: Array<number>) => {
+        const readFiles = async (files: FileList, traceTypePage: Array<number>, normalNames: Array<string>, specialNames: Array<string>) => {
           const promises = Array.from(files).map((file) => {
-            let types = that.fileTypeList.filter((type) => file.name.toLowerCase().includes(type.toLowerCase()));
-            return readFile(file, types, traceTypePage);
+            if (normalNames.indexOf(file.name.toLowerCase()) >= 0) {
+              return readFile(file, true, traceTypePage);
+            } else if (specialNames.indexOf(file.name.toLowerCase()) >= 0) {
+              return readFile(file, false, traceTypePage);
+            } else {
+              return;
+            }
           });
           return Promise.all(promises);
         };
-        const readFile = async (file: any, types: Array<string>, traceTypePage: Array<number>) => {
+        const readFile = async (file: any, isNormalType: boolean, traceTypePage: Array<number>) => {
+          info('reading long trace file ', file.name);
           return new Promise((resolve, reject) => {
             let fileName = file.name;
             let fr = new FileReader();
@@ -1677,14 +1712,14 @@ export class SpApplication extends BaseElement {
             let maxSize = 48 * 1024 * 1024;
             let fileType = 'trace';
             let pageNumber = 0;
-            if (types.length > 0) {
-              fileType = types[0];
+            let firstLastIndexOf = fileName.lastIndexOf('.');
+            let firstText = fileName.slice(0, firstLastIndexOf);
+            let resultLastIndexOf = firstText.lastIndexOf('_');
+            let searchResult = firstText.slice(resultLastIndexOf + 1, firstText.length)
+            if (isNormalType) {
+              pageNumber = traceTypePage.lastIndexOf(Number(searchResult) + 1);
             } else {
-              let firstLastIndexOf = fileName.lastIndexOf('.');
-              let firstText = fileName.slice(0, firstLastIndexOf);
-              let resultLastIndexOf = firstText.lastIndexOf('_');
-              let searchNumber = Number(firstText.slice(resultLastIndexOf + 1, firstText.length)) - 1;
-              pageNumber = traceTypePage.lastIndexOf(searchNumber);
+              fileType = searchResult;
             }
             let chunk = maxSize;
             let offset = 0;
@@ -1704,7 +1739,7 @@ export class SpApplication extends BaseElement {
                   timStamp: timStamp,
                 })
                 .then(() => {
-                  if (index === 1 && types.length === 0) {
+                  if (index === 1 && isNormalType) {
                     that.longTraceHeadMessageList.push({
                       pageNum: pageNumber,
                       data: data.slice(offset, 1024),
@@ -1759,10 +1794,11 @@ export class SpApplication extends BaseElement {
             fr.onerror = function () {
               reject(false);
             };
+            info('read over long trace file ', file.name);
           });
         };
         litSearch.setPercent('Read in file: ', 1);
-        readFiles(detail, traceTypePage).then(() => {
+        readFiles(detail, traceTypePage, normalTraceNames, specialTraceNames).then(() => {
           litSearch.setPercent('Cut in file: ', 1);
           sendCutFileMessage(timStamp);
         });
@@ -2371,16 +2407,8 @@ export class SpApplication extends BaseElement {
       return;
     }
     let recordStartNS = (window as any).recordStartNS;
-    let offset = Math.floor((cutRightNs - cutLeftNs) * 0.1);
-    let cutLeftTs = recordStartNS + cutLeftNs - offset;
-    if (cutLeftNs - offset < 0) {
-      cutLeftTs = recordStartNS;
-    }
-    let recordEndNS = (window as any).recordEndNS;
-    let cutRightTs = recordStartNS + cutRightNs + offset;
-    if (cutRightTs > recordEndNS) {
-      cutRightTs = recordEndNS;
-    }
+    let cutLeftTs = recordStartNS + cutLeftNs;
+    let cutRightTs = recordStartNS + cutRightNs;
     let minCutDur = 1_000_000;
     if (cutRightTs - cutLeftTs < minCutDur) {
       let unitTs = (cutRightTs - cutLeftTs) / 2;
@@ -2392,14 +2420,13 @@ export class SpApplication extends BaseElement {
     threadPool.cutFile(cutLeftTs, cutRightTs, (status: boolean, msg: string, cutBuffer?: ArrayBuffer) => {
       progressEL.loading = false;
       if (status) {
+        FlagsConfig.updateFlagsConfig('FfrtConvert', 'Disabled');
         let traceFileName = this.traceFileName as string;
         let cutIndex = traceFileName.indexOf('_cut_');
         let fileType = traceFileName.substring(traceFileName.lastIndexOf('.'));
         let traceName = document.title.replace(/\s*\([^)]*\)/g, '').trim();
         if (cutIndex != -1) {
           traceName = traceName.substring(0, cutIndex);
-        } else {
-          traceName = traceName;
         }
         let blobUrl = URL.createObjectURL(new Blob([cutBuffer!]));
         window.open(
@@ -2478,7 +2505,7 @@ export class SpApplication extends BaseElement {
     if (isServer) {
       if (dbName != '') {
         let file = dbName?.substring(0, dbName?.lastIndexOf('.')) + fileName.substring(fileName.lastIndexOf('.'));
-        a.href = `https://${window.location.host.split(':')[0]}:9000` + file;
+        a.href = `https://${window.location.host.split(':')[0]}:${window.location.port}` + file;
       } else {
         return;
       }
@@ -2552,33 +2579,20 @@ export class SpApplication extends BaseElement {
             });
           }
         } else {
-          const fd = new FormData();
-          fd.append('convertType', 'download');
-          fd.append('filePath', filePath);
-          fd.append('file', new File([DbPool.sharedBuffer!], fileName));
-          Cmd.uploadFile(fd, (res: Response) => {
-            if (res.ok) {
-              this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
+          this.readTraceFileBuffer().then((buffer) => {
+            if (buffer) {
+              const fd = new FormData();
+              fd.append('convertType', 'download');
+              fd.append('filePath', filePath);
+              fd.append('file', new File([buffer], fileName));
+              Cmd.uploadFile(fd, (res: Response) => {
+                if (res.ok) {
+                  this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
+                }
+              });
             }
           });
         }
-      }
-    });
-  }
-
-  private stopDownLoading(mainMenu: LitMainMenu, title: string = 'Download File') {
-    let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>('lit-main-menu-group');
-    querySelectorAll!.forEach((menuGroup) => {
-      let attribute = menuGroup.getAttribute('title');
-      if (attribute === 'Current Trace') {
-        let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-        querySelectors.forEach((item) => {
-          if (item.getAttribute('title') == title) {
-            item!.setAttribute('icon', 'download');
-            let querySelector1 = item!.shadowRoot?.querySelector('.icon') as LitIcon;
-            querySelector1.removeAttribute('spin');
-          }
-        });
       }
     });
   }

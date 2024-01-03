@@ -80,7 +80,7 @@ export class TabCpuDetailsThreads extends BaseElement {
       'Threads in Freq ' + it.value;
     this.progress!.loading = true;
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       'scheduling-CPU Frequency Thread',
       { cpu: cpu, freq: (it as any).value },
       undefined,

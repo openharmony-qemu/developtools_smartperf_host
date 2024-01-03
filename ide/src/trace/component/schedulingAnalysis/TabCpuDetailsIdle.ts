@@ -154,7 +154,7 @@ export class TabCpuDetailsIdle extends BaseElement {
   queryLoginWorker(idleType: string, log: string, handler: (res: any) => void) {
     let cpuDetailsldleTime = new Date().getTime();
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       idleType,
       {
         endTs: SpSchedulingAnalysis.endTs,

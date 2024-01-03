@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitSlider } from '../../../dist/base-ui/slider/LitSlider.js';
+import { LitSlider } from '../../../src/base-ui/slider/LitSlider';
 
 describe('LitSlider Test', () => {
   let litSliderPanel = new LitSlider();

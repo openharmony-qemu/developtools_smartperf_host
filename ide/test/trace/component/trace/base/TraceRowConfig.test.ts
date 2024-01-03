@@ -13,12 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRowConfig } from '../../../../../dist/trace/component/trace/base/TraceRowConfig.js';
-// @ts-ignore
-import { TraceRow } from '../../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { SpApplication } from '../../../../../dist/trace/SpApplication.js';
+import { TraceRowConfig } from '../../../../../src/trace/component/trace/base/TraceRowConfig';
+import { TraceRow } from '../../../../../src/trace/component/trace/base/TraceRow';
+import { SpApplication } from '../../../../../src/trace/SpApplication';
 
 describe('TraceRowConfig Test', () => {
   document.body.innerHTML = `<div><trace-row-config id="config"></trace-row-config>

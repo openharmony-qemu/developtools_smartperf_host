@@ -12,18 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPaneGpuMemoryAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneGpuMemoryAbility.js';
+import { TabPaneGpuMemoryAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneGpuMemoryAbility';
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
     return {}
 });
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
     return {};
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({

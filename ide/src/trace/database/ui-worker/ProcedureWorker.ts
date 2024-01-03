@@ -32,7 +32,7 @@ import { HiperfThreadRender } from './ProcedureWorkerHiPerfThread';
 import { HiperfEventRender } from './ProcedureWorkerHiPerfEvent';
 import { HiperfReportRender } from './ProcedureWorkerHiPerfReport';
 import { VirtualMemoryRender } from './ProcedureWorkerVirtualMemory';
-import { FileSystemRender } from './ProcedureWorkerFileSystem';
+import { EBPFRender } from './ProcedureWorkerEBPF';
 import { info } from '../../../log/Log';
 import { SdkSliceRender } from './ProduceWorkerSdkSlice';
 import { SdkCounterRender } from './ProduceWorkerSdkCounter';
@@ -58,6 +58,9 @@ import { SnapshotRender } from './ProcedureWorkerSnapshot';
 import { LogRender } from './ProcedureWorkerLog';
 import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart';
 import { HiSysEventRender } from './ProcedureWorkerHiSysEvent';
+import { HiperfCpuRender2 } from './ProcedureWorkerHiPerfCPU2';
+import { HiperfProcessRender2 } from './ProcedureWorkerHiPerfProcess2';
+import { HiperfThreadRender2 } from './ProcedureWorkerHiPerfThread2';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
 import { BinderRender } from './procedureWorkerBinder';
@@ -77,7 +80,7 @@ export let renders: any = {
   'virtual-memory-folder': new EmptyRender(),
   'virtual-memory-cell': new VirtualMemoryRender(),
   'file-system-group': new EmptyRender(),
-  'file-system-cell': new FileSystemRender(),
+  'file-system-cell': new EBPFRender(),
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
@@ -92,9 +95,12 @@ export let renders: any = {
   'HiPerf-Group': new EmptyRender(),
   monitorGroup: new EmptyRender(),
   'HiPerf-Cpu': new HiperfCpuRender(),
+  'HiPerf-Cpu-2': new HiperfCpuRender2(),
   'HiPerf-callchart': new HiPerfCallChartRender(),
   'HiPerf-Process': new HiperfProcessRender(),
+  'HiPerf-Process-2': new HiperfProcessRender2(),
   'HiPerf-Thread': new HiperfThreadRender(),
+  'HiPerf-Thread-2': new HiperfThreadRender2(),
   'HiPerf-Report-Event': new HiperfEventRender(),
   'HiPerf-Report-Fold': new HiperfReportRender(),
   monitorCpu: new CpuAbilityRender(),

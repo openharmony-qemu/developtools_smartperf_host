@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRowObject } from '../../../../../dist/trace/component/trace/base/TraceRowObject.js';
+import { TraceRowObject } from '../../../../../src/trace/component/trace/base/TraceRowObject';
 
 describe('TraceRow Test', () => {
   beforeAll(() => {});

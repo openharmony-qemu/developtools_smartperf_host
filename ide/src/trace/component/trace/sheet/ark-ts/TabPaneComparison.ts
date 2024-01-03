@@ -261,12 +261,12 @@ export class TabPaneComparison extends BaseElement {
     this.classFilter();
   }
 
-  initComparison(data: HeapSnapshotStruct, dataList: Array<HeapSnapshotStruct>) {
+  initComparison(data: HeapSnapshotStruct, dataListCache: Array<HeapSnapshotStruct>) {
     this.clear();
     this.retainerTableEl!.snapshotDataSource = [];
     let fileArr: HeapSnapshotStruct[] = [];
     let that = this;
-    for (let file of dataList) {
+    for (let file of dataListCache) {
       if (file.id !== data.id) {
         fileArr.push(file);
       }

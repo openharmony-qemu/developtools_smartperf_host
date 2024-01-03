@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { ConstructorItem, ConstructorComparison,FileInfo,AllocationFunction } from '../../../dist/js-heap/model/UiStruct.js';
+import { ConstructorItem, ConstructorComparison,FileInfo,AllocationFunction } from '../../../src/js-heap/model/UiStruct';
 
-jest.mock('../../../dist/js-heap/logic/HeapLoader.js', () => {
+jest.mock('../../../src/js-heap/logic/HeapLoader', () => {
     return {};
 });
-jest.mock('../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {});
 describe('UiStruct Test', () => {
     it('UiStructTest01', () => {
         let constructorItem = new ConstructorItem();

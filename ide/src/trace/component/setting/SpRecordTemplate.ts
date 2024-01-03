@@ -152,7 +152,7 @@ export class SpRecordTemplate extends BaseElement {
         hitraceCategories: hitraceCategories,
         flushIntervalMs: 1000,
         hitraceApps: [],
-        bufferSizeKb: 102400,
+        bufferSizeKb: 2048,
         debugOn: false,
         flushThresholdKb: 4096,
         clock: 'boot',

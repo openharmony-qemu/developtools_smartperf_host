@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-//@ts-ignore
 import {
   ChartStruct,
   Msg,
@@ -27,7 +26,7 @@ import {
   JsProfilerSymbol,
   DataCache,
   //@ts-ignore
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerCommon.js';
+} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerCommon';
 describe('ProcedureLogicWorkerCommon Test', () => {
   it('ChartStructTest', function () {
     let chartStruct = new ChartStruct();

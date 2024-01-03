@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPanePTS } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPanePTS.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+import { TabPanePTS } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPanePTS';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 window.ResizeObserver =
   window.ResizeObserver ||

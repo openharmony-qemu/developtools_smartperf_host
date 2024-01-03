@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import LitSwitch from '../../../dist/base-ui/switch/lit-switch';
+import LitSwitch from '../../../src/base-ui/switch/lit-switch';
 
 describe('LitSwitch Test', () => {
   let litSwitch = new LitSwitch();

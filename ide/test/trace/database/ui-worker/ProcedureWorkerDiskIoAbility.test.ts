@@ -13,20 +13,17 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
 import {
   DiskAbilityMonitorStruct,
   diskIoAbility,
   DiskIoAbilityRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerDiskIoAbility.js';
-//@ts-ignore
-import { Rect } from '../../../dist/trace/database/ProcedureWorkerCommon';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerDiskIoAbility';
+import { Rect } from '../../../src/trace/database/ProcedureWorkerCommon';
 
 describe('ProcedureWorkerDiskIoAbility Test', () => {
   const canvas = document.createElement('canvas');

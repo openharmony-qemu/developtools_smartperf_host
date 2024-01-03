@@ -30,68 +30,26 @@ SystemEventFilterTable::SystemEventFilterTable(const TraceDataCache* dataCache) 
 
 SystemEventFilterTable::~SystemEventFilterTable() {}
 
-void SystemEventFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void SystemEventFilterTable::FilterByConstraint(FilterConstraints& eventfc,
+                                                double& eventfilterCost,
+                                                size_t eventrowCount,
+                                                uint32_t eventcurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    auto rowCount = dataCache_->GetConstSysMeasureFilterData().Size();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::ID:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void SystemEventFilterTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    const auto& eventc = eventfc.GetConstraints()[eventcurrenti];
+    switch (static_cast<Index>(eventc.col)) {
+        case Index::ID: {
+            auto eventoldRowCount = eventrowCount;
+            if (CanFilterSorted(eventc.op, eventrowCount)) {
+                eventfc.UpdateConstraint(eventcurrenti, true);
+                eventfilterCost += log2(eventoldRowCount); // binary search
+            } else {
+                eventfilterCost += eventoldRowCount;
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::ID: {
-                auto oldRowCount = rowCount;
-                if (CanFilterSorted(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += log2(oldRowCount); // binary search
-                } else {
-                    filterCost += oldRowCount;
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                              // other column
+            eventfilterCost += eventrowCount; // scan all rows
+            break;
     }
 }
 
@@ -219,6 +177,20 @@ void SystemEventFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op,
         default:
             // can't filter, all rows
             break;
+    }
+}
+
+void SystemEventFilterTable::GetOrbyes(FilterConstraints& eventfc, EstimatedIndexInfo& eventei)
+{
+    auto eventorderbys = eventfc.GetOrderBys();
+    for (auto i = 0; i < eventorderbys.size(); i++) {
+        switch (static_cast<Index>(eventorderbys[i].iColumn)) {
+            case Index::ID:
+                break;
+            default: // other columns can be sorted by SQLite
+                eventei.isOrdered = false;
+                break;
+        }
     }
 }
 } // namespace TraceStreamer

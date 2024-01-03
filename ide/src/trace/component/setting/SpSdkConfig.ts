@@ -21,6 +21,7 @@ import '../../../base-ui/switch/lit-switch';
 import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
 import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
+
 @element('sp-sdk-config')
 export class SpSdkConfig extends BaseElement {
   private worker: Worker | undefined;
@@ -167,7 +168,6 @@ export class SpSdkConfig extends BaseElement {
         if (window.useWb) {
           return;
         }
-
         this.worker = new Worker(new URL('../../database/ConfigWorker', import.meta.url));
       }
     } catch (e) {}

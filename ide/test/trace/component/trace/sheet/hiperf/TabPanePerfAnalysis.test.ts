@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { TabPanePerfAnalysis } from '../../../../../../dist/trace/component/trace/sheet/hiperf/TabPanePerfAnalysis.js';
+import { TabPanePerfAnalysis } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPanePerfAnalysis';
 import crypto from 'crypto';
-//@ts-ignore
-import { queryHiPerfProcessCount } from '../../../../../../dist/trace/database/SqlLite.js';
-//@ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import { queryHiPerfProcessCount } from '../../../../../../src/trace/database/SqlLite';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
-import '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
 // @ts-ignore
 window.ResizeObserver =
@@ -31,7 +28,7 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 Object.defineProperty(global.self, 'crypto', {
   value: {
@@ -39,25 +36,25 @@ Object.defineProperty(global.self, 'crypto', {
   },
 });
 
-jest.mock('../../../../../../dist/base-ui/chart/pie/LitChartPie.js', () => {
+jest.mock('../../../../../../src/base-ui/chart/pie/LitChartPie', () => {
   return {};
 });
 
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {};
 });
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {
     initSort: ()=>{}
   };

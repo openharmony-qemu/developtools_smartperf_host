@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
@@ -42,6 +42,7 @@ export class ClockRender extends Render {
       paddingTop: 5,
       useCache: clockReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(clockReq.context, clockFilter, row);
     clockReq.context.beginPath();
     let find = false;
     for (let re of clockFilter) {

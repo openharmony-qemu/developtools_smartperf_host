@@ -14,7 +14,14 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { BaseStruct, dataFilterHandler, isFrameContainPoint, Render, RequestMessage } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  dataFilterHandler,
+  drawLoadingFrame,
+  isFrameContainPoint,
+  Render,
+  RequestMessage,
+} from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class FreqRender extends Render {
@@ -38,6 +45,7 @@ export class FreqRender extends Render {
       paddingTop: 5,
       useCache: freqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(freqReq.context, freqFilter, row);
     freqReq.context.beginPath();
     let find = false;
     for (let re of freqFilter) {

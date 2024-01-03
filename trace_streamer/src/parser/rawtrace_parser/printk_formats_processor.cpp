@@ -53,9 +53,9 @@ bool PrintkFormatsProcessor::HandlePrintkSyms(const std::string& printkFormats)
         if (pos == std::string::npos) {
             continue;
         }
-        std::string addrInfo = Strip(curLine.substr(0, pos));
+        std::string addrInfo = base::Strip(curLine.substr(0, pos));
         addr = base::StrToInt<uint64_t>(addrInfo, base::INTEGER_RADIX_TYPE_HEX).value();
-        curSymbol = Strip(curLine.substr(pos + 1));
+        curSymbol = base::Strip(curLine.substr(pos + 1));
         if (curSymbol.back() == '"') {
             curSymbol.pop_back();
         }

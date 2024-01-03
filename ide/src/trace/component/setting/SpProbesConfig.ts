@@ -66,7 +66,7 @@ export class SpProbesConfig extends BaseElement {
     if (this.ftraceBufferSizeResult?.hasAttribute('percent')) {
       return Number(this.ftraceBufferSizeResult?.getAttribute('percent'));
     }
-    return 102400;
+    return 20480;
   }
 
   get memoryConfig() {
@@ -312,7 +312,7 @@ export class SpProbesConfig extends BaseElement {
     ftraceBufferSizeSlider.sliderStyle = {
       minRange: 2048,
       maxRange: 307200,
-      defaultValue: '102400',
+      defaultValue: '20480',
       resultUnit: 'KB',
       stepSize: 2,
       lineColor: 'var(--dark-color3,#46B1E3)',
@@ -332,10 +332,10 @@ export class SpProbesConfig extends BaseElement {
       if (this.ftraceBufferSizeResult!.hasAttribute('percent')) {
         ftraceBuffSizeResultInput.value = Number(this.ftraceBufferSizeResult!.getAttribute('percent')).toString();
       } else {
-        ftraceBuffSizeResultInput.value = '102400';
+        ftraceBuffSizeResultInput.value = '20480';
       }
     });
-    ftraceBufferSizeSliderParent.setAttribute('percent', '102400');
+    ftraceBufferSizeSliderParent.setAttribute('percent', '20480');
     ftraceBuffSizeResultInput.style.color = 'var(--dark-color1,#000000)';
     ftraceBuffSizeResultInput.addEventListener('input', (ev) => {
       if (this.ftraceBufferSizeResult!.hasAttribute('percent')) {
@@ -346,7 +346,7 @@ export class SpProbesConfig extends BaseElement {
       ftraceBuffSizeResultInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
       if (ftraceBuffSizeResultInput.value.trim() === '') {
         ftraceBuffSizeResultInput.style.color = 'red';
-        ftraceBufferSizeSliderParent.setAttribute('percent', '102400');
+        ftraceBufferSizeSliderParent.setAttribute('percent', '20480');
         return;
       }
       let ftraceBufferSize = Number(ftraceBuffSizeResultInput.value);
@@ -355,7 +355,7 @@ export class SpProbesConfig extends BaseElement {
         ftraceBufferSize > ftraceBufferSizeSlider!.sliderStyle.maxRange
       ) {
         ftraceBuffSizeResultInput.parentElement!.classList.add('border-red');
-        ftraceBufferSizeSliderParent.setAttribute('percent', '102400');
+        ftraceBufferSizeSliderParent.setAttribute('percent', '20480');
       } else {
         ftraceBuffSizeResultInput.parentElement!.classList.remove('border-red');
         ftraceBufferSizeSlider!.percent = ftraceBuffSizeResultInput.value;
@@ -368,8 +368,8 @@ export class SpProbesConfig extends BaseElement {
     ftraceBuffSizeResultInput.addEventListener('focusout', (ev) => {
       if (ftraceBuffSizeResultInput.value.trim() === '') {
         ftraceBuffSizeResultInput.parentElement!.classList.remove('border-red');
-        ftraceBufferSizeSliderParent.setAttribute('percent', '102400');
-        ftraceBuffSizeResultInput.value = '102400';
+        ftraceBufferSizeSliderParent.setAttribute('percent', '20480');
+        ftraceBuffSizeResultInput.value = '20480';
         ftraceBuffSizeResultInput.style.color = 'var(--dark-color,#6a6f77)';
         ftraceBufferSizeSliderParent.setAttribute('percent', ftraceBuffSizeResultInput.value);
         ftraceBufferSizeSliderParent.setAttribute('percentValue', ftraceBuffSizeResultInput.value);
@@ -587,7 +587,7 @@ export class SpProbesConfig extends BaseElement {
                           <lit-slider id="ftrace-buff-size-slider" defaultColor="var(--dark-color3,#46B1E3)" open dir="right">
                           </lit-slider>
                           <div class='ftrace-buff-size-result-div' >
-                              <input class="ftrace-buff-size-result" type="text" value='102400' oninput="if(this.value > 307200){this.value = '307200'} if(this.value > 0 && this.value.toString().startsWith('0')){ this.value = Number(this.value) }" onkeyup="this.value=this.value.replace(/\\D/g,'')">
+                              <input class="ftrace-buff-size-result" type="text" value='20480' oninput="if(this.value > 307200){this.value = '307200'} if(this.value > 0 && this.value.toString().startsWith('0')){ this.value = Number(this.value) }" onkeyup="this.value=this.value.replace(/\\D/g,'')">
                               <span style="text-align: center; margin: 8px"> KB </span>
                            </div>
                        </div>

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTableColumn } from '../../../dist/base-ui/table/lit-table-column.js';
+import { LitTableColumn } from '../../../src/base-ui/table/lit-table-column';
 
 describe('LitTableGroup Test', () => {
   let litTableColumn = new LitTableColumn();

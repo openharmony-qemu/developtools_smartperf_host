@@ -13,28 +13,23 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { EventCenter } from '../../../../../dist/trace/component/trace/base/EventCenter.js';
-jest.mock('../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { EventCenter } from '../../../../../src/trace/component/trace/base/EventCenter';
+jest.mock('../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../dist/trace/component/SpSystemTrace.js', () => {
+jest.mock('../../../../../src/trace/component/SpSystemTrace', () => {
   return {
     CurrentSlicesTime:() => {},
   };
 });
 
-// @ts-ignore
-import { SportRuler } from '../../../../../dist/trace/component/trace/timer-shaft/SportRuler.js';
-// @ts-ignore
-import { TimerShaftElement } from '../../../../../dist/trace/component/trace/TimerShaftElement.js';
-// @ts-ignore
-import { Flag } from '../../../../../dist/trace/component/trace/timer-shaft/Flag.js';
-// @ts-ignore
-import { TraceRow, RangeSelectStruct } from '../../../../../dist/trace/component/trace/base/TraceRow.js';
+import { SportRuler } from '../../../../../src/trace/component/trace/timer-shaft/SportRuler';
+import { TimerShaftElement } from '../../../../../src/trace/component/trace/TimerShaftElement';
+import { Flag } from '../../../../../src/trace/component/trace/timer-shaft/Flag';
+import { TraceRow, RangeSelectStruct } from '../../../../../src/trace/component/trace/base/TraceRow';
 
 const intersectionObserverMock = () => ({
   observe: () => null,
@@ -87,10 +82,7 @@ describe('SportRuler Test', () => {
   canvas.width = 1;
   canvas.height = 1;
   const ctx = canvas.getContext('2d');
-
-  document.body.innerHTML = '<timer-shaft-element id="timerShaftEL"><timer-shaft-element>';
-
-  let timerShaftElement = document.querySelector('#timerShaftEL') as TimerShaftElement;
+  let timerShaftElement = document.createElement('timer-shaft-element');
 
   let sportRuler = new SportRuler(
     timerShaftElement,
@@ -103,7 +95,9 @@ describe('SportRuler Test', () => {
     () => {},
     () => {}
   );
-  sportRuler.c = ctx;
+  sportRuler.context2D = ctx;
+  sportRuler.canvas = canvas;
+  sportRuler.timerShaftEL = timerShaftElement;
   sportRuler.range = {
     totalNS: 20,
     startX: 0,

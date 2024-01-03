@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneFreqDataCut } from '../../../../../../dist/trace/component/trace/sheet/frequsage/TabPaneFreqDataCut.js';
+import { TabPaneFreqDataCut } from '../../../../../../src/trace/component/trace/sheet/frequsage/TabPaneFreqDataCut';
 
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
     snapshotDataSource: () => {
     },
@@ -25,10 +24,20 @@ jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
     },
   };
 });
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
 });
 
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 describe('TabPaneFreqDataCut Test', () => {
   let data = {
     leftNs: 0,

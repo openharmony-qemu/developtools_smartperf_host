@@ -28,8 +28,6 @@ import {
 export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   selectTotalSize = 0;
   selectTotalCount = 0;
-  stackCount = 0;
-  NATIVE_MEMORY_DATA: Array<NativeEvent> = [];
   currentTreeMapData: any = {};
   currentTreeList: any[] = [];
   queryAllCallchainsSamples: NativeHookStatistics[] = [];
@@ -38,11 +36,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   splitMapData: any = {};
   searchValue: string = '';
   currentEventId: string = '';
-  chartComplete: Map<number, boolean> = new Map<number, boolean>();
   realTimeDif: number = 0;
   responseTypes: { key: number; value: string }[] = [];
   totalNS: number = 0;
-  isAnalysis: boolean = false;
   isStatistic: boolean = false;
   boxRangeNativeHook: Array<NativeMemory> = [];
   clearBoxSelectionData: boolean = false;
@@ -60,11 +56,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           if (data.params.isRealtime) {
             this.realTimeDif = data.params.realTimeDif;
           }
-          this.dataCache.dataDict = data.params.dataDict;
-          this.initNMChartData();
-          break;
-        case 'native-memory-queryNMChartData':
-          this.NATIVE_MEMORY_DATA = convertJSON(data.params.list) || [];
           this.initNMFrameData();
           break;
         case 'native-memory-queryNMFrameData':
@@ -185,11 +176,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
             });
           }
           break;
-        case 'native-memory-chart-action':
-          if (data.params) {
-            postMessage(data.id, data.action, this.resolvingActionNativeMemoryChartData(data.params));
-          }
-          break;
         case 'native-memory-calltree-action':
           if (data.params) {
             self.postMessage({
@@ -214,15 +200,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
             results: this.responseTypes,
           });
           break;
-        case 'native-memory-queryNativeHookStatistic':
-          if (data.params.list) {
-            let arr = this.statisticDataHandler(convertJSON(data.params.list));
-            postMessage(data.id, data.action, this.handleNativeHookStatisticData(arr));
-          } else {
-            this.totalNS = data.params.totalNS;
-            this.queryNativeHookStatistic(data.params.type, data.params.ipid);
-          }
-          break;
         case 'native-memory-reset':
           this.isHideThread = false;
           break;
@@ -230,60 +207,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           this.currentSelectIPid = data.params;
       }
     }
-  }
-
-  initNMChartData(): void {
-    this.queryData(
-      this.currentEventId,
-      'native-memory-queryNMChartData',
-      `
-            select * from (
-                select 
-                    h.start_ts - t.start_ts as startTime,
-                    h.heap_size as heapSize,
-                    (case when h.event_type = 'AllocEvent' then 0 else 1 end) as eventType,
-                    ipid
-                from native_hook h ,trace_range t
-                where h.start_ts between t.start_ts and t.end_ts
-                    and (h.event_type = 'AllocEvent' or h.event_type = 'MmapEvent')
-                union all
-                select 
-                    h.end_ts - t.start_ts as startTime,
-                    h.heap_size as heapSize,
-                    (case when h.event_type = 'AllocEvent' then 2 else 3 end) as eventType,
-                    ipid
-                from native_hook h ,trace_range t
-                where 
-                  h.start_ts between t.start_ts and t.end_ts
-                  and h.end_ts between t.start_ts and t.end_ts
-                  and (h.event_type = 'AllocEvent' or h.event_type = 'MmapEvent')
-            )
-            order by startTime;
-        `,
-      {}
-    );
-  }
-
-  queryNativeHookStatistic(type: number, ipid: number): void {
-    let condition: string;
-    if (type === 0) {
-      condition = 'and type = 0';
-    } else if (type === 1) {
-      condition = 'and type > 0';
-    } else {
-      condition = '';
-    }
-    let sql = `select callchain_id callchainId,
-       ts - start_ts as ts,
-       apply_count applyCount,
-       apply_size applySize,
-       release_count releaseCount,
-       release_size releaseSize
-  from native_hook_statistic,trace_range
-  where ts between start_ts and end_ts ${condition}
-        and ipid = ${ipid}
-        `;
-    this.queryData(this.currentEventId, 'native-memory-queryNativeHookStatistic', sql, {});
   }
 
   queryNativeHookEvent(leftNs: number, rightNs: number, types: Array<string>): void {
@@ -371,94 +294,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     }
   }
 
-  statisticDataHandler(arr: Array<any>): {
-    startTime: number;
-    heapsize: number;
-    density: number;
-    dur: number;
-  }[] {
-    let callGroupMap: Map<number, any[]> = new Map<number, any[]>();
-    let obj = {};
-    for (let hook of arr) {
-      if ((obj as any)[hook.ts]) {
-        let data = (obj as any)[hook.ts] as any;
-        data.startTime = hook.ts;
-        data.dur = 0;
-        if (callGroupMap.has(hook.callchainId)) {
-          let calls = callGroupMap.get(hook.callchainId);
-          let last = calls![calls!.length - 1];
-          data.heapsize += hook.applySize - last.applySize - (hook.releaseSize - last.releaseSize);
-          data.density += hook.applyCount - last.applyCount - (hook.releaseCount - last.releaseCount);
-          calls!.push(hook);
-        } else {
-          data.heapsize += hook.applySize - hook.releaseSize;
-          data.density += hook.applyCount - hook.releaseCount;
-          callGroupMap.set(hook.callchainId, [hook]);
-        }
-      } else {
-        let data: any = {};
-        data.startTime = hook.ts;
-        data.dur = 0;
-        if (callGroupMap.has(hook.callchainId)) {
-          let calls = callGroupMap.get(hook.callchainId);
-          let last = calls![calls!.length - 1];
-          data.heapsize = hook.applySize - last.applySize - (hook.releaseSize - last.releaseSize);
-          data.density = hook.applyCount - last.applyCount - (hook.releaseCount - last.releaseCount);
-          calls!.push(hook);
-        } else {
-          data.heapsize = hook.applySize - hook.releaseSize;
-          data.density = hook.applyCount - hook.releaseCount;
-          callGroupMap.set(hook.callchainId, [hook]);
-        }
-        (obj as any)[hook.ts] = data;
-      }
-    }
-    return Object.values(obj) as {
-      startTime: number;
-      heapsize: number;
-      density: number;
-      dur: number;
-    }[];
-  }
-
-  handleNativeHookStatisticData(
-    arr: {
-      startTime: number;
-      heapsize: number;
-      density: number;
-      dur: number;
-    }[]
-  ): {
-    startTime: number;
-    heapsize: number;
-    density: number;
-    dur: number;
-  }[] {
-    let maxSize = 0,
-      maxDensity = 0,
-      minSize = 0,
-      minDensity = 0;
-    for (let i = 0, len = arr.length; i < len; i++) {
-      if (i === len - 1) {
-        arr[i].dur = this.totalNS - arr[i].startTime;
-      } else {
-        arr[i + 1].heapsize = arr[i].heapsize + arr[i + 1].heapsize;
-        arr[i + 1].density = arr[i].density + arr[i + 1].density;
-        arr[i].dur = arr[i + 1].startTime - arr[i].startTime;
-      }
-      maxSize = Math.max(maxSize, arr[i].heapsize);
-      maxDensity = Math.max(maxDensity, arr[i].density);
-      minSize = Math.min(minSize, arr[i].heapsize);
-      minDensity = Math.min(minDensity, arr[i].density);
-    }
-    return arr.map((it) => {
-      (it as any).maxHeapSize = maxSize;
-      (it as any).maxDensity = maxDensity;
-      (it as any).minHeapSize = minSize;
-      (it as any).minDensity = minDensity;
-      return it;
-    });
-  }
   initResponseTypeList(list: any[]): void {
     this.responseTypes = [
       {
@@ -517,102 +352,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       return [];
     }
   }
-  resolvingActionNativeMemoryChartData(paramMap: Map<string, any>): Array<HeapStruct> {
-    let nativeMemoryType: number = paramMap.get('nativeMemoryType') as number;
-    let totalNS: number = paramMap.get('totalNS') as number;
-    let currentIPid = paramMap.get('ipid') as number;
-    let arr: Array<HeapStruct> = [];
-    let nmMaxSize: number = 0;
-    let nmMaxDensity: number = 0;
-    let nmMinSize: number = 0;
-    let nmMinDensity: number = 0;
-    let nmTempSize: number = 0;
-    let nmTempDensity: number = 0;
-    let nmFilterLen: number = 0;
-    let nmFilterLevel: number = 0;
-    let putArr = (ne: NativeEvent, filterLevel: number, finish: boolean): void => {
-      let nmHeapStruct = new HeapStruct();
-      nmHeapStruct.startTime = ne.startTime;
-      if (arr.length === 0) {
-        if (ne.eventType === 0 || ne.eventType === 1) {
-          nmHeapStruct.density = 1;
-          nmHeapStruct.heapsize = ne.heapSize;
-        } else {
-          nmHeapStruct.density = -1;
-          nmHeapStruct.heapsize = 0 - ne.heapSize;
-        }
-        nmMaxSize = nmHeapStruct.heapsize;
-        nmMaxDensity = nmHeapStruct.density;
-        nmMinSize = nmHeapStruct.heapsize;
-        nmMinDensity = nmHeapStruct.density;
-        arr.push(nmHeapStruct);
-      } else {
-        let last = arr[arr.length - 1];
-        last.dur = nmHeapStruct.startTime! - last.startTime!;
-        if (last.dur > filterLevel || finish) {
-          if (ne.eventType === 0 || ne.eventType === 1) {
-            nmHeapStruct.density = last.density! + nmTempDensity + 1;
-            nmHeapStruct.heapsize = last.heapsize! + nmTempSize + ne.heapSize;
-          } else {
-            nmHeapStruct.density = last.density! + nmTempDensity - 1;
-            nmHeapStruct.heapsize = last.heapsize! + nmTempSize - ne.heapSize;
-          }
-          nmTempDensity = 0;
-          nmTempSize = 0;
-          if (nmHeapStruct.density > nmMaxDensity) {
-            nmMaxDensity = nmHeapStruct.density;
-          }
-          if (nmHeapStruct.density < nmMinDensity) {
-            nmMinDensity = nmHeapStruct.density;
-          }
-          if (nmHeapStruct.heapsize > nmMaxSize) {
-            nmMaxSize = nmHeapStruct.heapsize;
-          }
-          if (nmHeapStruct.heapsize < nmMinSize) {
-            nmMinSize = nmHeapStruct.heapsize;
-          }
-          arr.push(nmHeapStruct);
-        } else {
-          if (ne.eventType === 0 || ne.eventType === 1) {
-            nmTempDensity = nmTempDensity + 1;
-            nmTempSize = nmTempSize + ne.heapSize;
-          } else {
-            nmTempDensity = nmTempDensity - 1;
-            nmTempSize = nmTempSize - ne.heapSize;
-          }
-        }
-      }
-    };
-    const currentPidData = this.NATIVE_MEMORY_DATA.filter((ne: NativeEvent): boolean => ne.ipid === currentIPid);
-    if (nativeMemoryType === 1) {
-      let temp = currentPidData.filter((ne: NativeEvent): boolean => ne.eventType === 0 || ne.eventType === 2);
-      nmFilterLen = temp.length;
-      nmFilterLevel = this.getFilterLevel(nmFilterLen);
-      temp.map((ne: NativeEvent, index: number): void => putArr(ne, nmFilterLevel, index === nmFilterLen - 1));
-      temp.length = 0;
-    } else if (nativeMemoryType === 2) {
-      let temp = currentPidData.filter((ne: NativeEvent): boolean => ne.eventType === 1 || ne.eventType === 3);
-      nmFilterLen = temp.length;
-      nmFilterLevel = this.getFilterLevel(nmFilterLen);
-      temp.map((ne: NativeEvent, index: number): void => putArr(ne, nmFilterLevel, index === nmFilterLen - 1));
-      temp.length = 0;
-    } else {
-      nmFilterLen = currentPidData.length;
-      let filterLevel = this.getFilterLevel(nmFilterLen);
-      currentPidData.map((ne, index) => putArr(ne, filterLevel, index === nmFilterLen - 1));
-    }
-    if (arr.length > 0) {
-      arr[arr.length - 1].dur = totalNS - arr[arr.length - 1].startTime!;
-    }
-    arr.map((heapStruct: HeapStruct): void => {
-      heapStruct.maxHeapSize = nmMaxSize;
-      heapStruct.maxDensity = nmMaxDensity;
-      heapStruct.minHeapSize = nmMinSize;
-      heapStruct.minDensity = nmMinDensity;
-    });
-    this.chartComplete.set(nativeMemoryType, true);
-    return arr;
-  }
+
   resolvingActionNativeMemoryStack(paramMap: Map<string, any>): NativeHookCallInfo[] {
     let eventId = paramMap.get('eventId');
     let frameArr = this.dataCache.nmHeapFrameMap.get(eventId) || [];
@@ -784,8 +524,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     this.currentSamples = [];
     this.allThreads = [];
     this.queryAllCallchainsSamples = [];
-    this.NATIVE_MEMORY_DATA = [];
-    this.chartComplete.clear();
     this.realTimeDif = 0;
     this.currentTreeMapData = {};
     this.currentTreeList.length = 0;
@@ -917,49 +655,17 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         }
       }
 
-      const callChains = this.dataCache.nmHeapFrameMap.get(sample.eventId) || [];
-      if (!callChains || callChains.length === 0) {
-        analysisSample.libId = -1;
-        analysisSample.libName = 'Unknown';
-        analysisSample.symbolId = -1;
-        analysisSample.symbolName = 'Unknown';
-        analysisSampleList.push(analysisSample);
-        continue;
-      }
-      let index = callChains.length - 1;
-      let lastFilterCallChain: HeapTreeDataBean | undefined | null;
-      while (true) {
-        // if all call stack is musl or libc++. use stack top lib
-        if (index < 0) {
-          lastFilterCallChain = callChains[callChains.length - 1];
-          break;
-        }
-
-        lastFilterCallChain = callChains[index];
-        const libPath = this.dataCache.dataDict.get(lastFilterCallChain.fileId);
-        //ignore musl and libc++ so
-        if (libPath?.includes('musl') || libPath?.includes('libc++')) {
-          index--;
-        } else {
-          lastFilterCallChain = lastFilterCallChain;
-          break;
-        }
-      }
-
-      const filePath = this.dataCache.dataDict.get(lastFilterCallChain.fileId)!;
+      const filePath = this.dataCache.dataDict.get(sample.lastLibId)!;
       let libName = '';
       if (filePath) {
         const path = filePath.split('/');
         libName = path[path.length - 1];
       }
-      const symbolName =
-        this.dataCache.dataDict.get(lastFilterCallChain.symbolId) || libName + ' (' + sample.addr + ')';
-
-      analysisSample.libId = lastFilterCallChain.fileId;
-      analysisSample.libName = libName;
-      analysisSample.symbolId = lastFilterCallChain.symbolId;
-      analysisSample.symbolName = symbolName;
-
+      const symbolName = this.dataCache.dataDict.get(sample.lastSymbolId) || libName + ' (' + sample.addr + ')';
+      analysisSample.libId = sample.lastLibId || -1;
+      analysisSample.libName = libName || 'Unknown';
+      analysisSample.symbolId = sample.lastSymbolId || -1;
+      analysisSample.symbolName = symbolName || 'Unknown';;
       analysisSampleList.push(analysisSample);
     }
     return analysisSampleList;
@@ -1331,23 +1037,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       return thread.children && thread.children.length > 0;
     });
   }
-  getFilterLevel(len: number): number {
-    if (len > 300_0000) {
-      return 50_0000;
-    } else if (len > 200_0000) {
-      return 30_0000;
-    } else if (len > 100_0000) {
-      return 10_0000;
-    } else if (len > 50_0000) {
-      return 5_0000;
-    } else if (len > 30_0000) {
-      return 2_0000;
-    } else if (len > 15_0000) {
-      return 1_0000;
-    } else {
-      return 0;
-    }
-  }
 }
 
 export class NativeHookStatistics {
@@ -1466,12 +1155,6 @@ export class HeapStruct {
   maxDensity: number = 0;
   minHeapSize: number = 0;
   minDensity: number = 0;
-}
-export class NativeEvent {
-  startTime: number = 0;
-  heapSize: number = 0;
-  eventType: number = 0;
-  ipid: number = -1;
 }
 export class StatisticsSelection {
   memoryTap: string = '';

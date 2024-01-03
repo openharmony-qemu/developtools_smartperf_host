@@ -30,6 +30,10 @@ import { Utils } from '../trace/base/Utils';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { type BaseStruct } from '../../bean/BaseStruct';
+import {
+  nativeMemoryChartDataCacheSender,
+  nativeMemoryChartDataSender,
+} from '../../database/data-trafic/NativeMemoryDataSender';
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];
@@ -55,7 +59,7 @@ export class SpNativeMemoryChart {
           row
         );
       }
-      row.canvasRestore(this.trace.canvasPanelCtx!);
+      row.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
   }
 
@@ -76,7 +80,7 @@ export class SpNativeMemoryChart {
         },
         row
       );
-      row.canvasRestore(context);
+      row.canvasRestore(context, this.trace);
     };
   }
 
@@ -155,11 +159,13 @@ export class SpNativeMemoryChart {
       allHeapRow.findHoverStruct = (): void => {
         HeapStruct.hoverHeapStruct = allHeapRow.getHoverStruct();
       };
-      allHeapRow.supplier = (): Promise<HeapStruct[]> => {
-        return type === 'native_hook'
-          ? this.getNativeMemoryDataByChartType(i, allHeapRow.drawType, process.ipid)
-          : this.getNativeMemoryStatisticByChartType(i - 1, process.ipid);
-      };
+      allHeapRow.supplierFrame = (): Promise<any> =>
+        nativeMemoryChartDataSender(allHeapRow, {
+          eventType: i,
+          ipid: process.ipid,
+          model: type,
+          drawType: allHeapRow.drawType,
+        });
       this.chartThreadHandler(allHeapRow);
       folder.addChildTraceRow(allHeapRow);
     }
@@ -178,58 +184,17 @@ export class SpNativeMemoryChart {
       return;
     }
     await this.initNativeMemory();
+    await nativeMemoryChartDataCacheSender(
+      nativeProcess.map((it) => it.ipid),
+      nativeMemoryType
+    );
     SpNativeMemoryChart.EVENT_HEAP = await queryHeapGroupByEvent(nativeMemoryType);
     for (const process of nativeProcess) {
       const nativeRow = this.initNativeMemoryFolder(process.pid, process.ipid);
       this.initAllocMapChart(nativeRow, nativeMemoryType, process);
     }
-
     let durTime = new Date().getTime() - time;
     info('The time to load the Native Memory data is: ', durTime);
-  };
-
-  getNativeMemoryStatisticByChartType = async (chartType: number, ipid: number): Promise<Array<HeapStruct>> => {
-    let nmStatisticArray: Array<HeapStruct> = [];
-    await new Promise<Array<HeapStruct>>((resolve, reject) => {
-      procedurePool.submitWithName(
-        'logic1',
-        'native-memory-queryNativeHookStatistic',
-        { type: chartType, totalNS: TraceRow.range?.totalNS!, ipid: ipid },
-        undefined,
-        (res: any) => {
-          nmStatisticArray = nmStatisticArray.concat(res.data);
-          res.data = null;
-          if (res.tag === 'end') {
-            resolve(nmStatisticArray);
-          }
-        }
-      );
-    });
-    return nmStatisticArray;
-  };
-
-  getNativeMemoryDataByChartType = async (
-    nativeMemoryType: number,
-    chartType: number,
-    ipid: number
-  ): Promise<Array<HeapStruct>> => {
-    let args = new Map<string, number | string>();
-    args.set('nativeMemoryType', nativeMemoryType);
-    args.set('chartType', chartType);
-    args.set('totalNS', TraceRow.range?.totalNS!);
-    args.set('actionType', 'memory-chart');
-    args.set('ipid', ipid);
-    let nmArray: Array<HeapStruct> = [];
-    await new Promise<Array<HeapStruct>>((resolve) => {
-      procedurePool.submitWithName('logic1', 'native-memory-chart-action', args, undefined, (res: any) => {
-        nmArray = nmArray.concat(res.data);
-        res.data = null;
-        if (res.tag === 'end') {
-          resolve(nmArray);
-        }
-      });
-    });
-    return nmArray;
   };
 
   initNativeMemory = async (): Promise<void> => {
@@ -248,9 +213,9 @@ export class SpNativeMemoryChart {
     }
     await new Promise<any>((resolve) => {
       procedurePool.submitWithName(
-        'logic1',
+        'logic0',
         'native-memory-init',
-        { isRealtime, realTimeDif, dataDict: SpSystemTrace.DATA_DICT },
+        { isRealtime, realTimeDif },
         undefined,
         (res: any) => {
           resolve(res);

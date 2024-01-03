@@ -17,6 +17,7 @@ import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
+import { drawVSync } from '../../component/chart/VSync';
 
 export abstract class Render {
   abstract renderMainThread(req: any, row: TraceRow<any>): void;
@@ -310,7 +311,7 @@ export function dataFilterHandler(fullData: Array<any>, filterData: Array<any>, 
       } else {
         if (i > 0) {
           let c = slice[i][condition.startKey] - slice[i - 1][condition.startKey] - slice[i - 1][condition.durKey];
-          if (c < pns && sum < pns && !slice[i].isKeyPath) {
+          if (c < pns && sum < pns) {
             sum += c + slice[i - 1][condition.durKey];
             slice[i].v = false;
           } else {
@@ -367,6 +368,22 @@ export function ns2x(ns: number, startNS: number, endNS: number, duration: numbe
     xSize = 0;
   } else if (xSize > rect.width) {
     xSize = rect.width;
+  }
+  return xSize;
+}
+
+export function nsx(ns: number, width: number) {
+  let startNS = TraceRow.range?.startNS || 0;
+  let endNS = TraceRow.range?.endNS || 0;
+  let duration = TraceRow.range?.totalNS || 0;
+  if (endNS == 0) {
+    endNS = duration;
+  }
+  let xSize: number = ((ns - startNS) * width) / (endNS - startNS);
+  if (xSize < 0) {
+    xSize = 0;
+  } else if (xSize > width) {
+    xSize = width;
   }
   return xSize;
 }
@@ -1212,6 +1229,44 @@ export function drawLoading(
   right: number
 ) {}
 
+let loadingText = 'Loading...';
+let loadingTextWidth = 0;
+// let loadingBackground = "#eeeeee";
+let loadingBackground = '#f1f1f1';
+let loadingFont = 'bold 11pt Arial';
+let loadingFontColor = '#696969';
+export function drawLoadingFrame(
+  ctx: CanvasRenderingContext2D,
+  list: Array<any>,
+  row: TraceRow<any>,
+  sort: boolean = false
+) {
+  ctx.beginPath();
+  ctx.clearRect(0, 0, row.frame.width, row.frame.height);
+  drawLines(ctx, TraceRow.range?.xs || [], row.frame.height, '#dadada');
+  drawVSync(ctx, row.frame.width, row.frame.height);
+  if (row.loadingFrame) {
+    if (loadingTextWidth == 0) {
+      loadingTextWidth = ctx.measureText(loadingText).width;
+    }
+    let firstPx = nsx(row.loadingPin1, row.frame.width);
+    let lastPx = nsx(row.loadingPin2, row.frame.width);
+    ctx.fillStyle = loadingBackground;
+    ctx.fillRect(0, 1, firstPx, row.frame.height - 2);
+    ctx.fillRect(lastPx, 1, row.frame.width - lastPx, row.frame.height - 2);
+    ctx.fillStyle = loadingFontColor;
+    // ctx.font = loadingFont;
+    if (firstPx > loadingTextWidth) {
+      ctx.fillText(loadingText, (firstPx - loadingTextWidth) / 2, row.frame.height / 2);
+    }
+    if (row.frame.width - lastPx > loadingTextWidth) {
+      ctx.fillText(loadingText, lastPx + (row.frame.width - lastPx) / 2 - loadingTextWidth / 2, row.frame.height / 2);
+    }
+  }
+  ctx.closePath();
+  // drawSingleVSync(this.canvasPanelCtx!, this.timerShaftEL?.canvas?.clientWidth || 0, canvasHeight);
+}
+
 export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
   if (data.textMetricsWidth === undefined) {
     data.textMetricsWidth = ctx.measureText(str).width;
@@ -1344,6 +1399,27 @@ export function hiPerf(
   }
 }
 
+export function hiPerf2(filter: Array<any>, startNS: number, endNS: number, frame: any): void {
+  if (filter.length > 0) {
+    let pns = (endNS - startNS) / frame.width;
+    let y = frame.y;
+    for (let i = 0; i < filter.length; i++) {
+      let it = filter[i];
+      if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
+        if (!it.frame) {
+          it.frame = {};
+          it.frame.y = y;
+        }
+        it.frame.height = it.height;
+        HiPerfStruct.setFrame(it, pns, startNS, endNS, frame);
+      } else {
+        it.frame = null;
+      }
+    }
+    return;
+  }
+}
+
 export class HiPerfStruct extends BaseStruct {
   static hoverStruct: HiPerfStruct | undefined;
   static selectStruct: HiPerfStruct | undefined;
@@ -1360,6 +1436,7 @@ export class HiPerfStruct extends BaseStruct {
   dur: number | undefined;
   height: number | undefined;
   eventCount: number | undefined;
+  sampleCount: number | undefined;
 
   static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number) {
     cxt.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
@@ -1383,15 +1460,27 @@ export class HiPerfStruct extends BaseStruct {
     );
   }
 
-  static draw(ctx: CanvasRenderingContext2D, normalPath: Path2D, specPath: Path2D, data: any, groupBy10MS: boolean) {
+  static draw(
+    ctx: CanvasRenderingContext2D,
+    normalPath: Path2D,
+    specPath: Path2D,
+    data: any,
+    groupBy10MS: boolean,
+    textMetrics?: TextMetrics
+  ) {
     if (data.frame) {
       if (groupBy10MS) {
         let width = data.frame.width;
         normalPath.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0);
       } else {
+        data.frame.width > 4 ? (data.frame.width = 4) : (data.frame.width = data.frame.width);
         let path = data.callchain_id === -1 ? specPath : normalPath;
         path.moveTo(data.frame.x + 7, 20);
-        HiPerfStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3);
+        if (textMetrics) {
+          ctx.fillText('🄿', data.frame.x - textMetrics!.width / 2, 26); //℗©®℗®🄿
+        } else {
+          HiPerfStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3);
+        }
         path.moveTo(data.frame.x, 27);
         path.lineTo(data.frame.x, 33);
       }
@@ -1431,7 +1520,7 @@ export class HiPerfStruct extends BaseStruct {
     let maxEventCount = 0;
     let obj = groupArray
       .map((it) => {
-        it.timestamp_group = Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
+        it.timestamp_group = Math.trunc(it.startNS / 10_000_000) * 10_000_000;
         return it;
       })
       .reduce((pre, current) => {
@@ -1447,7 +1536,6 @@ export class HiPerfStruct extends BaseStruct {
           }
           maxEventCount = Math.max(pre[current['timestamp_group']].eventCount, maxEventCount);
         }
-
         return pre;
       }, {});
     let arr = [];
@@ -1465,8 +1553,9 @@ export class HiPerfStruct extends BaseStruct {
       }
       arr.push({
         startNS: ns,
-        dur: 1_000_000_0,
+        dur: 10_000_000,
         eventCount: obj[aKey].eventCount,
+        sampleCount: obj[aKey].sampleCount,
         height: height,
       });
     }

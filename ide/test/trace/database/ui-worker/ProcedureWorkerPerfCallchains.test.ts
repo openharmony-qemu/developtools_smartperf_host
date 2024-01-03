@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import {
   PerfCallChainThread,
   PerfCallChainPool,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerPerfCallchains.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerPerfCallchains';
 
 describe('ProcedureWorkerPerfCallchains Test', () => {
   it('ProcedureWorkerPerfCallchainsTest01', () => {

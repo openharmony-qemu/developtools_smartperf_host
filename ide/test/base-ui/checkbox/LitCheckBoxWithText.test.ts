@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitCheckBoxWithText } from '../../../dist/base-ui/checkbox/LitCheckBoxWithText.js';
+import { LitCheckBoxWithText } from '../../../src/base-ui/checkbox/LitCheckBoxWithText';
 
 describe('checkBoxWithText Test', () => {
   it('checkBoxWithTextTest01', function () {

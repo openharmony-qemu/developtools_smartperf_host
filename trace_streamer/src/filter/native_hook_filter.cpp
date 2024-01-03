@@ -798,12 +798,21 @@ void NativeHookFilter::UpdateSymbolIdsForSymbolizationFailed()
 {
     auto size = traceDataCache_->GetNativeHookFrameData()->Size();
     for (size_t i = 0; i < size; ++i) {
-        if (traceDataCache_->GetNativeHookFrameData()->SymbolNames()[i] == INVALID_UINT64) {
-            auto filePathIndex = traceDataCache_->GetNativeHookFrameData()->FilePaths()[i];
+        auto symbolNameIndex = traceDataCache_->GetNativeHookFrameData()->SymbolNames()[i];
+        if (symbolNameIndex != INVALID_UINT64) {
+            continue;
+        }
+        auto filePathIndex = traceDataCache_->GetNativeHookFrameData()->FilePaths()[i];
+        if (filePathIndex != INVALID_UINT64) {
             auto filePathStr = traceDataCache_->dataDict_.GetDataFromDict(filePathIndex);
             auto vaddrStr = traceDataCache_->GetNativeHookFrameData()->Vaddrs()[i];
             traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
                 i, traceDataCache_->dataDict_.GetStringIndex(filePathStr + "+" + vaddrStr));
+        } else {
+            auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[i];
+            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
+                i, traceDataCache_->dataDict_.GetStringIndex("unknown 0x" +
+                                                             base::number(ip, base::INTEGER_RADIX_TYPE_HEX)));
         }
     }
 }
@@ -988,6 +997,9 @@ void NativeHookFilter::GetCallIdToLastLibId()
             foundLast = false;
         }
         auto filePathIndex = traceDataCache_->GetNativeHookFrameData()->FilePaths()[i];
+        if (filePathIndex == INVALID_UINT64) {
+            continue;
+        }
         auto symbolIndex = traceDataCache_->GetNativeHookFrameData()->SymbolNames()[i];
         if (!traceDataCache_->GetNativeHookFrameData()->Depths()[i]) {
             callIdToLastCallerPathIndex_.insert({callChainId, std::make_tuple(filePathIndex, symbolIndex)});
@@ -1045,7 +1057,7 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::uni
         std::shared_ptr<std::set<size_t>> frameRows = nullptr;
         for (const auto& item : filePathIndexToFrameTableRowMap_) {
             auto filePath = traceDataCache_->GetDataFromDict(item.first);
-            if (EndWith(filePath, symbolsFile->filePath_)) {
+            if (base::EndWith(filePath, symbolsFile->filePath_)) {
                 frameRows = item.second;
                 break;
             }

@@ -12,13 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { SpArkTsChart } from '../../../../dist/trace/component/chart/SpArkTsChart.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
+import { SpArkTsChart } from '../../../../src/trace/component/chart/SpArkTsChart';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 describe('SpClockChart Test', () => {
   let arkTsChart = new SpArkTsChart(new SpChartManager());

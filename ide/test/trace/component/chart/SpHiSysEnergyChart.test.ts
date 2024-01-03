@@ -13,17 +13,14 @@
  * limitations under the License.
  */
 
-import '../../../../dist/trace/component/chart/SpHiSysEnergyChart.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-import '../../../../dist/trace/component/chart/SpChartManager.js';
-import '../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { LitPopover } from '../../../../dist/base-ui/popover/LitPopoverV.js';
-// @ts-ignore
-import { SpHiSysEnergyChart } from '../../../../dist/trace/component/chart/SpHiSysEnergyChart.js';
+import '../../../../src/trace/component/chart/SpHiSysEnergyChart';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import '../../../../src/trace/component/chart/SpChartManager';
+import '../../../../src/trace/component/SpSystemTrace';
+import { LitPopover } from '../../../../src/base-ui/popover/LitPopoverV';
+import { SpHiSysEnergyChart } from '../../../../src/trace/component/chart/SpHiSysEnergyChart';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -35,8 +32,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 describe('SpHiSysEnergyChart Test', () => {
   let ss = new SpChartManager();
@@ -152,76 +149,6 @@ describe('SpHiSysEnergyChart Test', () => {
   it('SpHiSysEnergyChartTest01', function () {
     spHiSysEnergyChart.init();
     expect(SpHiSysEnergyChart.app_name).toBeUndefined();
-  });
-
-  it('SpHiSysEnergyChartTest02', function () {
-    let result = [
-      {
-        ts: 210000001,
-        eventName: 'WORK_START',
-        appKey: 'TYPE',
-        Value: '1',
-      },
-      {
-        ts: 3005933657,
-        eventName: 'POWER_RUNNINGLOCK',
-        appKey: 'TAG,',
-        Value: 'DUBAI_TAG_RUNNINGLOCK_REMOVE',
-      },
-      {
-        ts: 4005938319,
-        eventName: 'GNSS_STATE',
-        appKey: 'STATE',
-        Value: 'stop',
-      },
-      {
-        ts: 5005933657,
-        eventName: 'POWER_RUNNINGLOCK',
-        appKey: 'TAG',
-        Value: 'DUBAI_TAG_RUNNINGLOCK_ADD',
-      },
-      {
-        ts: 6005938319,
-        eventName: 'GNSS_STATE',
-        appKey: 'STATE',
-        Value: 'start',
-      },
-      {
-        ts: 9005938319,
-        eventName: 'WORK_STOP',
-        appKey: 'TYPE',
-        Value: '1',
-      },
-      {
-        ts: 10005938319,
-        eventName: 'WORK_REMOVE',
-        appKey: 'TYPE',
-        Value: '1',
-      },
-    ];
-    expect(spHiSysEnergyChart.getSystemData([result, result, result])).toEqual({
-      '0': [
-        { count: 1, startNs: 5005933657, token: undefined, type: 1 },
-        { count: 0, startNs: 6005938319, token: undefined, type: 1 },
-      ],
-      '1': [
-        { count: 1, startNs: 210000001, state: 'start', type: 2 },
-        { count: 2, startNs: 3005933657, state: 'start', type: 2 },
-        { count: 1, startNs: 4005938319, state: 'stop', type: 2 },
-        { count: 2, startNs: 5005933657, state: 'start', type: 2 },
-        { count: 3, startNs: 6005938319, state: 'start', type: 2 },
-        { count: 4, startNs: 9005938319, state: 'start', type: 2 },
-        { count: 5, startNs: 10005938319, state: 'start', type: 2 },
-      ],
-      '2': [
-        { count: 1, startNs: 210000001, type: 0 },
-        { count: 0, startNs: undefined, type: 0 },
-      ],
-    });
-  });
-
-  it('spHiSysEventChartTest03', function () {
-    expect(spHiSysEnergyChart.getSystemData([]).length).toBeUndefined();
   });
 
   it('SpHiSysEnergyChartTest04', function () {

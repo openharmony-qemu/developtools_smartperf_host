@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { objectToMemorySize } from '../../../dist/hdc/common/ObjectToMemorySize.js';
+import { objectToMemorySize } from '../../../src/hdc/common/ObjectToMemorySize';
 describe('ObjectToMemoryTest', () => {
   let obj = new objectToMemorySize();
   it('ObjectToMemoryTest_objectToSize_01', () => {

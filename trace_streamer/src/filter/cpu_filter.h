@@ -30,7 +30,6 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-class TraceStreamerFilters;
 class CpuFilter : private FilterBase {
 public:
     CpuFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);

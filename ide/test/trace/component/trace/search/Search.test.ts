@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitSearch } from '../../../../../dist/trace/component/trace/search/Search.js';
+import { LitSearch } from '../../../../../src/trace/component/trace/search/Search';
 
 describe(' SearchTest', () => {
   beforeAll(() => {});

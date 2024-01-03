@@ -26,6 +26,7 @@ export class FuncStruct extends BaseStruct {
   dur: number | undefined;
   funName: string | undefined;
   id: number | undefined;
+  callid: number | undefined;
   is_main_thread: number | undefined;
   parent_id: number | undefined;
   startTs: number | undefined;

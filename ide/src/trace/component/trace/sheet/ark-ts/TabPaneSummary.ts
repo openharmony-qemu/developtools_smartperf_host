@@ -295,11 +295,11 @@ export class TabPaneSummary extends BaseElement {
 
   setSnapshotData(
     data: HeapSnapshotStruct,
-    dataList: Array<HeapSnapshotStruct>,
+    dataListCache: Array<HeapSnapshotStruct>,
     scrollCallback: ((d: HeapSnapshotStruct, ds: Array<HeapSnapshotStruct>) => void) | undefined
   ) {
     if (scrollCallback) {
-      scrollCallback(data, dataList);
+      scrollCallback(data, dataListCache);
     }
     this.summary = [];
     this.initSummaryData(data);

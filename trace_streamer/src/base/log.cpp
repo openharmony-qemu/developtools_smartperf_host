@@ -15,7 +15,7 @@
 
 #include "log.h"
 bool g_cleanMode = false;
-enum LogLevel g_curLogLevel = LOG_OFF;
+enum LogLevel g_curLogLevel = LOG_ERROR;
 
 bool SetLogLevel(std::string level)
 {

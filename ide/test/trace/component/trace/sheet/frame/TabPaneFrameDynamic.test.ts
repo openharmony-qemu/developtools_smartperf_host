@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneFrameDynamic } from '../../../../../../dist/trace/component/trace/sheet/frame/TabPaneFrameDynamic.js';
+import { TabPaneFrameDynamic } from '../../../../../../src/trace/component/trace/sheet/frame/TabPaneFrameDynamic';
 
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 

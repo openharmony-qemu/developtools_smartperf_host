@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import {PowerDetailsEnergy, SystemDetailsEnergy,} from '../../../dist/trace/bean/EnergyStruct.js';
+import {PowerDetailsEnergy, SystemDetailsEnergy,} from '../../../src/trace/bean/EnergyStruct';
 
 describe('EnergyStruct Test', () => {
   let powerDetailsEnergy = new PowerDetailsEnergy();

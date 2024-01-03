@@ -12,10 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabCpuAnalysis } from '../../../../dist/trace/component/schedulingAnalysis/TabCpuAnalysis.js';
-//@ts-ignore
-import { SpSchedulingAnalysis } from '../../../../dist/trace/component/schedulingAnalysis/SpSchedulingAnalysis.js';
+import { TabCpuAnalysis } from '../../../../src/trace/component/schedulingAnalysis/TabCpuAnalysis';
+import { SpSchedulingAnalysis } from '../../../../src/trace/component/schedulingAnalysis/SpSchedulingAnalysis';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

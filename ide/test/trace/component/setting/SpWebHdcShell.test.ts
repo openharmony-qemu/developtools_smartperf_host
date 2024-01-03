@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { DataMessage } from '../../../../dist/hdc/message/DataMessage.js';
+import { DataMessage } from '../../../../src/hdc/message/DataMessage';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -23,12 +22,9 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-// @ts-ignore
-import { SpWebHdcShell } from '../../../../dist/trace/component/setting/SpWebHdcShell.js';
-// @ts-ignore
-import { EventCenter } from '../../../../dist/trace/component/trace/base/EventCenter.js';
-// @ts-ignore
-import { USBHead } from '../../../../dist/hdc/message/USBHead.js';
+import { SpWebHdcShell } from '../../../../src/trace/component/setting/SpWebHdcShell';
+import { EventCenter } from '../../../../src/trace/component/trace/base/EventCenter';
+import { USBHead } from '../../../../src/hdc/message/USBHead';
 
 declare global {
   interface Window {

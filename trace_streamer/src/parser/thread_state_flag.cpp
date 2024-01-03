@@ -29,7 +29,7 @@ Direction ThreadStateFlag::SetStatByChar(char ch)
         return NEED_BREAK;
     }
 
-    state_ |= statMap_[ch];
+    state_ |= static_cast<uint32_t>(statMap_[ch]);
     return NEED_GO;
 }
 
@@ -37,7 +37,7 @@ void ThreadStateFlag::ProcessSate(const std::string& stateStr)
 {
     for (size_t i = 0; i < stateStr.size(); i++) {
         if (stateStr[i] == '+') {
-            SetStat(TASKNEW);
+            SetStat(Stat::TASKNEW);
             continue;
         }
 

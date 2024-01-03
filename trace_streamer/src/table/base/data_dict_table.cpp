@@ -28,67 +28,27 @@ DataDictTable::DataDictTable(const TraceDataCache* dataCache) : TableBase(dataCa
 
 DataDictTable::~DataDictTable() {}
 
-void DataDictTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void DataDictTable::FilterByConstraint(FilterConstraints& dictfc,
+                                       double& dictfilterCost,
+                                       size_t dictrowCount,
+                                       uint32_t dictcurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    auto rowCount = dataCache_->DataDictSize();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::ID:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void DataDictTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
+    // for loop
+    const auto& dictc = dictfc.GetConstraints()[dictcurrenti];
+    switch (static_cast<Index>(dictc.col)) {
+        case Index::ID: {
+            if (CanFilterId(dictc.op, dictrowCount)) {
+                dictfc.UpdateConstraint(dictcurrenti, true);
+                dictfilterCost += 1; // id can position by 1 step
+            } else {
+                dictfilterCost += dictrowCount; // scan all rows
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::ID: {
-                if (CanFilterId(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += 1; // id can position by 1 step
-                } else {
-                    filterCost += rowCount; // scan all rows
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                            // other column
+            dictfilterCost += dictrowCount; // scan all rows
+            break;
     }
 }
 
@@ -155,6 +115,19 @@ int32_t DataDictTable::Cursor::Column(int32_t col) const
             break;
     }
     return SQLITE_OK;
+}
+void DataDictTable::GetOrbyes(FilterConstraints& dictfc, EstimatedIndexInfo& dictei)
+{
+    auto dictorderbys = dictfc.GetOrderBys();
+    for (auto i = 0; i < dictorderbys.size(); i++) {
+        switch (static_cast<Index>(dictorderbys[i].iColumn)) {
+            case Index::ID:
+                break;
+            default: // other columns can be sorted by SQLite
+                dictei.isOrdered = false;
+                break;
+        }
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

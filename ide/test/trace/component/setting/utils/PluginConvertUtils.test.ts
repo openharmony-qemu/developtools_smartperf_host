@@ -13,31 +13,28 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { PluginConvertUtils } from '../../../../../dist/trace/component/setting/utils/PluginConvertUtils.js';
-// @ts-ignore
-import { ProfilerSessionConfigMode } from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes';
+import { PluginConvertUtils } from '../../../../../src/trace/component/setting/utils/PluginConvertUtils';
+import { ProfilerSessionConfigMode } from '../../../../../src/trace/component/setting/bean/ProfilerServiceTypes';
 
 import {
   ProfilerSessionConfigBufferConfig,
   ProfilerSessionConfigBufferConfigPolicy,
   TracePluginConfig,
   // @ts-ignore
-} from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js';
+} from '../../../../../src/trace/component/setting/bean/ProfilerServiceTypes';
 import {
   HilogConfig,
   levelFromJSON,
   Type,
   // @ts-ignore
-} from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js';
+} from '../../../../../src/trace/component/setting/bean/ProfilerServiceTypes';
 import {
   MemoryConfig,
   sysMeminfoTypeFromJSON,
   sysVMeminfoTypeFromJSON,
   // @ts-ignore
-} from '../../../../../dist/trace/component/setting/bean/ProfilerServiceTypes.js';
-// @ts-ignore
-import { SpRecordTrace } from '../../../../../dist/trace/component/SpRecordTrace.js';
+} from '../../../../../src/trace/component/setting/bean/ProfilerServiceTypes';
+import { SpRecordTrace } from '../../../../../src/trace/component/SpRecordTrace';
 
 describe('PlugConvertUtils Test', () => {
   let bufferConfig: ProfilerSessionConfigBufferConfig = {

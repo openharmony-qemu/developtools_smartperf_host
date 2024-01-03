@@ -22,55 +22,55 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-const int32_t SEND_CONTINUE = 0;
-const int32_t SEND_FINISH = 1;
+constexpr int32_t SEND_CONTINUE = 0;
+constexpr int32_t SEND_FINISH = 1;
 class SqllitePreparCacheData {
-
 public:
-    using ResultCallBack = std::function<void(const std::string& /* json or proto result */, int32_t)>;
-    using SphQueryCallBack = std::function<void(sqlite3_stmt*, uint32_t, ResultCallBack)>;
+    using TLVResultCallBack = std::function<void(const char* data, uint32_t len, uint32_t type, int32_t finish)>;
+    using SphQueryCallBack = std::function<void(sqlite3_stmt*, uint32_t, TLVResultCallBack)>;
 
 public:
     SqllitePreparCacheData();
     SqllitePreparCacheData(const SqllitePreparCacheData&) = delete;
     SqllitePreparCacheData& operator=(const SqllitePreparCacheData&) = delete;
-    std::map<uint32_t /*type*/, SphQueryCallBack> sphQueryFuncMap_;
+    std::map<uint32_t /* type */, SphQueryCallBack> sphQueryFuncMap_;
+    static const uint8_t TYPE_SIZE = sizeof(uint32_t);
 
 private:
-    void FillAndSendCpuDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendCpuFreqDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendCpuFreqLimitDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendCpuStateDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessMemDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessSoInitDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessStartupDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendClockDataDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendIrqDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendHiSysEventDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendLogDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendVirtualMemDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendFrameDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendFrameAnimationDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendFrameDynamicDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendTrackerDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendAbilityDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendFrameSpacingDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendEnergyDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendEbpfDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessThreadDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessFuncDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendHiperfDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendHiperfCallChartDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendHiperfCallStackDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessJanksFramesDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessJanksActualDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendProcessInputEventDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendHeapFilesDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendCpuProfilerDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendNativeMemoryNormalProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendNativeMemoryStatisticProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
-    void FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack);
+    void FillAndSendCpuDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendCpuFreqDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendCpuFreqLimitDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendCpuStateDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessMemDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessSoInitDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessStartupDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendClockDataDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendIrqDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendHiSysEventDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendLogDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendVirtualMemDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendFrameDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendFrameAnimationDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendFrameDynamicDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendTrackerDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendAbilityDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendFrameSpacingDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendEnergyDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendEbpfDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessThreadDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessFuncDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendHiperfDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendHiperfCallChartDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendHiperfCallStackDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessJanksFramesDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessJanksActualDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendProcessInputEventDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendHeapFilesDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendCpuProfilerDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendNativeMemoryNormalProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendNativeMemoryStatisticProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { WakeupBean } from '../../../dist/trace/bean/WakeupBean.js';
+import { WakeupBean } from '../../../src/trace/bean/WakeupBean';
 
 describe('WakeupBean Test', () => {
   let wakeUpBean = new WakeupBean();

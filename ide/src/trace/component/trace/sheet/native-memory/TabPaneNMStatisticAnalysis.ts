@@ -334,7 +334,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   private getDataByWorkerQuery(args: any, handler: Function): void {
     this.progressEL!.loading = true;
-    procedurePool.submitWithName('logic1', 'native-memory-queryAnalysis', args, undefined, (results: any) => {
+    procedurePool.submitWithName('logic0', 'native-memory-queryAnalysis', args, undefined, (results: any) => {
       handler(results);
       this.progressEL!.loading = false;
     });

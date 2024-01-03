@@ -14,7 +14,6 @@
  */
 
 #include "app_start_filter.h"
-#include "string_help.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

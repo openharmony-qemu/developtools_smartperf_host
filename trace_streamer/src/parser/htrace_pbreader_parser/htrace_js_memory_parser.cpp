@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -288,7 +287,7 @@ HtraceJSMemoryParser::HtraceJSMemoryParser(TraceDataCache* dataCache, const Trac
 {
     DIR* dir = opendir(".");
     if (dir != nullptr) {
-        struct dirent* entry;
+        dirent* entry;
         while ((entry = readdir(dir)) != nullptr) {
             std::string filename(entry->d_name);
             if (filename.find(tmpJsMemorySnapshotData_) != string::npos) {
@@ -320,7 +319,7 @@ void HtraceJSMemoryParser::ParseJSMemoryConfig(ProtoReader::BytesView tracePacke
 struct timespec HtraceJSMemoryParser::TimeToTimespec(uint64_t timeMs)
 {
     timeMs = timeMs / TIME_MILLI_SECOND;
-    struct timespec ts;
+    timespec ts;
     ts.tv_sec = timeMs / TIME_MICRO_SECOND;
     ts.tv_nsec = (timeMs % TIME_MICRO_SECOND) * TIME_MILLI_SECOND;
     return ts;
@@ -362,7 +361,7 @@ void HtraceJSMemoryParser::SerializeSnapshotData(ProfilerPluginData& profilerPlu
         streamFilters_->clockFilter_->Convert(TS_CLOCK_BOOTTIME, snapShotData_.startTime, TS_CLOCK_REALTIME);
     snapShotData_.endTime =
         streamFilters_->clockFilter_->Convert(TS_CLOCK_BOOTTIME, snapShotData_.endTime, TS_CLOCK_REALTIME);
-    struct timespec startTs = TimeToTimespec(snapShotData_.startTime);
+    timespec startTs = TimeToTimespec(snapShotData_.startTime);
     profilerPluginDataResult.set_tv_sec(startTs.tv_sec);
     profilerPluginDataResult.set_tv_nsec(startTs.tv_nsec);
     jsHeapResult.SerializeToString(&arkTsSplitFileDataResult_);
@@ -371,7 +370,7 @@ void HtraceJSMemoryParser::SerializeSnapshotData(ProfilerPluginData& profilerPlu
     profilerPluginDataResult.SerializeToString(&profilerArktsData);
     std::string endString = "";
     jsHeapResult.set_result(snapshotEnd_);
-    struct timespec endTs = TimeToTimespec(snapShotData_.endTime);
+    timespec endTs = TimeToTimespec(snapShotData_.endTime);
     profilerPluginDataResult.set_tv_sec(endTs.tv_sec);
     profilerPluginDataResult.set_tv_nsec(endTs.tv_nsec);
     jsHeapResult.SerializeToString(&endString);
@@ -393,7 +392,7 @@ void HtraceJSMemoryParser::SerializeTimelineData(uint64_t startTime,
 {
     std::string startString = "";
     jsHeapResult.set_result(snapshotEnd_);
-    struct timespec startTs = TimeToTimespec(startTime);
+    timespec startTs = TimeToTimespec(startTime);
     profilerPluginDataResult.set_tv_sec(startTs.tv_sec);
     profilerPluginDataResult.set_tv_nsec(startTs.tv_nsec);
     jsHeapResult.SerializeToString(&startString);
@@ -407,7 +406,7 @@ void HtraceJSMemoryParser::SerializeTimelineData(uint64_t startTime,
     profilerPluginDataResult.SerializeToString(&profilerArktsData);
     std::string endString = "";
     jsHeapResult.set_result(timeLineEnd_);
-    struct timespec endTs = TimeToTimespec(endTime);
+    timespec endTs = TimeToTimespec(endTime);
     profilerPluginDataResult.set_tv_sec(endTs.tv_sec);
     profilerPluginDataResult.set_tv_nsec(endTs.tv_nsec);
     jsHeapResult.SerializeToString(&endString);
@@ -432,7 +431,7 @@ void HtraceJSMemoryParser::SerializeCpuProfilerData(uint64_t startTime,
 {
     std::string startString = "";
     jsHeapResult.set_result(jsCpuProfilerStart_);
-    struct timespec startTs = TimeToTimespec(startTime);
+    timespec startTs = TimeToTimespec(startTime);
     profilerPluginDataResult.set_tv_sec(startTs.tv_sec);
     profilerPluginDataResult.set_tv_nsec(startTs.tv_nsec);
     jsHeapResult.SerializeToString(&startString);
@@ -442,7 +441,7 @@ void HtraceJSMemoryParser::SerializeCpuProfilerData(uint64_t startTime,
     jsHeapResult.set_result(ARKTS_INDEX + cpuProfilerSplitFileData_ + "}\"");
     jsHeapResult.SerializeToString(&arkTsSplitFileDataResult_);
     profilerPluginDataResult.set_data(arkTsSplitFileDataResult_);
-    struct timespec endTs = TimeToTimespec(endTime);
+    timespec endTs = TimeToTimespec(endTime);
     profilerPluginDataResult.set_tv_sec(endTs.tv_sec);
     profilerPluginDataResult.set_tv_nsec(endTs.tv_nsec);
     std::string profilerArktsData = "";

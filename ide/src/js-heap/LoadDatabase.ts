@@ -41,8 +41,8 @@ export class LoadDatabase {
 
   private async loadFile(listener: ParseListener) {
     this.fileModule = new Array<FileStruct>();
-    let result = await queryHeapFile();
-    for (let row of result) {
+    let results = await queryHeapFile();
+    for (let row of results) {
       let fileStruct = new FileStruct();
       fileStruct.id = row.id;
       fileStruct.name = row.name;

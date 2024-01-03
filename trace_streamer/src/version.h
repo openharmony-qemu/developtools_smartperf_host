@@ -17,8 +17,12 @@
 #define VERSION_H
 #include <string>
 #include <sys/types.h>
+namespace SysTuning {
+namespace TraceStreamer {
 extern size_t g_loadSize;
 extern size_t g_fileSize;
 extern const std::string g_traceStreamerVersion;        // version
 extern const std::string g_traceStreamerPublishVersion; // publish datetime
+} // namespace TraceStreamer
+} // namespace SysTuning
 #endif

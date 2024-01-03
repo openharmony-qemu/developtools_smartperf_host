@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneFileSystemDescTimeSlice } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFileSystemDescTimeSlice.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFileSystemDescTimeSlice.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneFileSystemDescTimeSlice } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFileSystemDescTimeSlice';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFileSystemDescTimeSlice';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
 Object.defineProperty(global.self, 'crypto', {
   value: {

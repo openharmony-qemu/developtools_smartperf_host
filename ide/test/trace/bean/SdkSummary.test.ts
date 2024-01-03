@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { CounterSummary, SdkSliceSummary } from '../../../dist/trace/bean/SdkSummary.js';
+import { CounterSummary, SdkSliceSummary } from '../../../src/trace/bean/SdkSummary';
 
 describe('SdkSummary Test', () => {
   it('SdkSummaryTest01', function () {

@@ -28,6 +28,7 @@ import {
   Render,
   RequestMessage,
   mem,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { CpuStruct } from './ProcedureWorkerCPU';
 import { ProcessMemStruct as BaseProcessMemStruct } from '../../bean/ProcessMemStruct';
@@ -39,7 +40,7 @@ export class MemRender extends Render {
       type: string;
     },
     row: TraceRow<ProcessMemStruct>
-  ) {
+  ): void {
     let memList = row.dataList;
     let memFilter = row.dataListCache;
     mem(
@@ -51,6 +52,7 @@ export class MemRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, memFilter, row);
     req.context.beginPath();
     let memFind = false;
     for (let re of memFilter) {
@@ -62,11 +64,13 @@ export class MemRender extends Render {
         }
       }
     }
-    if (!memFind && row.isHover) ProcessMemStruct.hoverProcessMemStruct = undefined;
+    if (!memFind && row.isHover) {
+      ProcessMemStruct.hoverProcessMemStruct = undefined;
+    }
     req.context.closePath();
   }
 
-  render(memRequest: RequestMessage, memList: Array<any>, filter: Array<any>) {
+  render(memRequest: RequestMessage, memList: Array<any>, filter: Array<any>): void {
     if (memRequest.lazyRefresh) {
       mem(
         memList,

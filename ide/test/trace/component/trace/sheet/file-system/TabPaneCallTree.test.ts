@@ -13,22 +13,19 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneCallTree } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneCallTree.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneCallTree.js';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-import '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-// @ts-ignore
-import { FrameChart } from '../../../../../../dist/trace/component/chart/FrameChart.js';
-import '../../../../../../dist/trace/component/chart/FrameChart.js';
+import { TabPaneCallTree } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneCallTree';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneCallTree';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import { FrameChart } from '../../../../../../src/trace/component/chart/FrameChart';
+import '../../../../../../src/trace/component/chart/FrameChart';
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
 import crypto from 'crypto';
-import { showButtonMenu } from '../../../../../../src/trace/component/trace/sheet/SheetUtils.js';
+import { showButtonMenu } from '../../../../../../src/trace/component/trace/sheet/SheetUtils';
 
 // @ts-ignore
 window.ResizeObserver =

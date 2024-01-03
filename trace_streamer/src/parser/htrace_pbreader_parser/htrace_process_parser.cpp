@@ -84,14 +84,14 @@ void HtraceProcessParser::Finish()
         }
         auto dur = (*itor)->ts_ - lastTs;
         lastTs = (*itor)->ts_;
-        if (!(*itor)->processInfo_->pid_) {
+        if (!(*itor)->processInfo_->pid) {
             continue;
         }
         traceDataCache_->GetLiveProcessData()->AppendNewData(
-            (*itor)->ts_, dur, (*itor)->processInfo_->pid_, (*itor)->processInfo_->name_, (*itor)->processInfo_->ppid_,
-            (*itor)->processInfo_->uid_, std::to_string((*itor)->processInfo_->uid_),
-            (*itor)->cpuUsageData_->cpu_usage_, (*itor)->pssInfo_->pss_info_, (*itor)->cpuUsageData_->cpu_time_ms_,
-            (*itor)->cpuUsageData_->thread_sum_, (*itor)->diskio_->wbytes_, (*itor)->diskio_->rbytes_);
+            (*itor)->ts_, dur, (*itor)->processInfo_->pid, (*itor)->processInfo_->name, (*itor)->processInfo_->ppid,
+            (*itor)->processInfo_->uid, std::to_string((*itor)->processInfo_->uid), (*itor)->cpuUsageData_->cpuUsage,
+            (*itor)->pssInfo_->pssInfo, (*itor)->cpuUsageData_->cpu_time_ms_, (*itor)->cpuUsageData_->threadSum,
+            (*itor)->diskio_->wbytes, (*itor)->diskio_->rbytes);
     }
     liveProcessData_.clear();
     traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());

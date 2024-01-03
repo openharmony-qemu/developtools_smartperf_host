@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitRadioBox } from '../../../dist/base-ui/radiobox/LitRadioBox.js';
+import { LitRadioBox } from '../../../src/base-ui/radiobox/LitRadioBox';
 
-// @ts-ignore
-import { LitRadioGroup } from '../../../dist/base-ui/radiobox/LitRadioGroup.js';
+import { LitRadioGroup } from '../../../src/base-ui/radiobox/LitRadioGroup';
 
 describe('LitRadioBox Test', () => {
   let litRadioBox = new LitRadioBox();

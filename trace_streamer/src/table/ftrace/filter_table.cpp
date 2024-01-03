@@ -29,67 +29,27 @@ FilterTable::FilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 FilterTable::~FilterTable() {}
 
-void FilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void FilterTable::FilterByConstraint(FilterConstraints& filterfc,
+                                     double& filterfilterCost,
+                                     size_t filterrowCount,
+                                     uint32_t filtercurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    auto rowCount = dataCache_->GetConstFilterData().Size();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::ID:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void FilterTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
+    // for loop
+    const auto& filterc = filterfc.GetConstraints()[filtercurrenti];
+    switch (static_cast<Index>(filterc.col)) {
+        case Index::ID: {
+            if (CanFilterId(filterc.op, filterrowCount)) {
+                filterfc.UpdateConstraint(filtercurrenti, true);
+                filterfilterCost += 1; // id can position by 1 step
+            } else {
+                filterfilterCost += filterrowCount; // scan all rows
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::ID: {
-                if (CanFilterId(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += 1; // id can position by 1 step
-                } else {
-                    filterCost += rowCount; // scan all rows
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                                // other column
+            filterfilterCost += filterrowCount; // scan all rows
+            break;
     }
 }
 
@@ -162,6 +122,19 @@ int32_t FilterTable::Cursor::Column(int32_t col) const
             break;
     }
     return SQLITE_OK;
+}
+void FilterTable::GetOrbyes(FilterConstraints& filterfc, EstimatedIndexInfo& filterei)
+{
+    auto filterorderbys = filterfc.GetOrderBys();
+    for (auto i = 0; i < filterorderbys.size(); i++) {
+        switch (static_cast<Index>(filterorderbys[i].iColumn)) {
+            case Index::ID:
+                break;
+            default: // other columns can be sorted by SQLite
+                filterei.isOrdered = false;
+                break;
+        }
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

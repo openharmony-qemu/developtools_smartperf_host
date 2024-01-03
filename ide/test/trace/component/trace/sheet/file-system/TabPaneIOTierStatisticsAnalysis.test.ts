@@ -20,20 +20,17 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-// @ts-ignore
-import { TabPaneIOTierStatisticsAnalysis } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneIOTierStatisticsAnalysis.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneIOTierStatisticsAnalysis.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneIOTierStatisticsAnalysis } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIOTierStatisticsAnalysis';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIOTierStatisticsAnalysis';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 Object.defineProperty(global.self, 'crypto', {
   value: {
     getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),
   },
 });
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {
     initSort: ()=>{}
   };

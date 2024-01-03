@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
-import { HeapStruct } from '../../../dist/trace/bean/HeapStruct.js';
+import { HeapStruct } from '../../../src/trace/bean/HeapStruct';
 
 describe('HeapStruct Test', () => {
   const canvas = document.createElement('canvas');

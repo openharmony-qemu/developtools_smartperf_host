@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRowRecyclerView } from '../../../../../dist/trace/component/trace/base/TraceRowRecyclerView.js';
+import { TraceRowRecyclerView } from '../../../../../src/trace/component/trace/base/TraceRowRecyclerView';
 
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -93,7 +92,7 @@ describe('TraceRow Test', () => {
   it('Test10', function () {
     let traceRow = new TraceRowRecyclerView();
     let mouseScrollEvent: MouseEvent = new MouseEvent('scroll', <MouseEventInit>{ clientX: 1, clientY: 2 });
-    traceRow.container.dispatchEvent(mouseScrollEvent);
+    traceRow.vessel.dispatchEvent(mouseScrollEvent);
   });
 
 });

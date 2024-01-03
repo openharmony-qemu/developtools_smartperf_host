@@ -14,22 +14,27 @@
  */
 #ifndef FFRT_CONVERTER_H
 #define FFRT_CONVERTER_H
-#include <iostream>
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <regex>
-#include <fstream>
-#include <vector>
-#include <variant>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <regex>
+#include <securec.h>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
+#include "log.h"
+#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace std;
-#define WAKE_EVENT_DEFAULT_VALUE -1
-#define MAX_LEN 256
+constexpr int32_t WAKE_EVENT_DEFAULT_VALUE = -1;
+constexpr int32_t STR_LEGH = 2;
+constexpr int32_t STR_LEN = 8;
+constexpr int32_t MAX_LEN = 256;
 struct ffrtContent {
     std::string name;
     std::vector<int> line;
@@ -93,13 +98,15 @@ private:
                                        const long long gid,
                                        const int tid);
     void SupplementFfrtBlockAndWakeInfo(vector<std::string>& results);
+    std::string GetTaskId(int pid, long long gid);
     bool IsDigit(const std::string& str);
     void CheckTraceMarker(vector<std::string>& lines);
 
 private:
     const std::regex indexPattern_ = std::regex(R"(\(.+\)\s+\[\d)");
     const std::regex matchPattern_ = std::regex(R"( \(.+\)\s+\[\d)");
-    std::string TRACING_MARKER_KEY = "tracing_mark_write: ";
+    const int scaleFactor_ = 10;
+    std::string tracingMarkerKey_ = "tracing_mark_write: ";
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

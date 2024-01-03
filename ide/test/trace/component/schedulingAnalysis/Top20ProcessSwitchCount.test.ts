@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { Top20ProcessSwitchCount } from '../../../../dist/trace/component/schedulingAnalysis/Top20ProcessSwitchCount.js';
+import { Top20ProcessSwitchCount } from '../../../../src/trace/component/schedulingAnalysis/Top20ProcessSwitchCount';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

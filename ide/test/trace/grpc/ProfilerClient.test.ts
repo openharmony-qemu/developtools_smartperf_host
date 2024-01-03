@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { ProfilerClient } from '../../../dist/trace/grpc/ProfilerClient.js';
+import { ProfilerClient } from '../../../src/trace/grpc/ProfilerClient';
 
 describe('HiProfilerClient Test', () => {
   it('HiProfilerClientTest01 ', function () {

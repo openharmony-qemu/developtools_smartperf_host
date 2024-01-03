@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpHisysEvent } from '../../../../dist/trace/component/setting/SpHisysEvent.js';
+import { SpHisysEvent } from '../../../../src/trace/component/setting/SpHisysEvent';
 
 describe('SpHisysEvent Test', () => {
     let spHisysEvent = new SpHisysEvent();

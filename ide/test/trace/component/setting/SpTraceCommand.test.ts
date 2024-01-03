@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpTraceCommand } from '../../../../dist/trace/component/setting/SpTraceCommand.js';
+import { SpTraceCommand } from '../../../../src/trace/component/setting/SpTraceCommand';
 
 describe('SPTraceCommand Test', () => {
   beforeAll(() => {

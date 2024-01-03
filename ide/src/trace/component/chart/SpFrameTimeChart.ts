@@ -18,12 +18,11 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
 import { SpSystemTrace } from '../SpSystemTrace';
 import {
-  queryActualFrameDate,
-  queryExpectedFrameDate,
-  queryFrameAnimationData,
+  queryAllProcessNames,
+  queryAnimationIdAndNameData,
+  queryAnimationTimeRangeData,
+  queryDynamicIdAndNameData,
   queryFrameApp,
-  queryFrameDynamicData,
-  queryFrameSpacing,
   queryFrameTimeData,
   queryPhysicalData,
 } from '../../database/SqlLite';
@@ -37,10 +36,15 @@ import { FlagsConfig, type Params } from '../SpFlags';
 import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean';
 import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { TreeItemData } from '../../../base-ui/tree/LitTree';
+import { QueryEnum } from '../../database/data-trafic/QueryEnum';
+import { frameAnimationSender, frameDynamicSender, frameSpacingSender } from '../../database/data-trafic/FrameDynamicEffectSender';
+import { frameJanksSender } from '../../database/data-trafic/FrameJanksSender';
 
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;
   private flagConfig: Params | undefined;
+  private pidToProcessNameMap: Map<number, string> = new Map();
+  private idToProcessNameMap: Map<number, string> = new Map();
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -48,7 +52,14 @@ export class SpFrameTimeChart {
 
   async init(): Promise<void> {
     let frameTimeData = await queryFrameTimeData();
+    this.pidToProcessNameMap.clear();
+    this.idToProcessNameMap.clear();
     if (frameTimeData.length > 0) {
+      let processNamesArray = await queryAllProcessNames();
+      processNamesArray.forEach((it) => {
+        this.pidToProcessNameMap.set(it.pid, it.name);
+        this.idToProcessNameMap.set(it.id, it.name);
+      });
       let frameTimeLineRow: TraceRow<JanksStruct> = await this.initFrameTimeLine();
       await this.initExpectedChart(frameTimeLineRow);
       await this.initActualChart(frameTimeLineRow);
@@ -88,34 +99,42 @@ export class SpFrameTimeChart {
         },
         frameTimeLineRow!
       );
-      frameTimeLineRow!.canvasRestore(context);
+      frameTimeLineRow!.canvasRestore(context, this.trace);
     };
     this.trace.rowsEL?.appendChild(frameTimeLineRow);
     return frameTimeLineRow;
   }
 
   async initExpectedChart(frameTimeLineRow: TraceRow<JanksStruct>): Promise<void> {
-    let frameExpectedData = await this.getExpectedFrameDate();
-    let unitIndex: number = 1;
-    let unitHeight: number = 20;
-    let max: number = Math.max(...frameExpectedData.map((it) => it.depth || 0)) + unitIndex;
-    let maxHeight: number = max * unitHeight;
     let expectedTimeLineRow = TraceRow.skeleton<JanksStruct>();
     expectedTimeLineRow.rowId = 'expected frameTime';
     expectedTimeLineRow.rowType = TraceRow.ROW_TYPE_JANK;
     expectedTimeLineRow.rowHidden = !frameTimeLineRow.expansion;
     expectedTimeLineRow.rowParentId = 'frameTime';
     expectedTimeLineRow.style.width = '100%';
-    expectedTimeLineRow.style.height = '40px';
-    expectedTimeLineRow.style.height = `${maxHeight}px`;
     expectedTimeLineRow.name = 'Expected Timeline';
     expectedTimeLineRow.addTemplateTypes('FrameTimeline');
-    expectedTimeLineRow.setAttribute('height', `${maxHeight}`);
     expectedTimeLineRow.setAttribute('children', '');
-    expectedTimeLineRow.supplier = (): Promise<JanksStruct[]> =>
-      new Promise((resolve): void => {
-        resolve(frameExpectedData);
+    expectedTimeLineRow.supplierFrame = () => {
+      return frameJanksSender(QueryEnum.FrameExpectedData, expectedTimeLineRow).then((res) => {
+        let maxDepth: number = 1;
+        let unitHeight: number = 20;
+        res.forEach((item) => {
+          if (item.depth! >= maxDepth) {
+            maxDepth = item.depth! + 1;
+          }
+          item.frame_type = 'frameTime';
+          item.cmdline = this.pidToProcessNameMap.get(item.pid!);
+          item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
+        });
+        if (expectedTimeLineRow && !expectedTimeLineRow.isComplete && res.length > 0) {
+          let maxHeight: number = maxDepth * unitHeight;
+          expectedTimeLineRow.style.height = `${maxHeight}px`;
+          expectedTimeLineRow.setAttribute('height', `${maxHeight}`);
+        }
+        return res;
       });
+    };
     expectedTimeLineRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     expectedTimeLineRow.selectChangeHandler = this.trace.selectChangeHandler;
     expectedTimeLineRow.onThreadHandler = (useCache: boolean): void => {
@@ -134,32 +153,42 @@ export class SpFrameTimeChart {
         },
         expectedTimeLineRow!
       );
-      expectedTimeLineRow!.canvasRestore(context);
+      expectedTimeLineRow!.canvasRestore(context, this.trace);
     };
     frameTimeLineRow.addChildTraceRow(expectedTimeLineRow);
   }
 
   async initActualChart(frameTimeLineRow: TraceRow<JanksStruct>): Promise<void> {
-    let frameActualData = await this.getActualFrameDate();
-    let unitIndex: number = 1;
-    let unitHeight: number = 20;
-    let maxHeight: number = (Math.max(...frameActualData.map((it) => it.depth || 0)) + unitIndex) * unitHeight;
     let actualTimeLineRow = TraceRow.skeleton<JanksStruct>();
     actualTimeLineRow.rowId = 'actual frameTime';
     actualTimeLineRow.rowType = TraceRow.ROW_TYPE_JANK;
     actualTimeLineRow.rowHidden = !frameTimeLineRow.expansion;
     actualTimeLineRow.rowParentId = 'frameTime';
     actualTimeLineRow.style.width = '100%';
-    actualTimeLineRow.style.height = `${maxHeight}px`;
     actualTimeLineRow.name = 'Actual Timeline';
     actualTimeLineRow.addTemplateTypes('FrameTimeline');
-    actualTimeLineRow.setAttribute('height', `${maxHeight}`);
     actualTimeLineRow.setAttribute('children', '');
-    actualTimeLineRow.dataList = frameActualData;
-    actualTimeLineRow.supplier = (): Promise<JanksStruct[]> =>
-      new Promise((resolve): void => {
-        resolve(frameActualData);
+    actualTimeLineRow.supplierFrame = () => {
+      return frameJanksSender(QueryEnum.FrameActualData, actualTimeLineRow).then((res) => {
+        let maxDepth: number = 1;
+        let unitHeight: number = 20;
+        res.forEach((item) => {
+          if (item.depth! >= maxDepth) {
+            maxDepth = item.depth! + 1;
+          }
+          item.frame_type = 'frameTime';
+          item.cmdline = this.pidToProcessNameMap.get(item.pid!);
+          item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
+          item.type = '0';
+        });
+        if (actualTimeLineRow && !actualTimeLineRow.isComplete && res.length > 0) {
+          let maxHeight: number = maxDepth * unitHeight;
+          actualTimeLineRow.style.height = `${maxHeight}px`;
+          actualTimeLineRow.setAttribute('height', `${maxHeight}`);
+        }
+        return res;
       });
+    };
     actualTimeLineRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     actualTimeLineRow.selectChangeHandler = this.trace.selectChangeHandler;
     actualTimeLineRow.onThreadHandler = (useCache: boolean): void => {
@@ -178,7 +207,7 @@ export class SpFrameTimeChart {
         },
         actualTimeLineRow!
       );
-      actualTimeLineRow!.canvasRestore(context);
+      actualTimeLineRow!.canvasRestore(context, this.trace);
     };
     frameTimeLineRow.addChildTraceRow(actualTimeLineRow);
     let offsetYTimeOut: number = 0;
@@ -201,6 +230,7 @@ export class SpFrameTimeChart {
     firstRow: TraceRow<BaseStruct>
   ): Promise<void> {
     this.flagConfig = FlagsConfig.getFlagsConfig('AnimationAnalysis');
+    let appNameMap: Map<number, string> = new Map();
     if (this.flagConfig?.AnimationAnalysis === 'Enabled') {
       if (process.processName?.startsWith('render_service')) {
         let targetRowList = processRow.childrenList.filter(
@@ -211,9 +241,13 @@ export class SpFrameTimeChart {
           let currentName = nameArr[0].name;
           let frameChart = await this.initFrameChart(processRow, nameArr);
           processRow.addChildTraceRowAfter(frameChart, targetRowList[0]);
+          let appNameList = await queryDynamicIdAndNameData();
+          appNameList.forEach((item) => {
+            appNameMap.set(item.id, item.appName);
+          });
           let animationRanges = await this.initAnimationChart(processRow, firstRow);
-          await this.initDynamicCurveChart(frameChart, currentName, animationRanges);
-          await this.initFrameSpacing(nameArr, frameChart, currentName, animationRanges);
+          await this.initDynamicCurveChart(appNameMap, frameChart, currentName, animationRanges);
+          await this.initFrameSpacing(appNameMap, nameArr, frameChart, currentName, animationRanges);
         }
       }
     }
@@ -255,7 +289,7 @@ export class SpFrameTimeChart {
         },
         frameChart!
       );
-      frameChart!.canvasRestore(context);
+      frameChart!.canvasRestore(context, this.trace);
     };
     this.trace.rowsEL?.appendChild(frameChart);
     return frameChart;
@@ -265,68 +299,57 @@ export class SpFrameTimeChart {
     processRow: TraceRow<BaseStruct>,
     firstRow: TraceRow<BaseStruct>
   ): Promise<AnimationRanges[]> {
-    let frameAnimationData: FrameAnimationStruct[] = await queryFrameAnimationData();
     let animationRanges: AnimationRanges[] = [];
-    if (frameAnimationData.length > 0) {
-      frameAnimationData.forEach((data) => {
-        if (data.status === 'Completion delay') {
-          animationRanges.push({
-            start: data.startTs,
-            end: data.endTs,
-          });
-        }
-        data.dur = data.endTs - data.startTs;
-      });
-      let unitIndex: number = 1;
-      let isIntersect = (a: FrameAnimationStruct, b: FrameAnimationStruct): boolean =>
-        Math.max(a.startTs! + a.dur!, b.startTs! + b.dur!) - Math.min(a.startTs!, b.startTs!) < a.dur! + b.dur!;
-      let depths = [];
-      for (let i: number = 0; i < frameAnimationData.length; i++) {
-        if (!frameAnimationData[i].dur || frameAnimationData[i].dur < 0) {
-          continue;
-        }
-        if (depths.length === 0) {
-          frameAnimationData[i].depth = 0;
-          depths[0] = frameAnimationData[i];
-        } else {
-          let index: number = 0;
-          let isContinue: boolean = true;
-          while (isContinue) {
-            if (isIntersect(depths[index], frameAnimationData[i])) {
-              if (depths[index + unitIndex] === undefined || !depths[index + unitIndex]) {
-                frameAnimationData[i].depth = index + unitIndex;
-                depths[index + unitIndex] = frameAnimationData[i];
-                isContinue = false;
-              }
-            } else {
-              frameAnimationData[i].depth = index;
-              depths[index] = frameAnimationData[i];
-              isContinue = false;
-            }
-            index++;
-          }
-        }
-      }
-    }
     let frameAnimationRow = TraceRow.skeleton<FrameAnimationStruct>();
     let unitIndex: number = 1;
     let unitHeight: number = 20;
-    let max: number = Math.max(...frameAnimationData.map((it) => it.depth || 0)) + unitIndex;
-    let maxHeight: number = max * unitHeight;
     frameAnimationRow.rowId = 'Animation';
     frameAnimationRow.rowType = TraceRow.ROW_TYPE_FRAME_ANIMATION;
     frameAnimationRow.rowHidden = !processRow.expansion;
     frameAnimationRow.rowParentId = processRow.rowId;
     frameAnimationRow.style.width = '100%';
     frameAnimationRow.name = 'Animation';
-    frameAnimationRow.style.height = `${maxHeight}px`;
-    frameAnimationRow.setAttribute('height', `${maxHeight}`);
     frameAnimationRow.addTemplateTypes('AnimationEffect');
     frameAnimationRow.setAttribute('children', '');
-    frameAnimationRow.supplier = (): Promise<FrameAnimationStruct[]> =>
-      new Promise((resolve) => {
-        resolve(frameAnimationData);
+    let timeRangeData = await queryAnimationTimeRangeData();
+    timeRangeData.forEach((rangeTime) => {
+      if (rangeTime.status === 'Completion delay') {
+        animationRanges.push({
+          start: rangeTime.startTs,
+          end: rangeTime.endTs,
+        });
+      }
+    });
+    let animationIdNameMap: Map<number, string> = new Map<number, string>();
+    let animationIdInfoMap: Map<number, string> = new Map<number, string>();
+    let animationNameData = await queryAnimationIdAndNameData();
+    animationNameData.forEach((item) => {
+      animationIdNameMap.set(item.id, item.name);
+      animationIdInfoMap.set(item.id, item.info);
+    });
+    frameAnimationRow.supplierFrame = () => {
+      return frameAnimationSender(frameAnimationRow).then((result) => {
+        let maxDepth = 0;
+        result.forEach((item) => {
+          if (item.status == '1') {
+            item.status = 'Completion delay';
+          } else {
+            item.status = 'Response delay';
+          }
+          if (item.depth > maxDepth) {
+            maxDepth = item.depth;
+          }
+          if (animationIdNameMap.has(item.animationId!)) {
+            item.name = animationIdNameMap.get(item.animationId!);
+            item.frameInfo = item.status == 'Completion delay' ? animationIdInfoMap.get(item.animationId!) : '0';
+          }
+        });
+        let maxHeight: number = (maxDepth + unitIndex) * unitHeight;
+        frameAnimationRow.style.height = `${maxHeight}px`;
+        frameAnimationRow.setAttribute('height', `${maxHeight}`);
+        return result;
       });
+    };
     frameAnimationRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     frameAnimationRow.selectChangeHandler = this.trace.selectChangeHandler;
     frameAnimationRow.onThreadHandler = (useCache): void => {
@@ -342,18 +365,18 @@ export class SpFrameTimeChart {
         },
         frameAnimationRow!
       );
-      frameAnimationRow!.canvasRestore(context);
+      frameAnimationRow!.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRowBefore(frameAnimationRow, firstRow);
     return animationRanges;
   }
 
   async initDynamicCurveChart(
+    appNameMap: Map<number, string>,
     frameChart: TraceRow<BaseStruct>,
     name: string,
     animationRanges: AnimationRanges[]
   ): Promise<void> {
-    let frameDynamicCurveData: FrameDynamicStruct[] = await queryFrameDynamicData();
     let systemConfigList: {
       name: string;
     }[] = [{ name: 'x' }, { name: 'y' }, { name: 'width' }, { name: 'height' }, { name: 'alpha' }];
@@ -375,10 +398,16 @@ export class SpFrameTimeChart {
     dynamicCurveRow.setAttribute('children', '');
     dynamicCurveRow.setAttribute('model-type', systemConfigList[0].name);
     dynamicCurveRow.setAttribute('model-name', name);
-    dynamicCurveRow.supplier = (): Promise<FrameDynamicStruct[]> =>
-      new Promise((resolve): void => {
-        resolve(frameDynamicCurveData);
+    dynamicCurveRow.supplierFrame = () => {
+      return frameDynamicSender(dynamicCurveRow).then((result) => {
+        result.forEach((dataItem) => {
+          if (appNameMap.has(dataItem.id!)) {
+            dataItem.appName = appNameMap.get(dataItem.id!);
+          }
+        });
+        return result;
       });
+    };
     dynamicCurveRow.selectChangeHandler = this.trace.selectChangeHandler;
     dynamicCurveRow.onThreadHandler = (useCache: boolean): void => {
       let context: CanvasRenderingContext2D = dynamicCurveRow!.collect
@@ -394,27 +423,20 @@ export class SpFrameTimeChart {
         },
         dynamicCurveRow!
       );
-      dynamicCurveRow!.canvasRestore(context);
+      dynamicCurveRow!.canvasRestore(context, this.trace);
     };
     frameChart.addChildTraceRow(dynamicCurveRow);
   }
 
   async initFrameSpacing(
+    appNameMap: Map<number, string>,
     nameArr: { name: string }[],
     frameChart: TraceRow<BaseStruct>,
     name: string,
     animationRanges: AnimationRanges[]
   ): Promise<void> {
-    let frameData: FrameSpacingStruct[] = await queryFrameSpacing();
     let deviceStructArray = await queryPhysicalData();
     let deviceStruct: DeviceStruct = deviceStructArray[0];
-    let frameResultData: FrameSpacingStruct[] = [];
-    for (let index = 0; index < nameArr.length; index++) {
-      let appName: string = nameArr[index].name;
-      let filterData = frameData.filter((spacingData) => spacingData.nameId === appName);
-      this.dataProcessing(filterData, deviceStruct);
-      frameResultData.push(...filterData);
-    }
     let frameSpacingRow = TraceRow.skeleton<FrameSpacingStruct>();
     frameSpacingRow.rowId = 'frame spacing';
     frameSpacingRow.rowType = TraceRow.ROW_TYPE_FRAME_SPACING;
@@ -427,10 +449,22 @@ export class SpFrameTimeChart {
     frameSpacingRow.setAttribute('height', '140');
     frameSpacingRow.setAttribute('children', '');
     frameSpacingRow.setAttribute('model-name', name);
-    frameSpacingRow.supplier = (): Promise<FrameSpacingStruct[]> =>
-      new Promise((resolve): void => {
-        resolve(frameResultData);
+    let physicalConfigWidth = Number(this.flagConfig!.physicalWidth);
+    let physicalConfigHeight = Number(this.flagConfig!.physicalHeight);
+    let physicalWidth = physicalConfigWidth !== 0 ? physicalConfigWidth : deviceStruct.physicalWidth;
+    let physicalHeight = physicalConfigHeight !== 0 ? physicalConfigHeight : deviceStruct.physicalHeight;
+    frameSpacingRow.supplierFrame = () => {
+      return frameSpacingSender(physicalWidth, physicalHeight, frameSpacingRow).then((result) => {
+        result.forEach((dataItem) => {
+          if (appNameMap.has(dataItem.id!)) {
+            dataItem.nameId = appNameMap.get(dataItem.id!);
+          }
+          dataItem.physicalWidth = physicalWidth;
+          dataItem.physicalHeight = physicalHeight;
+        });
+        return result;
       });
+    };
     frameSpacingRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     frameSpacingRow.selectChangeHandler = this.trace.selectChangeHandler;
     frameSpacingRow.onThreadHandler = (useCache: boolean): void => {
@@ -446,45 +480,9 @@ export class SpFrameTimeChart {
         },
         frameSpacingRow!
       );
-      frameSpacingRow!.canvasRestore(context);
+      frameSpacingRow!.canvasRestore(context, this.trace);
     };
     frameChart.addChildTraceRow(frameSpacingRow);
-  }
-
-  dataProcessing(frameData: FrameSpacingStruct[], deviceStruct: DeviceStruct): void {
-    let unitIndex: number = 1;
-    let secondToNanosecond: number = 1000_000_000;
-    let physicalWidth = Number(this.flagConfig!.physicalWidth);
-    let physicalHeight = Number(this.flagConfig!.physicalHeight);
-    FrameSpacingStruct.physicalWidth = physicalWidth !== 0 ? physicalWidth : deviceStruct.physicalWidth;
-    FrameSpacingStruct.physicalHeight = physicalHeight !== 0 ? physicalHeight : deviceStruct.physicalHeight;
-    for (let index = 0; index < frameData.length; index++) {
-      if (index > 0) {
-        let intervalTime = (frameData[index].currentTs - frameData[index - unitIndex].currentTs) / secondToNanosecond;
-        let widthDifference = frameData[index].currentFrameWidth! - frameData[index - unitIndex].currentFrameWidth!;
-        let heightDifference = frameData[index].currentFrameHeight! - frameData[index - unitIndex].currentFrameHeight!;
-        let xDifference = frameData[index].x! - frameData[index - unitIndex].x!;
-        let yDifference = frameData[index].y! - frameData[index - unitIndex].y!;
-        let frameWidth = Math.abs(widthDifference / FrameSpacingStruct.physicalWidth / intervalTime);
-        let frameHeight = Math.abs(heightDifference / FrameSpacingStruct.physicalHeight / intervalTime);
-        let frameX = Math.abs(xDifference / FrameSpacingStruct.physicalWidth / intervalTime);
-        let frameY = Math.abs(yDifference / FrameSpacingStruct.physicalHeight / intervalTime);
-        let result = Math.max(frameWidth, frameHeight, frameX, frameY);
-        frameData[index].frameSpacingResult = Number(result.toFixed(unitIndex));
-        frameData[index].preTs = frameData[index - unitIndex].currentTs;
-        frameData[index].preFrameWidth = frameData[index - unitIndex].currentFrameWidth;
-        frameData[index].preFrameHeight = frameData[index - unitIndex].currentFrameHeight;
-        frameData[index].preX = frameData[index - unitIndex].x;
-        frameData[index].preY = frameData[index - unitIndex].y;
-      } else {
-        frameData[index].frameSpacingResult = 0;
-        frameData[index].preTs = 0;
-        frameData[index].preFrameWidth = 0;
-        frameData[index].preFrameHeight = 0;
-        frameData[index].preX = 0;
-        frameData[index].preY = 0;
-      }
-    }
   }
 
   addSystemConfigButton(
@@ -618,83 +616,5 @@ export class SpFrameTimeChart {
       clearTimeout(refreshTimeOut);
     }, refreshTime);
     return offsetYTimeOut;
-  }
-
-  private async getExpectedFrameDate(): Promise<JanksStruct[]> {
-    let frameExpectedData = await queryExpectedFrameDate();
-    if (frameExpectedData.length > 0) {
-      let unitIndex: number = 1;
-      let isIntersect = (a: JanksStruct, b: JanksStruct): boolean =>
-        Math.max(a.ts! + a.dur!, b.ts! + b.dur!) - Math.min(a.ts!, b.ts!) < a.dur! + b.dur!;
-      let depths = [];
-      for (let i: number = 0; i < frameExpectedData.length; i++) {
-        let it = frameExpectedData[i];
-        if (!it.dur || it.dur < 0) {
-          continue;
-        }
-        if (depths.length === 0) {
-          it.depth = 0;
-          depths[0] = it;
-        } else {
-          let index: number = 0;
-          let isContinue: boolean = true;
-          while (isContinue) {
-            if (isIntersect(depths[index], it)) {
-              if (depths[index + unitIndex] === undefined || !depths[index + unitIndex]) {
-                it.depth = index + unitIndex;
-                depths[index + unitIndex] = it;
-                isContinue = false;
-              }
-            } else {
-              it.depth = index;
-              depths[index] = it;
-              isContinue = false;
-            }
-            index++;
-          }
-        }
-      }
-    }
-    return frameExpectedData;
-  }
-
-  private async getActualFrameDate(): Promise<JanksStruct[]> {
-    let frameActualData = await queryActualFrameDate();
-    if (frameActualData.length > 0) {
-      let unitIndex: number = 1;
-      let isIntersect = (leftStruct: JanksStruct, rightStruct: JanksStruct): boolean =>
-        Math.max(leftStruct.ts! + leftStruct.dur!, rightStruct.ts! + rightStruct.dur!) -
-          Math.min(leftStruct.ts!, rightStruct.ts!) <
-        leftStruct.dur! + rightStruct.dur!;
-      let depthArray = [];
-      for (let index: number = 0; index < frameActualData.length; index++) {
-        let it = frameActualData[index];
-        if (!it.dur || it.dur < 0) {
-          continue;
-        }
-        if (depthArray.length === 0) {
-          it.depth = 0;
-          depthArray[0] = it;
-        } else {
-          let index: number = 0;
-          let isContinue: boolean = true;
-          while (isContinue) {
-            if (isIntersect(depthArray[index], it)) {
-              if (depthArray[index + unitIndex] === undefined || !depthArray[index + unitIndex]) {
-                it.depth = index + unitIndex;
-                depthArray[index + unitIndex] = it;
-                isContinue = false;
-              }
-            } else {
-              it.depth = index;
-              depthArray[index] = it;
-              isContinue = false;
-            }
-            index++;
-          }
-        }
-      }
-    }
-    return frameActualData;
   }
 }

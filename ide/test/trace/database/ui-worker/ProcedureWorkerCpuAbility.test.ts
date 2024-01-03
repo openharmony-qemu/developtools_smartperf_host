@@ -13,19 +13,15 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
 import {
   CpuAbilityMonitorStruct,
-  cpuAbility,
   CpuAbilityRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuAbility.js';
-//@ts-ignore
-import { Rect } from '../../../dist/trace/database/ProcedureWorkerCommon';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuAbility';
+import { dataFilterHandler } from "../../../../src/trace/database/ui-worker/ProcedureWorkerCommon";
 
 describe('CpuAbilityMonitorStruct Test', () => {
   const canvas = document.createElement('canvas');
@@ -66,16 +62,6 @@ describe('CpuAbilityMonitorStruct Test', () => {
   it('CpuAbilityMonitorStructTest03', function () {
     expect(CpuAbilityMonitorStruct.draw(ctx, Sourcedata)).toBeUndefined();
   });
-  it('CpuAbilityMonitorStructTest02', function () {
-    let dataList = new Array();
-    dataList.push({
-      startNs: 0,
-      dur: 10,
-      frame: { x: 0, y: 9, width: 10, height: 10 },
-    });
-    dataList.push({ startNs: 1, dur: 111 });
-    cpuAbility(dataList, [{ length: 0 }], 1, 100254, 100254, frame, true);
-  });
 
   it('CpuAbilityMonitorStructTest05', function () {
     let dataList = new Array();
@@ -85,7 +71,16 @@ describe('CpuAbilityMonitorStruct Test', () => {
       frame: { x: 0, y: 9, width: 10, height: 10 },
     });
     dataList.push({ startNs: 1, dur: 111 });
-    cpuAbility(dataList, [{ length: 0 }], 1, 100254, 100254, frame, false);
+    dataFilterHandler(dataList, [{ length: 0 }], {
+      startKey: 'startNS',
+      durKey: 'dur',
+      startNS: TraceRow.range?.startNS ?? 0,
+      endNS: TraceRow.range?.endNS ?? 0,
+      totalNS: TraceRow.range?.totalNS ?? 0,
+      frame: frame,
+      paddingTop: 5,
+      useCache: false,
+    });
   });
 
   it('CpuAbilityMonitorStructTest06', function () {

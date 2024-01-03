@@ -261,7 +261,7 @@ export interface MenuGroup {
 export interface MenuItem {
   icon: string;
   title: string;
-  disabled?: boolean
+  disabled?: boolean;
   fileChoose?: boolean;
   clickHandler?: Function;
   fileHandler?: Function;

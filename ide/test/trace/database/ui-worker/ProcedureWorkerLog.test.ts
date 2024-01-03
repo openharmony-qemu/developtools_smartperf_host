@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
-import { LogStruct, LogRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerLog.js';
+import { LogStruct, LogRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerLog';
 
 describe('ProcedureWorkerLog Test', () => {
   let canvas = document.createElement('canvas');

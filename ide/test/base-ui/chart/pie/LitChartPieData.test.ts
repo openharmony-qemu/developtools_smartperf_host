@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { isPointIsCircle, randomRgbColor } from '../../../../dist/base-ui/chart/pie/LitChartPieData.js';
+import { isPointIsCircle, randomRgbColor } from '../../../../src/base-ui/chart/pie/LitChartPieData';
 
 window.ResizeObserver =
   window.ResizeObserver ||

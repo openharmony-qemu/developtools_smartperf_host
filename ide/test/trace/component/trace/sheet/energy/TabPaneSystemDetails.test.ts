@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSystemDetails } from '../../../../../../dist/trace/component/trace/sheet/energy/TabPaneSystemDetails.js';
-import '../../../../../../dist/trace/component/trace/sheet/energy/TabPaneSystemDetails.js';
+import { TabPaneSystemDetails } from '../../../../../../src/trace/component/trace/sheet/energy/TabPaneSystemDetails';
+import '../../../../../../src/trace/component/trace/sheet/energy/TabPaneSystemDetails';
 
-import { querySysLocationDetailsData, querySysLockDetailsData } from '../../../../../../src/trace/database/SqlLite.js';
-// @ts-ignore
-import { SpHiSysEventChart } from '../../../../../../dist/trace/component/chart/SpHiSysEventChart.js';
-import '../../../../../../dist/trace/component/chart/SpHiSysEventChart.js';
+import { querySysLocationDetailsData, querySysLockDetailsData } from '../../../../../../src/trace/database/SqlLite';
+import { SpHiSysEventChart } from '../../../../../../src/trace/component/chart/SpHiSysEventChart';
+import '../../../../../../src/trace/component/chart/SpHiSysEventChart';
 
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
@@ -28,11 +26,11 @@ window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(()
     unobserve: jest.fn(),
     disconnect: jest.fn(),
   }));
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPanePowerBattery Test', () => {
   it('TabPaneSystemDetailsTest01', function () {

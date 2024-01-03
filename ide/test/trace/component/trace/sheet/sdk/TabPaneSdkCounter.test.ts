@@ -13,17 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSdkCounter } from '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkCounter.js';
-// @ts-ignore
-import '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkCounter.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
+import { TabPaneSdkCounter } from '../../../../../../src/trace/component/trace/sheet/sdk/TabPaneSdkCounter';
+import '../../../../../../src/trace/component/trace/sheet/sdk/TabPaneSdkCounter';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
-// @ts-ignore
-import {TabUtil} from "../../../../../../dist/trace/component/trace/sheet/sdk/TabUtil.js";
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
+import {TabUtil} from "../../../../../../src/trace/component/trace/sheet/sdk/TabUtil.js";
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -33,8 +28,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPaneSdkCounter Test', () => {
   document.body.innerHTML = `<lit-table id="tb-counter"></lit-table>`;

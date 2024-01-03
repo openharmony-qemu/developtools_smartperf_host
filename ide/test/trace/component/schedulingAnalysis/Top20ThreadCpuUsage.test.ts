@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { Top20ThreadCpuUsage } from '../../../../dist/trace/component/schedulingAnalysis/Top20ThreadCpuUsage.js';
+import { Top20ThreadCpuUsage } from '../../../../src/trace/component/schedulingAnalysis/Top20ThreadCpuUsage';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

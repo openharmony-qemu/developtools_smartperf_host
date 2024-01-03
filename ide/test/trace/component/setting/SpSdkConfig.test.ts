@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { SpSdkConfig } from '../../../../dist/trace/component/setting/SpSdkConfig.js';
+import { SpSdkConfig } from '../../../../src/trace/component/setting/SpSdkConfig';
 
 describe('spSdkConfig Test', () => {
   let spSdkConfig = new SpSdkConfig();

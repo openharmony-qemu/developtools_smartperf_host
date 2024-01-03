@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneFps } from '../../../../../../dist/trace/component/trace/sheet/fps/TabPaneFps.js';
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+import { TabPaneFps } from '../../../../../../src/trace/component/trace/sheet/fps/TabPaneFps';
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
 window.ResizeObserver =

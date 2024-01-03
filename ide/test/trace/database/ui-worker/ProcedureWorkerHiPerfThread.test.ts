@@ -13,19 +13,16 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-//@ts-ignore
 import {
   HiperfThreadRender,
   HiPerfThreadStruct,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHiPerfThread.js';
-// @ts-ignore
-import { hiPerf } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfThread';
+import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 
 describe('ProcedureWorkerHiPerfThread Test', () => {
   let res = [
@@ -92,7 +89,7 @@ describe('ProcedureWorkerHiPerfThread Test', () => {
 
   it('ProcedureWorkerHiPerfThreadTest04', function () {
     expect(HiPerfThreadStruct.groupBy10MS([{ ps: 1 }, { coX: '1' }], 10, '')).toEqual([
-      { dur: 10000000, eventCount: NaN, height: NaN, startNS: NaN },
+      { dur: 10000000, eventCount: NaN, height: NaN, startNS: NaN, sampleCount: 2},
     ]);
   });
 

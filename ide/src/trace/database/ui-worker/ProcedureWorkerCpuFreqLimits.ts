@@ -23,7 +23,7 @@ import {
   Render,
   drawFlagLine,
   RequestMessage,
-  drawSelection,
+  drawSelection, drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
@@ -53,6 +53,7 @@ export class CpuFreqLimitRender extends Render {
       paddingTop: 5,
       useCache: cpuFreqLimitReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(cpuFreqLimitReq.context, filter, row);
     cpuFreqLimitReq.context.beginPath();
     let maxFreq = cpuFreqLimitReq.maxFreq;
     let maxFreqName = cpuFreqLimitReq.maxFreqName;
@@ -77,137 +78,6 @@ export class CpuFreqLimitRender extends Render {
     cpuFreqLimitReq.context.fillStyle = '#333';
     cpuFreqLimitReq.context.textBaseline = 'middle';
     cpuFreqLimitReq.context.fillText(s, 4, 5 + 9);
-  }
-
-  render(freqLimitsReq: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (freqLimitsReq.lazyRefresh) {
-      freqLimits(
-        list,
-        filter,
-        freqLimitsReq.startNS,
-        freqLimitsReq.endNS,
-        freqLimitsReq.totalNS,
-        freqLimitsReq.frame,
-        freqLimitsReq.useCache || !freqLimitsReq.range.refresh
-      );
-    } else {
-      if (!freqLimitsReq.useCache) {
-        freqLimits(
-          list,
-          filter,
-          freqLimitsReq.startNS,
-          freqLimitsReq.endNS,
-          freqLimitsReq.totalNS,
-          freqLimitsReq.frame,
-          false
-        );
-      }
-    }
-    if (freqLimitsReq.canvas) {
-      freqLimitsReq.context.clearRect(0, 0, freqLimitsReq.frame.width, freqLimitsReq.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !freqLimitsReq.range.refresh && !freqLimitsReq.useCache && freqLimitsReq.lazyRefresh) {
-        drawLoading(
-          freqLimitsReq.context,
-          freqLimitsReq.startNS,
-          freqLimitsReq.endNS,
-          freqLimitsReq.totalNS,
-          freqLimitsReq.frame,
-          arr[0].startNs,
-          arr[arr.length - 1].startNs + arr[arr.length - 1].dur
-        );
-      }
-      freqLimitsReq.context.beginPath();
-      let maxFreq = freqLimitsReq.params.maxFreq;
-      let maxFreqName = freqLimitsReq.params.maxFreqName;
-      drawLines(freqLimitsReq.context, freqLimitsReq.xs, freqLimitsReq.frame.height, freqLimitsReq.lineColor);
-      CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = undefined;
-      if (freqLimitsReq.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            freqLimitsReq.hoverX >= re.frame.x &&
-            freqLimitsReq.hoverX <= re.frame.x + re.frame.width &&
-            freqLimitsReq.hoverY >= re.frame.y &&
-            freqLimitsReq.hoverY <= re.frame.y + re.frame.height
-          ) {
-            CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = re;
-            break;
-          }
-        }
-      } else {
-        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = freqLimitsReq.params.hoverCpuFreqLimitsStruct;
-      }
-      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = freqLimitsReq.params.selectCpuFreqLimitsStruct;
-      for (let re of filter) {
-        CpuFreqLimitsStruct.draw(freqLimitsReq.context, re, maxFreq);
-      }
-      drawSelection(freqLimitsReq.context, freqLimitsReq.params);
-      freqLimitsReq.context.closePath();
-      let s = maxFreqName;
-      let textMetrics = freqLimitsReq.context.measureText(s);
-      freqLimitsReq.context.globalAlpha = 0.8;
-      freqLimitsReq.context.fillStyle = '#f0f0f0';
-      freqLimitsReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
-      freqLimitsReq.context.globalAlpha = 1;
-      freqLimitsReq.context.fillStyle = '#333';
-      freqLimitsReq.context.textBaseline = 'middle';
-      freqLimitsReq.context.fillText(s, 4, 5 + 9);
-      drawFlagLine(
-        freqLimitsReq.context,
-        freqLimitsReq.flagMoveInfo,
-        freqLimitsReq.flagSelectedInfo,
-        freqLimitsReq.startNS,
-        freqLimitsReq.endNS,
-        freqLimitsReq.totalNS,
-        freqLimitsReq.frame,
-        freqLimitsReq.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: freqLimitsReq.id,
-      type: freqLimitsReq.type,
-      results: freqLimitsReq.canvas ? undefined : filter,
-      hover: CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct,
-    });
-  }
-}
-
-export function freqLimits(
-  freqLimitsList: Array<any>,
-  res: Array<any>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any,
-  use: boolean
-) {
-  if (use && res.length > 0) {
-    res.forEach((it) => CpuFreqLimitsStruct.setFreqLimitFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame));
-    return;
-  }
-  res.length = 0;
-  if (freqLimitsList) {
-    for (let i = 0, len = freqLimitsList.length; i < len; i++) {
-      let it = freqLimitsList[i];
-      if (i === freqLimitsList.length - 1) {
-        it.dur = (endNS || 0) - (it.startNs || 0);
-      } else {
-        it.dur = (freqLimitsList[i + 1].startNs || 0) - (it.startNs || 0);
-      }
-      if ((it.startNs || 0) + (it.dur || 0) > (startNS || 0) && (it.startNs || 0) < (endNS || 0)) {
-        CpuFreqLimitsStruct.setFreqLimitFrame(freqLimitsList[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-        if (
-          i > 0 &&
-          (freqLimitsList[i - 1].frame?.x || 0) == (freqLimitsList[i].frame?.x || 0) &&
-          (freqLimitsList[i - 1].frame?.width || 0) == (freqLimitsList[i].frame?.width || 0)
-        ) {
-        } else {
-          res.push(it);
-        }
-      }
-    }
   }
 }
 

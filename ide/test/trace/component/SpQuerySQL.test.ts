@@ -13,14 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpQuerySQL } from '../../../dist/trace/component/SpQuerySQL.js';
-// @ts-ignore
-import { queryCustomizeSelect } from '../../../dist/trace/database/SqlLite.js';
-// @ts-ignore
-import { SpStatisticsHttpUtil } from '../../../dist/statistics/util/SpStatisticsHttpUtil.js';
-const sqlite = require('../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../dist/trace/database/SqlLite.js');
+import { SpQuerySQL } from '../../../src/trace/component/SpQuerySQL';
+import { SpStatisticsHttpUtil } from '../../../src/statistics/util/SpStatisticsHttpUtil';
+const sqlite = require('../../../src/trace/database/SqlLite');
+jest.mock('../../../src/trace/database/SqlLite');
 
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),

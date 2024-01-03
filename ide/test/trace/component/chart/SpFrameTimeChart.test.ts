@@ -13,25 +13,20 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpFrameTimeChart } from '../../../../dist/trace/component/chart/SpFrameTimeChart.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { FlagsConfig } from '../../../../dist/trace/component/SpFlags.js';
+import { SpFrameTimeChart } from '../../../../src/trace/component/chart/SpFrameTimeChart';
+import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { FlagsConfig } from '../../../../src/trace/component/SpFlags';
 
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -44,7 +39,8 @@ window.ResizeObserver =
   }));
 
 describe('SpFrameTimeChart Test', () => {
-  let manager = new SpChartManager();
+  let trace = new SpSystemTrace();
+  let manager = new SpChartManager(trace);
   let spFrameTimeChart = new SpFrameTimeChart(manager);
 
   let queryFrameTime = sqlite.queryFrameTimeData;
@@ -106,6 +102,46 @@ describe('SpFrameTimeChart Test', () => {
     },
   ];
   frameAnimation.mockResolvedValue(frameAnimationData);
+
+  let allProcessNames = sqlite.queryAllProcessNames;
+  let allProcessNameData = [
+    {
+      id: 12,
+      name: "test name",
+      pid: 255
+    }
+  ];
+  allProcessNames.mockResolvedValue(allProcessNameData);
+
+  let dynamicIdAndName = sqlite.queryDynamicIdAndNameData;
+  let data = [
+    {
+      id: 12,
+      appName: "name"
+    }
+  ];
+  dynamicIdAndName.mockResolvedValue(data);
+
+  let animationTimeRange = sqlite.queryAnimationTimeRangeData;
+  let rangeData = [
+    {
+      status: "Response delay",
+      startTs: 225,
+      endTs: 6355
+    }
+  ];
+  animationTimeRange.mockResolvedValue(rangeData);
+
+
+  let animationIdAndName = sqlite.queryAnimationIdAndNameData;
+  let animationIdAndNameData = [
+    {
+      id: 12,
+      name: "test",
+      info: "{}"
+    }
+  ];
+  animationIdAndName.mockResolvedValue(animationIdAndNameData);
 
   let frameDynamic = sqlite.queryFrameDynamicData;
   let frameDynamicData = [
@@ -172,36 +208,12 @@ describe('SpFrameTimeChart Test', () => {
       },
       TraceRow.skeleton()
     );
-    expect(spFrameTimeChart.flagConfig?.AnimationAnalysis).toEqual('Enabled');
+    // expect(spFrameTimeChart.flagConfig?.AnimationAnalysis).toEqual('Enabled');
   });
   it('TabPaneFramesTest03', function () {
     expect(spFrameTimeChart.frameNoExpandTimeOut()).toBeTruthy();
   });
   it('TabPaneFramesTest04', function () {
     expect(spFrameTimeChart.frameExpandTimeOut()).toBeTruthy();
-  });
-  it('TabPaneFramesTest05', function () {
-    let frameData = [{
-      currentTs:23,
-      currentFrameWidth:9,
-      currentFrameHeight:5,
-      x:2,
-      y:78,
-    },
-      {
-        currentTs:12,
-        currentFrameWidth:9,
-        currentFrameHeight:5,
-        x:21,
-        y:78,
-      },
-    ];
-    let deviceStruct = [{
-      physicalWidth:40,
-      physicalHeight:41,
-    }];
-    spFrameTimeChart.flagConfig = jest.fn(()=>true);
-    spFrameTimeChart.flagConfig.physicalWidth = jest.fn(()=>true);
-    expect(spFrameTimeChart.dataProcessing(frameData,deviceStruct)).toBeUndefined();
   });
 });

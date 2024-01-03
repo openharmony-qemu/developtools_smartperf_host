@@ -39,6 +39,12 @@ declare global {
   }
 
   interface Window {
+    postMessage(message: any, transfer?: Transferable[]): void;
+    // queryFromWasm: boolean;//use cache or query from db
+    isLastFrame: boolean; //last frame mast be draw
+    recordStartNS: number;
+    recordEndNS: number;
+    totalNS: number;
     SmartEvent: {
       UI: {
         MenuTrace: string; //selected menu trace
@@ -60,6 +66,8 @@ declare global {
         DeviceDisConnect: string;
         HoverNull: string;
         KeyPath: string;
+        LoadFinish: string;
+        LoadFinishFrame: string;
       };
     };
 
@@ -117,6 +125,8 @@ window.SmartEvent = {
     DeviceDisConnect: 'SmartEvent-DEVICE_DISCONNECT',
     HoverNull: 'SmartEvent-Hover-NULL',
     KeyPath: 'SmartEvent-UI-UploadKeyPath',
+    LoadFinish: 'SmartEvent-UI-LoadFinish',//所有泳道刷新完成触发
+    LoadFinishFrame: 'SmartEvent-UI-LoadFinishFrame',//单个泳道刷新完成触发
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

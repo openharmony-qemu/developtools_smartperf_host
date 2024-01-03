@@ -13,23 +13,19 @@
  * limitations under the License.
  */
 
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree.js';
-// @ts-ignore
-import { TabpaneFilesystemCalltree } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree.js';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-// @ts-ignore
-import { FrameChart } from '../../../../../../dist/trace/component/chart/FrameChart.js';
-// @ts-ignore
-import { NativeHookStatisticsTableData } from '../../../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree';
+import { TabpaneFilesystemCalltree } from '../../../../../../src/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import { FrameChart } from '../../../../../../src/trace/component/chart/FrameChart';
+import { NativeHookStatisticsTableData } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU';
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {
   return {
     cpuCount: 1,
     CpuRender: Object,
@@ -158,7 +154,7 @@ describe('TabpaneFilesystemCalltree Test', () => {
   it('TabpaneFilesystemCalltreeTest08', function () {
     let resultData = [
       {
-        addr: 'SpSystemTrace.js',
+        addr: 'SpSystemTrace',
         canCharge: false,
         count: 56,
         depth: 1,

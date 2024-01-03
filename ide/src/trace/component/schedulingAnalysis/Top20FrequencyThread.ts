@@ -235,7 +235,7 @@ export class Top20FrequencyThread extends BaseElement {
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
     let frequencyThreadTime = new Date().getTime();
-    procedurePool.submitWithName('logic1', option, { tid: this.currentTid }, undefined, handler);
+    procedurePool.submitWithName('logic0', option, { tid: this.currentTid }, undefined, handler);
     let durTime = new Date().getTime() - frequencyThreadTime;
     info(log, durTime);
   }

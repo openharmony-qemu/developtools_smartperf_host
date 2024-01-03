@@ -116,7 +116,7 @@ export class TabPaneCounterSample extends BaseElement {
               }
             }
           }
-          row.canvasRestore(context);
+          row.canvasRestore(context, this.systemTrace);
         }
       }
     });

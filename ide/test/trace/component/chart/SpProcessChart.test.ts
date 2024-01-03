@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpProcessChart } from '../../../../dist/trace/component/chart/SpProcessChart.js';
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+import { SpProcessChart } from '../../../../src/trace/component/chart/SpProcessChart';
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -26,8 +25,7 @@ const intersectionObserverMock = () => ({
   observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
+import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
@@ -36,7 +34,7 @@ window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(()
 }));
 
 describe('SpProcessChart Test', () => {
-  let manager = new SpChartManager();
+  let manager = new SpSystemTrace();
   let spProcessChart = new SpProcessChart(manager);
   let MockqueryProcessAsyncFunc = sqlit.queryProcessAsyncFunc;
 
@@ -177,16 +175,6 @@ describe('SpProcessChart Test', () => {
       pid: 1,
       cmdline: 'render_service',
       frame_type: 'render_service',
-    },
-  ]);
-
-  let queryAllTaskPoolPid = sqlit.queryAllTaskPoolPid;
-  queryAllTaskPoolPid.mockResolvedValue([
-    {
-      pid: 1,
-    },
-    {
-      id: 2,
     },
   ]);
 
@@ -533,6 +521,57 @@ describe('SpProcessChart Test', () => {
       ts : 30150767753241,
       type : "measure",
       value : 1
+    }
+  ]);
+  let maxValue = sqlit.queryMemFilterIdMaxValue;
+  maxValue.mockResolvedValue([
+    {
+      filterId: 1,
+      maxValue: 522
+    },
+    {
+      filterId: 2,
+      maxValue: 563
+    }
+  ]);
+  let funcNames = sqlit.queryAllFuncNames;
+  funcNames.mockResolvedValue([
+    {
+      id: 0,
+      name: "test"
+    }
+  ]);
+
+  let soInitNames = sqlit.queryAllSoInitNames;
+  soInitNames.mockResolvedValue([
+    {
+      id: 1,
+      name: "soInitName"
+    }
+  ]);
+
+  let allProcessNames = sqlit.queryAllProcessNames;
+  allProcessNames.mockResolvedValue([
+    {
+      id: 2,
+      name: "processName",
+      pid: 256
+    }
+  ]);
+
+  let srcSlices = sqlit.queryAllSrcSlices;
+  srcSlices.mockResolvedValue([
+    {
+      id: 3,
+      src: "src"
+    }
+  ]);
+
+  let threadNames = sqlit.queryAllThreadName;
+  threadNames.mockResolvedValue([
+    {
+      tid: 4,
+      name: "threadName"
     }
   ]);
 

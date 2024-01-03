@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitModal } from '../../../dist/base-ui/modal/LitModal.js';
+import { LitModal } from '../../../src/base-ui/modal/LitModal';
 
 window.ResizeObserver =
   window.ResizeObserver ||

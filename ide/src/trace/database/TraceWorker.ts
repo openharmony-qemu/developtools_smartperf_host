@@ -14,8 +14,11 @@
  */
 
 importScripts('trace_streamer_builtin.js');
+import { execProtoForWorker } from './data-trafic/ExecProtoForWorker';
+import { QueryEnum, TraficEnum } from './data-trafic/QueryEnum';
 import { temp_init_sql_list } from './TempSql';
-
+// @ts-ignore
+import { BatchSphData } from '../proto/SphBaseData';
 let Module: any = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
@@ -40,6 +43,7 @@ let currentAction: string = '';
 let currentActionId: string = '';
 let ffrtFileCacheKey = '-1';
 
+let protoDataMap: Map<QueryEnum, any> = new Map<QueryEnum, any>();
 function clear() {
   if (Module != null) {
     Module._TraceStreamerReset();
@@ -70,7 +74,7 @@ self.addEventListener('unhandledrejection', (err) => {
 
 function initWASM() {
   return new Promise((resolve, reject) => {
-    // @ts-ignore
+    //@ts-ignore
     let wasm = trace_streamer_builtin_wasm;
     Module = wasm({
       locateFile: (s: any) => {
@@ -127,7 +131,7 @@ let translateJsonString = (str: string): string => {
 let convertJSON = () => {
   try {
     let str = dec.decode(arr);
-    let jsonArray = [];
+    let jsonArray: Array<any> = [];
     str = str.substring(str.indexOf('\n') + 1);
     if (!str) {
     } else {
@@ -223,6 +227,7 @@ async function obligateFileBufferSpace(size: number): Promise<void> {
 self.onmessage = async (e: MessageEvent) => {
   currentAction = e.data.action;
   currentActionId = e.data.id;
+  let typeLength = 4;
   if (e.data.action === 'reset') {
     clear();
   } else if (e.data.action === 'open') {
@@ -244,6 +249,8 @@ self.onmessage = async (e: MessageEvent) => {
         bufferSlice.length = 0;
       }
     };
+    let fn = Module.addFunction(callback, 'viii');
+    reqBufferAddr = Module._Initialize(fn, REQ_BUF_SIZE);
     let ffrtConvertCallback = (heapPtr: number, size: number, isEnd: number) => {
       if (isEnd !== 1) {
         let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
@@ -255,10 +262,15 @@ self.onmessage = async (e: MessageEvent) => {
         saveTraceFileBuffer(ffrtFileCacheKey, arr.buffer);
       }
     };
+    let tlvResultCallback = (heapPtr: number, size: number, type: number, isEnd: number) => {
+      let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+      protoDataMap.set(type, BatchSphData.decode(out).values);
+    };
     let fn1 = Module.addFunction(callback, 'viii');
     let fn2 = Module.addFunction(ffrtConvertCallback, 'viii');
+    let tlvResultFun = Module.addFunction(tlvResultCallback, 'viiii');
     Module._TraceStreamer_Set_Log_Level(5);
-    reqBufferAddr = Module._Initialize(fn1, REQ_BUF_SIZE, fn2);
+    reqBufferAddr = Module._Initialize(REQ_BUF_SIZE, fn1, tlvResultFun, fn2);
     let parseConfig = e.data.parseConfig;
     if (parseConfig !== '') {
       let parseConfigArray = enc.encode(parseConfig);
@@ -279,7 +291,7 @@ self.onmessage = async (e: MessageEvent) => {
       Module._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
       let first = true;
       let sendDataCallback = (heapPtr: number, size: number, componentID: number) => {
-        if (componentID == 100) {
+        if (componentID === 100) {
           if (first) {
             first = false;
             headUnitArray = Module.HEAPU8.slice(heapPtr, heapPtr + size);
@@ -398,7 +410,7 @@ self.onmessage = async (e: MessageEvent) => {
         Module.HEAPU8.set(dataSlice, reqBufferAddr);
         wrSize += sliceLen;
         r2 = Module._TraceStreamerParseDataEx(sliceLen, wrSize === final.length ? 1 : 0);
-        if (r2 == -1) {
+        if (r2 === -1) {
           break;
         }
       }
@@ -418,7 +430,7 @@ self.onmessage = async (e: MessageEvent) => {
     for (let value of thirdWasmMap.values()) {
       value.model._TraceStreamer_In_ParseDataOver();
     }
-    if (r2 === -1) {
+    if (r2 == -1) {
       // @ts-ignore
       self.postMessage({
         id: e.data.id,
@@ -433,7 +445,6 @@ self.onmessage = async (e: MessageEvent) => {
       // @ts-ignore
       self.postMessage({ id: e.data.id, ready: true, index: index + 1 });
     });
-
     self.postMessage(
       {
         id: e.data.id,
@@ -455,6 +466,28 @@ self.onmessage = async (e: MessageEvent) => {
       id: e.data.id,
       action: e.data.action,
       results: jsonArray,
+    });
+  } else if (e.data.action === 'exec-proto') {
+    execProtoForWorker(e.data, (sql: string) => {
+      let sqlUintArray = enc.encode(sql);
+      if (e.data.params.trafic !== TraficEnum.ProtoBuffer) {
+        Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
+        Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
+        let jsonArray = convertJSON();
+        return jsonArray;
+      } else {
+        let allArray = new Uint8Array(typeLength + sqlUintArray.length);
+        allArray[0] = e.data.name;
+        allArray.set(sqlUintArray, typeLength);
+        Module.HEAPU8.set(allArray, reqBufferAddr);
+        Module._TraceStreamerSqlQueryToProtoCallback(allArray.length);
+        let finalArrayBuffer = [];
+        if (protoDataMap.has(e.data.name)) {
+          finalArrayBuffer = protoDataMap.get(e.data.name);
+          protoDataMap.delete(e.data.name);
+        }
+        return finalArrayBuffer;
+      }
     });
   } else if (e.data.action == 'exec-buf') {
     query(e.data.name, e.data.sql, e.data.params);
@@ -660,7 +693,7 @@ self.onmessage = async (e: MessageEvent) => {
               if (receiveData.data.length > 0) {
                 let needCutMessage = receiveData.data as Array<{ offset: number; size: number }>;
                 let startOffset = needCutMessage[0].offset;
-                let nowCutInfoList = [];
+                let nowCutInfoList: Array<any> = [];
                 let isBeforeCutFinish = false;
                 for (let needCutIndex = 0; needCutIndex < needCutMessage.length; needCutIndex++) {
                   let cutInfo = needCutMessage[needCutIndex];
@@ -1073,6 +1106,7 @@ function cutFileByRange(e: MessageEvent) {
 }
 
 function createView(sql: string) {
+  // console.log("createView:",sql);
   let array = enc.encode(sql);
   Module.HEAPU8.set(array, reqBufferAddr);
   let res = Module._TraceStreamerSqlOperateEx(array.length);
@@ -1095,6 +1129,7 @@ function query(name: string, sql: string, params: any): void {
     });
   }
   start = new Date().getTime();
+  // console.log(sql);
   let sqlUintArray = enc.encode(sql);
   Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
   Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
@@ -1110,6 +1145,7 @@ function querySdk(name: string, sql: string, sdkParams: any, action: string) {
       }
     });
   }
+  // console.log(name,sql);
   let sqlUintArray = enc.encode(sql);
   let commentId = action.substring(action.lastIndexOf('-') + 1);
   let key = Number(commentId);

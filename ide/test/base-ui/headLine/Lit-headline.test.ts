@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitHeadLine } from '../../../src/base-ui/headline/lit-headline.js';
+import { LitHeadLine } from '../../../src/base-ui/headline/lit-headline';
 describe('LitHeadLine Test', () => {
   beforeAll(() => {
     document.body.innerHTML = `<lit-headline id = "headLine"><lit-headline>`;

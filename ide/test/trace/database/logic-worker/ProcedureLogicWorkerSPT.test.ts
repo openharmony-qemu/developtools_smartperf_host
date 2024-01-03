@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { ProcedureLogicWorkerSPT, SPT,} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerSPT.js';
+import { ProcedureLogicWorkerSPT, SPT,} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerSPT';
 
 describe('ProcedureLogicWorkerSPT Test', () => {
   it('ProcedureLogicWorkerSPTTest01', function () {

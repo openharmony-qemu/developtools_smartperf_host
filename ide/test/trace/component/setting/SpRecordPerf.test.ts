@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpRecordPerf } from '../../../../dist/trace/component/setting/SpRecordPerf.js';
+import { SpRecordPerf } from '../../../../src/trace/component/setting/SpRecordPerf';
 
 describe('SpRecordPerf Test', () => {
   let spRecordPerf = new SpRecordPerf();

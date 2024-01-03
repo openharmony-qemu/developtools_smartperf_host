@@ -18,12 +18,17 @@
 
 #include <unordered_map>
 #include <unordered_set>
+
+#include "clock_filter_ex.h"
 #include "common_types.h"
 #include "filter_base.h"
+#include "string_help.h"
+#include "string_to_numerical.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 class AnimationFilter : private FilterBase {
 public:
     AnimationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
@@ -64,6 +69,7 @@ private:
     uint8_t generateVsyncCnt_ = 0;
     DynamicFrame* dynamicFrame_ = nullptr;
     CallStack* callStackSlice_ = nullptr;
+    const uint8_t inputTimeIndex_ = 3;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

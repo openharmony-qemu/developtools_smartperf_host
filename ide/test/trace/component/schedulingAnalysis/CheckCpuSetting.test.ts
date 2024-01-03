@@ -12,11 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { CpuSetting, CheckCpuSetting } from '../../../../dist/trace/component/schedulingAnalysis/CheckCpuSetting.js';
-import '../../../../dist/trace/component/schedulingAnalysis/CheckCpuSetting.js';
-//@ts-ignore
-import { SpSchedulingAnalysis } from '../../../../dist/trace/component/schedulingAnalysis/SpSchedulingAnalysis.js';
+import { CpuSetting, CheckCpuSetting } from '../../../../src/trace/component/schedulingAnalysis/CheckCpuSetting';
+import '../../../../src/trace/component/schedulingAnalysis/CheckCpuSetting';
+import { SpSchedulingAnalysis } from '../../../../src/trace/component/schedulingAnalysis/SpSchedulingAnalysis';
 
 // @ts-ignore
 window.ResizeObserver =

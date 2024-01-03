@@ -13,19 +13,17 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpHiSysEventChart } from '../../../../dist/trace/component/chart/SpHiSysEventChart.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { SpHiSysEventChart } from '../../../../src/trace/component/chart/SpHiSysEventChart';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
 describe('SpHiSysEventChart Test', () => {
   let spHiSysEvent = new SpHiSysEventChart(new SpChartManager());
-  let hiSysEventList =sqlite.queryHiSysEventData;
+  let hiSysEventList = sqlite.queryHiSysEventData;
   let hiSysEventListData = [{
     id: 1,
     domain:'STARTUP',

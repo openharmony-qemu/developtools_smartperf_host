@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
+import { TabPaneIrqCounter } from '../../../../../../src/trace/component/trace/sheet/irq/TabPaneIrqCounter';
+import { IrqStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerIrq';
+import { querySoftIrqDataBoxSelect } from "../../../../../../src/trace/database/SqlLite";
 // @ts-ignore
-import { TabPaneIrqCounter } from '../../../../../../dist/trace/component/trace/sheet/irq/TabPaneIrqCounter.js';
-// @ts-ignore
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-import { IrqStruct } from '../../../../../../dist/trace/database/ui-worker/ProcedureWorkerIrq.js';
+
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -55,6 +58,28 @@ describe('TabPaneIrqCounter Test', () => {
       },
     ],
   };
+
+  let irqData = sqlite.queryIrqDataBoxSelect;
+  irqData.mockResolvedValue([
+    {
+      irqName: "name",
+      wallDuration: 9536,
+      maxDuration: 5239,
+      count: 1,
+      avgDuration: 2563
+    }
+  ]);
+
+  let softIrqData = sqlite.querySoftIrqDataBoxSelect;
+  softIrqData.mockResolvedValue([
+    {
+      irqName: "name",
+      wallDuration: 6765,
+      maxDuration: 56756,
+      count: 1,
+      avgDuration: 46545
+    }
+  ]);
 
   it('TabPaneIrqCounterTest01', function () {
     tabPaneIrqCounter.data = frameData;

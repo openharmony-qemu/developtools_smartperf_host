@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { HdcDeviceManager } from '../../dist/hdc/HdcDeviceManager.js';
+import { HdcDeviceManager } from '../../src/hdc/HdcDeviceManager';
 
 describe('HdcDeviceManager', () => {
   it('HdcDeviceManagerTest_01', () => {

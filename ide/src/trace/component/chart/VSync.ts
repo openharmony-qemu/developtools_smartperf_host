@@ -71,11 +71,11 @@ export async function setVSyncData(): Promise<void> {
     sfvSyncData = await querySingleVSyncData();
     isSingle = true;
   }
-  sfvSyncData.forEach((it, index, array) => {
+  sfvSyncData.forEach((it, index, array): void => {
     if (index < array.length - 1) {
       it.dur = array[index + 1].startTime - it.startTime;
     } else {
-      it.dur = (window as any).totalNS - it.startTime;
+      it.dur = window.totalNS - it.startTime;
     }
   });
   vSyncDataList = sfvSyncData;
@@ -115,6 +115,7 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
       });
   }
   ctx.stroke();
+  ctx.globalAlpha = 1.0;
   ctx.closePath();
 }
 

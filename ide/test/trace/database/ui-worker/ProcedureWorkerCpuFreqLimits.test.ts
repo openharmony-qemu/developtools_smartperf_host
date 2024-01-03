@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
 import {
   CpuFreqLimitRender,
   CpuFreqLimitsStruct,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuFreqLimits.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { dataFilterHandler } from "../../../../src/trace/database/ui-worker/ProcedureWorkerCommon";
 
 describe('ProcedureWorkerCpuFreqLimits Test', () => {
   let cpuFreqLimits = {
@@ -92,7 +91,7 @@ describe('ProcedureWorkerCpuFreqLimits Test', () => {
 
   it('Test04', function () {
     let cpuFreqLimitRender = new CpuFreqLimitRender();
-    let req = {
+    let req = [{
       type: '',
       startNS: 10,
       endNS: 101,
@@ -126,9 +125,24 @@ describe('ProcedureWorkerCpuFreqLimits Test', () => {
       y: 600,
       width: 100,
       height: 230,
-    };
+    }];
     window.postMessage = jest.fn(() => true);
-    expect(cpuFreqLimitRender.render(req, [], [])).toBeUndefined();
+    let frame = {
+      x: 20,
+      y: 20,
+      width: 100,
+      height: 100,
+    };
+    expect(dataFilterHandler(req, [{ length: 0 }], {
+      startKey: 'startNS',
+      durKey: 'dur',
+      startNS: TraceRow.range?.startNS ?? 0,
+      endNS: TraceRow.range?.endNS ?? 0,
+      totalNS: TraceRow.range?.totalNS ?? 0,
+      frame: frame,
+      paddingTop: 5,
+      useCache: false,
+    })).toBeUndefined();
   });
   it('Test05', function () {
     let cpuFreqLimitRender = new CpuFreqLimitRender();

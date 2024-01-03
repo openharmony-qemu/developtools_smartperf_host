@@ -15,11 +15,10 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import { queryLogData } from '../../database/SqlLite';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog';
-
-const ONE_DAY_NS = 86400000000000;
+import { LogDataSender } from '../../database/data-trafic/LogDataSender';
+import {queryLogData} from "../../database/SqlLite";
 
 export class SpLogChart {
   private trace: SpSystemTrace;
@@ -29,16 +28,15 @@ export class SpLogChart {
   }
 
   async init() {
-    let oneDayTime = (window as any).recordEndNS - ONE_DAY_NS;
-    let dataArray = await queryLogData(oneDayTime);
+    let dataArray = await queryLogData();
     if (dataArray.length === 0) {
       return;
     }
-    let folder = await this.initFolder(dataArray);
+    let folder = await this.initFolder();
     this.trace.rowsEL?.appendChild(folder);
   }
 
-  async initFolder(dataArray: LogStruct[]): Promise<TraceRow<LogStruct>> {
+  async initFolder(): Promise<TraceRow<LogStruct>> {
     let logsRow = TraceRow.skeleton<LogStruct>();
     logsRow.rowId = 'logs';
     logsRow.index = 0;
@@ -49,10 +47,11 @@ export class SpLogChart {
     logsRow.name = 'Logs';
     logsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     logsRow.selectChangeHandler = this.trace.selectChangeHandler;
-    logsRow.supplier = () =>
-      new Promise((resolve): void => {
-        resolve(dataArray);
+    logsRow.supplierFrame = () => {
+      return LogDataSender(logsRow).then((res) => {
+        return res;
       });
+    };
     logsRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
       if (logsRow.currentContext) {
@@ -69,7 +68,7 @@ export class SpLogChart {
         },
         logsRow
       );
-      logsRow.canvasRestore(context);
+      logsRow.canvasRestore(context, this.trace);
     };
     return logsRow;
   }

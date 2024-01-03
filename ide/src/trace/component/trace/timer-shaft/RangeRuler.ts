@@ -412,17 +412,17 @@ export class RangeRuler extends Graph {
       this.animaStartTime = dat.getTime();
     }
     this.currentDuration = new Date().getTime() - this.animaStartTime;
-    this.setCacheInterval(new Date().getTime() - this.animaStartTime);
+    this.setCacheInterval();
+    this.range.refresh = this.cacheInterval.flag;
   }
 
-  setCacheInterval(offsetTime: number) {
-    if (Math.trunc(offsetTime / this.cacheInterval.interval) !== this.cacheInterval.value) {
+  setCacheInterval() {
+    if (Math.trunc(this.currentDuration / this.cacheInterval.interval) !== this.cacheInterval.value) {
       this.cacheInterval.flag = true;
-      this.cacheInterval.value = Math.trunc(offsetTime / this.cacheInterval.interval);
+      this.cacheInterval.value = Math.trunc(this.currentDuration / this.cacheInterval.interval);
     } else {
       this.cacheInterval.flag = false;
     }
-    this.range.refresh = this.cacheInterval.flag;
   }
 
   delayDraw() {
@@ -489,6 +489,8 @@ export class RangeRuler extends Graph {
       this.pressedKeys.length == 0 ||
       this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()
     ) {
+      this.setCacheInterval();
+      this.range.refresh = this.cacheInterval.flag;
       if (currentSlicesTime) {
         this.currentSlicesTime = currentSlicesTime;
       }
@@ -689,8 +691,6 @@ export class RangeRuler extends Graph {
   f = 11; //加速度系数,值越小加速度越大
   keyPressW() {
     let animW = () => {
-      let offset = Date.now() - this.animaStartTime!;
-      this.setCacheInterval(offset);
       if (this.scale === 50) {
         this.fillX();
         this.range.refresh = true;
@@ -698,7 +698,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = offset / this.f; //reg
+      this.currentDuration = (Date.now() - this.animaStartTime!) / this.f; //reg
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       this.range.startNS += this.centerXPercentage * bb * this.scale;
@@ -713,8 +713,6 @@ export class RangeRuler extends Graph {
 
   keyPressS() {
     let animS = () => {
-      let offset = Date.now() - this.animaStartTime!;
-      this.setCacheInterval(offset);
       if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.range.refresh = true;
@@ -722,7 +720,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = offset / this.f;
+      this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       this.range.startNS -= this.centerXPercentage * bb * this.scale;
@@ -737,8 +735,6 @@ export class RangeRuler extends Graph {
 
   keyPressA() {
     let animA = () => {
-      let offset = Date.now() - this.animaStartTime!;
-      this.setCacheInterval(offset);
       if (this.range.startNS <= 0) {
         this.fillX();
         this.range.refresh = true;
@@ -746,7 +742,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = offset / this.f;
+      this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       let s = this.scale * bb;
@@ -762,8 +758,6 @@ export class RangeRuler extends Graph {
 
   keyPressD() {
     let animD = () => {
-      let offset = Date.now() - this.animaStartTime!;
-      this.setCacheInterval(offset);
       if (this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.range.refresh = true;
@@ -771,7 +765,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.currentDuration = offset / this.f;
+      this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       let s = this.scale * bb;
@@ -893,10 +887,10 @@ export class RangeRuler extends Graph {
 
   keyUpEnd() {
     this.range.refresh = true;
-    // window.isLastFrame = true;
+    window.isLastFrame = true;
     this.notifyHandler(this.range);
     this.range.refresh = false;
-    // window.isLastFrame = false;
+    window.isLastFrame = false;
   }
 
   keyUpD(): void {

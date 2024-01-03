@@ -22,7 +22,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum Direction { NEED_GO = 0, NEED_CONTINUE, NEED_BREAK };
-enum Stat : uint32_t {
+enum class Stat : uint32_t {
     RUNNABLE = 0,
     INTERRUPTABLESLEEP = 1,
     UNINTERRUPTIBLESLEEP = 2,
@@ -45,7 +45,7 @@ public:
 
     uint32_t State() const
     {
-        return state_ & ~VALID;
+        return state_ & ~static_cast<uint32_t>(Stat::VALID);
     }
     bool IsInvalid() const
     {
@@ -55,7 +55,7 @@ public:
 private:
     void SetStat(Stat value)
     {
-        state_ |= value;
+        state_ |= static_cast<uint32_t>(value);
     }
 
     void ProcessSate(const std::string& stateStr);
@@ -64,16 +64,16 @@ private:
 private:
     uint32_t state_ = 0;
     std::map<char, Stat> statMap_ = {
-        {'R', RUNNABLE},
-        {'S', INTERRUPTABLESLEEP},
-        {'D', UNINTERRUPTIBLESLEEP},
-        {'T', STOPPED},
-        {'t', TRACED},
-        {'X', EXITDEAD},
-        {'Z', EXITZOMBIE},
-        {'P', PARKED},
-        {'I', TASKDEAD},
-        {'|', VALID},
+        {'R', Stat::RUNNABLE},
+        {'S', Stat::INTERRUPTABLESLEEP},
+        {'D', Stat::UNINTERRUPTIBLESLEEP},
+        {'T', Stat::STOPPED},
+        {'t', Stat::TRACED},
+        {'X', Stat::EXITDEAD},
+        {'Z', Stat::EXITZOMBIE},
+        {'P', Stat::PARKED},
+        {'I', Stat::TASKDEAD},
+        {'|', Stat::VALID},
     };
     bool invalid_ = false;
 };

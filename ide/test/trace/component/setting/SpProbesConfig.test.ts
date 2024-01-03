@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpProbesConfig } from '../../../../dist/trace/component/setting/SpProbesConfig.js';
+import { SpProbesConfig } from '../../../../src/trace/component/setting/SpProbesConfig';
 
 describe('SpProbesConfig Test', () => {
   beforeAll(() => {

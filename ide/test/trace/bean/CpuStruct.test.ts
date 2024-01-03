@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { CpuStruct } from '../../../dist/trace/bean/CpuStruct.js';
+import { CpuStruct } from '../../../src/trace/bean/CpuStruct';
 
 describe('CpuStruct Test', () => {
   const canvas = document.createElement('canvas');

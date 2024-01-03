@@ -12,17 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneJsCpuStatistics } from '../../../../../../dist/trace/component/trace/sheet/ark-ts/TabPaneJsCpuStatistics.js';
-import '../../../../../../dist/trace/component/trace/sheet/ark-ts/TabPaneJsCpuStatistics.js';
-import { JsCpuProfilerStatisticsStruct } from '../../../../../../dist/trace/bean/JsStruct.js';
+import { TabPaneJsCpuStatistics } from '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneJsCpuStatistics';
+import '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneJsCpuStatistics';
+import { JsCpuProfilerStatisticsStruct } from '../../../../../../src/trace/bean/JsStruct';
 
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
     return {}
 });
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
     return {
         recycleDataSource: () => {},
         removeAttribute: () => {},

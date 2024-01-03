@@ -27,6 +27,7 @@ import {
   queryPrecedingData,
   queryRunnableTimeByRunning,
   queryThreadByItid,
+  queryThreadNearData,
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
@@ -187,6 +188,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       threadClick?.addEventListener('click', () => {
         //cpu点击
         if (scrollCallback) {
+          data.state = 'Running';
           scrollCallback(data);
         }
       });
@@ -233,7 +235,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     let name = this.transferString(data.funName ?? '');
     let isBinder = FuncStruct.isBinder(data);
     let isAsyncBinder = isBinder && FuncStruct.isBinderAsync(data);
-    if (data.argsetid !== undefined && data.argsetid !== null) {
+    if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
         Promise.all([
@@ -350,7 +352,9 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: getTimeString(data.dur || 0),
     });
     contentList.push({ name: 'depth', value: data.depth });
-    contentList.push({ name: 'arg_set_id', value: data.argsetid });
+    if (data.argsetid && data.argsetid > -1) {
+      contentList.push({ name: 'arg_set_id', value: data.argsetid });
+    }
   }
 
   private tabCurrentSelectionInit(leftTitleStr: string): void {
@@ -455,8 +459,6 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((d: any) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
-    scrollPreviousData: (d: any) => void | undefined,
-    scrollNextData: (d: any) => void | undefined,
     callback: ((data: Array<any>) => void) | undefined = undefined
   ): void {
     //线程信息
@@ -488,10 +490,6 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
     if ('Running' === state) {
       state = state + ' on CPU ' + data.cpu;
-    }
-    if (data.cpu === null || data.cpu === undefined) {
-      list.push({ name: 'State', value: `${state}` });
-    } else {
       list.push({
         name: 'State',
         value: `<div style="white-space: nowrap;display: flex;align-items: center">
@@ -499,6 +497,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
       });
+    } else {
+      list.push({ name: 'State', value: `${state}` });
     }
     let slice = Utils.SCHED_SLICE_MAP.get(`${data.id}-${data.startTime}`);
     if (slice) {
@@ -517,44 +517,6 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'Process',
       value: this.transferString(processName ?? '') + ' [' + data.pid + '] ',
     });
-    let ThreadRow = document
-      .querySelector('body > sp-application')!
-      .shadowRoot!.querySelector('#sp-system-trace')!
-      .shadowRoot?.querySelector<TraceRow<ThreadStruct>>(`trace-row[row-id='${data.tid}'][row-type='thread']`);
-    ThreadRow?.dataList.forEach((item, index) => {
-      if (item === data && index !== 0) {
-        let previousState = ThreadRow?.dataList[index - 1].state;
-        if (previousState === 'R') {
-          previousState = 'Runnable';
-        }
-        if (previousState === 'S') {
-          previousState = 'Sleeping';
-        }
-        list.push({
-          name: 'Previous State',
-          value: `<div style="white-space: nowrap;display: flex;align-items: center">
-              <div style="white-space:pre-wrap">${previousState}</div>
-              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
-              </div>`,
-        });
-      }
-      if (item === data && index !== ThreadRow?.dataList.length! - 1) {
-        let nextState = ThreadRow?.dataList[index + 1].state;
-        if (nextState === 'R') {
-          nextState = 'Runnable';
-        }
-        if (nextState === 'S') {
-          nextState = 'Sleeping';
-        }
-        list.push({
-          name: 'Next State',
-          value: `<div style="white-space: nowrap;display: flex;align-items: center">
-              <div style="white-space:pre-wrap">${nextState}</div>
-              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
-              </div>`,
-        });
-      }
-    });
     let cpu = new CpuStruct();
     cpu.id = data.id;
     cpu.startTime = data.startTime;
@@ -562,10 +524,37 @@ export class TabPaneCurrentSelection extends BaseElement {
       this.queryThreadWakeUpFromData(data.id!, data.startTime!, data.dur!),
       this.queryThreadWakeUpData(data.id!, data.startTime!, data.dur!),
       this.queryThreadStateDArgs(data.argSetID),
+      queryThreadNearData(data.id!, data.startTime!),
     ]).then((result) => {
       let fromBean = result[0];
       let wakeUps = result[1];
       let args = result[2];
+      let nearData = result[3];
+      let preData: any = undefined;
+      let nextData: any = undefined;
+      nearData.sort((near1, near2) => near1.startTime - near2.startTime).forEach((near) => {
+        if (near.itid === data.id) {
+          if (near.startTime < data.startTime!) {
+            preData = near;
+            list.push({
+              name: 'Previous State',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+              <div style="white-space:pre-wrap">${Utils.getEndState(near.state)}</div>
+              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+              </div>`,
+            });
+          } else {
+            nextData = near;
+            list.push({
+              name: 'Next State',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+              <div style="white-space:pre-wrap">${Utils.getEndState(near.state)}</div>
+              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+              </div>`,
+            });
+          }
+        }
+      });
       if (fromBean !== null && fromBean !== undefined && fromBean.pid !== 0 && fromBean.tid !== 0) {
         list.push({
           name: 'wakeup from tid',
@@ -598,13 +587,31 @@ export class TabPaneCurrentSelection extends BaseElement {
         callback(jankJumperList);
       }
       this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
-        if (scrollNextData) {
-          scrollNextData(data);
+        if (nextData && scrollWakeUp !== undefined) {
+          scrollWakeUp({
+            processId: nextData.pid,
+            tid: nextData.tid,
+            startTime: nextData.startTime,
+            dur: nextData.dur,
+            cpu: nextData.cpu,
+            id: nextData.itid,
+            state: nextData.state,
+            argSetID: nextData.argSetID,
+          });
         }
       });
       this.currentSelectionTbl?.shadowRoot?.querySelector('#previous-state-click')?.addEventListener('click', () => {
-        if (scrollPreviousData) {
-          scrollPreviousData(data);
+        if (preData && scrollWakeUp !== undefined) {
+          scrollWakeUp({
+            processId: preData.pid,
+            tid: preData.tid,
+            startTime: preData.startTime,
+            dur: preData.dur,
+            cpu: preData.cpu,
+            id: preData.itid,
+            state: preData.state,
+            argSetID: preData.argSetID,
+          });
         }
       });
       this.currentSelectionTbl?.shadowRoot?.querySelector('#state-click')?.addEventListener('click', () => {
@@ -620,6 +627,11 @@ export class TabPaneCurrentSelection extends BaseElement {
             processId: fromBean.pid,
             tid: fromBean.tid,
             startTime: fromBean.ts,
+            dur: fromBean.dur,
+            cpu: fromBean.cpu,
+            id: fromBean.itid,
+            state: 'Running',
+            argSetID: fromBean.argSetID,
           });
         }
       });
@@ -629,9 +641,14 @@ export class TabPaneCurrentSelection extends BaseElement {
             //点击跳转，唤醒和被唤醒的 线程
             if (up && scrollWakeUp !== undefined) {
               scrollWakeUp({
+                processId: up.pid,
                 tid: up.tid,
                 startTime: up.ts,
-                processId: up.pid,
+                dur: up.dur,
+                cpu: up.cpu,
+                id: up.itid,
+                state: up.state,
+                argSetID: up.argSetID,
               });
             }
           });
@@ -783,7 +800,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             });
             list.push({
               name: 'Process',
-              value: data.rs_name + ' ' + data.rs_pid,
+              value: 'render_service ' + data.rs_pid,
             });
             list.push({
               name: 'StartTime(Relative)',
@@ -931,7 +948,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             dur: pt.dur,
             depth: pt.depth,
             funName: pt.name,
-            startTime: useEnd ? (data.startTs || 0) + (data.dur || 0) : data.startTs,
+            startTs: useEnd ? (data.startTs || 0) + (data.dur || 0) : data.startTs,
             keepOpen: true,
           });
         }
@@ -989,7 +1006,7 @@ export class TabPaneCurrentSelection extends BaseElement {
               dur: pt.dur,
               depth: pt.depth,
               funName: pt.name,
-              startTime: data.startTs,
+              startTs: data.startTs,
               keepOpen: true,
             });
           }
@@ -1089,7 +1106,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   async queryThreadStateDArgs(argSetID: number | undefined): Promise<BinderArgBean[]> {
     let list: Array<BinderArgBean> = [];
-    if (argSetID !== undefined) {
+    if (argSetID !== undefined && argSetID > 0) {
       list = await queryThreadStateArgs(argSetID);
     }
     return list;

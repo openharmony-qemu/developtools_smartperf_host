@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { HeapNode,HeapEdge,HeapTraceFunctionInfo,HeapSample,HeapLocation,HeapSnapshotStruct,FileStruct } from '../../../dist/js-heap/model/DatabaseStruct.js';
+import { HeapNode,HeapEdge,HeapTraceFunctionInfo,HeapSample,HeapLocation,HeapSnapshotStruct,FileStruct } from '../../../src/js-heap/model/DatabaseStruct';
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),

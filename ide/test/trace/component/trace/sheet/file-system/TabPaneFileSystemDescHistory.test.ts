@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneFileSystemDescHistory } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFileSystemDescHistory.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFileSystemDescHistory.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneFileSystemDescHistory } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFileSystemDescHistory';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFileSystemDescHistory';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

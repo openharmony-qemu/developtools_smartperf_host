@@ -1199,7 +1199,7 @@ void MetaData::SetTraceDataSize(uint64_t dataSize)
     values_[METADATA_ITEM_DATASIZE] = ss.str();
     // 	Function 'time' may return error. It is not allowed to do anything that might fail inside the constructor.
     time_t rawtime;
-    struct tm* timeinfo = nullptr;
+    tm* timeinfo = nullptr;
     void(time(&rawtime));
     timeinfo = localtime(&rawtime);
     char buffer[MAX_SIZE_LEN];
@@ -2371,6 +2371,37 @@ size_t FrameSlice::AppendFrame(uint64_t ts,
     return row;
 }
 
+void FrameSlice::UpdateDepth()
+{
+    DoubleMap<uint32_t, uint8_t, std::shared_ptr<std::vector<uint64_t>>> ipidAndTypesToVEndTime(nullptr);
+    for (auto row = 0; row < Size(); row++) {
+        if (flags_[row] == flagValue_) {
+            continue;
+        }
+        auto endTime = timeStamps_[row] + durs_[row];
+        auto vEndTimes = ipidAndTypesToVEndTime.Find(ipids_[row], types_[row]);
+        auto depth = 0;
+        if (!vEndTimes) {
+            vEndTimes = std::make_shared<std::vector<uint64_t>>();
+            vEndTimes->push_back(endTime);
+            ipidAndTypesToVEndTime.Insert(ipids_[row], types_[row], vEndTimes);
+            depths_[row] = depth;
+            continue;
+        }
+        for (; depth < vEndTimes->size(); depth++) {
+            if (timeStamps_[row] > vEndTimes->at(depth)) {
+                depths_[row] = depth;
+                vEndTimes->at(depth) = endTime;
+                break;
+            }
+        }
+        if (depth == vEndTimes->size()) {
+            depths_[row] = depth;
+            vEndTimes->push_back(endTime);
+        }
+    }
+}
+
 void FrameSlice::SetEndTime(uint64_t row, uint64_t end)
 {
     endTss_[row] = end;
@@ -2456,7 +2487,7 @@ void FrameSlice::SetEndTimeAndFlag(uint64_t row, uint64_t ts, uint64_t expectDur
 }
 void FrameSlice::Erase(uint64_t row)
 {
-    flags_[row] = INVALID_ROW;
+    flags_[row] = invalidRow_;
 }
 size_t FrameMaps::AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst)
 {

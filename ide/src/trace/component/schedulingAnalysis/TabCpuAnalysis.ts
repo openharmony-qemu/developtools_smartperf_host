@@ -145,7 +145,7 @@ export class TabCpuAnalysis extends BaseElement {
   queryLogicWorker(cpuAnalysisType: string, log: string, handler: (res: any) => void) {
     let cpuAnalysisTime = new Date().getTime();
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       cpuAnalysisType,
       {
         endTs: SpSchedulingAnalysis.endTs,

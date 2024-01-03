@@ -21,6 +21,7 @@ import {
   Render,
   RequestMessage,
   drawString,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
@@ -47,6 +48,7 @@ export class ThreadRender extends Render {
       paddingTop: 5,
       useCache: threadReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(threadReq.context, threadFilter, row);
     threadReq.context.beginPath();
     for (let re of threadFilter) {
       re.translateY = threadReq.translateY;

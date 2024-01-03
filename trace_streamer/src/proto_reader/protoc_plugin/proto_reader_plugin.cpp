@@ -29,7 +29,7 @@ bool ProtoReaderPlugin::Generate(const FileDescriptor* file,
     const std::unique_ptr<ZeroCopyOutputStream> generateFile(context->Open(newFileName + ".h"));
     Printer generatePrinterHead(generateFile.get(), '$');
     ProtoReaderGenerator protoReaderGenerator(file, &generatePrinterHead);
-    std::vector<std::string> option = SplitStringToVec(const_cast<std::string&>(options), "=");
+    std::vector<std::string> option = base::SplitStringToVec(const_cast<std::string&>(options), "=");
     if (option.size() < MIN_OPTIONS_SIZE) {
         return false;
     }

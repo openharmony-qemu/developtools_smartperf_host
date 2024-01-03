@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTabpane } from '../../../dist/base-ui/tabs/lit-tabpane.js';
+import { LitTabpane } from '../../../src/base-ui/tabs/lit-tabpane';
 
 describe('LitTabPane Test', () => {
   let litTabPane = new LitTabpane();

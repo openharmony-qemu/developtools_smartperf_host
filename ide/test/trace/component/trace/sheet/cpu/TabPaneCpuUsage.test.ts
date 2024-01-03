@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneCpuUsage } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuUsage.js';
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+import { TabPaneCpuUsage } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneCpuUsage';
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 

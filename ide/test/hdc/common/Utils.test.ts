@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { Utils } from '../../../dist/hdc/common/Utils.js';
+import { Utils } from '../../../src/hdc/common/Utils';
 
 describe('UtilsTest', () => {
   it('UtilsTest_getLocalId_01', () => {

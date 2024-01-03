@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpSystemTrace } from '../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { SpNativeMemoryChart } from '../../../../dist/trace/component/chart/SpNativeMemoryChart.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+import { SpNativeMemoryChart } from '../../../../src/trace/component/chart/SpNativeMemoryChart';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 const intersectionObserverMock = () => ({
   observe: () => null,
@@ -33,7 +30,7 @@ window.ResizeObserver = window.ResizeObserver ||
     observe: jest.fn(),
   }));
 describe('SpNativeMemoryChart Test', () => {
-  let chartManager = new SpChartManager();
+  let chartManager = new SpSystemTrace();
   let spNativeMemoryChart = new SpNativeMemoryChart(chartManager);
 
   let queryNativeHookStatisticsCount = sqlit.queryNativeHookStatisticsCount;
@@ -78,11 +75,5 @@ describe('SpNativeMemoryChart Test', () => {
 
   it('SpNativeMemoryChart01', function () {
     expect(spNativeMemoryChart.initChart()).toBeDefined();
-  });
-  it('SpNativeMemoryChart02', function () {
-    expect(spNativeMemoryChart.getNativeMemoryStatisticByChartType()).toBeDefined();
-  });
-  it('SpNativeMemoryChart03', function () {
-    expect(spNativeMemoryChart.getNativeMemoryDataByChartType()).toBeDefined();
   });
 });

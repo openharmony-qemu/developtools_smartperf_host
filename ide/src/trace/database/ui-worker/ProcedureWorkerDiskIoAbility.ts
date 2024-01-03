@@ -25,6 +25,7 @@ import {
   drawFlagLine,
   RequestMessage,
   dataFilterHandler,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -51,6 +52,7 @@ export class DiskIoAbilityRender extends Render {
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(req.context, diskIoAbilityRow.dataListCache, diskIoAbilityRow);
     req.context.beginPath();
     let find = false;
     for (let re of diskIoFilter) {

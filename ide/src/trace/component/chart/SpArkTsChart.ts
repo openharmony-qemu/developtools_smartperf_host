@@ -27,9 +27,19 @@ import { Utils } from '../trace/base/Utils';
 import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct';
 import { type JsCpuProfilerRender, JsCpuProfilerStruct } from '../../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { ns2s } from '../../database/ui-worker/ProcedureWorkerCommon';
-import { queryJsCpuProfilerConfig, queryJsCpuProfilerData, queryJsMemoryData } from '../../database/SqlLite';
+import {
+  queryAllSnapshotNames,
+  queryJsCpuProfilerConfig,
+  queryJsCpuProfilerData,
+  queryJsMemoryData,
+} from '../../database/SqlLite';
+import {
+  cpuProfilerDataSender
+} from '../../database/data-trafic/ArkTsSender';
+
 const TYPE_SNAPSHOT = 0;
 const TYPE_TIMELINE = 1;
+const LAMBDA_FUNCTION_NAME = '(anonymous)';
 export class SpArkTsChart implements ParseListener {
   private trace: SpSystemTrace;
   private folderRow: TraceRow<any> | undefined;
@@ -39,6 +49,7 @@ export class SpArkTsChart implements ParseListener {
   private loadJsDatabase: LoadDatabase;
   private allCombineDataMap = new Map<number, JsCpuProfilerChartFrame>();
   private process: string = '';
+
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
     this.loadJsDatabase = LoadDatabase.getInstance();
@@ -65,7 +76,8 @@ export class SpArkTsChart implements ParseListener {
       this.folderRow.addTemplateTypes('ArkTs');
       this.folderRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       this.folderRow.selectChangeHandler = this.trace.selectChangeHandler;
-      this.folderRow.supplier = (): Promise<Array<unknown>> => new Promise<Array<unknown>>((resolve) => resolve([]));
+      this.folderRow.supplierFrame = (): Promise<Array<unknown>> =>
+        new Promise<Array<unknown>>((resolve) => resolve([]));
       this.folderRow.onThreadHandler = (useCache): void => {
         this.folderRow!.canvasSave(this.trace.canvasPanelCtx!);
         if (this.folderRow!.expansion) {
@@ -80,7 +92,7 @@ export class SpArkTsChart implements ParseListener {
             this.folderRow!
           );
         }
-        this.folderRow!.canvasRestore(this.trace.canvasPanelCtx!);
+        this.folderRow!.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
       };
       this.trace.rowsEL?.appendChild(this.folderRow);
       if (this.folderRow && jsConfig[0].type !== -1 && jsMemory.length > 0) {
@@ -97,10 +109,38 @@ export class SpArkTsChart implements ParseListener {
         await this.initJsCpuChart();
       }
       if ((this.heapSnapshotRow || this.heapTimelineRow) && jsMemory.length > 0) {
-        await this.initJsMemoryChartData();
+        await this.loadJsDatabase.loadDatabase(this);
       }
       if (this.jsCpuProfilerRow && jsCpu.length > 0) {
-        await this.initJsCpuProfilerChartData();
+        this.jsCpuProfilerRow!.supplierFrame = (): Promise<Array<any>> => {
+          return cpuProfilerDataSender(this.jsCpuProfilerRow!).then((res: any) => {
+            let maxHeight = res.maxDepth * 20;
+            this.jsCpuProfilerRow!.style.height = `${maxHeight}px`;
+            if (res.dataList.length > 0) {
+              this.allCombineDataMap = new Map<number, JsCpuProfilerChartFrame>();
+              for (let data of res.dataList) {
+                this.allCombineDataMap.set(data.id, data);
+                SpSystemTrace.jsProfilerMap.set(data.id, data);
+              }
+              res.dataList.forEach((data: any) => {
+                data.children = [];
+                if (data.childrenIds.length > 0) {
+                  for (let id of data.childrenIds) {
+                    let child = SpSystemTrace.jsProfilerMap.get(Number(id));
+                    data.children.push(child);
+                  }
+                }
+                data.name = SpSystemTrace.DATA_DICT.get(data.nameId) || LAMBDA_FUNCTION_NAME;
+                data.url = SpSystemTrace.DATA_DICT.get(data.urlId) || 'unknown';
+                if (data.url && data.url !== 'unknown') {
+                  let dirs = data.url.split('/');
+                  data.scriptName = dirs.pop() || '';
+                }
+              });
+            }
+            return res.dataList;
+          });
+        };
       }
     }
   }
@@ -155,13 +195,6 @@ export class SpArkTsChart implements ParseListener {
     this.folderRow!.addChildTraceRow(this.heapSnapshotRow);
   }
 
-  private initJsMemoryChartData = async (): Promise<void> => {
-    let time = new Date().getTime();
-    await this.loadJsDatabase.loadDatabase(this);
-    let durTime = new Date().getTime() - time;
-    info('The time to load the js Memory data is: ', durTime);
-  };
-
   public async parseDone(fileModule: Array<FileInfo>): Promise<void> {
     if (fileModule.length > 0) {
       let heapFile = HeapDataInterface.getInstance().getFileStructs();
@@ -170,7 +203,7 @@ export class SpArkTsChart implements ParseListener {
       if (file.type === TYPE_TIMELINE) {
         let samples = HeapDataInterface.getInstance().getSamples(file.id);
         this.heapTimelineRow!.rowId = `heaptimeline` + file.id;
-        this.heapTimelineRow!.supplier = (): Promise<any> => new Promise<any>((resolve) => resolve(samples));
+        this.heapTimelineRow!.supplierFrame = (): Promise<any> => new Promise<any>((resolve) => resolve(samples));
         this.heapTimelineRow!.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
           if (this.heapTimelineRow?.currentContext) {
@@ -188,10 +221,10 @@ export class SpArkTsChart implements ParseListener {
             },
             this.heapTimelineRow!
           );
-          this.heapTimelineRow!.canvasRestore(context);
+          this.heapTimelineRow!.canvasRestore(context, this.trace);
         };
       } else if (file.type === TYPE_SNAPSHOT) {
-        this.heapSnapshotRow!.supplier = (): Promise<Array<any>> =>
+        this.heapSnapshotRow!.supplierFrame = (): Promise<Array<any>> =>
           new Promise<Array<any>>((resolve) => resolve(heapFile));
         this.heapSnapshotRow!.onThreadHandler = (useCache): void => {
           let context: CanvasRenderingContext2D;
@@ -209,32 +242,10 @@ export class SpArkTsChart implements ParseListener {
             },
             this.heapSnapshotRow!
           );
-          this.heapSnapshotRow!.canvasRestore(context);
+          this.heapSnapshotRow!.canvasRestore(context, this.trace);
         };
       }
     }
-  }
-
-  private async initJsCpuProfilerChartData() {
-    procedurePool.submitWithName(
-      'logic1',
-      'jsCpuProfiler-init',
-      SpSystemTrace.DATA_DICT,
-      undefined,
-      (res: Array<JsCpuProfilerChartFrame>) => {
-        let allCombineData: Array<JsCpuProfilerChartFrame> = [];
-        this.getAllCombineData(res, allCombineData);
-        this.allCombineDataMap = new Map<number, JsCpuProfilerChartFrame>();
-        for (let data of allCombineData) {
-          this.allCombineDataMap.set(data.id, data);
-        }
-        let max = Math.max(...allCombineData.map((it) => it.depth || 0)) + 1;
-        let maxHeight = max * 20;
-        this.jsCpuProfilerRow!.style.height = `${maxHeight}px`;
-        this.jsCpuProfilerRow!.supplier = (): Promise<Array<any>> =>
-          new Promise<Array<any>>((resolve) => resolve(allCombineData));
-      }
-    );
   }
 
   private initJsCpuChart = async (): Promise<void> => {
@@ -282,20 +293,8 @@ export class SpArkTsChart implements ParseListener {
         },
         this.jsCpuProfilerRow!
       );
-      this.jsCpuProfilerRow!.canvasRestore(context);
+      this.jsCpuProfilerRow!.canvasRestore(context, this.trace);
     };
     this.folderRow!.addChildTraceRow(this.jsCpuProfilerRow);
   };
-
-  private getAllCombineData(
-    combineData: Array<JsCpuProfilerChartFrame>,
-    allCombineData: Array<JsCpuProfilerChartFrame>
-  ): void {
-    for (let data of combineData) {
-      allCombineData.push(data);
-      if (data.children.length > 0) {
-        this.getAllCombineData(data.children, allCombineData);
-      }
-    }
-  }
 }

@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPaneDmaAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneDmaAbility.js';
+import { TabPaneDmaAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneDmaAbility';
 
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
     return {};
 });
 
@@ -26,8 +25,8 @@ window.ResizeObserver = window.ResizeObserver ||
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 describe('TabPaneDmaAbility Test', () => {
     let tabPaneDmaAbility = new TabPaneDmaAbility();
     let getTabDmaAbilityData = sqlit.getTabDmaAbilityData;

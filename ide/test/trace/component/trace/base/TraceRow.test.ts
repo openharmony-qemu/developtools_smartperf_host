@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { Sptext } from '../../../../../dist/trace/component/Sptext.js';
-// @ts-ignore
-import { ThreadStruct } from '../../../../../dist/trace/database/ui-worker/ProcedureWorkerThread.js';
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { TraceRow } from '../../../../../src/trace/component/trace/base/TraceRow';
+import { Sptext } from '../../../../../src/trace/component/Sptext';
+import { ThreadStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerThread';
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -397,6 +394,7 @@ describe('TraceRow Test', () => {
   });
   it('TraceRow Test78', () => {
     let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    traceRow.addRowSettingPop();
     traceRow.rowSettingTree.dispatchEvent(mouseChangeEvent);
   });
   it('TraceRow Test80', () => {

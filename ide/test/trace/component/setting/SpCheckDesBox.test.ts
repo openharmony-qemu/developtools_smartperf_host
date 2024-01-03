@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { SpCheckDesBox } from '../../../../dist/trace/component/setting/SpCheckDesBox.js';
+import { SpCheckDesBox } from '../../../../src/trace/component/setting/SpCheckDesBox';
 
 describe('SpCheckDesBox Test', () => {
   let spCheckDesBox = new SpCheckDesBox();

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import { TabPaneFilter } from '../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
 describe('TabPaneFilter Test', () => {
   let tabPaneFilter = new TabPaneFilter();

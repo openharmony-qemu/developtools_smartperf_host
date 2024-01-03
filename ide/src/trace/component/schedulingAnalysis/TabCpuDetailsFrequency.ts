@@ -167,7 +167,7 @@ export class TabCpuDetailsFrequency extends BaseElement {
   queryLoginWorker(cpuFrequencyType: string, log: string, handler: (res: any) => void) {
     let cpuDetailsFrequencyTime = new Date().getTime();
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       cpuFrequencyType,
       {
         endTs: SpSchedulingAnalysis.endTs,

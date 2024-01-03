@@ -63,7 +63,7 @@ void HtraceCpuDataParser::Finish()
         }
         auto dur = newTimeStamp - lastTs;
         traceDataCache_->GetCpuUsageInfoData()->AppendNewData(
-            newTimeStamp, dur, (*itor)->totalLoad_, (*itor)->userLoad_, (*itor)->sysLoad_, (*itor)->process_num_);
+            newTimeStamp, dur, (*itor)->totalLoad_, (*itor)->userLoad_, (*itor)->sysLoad_, (*itor)->processNum_);
         lastTs = newTimeStamp;
     }
     cpuData_.clear();

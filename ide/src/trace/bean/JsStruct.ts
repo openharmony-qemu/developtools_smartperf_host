@@ -16,11 +16,11 @@
 import { SampleType } from '../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler';
 const ROW_TYPE = 'cpu-profiler';
 export class JsCpuProfilerUIStruct {
-  name: string;
+  nameId: number;
   depth: number;
   selfTime: number;
   totalTime: number;
-  url: string;
+  urlId: number;
   line: number;
   column: number;
   scriptName: string;
@@ -29,56 +29,58 @@ export class JsCpuProfilerUIStruct {
 
   constructor(
     id: number,
-    name: string,
+    nameId: number,
     depth: number,
     selfTime: number,
     totalTime: number,
-    url: string,
+    urlId: number,
     line: number,
     column: number
   ) {
     this.id = id;
     this.parentId = -1;
-    this.name = name;
+    this.nameId = nameId;
     this.depth = depth;
     this.selfTime = selfTime;
     this.totalTime = totalTime;
-    this.url = url;
+    this.urlId = urlId;
     this.line = line;
     this.column = column;
     this.scriptName = '';
-    if (url) {
-      let dirs = url.split('/');
-      this.scriptName = dirs.pop() || '';
-    }
   }
 }
 
 export class JsCpuProfilerChartFrame extends JsCpuProfilerUIStruct {
+  nameId: number;
+  urlId: number;
   startTime: number;
   endTime: number;
   children: Array<JsCpuProfilerChartFrame>;
+  childrenIds: Array<any>;
   samplesIds: Array<number>;
   isSelect: boolean = false;
   parent?: JsCpuProfilerChartFrame;
 
   constructor(
     id: number,
-    name: string,
+    nameId: number,
     startTime: number,
     endTime: number,
     totalTime: number,
     depth: number,
-    url: string,
+    urlId: number,
     line: number,
     column: number
   ) {
-    super(id, name, depth, 0, totalTime, url, line, column);
+    super(id, nameId, depth, 0, totalTime, urlId, line, column);
     this.id = id;
     this.startTime = startTime;
     this.endTime = endTime;
+    this.nameId = nameId;
+    this.urlId = urlId;
     this.children = new Array<JsCpuProfilerChartFrame>();
     this.samplesIds = new Array<number>();
+    this.childrenIds = new Array<number>();
   }
 }
 
@@ -95,20 +97,23 @@ export class JsCpuProfilerTabStruct extends JsCpuProfilerUIStruct {
   totalTimeStr: string = ''; //totalTime unit conversion
   isSearch: boolean = false; //filter data bold
   status: boolean = false;
+  name: string = '';
 
   constructor(
-    name: string,
+    nameId: number,
     selfTime: number,
     totalTime: number,
     depth: number,
-    url: string,
+    urlId: number,
     line: number,
     column: number,
+    scriptName: string,
     id: number
   ) {
-    super(id, name, depth, selfTime, totalTime, url, line, column);
+    super(id, nameId, depth, selfTime, totalTime, urlId, line, column);
     this.chartFrameChildren = new Array<JsCpuProfilerChartFrame>();
     this.children = new Array<JsCpuProfilerTabStruct>();
+    this.scriptName = scriptName;
   }
 }
 

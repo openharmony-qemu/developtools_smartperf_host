@@ -86,9 +86,9 @@ void Metrics::InitMemoryUnAggStrategy(const std::string& result)
         } else {
             processValuesItem.processName = jMessage.at("values")[i].at(PROCESS_VALUES_ITEM_NAME);
         }
-        auto names = SplitStringToVec(jMessage.at("values")[i].at(NAMES), ",");
-        auto values = SplitStringToVec(jMessage.at("values")[i].at(VALUES), ",");
-        auto times = SplitStringToVec(jMessage.at("values")[i].at(TIMES), ",");
+        auto names = base::SplitStringToVec(jMessage.at("values")[i].at(NAMES), ",");
+        auto values = base::SplitStringToVec(jMessage.at("values")[i].at(VALUES), ",");
+        auto times = base::SplitStringToVec(jMessage.at("values")[i].at(TIMES), ",");
         auto oomScoreValue = 0;
         for (auto index = 0; index < names.size(); index++) {
             if (names[index] == "oom_score_adj") {
@@ -127,7 +127,8 @@ void Metrics::InitMemoryTaskNameStrategy(const std::string& result)
             taskProcessItem.processName = jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_TWO);
         }
         if (!jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE).is_null()) {
-            taskProcessItem.threadName = SplitStringToVec(jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE), ",");
+            taskProcessItem.threadName =
+                base::SplitStringToVec(jMessage.at("values")[i].at(JMESSAGE_VALUE_SIZE_THREE), ",");
         }
         taskNameStrategy_.emplace_back(taskProcessItem);
     }

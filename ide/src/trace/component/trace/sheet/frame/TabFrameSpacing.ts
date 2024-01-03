@@ -72,12 +72,12 @@ export class TabFrameSpacing extends BaseElement {
       case 'W':
         frameSpacing.value2 = structValue.currentFrameWidth;
         frameSpacing.value1 = structValue.preFrameWidth;
-        frameSpacing.screen = FrameSpacingStruct.physicalWidth;
+        frameSpacing.screen = structValue.physicalWidth;
         break;
       case 'H':
         frameSpacing.value2 = structValue.currentFrameHeight;
         frameSpacing.value1 = structValue.preFrameHeight;
-        frameSpacing.screen = FrameSpacingStruct.physicalHeight;
+        frameSpacing.screen = structValue.physicalHeight;
         break;
       case 'X':
         frameSpacing.value2 = structValue.x;

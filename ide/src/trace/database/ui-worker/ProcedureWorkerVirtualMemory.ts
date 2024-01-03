@@ -24,6 +24,7 @@ import {
   drawFlagLine,
   drawSelection,
   isFrameContainPoint,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -45,6 +46,7 @@ export class VirtualMemoryRender extends Render {
       row.frame,
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find = false;
     for (let re of row.dataListCache) {

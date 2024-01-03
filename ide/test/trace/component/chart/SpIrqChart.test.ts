@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
-const sqlite = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
+
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -23,14 +25,17 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
 
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { SpIrqChart } from '../../../../dist/trace/component/chart/SpIrqChart.js';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { SpIrqChart } from '../../../../src/trace/component/chart/SpIrqChart';
 
 describe('SpIrqChart Test', () => {
-  let irqChart = new SpIrqChart(new SpChartManager());
+  let trace = new SpSystemTrace();
+  let irqChart = new SpIrqChart(new SpChartManager(trace));
   let irqList = sqlite.queryIrqList;
   let irqListData = [
     {
@@ -39,6 +44,14 @@ describe('SpIrqChart Test', () => {
     },
   ];
   irqList.mockResolvedValue(irqListData);
+  let allIrqNames = sqlite.queryAllIrqNames;
+  let irqNameData = [
+    {
+      name: 'test',
+      cpu: 0,
+    },
+  ];
+  allIrqNames.mockResolvedValue(irqNameData);
 
   it('SpIrqChart01', function () {
     expect(irqChart.init()).toBeDefined();

@@ -18,26 +18,25 @@
 import {
   TabPaneSmapsComparison,
   SmapsCompareStruct,
-} from '../../../../../../dist/trace/component/trace/sheet/smaps/TabPaneSmapsComparison.js';
-// @ts-ignore
-import { Smaps, SmapsTreeObj } from '../../../../../../dist/trace/bean/SmapsStruct.js';
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+} from '../../../../../../src/trace/component/trace/sheet/smaps/TabPaneSmapsComparison';
+import { Smaps, SmapsTreeObj } from '../../../../../../src/trace/bean/SmapsStruct';
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
     snapshotDataSource: () => {},
     removeAttribute: () => {},
   };
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
-jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
+jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 window.ResizeObserver =

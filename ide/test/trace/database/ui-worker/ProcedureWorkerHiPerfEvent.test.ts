@@ -12,19 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
 import {
   HiPerfEventStruct,
   HiperfEventRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHiPerfEvent.js';
-// @ts-ignore
-import { hiPerf } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfEvent';
+import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {
     TraceRow: () => {},
   };
