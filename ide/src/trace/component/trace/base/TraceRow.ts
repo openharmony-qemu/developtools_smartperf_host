@@ -30,6 +30,7 @@ import { ColorUtils } from './ColorUtils';
 import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
 import { TraceRowConfig } from './TraceRowConfig';
 import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 export class RangeSelectStruct {
   startX: number | undefined;
@@ -44,6 +45,7 @@ let dragDirection: string = '';
 
 @element('trace-row')
 export class TraceRow<T extends BaseStruct> extends HTMLElement {
+  sharedArrayBuffers: any;
   intersectionRatio: number = 0;
   static ROW_TYPE_SPSEGNENTATION = 'spsegmentation';
   static ROW_TYPE_CPU_COMPUTILITY = 'cpu-computility';
@@ -140,6 +142,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public dataList: Array<T> = [];
   public dataList2: Array<T> = [];
   public dataListCache: Array<T> = [];
+  public fixedList: Array<T> = [];
   public sliceCache: number[] = [-1, -1];
   public describeEl: HTMLElement | null | undefined;
   public canvas: Array<HTMLCanvasElement> = [];
@@ -172,7 +175,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private rowCheckFilePop: LitPopover | null | undefined;
   private _rangeSelect: boolean = false;
   private _drawType: number = 0;
-  private folderIconEL: LitIcon | null | undefined;
   private _enableCollapseChart: boolean = false;
   online: boolean = false;
   static isUserInteraction: boolean;
@@ -182,7 +184,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   childrenList: Array<TraceRow<any>> = [];
   parentRowEl: TraceRow<any> | undefined;
   _rowSettingList: Array<TreeItemData> | null | undefined;
+  public supplierFrame: (() => Promise<Array<T>>) | undefined | null; //实时查询
+  public getCacheData: ((arg: any) => Promise<Array<any>> | undefined) | undefined; //实时查询
+  public loadingFrame: boolean = false; //实时查询,正在查询中
+  public needRefresh: boolean = true;
   _docompositionList: Array<number> | undefined;
+  public folderIcon: LitIcon | null | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -309,6 +316,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (this.rowSettingPop) {
       this.rowSettingPop.placement = value;
     }
+    if (this.rowSettingPop) {
+      this.rowSettingPop.placement = value;
+    }
   }
 
   get rowSettingPopoverDirection(): string {
@@ -320,10 +330,15 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (this.rowSettingTree) {
       this.rowSettingTree.treeData = value || [];
     }
+    if (this.rowSettingTree) {
+      this.rowSettingTree.treeData = value || [];
+    }
   }
 
   set rowSettingMultiple(value: boolean) {
-    this.rowSettingTree!.multiple = value;
+    if (this.rowSettingTree) {
+      this.rowSettingTree.multiple = value;
+    }
   }
 
   get rowSettingList(): TreeItemData[] | null | undefined {
@@ -408,6 +423,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   set folder(value: boolean) {
     if (value) {
       this.setAttribute('folder', '');
+      this.folderIcon = document.createElement('lit-icon') as LitIcon;
+      this.folderIcon.classList.add('icon');
+      this.folderIcon.setAttribute('name', 'caret-down');
+      this.folderIcon.setAttribute('size', '19');
+      this.folderIcon.style.display = 'flex';
+      this.describeEl?.insertBefore(this.folderIcon, this.describeEl.children[0]);
     } else {
       this.removeAttribute('folder');
     }
@@ -468,6 +489,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.dataList2 = [];
     this.dataList = [];
     this.dataListCache = [];
+    this.fixedList = [];
     if (this.rootEL) {
       this.rootEL.innerHTML = '';
     }
@@ -502,11 +524,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
-  getHoverStruct(strict: boolean = true, offset: boolean = false): T | undefined {
+  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey: string | undefined = undefined): T | undefined {
     if (this.isHover) {
-      return this.dataListCache.find(
-        (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
-      );
+      if (maxKey) {
+        let arr =  this.dataListCache.filter(
+          (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
+        ).sort((targetA, targetB) => (targetB as any)[maxKey] - (targetA as any)[maxKey]);
+        return arr[0];
+      } else {
+        return this.dataListCache.find(
+          (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
+        );
+      }
+
     }
   }
 
@@ -561,6 +591,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     child.rowHidden = false;
     this.fragment.insertBefore(child, this.fragment.childNodes.item(index));
   }
+
   insertAfter(newEl: DocumentFragment, targetEl: HTMLElement) {
     let parentEl = targetEl.parentNode;
     if (parentEl) {
@@ -664,8 +695,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   set folderPaddingLeft(value: number) {
-    this.folderIconEL!.style.marginLeft = value + 'px';
+    if (this.folderIcon) {
+      this.folderIcon.style.marginLeft = value + 'px';
+    }
   }
+
   set folderTextLeft(value: number) {
     this.nameEL!.style.marginLeft = value + 'px';
   }
@@ -675,7 +709,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.checkBoxEL = this.shadowRoot?.querySelector<LitCheckBox>('.lit-check-box');
     this.collectEL = this.shadowRoot?.querySelector<LitIcon>('.collect');
     this.describeEl = this.shadowRoot?.querySelector('.describe');
-    this.folderIconEL = this.shadowRoot?.querySelector<LitIcon>('.icon');
     this.nameEL = this.shadowRoot?.querySelector('.name');
     this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
     this.tipEL = this.shadowRoot?.querySelector('.tip');
@@ -714,6 +747,20 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     });
     this.funcExpand = true;
+    if (this.rowSettingTree) {
+      this.rowSettingTree.onChange = (e: any): void => {
+        // @ts-ignore
+        this.rowSettingPop!.visible = false;
+        if (this.rowSettingTree?.multiple) {
+          // @ts-ignore
+          this.rowSettingPop!.visible = true;
+        } else {
+          // @ts-ignore
+          this.rowSettingPop!.visible = false;
+        }
+        this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
+      };
+    }
     this.checkType = '-1';
   }
 
@@ -788,6 +835,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
     return [];
   }
+
   expandFunc(): void {
     if (this._enableCollapseChart && !this.funcExpand) {
       this.style.height = `${this.funcMaxHeight}px`;
@@ -813,10 +861,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           this.style.height = `${this.funcMaxHeight}px`;
           this.funcExpand = true;
         }
-        setTimeout(() => {
-          TraceRow.range!.refresh = true;
-          this.draw(false);
-        }, 200);
+        TraceRow.range!.refresh = true;
+        this.needRefresh = true;
+        this.draw(false);
         if (this.collect) {
           window.publish(window.SmartEvent.UI.RowHeightChange, {
             expand: this.funcExpand,
@@ -1031,9 +1078,54 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
+  loadingPin1: number = 0;
+  loadingPin2: number = 0;
+  static currentActiveRows:Array<string> = [];
+  drawFrame(): void {
+    if (!this.hasAttribute('row-hidden')) {
+      if (!this.loadingFrame || window.isLastFrame || !this.isComplete) {
+        if (this.needRefresh || window.isLastFrame) {
+          this.loadingFrame = true;
+          this.needRefresh = false;
+          this.loadingPin1 = TraceRow.range?.startNS || 0;
+          this.loadingPin2 = TraceRow.range?.endNS || 0;
+          TraceRow.currentActiveRows.push(`${this.rowType}-${this.rowId}`);
+          this.supplierFrame!().then((res) => {
+            if (this.onComplete) {
+              this.onComplete();
+              this.onComplete = undefined;
+            }
+            this.dataListCache = res;
+            this.dataListCache.push(...this.fixedList);
+            this.isComplete = true;
+            this.loadingFrame = false;
+            let idx = TraceRow.currentActiveRows.findIndex(it=> it === `${ this.rowType }-${ this.rowId }`)
+            if (idx!=-1){
+              TraceRow.currentActiveRows.splice(idx, 1);
+            }
+            requestAnimationFrame(() => {
+              this.onThreadHandler?.(true, null);
+              if (TraceRow.currentActiveRows.isEmpty()){
+                window.publish(window.SmartEvent.UI.LoadFinish,"");
+              }
+              window.publish(window.SmartEvent.UI.LoadFinishFrame,"");
+            });
+          });
+        } else if (this.fixedList.length > 0 && !this.dataListCache.includes(this.fixedList[0])) {
+          this.dataListCache.push(this.fixedList[0]);
+        }
+      }
+      this.onThreadHandler?.(true, null);
+    }
+  }
   draw(useCache: boolean = false) {
     this.dpr = window.devicePixelRatio || 1;
     if (this.sleeping) {
+      return;
+    }
+    if (this.supplierFrame) {
+      //如果设置了实时渲染,则调用drawFrame
+      this.drawFrame();
       return;
     }
     if (this.online) {
@@ -1083,7 +1175,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     ctx.clip(clipRect);
   }
 
-  canvasRestore(ctx: CanvasRenderingContext2D) {
+  canvasRestore(ctx: CanvasRenderingContext2D, trace?: SpSystemTrace | null) {
     drawSelectionRange(ctx, this);
     ctx.restore();
   }
@@ -1307,7 +1399,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             overflow: hidden;
             user-select: none;
             text-overflow: ellipsis;
-            white-space:nowrap
+            white-space:nowrap;
+            max-width: 200px;
         }
         :host([highlight]) .name{
             color: #4b5766;
@@ -1325,9 +1418,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         :host([folder]){
             /*background-color: var(--dark-background1,#f5fafb);*/
-        }
-        :host([folder]) .icon{
-            display: flex;
         }
         :host(:not([folder])){
             /*background-color: var(--dark-background,#FFFFFF);*/
@@ -1347,7 +1437,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         :host([sticky]) {
             position: sticky;
             top: 0;
-            z-index: 999;
+            z-index: 1000;
         }
         :host([expansion]) {
             background-color: var(--bark-expansion,#0C65D1);
@@ -1495,7 +1585,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         </style>
         <div class="root">
             <div class="describe flash" style="position: inherit">
-                <lit-icon class="icon" name="caret-down" size="19"></lit-icon>
                 <label class="name"></label>
                 <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
                 <lit-check-box class="lit-check-box"></lit-check-box>

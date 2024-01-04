@@ -33,37 +33,37 @@ public:
     ~HtraceCpuDataParser();
     void Parse(ProtoReader::BytesView tracePacket, uint64_t ts);
     void Finish();
-    enum TSCpuDataType { TSCpuDataType_Usage, TSCpuDataType_ThreadInfo, TSCpuDataType_Load };
+    enum TSCpuDataType { TS_CPU_DATA_TYPE_USAGE, TS_CPU_DATA_TYPE_THREAD_INFO, TS_CPU_DATA_TYPE_LOAD };
     class TsCpuData {
     public:
         TsCpuData()
         {
             ts_ = 0;
-            cpuDataType_ = TSCpuDataType_Usage;
+            cpuDataType_ = TS_CPU_DATA_TYPE_USAGE;
         }
         void SetCpuUsage(uint64_t ts)
         {
             ts_ = ts;
-            cpuDataType_ = TSCpuDataType_Usage;
+            cpuDataType_ = TS_CPU_DATA_TYPE_USAGE;
         }
         void SetThreadInfo(uint64_t ts)
         {
             ts_ = ts;
-            cpuDataType_ = TSCpuDataType_ThreadInfo;
+            cpuDataType_ = TS_CPU_DATA_TYPE_THREAD_INFO;
         }
-        void SetExtInfo(double totalLoad, double userLoad, double sysLoad, double process_num)
+        void SetExtInfo(double totalLoad, double userLoad, double sysLoad, double processNum)
         {
             totalLoad_ = totalLoad;
             userLoad_ = userLoad;
             sysLoad_ = sysLoad;
-            process_num_ = process_num;
-            cpuDataType_ = TSCpuDataType_Load;
+            processNum_ = processNum;
+            cpuDataType_ = TS_CPU_DATA_TYPE_LOAD;
         }
         uint64_t ts_;
         TSCpuDataType cpuDataType_;
         double userLoad_ = 0;
         double sysLoad_ = 0;
-        double process_num_ = 0;
+        double processNum_ = 0;
         double totalLoad_ = 0;
     };
     std::vector<std::unique_ptr<TsCpuData>> cpuData_;

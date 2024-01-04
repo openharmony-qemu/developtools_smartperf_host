@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabThreadAnalysis } from '../../../../dist/trace/component/schedulingAnalysis/TabThreadAnalysis.js';
+import { TabThreadAnalysis } from '../../../../src/trace/component/schedulingAnalysis/TabThreadAnalysis';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -22,7 +21,7 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-jest.mock('../../../../dist/trace/component/schedulingAnalysis/Top20FrequencyThread.js', () => {
+jest.mock('../../../../src/trace/component/schedulingAnalysis/Top20FrequencyThread', () => {
   return {
     clearData: () => {},
   };

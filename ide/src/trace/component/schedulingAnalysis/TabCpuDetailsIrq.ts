@@ -148,7 +148,7 @@ export class TabCpuDetailsIrq extends BaseElement {
   queryLoginWorker(irqType: string, log: string, handler: (res: any) => void) {
     let cpuDetailsLrqTime = new Date().getTime();
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       irqType,
       {
         endTs: SpSchedulingAnalysis.endTs,

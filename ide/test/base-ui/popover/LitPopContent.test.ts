@@ -15,7 +15,7 @@
 
 // @ts-ignore
 
-import { LitPopContent } from '../../../dist/base-ui/popover/LitPopContent.js';
+import { LitPopContent } from '../../../src/base-ui/popover/LitPopContent';
 
 describe('LitPopCont Test', () => {
   it('LitPopCont01', () => {

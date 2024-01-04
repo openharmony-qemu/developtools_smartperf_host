@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabCpuDetailsIrq } from '../../../../dist/trace/component/schedulingAnalysis/TabCpuDetailsIrq.js';
+import { TabCpuDetailsIrq } from '../../../../src/trace/component/schedulingAnalysis/TabCpuDetailsIrq';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpVmTracker } from '../../../../dist/trace/component/setting/SpVmTracker.js';
+import { SpVmTracker } from '../../../../src/trace/component/setting/SpVmTracker';
 
 describe('SpVmTracker Test', () => {
   let spVmTracker = new SpVmTracker();

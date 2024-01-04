@@ -16,7 +16,14 @@
 import { JanksStruct } from '../../bean/JanksStruct';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { BaseStruct, isFrameContainPoint, ns2x, Render, RequestMessage, drawString } from './ProcedureWorkerCommon';
+import {
+  isFrameContainPoint,
+  ns2x,
+  Render,
+  RequestMessage,
+  drawString,
+  drawLoadingFrame,
+} from './ProcedureWorkerCommon';
 
 export class JankRender extends Render {
   renderMainThread(
@@ -38,6 +45,7 @@ export class JankRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find = false;
     let nsScale = ((TraceRow.range!.endNS || 0) - (TraceRow.range!.startNS || 0)) / (TraceRow.range!.totalNS * 9);
@@ -226,7 +234,6 @@ export class JankStruct extends JanksStruct {
     return (
       JankStruct.selectJankStruct != undefined &&
       JankStruct.selectJankStruct.ts == data.ts &&
-      JankStruct.selectJankStruct.depth == data.depth &&
       JankStruct.selectJankStruct.type == data.type &&
       JankStruct.selectJankStruct.pid == data.pid &&
       JankStruct.selectJankStruct.frame_type == data.frame_type

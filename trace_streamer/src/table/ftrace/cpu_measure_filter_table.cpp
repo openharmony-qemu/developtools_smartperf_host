@@ -33,68 +33,28 @@ CpuMeasureFilterTable::CpuMeasureFilterTable(const TraceDataCache* dataCache) : 
 
 CpuMeasureFilterTable::~CpuMeasureFilterTable() {}
 
-void CpuMeasureFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& cpufc,
+                                               double& cpufilterCost,
+                                               size_t cpurowCount,
+                                               uint32_t cpucurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    auto rowCount = dataCache_->GetConstCpuMeasureData().Size();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::ID:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
+    // for loop
+    const auto& cpuc = cpufc.GetConstraints()[cpucurrenti];
+    switch (static_cast<Index>(cpuc.col)) {
+        case Index::ID: {
+            auto cpuoldRowCount = cpurowCount;
+            if (CanFilterSorted(cpuc.op, cpurowCount)) {
+                cpufc.UpdateConstraint(cpucurrenti, true);
+                cpufilterCost += log2(cpuoldRowCount); // binary search
+            } else {
+                cpufilterCost += cpuoldRowCount;
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::ID: {
-                auto oldRowCount = rowCount;
-                if (CanFilterSorted(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += log2(oldRowCount); // binary search
-                } else {
-                    filterCost += oldRowCount;
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                          // other column
+            cpufilterCost += cpurowCount; // scan all rows
+            break;
     }
 }
 
@@ -229,6 +189,19 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, 
         default:
             // can't filter, all rows
             break;
+    }
+}
+void CpuMeasureFilterTable::GetOrbyes(FilterConstraints& cpufc, EstimatedIndexInfo& cpuei)
+{
+    auto cpuorderbys = cpufc.GetOrderBys();
+    for (auto i = 0; i < cpuorderbys.size(); i++) {
+        switch (static_cast<Index>(cpuorderbys[i].iColumn)) {
+            case Index::ID:
+                break;
+            default: // other columns can be sorted by SQLite
+                cpuei.isOrdered = false;
+                break;
+        }
     }
 }
 } // namespace TraceStreamer

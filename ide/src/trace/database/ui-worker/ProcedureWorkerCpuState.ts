@@ -19,6 +19,7 @@ import {
   drawFlagLine,
   drawLines,
   drawLoading,
+  drawLoadingFrame,
   drawSelection,
   drawWakeUp,
   ns2x,
@@ -52,6 +53,7 @@ export class CpuStateRender extends PerfRender {
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(req.cpuStateContext, filter, cpuStateRow);
     let path = new Path2D();
     let find = false;
     let offset = 3;

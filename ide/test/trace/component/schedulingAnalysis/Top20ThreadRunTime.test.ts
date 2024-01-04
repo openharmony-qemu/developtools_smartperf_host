@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { Top20ThreadRunTime } from '../../../../dist/trace/component/schedulingAnalysis/Top20ThreadRunTime.js';
+import { Top20ThreadRunTime } from '../../../../src/trace/component/schedulingAnalysis/Top20ThreadRunTime';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

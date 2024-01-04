@@ -29,67 +29,27 @@ SymbolsTable::SymbolsTable(const TraceDataCache* dataCache) : TableBase(dataCach
 
 SymbolsTable::~SymbolsTable() {}
 
-void SymbolsTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void SymbolsTable::FilterByConstraint(FilterConstraints& symfc,
+                                      double& symfilterCost,
+                                      size_t symrowCount,
+                                      uint32_t symcurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    size_t rowCount = dataCache_->GetConstSymbolsData().Size();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::ID:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void SymbolsTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
+    // for loop
+    const auto& symc = symfc.GetConstraints()[symcurrenti];
+    switch (static_cast<Index>(symc.col)) {
+        case Index::ID: {
+            if (CanFilterId(symc.op, symrowCount)) {
+                symfc.UpdateConstraint(symcurrenti, true);
+                symfilterCost += 1; // id can position by 1 step
+            } else {
+                symfilterCost += symrowCount; // scan all rows
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::ID: {
-                if (CanFilterId(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += 1; // id can position by 1 step
-                } else {
-                    filterCost += rowCount; // scan all rows
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                          // other column
+            symfilterCost += symrowCount; // scan all rows
+            break;
     }
 }
 
@@ -163,6 +123,20 @@ int32_t SymbolsTable::Cursor::Column(int32_t col) const
             break;
     }
     return SQLITE_OK;
+}
+
+void SymbolsTable::GetOrbyes(FilterConstraints& symfc, EstimatedIndexInfo& symei)
+{
+    auto symorderbys = symfc.GetOrderBys();
+    for (auto i = 0; i < symorderbys.size(); i++) {
+        switch (static_cast<Index>(symorderbys[i].iColumn)) {
+            case Index::ID:
+                break;
+            default: // other columns can be sorted by SQLite
+                symei.isOrdered = false;
+                break;
+        }
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

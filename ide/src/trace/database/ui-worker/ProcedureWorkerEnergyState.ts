@@ -20,6 +20,7 @@ import {
   drawFlagLine,
   drawSelection,
   isFrameContainPoint,
+  drawLoadingFrame,
   ns2x,
   Render,
   RequestMessage,
@@ -48,6 +49,7 @@ export class EnergyStateRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find = false;
     for (let i = 0; i < stateFilter.length; i++) {
@@ -198,10 +200,13 @@ export function state(
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
       let stateItem = res[i];
-      if ((stateItem.startNs || 0) + (stateItem.dur || 0) > (startNS || 0) && (stateItem.startNs || 0) < (endNS || 0)) {
-        EnergyStateStruct.setStateFrame(stateItem, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if (i === res.length - 1) {
+        stateItem.dur = (endNS || 0) - (stateItem.startNs || 0);
       } else {
-        stateItem.frame = null;
+        stateItem.dur = (res[i + 1].startNs || 0) - (stateItem.startNs || 0);
+      }
+      if ((stateItem.startNs || 0) + (stateItem.dur || 0) > (startNS || 0) && (stateItem.startNs || 0) < (endNS || 0)) {
+        EnergyStateStruct.setStateFrame(res[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
       }
     }
     return;

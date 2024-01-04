@@ -14,7 +14,14 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { dataFilterHandler, isFrameContainPoint, Render, RequestMessage, BaseStruct } from './ProcedureWorkerCommon';
+import {
+  dataFilterHandler,
+  isFrameContainPoint,
+  Render,
+  RequestMessage,
+  BaseStruct,
+  drawLoadingFrame,
+} from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 export class NetworkAbilityRender extends Render {
   renderMainThread(
@@ -39,6 +46,7 @@ export class NetworkAbilityRender extends Render {
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(req.context, networkAbilityRow.dataListCache, networkAbilityRow);
     req.context.beginPath();
     let find = false;
     for (let re of networkAbilityFilter) {
@@ -76,6 +84,7 @@ export class NetworkAbilityMonitorStruct extends BaseStruct {
   static selectNetworkAbilityStruct: NetworkAbilityMonitorStruct | undefined;
   value: number | undefined;
   startNS: number | undefined;
+  dur: number | undefined;
 
   static draw(
     networkAbilityContext2D: CanvasRenderingContext2D,

@@ -30,7 +30,7 @@ class BytraceHiSysEventParser : public EventParserBase {
 public:
     BytraceHiSysEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
     ~BytraceHiSysEventParser();
-    void ParseHiSysEventDataItem(const std::string& buffer, const uint64_t lineSeq);
+    void ParseHiSysEventDataItem(const std::string& buffer, const uint64_t lineSeq, bool& haveSplitSeg);
     void Finish();
 };
 } // namespace TraceStreamer

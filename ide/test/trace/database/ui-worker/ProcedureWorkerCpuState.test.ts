@@ -13,18 +13,16 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
 import {
   CpuStateRender,
   CpuStateStruct,
   cpuState,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCpuState.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuState';
 
 describe('ProcedureWorkerCpuState Test', () => {
   it('ProcedureWorkerCpuStateTest01', function () {

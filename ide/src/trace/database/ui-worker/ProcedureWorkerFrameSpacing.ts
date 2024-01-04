@@ -14,7 +14,15 @@
  */
 
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { BaseStruct, computeUnitWidth, isSurroundingPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  computeUnitWidth,
+  drawLoadingFrame,
+  isSurroundingPoint,
+  ns2x,
+  Rect,
+  Render,
+} from './ProcedureWorkerCommon';
 import { type AnimationRanges } from '../../bean/FrameComponentBean';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
@@ -41,7 +49,8 @@ export class FrameSpacingRender extends Render {
       req.animationRanges,
       req.useCache || !TraceRow.range!.refresh
     );
-    this.render(req, frameSpacingFilter, row);
+    drawLoadingFrame(req.context, row.dataListCache, row);
+    this.render(req, frameSpacingList, row);
   }
 
   private render(
@@ -185,19 +194,11 @@ export class FrameSpacingRender extends Render {
   ): void {
     let frame: Rect = row.frame;
     let modelName: string | undefined | null = row.getAttribute('model-name');
-    if (use && frameSpacingFilter.length > 0) {
-      for (let index = 0, len = frameSpacingFilter.length; index < len; index++) {
-        if (frameSpacingFilter[index].nameId === modelName) {
-          FrameSpacingStruct.setFrameSpacingFrame(frameSpacingFilter[index], startNS, endNS, totalNS, frame);
-        }
-      }
-      return;
-    }
-    frameSpacingFilter.length = 0;
-    if (frameSpacingList) {
+    if ((use || !TraceRow.range!.refresh) && frameSpacingFilter.length > 0) {
+      frameSpacingList.length = 0;
       let groupIdList: number[] = [];
-      for (let index = 0; index < frameSpacingList.length; index++) {
-        let item = frameSpacingList[index];
+      for (let index = 0; index < frameSpacingFilter.length; index++) {
+        let item = frameSpacingFilter[index];
         if (modelName === item.nameId) {
           item.groupId = invalidGroupId;
           for (let rangeIndex = 0; rangeIndex < animationRanges.length; rangeIndex++) {
@@ -209,22 +210,23 @@ export class FrameSpacingRender extends Render {
           }
           if (
             item.currentTs < startNS &&
-            index + unitIndex < frameSpacingList.length &&
-            frameSpacingList[index + unitIndex].currentTs >= startNS &&
+            index + unitIndex < frameSpacingFilter.length &&
+            frameSpacingFilter[index + unitIndex].currentTs >= startNS &&
             item.groupId !== invalidGroupId
           ) {
-            this.refreshFrame(frameSpacingFilter, item, startNS, endNS, totalNS, frame, groupIdList);
+            this.refreshFrame(frameSpacingList, item, startNS, endNS, totalNS, frame, groupIdList);
           }
           if (item.currentTs >= startNS && item.currentTs <= endNS && item.groupId !== invalidGroupId) {
-            this.refreshFrame(frameSpacingFilter, item, startNS, endNS, totalNS, frame, groupIdList);
+            this.refreshFrame(frameSpacingList, item, startNS, endNS, totalNS, frame, groupIdList);
           }
           if (item.currentTs > endNS && item.groupId !== invalidGroupId) {
-            this.refreshFrame(frameSpacingFilter, item, startNS, endNS, totalNS, frame, groupIdList);
+            this.refreshFrame(frameSpacingList, item, startNS, endNS, totalNS, frame, groupIdList);
             break;
           }
         }
       }
-      this.grouping(groupIdList, frameSpacingFilter);
+      this.grouping(groupIdList, frameSpacingList);
+      return;
     }
   }
 
@@ -285,8 +287,8 @@ export class FrameSpacingRender extends Render {
 export class FrameSpacingStruct extends BaseStruct {
   static hoverFrameSpacingStruct: FrameSpacingStruct | undefined;
   static selectFrameSpacingStruct: FrameSpacingStruct | undefined;
-  static physicalWidth: number | undefined;
-  static physicalHeight: number | undefined;
+  physicalWidth: number | undefined;
+  physicalHeight: number | undefined;
   preTs: number | undefined;
   currentTs: number = 0;
   frameSpacingResult: number | undefined;

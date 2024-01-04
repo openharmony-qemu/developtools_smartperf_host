@@ -56,13 +56,26 @@ public:
     {
         isBytrace_ = enable;
     }
+    int32_t MinSplitPos()
+    {
+        return minSplitPos_;
+    }
+    int32_t MaxSplitPos()
+    {
+        return maxSplitPos_;
+    }
     const auto& GetTraceDataBytrace()
     {
-        return traceDataBytrace_;
+        return mTraceDataBytrace_;
     }
     void ClearByTraceData()
     {
-        traceDataBytrace_.clear();
+        mTraceDataBytrace_.clear();
+        curFileOffset_ = 0;
+        curDataSize_ = 0;
+        minSplitPos_ = INVALID_INT32;
+        maxSplitPos_ = INVALID_INT32;
+        isParsingOver_ = false;
     }
     auto GetHiLogParser()
     {
@@ -101,6 +114,7 @@ private:
     void ParseThread();
     void ParserData(DataSegment& seg);
     bool FilterData(DataSegment& seg);
+    bool UpdateSplitPos();
 
 private:
     using ArgsMap = std::unordered_map<std::string, std::string>;
@@ -120,7 +134,7 @@ private:
     int32_t parseHead_ = 0;
     std::atomic<bool> filterThreadStarted_{false};
     bool parseThreadStarted_ = false;
-    const int32_t MAX_SEG_ARRAY_SIZE = 5000;
+    const int32_t maxSegArraySize = 5000;
     const int32_t maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
     int32_t parserThreadCount_ = 0;
     bool toExit_ = false;
@@ -129,15 +143,18 @@ private:
     int32_t rawDataHead_ = 0;
     int32_t filterHead_ = 0;
     const int32_t sleepDur_ = 100;
-    bool supportThread_ = false;
     bool isBytrace_ = true;
     bool traceBegan_ = false;
     bool isFirstLine_ = true;
     bool isHtmlTrace_ = false;
     bool isHtmlTraceContent_ = false;
-    std::string traceDataBytrace_ = "";
     TraceFileType fileType_ = TRACE_FILETYPE_BY_TRACE;
     int64_t seq_ = 1;
+    uint64_t curFileOffset_ = 0;
+    uint32_t curDataSize_ = 0;
+    int32_t minSplitPos_ = INVALID_INT32;
+    int32_t maxSplitPos_ = INVALID_INT32;
+    std::deque<std::pair<int32_t /* offset */, int32_t /* size */>> mTraceDataBytrace_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

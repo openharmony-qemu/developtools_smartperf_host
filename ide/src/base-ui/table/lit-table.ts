@@ -922,13 +922,15 @@ export class LitTable extends HTMLElement {
       header.style.cursor = 'pointer';
     });
     element.addEventListener('mousedown', (event) => {
-      if (!this.columnResizeEnable) return;
-      this.isResize = true;
-      this.resizeColumnIndex = index;
-      this.resizeDownX = event.clientX;
-      let pre = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
-      this.beforeResizeWidth = pre.clientWidth;
-      event.stopPropagation();
+      if (event.button === 0) {
+        if (!this.columnResizeEnable) return;
+        this.isResize = true;
+        this.resizeColumnIndex = index;
+        this.resizeDownX = event.clientX;
+        let pre = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
+        this.beforeResizeWidth = pre.clientWidth;
+        event.stopPropagation();
+      }
     });
     element.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -1008,6 +1010,7 @@ export class LitTable extends HTMLElement {
         this.currentRecycleList.push(newTableElement);
         let td = newTableElement?.querySelectorAll('.td');
         if (tableRowObject.data.rowName === 'cpu-profiler') {
+          td[0].innerHTML = '';
           this.createTextColor(tableRowObject, td[0]);
         }
       }
@@ -1376,32 +1379,35 @@ export class LitTable extends HTMLElement {
     } else {
       btn.name = 'minus-square';
     }
-    btn.addEventListener('click', (e: any) => {
-      rowData.data.status = false;
-      const resetNodeHidden = (hidden: boolean, rowData: any) => {
-        if (hidden) {
-          rowData.children.forEach((child: any) => {
-            child.rowHidden = false;
-          });
-        } else {
-          rowData.children.forEach((child: any) => {
-            child.rowHidden = true;
-            resetNodeHidden(hidden, child);
-          });
-        }
-      };
-
-      if (rowData.data.expanded) {
-        rowData.data.status = true;
-        this.dispatchRowClickEventIcon(rowData, [btn]);
-        rowData.data.expanded = false;
-        resetNodeHidden(true, rowData);
-      } else {
-        rowData.data.expanded = true;
+    btn.addEventListener('mouseup', (e: MouseEvent) => {
+      if (e.button === 0) {
         rowData.data.status = false;
-        resetNodeHidden(false, rowData);
+        const resetNodeHidden = (hidden: boolean, rowData: any) => {
+          if (hidden) {
+            rowData.children.forEach((child: any) => {
+              child.rowHidden = false;
+            });
+          } else {
+            rowData.children.forEach((child: any) => {
+              child.rowHidden = true;
+              resetNodeHidden(hidden, child);
+            });
+          }
+        };
+
+        if (rowData.data.expanded) {
+          rowData.data.status = true;
+          this.dispatchRowClickEventIcon(rowData, [btn]);
+          rowData.data.expanded = false;
+          resetNodeHidden(true, rowData);
+        } else {
+          rowData.data.expanded = true;
+          rowData.data.status = false;
+          resetNodeHidden(false, rowData);
+        }
+        this.reMeauseHeight();
       }
-      this.reMeauseHeight();
+      e.stopPropagation();
     });
     return btn;
   }
@@ -1415,60 +1421,62 @@ export class LitTable extends HTMLElement {
     } else {
       btn.name = 'plus-square';
     }
-    btn.onclick = (e: Event) => {
-      const resetNodeHidden = (hidden: boolean, rowData: any) => {
-        if (rowData.children.length > 0) {
-          if (hidden) {
-            rowData.children.forEach((child: any) => {
-              child.rowHidden = true;
-              resetNodeHidden(hidden, child);
-            });
-          } else {
-            rowData.children.forEach((child: any) => {
-              child.rowHidden = !rowData.expanded;
-              if (rowData.expanded) {
+    btn.onmouseup = (e: MouseEvent) => {
+      if (e.button === 0) {
+        const resetNodeHidden = (hidden: boolean, rowData: any) => {
+          if (rowData.children.length > 0) {
+            if (hidden) {
+              rowData.children.forEach((child: any) => {
+                child.rowHidden = true;
                 resetNodeHidden(hidden, child);
-              }
-            });
-          }
-        }
-      };
-
-      if (rowData.expanded && this._mode === TableMode.Retract) {
-        rowData.data.status = false;
-        rowData.expanded = false;
-        resetNodeHidden(true, rowData);
-      } else if (!rowData.expanded && this._mode === TableMode.Retract) {
-        rowData.expanded = true;
-        rowData.data.status = true;
-        this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
-        resetNodeHidden(false, rowData);
-      }
-
-      if (this._mode === TableMode.Expand && rowData.expanded) {
-        // 点击收起的时候将点击的那条数据的status改为false
-        setChildrenStatus(this.value);
-        function setChildrenStatus(data: any) {
-          for (let d of data) {
-            if (rowData.data === d) {
-              d.status = false;
-            }
-            if (d.children != undefined && d.children.length > 0) {
-              setChildrenStatus(d.children);
+              });
+            } else {
+              rowData.children.forEach((child: any) => {
+                child.rowHidden = !rowData.expanded;
+                if (rowData.expanded) {
+                  resetNodeHidden(hidden, child);
+                }
+              });
             }
           }
-        }
-        rowData.expanded = false;
-        resetNodeHidden(true, rowData);
-      } else if (this._mode === TableMode.Expand && !rowData.expanded) {
-        if (rowData.data.children) {
+        };
+
+        if (rowData.expanded && this._mode === TableMode.Retract) {
+          rowData.data.status = false;
+          rowData.expanded = false;
+          resetNodeHidden(true, rowData);
+        } else if (!rowData.expanded && this._mode === TableMode.Retract) {
+          rowData.expanded = true;
           rowData.data.status = true;
+          this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Retract);
+          resetNodeHidden(false, rowData);
         }
-        this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Default);
-        rowData.expanded = true;
-        resetNodeHidden(false, rowData);
+
+        if (this._mode === TableMode.Expand && rowData.expanded) {
+          // 点击收起的时候将点击的那条数据的status改为false
+          setChildrenStatus(this.value);
+          function setChildrenStatus(data: any) {
+            for (let d of data) {
+              if (rowData.data === d) {
+                d.status = false;
+              }
+              if (d.children != undefined && d.children.length > 0) {
+                setChildrenStatus(d.children);
+              }
+            }
+          }
+          rowData.expanded = false;
+          resetNodeHidden(true, rowData);
+        } else if (this._mode === TableMode.Expand && !rowData.expanded) {
+          if (rowData.data.children) {
+            rowData.data.status = true;
+          }
+          this.recycleDs = this.meauseTreeRowElement(this.value, RedrawTreeForm.Default);
+          rowData.expanded = true;
+          resetNodeHidden(false, rowData);
+        }
+        this.reMeauseHeight();
       }
-      this.reMeauseHeight();
       e.stopPropagation();
     };
     return btn;
@@ -1696,7 +1704,7 @@ export class LitTable extends HTMLElement {
       } else {
         tblRowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
       }
-      tblRowElement.onclick = (e) => {
+      tblRowElement.onmouseup = (e: MouseEvent) => {
         this.dispatchEvent(
           new CustomEvent('row-click', {
             detail: {

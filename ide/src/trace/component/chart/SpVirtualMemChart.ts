@@ -15,10 +15,11 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import { queryVirtualMemory, queryVirtualMemoryData } from '../../database/SqlLite';
+import { queryVirtualMemory } from '../../database/SqlLite';
 import { VirtualMemoryRender, VirtualMemoryStruct } from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { virtualMemoryDataSender } from '../../database/data-trafic/VirtualMemoryDataSender';
 
 export class SpVirtualMemChart {
   private trace: SpSystemTrace;
@@ -57,7 +58,7 @@ export class SpVirtualMemChart {
           vmFolder
         );
       }
-      vmFolder.canvasRestore(this.trace.canvasPanelCtx!);
+      vmFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.trace.rowsEL?.appendChild(vmFolder);
     array.forEach((it, idx) => this.initVirtualMemoryRow(vmFolder, it.id, it.name, idx));
@@ -74,11 +75,19 @@ export class SpVirtualMemChart {
     virtualMemoryRow.setAttribute('children', '');
     virtualMemoryRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     virtualMemoryRow.selectChangeHandler = this.trace.selectChangeHandler;
-    virtualMemoryRow.supplier = () =>
-      queryVirtualMemoryData(id).then((resultVm) => {
-        let maxValue = Math.max(...resultVm.map((it) => it.value || 0));
+    virtualMemoryRow.supplierFrame = () =>
+      virtualMemoryDataSender(id, virtualMemoryRow).then((resultVm) => {
+        let maxValue = 0;
+        if (!virtualMemoryRow.isComplete) {
+          maxValue = Math.max(...resultVm.map((it) => it.value || 0));
+          virtualMemoryRow.setAttribute('maxValue', maxValue.toString() || '');
+        }
         for (let j = 0; j < resultVm.length; j++) {
-          resultVm[j].maxValue = maxValue;
+          if (!virtualMemoryRow.isComplete) {
+            resultVm[j].maxValue = maxValue;
+          } else {
+            resultVm[j].maxValue = Number(virtualMemoryRow.getAttribute('maxValue'));
+          }
           if (j == resultVm.length - 1) {
             resultVm[j].duration = (TraceRow.range?.totalNS || 0) - (resultVm[j].startTime || 0);
           } else {
@@ -118,7 +127,7 @@ export class SpVirtualMemChart {
         },
         virtualMemoryRow
       );
-      virtualMemoryRow.canvasRestore(context);
+      virtualMemoryRow.canvasRestore(context, this.trace);
     };
     folder.addChildTraceRow(virtualMemoryRow);
   }

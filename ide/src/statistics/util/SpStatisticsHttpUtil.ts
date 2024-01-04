@@ -54,6 +54,7 @@ export class SpStatisticsHttpUtil {
     } catch {
       warn('Connect Server Failed')
     }
+    
     return '';
   }
 

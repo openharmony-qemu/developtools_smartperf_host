@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPaneGpuMemorySelectAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneGpuMemorySelectAbility.js';
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { TabPaneGpuMemorySelectAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneGpuMemorySelectAbility';
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
     return {};
 });
 // @ts-ignore

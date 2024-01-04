@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsCpuProfilerChartFrame, JsCpuProfilerTabStruct, type JsCpuProfilerUIStruct } from '../../bean/JsStruct';
+import { JsCpuProfilerChartFrame, JsCpuProfilerTabStruct } from '../../bean/JsStruct';
 import { DataCache, type JsProfilerSymbol, LogicHandler, convertJSON } from './ProcedureLogicWorkerCommon';
 
 const ROOT_ID = 1;
@@ -23,35 +23,20 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   private samples = Array<JsCpuProfilerSample>(); // Array index equals id;
   private chartId = 0;
   private tabDataId = 0;
+  private chartData: Array<JsCpuProfilerChartFrame> = [];
+  private leftNs: number = 0;
+  private rightNs: number = 0;
 
   public handle(msg: any): void {
     this.currentEventId = msg.id;
 
     if (msg && msg.type) {
       switch (msg.type) {
-        case 'jsCpuProfiler-init':
-          this.chartId = 0;
-          if (!this.dataCache.dataDict || this.dataCache.dataDict.size === 0) {
-            this.dataCache.dataDict = msg.params as Map<number, string>;
-          }
-          this.initCallChain();
-          break;
         case 'jsCpuProfiler-call-chain':
           if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
             this.dataCache.jsCallChain = convertJSON(msg.params.list) || [];
             this.createCallChain();
           }
-          this.queryChartData();
-          break;
-        case 'jsCpuProfiler-samples':
-          this.samples = convertJSON(msg.params.list) || [];
-          self.postMessage({
-            id: msg.id,
-            action: msg.action,
-            results: this.combineChartData(),
-          });
-          // 合并完泳道图数据之后，Tab页不再需要缓存数据
-          this.dataCache.clearJsCache();
           break;
         case 'jsCpuProfiler-call-tree':
           this.tabDataId = 0;
@@ -70,11 +55,25 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
           });
           break;
         case 'jsCpuProfiler-statistics':
-          self.postMessage({
-            id: msg.id,
-            action: msg.action,
-            results: this.calStatistic(msg.params.data, msg.params.leftNs, msg.params.rightNs),
-          });
+          if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
+            this.initCallChain();
+          }
+          if (msg.params.data) {
+            this.chartData = msg.params.data;
+            this.leftNs = msg.params.leftNs;
+            this.rightNs = msg.params.rightNs;
+          }
+          if (msg.params.list) {
+            this.samples = convertJSON(msg.params.list) || [];
+            this.setChartDataType();
+            self.postMessage({
+              id: msg.id,
+              action: msg.action,
+              results: this.calStatistic(this.chartData, this.leftNs, this.rightNs),
+            });
+          } else {
+            this.queryChartData();
+          }
           break;
       }
     }
@@ -83,6 +82,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   public clearAll(): void {
     this.dataCache.clearAll();
     this.samples.length = 0;
+    this.chartData.length = 0;
   }
 
   private calStatistic(
@@ -139,48 +139,18 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
     return samplesIds;
   }
 
-  /**
-   * 建立callChain每个函数的联系，设置depth跟children
-   */
-  private createCallChain(): void {
-    const jsSymbolMap = this.dataCache.jsSymbolMap;
-    for (const item of this.dataCache.jsCallChain!) {
-      jsSymbolMap.set(item.id, item);
-      //root不需要显示,depth为-1
-      if (item.id === ROOT_ID) {
-        item.depth = -1;
-      }
-      item.name = this.dataCache.dataDict?.get(item.nameId) || LAMBDA_FUNCTION_NAME;
-      item.url = this.dataCache.dataDict?.get(item.urlId) || 'unknown';
-      if (item.parentId > 0) {
-        let parentSymbol = jsSymbolMap.get(item.parentId);
-        if (parentSymbol) {
-          if (!parentSymbol.children) {
-            parentSymbol.children = new Array<JsProfilerSymbol>();
-          }
-          parentSymbol.children.push(item);
-          item.depth = parentSymbol.depth + 1;
-        }
-      }
-    }
-  }
-
-  private combineChartData(): Array<JsCpuProfilerChartFrame> {
-    const combineSample = new Array<JsCpuProfilerChartFrame>();
+  private setChartDataType(): void {
     for (let sample of this.samples) {
-      const stackTopSymbol = this.dataCache.jsSymbolMap.get(sample.functionId);
-      // root 节点不需要显示
-      if (stackTopSymbol?.id === ROOT_ID) {
+      const chartData = this.dataCache.jsSymbolMap.get(sample.functionId);
+      if (chartData?.id === ROOT_ID) {
         sample.type = SampleType.OTHER;
         continue;
       }
-      if (stackTopSymbol) {
+      if (chartData) {
         let type: string;
-        if (stackTopSymbol.name) {
-          type = stackTopSymbol.name.substring(
-            stackTopSymbol.name!.lastIndexOf('(') + 1,
-            stackTopSymbol.name!.lastIndexOf(')')
-          );
+        chartData.name = this.dataCache.dataDict.get(chartData.nameId) || LAMBDA_FUNCTION_NAME;
+        if (chartData.name) {
+          type = chartData.name.substring(chartData.name!.lastIndexOf('(') + 1, chartData.name!.lastIndexOf(')'));
           switch (type) {
             case 'NAPI':
               sample.type = SampleType.NAPI;
@@ -207,30 +177,24 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
               sample.type = SampleType.RUNTIME;
               break;
             default:
-              if (stackTopSymbol.name !== '(program)') {
+              if (chartData.name !== '(program)') {
                 sample.type = SampleType.OTHER;
               }
               break;
           }
         }
-
-        // 获取栈顶函数的整条调用栈为一个数组 下标0为触发的栈底函数
-        sample.stack = this.getFullCallChainOfNode(stackTopSymbol);
-        if (combineSample.length === 0) {
-          // 首次combineSample没有数据时，用第一条数据创建一个调用树
-          this.createNewChartFrame(sample, combineSample);
-        } else {
-          const lastCallChart = combineSample[combineSample.length - 1];
-          if (this.isSymbolEqual(sample.stack[0], lastCallChart) && lastCallChart.endTime === sample.startTime) {
-            this.combineCallChain(lastCallChart, sample);
-          } else {
-            // 一个调用链栈底函数与前一个不同时，需要新加入到combineSample
-            this.createNewChartFrame(sample, combineSample);
-          }
-        }
       }
     }
-    return combineSample;
+  }
+
+  /**
+   * 建立callChain每个函数的联系，设置depth跟children
+   */
+  private createCallChain(): void {
+    const jsSymbolMap = this.dataCache.jsSymbolMap;
+    for (const item of this.dataCache.jsCallChain!) {
+      jsSymbolMap.set(item.id, item);
+    }
   }
 
   /**
@@ -257,9 +221,9 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
         continue;
       }
       // 该递归函数已经保证depth跟parent相同，固只需要判断name跟url相同即可
-      let symbolKey = chartFrame.name + ' ' + chartFrame.url;
-      // lambda 表达式需要根据行列号区分是不是同一个函数
-      if (chartFrame.name === LAMBDA_FUNCTION_NAME) {
+      let symbolKey = chartFrame.nameId + ' ' + chartFrame.urlId;
+      //   // lambda 表达式需要根据行列号区分是不是同一个函数
+      if (chartFrame.nameId === 0) {
         symbolKey += ' ' + chartFrame.line + ' ' + chartFrame.column;
       }
       let tabCallFrame: JsCpuProfilerTabStruct;
@@ -360,112 +324,6 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
       recursionTree(chartFrame);
     }
   }
-
-  private createNewChartFrame(sample: JsCpuProfilerSample, combineSample: Array<JsCpuProfilerChartFrame>): void {
-    let lastSymbol: JsCpuProfilerChartFrame;
-    for (const [idx, symbol] of sample.stack!.entries()) {
-      if (idx === 0) {
-        lastSymbol = this.symbolToChartFrame(sample, symbol);
-        combineSample.push(lastSymbol);
-      } else {
-        const callFrame = this.symbolToChartFrame(sample, symbol);
-        lastSymbol!.children.push(callFrame);
-        callFrame.parentId = lastSymbol!.id;
-        lastSymbol = callFrame;
-      }
-      if (idx + 1 === sample.stack?.length) {
-        lastSymbol.selfTime = sample.dur;
-      }
-    }
-  }
-
-  /**
-   * 相邻的两个sample的name,url，depth相同，且上一个的endTime等于下一个的startTime,
-   * 则两个sample的调用栈合并
-   * @param lastCallTree 上一个已经合并的树结构调用栈
-   * @param sample 当前样本数据
-   */
-  private combineCallChain(lastCallTree: JsCpuProfilerChartFrame, sample: JsCpuProfilerSample): void {
-    let lastCallTreeSymbol = lastCallTree;
-    let parentCallFrame: JsCpuProfilerChartFrame;
-    let isEqual = true;
-    for (const [idx, symbol] of sample.stack!.entries()) {
-      // 是否为每次采样的栈顶函数
-      const isLastSymbol = idx + 1 === sample.stack?.length;
-      if (
-        isEqual &&
-        this.isSymbolEqual(symbol, lastCallTreeSymbol) &&
-        lastCallTreeSymbol.depth === idx &&
-        lastCallTreeSymbol.endTime === sample.startTime
-      ) {
-        // 如果函数名跟depth匹配，则更新函数的持续时间
-        lastCallTreeSymbol.endTime = sample.endTime;
-        lastCallTreeSymbol.totalTime = sample.endTime - lastCallTreeSymbol.startTime;
-        lastCallTreeSymbol.samplesIds.push(sample.id);
-        let lastChildren = lastCallTreeSymbol.children;
-        parentCallFrame = lastCallTreeSymbol;
-        if (lastChildren && lastChildren.length > 0) {
-          lastCallTreeSymbol = lastChildren[lastChildren.length - 1];
-        }
-        isEqual = true;
-      } else {
-        // 如果不匹配,则作为新的分支添加到lastCallTree
-        const deltaFrame = this.symbolToChartFrame(sample, symbol);
-        parentCallFrame!.children.push(deltaFrame);
-        deltaFrame.parentId = parentCallFrame!.id;
-        parentCallFrame = deltaFrame;
-        isEqual = false;
-      }
-      // 每次采样的栈顶函数的selfTime为该次采样数据的时间
-      if (isLastSymbol) {
-        parentCallFrame.selfTime += sample.dur;
-      }
-    }
-  }
-
-  /**
-   * 根据每个sample的栈顶函数，获取完整的调用栈
-   * @param node 栈顶函数
-   * @returns 完整的调用栈
-   */
-  private getFullCallChainOfNode(node: JsProfilerSymbol): Array<JsProfilerSymbol> {
-    const callChain = new Array<JsProfilerSymbol>();
-    callChain.push(node);
-    while (node.parentId !== 0) {
-      const parent = this.dataCache.jsSymbolMap.get(node.parentId);
-      // id 1 is root Node
-      if (!parent || parent.id <= ROOT_ID) {
-        break;
-      }
-      callChain.push(parent);
-      node = parent;
-    }
-    callChain.reverse();
-    return callChain;
-  }
-
-  /**
-   * 创建一个JsCpuProfilerChartFrame 作为绘制泳道图的结构
-   * @param sample 数据库样本数据
-   * @param symbol 样本的每一个函数
-   * @returns JsCpuProfilerChartFrame
-   */
-  private symbolToChartFrame(sample: JsCpuProfilerSample, symbol: JsProfilerSymbol): JsCpuProfilerChartFrame {
-    const chartFrame = new JsCpuProfilerChartFrame(
-      this.chartId++,
-      symbol.name || LAMBDA_FUNCTION_NAME,
-      sample.startTime,
-      sample.endTime,
-      sample.dur,
-      symbol.depth,
-      symbol.url,
-      symbol.line,
-      symbol.column
-    );
-    chartFrame.samplesIds.push(sample.id);
-    return chartFrame;
-  }
-
   /**
    * 将泳道图数据JsCpuProfilerChartFrame转化为JsCpuProfilerTabStruct 作为绘制Ta页的结构
    * @param chartCallChain 泳道图函数信息
@@ -473,13 +331,14 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
    */
   private chartFrameToTabStruct(chartCallChain: JsCpuProfilerChartFrame): JsCpuProfilerTabStruct {
     const tabData = new JsCpuProfilerTabStruct(
-      chartCallChain.name,
+      chartCallChain.nameId,
       chartCallChain.selfTime,
       chartCallChain.totalTime,
       chartCallChain.depth,
-      chartCallChain.url,
+      chartCallChain.urlId,
       chartCallChain.line,
       chartCallChain.column,
+      chartCallChain.scriptName,
       this.tabDataId++
     );
     return tabData;
@@ -488,22 +347,19 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   private cloneChartFrame(frame: JsCpuProfilerChartFrame): JsCpuProfilerChartFrame {
     const copyFrame = new JsCpuProfilerChartFrame(
       frame.id,
-      frame.name,
+      frame.nameId,
       frame.startTime,
       frame.endTime,
       frame.totalTime,
       frame.depth,
-      frame.url,
+      frame.urlId,
       frame.line,
       frame.column
     );
     copyFrame.parentId = frame.parentId;
     copyFrame.isSelect = true;
+    copyFrame.scriptName = frame.scriptName;
     return copyFrame;
-  }
-
-  private isSymbolEqual(symbol: JsProfilerSymbol, uiData: JsCpuProfilerUIStruct): boolean {
-    return symbol.name === uiData.name && symbol.url === uiData.url;
   }
 
   private initCallChain(): void {
@@ -527,20 +383,21 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
                     start_time - start_ts AS startTime,
                     end_time - start_ts AS endTime,
                     dur
-                  FROM
-                    js_cpu_profiler_sample,trace_range`;
-    this.queryData(this.currentEventId!, 'jsCpuProfiler-samples', sql, {});
+                    FROM js_cpu_profiler_sample,trace_range`;
+    this.queryData(this.currentEventId!, 'jsCpuProfiler-statistics', sql, {});
   }
 }
 
-class JsCpuProfilerSample {
+export class JsCpuProfilerSample {
   id: number = 0;
   functionId: number = 0;
+  functionIndex: number = 0;
   startTime: number = 0;
   endTime: number = 0;
   dur: number = 0;
   type: SampleType = SampleType.OTHER;
   stack?: Array<JsProfilerSymbol>;
+  cpuProfilerData?: JsCpuProfilerSample;
 }
 
 export enum SampleType {

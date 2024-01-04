@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTreeNode } from '../../../dist/base-ui/tree/LitTreeNode.js';
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { LitTreeNode } from '../../../src/base-ui/tree/LitTreeNode';
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
     return {};
 });
 

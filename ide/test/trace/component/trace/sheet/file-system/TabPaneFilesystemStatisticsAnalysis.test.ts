@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneFilesystemStatisticsAnalysis } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFilesystemStatisticsAnalysis.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFilesystemStatisticsAnalysis.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneFilesystemStatisticsAnalysis } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFilesystemStatisticsAnalysis';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFilesystemStatisticsAnalysis';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {
     initSort: ()=>{}
   };

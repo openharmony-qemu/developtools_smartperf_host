@@ -23,14 +23,16 @@ BytraceHiSysEventParser::BytraceHiSysEventParser(TraceDataCache* dataCache, cons
 }
 
 BytraceHiSysEventParser::~BytraceHiSysEventParser() = default;
-void BytraceHiSysEventParser::ParseHiSysEventDataItem(const std::string& buffer, const uint64_t lineSeq)
+void BytraceHiSysEventParser::ParseHiSysEventDataItem(const std::string& buffer,
+                                                      const uint64_t lineSeq,
+                                                      bool& haveSplitSeg)
 {
     json jMessage;
     if (!jMessage.accept(buffer)) {
         return;
     }
     jMessage = json::parse(buffer);
-    streamFilters_->hiSysEventMeasureFilter_->FilterAllHiSysEvent(jMessage, lineSeq);
+    streamFilters_->hiSysEventMeasureFilter_->FilterAllHiSysEvent(jMessage, lineSeq, haveSplitSeg);
     return;
 }
 void BytraceHiSysEventParser::Finish()

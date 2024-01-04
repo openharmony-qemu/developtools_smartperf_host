@@ -13,20 +13,16 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js', () => {});
-jest.mock('../../../../dist/trace/component/trace/base/TraceSheet.js', () => {});
-jest.mock('../../../../dist/trace/component/SpSystemTrace.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {});
+jest.mock('../../../../src/trace/component/trace/base/TraceSheet', () => {});
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {
     CurrentSlicesTime: () => {},
   };
 });
-// @ts-ignore
 import {
-  ChartStruct,
   drawFlagLine,
   drawLines,
-  getFrameChartColor,
-  getHeatColor,
   Point,
   Rect,
   ns2s,
@@ -35,26 +31,18 @@ import {
   drawWakeUp,
   fillCacheData,
   findRange,
-  FilterConfig,
   dataFilterHandler,
   drawFlagLineSegment,
   drawSelectionRange,
   drawLinkLines,
-  drawBezierCurve,
   drawString2Line,
   drawWakeUpList,
   // @ts-ignore
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
-// @ts-ignore
-import { Flag } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerTimeline.js';
-// @ts-ignore
-import { ColorUtils } from '../../../../dist/trace/component/trace/base/ColorUtils.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { TimerShaftElement } from '../../../../dist/trace/component/trace/TimerShaftElement.js';
-// @ts-ignore
-import { EventCenter } from '../../../../dist/trace/component/trace/base/EventCenter.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+import { Flag } from '../../../../src/trace/database/ui-worker/ProcedureWorkerTimeline';
+import { ColorUtils } from '../../../../src/trace/component/trace/base/ColorUtils';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { EventCenter } from '../../../../src/trace/component/trace/base/EventCenter';
 
 declare global {
   interface Window {
@@ -144,8 +132,7 @@ describe('ProcedureWorkerCommon Test', () => {
     useCache: true,
   };
 
-  document.body.innerHTML = '<timer-shaft-element id="timerShaftEL"></timer-shaft-element>';
-  let timerShaftElement = document.querySelector('#timerShaftEL') as TimerShaftElement;
+  let timerShaftElement = document.createElement('timer-shaft-element');
   timerShaftElement.totalNS = 1000;
   timerShaftElement.startNS = 1000;
   timerShaftElement.endNS = 2000;
@@ -458,9 +445,6 @@ describe('ProcedureWorkerCommon Test', () => {
       endX: 25226,
     };
     expect(drawSelectionRange(context, params)).toBeUndefined();
-  });
-  it('ProcedureWorkerCommon36', function () {
-    expect(FilterConfig).toBeUndefined();
   });
   it('ProcedureWorkerCommon37', function () {
     const canvas = document.createElement('canvas');

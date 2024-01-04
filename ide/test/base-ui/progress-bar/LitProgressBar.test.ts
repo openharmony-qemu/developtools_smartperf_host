@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitProgressBar } from '../../../dist/base-ui/progress-bar/LitProgressBar.js';
+import { LitProgressBar } from '../../../src/base-ui/progress-bar/LitProgressBar';
 
 describe('LitProgressBar Test', () => {
   let litProgressBar = new LitProgressBar();

@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneNMStatstics } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMStatstics.js';
-// @ts-ignore
+import { TabPaneNMStatstics } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMStatstics';
 import {
   NativeHookMalloc,
   NativeHookStatistics,
   NativeHookStatisticsTableData,
-} from '../../../../../../dist/trace/bean/NativeHook';
+} from '../../../../../../src/trace/bean/NativeHook';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -30,7 +28,7 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

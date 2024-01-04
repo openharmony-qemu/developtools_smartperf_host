@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { Flag } from '../../../../../dist/trace/component/trace/timer-shaft/Flag.js';
+import { Flag } from '../../../../../src/trace/component/trace/timer-shaft/Flag';
 
 describe('Flag Test', () => {
   it('FlagTest01 ', function () {

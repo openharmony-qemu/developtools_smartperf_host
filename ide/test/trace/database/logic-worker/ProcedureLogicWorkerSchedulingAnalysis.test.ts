@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-//@ts-ignore
 import {
   ProcedureLogicWorkerSchedulingAnalysis,
   FreqThread,
@@ -22,7 +21,7 @@ import {
   CpuMeasure,
   Irq,
   CpuUsage,
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerSchedulingAnalysis.js';
+} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerSchedulingAnalysis';
 
 describe('ProcedureLogicWorkerSchedulingAnalysis Test', () => {
   it('ProcedureLogicWorkerSchedulingAnalysisTest01', function () {

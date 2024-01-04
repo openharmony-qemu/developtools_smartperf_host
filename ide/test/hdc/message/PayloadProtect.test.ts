@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { PayloadProtect } from '../../../dist/hdc/message/PayloadProtect.js';
+import { PayloadProtect } from '../../../src/hdc/message/PayloadProtect';
 
 describe('PayloadProtect Test', () => {
   let payloadProtect = new PayloadProtect();

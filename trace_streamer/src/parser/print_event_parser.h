@@ -75,8 +75,6 @@ private:
 
 private:
     std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
-    const uint32_t pointLength_;
-    const uint32_t maxPointLength_;
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
     const DataIndex rsOnDoCompositionEvent_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");

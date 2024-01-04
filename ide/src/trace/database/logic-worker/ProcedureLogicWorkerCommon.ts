@@ -558,7 +558,7 @@ export function formatRealDateMs(timeNs: number): string {
 export class JsProfilerSymbol {
   id: number = 0;
   nameId: number = 0;
-  name?: string;
+  name: string = '';
   scriptId: number = 0;
   urlId: number = 0;
   url: string = '';
@@ -566,10 +566,11 @@ export class JsProfilerSymbol {
   column: number = 0;
   hitCount: number = 0;
   childrenString?: string;
-  childrenIds?: Array<number>;
+  childrenIds: Array<number> = [];
   children?: Array<JsProfilerSymbol>;
   parentId: number = 0;
   depth: number = -1;
+  cpuProfilerData?: JsProfilerSymbol;
 
   public clone(): JsProfilerSymbol {
     const cloneSymbol = new JsProfilerSymbol();
@@ -577,8 +578,10 @@ export class JsProfilerSymbol {
     cloneSymbol.url = this.url;
     cloneSymbol.hitCount = this.hitCount;
     cloneSymbol.children = new Array<JsProfilerSymbol>();
+    cloneSymbol.childrenIds = new Array<number>();
     cloneSymbol.parentId = this.parentId;
     cloneSymbol.depth = this.depth;
+    cloneSymbol.cpuProfilerData = this.cpuProfilerData;
     return cloneSymbol;
   }
 }
@@ -623,9 +626,6 @@ export class DataCache {
   public perfCallChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
   public jsCallChain: Array<JsProfilerSymbol> | undefined;
   public jsSymbolMap = new Map<number, JsProfilerSymbol>();
-  public perfCallFireMap = new Map<string, HiPerfSymbol>();
-  public perfCallChain: Array<HiPerfSymbol> | undefined;
-  public perfSymbolMap = new Map<string, HiPerfSymbol>();
 
   public static getInstance(): DataCache {
     if (!this.instance) {
@@ -662,9 +662,6 @@ export class DataCache {
 
   public clearPerf(): void {
     this.perfCallChainMap.clear();
-    this.perfCallFireMap.clear();
-    this.perfCallChain = [];
-    this.perfSymbolMap.clear();
   }
 }
 

@@ -16,36 +16,48 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { resizeObserver } from '../SheetUtils';
+import { initSort, resizeObserver } from '../SheetUtils';
+import { queryIrqDataBoxSelect, querySoftIrqDataBoxSelect } from '../../../../database/SqlLite';
 
 @element('tabpane-irq-counter')
 export class TabPaneIrqCounter extends BaseElement {
   private irqCounterTbl: LitTable | null | undefined;
   private irqRange: HTMLLabelElement | null | undefined;
   private irqCounterSource: Array<SelectionData> = [];
+  private sortColumn: string = 'wallDurationFormat';
+  private sortType: number = 2;
 
   set data(irqParam: SelectionParam | any) {
     //@ts-ignore
-    this.irqCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      this.parentElement!.clientHeight - 45 + 'px';
-    this.irqRange!.textContent =
-      'Selected range: ' + parseFloat(((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+    this.irqCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
+    this.irqRange!.textContent = `Selected range: ${parseFloat(
+      ((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     let dataSource: Array<SelectionData> = [];
-    let collect = irqParam.irqMapData;
-    let sumCount = 0;
-    for (let key of collect.keys()) {
-      let counters = collect.get(key);
-      let selectCounterData = this.createSelectCounterData(key, counters);
-      sumCount += Number.parseInt(selectCounterData.count || '0');
-      selectCounterData.avgDuration = (
-        selectCounterData.wallDuration /
-        parseInt(selectCounterData.count) /
-        1000
-      ).toFixed(2);
-      dataSource.push(selectCounterData);
-    }
-    this.irqCounterSource = dataSource;
-    this.irqCounterTbl!.recycleDataSource = dataSource;
+    Promise.all([
+      queryIrqDataBoxSelect(irqParam.irqCallIds, irqParam.leftNs, irqParam.rightNs),
+      querySoftIrqDataBoxSelect(irqParam.softIrqCallIds, irqParam.leftNs, irqParam.rightNs),
+    ]).then((resArr) => {
+      resArr.forEach((res) => {
+        res.forEach((item) => {
+          let selectData = new SelectionData();
+          selectData.name = item.irqName;
+          selectData.count = item.count;
+          selectData.wallDuration = item.wallDuration;
+          selectData.wallDurationFormat = (item.wallDuration / 1000).toFixed(2);
+          selectData.maxDuration = item.wallDuration;
+          selectData.maxDurationFormat = (item.maxDuration / 1000).toFixed(2);
+          selectData.avgDuration = (item.avgDuration / 1000).toFixed(2);
+          dataSource.push(selectData);
+        });
+      });
+	  initSort(this.irqCounterTbl!, this.sortColumn, this.sortType);
+      this.irqCounterSource = dataSource;
+      this.irqCounterTbl!.recycleDataSource = dataSource;
+      this.sortByColumn(this.sortColumn, this.sortType);
+    });
   }
 
   initElements(): void {
@@ -53,11 +65,11 @@ export class TabPaneIrqCounter extends BaseElement {
     this.irqRange = this.shadowRoot?.querySelector('#time-range');
     this.irqCounterTbl!.addEventListener('column-click', (event) => {
       // @ts-ignore
-      this.sortByColumn(event.detail);
+      this.sortByColumn(event.detail.key, event.detail.sort);
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.irqCounterTbl!);
   }
@@ -80,7 +92,7 @@ export class TabPaneIrqCounter extends BaseElement {
             </lit-table-column>
             <lit-table-column width="1fr" title="Duration(μs)" data-index="wallDurationFormat" key="wallDurationFormat"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column width="1fr" title="Max Duration(μs)" data-index="maxDuration" key="maxDuration"  align="flex-start" order >
+            <lit-table-column width="1fr" title="Max Duration(μs)" data-index="maxDurationFormat" key="maxDurationFormat"  align="flex-start" order >
             </lit-table-column>
             <lit-table-column width="1fr" title="Average Duration(μs)" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
             </lit-table-column>
@@ -90,73 +102,53 @@ export class TabPaneIrqCounter extends BaseElement {
         `;
   }
 
-  createSelectCounterData(name: string, list: Array<any>): SelectionData {
-    let selectData = new SelectionData();
-    if (list.length > 0) {
-      selectData.name = name;
-      selectData.count = list.length + '';
-      for (let index = 0; index < list.length; index++) {
-        selectData.wallDuration += list[index].dur;
-      }
-      list.sort((a, b) => b.dur - a.dur);
-      selectData.maxDuration = list[0].dur / 1000;
-      selectData.maxDurationFormat = (list[0].dur / 1000).toFixed(2);
-      selectData.wallDurationFormat = (selectData.wallDuration / 1000).toFixed(2);
-    }
-    return selectData;
-  }
-
-  sortByColumn(detail: any) {
-    let type = detail.sort;
-    let key = detail.key;
-    if (type == 0) {
-      this.irqCounterTbl!.recycleDataSource = this.irqCounterSource;
-    } else {
-      let arr = Array.from(this.irqCounterSource);
-      arr.sort((irqCounterLeftData, irqCounterRightData): number => {
-        if (key == 'wallDurationFormat') {
-          if (type == 1) {
-            return irqCounterLeftData.wallDuration - irqCounterRightData.wallDuration;
-          } else {
-            return irqCounterRightData.wallDuration - irqCounterLeftData.wallDuration;
-          }
-        } else if (key == 'count') {
-          if (type == 1) {
-            return parseInt(irqCounterLeftData.count) >= parseInt(irqCounterRightData.count) ? 1 : -1;
-          } else {
-            return parseInt(irqCounterRightData.count) >= parseInt(irqCounterLeftData.count) ? 1 : -1;
-          }
-        } else if (key == 'maxDurationFormat') {
-          if (type == 1) {
-            return irqCounterLeftData.maxDuration - irqCounterRightData.maxDuration;
-          } else {
-            return irqCounterRightData.maxDuration - irqCounterLeftData.maxDuration;
-          }
-        } else if (key == 'avgDuration') {
-          if (type == 1) {
-            return (
-              irqCounterLeftData.wallDuration / parseInt(irqCounterLeftData.count) -
-              irqCounterRightData.wallDuration / parseInt(irqCounterRightData.count)
-            );
-          } else {
-            return (
-              irqCounterRightData.wallDuration / parseInt(irqCounterRightData.count) -
-              irqCounterLeftData.wallDuration / parseInt(irqCounterLeftData.count)
-            );
-          }
-        } else if (key == 'name') {
-          if (irqCounterLeftData.name > irqCounterRightData.name) {
-            return type === 2 ? 1 : -1;
-          } else if (irqCounterLeftData.name == irqCounterRightData.name) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
+  sortByColumn(sortColumn: string, sortType: number): void {
+    let key = sortColumn;
+    let type = sortType;
+    let arr = Array.from(this.irqCounterSource);
+    arr.sort((irqCounterLeftData, irqCounterRightData): number => {
+      if (key === 'wallDurationFormat' || type === 0) {
+        if (type === 1) {
+          return irqCounterLeftData.wallDuration - irqCounterRightData.wallDuration;
         } else {
-          return 0;
+          return irqCounterRightData.wallDuration - irqCounterLeftData.wallDuration;
         }
-      });
-      this.irqCounterTbl!.recycleDataSource = arr;
-    }
+      } else if (key === 'count') {
+        if (type === 1) {
+          return parseInt(irqCounterLeftData.count) >= parseInt(irqCounterRightData.count) ? 1 : -1;
+        } else {
+          return parseInt(irqCounterRightData.count) >= parseInt(irqCounterLeftData.count) ? 1 : -1;
+        }
+      } else if (key === 'maxDurationFormat') {
+        if (type === 1) {
+          return irqCounterLeftData.maxDuration - irqCounterRightData.maxDuration;
+        } else {
+          return irqCounterRightData.maxDuration - irqCounterLeftData.maxDuration;
+        }
+      } else if (key === 'avgDuration') {
+        if (type === 1) {
+          return (
+            irqCounterLeftData.wallDuration / parseInt(irqCounterLeftData.count) -
+            irqCounterRightData.wallDuration / parseInt(irqCounterRightData.count)
+          );
+        } else {
+          return (
+            irqCounterRightData.wallDuration / parseInt(irqCounterRightData.count) -
+            irqCounterLeftData.wallDuration / parseInt(irqCounterLeftData.count)
+          );
+        }
+      } else if (key === 'name') {
+        if (irqCounterLeftData.name > irqCounterRightData.name) {
+          return type === 2 ? 1 : -1;
+        } else if (irqCounterLeftData.name === irqCounterRightData.name) {
+          return 0;
+        } else {
+          return type === 2 ? -1 : 1;
+        }
+      } else {
+        return 0;
+      }
+    });
+    this.irqCounterTbl!.recycleDataSource = arr;
   }
 }

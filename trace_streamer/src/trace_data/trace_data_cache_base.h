@@ -87,6 +87,12 @@ public:
     std::map<std::string, uint64_t> threadStatus2Value_ = {};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
+#ifdef IS_WASM
+    bool supportThread_ = false;
+#else
+    bool supportThread_ = true;
+#endif
+    uint8_t parserThreadNum_ = 4;
     std::atomic<bool> isSplitFile_{false};
 
     Raw rawData_;

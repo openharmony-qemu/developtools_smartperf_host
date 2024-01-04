@@ -124,7 +124,7 @@ void HttpServer::Run(int32_t port)
         return;
     }
     TS_LOGI("http server running");
-    struct pollfd fds[COUNT_SOCKET];
+    pollfd fds[COUNT_SOCKET];
     for (int32_t i = 0; i < COUNT_SOCKET; i++) {
         fds[i] = {sockets_[i].GetFd(), POLLIN, 0};
     }
@@ -273,7 +273,7 @@ void HttpServer::ProcessClient(HttpSocket& client)
     size_t recvPos = 0;
     RequestST reqST;
 
-    struct pollfd fd = {client.GetFd(), POLLIN, 0};
+    pollfd fd = {client.GetFd(), POLLIN, 0};
     while (!isExit_) {
         int32_t pollRet = poll(&fd, sizeof(fd) / sizeof(pollfd), pollTimeOut_);
         if (pollRet < 0) {

@@ -13,16 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { RangeRuler } from '../../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js';
-// @ts-ignore
-import { Mark } from '../../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js';
-// @ts-ignore
-import { TimerShaftElement } from '../../../../../dist/trace/component/trace/TimerShaftElement.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../dist/trace/component/SpSystemTrace.js';
+import { RangeRuler } from '../../../../../src/trace/component/trace/timer-shaft/RangeRuler';
+import { Mark } from '../../../../../src/trace/component/trace/timer-shaft/RangeRuler';
+import { TimerShaftElement } from '../../../../../src/trace/component/trace/TimerShaftElement';
+import { SpSystemTrace } from '../../../../../src/trace/component/SpSystemTrace';
 
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 

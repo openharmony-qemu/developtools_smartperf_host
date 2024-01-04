@@ -12,10 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { FormatCommand } from '../../../dist/hdc/hdcclient/FormatCommand.js';
-// @ts-ignore
-import { CmdConstant } from '../../../dist/command/CmdConstant.js';
+import { FormatCommand } from '../../../src/hdc/hdcclient/FormatCommand';
+import { CmdConstant } from '../../../src/command/CmdConstant';
 
 describe('FormatCommandTest', () => {
   it('FormatCommandTest_FormatCommand_01', () => {

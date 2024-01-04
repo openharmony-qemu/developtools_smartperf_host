@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTableGroup } from '../../../dist/base-ui/table/lit-table-group.js';
+import { LitTableGroup } from '../../../src/base-ui/table/lit-table-group';
 
 describe('LitTableGroup Test', () => {
   let litTableGroup = new LitTableGroup();

@@ -14,7 +14,15 @@
  */
 
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { BaseStruct, computeUnitWidth, isSurroundingPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  computeUnitWidth,
+  drawLoadingFrame,
+  isSurroundingPoint,
+  ns2x,
+  Rect,
+  Render,
+} from './ProcedureWorkerCommon';
 import { type AnimationRanges } from '../../bean/FrameComponentBean';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
@@ -31,14 +39,15 @@ export class FrameDynamicRender extends Render {
     let frameDynamicList: FrameDynamicStruct[] = row.dataList;
     let frameDynamicFilter: FrameDynamicStruct[] = row.dataListCache;
     this.frameDynamic(frameDynamicList, frameDynamicFilter, row, req.animationRanges, req.useCache);
-    if (req.animationRanges.length > 0 && req.animationRanges[0] && frameDynamicFilter.length > 0) {
+    drawLoadingFrame(req.context, row.dataListCache, row);
+    if (req.animationRanges.length > 0 && req.animationRanges[0] && frameDynamicList.length > 0) {
       let modelType: string = row.getAttribute('model-type') || 'x';
-      let [minValue, maxValue] = this.getMinAndMaxData(frameDynamicFilter, modelType);
-      let preDynamic: FrameDynamicStruct = frameDynamicFilter[0];
+      let [minValue, maxValue] = this.getMinAndMaxData(frameDynamicList, modelType);
+      let preDynamic: FrameDynamicStruct = frameDynamicList[0];
       let isDraw = false;
       let selectUnitWidth: number = 0;
-      for (let index: number = 0; index < frameDynamicFilter.length; index++) {
-        let currDynamic: FrameDynamicStruct = frameDynamicFilter[index];
+      for (let index: number = 0; index < frameDynamicList.length; index++) {
+        let currDynamic: FrameDynamicStruct = frameDynamicList[index];
         selectUnitWidth = computeUnitWidth(preDynamic.ts, currDynamic.ts, row.frame.width, selectUnitWidth);
         this.refreshPointY(currDynamic, row, modelType, minValue, maxValue);
         if (currDynamic.groupId === 0) {
@@ -54,9 +63,9 @@ export class FrameDynamicRender extends Render {
         preDynamic = currDynamic;
       }
       if (isDraw) {
-        this.drawDynamicPointYStr(req.context, frameDynamicFilter, row.frame, minValue, maxValue);
+        this.drawDynamicPointYStr(req.context, frameDynamicList, row.frame, minValue, maxValue);
       }
-      if (!this.setHoverFrameDynamic(row, frameDynamicFilter, selectUnitWidth) && row.isHover) {
+      if (!this.setHoverFrameDynamic(row, frameDynamicList, selectUnitWidth) && row.isHover) {
         FrameDynamicStruct.hoverFrameDynamicStruct = undefined;
       }
     }
@@ -95,14 +104,10 @@ export class FrameDynamicRender extends Render {
     let frame: Rect = row.frame;
     let modelName: string | undefined | null = row.getAttribute('model-name');
     if ((use || !TraceRow.range!.refresh) && frameDynamicFilter.length > 0) {
-      this.refreshDynamicFrame(frameDynamicFilter, frame, startNS, endNS, totalNS, modelName!);
-      return;
-    }
-    frameDynamicFilter.length = 0;
-    if (frameDynamicList) {
+      frameDynamicList.length = 0;
       let groupIdList: number[] = [];
-      for (let dataIndex: number = 0; dataIndex < frameDynamicList.length; dataIndex++) {
-        let currentDynamic: FrameDynamicStruct = frameDynamicList[dataIndex];
+      for (let dataIndex: number = 0; dataIndex < frameDynamicFilter.length; dataIndex++) {
+        let currentDynamic: FrameDynamicStruct = frameDynamicFilter[dataIndex];
         if (currentDynamic.appName === modelName) {
           currentDynamic.groupId = invalidGroupId;
           for (let rangeIndex = 0; rangeIndex < animationRanges.length; rangeIndex++) {
@@ -114,12 +119,12 @@ export class FrameDynamicRender extends Render {
           }
           if (
             currentDynamic.ts < startNS &&
-            dataIndex + unitIndex < frameDynamicList.length &&
-            frameDynamicList[dataIndex + unitIndex].ts >= startNS &&
+            dataIndex + unitIndex < frameDynamicFilter.length &&
+            frameDynamicFilter[dataIndex + unitIndex].ts >= startNS &&
             currentDynamic.groupId !== invalidGroupId
           ) {
             this.refreshFilterDynamicFrame(
-              frameDynamicFilter,
+              frameDynamicList,
               currentDynamic,
               row.frame,
               startNS,
@@ -130,7 +135,7 @@ export class FrameDynamicRender extends Render {
           }
           if (currentDynamic.ts >= startNS && currentDynamic.ts <= endNS && currentDynamic.groupId !== invalidGroupId) {
             this.refreshFilterDynamicFrame(
-              frameDynamicFilter,
+              frameDynamicList,
               currentDynamic,
               row.frame,
               startNS,
@@ -141,7 +146,7 @@ export class FrameDynamicRender extends Render {
           }
           if (currentDynamic.ts >= endNS && currentDynamic.groupId !== invalidGroupId) {
             this.refreshFilterDynamicFrame(
-              frameDynamicFilter,
+              frameDynamicList,
               currentDynamic,
               row.frame,
               startNS,
@@ -153,7 +158,7 @@ export class FrameDynamicRender extends Render {
           }
         }
       }
-      this.setSimpleGroupId(groupIdList, frameDynamicFilter);
+      this.setSimpleGroupId(groupIdList, frameDynamicList);
     }
   }
 

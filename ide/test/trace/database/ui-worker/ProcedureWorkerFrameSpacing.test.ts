@@ -13,19 +13,16 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import {
   FrameSpacingRender,
   FrameSpacingStruct,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFrameSpacing.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameSpacing';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 
 describe('FrameSpacing Test', () => {
   let frameSpacingRender = new FrameSpacingRender();

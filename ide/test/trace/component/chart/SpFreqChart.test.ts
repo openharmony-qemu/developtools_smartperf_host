@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { queryCpuCount } from '../../../../dist/trace/database/SqlLite.js';
+import { queryCpuCount } from '../../../../src/trace/database/SqlLite';
 
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
@@ -22,13 +21,11 @@ window.ResizeObserver = window.ResizeObserver ||
       observe: jest.fn(),
       unobserve: jest.fn(),
     }));
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { SpFreqChart } from '../../../../dist/trace/component/chart/SpFreqChart.js';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { SpFreqChart } from '../../../../src/trace/component/chart/SpFreqChart';
 
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 describe('spFpsChart Test', () => {
   let spFpsChart = new SpFreqChart(new SpChartManager());
 

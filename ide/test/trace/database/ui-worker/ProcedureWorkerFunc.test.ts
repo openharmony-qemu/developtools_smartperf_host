@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
-import { func, FuncStruct, FuncRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFunc.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+import { func, FuncStruct, FuncRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFunc';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import { markAsUntransferable } from 'worker_threads';
 
 describe(' ProcedureWorkerFuncTest', () => {

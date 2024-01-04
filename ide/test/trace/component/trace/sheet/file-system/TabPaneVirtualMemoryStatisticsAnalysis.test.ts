@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneVirtualMemoryStatisticsAnalysis } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneVirtualMemoryStatisticsAnalysis } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatisticsAnalysis';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -32,7 +29,7 @@ window.ResizeObserver =
 Object.defineProperty(global.self, 'crypto', {
   value: { getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length) },
 });
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {
     initSort: ()=>{}
   };

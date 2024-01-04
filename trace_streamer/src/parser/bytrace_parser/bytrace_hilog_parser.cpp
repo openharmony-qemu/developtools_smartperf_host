@@ -51,7 +51,7 @@ bool BytraceHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t&
         std::string minStr = matcheLine[++index].str();
         std::string secStr = matcheLine[++index].str();
         usecStr = matcheLine[++index].str();
-        struct tm timeInfo = {0};
+        tm timeInfo = {0};
         std::optional<uint32_t> optionalYear = base::StrToInt<uint32_t>(yearStr);
         if (optionalYear.has_value()) {
             timeInfo.tm_year = optionalYear.value() - TM_YEAR_FROM;
@@ -82,7 +82,7 @@ bool BytraceHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t&
     return true;
 }
 
-void BytraceHilogParser::ParseHilogDataItem(const std::string& buffer, const uint64_t lineSeq)
+void BytraceHilogParser::ParseHilogDataItem(const std::string& buffer, const uint64_t lineSeq, bool& haveSplitSeg)
 {
     std::smatch matcheLine;
     if (!std::regex_search(buffer, matcheLine, hilogMatcher_)) {
@@ -95,9 +95,12 @@ void BytraceHilogParser::ParseHilogDataItem(const std::string& buffer, const uin
 
     std::string timeStr = matcheLine[HILOG_MATCH_SEQ_TIME].str();
     HilogTimeStrToTimestamp(timeStr, bufLine->timeStamp);
-    if (traceDataCache_->isSplitFile_ && traceDataCache_->SplitFileMinTime() <= bufLine->timeStamp &&
-        traceDataCache_->SplitFileMaxTime() >= bufLine->timeStamp) {
-        traceDataHiLog_ += buffer + "\r\n";
+    if (traceDataCache_->isSplitFile_) {
+        if (traceDataCache_->SplitFileMinTime() <= bufLine->timeStamp &&
+            traceDataCache_->SplitFileMaxTime() >= bufLine->timeStamp) {
+            haveSplitSeg = true;
+        }
+        return;
     }
 
     std::string pidStr = matcheLine[HILOG_MATCH_SEQ_PID].str();
@@ -159,6 +162,5 @@ void BytraceHilogParser::BeginFilterHilogData(HilogLine* hilogData)
                                                       levelData, logTag, logData, hilogData->timeStamp);
     return;
 }
-
 } // namespace TraceStreamer
 } // namespace SysTuning

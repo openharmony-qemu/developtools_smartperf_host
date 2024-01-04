@@ -101,6 +101,9 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
     // start symbolization
     std::shared_ptr<FrameInfo> frameInfo = std::make_shared<FrameInfo>();
     if (!FillFrameInfo(frameInfo, ip, vmStart, vmOffset, ipid)) {
+        if (ip & usefulIpMask_) {
+            return frameInfo;
+        }
         return nullptr;
     }
     // find SymbolTable by filePathId
@@ -152,7 +155,7 @@ std::shared_ptr<FrameInfo> OfflineSymbolizationFilter::OfflineSymbolizationByIp(
     }
 
     auto mangle = reinterpret_cast<const char*>(symbolTable->str_table().Data() + symbolStart);
-    auto demangle = GetDemangleSymbolIndex(mangle);
+    auto demangle = base::GetDemangleSymbolIndex(mangle);
     frameInfo->symbolIndex_ = traceDataCache_->GetDataIndex(demangle);
     if (demangle != mangle) {
         free(demangle);
@@ -188,7 +191,7 @@ DataIndex OfflineSymbolizationFilter::OfflineSymbolizationByVaddr(uint64_t symVa
         return INVALID_DATAINDEX;
     }
     auto mangle = symbolTable->strTable.c_str() + symbolStart;
-    auto demangle = GetDemangleSymbolIndex(mangle);
+    auto demangle = base::GetDemangleSymbolIndex(mangle);
     auto index = traceDataCache_->GetDataIndex(demangle);
     if (demangle != mangle) {
         free(demangle);

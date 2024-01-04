@@ -120,7 +120,7 @@ const std::string NAME_ID = "name_id";
 const std::string STATE = "STATE";
 const std::string SVALUE = "VALUE";
 
-class SqllitePreparCacheCataTest : public testing::Test {
+class SqllitePreparCacheDataTest : public testing::Test {
     void SetUp()
     {
         stream_.InitFilter();
@@ -137,7 +137,7 @@ public:
  * @tc.desc: Parse a BatchSphData with SphCpuData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphCpuData, TestSize.Level1)
 {
     TS_LOGI("test42-1");
     SqllitePreparCacheData sqllitePreparCacheData;
@@ -169,7 +169,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuData, TestSize.Level
  * @tc.desc: Parse a BatchSphData with SphCpuStateData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuStateData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphCpuStateData, TestSize.Level1)
 {
     TS_LOGI("test42-2");
 
@@ -195,7 +195,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuStateData, TestSize.
  * @tc.desc: Parse a BatchSphData with SphCpuFreqData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuFreqData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphCpuFreqData, TestSize.Level1)
 {
     TS_LOGI("test42-3");
 
@@ -223,7 +223,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuFreqData, TestSize.L
  * @tc.desc: Parse a BatchSphData with SphCpuFreqLimitData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuFreqLimitData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphCpuFreqLimitData, TestSize.Level1)
 {
     TS_LOGI("test42-4");
 
@@ -253,7 +253,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphCpuFreqLimitData, TestS
  * @tc.desc: Parse a BatchSphData with SphClockData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphClockData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphClockData, TestSize.Level1)
 {
     TS_LOGI("test42-5");
 
@@ -279,7 +279,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphClockData, TestSize.Lev
  * @tc.desc: Parse a BatchSphData with SphIrqData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphIrqData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphIrqData, TestSize.Level1)
 {
     TS_LOGI("test42-6");
 
@@ -307,7 +307,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphIrqData, TestSize.Level
  * @tc.desc: Parse a BatchSphData with SphProcessData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphProcessData, TestSize.Level1)
 {
     TS_LOGI("test42-7");
 
@@ -333,7 +333,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessData, TestSize.L
  * @tc.desc: Parse a BatchSphData with SphProcessMemData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessMemData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphProcessMemData, TestSize.Level1)
 {
     TS_LOGI("test42-8");
 
@@ -361,7 +361,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessMemData, TestSiz
  * @tc.desc: Parse a BatchSphData with SphProcessStartupData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessStartupData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphProcessStartupData, TestSize.Level1)
 {
     TS_LOGI("test42-9");
 
@@ -393,7 +393,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessStartupData, Tes
  * @tc.desc: Parse a BatchSphData with SphProcessSoInitData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessSoInitData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphProcessSoInitData, TestSize.Level1)
 {
     TS_LOGI("test42-10");
 
@@ -427,7 +427,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessSoInitData, Test
  * @tc.desc: Parse a BatchSphData with SphHiSysEventData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphHiSysEventData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphHiSysEventData, TestSize.Level1)
 {
     TS_LOGI("test42-11");
 
@@ -463,7 +463,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphHiSysEventData, TestSiz
  * @tc.desc: Parse a BatchSphData with SphLogData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphLogData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphLogData, TestSize.Level1)
 {
     TS_LOGI("test42-12");
 
@@ -495,7 +495,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphLogData, TestSize.Level
  * @tc.desc: Parse a BatchSphData with SphVirtualMemData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphVirtualMemData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphVirtualMemData, TestSize.Level1)
 {
     TS_LOGI("test42-13");
 
@@ -527,7 +527,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphVirtualMemData, TestSiz
  * @tc.desc: Parse a BatchSphData with SphEnergyData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphEnergyData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphEnergyData, TestSize.Level1)
 {
     TS_LOGI("test42-14");
 
@@ -557,7 +557,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphEnergyData, TestSize.Le
  * @tc.desc: Parse a BatchSphData with SphFrameData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphFrameData, TestSize.Level1)
 {
     TS_LOGI("test42-15");
 
@@ -611,7 +611,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameData, TestSize.Lev
  * @tc.desc: Parse a BatchSphData with SphFrameAnimationData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameAnimationData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphFrameAnimationData, TestSize.Level1)
 {
     TS_LOGI("test42-16");
 
@@ -641,7 +641,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameAnimationData, Tes
  * @tc.desc: Parse a BatchSphData with SphFrameDynamicData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameDynamicData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphFrameDynamicData, TestSize.Level1)
 {
     TS_LOGI("test42-17");
 
@@ -677,7 +677,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameDynamicData, TestS
  * @tc.desc: Parse a BatchSphData with SphFrameSpacingData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameSpacingData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphFrameSpacingData, TestSize.Level1)
 {
     TS_LOGI("test42-18");
 
@@ -712,7 +712,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphFrameSpacingData, TestS
  * @tc.desc: Parse a BatchSphData with SphEbpfData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphEbpfData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphEbpfData, TestSize.Level1)
 {
     TS_LOGI("test42-19");
 
@@ -738,7 +738,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphEbpfData, TestSize.Leve
  * @tc.desc: Parse a BatchSphData with SphTrackerData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphTrackerData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphTrackerData, TestSize.Level1)
 {
     TS_LOGI("test42-20");
 
@@ -762,7 +762,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphTrackerData, TestSize.L
  * @tc.desc: Parse a BatchSphData with SphAbilityData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphAbilityData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphAbilityData, TestSize.Level1)
 {
     TS_LOGI("test42-21");
 
@@ -788,7 +788,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphAbilityData, TestSize.L
  * @tc.desc: Parse a BatchSphData with SphProcessThreadData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessThreadData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphProcessThreadData, TestSize.Level1)
 {
     TS_LOGI("test42-22");
 
@@ -824,7 +824,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessThreadData, Test
  * @tc.desc: Parse a BatchSphData with SphProcessFuncData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessFuncData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphProcessFuncData, TestSize.Level1)
 {
     TS_LOGI("test42-23");
 
@@ -858,7 +858,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphProcessFuncData, TestSi
  * @tc.desc: Parse a BatchSphData with SphHiperfData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphHiperfData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphWithSphHiperfData, TestSize.Level1)
 {
     TS_LOGI("test42-24");
 
@@ -888,7 +888,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphWithSphHiperfData, TestSize.Le
  * @tc.desc: Parse a BatchSphData with SphHiperfCallChartData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphHiperfCallChartData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphHiperfCallChartData, TestSize.Level1)
 {
     TS_LOGI("test42-25");
 
@@ -920,7 +920,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphHiperfCallChartData, TestSize.
  * @tc.desc: Parse a BatchSphData with SphHiperfCallStackData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphHiperfCallStackData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphHiperfCallStackData, TestSize.Level1)
 {
     TS_LOGI("test42-26");
 
@@ -948,7 +948,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphHiperfCallStackData, TestSize.
  * @tc.desc: Parse a BatchSphData with SphProcessJanksFramesData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphProcessJanksFramesData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphProcessJanksFramesData, TestSize.Level1)
 {
     TS_LOGI("test42-27");
 
@@ -979,7 +979,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphProcessJanksFramesData, TestSi
  * @tc.desc: Parse a BatchSphData with SphProcessJanksFrames
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphProcessJanksFrames, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphProcessJanksFrames, TestSize.Level1)
 {
     TS_LOGI("test42-28");
 
@@ -1011,7 +1011,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphProcessJanksFrames, TestSize.L
  * @tc.desc: Parse a BatchSphData with SphProcessInputEventData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphProcessInputEventData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphProcessInputEventData, TestSize.Level1)
 {
     TS_LOGI("test42-29");
 
@@ -1051,7 +1051,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphProcessInputEventData, TestSiz
  * @tc.desc: Parse a BatchSphData with SphHeapFilesData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphHeapFilesData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphHeapFilesData, TestSize.Level1)
 {
     TS_LOGI("test42-30");
 
@@ -1083,7 +1083,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphHeapFilesData, TestSize.Level1
  * @tc.desc: Parse a BatchSphData with SphCpuProfilerData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphCpuProfilerData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphCpuProfilerData, TestSize.Level1)
 {
     TS_LOGI("test42-31");
 
@@ -1127,7 +1127,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphCpuProfilerData, TestSize.Leve
  * @tc.desc: Parse a BatchSphData with SphNativeMemoryNormalData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphNativeMemoryNormalData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphNativeMemoryNormalData, TestSize.Level1)
 {
     TS_LOGI("test42-32");
 
@@ -1155,7 +1155,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphNativeMemoryNormalData, TestSi
  * @tc.desc: Parse a BatchSphData with SphNativeMemoryStatisticData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphNativeMemoryStatisticData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphNativeMemoryStatisticData, TestSize.Level1)
 {
     TS_LOGI("test42-33");
 
@@ -1191,7 +1191,7 @@ HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphNativeMemoryStatisticData, Tes
  * @tc.desc: Parse a BatchSphData with SphCpuAbilityData
  * @tc.type: FUNC
  */
-HWTEST_F(SqllitePreparCacheCataTest, ParseBatchSphCpuAbilityData, TestSize.Level1)
+HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphCpuAbilityData, TestSize.Level1)
 {
     TS_LOGI("test42-34");
 

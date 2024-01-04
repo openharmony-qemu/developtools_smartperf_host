@@ -23,6 +23,7 @@ import {
   RequestMessage,
   drawSelection,
   isFrameContainPoint,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -43,10 +44,11 @@ export class EnergyPowerRender extends Render {
       powerReq.useCache || !TraceRow.range!.refresh,
       powerReq.appName
     );
+    drawLoadingFrame(powerReq.context, row.dataListCache, row);
     powerReq.context.beginPath();
     let find = false;
-    for (let i = 0; i < filter.length; i++) {
-      let re = filter[i];
+    for (let i = 0; i < list.length; i++) {
+      let re = list[i];
       EnergyPowerStruct.draw(powerReq, i, re, row);
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         EnergyPowerStruct.hoverEnergyPowerStruct = re;
@@ -214,71 +216,55 @@ export function power(
   use: boolean,
   appName: string
 ) {
+  EnergyPowerStruct.maxPower = 0;
+  list.length = 0;
+  let firstData = [];
   if (use && res.length > 0) {
-    for (let i = 0; i < res.length; i++) {
-      let item = res[i];
+    for (let index = 0; index < res.length; index++) {
+      let item = res[index];
       let obj = item[appName];
       if (obj != undefined) {
         if (obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
-          EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+          firstData.push(obj);
+        }
+      }
+    }
+    let array = firstData.sort((a, b) => a.ts - b.ts);
+    array.forEach((item) => {
+      if (list.length > 0) {
+        if (item.ts + 500000000 >= list[list.length - 1].ts && item.ts - 500000000 <= list[list.length - 1].ts) {
+          list[list.length - 1].cpu = item.cpu === 0 ? list[list.length - 1].cpu : item.cpu;
+          list[list.length - 1].location = item.location === 0 ? list[list.length - 1].location : item.location;
+          list[list.length - 1].gpu = item.gpu === 0 ? list[list.length - 1].gpu : item.gpu;
+          list[list.length - 1].display = item.display === 0 ? list[list.length - 1].display : item.display;
+          list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
+          list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
+          list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
+          list[list.length - 1].audio = item.audio ? list[list.length - 1].audio : item.audio;
+          list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
         } else {
-          obj.frame = null;
+          list.push(item);
         }
-      }
-    }
-    return;
-  }
-  res.length = 0;
-  if (list) {
-    let firstList: Array<any> = [];
-    EnergyPowerStruct.maxPower = 0;
-    for (let index = 0; index < list.length; index++) {
-      let item = list[index];
-      let obj = item[appName];
-      if (obj != undefined) {
-        if (obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
-          firstList.push(obj);
-        }
-      }
-    }
-
-    let array = firstList.sort((a, b) => a.ts - b.ts);
-    for (let index = 0; index < array.length; index++) {
-      if (res.length == 0) {
-        res.push(array[index]);
       } else {
-        let rightTime = array[index].ts + 500000000;
-        let leftTime = array[index].ts - 500000000;
-        let obj = res[res.length - 1];
-        if (obj.ts >= leftTime && obj.ts <= rightTime) {
-          obj.cpu = obj.cpu == 0 ? array[index].cpu : obj.cpu;
-          obj.location = obj.location == 0 ? array[index].location : obj.location;
-          obj.gpu = obj.gpu == 0 ? array[index].gpu : obj.gpu;
-          obj.display = obj.display == 0 ? array[index].display : obj.display;
-          obj.camera = obj.camera == 0 ? array[index].camera : obj.camera;
-          obj.bluetooth = obj.bluetooth == 0 ? array[index].bluetooth : obj.bluetooth;
-          obj.flashlight = obj.flashlight == 0 ? array[index].flashlight : obj.flashlight;
-          obj.audio = obj.audio ? array[index].audio : obj.audio;
-          obj.wifiscan = obj.wifiscan == 0 ? array[index].wifiscan : obj.wifiscan;
-        } else {
-          res.push(array[index]);
-        }
+        list.push(item);
       }
-    }
-    res.forEach((item) => {
-      EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-      let max =
-        (item.cpu || 0) +
-        (item.location || 0) +
-        (item.gpu || 0) +
-        (item.display || 0) +
-        (item.camera || 0) +
-        (item.bluetooth || 0) +
-        (item.flashlight || 0) +
-        (item.audio || 0) +
-        (item.wifiscan || 0);
-      if (max > EnergyPowerStruct.maxPower) {
-        EnergyPowerStruct.maxPower = max;
+    });
+    array.forEach((item) => {
+      if (list.indexOf(item) >= 0) {
+        EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        let max =
+          (item.cpu || 0) +
+          (item.location || 0) +
+          (item.gpu || 0) +
+          (item.display || 0) +
+          (item.camera || 0) +
+          (item.bluetooth || 0) +
+          (item.flashlight || 0) +
+          (item.audio || 0) +
+          (item.wifiscan || 0);
+        if (max > EnergyPowerStruct.maxPower) {
+          EnergyPowerStruct.maxPower = max;
+        }
       }
     });
   }
@@ -295,6 +281,10 @@ export class EnergyPowerStruct extends BaseStruct {
   static selectEnergyPowerStruct: EnergyPowerStruct | undefined;
   static OFFSET_WIDTH: number = 266;
   name: string | undefined;
+  appKey: string | undefined;
+  eventValue: string | undefined;
+  eventName: string | undefined;
+  id: number | undefined;
   ts: number = 0;
   cpu: number = 0;
   location: number = 0;

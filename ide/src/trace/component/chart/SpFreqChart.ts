@@ -15,14 +15,10 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import {
-  getCpuLimitFreq,
   getCpuLimitFreqId,
   getCpuLimitFreqMax,
-  queryCpuCount,
   queryCpuFreq,
-  queryCpuFreqData,
   queryCpuMaxFreq,
-  queryCpuState,
   queryCpuStateFilter,
 } from '../../database/SqlLite';
 import { info } from '../../../log/Log';
@@ -34,6 +30,9 @@ import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWor
 import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState';
 import { FolderSupplier, FolderThreadHandler } from './SpChartManager';
 import { Utils } from '../trace/base/Utils';
+import { cpuFreqDataSender } from '../../database/data-trafic/CpuFreqDataSender';
+import { cpuStateSender } from '../../database/data-trafic/CpuStateSender';
+import { cpuFreqLimitSender } from '../../database/data-trafic/CpuFreqLimitDataSender';
 export class SpFreqChart {
   private trace: SpSystemTrace;
   private folderRow: TraceRow<any> | undefined;
@@ -45,21 +44,11 @@ export class SpFreqChart {
   }
 
   async init() {
-    let cpuCount = await queryCpuCount();
-    let cpuState = await queryCpuState(cpuCount.length);
-    let freCpu = await queryCpuFreqData(cpuCount.length);
-    let cpuFreqStartTime = new Date().getTime();
     let freqList = await queryCpuFreq();
     let cpuStateFilterIds = await queryCpuStateFilter();
     let cpuFreqLimits = await getCpuLimitFreqId();
-    let cpuFreqLimitsMax = await getCpuLimitFreqMax(
-      cpuFreqLimits
-        .map((limit) => {
-          return limit.maxFilterId;
-        })
-        .join(',')
-    );
-    if (freCpu.length > 0) {
+    let cpuFreqLimitsMax = await getCpuLimitFreqMax(cpuFreqLimits.map((limit) => limit.maxFilterId).join(','));
+    if (freqList.length > 0) {
       this.folderRow = TraceRow.skeleton();
       this.folderRow.rowId = 'Cpu Frequency';
       this.folderRow.rowParentId = '';
@@ -91,7 +80,9 @@ export class SpFreqChart {
         traceRow.name = `Cpu ${it.cpu} Frequency`;
         traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-        traceRow.supplier = () => queryCpuFreqData(it.cpu);
+        traceRow.supplierFrame = () => {
+          return cpuFreqDataSender(it.cpu, traceRow); //queryCpuFreqData
+        };
         traceRow.focusHandler = (ev) => {
           this.trace?.displayTip(
             traceRow,
@@ -100,7 +91,7 @@ export class SpFreqChart {
           );
         };
         traceRow.findHoverStruct = () => {
-          CpuFreqStruct.hoverCpuFreqStruct = traceRow.getHoverStruct();
+          CpuFreqStruct.hoverCpuFreqStruct = traceRow.getHoverStruct(true,false, 'value');
         };
         traceRow.onThreadHandler = (useCache) => {
           let context: CanvasRenderingContext2D;
@@ -118,7 +109,7 @@ export class SpFreqChart {
             },
             traceRow
           );
-          traceRow.canvasRestore(context);
+          traceRow.canvasRestore(context, this.trace);
         };
         this.trace.rowsEL?.appendChild(traceRow);
         this.folderRow!.addChildTraceRow(traceRow);
@@ -139,7 +130,6 @@ export class SpFreqChart {
       this.folderRowState.onThreadHandler = FolderThreadHandler(this.folderRowState, this.trace);
       this.trace.rowsEL?.appendChild(this.folderRowState);
 
-      let heights = [4, 12, 21, 30];
       for (let it of cpuStateFilterIds) {
         let cpuStateRow = TraceRow.skeleton<CpuStateStruct>();
         cpuStateRow.rowId = `${it.filterId}`;
@@ -150,14 +140,14 @@ export class SpFreqChart {
         cpuStateRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         cpuStateRow.selectChangeHandler = this.trace.selectChangeHandler;
         cpuStateRow.isHover = true;
-        cpuStateRow.supplier = () =>
-          queryCpuState(it.filterId).then((res) => {
-            res.forEach((r) => {
-              r.height = heights[it.value];
-              r.cpu = it.cpu;
+        cpuStateRow.supplierFrame = () => {
+          return cpuStateSender(it.filterId, cpuStateRow).then((rs) => {
+            rs.forEach((t) => {
+              t.cpu = it.cpu;
             });
-            return res;
+            return rs;
           });
+        };
         cpuStateRow.focusHandler = (ev) => {
           this.trace.displayTip(
             cpuStateRow,
@@ -185,7 +175,7 @@ export class SpFreqChart {
             },
             cpuStateRow
           );
-          cpuStateRow.canvasRestore(context);
+          cpuStateRow.canvasRestore(context, this.trace);
         };
         this.folderRowState!.addChildTraceRow(cpuStateRow);
       }
@@ -204,8 +194,6 @@ export class SpFreqChart {
       this.folderRowLimit.onThreadHandler = FolderThreadHandler(this.folderRowLimit, this.trace);
       this.trace.rowsEL?.appendChild(this.folderRowLimit);
 
-      let durTime = new Date().getTime() - cpuFreqStartTime;
-      info('The time to load the CpuFreq data is: ', durTime);
       for (let limit of cpuFreqLimits) {
         let findMax = Utils.getFrequencyWithUnit(
           cpuFreqLimitsMax.find((maxLimit) => {
@@ -220,8 +208,18 @@ export class SpFreqChart {
         cpuFreqLimitRow.name = `Cpu ${limit.cpu} Freq Limit`;
         cpuFreqLimitRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         cpuFreqLimitRow.selectChangeHandler = this.trace.selectChangeHandler;
+        cpuFreqLimitRow.setAttribute('maxFilterId', `${limit.maxFilterId}`);
+        cpuFreqLimitRow.setAttribute('minFilterId', `${limit.minFilterId}`);
+        cpuFreqLimitRow.setAttribute('cpu', `${limit.cpu}`);
         cpuFreqLimitRow.isHover = true;
-        cpuFreqLimitRow.supplier = () => getCpuLimitFreq(limit.maxFilterId, limit.minFilterId, limit.cpu);
+        cpuFreqLimitRow.supplierFrame = () => {
+          return cpuFreqLimitSender(limit.maxFilterId, limit.minFilterId, limit.cpu, cpuFreqLimitRow).then((res) => {
+            res.forEach((item) => {
+              item.cpu = limit.cpu;
+            });
+            return res;
+          });
+        };
         cpuFreqLimitRow.focusHandler = (ev) => {
           this.trace.displayTip(
             cpuFreqLimitRow,
@@ -255,7 +253,7 @@ export class SpFreqChart {
             },
             cpuFreqLimitRow
           );
-          cpuFreqLimitRow.canvasRestore(context);
+          cpuFreqLimitRow.canvasRestore(context, this.trace);
         };
         this.folderRowLimit!.addChildTraceRow(cpuFreqLimitRow);
       }

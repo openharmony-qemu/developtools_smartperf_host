@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneCounter } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneCounter.js';
+import { TabPaneCounter } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneCounter';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -24,9 +23,9 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 describe('TabPaneCounter Test', () => {

@@ -50,6 +50,8 @@ using namespace SysTuning::base;
 constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
+constexpr uint8_t PARSER_THREAD_MAX = 16;
+constexpr uint8_t PARSER_THREAD_MIN = 1;
 // set version info in meta.cpp please
 void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
 {
@@ -91,6 +93,8 @@ void ShowHelpInfo(const char* argv)
         " -q    select sql from file.\n"
         " -m    Perform operations that query metrics through linux,supports querying multiple metrics items.For "
         "example:-m x,y,z.\n"
+        " -tn <num>   set parser thread num, min is 1, max is 16.\n"
+        " -nt   close muti thread.\n"
         " -i    show information.\n"
         " -v    show version.\n",
         argv, argv);
@@ -249,6 +253,8 @@ struct TraceExportOption {
     bool interactiveState = false;
     bool exportMetaTable = true;
     bool separateFile = false;
+    bool closeMutiThread = false;
+    uint8_t parserThreadNum = INVALID_UINT8;
 };
 struct HttpOption {
     bool enable = false;
@@ -328,6 +334,13 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
         } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
             traceExportOption.separateFile = true;
             continue;
+        } else if (!strcmp(argv[i], "-tn") || !strcmp(argv[i], "--threadnum")) {
+            TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
+            traceExportOption.parserThreadNum = std::stoi(argv[i]);
+            continue;
+        } else if (!strcmp(argv[i], "-nt") || !strcmp(argv[i], "--nothreads")) {
+            traceExportOption.closeMutiThread = true;
+            continue;
         } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
             traceExportOption.exportMetaTable = false;
             continue;
@@ -362,7 +375,7 @@ bool GetLongTraceFilePaths(const TraceExportOption& traceExportOption, std::map<
         TS_LOGE("long trace dir is not exist or not dir");
         return false;
     }
-    struct dirent* entry;
+    dirent* entry;
     while ((entry = readdir(dir)) != nullptr) {
         std::regex pattern("^hiprofiler_data_(\\d{8})_(\\d{6})_(\\d+)\\.htrace$");
         std::smatch matches;
@@ -490,6 +503,13 @@ int main(int argc, char** argv)
     TraceStreamerSelector ts;
     ts.EnableMetaTable(tsOption.exportMetaTable);
     ts.EnableFileSave(tsOption.separateFile);
+    if (tsOption.closeMutiThread) {
+        ts.GetTraceDataCache()->supportThread_ = false;
+    }
+    if (tsOption.parserThreadNum != INVALID_UINT8 && tsOption.parserThreadNum > PARSER_THREAD_MIN &&
+        tsOption.parserThreadNum <= PARSER_THREAD_MAX) {
+        ts.GetTraceDataCache()->parserThreadNum_ = tsOption.parserThreadNum;
+    }
 #ifndef IS_WASM
     if (!tsOption.longTraceDir.empty()) {
         ParseLongTrace(ts, tsOption);

@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { TabpanePerfProfile } from '../../../../../../dist/trace/component/trace/sheet/hiperf/TabPerfProfile.js';
-//@ts-ignore
-import { showButtonMenu } from '../../../../../../dist/trace/component/trace/sheet/SheetUtils.js';
+import { TabpanePerfProfile } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfProfile';
+import { showButtonMenu } from '../../../../../../src/trace/component/trace/sheet/SheetUtils';
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 // @ts-ignore

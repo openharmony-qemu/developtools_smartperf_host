@@ -12,20 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneSummary } from '../../../../../../dist/trace/component/trace/sheet/ark-ts/TabPaneSummary.js';
-//@ts-ignore
-import { HeapDataInterface } from '../../../../../../dist/js-heap/HeapDataInterface.js';
-//@ts-ignore
-import { SpArkTsChart } from '../../../../../../dist/trace/component/chart/SpArkTsChart.js';
+import { TabPaneSummary } from '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneSummary';
+import { HeapDataInterface } from '../../../../../../src/js-heap/HeapDataInterface';
+import { SpArkTsChart } from '../../../../../../src/trace/component/chart/SpArkTsChart';
 
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
-jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
+jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
     return {};
 });
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
 

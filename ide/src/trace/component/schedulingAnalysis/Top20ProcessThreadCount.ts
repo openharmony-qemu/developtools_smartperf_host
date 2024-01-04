@@ -121,7 +121,7 @@ export class Top20ProcessThreadCount extends BaseElement {
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
     let processThreadCountTime = new Date().getTime();
-    procedurePool.submitWithName('logic1', option, {}, undefined, handler);
+    procedurePool.submitWithName('logic0', option, {}, undefined, handler);
     let durTime = new Date().getTime() - processThreadCountTime;
     info(log, durTime);
   }

@@ -85,6 +85,8 @@ const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader
   let binPath = path.normalize(path.join(__dirname, '/', 'bin'));
   clearDirectory(outPath);
   cpFile(binPath, outPath);
+  const protoPath = './src/trace/proto/';
+  runCommand(`pbjs -t static-module -w commonjs -o ${protoPath}SphBaseData.js  ${protoPath}SphBaseData.proto`);
   let rs;
   if (os.type() === 'Windows_NT') {
     rs = childProcess.spawnSync('go', ['build', '-o', outPath, serverSrc], {

@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPaneHiSysEventSummary } from '../../../../../../dist/trace/component/trace/sheet/hisysevent/TabPaneHiSysEventSummary.js';
+import { TabPaneHiSysEventSummary } from '../../../../../../src/trace/component/trace/sheet/hisysevent/TabPaneHiSysEventSummary';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -25,7 +24,7 @@ window.ResizeObserver =
 describe('TabPaneHilogSummary Test', () => {
   let summaryTab = new TabPaneHiSysEventSummary();
   let summaryData = {
-    hiSysEvents: [{
+    sysAllEventsData: [{
       id: 1,
       domain: 'DISPLAY',
       eventName: 'AMBIENT_LIGHT',

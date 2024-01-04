@@ -13,23 +13,19 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneFileStatistics } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFilesystemStatistics.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneFilesystemStatistics.js';
-// @ts-ignore
-import { Utils } from '../../../../../../dist/trace/component/trace/base/Utils.js';
-import '../../../../../../dist/trace/component/trace/base/Utils.js';
+import { TabPaneFileStatistics } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFilesystemStatistics';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFilesystemStatistics';
+import { Utils } from '../../../../../../src/trace/component/trace/base/Utils';
+import '../../../../../../src/trace/component/trace/base/Utils';
 
 import crypto from 'crypto';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
-import '../../../../../../dist/base-ui/table/lit-table.js';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-import '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+import '../../../../../../src/base-ui/table/lit-table';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 Object.defineProperty(global.self, 'crypto', {
   value: {
     getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),

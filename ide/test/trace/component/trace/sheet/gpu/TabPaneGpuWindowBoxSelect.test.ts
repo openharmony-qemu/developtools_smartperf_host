@@ -12,16 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-//@ts-ignore
-import { TabPaneGpuWindowBoxSelect } from '../../../../../../dist/trace/component/trace/sheet/gpu/TabPaneGpuWindowBoxSelect.js';
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+import { TabPaneGpuWindowBoxSelect } from '../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuWindowBoxSelect';
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 

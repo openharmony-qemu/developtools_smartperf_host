@@ -19,6 +19,7 @@ import {
   drawFlagLine,
   drawLines,
   drawLoading,
+  drawLoadingFrame,
   drawSelection,
   drawWakeUp,
   ns2x,
@@ -41,6 +42,7 @@ export class ProcessRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, filter, row, true);
     req.context.beginPath();
     let path = new Path2D();
     let miniHeight: number = 0;

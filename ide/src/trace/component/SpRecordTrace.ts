@@ -2254,6 +2254,9 @@ export class SpRecordTrace extends BaseElement {
       memoryconfig.reportSysmemVmemInfo = true;
       memoryconfig.reportProcessMemInfo = true;
     }
+    if (this.spVmTracker!.startSamp) {
+      memoryconfig.reportProcessMemInfo = true;
+    }
     if (hasSmaps || hasMonitorMemory) {
       memoryconfig.reportPurgeableAshmemInfo = true;
       memoryconfig.reportDmaMemInfo = true;

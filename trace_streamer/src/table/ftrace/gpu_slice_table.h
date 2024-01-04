@@ -28,8 +28,15 @@ public:
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
+    int64_t GetSize() override
+    {
+        return dataCache_->GetConstGPUSliceData().Size();
+    }
+    void GetOrbyes(FilterConstraints& gpufc, EstimatedIndexInfo& gpuei) override;
+    void FilterByConstraint(FilterConstraints& gpufc,
+                            double& gpufilterCost,
+                            size_t gpurowCount,
+                            uint32_t gpucurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:

@@ -14,12 +14,11 @@
  */
 
 
-// @ts-ignore
 import {getDataNo,
   getFormatData,
   getInitializeTime
   // @ts-ignore
-} from "../../../../../dist/trace/component/schedulingAnalysis/utils/Utils.js";
+} from "../../../../../src/trace/component/schedulingAnalysis/utils/Utils.js";
 
 describe('schedulingAnalysis utils  Test', () => {
   it('schedulingAnalysisUtilsTest01', () => {

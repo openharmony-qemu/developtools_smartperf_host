@@ -15,8 +15,8 @@
 import { type JsCpuProfilerChartFrame } from '../bean/JsStruct';
 import { type SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot';
 import { type RangeSelectStruct, TraceRow } from './trace/base/TraceRow';
-import { warn } from '../../log/Log';
 import { KeyPathStruct } from '../bean/KeyPathStruct';
+import { warn } from '../../log/Log';
 
 export function setSelectState(
   data: JsCpuProfilerChartFrame,
@@ -46,6 +46,9 @@ export function setSelectState(
   data.isSelect = true;
   if (data.children.length > 0) {
     for (let child of data.children) {
+      if (child === null) {
+        continue;
+      }
       if (frameSelectDataIdArr.includes(child.id)) {
         setSelectState(child, frameSelectDataIdArr, data);
       }
@@ -58,7 +61,7 @@ export function intersectData(row: TraceRow<any>): any[] {
     Math.max(snapshotStruct.startNs! + snapshotStruct.dur!, rangeSelectStruct!.endNS || 0) -
       Math.min(snapshotStruct.startNs!, rangeSelectStruct!.startNS || 0) <
     snapshotStruct.dur! + (rangeSelectStruct!.endNS || 0) - (rangeSelectStruct!.startNS || 0);
-  let intersectData = row.dataList.filter((struct: SnapshotStruct) => {
+  let intersectData = row.dataListCache.filter((struct: SnapshotStruct) => {
     return isIntersect(struct, TraceRow.rangeSelectObject!);
   });
   return intersectData;

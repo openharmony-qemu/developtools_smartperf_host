@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, Rect, Render, isFrameContainPoint } from './ProcedureWorkerCommon';
+import { BaseStruct, Rect, Render, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 export class HeapSnapshotRender extends Render {
@@ -25,16 +25,15 @@ export class HeapSnapshotRender extends Render {
     },
     row: TraceRow<HeapSnapshotStruct>
   ) {
-    let list = row.dataList;
     let filter = row.dataListCache;
     HeapSnapshot(
-      list,
       filter,
       TraceRow.range?.startNS ?? 0,
       TraceRow.range?.endNS ?? 0,
       (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),
       row.frame
     );
+    drawLoadingFrame(req.context, filter, row);
     req.context!.beginPath();
     for (let re of filter) {
       HeapSnapshotStruct.draw(req.context, re);
@@ -53,7 +52,6 @@ export class HeapSnapshotRender extends Render {
 }
 export function HeapSnapshot(
   list: Array<HeapSnapshotStruct>,
-  filter: Array<HeapSnapshotStruct>,
   startNS: number,
   endNS: number,
   totalNS: number,
@@ -61,12 +59,6 @@ export function HeapSnapshot(
 ) {
   for (let file of list) {
     HeapSnapshotStruct.setFrame(file, startNS || 0, endNS || 0, totalNS || 0, frame);
-  }
-  filter.length = 0;
-  for (let i = 0, len = list.length; i < len; i++) {
-    if (list[i].frame) {
-      filter.push(list[i]);
-    }
   }
 }
 const padding = 3;

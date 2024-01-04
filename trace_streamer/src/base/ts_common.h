@@ -204,7 +204,7 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_JSMEMORY_CONFIG,
     DATA_SOURCE_TYPE_MEM_CONFIG
 };
-enum HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };
+enum class HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };
 using DataIndex = uint64_t;
 using TableRowId = int32_t;
 using InternalPid = uint32_t;

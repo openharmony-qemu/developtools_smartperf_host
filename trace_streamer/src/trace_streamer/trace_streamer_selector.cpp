@@ -363,7 +363,7 @@ int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataD
     return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }
 int32_t TraceStreamerSelector::SearchDatabaseToProto(const std::string& data,
-                                                     TraceDataDB::ResultCallBack resultCallBack)
+                                                     SqllitePreparCacheData::TLVResultCallBack resultCallBack)
 {
     return traceDataCache_->SearchDatabaseToProto(data, resultCallBack);
 }

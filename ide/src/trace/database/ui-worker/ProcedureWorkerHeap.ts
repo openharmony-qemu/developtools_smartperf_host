@@ -14,18 +14,11 @@
  */
 
 import {
-  BaseStruct,
-  dataFilterHandler,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawSelection,
-  drawWakeUp,
   Rect,
   Render,
-  RequestMessage,
   isFrameContainPoint,
   ns2x,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
@@ -52,6 +45,7 @@ export class HeapRender {
       row.frame,
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
+    drawLoadingFrame(req.context, heapFilter, row);
     // 多条数据,最后一条数据在结束点也需要绘制
     if (heapFilter.length >= 2 && heapFilter[heapFilter.length - 1].dur === 0) {
       if (heapFilter[heapFilter.length - 2].frame && heapFilter[heapFilter.length - 1].frame) {
@@ -77,80 +71,6 @@ export class HeapRender {
     }
     if (!find && row.isHover) HeapStruct.hoverHeapStruct = undefined;
     req.context.closePath();
-  }
-
-  render(heapRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (heapRequest.lazyRefresh) {
-      heap(
-        list,
-        filter,
-        heapRequest.startNS,
-        heapRequest.endNS,
-        heapRequest.totalNS,
-        heapRequest.frame,
-        heapRequest.useCache || !heapRequest.range.refresh
-      );
-    } else {
-      if (!heapRequest.useCache) {
-        heap(list, filter, heapRequest.startNS, heapRequest.endNS, heapRequest.totalNS, heapRequest.frame, false);
-      }
-    }
-    if (heapRequest.canvas) {
-      heapRequest.context.clearRect(0, 0, heapRequest.canvas.width, heapRequest.canvas.height);
-      let heapArr = filter;
-      if (heapArr.length > 0 && !heapRequest.range.refresh && !heapRequest.useCache && heapRequest.lazyRefresh) {
-        drawLoading(
-          heapRequest.context,
-          heapRequest.startNS,
-          heapRequest.endNS,
-          heapRequest.totalNS,
-          heapRequest.frame,
-          heapArr[0].startTime,
-          heapArr[heapArr.length - 1].startTime + heapArr[heapArr.length - 1].dur
-        );
-      }
-      heapRequest.context.beginPath();
-      drawLines(heapRequest.context, heapRequest.xs, heapRequest.frame.height, heapRequest.lineColor);
-      HeapStruct.hoverHeapStruct = undefined;
-      if (heapRequest.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            heapRequest.hoverX >= re.frame.x &&
-            heapRequest.hoverX <= re.frame.x + re.frame.width &&
-            heapRequest.hoverY >= re.frame.y &&
-            heapRequest.hoverY <= re.frame.y + re.frame.height
-          ) {
-            HeapStruct.hoverHeapStruct = re;
-            break;
-          }
-        }
-      } else {
-        HeapStruct.hoverHeapStruct = heapRequest.params.hoverHeapStruct;
-      }
-      for (let re of filter) {
-        HeapStruct.drawHeap(heapRequest.context, re, heapRequest.params.drawType);
-      }
-      drawSelection(heapRequest.context, heapRequest.params);
-      heapRequest.context.closePath();
-      drawFlagLine(
-        heapRequest.context,
-        heapRequest.flagMoveInfo,
-        heapRequest.flagSelectedInfo,
-        heapRequest.startNS,
-        heapRequest.endNS,
-        heapRequest.totalNS,
-        heapRequest.frame,
-        heapRequest.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: heapRequest.id,
-      type: heapRequest.type,
-      results: heapRequest.canvas ? undefined : filter,
-      hover: HeapStruct.hoverHeapStruct,
-    });
   }
 }
 export function heap(

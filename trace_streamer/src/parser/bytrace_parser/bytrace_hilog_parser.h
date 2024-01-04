@@ -16,11 +16,10 @@
 #define BYTRACE_HILOG_PARSER_H
 
 #include "common_types.h"
-#include "string_help.h"
-#include "log.h"
-#include "string_to_numerical.h"
-#include "parser_base.h"
 #include "event_parser_base.h"
+#include "parser_base.h"
+#include "string_help.h"
+#include "string_to_numerical.h"
 #include "trace_data_cache.h"
 
 namespace SysTuning {
@@ -29,16 +28,8 @@ class BytraceHilogParser : public EventParserBase {
 public:
     BytraceHilogParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
     ~BytraceHilogParser();
-    void ParseHilogDataItem(const std::string& buffer, const uint64_t lineSeq);
+    void ParseHilogDataItem(const std::string& buffer, const uint64_t lineSeq, bool& haveSplitSeg);
     void FilterAllHilogData();
-    auto GetTraceDataHiLog()
-    {
-        return traceDataHiLog_;
-    }
-    void ClearHiLogData()
-    {
-        traceDataHiLog_.clear();
-    }
 
 private:
     bool HilogTimeStrToTimestamp(std::string& timeStr, uint64_t& timeStamp) const;
@@ -55,7 +46,6 @@ private:
         HILOG_MATCH_SEQ_TAG = 6,
         HILOG_MATCH_SEQ_CONTENT = 7,
     };
-    std::string traceDataHiLog_ = "";
     std::vector<std::unique_ptr<HilogLine>> hilogList_ = {};
 };
 } // namespace TraceStreamer

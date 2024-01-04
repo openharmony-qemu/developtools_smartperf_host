@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTabs } from '../../../dist/base-ui/tabs/lit-tabs.js';
+import { LitTabs } from '../../../src/base-ui/tabs/lit-tabs';
 
 window.ResizeObserver =
   window.ResizeObserver ||

@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
-import { ClockStruct, ClockRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerClock.js';
+import { ClockStruct, ClockRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerClock';
 
 describe('ProcedureWorkerClock Test', () => {
   it('ProcedureWorkerClock01', () => {

@@ -18,6 +18,7 @@ import {
   drawFlagLine,
   drawLines,
   drawLoading,
+  drawLoadingFrame,
   drawSelection,
   isFrameContainPoint,
   ns2x,
@@ -46,6 +47,7 @@ export class EnergySystemRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find = false;
     let energySystemData: any = {};
@@ -240,6 +242,23 @@ export function drawLegend(req: RequestMessage | any, isDark?: boolean) {
   req.context.fillStyle = '#333';
 }
 
+export function systemData(data: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
+  for (let index = 0; index < data.length; index++) {
+    let systemItem = data[index];
+    if (index === data.length - 1) {
+      systemItem.dur = (endNS || 0) - (systemItem.startNs || 0);
+    } else {
+      systemItem.dur = (data[index + 1].startNs! || 0) - (systemItem.startNs! || 0);
+    }
+    if (systemItem.count == 0) {
+      systemItem.dur = 0;
+    }
+    if ((systemItem.startNs || 0) + (systemItem.dur || 0) > (startNS || 0) && (systemItem.startNs || 0) < (endNS || 0)) {
+      EnergySystemStruct.setSystemFrame(systemItem, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
+    }
+  }
+}
+
 export function system(
   systemList: Array<any>,
   res: Array<any>,
@@ -250,16 +269,26 @@ export function system(
   use: boolean
 ) {
   if (use && res.length > 0) {
-    for (let i = 0; i < res.length; i++) {
-      let systemItem = res[i];
-      if (
-        (systemItem.startNs || 0) + (systemItem.dur || 0) > (startNS || 0) &&
-        (systemItem.startNs || 0) < (endNS || 0)
-      ) {
-        EnergySystemStruct.setSystemFrame(systemItem, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
+    let lockData: any = [];
+    let locationData: any = [];
+    let workData: any = [];
+    res.forEach(item => {
+      if (item.dataType === 1) {
+        lockData.push(item);
+      } else if (item.dataType === 2) {
+        locationData.push(item);
       } else {
-        systemItem.frame = null;
+        workData.push(item);
       }
+    });
+    if (lockData.length > 0) {
+      systemData(lockData, startNS, endNS, totalNS, frame);
+    }
+    if (locationData.length > 0) {
+      systemData(locationData, startNS, endNS, totalNS, frame);
+    }
+    if (workData.length > 0) {
+      systemData(workData, startNS, endNS, totalNS, frame);
     }
     return;
   }
@@ -302,6 +331,11 @@ export class EnergySystemStruct extends BaseStruct {
   workScheduler: string | undefined;
   power: string | undefined;
   location: string | undefined;
+  id: number | undefined;
+  eventName: string | undefined;
+  eventValue: string | undefined;
+  appKey: string | undefined;
+  dataType: number | undefined;
 
   static draw(energySystemContext: CanvasRenderingContext2D, data: EnergySystemStruct) {
     if (data.frame) {

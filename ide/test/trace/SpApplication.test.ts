@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { SpStatisticsHttpUtil } from '../../dist/statistics/util/SpStatisticsHttpUtil.js';
+import { SpStatisticsHttpUtil } from '../../src/statistics/util/SpStatisticsHttpUtil';
 
 SpStatisticsHttpUtil.initStatisticsServerConfig = jest.fn(() => true);
 SpStatisticsHttpUtil.addUserVisitAction = jest.fn(() => true);
@@ -22,10 +21,8 @@ const intersectionObserverMock = () => ({
     observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
-// @ts-ignore
-import { SpApplication } from '../../dist/trace/SpApplication.js';
-// @ts-ignore
-import { LongTraceDBUtils } from '../../dist/trace/database/LongTraceDBUtils.js';
+import { SpApplication } from '../../src/trace/SpApplication';
+import { LongTraceDBUtils } from '../../src/trace/database/LongTraceDBUtils';
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({

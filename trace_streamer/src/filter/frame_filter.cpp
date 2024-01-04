@@ -222,6 +222,7 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
 }
 void FrameFilter::Clear()
 {
+    traceDataCache_->GetFrameSliceData()->UpdateDepth();
     vsyncRenderSlice_.clear();
     dstRenderSlice_.clear();
 }

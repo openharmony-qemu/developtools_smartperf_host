@@ -20,6 +20,7 @@ import {
   drawFlagLine,
   drawLines,
   drawLoading,
+  drawLoadingFrame,
   drawSelection,
   drawWakeUp,
   drawWakeUpList,
@@ -30,11 +31,10 @@ import { TraceRow } from '../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class EmptyRender extends Render {
-  renderMainThread(req: any, row: TraceRow<any>) {
-    req.context.beginPath();
-    req.context.closePath();
+  renderMainThread(req: any, row: TraceRow<any>): void {
+    drawLoadingFrame(req.context, [], row);
   }
-  render(cpuReqMessage: RequestMessage, list: Array<any>, filter: Array<any>) {
+  render(cpuReqMessage: RequestMessage, list: Array<any>, filter: Array<any>): void {
     if (cpuReqMessage.canvas) {
       cpuReqMessage.context.clearRect(0, 0, cpuReqMessage.frame.width, cpuReqMessage.frame.height);
       cpuReqMessage.context.beginPath();
@@ -65,7 +65,7 @@ export class EmptyRender extends Render {
 export class CpuRender {
   renderMainThread(
     req: {
-      cpuRenderContext: CanvasRenderingContext2D;
+      ctx: CanvasRenderingContext2D;
       useCache: boolean;
       type: string;
       translateY: number;
@@ -74,18 +74,7 @@ export class CpuRender {
   ) {
     let cpuList = row.dataList;
     let cpuFilter = row.dataListCache;
-    const combineData = [...cpuList];
-    if (cpuList.length > 0 && SpSystemTrace.keyPathList.length > 0) {
-      const keyPathList = SpSystemTrace.keyPathList.filter((cpu: CpuStruct) => {
-        return (
-          cpu.cpu === cpuList[0].cpu &&
-          TraceRow.range!.startNS < cpu.startTime! + cpu.dur! &&
-          TraceRow.range!.endNS > cpu.startTime!
-        );
-      });
-      combineData.push(...keyPathList);
-    }
-    dataFilterHandler(combineData, cpuFilter, {
+    dataFilterHandler(cpuList, cpuFilter, {
       startKey: 'startTime',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -95,16 +84,17 @@ export class CpuRender {
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.cpuRenderContext.beginPath();
-    req.cpuRenderContext.font = '11px sans-serif';
+    drawLoadingFrame(req.ctx, cpuFilter, row);
+    req.ctx.beginPath();
+    req.ctx.font = '11px sans-serif';
     cpuFilter.forEach((re) => {
       re.translateY = req.translateY;
-      CpuStruct.draw(req.cpuRenderContext, re, req.translateY);
+      CpuStruct.draw(req.ctx, re, req.translateY);
     });
-    req.cpuRenderContext.closePath();
+    req.ctx.closePath();
     let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
     drawWakeUp(
-      req.cpuRenderContext,
+      req.ctx,
       CpuStruct.wakeupBean,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
@@ -119,7 +109,7 @@ export class CpuRender {
         return;
       }
       drawWakeUpList(
-        req.cpuRenderContext,
+        req.ctx,
         SpSystemTrace.wakeupList[i + 1],
         TraceRow.range!.startNS,
         TraceRow.range!.endNS,
@@ -216,7 +206,7 @@ export class CpuRender {
     totalNS: number,
     frame: any,
     use: boolean
-  ) {
+  ): void {
     if (use && cpuRes.length > 0) {
       let pns = (endNS - startNS) / frame.width;
       let y = frame.y + 5;
@@ -294,6 +284,7 @@ export class CpuStruct extends BaseStruct {
   cpu: number | undefined;
   dur: number | undefined;
   end_state: string | undefined;
+  state: string | undefined;
   id: number | undefined;
   tid: number | undefined;
   name: string | undefined;
@@ -316,7 +307,8 @@ export class CpuStruct extends BaseStruct {
   pid: number | undefined;
   thread: string | undefined;
   isKeyPath?: number;
-  static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number) {
+
+  static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number): void {
     if (data.frame) {
       let width = data.frame.width || 0;
       if (data.tid === CpuStruct.hoverCpuStruct?.tid || !CpuStruct.hoverCpuStruct) {
@@ -415,7 +407,7 @@ export class CpuStruct extends BaseStruct {
     }
   }
 
-  static setCpuFrame(cpuNode: any, pns: number, startNS: number, endNS: number, frame: any) {
+  static setCpuFrame(cpuNode: any, pns: number, startNS: number, endNS: number, frame: any): void {
     if ((cpuNode.startTime || 0) < startNS) {
       cpuNode.frame.x = 0;
     } else {
@@ -437,11 +429,11 @@ export class CpuStruct extends BaseStruct {
     return (
       d1 &&
       d2 &&
-      d1.cpu == d2.cpu &&
-      d1.tid == d2.tid &&
-      d1.processId == d2.processId &&
-      d1.startTime == d2.startTime &&
-      d1.dur == d2.dur
+      d1.cpu === d2.cpu &&
+      d1.tid === d2.tid &&
+      d1.processId === d2.processId &&
+      d1.startTime === d2.startTime &&
+      d1.dur === d2.dur
     );
   }
 }
@@ -458,6 +450,8 @@ export class WakeupBean {
   ts: number | undefined;
   schedulingDesc: string | undefined;
   itid: number | undefined;
+  state: string | undefined;
+  argSetID: number | undefined;
 }
 
 const textPadding = 2;

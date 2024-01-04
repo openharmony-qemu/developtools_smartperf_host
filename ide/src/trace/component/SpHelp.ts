@@ -130,7 +130,6 @@ export class SpHelp extends BaseElement {
                 title: 'Native Memory抓取和展示说明',
                 icon: '',
                 clickHandler: function (item: MenuItem) {
-                  console.log('22222');
                   SpStatisticsHttpUtil.addOrdinaryVisitAction({
                     event: 'native',
                     action: 'help_doc',

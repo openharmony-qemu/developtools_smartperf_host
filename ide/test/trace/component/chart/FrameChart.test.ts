@@ -13,17 +13,19 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { FrameChart, Module } from '../../../../dist/trace/component/chart/FrameChart.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { ChartMode, ChartStruct } from '../../../../dist/trace/bean/FrameChartStruct.js';
+import { FrameChart, Module } from '../../../../src/trace/component/chart/FrameChart';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { ChartMode, ChartStruct } from '../../../../src/trace/bean/FrameChartStruct';
 
-jest.mock('../../../../dist/trace/component/SpSystemTrace.js', () => {
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
-jest.mock('../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
+
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+
 
 const intersectionObserverMock = () => ({
   observe: () => null,
@@ -38,7 +40,7 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

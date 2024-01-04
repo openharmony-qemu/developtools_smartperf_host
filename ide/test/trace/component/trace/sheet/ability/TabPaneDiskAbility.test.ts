@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneDiskAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneDiskAbility.js';
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+import { TabPaneDiskAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneDiskAbility';
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

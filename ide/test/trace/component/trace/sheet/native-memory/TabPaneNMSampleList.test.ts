@@ -14,23 +14,23 @@
  */
 
 // @ts-ignore
-import { TabPaneNMSampleList } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMSampleList.js';
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+import { TabPaneNMSampleList } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
+jest.mock('../../../../../../src/base-ui/table/lit-table.js', () => {
   return {
     recycleDataSource: () => {},
   };
 });
 // @ts-ignore
-import { NativeHookSampleQueryInfo, NativeHookSamplerInfo } from '../../../../../../dist/trace/bean/NativeHook.js';
+import { NativeHookSampleQueryInfo, NativeHookSamplerInfo } from '../../../../../../src/trace/bean/NativeHook';
 // @ts-ignore
-import { NativeMemory } from '../../../../../../dist/trace/bean/NativeHook.js';
+import { NativeMemory } from '../../../../../../src/trace/bean/NativeHook';
 // @ts-ignore
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

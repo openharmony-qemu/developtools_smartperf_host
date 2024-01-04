@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { SpFileSystem } from '../../../../dist/trace/component/setting/SpFileSystem';
+import { SpFileSystem } from '../../../../src/trace/component/setting/SpFileSystem';
 
 describe('spFileSystem Test', () => {
   let spFileSystem = new SpFileSystem();

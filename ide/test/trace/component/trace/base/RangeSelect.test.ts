@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { RangeSelect } from '../../../../../dist/trace/component/trace/base/RangeSelect.js';
-// @ts-ignore
-import { TraceRow } from '../../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../dist/trace/component/SpSystemTrace.js';
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { RangeSelect } from '../../../../../src/trace/component/trace/base/RangeSelect';
+import { TraceRow } from '../../../../../src/trace/component/trace/base/TraceRow';
+import { SpSystemTrace } from '../../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 

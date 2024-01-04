@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { CpuUsage, Freq } from '../../../dist/trace/bean/CpuUsage.js';
+import { CpuUsage, Freq } from '../../../src/trace/bean/CpuUsage';
 
 describe('CpuUsage Test', () => {
   let cpuUsage = new CpuUsage();

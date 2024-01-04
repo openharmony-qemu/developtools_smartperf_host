@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
-import { CpuFreqStruct, FreqRender, freq } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFreq.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+import { CpuFreqStruct, FreqRender, freq } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFreq';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 
 describe('freqTest', () => {
   it('freqTest01', () => {

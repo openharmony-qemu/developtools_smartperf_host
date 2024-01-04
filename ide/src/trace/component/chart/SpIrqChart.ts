@@ -15,14 +15,16 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import { queryIrqData, queryIrqList } from '../../database/SqlLite';
+import { queryAllFuncNames, queryAllIrqNames, queryIrqData, queryIrqList } from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { IrqRender, IrqStruct } from '../../database/ui-worker/ProcedureWorkerIrq';
+import { irqDataSender } from '../../database/data-trafic/IrqDataSender';
 
 export class SpIrqChart {
   private trace: SpSystemTrace;
+  private irqNameMap: Map<number, { name: string; ipiName: string }> = new Map();
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -39,6 +41,11 @@ export class SpIrqChart {
     if (irqList.length == 0) {
       return;
     }
+    //加载irq table所有id和name数据
+    let irqNamesArray = await queryAllIrqNames();
+    irqNamesArray.forEach((it) => {
+      this.irqNameMap.set(it.id, { ipiName: it.ipiName, name: it.name });
+    });
     info('irqList data size is: ', irqList!.length);
     this.trace.rowsEL?.appendChild(folder);
     for (let i = 0; i < irqList.length; i++) {
@@ -51,9 +58,24 @@ export class SpIrqChart {
       traceRow.name = `${it.name} Cpu ${it.cpu}`;
       traceRow.rowHidden = !folder.expansion;
       traceRow.setAttribute('children', '');
+      traceRow.setAttribute('callId', `${it.cpu}`);
+      traceRow.setAttribute('cat', `${it.name}`);
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      traceRow.supplier = () => queryIrqData(it.cpu, it.name);
+      traceRow.supplierFrame = () => {
+        return irqDataSender(it.cpu, it.name, traceRow).then((irqs) => {
+          if (irqs.length > 0) {
+            irqs.forEach((irq, index) => {
+              if (it.name === 'irq') {
+                irqs[index].name = this.irqNameMap.get(irqs[index].id!)!.ipiName || '';
+              } else {
+                irqs[index].name = this.irqNameMap.get(irqs[index].id!)!.name || '';
+              }
+            });
+          }
+          return irqs;
+        });
+      };
       traceRow.focusHandler = (ev) => {
         this.trace?.displayTip(
           traceRow,
@@ -81,7 +103,7 @@ export class SpIrqChart {
           },
           traceRow
         );
-        traceRow.canvasRestore(context);
+        traceRow.canvasRestore(context, this.trace);
       };
       folder.addChildTraceRow(traceRow);
     }
@@ -115,7 +137,7 @@ export class SpIrqChart {
           irqFolder
         );
       }
-      irqFolder.canvasRestore(this.trace.canvasPanelCtx!);
+      irqFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     return irqFolder;
   }

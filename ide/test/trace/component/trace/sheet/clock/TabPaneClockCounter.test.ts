@@ -14,8 +14,8 @@
  */
 
 // @ts-ignore
-import { TabPaneClockCounter } from '../../../../../../dist/trace/component/trace/sheet/clock/TabPaneClockCounter.js';
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+import { TabPaneClockCounter } from '../../../../../../src/trace/component/trace/sheet/clock/TabPaneClockCounter';
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
 
@@ -28,7 +28,7 @@ window.ResizeObserver =
   }));
 
 describe('TabPaneClockCounter Test', () => {
-  let clockCounter = new TabPaneClockCounter();
+  let clockCounter = null;
   let map = new Map();
   map.set('clock', [
     {
@@ -44,13 +44,18 @@ describe('TabPaneClockCounter Test', () => {
     rightNs: 1252,
     clockMapData: map,
   };
+  beforeEach(() => {
+    document.body.innerHTML = `<lit-table id="tb-counter"></lit-table>`;
+    clockCounter = document.querySelector('#tb-counter') as TabPaneClockCounter;
+  });
 
   it('TabPaneClockCounterTest01', function () {
     clockCounter.data = clockCounterData;
-    expect(clockCounter.data).toBeUndefined();
+    expect(clockCounter.data).toEqual(clockCounterData);
   });
 
   it('TabPaneClockCounterTest02', function () {
+    let clockCounter = new TabPaneClockCounter();
     expect(
       clockCounter.sortByColumn({
         key: 'number',

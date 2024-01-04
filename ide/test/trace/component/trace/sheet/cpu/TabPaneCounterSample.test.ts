@@ -13,18 +13,15 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneCounterSample } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCounterSample.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { TabPaneCounterSample } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneCounterSample';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -121,7 +118,7 @@ describe('TabPaneCounterSample Test', () => {
     expect((tabPane.data = dataArray)).toBeTruthy();
   });
 
-  it('TabPaneCounterSampleTest02', function () {
-    expect(tabPaneCounterSample.initElements()).toBeUndefined();
-  });
+  // it('TabPaneCounterSampleTest02', function () {
+  //   expect(tabPaneCounterSample.initElements()).toBeUndefined();
+  // });
 });

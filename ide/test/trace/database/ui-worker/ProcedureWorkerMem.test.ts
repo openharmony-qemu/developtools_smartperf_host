@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
-import { ProcessMemStruct, MemRender } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerMem.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
-import { mem } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
+import { ProcessMemStruct, MemRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerMem';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { mem } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 
 describe(' Test', () => {
   let frame = {

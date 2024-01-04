@@ -49,69 +49,28 @@ ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCach
 
 ProcessTable::~ProcessTable() {}
 
-void ProcessTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void ProcessTable::FilterByConstraint(FilterConstraints& processfc,
+                                      double& processfilterCost,
+                                      size_t processrowCount,
+                                      uint32_t processcurrenti)
 {
-    constexpr double filterBaseCost = 1000.0; // set-up and tear-down
-    constexpr double indexCost = 2.0;
-    ei.estimatedCost = filterBaseCost;
-
-    auto rowCount = dataCache_->ProcessSize();
-    if (rowCount == 0 || rowCount == 1) {
-        ei.estimatedRows = rowCount;
-        ei.estimatedCost += indexCost * rowCount;
-        return;
-    }
-
-    double filterCost = 0.0;
-    auto constraints = fc.GetConstraints();
-    if (constraints.empty()) { // scan all rows
-        filterCost = rowCount;
-    } else {
-        FilterByConstraint(fc, filterCost, rowCount);
-    }
-    ei.estimatedCost += filterCost;
-    ei.estimatedRows = rowCount;
-    ei.estimatedCost += rowCount * indexCost;
-
-    ei.isOrdered = true;
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = 0; i < orderbys.size(); i++) {
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::IPID:
-            case Index::ID:
-                break;
-            default: // other columns can be sorted by SQLite
-                ei.isOrdered = false;
-                break;
-        }
-    }
-}
-
-void ProcessTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
-{
-    auto fcConstraints = fc.GetConstraints();
-    for (int32_t i = 0; i < static_cast<int32_t>(fcConstraints.size()); i++) {
-        if (rowCount <= 1) {
-            // only one row or nothing, needn't filter by constraint
-            filterCost += rowCount;
+    // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
+    // for loop
+    const auto& processc = processfc.GetConstraints()[processcurrenti];
+    switch (static_cast<Index>(processc.col)) {
+        case Index::IPID:
+        case Index::ID: {
+            if (CanFilterId(processc.op, processrowCount)) {
+                processfc.UpdateConstraint(processcurrenti, true);
+                processfilterCost += 1; // id can position by 1 step
+            } else {
+                processfilterCost += processrowCount; // scan all rows
+            }
             break;
         }
-        const auto& c = fcConstraints[i];
-        switch (static_cast<Index>(c.col)) {
-            case Index::IPID:
-            case Index::ID: {
-                if (CanFilterId(c.op, rowCount)) {
-                    fc.UpdateConstraint(i, true);
-                    filterCost += 1; // id can position by 1 step
-                } else {
-                    filterCost += rowCount; // scan all rows
-                }
-                break;
-            }
-            default:                    // other column
-                filterCost += rowCount; // scan all rows
-                break;
-        }
+        default:                                  // other column
+            processfilterCost += processrowCount; // scan all rows
+            break;
     }
 }
 
@@ -330,6 +289,21 @@ void ProcessTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
         default:
             // can't filter, all rows
             break;
+    }
+}
+
+void ProcessTable::GetOrbyes(FilterConstraints& processfc, EstimatedIndexInfo& processei)
+{
+    auto processorderbys = processfc.GetOrderBys();
+    for (auto i = 0; i < processorderbys.size(); i++) {
+        switch (static_cast<Index>(processorderbys[i].iColumn)) {
+            case Index::IPID:
+            case Index::ID:
+                break;
+            default: // other columns can be sorted by SQLite
+                processei.isOrdered = false;
+                break;
+        }
     }
 }
 } // namespace TraceStreamer

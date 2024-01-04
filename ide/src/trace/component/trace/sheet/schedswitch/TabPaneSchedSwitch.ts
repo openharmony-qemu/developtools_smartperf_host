@@ -21,7 +21,6 @@ import { querySchedThreadStates, querySingleCutData, queryLoopCutData } from '..
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
-import { SpSegmentationChart } from '../../../../../trace/component/chart/SpSegmentationChart'
 import {
   type TreeSwitchConfig,
   HistogramSourceConfig,
@@ -55,20 +54,20 @@ export class TabPaneSchedSwitch extends BaseElement {
   private rangeTotal: HistogramSourceConfig = new HistogramSourceConfig();
   private clickThreadChildren: Array<TreeSwitchConfig> = [];
   private isThreadStatesData: boolean = false;
-  private clickThreadName: string = '';
+  private clickHighlightCondition: string = '';
 
   set data(threadStatesParam: SelectionParam) {
     if (this.selectionParam === threadStatesParam) {
       return;
     }
-    let tabpaneSwitch = this.parentElement as HTMLElement;
-    tabpaneSwitch.style.overflow = 'hidden';
     this.schedSwitchTbl!.recycleDataSource = [];
     this.queryButton!.style.pointerEvents = 'none';
     this.schedSwitchTbl!.loading = false;
     this.isThreadStatesData = false;
     // @ts-ignore
     this.schedSwitchTbl!.value = [];
+    this.threadIdInput!.value = '';
+    this.funcNameInput!.value = '';
     this.funcNameInput!.style.border = '1px solid rgb(151,151,151)';
     this.threadIdInput!.style.border = '1px solid rgb(151,151,151)';
     this.selectionParam = threadStatesParam;
@@ -77,11 +76,6 @@ export class TabPaneSchedSwitch extends BaseElement {
     this.isSingleButtonFn(false);
     this.isLoopButtonFn(false);
     this.isCanvansDisplayFn(false);
-    new ResizeObserver((entries) => {
-      // @ts-ignore
-      let lastHeight = this.schedSwitchTbl!.tableElement!.offsetHeight;
-      this.rightDIV!.style.height = String(lastHeight) + 'px';
-    }).observe(this.parentElement!);
   }
   initElements(): void {
     this.schedSwitchTbl = this.shadowRoot!.querySelector<LitTable>('#tb-running');
@@ -156,49 +150,45 @@ export class TabPaneSchedSwitch extends BaseElement {
   }
   clickTreeRowEvent(evt: Event): void {
     //@ts-ignore
-    let data = evt.detail.data;
-    let clickNodeName: string = `${data.process} - ${data.pid} - ${data.thread} - ${data.tid}`;
+    let data: TreeSwitchConfig = evt.detail.data as TreeSwitchConfig;
     if (data.level === 'process') {
       this.isCanvansDisplayFn(false);
       this.threadFlag = '';
     } else if (data.level === 'thread') {
-      if (this.clickThreadName !== clickNodeName) {
-        this.cycleALeftInput!.value = '';
-        this.cycleARightInput!.value = '';
-        this.cycleBLeftInput!.value = '';
-        this.cycleBRightInput!.value = '';
-        this.histogramSource = [];
-        SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1);
-        this.clickThreadChildren = data.children;
-        this.queryButton!.style.pointerEvents = 'none';
-        this.isCanvansDisplayFn(true);
-        this.isQueryButtonClick(false);
-        this.threadFlag = 'thread';
-        this.clickThreadName = clickNodeName;
-        this.rangeTotal = {
-          count: data.count,
-          cycleNum: data.cycleNum,
-          average: data.cycleNum ? Math.ceil(data.count / data.cycleNum) : 0,
-          size: 'Total',
-          isHover: false,
-          color: '#2f72f8',
-        };
-        this.histogramSource.push(this.rangeTotal);
-        data.isSelected = true;
-        this.schedSwitchTbl!.clearAllSelection(data);
-        this.schedSwitchTbl!.setCurrentSelection(data);
-        this.queryHistogramData();
-      }
-      SpSegmentationChart.setChartData('SCHED-SWITCH', data.children);
+      this.cycleALeftInput!.value = '';
+      this.cycleARightInput!.value = '';
+      this.cycleBLeftInput!.value = '';
+      this.cycleBRightInput!.value = '';
+      this.histogramSource = [];
+      this.clickThreadChildren = data.children;
+      this.queryButton!.style.pointerEvents = 'none';
+      this.isCanvansDisplayFn(true);
+      this.isQueryButtonClick(false);
+      this.threadFlag = 'thread';
+      this.clickHighlightCondition = `${data.process} - ${data.pid} - ${data.thread} - ${data.tid}`;
+      this.rangeTotal = {
+        count: data.count,
+        cycleNum: data.cycleNum,
+        average: data.cycleNum ? Math.ceil(data.count / data.cycleNum) : 0,
+        size: 'Total',
+        isHover: false,
+        color: '#2f72f8',
+      };
+      this.histogramSource.push(this.rangeTotal);
+      data.isSelected = true;
+      this.schedSwitchTbl!.clearAllSelection(data);
+      this.schedSwitchTbl!.setCurrentSelection(data);
+      // SpSegmentationChart .setChartData('SCHED-SWITCH', data.children);
+      this.queryHistogramData();
     } else if (data.level === 'cycle') {
       if (this.threadFlag === 'thread') {
         this.isCanvansDisplayFn(true);
       }
-      if (this.clickThreadName === clickNodeName) {
+      if (this.clickHighlightCondition === `${data.process} - ${data.pid} - ${data.thread} - ${data.tid}`) {
         data.isSelected = true;
         this.schedSwitchTbl!.clearAllSelection(data);
         this.schedSwitchTbl!.setCurrentSelection(data);
-        SpSegmentationChart.tabHover('SCHED-SWITCH', true, data!.cycle);
+        // SpSegmentationChart .tabHover('SCHED-SWITCH', true, data!.cycle);
       }
     }
   }
@@ -278,9 +268,6 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.schedSwitchTbl!.value = [];
       this.isCanvansDisplayFn(false);
       this.schedSwitchTbl!.loading = true;
-      this.clickThreadName = '';
-      SpSegmentationChart.setChartData('SCHED-SWITCH', []);
-      SpSegmentationChart.tabHover('SCHED-SWITCH', false, -1);
       if (!this.isThreadStatesData) {
         this.initThreadStateData(this.selectionParam);
       }
@@ -392,10 +379,6 @@ export class TabPaneSchedSwitch extends BaseElement {
         }
       }
       this.translateIntoTreeData(resultData);
-    } else {
-      this.schedSwitchTbl!.recycleDataSource = [];
-      this.schedSwitchTbl!.loading = false;
-      this.clickTreeTitleFn(this.schedSwitchTbl!.recycleDataSource);
     }
   }
 
@@ -611,11 +594,11 @@ export class TabPaneSchedSwitch extends BaseElement {
           let tip = '';
           for (let obj of a) {
             tip = `${tip}
-              <div style="display:flex;flex-direction: row;align-items: center;">
-                  <div style="width: 10px;height: 5px;background-color: ${obj.obj.color};margin-right: 5px"></div>
-                  <div>${obj.xLabel}:${obj.obj.average}</div>
-              </div>
-            `;
+                                        <div style="display:flex;flex-direction: row;align-items: center;">
+                                            <div style="width: 10px;height: 5px;background-color: ${obj.obj.color};margin-right: 5px"></div>
+                                            <div>${obj.xLabel}:${obj.obj.average}</div>
+                                        </div>
+                                    `;
           }
           return tip;
         } else {
@@ -709,9 +692,9 @@ export class TabPaneSchedSwitch extends BaseElement {
             padding-right: 15px;
         }
         #right {
+            height: auto;
             padding-right: 10px;
             flex-grow: 1;
-            overflow: auto;
         }
         .range-input {
             width: 120px; 

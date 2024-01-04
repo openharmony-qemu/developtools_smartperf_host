@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSlices } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneSlices.js';
+import { TabPaneSlices } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneSlices';
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -27,7 +26,7 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

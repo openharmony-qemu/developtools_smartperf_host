@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { FuncStruct } from '../../../dist/trace/bean/FuncStruct.js';
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import { FuncStruct } from '../../../src/trace/bean/FuncStruct';
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

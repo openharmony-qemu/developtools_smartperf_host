@@ -13,15 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSdkSlice } from '../../../../../../dist/trace/component/trace/sheet/sdk/TabPaneSdkSlice.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
+import { TabPaneSdkSlice } from '../../../../../../src/trace/component/trace/sheet/sdk/TabPaneSdkSlice';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 
-// @ts-ignore
-import { TabUtil } from '../../../../../../dist/trace/component/trace/sheet/sdk/TabUtil.js';
+import { TabUtil } from '../../../../../../src/trace/component/trace/sheet/sdk/TabUtil';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -31,8 +27,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPaneSdkSlice Test', () => {
   let tabPaneSdkSlice = new TabPaneSdkSlice();

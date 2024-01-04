@@ -14,10 +14,17 @@
  */
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { BaseStruct, type Rect, ns2x, drawString, Render, isFrameContainPoint } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  type Rect,
+  ns2x,
+  drawString,
+  Render,
+  isFrameContainPoint,
+  drawLoadingFrame,
+} from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HiPerfChartFrame } from '../../bean/PerfStruct';
-import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class HiPerfCallChartRender extends Render {
   renderMainThread(req: any, row: TraceRow<HiPerfCallChartStruct>): void {
@@ -33,6 +40,7 @@ export class HiPerfCallChartRender extends Render {
       req.useCache || !TraceRow.range!.refresh,
       row.funcExpand
     );
+    drawLoadingFrame(req.context, filter, row);
     req.context.beginPath();
     let find = false;
     let offset = 5;
@@ -75,7 +83,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
   static selectStruct: HiPerfCallChartStruct | undefined;
   static hoverPerfCallCutStruct: HiPerfCallChartStruct | undefined;
   id: number = 0;
-  name: string | number = '';
+  name: string = '';
   startTime: number = 0;
   endTime: number = 0;
   eventCount: number = 0;
@@ -86,6 +94,7 @@ export class HiPerfCallChartStruct extends BaseStruct {
   isSelect: boolean = false;
   totalTime: number = 0;
   callchain_id: number = 0;
+  selfDur: number = 0;
 
   static setPerfFrame(hiPerfNode: any, startNS: number, endNS: number, totalNS: number, frame: Rect): void {
     let x1: number, x2: number;
@@ -114,9 +123,6 @@ export class HiPerfCallChartStruct extends BaseStruct {
 
   static draw(ctx: CanvasRenderingContext2D, data: HiPerfCallChartStruct): void {
     if (data.frame) {
-      if (typeof data.name === 'number'){
-        data.name = SpSystemTrace.DATA_DICT.get(data.name) || '';
-      }
       if (data.endTime - data.startTime === undefined || data.endTime - data.startTime === null) {
       } else {
         ctx.globalAlpha = 1;

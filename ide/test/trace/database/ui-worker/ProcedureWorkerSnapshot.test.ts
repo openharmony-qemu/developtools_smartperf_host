@@ -12,14 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
-import { snapshot, SnapshotRender, SnapshotStruct} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerSnapshot.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { snapshot, SnapshotRender, SnapshotStruct} from '../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
 

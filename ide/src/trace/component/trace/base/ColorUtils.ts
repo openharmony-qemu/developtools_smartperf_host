@@ -87,25 +87,30 @@ export class ColorUtils {
   ];
   public static MD_PALETTE: Array<string> = ColorUtils.FUNC_COLOR_B;
   public static FUNC_COLOR: Array<string> = ColorUtils.FUNC_COLOR_B;
-  public static getHilogColor(loglevel: string): string {
+  public static getHilogColor(loglevel: string | number): string {
     let logColor: string = '#00000';
     switch (loglevel) {
+      case 0:
       case 'D':
       case 'Debug':
         logColor = '#00BFBF';
         break;
+      case 1:
       case 'I':
       case 'Info':
         logColor = '#00BF00';
         break;
+      case 2:
       case 'W':
       case 'Warn':
         logColor = '#BFBF00';
         break;
+      case 3:
       case 'E':
       case 'Error':
         logColor = '#FF4040';
         break;
+      case 4:
       case 'F':
       case 'Fatal':
         logColor = '#BF00A4';
@@ -116,12 +121,14 @@ export class ColorUtils {
     return logColor;
   }
 
-  public static getHisysEventColor(level: string): string {
+  public static getHisysEventColor(level: string | number): string {
     let eventColor: string = '#00000';
     switch (level) {
+      case 0:
       case 'MINOR':
         eventColor = '#000000';
         break;
+      case 1:
       case 'CRITICAL':
         eventColor = '#FF4040';
         break;

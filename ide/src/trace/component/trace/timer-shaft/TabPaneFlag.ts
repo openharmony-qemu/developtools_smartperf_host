@@ -17,7 +17,6 @@ import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../base-ui/table/lit-table';
 import { MarkStruct } from '../../../bean/MarkStruct';
 import { SpSystemTrace } from '../../SpSystemTrace';
-import { ns2s } from '../TimerShaftElement';
 import { getTimeString } from '../sheet/TabPaneCurrentSelection';
 import { Flag } from './Flag';
 

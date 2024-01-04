@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { Top20FrequencyThread } from '../../../../dist/trace/component/schedulingAnalysis/Top20FrequencyThread.js';
-import '../../../../dist/trace/component/schedulingAnalysis/Top20FrequencyThread.js';
+import { Top20FrequencyThread } from '../../../../src/trace/component/schedulingAnalysis/Top20FrequencyThread';
+import '../../../../src/trace/component/schedulingAnalysis/Top20FrequencyThread';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

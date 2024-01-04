@@ -69,7 +69,7 @@ export class SpFpsChart {
         },
         fpsRow
       );
-      fpsRow.canvasRestore(context);
+      fpsRow.canvasRestore(context, this.trace);
     };
     this.trace.rowsEL?.appendChild(fpsRow);
     let durTime = new Date().getTime() - startTime;

@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
-import { IrqRender, IrqStruct } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerIrq.js';
+import { IrqRender, IrqStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerIrq';
 
 describe('ProcedureWorkerIrq Test', () => {
   it('ProcedureWorkerIrq01', () => {

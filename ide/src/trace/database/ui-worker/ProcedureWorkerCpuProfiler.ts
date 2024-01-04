@@ -13,7 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseStruct, type Rect, Render, drawString, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  type Rect,
+  Render,
+  drawString,
+  isFrameContainPoint,
+  ns2x,
+  drawLoadingFrame,
+} from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct';
@@ -27,10 +35,8 @@ export class JsCpuProfilerRender extends Render {
     },
     jsCpuProfilerRow: TraceRow<JsCpuProfilerStruct>
   ): void {
-    let list = jsCpuProfilerRow.dataList;
     let filter = jsCpuProfilerRow.dataListCache;
     jsCpuProfiler(
-      list,
       filter,
       TraceRow.range!.startNS,
       TraceRow.range!.endNS,
@@ -38,6 +44,7 @@ export class JsCpuProfilerRender extends Render {
       jsCpuProfilerRow.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, filter, jsCpuProfilerRow);
     req.context.beginPath();
     let jsCpuProfilerFind = false;
     for (let re of filter) {
@@ -73,7 +80,6 @@ export class JsCpuProfilerRender extends Render {
   }
 }
 export function jsCpuProfiler(
-  list: Array<any>,
   filter: Array<any>,
   startNS: number,
   endNS: number,
@@ -90,23 +96,6 @@ export function jsCpuProfiler(
       }
     }
     return;
-  }
-  filter.length = 0;
-  if (list) {
-    let groups = list
-      .filter((it) => (it.startTime ?? 0) + (it.totalTime ?? 0) >= startNS && (it.startTime ?? 0) <= endNS)
-      .map((it) => {
-        JsCpuProfilerStruct.setJsCpuProfilerFrame(it, startNS, endNS, totalNS, frame);
-        return it;
-      })
-      .reduce((pre, current) => {
-        (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
-        return pre;
-      }, {});
-    Reflect.ownKeys(groups).map((kv) => {
-      let arr = groups[kv].sort((a: JsCpuProfilerChartFrame, b: JsCpuProfilerChartFrame) => b.totalTime - a.totalTime);
-      filter.push(arr[0]);
-    });
   }
 }
 

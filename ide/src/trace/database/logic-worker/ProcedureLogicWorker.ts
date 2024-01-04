@@ -38,6 +38,15 @@ function match(req: any) {
     DataCache.getInstance().clearAll();
     return;
   }
+  if (req.type === 'cache-data-dict') {
+    DataCache.getInstance().dataDict = req.params.dataDict;
+    self.postMessage({
+      id: req.id,
+      action: req.type,
+      results: 'ok',
+    });
+    return;
+  }
   Reflect.ownKeys(logicWorker).filter((it) => {
     if (req.type && req.type.startsWith(it as string)) {
       logicWorker[it].handle(req);

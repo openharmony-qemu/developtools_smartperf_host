@@ -13,33 +13,24 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpSystemTrace } from '../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { TraceRow } from '../../../dist/trace/component/trace/base/TraceRow';
-// @ts-ignore
-import { procedurePool } from '../../../dist/trace/database/Procedure.js';
-// @ts-ignore
-import { LitTable } from '../../../dist/base-ui/table/lit-table.js';
-jest.mock('../../../dist/base-ui/table/lit-table.js', () => {
+import { SpSystemTrace } from '../../../src/trace/component/SpSystemTrace';
+import { TraceRow } from '../../../src/trace/component/trace/base/TraceRow';
+import { procedurePool } from '../../../src/trace/database/Procedure';
+jest.mock('../../../src/base-ui/table/lit-table', () => {
   return {
     recycleDataSource: () => {},
   };
 });
-// @ts-ignore
-import { HeapLoader } from '../../../dist/js-heap/logic/HeapLoader.js';
-jest.mock('../../../dist/js-heap/logic/HeapLoader.js', () => {
+jest.mock('../../../src/js-heap/logic/HeapLoader', () => {
   return {};
 });
-// @ts-ignore
-import { NodeType } from '../../../dist/js-heap/model/DatabaseStruct.js';
-jest.mock('../../../dist/js-heap/model/DatabaseStruct.js', () => {
+jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
 });
-jest.mock('../../../dist/trace/component/trace/base/TraceSheet.js', () => {
+jest.mock('../../../src/trace/component/trace/base/TraceSheet', () => {
   return {};
 });
-
+jest.mock('../../../src/trace/database/SqlLite');
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -160,34 +151,6 @@ describe('SpSystemTrace Test', () => {
       isOffScreen: true,
     });
     expect(spSystemTrace.searchCPU()).not.toBeUndefined();
-  });
-
-  it('SpSystemTraceTest20', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
-    // @ts-ignore
-    TraceRow.range = jest.fn(() => undefined);
-    TraceRow.range.startNS = jest.fn(() => 1);
-    spSystemTrace.onClickHandler = jest.fn(() => true);
-    expect(spSystemTrace.showPreCpuStruct(1, [{ length: 0 }])).toBe(0);
-  });
-
-  it('SpSystemTraceTest21', function () {
-    let spSystemTrace = new SpSystemTrace<any>({
-      canvasNumber: 1,
-      alpha: true,
-      contextId: '2d',
-      isOffScreen: true,
-    });
-    // @ts-ignore
-    TraceRow.range = jest.fn(() => undefined);
-    TraceRow.range.startNS = jest.fn(() => 1);
-    spSystemTrace.onClickHandler = jest.fn(() => true);
-    expect(spSystemTrace.showNextCpuStruct(1, [{ length: 0 }])).toBe(0);
   });
 
   it('SpSystemTraceTest22', function () {
@@ -350,10 +313,6 @@ describe('SpSystemTrace Test', () => {
       contextId: '2d',
       isOffScreen: true,
     });
-    let endParentRow = {
-      expansion: true,
-      childrenList: [],
-    };
     let selectJankStruct = {
       frame_type: 'frameTime',
       type: '',
@@ -374,7 +333,7 @@ describe('SpSystemTrace Test', () => {
       },
     };
 
-    expect(spSystemTrace.drawJankLine(endParentRow, selectJankStruct, data)).toBeUndefined();
+    expect(spSystemTrace.drawJankLine(null, selectJankStruct, data)).toBeUndefined();
   });
   it('SpSystemTraceTest36', function () {
     let spSystemTrace = new SpSystemTrace<any>({

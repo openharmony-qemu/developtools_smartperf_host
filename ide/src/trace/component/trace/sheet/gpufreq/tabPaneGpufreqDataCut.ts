@@ -36,8 +36,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     if (this.currentSelectionParam === threadStatesParam) {
       return;
     } else {
-      SpSegmentationChart.setChartData('GPU-FREQ', []);
-    };
+      this._threadId!.value = '';
+      this._threadFunc!.value = '';
+    }
     this.currentSelectionParam = threadStatesParam;
     this.threadStatesTbl!.recycleDataSource = [];
     this.threadStatesTbl!.loading = true;
@@ -57,18 +58,16 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           resultList[resultList.length - 1].count = String(
             Number(resultList[resultList.length - 1].dur) * Number(resultList[resultList.length - 1].value)
           );
-        };
+        }
 
         this.initData = resultList;
         this.threadStatesTbl!.loading = false;
       } else {
         this.threadStatesTbl!.recycleDataSource = [];
         this.threadStatesTbl!.loading = false;
-      };
+      }
     });
-    this._threadId!.style.border = '1px solid rgb(151, 151, 151)';
-    this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
-  };
+  }
 
   initElements(): void {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpufreq-percent');
@@ -78,45 +77,64 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     this._threadFunc = this.shadowRoot?.querySelector('#dataCutThreadFunc');
     this.threadIdValue = this._threadId!.value.trim();
     this.threadFuncName = this._threadFunc!.value.trim();
+    const originalThreadIdStyle: string = this._threadId!.style.border;
+    const originalThreadFuncStyle: string = this._threadId!.style.border;
+    const originalThreadIdPlaceholder: string = String(this._threadId!.getAttribute('placeholder'));
+    const originalThreadFuncPlaceholder: string = String(this._threadId!.getAttribute('placeholder'));
     //点击single
     this._single?.addEventListener('click', (e) => {
       this.threadIdValue = this._threadId!.value.trim();
       this.threadFuncName = this._threadFunc!.value.trim();
       this.threadStatesTbl!.loading = true;
-      SpSegmentationChart.tabHover('GPU-FREQ', false, -1);
-      this.validationFun(this.threadIdValue, this.threadFuncName, 'single');
+      this.validationFun(
+        this.threadIdValue,
+        this.threadFuncName,
+        originalThreadIdStyle,
+        originalThreadFuncStyle,
+        originalThreadIdPlaceholder,
+        originalThreadFuncPlaceholder,
+        'single'
+      );
     });
     //点击loop
     this._loop?.addEventListener('click', (e) => {
       this.threadIdValue = this._threadId!.value.trim();
       this.threadFuncName = this._threadFunc!.value.trim();
       this.threadStatesTbl!.loading = true;
-      SpSegmentationChart.tabHover('GPU-FREQ', false, -1);
-      this.validationFun(this.threadIdValue, this.threadFuncName, 'loop');
+      this.validationFun(
+        this.threadIdValue,
+        this.threadFuncName,
+        originalThreadIdStyle,
+        originalThreadFuncStyle,
+        originalThreadIdPlaceholder,
+        originalThreadFuncPlaceholder,
+        'loop'
+      );
     });
     this.threadStatesTbl?.addEventListener('row-click', (event: Event) => {
       // @ts-ignore
       if (event.detail.level === 2 && event.detail.thread.includes('cycle')) {
         // @ts-ignore
         SpSegmentationChart.tabHover('GPU-FREQ', true, event.detail.data.cycle);
-      };
+      }
     });
     this._threadId?.addEventListener('change', function () {
       if (this.value.trim() !== '') {
-        this.style.border = '1px solid rgb(151, 151, 151)';
-      };
+        this.style.border = originalThreadIdStyle;
+        this.setAttribute('placeholder', originalThreadIdPlaceholder);
+      }
     });
     this._threadFunc?.addEventListener('change', function () {
       if (this.value.trim() !== '') {
-        this.style.border = '1px solid rgb(151, 151, 151)';
-      };
+        this.style.border = originalThreadFuncStyle;
+        this.setAttribute('placeholder', originalThreadFuncPlaceholder);
+      }
     });
-  };
-
+  }
   connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.threadStatesTbl!);
-  };
+  }
 
   initHtml(): string {
     return `<style>
@@ -169,21 +187,30 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         </lit-table>`;
   }
 
-  private validationFun(threadIdValue: string, threadFuncName: string, fun: string
+  private validationFun(
+    threadIdValue: string,
+    threadFuncName: string,
+    originalThreadIdStyle: string,
+    originalThreadFuncStyle: string,
+    originalThreadIdPlaceholder: string,
+    originalThreadFuncPlaceholder: string,
+    fun: string
   ): void {
     if (threadIdValue === '') {
       this.threadStatesTbl!.loading = false;
       this._threadId!.style.border = '1px solid rgb(255,0,0)';
+      this._threadId!.setAttribute('placeholder', 'Please input thread id');
       this.threadStatesTbl!.recycleDataSource = [];
-      SpSegmentationChart.setChartData('GPU-FREQ', []);
     } else if (threadFuncName === '') {
       this.threadStatesTbl!.loading = false;
       this._threadFunc!.style.border = '1px solid rgb(255,0,0)';
+      this._threadFunc!.setAttribute('placeholder', 'Please input function name');
       this.threadStatesTbl!.recycleDataSource = [];
-      SpSegmentationChart.setChartData('GPU-FREQ', []);
     } else {
-      this._threadId!.style.border = '1px solid rgb(151, 151, 151)';
-      this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
+      this._threadId!.style.border = originalThreadIdStyle;
+      this._threadFunc!.style.border = originalThreadFuncStyle;
+      this._threadId!.setAttribute('placeholder', originalThreadIdPlaceholder);
+      this._threadFunc!.setAttribute('placeholder', originalThreadFuncPlaceholder);
       if (fun === 'single') {
         this.getGpufreqDataCut(
           threadIdValue,
@@ -196,7 +223,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           let _initData = JSON.parse(JSON.stringify(this.initData));
           this.handleDataCut(_initData, result);
         });
-      };
+      }
       if (fun === 'loop') {
         this.getGpufreqDataCut(
           threadIdValue,
@@ -209,9 +236,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           let _initData = JSON.parse(JSON.stringify(this.initData));
           this.handleDataCut(_initData, result);
         });
-      };
-    };
-  };
+      }
+    }
+  }
 
   private handleDataCut(initData: Array<GpuCountBean>, dataCut: Array<SearchGpuFuncBean>): void {
     if (initData.length > 0 && dataCut.length > 0) {
@@ -222,20 +249,20 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           } else {
             this.threadStatesTbl!.recycleDataSource = [];
             this.threadStatesTbl!.loading = false;
-          };
+          }
         }
       );
     } else {
       this.threadStatesTbl!.recycleDataSource = [];
       this.threadStatesTbl!.loading = false;
       SpSegmentationChart.setChartData('GPU-FREQ', []);
-    };
-  };
+    }
+  }
 
   async getGpufreqData(leftNs: number, rightNs: number, isTrue: boolean): Promise<Array<GpuCountBean>> {
     let result: Array<GpuCountBean> = await getGpufreqData(leftNs, rightNs, isTrue);
     return result;
-  };
+  }
 
   async getGpufreqDataCut(
     tIds: string,
@@ -247,7 +274,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
   ): Promise<Array<SearchGpuFuncBean>> {
     let result: Array<SearchGpuFuncBean> = await getGpufreqDataCut(tIds, funcName, leftNS, rightNS, single, loop);
     return result;
-  };
+  }
 
   private filterData(
     initData: Array<GpuCountBean>,
@@ -262,14 +289,14 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       let e: SearchGpuFuncBean = _dataCut[i];
       for (let j of initData) {
         _lastList.push(...this.segmentationData(j, e, i));
-      };
-    };
+      }
+    }
     let tree: TreeDataBean = this.createTree(_lastList);
     finalGpufreqData.push(tree);
     this.threadStatesTbl!.recycleDataSource = finalGpufreqData;
     this.threadStatesTbl!.loading = false;
-    this.clickTableHeader(finalGpufreqData);
-  };
+    this.theadClick(finalGpufreqData);
+  }
 
   private segmentationData(j: GpuCountBean, e: SearchGpuFuncBean, i: number): Array<GpuCountBean> {
     let lastList: Array<GpuCountBean> = [];
@@ -304,7 +331,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
             i
           )
         );
-      };
+      }
     } else if (e.startTime <= Number(j.startNS) && Number(j.endTime) <= e.endTime) {
       lastList.push(
         new GpuCountBean(
@@ -335,9 +362,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           i
         )
       );
-    };
+    }
     return lastList;
-  };
+  }
 
   private createTree(data: Array<GpuCountBean>): TreeDataBean {
     if (data.length > 0) {
@@ -383,8 +410,8 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       return root;
     } else {
       return new TreeDataBean();
-    };
-  };
+    }
+  }
 
   private updateValueMap(
     item: GpuCountBean,
@@ -415,7 +442,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       valueMap[parentIndex].dur = fdur.toFixed(3);
       fcount += icount;
       valueMap[parentIndex].count = fcount.toFixed(3);
-    };
+    }
     if (!valueMap[parentIndex].children[Number(freq)]) {
       valueMap[parentIndex].children[Number(freq)] = {
         thread: item.thread,
@@ -435,9 +462,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       valueMap[parentIndex].children[Number(freq)].dur = zdur.toFixed(3);
       zcount += icount;
       valueMap[parentIndex].children[Number(freq)].count = zcount.toFixed(3);
-    };
+    }
     valueMap[parentIndex].children[Number(freq)].children.push(item as unknown as TreeDataBean);
-  };
+  }
 
   private updateChildNode(node: TreeDataBean, parentNode: TreeDataBean): void {
     parentNode.children.push(node);
@@ -449,7 +476,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     parentNode.dur = pdur.toFixed(3);
     pcount += ncount;
     parentNode.count += pcount.toFixed(3);
-  };
+  }
 
   private updateRootNode(node: TreeDataBean, root: TreeDataBean): void {
     root.children.push(node);
@@ -461,7 +488,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     root.dur = rdur.toFixed(3);
     rcount += ncount;
     root.count = rcount.toFixed(3);
-  };
+  }
 
   private calculatePercent(node: TreeDataBean, root: TreeDataBean): void {
     node.percent = ((Number(node.count) / Number(root.count)) * 100).toFixed(2);
@@ -470,10 +497,10 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       node.children.forEach((childNode) => this.calculatePercent(childNode, root));
     } else {
       return;
-    };
-  };
+    }
+  }
 
-  private clickTableHeader(data: Array<TreeDataBean>): void {
+  private theadClick(data: Array<TreeDataBean>): void {
     let labels = this.threadStatesTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
 
     if (labels) {
@@ -488,8 +515,8 @@ export class TabPaneGpufreqDataCut extends BaseElement {
               item.status = true;
               if (item.children !== undefined && item.children.length > 0) {
                 this.threadStatesTbl!.setStatus(item.children, false);
-              };
-            };
+              }
+            }
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Freq') && i === 2) {
             for (let item of data) {
@@ -498,14 +525,14 @@ export class TabPaneGpufreqDataCut extends BaseElement {
                 e.status = true;
                 if (e.children !== undefined && e.children.length > 0) {
                   this.threadStatesTbl!.setStatus(e.children, false, 0);
-                };
-              };
-            };
+                }
+              }
+            }
 
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
-          };
+          }
         });
-      };
-    };
-  };
+      }
+    }
+  }
 }

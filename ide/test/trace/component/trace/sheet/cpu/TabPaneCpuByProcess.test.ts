@@ -13,12 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneCpuByProcess } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneCpuByProcess.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneCpuByProcess } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneCpuByProcess';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -28,9 +25,9 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 describe('TabPaneCpuByProcess Test', () => {

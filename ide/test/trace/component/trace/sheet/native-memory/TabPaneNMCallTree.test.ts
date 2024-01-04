@@ -12,18 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMCallTree.js';
-// @ts-ignore
-import { TabPaneNMCallTree } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMCallTree.js';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-// @ts-ignore
-import { FrameChart } from '../../../../../../dist/trace/component/chart/FrameChart.js';
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+import '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMCallTree';
+import { TabPaneNMCallTree } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMCallTree';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import { FrameChart } from '../../../../../../src/trace/component/chart/FrameChart';
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
 
 // @ts-ignore
 window.ResizeObserver =

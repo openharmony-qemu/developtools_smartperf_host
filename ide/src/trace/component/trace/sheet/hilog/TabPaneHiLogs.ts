@@ -23,6 +23,8 @@ import { ns2Timestamp, ns2x, Rect } from '../../../../database/ui-worker/Procedu
 import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
 import { ColorUtils } from '../../base/ColorUtils';
 import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
+import { queryLogAllData } from '../../../../database/SqlLite';
+import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 
 @element('tab-hi-log')
 export class TabPaneHiLogs extends BaseElement {
@@ -41,14 +43,22 @@ export class TabPaneHiLogs extends BaseElement {
   private filterData: LogStruct[] = [];
   private optionLevel: string[] = ['Debug', 'Info', 'Warn', 'Error', 'Fatal'];
   private allowTag: Set<string> = new Set();
+  private ONE_DAY_NS = 86400000000000;
+  private progressEL: LitProgressBar | null | undefined;
 
   set data(systemLogParam: SelectionParam) {
     if (this.hiLogsTbl) {
       this.hiLogsTbl.recycleDataSource = [];
     }
-    this.systemLogSource = systemLogParam.hiLogs;
+
+    let oneDayTime = (window as any).recordEndNS - this.ONE_DAY_NS;
     if (systemLogParam && systemLogParam.hiLogs.length > 0) {
-      this.tableTimeHandle?.();
+      this.progressEL!.loading = true;
+      queryLogAllData(oneDayTime, systemLogParam.leftNs, systemLogParam.rightNs).then((res) => {
+        systemLogParam.sysAlllogsData = res;
+        this.systemLogSource = res;
+        this.tableTimeHandle?.();
+      });
     }
   }
 
@@ -65,6 +75,7 @@ export class TabPaneHiLogs extends BaseElement {
     this.tableTitleTimeHandle = this.delayedRefresh(this.refreshLogsTitle);
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
     this.hiLogsTbl = this.shadowRoot!.querySelector<LitPageTable>('#tb-hilogs');
+    this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.hiLogsTbl!.getItemTextColor = (data) => {
       return ColorUtils.getHilogColor(data.level);
     };
@@ -160,6 +171,7 @@ export class TabPaneHiLogs extends BaseElement {
               <input type="text" id="search-filter" class="filter-input" placeholder="Search message...">
             </div>
           </div>
+       <lit-progress-bar class="progress"></lit-progress-bar>
         <lit-page-table id="tb-hilogs">
             <lit-table-column title="Timestamp" width="10%" data-index="startTs" key="startTs">
             </lit-table-column>
@@ -228,6 +240,7 @@ export class TabPaneHiLogs extends BaseElement {
     } else {
       this.logTableTitle!.textContent = 'Hilogs [0, 0] / 0';
     }
+    this.progressEL!.loading = false;
   }
 
   initTabSheetEl(traceSheet: TraceSheet): void {

@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpMetrics } from '../../../dist/trace/component/SpMetrics.js';
+import { SpMetrics } from '../../../src/trace/component/SpMetrics';
+jest.mock('../../../src/trace/database/SqlLite', () => {
+  return {};
+});
 
 describe('SpMetrics Test', () => {
   let spMetrics = new SpMetrics();
   it('SpMetricsTest01', function () {
-    expect(SpMetrics.initElements).toBeUndefined();
+    expect(spMetrics.initElements()).toBeUndefined();
   });
 });

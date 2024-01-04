@@ -13,21 +13,18 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-// @ts-ignore
 import {
   setMemFrame,
   VirtualMemoryStruct,
   VirtualMemoryRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerVirtualMemory.js';
-// @ts-ignore
-import { mem } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerVirtualMemory';
+import { mem } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 
 describe('ProcedureWorkerVirtualMemory Test', () => {
   it('ProcedureWorkerVirtualMemoryTest01', function () {

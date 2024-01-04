@@ -16,8 +16,9 @@
 #ifndef INCLUDE_TS_BASE_LOGGING_H_
 #define INCLUDE_TS_BASE_LOGGING_H_
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
+#include <cinttypes>
 
 // namespace SysTuning {
 // namespace base {

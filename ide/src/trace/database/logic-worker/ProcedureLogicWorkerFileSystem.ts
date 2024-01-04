@@ -77,7 +77,6 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
     if (data && data.type) {
       switch (data.type) {
         case 'fileSystem-init':
-          this.dataCache.dataDict = data.params;
           this.initCallchains();
           break;
         case 'fileSystem-queryCallchains':
@@ -652,20 +651,20 @@ class FileSystemCallTreeHandler {
 
   queryFileSamples(selectionParam: any, sql?: string): void {
     let sqlFilter = '';
+    if (selectionParam.fileSystemType !== undefined && selectionParam.fileSystemType.length > 0) {
+      sqlFilter += ' and s.type in (';
+      sqlFilter += selectionParam.fileSystemType.join(',');
+      sqlFilter += ') ';
+    }
     if (sql) {
-      sqlFilter = sql;
+      sqlFilter += sql;
     } else {
-      if (selectionParam.fileSystemType !== undefined && selectionParam.fileSystemType.length > 0) {
-        sqlFilter += ' and s.type in (';
-        sqlFilter += selectionParam.fileSystemType.join(',');
-        sqlFilter += ')';
-      }
       if (
         selectionParam.diskIOipids.length > 0 &&
         !selectionParam.diskIOLatency &&
         selectionParam.fileSystemType.length === 0
       ) {
-        sqlFilter += ` and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
+        sqlFilter += `and s.ipid in (${selectionParam.diskIOipids.join(',')})`;
       }
     }
     this.queryData(

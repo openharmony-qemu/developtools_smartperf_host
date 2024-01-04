@@ -28,7 +28,7 @@ import { querySingleFuncNameCycle, queryBinderByThreadId, queryLoopFuncNameCycle
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
 import '../../../../../base-ui/chart/column/LitChartColumn';
-import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
+// import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
 
 @element('tabpane-binder-datacut')
 export class TabPaneBinderDataCut extends BaseElement {
@@ -47,10 +47,8 @@ export class TabPaneBinderDataCut extends BaseElement {
   private funcNameCycleArr: FuncNameCycle[] | undefined;
   private cacheBinderArr: BinderGroup[] | undefined;
   private currentThreadId: string | undefined;
-  private cycleColumn: HTMLDivElement | null | undefined;
 
   set data(threadStatesParam: SelectionParam | any) {
-    this.parentElement!.style.overflow = 'hidden';
     let threadIdDIV = this.shadowRoot!.querySelector('.thread-id-input') as HTMLElement;
     threadIdDIV.style.border = '1px solid rgb(151,151,151)';
     let cycleNameDIV = this.shadowRoot!.querySelector('.cycle-name-input') as HTMLElement;
@@ -64,14 +62,6 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.currentSelectionParam = threadStatesParam;
     this.threadBindersTbl!.recycleDataSource = [];
     this.theadClick(this.threadBindersTbl!.recycleDataSource);
-    let flag = null;
-    if (!flag) {
-      flag = new ResizeObserver((entries) => {
-        // @ts-ignore
-        let lastHeight = this.threadBindersTbl.tableElement!.offsetHeight;
-        this.cycleColumn!.style.height = String(lastHeight) + 'px';
-      }).observe(this.parentElement!);
-    }
   }
 
   dispalyQueryArea(b: boolean): void {
@@ -108,7 +98,7 @@ export class TabPaneBinderDataCut extends BaseElement {
     let leftNS: number = this.currentSelectionParam.leftNs;
     let rightNS: number = this.currentSelectionParam.rightNs;
     if (threadIdValue !== '' && threadFuncName !== '') {
-      SpSegmentationChart.setBinderChartData("BINDER", []);
+      // SpSegmentationChart.setBinderChartData("BINDER", []);
       this.clickLoop(true);
       this.clickSingle(false);
       this.threadBindersTbl!.loading = true;
@@ -162,7 +152,7 @@ export class TabPaneBinderDataCut extends BaseElement {
     let leftNS: number = this.currentSelectionParam.leftNs;
     let rightNS: number = this.currentSelectionParam.rightNs;
     if (threadIdValue !== '' && threadFuncName !== '') {
-      SpSegmentationChart.setBinderChartData("BINDER", []);
+      // SpSegmentationChart.setBinderChartData("BINDER", []);
       this.clickLoop(false);
       this.clickSingle(true);
       threadId.style.border = '1px solid rgb(151,151,151)';
@@ -503,7 +493,6 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.cycleAEndRangeDIV = this.shadowRoot?.querySelector('#cycle-a-end-range');
     this.cycleBStartRangeDIV = this.shadowRoot?.querySelector('#cycle-b-start-range');
     this.cycleBEndRangeDIV = this.shadowRoot?.querySelector('#cycle-b-end-range');
-    this.cycleColumn = this.shadowRoot?.querySelector('#cycleColumn');
 
     this.threadStatesDIV = this.shadowRoot!.querySelector('#dataCut');
     this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
@@ -541,14 +530,14 @@ export class TabPaneBinderDataCut extends BaseElement {
         let threaId = currentData.tid;
         let rowThreadBinderArr = this.findThreadByThreadId(this.cacheBinderArr!, threaId);
         let binderWithCountList: Array<BinderDataStruct[]> = this.binderWithCountList(rowThreadBinderArr!);
-        SpSegmentationChart.setBinderChartData('BINDER', binderWithCountList);
+        // SpSegmentationChart.setBinderChartData('BINDER', binderWithCountList);
       }
 
       if (currentData.type === 'cycle' && currentData.tid + '' + currentData.pid === this.currentThreadId) {
         currentData.isSelected = true;
         this.threadBindersTbl!.clearAllSelection(currentData);
         this.threadBindersTbl!.setCurrentSelection(currentData);
-        SpSegmentationChart.tabHover('BINDER', true, currentData.idx);
+        // SpSegmentationChart.tabHover('BINDER', true, currentData.idx);
       }
     });
 
@@ -652,7 +641,6 @@ export class TabPaneBinderDataCut extends BaseElement {
         }
         button{
             width:40%;
-            min-width:90px;
             height:100%;
             border: solid 1px #666666;
             background-color: rgba(0,0,0,0);
@@ -707,7 +695,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             width:90px;
         }
         .cycle-range-input {
-            width: 24%;
+            width: 120px;
             height: 18px;
             padding: 1px 5px;
             border-radius: 12px;
@@ -730,7 +718,6 @@ export class TabPaneBinderDataCut extends BaseElement {
             align-items: center;
             justify-content: center;
             margin-top:12px;
-            margin-bottom:20px;
         }
         .labels{
             display: flex;
@@ -747,7 +734,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             margin-right: 5px;
         }
         .chart_area{
-            margin-top:20px;
+            margin-top:40px;
         }
         .chart_title{
             line-height: 40px;
@@ -787,22 +774,24 @@ export class TabPaneBinderDataCut extends BaseElement {
                     </lit-table>
                 </div>
                 <lit-slicer-track ></lit-slicer-track>
-                <div style="width:35%;min-width:350px;padding:16px;overflow:auto;" id="cycleColumn" class="query-cycle-area">
-                    <div id="cycle-a"  style="width:84%">
-                        <span>Cycle A: </span>
-                        <input id="cycle-a-start-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
-                        <span>~</span>
-                        <input id="cycle-a-end-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
-                    </div>
-                    <div style="margin-top: 10px; display:flex; flex-derection:row; justify-content:space-between;width:100%">
-                        <div id="cycle-b" style="width:84%">
-                            <span>Cycle B: </span>
-                            <input id="cycle-b-start-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                <div style="width:35%;padding: 16px;height:500px;overflow:auto;" class="query-cycle-area">
+                    <div >
+                        <div id="cycle-a">
+                            <span>Cycle A: </span>
+                            <input id="cycle-a-start-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
                             <span>~</span>
-                            <input id="cycle-b-end-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                            <input id="cycle-a-end-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
                         </div>
-                        <div>
-                            <button id="query-btn">Query</button>
+                        <div style="margin-top: 10px; display:flex; flex-derection:row; justify-content:space-between">
+                            <div id="cycle-b">
+                                <span>Cycle B: </span>
+                                <input id="cycle-b-start-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                                <span>~</span>
+                                <input id="cycle-b-end-range" type="text" class="cycle-range-input" placeholder="Duration(ms)" value='' onblur="this.value=this.value.replace(/[^0-9.]/g,'')" />
+                            </div>
+                            <div>
+                                <button id="query-btn">Query</button>
+                            </div>
                         </div>
                     </div>
                     <div class="chart_area">

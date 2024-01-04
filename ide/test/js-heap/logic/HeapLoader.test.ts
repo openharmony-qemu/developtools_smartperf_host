@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { HeapLoader } from '../../../dist/js-heap/logic/HeapLoader.js';
-//@ts-ignore
-import { ConstructorItem, FileType } from '../../../dist/js-heap/model/UiStruct.js';
+import { HeapLoader } from '../../../src/js-heap/logic/HeapLoader';
+import { ConstructorItem, FileType } from '../../../src/js-heap/model/UiStruct';
 
-jest.mock('../../../dist/js-heap/model/DatabaseStruct.js', () => ({
+jest.mock('../../../src/js-heap/model/DatabaseStruct', () => ({
     DetachedNessState: {
         UNKNOWN: 0,
         ATTACHED: 1,
@@ -57,7 +55,7 @@ jest.mock('../../../dist/js-heap/model/DatabaseStruct.js', () => ({
     }
 }))
 
-jest.mock('../../../dist/js-heap/utils/Utils.js', () => {
+jest.mock('../../../src/js-heap/utils/Utils', () => {
     return {
         HeapNodeToConstructorItem: (node: any) => {
             return {};

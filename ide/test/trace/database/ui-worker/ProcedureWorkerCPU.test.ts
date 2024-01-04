@@ -13,25 +13,22 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-// @ts-ignore
 import {
   cpu,
   CpuStruct,
   CpuRender,
   rtCpu,
   EmptyRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCPU.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-import { drawWakeUp } from '../../../../dist/trace/database/ui-worker/ProcedureWorkerCommon';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCPU';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { drawWakeUp } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 
-jest.mock('../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js', () => {
+jest.mock('../../../../src/trace/component/trace/timer-shaft/RangeRuler', () => {
   return {};
 });
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 

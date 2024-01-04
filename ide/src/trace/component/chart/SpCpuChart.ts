@@ -27,7 +27,9 @@ import { procedurePool } from '../../database/Procedure';
 import { CpuRender, CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { Utils } from '../trace/base/Utils';
-import { KeyPathStruct } from '../../bean/KeyPathStruct';
+import { cpuDataSender } from '../../database/data-trafic/CpuDataSender';
+import { TraficEnum } from '../../database/data-trafic/QueryEnum';
+import {cpuList} from "../../database/data-trafic/AllMemoryCache";
 
 export class SpCpuChart {
   private trace: SpSystemTrace;
@@ -63,8 +65,12 @@ export class SpCpuChart {
           traceRow.name = `Cpu ${cpuId}`;
           traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
           traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-          traceRow.supplier = () =>
-            queryCpuData(cpuId, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0).then((res) => {
+          traceRow.supplierFrame = () => {
+            return cpuDataSender(cpuId, traceRow).then((res) => {
+              const filterList = SpSystemTrace.keyPathList.filter((item) => {
+                return item.cpu === cpuId;
+              });
+              res.push(...filterList);
               res.forEach((it, i, arr) => {
                 let p = Utils.PROCESS_MAP.get(it.processId!);
                 let t = Utils.THREAD_MAP.get(it.tid!);
@@ -77,27 +83,19 @@ export class SpCpuChart {
                 it.processCmdLine = p;
                 it.name = t;
                 it.type = 'thread';
-                if (i !== arr.length - 1) {
-                  if (it.startTime! + it.dur! > arr[i + 1]!.startTime! || it.dur == -1) {
-                    it.dur = arr[i + 1]!.startTime! - it.startTime!;
-                    it.nofinish = true;
-                  }
-                } else {
-                  if (it.dur == -1) {
-                    it.dur = TraceRow.range!.endNS - it.startTime!;
-                    it.nofinish = true;
-                  }
-                }
               });
               return res;
             });
+          };
           traceRow.focusHandler = () => {
             this.trace?.displayTip(
               traceRow,
               CpuStruct.hoverCpuStruct,
-              `<span>P：${CpuStruct.hoverCpuStruct?.processName || 'Process'} [${CpuStruct.hoverCpuStruct
-                ?.processId}]</span><span>T：${CpuStruct.hoverCpuStruct?.name} [${CpuStruct.hoverCpuStruct
-                ?.tid}] [Prio:${CpuStruct.hoverCpuStruct?.priority || 0}]</span>`
+              `<span>P：${CpuStruct.hoverCpuStruct?.processName || 'Process'} [${
+                CpuStruct.hoverCpuStruct?.processId
+              }]</span><span>T：${CpuStruct.hoverCpuStruct?.name} [${CpuStruct.hoverCpuStruct?.tid}] [Prio:${
+                CpuStruct.hoverCpuStruct?.priority || 0
+              }]</span>`
             );
           };
           traceRow.findHoverStruct = () => {
@@ -113,14 +111,14 @@ export class SpCpuChart {
             traceRow.canvasSave(context);
             (renders['cpu-data'] as CpuRender).renderMainThread(
               {
-                cpuRenderContext: context,
+                ctx: context,
                 useCache: useCache,
                 type: `cpu-data-${i1}`,
                 translateY: traceRow.translateY,
               },
               traceRow
             );
-            traceRow.canvasRestore(context);
+            traceRow.canvasRestore(context, this.trace);
           };
           this.trace.rowsEL?.appendChild(traceRow);
         }
@@ -133,7 +131,7 @@ export class SpCpuChart {
   initProcessThreadStateData = async (progress: Function) => {
     let time = new Date().getTime();
     progress('StateProcessThread', 93);
-    procedurePool.submitWithName('logic1', 'spt-init', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'spt-init', {}, undefined, (res: any) => {});
     let durTime = new Date().getTime() - time;
     info('The time to load the first ProcessThreadState data is: ', durTime);
   };
@@ -142,7 +140,7 @@ export class SpCpuChart {
     let time = new Date().getTime();
     progress('CPU Idle', 94);
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       'scheduling-getCpuIdle0',
       {
         endTs: (window as any).recordEndNS,
@@ -165,7 +163,7 @@ export class SpCpuChart {
   initSchedulingPTData = async (progress: Function) => {
     let time = new Date().getTime();
     progress('CPU Idle', 94);
-    procedurePool.submitWithName('logic1', 'scheduling-getProcessAndThread', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-getProcessAndThread', {}, undefined, (res: any) => {});
     let durTime = new Date().getTime() - time;
     info('The time to load the first CPU Idle0 data is: ', durTime);
   };
@@ -173,7 +171,7 @@ export class SpCpuChart {
   initSchedulingFreqData = async (progress: Function) => {
     let time = new Date().getTime();
     progress('CPU Scheduling Freq', 94);
-    procedurePool.submitWithName('logic1', 'scheduling-initFreqData', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-initFreqData', {}, undefined, (res: any) => {});
     let durTime = new Date().getTime() - time;
     info('The time to load the first CPU Idle0 data is: ', durTime);
   };

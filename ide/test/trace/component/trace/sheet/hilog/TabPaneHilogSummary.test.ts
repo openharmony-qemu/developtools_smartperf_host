@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneHiLogSummary } from '../../../../../../dist/trace/component/trace/sheet/hilog/TabPaneHiLogSummary.js';
+import { TabPaneHiLogSummary } from '../../../../../../src/trace/component/trace/sheet/hilog/TabPaneHiLogSummary';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -30,7 +29,7 @@ describe('TabPaneHilogSummary Test', () => {
   let summaryData = {
     leftNs: 0,
     rightNs: 33892044011,
-    hiLogs: [{
+    sysAlllogsData: [{
       id: 2,
       pid: 1119,
       tid: 1172,

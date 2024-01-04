@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseStruct, Rect, isFrameContainPoint } from './ProcedureWorkerCommon';
+import { BaseStruct, Rect, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapSample } from '../../../js-heap/model/DatabaseStruct';
 
@@ -26,8 +26,11 @@ export class HeapTimelineRender {
     },
     row: TraceRow<HeapTimelineStruct>
   ) {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let list = row.dataListCache;
+    let filter: Array<any> = [];
+    if (list.length === 0) {
+      return;
+    }
     HeapTimelineStruct.samples = req.samples;
     HeapTimeline(
       list,
@@ -38,6 +41,7 @@ export class HeapTimelineRender {
       (TraceRow.range?.endNS ?? 0) - (TraceRow.range?.startNS! ?? 0),
       row.frame
     );
+    drawLoadingFrame(req.context, filter, row);
     let heapTimelineFind = false;
     for (let re of filter) {
       HeapTimelineStruct.draw(req.context, re);
@@ -77,7 +81,6 @@ export function HeapTimeline(
 ) {
   let maxSize = 0;
   let index = [];
-
   for (let i = 1; i < samples.length; i++) {
     if (samples[i].size > 0) {
       maxSize = Math.max(maxSize, samples[i].size);
@@ -120,7 +123,7 @@ export class HeapTimelineStruct extends BaseStruct {
   ) {
     node.frame = null;
     // us * 1000 = ns
-    if (node.timestamp * 1000 > startNS && node.timestamp * 1000 < endNS && node.timestamp == timestamp) {
+    if (node.timestamp * 1000 > startNS && node.timestamp * 1000 < endNS && node.timestamp === timestamp) {
       let rectangle: Rect = new Rect(
         Math.floor(((timestamp * 1000 - startNS) / totalNS) * frame.width),
         0,

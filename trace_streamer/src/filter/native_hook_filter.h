@@ -67,7 +67,7 @@ public:
     NativeHookFilter(TraceDataCache*, const TraceStreamerFilters*);
     NativeHookFilter(const NativeHookFilter&) = delete;
     NativeHookFilter& operator=(const NativeHookFilter&) = delete;
-    ~NativeHookFilter() = default;
+    ~NativeHookFilter() override = default;
 
 public:
     void MaybeParseNativeHookMainEvent(uint64_t timeStamp, std::unique_ptr<NativeHookMetaData> nativeHookMetaData);

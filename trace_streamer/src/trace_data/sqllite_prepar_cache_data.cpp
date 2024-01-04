@@ -17,34 +17,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-// 10000 item about 2 ~ 3M
-constexpr int32_t ONCE_MAX_ITEM = 10000;
-static inline int32_t Sqlite3ColumnInt(sqlite3_stmt* stmt, uint8_t curCol)
-{
-    if (sqlite3_column_type(stmt, curCol) == SQLITE_NULL) {
-        return -1;
-    }
-    return sqlite3_column_int(stmt, curCol);
-}
-
-static inline int64_t Sqlite3ColumnInt64(sqlite3_stmt* stmt, uint8_t curCol)
-{
-    if (sqlite3_column_type(stmt, curCol) == SQLITE_NULL) {
-        return -1;
-    }
-    return sqlite3_column_int64(stmt, curCol);
-}
-
-static inline std::string Sqlite3ColumnText(sqlite3_stmt* stmt, uint8_t curCol)
-{
-    const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, curCol));
-    if (textPtr != nullptr) {
-        return std::string(textPtr);
-    }
-    return "";
-}
-
-enum SphQueryType : uint32_t {
+enum class SphQueryType : uint32_t {
     CPU_DATA = 0,
     CPU_STATE_DATA = 1,
     CPU_FREQ_DATA = 2,
@@ -111,187 +84,227 @@ enum SphQueryType : uint32_t {
     NATIVE_MEMORY_CHART_CACHE_STATISTIC = 207,
 };
 
+static inline int32_t Sqlite3ColumnInt(sqlite3_stmt* stmt, uint8_t curCol)
+{
+    if (sqlite3_column_type(stmt, curCol) == SQLITE_NULL) {
+        return -1;
+    }
+    return sqlite3_column_int(stmt, curCol);
+}
+
+static inline int64_t Sqlite3ColumnInt64(sqlite3_stmt* stmt, uint8_t curCol)
+{
+    if (sqlite3_column_type(stmt, curCol) == SQLITE_NULL) {
+        return -1;
+    }
+    return sqlite3_column_int64(stmt, curCol);
+}
+
+static inline std::string Sqlite3ColumnText(sqlite3_stmt* stmt, uint8_t curCol)
+{
+    const char* textPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, curCol));
+    if (textPtr != nullptr) {
+        return std::string(textPtr);
+    }
+    return "";
+}
+
 SqllitePreparCacheData::SqllitePreparCacheData()
 {
     sphQueryFuncMap_ = {
-        {SphQueryType::CPU_DATA, std::bind(&SqllitePreparCacheData::FillAndSendCpuDataProto, this,
-                                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_STATE_DATA, std::bind(&SqllitePreparCacheData::FillAndSendCpuStateDataProto, this,
-                                                 std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_FREQ_DATA, std::bind(&SqllitePreparCacheData::FillAndSendCpuFreqDataProto, this,
-                                                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_FREQ_LIMIT_DATA,
+        {static_cast<uint32_t>(SphQueryType::CPU_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuDataProto, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_STATE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuStateDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_FREQ_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuFreqDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_FREQ_LIMIT_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendCpuFreqLimitDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CLOCK_DATA, std::bind(&SqllitePreparCacheData::FillAndSendClockDataDataProto, this,
-                                             std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::IRQ_DATA, std::bind(&SqllitePreparCacheData::FillAndSendIrqDataProto, this,
-                                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_DATA, std::bind(&SqllitePreparCacheData::FillAndSendProcessDataProto, this,
-                                               std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_MEM_DATA,
+        {static_cast<uint32_t>(SphQueryType::CLOCK_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendClockDataDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::IRQ_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendIrqDataProto, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::PROCESS_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::PROCESS_MEM_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessMemDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_STARTUP_DATA,
+        {static_cast<uint32_t>(SphQueryType::PROCESS_STARTUP_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessStartupDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_SO_INIT_DATA,
+        {static_cast<uint32_t>(SphQueryType::PROCESS_SO_INIT_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessSoInitDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HI_SYS_EVENT_DATA,
+        {static_cast<uint32_t>(SphQueryType::HI_SYS_EVENT_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendHiSysEventDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::LOG_DATA, std::bind(&SqllitePreparCacheData::FillAndSendLogDataProto, this,
-                                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VIRTUAL_MEM_DATA,
+        {static_cast<uint32_t>(SphQueryType::LOG_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendLogDataProto, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VIRTUAL_MEM_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendVirtualMemDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ENERGY_SYSTEM_DATA,
+        {static_cast<uint32_t>(SphQueryType::ENERGY_SYSTEM_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ENERGY_STATE_DATA,
+        {static_cast<uint32_t>(SphQueryType::ENERGY_STATE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ENERGY_ANOMAL_DATA,
+        {static_cast<uint32_t>(SphQueryType::ENERGY_ANOMAL_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FRAME_EXPECTED_DATA,
+        {static_cast<uint32_t>(SphQueryType::FRAME_EXPECTED_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendFrameDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FRAME_ACTUAL_DATA,
+        {static_cast<uint32_t>(SphQueryType::FRAME_ACTUAL_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendFrameDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FRAME_ANIMATION_DATA,
+        {static_cast<uint32_t>(SphQueryType::FRAME_ANIMATION_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendFrameAnimationDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FRAME_DYNAMIC_DATA,
+        {static_cast<uint32_t>(SphQueryType::FRAME_DYNAMIC_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendFrameDynamicDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FRAME_SPACING_DATA,
+        {static_cast<uint32_t>(SphQueryType::FRAME_SPACING_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendFrameSpacingDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_EXPECTED_DATA,
+        {static_cast<uint32_t>(SphQueryType::PROCESS_EXPECTED_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_ACTUAL_DATA,
+        {static_cast<uint32_t>(SphQueryType::PROCESS_ACTUAL_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::PROCESS_DELIVER_INPUT_EVENT_DATA,
+        {static_cast<uint32_t>(SphQueryType::PROCESS_DELIVER_INPUT_EVENT_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessInputEventDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::THREAD_DATA, std::bind(&SqllitePreparCacheData::FillAndSendProcessThreadDataProto, this,
-                                              std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FUNC_DATA, std::bind(&SqllitePreparCacheData::FillAndSendProcessFuncDataProto, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ENERGY_POWER_DATA,
+        {static_cast<uint32_t>(SphQueryType::THREAD_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessThreadDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FUNC_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessFuncDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ENERGY_POWER_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FILE_SYSTEM_DATA,
+        {static_cast<uint32_t>(SphQueryType::FILE_SYSTEM_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::DISK_IO_DATA, std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this,
-                                               std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::FILE_SYS_VM, std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this,
-                                              std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_SMAPS_DATA,
+        {static_cast<uint32_t>(SphQueryType::DISK_IO_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FILE_SYS_VM),
+         std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_SMAPS_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_DMA_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_DMA_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_MEMORY_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_MEMORY_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_RESOURCE_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_RESOURCE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_TATAL_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_TATAL_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_WINDOW_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_WINDOW_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_SHM_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_SHM_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::VM_TRACKER_GPU_PURGEABLE_DATA,
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_PURGEABLE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_MEMORY_USED_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_MEMORY_USED_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_ABILITY_USER_DATA,
+        {static_cast<uint32_t>(SphQueryType::CPU_ABILITY_USER_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_ABILITY_SYSTEM_DATA,
+        {static_cast<uint32_t>(SphQueryType::CPU_ABILITY_SYSTEM_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_ABILITY_MONITOR_DATA,
+        {static_cast<uint32_t>(SphQueryType::CPU_ABILITY_MONITOR_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_BYTES_READ_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_READ_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_BYTES_WRITTEN_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_WRITTEN_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_READ_OPS_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_READ_OPS_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_WRITTEN_OPS_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_WRITTEN_OPS_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_BYTES_IN_TRACE_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_IN_TRACE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_BUTES_OUT_TRACE_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BUTES_OUT_TRACE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_PACKET_IN_TRACE_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_PACKET_IN_TRACE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_PACKETS_OUT_TRACE_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_PACKETS_OUT_TRACE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_PURGEABLE_DAT,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_PURGEABLE_DAT),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_GPU_MEMMORY_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_GPU_MEMMORY_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::ABILITY_DMA_DATA,
+        {static_cast<uint32_t>(SphQueryType::ABILITY_DMA_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HEAP_TIME_LINE_DATA,
+        {static_cast<uint32_t>(SphQueryType::HEAP_TIME_LINE_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendHeapFilesDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HEAP_SNAPSHOT_DATA,
+        {static_cast<uint32_t>(SphQueryType::HEAP_SNAPSHOT_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendHeapFilesDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::CPU_PROFILER_DATA,
+        {static_cast<uint32_t>(SphQueryType::CPU_PROFILER_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendCpuProfilerDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HIPERF_CPU_DATA, std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this,
-                                                  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HIPERF_PROCESS_DATA,
+        {static_cast<uint32_t>(SphQueryType::HIPERF_CPU_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HIPERF_THREAD_DATA,
+        {static_cast<uint32_t>(SphQueryType::HIPERF_PROCESS_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HIPERF_CALL_CHART,
+        {static_cast<uint32_t>(SphQueryType::HIPERF_THREAD_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_THREAD_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_CALL_CHART),
          std::bind(&SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::HIPERF_CALL_STACK,
+        {static_cast<uint32_t>(SphQueryType::HIPERF_CALL_STACK),
          std::bind(&SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::NATIVE_MEMORY_CHART_CACHE_NORMAL,
+        {static_cast<uint32_t>(SphQueryType::NATIVE_MEMORY_CHART_CACHE_NORMAL),
          std::bind(&SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
-        {SphQueryType::NATIVE_MEMORY_CHART_CACHE_STATISTIC,
+        {static_cast<uint32_t>(SphQueryType::NATIVE_MEMORY_CHART_CACHE_STATISTIC),
          std::bind(&SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
     };
@@ -301,23 +314,18 @@ template <typename T>
 static bool SendDBProto(uint32_t type,
                         const int32_t isFinish,
                         T& sphData,
-                        SqllitePreparCacheData::ResultCallBack resultCallBack)
+                        SqllitePreparCacheData::TLVResultCallBack TLVResultCallBack)
 {
-    std::string value;
-    std::string bufferData(2 * sizeof(uint32_t), 0);
-    sphData.SerializeToString(&value);
-    uint32_t len = value.size();
-    std::copy(reinterpret_cast<uint8_t*>(&type), reinterpret_cast<uint8_t*>(&type) + sizeof(uint32_t),
-              bufferData.begin());
-    std::copy(reinterpret_cast<uint8_t*>(&len), reinterpret_cast<uint8_t*>(&len) + sizeof(uint32_t),
-              bufferData.begin() + sizeof(uint32_t));
-    bufferData += value;
-    resultCallBack(bufferData, isFinish);
+    std::string bufferData;
+    sphData.SerializeToString(&bufferData);
+    TLVResultCallBack(bufferData.data(), bufferData.size(), type, isFinish);
     sphData.Clear();
     return true;
 }
 
-void SqllitePreparCacheData::FillAndSendCpuDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack)
+void SqllitePreparCacheData::FillAndSendCpuDataProto(sqlite3_stmt* stmt,
+                                                     uint32_t type,
+                                                     TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphCpuData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -329,17 +337,14 @@ void SqllitePreparCacheData::FillAndSendCpuDataProto(sqlite3_stmt* stmt, uint32_
         cpuData->set_id(Sqlite3ColumnInt(stmt, curCol++));
         cpuData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphCpuData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphCpuData, resultCallBack);
-        }
     }
 
-    SendDBProto(type, SEND_FINISH, batchSphCpuData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendCpuFreqDataProto(sqlite3_stmt* stmt,
                                                          uint32_t type,
-                                                         ResultCallBack resultCallBack)
+                                                         TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphCpuFreqData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -349,16 +354,13 @@ void SqllitePreparCacheData::FillAndSendCpuFreqDataProto(sqlite3_stmt* stmt,
         cpuFreqFata->set_value(Sqlite3ColumnInt(stmt, curCol++));
         cpuFreqFata->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuFreqFata->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphCpuFreqData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphCpuFreqData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphCpuFreqData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuFreqData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessDataProto(sqlite3_stmt* stmt,
                                                          uint32_t type,
-                                                         ResultCallBack resultCallBack)
+                                                         TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphProcessData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -367,16 +369,13 @@ void SqllitePreparCacheData::FillAndSendProcessDataProto(sqlite3_stmt* stmt,
         processData->set_cpu(Sqlite3ColumnInt(stmt, curCol++));
         processData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         processData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphProcessData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphProcessData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendCpuFreqLimitDataProto(sqlite3_stmt* stmt,
                                                               uint32_t type,
-                                                              ResultCallBack resultCallBack)
+                                                              TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphCpuFreqLimitData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -387,16 +386,13 @@ void SqllitePreparCacheData::FillAndSendCpuFreqLimitDataProto(sqlite3_stmt* stmt
         cpuFreqLimitData->set_value(Sqlite3ColumnInt(stmt, curCol++));
         cpuFreqLimitData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuFreqLimitData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphCpuFreqLimitData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphCpuFreqLimitData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphCpuFreqLimitData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuFreqLimitData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendCpuStateDataProto(sqlite3_stmt* stmt,
                                                           uint32_t type,
-                                                          ResultCallBack resultCallBack)
+                                                          TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphCpuStateData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -405,16 +401,13 @@ void SqllitePreparCacheData::FillAndSendCpuStateDataProto(sqlite3_stmt* stmt,
         cpuStateData->set_value(Sqlite3ColumnInt(stmt, curCol++));
         cpuStateData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         cpuStateData->set_start_ts(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphCpuStateData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphCpuStateData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphCpuStateData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphCpuStateData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessMemDataProto(sqlite3_stmt* stmt,
                                                             uint32_t type,
-                                                            ResultCallBack resultCallBack)
+                                                            TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphProcessMemData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -424,16 +417,13 @@ void SqllitePreparCacheData::FillAndSendProcessMemDataProto(sqlite3_stmt* stmt,
         processMemData->set_value(Sqlite3ColumnInt(stmt, curCol++));
         processMemData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
         processMemData->set_ts(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphProcessMemData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphProcessMemData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessMemData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessMemData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessSoInitDataProto(sqlite3_stmt* stmt,
                                                                uint32_t type,
-                                                               ResultCallBack resultCallBack)
+                                                               TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphProcessSoInitData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -446,16 +436,13 @@ void SqllitePreparCacheData::FillAndSendProcessSoInitDataProto(sqlite3_stmt* stm
         processSoInitData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
         processSoInitData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         processSoInitData->set_id(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchSphProcessSoInitData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphProcessSoInitData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessSoInitData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessSoInitData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessStartupDataProto(sqlite3_stmt* stmt,
                                                                 uint32_t type,
-                                                                ResultCallBack resultCallBack)
+                                                                TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphProcessStartupData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -467,16 +454,13 @@ void SqllitePreparCacheData::FillAndSendProcessStartupDataProto(sqlite3_stmt* st
         processStartupDataData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
         processStartupDataData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         processStartupDataData->set_start_name(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchSphProcessStartupData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphProcessStartupData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphProcessStartupData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphProcessStartupData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendClockDataDataProto(sqlite3_stmt* stmt,
                                                            uint32_t type,
-                                                           ResultCallBack resultCallBack)
+                                                           TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphClockDataData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -485,14 +469,13 @@ void SqllitePreparCacheData::FillAndSendClockDataDataProto(sqlite3_stmt* stmt,
         clockDataData->set_filter_id(Sqlite3ColumnInt(stmt, curCol++));
         clockDataData->set_value(Sqlite3ColumnInt(stmt, curCol++));
         clockDataData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchSphClockDataData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphClockDataData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphClockDataData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphClockDataData, TLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendIrqDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack)
+void SqllitePreparCacheData::FillAndSendIrqDataProto(sqlite3_stmt* stmt,
+                                                     uint32_t type,
+                                                     TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchSphIrqData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -503,16 +486,13 @@ void SqllitePreparCacheData::FillAndSendIrqDataProto(sqlite3_stmt* stmt, uint32_
         IrqData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
         IrqData->set_arg_set_id(Sqlite3ColumnInt(stmt, curCol++));
         IrqData->set_id(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchSphIrqData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchSphIrqData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchSphIrqData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchSphIrqData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendHiSysEventDataProto(sqlite3_stmt* stmt,
                                                             uint32_t type,
-                                                            ResultCallBack resultCallBack)
+                                                            TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchHiSysEventData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -526,14 +506,13 @@ void SqllitePreparCacheData::FillAndSendHiSysEventDataProto(sqlite3_stmt* stmt,
         HiSysEventData->set_seq(Sqlite3ColumnText(stmt, curCol++));
         HiSysEventData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
         HiSysEventData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchHiSysEventData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchHiSysEventData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchHiSysEventData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiSysEventData, TLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendLogDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack)
+void SqllitePreparCacheData::FillAndSendLogDataProto(sqlite3_stmt* stmt,
+                                                     uint32_t type,
+                                                     TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchLogData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -545,16 +524,13 @@ void SqllitePreparCacheData::FillAndSendLogDataProto(sqlite3_stmt* stmt, uint32_
         logData->set_start_ts(Sqlite3ColumnInt64(stmt, curCol++));
         logData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
         logData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchLogData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchLogData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchLogData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchLogData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendVirtualMemDataProto(sqlite3_stmt* stmt,
                                                             uint32_t type,
-                                                            ResultCallBack resultCallBack)
+                                                            TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchVirtualMemData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -566,14 +542,13 @@ void SqllitePreparCacheData::FillAndSendVirtualMemDataProto(sqlite3_stmt* stmt,
         virtualMemData->set_duration(Sqlite3ColumnInt(stmt, curCol++));
         virtualMemData->set_max_value(Sqlite3ColumnInt64(stmt, curCol++));
         virtualMemData->set_delta(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchVirtualMemData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchVirtualMemData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchVirtualMemData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchVirtualMemData, TLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendFrameDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack)
+void SqllitePreparCacheData::FillAndSendFrameDataProto(sqlite3_stmt* stmt,
+                                                       uint32_t type,
+                                                       TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchFrameData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -596,16 +571,13 @@ void SqllitePreparCacheData::FillAndSendFrameDataProto(sqlite3_stmt* stmt, uint3
         frameData->set_rs_ipid(Sqlite3ColumnInt(stmt, curCol++));
         frameData->set_rs_pid(Sqlite3ColumnInt(stmt, curCol++));
         frameData->set_rs_name(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchFrameData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchFrameData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchFrameData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendFrameAnimationDataProto(sqlite3_stmt* stmt,
                                                                 uint32_t type,
-                                                                ResultCallBack resultCallBack)
+                                                                TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchFrameAnimationData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -616,16 +588,13 @@ void SqllitePreparCacheData::FillAndSendFrameAnimationDataProto(sqlite3_stmt* st
         frameAnimationData->set_start_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameAnimationData->set_end_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameAnimationData->set_name(Sqlite3ColumnText(stmt, curCol++));
-        if (batchFrameAnimationData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchFrameAnimationData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchFrameAnimationData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameAnimationData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendFrameDynamicDataProto(sqlite3_stmt* stmt,
                                                               uint32_t type,
-                                                              ResultCallBack resultCallBack)
+                                                              TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchFrameDynamicData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -639,16 +608,13 @@ void SqllitePreparCacheData::FillAndSendFrameDynamicDataProto(sqlite3_stmt* stmt
         frameDynamicData->set_alpha(Sqlite3ColumnText(stmt, curCol++));
         frameDynamicData->set_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameDynamicData->set_app_name(Sqlite3ColumnText(stmt, curCol++));
-        if (batchFrameDynamicData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchFrameDynamicData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchFrameDynamicData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameDynamicData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendFrameSpacingDataProto(sqlite3_stmt* stmt,
                                                               uint32_t type,
-                                                              ResultCallBack resultCallBack)
+                                                              TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchFrameSpacingData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -661,16 +627,13 @@ void SqllitePreparCacheData::FillAndSendFrameSpacingDataProto(sqlite3_stmt* stmt
         frameSpacingData->set_current_frame_height(Sqlite3ColumnText(stmt, curCol++));
         frameSpacingData->set_current_ts(Sqlite3ColumnInt64(stmt, curCol++));
         frameSpacingData->set_name_id(Sqlite3ColumnText(stmt, curCol++));
-        if (batchFrameSpacingData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchFrameSpacingData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchFrameSpacingData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchFrameSpacingData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendTrackerDataProto(sqlite3_stmt* stmt,
                                                          uint32_t type,
-                                                         ResultCallBack resultCallBack)
+                                                         TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchTrackerData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -678,16 +641,13 @@ void SqllitePreparCacheData::FillAndSendTrackerDataProto(sqlite3_stmt* stmt,
         uint8_t curCol = 0;
         trackerData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
         trackerData->set_value(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchTrackerData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchTrackerData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchTrackerData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchTrackerData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendAbilityDataProto(sqlite3_stmt* stmt,
                                                          uint32_t type,
-                                                         ResultCallBack resultCallBack)
+                                                         TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchAbilityData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -696,16 +656,13 @@ void SqllitePreparCacheData::FillAndSendAbilityDataProto(sqlite3_stmt* stmt,
         abilityData->set_value(Sqlite3ColumnInt64(stmt, curCol++));
         abilityData->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
         abilityData->set_dur(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchAbilityData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchAbilityData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchAbilityData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchAbilityData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendEnergyDataProto(sqlite3_stmt* stmt,
                                                         uint32_t type,
-                                                        ResultCallBack resultCallBack)
+                                                        TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchEnergyData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -716,14 +673,13 @@ void SqllitePreparCacheData::FillAndSendEnergyDataProto(sqlite3_stmt* stmt,
         energyData->set_event_name(Sqlite3ColumnText(stmt, curCol++));
         energyData->set_app_key(Sqlite3ColumnText(stmt, curCol++));
         energyData->set_event_value(Sqlite3ColumnText(stmt, curCol++));
-        if (batchEnergyData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchEnergyData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchEnergyData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchEnergyData, TLVResultCallBack);
 }
 
-void SqllitePreparCacheData::FillAndSendEbpfDataProto(sqlite3_stmt* stmt, uint32_t type, ResultCallBack resultCallBack)
+void SqllitePreparCacheData::FillAndSendEbpfDataProto(sqlite3_stmt* stmt,
+                                                      uint32_t type,
+                                                      TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchEbpfData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -733,16 +689,13 @@ void SqllitePreparCacheData::FillAndSendEbpfDataProto(sqlite3_stmt* stmt, uint32
         ebpfData->set_end_ns(Sqlite3ColumnInt64(stmt, curCol++));
         ebpfData->set_dur(Sqlite3ColumnInt64(stmt, curCol++));
         ebpfData->set_size(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchEbpfData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchEbpfData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchEbpfData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchEbpfData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessThreadDataProto(sqlite3_stmt* stmt,
                                                                uint32_t type,
-                                                               ResultCallBack resultCallBack)
+                                                               TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchProcessThreadData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -756,16 +709,13 @@ void SqllitePreparCacheData::FillAndSendProcessThreadDataProto(sqlite3_stmt* stm
         processThreadData->set_pid(Sqlite3ColumnInt64(stmt, curCol++));
         processThreadData->set_start_time(Sqlite3ColumnInt64(stmt, curCol++));
         processThreadData->set_arg_set_id(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchProcessThreadData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchProcessThreadData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchProcessThreadData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessThreadData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessFuncDataProto(sqlite3_stmt* stmt,
                                                              uint32_t type,
-                                                             ResultCallBack resultCallBack)
+                                                             TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchProcessFuncData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -778,16 +728,13 @@ void SqllitePreparCacheData::FillAndSendProcessFuncDataProto(sqlite3_stmt* stmt,
         processFuncData->set_id(Sqlite3ColumnInt64(stmt, curCol++));
         processFuncData->set_itid(Sqlite3ColumnInt(stmt, curCol++));
         processFuncData->set_ipid(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchProcessFuncData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchProcessFuncData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchProcessFuncData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessFuncData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendHiperfDataProto(sqlite3_stmt* stmt,
                                                         uint32_t type,
-                                                        ResultCallBack resultCallBack)
+                                                        TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchHiperfData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -798,16 +745,13 @@ void SqllitePreparCacheData::FillAndSendHiperfDataProto(sqlite3_stmt* stmt,
         hiperfData->set_sample_count(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfData->set_event_type_id(Sqlite3ColumnInt(stmt, curCol++));
         hiperfData->set_callchain_id(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchHiperfData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchHiperfData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchHiperfData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiperfData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto(sqlite3_stmt* stmt,
                                                                  uint32_t type,
-                                                                 ResultCallBack resultCallBack)
+                                                                 TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchHiperfCallChartData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -819,16 +763,13 @@ void SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto(sqlite3_stmt* s
         hiperfCallChartData->set_thread_id(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfCallChartData->set_cpu_id(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfCallChartData->set_event_type_id(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchHiperfCallChartData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchHiperfCallChartData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchHiperfCallChartData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiperfCallChartData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto(sqlite3_stmt* stmt,
                                                                  uint32_t type,
-                                                                 ResultCallBack resultCallBack)
+                                                                 TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchHiperfCallStackData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -839,16 +780,13 @@ void SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto(sqlite3_stmt* s
         hiperfCallStackData->set_depth(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfCallStackData->set_symbol_id(Sqlite3ColumnInt64(stmt, curCol++));
         hiperfCallStackData->set_name(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchHiperfCallStackData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchHiperfCallStackData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchHiperfCallStackData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHiperfCallStackData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto(sqlite3_stmt* stmt,
                                                                     uint32_t type,
-                                                                    ResultCallBack resultCallBack)
+                                                                    TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchProcessJanksFramesData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -860,16 +798,14 @@ void SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto(sqlite3_stmt
         processJanksFramesData->set_id(Sqlite3ColumnInt(stmt, curCol++));
         processJanksFramesData->set_name(Sqlite3ColumnInt(stmt, curCol++));
         processJanksFramesData->set_type(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchProcessJanksFramesData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchProcessJanksFramesData, resultCallBack);
-        }
+        processJanksFramesData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessJanksFramesData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessJanksFramesData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto(sqlite3_stmt* stmt,
                                                                     uint32_t type,
-                                                                    ResultCallBack resultCallBack)
+                                                                    TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchProcessJanksActualData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -883,16 +819,14 @@ void SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto(sqlite3_stmt
         processJanksActualData->set_type(Sqlite3ColumnInt(stmt, curCol++));
         processJanksActualData->set_jank_tag(Sqlite3ColumnInt(stmt, curCol++));
         processJanksActualData->set_dst_slice(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchProcessJanksActualData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchProcessJanksActualData, resultCallBack);
-        }
+        processJanksActualData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
     }
-    SendDBProto(type, SEND_FINISH, batchProcessJanksActualData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessJanksActualData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendProcessInputEventDataProto(sqlite3_stmt* stmt,
                                                                    uint32_t type,
-                                                                   ResultCallBack resultCallBack)
+                                                                   TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchProcessInputEventData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -909,16 +843,13 @@ void SqllitePreparCacheData::FillAndSendProcessInputEventDataProto(sqlite3_stmt*
         processInputEventData->set_id(Sqlite3ColumnInt(stmt, curCol++));
         processInputEventData->set_cookie(Sqlite3ColumnInt(stmt, curCol++));
         processInputEventData->set_depth(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchProcessInputEventData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchProcessInputEventData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchProcessInputEventData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchProcessInputEventData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendHeapFilesDataProto(sqlite3_stmt* stmt,
                                                            uint32_t type,
-                                                           ResultCallBack resultCallBack)
+                                                           TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchHeapFilesData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -930,16 +861,13 @@ void SqllitePreparCacheData::FillAndSendHeapFilesDataProto(sqlite3_stmt* stmt,
         heapFilesData->set_end_ts(Sqlite3ColumnInt64(stmt, curCol++));
         heapFilesData->set_size(Sqlite3ColumnInt64(stmt, curCol++));
         heapFilesData->set_pid(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchHeapFilesData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchHeapFilesData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchHeapFilesData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchHeapFilesData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendCpuProfilerDataProto(sqlite3_stmt* stmt,
                                                              uint32_t type,
-                                                             ResultCallBack resultCallBack)
+                                                             TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchCpuProfilerData;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -957,16 +885,13 @@ void SqllitePreparCacheData::FillAndSendCpuProfilerDataProto(sqlite3_stmt* stmt,
         cpuProfilerData->set_hit_count(Sqlite3ColumnInt64(stmt, curCol++));
         cpuProfilerData->set_children_string(Sqlite3ColumnInt64(stmt, curCol++));
         cpuProfilerData->set_parent_id(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchCpuProfilerData.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchCpuProfilerData, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchCpuProfilerData, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchCpuProfilerData, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto(sqlite3_stmt* stmt,
                                                                 uint32_t type,
-                                                                ResultCallBack resultCallBack)
+                                                                TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchNativeMemoryNormal;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -976,16 +901,13 @@ void SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto(sqlite3_stmt* st
         nativeMemoryNormal->set_heap_size(Sqlite3ColumnInt64(stmt, curCol++));
         nativeMemoryNormal->set_event_type(Sqlite3ColumnInt64(stmt, curCol++));
         nativeMemoryNormal->set_ipid(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchNativeMemoryNormal.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchNativeMemoryNormal, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchNativeMemoryNormal, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchNativeMemoryNormal, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto(sqlite3_stmt* stmt,
                                                                    uint32_t type,
-                                                                   ResultCallBack resultCallBack)
+                                                                   TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchNativeMemoryStatistic;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -999,16 +921,13 @@ void SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto(sqlite3_stmt*
         nativeMemoryStatistic->set_release_size(Sqlite3ColumnInt64(stmt, curCol++));
         nativeMemoryStatistic->set_ipid(Sqlite3ColumnInt64(stmt, curCol++));
         nativeMemoryStatistic->set_type(Sqlite3ColumnInt64(stmt, curCol++));
-        if (batchNativeMemoryStatistic.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchNativeMemoryStatistic, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchNativeMemoryStatistic, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchNativeMemoryStatistic, TLVResultCallBack);
 }
 
 void SqllitePreparCacheData::FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt,
                                                             uint32_t type,
-                                                            ResultCallBack resultCallBack)
+                                                            TLVResultCallBack TLVResultCallBack)
 {
     BatchSphData batchCpuAbility;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -1017,11 +936,8 @@ void SqllitePreparCacheData::FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt,
         cpuAbility->set_value(Sqlite3ColumnText(stmt, curCol++));
         cpuAbility->set_start_ns(Sqlite3ColumnInt64(stmt, curCol++));
         cpuAbility->set_dur(Sqlite3ColumnInt(stmt, curCol++));
-        if (batchCpuAbility.values().size() >= ONCE_MAX_ITEM) {
-            SendDBProto(type, SEND_CONTINUE, batchCpuAbility, resultCallBack);
-        }
     }
-    SendDBProto(type, SEND_FINISH, batchCpuAbility, resultCallBack);
+    SendDBProto(type, SEND_FINISH, batchCpuAbility, TLVResultCallBack);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

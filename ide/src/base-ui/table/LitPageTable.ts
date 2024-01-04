@@ -1166,6 +1166,7 @@ export class LitPageTable extends BaseElement {
         resetNodeHidden(false, rowData);
       }
       this.reMeauseHeight();
+      e.stopPropagation();
     });
     return btn;
   }

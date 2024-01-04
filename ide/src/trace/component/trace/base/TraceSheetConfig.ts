@@ -148,7 +148,7 @@ export let tabConfig: any = {
   'box-cpu-freq-limit': {
     title: 'Cpu Frequency Limits',
     type: TabPaneCpuFreqLimits,
-    require: (param: SelectionParam) => param.cpuFreqLimitDatas.length > 0,
+    require: (param: SelectionParam) => param.cpuFreqLimit.length > 0,
   },
   'box-cpu-thread': {
     title: 'CPU by thread',
@@ -213,7 +213,7 @@ export let tabConfig: any = {
   'box-irq-counters': {
     title: 'Irq Counters',
     type: TabPaneIrqCounter,
-    require: (param: SelectionParam) => param.irqMapData.size > 0,
+    require: (param: SelectionParam) => param.irqCallIds.length > 0 || param.softIrqCallIds.length > 0,
   },
   'box-fps': {
     title: 'FPS',
@@ -675,7 +675,7 @@ export let tabConfig: any = {
     type: TabPaneGpufreq,
     require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,
   },
-  'tabpane-gpufreqDataCut': {
+  'tabpane-freqDataCut': {
     title: 'Gpufreq DataCut',
     type: TabPaneGpufreqDataCut,
     require: (param: SelectionParam) => param.clockMapData.size > 0 && param.clockMapData.size < 2,

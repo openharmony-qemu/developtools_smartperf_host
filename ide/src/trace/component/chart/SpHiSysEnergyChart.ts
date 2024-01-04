@@ -20,12 +20,9 @@ import {
   queryEnergyEventExits,
   queryMaxStateValue,
   queryPowerData,
-  queryStateData,
   queryStateInitValue,
   queryEnergyAppName,
-  querySystemLocationData,
-  querySystemLockData,
-  querySystemSchedulerData,
+  querySystemAllData,
 } from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
@@ -37,12 +34,23 @@ import { EnergyStateStruct, EnergyStateRender } from '../../database/ui-worker/P
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { TreeItemData } from '../../../base-ui/tree/LitTree';
+import {
+  energySysEventSender,
+  hiSysEnergyAnomalyDataSender, hiSysEnergyPowerSender,
+  hiSysEnergyStateSender
+} from '../../database/data-trafic/EnergySysEventSender';
 
 export class SpHiSysEnergyChart {
   static app_name: string | null;
   private trace: SpSystemTrace;
   private energyTraceRow: TraceRow<BaseStruct> | undefined;
   private timer: any;
+  private eventNameMap: Map<number, string> = new Map();
+  private appKeyMap: Map<number, string> = new Map();
+  private eventValueMap: Map<number, string> = new Map();
+  private powerEventNameMap: Map<number, string> = new Map();
+  private powerAppKeyNameMap: Map<number, string> = new Map();
+  private powerEventValueMap: Map<number, string> = new Map();
   private stateName: Array<string> = [
     'BRIGHTNESS_NIT',
     'SIGNAL_LEVEL',
@@ -88,37 +96,24 @@ export class SpHiSysEnergyChart {
     let result = await queryEnergyEventExits();
     if (result.length <= 0) return;
     let anomalyData = await queryAnomalyData();
-    let systemData = await Promise.all([querySystemLocationData(), querySystemLockData(), querySystemSchedulerData()]);
-    let systemDataList: any = {};
-    systemDataList[0] = this.handleLockData(systemData[1]);
-    systemDataList[1] = this.handleLocationData(systemData[0]);
-    systemDataList[2] = this.handleWorkData(systemData[2]);
     let powerData = await queryPowerData();
-    let stateData: any = {};
-    let stateDataSize: number = 0;
-    for (let index = 0; index < this.stateList.length; index++) {
-      let stateResult = await Promise.all([
-        queryStateInitValue(this.stateName[index], this.initValueList[index]),
-        queryStateData(this.stateName[index]),
-      ]);
-      let stateInitValue = this.initValueList[index] == 'nocolumn' ? [] : stateResult[0];
-      stateData[index] = stateInitValue.concat(stateResult[1]);
-      stateDataSize += stateData[index].length;
+    for (let index = 0; index < anomalyData.length; index++) {
+      let item = anomalyData[index];
+      this.eventNameMap.set(item.id!, item.eventName ?? '');
+      this.appKeyMap.set(item.id!, item.appKey ?? '');
+      this.eventValueMap.set(item.id!, item.eventValue ?? '');
     }
-    if (
-      anomalyData.length > 0 ||
-      systemDataList[0].length > 0 ||
-      systemDataList[1].length > 0 ||
-      systemDataList[2].length > 0 ||
-      powerData.length > 0 ||
-      stateDataSize > 0
-    ) {
-      await this.initEnergyRow();
-      this.initAnomaly(anomalyData);
-      this.initSystem(systemDataList);
-      this.initPower(powerData);
-      await this.initState(stateData);
+    for (let index = 0; index < powerData.length; index++) {
+      let item = powerData[index];
+      this.powerEventNameMap.set(item.id, item.eventName ?? '');
+      this.powerAppKeyNameMap.set(item.id, item.appKey ?? '');
+      this.powerEventValueMap.set(item.id, item.eventValue ?? '');
     }
+    await this.initEnergyRow();
+    this.initAnomaly();
+    this.initSystem();
+    this.initPower();
+    await this.initState();
   }
 
   private initEnergyRow = async () => {
@@ -181,7 +176,7 @@ export class SpHiSysEnergyChart {
           this.energyTraceRow!
         );
       }
-      this.energyTraceRow?.canvasRestore(this.trace.canvasPanelCtx!);
+      this.energyTraceRow?.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.energyTraceRow.addEventListener('expansion-change', () => {
       TraceRow.range!.refresh = true;
@@ -196,7 +191,7 @@ export class SpHiSysEnergyChart {
     this.trace.rowsEL?.appendChild(this.energyTraceRow!);
   };
 
-  private initAnomaly = (anomalyData: EnergyAnomalyStruct[]): void => {
+  private initAnomaly = (): void => {
     let time = new Date().getTime();
     let anomalyTraceRow = TraceRow.skeleton<EnergyAnomalyStruct>();
     anomalyTraceRow.rowParentId = `energy`;
@@ -211,7 +206,17 @@ export class SpHiSysEnergyChart {
     anomalyTraceRow.style.width = `100%`;
     anomalyTraceRow.setAttribute('children', '');
     anomalyTraceRow.name = 'Anomaly Event';
-    anomalyTraceRow.supplier = () => new Promise<Array<EnergyAnomalyStruct>>((resolve): void => resolve(anomalyData));
+    anomalyTraceRow.supplierFrame = () => {
+      return hiSysEnergyAnomalyDataSender(anomalyTraceRow).then((res) => {
+        for (let index = 0; index < res.length; index++) {
+          let item = res[index];
+          item.eventName = this.eventNameMap.get(res[index].id!);
+          item.appKey = this.appKeyMap.get(res[index].id!);
+          item.eventValue = this.eventValueMap.get(res[index].id!);
+        }
+        return res;
+      });
+    };
     anomalyTraceRow.focusHandler = () => {
       this.trace?.displayTip(
         anomalyTraceRow,
@@ -240,14 +245,14 @@ export class SpHiSysEnergyChart {
         },
         anomalyTraceRow
       );
-      anomalyTraceRow.canvasRestore(context);
+      anomalyTraceRow.canvasRestore(context, this.trace);
     };
     this.energyTraceRow?.addChildTraceRow(anomalyTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the anomaly is: ', durTime);
   };
 
-  private initSystem = (systemDataList: any): void => {
+  private initSystem = (): void => {
     let time = new Date().getTime();
     let systemTraceRow = TraceRow.skeleton<EnergySystemStruct>();
     systemTraceRow.rowParentId = `energy`;
@@ -262,13 +267,17 @@ export class SpHiSysEnergyChart {
     systemTraceRow.style.width = `100%`;
     systemTraceRow.setAttribute('children', '');
     systemTraceRow.name = 'System Event';
-    systemTraceRow.supplier = () => new Promise<Array<EnergySystemStruct>>((resolve): void => resolve(systemDataList));
+    systemTraceRow.supplierFrame = () => {
+      return energySysEventSender(systemTraceRow).then((res) => {
+        return res;
+      });
+    };
     systemTraceRow.focusHandler = () => {
       this.trace?.displayTip(
         systemTraceRow,
         EnergySystemStruct.hoverEnergySystemStruct,
         `<div style="width: 250px">
-                                <div style="display: flex"><div style="width: 75%;text-align: left">WORKSCHEDULER: </div><div style="width: 20%;text-align: left">${
+                                <div style=" display: flex"><div style="width: 75%;text-align: left">WORKSCHEDULER: </div><div style="width: 20%;text-align: left">${
                                   EnergySystemStruct.hoverEnergySystemStruct?.workScheduler! || 0
                                 }</div></div>
                                 <div style="display: flex"><div style="width: 75%;text-align: left">POWER_RUNNINGLOCK: </div><div style="width: 20%;text-align: left">${
@@ -299,157 +308,14 @@ export class SpHiSysEnergyChart {
         },
         systemTraceRow
       );
-      systemTraceRow.canvasRestore(context);
+      systemTraceRow.canvasRestore(context, this.trace);
     };
     this.energyTraceRow?.addChildTraceRow(systemTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Memory is: ', durTime);
   };
 
-  private handleLocationData(
-    result: Array<{
-      ts: string;
-      eventName: string;
-      appKey: string;
-      Value: string;
-    }>
-  ) {
-    let locationIndex = -1;
-    let locationCount = 0;
-    let locationData: any[] = [];
-    result.forEach((item: any) => {
-      let da: any = {};
-      if (item.Value == 'stop') {
-        if (locationIndex == -1) {
-          da.startNs = 0;
-          da.count = 1;
-        } else {
-          da.startNs = item.ts;
-          locationCount--;
-          da.count = locationCount;
-        }
-        da.state = 'stop';
-      } else {
-        da.startNs = item.ts;
-        locationCount++;
-        da.count = locationCount;
-        da.state = 'start';
-      }
-      locationIndex = 0;
-      da.type = 2;
-      locationData.push(da);
-    });
-    return locationData;
-  }
-
-  private handleLockData(
-    result: Array<{
-      ts: string;
-      eventName: string;
-      appKey: string;
-      Value: string;
-    }>
-  ) {
-    let lockCount = 0;
-    let tokedIds: Array<string> = [];
-    let lockData: any[] = [];
-    result.forEach((item: any) => {
-      let running: any = {};
-      let split = item.Value.split(',');
-      if (item.Value.indexOf('ADD') > -1) {
-        running.startNs = item.ts;
-        lockCount++;
-        running.count = lockCount;
-        running.token = split[0].split('=')[1];
-        running.type = 1;
-        tokedIds.push(running.token);
-        lockData.push(running);
-      } else {
-        running.startNs = item.ts;
-        let toked = split[0].split('=')[1];
-        let number = tokedIds.indexOf(toked);
-        if (number > -1) {
-          lockCount--;
-          running.count = lockCount;
-          running.token = split[0].split('=')[1];
-          running.type = 1;
-          lockData.push(running);
-          delete tokedIds[number];
-        }
-      }
-    });
-
-    return lockData;
-  }
-
-  private handleWorkData(workDataArray: Array<any>) {
-    let workCountMap: Map<string, number> = new Map<string, number>();
-    let nameIdMap: Map<string, Array<any>> = new Map<string, []>();
-    let workData: any[] = [];
-    for (let i = 0; i < workDataArray.length; i++) {
-      let dd: any = {};
-      let item = workDataArray[i];
-      let keys = item.appKey.split(',');
-      let values = item.Value.split(',');
-      for (let j = 0; j < keys.length; j++) {
-        let key = keys[j];
-        switch (key) {
-          case 'NAME':
-            dd.appName = values[j];
-            break;
-          case 'WORKID':
-            dd.workId = values[j];
-            break;
-        }
-      }
-      if (item.eventName == 'WORK_START') {
-        let nameIdList = nameIdMap.get(dd.appName);
-        let workCount = 0;
-        if (nameIdList == undefined) {
-          workCount = 1;
-          nameIdMap.set(dd.appName, [dd.workId]);
-        } else {
-          nameIdList.push(dd.workId);
-          workCount = nameIdList.length;
-        }
-        let count = workCountMap.get(dd.appName);
-        if (count == undefined) {
-          workCountMap.set(dd.appName, 1);
-        } else {
-          workCountMap.set(dd.appName, count + 1);
-        }
-        dd.startNs = item.ts;
-        dd.count = workCount;
-        dd.type = 0;
-        workData.push(dd);
-      } else if (item.eventName == 'WORK_STOP') {
-        let nameIdList: any = nameIdMap.get(dd.appName);
-        let index = nameIdList.indexOf(dd.workId);
-        if (nameIdList != undefined && index > -1) {
-          delete nameIdList[index];
-          let workCount = workCountMap.get(dd.appName);
-          if (workCount != undefined) {
-            workCount = workCount - 1;
-            workCountMap.set(dd.appName, workCount);
-            dd.startNs = item.startNS;
-            dd.count = workCount;
-            dd.type = 0;
-            workData.push(dd);
-          }
-        }
-      }
-    }
-    return workData;
-  }
-
-  private initPower = (
-    powerData: Array<{
-      startNS: number;
-      eventName: string;
-      appKey: string;
-      eventValue: string;
-    }>
-  ): void => {
+  private initPower = (): void => {
     let time = new Date().getTime();
     let powerTraceRow = TraceRow.skeleton<EnergyPowerStruct>();
     powerTraceRow.rowParentId = `energy`;
@@ -464,9 +330,16 @@ export class SpHiSysEnergyChart {
     powerTraceRow.style.width = `100%`;
     powerTraceRow.setAttribute('children', '');
     powerTraceRow.name = 'Power';
-    powerTraceRow.supplier = () => this.getPowerData(powerData);
-    powerTraceRow.findHoverStruct = () => {
-      EnergyPowerStruct.hoverEnergyPowerStruct = powerTraceRow.getHoverStruct();
+    powerTraceRow.supplierFrame = () => {
+      return hiSysEnergyPowerSender(powerTraceRow).then((res) => {
+        for (let index = 0; index < res.length; index++) {
+          let item = res[index];
+          item.eventName = this.powerEventNameMap.get(res[index].id!);
+          item.appKey = this.powerAppKeyNameMap.get(res[index].id!);
+          item.eventValue = this.powerEventValueMap.get(res[index].id!);
+        }
+        return this.getPowerData(res);
+      });
     };
     powerTraceRow.focusHandler = () => {
       this.trace?.displayTip(
@@ -520,7 +393,7 @@ export class SpHiSysEnergyChart {
         },
         powerTraceRow!
       );
-      powerTraceRow!.canvasRestore(context);
+      powerTraceRow!.canvasRestore(context, this.trace);
     };
     this.energyTraceRow?.addChildTraceRow(powerTraceRow);
     let durTime = new Date().getTime() - time;
@@ -580,9 +453,10 @@ export class SpHiSysEnergyChart {
     return Object.values(powerDataMap);
   }
 
-  private initState = async (stateData: any) => {
+  private initState = async () => {
     let time = new Date().getTime();
     for (let index = 0; index < this.stateList.length; index++) {
+      let stateResult = await queryStateInitValue(this.stateName[index], this.initValueList[index]);
       let maxStateData = await queryMaxStateValue(this.stateName[index]);
       if (!maxStateData[0]) {
         continue;
@@ -595,7 +469,13 @@ export class SpHiSysEnergyChart {
         } else {
           maxStateTotal = 'disable';
         }
-      }
+      } else if(statType.includes('sensor')) {
+          if (statType.includes('enable')) {
+            maxStateTotal = 'enable';
+          } else {
+            maxStateTotal = 'disable';
+          }
+        }
       let stateTraceRow = TraceRow.skeleton<EnergyStateStruct>();
       stateTraceRow.rowParentId = `energy`;
       stateTraceRow.rowHidden = true;
@@ -607,9 +487,15 @@ export class SpHiSysEnergyChart {
       stateTraceRow.style.width = `100%`;
       stateTraceRow.setAttribute('children', '');
       stateTraceRow.name = `${this.stateList[index]}`;
-      stateTraceRow.supplier = () => new Promise<Array<any>>((resolve): void => resolve(stateData[index]));
-      stateTraceRow.findHoverStruct = () => {
-        EnergyStateStruct.hoverEnergyStateStruct = stateTraceRow.getHoverStruct();
+      stateTraceRow.supplierFrame = () => {
+        return hiSysEnergyStateSender(this.stateName, index, stateTraceRow).then((res) => {
+          let stateInitValue = this.initValueList[index] == 'nocolumn' ? [] : stateResult;
+          for (let i = 0; i < res.length; i++) {
+            let item = res[i];
+            item.type = this.stateName[index];
+          }
+          return stateInitValue.concat(res);
+        });
       };
       stateTraceRow.focusHandler = () => {
         let tip = '';
@@ -623,7 +509,7 @@ export class SpHiSysEnergyChart {
             )}</span>`;
           }
         } else {
-          tip = `<span>value: ${EnergyStateStruct.hoverEnergyStateStruct?.value || 0}</span>`;
+          tip = `<span>value: ${EnergyStateStruct.hoverEnergyStateStruct?.value?.toFixed(2) || 0}</span>`;
         }
         this.trace?.displayTip(stateTraceRow, EnergyStateStruct.hoverEnergyStateStruct, tip);
       };
@@ -647,7 +533,7 @@ export class SpHiSysEnergyChart {
           },
           stateTraceRow
         );
-        stateTraceRow.canvasRestore(context);
+        stateTraceRow.canvasRestore(context, this.trace);
       };
       this.energyTraceRow?.addChildTraceRow(stateTraceRow);
       let durTime = new Date().getTime() - time;

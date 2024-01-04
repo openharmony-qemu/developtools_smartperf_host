@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { PaginationBox } from '../../../../dist/base-ui/chart/pagenation/PaginationBox.js';
+import { PaginationBox } from '../../../../src/base-ui/chart/pagenation/PaginationBox';
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),

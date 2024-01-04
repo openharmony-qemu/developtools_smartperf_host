@@ -13,16 +13,14 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { HeapNodeToConstructorItem } from "../../../dist/js-heap/utils/Utils.js";
-// @ts-ignore
-import {HeapNode} from "../../../dist/js-heap/model/DatabaseStruct.js";
-jest.mock('../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+import { HeapNodeToConstructorItem } from "../../../src/js-heap/utils/Utils.js";
+import {HeapNode} from "../../../src/js-heap/model/DatabaseStruct.js";
+jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {});
 
-jest.mock('../../../dist/js-heap/HeapDataInterface.js', () => {
+jest.mock('../../../src/js-heap/HeapDataInterface', () => {
     return {};
 });
-jest.mock('../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {});
 
 describe('Utils Test', () => {
     it('HeapNodeToConstructorItemTest01', () => {

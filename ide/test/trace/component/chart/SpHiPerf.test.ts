@@ -13,20 +13,17 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpHiPerf } from '../../../../dist/trace/component/chart/SpHiPerf.js';
+import { SpHiPerf } from '../../../../src/trace/component/chart/SpHiPerf';
 import {
   queryHiPerfCpuMergeData2,
   queryHiPerfEventList,
   queryPerfThread,
-} from '../../../../src/trace/database/SqlLite.js';
-// @ts-ignore
-import { SpChartManager } from '../../../../dist/trace/component/chart/SpChartManager.js';
-// @ts-ignore
-import { queryPerfEventType } from '../../../../dist/trace/database/SqlLite.js';
-const sqlit = require('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+} from '../../../../src/trace/database/SqlLite';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+import { queryPerfEventType } from '../../../../src/trace/database/SqlLite';
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 

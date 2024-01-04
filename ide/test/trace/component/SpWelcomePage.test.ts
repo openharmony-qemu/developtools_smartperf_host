@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpWelcomePage } from '../../../dist/trace/component/SpWelcomePage.js';
+import { SpWelcomePage } from '../../../src/trace/component/SpWelcomePage';
 
 describe('SpWelcomePage Test', () => {
   let spWelcomePage = new SpWelcomePage();

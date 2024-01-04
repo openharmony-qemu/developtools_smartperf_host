@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { SpSchedulingAnalysis } from '../../../../dist/trace/component/schedulingAnalysis/SpSchedulingAnalysis.js';
-import '../../../../dist/trace/component/schedulingAnalysis/SpSchedulingAnalysis.js';
+import { SpSchedulingAnalysis } from '../../../../src/trace/component/schedulingAnalysis/SpSchedulingAnalysis';
+import '../../../../src/trace/component/schedulingAnalysis/SpSchedulingAnalysis';
 
 // @ts-ignore
 window.ResizeObserver =

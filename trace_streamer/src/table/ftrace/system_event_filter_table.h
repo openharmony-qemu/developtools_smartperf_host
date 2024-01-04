@@ -28,10 +28,17 @@ public:
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
+    int64_t GetSize() override
+    {
+        return dataCache_->GetConstSysMeasureFilterData().Size();
+    }
+    void GetOrbyes(FilterConstraints& eventfc, EstimatedIndexInfo& eventei) override;
+    void FilterByConstraint(FilterConstraints& eventfc,
+                            double& eventfilterCost,
+                            size_t eventrowCount,
+                            uint32_t eventcurrenti) override;
     // the column is sorted
     bool CanFilterSorted(const char op, size_t& rowCount) const;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
     public:

@@ -32,14 +32,13 @@ BytraceParser::BytraceParser(TraceDataCache* dataCache, const TraceStreamerFilte
       traceDataCache_(dataCache),
       eventParser_(std::make_unique<BytraceEventParser>(dataCache, filters)),
       hilogParser_(std::make_unique<BytraceHilogParser>(dataCache, filters)),
-      hiSysEventParser_(std::make_unique<BytraceHiSysEventParser>(dataCache, filters)),
-#ifdef SUPPORTTHREAD
-      dataSegArray_(std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE)),
-      supportThread_(true)
-#else
-      dataSegArray_(std::make_unique<DataSegment[]>(1))
-#endif
+      hiSysEventParser_(std::make_unique<BytraceHiSysEventParser>(dataCache, filters))
 {
+    if (traceDataCache_->supportThread_) {
+        dataSegArray_ = std::make_unique<DataSegment[]>(maxSegArraySize);
+    } else {
+        dataSegArray_ = std::make_unique<DataSegment[]>(1);
+    }
 }
 
 BytraceParser::~BytraceParser() = default;
@@ -56,8 +55,17 @@ void BytraceParser::WaitForParserEnd()
     eventParser_->Clear();
     hilogParser_->FilterAllHilogData();
     hiSysEventParser_->Finish();
+    traceDataCache_->MixTraceTime(traceDataCache_->traceStartTime_, traceDataCache_->traceEndTime_);
     dataSegArray_.reset();
-    isParsingOver_ = false;
+    ClearByTraceData();
+}
+bool BytraceParser::UpdateSplitPos()
+{
+    maxSplitPos_ = mTraceDataBytrace_.size() - 1;
+    TS_CHECK_TRUE_RET(minSplitPos_ == INVALID_INT32, true);
+    minSplitPos_ = mTraceDataBytrace_.size() - 1;
+    TS_LOGI("minSplitPos_=%d", minSplitPos_);
+    return true;
 }
 void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish)
 {
@@ -77,6 +85,7 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
         }
         if (packagesLine == packagesBuffer_.begin()) {
             packagesLine++;
+            curFileOffset_ += std::distance(packagesBegin, packagesLine);
             packagesBegin = packagesLine;
             continue;
         }
@@ -87,7 +96,12 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
                 extra = 1;
             }
         }
+        bool haveSplitSeg = false;
         std::string bufferLine(packagesBegin, packagesLine - extra);
+        curDataSize_ = std::distance(packagesBegin, packagesLine) + 1;
+        if (traceDataCache_->isSplitFile_) {
+            mTraceDataBytrace_.emplace_back(curFileOffset_, curDataSize_);
+        }
 
         if (isFirstLine_) {
             isFirstLine_ = false;
@@ -115,31 +129,31 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
 
         if (IsTraceComment(bufferLine)) {
             traceCommentLines_++;
+            mTraceDataBytrace_.clear();
             goto NEXT_LINE;
         }
         if (bufferLine.empty()) {
             parsedTraceInvalidLines_++;
             goto NEXT_LINE;
         }
-
         if (fileType_ == TRACE_FILETYPE_HILOG) {
-            hilogParser_->ParseHilogDataItem(bufferLine, seq_);
+            hilogParser_->ParseHilogDataItem(bufferLine, seq_, haveSplitSeg);
         } else if (fileType_ == TRACE_FILETYPE_HI_SYSEVENT) {
-            hiSysEventParser_->ParseHiSysEventDataItem(bufferLine, seq_);
-        }
-        if (isBytrace_) {
+            hiSysEventParser_->ParseHiSysEventDataItem(bufferLine, seq_, haveSplitSeg);
+        } else if (isBytrace_) {
             if (!traceBegan_) {
                 traceBegan_ = true;
             }
             ParseTraceDataItem(bufferLine);
-            if (traceDataCache_->isSplitFile_) {
-                goto NEXT_LINE;
-            }
+        }
+        if (haveSplitSeg) {
+            UpdateSplitPos();
         }
     NEXT_LINE:
         if (isParsingOver_) {
             break;
         }
+        curFileOffset_ += curDataSize_;
         packagesBegin = packagesLine + 1;
         seq_++;
         continue;
@@ -155,7 +169,7 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
 
 void BytraceParser::ParseTraceDataItem(const std::string& buffer)
 {
-    if (!supportThread_ || traceDataCache_->isSplitFile_) {
+    if (!traceDataCache_->supportThread_ || traceDataCache_->isSplitFile_) {
         dataSegArray_[rawDataHead_].seg = std::move(buffer);
         ParserData(dataSegArray_[rawDataHead_]);
         return;
@@ -170,18 +184,24 @@ void BytraceParser::ParseTraceDataItem(const std::string& buffer)
         }
         dataSegArray_[head].seg = std::move(buffer);
         dataSegArray_[head].status = TS_PARSE_STATUS_SEPRATED;
-        rawDataHead_ = (rawDataHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+        rawDataHead_ = (rawDataHead_ + 1) % maxSegArraySize;
         break;
     }
     if (!parseThreadStarted_) {
         parseThreadStarted_ = true;
-        int32_t tmp = maxThread_;
+        int32_t tmp = traceDataCache_->parserThreadNum_;
         while (tmp--) {
             parserThreadCount_++;
             std::thread MatchLineThread(&BytraceParser::ParseThread, this);
             MatchLineThread.detach();
-            TS_LOGI("parser Thread:%d/%d start working ...\n", maxThread_ - tmp, maxThread_);
+            TS_LOGI("parser Thread:%d/%d start working ...\n", traceDataCache_->parserThreadNum_ - tmp,
+                    traceDataCache_->parserThreadNum_);
         }
+    }
+    if (!filterThreadStarted_) {
+        filterThreadStarted_ = true;
+        std::thread ParserThread(&BytraceParser::FilterThread, this);
+        ParserThread.detach();
     }
     return;
 }
@@ -200,16 +220,12 @@ int32_t BytraceParser::GetNextSegment()
             }
             return ERROR_CODE_EXIT;
         }
-        if (seg.status.load() == TS_PARSE_STATUS_PARSING) {
-            usleep(sleepDur_);
-            return ERROR_CODE_NODATA;
-        }
         TS_LOGD("ParseThread watting:\t%d, parseHead_:\t%d, filterHead_:\t%d status:\t%d\n", rawDataHead_, parseHead_,
                 filterHead_, seg.status.load());
         usleep(sleepDur_);
         return ERROR_CODE_NODATA;
     }
-    parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+    parseHead_ = (parseHead_ + 1) % maxSegArraySize;
     seg.status = TS_PARSE_STATUS_PARSING;
     return head;
 }
@@ -289,19 +305,14 @@ void BytraceParser::ParserData(DataSegment& seg)
     if (traceDataCache_->isSplitFile_) {
         if (seg.bufLine.ts >= traceDataCache_->SplitFileMinTime() &&
             seg.bufLine.ts <= traceDataCache_->SplitFileMaxTime()) {
-            traceDataBytrace_ += seg.seg + "\r\n";
+            UpdateSplitPos();
         }
         return;
     }
 
-    if (!supportThread_ || traceDataCache_->isSplitFile_) {
+    if (!traceDataCache_->supportThread_) {
         FilterData(seg);
         return;
-    }
-    if (!filterThreadStarted_) {
-        filterThreadStarted_ = true;
-        std::thread ParserThread(&BytraceParser::FilterThread, this);
-        ParserThread.detach();
     }
 }
 void BytraceParser::FilterThread()
@@ -315,7 +326,7 @@ void BytraceParser::FilterThread()
 }
 bool BytraceParser::FilterData(DataSegment& seg)
 {
-    if (!supportThread_ || traceDataCache_->isSplitFile_) {
+    if (!traceDataCache_->supportThread_ || traceDataCache_->isSplitFile_) {
         if (seg.status.load() != TS_PARSE_STATUS_INVALID) {
             eventParser_->ParseDataItem(seg.bufLine);
             seg.status = TS_PARSE_STATUS_INIT;
@@ -325,7 +336,7 @@ bool BytraceParser::FilterData(DataSegment& seg)
         return false;
     }
     if (seg.status.load() == TS_PARSE_STATUS_INVALID) {
-        filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+        filterHead_ = (filterHead_ + 1) % maxSegArraySize;
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
         seg.status = TS_PARSE_STATUS_INIT;
         return true;
@@ -341,7 +352,7 @@ bool BytraceParser::FilterData(DataSegment& seg)
         return true;
     }
     eventParser_->ParseDataItem(seg.bufLine);
-    filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+    filterHead_ = (filterHead_ + 1) % maxSegArraySize;
     seg.status = TS_PARSE_STATUS_INIT;
     return true;
 }

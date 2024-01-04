@@ -27,8 +27,15 @@ public:
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
+    int64_t GetSize() override
+    {
+        return dataCache_->GetConstEbpfElf().Size();
+    }
+    void GetOrbyes(FilterConstraints& elffc, EstimatedIndexInfo& elfei) override;
+    void FilterByConstraint(FilterConstraints& elffc,
+                            double& elffilterCost,
+                            size_t elfrowCount,
+                            uint32_t elfcurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:

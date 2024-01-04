@@ -30,7 +30,6 @@ import '../../../../../base-ui/slicer/lit-slicer';
 import { Cmd } from '../../../../../command/Cmd';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 
-
 @element('tabpane-perf-sample')
 export class TabPanePerfSample extends BaseElement {
   private perfSampleTbl: LitTable | null | undefined;
@@ -88,7 +87,7 @@ export class TabPanePerfSample extends BaseElement {
             sample.backtrace.push('No Effective Call Stack');
           } else {
             sample.depth = call.depth;
-            if (typeof call.name === 'number'){
+            if (typeof call.name === 'number') {
               call.name = SpSystemTrace.DATA_DICT.get(call.name) || '';
             }
             sample.backtrace.push(call.name);
@@ -104,7 +103,7 @@ export class TabPanePerfSample extends BaseElement {
   setRightTableData(sample: PerfSample) {
     queryPerfSampleCallChain(sample.sampleId).then((result) => {
       for (let stack of result) {
-        if (typeof stack.symbol === 'number'){
+        if (typeof stack.symbol === 'number') {
           stack.symbol = SpSystemTrace.DATA_DICT.get(stack.symbol) || '';
         }
         let files = (perfDataQuery.filesData[stack.fileId] ?? []) as Array<PerfFile>;

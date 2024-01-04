@@ -50,7 +50,7 @@ export class TabPaneGpufreq extends BaseElement {
                 finalGpufreqData.push(tree);
                 this.threadStatesTbl!.recycleDataSource = finalGpufreqData;
                 this.threadStatesTbl!.loading = false;
-                this.clickTableHeader(finalGpufreqData);
+                this.theadClick(finalGpufreqData);
             } else {
                 this.threadStatesTbl!.recycleDataSource = [];
                 this.threadStatesTbl!.loading = false;
@@ -191,7 +191,7 @@ export class TabPaneGpufreq extends BaseElement {
         };
     };
 
-    private clickTableHeader(data: Array<TreeDataBean>): void {
+    private theadClick(data: Array<TreeDataBean>): void {
         let labels = this.threadStatesTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
 
         if (labels) {

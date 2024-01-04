@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabCpuDetailsIdle } from '../../../../dist/trace/component/schedulingAnalysis/TabCpuDetailsIdle.js';
+import { TabCpuDetailsIdle } from '../../../../src/trace/component/schedulingAnalysis/TabCpuDetailsIdle';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

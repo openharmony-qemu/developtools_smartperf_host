@@ -20,6 +20,7 @@ import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
 import { resizeObserver } from '../SheetUtils';
+import { getCpuLimitFreqBoxSelect } from '../../../../database/SqlLite';
 
 @element('tabpane-cpu-freq-limits')
 export class TabPaneCpuFreqLimits extends BaseElement {
@@ -38,21 +39,14 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     this.cpuFreqLimitsTbl!.shadowRoot!.querySelector('.table').style.height =
       this.parentElement!.clientHeight - 25 + 'px';
     let list: any[] = [];
-    cpuFreqLimitSelection.cpuFreqLimitDatas.forEach((limitRowDatas: any) => {
-      for (let i = 0, len = limitRowDatas.length; i < len; i++) {
-        let it = limitRowDatas[i];
-        if (it.startNs > cpuFreqLimitSelection.rightNs) {
-          break;
-        }
-        if (i === limitRowDatas.length - 1) {
+    getCpuLimitFreqBoxSelect(cpuFreqLimitSelection.cpuFreqLimit, cpuFreqLimitSelection.rightNs).then((res) => {
+      for (let it of res) {
+        if (!it.dur || it.startNs + it.dur > cpuFreqLimitSelection.rightNs) {
           it.dur = (cpuFreqLimitSelection.rightNs || 0) - (it.startNs || 0);
-        } else {
-          it.dur = (limitRowDatas[i + 1].startNs || 0) - (it.startNs || 0);
         }
-        list.push(it);
       }
+      this.formatData(res, cpuFreqLimitSelection.leftNs, cpuFreqLimitSelection.rightNs);
     });
-    this.formatData(list, cpuFreqLimitSelection.leftNs, cpuFreqLimitSelection.rightNs);
   }
 
   initElements(): void {

@@ -23,8 +23,10 @@ namespace TraceStreamer {
 RpcServer g_wasmTraceStreamer;
 extern "C" {
 using ReplyFunction = void (*)(const char* data, uint32_t len, int32_t finish);
+using TLVReplyFunction = void (*)(const char* data, uint32_t len, uint32_t type, int32_t finish);
 ReplyFunction g_reply;
 ReplyFunction g_ffrtConvertedReply;
+TLVReplyFunction g_replyTLV;
 uint8_t* g_reqBuf;
 uint32_t g_reqBufferSize;
 
@@ -48,12 +50,16 @@ using ParseELFFunction = void (*)(const char* data, uint32_t len, int32_t finish
 ParseELFFunction g_parseELFCallback;
 uint8_t* g_FileNameBuf;
 uint32_t g_FileNameSize;
-bool g_IsSystrace = false;
+bool g_isSystrace = false;
 bool g_hasDeterminedSystrace = false;
 
 void ResultCallback(const std::string& jsonResult, int32_t finish)
 {
     g_reply(jsonResult.data(), jsonResult.size(), finish);
+}
+void TLVResultCallback(const char* data, uint32_t len, uint32_t type, int32_t finish)
+{
+    g_replyTLV(data, len, type, finish);
 }
 void FfrtConvertedResultCallback(const std::string& content, int32_t finish)
 {
@@ -68,14 +74,16 @@ void ParseELFCallback(const std::string& SODataResult, int32_t finish)
 {
     g_parseELFCallback(SODataResult.data(), SODataResult.size(), finish);
 }
-EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(ReplyFunction replyFunction,
-                                         uint32_t reqBufferSize,
+EMSCRIPTEN_KEEPALIVE uint8_t* Initialize(uint32_t reqBufferSize,
+                                         ReplyFunction replyFunction,
+                                         TLVReplyFunction replyTLVFunction,
                                          ReplyFunction ffrtConvertedReply)
 {
-    g_reply = replyFunction;
-    g_ffrtConvertedReply = ffrtConvertedReply;
     g_reqBuf = new uint8_t[reqBufferSize];
     g_reqBufferSize = reqBufferSize;
+    g_reply = replyFunction;
+    g_replyTLV = replyTLVFunction;
+    g_ffrtConvertedReply = ffrtConvertedReply;
     return g_reqBuf;
 }
 
@@ -215,11 +223,13 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseData(const uint8_t* data, int32_t
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFinish)
 {
     if (!g_hasDeterminedSystrace) {
-        g_IsSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
+        g_isSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
         g_hasDeterminedSystrace = true;
     }
-    if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_IsSystrace) {
+    if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_isSystrace) {
+#if IS_WASM
         return g_wasmTraceStreamer.SaveAndParseFfrtData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
+#endif
     } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }
@@ -276,7 +286,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQueryEx(int32_t sqlLen)
 }
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQueryToProtoCallback(int32_t sqlLen)
 {
-    return g_wasmTraceStreamer.WasmSqlQueryToProtoCallback(g_reqBuf, sqlLen, &ResultCallback);
+    return g_wasmTraceStreamer.WasmSqlQueryToProtoCallback(g_reqBuf, sqlLen, &TLVResultCallback);
 }
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlMetricsQuery(int32_t sqlLen)
 {

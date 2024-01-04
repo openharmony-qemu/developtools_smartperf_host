@@ -17,7 +17,6 @@ import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../base-ui/table/lit-table';
 import { MarkStruct } from '../../../bean/MarkStruct';
 import { SpSystemTrace } from '../../SpSystemTrace';
-import { ns2s } from '../TimerShaftElement';
 import { SlicesTime, StType } from '../timer-shaft/SportRuler';
 import { getTimeString } from './TabPaneCurrentSelection';
 
@@ -285,7 +284,7 @@ export class TabPaneCurrent extends BaseElement {
           this.slicesTimeList[i - 1].hidden = true;
           this.systemTrace!.slicesList = this.slicesTimeList || [];
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
-          // 移除时更新表格内容
+          //   移除时更新表格内容
           this.setTableData();
         }
         event.stopPropagation();

@@ -133,7 +133,7 @@ export class TabPaneNMemory extends BaseElement {
 
   startNmMemoryWorker(type: string, args: any, handler: Function): void {
     this.setNmMemoryLoading(true);
-    procedurePool.submitWithName('logic1', type, args, undefined, (res: any) => {
+    procedurePool.submitWithName('logic0', type, args, undefined, (res: any) => {
       if (Array.isArray(res) || (res.tag === 'end' && res.index === 0)) {
         handler(res.data ? res.data : res);
         this.setNmMemoryLoading(false);
@@ -209,7 +209,7 @@ export class TabPaneNMemory extends BaseElement {
   initFilterTypes(initCallback?: () => void): void {
     this.nativeType = [...this.defaultNativeTypes];
     this.statsticsSelection = [];
-    procedurePool.submitWithName('logic1', 'native-memory-get-responseType', {}, undefined, (res: any) => {
+    procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: any) => {
       this.filter!.setSelectList(
         null,
         this.nativeType,

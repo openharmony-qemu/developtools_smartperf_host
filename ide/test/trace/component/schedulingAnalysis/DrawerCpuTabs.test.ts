@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { DrawerCpuTabs } from '../../../../dist/trace/component/schedulingAnalysis/DrawerCpuTabs.js';
+import { DrawerCpuTabs } from '../../../../src/trace/component/schedulingAnalysis/DrawerCpuTabs';
 import crypto from 'crypto';
 // @ts-ignore
 window.ResizeObserver =

@@ -58,7 +58,7 @@ struct NativeHookMetaData {
 class OfflineSymbolizationFilter : public FilterBase {
 public:
     OfflineSymbolizationFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    ~OfflineSymbolizationFilter() = default;
+    ~OfflineSymbolizationFilter() override = default;
     std::shared_ptr<FrameInfo> OfflineSymbolizationByIp(uint64_t ipid, uint64_t ip);
     std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> OfflineSymbolization(
         const std::shared_ptr<std::vector<uint64_t>> ips);
@@ -95,6 +95,7 @@ private:
                        uint64_t& vmStart,
                        uint64_t& vmOffset,
                        uint64_t ipid);
+    const uint64_t usefulIpMask_ = 0xffffff0000000000;
 };
 
 } // namespace TraceStreamer

@@ -15,25 +15,21 @@
 
 import crypto from 'crypto';
 
-//@ts-ignore
 import {
   TabPaneNMemory,
   initFilterTypes,
-} from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMemory.js';
-// @ts-ignore
-import { TabPaneNMSampleList } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMSampleList.js';
+} from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMemory';
+import { TabPaneNMSampleList } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
-// @ts-ignore
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import {
   queryNativeHookEventTid,
   queryNativeHookSnapshotTypes,
-} from '../../../../../../dist/trace/database/SqlLite.js';
+} from '../../../../../../src/trace/database/SqlLite';
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

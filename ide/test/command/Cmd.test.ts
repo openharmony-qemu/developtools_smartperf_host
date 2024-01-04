@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { Cmd } from '../../dist/command/Cmd.js';
+import { Cmd } from '../../src/command/Cmd';
 
 describe('Cmd', () => {
   it('CmdTest_01', () => {

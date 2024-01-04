@@ -44,7 +44,7 @@ export class SpSchedulingAnalysis extends BaseElement {
     SpSchedulingAnalysis.traceChange = true;
     CheckCpuSetting.resetCpuSettings();
     Top20FrequencyThread.threads = undefined;
-    procedurePool.submitWithName('logic1', 'scheduling-clearData', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'scheduling-clearData', {}, undefined, (res: any) => {});
   }
 
   init() {

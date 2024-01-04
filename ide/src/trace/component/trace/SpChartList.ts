@@ -31,7 +31,6 @@ import { TimerShaftElement } from './TimerShaftElement';
 import { CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { WakeupBean } from '../../bean/WakeupBean';
 import { LitIcon } from '../../../base-ui/icon/LitIcon';
-import { drawVSync } from '../chart/VSync';
 
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
@@ -354,7 +353,7 @@ export class SpChartList extends BaseElement {
         this.fragmentGroup1.appendChild(row);
       }
       this.collectEl1?.appendChild(this.fragmentGroup1);
-      this.scrollTo({ top: this.collectEl1?.clientHeight || 0 });
+      this.scrollTo({ top: this.collectEl1?.clientHeight });
     } else {
       if (!this.collect2Expand) {
         this.collect2Expand = true;
@@ -504,10 +503,6 @@ export class SpChartList extends BaseElement {
 
   drawLinkLines(nodes: PairPoint[][], tse: TimerShaftElement, isFavorite: boolean, favoriteHeight: number): void {
     drawLinkLines(this.canvasCtx!, nodes, tse, isFavorite, favoriteHeight);
-  }
-
-  drawVSync(width: number, height: number) {
-    drawVSync(this.canvasCtx!, width, height);
   }
 
   refreshFavoriteCanvas(): void {

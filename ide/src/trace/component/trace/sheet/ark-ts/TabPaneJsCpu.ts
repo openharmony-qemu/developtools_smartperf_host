@@ -19,6 +19,7 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { type JsCpuProfilerChartFrame, JsCpuProfilerTabStruct } from '../../../../bean/JsStruct';
 import { procedurePool } from '../../../../database/Procedure';
 import { findSearchNode, ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 import { type FilterData, TabPaneFilter } from '../TabPaneFilter';
 import '../TabPaneFilter';
 
@@ -39,7 +40,7 @@ export class TabPaneJsCpuCallTree extends BaseElement {
   private getDataByWorker(args: Array<JsCpuProfilerChartFrame>, handler: Function): void {
     const key = this.currentType === this.TYPE_TOP_DOWN ? 'jsCpuProfiler-call-tree' : 'jsCpuProfiler-bottom-up';
     this.callTreeTable!.mode = TableMode.Retract;
-    procedurePool.submitWithName('logic1', key, args, undefined, (results: Array<JsCpuProfilerTabStruct>) => {
+    procedurePool.submitWithName('logic0', key, args, undefined, (results: Array<JsCpuProfilerTabStruct>) => {
       handler(results);
     });
   }
@@ -94,6 +95,7 @@ export class TabPaneJsCpuCallTree extends BaseElement {
             it.parentId = item.id;
           });
         }
+        item.name = SpSystemTrace.DATA_DICT.get(item.nameId) || '';
         callTreeMap.set(item.id, item);
         if (item.scriptName === 'unknown') {
           item.symbolName = item.name;

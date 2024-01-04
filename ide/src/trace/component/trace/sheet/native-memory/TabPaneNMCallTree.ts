@@ -138,7 +138,7 @@ export class TabpaneNMCalltree extends BaseElement {
     } else {
       this.nmCallTreeFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic1', 'native-memory-reset', [], undefined, () => {});
+    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => {});
     this.nmCallTreeFilter!.disabledTransfer(true);
     this.nmCallTreeFilter!.initializeFilterTree(true, true, this.currentSelection!.nativeMemory.length > 0);
     this.nmCallTreeFilter!.filterValue = '';
@@ -360,7 +360,7 @@ export class TabpaneNMCalltree extends BaseElement {
       );
       addSubType(subTypeList);
     }
-    procedurePool.submitWithName('logic1', 'native-memory-get-responseType', {}, undefined, (res: any) => {
+    procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: any) => {
       this.responseTypes = res;
       let nullIndex = this.responseTypes.findIndex((item) => {
         return item.key == 0;
@@ -888,7 +888,7 @@ export class TabpaneNMCalltree extends BaseElement {
     this.nmCallTreeProgressEL!.loading = true;
     this.nmCallTreeLoadingPage.style.visibility = 'visible';
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       'native-memory-calltree-action',
       args,
       undefined,
@@ -908,7 +908,7 @@ export class TabpaneNMCalltree extends BaseElement {
     this.nmCallTreeProgressEL!.loading = true;
     this.nmCallTreeLoadingPage.style.visibility = 'visible';
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       this.currentSelection!.nativeMemory!.length > 0
         ? 'native-memory-queryCallchainsSamples'
         : 'native-memory-queryStatisticCallchainsSamples',
@@ -971,7 +971,7 @@ export class TabpaneNMCalltree extends BaseElement {
         <div id="left_table" style="width: 65%">
             <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
-                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start"retract>
+                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start" retract>
                 </lit-table-column>
                 <lit-table-column class="nm-call-tree-column" width="1fr" title="Size" data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
                 </lit-table-column>

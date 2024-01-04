@@ -12,23 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TabPanePurgTotalComparisonAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPanePurgTotalComparisonAbility.js';
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/base-ui/select/LitSelect.js', () => {
+import { TabPanePurgTotalComparisonAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgTotalComparisonAbility';
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
     snapshotDataSource: () => {},
     removeAttribute: () => {},
   };
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

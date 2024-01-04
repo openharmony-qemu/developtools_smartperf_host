@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
-import { TabFrameSpacing } from '../../../../../../dist/trace/component/trace/sheet/frame/TabFrameSpacing.js';
-// @ts-ignore
-import { Rect } from '../../../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+import { TabFrameSpacing } from '../../../../../../src/trace/component/trace/sheet/frame/TabFrameSpacing';
+import { Rect } from '../../../../../../src/trace/component/trace/timer-shaft/Rect';
 
 describe('TabPaneFrameSpacing Test', () => {
   let tabFrameSpacing = new TabFrameSpacing();

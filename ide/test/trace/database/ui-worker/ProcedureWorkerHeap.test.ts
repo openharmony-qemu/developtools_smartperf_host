@@ -13,20 +13,17 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-// @ts-ignore
 import {
   heap,
   HeapStruct,
   NativeMemoryRender,
   HeapRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHeap.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHeap';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 
 describe(' Test', () => {
   it('HeapTest01', () => {
@@ -112,7 +109,7 @@ describe(' Test', () => {
 
   it('HeapTest05', function () {
     let heapRender = new HeapRender();
-    let heapReq = {
+    let heapReq = [{
       lazyRefresh: true,
       type: '',
       startNS: 3,
@@ -154,9 +151,10 @@ describe(' Test', () => {
       y: 20,
       width: 320,
       height: 320,
-    };
+    }];
     window.postMessage = jest.fn(() => true);
-    expect(heapRender.render(heapReq, [], [])).toBeUndefined();
+    let frame = { x: 0, y: 9, width: 10, height: 10 };
+    expect(heap(heapReq, heapReq, 0, 52100, 3569,frame , true)).toBeUndefined();
   });
   it('HeapTest04', () => {
     const canvas = document.createElement('canvas');

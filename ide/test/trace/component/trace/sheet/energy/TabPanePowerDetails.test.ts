@@ -13,14 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPanePowerDetails } from '../../../../../../dist/trace/component/trace/sheet/energy/TabPanePowerDetails.js';
-import '../../../../../../dist/trace/component/trace/sheet/energy/TabPanePowerDetails.js';
+import { TabPanePowerDetails } from '../../../../../../src/trace/component/trace/sheet/energy/TabPanePowerDetails';
+import '../../../../../../src/trace/component/trace/sheet/energy/TabPanePowerDetails';
 
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
@@ -31,8 +29,8 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPanePowerDetails Test', () => {
   document.body.innerHTML = `<lit-table id="tb-power-details-energy"></lit-table>`;

@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneNetworkAbility } from '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneNetworkAbility.js';
-import '../../../../../../dist/trace/component/trace/sheet/ability/TabPaneNetworkAbility.js';
+import { TabPaneNetworkAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneNetworkAbility';
+import '../../../../../../src/trace/component/trace/sheet/ability/TabPaneNetworkAbility';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -24,9 +23,9 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 

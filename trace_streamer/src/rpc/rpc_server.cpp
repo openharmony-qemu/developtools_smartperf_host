@@ -44,6 +44,7 @@ const size_t PACKET_HEADER_LENGTH = 1024;
 const std::string VALUE = "{\"value\":[";
 const std::string OFFSET = "{\"offset\":";
 const std::string SIZE = ",\"size\":";
+const std::string EMPTY_VALUE = "{\"value\":[]}";
 
 using json = nlohmann::json;
 namespace jsonns {
@@ -259,6 +260,40 @@ bool RpcServer::DetermineSystrace(const uint8_t* data, size_t len)
     return false;
 }
 
+bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
+{
+    int32_t firstPos = ts_->GetBytraceData()->MinSplitPos();
+    int32_t lastPos = ts_->GetBytraceData()->MaxSplitPos();
+    TS_CHECK_TRUE(firstPos != INVALID_INT32 && lastPos != INVALID_INT32 && lastPos >= firstPos, false,
+                  "firstPos(%d) or lastPos(%d) is INVALID_INT32!", firstPos, lastPos);
+    const auto& mTraceDataBytrace = ts_->GetBytraceData()->GetTraceDataBytrace();
+    // for 10% data
+    int32_t tenPercentDataNum = 0.1 * (lastPos - firstPos);
+    firstPos -= tenPercentDataNum;
+    lastPos += tenPercentDataNum;
+    if (firstPos < 0) {
+        firstPos = 0;
+    }
+    if (lastPos >= mTraceDataBytrace.size()) {
+        lastPos = mTraceDataBytrace.size() - 1;
+    }
+    std::string result = VALUE;
+    for (size_t index = firstPos; index <= lastPos; index++) {
+        result += OFFSET + std::to_string(mTraceDataBytrace[index].first);
+        result += SIZE + std::to_string(mTraceDataBytrace[index].second);
+        result += "},";
+    }
+    if (result != VALUE && !ts_->GetBytraceData()->GetTraceDataBytrace().empty()) {
+        result.pop_back();
+        result += "]}\r\n";
+        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
+    }
+    TS_LOGI("MinSplitPos=%d, MaxSplitPos=%d, tenPercentDataNum=%d, firstPos=%d, lastPos=%d\nresult=%s",
+            ts_->GetBytraceData()->MinSplitPos(), ts_->GetBytraceData()->MaxSplitPos(), tenPercentDataNum, firstPos,
+            lastPos, result.data());
+    return true;
+}
+
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
                                    size_t len,
                                    int32_t isFinish,
@@ -269,16 +304,13 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         TS_LOGE("ParserData failed!");
         return false;
     }
-    if (isSplitFile && ts_->GetFileType() == TRACE_FILETYPE_BY_TRACE) {
-        splitFileCallBack(ts_->GetBytraceData()->GetTraceDataBytrace(), (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
-                          isFinish);
+    if (isSplitFile && isFinish &&
+        (ts_->GetFileType() == TRACE_FILETYPE_BY_TRACE || ts_->GetFileType() == TRACE_FILETYPE_HILOG ||
+         ts_->GetFileType() == TRACE_FILETYPE_HI_SYSEVENT)) {
+        SendBytraceSplitFileData(splitFileCallBack, 0);
+        splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
         ts_->GetBytraceData()->ClearByTraceData();
-        return true;
-    }
-    if (isSplitFile && ts_->GetFileType() == TRACE_FILETYPE_HILOG) {
-        splitFileCallBack(ts_->GetBytraceData()->GetHiLogParser()->GetTraceDataHiLog(),
-                          (int32_t)SplitDataDataType::SPLIT_FILE_DATA, isFinish);
-        ts_->GetBytraceData()->GetHiLogParser()->ClearHiLogData();
+        ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
     if (isSplitFile && isFinish && ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
@@ -323,8 +355,7 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         ProcPerfSplitResult(splitFileCallBack, true);
     }
     if (isSplitFile && isFinish) {
-        std::string resultEnd = "{\"value\":[]}";
-        splitFileCallBack(resultEnd, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
+        splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
         ts_->GetHtraceData()->ClearTraceDataHtrace();
         ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
         ts_->GetTraceDataCache()->isSplitFile_ = false;
@@ -406,19 +437,19 @@ int32_t RpcServer::UpdateTraceTime(const uint8_t* data, int32_t len)
 
 int32_t RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len)
 {
-    TS_LOGE("TraceStreamer_Init_ThirdParty_Config is comming!");
+    TS_LOGI("TraceStreamer_Init_ThirdParty_Config is comming!");
     std::string thirdPartyConfig = reinterpret_cast<const char*>(data);
-    TS_LOGE("thirdPartyConfig = %s", thirdPartyConfig.c_str());
+    TS_LOGI("thirdPartyConfig = %s", thirdPartyConfig.c_str());
     std::vector<std::string> comPonentStr = SplitStringToVec(thirdPartyConfig, ";");
     const int32_t EVENT_COUNT_PAIR = 2;
     if (comPonentStr.size() % EVENT_COUNT_PAIR != 0) {
-        TS_LOGE("thirdPartyConfig is wrong!");
+        TS_LOGI("thirdPartyConfig is wrong!");
         return -1;
     }
     for (int32_t m = 0; m < comPonentStr.size(); m += EVENT_COUNT_PAIR) {
         int32_t componentId = std::stoi(comPonentStr.at(m));
         std::string componentName = comPonentStr.at(m + 1);
-        TS_LOGE("comPonentStr[m] = %d, comPonentStr[m + 1] = %s", componentId, componentName.c_str());
+        TS_LOGI("comPonentStr[m] = %d, comPonentStr[m + 1] = %s", componentId, componentName.c_str());
         g_thirdPartyConfig.insert((std::map<int32_t, std::string>::value_type(componentId, componentName)));
     }
     return 0;
@@ -535,7 +566,9 @@ int32_t RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, Res
     int32_t ret = ts_->SearchDatabase(sql, callback);
     return ret;
 }
-int32_t RpcServer::WasmSqlQueryToProtoCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
+int32_t RpcServer::WasmSqlQueryToProtoCallback(const uint8_t* data,
+                                               size_t len,
+                                               SqllitePreparCacheData::TLVResultCallBack callback) const
 {
     ts_->SetCancel(false);
     std::string strData(reinterpret_cast<const char*>(data), len);
@@ -634,6 +667,7 @@ bool RpcServer::SplitFile(std::string timeSnaps)
     }
     ts_->minTs_ = std::stoull(vTimesnaps.at(0));
     ts_->maxTs_ = std::stoull(vTimesnaps.at(1));
+    TS_LOGI("minTs_=%" PRIu64 ", maxTs_=%" PRIu64 "", ts_->minTs_, ts_->maxTs_);
     return true;
 }
 

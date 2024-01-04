@@ -43,7 +43,7 @@ void HtraceHisyseventParser::Finish()
 }
 
 static std::stringstream ss;
-void HtraceHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader* tracePacket, uint64_t ts)
+void HtraceHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader* tracePacket, uint64_t ts, bool& haveSplitSeg)
 {
     // parse hisysevent device state
     if (tracePacket->has_device_state()) {
@@ -67,7 +67,10 @@ void HtraceHisyseventParser::Parse(ProtoReader::HisyseventInfo_Reader* tracePack
             continue;
         }
         jMessage = json::parse(hisyseventLine.raw_content().ToStdString());
-        streamFilters_->hiSysEventMeasureFilter_->FilterAllHiSysEvent(jMessage, hisyseventLine.id());
+        streamFilters_->hiSysEventMeasureFilter_->FilterAllHiSysEvent(jMessage, hisyseventLine.id(), haveSplitSeg);
+        if (haveSplitSeg) {
+            return;
+        }
     }
 }
 void HtraceHisyseventParser::Parse(ProtoReader::HisyseventConfig_Reader* tracePacket, uint64_t ts)

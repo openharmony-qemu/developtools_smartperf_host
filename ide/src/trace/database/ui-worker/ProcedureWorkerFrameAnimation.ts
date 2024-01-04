@@ -15,7 +15,15 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { BaseStruct, drawString, isFrameContainPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  drawLoadingFrame,
+  drawString,
+  isFrameContainPoint,
+  ns2x,
+  Rect,
+  Render,
+} from './ProcedureWorkerCommon';
 
 export class FrameAnimationRender extends Render {
   renderMainThread(
@@ -37,6 +45,7 @@ export class FrameAnimationRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let find: boolean = false;
     for (let index: number = 0; index < frameAnimationFilter.length; index++) {

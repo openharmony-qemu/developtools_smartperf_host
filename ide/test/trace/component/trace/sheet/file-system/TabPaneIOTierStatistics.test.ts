@@ -13,16 +13,12 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneIOTierStatistics } from '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneIOTierStatistics.js';
-import '../../../../../../dist/trace/component/trace/sheet/file-system/TabPaneIOTierStatistics.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneIOTierStatistics } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIOTierStatistics';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIOTierStatistics';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneFilter } from '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-// @ts-ignore
-import { getTabPaneIOTierStatisticsData } from '../../../../../../dist/trace/database/SqlLite.js';
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import { getTabPaneIOTierStatisticsData } from '../../../../../../src/trace/database/SqlLite';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -32,8 +28,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 Object.defineProperty(global.self, 'crypto', {
   value: {

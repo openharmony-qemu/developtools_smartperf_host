@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { UsbTransmissionChannel } from '../../../dist/hdc/transmission/UsbTransmissionChannel.js';
+import { UsbTransmissionChannel } from '../../../src/hdc/transmission/UsbTransmissionChannel';
 
 describe('UsbTransmissionChannel Test', () => {
     it('UsbTransmissionChannelTest01', () => {

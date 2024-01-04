@@ -21,6 +21,7 @@ import {
   ns2x,
   RequestMessage,
   Render,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { DiskAbilityMonitorStruct } from './ProcedureWorkerDiskIoAbility';
@@ -49,6 +50,7 @@ export class CpuAbilityRender extends Render {
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
     let find = false;
+    drawLoadingFrame(req.context, cpuAbilityRow.dataListCache, cpuAbilityRow);
     req.context.beginPath();
     for (let re of cpuAbilityFilter) {
       CpuAbilityMonitorStruct.draw(req.context, re, req.maxCpuUtilization, cpuAbilityRow.isHover);
@@ -76,64 +78,6 @@ export class CpuAbilityRender extends Render {
   }
 
   render(req: RequestMessage, list: Array<any>, filter: Array<any>) {}
-}
-
-export function cpuAbility(
-  cpuAbilityList: Array<any>,
-  cpuAbilityFilters: Array<any>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any,
-  use: boolean
-) {
-  if (use && cpuAbilityFilters.length > 0) {
-    for (let index = 0; index < cpuAbilityFilters.length; index++) {
-      let item = cpuAbilityFilters[index];
-      if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        CpuAbilityMonitorStruct.setCpuAbilityFrame(
-          cpuAbilityFilters[index],
-          5,
-          startNS || 0,
-          endNS || 0,
-          totalNS || 0,
-          frame
-        );
-      } else {
-        cpuAbilityFilters[index].frame = null;
-      }
-    }
-    return;
-  }
-  cpuAbilityFilters.length = 0;
-  if (cpuAbilityList) {
-    for (let cpuAbilityIndex = 0; cpuAbilityIndex < cpuAbilityList.length; cpuAbilityIndex++) {
-      let item = cpuAbilityList[cpuAbilityIndex];
-      if (cpuAbilityIndex === cpuAbilityList.length - 1) {
-        item.dur = (endNS || 0) - (item.startNS || 0);
-      } else {
-        item.dur = (cpuAbilityList[cpuAbilityIndex + 1].startNS || 0) - (item.startNS || 0);
-      }
-      if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        CpuAbilityMonitorStruct.setCpuAbilityFrame(
-          cpuAbilityList[cpuAbilityIndex],
-          5,
-          startNS || 0,
-          endNS || 0,
-          totalNS || 0,
-          frame
-        );
-        if (
-          cpuAbilityIndex > 0 &&
-          (cpuAbilityList[cpuAbilityIndex - 1].frame?.x || 0) == (cpuAbilityList[cpuAbilityIndex].frame?.x || 0) &&
-          (cpuAbilityList[cpuAbilityIndex - 1].frame?.width || 0) == (cpuAbilityList[cpuAbilityIndex].frame?.width || 0)
-        ) {
-        } else {
-          cpuAbilityFilters.push(item);
-        }
-      }
-    }
-  }
 }
 
 export class CpuAbilityMonitorStruct extends BaseStruct {

@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TableRowObject } from '../../../dist/base-ui/table/TableRowObject.js';
+import { TableRowObject } from '../../../src/base-ui/table/TableRowObject';
 
 describe('TableRowObject Test', () => {
   it('TableRowObjectTest01', () => {

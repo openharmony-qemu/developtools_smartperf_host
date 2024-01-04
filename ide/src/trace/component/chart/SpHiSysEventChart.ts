@@ -17,6 +17,7 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { HiSysEventRender, HiSysEventStruct } from '../../database/ui-worker/ProcedureWorkerHiSysEvent';
+import { hiSysEventDataSender } from '../../database/data-trafic/HiSysEventDataSender';
 import { queryHiSysEventData } from '../../database/SqlLite';
 
 export class SpHiSysEventChart {
@@ -31,24 +32,25 @@ export class SpHiSysEventChart {
     if (hiSysEventData.length === 0) {
       return;
     }
-    let eventRow = await this.initRow(hiSysEventData);
+    let eventRow = await this.initRow();
     this.trace.rowsEL?.appendChild(eventRow);
   }
-  async initRow(hiSysEventData: HiSysEventStruct[]): Promise<TraceRow<HiSysEventStruct>> {
+
+  async initRow(): Promise<TraceRow<HiSysEventStruct>> {
     let hiSysEventRow = TraceRow.skeleton<HiSysEventStruct>();
     hiSysEventRow.rowParentId = '';
     hiSysEventRow.rowId = 'Hisysevent';
     hiSysEventRow.rowType = TraceRow.ROW_TYPE_HI_SYSEVENT;
     hiSysEventRow.name = 'Hisysevent';
     hiSysEventRow.style.width = '100%';
-    hiSysEventRow.style.height = '40px';
-    hiSysEventRow.setAttribute('height', '40');
+    hiSysEventRow.style.height = `40px`;
+    hiSysEventRow.setAttribute('height', `40px`);
     hiSysEventRow.setAttribute('children', '');
-    hiSysEventRow.dataList = hiSysEventData;
-    hiSysEventRow.supplier = (): Promise<HiSysEventStruct[]> =>
-      new Promise((resolve): void => {
-        resolve(hiSysEventData);
+    hiSysEventRow.supplierFrame = () => {
+      return hiSysEventDataSender(hiSysEventRow).then((res) => {
+        return res;
       });
+    };
     hiSysEventRow.addTemplateTypes('HiSysEvent');
     hiSysEventRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     hiSysEventRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -68,7 +70,7 @@ export class SpHiSysEventChart {
         },
         hiSysEventRow!
       );
-      hiSysEventRow!.canvasRestore(context);
+      hiSysEventRow!.canvasRestore(context, this.trace);
     };
     return hiSysEventRow;
   }

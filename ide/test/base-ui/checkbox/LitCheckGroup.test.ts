@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitCheckGroup } from '../../../dist/base-ui/checkbox/LitCheckGroup.js';
+import { LitCheckGroup } from '../../../src/base-ui/checkbox/LitCheckGroup';
 
 describe('LitCheckGroup Test', () => {
   it('LitCheckGroupTest01', function () {

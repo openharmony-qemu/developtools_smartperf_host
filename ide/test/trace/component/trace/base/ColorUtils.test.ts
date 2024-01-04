@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { ColorUtils } from '../../../../../dist/trace/component/trace/base/ColorUtils.js';
+import { ColorUtils } from '../../../../../src/trace/component/trace/base/ColorUtils';
 
 describe('testColorUtils Test', () => {
   beforeAll(() => {});

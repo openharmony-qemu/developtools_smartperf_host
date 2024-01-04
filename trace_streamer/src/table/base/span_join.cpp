@@ -22,6 +22,7 @@ namespace TraceStreamer {
 
 const std::string TS_COLUMN_NAME = "ts";
 const std::string DUR_COLUMN_NAME = "dur";
+const uint32_t RESULT = 2;
 constexpr int32_t MINSIZE = 5;
 constexpr int32_t MAXSIZE = 1024;
 constexpr int32_t NEXT_NUMBER = 1;
@@ -96,7 +97,7 @@ bool SpanJoin::DeduplicationForColumn(const std::string& name, std::vector<Colum
 
 void SpanJoin::Parse(const std::string& tablePartition, TableParse& tableParse)
 {
-    std::vector<std::string> result = SplitStringToVec(tablePartition, " ");
+    std::vector<std::string> result = base::SplitStringToVec(tablePartition, " ");
     if (result.size() < PARTITIONED_COUNT) {
         TS_LOGW("span_join sql is invalid!");
     }
@@ -105,7 +106,7 @@ void SpanJoin::Parse(const std::string& tablePartition, TableParse& tableParse)
         TS_LOGW("sql has not PARTITIONED");
         return;
     }
-    tableParse.partitionCol = result.at(2);
+    tableParse.partitionCol = result.at(RESULT);
     return;
 }
 
@@ -151,6 +152,9 @@ void SpanJoin::GetColumns(const TraceDataCache* dataCache,
     char sql[MAXSIZE];
     std::string querySql = "SELECT name, type from PRAGMA_table_info(\"%s\")";
     int32_t n = snprintf_s(sql, sizeof(sql), sizeof(sql), querySql.c_str(), tableName.c_str());
+    if (n < 0 || n >= sizeof(sql)) {
+        TS_LOGE(" Failed to format SQL string ");
+    }
     sqlite3_stmt* stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(dataCache->db_, sql, n, &stmt, nullptr);
     while (!ret) {

@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitMainMenuItem } from '../../../dist/base-ui/menu/LitMainMenuItem.js';
+import { LitMainMenuItem } from '../../../src/base-ui/menu/LitMainMenuItem';
 
 describe('litMainMenuItem Test', () => {
   it('litMainMenuItem01', () => {

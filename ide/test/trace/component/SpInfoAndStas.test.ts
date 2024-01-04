@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpInfoAndStats } from '../../../dist/trace/component/SpInfoAndStas.js';
-const sqlit = require('../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../dist/trace/database/SqlLite.js');
+import { SpInfoAndStats } from '../../../src/trace/component/SpInfoAndStas';
+const sqlit = require('../../../src/trace/database/SqlLite');
+jest.mock('../../../src/trace/database/SqlLite');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

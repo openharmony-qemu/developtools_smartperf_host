@@ -12,11 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { HeapDataInterface } from '../../dist/js-heap/HeapDataInterface.js';
-//@ts-ignore
-import { HeapNode } from '../../dist/js-heap/model/DatabaseStruct.js';
-jest.mock('../../dist/js-heap/model/DatabaseStruct.js', () => {});
+import { HeapDataInterface } from '../../src/js-heap/HeapDataInterface';
+import { HeapNode } from '../../src/js-heap/model/DatabaseStruct';
+jest.mock('../../src/js-heap/model/DatabaseStruct', () => {});
 // @ts-ignore
 window.ResizeObserver =
     window.ResizeObserver ||
@@ -25,12 +23,12 @@ window.ResizeObserver =
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
-jest.mock('../../dist/js-heap/utils/Utils.js', () => {
+jest.mock('../../src/js-heap/utils/Utils', () => {
     return {
         HeapNodeToConstructorItem: (node: HeapNode) => {},
     };
 });
-jest.mock('../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../src/js-heap/model/DatabaseStruct', () => {});
 
 describe('HeapDataInterface Test', () => {
     let data = {

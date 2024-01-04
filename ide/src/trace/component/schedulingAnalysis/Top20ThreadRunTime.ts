@@ -77,7 +77,7 @@ export class Top20ThreadRunTime extends BaseElement {
 
   queryLogicWorker(option: string, log: string, handler: (res: any) => void) {
     let threadRunTime = new Date().getTime();
-    procedurePool.submitWithName('logic1', option, { cpuMax: SpSchedulingAnalysis.cpuCount - 1 }, undefined, handler);
+    procedurePool.submitWithName('logic0', option, { cpuMax: SpSchedulingAnalysis.cpuCount - 1 }, undefined, handler);
     let durTime = new Date().getTime() - threadRunTime;
     info(log, durTime);
   }

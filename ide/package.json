@@ -19,17 +19,9 @@
   "jest": {
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
-      "<rootDir>/dist/**/*.js",
-      "!<rootDir>/dist/bin/*",
-      "!<rootDir>/dist/trace/database/pixi.js",
-      "!<rootDir>/dist/trace/database/sql-wasm.js",
-      "!<rootDir>/dist/trace/database/uuidv4.min.js",
-      "!<rootDir>/dist/trace/database/worker.sql-wasm.js",
-      "!<rootDir>/dist/trace/database/worker.sql-wasm-debug.js",
-      "!<rootDir>/dist/trace/database/trace_streamer_builtin.js",
-      "!<rootDir>/dist/trace/database/trace_streamer_sdk_builtin.js",
-      "!<rootDir>/dist/trace/database/trace_streamer_dubai_builtin.js",
-      "!<rootDir>/dist/trace/database/trace_converter_builtin.js"
+      "<rootDir>/src/**/*.ts",
+      "!<rootDir>/src/trace/proto/SphBaseData.js",
+      "!<rootDir>/src/trace/grpc/*.ts"
     ],
     "globals": {
       "useWb": true
@@ -39,7 +31,15 @@
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
-    ]
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ],
+    "transform": {
+      "\\.[jt]sx?$": "babel-jest"
+    }
   },
   "repository": {
     "type": "git",
@@ -53,6 +53,7 @@
     "@babel/plugin-proposal-decorators": "^7.17.2",
     "@babel/preset-env": "^7.23.2",
     "@babel/preset-typescript": "*",
+    "@types/google-protobuf": "^3.15.9",
     "@types/jest": "*",
     "@types/node": "^17.0.10",
     "typescript": "^5.2.2",
@@ -67,14 +68,19 @@
     "mini-css-extract-plugin": "^2.7.6",
     "style-loader": "^3.3.3",
     "ts-loader": "^9.4.4",
-    "@webpack-cli/generators": "^3.0.7",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "html-webpack-plugin": "^5.5.3",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "jest-worker": "^29.5.0"
+    "jest-worker": "^29.5.0",
+    "protobufjs": "^7.2.5",
+    "protobufjs-cli": "^1.1.2",
+    "@babel/plugin-proposal-private-methods": "^7.18.6",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
+    "babel-jest": "^29.7.0"
   },
   "dependencies": {
     "@webcomponents/custom-elements": "^1.6.0"

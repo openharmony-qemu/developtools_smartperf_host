@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-jest.mock('../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
 
-// @ts-ignore
-import { TabPaneFlag } from '../../../../../dist/trace/component/trace/timer-shaft/TabPaneFlag.js';
+import { TabPaneFlag } from '../../../../../src/trace/component/trace/timer-shaft/TabPaneFlag';
 
 describe('TabPaneFlag Test', () => {
   const canvas = document.createElement('canvas');

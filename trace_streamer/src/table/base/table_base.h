@@ -25,7 +25,6 @@
 #include "index_map.h"
 #include "sqlite3.h"
 #include "trace_data_cache.h"
-
 #define UNUSED(expr)             \
     do {                         \
         static_cast<void>(expr); \
@@ -120,13 +119,30 @@ protected:
     {
         return SQLITE_READONLY;
     }
+
     int32_t BestIndex(sqlite3_index_info* idxInfo);
     // needs to correspond to Cursor::Filter()
-    virtual void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+    virtual void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount, uint32_t currenti)
     {
-        UNUSED(ei);
         UNUSED(fc);
+        UNUSED(filterCost);
+        UNUSED(rowCount);
+        UNUSED(currenti);
     }
+
+    virtual int64_t GetSize()
+    {
+        return -1;
+    }
+
+    virtual void GetOrbyes(FilterConstraints& fc, EstimatedIndexInfo& ei)
+    {
+        UNUSED(fc);
+        UNUSED(ei);
+    }
+    // needs to correspond to Cursor::Filter()
+    virtual void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei);
+
     virtual std::unique_ptr<Cursor> CreateCursor() = 0;
     int32_t Open(sqlite3_vtab_cursor** ppCursor);
     virtual void Init(int32_t, const char* const*)

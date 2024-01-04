@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { debug, error, info, log, trace, warn, SpLog, LogLevel } from '../../dist/log/Log.js';
+import { debug, error, info, log, trace, warn, SpLog, LogLevel } from '../../src/log/Log';
 
 describe(' logTest', () => {
   ``;

@@ -408,10 +408,10 @@ bool TraceDataCache::ExportHookDataReadableText(int32_t fd, std::string& bufferL
 bool TraceDataCache::ExportHookStatisticReadableText(int32_t fd, std::string& bufferLine)
 {
     std::map<uint32_t, std::string_view> statisticEventTypeMap = {
-        {HookMemoryType::MALLOC, "AllocEvent"},
-        {HookMemoryType::MMAP, "MmapEvent"},
-        {HookMemoryType::FILE_PAGE_MSG, "FilePageEvent"},
-        {HookMemoryType::MEMORY_USING_MSG, "MemoryUsingEvent"}};
+        {static_cast<uint32_t>(HookMemoryType::MALLOC), "AllocEvent"},
+        {static_cast<uint32_t>(HookMemoryType::MMAP), "MmapEvent"},
+        {static_cast<uint32_t>(HookMemoryType::FILE_PAGE_MSG), "FilePageEvent"},
+        {static_cast<uint32_t>(HookMemoryType::MEMORY_USING_MSG), "MemoryUsingEvent"}};
     for (uint64_t row = 0; row < nativeHookStatisticData_.Size();) {
         auto ipid = nativeHookStatisticData_.Ipids()[row];
         auto statisticTaskId = internalProcessesData_[ipid].pid_;

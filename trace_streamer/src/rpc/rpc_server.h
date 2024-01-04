@@ -47,7 +47,9 @@ public:
     int32_t WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int32_t outLen);
     bool SqlMetricsQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
     int32_t WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
-    int32_t WasmSqlQueryToProtoCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
+    int32_t WasmSqlQueryToProtoCallback(const uint8_t* data,
+                                        size_t len,
+                                        SqllitePreparCacheData::TLVResultCallBack callback) const;
     int32_t UpdateTraceTime(const uint8_t* data, int32_t len);
     int32_t TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int32_t len);
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
@@ -82,6 +84,9 @@ public:
 
 private:
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+    bool SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
+
+private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;
     std::vector<std::string> symbolsPathFiles_;

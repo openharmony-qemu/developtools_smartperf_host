@@ -148,7 +148,7 @@ struct RawTraceFileHeader {
     uint32_t reserved;
 } __attribute__((aligned(4)));
 
-enum RawTraceContentType : uint8_t {
+enum class RawTraceContentType : uint8_t {
     CONTENT_TYPE_DEFAULT = 0,
     CONTENT_TYPE_EVENTS_FORMAT = 1,
     CONTENT_TYPE_CMDLINES = 2,
@@ -158,7 +158,7 @@ enum RawTraceContentType : uint8_t {
     CONTENT_TYPE_PRINTK_FORMATS = 31,
     CONTENT_TYPE_KALLSYMS = 32
 };
-enum RawTraceFileType : uint8_t { FILE_RAW_TRACE = 0, HM_FILE_RAW_TRACE = 1 };
+enum class RawTraceFileType : uint8_t { FILE_RAW_TRACE = 0, HM_FILE_RAW_TRACE = 1 };
 } // namespace TraceStreamer
 } // namespace SysTuning
 #endif // _BYTRACE_COMMON_TYPES_H_

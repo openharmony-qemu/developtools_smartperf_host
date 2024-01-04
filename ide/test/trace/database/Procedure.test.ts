@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { procedurePool, ProcedureThread } from '../../../dist/trace/database/Procedure.js';
+import { procedurePool, ProcedureThread } from '../../../src/trace/database/Procedure';
 
 describe('procedure Test', () => {
   it('ProfilerClientTest02', function () {

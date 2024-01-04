@@ -50,13 +50,15 @@ export class SelectionParam {
   cpuFreqFilterNames: Array<string> = [];
   cpuStateFilterIds: Array<number> = [];
   cpuFreqFilterIds: Array<number> = [];
-  cpuFreqLimitDatas: Array<Array<CpuFreqLimitsStruct>> = [];
   threadIds: Array<number> = [];
   processIds: Array<number> = [];
   processTrackIds: Array<number> = [];
   virtualTrackIds: Array<number> = [];
-  clockMapData: Map<string, Array<ClockStruct>> = new Map<string, Array<ClockStruct>>();
-  irqMapData: Map<string, Array<IrqStruct>> = new Map<string, Array<IrqStruct>>();
+  cpuFreqLimit: Array<any> = [];
+  clockMapData: Map<string, ((arg: any) => Promise<Array<any>> | undefined) | undefined>
+    = new Map<string, ((arg: any) => (Promise<Array<any>> | undefined)) | undefined>();
+  irqCallIds: Array<number> = [];
+  softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
   funAsync: Array<{ name: string; pid: number }> = [];
   nativeMemory: Array<String> = [];
@@ -112,8 +114,10 @@ export class SelectionParam {
   gpuMemoryAbilityData: Array<any> = [];
   dmaVmTrackerData: Array<any> = [];
   gpuMemoryTrackerData: Array<any> = [];
-  hiLogs: Array<LogStruct> = [];
-  hiSysEvents: Array<HiSysEventStruct> = [];
+  hiLogs: Array<string> = [];
+  sysAllEventsData: Array<HiSysEventStruct> = [];
+  sysAlllogsData: Array<LogStruct> = [];
+  hiSysEvents: Array<string> = [];
 }
 
 export class BoxJumpParam {

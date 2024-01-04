@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { StackBar } from '../../../dist/trace/component/StackBar.js';
+import { StackBar } from '../../../src/trace/component/StackBar';
 
 describe('StackBar Test', () => {
   let stackBar = new StackBar();

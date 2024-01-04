@@ -13,21 +13,17 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 
-// @ts-ignore
 import {
   FrameDynamicRender,
   FrameDynamicStruct,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerFrameDynamic.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { AnimationRanges } from '../../../../dist/trace/bean/FrameComponentBean.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameDynamic';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { AnimationRanges } from '../../../../src/trace/bean/FrameComponentBean';
 
 describe('FrameDynamic Test', () => {
   let frameDynamicRender = new FrameDynamicRender();

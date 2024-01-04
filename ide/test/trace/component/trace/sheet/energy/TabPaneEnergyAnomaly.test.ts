@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneEnergyAnomaly } from '../../../../../../dist/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly.js';
-import '../../../../../../dist/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly.js';
+import { TabPaneEnergyAnomaly } from '../../../../../../src/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly';
+import '../../../../../../src/trace/component/trace/sheet/energy/TabPaneEnergyAnomaly';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -25,11 +24,11 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPanePowerBattery Test', () => {
   it('TabPaneEnergyAnomalyTest01', function () {

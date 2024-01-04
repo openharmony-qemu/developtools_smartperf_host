@@ -16,27 +16,13 @@
 import { SpSystemTrace } from '../SpSystemTrace';
 import {
   queryAbilityExits,
-  queryBytesInAbilityData,
-  queryBytesOutAbilityData,
-  queryBytesReadAbilityData,
-  queryBytesWrittenAbilityData,
-  queryCachedFilesAbilityData,
-  queryCompressedAbilityData,
-  queryCpuAbilityData,
   queryCPuAbilityMaxData,
-  queryCpuAbilitySystemData,
-  queryCpuAbilityUserData,
   queryDiskIoMaxData,
   queryDmaAbilityData,
   queryGpuMemoryAbilityData,
   queryMemoryMaxData,
-  queryMemoryUsedAbilityData,
   queryNetWorkMaxData,
-  queryPacketsInAbilityData,
-  queryPacketsOutAbilityData,
   queryPurgeableSysData,
-  queryReadAbilityData,
-  queryWrittenAbilityData,
 } from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
@@ -52,7 +38,19 @@ import {
 } from '../../database/ui-worker/ProcedureWorkerNetworkAbility';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot';
-
+import {
+  abilityBytesInTraceDataSender,
+  abilityBytesReadDataSender,
+  abilityMemoryUsedDataSender,
+  cpuAbilityUserDataSender,
+} from '../../database/data-trafic/AbilityMonitorSender';
+import {
+  abilityDmaDataSender,
+  abilityGpuMemoryDataSender,
+  abilityPurgeableDataSender,
+} from '../../database/data-trafic/VmTrackerDataSender';
+import { MemoryConfig } from '../../bean/MemoryConfig';
+import { resetAbility } from '../../database/data-trafic/VmTrackerDataReceiver';
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;
   constructor(trace: SpSystemTrace) {
@@ -100,8 +98,16 @@ export class SpAbilityMonitorChart {
     if (this.hasTable(result, 'trace_network')) {
       await this.initNetworkAbility(processRow);
     }
+    resetAbility();
     // 初始化PurgeableToTal和PurgeablePin泳道图
-    await this.initPurgeableAbility(processRow);
+    let totalDataList = await queryPurgeableSysData(false);
+    let pinDataList = await queryPurgeableSysData(true);
+    if (totalDataList.length > 0) {
+      await this.initPurgeableTotal(processRow);
+    }
+    if (pinDataList.length > 0) {
+      await this.initPurgeablePin(processRow);
+    }
     await this.initDmaAbility(processRow);
     await this.initGpuMemoryAbility(processRow);
     let durTime = new Date().getTime() - time;
@@ -114,7 +120,7 @@ export class SpAbilityMonitorChart {
     });
   }
 
-  private initAbilityRow = () => {
+  private initAbilityRow = (): TraceRow<ProcessStruct> => {
     let abilityRow = TraceRow.skeleton<ProcessStruct>();
     abilityRow.rowId = 'abilityMonitor';
     abilityRow.rowType = TraceRow.ROW_TYPE_MONITOR;
@@ -124,8 +130,8 @@ export class SpAbilityMonitorChart {
     abilityRow.name = 'Ability Monitor';
     abilityRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     abilityRow.selectChangeHandler = this.trace.selectChangeHandler;
-    abilityRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-    abilityRow.onThreadHandler = (useCache) => {
+    abilityRow.supplier = (): Promise<any[]> => new Promise<Array<any>>((resolve) => resolve([]));
+    abilityRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (abilityRow.currentContext) {
         context = abilityRow.currentContext;
@@ -145,13 +151,13 @@ export class SpAbilityMonitorChart {
           abilityRow
         );
       }
-      abilityRow.canvasRestore(context);
+      abilityRow.canvasRestore(context, this.trace);
     };
     this.trace.rowsEL?.appendChild(abilityRow);
     return abilityRow;
   };
 
-  private initCpuAbility = async (processRow: TraceRow<ProcessStruct>) => {
+  private initCpuAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
     let time = new Date().getTime();
     let cpuMaxData = await queryCPuAbilityMaxData();
     let hasTotal = false;
@@ -181,15 +187,26 @@ export class SpAbilityMonitorChart {
     traceRow.style.width = `100%`;
     traceRow.setAttribute('children', '');
     traceRow.name = `CPU ${cpuNameList[0]} Load`;
-    traceRow.supplier = () => queryCpuAbilityData();
-    traceRow.focusHandler = (ev) => {
+    traceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
+      cpuAbilityUserDataSender(traceRow, 'CpuAbilityMonitorData').then((res): CpuAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    traceRow.focusHandler = (ev): void => {
       let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
       this.trace?.displayTip(traceRow, CpuAbilityMonitorStruct.hoverCpuAbilityStruct, `<span>${monitorCpuTip}</span>`);
     };
-    traceRow.findHoverStruct = () => {
+    traceRow.findHoverStruct = (): void => {
       CpuAbilityMonitorStruct.hoverCpuAbilityStruct = traceRow.getHoverStruct();
     };
-    traceRow.onThreadHandler = (useCache) => {
+    traceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (traceRow.currentContext) {
         context = traceRow.currentContext;
@@ -207,7 +224,7 @@ export class SpAbilityMonitorChart {
         },
         traceRow
       );
-      traceRow.canvasRestore(context);
+      traceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(traceRow);
     let userTraceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
@@ -221,8 +238,19 @@ export class SpAbilityMonitorChart {
     userTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
     userTraceRow.setAttribute('children', '');
     userTraceRow.name = `CPU ${cpuNameList[1]} Load`;
-    userTraceRow.supplier = () => queryCpuAbilityUserData();
-    userTraceRow.focusHandler = (ev) => {
+    userTraceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
+      cpuAbilityUserDataSender(userTraceRow, 'CpuAbilityUserData').then((res): CpuAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    userTraceRow.focusHandler = (ev): void => {
       let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
       this.trace?.displayTip(
         userTraceRow,
@@ -230,10 +258,10 @@ export class SpAbilityMonitorChart {
         `<span>${monitorCpuTip}</span>`
       );
     };
-    userTraceRow.findHoverStruct = () => {
+    userTraceRow.findHoverStruct = (): void => {
       CpuAbilityMonitorStruct.hoverCpuAbilityStruct = userTraceRow.getHoverStruct();
     };
-    userTraceRow.onThreadHandler = (useCache) => {
+    userTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (userTraceRow.currentContext) {
         context = userTraceRow.currentContext;
@@ -251,7 +279,7 @@ export class SpAbilityMonitorChart {
         },
         userTraceRow
       );
-      userTraceRow.canvasRestore(context);
+      userTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(userTraceRow);
     let sysTraceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
@@ -265,8 +293,19 @@ export class SpAbilityMonitorChart {
     sysTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
     sysTraceRow.setAttribute('children', '');
     sysTraceRow.name = `CPU ${cpuNameList[2]} Load`;
-    sysTraceRow.supplier = () => queryCpuAbilitySystemData();
-    sysTraceRow.focusHandler = (ev) => {
+    sysTraceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
+      cpuAbilityUserDataSender(sysTraceRow, 'CpuAbilitySystemData').then((res): CpuAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    sysTraceRow.focusHandler = (ev): void => {
       let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
       this.trace?.displayTip(
         sysTraceRow,
@@ -274,10 +313,10 @@ export class SpAbilityMonitorChart {
         `<span>${monitorCpuTip}</span>`
       );
     };
-    sysTraceRow.findHoverStruct = () => {
+    sysTraceRow.findHoverStruct = (): void => {
       CpuAbilityMonitorStruct.hoverCpuAbilityStruct = sysTraceRow.getHoverStruct();
     };
-    sysTraceRow.onThreadHandler = (useCache) => {
+    sysTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (sysTraceRow.currentContext) {
         context = sysTraceRow.currentContext;
@@ -295,14 +334,14 @@ export class SpAbilityMonitorChart {
         },
         sysTraceRow
       );
-      sysTraceRow.canvasRestore(context);
+      sysTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(sysTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Cpu is: ', durTime);
   };
 
-  private initMemoryAbility = async (processRow: TraceRow<ProcessStruct>) => {
+  private initMemoryAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
     let time = new Date().getTime();
     // sys.mem.total  sys.mem.cached  sys.mem.swap.total
     let memoryNameList: Array<string> = ['MemoryTotal', 'Cached', 'SwapTotal'];
@@ -321,18 +360,32 @@ export class SpAbilityMonitorChart {
     memoryUsedTraceRow.style.width = `100%`;
     memoryUsedTraceRow.setAttribute('children', '');
     memoryUsedTraceRow.name = memoryNameList[0];
-    memoryUsedTraceRow.supplier = () => queryMemoryUsedAbilityData(memoryTotalId);
-    memoryUsedTraceRow.focusHandler = (ev) => {
+    memoryUsedTraceRow.supplierFrame = (): Promise<MemoryAbilityMonitorStruct[]> => {
+      return abilityMemoryUsedDataSender(memoryTotalId, memoryUsedTraceRow).then(
+        (res): MemoryAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    };
+    memoryUsedTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         memoryUsedTraceRow,
         MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct,
         `<span>${Utils.getBinaryKBWithUnit(MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.value || 0)}</span>`
       );
     };
-    memoryUsedTraceRow.findHoverStruct = () => {
+    memoryUsedTraceRow.findHoverStruct = (): void => {
       MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = memoryUsedTraceRow.getHoverStruct();
     };
-    memoryUsedTraceRow.onThreadHandler = (useCache) => {
+    memoryUsedTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (memoryUsedTraceRow.currentContext) {
         context = memoryUsedTraceRow.currentContext;
@@ -350,7 +403,7 @@ export class SpAbilityMonitorChart {
         },
         memoryUsedTraceRow
       );
-      memoryUsedTraceRow.canvasRestore(context);
+      memoryUsedTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(memoryUsedTraceRow);
     let cached = await queryMemoryMaxData('sys.mem.cached');
@@ -368,18 +421,29 @@ export class SpAbilityMonitorChart {
     cachedFilesTraceRow.style.width = `100%`;
     cachedFilesTraceRow.setAttribute('children', '');
     cachedFilesTraceRow.name = memoryNameList[1];
-    cachedFilesTraceRow.supplier = () => queryCachedFilesAbilityData(cachedId);
-    cachedFilesTraceRow.focusHandler = (ev) => {
+    cachedFilesTraceRow.supplierFrame = (): Promise<MemoryAbilityMonitorStruct[]> =>
+      abilityMemoryUsedDataSender(cachedId, cachedFilesTraceRow).then((res): MemoryAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    cachedFilesTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         cachedFilesTraceRow,
         MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct,
         `<span>${Utils.getBinaryKBWithUnit(MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.value || 0)}</span>`
       );
     };
-    cachedFilesTraceRow.findHoverStruct = () => {
+    cachedFilesTraceRow.findHoverStruct = (): void => {
       MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = cachedFilesTraceRow.getHoverStruct();
     };
-    cachedFilesTraceRow.onThreadHandler = (useCache) => {
+    cachedFilesTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (cachedFilesTraceRow.currentContext) {
         context = cachedFilesTraceRow.currentContext;
@@ -397,7 +461,7 @@ export class SpAbilityMonitorChart {
         },
         cachedFilesTraceRow
       );
-      cachedFilesTraceRow.canvasRestore(context);
+      cachedFilesTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(cachedFilesTraceRow);
     let swap = await queryMemoryMaxData('sys.mem.swap.total');
@@ -415,18 +479,29 @@ export class SpAbilityMonitorChart {
     compressedTraceRow.style.width = `100%`;
     compressedTraceRow.setAttribute('children', '');
     compressedTraceRow.name = memoryNameList[2];
-    compressedTraceRow.supplier = () => queryCompressedAbilityData(swapId);
-    compressedTraceRow.focusHandler = (ev) => {
+    compressedTraceRow.supplierFrame = (): Promise<MemoryAbilityMonitorStruct[]> =>
+      abilityMemoryUsedDataSender(swapId, compressedTraceRow).then((res): MemoryAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    compressedTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         compressedTraceRow,
         MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct,
         `<span>${Utils.getBinaryKBWithUnit(MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.value || 0)}</span>`
       );
     };
-    compressedTraceRow.findHoverStruct = () => {
+    compressedTraceRow.findHoverStruct = (): void => {
       MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = compressedTraceRow.getHoverStruct();
     };
-    compressedTraceRow.onThreadHandler = (useCache) => {
+    compressedTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (compressedTraceRow.currentContext) {
         context = compressedTraceRow.currentContext;
@@ -444,14 +519,14 @@ export class SpAbilityMonitorChart {
         },
         compressedTraceRow
       );
-      compressedTraceRow.canvasRestore(context);
+      compressedTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(compressedTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Memory is: ', durTime);
   };
 
-  private initDiskAbility = async (processRow: TraceRow<ProcessStruct>) => {
+  private initDiskAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
     let time = new Date().getTime();
     let maxList = await queryDiskIoMaxData();
     let maxBytesRead = maxList[0].bytesRead;
@@ -468,18 +543,29 @@ export class SpAbilityMonitorChart {
     bytesReadTraceRow.style.width = `100%`;
     bytesReadTraceRow.setAttribute('children', '');
     bytesReadTraceRow.name = 'Disk ' + diskIONameList[0];
-    bytesReadTraceRow.supplier = () => queryBytesReadAbilityData();
-    bytesReadTraceRow.focusHandler = (ev) => {
+    bytesReadTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
+      abilityBytesReadDataSender(bytesReadTraceRow, 'AbilityBytesReadData').then((res): DiskAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    bytesReadTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         bytesReadTraceRow,
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
     };
-    bytesReadTraceRow.findHoverStruct = () => {
+    bytesReadTraceRow.findHoverStruct = (): void => {
       DiskAbilityMonitorStruct.hoverDiskAbilityStruct = bytesReadTraceRow.getHoverStruct();
     };
-    bytesReadTraceRow.onThreadHandler = (useCache) => {
+    bytesReadTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (bytesReadTraceRow.currentContext) {
         context = bytesReadTraceRow.currentContext;
@@ -497,7 +583,7 @@ export class SpAbilityMonitorChart {
         },
         bytesReadTraceRow
       );
-      bytesReadTraceRow.canvasRestore(context);
+      bytesReadTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(bytesReadTraceRow);
     let maxBytesWrite = maxList[0].bytesWrite;
@@ -513,18 +599,31 @@ export class SpAbilityMonitorChart {
     bytesWrittenTraceRow.style.width = `100%`;
     bytesWrittenTraceRow.setAttribute('children', '');
     bytesWrittenTraceRow.name = 'Disk ' + diskIONameList[1];
-    bytesWrittenTraceRow.supplier = () => queryBytesWrittenAbilityData();
-    bytesWrittenTraceRow.focusHandler = (ev) => {
+    bytesWrittenTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
+      abilityBytesReadDataSender(bytesWrittenTraceRow, 'AbilityBytesWrittenData').then(
+        (res): DiskAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    bytesWrittenTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         bytesWrittenTraceRow,
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
     };
-    bytesWrittenTraceRow.findHoverStruct = () => {
+    bytesWrittenTraceRow.findHoverStruct = (): void => {
       DiskAbilityMonitorStruct.hoverDiskAbilityStruct = bytesWrittenTraceRow.getHoverStruct();
     };
-    bytesWrittenTraceRow.onThreadHandler = (useCache) => {
+    bytesWrittenTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (bytesWrittenTraceRow.currentContext) {
         context = bytesWrittenTraceRow.currentContext;
@@ -542,7 +641,7 @@ export class SpAbilityMonitorChart {
         },
         bytesWrittenTraceRow
       );
-      bytesWrittenTraceRow.canvasRestore(context);
+      bytesWrittenTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(bytesWrittenTraceRow);
     let maxReadOps = maxList[0].readOps;
@@ -558,18 +657,29 @@ export class SpAbilityMonitorChart {
     readOpsTraceRow.style.width = `100%`;
     readOpsTraceRow.setAttribute('children', '');
     readOpsTraceRow.name = 'Disk ' + diskIONameList[2];
-    readOpsTraceRow.supplier = () => queryReadAbilityData();
-    readOpsTraceRow.focusHandler = (ev) => {
+    readOpsTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
+      abilityBytesReadDataSender(readOpsTraceRow, 'AbilityReadOpsData').then((res): DiskAbilityMonitorStruct[] => {
+        let endNS = TraceRow.range?.endNS || 0;
+        res.forEach((it, i) => {
+          if (i === res.length - 1) {
+            it.dur = (endNS || 0) - (it.startNS || 0);
+          } else {
+            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+          }
+        });
+        return res;
+      });
+    readOpsTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         readOpsTraceRow,
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
     };
-    readOpsTraceRow.findHoverStruct = () => {
+    readOpsTraceRow.findHoverStruct = (): void => {
       DiskAbilityMonitorStruct.hoverDiskAbilityStruct = readOpsTraceRow.getHoverStruct();
     };
-    readOpsTraceRow.onThreadHandler = (useCache) => {
+    readOpsTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (readOpsTraceRow.currentContext) {
         context = readOpsTraceRow.currentContext;
@@ -587,7 +697,7 @@ export class SpAbilityMonitorChart {
         },
         readOpsTraceRow
       );
-      readOpsTraceRow.canvasRestore(context);
+      readOpsTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(readOpsTraceRow);
     let maxWriteOps = maxList[0].writeOps;
@@ -603,18 +713,31 @@ export class SpAbilityMonitorChart {
     writtenOpsTraceRow.style.width = `100%`;
     writtenOpsTraceRow.setAttribute('children', '');
     writtenOpsTraceRow.name = 'Disk ' + diskIONameList[3];
-    writtenOpsTraceRow.supplier = () => queryWrittenAbilityData();
-    writtenOpsTraceRow.focusHandler = (ev) => {
+    writtenOpsTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
+      abilityBytesReadDataSender(writtenOpsTraceRow, 'AbilityWrittenOpsData').then(
+        (res): DiskAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    writtenOpsTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         writtenOpsTraceRow,
         DiskAbilityMonitorStruct.hoverDiskAbilityStruct,
         `<span>${DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.value || '0'} KB/S</span>`
       );
     };
-    writtenOpsTraceRow.findHoverStruct = () => {
+    writtenOpsTraceRow.findHoverStruct = (): void => {
       DiskAbilityMonitorStruct.hoverDiskAbilityStruct = writtenOpsTraceRow.getHoverStruct();
     };
-    writtenOpsTraceRow.onThreadHandler = (useCache) => {
+    writtenOpsTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (writtenOpsTraceRow.currentContext) {
         context = writtenOpsTraceRow.currentContext;
@@ -632,14 +755,14 @@ export class SpAbilityMonitorChart {
         },
         writtenOpsTraceRow
       );
-      writtenOpsTraceRow.canvasRestore(context);
+      writtenOpsTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(writtenOpsTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability DiskIO is: ', durTime);
   };
 
-  private initNetworkAbility = async (processRow: TraceRow<ProcessStruct>) => {
+  private initNetworkAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
     let time = new Date().getTime();
     let maxList = await queryNetWorkMaxData();
     let maxBytesIn = maxList[0].maxIn;
@@ -656,18 +779,31 @@ export class SpAbilityMonitorChart {
     bytesInTraceRow.style.width = `100%`;
     bytesInTraceRow.setAttribute('children', '');
     bytesInTraceRow.name = 'Network ' + networkNameList[0];
-    bytesInTraceRow.supplier = () => queryBytesInAbilityData();
-    bytesInTraceRow.focusHandler = (ev) => {
+    bytesInTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
+      abilityBytesInTraceDataSender(bytesInTraceRow, 'AbilityBytesInTraceData').then(
+        (res): NetworkAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    bytesInTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         bytesInTraceRow,
         NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct,
         `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.value || 0)}</span>`
       );
     };
-    bytesInTraceRow.findHoverStruct = () => {
+    bytesInTraceRow.findHoverStruct = (): void => {
       NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = bytesInTraceRow.getHoverStruct();
     };
-    bytesInTraceRow.onThreadHandler = (useCache) => {
+    bytesInTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (bytesInTraceRow.currentContext) {
         context = bytesInTraceRow.currentContext;
@@ -685,7 +821,7 @@ export class SpAbilityMonitorChart {
         },
         bytesInTraceRow
       );
-      bytesInTraceRow.canvasRestore(context);
+      bytesInTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(bytesInTraceRow);
     let bytesOutTraceRow = TraceRow.skeleton<NetworkAbilityMonitorStruct>();
@@ -701,18 +837,31 @@ export class SpAbilityMonitorChart {
     bytesOutTraceRow.style.width = `100%`;
     bytesOutTraceRow.setAttribute('children', '');
     bytesOutTraceRow.name = 'Network ' + networkNameList[1];
-    bytesOutTraceRow.supplier = () => queryBytesOutAbilityData();
-    bytesOutTraceRow.focusHandler = (ev) => {
+    bytesOutTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
+      abilityBytesInTraceDataSender(bytesOutTraceRow, 'AbilityBytesOutTraceData').then(
+        (res): NetworkAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    bytesOutTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         bytesOutTraceRow,
         NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct,
         `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.value || 0)}</span>`
       );
     };
-    bytesOutTraceRow.findHoverStruct = () => {
+    bytesOutTraceRow.findHoverStruct = (): void => {
       NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = bytesOutTraceRow.getHoverStruct();
     };
-    bytesOutTraceRow.onThreadHandler = (useCache) => {
+    bytesOutTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (bytesOutTraceRow.currentContext) {
         context = bytesOutTraceRow.currentContext;
@@ -730,7 +879,7 @@ export class SpAbilityMonitorChart {
         },
         bytesOutTraceRow
       );
-      bytesOutTraceRow.canvasRestore(context);
+      bytesOutTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(bytesOutTraceRow);
     let packetInTraceRow = TraceRow.skeleton<NetworkAbilityMonitorStruct>();
@@ -746,18 +895,31 @@ export class SpAbilityMonitorChart {
     packetInTraceRow.style.width = `100%`;
     packetInTraceRow.setAttribute('children', '');
     packetInTraceRow.name = 'Network ' + networkNameList[2];
-    packetInTraceRow.supplier = () => queryPacketsInAbilityData();
-    packetInTraceRow.focusHandler = (ev) => {
+    packetInTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
+      abilityBytesInTraceDataSender(packetInTraceRow, 'AbilityPacketInTraceData').then(
+        (res): NetworkAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    packetInTraceRow.focusHandler = (ev): void => {
       this.trace?.displayTip(
         packetInTraceRow,
         NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct,
         `<span>${Utils.getBinaryByteWithUnit(NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.value || 0)}</span>`
       );
     };
-    packetInTraceRow.findHoverStruct = () => {
+    packetInTraceRow.findHoverStruct = (): void => {
       NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = packetInTraceRow.getHoverStruct();
     };
-    packetInTraceRow.onThreadHandler = (useCache) => {
+    packetInTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (packetInTraceRow.currentContext) {
         context = packetInTraceRow.currentContext;
@@ -775,7 +937,7 @@ export class SpAbilityMonitorChart {
         },
         packetInTraceRow
       );
-      packetInTraceRow.canvasRestore(context);
+      packetInTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(packetInTraceRow);
     let packetOutTraceRow = TraceRow.skeleton<NetworkAbilityMonitorStruct>();
@@ -791,8 +953,21 @@ export class SpAbilityMonitorChart {
     packetOutTraceRow.style.width = `100%`;
     packetOutTraceRow.setAttribute('children', '');
     packetOutTraceRow.name = 'Network ' + networkNameList[3];
-    packetOutTraceRow.supplier = () => queryPacketsOutAbilityData();
-    packetOutTraceRow.focusHandler = (ev) => {
+    packetOutTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
+      abilityBytesInTraceDataSender(packetOutTraceRow, 'AbilityPacketsOutTraceData').then(
+        (res): NetworkAbilityMonitorStruct[] => {
+          let endNS = TraceRow.range?.endNS || 0;
+          res.forEach((it, i) => {
+            if (i === res.length - 1) {
+              it.dur = (endNS || 0) - (it.startNS || 0);
+            } else {
+              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
+            }
+          });
+          return res;
+        }
+      );
+    packetOutTraceRow.focusHandler = (ev): void => {
       if (NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct) {
         this.trace?.displayTip(
           packetOutTraceRow,
@@ -801,10 +976,10 @@ export class SpAbilityMonitorChart {
         );
       }
     };
-    packetOutTraceRow.findHoverStruct = () => {
+    packetOutTraceRow.findHoverStruct = (): void => {
       NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = packetOutTraceRow.getHoverStruct();
     };
-    packetOutTraceRow.onThreadHandler = (useCache) => {
+    packetOutTraceRow.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (packetOutTraceRow.currentContext) {
         context = packetOutTraceRow.currentContext;
@@ -822,173 +997,70 @@ export class SpAbilityMonitorChart {
         },
         packetOutTraceRow
       );
-      packetOutTraceRow.canvasRestore(context);
+      packetOutTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(packetOutTraceRow);
     let durTime = new Date().getTime() - time;
     info('The time to load the Ability Network is: ', durTime);
   };
 
-  private initPurgeableAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
-    let time = new Date().getTime();
-    let purgeableTotalData = await queryPurgeableSysData();
-    if (purgeableTotalData.length > 0) {
-      for (let i = 0; i < purgeableTotalData.length; i++) {
-        purgeableTotalData[i].name = 'Snapshot' + i;
-      }
-      let totalTraceRow = TraceRow.skeleton<SnapshotStruct>();
-      totalTraceRow.rowParentId = `abilityMonitor`;
-      totalTraceRow.rowHidden = !processRow.expansion;
-      totalTraceRow.rowId = 'System Purgeable Total';
-      totalTraceRow.rowType = TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY;
-      totalTraceRow.style.height = '40px';
-      totalTraceRow.style.width = `100%`;
-      totalTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      totalTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      totalTraceRow.setAttribute('children', '');
-      totalTraceRow.name = `Purgeable Total`;
-      totalTraceRow.addTemplateTypes('Memory');
-      totalTraceRow.supplier = () => new Promise<Array<any>>((resolve): void => resolve(purgeableTotalData));
-      totalTraceRow.focusHandler = (ev): void => {
-        this.trace?.displayTip(
-          totalTraceRow,
-          SnapshotStruct.hoverSnapshotStruct,
-          `<span>Name: ${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
-			   <span>Value: ${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
-        );
-      };
-      totalTraceRow.findHoverStruct = (): void => {
-        SnapshotStruct.hoverSnapshotStruct = totalTraceRow.getHoverStruct();
-      };
-      totalTraceRow.onThreadHandler = (useCache): void => {
-        let context: CanvasRenderingContext2D;
-        if (totalTraceRow.currentContext) {
-          context = totalTraceRow.currentContext;
-        } else {
-          context = totalTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        totalTraceRow.canvasSave(context);
-        (renders.snapshot as SnapshotRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `snapshot`,
-          },
-          totalTraceRow
-        );
-        totalTraceRow.canvasRestore(context);
-      };
-      processRow.addChildTraceRow(totalTraceRow);
-    }
-    let purgeablePinData = await queryPurgeableSysData(true);
-    if (purgeablePinData.length > 0) {
-      for (let i = 0; i < purgeablePinData.length; i++) {
-        purgeablePinData[i].name = 'Snapshot' + i;
-      }
-      let pinTraceRow = TraceRow.skeleton<SnapshotStruct>();
-      pinTraceRow.rowParentId = `abilityMonitor`;
-      pinTraceRow.rowHidden = !processRow.expansion;
-      pinTraceRow.rowId = 'System Purgeable Pin';
-      pinTraceRow.rowType = TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY;
-      pinTraceRow.style.height = '40px';
-      pinTraceRow.style.width = `100%`;
-      pinTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-      pinTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      pinTraceRow.setAttribute('children', '');
-      pinTraceRow.name = `Purgeable Pin`;
-      pinTraceRow.supplier = () => new Promise<Array<any>>((resolve): void => resolve(purgeablePinData));
-      pinTraceRow.focusHandler = (ev): void => {
-        this.trace?.displayTip(
-          pinTraceRow,
-          SnapshotStruct.hoverSnapshotStruct,
-          `<span>Name: ${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
-         <span>Value: ${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
-        );
-      };
-      pinTraceRow.findHoverStruct = () => {
-        SnapshotStruct.hoverSnapshotStruct = pinTraceRow.getHoverStruct();
-      };
-      pinTraceRow.onThreadHandler = (useCache): void => {
-        let context: CanvasRenderingContext2D;
-        if (pinTraceRow.currentContext) {
-          context = pinTraceRow.currentContext;
-        } else {
-          context = pinTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-        }
-        pinTraceRow.canvasSave(context);
-        (renders.snapshot as SnapshotRender).renderMainThread(
-          {
-            context: context,
-            useCache: useCache,
-            type: `snapshot`,
-          },
-          pinTraceRow
-        );
-        pinTraceRow.canvasRestore(context);
-      };
-      processRow.addChildTraceRow(pinTraceRow);
-    }
+  private async initPurgeableTotal(processRow: TraceRow<ProcessStruct>): Promise<void> {
+    let snapshotDur = MemoryConfig.getInstance().snapshotDur;
+    let totalTraceRow = this.initTraceRow(
+      'System Purgeable Total',
+      'Purgeable Total',
+      TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY,
+      processRow
+    );
+    totalTraceRow.supplierFrame = (): Promise<any[]> =>
+      new Promise<Array<any>>((resolve): void =>
+        resolve(
+          abilityPurgeableDataSender(totalTraceRow, snapshotDur, false).then((res: any[]) => {
+            this.setName(res);
+            return res;
+          })
+        )
+      );
+    processRow.addChildTraceRow(totalTraceRow);
+  }
 
-    let durTime = new Date().getTime() - time;
-    info('The time to load the Ability Purgeable is: ', durTime);
-  };
+  private async initPurgeablePin(processRow: TraceRow<ProcessStruct>): Promise<void> {
+    let snapshotDur = MemoryConfig.getInstance().snapshotDur;
+    let pinTraceRow = this.initTraceRow(
+      'System Purgeable Pin',
+      'Purgeable Pin',
+      TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY,
+      processRow
+    );
+    pinTraceRow.supplierFrame = (): Promise<any[]> =>
+      new Promise<Array<any>>((resolve): void =>
+        resolve(
+          abilityPurgeableDataSender(pinTraceRow, snapshotDur, true).then((res: any[]) => {
+            this.setName(res);
+            return res;
+          })
+        )
+      );
+    processRow.addChildTraceRow(pinTraceRow);
+  }
 
   /**
    * DMA
    * @param processRow
    */
   private initDmaAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
-    let dmaAbilityData = await queryDmaAbilityData();
-    for (let i = 0; i < dmaAbilityData.length; i++) {
-      dmaAbilityData[i].name = 'snapshot' + i;
-    }
-    let time = new Date().getTime();
-    let dmaTraceRow = TraceRow.skeleton<SnapshotStruct>();
-    dmaTraceRow.rowParentId = `abilityMonitor`;
-    dmaTraceRow.rowHidden = !processRow.expansion;
-    dmaTraceRow.rowId = 'abilityMonitorDma';
-    dmaTraceRow.rowType = TraceRow.ROW_TYPE_DMA_ABILITY;
-    dmaTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    dmaTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    dmaTraceRow.style.height = '40px';
-    dmaTraceRow.style.width = `100%`;
-    dmaTraceRow.setAttribute('children', '');
-    dmaTraceRow.name = 'DMA';
-    dmaTraceRow.addTemplateTypes('Memory');
-    dmaTraceRow.supplier = (): Promise<any[]> => new Promise<Array<any>>((resolve): void => resolve(dmaAbilityData));
-    //文字悬浮提示
-    dmaTraceRow.focusHandler = (ev): void => {
-      this.trace?.displayTip(
-        dmaTraceRow,
-        SnapshotStruct.hoverSnapshotStruct,
-        `<span>${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
-         <span>${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
+    let snapshotDur = MemoryConfig.getInstance().snapshotDur;
+    let dmaTraceRow = this.initTraceRow('abilityMonitorDma', 'DMA', TraceRow.ROW_TYPE_DMA_ABILITY, processRow);
+    dmaTraceRow.supplierFrame = (): Promise<any[]> =>
+      new Promise<Array<any>>((resolve): void =>
+        resolve(
+          abilityDmaDataSender(dmaTraceRow, snapshotDur).then((res: any[]) => {
+            this.setName(res);
+            return res;
+          })
+        )
       );
-    };
-    dmaTraceRow.findHoverStruct = (): void => {
-      SnapshotStruct.hoverSnapshotStruct = dmaTraceRow.getHoverStruct();
-    };
-    dmaTraceRow.onThreadHandler = (useCache): void => {
-      let context: CanvasRenderingContext2D;
-      if (dmaTraceRow.currentContext) {
-        context = dmaTraceRow.currentContext;
-      } else {
-        context = dmaTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      }
-      dmaTraceRow.canvasSave(context);
-      (renders.snapshot as SnapshotRender).renderMainThread(
-        {
-          context: context,
-          useCache: useCache,
-          type: 'snapshot',
-        },
-        dmaTraceRow!
-      );
-      dmaTraceRow.canvasRestore(context);
-    };
     processRow.addChildTraceRow(dmaTraceRow);
-    let durTime = new Date().getTime() - time;
-    info('The time to load the Ability Dma is: ', durTime);
   };
 
   /**
@@ -996,57 +1068,84 @@ export class SpAbilityMonitorChart {
    * @param processRow
    */
   private initGpuMemoryAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
-    let gpuMemoryAbilityData = await queryGpuMemoryAbilityData();
-    for (let i = 0; i < gpuMemoryAbilityData.length; i++) {
-      gpuMemoryAbilityData[i].name = 'snapshot' + i;
-    }
-    let time = new Date().getTime();
-    let gpuMemoryTraceRow = TraceRow.skeleton<SnapshotStruct>();
-    gpuMemoryTraceRow.rowParentId = `abilityMonitor`;
-    gpuMemoryTraceRow.rowHidden = !processRow.expansion;
-    gpuMemoryTraceRow.rowId = 'abilityMonitorGpuMemory';
-    gpuMemoryTraceRow.rowType = TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY;
-    gpuMemoryTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    gpuMemoryTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    gpuMemoryTraceRow.style.height = '40px';
-    gpuMemoryTraceRow.style.width = `100%`;
-    gpuMemoryTraceRow.setAttribute('children', '');
-    gpuMemoryTraceRow.name = 'Skia Gpu Memory';
-    gpuMemoryTraceRow.addTemplateTypes('Memory');
-    gpuMemoryTraceRow.supplier = (): Promise<any[]> =>
-      new Promise<Array<any>>((resolve): void => resolve(gpuMemoryAbilityData));
-    //文字悬浮提示
-    gpuMemoryTraceRow.focusHandler = (ev): void => {
-      this.trace?.displayTip(
-        gpuMemoryTraceRow,
-        SnapshotStruct.hoverSnapshotStruct,
-        `<span>${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
-        <span>${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
+    let snapshotDur = MemoryConfig.getInstance().snapshotDur;
+    let gpuMemoryTraceRow = this.initTraceRow(
+      'abilityMonitorGpuMemory',
+      'Skia Gpu Memory',
+      TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY,
+      processRow
+    );
+    gpuMemoryTraceRow.supplierFrame = (): Promise<any[]> =>
+      new Promise<Array<any>>((resolve): void =>
+        resolve(
+          abilityGpuMemoryDataSender(gpuMemoryTraceRow, snapshotDur).then((res: any[]) => {
+            this.setName(res);
+            return res;
+          })
+        )
       );
+    processRow.addChildTraceRow(gpuMemoryTraceRow);
+  };
+
+  private initTraceRow(
+    rowId: string,
+    rowName: string,
+    type: string,
+    processRow: TraceRow<ProcessStruct>
+  ): TraceRow<SnapshotStruct> {
+    let abilityMonitor = TraceRow.skeleton<SnapshotStruct>();
+    abilityMonitor.rowParentId = 'abilityMonitor';
+    abilityMonitor.rowHidden = !processRow.expansion;
+    abilityMonitor.rowId = rowId;
+    abilityMonitor.rowType = type;
+    abilityMonitor.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    abilityMonitor.selectChangeHandler = this.trace.selectChangeHandler;
+    abilityMonitor.style.height = '40px';
+    abilityMonitor.style.width = '100%';
+    abilityMonitor.setAttribute('children', '');
+    abilityMonitor.name = rowName;
+    abilityMonitor.addTemplateTypes('Memory');
+    abilityMonitor.focusHandler = (): void => {
+      this.showTip(abilityMonitor);
     };
-    gpuMemoryTraceRow.findHoverStruct = (): void => {
-      SnapshotStruct.hoverSnapshotStruct = gpuMemoryTraceRow.getHoverStruct();
+    abilityMonitor.findHoverStruct = () => {
+      SnapshotStruct.hoverSnapshotStruct = abilityMonitor.getHoverStruct();
     };
-    gpuMemoryTraceRow.onThreadHandler = (useCache) => {
+    abilityMonitor.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
-      if (gpuMemoryTraceRow.currentContext) {
-        context = gpuMemoryTraceRow.currentContext;
+      if (abilityMonitor.currentContext) {
+        context = abilityMonitor.currentContext;
       } else {
-        context = gpuMemoryTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        context = abilityMonitor.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
-      gpuMemoryTraceRow.canvasSave(context);
+      abilityMonitor.canvasSave(context);
       (renders.snapshot as SnapshotRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
           type: 'snapshot',
         },
-        gpuMemoryTraceRow!
+        abilityMonitor
       );
-      gpuMemoryTraceRow.canvasRestore(context);
+      abilityMonitor.canvasRestore(context, this.trace);
     };
-    processRow.addChildTraceRow(gpuMemoryTraceRow);
-    let durTime = new Date().getTime() - time;
-    info('The time to load the Ability Dma is: ', durTime);
-  };
+    return abilityMonitor;
+  }
+
+  private showTip(traceRow: TraceRow<SnapshotStruct>): void {
+    this.trace?.displayTip(
+      traceRow,
+      SnapshotStruct.hoverSnapshotStruct,
+      `<span>Name: ${SnapshotStruct.hoverSnapshotStruct?.name || ''}</span>
+      <span>Size: ${Utils.getBinaryByteWithUnit(SnapshotStruct.hoverSnapshotStruct?.value || 0)}</span>`
+    );
+  }
+
+  private setName(data: Array<any>): void {
+    if (data.length > 0) {
+      data.forEach((item, index) => {
+        item.name = `SnapShot ${index}`;
+      });
+    }
+  }
 }

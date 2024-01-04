@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { BaseStruct } from '../../../dist/trace/bean/BaseStruct.js';
+import { BaseStruct } from '../../../src/trace/bean/BaseStruct';
 describe('BaseStruct Test', () => {
     let baseStruct = new BaseStruct();
 

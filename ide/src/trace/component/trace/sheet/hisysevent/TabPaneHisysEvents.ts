@@ -25,7 +25,7 @@ import { Flag } from '../../timer-shaft/Flag';
 import { TraceSheet } from '../../base/TraceSheet';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { ColorUtils } from '../../base/ColorUtils';
-import { queryRealTime } from '../../../../database/SqlLite';
+import { queryHiSysEventTabData, queryRealTime } from '../../../../database/SqlLite';
 
 @element('tab-hisysevents')
 export class TabPaneHisysEvents extends BaseElement {
@@ -66,9 +66,13 @@ export class TabPaneHisysEvents extends BaseElement {
       this.detailsTbl!.recycleDataSource = [];
     }
     this.initTabSheetEl();
-    this.currentSelection = systemEventParam;
-    this.hiSysEventTable!.recycleDataSource = systemEventParam.hiSysEvents;
-    this.hisysEventSource = systemEventParam.hiSysEvents;
+    queryHiSysEventTabData(systemEventParam.leftNs, systemEventParam.rightNs).then((res) => {
+      this.currentSelection = systemEventParam;
+      systemEventParam.sysAllEventsData = res;
+      this.hiSysEventTable!.recycleDataSource = res;
+      this.hisysEventSource = res;
+    });
+
     queryRealTime().then((result) => {
       if (result && result.length > 0) {
         this.realTime = Math.floor(result[0].ts / millisecond);
@@ -123,7 +127,7 @@ export class TabPaneHisysEvents extends BaseElement {
       // @ts-ignore
       let data = e.detail.data;
       if (data) {
-        this.drawFlag(data.ts, '#999999');
+        this.drawFlag(data.startTs, '#999999');
       }
     });
     this.hiSysEventTable!.addEventListener('column-click', (evt) => {
@@ -342,7 +346,7 @@ export class TabPaneHisysEvents extends BaseElement {
            </lit-table-column>
            <lit-table-column title="type" width="0.5fr" data-index="eventType" key="eventType"  align="flex-start" >
            </lit-table-column>
-           <lit-table-column title="time" width="1.5fr" data-index="ts" key="ts"  align="flex-start" order>
+           <lit-table-column title="time" width="1.5fr" data-index="startTs" key="startTs"  align="flex-start" order>
            </lit-table-column>
            <lit-table-column title="pid" width="1fr" data-index="pid" key="pid"  align="flex-start" order >
            </lit-table-column>

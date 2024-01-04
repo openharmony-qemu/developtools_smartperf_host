@@ -17,6 +17,7 @@ export class KeyPathStruct {
   tid: number;
   threadName: string;
   tsArray: Array<number>;
+
   constructor(tid: number, threadName: string, tsArray: Array<number>) {
     this.tid = tid;
     this.threadName = threadName;

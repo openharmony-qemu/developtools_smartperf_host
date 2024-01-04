@@ -13,7 +13,15 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, isFrameContainPoint, Rect, Render, drawString } from './ProcedureWorkerCommon';
+import {
+  BaseStruct,
+  dataFilterHandler,
+  isFrameContainPoint,
+  Rect,
+  Render,
+  drawString,
+  drawLoadingFrame,
+} from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
@@ -40,6 +48,7 @@ export class IrqRender extends Render {
       paddingTop: 5,
       useCache: irqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(irqReq.context, irqFilter, row);
     irqReq.context.beginPath();
     let find = false;
     for (let re of irqFilter) {

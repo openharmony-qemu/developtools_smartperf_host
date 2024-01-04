@@ -25,6 +25,7 @@ import {
   RequestMessage,
   isFrameContainPoint,
   ns2x,
+  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
@@ -51,6 +52,7 @@ export class MemoryAbilityRender extends Render {
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(req.context, memoryAbilityRow.dataListCache, memoryAbilityRow);
     req.context.beginPath();
     let find = false;
     for (let re of memoryAbilityFilter) {

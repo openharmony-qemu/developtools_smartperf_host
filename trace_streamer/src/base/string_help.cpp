@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 #include "string_help.h"
-
+namespace SysTuning {
+namespace base {
 char* GetDemangleSymbolIndex(const char* mangled)
 {
     int status = 0;
@@ -90,3 +91,5 @@ std::string Strip(const std::string& str)
     }
     return str.substr(first, last - first + 1);
 }
+} // namespace base
+} // namespace SysTuning

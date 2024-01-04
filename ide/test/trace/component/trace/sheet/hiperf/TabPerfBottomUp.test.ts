@@ -13,21 +13,19 @@
  * limitations under the License.
  */
 
-//@ts-ignore
-import { TabpanePerfBottomUp } from '../../../../../../dist/trace/component/trace/sheet/hiperf/TabPerfBottomUp.js';
-//@ts-ignore
-import { showButtonMenu } from '../../../../../../dist/trace/component/trace/sheet/SheetUtils.js';
+import { TabpanePerfBottomUp } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfBottomUp';
+import { showButtonMenu } from '../../../../../../src/trace/component/trace/sheet/SheetUtils';
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
     snapshotDataSource: () => {},
     removeAttribute: () => {},
   };
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

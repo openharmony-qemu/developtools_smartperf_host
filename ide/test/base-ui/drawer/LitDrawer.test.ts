@@ -12,8 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { LitDrawer } from '../../../dist/base-ui/drawer/LitDrawer.js';
+import { LitDrawer } from '../../../src/base-ui/drawer/LitDrawer';
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),

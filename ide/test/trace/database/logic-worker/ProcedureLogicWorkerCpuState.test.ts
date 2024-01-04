@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-//@ts-ignore
 import {
   ProcedureLogicWorkerCpuState,
   CpuState,
-} from '../../../../dist/trace/database/logic-worker/ProcedureLogicWorkerCpuState.js';
+} from '../../../../src/trace/database/logic-worker/ProcedureLogicWorkerCpuState';
 describe('ProcedureLogicWorkerCpuState Test', () => {
   it('ProcedureLogicWorkerCpuStateTest01', function () {
     let procedureLogicWorkerCpuState = new ProcedureLogicWorkerCpuState();

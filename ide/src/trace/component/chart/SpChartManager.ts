@@ -33,7 +33,7 @@ import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
 import { SpProcessChart } from './SpProcessChart';
 import { perfDataQuery } from './PerfDataQuery';
 import { SpVirtualMemChart } from './SpVirtualMemChart';
-import { SpFileSystemChart } from './SpFileSystemChart';
+import { SpEBPFChart } from './SpEBPFChart';
 import { SpSdkChart } from './SpSdkChart';
 import { SpHiSysEnergyChart } from './SpHiSysEnergyChart';
 import { VmTrackerChart } from './SpVmTrackerChart';
@@ -50,6 +50,7 @@ import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
+import {procedurePool} from "../../database/Procedure";
 import { SpSegmentationChart } from './SpSegmentationChart';
 
 export class SpChartManager {
@@ -64,7 +65,7 @@ export class SpChartManager {
   private nativeMemory: SpNativeMemoryChart;
   private abilityMonitor: SpAbilityMonitorChart;
   private process: SpProcessChart;
-  private fileSystem: SpFileSystemChart;
+  private fileSystem: SpEBPFChart;
   private sdkChart: SpSdkChart;
   private hiSyseventChart: SpHiSysEnergyChart;
   private smapsChart: VmTrackerChart;
@@ -80,7 +81,7 @@ export class SpChartManager {
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
     this.perf = new SpHiPerf(trace);
-    this.fileSystem = new SpFileSystemChart(trace);
+    this.fileSystem = new SpEBPFChart(trace);
     this.cpu = new SpCpuChart(trace);
     this.freq = new SpFreqChart(trace);
     this.virtualMemChart = new SpVirtualMemChart(trace);
@@ -113,6 +114,7 @@ export class SpChartManager {
     }
     await this.initTraceConfig();
     dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
+    await this.cacheDataDictToWorker();
     SpSystemTrace.DATA_TASK_POOL_CALLSTACK.clear();
     let taskPoolCallStack = await queryTaskPoolCallStack();
     taskPoolCallStack.map((d) => SpSystemTrace.DATA_TASK_POOL_CALLSTACK.set(d.id, d));
@@ -137,16 +139,22 @@ export class SpChartManager {
     info('initData Cpu Rate Data initialized');
     progress('cpu freq', 80);
     await this.freq.init();
+    info('initData Cpu Freq Data initialized');
     await this.logChart.init();
+    info('initData logChart Data initialized');
     await this.spHiSysEvent.init();
+    info('initData HiSysEvent Data initialized');
     progress('Clock init', 82);
     await this.clockChart.init();
+    info('initData Clock Data initialized');
     progress('Irq init', 84);
     await this.irqChart.init();
-    info('initData Cpu Freq Data initialized');
+    info('initData Irq Data initialized');
     progress('SpSegmentationChart inin', 84.5);
     await this.spSegmentationChart.init();
+    info('initData Segmentation initialized');
     await this.virtualMemChart.init();
+    info('initData virtualMemChart initialized');
     progress('fps', 85);
     await this.fps.init();
     info('initData FPS Data initialized');
@@ -155,8 +163,10 @@ export class SpChartManager {
     info('initData Native Memory Data initialized');
     progress('ability monitor', 88);
     await this.abilityMonitor.init();
+    info('initData abilityMonitor Data initialized');
     progress('hiSysevent', 88.2);
     await this.hiSyseventChart.init();
+    info('initData Energy Data initialized');
     progress('vm tracker', 88.4);
     await this.smapsChart.init();
     info('initData vm tracker Data initialized');
@@ -188,6 +198,7 @@ export class SpChartManager {
     SpSystemTrace.DATA_DICT.clear();
     let dict = await queryDataDICT();
     dict.map((d) => SpSystemTrace.DATA_DICT.set(d['id'], d['data']));
+    await this.cacheDataDictToWorker();
     await perfDataQuery.initPerfCache();
     await this.nativeMemory.initNativeMemory();
     await this.fileSystem.initFileCallchain();
@@ -219,9 +230,9 @@ export class SpChartManager {
       this.trace.timerShaftEL.totalNS = total;
       this.trace.timerShaftEL.getRangeRuler()!.drawMark = true;
       this.trace.timerShaftEL.setRangeNS(0, total);
-      (window as any).recordStartNS = startNS;
-      (window as any).recordEndNS = endNS;
-      (window as any).totalNS = total;
+      window.recordStartNS = startNS;
+      window.recordEndNS = endNS;
+      window.totalNS = total;
       this.trace.timerShaftEL.loadComplete = true;
     }
   };
@@ -240,6 +251,20 @@ export class SpChartManager {
       }
     });
   };
+
+  async cacheDataDictToWorker(): Promise<void> {
+    return  new Promise((resolve) => {
+      procedurePool.submitWithName(
+        'logic0',
+        'cache-data-dict',
+        { dataDict: SpSystemTrace.DATA_DICT },
+        undefined,
+        (res: any) => {
+          resolve();
+        }
+      );
+    });
+  }
 }
 
 export const FolderSupplier = () => {
@@ -260,6 +285,6 @@ export const FolderThreadHandler = (row: TraceRow<any>, trace: SpSystemTrace) =>
         row
       );
     }
-    row.canvasRestore(trace.canvasPanelCtx!);
+    row.canvasRestore(trace.canvasPanelCtx!, trace);
   };
 };

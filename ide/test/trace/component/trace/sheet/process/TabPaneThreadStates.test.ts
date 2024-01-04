@@ -14,7 +14,7 @@
  */
 
 // @ts-ignore
-import { TabPaneThreadStates } from '../../../../../../dist/trace/component/trace/sheet/process/TabPaneThreadStates.js';
+import { TabPaneThreadStates } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneThreadStates';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -24,15 +24,19 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 describe('TabPaneThreadStates Test', () => {
-  let tabPaneThreadStates = new TabPaneThreadStates();
-
+  let tabPaneThreadStates = null;
+  beforeEach(() => {
+    document.body.innerHTML = `<lit-table id="tb-thread-states"></lit-table>`;
+    tabPaneThreadStates = document.querySelector('#tb-thread-states') as TabPaneThreadStates;
+  });
   it('TabPaneThreadStatesTest01', function () {
+    let tabPaneThreadStates = new TabPaneThreadStates();
     expect(
       tabPaneThreadStates.sortByColumn({
         key: 'name' || 'thread' || 'state',
@@ -41,7 +45,8 @@ describe('TabPaneThreadStates Test', () => {
     ).toBeUndefined();
   });
 
-  it('TabPaneThreadStatesTest05', function () {
+  it('TabPaneThreadStatesTest02', function () {
+    let tabPaneThreadStates = new TabPaneThreadStates();
     expect(
       tabPaneThreadStates.sortByColumn({
         key: !'name' || !'thread' || !'state',
@@ -50,7 +55,7 @@ describe('TabPaneThreadStates Test', () => {
     ).toBeUndefined();
   });
 
-  it('TabPaneThreadStatesTest02', function () {
+  it('TabPaneThreadStatesTest03', function () {
     // @ts-ignore
     let mockgetTabThreadStates = sqlit.getTabThreadStates;
     mockgetTabThreadStates.mockResolvedValue([
@@ -75,7 +80,7 @@ describe('TabPaneThreadStates Test', () => {
     expect((tabPaneThreadStates.data = a)).toBeTruthy();
   });
 
-  it('TabPaneThreadStatesTest03', function () {
+  it('TabPaneThreadStatesTest04', function () {
     // @ts-ignore
     let mockgetTabThreadStates = sqlit.getTabThreadStates;
     mockgetTabThreadStates.mockResolvedValue([]);

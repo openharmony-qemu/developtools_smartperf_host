@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INCLUDE_TUNING_BASE_FILE_UTILS_H_
-#define INCLUDE_TUNING_BASE_FILE_UTILS_H_
+#ifndef INCLUDE_TUNING_BASE_FILE_UTILS_H
+#define INCLUDE_TUNING_BASE_FILE_UTILS_H
 
 #include <string>
 

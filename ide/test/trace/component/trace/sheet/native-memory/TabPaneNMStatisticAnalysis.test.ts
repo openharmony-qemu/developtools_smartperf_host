@@ -14,10 +14,8 @@
  */
 
 import crypto from 'crypto';
-// @ts-ignore
-import { TabPaneNMStatisticAnalysis } from '../../../../../../dist/trace/component/trace/sheet/native-memory/TabPaneNMStatisticAnalysis.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneNMStatisticAnalysis } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMStatisticAnalysis';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -32,14 +30,14 @@ Object.defineProperty(global.self, 'crypto', {
   },
 });
 
-jest.mock('../../../../../../dist/base-ui/chart/pie/LitChartPie.js', () => {
+jest.mock('../../../../../../src/base-ui/chart/pie/LitChartPie', () => {
   return {};
 });
 
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceSheet.js', () => {});
-import '../../../../../../dist/trace/component/trace/sheet/TabPaneFilter.js';
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
+jest.mock('../../../../../../src/trace/component/trace/base/TraceSheet', () => {});
+import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {
     initSort: () =>{}
   };

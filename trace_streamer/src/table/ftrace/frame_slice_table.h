@@ -28,8 +28,15 @@ public:
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
+    int64_t GetSize() override
+    {
+        return dataCache_->GetConstFameSliceData().Size();
+    }
+    void GetOrbyes(FilterConstraints& slicefc, EstimatedIndexInfo& sliceei) override;
+    void FilterByConstraint(FilterConstraints& slicefc,
+                            double& slicefilterCost,
+                            size_t slicerowCount,
+                            uint32_t slicecurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:

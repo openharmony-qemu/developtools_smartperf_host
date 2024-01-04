@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../../../dist/trace/component/trace/sheet/SheetUtils.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
 
-// @ts-ignore
-import { TabPaneFrames } from '../../../../../../dist/trace/component/trace/sheet/jank/TabPaneFrames.js';
+import { TabPaneFrames } from '../../../../../../src/trace/component/trace/sheet/jank/TabPaneFrames';
 
 window.ResizeObserver =
   window.ResizeObserver ||

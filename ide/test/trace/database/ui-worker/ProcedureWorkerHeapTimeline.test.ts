@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import {
   HeapTimelineRender,
   HeapTimelineStruct,
   HeapTimeline,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerHeapTimeline.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHeapTimeline';
 
 describe('ProcedureWorkerHeapTimeline Test', () => {
   it('HeapTimelineTest', () => {

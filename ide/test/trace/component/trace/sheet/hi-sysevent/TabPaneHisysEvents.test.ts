@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneHisysEvents } from '../../../../../../dist/trace/component/trace/sheet/hisysevent/TabPaneHisysEvents.js';
+import { TabPaneHisysEvents } from '../../../../../../src/trace/component/trace/sheet/hisysevent/TabPaneHisysEvents';
 
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -29,9 +28,31 @@ window.ResizeObserver =
   }));
 
 describe('TabPaneHisysEvents Test', () => {
+  let hiSysEvent = sqlite.queryHiSysEventTabData;
+  let eventTabData = [
+    {
+      id: 1,
+      domain: "domain",
+      eventName: "eventName",
+      eventType: "eventType",
+      tz: "",
+      pid: 567,
+      tid: 45,
+      uid: 98,
+      info: "",
+      level: "MINOR",
+      seq: 92803,
+      contents: "{'LEVEL':126}",
+      startTs: 2588,
+      dur: 2584,
+      depth: 0
+    },
+  ];
+  hiSysEvent.mockResolvedValue(eventTabData);
+
   it('TabPaneHisysEvents01 ', function () {
     let tabPaneHisysEvents = new TabPaneHisysEvents();
-    let MockRealTime = sqlit.queryRealTime;
+    let MockRealTime = sqlite.queryRealTime;
     let Realtime = [{
       ts: 1000,
       clock_name: '',

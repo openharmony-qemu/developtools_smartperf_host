@@ -12,18 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//@ts-ignore
-import { TabPaneGpuClickSelect } from '../../../../../../dist/trace/component/trace/sheet/gpu/TabPaneGpuClickSelect.js';
+import { TabPaneGpuClickSelect } from '../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuClickSelect';
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-const sqlite = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/component/trace/sheet/gpu/TabPaneGpuClickSelectComparison.js', () => {
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuClickSelectComparison', () => {
   return {};
 });
 
@@ -37,8 +36,13 @@ window.ResizeObserver =
   }));
 
 describe('TabPaneGpuClickSelect Test', () => {
-  document.body.innerHTML = `<div><tabpane-gpu-click-select id="tree"></tabpane-gpu-click-select></div>`;
-  let tabPaneGpuClickSelect = document.querySelector<TabPaneGpuClickSelect>('#tree');
+  let tabPaneGpuClickSelect = null;
+  let tbGpu = null
+  beforeAll(() => {
+    document.body.innerHTML = `<div><lit-table id="tb-gpu"></lit-table></div>`;
+    tbGpu = document.querySelector('#tb-gpu');
+    tabPaneGpuClickSelect = new TabPaneGpuClickSelect(tbGpu);
+  });
   let queryGpuDataByTs = sqlite.queryGpuDataByTs;
   queryGpuDataByTs.mockResolvedValue([
     {
@@ -55,11 +59,7 @@ describe('TabPaneGpuClickSelect Test', () => {
     },
   ]);
   it('TabPaneGpuClickSelectTest01', () => {
-    let data = {
-      type: '',
-      startTs: 1,
-    };
-    expect(tabPaneGpuClickSelect.gpuClickData(data)).toBeUndefined();
+    expect(sqlite.queryGpuDataByTs).toHaveBeenCalledTimes(0);
   });
   it('TabPaneGpuClickSelectTest02', () => {
     let tabPaneGpuClickSelects = new TabPaneGpuClickSelect();

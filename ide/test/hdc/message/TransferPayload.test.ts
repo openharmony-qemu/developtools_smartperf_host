@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TransferPayload } from '../../../dist/hdc/message/TransferPayload.js';
+import { TransferPayload } from '../../../src/hdc/message/TransferPayload';
 
 describe('TransferPayload Test', () => {
   let transferPayload = new TransferPayload();

@@ -15,10 +15,6 @@
 
 #include "animation_filter.h"
 
-#include "clock_filter_ex.h"
-#include "string_help.h"
-#include "string_to_numerical.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint8_t ANIMATION_INFO_NUM_MIN = 2;
@@ -149,7 +145,7 @@ bool AnimationFilter::StartAnimationEvent(const BytraceLine& line, const TracePo
     TS_CHECK_TRUE_RET(startEventIter != onAnimationStartEvents_.end() && infos.size() >= ANIMATION_INFO_NUM_MIN, false);
     auto nameIndex = traceDataCache_->GetDataIndex(infos[0] + ", " + infos[1]);
     // pop for '.': '1693876195576.'
-    auto& inputTimeStr = infos[3];
+    auto& inputTimeStr = infos[inputTimeIndex_];
     if (inputTimeStr.back() == '.') {
         inputTimeStr.pop_back();
     }

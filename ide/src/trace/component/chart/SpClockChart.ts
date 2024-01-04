@@ -22,6 +22,7 @@ import { ClockRender, ClockStruct } from '../../database/ui-worker/ProcedureWork
 import { ColorUtils } from '../trace/base/ColorUtils';
 import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { Utils } from '../trace/base/Utils';
+import { clockDataSender } from '../../database/data-trafic/ClockDataSender';
 
 export class SpClockChart {
   private trace: SpSystemTrace;
@@ -59,27 +60,21 @@ export class SpClockChart {
       traceRow.setAttribute('children', '');
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-      traceRow.supplier = () => {
+      traceRow.supplierFrame = () => {
         let promiseData = null;
         if (it.name.endsWith(' Frequency')) {
-          promiseData = queryClockFrequency(it.srcname);
+          promiseData = clockDataSender(it.srcname, 'clockFrequency', traceRow);
         } else if (isState) {
-          promiseData = queryClockState(it.srcname);
+          promiseData = clockDataSender(it.srcname, 'clockState', traceRow);
         } else if (isScreenState) {
-          promiseData = queryScreenState();
+          promiseData = clockDataSender('', 'screenState', traceRow);
         }
         if (promiseData == null) {
           return new Promise<Array<any>>((resolve) => resolve([]));
         } else {
-          return promiseData.then((resultClock) => {
+          return promiseData.then((resultClock: Array<any>) => {
             for (let j = 0; j < resultClock.length; j++) {
-              if (!isState) {
-                if (j == resultClock.length - 1) {
-                  resultClock[j].dur = (TraceRow.range?.totalNS || 0) - (resultClock[j].startNS || 0);
-                } else {
-                  resultClock[j].dur = (resultClock[j + 1].startNS || 0) - (resultClock[j].startNS || 0);
-                }
-              }
+              resultClock[j].type = 'measure';
               if ((resultClock[j].value || 0) > maxValue) {
                 maxValue = resultClock[j].value || 0;
               }
@@ -91,6 +86,15 @@ export class SpClockChart {
             }
             return resultClock;
           });
+        }
+      };
+      traceRow.getCacheData = (args: any): Promise<Array<any>> | undefined => {
+        if (it.name.endsWith(' Frequency')) {
+          return clockDataSender(it.srcname, 'clockFrequency', traceRow, args);
+        } else if (isState) {
+          return clockDataSender(it.srcname, 'clockState', traceRow, args);
+        } else if (isScreenState) {
+          return clockDataSender('', 'screenState', traceRow, args);
         }
       };
       traceRow.focusHandler = (ev) => {
@@ -123,7 +127,7 @@ export class SpClockChart {
           },
           traceRow
         );
-        traceRow.canvasRestore(context);
+        traceRow.canvasRestore(context, this.trace);
       };
       folder.addChildTraceRow(traceRow);
     }
@@ -157,7 +161,7 @@ export class SpClockChart {
           clockFolder
         );
       }
-      clockFolder.canvasRestore(this.trace.canvasPanelCtx!);
+      clockFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     return clockFolder;
   }

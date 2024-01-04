@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-//@ts-ignore
 import {
   memoryAbility,
   MemoryAbilityMonitorStruct,
   MemoryAbilityRender,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerMemoryAbility.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerMemoryAbility';
 
 describe('ProcedureWorkerMemoryAbility Test', () => {
   let frame = {

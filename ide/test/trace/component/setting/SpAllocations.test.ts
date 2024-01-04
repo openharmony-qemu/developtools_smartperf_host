@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpAllocations } from '../../../../dist/trace/component/setting/SpAllocations.js';
+import { SpAllocations } from '../../../../src/trace/component/setting/SpAllocations';
 
 describe('SpAllocations Test', () => {
   beforeAll(() => {
@@ -101,7 +100,7 @@ describe('SpAllocations Test', () => {
   });
   it('SpAllocations test13', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.statistics_interval).toBeTruthy();
+    expect(spAllocations.statistics_interval).toEqual(0);
   });
   it('SpAllocations test14', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;

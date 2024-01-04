@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TS_PROTO_READER_H_
-#define TS_PROTO_READER_H_
+#ifndef TS_PROTO_READER_H
+#define TS_PROTO_READER_H
 
 #include <functional>
 #include <limits>
@@ -246,6 +246,9 @@ public:
         }
     }
 
+    using ParseDataAreaValueByType = std::function<bool(ParseDataAreaResult&, const uint8_t*, const uint8_t* const)>;
+    static std::map<ProtoWireType, ParseDataAreaValueByType> DATA_AREA_TYPE_TO_PARSE_FUNC_MAP;
+
 protected:
     ParseDataAreaResult ParseOneDataArea(const uint8_t* const startAddr, const uint8_t* const endAddr);
     void ParseAllDataAreas();
@@ -268,10 +271,6 @@ private:
                                           const uint8_t* const endAddr);
     static bool ParseFixed64Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
     static bool ParseFixed32Value(ParseDataAreaResult& result, const uint8_t* startAddr, const uint8_t* const endAddr);
-
-public:
-    using ParseDataAreaValueByType = std::function<bool(ParseDataAreaResult&, const uint8_t*, const uint8_t* const)>;
-    static std::map<ProtoWireType, ParseDataAreaValueByType> DATA_AREA_TYPE_TO_PARSE_FUNC_MAP;
 };
 
 template <int32_t MAX_DATA_AREA_ID>

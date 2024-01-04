@@ -13,15 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpRecordTrace } from '../../../dist/trace/component/SpRecordTrace.js';
-// @ts-ignore
-import { EventCenter } from '../../../dist/trace/component/trace/base/EventCenter.js';
-import '../../../dist/trace/SpApplication.js';
-// @ts-ignore
-import { SpApplication } from '../../../dist/trace/SpApplication.js';
-// @ts-ignore
-import { BaseElement } from '../../../dist/base-ui/BaseElement.js';
+import { SpRecordTrace } from '../../../src/trace/component/SpRecordTrace';
+import { EventCenter } from '../../../src/trace/component/trace/base/EventCenter';
+import '../../../src/trace/SpApplication';
+import { SpApplication } from '../../../src/trace/SpApplication';
+import { BaseElement } from '../../../src/base-ui/BaseElement';
 declare global {
   interface Window {
     SmartEvent: {
@@ -382,6 +378,9 @@ describe('SpRecordTrace Test', () => {
           'PMEM_CMA_TOTAL',
           'PMEM_CMA_FREE',
           'PMEM_KERNEL_RECLAIMABLE',
+          'PMEM_ACTIVE_PURG',
+          'PMEM_INACTIVE_PURG',
+          'PMEM_PINED_PURG'
         ],
         sysVmeminfoCounters: [],
       },

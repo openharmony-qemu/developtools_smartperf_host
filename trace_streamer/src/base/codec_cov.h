@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef INCLUDE_TUNING_BASE_CODEC_COV_H_
-#define INCLUDE_TUNING_BASE_CODEC_COV_H_
+#ifndef INCLUDE_TUNING_BASE_CODEC_COV_H
+#define INCLUDE_TUNING_BASE_CODEC_COV_H
 
 #include <string>
 

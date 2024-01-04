@@ -38,45 +38,45 @@ public:
                    uint64_t rbytes,
                    uint64_t wbytes,
                    uint64_t cancelled_wbytes)
-            : rchar_(rchar),
-              wchar_(wchar),
-              syscr_(syscr),
-              syscw_(syscw),
-              rbytes_(rbytes),
-              wbytes_(wbytes),
-              cancelled_wbytes_(cancelled_wbytes)
+            : rchar(rchar),
+              wchar(wchar),
+              syscr(syscr),
+              syscw(syscw),
+              rbytes(rbytes),
+              wbytes(wbytes),
+              cancelled_wbytes(cancelled_wbytes)
         {
         }
-        uint64_t rchar_;
-        uint64_t wchar_;
-        uint64_t syscr_;
-        uint64_t syscw_;
-        uint64_t rbytes_;
-        uint64_t wbytes_;
-        uint64_t cancelled_wbytes_;
+        uint64_t rchar;
+        uint64_t wchar;
+        uint64_t syscr;
+        uint64_t syscw;
+        uint64_t rbytes;
+        uint64_t wbytes;
+        uint64_t cancelled_wbytes;
     };
     struct PssInfo {
-        explicit PssInfo(int32_t pss_info) : pss_info_(pss_info) {}
-        int32_t pss_info_;
+        explicit PssInfo(int32_t pssInfo) : pssInfo(pssInfo) {}
+        int32_t pssInfo;
     };
     struct CpuInfo {
-        CpuInfo(double cpu_usage, int32_t thread_sum, uint64_t cpu_time_ms)
-            : cpu_usage_(cpu_usage), thread_sum_(thread_sum), cpu_time_ms_(cpu_time_ms)
+        CpuInfo(double cpuUsage, int32_t threadSum, uint64_t cpu_time_ms)
+            : cpuUsage(cpuUsage), threadSum(threadSum), cpu_time_ms_(cpu_time_ms)
         {
         }
-        double cpu_usage_;
-        int32_t thread_sum_;
+        double cpuUsage;
+        int32_t threadSum;
         uint64_t cpu_time_ms_;
     };
     struct ProcessInfo {
         ProcessInfo(int32_t pid, const std::string& name, int32_t ppid, int32_t uid)
-            : pid_(pid), name_(name), ppid_(ppid), uid_(uid)
+            : pid(pid), name(name), ppid(ppid), uid(uid)
         {
         }
-        int32_t pid_;
-        std::string name_;
-        int32_t ppid_;
-        int32_t uid_;
+        int32_t pid;
+        std::string name;
+        int32_t ppid;
+        int32_t uid;
     };
     struct TsLiveProcessData {
         void SetLiveProcess(uint64_t ts,

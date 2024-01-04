@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { CpuFreqStruct } from '../../../dist/trace/bean/CpuFreqStruct.js';
+import { CpuFreqStruct } from '../../../src/trace/bean/CpuFreqStruct';
 
 describe('CpuFreqStruct Test', () => {
   const canvas = document.createElement('canvas');

@@ -15,7 +15,7 @@
 
 import { RangeSelectStruct, TraceRow } from './TraceRow';
 import { Rect } from '../timer-shaft/Rect';
-import { ns2x, TimerShaftElement } from '../TimerShaftElement';
+import { TimerShaftElement } from '../TimerShaftElement';
 import { info } from '../../../../log/Log';
 import './Extension';
 import { SpSystemTrace } from '../../SpSystemTrace';
@@ -24,7 +24,6 @@ import { querySearchRowFuncData } from '../../../database/SqlLite';
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
   private rowsPaneEL: HTMLDivElement | undefined | null;
-  // private favoriteRowsEL: HTMLDivElement | undefined | null;
   isMouseDown: boolean = false;
   public rangeTraceRow: Array<TraceRow<any>> | undefined;
   public selectHandler: ((ds: Array<TraceRow<any>>, refreshCheckBox: boolean) => void) | undefined;
@@ -33,24 +32,20 @@ export class RangeSelect {
   private endPageX: number = 0;
   private endPageY: number = 0;
   private timerShaftEL: TimerShaftElement | null | undefined;
-  private timerShaftDragEL: HTMLDivElement | null | undefined;
   private isHover: boolean = false;
   private movingMark: string = '';
   private mark: { startMark: number; endMark: number } = {
     startMark: 0,
     endMark: 0,
   };
-  // private readonly spacerEL: HTMLDivElement;
   private trace: SpSystemTrace | null | undefined;
   drag = false;
+
   constructor(trace: SpSystemTrace | null | undefined) {
     this.trace = trace;
     this.timerShaftEL = trace?.timerShaftEL;
-    this.timerShaftDragEL = this.timerShaftEL?.shadowRoot?.querySelector('.total > div:nth-child(1)');
-    // this.spacerEL = trace?.spacerEL!;
     this.rowsEL = trace?.rowsEL;
     this.rowsPaneEL = trace?.rowsPaneEL;
-    // this.favoriteRowsEL = trace?.favoriteRowsEL;
   }
 
   isInRowsEl(ev: MouseEvent): boolean {
@@ -61,7 +56,7 @@ export class RangeSelect {
     return this.trace!.favoriteChartListEL!.containPoint(ev, { left: 248 });
   }
 
-  mouseDown(eventDown: MouseEvent) {
+  mouseDown(eventDown: MouseEvent): void {
     this.startPageX = eventDown.pageX;
     this.startPageY = eventDown.pageY;
     if (this.isHover) {
@@ -73,7 +68,7 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
   }
 
-  mouseUp(mouseEventUp: MouseEvent) {
+  mouseUp(mouseEventUp: MouseEvent): void {
     this.endPageX = mouseEventUp.pageX;
     this.endPageY = mouseEventUp.pageY;
     if (this.drag) {
@@ -110,7 +105,7 @@ export class RangeSelect {
   }
 
   isDrag(): boolean {
-    return this.startPageX != this.endPageX;
+    return this.startPageX !== this.endPageX;
   }
 
   isTouchMark(ev: MouseEvent): boolean {
@@ -127,7 +122,7 @@ export class RangeSelect {
     return notTimeHeight && (this.rangeTraceRow?.isNotEmpty() ?? false) && !this.isMouseDown;
   }
 
-  mouseOut(mouseEventOut: MouseEvent) {
+  mouseOut(mouseEventOut: MouseEvent): void {
     this.endPageX = mouseEventOut.pageX;
     this.endPageY = mouseEventOut.pageY;
     if (this.drag) {
@@ -139,7 +134,7 @@ export class RangeSelect {
     this.isMouseDown = false;
   }
 
-  mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent) {
+  mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent): void {
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
     if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {
@@ -215,19 +210,18 @@ export class RangeSelect {
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
     this.rangeTraceRow = rows.filter((it) => {
-      let domRect :DOMRect = it.getBoundingClientRect();
+      let domRect = it.getBoundingClientRect();
       let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
       if (itRect.y < favoriteLimit && !it.collect) {
-        let offset :number = favoriteLimit - itRect.y
+        let offset = favoriteLimit - itRect.y;
         itRect.y = itRect.y + offset;
-        itRect .height = itRect.height- offset
+        itRect.height = itRect.height - offset;
       }
-      if (it.sticky) {
+      if(it.sticky){
         itRect.y = 0;
         itRect.height = 0;
       }
       if (
-        it.intersectionRatio > 0 &&
         Rect.intersect(itRect as Rect, {
           x: Math.min(this.startPageX, this.endPageX),
           y: Math.min(this.startPageY, this.endPageY),

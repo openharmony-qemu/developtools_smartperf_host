@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { Utils } from '../../../../../dist/trace/component/trace/base/Utils.js';
+import { Utils } from '../../../../../src/trace/component/trace/base/Utils';
 
 describe('Utils Test', () => {
   beforeAll(() => {});

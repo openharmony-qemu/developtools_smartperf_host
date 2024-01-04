@@ -13,37 +13,32 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { HdcClient } from '../../../dist/hdc/hdcclient/HdcClient.js';
+import { HdcClient } from '../../../src/hdc/hdcclient/HdcClient';
 
 describe('HdcClient Test', () => {
   it('HdcClientTest01', function () {
     let hdcClient = new HdcClient();
-    expect(hdcClient.constructor()).toBeUndefined();
+    expect(hdcClient.bindStream()).toBeUndefined();
   });
   it('HdcClientTest02', function () {
     let hdcClient = new HdcClient();
-    expect(hdcClient.bindStream()).toBeUndefined();
-  });
-  it('HdcClientTest04', function () {
-    let hdcClient = new HdcClient();
     expect(hdcClient.unbindStream()).toBeTruthy();
   });
-  it('HdcClientTest05', function () {
+  it('HdcClientTest03', function () {
     let hdcClient = new HdcClient();
     expect(hdcClient.unbindStopStream()).toBeTruthy();
   });
 
-  it('HdcClientTest06', async () => {
+  it('HdcClientTest04', async () => {
     let hdcClient = new HdcClient();
     await expect(hdcClient.connectDevice()).rejects.not.toBeUndefined();
   });
 
-  it('HdcClientTest07', async () => {
+  it('HdcClientTest05', async () => {
     let hdcClient = new HdcClient();
     await expect(hdcClient.disconnect()).not;
   });
-  it('HdcClientTest08', function () {
+  it('HdcClientTest06', function () {
     let hdcClient = new HdcClient();
     let data = {
       getChannelId: jest.fn(() => -1),

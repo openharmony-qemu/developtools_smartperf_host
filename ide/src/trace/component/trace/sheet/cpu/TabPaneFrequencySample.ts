@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
@@ -117,7 +118,7 @@ export class TabPaneFrequencySample extends BaseElement {
           context.fillStyle = '#333';
           context.textBaseline = 'middle';
           context.fillText(s, 4, 5 + 9);
-          row.canvasRestore(context);
+          row.canvasRestore(context, this.systemTrace);
         }
       }
     });

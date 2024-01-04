@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { ProcedureWorker, drawSelection } from '../../../dist/trace/database/ProcedureWorker.js';
+import { ProcedureWorker, drawSelection } from '../../../src/trace/database/ProcedureWorker';
 
 describe('ProcedureWorker Test', () => {
   it('ProcedureWorkerTest01', function () {

@@ -12,17 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { TraceRow } from '../../../../dist/trace/component/trace/base/TraceRow.js';
-// @ts-ignore
-import { Rect } from '../../../../dist/trace/component/trace/timer-shaft/Rect.js';
-// @ts-ignore
-import { soDataFilter, SoRender, SoStruct} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerSoInit.js';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { soDataFilter, SoRender, SoStruct} from '../../../../src/trace/database/ui-worker/ProcedureWorkerSoInit';
 
-jest.mock('../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
     return {};
 });
 

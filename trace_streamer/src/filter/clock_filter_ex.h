@@ -25,12 +25,13 @@
 #include "clock_filter.h"
 #include "filter_base.h"
 #include "htrace_file_header.h"
+#include "trace_streamer_filters.h"
 #include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 class TraceDataCache;
-class TraceStreamerFilters;
+
 /*
  * TS_REALTIME:  A settable system-wide clock that measures real time. Its time represents seconds and nanoseconds
  * since the Epoch.

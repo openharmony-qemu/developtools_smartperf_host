@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { Serialize } from '../../../dist/hdc/common/Serialize.js';
+import { Serialize } from '../../../src/hdc/common/Serialize';
 
 describe('Serialize Test', () => {
   it('Serialize Test01', function () {

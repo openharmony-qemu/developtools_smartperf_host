@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitButton, LitSelect } from '../../../dist/base-ui/select/LitSelect.js';
+import { LitButton, LitSelect } from '../../../src/base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../src/base-ui/select/LitSelectOption';
 
 describe('LitSelect Test', () => {

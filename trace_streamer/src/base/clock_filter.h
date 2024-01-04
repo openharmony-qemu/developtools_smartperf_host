@@ -44,8 +44,6 @@ struct SnapShot {
     ClockId clockId;
     uint64_t ts;
 };
-class TraceStreamerFilters;
-class TraceDataCache;
 class ClockFilter {
 public:
     using ConvertClockMap = std::map<uint64_t, int64_t>;

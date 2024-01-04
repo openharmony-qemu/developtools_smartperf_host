@@ -67,7 +67,7 @@ bool KernelSymbolsProcessor::HandleKallSyms(const std::string& kallsyms)
         if (symbol.addr == 0) {
             continue;
         }
-        if (EndWith(symbol.name, ".cfi")) {
+        if (base::EndWith(symbol.name, ".cfi")) {
             symbol.name = symbol.name.substr(0, symbol.name.size() - (sizeof(".cfi") - 1));
         }
         if (IsValidKernelSymbol(symbol)) {

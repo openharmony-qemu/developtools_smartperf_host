@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { DataMessage } from '../../../dist/hdc/message/DataMessage.js';
+import { DataMessage } from '../../../src/hdc/message/DataMessage';
 import { TextEncoder } from 'util';
 
 describe('DataMessage Test', () => {

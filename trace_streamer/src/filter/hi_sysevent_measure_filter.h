@@ -93,9 +93,9 @@ public:
                         int32_t accessibility,
                         int32_t recording,
                         int32_t streamAll);
-    void SaveAllHiSysEvent(json jMessage);
+    bool SaveAllHiSysEvent(json jMessage, bool& haveSplitSeg);
     void Clear();
-    void FilterAllHiSysEvent(const json& jMessage, uint64_t serial);
+    bool FilterAllHiSysEvent(const json& jMessage, uint64_t serial, bool& haveSplitSeg);
 
 private:
     bool JGetData(const json& jMessage,

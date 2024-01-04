@@ -265,7 +265,7 @@ export class SpSdkChart {
         },
         traceRow
       );
-      traceRow.canvasRestore(context);
+      traceRow.canvasRestore(context, this.trace);
     };
     nodeRow.addChildTraceRow(traceRow);
   };
@@ -296,7 +296,7 @@ export class SpSdkChart {
           sdkFolder
         );
       }
-      sdkFolder.canvasRestore(this.trace.canvasPanelCtx!);
+      sdkFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.trace.rowsEL?.appendChild(sdkFolder);
     return sdkFolder;
@@ -330,7 +330,7 @@ export class SpSdkChart {
           sdkSecondFolder
         );
       }
-      sdkSecondFolder.canvasRestore(this.trace.canvasPanelCtx!);
+      sdkSecondFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.trace.rowsEL?.appendChild(sdkSecondFolder);
     return sdkSecondFolder;
@@ -391,7 +391,7 @@ export class SpSdkChart {
         },
         traceRow
       );
-      traceRow.canvasRestore(context);
+      traceRow.canvasRestore(context, this.trace);
     };
     nodeRow.addChildTraceRow(traceRow);
   };

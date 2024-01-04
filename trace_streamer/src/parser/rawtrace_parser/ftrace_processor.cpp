@@ -27,7 +27,6 @@
 #include "log.h"
 #include "printk_formats_processor.h"
 #include "securec.h"
-#include "string_help.h"
 #include "string_to_numerical.h"
 
 namespace {
@@ -647,10 +646,10 @@ static inline int RmqEntryTotalSize(unsigned int size)
 
 bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParser& cpuDetailParser, uint8_t*& data)
 {
-    struct RmqConsumerData* rmqData = reinterpret_cast<struct RmqConsumerData*>(data);
+    RmqConsumerData* rmqData = reinterpret_cast<struct RmqConsumerData*>(data);
     uint64_t timeStampBase = rmqData->timeStamp;
-    struct RmqEntry* event;
-    struct HmTraceHeader* header;
+    RmqEntry* event;
+    HmTraceHeader* header;
     unsigned int evtSize;
     unsigned int eventId;
     EventFormat format = {};

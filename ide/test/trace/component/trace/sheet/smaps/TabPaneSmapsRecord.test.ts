@@ -13,22 +13,20 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSmapsRecord } from '../../../../../../dist/trace/component/trace/sheet/smaps/TabPaneSmapsRecord.js';
-// @ts-ignore
-import { Smaps } from '../../../../../../dist/trace/bean/SmapsStruct.js';
+import { TabPaneSmapsRecord } from '../../../../../../src/trace/component/trace/sheet/smaps/TabPaneSmapsRecord';
+import { Smaps } from '../../../../../../src/trace/bean/SmapsStruct';
 
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/base-ui/table/lit-table.js', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {};
 });
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
-jest.mock('../../../../../../dist/trace/database/ui-worker/ProcedureWorker.js', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

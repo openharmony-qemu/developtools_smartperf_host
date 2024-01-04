@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { SpRecordSetting } from '../../../../dist/trace/component/setting/SpRecordSetting.js';
+import { SpRecordSetting } from '../../../../src/trace/component/setting/SpRecordSetting';
 describe('SpRecordSetting Test', () => {
   beforeAll(() => {
     document.body.innerHTML = `

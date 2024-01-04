@@ -13,17 +13,14 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { TabPaneSPT } from '../../../../../../dist/trace/component/trace/sheet/cpu/TabPaneSPT.js';
-// @ts-ignore
-import { SpSystemTrace } from '../../../../../../dist/trace/component/SpSystemTrace.js';
-// @ts-ignore
-import { LitTable } from '../../../../../../dist/base-ui/table/lit-table.js';
+import { TabPaneSPT } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneSPT';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
-jest.mock('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/js-heap/model/DatabaseStruct.js', () => {});
-const sqlit = require('../../../../../../dist/trace/database/SqlLite.js');
-jest.mock('../../../../../../dist/trace/bean/NativeHook.js', () => {
+jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
 

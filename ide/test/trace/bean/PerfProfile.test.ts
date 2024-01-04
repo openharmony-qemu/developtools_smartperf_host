@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import {
   PerfFile,
   PerfThread,
@@ -23,9 +22,9 @@ import {
   PerfStack,
   PerfCall,
   PerfCmdLine,
-} from '../../../dist/trace/bean/PerfProfile.js';
+} from '../../../src/trace/bean/PerfProfile';
 
-jest.mock('../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 

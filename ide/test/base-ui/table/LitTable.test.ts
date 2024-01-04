@@ -13,15 +13,11 @@
  * limitations under the License.
  */
 
-// @ts-ignore
-import { LitTable } from '../../../dist/base-ui/table/lit-table.js';
-// @ts-ignore
-import { LitTableColumn } from '../../../dist/base-ui/table/lit-table-column.js';
-// @ts-ignore
-import { TableRowObject } from '../../../dist/base-ui/table/TableRowObject.js';
-// @ts-ignore
-import { LitProgressBar } from '../../../dist/base-ui/progress-bar/LitProgressBar.js';
-import { LitIcon } from '../../../src/base-ui/icon/LitIcon.js';
+import { LitTable } from '../../../src/base-ui/table/lit-table';
+import { LitTableColumn } from '../../../src/base-ui/table/lit-table-column';
+import { TableRowObject } from '../../../src/base-ui/table/TableRowObject';
+import { LitProgressBar } from '../../../src/base-ui/progress-bar/LitProgressBar';
+import { LitIcon } from '../../../src/base-ui/icon/LitIcon';
 describe('LitTable Test', () => {
   window.ResizeObserver =
     window.ResizeObserver ||

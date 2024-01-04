@@ -46,7 +46,7 @@ export class TabPanePTS extends BaseElement {
   getDataByPTS(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
     this.ptsTbl!.loading = true;
     procedurePool.submitWithName(
-      'logic1',
+      'logic0',
       'spt-getPTS',
       { leftNs: ptsLeftNs, rightNs: ptsRightNs, cpus: cpus },
       undefined,

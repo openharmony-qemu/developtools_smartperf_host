@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../dist/trace/component/trace/base/TraceRow.js', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
-// @ts-ignore
 import {
   EnergyPowerStruct,
   EnergyPowerRender,
   power,
-} from '../../../../dist/trace/database/ui-worker/ProcedureWorkerEnergyPower.js';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerEnergyPower';
 
 describe('ProcedureWorkerEnergyPower Test', () => {
   it('ProcedureWorkerEnergyPowerTest01', function () {
