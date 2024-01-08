@@ -21,7 +21,6 @@
 #include "memory_plugin_result.pbreader.h"
 #include "process_filter.h"
 #include "stat_filter.h"
-#include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 
 namespace SysTuning {

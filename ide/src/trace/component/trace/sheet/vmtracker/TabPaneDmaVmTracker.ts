@@ -17,10 +17,10 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
-import { getTabDmaVmTrackerData } from '../../../../database/SqlLite';
 import { type Dma } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
+import {getTabDmaVmTrackerData} from "../../../../database/sql/Dma.sql";
 
 @element('tabpane-dma-vmtracker')
 export class TabPaneDmaVmTracker extends BaseElement {

@@ -17,15 +17,6 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
 import { SpSystemTrace } from '../SpSystemTrace';
-import {
-  queryAllProcessNames,
-  queryAnimationIdAndNameData,
-  queryAnimationTimeRangeData,
-  queryDynamicIdAndNameData,
-  queryFrameApp,
-  queryFrameTimeData,
-  queryPhysicalData,
-} from '../../database/SqlLite';
 import { JanksStruct } from '../../bean/JanksStruct';
 import { ns2xByTimeShaft, type PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon';
 import { FrameDynamicRender, FrameDynamicStruct } from '../../database/ui-worker/ProcedureWorkerFrameDynamic';
@@ -34,11 +25,19 @@ import { type BaseStruct } from '../../bean/BaseStruct';
 import { FrameSpacingRender, FrameSpacingStruct } from '../../database/ui-worker/ProcedureWorkerFrameSpacing';
 import { FlagsConfig, type Params } from '../SpFlags';
 import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { TreeItemData } from '../../../base-ui/tree/LitTree';
-import { QueryEnum } from '../../database/data-trafic/QueryEnum';
+import { QueryEnum } from '../../database/data-trafic/utils/QueryEnum';
 import { frameAnimationSender, frameDynamicSender, frameSpacingSender } from '../../database/data-trafic/FrameDynamicEffectSender';
 import { frameJanksSender } from '../../database/data-trafic/FrameJanksSender';
+import {
+  queryAnimationIdAndNameData,
+  queryAnimationTimeRangeData,
+  queryDynamicIdAndNameData,
+  queryFrameApp,
+  queryFrameTimeData, queryPhysicalData
+} from "../../database/sql/SqlLite.sql";
+import {queryAllProcessNames} from "../../database/sql/ProcessThread.sql";
 
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;

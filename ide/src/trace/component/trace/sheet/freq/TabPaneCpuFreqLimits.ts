@@ -18,9 +18,9 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
-import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { resizeObserver } from '../SheetUtils';
-import { getCpuLimitFreqBoxSelect } from '../../../../database/SqlLite';
+import {getCpuLimitFreqBoxSelect} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-freq-limits')
 export class TabPaneCpuFreqLimits extends BaseElement {

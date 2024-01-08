@@ -16,7 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { querySingleAppStartupsName } from '../SqlLite';
+import {querySingleAppStartupsName} from "../sql/ProcessThread.sql";
 
 export class AllAppStartupRender {
   renderMainThread(

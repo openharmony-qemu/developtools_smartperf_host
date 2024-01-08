@@ -14,15 +14,15 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
-import { queryClockData, queryClockFrequency, queryClockState, queryScreenState } from '../../database/SqlLite';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { info } from '../../../log/Log';
 import { ClockRender, ClockStruct } from '../../database/ui-worker/ProcedureWorkerClock';
 import { ColorUtils } from '../trace/base/ColorUtils';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { Utils } from '../trace/base/Utils';
 import { clockDataSender } from '../../database/data-trafic/ClockDataSender';
+import {queryClockData} from "../../database/sql/Clock.sql";
 
 export class SpClockChart {
   private trace: SpSystemTrace;

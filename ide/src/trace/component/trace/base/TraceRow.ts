@@ -723,23 +723,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       }
     }
-    this.checkBoxEL!.onchange = (ev: any) => {
-      info('checkBoxEL onchange ');
-      if (!ev.target.checked) {
-        info('checkBoxEL target not checked');
-        this.rangeSelect = false;
-        this.checkType = '0';
-      } else {
-        this.rangeSelect = true;
-        this.checkType = '2';
-      }
-      this.setCheckBox(ev.target.checked);
-      ev.stopPropagation();
-    };
-    // 防止事件冒泡触发两次describeEl的点击事件
-    this.checkBoxEL!.onclick = (ev: any) => {
-      ev.stopPropagation();
-    };
+    this.checkBoxEvent();
     this.describeEl?.addEventListener('click', () => {
       if (this.folder) {
         this.expansion = !this.expansion;
@@ -762,6 +746,26 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       };
     }
     this.checkType = '-1';
+  }
+
+  private checkBoxEvent(): void {
+    this.checkBoxEL!.onchange = (ev: any) => {
+      info('checkBoxEL onchange ');
+      if (!ev.target.checked) {
+        info('checkBoxEL target not checked');
+        this.rangeSelect = false;
+        this.checkType = '0';
+      } else {
+        this.rangeSelect = true;
+        this.checkType = '2';
+      }
+      this.setCheckBox(ev.target.checked);
+      ev.stopPropagation();
+    };
+    // 防止事件冒泡触发两次describeEl的点击事件
+    this.checkBoxEL!.onclick = (ev: any) => {
+      ev.stopPropagation();
+    };
   }
 
   addRowCheckFilePop(): void {
@@ -961,6 +965,32 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.drawLine(ev.currentTarget, '');
       return undefined;
     };
+    this.describeElEvent();
+    this.collectEL!.onclick = (e) => {
+      if (this.isComplete) {
+        this.collect = !this.collect;
+        if (this.collect) {
+          this.describeEl!.draggable = false;
+        } else {
+          this.describeEl!.draggable = false;
+        }
+        document.dispatchEvent(
+          new CustomEvent('collect', {
+            detail: {
+              type: e.type,
+              row: this,
+            },
+          })
+        );
+        this.favoriteChangeHandler?.(this);
+      }
+    };
+    if (!this.args['skeleton']) {
+      this.initCanvas(this.canvas);
+    }
+  }
+
+  private describeElEvent(): void {
     this.describeEl!.ondragend = (ev: any) => {
       rowDragElement = null;
       ev.target.classList.remove('drag');
@@ -1003,28 +1033,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       });
     };
-    this.collectEL!.onclick = (e) => {
-      if (this.isComplete) {
-        this.collect = !this.collect;
-        if (this.collect) {
-          this.describeEl!.draggable = false;
-        } else {
-          this.describeEl!.draggable = false;
-        }
-        document.dispatchEvent(
-          new CustomEvent('collect', {
-            detail: {
-              type: e.type,
-              row: this,
-            },
-          })
-        );
-        this.favoriteChangeHandler?.(this);
-      }
-    };
-    if (!this.args['skeleton']) {
-      this.initCanvas(this.canvas);
-    }
   }
 
   rowDragstart(ev: any) {

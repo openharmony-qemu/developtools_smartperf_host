@@ -17,7 +17,7 @@
 #include "clock_filter_ex.h"
 #include "ebpf_base.h"
 #include "ebpf_data_reader.h"
-#include "ebpf_stdtype.h"
+#include "ebpf_data_structure.h"
 #include "event_parser_base.h"
 #include "htrace_plugin_time_parser.h"
 

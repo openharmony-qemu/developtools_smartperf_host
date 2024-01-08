@@ -22,8 +22,6 @@ import {
   SystemMemorySummary,
   Dma
 } from '../../../src/trace/bean/AbilityMonitor';
-import '@babel/preset-typescript';
-import '@babel/plugin-proposal-optional-chaining';
 
 jest.mock('../../../src/trace/bean/NativeHook', () => {
   return {};

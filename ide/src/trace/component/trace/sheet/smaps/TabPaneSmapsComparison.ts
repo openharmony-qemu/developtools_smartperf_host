@@ -17,11 +17,11 @@ import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabSmapsStatisticData } from '../../../../database/SqlLite';
 import { resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { TabPaneSmapsStatistics } from './TabPaneSmapsStatistics';
 import { type SmapsType } from '../../../../bean/SmapsStruct';
+import {getTabSmapsStatisticData} from "../../../../database/sql/Smaps.sql";
 
 @element('tabpane-smaps-comparison')
 export class TabPaneSmapsComparison extends TabPaneSmapsStatistics {

@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,25 +95,25 @@ export class TabPaneHiSysEventSummary extends BaseElement {
           align-items: center;
           background-color: white;
         }
-        .tree-row-tr:hover {
-          background-color: #DEEDFF;
-        }
-        .tree-row-tr:nth-last-child(1):hover {
-          background-color: white;
-        }
-        .head-label, .head-count {
+         .head-label, .head-count {
           white-space: nowrap;
           overflow: hidden;
         }
         .head-label, .head-count {
           font-weight: bold;
         }
+        .tree-row-tr:hover {
+          background-color: #DEEDFF;
+        }
+        .tree-row-tr:nth-last-child(1):hover {
+          background-color: white;
+        }
         .row-name-td {
-          white-space: nowrap;
-          overflow-y: hidden;
-          display: inline-block;
-          margin-right: 15px;
           height: 30px;
+          white-space: nowrap;
+          display: inline-block;
+          overflow-y: hidden;
+          margin-right: 15px;
         }
         tr {
           height: 30px;
@@ -162,11 +162,6 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     this.expansionDiv?.addEventListener('click', this.expansionClickEvent);
   }
 
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.expansionDiv?.removeEventListener('click', this.expansionClickEvent);
-  }
-
   expansionClickEvent = (): void => {
     this.expandedNodeList.clear();
     if (this.expansionUpIcon?.name === 'down') {
@@ -181,6 +176,11 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     this.refreshSelectDepth(this.eventTreeNodes);
     this.refreshRowNodeTable(true);
   };
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.expansionDiv?.removeEventListener('click', this.expansionClickEvent);
+  }
 
   private refreshSelectDepth(eventTreeNodes: HiSysEventTreeNode[]): void {
     eventTreeNodes.forEach((item) => {
@@ -214,20 +214,20 @@ export class TabPaneHiSysEventSummary extends BaseElement {
       tableRowEl.appendChild(rowNodeTextEL);
       tableTreeEl.appendChild(tableRowEl);
       let tableCountRowEl: HTMLElement = document.createElement('tr');
-      let countEL: HTMLElement = document.createElement('td');
-      countEL.textContent = rowNode.count.toString();
-      countEL.className = 'count-column-td';
+      let countEle: HTMLElement = document.createElement('td');
+      countEle.textContent = rowNode.count.toString();
+      countEle.className = 'count-column-td';
       if (rowNode.depth === 0) {
         rowNodeTextEL.style.color = ColorUtils.getHisysEventColor(rowNode.summaryName!);
-        countEL.style.color = ColorUtils.getHisysEventColor(rowNode.summaryName!);
+        countEle.style.color = ColorUtils.getHisysEventColor(rowNode.summaryName!);
       } else {
         rowNodeTextEL.style.color = rowColor;
-        countEL.style.color = rowColor;
+        countEle.style.color = rowColor;
       }
-      tableCountRowEl.appendChild(countEL);
+      tableCountRowEl.appendChild(countEle);
       tableCountEl.appendChild(tableCountRowEl);
       if (rowNode.children && this.expandedNodeList.has(rowNode.id)) {
-        this.createRowNodeTableEL(rowNode.children, tableTreeEl, tableCountEl, countEL.style.color);
+        this.createRowNodeTableEL(rowNode.children, tableTreeEl, tableCountEl, countEle.style.color);
       }
     });
   }
@@ -248,15 +248,6 @@ export class TabPaneHiSysEventSummary extends BaseElement {
       });
     }
     tableRowEl.appendChild(toggleIconEl);
-  }
-
-  private changeNode(currentNode: number): void {
-    if (this.expandedNodeList.has(currentNode)) {
-      this.expandedNodeList['delete'](currentNode);
-    } else {
-      this.expandedNodeList.add(currentNode);
-    }
-    this.refreshRowNodeTable();
   }
 
   private refreshRowNodeTable(useCacheRefresh: boolean = false): void {
@@ -289,6 +280,15 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     tableFragmentEl.appendChild(tableTreeEl);
     tableFragmentEl.appendChild(tableCountEl);
     this.eventSummaryTable!.appendChild(tableFragmentEl);
+  }
+
+  private changeNode(currentNode: number): void {
+    if (this.expandedNodeList.has(currentNode)) {
+      this.expandedNodeList['delete'](currentNode);
+    } else {
+      this.expandedNodeList.add(currentNode);
+    }
+    this.refreshRowNodeTable();
   }
 
   private buildTreeTblNodes(eventTreeNodes: HiSysEventStruct[]): HiSysEventTreeNode[] {

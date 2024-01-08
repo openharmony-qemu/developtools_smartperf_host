@@ -18,25 +18,10 @@ import { type LitTable } from '../../../../base-ui/table/lit-table';
 import '../../../../base-ui/table/lit-table-column';
 import { AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
-import {
-  queryBinderArgsByArgset,
-  queryBinderByArgsId,
-  queryBinderBySliceId,
-  queryFlowsData,
-  queryGpuDur,
-  queryPrecedingData,
-  queryRunnableTimeByRunning,
-  queryThreadByItid,
-  queryThreadNearData,
-  queryThreadStateArgs,
-  queryThreadWakeUp,
-  queryThreadWakeUpFrom,
-  queryWakeupListPriority,
-} from '../../../database/SqlLite';
 import { type WakeupBean } from '../../../bean/WakeupBean';
 import { SpApplication } from '../../../SpApplication';
 import { TraceRow } from '../base/TraceRow';
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
+import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread';
 import { FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
@@ -51,6 +36,19 @@ import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerApp
 import { SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
 import { type SelectionParam } from '../../../bean/BoxSelection';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
+import {
+  queryBinderByArgsId,
+  queryBinderBySliceId,
+  queryFlowsData,
+  queryPrecedingData, queryThreadByItid
+} from "../../../database/sql/SqlLite.sql";
+import {
+  queryBinderArgsByArgset, queryRunnableTimeByRunning,
+  queryThreadNearData,
+  queryThreadStateArgs, queryThreadWakeUp, queryThreadWakeUpFrom
+} from "../../../database/sql/ProcessThread.sql";
+import {queryGpuDur} from "../../../database/sql/Gpu.sql";
+import {queryWakeupListPriority} from "../../../database/sql/Cpu.sql";
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { TraficEnum } from './QueryEnum';
+import { TraficEnum } from './utils/QueryEnum';
 
 export const chartSMapsDataSqlMem = (args: any): string => {
   return `SELECT (A.timestamp - ${args.recordStartNS}) as startNs,

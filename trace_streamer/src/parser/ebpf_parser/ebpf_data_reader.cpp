@@ -134,19 +134,6 @@ bool EbpfDataReader::ReadItemEventMaps(const uint8_t* buffer, uint32_t size)
     }
     auto procMapsAddr = reinterpret_cast<const MapsFixedHeader*>(buffer);
     pidAndStartAddrToMapsAddr_.Insert(procMapsAddr->pid, procMapsAddr->start, procMapsAddr);
-#if WITH_EBPF_HELP
-    if ((procMapsAddr->fileNameLen > size - sizeof(MapsFixedHeader)) || !procMapsAddr->fileNameLen) {
-        TS_LOGE("maps fileNameLen error!!!");
-        return false;
-    }
-    auto fileNameAddr = const_cast<char*>(reinterpret_cast<const char*>(procMapsAddr + 1));
-    fileNameAddr[procMapsAddr->fileNameLen - 1] = '\0';
-    auto fileNameIndex = traceDataCache_->GetDataIndex(fileNameAddr);
-
-    // add proc Maps Data
-    traceDataCache_->GetEbpfProcessMaps()->AppendNewData(procMapsAddr->start, procMapsAddr->end, procMapsAddr->offset,
-                                                         procMapsAddr->pid, procMapsAddr->fileNameLen, fileNameIndex);
-#endif
     return true;
 }
 template <class T>
@@ -211,45 +198,7 @@ void EbpfDataReader::UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* e
     fileNameAddr[elfAddr->fileNameLen - 1] = '\0';
     fileNameIndex = traceDataCache_->GetDataIndex(std::string(fileNameAddr));
     elfPathIndexToElfFixedHeaderAddr_.insert(std::make_pair(fileNameIndex, elfAddr));
-
-#if WITH_EBPF_HELP
-    // add Elf symbol Data
-    traceDataCache_->GetEbpfElf()->AppendNewData(elfId_, elfAddr->textVaddr, elfAddr->textOffset, elfAddr->strTabLen,
-                                                 elfAddr->symTabLen, elfAddr->fileNameLen, elfAddr->symEntLen,
-                                                 fileNameIndex);
-#endif
 }
-
-#if WITH_EBPF_HELP
-template <class T>
-void EbpfDataReader::AppendSymbolsToTable(T* firstSymbolAddr, const int size)
-{
-    for (auto i = 0; i < size; i++) {
-        auto symAddr = firstSymbolAddr + i;
-        if ((symAddr->st_info & STT_FUNC) && symAddr->st_value) {
-            traceDataCache_->GetEbpfElfSymbol()->AppendNewData(elfId_, symAddr->st_name, symAddr->st_value,
-                                                               symAddr->st_size);
-        }
-    }
-}
-void EbpfDataReader::UpdateEbpfElfSymbolTable(const ElfEventFixedHeader* elfAddr, uint32_t size)
-{
-    if (size < sizeof(ElfEventFixedHeader) + elfAddr->strTabLen + elfAddr->symTabLen + elfAddr->fileNameLen) {
-        TS_LOGE("elf addr size error!!!");
-        return;
-    }
-    auto symEntLen = elfAddr->symEntLen;
-    if (symEntLen == ELF32_SYM) {
-        AppendSymbolsToTable(
-            reinterpret_cast<const Elf32_Sym*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen),
-            elfAddr->symTabLen / symEntLen);
-    } else {
-        AppendSymbolsToTable(
-            reinterpret_cast<const Elf64_Sym*>(reinterpret_cast<const uint8_t*>(elfAddr + 1) + elfAddr->strTabLen),
-            elfAddr->symTabLen / symEntLen);
-    }
-}
-#endif
 
 bool EbpfDataReader::ReadItemSymbolInfo(const uint8_t* buffer, uint32_t size)
 {
@@ -260,10 +209,6 @@ bool EbpfDataReader::ReadItemSymbolInfo(const uint8_t* buffer, uint32_t size)
     auto elfAddr = reinterpret_cast<const ElfEventFixedHeader*>(buffer);
     UpdateElfAddrAndStValueToSymAddrMap(elfAddr, size);
     UpdateElfPathIndexToElfAddrMap(elfAddr, size);
-#if WITH_EBPF_HELP
-    UpdateEbpfElfSymbolTable(elfAddr, size);
-    elfId_++;
-#endif
     return true;
 }
 

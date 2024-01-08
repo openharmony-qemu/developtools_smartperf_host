@@ -15,11 +15,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { RedrawTreeForm, type LitTable } from '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
-import { queryGpuDataByTs } from '../../../../database/SqlLite';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
 import { log } from '../../../../../log/Log';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
+import {queryGpuDataByTs} from "../../../../database/sql/Gpu.sql";
 interface GpuTreeItem {
   name: string;
   id: number;

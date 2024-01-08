@@ -240,6 +240,11 @@ public:
 private:
     std::atomic_flag valueCAS_{0};
 };
+template <typename T>
+void Unused(const T& expr)
+{
+    static_cast<void>(expr);
+}
 } // namespace TraceStreamer
 } // namespace SysTuning
 #endif

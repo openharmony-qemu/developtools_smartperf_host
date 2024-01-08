@@ -117,8 +117,4 @@ describe('TabPaneCounterSample Test', () => {
     tabPane.tbl.recycleDataSource = jest.fn(() => dataArray);
     expect((tabPane.data = dataArray)).toBeTruthy();
   });
-
-  // it('TabPaneCounterSampleTest02', function () {
-  //   expect(tabPaneCounterSample.initElements()).toBeUndefined();
-  // });
 });

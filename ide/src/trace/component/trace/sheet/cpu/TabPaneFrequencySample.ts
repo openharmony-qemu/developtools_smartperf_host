@@ -16,13 +16,14 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabPaneFrequencySampleData, getTabPaneCounterSampleData } from '../../../../database/SqlLite';
 import { ColorUtils } from '../../base/ColorUtils';
 import { resizeObserver } from '../SheetUtils';
 import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
 import { drawLines } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import {getTabPaneFrequencySampleData} from "../../../../database/sql/SqlLite.sql";
+import {getTabPaneCounterSampleData} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-frequency-sample')
 export class TabPaneFrequencySample extends BaseElement {
@@ -70,56 +71,8 @@ export class TabPaneFrequencySample extends BaseElement {
       this.sortTable(evt.detail.key, evt.detail.sort);
     });
     this.frequencySampleTbl!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
       if (this._rangeRow && this._rangeRow!.length > 0) {
-        let rangeTraceRow = this._rangeRow!.filter(function (item) {
-          return item.name.includes('Frequency');
-        });
-        let freqFilter = [];
-        for (let row of rangeTraceRow!) {
-          let context = row.collect ? this.systemTrace!.canvasFavoritePanelCtx! : this.systemTrace!.canvasPanelCtx!;
-          freqFilter.push(...row.dataListCache);
-          row.canvasSave(context);
-          context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height);
-          drawLines(context!, TraceRow.range?.xs || [], row.frame.height, this.systemTrace!.timerShaftEL!.lineColor());
-          if (row.name.includes('Frequency') && parseInt(row.name.replace(/[^\d]/g, ' ')) === data.cpu) {
-            CpuFreqStruct.hoverCpuFreqStruct = undefined;
-            for (let i = 0; i < freqFilter!.length; i++) {
-              if (
-                freqFilter[i].value === data.value &&
-                freqFilter[i].cpu === data.cpu &&
-                Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) <
-                  Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
-              ) {
-                CpuFreqStruct.hoverCpuFreqStruct = freqFilter[i];
-              }
-              if (freqFilter[i].cpu === data.cpu) {
-                CpuFreqStruct.draw(context, freqFilter[i]);
-              }
-            }
-          } else {
-            for (let i = 0; i < freqFilter!.length; i++) {
-              if (
-                row.name.includes('Frequency') &&
-                freqFilter[i].cpu !== data.cpu &&
-                freqFilter[i].cpu === parseInt(row.name.replace(/[^\d]/g, ' '))
-              ) {
-                CpuFreqStruct.draw(context, freqFilter[i]);
-              }
-            }
-          }
-          let s = CpuFreqStruct.maxFreqName;
-          let textMetrics = context.measureText(s);
-          context.globalAlpha = 0.8;
-          context.fillStyle = '#f0f0f0';
-          context.fillRect(0, 5, textMetrics.width + 8, 18);
-          context.globalAlpha = 1;
-          context.fillStyle = '#333';
-          context.textBaseline = 'middle';
-          context.fillText(s, 4, 5 + 9);
-          row.canvasRestore(context, this.systemTrace);
-        }
+        this.rowClickEvent(evt);
       }
     });
     this.frequencySampleTbl!.addEventListener('button-click', (evt) => {
@@ -129,6 +82,54 @@ export class TabPaneFrequencySample extends BaseElement {
       //@ts-ignore
       this.handleClick(evt.detail.key, this.frequencySampleClickType);
     });
+  }
+
+  private rowClickEvent(evt: Event): void {
+    let rangeTraceRow = this._rangeRow!.filter(function (item) {
+      return item.name.includes('Frequency');
+    });
+    let freqFilter = [];
+    // @ts-ignore
+    let data = evt.detail.data;
+    for (let row of rangeTraceRow!) {
+      let context = row.collect ? this.systemTrace!.canvasFavoritePanelCtx! : this.systemTrace!.canvasPanelCtx!;
+      freqFilter.push(...row.dataListCache);
+      row.canvasSave(context);
+      context.clearRect(row.frame.x, row.frame.y, row.frame.width, row.frame.height);
+      drawLines(context!, TraceRow.range?.xs || [], row.frame.height, this.systemTrace!.timerShaftEL!.lineColor());
+      if (row.name.includes('Frequency') && parseInt(row.name.replace(/[^\d]/g, ' ')) === data.cpu) {
+        CpuFreqStruct.hoverCpuFreqStruct = undefined;
+        for (let i = 0; i < freqFilter!.length; i++) {
+          if (freqFilter[i].value === data.value && freqFilter[i].cpu === data.cpu &&
+            Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) <
+            Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
+          ) {
+            CpuFreqStruct.hoverCpuFreqStruct = freqFilter[i];
+          }
+          if (freqFilter[i].cpu === data.cpu) {
+            CpuFreqStruct.draw(context, freqFilter[i]);
+          }
+        }
+      } else {
+        for (let i = 0; i < freqFilter!.length; i++) {
+          if (row.name.includes('Frequency') && freqFilter[i].cpu !== data.cpu &&
+            freqFilter[i].cpu === parseInt(row.name.replace(/[^\d]/g, ' '))
+          ) {
+            CpuFreqStruct.draw(context, freqFilter[i]);
+          }
+        }
+      }
+      let s = CpuFreqStruct.maxFreqName;
+      let textMetrics = context.measureText(s);
+      context.globalAlpha = 0.8;
+      context.fillStyle = '#f0f0f0';
+      context.fillRect(0, 5, textMetrics.width + 8, 18);
+      context.globalAlpha = 1;
+      context.fillStyle = '#333';
+      context.textBaseline = 'middle';
+      context.fillText(s, 4, 5 + 9);
+      row.canvasRestore(context, this.systemTrace);
+    }
   }
 
   connectedCallback() {

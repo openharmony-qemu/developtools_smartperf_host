@@ -117,15 +117,14 @@ private:
     bool UpdateSplitPos();
 
 private:
-    using ArgsMap = std::unordered_map<std::string, std::string>;
-    bool isParsingOver_ = false;
+    TraceFileType fileType_ = TRACE_FILETYPE_BY_TRACE;
     TraceDataCache* traceDataCache_;
     std::unique_ptr<BytraceEventParser> eventParser_;
     std::unique_ptr<BytraceHilogParser> hilogParser_;
     std::unique_ptr<BytraceHiSysEventParser> hiSysEventParser_;
+    bool isParsingOver_ = false;
     const std::regex bytraceMatcher_ = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
                                                   R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
-
     const std::string script_ = R"(</script>)";
     size_t parsedTraceValidLines_ = 0;
     size_t parsedTraceInvalidLines_ = 0;
@@ -148,7 +147,6 @@ private:
     bool isFirstLine_ = true;
     bool isHtmlTrace_ = false;
     bool isHtmlTraceContent_ = false;
-    TraceFileType fileType_ = TRACE_FILETYPE_BY_TRACE;
     int64_t seq_ = 1;
     uint64_t curFileOffset_ = 0;
     uint32_t curDataSize_ = 0;

@@ -21,7 +21,7 @@ import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
-import { queryTransferList } from '../../../database/SqlLite';
+import {queryTransferList} from "../../../database/sql/Perf.sql";
 
 export interface FilterData {
   inputValue: string;

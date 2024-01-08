@@ -32,10 +32,6 @@
 #include "ts_common.h"
 #include "version.h"
 
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
 namespace SysTuning {
 namespace TraceStreamer {
 uint32_t g_fileLen = 0;
@@ -209,7 +205,7 @@ bool RpcServer::GetTimeSnap(std::string dataString)
         return false;
     }
     uint8_t buffer[PACKET_HEADER_LENGTH];
-    (void)memset_s(buffer, PACKET_HEADER_LENGTH, 0, PACKET_HEADER_LENGTH);
+    (void)memset_s(buffer, sizeof(buffer), 0, sizeof(buffer));
     int32_t i = 0;
     for (auto it = dataString.begin(); it != dataString.begin() + PACKET_HEADER_LENGTH; ++it, ++i) {
         buffer[i] = *it;
@@ -457,8 +453,8 @@ int32_t RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int
 
 bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
-    UNUSED(data);
-    UNUSED(len);
+    Unused(data);
+    Unused(len);
     MetaData* metaData = ts_->GetMetaData();
     metaData->SetSourceFileName("input stream mode");
     metaData->SetOutputFileName("wasm mode");
@@ -519,8 +515,8 @@ void RpcServer::CancelSqlQuery()
 
 bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
-    UNUSED(data);
-    UNUSED(len);
+    Unused(data);
+    Unused(len);
     TS_LOGI("RPC reset trace_streamer");
 
     ts_->WaitForParserEnd();

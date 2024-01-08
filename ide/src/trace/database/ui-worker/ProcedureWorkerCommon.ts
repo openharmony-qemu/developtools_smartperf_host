@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU';
+import { CpuStruct, WakeupBean } from './cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
@@ -1231,7 +1231,6 @@ export function drawLoading(
 
 let loadingText = 'Loading...';
 let loadingTextWidth = 0;
-// let loadingBackground = "#eeeeee";
 let loadingBackground = '#f1f1f1';
 let loadingFont = 'bold 11pt Arial';
 let loadingFontColor = '#696969';
@@ -1255,7 +1254,6 @@ export function drawLoadingFrame(
     ctx.fillRect(0, 1, firstPx, row.frame.height - 2);
     ctx.fillRect(lastPx, 1, row.frame.width - lastPx, row.frame.height - 2);
     ctx.fillStyle = loadingFontColor;
-    // ctx.font = loadingFont;
     if (firstPx > loadingTextWidth) {
       ctx.fillText(loadingText, (firstPx - loadingTextWidth) / 2, row.frame.height / 2);
     }
@@ -1264,7 +1262,6 @@ export function drawLoadingFrame(
     }
   }
   ctx.closePath();
-  // drawSingleVSync(this.canvasPanelCtx!, this.timerShaftEL?.canvas?.clientWidth || 0, canvasHeight);
 }
 
 export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {

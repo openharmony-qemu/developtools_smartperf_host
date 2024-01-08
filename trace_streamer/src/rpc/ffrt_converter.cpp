@@ -32,8 +32,8 @@ bool FfrtConverter::RecoverTraceAndGenerateNewFile(const std::string& ffrtFileNa
     TypeFfrtPid result = ClassifyLogsForFfrtWorker(lines);
     ConvertFfrtThreadToFfrtTask(lines, result);
     SupplementFfrtBlockAndWakeInfo(lines);
-    for (auto line : lines) {
-        outFile << line << std::endl;
+    for (const std::string& lineergodic : lines) {
+        outFile << lineergodic << std::endl;
     }
     return true;
 }
@@ -368,7 +368,7 @@ FfrtConverter::TypeFfrtPid FfrtConverter::ClassifyLogsForFfrtWorker(vector<std::
         FindFfrtProcessAndClassifyLogs(results[line], line, traceMap, ffrtPidMap);
     }
     for (auto& [pid, tids] : ffrtPidMap) {
-        for (auto& pair : tids) {
+        for (const auto& pair : tids) {
             auto tid = pair.first;
             ffrtPidMap[pid][tid].line = traceMap[tid];
         }
@@ -523,10 +523,14 @@ void FfrtConverter::SupplementFfrtBlockAndWakeInfo(vector<std::string>& results)
     std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     for (int line = 0; line < results.size(); line++) {
         auto log = results[line];
+        int32_t pid;
+        size_t beginPos;
+        long long gid;
+        size_t endPos;
         if (log.find("FFBK[") != std::string::npos) {
-            auto pid = ExtractProcessId(log);
-            auto beginPos = log.rfind("|");
-            auto gid = stoll(log.substr(beginPos + 1));
+            pid = ExtractProcessId(log);
+            beginPos = log.rfind("|");
+            gid = stoll(log.substr(beginPos + 1));
             if (taskWak.find(pid) == taskWak.end()) {
                 taskWak[pid] = {};
             }
@@ -544,15 +548,15 @@ void FfrtConverter::SupplementFfrtBlockAndWakeInfo(vector<std::string>& results)
                 memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
             }
             taskWak[pid][gid].state = "block";
-            auto endPos = results[line].rfind('|');
+            endPos = results[line].rfind('|');
             results[line] = results[line].substr(0, endPos);
             if (!readyEndLog.empty()) {
                 results[line] = readyEndLog + results[line];
             }
         } else if (log.find("FFWK|") != std::string::npos) {
-            auto pid = ExtractProcessId(log);
-            auto beginPos = log.rfind('|');
-            auto gid = stoll(log.substr(beginPos + 1));
+            pid = ExtractProcessId(log);
+            beginPos = log.rfind('|');
+            gid = stoll(log.substr(beginPos + 1));
             if (taskWak.find(pid) != taskWak.end() && taskWak[pid].find(gid) != taskWak[pid].end()) {
                 auto timestamp = ExtractTimeStr(log);
                 auto cpuId = ExtractCpuId(log);
@@ -582,10 +586,9 @@ void FfrtConverter::SupplementFfrtBlockAndWakeInfo(vector<std::string>& results)
                 taskWak[pid][gid].prevWakeLog = log;
             }
         } else if (log.find("FFRT::[") != std::string::npos) {
-            auto pid = ExtractProcessId(log);
-            long long gid;
-            auto beginPos = log.rfind('|');
-            auto endPos = log.find_first_of('\n', beginPos + 1);
+            pid = ExtractProcessId(log);
+            beginPos = log.rfind('|');
+            endPos = log.find_first_of('\n', beginPos + 1);
             if (beginPos != std::string::npos && endPos != std::string::npos &&
                 IsDigit(log.substr(beginPos + 1, endPos - beginPos - 1))) {
                 gid = stoll(log.substr(beginPos + 1, endPos - beginPos - 1));
@@ -596,8 +599,8 @@ void FfrtConverter::SupplementFfrtBlockAndWakeInfo(vector<std::string>& results)
                 if (taskWak[pid][gid].state == "ready") {
                     auto timestamp = ExtractTimeStr(log);
                     auto cpuId = ExtractCpuId(log);
-                    auto endPos = log.rfind('\n');
-                    auto beginPos = log.find_last_of('\n', endPos - 1);
+                    endPos = log.rfind('\n');
+                    beginPos = log.find_last_of('\n', endPos - 1);
                     auto switchLog = log.substr(beginPos + 1, endPos);
                     beginPos = switchLog.find("next_comm=");
                     endPos = switchLog.find("next_pid");

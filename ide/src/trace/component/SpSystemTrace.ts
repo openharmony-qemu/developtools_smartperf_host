@@ -17,15 +17,7 @@ import { BaseElement, element } from '../../base-ui/BaseElement';
 import './trace/TimerShaftElement';
 import './trace/base/TraceRow';
 import {
-  queryBySelectAllocationOrReturn,
-  queryBySelectExecute,
-  queryEbpfSamplesCount,
-  querySceneSearchFunc,
-  querySearchFunc,
   threadPool,
-  queryCpuKeyPathData,
-  queryTaskPoolRelationData,
-  queryTaskPoolOtherRelationData,
 } from '../database/SqlLite';
 import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow';
 import { TimerShaftElement } from './trace/TimerShaftElement';
@@ -54,18 +46,18 @@ import {
   Rect,
 } from '../database/ui-worker/ProcedureWorkerCommon';
 import { SpChartManager } from './chart/SpChartManager';
-import { CpuStruct, WakeupBean } from '../database/ui-worker/ProcedureWorkerCPU';
+import { CpuStruct, WakeupBean } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { ProcessStruct } from '../database/ui-worker/ProcedureWorkerProcess';
 import { CpuFreqStruct } from '../database/ui-worker/ProcedureWorkerFreq';
-import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread';
 import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
-import { CpuStateStruct } from '../database/ui-worker/ProcedureWorkerCpuState';
-import { HiPerfCpuStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCPU';
-import { HiPerfProcessStruct } from '../database/ui-worker/ProcedureWorkerHiPerfProcess';
-import { HiPerfThreadStruct } from '../database/ui-worker/ProcedureWorkerHiPerfThread';
-import { HiPerfEventStruct } from '../database/ui-worker/ProcedureWorkerHiPerfEvent';
-import { HiPerfReportStruct } from '../database/ui-worker/ProcedureWorkerHiPerfReport';
+import { CpuStateStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
+import { HiPerfCpuStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
+import { HiPerfProcessStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess';
+import { HiPerfThreadStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread';
+import { HiPerfEventStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
+import { HiPerfReportStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfReport';
 import { FpsStruct } from '../database/ui-worker/ProcedureWorkerFPS';
 import { CpuAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerCpuAbility';
 import { DiskAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerDiskIoAbility';
@@ -106,12 +98,22 @@ import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample';
 import { LitSearch } from './trace/search/Search';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane';
-import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart';
+import { HiPerfCallChartStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon';
 import { searchCpuDataSender } from '../database/data-trafic/CpuDataSender';
 import { type SpKeyboard } from '../component/SpKeyboard';
 import { enableVSync, resetVSync } from './chart/VSync';
-import {QueryEnum} from "../database/data-trafic/QueryEnum";
+import {QueryEnum} from "../database/data-trafic/utils/QueryEnum";
+import {SpSystemTraceHtml} from "./SpSystemTrace.html";
+import {queryEbpfSamplesCount} from "../database/sql/Memory.sql";
+import {queryBySelectExecute} from "../database/sql/ProcessThread.sql";
+import {
+  querySceneSearchFunc, querySearchFunc,
+  queryTaskPoolOtherRelationData,
+  queryTaskPoolRelationData
+} from "../database/sql/Func.sql";
+import {queryBySelectAllocationOrReturn} from "../database/sql/SqlLite.sql";
+import {queryCpuKeyPathData} from "../database/sql/Cpu.sql";
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -344,8 +346,8 @@ export class SpSystemTrace extends BaseElement {
     rightStar?.addEventListener('click', () => {
       let wakeupLists = [];
       wakeupLists.push(CpuStruct.selectCpuStruct?.cpu);
-      for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
-        wakeupLists.push(SpSystemTrace.wakeupList[i].cpu);
+      for (let wakeupBean of SpSystemTrace.wakeupList) {
+        wakeupLists.push(wakeupBean.cpu);
       }
       let wakeupCpuLists = Array.from(new Set(wakeupLists)).sort();
       for (let i = 0; i < wakeupCpuLists.length; i++) {
@@ -645,9 +647,7 @@ export class SpSystemTrace extends BaseElement {
               });
             }
           });
-          rows.forEach((it) => {
-            it.checkType = '2';
-          });
+          rows.forEach((it) => it.checkType = '2');
         } else {
           this.queryAllTraceRow().forEach((row) => {
             row.checkType = '-1';
@@ -692,7 +692,6 @@ export class SpSystemTrace extends BaseElement {
             minFilterId: it.getAttribute('minFilterId'),
             cpu: it.getAttribute('cpu'),
           });
-          // selection.cpuFreqLimitDatas.push(it.dataList!);
         } else if (it.rowType == TraceRow.ROW_TYPE_PROCESS) {
           this.pushPidToSelection(selection, it.rowId!);
           if (it.getAttribute('hasStartup') === 'true') {
@@ -2835,7 +2834,6 @@ export class SpSystemTrace extends BaseElement {
                 let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
                   `trace-row[row-id='${data.pid}'][folder]`
                 );
-                //this.drawThreadLine(endParentRow, ThreadStruct.selectThreadStruct, data);
               });
             }
           );
@@ -3299,8 +3297,7 @@ export class SpSystemTrace extends BaseElement {
           );
           if (!selectRow) {
             let collectList = this.favoriteChartListEL!.getAllCollectRows();
-            for (let index = 0; index < collectList.length; index++) {
-              let selectCollectRow = collectList[index];
+            for (let selectCollectRow of collectList) {
               if (selectCollectRow.rowId === allocationRowId.toString() && selectCollectRow.rowType === 'func') {
                 selectRow = selectCollectRow;
                 break;
@@ -3535,8 +3532,7 @@ export class SpSystemTrace extends BaseElement {
       );
     }
     if (!startRow) {
-      for (let index = 0; index < collectList.length; index++) {
-        let collectChart = collectList[index];
+      for (let collectChart of collectList) {
         if (collectChart.rowId === selectRowId && collectChart.rowType === 'janks') {
           startRow = collectChart;
           break;
@@ -3738,8 +3734,7 @@ export class SpSystemTrace extends BaseElement {
       `trace-row[row-id='${selectRowId}'][row-type='thread']`
     );
     if (!startRow) {
-      for (let index = 0; index < collectList.length; index++) {
-        let collectChart = collectList[index];
+      for (let collectChart of collectList) {
         if (collectChart.rowId === selectRowId?.toString() && collectChart.rowType === 'thread') {
           startRow = collectChart;
           break;
@@ -4766,101 +4761,6 @@ export class SpSystemTrace extends BaseElement {
   }
 
   initHtml(): string {
-    return `<!--suppress CssUnresolvedCustomProperty -->
-    <style>
-    :host{
-        display: block;
-        width: 100%;
-        height: 100%;
-    }
-    .timer-shaft{
-        width: 100%;
-        z-index: 2;
-    }
-    
-     .rows-pane{
-        overflow: overlay;
-        overflow-anchor: none;
-        flex: 1;
-        max-height: calc(100vh - 147px - 48px);
-    }
-    .rows{
-        color: #fff;
-        display: flex;
-        box-sizing: border-box;
-        flex-direction: column;
-        overflow-y: auto;
-        flex: 1;
-        width: 100%;
-        background: var(--dark-background4,#ffffff);
-    }
-    :host([disable]) .vessel{
-        pointer-events: none;
-    }
-    .vessel{
-        width: 100%;
-        box-sizing: border-box;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        position:relative;
-    }
-    .panel-canvas{
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        height: 100%;
-        box-sizing: border-box;
-        z-index: 0;
-    }
-    
-    .panel-canvas-favorite{
-        width: 100% ;
-        display: block;
-        position: absolute;
-        height: 0;
-        top: 0;
-        right: 0;
-        box-sizing: border-box;
-        z-index: 100;
-    }
-    .trace-sheet{
-        cursor: default;
-    }
-    .tip{
-        z-index: 1001;
-        position: absolute;
-        top: 0;
-        left: 0;
-        /*height: 100%;*/
-        background-color: white;
-        border: 1px solid #f9f9f9;
-        width: auto;
-        font-size: 8px;
-        color: #50809e;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 2px 10px;
-        box-sizing: border-box;
-        display: none;
-        user-select: none;
-    }
-
-    </style>
-    <div class="vessel">
-        <timer-shaft-element class="timer-shaft" style="position: relative;top: 0"></timer-shaft-element>
-        <sp-chart-list id="favorite-chart-list"></sp-chart-list>
-        <div class="rows-pane" style="position: relative;flex-direction: column;overflow-x: hidden;">
-            <canvas id="canvas-panel" class="panel-canvas" ondragstart="return false"></canvas>
-            <div class="spacer" ondragstart="return false"></div>
-            <div class="rows" ondragstart="return false"></div>
-        </div>
-        <div id="tip" class="tip"></div>
-        <trace-sheet class="trace-sheet" mode="hidden" ondragstart="return false"></trace-sheet>
-    </div>
-        `;
+    return SpSystemTraceHtml;
   }
 }

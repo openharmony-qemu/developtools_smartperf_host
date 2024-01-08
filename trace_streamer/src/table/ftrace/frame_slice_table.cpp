@@ -84,8 +84,8 @@ std::unique_ptr<TableBase::Cursor> FrameSliceTable::CreateCursor()
 }
 
 FrameSliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFameSliceData().Size())),
-      frameSliceObj_(dataCache->GetConstFameSliceData())
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFrameSliceData().Size())),
+      frameSliceObj_(dataCache->GetConstFrameSliceData())
 {
 }
 

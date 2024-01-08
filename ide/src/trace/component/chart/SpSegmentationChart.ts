@@ -16,11 +16,11 @@
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
 import { BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
-import { queryIrqList } from '../../database/SqlLite';
 import { BaseStruct } from '../../bean/BaseStruct';
+import {queryIrqList} from "../../database/sql/Irq.sql";
 export class SpSegmentationChart {
   static trace: SpSystemTrace;
   static jsonRow: TraceRow<CpuFreqExtendStruct> | undefined;

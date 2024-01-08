@@ -16,12 +16,13 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabSlices, getTabSlicesAsyncFunc } from '../../../../database/SqlLite';
 import { SpAllocations } from '../../../setting/SpAllocations';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
 import { LitSearch } from '../../search/Search';
 import { resizeObserver } from '../SheetUtils';
+import {getTabSlicesAsyncFunc} from "../../../../database/sql/Func.sql";
+import {getTabSlices} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {

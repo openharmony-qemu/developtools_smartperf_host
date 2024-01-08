@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabPowerDetailsData } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { PowerDetailsEnergy } from '../../../../bean/EnergyStruct';
 import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
 import { resizeObserver } from '../SheetUtils';
+import {getTabPowerDetailsData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-power-details')
 export class TabPanePowerDetails extends BaseElement {
@@ -37,6 +37,84 @@ export class TabPanePowerDetails extends BaseElement {
     resizeObserver(this.parentElement!, this.tblPowerDetails!);
   }
 
+  getTimeTypeValue() {
+    return [
+      'foreground_duration',
+      'background_duration',
+      'screen_on_duration',
+      'screen_off_duration',
+      'foreground_count',
+      'background_count',
+      'screen_on_count',
+      'screen_off_count',
+      'duration',
+      'energy',
+      'usage',
+      'camera_id',
+    ];
+  }
+
+  getDurationTypeValue() {
+    return [
+      'background_time',
+      'screen_on_time',
+      'screen_off_time',
+      'load',
+      'uid',
+      'usage',
+      'charge',
+      'foreground_count',
+      'background_count',
+      'screen_on_count',
+      'screen_off_count',
+      'energy',
+      'duration',
+    ];
+  }
+
+  getEnergyTypeValue() {
+    return [
+      'background_time',
+      'screen_on_time',
+      'screen_off_time',
+      'load',
+      'charge',
+      'foreground_count',
+      'background_count',
+      'screen_on_count',
+      'screen_off_count',
+      'camera_id',
+      'uid',
+      'foreground_duration',
+      'foreground_energy',
+      'background_duration',
+      'background_energy',
+      'screen_on_duration',
+      'screen_on_energy',
+      'screen_off_duration',
+      'screen_off_energy',
+    ];
+  }
+
+  getCountTypeValue() {
+    return [
+      'background_time',
+      'screen_on_time',
+      'screen_off_time',
+      'load',
+      'energy',
+      'usage',
+      'foreground_duration',
+      'background_duration',
+      'screen_on_duration',
+      'screen_off_duration',
+      'camera_id',
+      'uid',
+      'duration',
+      'charge',
+    ];
+  }
+
   initElements(): void {
     this.tblPowerDetails = this.shadowRoot?.querySelector<LitTable>('#tb-power-details-energy');
     this.tblPowerDetails!.addEventListener('column-click', (evt) => {
@@ -45,73 +123,41 @@ export class TabPanePowerDetails extends BaseElement {
     });
     this.sourcePowerDetails = [];
     this.itemType = {
-      time_type: [
-        'foreground_duration',
-        'background_duration',
-        'screen_on_duration',
-        'screen_off_duration',
-        'foreground_count',
-        'background_count',
-        'screen_on_count',
-        'screen_off_count',
-        'duration',
-        'energy',
-        'usage',
-        'camera_id',
-      ],
-      duration_type: [
-        'background_time',
-        'screen_on_time',
-        'screen_off_time',
-        'load',
-        'uid',
-        'usage',
-        'charge',
-        'foreground_count',
-        'background_count',
-        'screen_on_count',
-        'screen_off_count',
-        'energy',
-        'duration',
-      ],
-      energy_type: [
-        'background_time',
-        'screen_on_time',
-        'screen_off_time',
-        'load',
-        'charge',
-        'foreground_count',
-        'background_count',
-        'screen_on_count',
-        'screen_off_count',
-        'camera_id',
-        'uid',
-        'foreground_duration',
-        'foreground_energy',
-        'background_duration',
-        'background_energy',
-        'screen_on_duration',
-        'screen_on_energy',
-        'screen_off_duration',
-        'screen_off_energy',
-      ],
-      count_type: [
-        'background_time',
-        'screen_on_time',
-        'screen_off_time',
-        'load',
-        'energy',
-        'usage',
-        'foreground_duration',
-        'background_duration',
-        'screen_on_duration',
-        'screen_off_duration',
-        'camera_id',
-        'uid',
-        'duration',
-        'charge',
-      ],
+      time_type:[],
+      duration_type:[],
+      energy_type:[],
+      count_type:[]
+    }
+    this.itemType.time_type = this.getTimeTypeValue();
+    this.itemType.duration_type = this.getDurationTypeValue();
+    this.itemType.energy_type = this.getEnergyTypeValue();
+    this.itemType.count_type = this.getCountTypeValue();
+  }
+
+  getPowerData() {
+    return {
+      POWER_IDE_CPU: new PowerDetailsEnergy('CPU'),
+      POWER_IDE_LOCATION: new PowerDetailsEnergy('LOCATION'),
+      POWER_IDE_GPU: new PowerDetailsEnergy('GPU'),
+      POWER_IDE_DISPLAY: new PowerDetailsEnergy('DISPLAY'),
+      POWER_IDE_CAMERA: new PowerDetailsEnergy('CAMERA'),
+      POWER_IDE_BLUETOOTH: new PowerDetailsEnergy('BLUETOOTH'),
+      POWER_IDE_FLASHLIGHT: new PowerDetailsEnergy('FLASHLIGHT'),
+      POWER_IDE_AUDIO: new PowerDetailsEnergy('AUDIO'),
+      POWER_IDE_WIFISCAN: new PowerDetailsEnergy('WIFISCAN'),
     };
+  }
+
+  getTotalEnergy(powerData: any) {
+    return powerData['POWER_IDE_CPU'].getTotalEnergy(false) +
+      powerData['POWER_IDE_LOCATION'].getTotalEnergy(false) +
+      powerData['POWER_IDE_GPU'].getTotalEnergy(true) +
+      powerData['POWER_IDE_DISPLAY'].getTotalEnergy(true) +
+      powerData['POWER_IDE_CAMERA'].getTotalEnergy(false) +
+      powerData['POWER_IDE_BLUETOOTH'].getTotalEnergy(false) +
+      powerData['POWER_IDE_FLASHLIGHT'].getTotalEnergy(false) +
+      powerData['POWER_IDE_AUDIO'].getTotalEnergy(false) +
+      powerData['POWER_IDE_WIFISCAN'].getTotalEnergy(false);
   }
 
   queryDataByDB(val: SelectionParam | any) {
@@ -123,18 +169,7 @@ export class TabPanePowerDetails extends BaseElement {
       set.add('LOAD');
       set.add('CHARGE');
       set.add('CAMERA_ID');
-
-      let powerData: any = {
-        POWER_IDE_CPU: new PowerDetailsEnergy('CPU'),
-        POWER_IDE_LOCATION: new PowerDetailsEnergy('LOCATION'),
-        POWER_IDE_GPU: new PowerDetailsEnergy('GPU'),
-        POWER_IDE_DISPLAY: new PowerDetailsEnergy('DISPLAY'),
-        POWER_IDE_CAMERA: new PowerDetailsEnergy('CAMERA'),
-        POWER_IDE_BLUETOOTH: new PowerDetailsEnergy('BLUETOOTH'),
-        POWER_IDE_FLASHLIGHT: new PowerDetailsEnergy('FLASHLIGHT'),
-        POWER_IDE_AUDIO: new PowerDetailsEnergy('AUDIO'),
-        POWER_IDE_WIFISCAN: new PowerDetailsEnergy('WIFISCAN'),
-      };
+      let powerData: any = this.getPowerData();
       let tsMax = 0;
       let currentAppIndex = -1;
       items.forEach((item) => {
@@ -143,29 +178,15 @@ export class TabPanePowerDetails extends BaseElement {
           powerDatum['appName'] = SpHiSysEnergyChart.app_name;
           currentAppIndex = item.eventValue.split(',').indexOf(SpHiSysEnergyChart.app_name!);
           tsMax = 0;
-        } else if (currentAppIndex > -1) {
+        } else if (currentAppIndex > -1 && (set.has(item.appKey) ? item.startNS >= tsMax : true)) {
           if (set.has(item.appKey)) {
-            if (item.startNS >= tsMax) {
-              powerDatum[item.appKey.toLocaleLowerCase()] = item.eventValue;
-              tsMax = item.startNS;
-            }
+            powerDatum[item.appKey.toLocaleLowerCase()] = item.startNS >= tsMax ? (tsMax = item.startNS, item.eventValue) : powerDatum[item.appKey.toLocaleLowerCase()];
           } else {
-            powerDatum[item.appKey.toLocaleLowerCase()] += parseInt(item.eventValue.split(',')[currentAppIndex]);
+            powerDatum[item.appKey.toLocaleLowerCase()] = (powerDatum[item.appKey.toLocaleLowerCase()] || 0) + parseInt(item.eventValue.split(',')[currentAppIndex]);
           }
         }
       });
-
-      let totalEnergy =
-        powerData['POWER_IDE_CPU'].getTotalEnergy(false) +
-        powerData['POWER_IDE_LOCATION'].getTotalEnergy(false) +
-        powerData['POWER_IDE_GPU'].getTotalEnergy(true) +
-        powerData['POWER_IDE_DISPLAY'].getTotalEnergy(true) +
-        powerData['POWER_IDE_CAMERA'].getTotalEnergy(false) +
-        powerData['POWER_IDE_BLUETOOTH'].getTotalEnergy(false) +
-        powerData['POWER_IDE_FLASHLIGHT'].getTotalEnergy(false) +
-        powerData['POWER_IDE_AUDIO'].getTotalEnergy(false) +
-        powerData['POWER_IDE_WIFISCAN'].getTotalEnergy(false);
-
+      let totalEnergy = this.getTotalEnergy(powerData);
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_CPU', false, 'time_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_LOCATION', false, 'duration_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_GPU', true, 'energy_type'));
@@ -175,7 +196,6 @@ export class TabPanePowerDetails extends BaseElement {
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_FLASHLIGHT', false, 'duration_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_AUDIO', false, 'duration_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_WIFISCAN', false, 'count_type'));
-
       if (detailsData.length > 0) {
         this.sourcePowerDetails = detailsData;
         this.tblPowerDetails!.recycleDataSource = detailsData;
@@ -183,17 +203,21 @@ export class TabPanePowerDetails extends BaseElement {
         this.sourcePowerDetails = [];
         this.tblPowerDetails!.recycleDataSource = [];
       }
-      this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
-        td.style.fontSize = '14px';
-        td.style.fontWeight = '400';
-        td.style.opacity = '0.9';
-        td.style.lineHeight = '16px';
-      });
+      this.updateTableStyles();
     });
     let th = this.tblPowerDetails?.shadowRoot?.querySelector<HTMLDivElement>('.th');
     if (th) {
       th!.style.gridColumnGap = '5px';
     }
+  }
+
+  updateTableStyles() {
+    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+      td.style.fontSize = '14px';
+      td.style.fontWeight = '400';
+      td.style.opacity = '0.9';
+      td.style.lineHeight = '16px';
+    });
   }
 
   setEnergyItems(powerData: any, totalEnergy: number, energyName: string, isSimpleEnergy: boolean, type: any): any {
@@ -298,13 +322,13 @@ export class TabPanePowerDetails extends BaseElement {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-              parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]) -
-                // @ts-ignore
-                parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property])
+            parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]) -
+            // @ts-ignore
+            parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property])
             : // @ts-ignore
-              parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property]) -
-                // @ts-ignore
-                parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]);
+            parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property]) -
+            // @ts-ignore
+            parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
           if (bPowerDetails[property] > aPowerDetails[property]) {

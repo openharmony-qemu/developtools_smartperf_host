@@ -17,7 +17,6 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitButton } from '../../../../../base-ui/button/LitButton.js';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { querySchedThreadStates, querySingleCutData, queryLoopCutData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
@@ -27,6 +26,7 @@ import {
   ThreadInitConfig,
   SchedThreadCutConfig,
 } from '../../../../bean/SchedSwitchStruct';
+import {queryLoopCutData, querySchedThreadStates, querySingleCutData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-schedswitch')
 export class TabPaneSchedSwitch extends BaseElement {
@@ -178,7 +178,6 @@ export class TabPaneSchedSwitch extends BaseElement {
       data.isSelected = true;
       this.schedSwitchTbl!.clearAllSelection(data);
       this.schedSwitchTbl!.setCurrentSelection(data);
-      // SpSegmentationChart .setChartData('SCHED-SWITCH', data.children);
       this.queryHistogramData();
     } else if (data.level === 'cycle') {
       if (this.threadFlag === 'thread') {
@@ -188,7 +187,6 @@ export class TabPaneSchedSwitch extends BaseElement {
         data.isSelected = true;
         this.schedSwitchTbl!.clearAllSelection(data);
         this.schedSwitchTbl!.setCurrentSelection(data);
-        // SpSegmentationChart .tabHover('SCHED-SWITCH', true, data!.cycle);
       }
     }
   }

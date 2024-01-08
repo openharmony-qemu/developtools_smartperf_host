@@ -92,44 +92,7 @@ export class TabCpuDetailsFrequency extends BaseElement {
       this.cpuDetailsFrequencyData = getDataNo(this.cpuDetailsFrequencyData);
       this.tableNoData!.noData = this.cpuDetailsFrequencyData.length == 0;
       this.noData(this.cpuDetailsFrequencyData.length == 0);
-      this.cpuDetailsFrequencyPie!.config = {
-        appendPadding: 0,
-        data: this.cpuDetailsFrequencyData,
-        angleField: 'sum',
-        colorField: 'value',
-        radius: 1,
-        label: {
-          type: 'outer',
-        },
-        tip: (freObj) => {
-          return `<div>
-                                <div>frequency:${freObj.obj.value}</div> 
-                                <div>min:${freObj.obj.min}</div>
-                                <div>max:${freObj.obj.max}</div>
-                                <div>average:${freObj.obj.avg}</div>
-                                <div>duration:${freObj.obj.sumTimeStr}</div>
-                                <div>ratio:${freObj.obj.ratio}%</div>
-                            </div>
-                                `;
-        },
-        hoverHandler: (cpuDetailsFreqData) => {
-          if (cpuDetailsFreqData) {
-            this.cpuDetailsFrequencyUsageTbl!.setCurrentHover(cpuDetailsFreqData);
-          } else {
-            this.cpuDetailsFrequencyUsageTbl!.mouseOut();
-          }
-        },
-        angleClick: (it) => {
-          this.tabCpuDetailsThreads!.setShow = true;
-          this.shadowRoot!.querySelector<HTMLDivElement>('.d-box')!.style.display = 'none';
-          this.tabCpuDetailsThreads!.init(cpu, it);
-        },
-        interactions: [
-          {
-            type: 'element-active',
-          },
-        ],
-      };
+      this.setFrequencyPieConfig(cpu);
       if (this.cpuDetailsFrequencySortColumn != '') {
         this.sortByColumn({
           key: this.cpuDetailsFrequencySortColumn,
@@ -140,6 +103,47 @@ export class TabCpuDetailsFrequency extends BaseElement {
       }
       this.cpuDetailsFrequencyUsageTbl?.reMeauseHeight();
     });
+  }
+
+  private setFrequencyPieConfig(cpu: number): void {
+    this.cpuDetailsFrequencyPie!.config = {
+      appendPadding: 0,
+      data: this.cpuDetailsFrequencyData,
+      angleField: 'sum',
+      colorField: 'value',
+      radius: 1,
+      label: {
+        type: 'outer',
+      },
+      tip: (freObj) => {
+        return `<div>
+                                <div>frequency:${freObj.obj.value}</div> 
+                                <div>min:${freObj.obj.min}</div>
+                                <div>max:${freObj.obj.max}</div>
+                                <div>average:${freObj.obj.avg}</div>
+                                <div>duration:${freObj.obj.sumTimeStr}</div>
+                                <div>ratio:${freObj.obj.ratio}%</div>
+                            </div>
+                                `;
+      },
+      hoverHandler: (cpuDetailsFreqData) => {
+        if (cpuDetailsFreqData) {
+          this.cpuDetailsFrequencyUsageTbl!.setCurrentHover(cpuDetailsFreqData);
+        } else {
+          this.cpuDetailsFrequencyUsageTbl!.mouseOut();
+        }
+      },
+      angleClick: (it) => {
+        this.tabCpuDetailsThreads!.setShow = true;
+        this.shadowRoot!.querySelector<HTMLDivElement>('.d-box')!.style.display = 'none';
+        this.tabCpuDetailsThreads!.init(cpu, it);
+      },
+      interactions: [
+        {
+          type: 'element-active',
+        },
+      ],
+    };
   }
 
   noData(value: boolean) {

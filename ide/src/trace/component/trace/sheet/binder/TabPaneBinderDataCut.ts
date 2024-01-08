@@ -24,11 +24,11 @@ import {
   FuncNameCycle,
   BinderDataStruct,
 } from '../../../../bean/BinderProcessThread';
-import { querySingleFuncNameCycle, queryBinderByThreadId, queryLoopFuncNameCycle } from '../../../../database/SqlLite';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
 import '../../../../../base-ui/chart/column/LitChartColumn';
-// import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
+import {queryLoopFuncNameCycle, querySingleFuncNameCycle} from "../../../../database/sql/Func.sql";
+import {queryBinderByThreadId} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-binder-datacut')
 export class TabPaneBinderDataCut extends BaseElement {
@@ -98,7 +98,6 @@ export class TabPaneBinderDataCut extends BaseElement {
     let leftNS: number = this.currentSelectionParam.leftNs;
     let rightNS: number = this.currentSelectionParam.rightNs;
     if (threadIdValue !== '' && threadFuncName !== '') {
-      // SpSegmentationChart.setBinderChartData("BINDER", []);
       this.clickLoop(true);
       this.clickSingle(false);
       this.threadBindersTbl!.loading = true;
@@ -152,7 +151,6 @@ export class TabPaneBinderDataCut extends BaseElement {
     let leftNS: number = this.currentSelectionParam.leftNs;
     let rightNS: number = this.currentSelectionParam.rightNs;
     if (threadIdValue !== '' && threadFuncName !== '') {
-      // SpSegmentationChart.setBinderChartData("BINDER", []);
       this.clickLoop(false);
       this.clickSingle(true);
       threadId.style.border = '1px solid rgb(151,151,151)';
@@ -530,14 +528,12 @@ export class TabPaneBinderDataCut extends BaseElement {
         let threaId = currentData.tid;
         let rowThreadBinderArr = this.findThreadByThreadId(this.cacheBinderArr!, threaId);
         let binderWithCountList: Array<BinderDataStruct[]> = this.binderWithCountList(rowThreadBinderArr!);
-        // SpSegmentationChart.setBinderChartData('BINDER', binderWithCountList);
       }
 
       if (currentData.type === 'cycle' && currentData.tid + '' + currentData.pid === this.currentThreadId) {
         currentData.isSelected = true;
         this.threadBindersTbl!.clearAllSelection(currentData);
         this.threadBindersTbl!.setCurrentSelection(currentData);
-        // SpSegmentationChart.tabHover('BINDER', true, currentData.idx);
       }
     });
 

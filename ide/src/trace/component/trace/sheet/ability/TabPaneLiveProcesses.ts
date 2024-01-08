@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabLiveProcessData } from '../../../../database/SqlLite';
 import { LiveProcess } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
+import {getTabLiveProcessData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-live-processes')
 export class TabPaneLiveProcesses extends BaseElement {

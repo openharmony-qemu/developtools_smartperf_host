@@ -19,7 +19,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { JankFramesStruct } from '../../../../bean/JankFramesStruct';
 import { JanksStruct } from '../../../../bean/JanksStruct';
 import { resizeObserver } from '../SheetUtils';
-import { querySelectRangeData } from '../../../../database/SqlLite';
+import {querySelectRangeData} from "../../../../database/sql/Janks.sql";
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {

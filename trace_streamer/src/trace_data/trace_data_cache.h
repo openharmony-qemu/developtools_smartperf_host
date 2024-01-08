@@ -54,11 +54,11 @@ public:
 
 private:
     void InitDB();
-    void ExportPerfCallChaninText(uint32_t callChainId, std::string& buffLine);
-    void ExportHookCallChaninText(uint32_t callChainId, std::string& buffLine);
+    void ExportPerfCallChaninText(uint32_t callChainId, std::string& bufferLine);
+    void ExportHookCallChaninText(uint32_t callChainId, std::string& bufferLine);
     bool ExportHookDataReadableText(int32_t fd, std::string& bufferLine);
     bool ExportHookStatisticReadableText(int32_t fd, std::string& bufferLine);
-    using EbpfEventTypeMap = std::map<uint32_t /*type*/, std::string_view /*name*/>;
+    using EbpfEventTypeMap = std::map<uint32_t /* type */, std::string_view /* name */>;
     bool ExportEbpfFileSystemReadableText(int32_t fd,
                                           std::string& bufferLine,
                                           const EbpfEventTypeMap& ebpfEventTypeMap);

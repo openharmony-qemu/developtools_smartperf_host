@@ -26,7 +26,6 @@ import {
   drawSelection,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { CounterStruct } from './ProduceWorkerSdkCounter';
 
 export class SdkSliceRender extends Render {
   renderMainThread(
@@ -65,99 +64,6 @@ export class SdkSliceRender extends Render {
       SdkSliceStruct.hoverSdkSliceStruct = undefined;
     }
     req.context.closePath();
-  }
-
-  render(sdkSliceRequest: RequestMessage, sdkList: Array<any>, filter: Array<any>): void {
-    if (sdkSliceRequest.lazyRefresh) {
-      this.sdkSlice(
-        sdkList,
-        filter,
-        sdkSliceRequest.startNS,
-        sdkSliceRequest.endNS,
-        sdkSliceRequest.totalNS,
-        sdkSliceRequest.frame,
-        sdkSliceRequest.useCache || !sdkSliceRequest.range.refresh
-      );
-    } else {
-      if (!sdkSliceRequest.useCache) {
-        this.sdkSlice(
-          sdkList,
-          filter,
-          sdkSliceRequest.startNS,
-          sdkSliceRequest.endNS,
-          sdkSliceRequest.totalNS,
-          sdkSliceRequest.frame,
-          false
-        );
-      }
-    }
-    if (sdkSliceRequest.canvas) {
-      sdkSliceRequest.context.clearRect(0, 0, sdkSliceRequest.canvas.width, sdkSliceRequest.canvas.height);
-      let sdkSliceArr = filter;
-      if (
-        sdkSliceArr.length > 0 &&
-        !sdkSliceRequest.range.refresh &&
-        !sdkSliceRequest.useCache &&
-        sdkSliceRequest.lazyRefresh
-      ) {
-        drawLoading(
-          sdkSliceRequest.context,
-          sdkSliceRequest.startNS,
-          sdkSliceRequest.endNS,
-          sdkSliceRequest.totalNS,
-          sdkSliceRequest.frame,
-          sdkSliceArr[0].startNS,
-          sdkSliceArr[sdkSliceArr.length - 1].startNS + sdkSliceArr[sdkSliceArr.length - 1].dur
-        );
-      }
-      sdkSliceRequest.context.beginPath();
-      SdkSliceStruct.maxSdkSlice = sdkSliceRequest.params.maxSdkSlice;
-      SdkSliceStruct.maxSdkSliceName = sdkSliceRequest.params.maxSdkSliceName;
-      drawLines(sdkSliceRequest.context, sdkSliceRequest.xs, sdkSliceRequest.frame.height, sdkSliceRequest.lineColor);
-      SdkSliceStruct.hoverSdkSliceStruct = undefined;
-      if (sdkSliceRequest.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            sdkSliceRequest.hoverX >= re.frame.x &&
-            sdkSliceRequest.hoverX <= re.frame.x + re.frame.width &&
-            sdkSliceRequest.hoverY >= re.frame.y &&
-            sdkSliceRequest.hoverY <= re.frame.y + re.frame.height
-          ) {
-            SdkSliceStruct.hoverSdkSliceStruct = re;
-            break;
-          }
-        }
-      }
-      SdkSliceStruct.selectSdkSliceStruct = sdkSliceRequest.params.selectSdkSliceStruct;
-      for (let re of filter) {
-        SdkSliceStruct.draw(sdkSliceRequest.context, re);
-      }
-      drawSelection(sdkSliceRequest.context, sdkSliceRequest.params);
-      sdkSliceRequest.context.closePath();
-      sdkSliceRequest.context.globalAlpha = 0.8;
-      sdkSliceRequest.context.fillStyle = '#f0f0f0';
-      sdkSliceRequest.context.globalAlpha = 1;
-      sdkSliceRequest.context.fillStyle = '#333';
-      sdkSliceRequest.context.textBaseline = 'middle';
-      drawFlagLine(
-        sdkSliceRequest.context,
-        sdkSliceRequest.flagMoveInfo,
-        sdkSliceRequest.flagSelectedInfo,
-        sdkSliceRequest.startNS,
-        sdkSliceRequest.endNS,
-        sdkSliceRequest.totalNS,
-        sdkSliceRequest.frame,
-        sdkSliceRequest.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: sdkSliceRequest.id,
-      type: sdkSliceRequest.type,
-      results: sdkSliceRequest.canvas ? undefined : filter,
-      hover: SdkSliceStruct.hoverSdkSliceStruct,
-    });
   }
 
   sdkSlice(

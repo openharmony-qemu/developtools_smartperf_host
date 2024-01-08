@@ -92,44 +92,11 @@ export class CustomThemeColor extends BaseElement {
   }
 
   initElements(): void {
-    this.radios = this.shadowRoot?.querySelectorAll('.litRadio');
     this.colorsEl = this.shadowRoot?.querySelector('.colors') as HTMLDivElement;
     this.application = document.querySelector('body > sp-application') as SpApplication;
     this.systemTrace = this.application.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     let close = this.shadowRoot?.querySelector('.page-close');
-    if (this.radios) {
-      for (let i = 0; i < this.radios.length; i++) {
-        this.radios![i].shadowRoot!.querySelector<HTMLSpanElement>('.selected')!.classList.add('blue');
-        this.radios[i].addEventListener('click', (evt) => {
-          // 点击颜色模式的单选框，色板切换
-          if (this.radios![i].innerHTML === Theme.LIGHT) {
-            if (this.radios![i].getAttribute('checked') === null) {
-              this.colorsArray =
-                window.localStorage.getItem('LightThemeColors') === null
-                  ? [...ColorUtils.FUNC_COLOR_A]
-                  : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
-              this.theme = Theme.LIGHT;
-            } else {
-              return;
-            }
-          } else if (this.radios![i].innerHTML === Theme.DARK) {
-            if (this.radios![i].getAttribute('checked') === null) {
-              this.colorsArray =
-                window.localStorage.getItem('DarkThemeColors') === null
-                  ? [...ColorUtils.FUNC_COLOR_B]
-                  : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
-              this.theme = Theme.DARK;
-            } else {
-              return;
-            }
-          }
-          this.colorsEl!.innerHTML = '';
-          this.createColorsEl(this.colorsEl!);
-          this.confirmOPerate();
-        });
-      }
-    }
-
+    this.radioClick();
     close!.addEventListener('click', (ev) => {
       if (this.application!.hasAttribute('custom-color')) {
         this.application!.removeAttribute('custom-color');
@@ -163,6 +130,42 @@ export class CustomThemeColor extends BaseElement {
       this.systemTrace!.hoverStructNull();
       this.systemTrace!.refreshCanvas(true);
     });
+  }
+
+  private radioClick(): void {
+    this.radios = this.shadowRoot?.querySelectorAll('.litRadio');
+    if (this.radios) {
+      for (let i = 0; i < this.radios.length; i++) {
+        this.radios![i].shadowRoot!.querySelector<HTMLSpanElement>('.selected')!.classList.add('blue');
+        this.radios[i].addEventListener('click', (evt) => {
+          // 点击颜色模式的单选框，色板切换
+          if (this.radios![i].innerHTML === Theme.LIGHT) {
+            if (this.radios![i].getAttribute('checked') === null) {
+              this.colorsArray =
+                window.localStorage.getItem('LightThemeColors') === null
+                  ? [...ColorUtils.FUNC_COLOR_A]
+                  : JSON.parse(window.localStorage.getItem('LightThemeColors')!);
+              this.theme = Theme.LIGHT;
+            } else {
+              return;
+            }
+          } else if (this.radios![i].innerHTML === Theme.DARK) {
+            if (this.radios![i].getAttribute('checked') === null) {
+              this.colorsArray =
+                window.localStorage.getItem('DarkThemeColors') === null
+                  ? [...ColorUtils.FUNC_COLOR_B]
+                  : JSON.parse(window.localStorage.getItem('DarkThemeColors')!);
+              this.theme = Theme.DARK;
+            } else {
+              return;
+            }
+          }
+          this.colorsEl!.innerHTML = '';
+          this.createColorsEl(this.colorsEl!);
+          this.confirmOPerate();
+        });
+      }
+    }
   }
 
   confirmOPerate() {

@@ -122,7 +122,7 @@ private:
     uint32_t nodeFileId_ = INVALID_UINT32;
     uint32_t nodeCount_ = 0;
     bool hasCpuProfiler_ = false;
-    SnapShotData snapShotData_;
+    SnapShotData snapShotData_ = {};
     bool curTypeIsCpuProfile_ = false;
 };
 } // namespace TraceStreamer

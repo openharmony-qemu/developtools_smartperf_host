@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {TraficEnum} from './QueryEnum';
-import {filterDataByGroup} from './DataFilter';
-import {cpuList} from './AllMemoryCache';
+import {TraficEnum} from './utils/QueryEnum';
+import {filterDataByGroup} from './utils/DataFilter';
+import {cpuList} from './utils/AllMemoryCache';
 
 export const chartCpuDataProtoSql = (args: any): string => {
   return `

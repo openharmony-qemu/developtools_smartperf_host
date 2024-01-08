@@ -18,7 +18,6 @@
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "stat_filter.h"
-#include "symbols_filter.h"
 #include <cinttypes>
 
 namespace SysTuning {

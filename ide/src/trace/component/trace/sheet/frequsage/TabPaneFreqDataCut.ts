@@ -16,13 +16,15 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar'
-import { getTabRunningPercent, queryCpuFreqUsageData, queryCpuFreqFilterId, querySearchFuncData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { SliceGroup } from '../../../../bean/StateProcessThread';
 import { SpSegmentationChart } from "../../../chart/SpSegmentationChart";
 import { TabPaneFreqUsageConfig, TabPaneRunningConfig, TabPaneCpuFreqConfig } from "./TabPaneFreqUsageConfig";
 import { LitChartScatter } from '../../../../../base-ui/chart/scatter/LitChartScatter';
+import {queryCpuFreqFilterId, queryCpuFreqUsageData} from "../../../../database/sql/Cpu.sql";
+import {getTabRunningPercent} from "../../../../database/sql/ProcessThread.sql";
+import {querySearchFuncData} from "../../../../database/sql/Func.sql";
 
 @element('tabpane-freqdatacut')
 export class TabPaneFreqDataCut extends BaseElement {

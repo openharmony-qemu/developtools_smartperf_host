@@ -16,9 +16,9 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
-import { getGpufreqData } from '../../../../database/SqlLite';
 import { resizeObserver } from '../SheetUtils';
 import { type GpuCountBean, TreeDataBean } from '../../../../bean/GpufreqBean'
+import {getGpufreqData} from "../../../../database/sql/Perf.sql";
 
 @element('tabpane-gpufreq')
 export class TabPaneGpufreq extends BaseElement {

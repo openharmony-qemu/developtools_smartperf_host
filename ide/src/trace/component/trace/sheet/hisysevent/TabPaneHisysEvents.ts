@@ -25,7 +25,8 @@ import { Flag } from '../../timer-shaft/Flag';
 import { TraceSheet } from '../../base/TraceSheet';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { ColorUtils } from '../../base/ColorUtils';
-import { queryHiSysEventTabData, queryRealTime } from '../../../../database/SqlLite';
+import {queryHiSysEventTabData} from "../../../../database/sql/Perf.sql";
+import {queryRealTime} from "../../../../database/sql/Clock.sql";
 
 @element('tab-hisysevents')
 export class TabPaneHisysEvents extends BaseElement {
@@ -81,7 +82,7 @@ export class TabPaneHisysEvents extends BaseElement {
     });
   }
 
-  initElements(): void {
+  queryElements(): void {
     this.boxDetails = this.shadowRoot?.querySelector<HTMLDivElement>('.box-details');
     this.hiSysEventTable = this.shadowRoot?.querySelector<LitPageTable>('#tb-hisysevent');
     this.hiSysEventTable!.getItemTextColor = (data) => {
@@ -92,8 +93,7 @@ export class TabPaneHisysEvents extends BaseElement {
     this.domainFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#domain-filter');
     this.eventNameFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#event-name-filter');
     this.levelFilter = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
-    this.spSystemTrace = document
-      .querySelector('body > sp-application')
+    this.spSystemTrace = document.querySelector('body > sp-application')
       ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.traceSheetEl = this.spSystemTrace?.shadowRoot?.querySelector('.trace-sheet');
     this.contentFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#contents-filter');
@@ -139,6 +139,10 @@ export class TabPaneHisysEvents extends BaseElement {
       this.traceSheetEl!.systemLogFlag = undefined;
       this.spSystemTrace?.refreshCanvas(false);
     });
+  }
+
+  initElements(): void {
+    this.queryElements();
     this.detailsTbl!.addEventListener('row-hover', (e) => {
       // @ts-ignore
       let data = e.detail.data;

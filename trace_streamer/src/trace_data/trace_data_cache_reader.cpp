@@ -72,10 +72,6 @@ const Measure& TraceDataCacheReader::GetConstProcessMeasureData() const
     return processMeasureData_;
 }
 
-const ThreadMeasureFilter& TraceDataCacheReader::GetConstThreadMeasureFilterData() const
-{
-    return threadMeasureFilterData_;
-}
 const ThreadStateData& TraceDataCacheReader::GetConstThreadStateData() const
 {
     return threadStateData_;
@@ -88,17 +84,9 @@ const CpuMeasureFilter& TraceDataCacheReader::GetConstCpuMeasureData() const
 {
     return cpuMeasureData_;
 }
-const ThreadMeasureFilter& TraceDataCacheReader::GetConstThreadFilterData() const
-{
-    return threadFilterData_;
-}
 const Instants& TraceDataCacheReader::GetConstInstantsData() const
 {
     return instantsData_;
-}
-const ProcessMeasureFilter& TraceDataCacheReader::GetConstProcessFilterData() const
-{
-    return processFilterData_;
 }
 const ProcessMeasureFilter& TraceDataCacheReader::GetConstProcessMeasureFilterData() const
 {
@@ -283,20 +271,6 @@ const PagedMemorySampleData& TraceDataCacheReader::GetConstPagedMemorySampleData
 {
     return pagedMemorySampleData_;
 }
-#if WITH_EBPF_HELP
-const EbpfProcessMaps& TraceDataCacheReader::GetConstEbpfProcessMaps() const
-{
-    return ebpfProcessMaps_;
-}
-const EbpfElf& TraceDataCacheReader::GetConstEbpfElf() const
-{
-    return ebpfElf_;
-}
-const EbpfElfSymbol& TraceDataCacheReader::GetConstEbpfElfSymbol() const
-{
-    return ebpfElfSymbol_;
-}
-#endif
 const HiSysEventSubkeys& TraceDataCacheReader::GetConstHiSysEventSubkeysData() const
 {
     return sysEventNameIds_;
@@ -335,11 +309,11 @@ const DataSourceClockIdData& TraceDataCacheReader::GetConstDataSourceClockIdData
 {
     return dataSourceClockIdData_;
 }
-const FrameSlice& TraceDataCacheReader::GetConstFameSliceData() const
+const FrameSlice& TraceDataCacheReader::GetConstFrameSliceData() const
 {
     return frameSliceData_;
 }
-const FrameMaps& TraceDataCacheReader::GetConstFameMapsData() const
+const FrameMaps& TraceDataCacheReader::GetConstFrameMapsData() const
 {
     return frameMapsData_;
 }
@@ -351,9 +325,9 @@ const AppStartup& TraceDataCacheReader::GetConstAppStartupData() const
 {
     return appStartupData_;
 }
-const SoStaticInitalization& TraceDataCacheReader::GetConstStaticInitalizationData() const
+const SoStaticInitalization& TraceDataCacheReader::GetConstSoStaticInitalizationData() const
 {
-    return staticInitalizationData_;
+    return soStaticInitalizationData_;
 }
 const Animation& TraceDataCacheReader::GetConstAnimation() const
 {

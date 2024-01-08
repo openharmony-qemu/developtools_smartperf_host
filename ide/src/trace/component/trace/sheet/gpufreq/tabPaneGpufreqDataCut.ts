@@ -15,10 +15,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getGpufreqData, getGpufreqDataCut } from '../../../../database/SqlLite';
 import { resizeObserver } from '../SheetUtils';
 import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
 import { GpuCountBean, TreeDataBean, type SearchGpuFuncBean } from '../../../../bean/GpufreqBean';
+import {getGpufreqData, getGpufreqDataCut } from '../../../../database/sql/Perf.sql';
 
 @element('tabpane-gpufreqdatacut')
 export class TabPaneGpufreqDataCut extends BaseElement {

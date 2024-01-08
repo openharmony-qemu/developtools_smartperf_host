@@ -14,7 +14,6 @@
  */
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
-import { queryCustomizeSelect } from '../database/SqlLite';
 import { LitTable } from '../../base-ui/table/lit-table';
 import '../../base-ui/table/lit-table';
 import { LitTableColumn } from '../../base-ui/table/lit-table-column';
@@ -25,6 +24,7 @@ import { PaginationBox } from '../../base-ui/chart/pagenation/PaginationBox';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { getAllSql } from './trace/base/CommonSql';
 import { LitIcon } from '../../base-ui/icon/LitIcon';
+import {queryCustomizeSelect} from "../database/sql/SqlLite.sql";
 
 @element('sp-query-sql')
 export class SpQuerySQL extends BaseElement {

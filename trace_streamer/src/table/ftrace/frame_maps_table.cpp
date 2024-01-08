@@ -58,8 +58,8 @@ std::unique_ptr<TableBase::Cursor> FrameMapsTable::CreateCursor()
 }
 
 FrameMapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFameMapsData().Size())),
-      frameMapsObj_(dataCache->GetConstFameMapsData())
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFrameMapsData().Size())),
+      frameMapsObj_(dataCache->GetConstFrameMapsData())
 {
 }
 

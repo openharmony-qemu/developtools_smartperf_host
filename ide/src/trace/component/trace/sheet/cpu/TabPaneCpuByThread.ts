@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabCpuByThread } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
+import {getTabCpuByThread} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {

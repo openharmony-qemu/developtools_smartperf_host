@@ -237,11 +237,7 @@ export class LitSearch extends BaseElement {
     this.totalEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#total');
     this.indexEL = this.shadowRoot!.querySelector<HTMLSpanElement>('#index');
     this.searchHistoryListEL = this.shadowRoot!.querySelector<HTMLUListElement>('.search-history-list');
-
     this._retarge_index = this.shadowRoot!.querySelector<HTMLInputElement>("input[name='retarge_index']");
-    let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
-    let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
-
     this.search!.addEventListener('focus', () => {
       this.searchFocusListener();
     });
@@ -275,7 +271,17 @@ export class LitSearch extends BaseElement {
         })
       );
     });
+    this.keyUpListener();
+    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: any) => {
+      if (e.keyCode == 13) {
+        e.stopPropagation();
+      }
+    });
+  }
 
+  private keyUpListener(): void {
+    let _root = this.shadowRoot!.querySelector<HTMLInputElement>('.root');
+    let _prompt = this.shadowRoot!.querySelector<HTMLInputElement>('#prompt');
     // 添加翻页监听事件
     this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keyup', (e: any) => {
       if (e.keyCode == 13) {
@@ -302,11 +308,6 @@ export class LitSearch extends BaseElement {
         }
       }
       e.stopPropagation();
-    });
-    this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: any) => {
-      if (e.keyCode == 13) {
-        e.stopPropagation();
-      }
     });
   }
 

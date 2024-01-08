@@ -17,11 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
-import { getTabGpuMemoryData } from '../../../../database/SqlLite';
 import { GpuMemory } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
+import {getTabGpuMemoryData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-gpu-memory-vmtracker')
 export class TabPaneGpuMemoryVmTracker extends BaseElement {

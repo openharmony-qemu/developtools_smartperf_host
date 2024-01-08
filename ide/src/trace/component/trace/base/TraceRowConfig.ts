@@ -20,7 +20,7 @@ import { TraceRow } from './TraceRow';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { LitSearch } from '../search/Search';
 import { TraceSheet } from './TraceSheet';
-import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
+import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { type BaseStruct } from '../../../bean/BaseStruct';
 import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 
@@ -292,31 +292,35 @@ export class TraceRowConfig extends BaseElement {
           }
         }
       });
-      this.spSystemTrace?.collectRows.forEach((favoriteRow) => {
-        let isShowRow: boolean = false;
-        if (this.selectTypeList!.length === 0) {
+      this.handleCollectRow();
+    }
+    this.refreshSystemPanel();
+  }
+
+  private handleCollectRow(): void {
+    this.spSystemTrace?.collectRows.forEach((favoriteRow) => {
+      let isShowRow: boolean = false;
+      if (this.selectTypeList!.length === 0) {
+        favoriteRow.rowHidden = false;
+        favoriteRow.setAttribute('scene', '');
+      } else {
+        if (favoriteRow.parentRowEl) {
+          favoriteRow.parentRowEl.expansion = false;
+          let favoriteList = [...favoriteRow.parentRowEl!.templateType];
+          isShowRow = favoriteList.some((type) => this.selectTypeList!.includes(type));
+        } else {
+          let typeList = [...favoriteRow.templateType];
+          isShowRow = typeList.some((type) => this.selectTypeList!.includes(type));
+        }
+        if (isShowRow) {
           favoriteRow.rowHidden = false;
           favoriteRow.setAttribute('scene', '');
         } else {
-          if (favoriteRow.parentRowEl) {
-            favoriteRow.parentRowEl.expansion = false;
-            let favoriteList = [...favoriteRow.parentRowEl!.templateType];
-            isShowRow = favoriteList.some((type) => this.selectTypeList!.includes(type));
-          } else {
-            let typeList = [...favoriteRow.templateType];
-            isShowRow = typeList.some((type) => this.selectTypeList!.includes(type));
-          }
-          if (isShowRow) {
-            favoriteRow.rowHidden = false;
-            favoriteRow.setAttribute('scene', '');
-          } else {
-            favoriteRow.removeAttribute('scene');
-            favoriteRow.rowHidden = true;
-          }
+          favoriteRow.removeAttribute('scene');
+          favoriteRow.rowHidden = true;
         }
-      });
-    }
-    this.refreshSystemPanel();
+      }
+    });
   }
 
   refreshNodes(nodes: SubsystemNode[]): void {

@@ -17,14 +17,14 @@ import { SystemDetailsEnergy } from '../../../../bean/EnergyStruct';
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import {
-  querySysLocationDetailsData,
-  querySysLockDetailsData,
-  querySystemWorkData,
-} from '../../../../database/SqlLite';
 import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
 import { resizeObserver } from '../SheetUtils';
 import { type LitSlicerTrack } from '../../../../../base-ui/slicer/lit-slicer';
+import {
+  querySysLocationDetailsData,
+  querySysLockDetailsData,
+  querySystemWorkData
+} from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-system-details')
 export class TabPaneSystemDetails extends BaseElement {
@@ -101,6 +101,10 @@ export class TabPaneSystemDetails extends BaseElement {
       this.detailsTbl!.dataSource = this.detailsSource;
       this.boxDetails!.style.width = '65%';
     }
+   this.detailsTblStyle();
+  }
+
+  detailsTblStyle(){
     this.detailsTbl!.shadowRoot?.querySelectorAll<HTMLDivElement>('.tr').forEach((tr) => {
       tr.style.gridTemplateColumns = '120px 1fr';
     });
@@ -162,20 +166,23 @@ export class TabPaneSystemDetails extends BaseElement {
         log_level: '',
         eventName: 'Event Name',
       });
-
       this.tblSystemDetails!.recycleDataSource = this.eventSource.concat(itemList);
       this.detailsTbl!.dataSource = [];
       this.boxDetails!.style.width = '100%';
-      this.tblSystemDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
-        td.style.fontSize = '14px';
-        if (td.getAttribute('title') === 'Event Name' || td.getAttribute('title') === 'Time') {
-          td.style.fontWeight = '700';
-        } else {
-          td.style.fontWeight = '400';
-          td.style.opacity = '0.9';
-          td.style.lineHeight = '16px';
-        }
-      });
+      this.tblSystemDetailsStyle();
+    });
+  }
+
+  tblSystemDetailsStyle(){
+    this.tblSystemDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+      td.style.fontSize = '14px';
+      if (td.getAttribute('title') === 'Event Name' || td.getAttribute('title') === 'Time') {
+        td.style.fontWeight = '700';
+      } else {
+        td.style.fontWeight = '400';
+        td.style.opacity = '0.9';
+        td.style.lineHeight = '16px';
+      }
     });
   }
 

@@ -15,7 +15,7 @@
 
 import { SelectionParam } from '../../../bean/BoxSelection';
 import { procedurePool } from '../../../database/Procedure';
-import { queryNativeHookResponseTypes } from '../../../database/SqlLite';
+import {queryNativeHookResponseTypes} from "../../../database/sql/NativeHook.sql";
 
 export class Utils {
   private static statusMap: Map<string, string> = new Map<string, string>();

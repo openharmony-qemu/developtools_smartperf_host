@@ -26,10 +26,6 @@
 #include "sqlite3.h"
 #include "trace_data_cache.h"
 
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
 namespace SysTuning {
 namespace TraceStreamer {
 class TableBase;
@@ -79,8 +75,8 @@ public:
         virtual int32_t RowId(sqlite3_int64* id);
         virtual int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv)
         {
-            UNUSED(fc);
-            UNUSED(argv);
+            Unused(fc);
+            Unused(argv);
             return 0;
         }
         virtual int32_t Column(int32_t n) const = 0;
@@ -120,8 +116,8 @@ protected:
     // needs to correspond to Cursor::Filter()
     virtual void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
     {
-        UNUSED(fc);
-        UNUSED(ei);
+        Unused(fc);
+        Unused(ei);
     }
     virtual std::unique_ptr<Cursor> CreateCursor() = 0;
     int32_t Open(sqlite3_vtab_cursor** ppCursor);

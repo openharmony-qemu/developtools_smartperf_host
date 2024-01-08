@@ -38,7 +38,7 @@ usage="Usage: $basename $0 wasm/test/fuzz/protoc debug/release/clean"
 
 ./dl_tools.sh $gn_path
 
-if { [ "$1" == "dubaisdk" ] || [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; } && [ "$#" -ne 0 ];then
+if { [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; } && [ "$#" -ne 0 ];then
     TARGET_DIR=$1
     if [[ $PARAMS == *"debug"* ]]; then
         TARGET_DIR=$1"_debug"
@@ -84,9 +84,6 @@ if [ "$#" -ne "0" ];then
     fi
     if [ "$1" == "sdkdemo" ];then
         target="sdkdemo"
-    fi
-    if [ "$1" == "dubaisdk" ];then
-        target="dubaisdk"
     fi
     if [ "$1" == "sdkdemotest" ];then
         target="sdkdemotest"

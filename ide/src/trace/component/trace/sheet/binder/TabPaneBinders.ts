@@ -17,10 +17,10 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
-import { queryBinderByThreadId } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { BinderGroup, BinderItem } from '../../../../bean/BinderProcessThread';
+import {queryBinderByThreadId} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-binders')
 export class TabPaneBinders extends BaseElement {
