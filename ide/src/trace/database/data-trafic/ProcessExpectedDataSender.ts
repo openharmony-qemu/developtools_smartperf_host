@@ -17,9 +17,9 @@ import { TraceRow } from '../../component/trace/base/TraceRow';
 import { JankStruct } from '../ui-worker/ProcedureWorkerJank';
 
 export function processExpectedDataSender(pid: number, row: TraceRow<JankStruct>): Promise<JankStruct[]> {
-  let trafic: number = TraficEnum.ProtoBuffer;
+  let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer || trafic === TraficEnum.Memory) && !row.sharedArrayBuffers) {
+  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       name: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       pid: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),

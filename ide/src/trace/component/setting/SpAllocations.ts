@@ -662,8 +662,8 @@ export class SpAllocations extends BaseElement {
           </div>
           <div class="allocation-switchstyle version-controller" style="flex-wrap: wrap;grid-gap: 15px;">
             <span class="allocation-inner-font-style" >Sample Interval (Available on recent OpenHarmony 4.0)</span>
-            <span class="value-range">Max Sample Interval Rang is 1 - 65535, default 256</span>
-            <input id= "sample-interval-input"  class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the sample interval" oninput="if(this.value > 65535){this.value = '65535'} if(this.value < 1 && this.value.toString().startsWith('0')){ this.value = '1'}"  onkeyup="this.value=this.value.replace(/\\D/g,'')" value="256">
+            <span class="value-range">Max Sample Interval Rang is 0 - 65535, default 0</span>
+            <input id= "sample-interval-input"  class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the sample interval" oninput="if(this.value > 65535){this.value = '65535'} if(this.value < 0 && this.value.toString().startsWith('0')){ this.value = '1'}"  onkeyup="this.value=this.value.replace(/\\D/g,'')" value="0">
           </div>
           <div class="allocation-switchstyle version-controller">
               <span class="allocation-inner-font-style" id="record_accurately ">Use Record Accurately (Available on recent OpenHarmony 4.0)</span> 

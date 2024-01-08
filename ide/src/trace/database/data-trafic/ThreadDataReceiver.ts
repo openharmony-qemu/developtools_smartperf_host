@@ -76,7 +76,7 @@ export function threadDataReceiver(data: any, proc: Function): void {
         let res = filterDataByGroup(
             array,
             'startTime',
-            'dur', data.params.startNS, data.params.endNS, data.params.width, (a) => a.state === 'Running');
+            'dur', data.params.startNS, data.params.endNS, data.params.width, undefined,(a) => a.state === 'Running');
         arrayBufferHandler(data, res, true,array.length === 0);
         return;
     } else {

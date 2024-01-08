@@ -808,7 +808,6 @@ export const getTabCpuFreq = (cpus: Array<number>, leftNs: number, rightNs: numb
       startNs > 0
     and
       startNs < $rightNS
-    --order by startNs
     `,
     { $leftNS: leftNs, $rightNS: rightNs }
   );
@@ -911,8 +910,8 @@ export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS:
     `
     select
       B.pid as pid,
-      sum(B.dur) as wallDuration,
-      avg(B.dur) as avgDuration,
+      sum(iif(B.dur = -1 or B.dur is null, 0, B.dur)) as wallDuration,
+      avg(iif(B.dur = -1 or B.dur is null, 0, B.dur)) as avgDuration,
       count(B.tid) as occurrences
     from
       thread_state AS B
@@ -921,7 +920,7 @@ export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS:
     where
       B.cpu in (${cpus.join(',')})
     and
-      not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
+      not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
     group by
       B.pid
     order by
@@ -937,7 +936,7 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
       TS.pid as pid,
       TS.tid as tid,
       TS.cpu,
-      sum( min(${rightNS},(TS.ts - TR.start_ts + TS.dur)) - max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
+      sum( min(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur))) - max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
       count(TS.tid) as occurrences
     from
       thread_state AS TS
@@ -946,7 +945,7 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
     where
       TS.cpu in (${cpus.join(',')})
     and
-      not ((TS.ts - TR.start_ts + TS.dur < $leftNS) or (TS.ts - TR.start_ts > $rightNS))
+      not ((TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur) < $leftNS) or (TS.ts - TR.start_ts > $rightNS))
     group by
       TS.cpu,
       TS.pid,
@@ -1094,7 +1093,7 @@ export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightN
      B.tid,
      B.state,
      B.cpu,
-     B.dur,
+     iif(B.dur = -1 or B.dur is null, 0, B.dur) as dur,
      B.ts
    from
      thread_state AS  B
@@ -1105,7 +1104,7 @@ export const getTabRunningPersent = (tIds: Array<number>, leftNS: number, rightN
    and
      B.state='Running'
    and
-     not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+     not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
    order by
      ts;`,
     { $leftNS: leftNS, $rightNS: rightNS }
@@ -1139,16 +1138,16 @@ export const getTabSleepingTime = (tIds: Array<number>, leftNS: number, rightNS:
 
 export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> => {
   let sql = `
-select 
+select
        B.pid,
        B.tid,
        B.cpu,
-       sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration
+       sum( min(${rightNS},(B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur))) - max(${leftNS},B.ts - TR.start_ts)) wallDuration
 from thread_state as B
 left join trace_range as TR
 where cpu notnull
     and B.tid in (${tIds.join(',')})
-    and not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+    and not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
 group by B.tid, B.pid, B.cpu;`;
   return query<SelectionData>('getTabThreadStatesCpu', sql, {
     $leftNS: leftNS,
@@ -4713,6 +4712,34 @@ export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
     LEFT JOIN process AS p ON fs.ipid = p.ipid
     WHERE fs.type = 0
         AND fs.id IN (${src_slice.join(',')});`
+  );
+
+export const querySelectRangeData = (
+    allPid: Array<number>,
+    leftNs: number,
+    rightNs: number): Promise<Array<any>> =>
+  query(
+    'querySelectRangeData',
+    `
+    SELECT 
+               a.id,
+               (a.ts - TR.start_ts) AS startTs,
+               a.vsync AS name,
+               a.type,
+               a.dur,
+               a.src AS src_slice,
+               a.flag AS jank_tag,
+               a.dst AS dst_slice,
+               p.pid,
+               p.name AS cmdline,
+               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frame_type
+        FROM frame_slice AS a, trace_range AS TR
+                 LEFT JOIN process AS p ON a.ipid = p.ipid
+        WHERE a.type = 0
+          AND a.flag <> 2
+          AND startTs + dur >= ${leftNs}
+          AND startTs <= ${rightNs}
+          AND p.pid IN (${allPid.join(',')});`
   );
 
 export const queryJumpJanksData = (processId: number, vsync: number): Promise<Array<any>> =>

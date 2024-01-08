@@ -240,7 +240,7 @@ export function power(
           list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
           list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
           list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
-          list[list.length - 1].audio = item.audio ? list[list.length - 1].audio : item.audio;
+          list[list.length - 1].audio = item.audio === 0 ? list[list.length - 1].audio : item.audio;
           list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
         } else {
           list.push(item);

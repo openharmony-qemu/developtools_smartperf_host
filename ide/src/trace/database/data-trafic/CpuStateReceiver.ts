@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { TraficEnum } from './QueryEnum';
-import {filterDataByGroup, filterDataByGroupCustom} from "./DataFilter";
+import {filterDataByGroup} from "./DataFilter";
 import {cpuStateList} from "./AllMemoryCache";
 
 export const chartCpuStateDataSql = (args: any): string => {
@@ -64,7 +64,7 @@ export function cpuStateReceiver(data: any, proc: Function): void {
     } else {
       list = cpuStateList.get(data.params.filterId) || [];
     }
-    res = filterDataByGroupCustom(list || [], 'startTs', 'dur', data.params.startNS, data.params.endNS, data.params.width,[(a:any,b:any)=>(b.dur - a.dur),(a:any,b:any)=>(b.value - a.value)]);
+    res = filterDataByGroup(list || [], 'startTs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
     arrayBufferHandler(data, res,true);
   } else {
     let sql = chartCpuStateDataSql(data.params);

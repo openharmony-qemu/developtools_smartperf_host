@@ -61,6 +61,7 @@ export class TabPaneHisysEvents extends BaseElement {
     }
     if (this.hiSysEventTable) {
       this.hiSysEventTable.recycleDataSource = [];
+      this.filterDataList = [];
     }
     if (this.detailsTbl) {
       this.detailsTbl!.recycleDataSource = [];
@@ -71,8 +72,8 @@ export class TabPaneHisysEvents extends BaseElement {
       systemEventParam.sysAllEventsData = res;
       this.hiSysEventTable!.recycleDataSource = res;
       this.hisysEventSource = res;
+      this.updateData();
     });
-
     queryRealTime().then((result) => {
       if (result && result.length > 0) {
         this.realTime = Math.floor(result[0].ts / millisecond);
@@ -396,6 +397,7 @@ export class TabPaneHisysEvents extends BaseElement {
       this.parentElement!.style.overflow = 'hidden';
       this.detailsTbl?.reMeauseHeight();
       this.updateData();
+      this.tableTitleTimeHandle?.();
     }).observe(this.parentElement!);
     let tbl = this.hiSysEventTable?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     tbl!.addEventListener('scroll', () => {

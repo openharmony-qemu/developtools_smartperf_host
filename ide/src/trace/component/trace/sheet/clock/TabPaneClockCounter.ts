@@ -41,7 +41,7 @@ export class TabPaneClockCounter extends BaseElement {
     let sumCount = 0;
     for (let key of collect.keys()) {
       let counters = collect.get(key);
-      let res = await counters?.({ startNS: clockCounterValue.leftNs, endNS: clockCounterValue.rightNs });
+      let res = await counters?.({ startNS: clockCounterValue.leftNs, endNS: clockCounterValue.rightNs, queryAll: true });
       let sd = this.createSelectCounterData(key, res || [], clockCounterValue.leftNs, clockCounterValue.rightNs);
       sumCount += Number.parseInt(sd.count || '0');
       dataSource.push(sd);

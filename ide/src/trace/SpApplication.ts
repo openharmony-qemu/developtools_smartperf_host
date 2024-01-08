@@ -93,7 +93,6 @@ export class SpApplication extends BaseElement {
   static skinChange: Function | null | undefined = null;
   static skinChange2: Function | null | undefined = null;
   skinChangeArray: Array<Function> = [];
-  private icon: HTMLDivElement | undefined | null;
   private rootEL: HTMLDivElement | undefined | null;
   private spHelp: SpHelp | undefined | null;
   private keyCodeMap = {
@@ -926,30 +925,22 @@ export class SpApplication extends BaseElement {
           title: 'Download File',
           icon: 'download',
           clickHandler: function () {
-            if (that.vs) {
-              that.vsDownload(mainMenu, fileName, isServer, dbName);
-            } else {
-              that.download(mainMenu, fileName, isServer, dbName);
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'download',
-                action: 'download',
-              });
-            }
+            that.download(mainMenu, fileName, isServer, dbName);
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+              event: 'download',
+              action: 'download',
+            });
           },
         },
         {
           title: 'Download Database',
           icon: 'download',
           clickHandler: function () {
-            if (that.vs) {
-              that.vsDownloadDB(mainMenu, fileName);
-            } else {
-              that.downloadDB(mainMenu, fileName);
-              SpStatisticsHttpUtil.addOrdinaryVisitAction({
-                event: 'download_db',
-                action: 'download',
-              });
-            }
+            that.downloadDB(mainMenu, fileName);
+            SpStatisticsHttpUtil.addOrdinaryVisitAction({
+              event: 'download_db',
+              action: 'download',
+            });
           },
         },
       ];
@@ -1077,90 +1068,6 @@ export class SpApplication extends BaseElement {
       }
       info('setPercent ：' + command + 'percent :' + SpApplication.loadingProgress);
       litSearch.setPercent(command + '  ', SpApplication.loadingProgress);
-    }
-
-    function handleServerMode(
-      ev: any,
-      showFileName: string,
-      fileSize: string,
-      fileName: string,
-      isClickHandle?: boolean
-    ) {
-      threadPool.init('server').then(() => {
-        info('init server ok');
-        litSearch.setPercent('parse trace', 1);
-        // Load the trace file and send it to the background parse to return the db file path
-        const fd = new FormData();
-        if (that.vs && isClickHandle) {
-          fd.append('convertType', 'vsUpload');
-          fd.append('filePath', ev as any);
-        } else {
-          fd.append('file', ev as any);
-        }
-        let uploadPath = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/upload`;
-        if (that.vs) {
-          uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/application/upload`;
-        }
-        info('upload trace');
-        let dbName = '';
-        fetch(uploadPath, {
-          method: 'POST',
-          body: fd,
-        })
-          .then((res) => {
-            litSearch.setPercent('load database', 5);
-            if (res.ok) {
-              info(' server Parse trace file success');
-              return res.text();
-            } else {
-              if (res.status == 404) {
-                info(' server Parse trace file failed');
-                litSearch.setPercent('This File is not supported!', -1);
-                progressEL.loading = false;
-                that.freshMenuDisable(false);
-                return Promise.reject();
-              }
-            }
-          })
-          .then((res) => {
-            if (res != undefined) {
-              dbName = res;
-              info('get trace db');
-              let loadPath = `https://${window.location.host.split(':')[0]}:${window.location.port}`;
-              if (that.vs) {
-                loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`;
-              }
-              SpApplication.loadingProgress = 0;
-              SpApplication.progressStep = 3;
-              spSystemTrace!.loadDatabaseUrl(
-                loadPath + res,
-                (command: string, percent: number) => {
-                  setProgress(command);
-                },
-                (res) => {
-                  info('loadDatabaseUrl success');
-                  mainMenu.menus!.splice(1, mainMenu.menus!.length > 2 ? 1 : 0, {
-                    collapsed: false,
-                    title: 'Current Trace',
-                    second: false,
-                    icon: '',
-                    describe: 'Actions on the current trace',
-                    children: getTraceOptionMenus(showFileName, fileSize, fileName, true, dbName),
-                  });
-                  litSearch.setPercent('', 101);
-                  chartFilter!.setAttribute('mode', '');
-                  progressEL.loading = false;
-                  that.freshMenuDisable(false);
-                }
-              );
-            } else {
-              litSearch.setPercent('', 101);
-              progressEL.loading = false;
-              that.freshMenuDisable(false);
-            }
-            spInfoAndStats.initInfoAndStatsData();
-          });
-      });
     }
 
     function sendCutFileMessage(timStamp: number) {
@@ -1717,7 +1624,7 @@ export class SpApplication extends BaseElement {
             let resultLastIndexOf = firstText.lastIndexOf('_');
             let searchResult = firstText.slice(resultLastIndexOf + 1, firstText.length)
             if (isNormalType) {
-              pageNumber = traceTypePage.lastIndexOf(Number(searchResult) + 1);
+              pageNumber = traceTypePage.lastIndexOf(Number(searchResult));
             } else {
               fileType = searchResult;
             }
@@ -1831,11 +1738,6 @@ export class SpApplication extends BaseElement {
               fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
             document.title = `${showFileName} (${fileSize}M)`;
             TraceRow.rangeSelectObject = undefined;
-            if (that.server) {
-              info('Parse trace using server mode ');
-              handleServerMode(openResult.filePath, showFileName, fileSize, fileName, isClickHandle);
-              return;
-            }
             if (that.wasm) {
               info('Parse trace using wasm mode ');
               const vsUpload = new FormData();
@@ -1876,11 +1778,6 @@ export class SpApplication extends BaseElement {
           fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
         document.title = `${showFileName} (${fileSize}M)`;
         TraceRow.rangeSelectObject = undefined;
-        if (that.server) {
-          info('Parse trace using server mode ');
-          handleServerMode(ev, showFileName, fileSize, fileName);
-          return;
-        }
         if (that.sqlite) {
           info('Parse trace using sql mode');
           litSearch.setPercent('', 0);
@@ -2539,62 +2436,6 @@ export class SpApplication extends BaseElement {
       downloadItem!.setAttribute('icon', 'download');
       downloadIcon.removeAttribute('spin');
     }
-  }
-
-  private vsDownloadDB(mainMenu: LitMainMenu, fileDbName: string) {
-    let fileName = fileDbName?.substring(0, fileDbName?.lastIndexOf('.')) + '.db';
-    threadPool.submit(
-      'download-db',
-      '',
-      {},
-      (reqBufferDB: any) => {
-        Cmd.showSaveFile((filePath: string) => {
-          if (filePath != '') {
-            this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
-            const fd = new FormData();
-            fd.append('convertType', 'download');
-            fd.append('filePath', filePath);
-            fd.append('file', new File([reqBufferDB], fileName));
-            Cmd.uploadFile(fd, (res: Response) => {
-              if (res.ok) {
-                this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
-              }
-            });
-          }
-        });
-      },
-      'download-db'
-    );
-  }
-
-  private vsDownload(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
-    Cmd.showSaveFile((filePath: string) => {
-      if (filePath != '') {
-        this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', true);
-        if (isServer) {
-          if (dbName != '') {
-            let file = dbName?.substring(0, dbName?.lastIndexOf('.')) + fileName.substring(fileName.lastIndexOf('.'));
-            Cmd.copyFile(file, filePath, (res: Response) => {
-              this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
-            });
-          }
-        } else {
-          this.readTraceFileBuffer().then((buffer) => {
-            if (buffer) {
-              const fd = new FormData();
-              fd.append('convertType', 'download');
-              fd.append('filePath', filePath);
-              fd.append('file', new File([buffer], fileName));
-              Cmd.uploadFile(fd, (res: Response) => {
-                if (res.ok) {
-                  this.itemIconLoading(mainMenu, 'Current Trace', 'Download File', false);
-                }
-              });
-            }
-          });
-        }
-      }
-    });
   }
 
   freshMenuDisable(disable: boolean) {

@@ -406,6 +406,7 @@ export class TraceRowConfig extends BaseElement {
     let jsonUrl = `https://${window.location.host.split(':')[0]}:${
       window.location.port
     }/application/trace/config/custom_temp_config.json`;
+    let localJson = '';
     this.switchButton!.addEventListener('click', () => {
       if(this.switchButton!.title === 'Show charts template') {
         this.switchButton!.title = 'Show subSystem template';
@@ -423,17 +424,22 @@ export class TraceRowConfig extends BaseElement {
         if(localText) {
           this.loadTempConfig(localText);
         } else {
-          fetch(jsonUrl)
-            .then((res) => {
-              if (res.ok) {
-                res.text().then((text) => {
-                  this.loadTempConfig(text);
-                });
-              }
-            })
-            ['catch']((err) => {
-            console.log(err);
-          });
+          if (localJson === '') {
+            fetch(jsonUrl)
+              .then((res) => {
+                if (res.ok) {
+                  res.text().then((text) => {
+                    localJson = text;
+                    this.loadTempConfig(localJson);
+                  });
+                }
+              })
+              ['catch']((err) => {
+              console.log(err);
+            });
+          } else {
+            this.loadTempConfig(localJson);
+          }
         }
       }
     });
@@ -532,12 +538,22 @@ export class TraceRowConfig extends BaseElement {
     let subSystems: SubsystemNode[] = [];
     if (keys.indexOf(subsystemsKey) >= 0) {
       let subsystemsData = configJson[subsystemsKey];
+      if (this.traceRowList) {
+        this.otherRowNames = [];
+        for (let index = 0; index < this.traceRowList.length; index++) {
+          let item = this.traceRowList[index];
+          this.otherRowNames.push({
+            nodeName: item.name,
+            scene: [...item.templateType],
+          });
+        }
+      }
       for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
         let currentSystemData = subsystemsData[subIndex];
-        let currentSubName = currentSystemData.subsystem;
-        if (!currentSubName) {
+        if(!currentSystemData.hasOwnProperty('subsystem')) {
           continue;
         }
+        let currentSubName = currentSystemData.subsystem;
         id++;
         let subsystemStruct: SubsystemNode = {
           id: id,
@@ -554,11 +570,11 @@ export class TraceRowConfig extends BaseElement {
           }
           for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
             let currentCompDate = currentCompDates[compIndex];
-            let currentCompName = currentCompDate.component;
-            let currentChartDates = currentCompDate.charts;
-            if (!currentCompName || !currentChartDates) {
+            if(!currentCompDate.hasOwnProperty('component') && !currentCompDate.hasOwnProperty('charts')) {
               continue;
             }
+            let currentCompName = currentCompDate.component;
+            let currentChartDates = currentCompDate.charts;
             id++;
             let componentStruct: SubsystemNode = {
               id: id,
@@ -571,11 +587,11 @@ export class TraceRowConfig extends BaseElement {
             };
             for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
               let currentChartDate = currentChartDates[chartIndex];
-              let currentChartName = currentChartDate.chartName;
-              let currentChartId = currentChartDate.chartId;
-              if (!currentChartName || !currentChartId) {
+              if(!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId')) {
                 continue;
               }
+              let currentChartName = currentChartDate.chartName;
+              let currentChartId = currentChartDate.chartId;
               let findChartNames: Array<string> | undefined = [];
               let scene: string[] = [];
               if (this.traceRowList) {
@@ -589,18 +605,18 @@ export class TraceRowConfig extends BaseElement {
                     chartId = match[0].trim();
                     name = item.name.split(match[0])[0];
                     if (name !== 'Cpu') {
-                      if (name.toLowerCase().endsWith(currentChartName.toLowerCase()) || currentChartId === chartId) {
+                      if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
                         scene.push(...item.templateType);
                         findChartNames.push(item.name);
                       }
                     } else {
-                      if (name.toLowerCase().endsWith(currentChartName.toLowerCase())) {
+                      if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
                         scene.push(...item.templateType);
                         findChartNames.push(item.name);
                       }
                     }
                   } else {
-                    if (item.name.toLowerCase().endsWith(currentChartName.toLowerCase())) {
+                    if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
                       scene.push(...item.templateType);
                       findChartNames.push(item.name);
                     }
@@ -926,6 +942,8 @@ export class TraceRowConfig extends BaseElement {
                     height: 35px;
                     line-height: 35px;
                     margin-left: 10px;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
                 }
                 .chart-option {
                     height: 35px;
@@ -973,7 +991,7 @@ export class TraceRowConfig extends BaseElement {
                 }
                 .layout {
                   display: grid; 
-                  grid-template-columns: 1fr 1fr;
+                  grid-template-columns: 80% 20%;
                 }
                 .scene-check-box {
                   justify-self: center; 

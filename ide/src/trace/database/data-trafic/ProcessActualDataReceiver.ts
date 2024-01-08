@@ -12,6 +12,7 @@
 // limitations under the License.
 
 import { TraficEnum } from './QueryEnum';
+import { processFrameList } from './AllMemoryCache';
 import { filterDataByGroup } from './DataFilter';
 
 export const chartProcessActualDataSql = (args: any): string => {
@@ -24,12 +25,13 @@ export const chartProcessActualDataSql = (args: any): string => {
                a.vsync AS name,
                a.type,
                a.flag AS jankTag,
-               a.dst AS dstSlice
+               a.dst AS dstSlice,
+               a.depth
         FROM frame_slice AS a
         WHERE a.type = 0
           AND a.flag <> 2
           AND a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
-        ORDER BY a.ipid, ts;`;
+        ORDER BY a.ipid;`;
 };
 
 export const chartProcessActualProtoDataSql = (args: any): string => {
@@ -56,17 +58,14 @@ export const chartProcessActualProtoDataSql = (args: any): string => {
         ORDER BY a.ipid;`;
 };
 
-let frameDepthList: Map<string, number> = new Map();
 
 export function processActualDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    frameDepthList = new Map<string, number>();
-    let sql = chartProcessActualDataSql(data.params);
-    let res = proc(sql);
-    let filterDataList = filterDataByGroup(res || [], 'ts', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    setTimeout(() => {
-      arrayBufferHandler(data, filterDataList, false);
-    }, 1);
+    if (!processFrameList.has(`${data.params.pid}_actual`)) {
+      let sql = chartProcessActualDataSql(data.params);
+      processFrameList.set(`${data.params.pid}_actual`, proc(sql));
+    }
+    arrayBufferHandler(data, processFrameList.get(`${data.params.pid}_actual`)!, true);
   } else {
     let sql = chartProcessActualProtoDataSql(data.params);
     let res = proc(sql);

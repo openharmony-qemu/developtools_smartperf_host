@@ -1,16 +1,17 @@
-// Copyright (c) 2021 Huawei Device Co., Ltd.
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 export function filterData(
   list: any[],
   startKey: string,
@@ -20,7 +21,7 @@ export function filterData(
   width: number
 ): any[] {
   let pns = (endNS - startNS) / width; //每个像素多少ns
-  let slice = findRange(list, { startKey, durKey, startNS, endNS });
+  let slice = findRange(list, {startKey, durKey, startNS, endNS});
   let sum = 0;
   for (let i = 0; i < slice.length; i++) {
     if (i === slice.length - 1) {
@@ -60,7 +61,7 @@ export function filterDataByLayer(
   width: number
 ): any[] {
   let pns = (endNS - startNS) / width; //每个像素多少ns
-  let sliceArray = findRange(list, { startKey, durKey, startNS, endNS });
+  let sliceArray = findRange(list, {startKey, durKey, startNS, endNS});
   let groups = groupBy(sliceArray, layerKey);
   let res: any[] = [];
   Reflect.ownKeys(groups).map((key: any) => {
@@ -105,55 +106,31 @@ export function filterDataByGroup(
   startNS: number,
   endNS: number,
   width: number,
+  valueKey?: string,
   filter?: (a: any) => boolean): any[] {
-  let arr = findRange(list, { startKey, durKey, startNS, endNS })
+  let arr = findRange(list, {startKey, durKey, startNS, endNS})
   arr = arr.map((it) => {
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width));
     return it;
   });
   let group = groupBy(arr, 'px');
-  let res: any[] = [];
+  let res: Set<any> = new Set();
   Reflect.ownKeys(group).map((key: any): void => {
-    let childArray = (group[key] as any[]).sort((a, b) => b[durKey] - a[durKey]);
-    if (childArray.length > 0) {
+    let arr = group[key] as any[];
+    if (arr.length > 0) {
+      res.add(arr.reduce((p, c) => (p[durKey] > c[durKey]) ? p : c));
+      if (valueKey) {
+        res.add(arr.reduce((p, c) => (p[valueKey] > c[valueKey]) ? p : c));
+      }
       if (filter) {
-        let filterArr = (group[key] as any[]).filter(a => filter(a));
+        let filterArr = arr.filter(a => filter(a));
         if (filterArr && filterArr.length > 0) {
-          let filterOrderArr = filterArr.sort((a, b) => b[durKey] - a[durKey]);
-          res.push(filterOrderArr[0]);
+          res.add(filterArr.reduce((p, c) => (p[durKey] > c[durKey]) ? p : c));
         }
       }
-      res.push(childArray[0]);
     }
   });
-  return res;
-}
-
-export function filterDataByGroupCustom(
-  list: any[],
-  startKey: string,
-  durKey: string,
-  startNS: number,
-  endNS: number,
-  width: number,
-  filters: ((a: any, b: any) => number)[]
-): any[] {
-  let arr = findRange(list, { startKey, durKey, startNS, endNS })
-  arr = arr.map((it) => {
-    it.px = Math.floor(it[startKey] / ((endNS - startNS) / width));
-    return it;
-  });
-  let group = groupBy(arr, 'px');
-  let res: any[] = [];
-  Reflect.ownKeys(group).map((key: any): void => {
-    for (let i = 0; i < filters.length; i++) {
-      let childArray = (group[key] as any[]).sort(filters[i]);
-      if (childArray.length > 0) {
-        res.push(childArray[0]);
-      }
-    }
-  });
-  return res;
+  return [...res];
 }
 
 export function filterDataByGroupLayer(
@@ -165,20 +142,18 @@ export function filterDataByGroupLayer(
   endNS: number,
   width: number
 ): any[] {
-  let arr = findRange(list, { startKey, durKey, startNS, endNS });
+  let arr = findRange(list, {startKey, durKey, startNS, endNS});
   arr = arr.map((it) => {
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width) + it[layerKey] * width);
     //设置临时变量durTmp 用于参与计算，分组后有dur为-1的数据按最长宽度显示
-    it.durTmp = it.dur === -1 ? (endNS - it[startKey]) : it.dur;
+    it.durTmp = it[durKey] === -1 ? (endNS - it[startKey]) : it[durKey];
     return it;
   });
   let group = groupBy(arr, 'px');
   let res: any[] = [];
   Reflect.ownKeys(group).map((key: any) => {
-    let childArray = (group[key] as any[]).sort((a, b) => b.durTmp - a.durTmp);
-    if (childArray.length > 0) {
-      res.push(childArray[0]);
-    }
+    let childArray = (group[key] as any[]).reduce((p, c) => (p.durTmp > c.durTmp) ? p : c);
+    res.push(childArray);
   });
   return res;
 }

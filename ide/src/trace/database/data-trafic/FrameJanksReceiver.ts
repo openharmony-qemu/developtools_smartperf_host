@@ -245,7 +245,7 @@ export function frameExpectedReceiver(data: any, proc: Function): void {
     frameDepthList = new Map<string, number>();
     let sql = chartExpectedMemoryDataSql(data.params);
     let res = proc(sql);
-    frameJanksReceiver(data, res, 'expect', false);
+    frameJanksReceiver(data, res, 'expect', true);
   } else {
     let sql = chartExpectedDataSql(data.params);
     let res = proc(sql);
@@ -257,7 +257,7 @@ export function frameActualReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     let sql = chartActualMemoryDataSql(data.params);
     let res = proc(sql);
-    frameJanksReceiver(data, res, 'actual', false);
+    frameJanksReceiver(data, res, 'actual', true);
   } else {
     let sql = chartActualDataSql(data.params);
     let res = proc(sql);

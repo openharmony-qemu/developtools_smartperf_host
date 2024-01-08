@@ -49,8 +49,8 @@ export class TabPaneHiLogs extends BaseElement {
   set data(systemLogParam: SelectionParam) {
     if (this.hiLogsTbl) {
       this.hiLogsTbl.recycleDataSource = [];
+      this.filterData = [];
     }
-
     let oneDayTime = (window as any).recordEndNS - this.ONE_DAY_NS;
     if (systemLogParam && systemLogParam.hiLogs.length > 0) {
       this.progressEL!.loading = true;

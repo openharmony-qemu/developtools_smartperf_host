@@ -13,7 +13,9 @@
 import { hiPerfCallChartClearCache } from './HiperfCallChartReceiver';
 import { nativeMemoryCacheClear } from './NativeMemoryDataReceiver';
 import { resetVmTracker } from './VmTrackerDataReceiver';
-
+import { resetVM } from '../../database/data-trafic/VirtualMemoryDataReceiver';
+import { resetAbilityMonitor } from '../../database/data-trafic/AbilityMonitorReceiver';
+import { resetAbility } from '../../database/data-trafic/VmTrackerDataReceiver';
 //cpu 泳道 memory 缓存
 export const cpuList: Map<number, Array<any>> = new Map();
 //clock 泳道 memory 模式缓存
@@ -34,6 +36,8 @@ export const processList: Map<number, Array<any>> = new Map();
 export const memList: Map<number, Array<any>> = new Map();
 //线程状态 泳道图 memory 模式缓存
 export const threadStateList: Map<string, Array<any>> = new Map();
+//进程下卡顿丢帧 泳道图 memory 模式缓存
+export const processFrameList: Map<string, Array<any>> = new Map();
 export function clearMemoryCache(data: any, proc: Function) {
   cpuList.clear();
   clockList.clear();
@@ -45,9 +49,13 @@ export function clearMemoryCache(data: any, proc: Function) {
   processList.clear();
   memList.clear();
   threadStateList.clear();
+  processFrameList.clear();
   hiPerfCallChartClearCache(true);
   nativeMemoryCacheClear();
   resetVmTracker();
+  resetAbilityMonitor();
+  resetAbility();
+  resetVM();
   (self as unknown as Worker).postMessage(
     {
       id: data.id,

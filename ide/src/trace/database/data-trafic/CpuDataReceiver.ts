@@ -54,6 +54,9 @@ export function cpuDataReceiver(data: any, proc: Function): void {
     let res: any[], list: any[];
     if (!cpuList.has(data.params.cpu)) {
       list = proc(chartCpuDataProtoSqlMem(data.params));
+      if (data.params.cpu === 0) {
+        console.log(list);
+      }
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur == -1) {
           list[i].nofinish = 1;
@@ -71,7 +74,7 @@ export function cpuDataReceiver(data: any, proc: Function): void {
       list = cpuList.get(data.params.cpu) || [];
     }
     res = filterDataByGroup(list || [], 'startTime', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    arrayBufferHandler(data, res, false);
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartCpuDataProtoSql(data.params);
     let res = proc(sql);
@@ -97,7 +100,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let processId = new Int16Array(transfer ? res.length : data.params.sharedArrayBuffers.processId);
   let cpu = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.cpu);
-  let argSetId = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
+  let argSetId = new Int8Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
   let nofinish = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.nofinish);
   res.forEach((it, i) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.cpuData);

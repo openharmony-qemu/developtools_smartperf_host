@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { TraficEnum } from './QueryEnum';
-import {filterDataByGroup, filterDataByGroupCustom} from "./DataFilter";
+import {filterDataByGroup} from "./DataFilter";
 import {cpuFreqList} from "./AllMemoryCache";
 
 export const chartCpuFreqDataSql = (args: any): string => {
@@ -79,10 +79,7 @@ export function cpuFreqDataReceiver(data: any, proc: Function): void {
     } else {
       list = cpuFreqList.get(data.params.cpu) || [];
     }
-    res = filterDataByGroupCustom(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width,
-      [(a,b)=>b.dur-a.dur,
-        (a,b)=>b.value-a.value]
-    );
+    res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
     arrayBufferHandler(data, res,true);
   } else {
     let sql = chartCpuFreqDataSql(data.params);

@@ -12,6 +12,7 @@
 // limitations under the License.
 
 import { TraficEnum } from './QueryEnum';
+import { processFrameList } from './AllMemoryCache';
 import { filterDataByGroup } from './DataFilter';
 
 export const chartProcessExpectedDataSql = (args: any): string => {
@@ -22,12 +23,13 @@ export const chartProcessExpectedDataSql = (args: any): string => {
          ${args.pid} as pid,
          a.id,
          a.vsync              as name,
-         a.type
+         a.type,
+         a.depth
   FROM frame_slice AS a
   WHERE a.type = 1
     and (a.flag <> 2 or a.flag is null)
     and a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
-  ORDER BY a.ipid, ts`;
+  ORDER BY a.ipid`;
 };
 
 export const chartProcessExpectedProtoDataSql = (args: any): string => {
@@ -53,12 +55,11 @@ export const chartProcessExpectedProtoDataSql = (args: any): string => {
 
 export function processExpectedDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let sql = chartProcessExpectedDataSql(data.params);
-    let res = proc(sql);
-    let filterDataList = filterDataByGroup(res || [], 'ts', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    setTimeout(() => {
-      arrayBufferHandler(data, filterDataList, false);
-    }, 1);
+    if (!processFrameList.has(`${data.params.pid}_expected`)) {
+      let sql = chartProcessExpectedDataSql(data.params);
+      processFrameList.set(`${data.params.pid}_expected`, proc(sql));
+    }
+    arrayBufferHandler(data, processFrameList.get(`${data.params.pid}_expected`)!, true);
   } else {
     let sql = chartProcessExpectedProtoDataSql(data.params);
     let res = proc(sql);

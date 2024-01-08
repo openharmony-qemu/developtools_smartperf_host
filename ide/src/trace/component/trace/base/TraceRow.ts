@@ -1400,7 +1400,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             user-select: none;
             text-overflow: ellipsis;
             white-space:nowrap;
-            max-width: 200px;
+            max-width: 190px;
         }
         :host([highlight]) .name{
             color: #4b5766;

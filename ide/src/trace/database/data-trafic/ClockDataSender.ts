@@ -24,7 +24,7 @@ export function clockDataSender(
 ): Promise<ClockStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer||trafic===TraficEnum.Memory) && !row.sharedArrayBuffers) {
+  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       filterId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       value: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -43,6 +43,7 @@ export function clockDataSender(
         totalNS: args ? (args.endNS - args.startNS) : (TraceRow.range?.totalNS || 0),
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
+        queryAll: args && args.queryAll,
         t: Date.now(),
         width: width,
         trafic: trafic,

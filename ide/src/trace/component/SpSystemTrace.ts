@@ -707,7 +707,6 @@ export class SpSystemTrace extends BaseElement {
           if (!it.expansion) {
             processChildRows = [...it.childrenList];
           }
-          selection.processIds.push(parseInt(it.rowId!));
           processChildRows.forEach((th) => {
             th.rangeSelect = true;
             th.checkType = '2';
@@ -1149,19 +1148,28 @@ export class SpSystemTrace extends BaseElement {
               Math.min(filterJank.ts!, rangeData!.startNS || 0) <
             filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
           if (it.name == 'Actual Timeline') {
-            selection.jankFramesData = [];
-            let jankDatas = it.dataListCache.filter((jankData: any) => {
-              return isIntersect(jankData, TraceRow.rangeSelectObject!);
-            });
-            selection.jankFramesData.push(jankDatas);
+            if (it.rowParentId === 'frameTime') {
+              it.dataListCache.forEach((jankData: any) => {
+                if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
+                  selection.jankFramesData.push(jankData);
+                }
+              });
+            } else {
+              selection.jankFramesData.push(it.rowParentId);
+            }
           } else if (it.folder) {
             selection.jankFramesData = [];
             it.childrenList.forEach((child) => {
               if (child.rowType == TraceRow.ROW_TYPE_JANK && child.name == 'Actual Timeline') {
-                let jankDatas = child.dataListCache.filter((jankData: any) => {
-                  return isIntersect(jankData, TraceRow.rangeSelectObject!);
-                });
-                selection.jankFramesData.push(jankDatas);
+                if (it.rowParentId === 'frameTime') {
+                  it.dataListCache.forEach((jankData: any) => {
+                    if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
+                      selection.jankFramesData.push(jankData);
+                    }
+                  });
+                } else {
+                  selection.jankFramesData.push(child.rowParentId);
+                }
               }
             });
           }

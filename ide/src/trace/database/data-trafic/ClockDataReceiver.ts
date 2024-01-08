@@ -99,8 +99,13 @@ export function clockDataReceiver(data: any, proc: Function): void {
     } else {
       list = clockList.get(data.params.sqlType + data.params.clockName) || [];
     }
-    res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    arrayBufferHandler(data, res,false);
+    if (data.params.queryAll) {
+      //框选时候取数据，只需要根据时间过滤数据
+      res = (list || []).filter(it => it.startNs + it.dur >= data.params.startNS && it.startNs <= data.params.endNS);
+    } else {
+      res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
+    }
+    arrayBufferHandler(data, res,true);
   } else {
     let sql = chartClockDataSql(data.params);
     let res = proc(sql);
