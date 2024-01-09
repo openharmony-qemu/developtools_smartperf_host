@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {FuncNameCycle} from "../../bean/BinderProcessThread";
-import {query} from "../SqlLite";
-import {FuncStruct} from "../ui-worker/ProcedureWorkerFunc";
-import {SearchFuncBean} from "../../bean/SearchFuncBean";
-import {SelectionData} from "../../bean/BoxSelection";
-import {HeapTraceFunctionInfo} from "../../../js-heap/model/DatabaseStruct";
+import { FuncNameCycle } from "../../bean/BinderProcessThread";
+import { query } from "../SqlLite";
+import { FuncStruct } from "../ui-worker/ProcedureWorkerFunc";
+import { SearchFuncBean } from "../../bean/SearchFuncBean";
+import { SelectionData } from "../../bean/BoxSelection";
+import { HeapTraceFunctionInfo } from "../../../js-heap/model/DatabaseStruct";
 
 export const queryLoopFuncNameCycle = (
   funcName: string,
@@ -178,37 +178,28 @@ export const querySearchFuncData = (
   query(
     'querySearchFuncData',
     `
-      select 
-        c.cookie,
-        c.id,
-        c.name as funName,
-        c.ts - r.start_ts as startTime,
-        c.dur,
-        c.depth,
-        t.tid,
-        t.name as threadName,
-        p.pid,
-        'func' as type 
-      from 
-        callstack c 
-      left join 
-        thread t 
-      on 
-        c.callid = t.id 
-      left join 
-        process p 
-      on 
-        t.ipid = p.id
-      left join 
-        trace_range r
-      where 
-        c.name like '${funcName}' 
-      and 
-        t.tid = ${tIds} 
-      and
-        not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-  `,
-    { $search: funcName }
+        select 
+          c.ts - r.start_ts as startTime,
+          c.dur
+        from 
+          callstack c 
+        left join 
+          thread t 
+        on 
+          c.callid = t.id 
+        left join 
+          process p 
+        on 
+          t.ipid = p.id
+        left join 
+          trace_range r
+        where 
+          c.name like '${funcName}%' 
+        and 
+          t.tid = ${tIds} 
+        and
+          not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
+    `
   );
 export const querySearchRowFuncData = (
   funcName: string,

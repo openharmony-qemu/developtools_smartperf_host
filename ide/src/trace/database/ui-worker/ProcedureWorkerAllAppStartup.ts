@@ -61,19 +61,12 @@ export class AllAppStartupRender {
   }
 }
 
-const padding = 3;
 
 export class AllAppStartupStruct extends BaseStruct {
   static hoverStartupStruct: AllAppStartupStruct | undefined;
   static selectStartupStruct: AllAppStartupStruct | undefined;
   dur: number | undefined;
-  value: string | undefined;
   startTs: number | undefined;
-  pid: number | undefined;
-  process: string | undefined;
-  itid: number | undefined;
-  endItid: number | undefined;
-  tid: number | undefined;
   startName: number | undefined;
   stepName: string | undefined;
 
@@ -102,8 +95,4 @@ export class AllAppStartupStruct extends BaseStruct {
     }
   }
 
-  static async getStartupName(pid: number): Promise<any> {
-    let singleAppName = await querySingleAppStartupsName(pid);
-    return singleAppName[0].name;
-  }
 }

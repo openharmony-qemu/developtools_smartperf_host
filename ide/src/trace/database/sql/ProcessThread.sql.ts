@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BinderItem} from "../../bean/BinderProcessThread";
-import {query} from "../SqlLite";
-import {SelectionData} from "../../bean/BoxSelection";
-import {ThreadStruct} from "../ui-worker/ProcedureWorkerThread";
-import {WakeupBean} from "../../bean/WakeupBean";
-import {SPTChild} from "../../bean/StateProcessThread";
-import {BinderArgBean} from "../../bean/BinderArgBean";
-import {ProcessMemStruct} from "../ui-worker/ProcedureWorkerMem";
-import {AppStartupStruct} from "../ui-worker/ProcedureWorkerAppStartup";
-import {SoStruct} from "../ui-worker/ProcedureWorkerSoInit";
-import {LiveProcess, ProcessHistory} from "../../bean/AbilityMonitor";
-import {EnergyAnomalyStruct} from "../ui-worker/ProcedureWorkerEnergyAnomaly";
+import { BinderItem } from "../../bean/BinderProcessThread";
+import { query } from "../SqlLite";
+import { SelectionData } from "../../bean/BoxSelection";
+import { ThreadStruct } from "../ui-worker/ProcedureWorkerThread";
+import { WakeupBean } from "../../bean/WakeupBean";
+import { SPTChild } from "../../bean/StateProcessThread";
+import { BinderArgBean } from "../../bean/BinderArgBean";
+import { ProcessMemStruct } from "../ui-worker/ProcedureWorkerMem";
+import { AppStartupStruct } from "../ui-worker/ProcedureWorkerAppStartup";
+import { SoStruct } from "../ui-worker/ProcedureWorkerSoInit";
+import { LiveProcess, ProcessHistory } from "../../bean/AbilityMonitor";
+import { EnergyAnomalyStruct } from "../ui-worker/ProcedureWorkerEnergyAnomaly";
 
 export const queryBinderByThreadId = (
   pIds: number[],
@@ -774,25 +774,42 @@ group by TA.tid,TA.pid;
     { $itid: itid, $startTime: startTime, $dur: dur }
   );
 
-export const getTabRunningPercent = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>
-  query<SelectionData>(
+export const getTabRunningPercent = (
+  tIds: Array<number>,
+  leftNS: number,
+  rightNS: number
+): Promise<
+  Array<{
+    pid: number;
+    tid: number;
+    cpu: number;
+    dur: number;
+    ts: number;
+    process: string;
+    thread: string;
+  }>
+> =>
+  query(
     'getTabRunningPercent',
     `
-      select
-        B.pid,B.tid,B.state,B.cpu,B.dur,B.ts
-      from
-        thread_state AS B
-      left join 
-        trace_range AS TR
-      where
-        B.tid in (${tIds.join(',')})
-      and
-        B.state='Running'
-      and
-        not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
-      order by ts
-  `,
-    { $leftNS: leftNS, $rightNS: rightNS }
+          select
+            B.pid,
+            B.tid,
+            B.cpu,
+            B.dur,
+            B.ts
+          from
+            thread_state AS B
+          left join 
+            trace_range AS TR
+          where
+            B.tid in (${tIds.join(',')})
+          and
+            B.state='Running'
+          and
+            not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+          order by ts
+        `
   );
 //VM  Purgeable 点选 tab页
 export const queryProcessPurgeableSelectionTab = (
