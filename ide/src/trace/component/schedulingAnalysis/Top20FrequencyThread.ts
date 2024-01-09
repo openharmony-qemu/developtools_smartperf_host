@@ -20,13 +20,13 @@ import { info } from '../../../log/Log';
 import '../../../base-ui/chart/pie/LitChartPie';
 import { LitChartPie } from '../../../base-ui/chart/pie/LitChartPie';
 import { LitSelect } from '../../../base-ui/select/LitSelect';
-import { queryThreads } from '../../database/SqlLite';
 import { LitSelectOption } from '../../../base-ui/select/LitSelectOption';
 import '../../../base-ui/progress-bar/LitProgressBar';
 import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
 import './TableNoData';
 import { TableNoData } from './TableNoData';
 import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
+import {queryThreads} from "../../database/sql/ProcessThread.sql";
 
 @element('top20-frequency-thread')
 export class Top20FrequencyThread extends BaseElement {
@@ -163,41 +163,45 @@ export class Top20FrequencyThread extends BaseElement {
         this.frequencyThreadTbl!.recycleDataSource = res;
       }
       this.frequencyThreadTbl!.reMeauseHeight();
-      this.frequencyThreadPie!.config = {
-        appendPadding: 10,
-        data: this.getPieChartData(res),
-        angleField: 'time',
-        colorField: 'freq',
-        colorFieldTransferHandler: (value) => (value === -1 ? 'unknown' : value),
-        radius: 0.8,
-        label: {
-          type: 'outer',
-        },
-        tip: (obj) => {
-          return `<div>
+      this.setThreadPieConfig(res);
+      this.frequencyThreadProgress!.loading = false;
+      this.shadowRoot!.querySelector('#tb_vessel')!.scrollTop = 0;
+    });
+  }
+
+  private setThreadPieConfig(res: any): void {
+    this.frequencyThreadPie!.config = {
+      appendPadding: 10,
+      data: this.getPieChartData(res),
+      angleField: 'time',
+      colorField: 'freq',
+      colorFieldTransferHandler: (value) => (value === -1 ? 'unknown' : value),
+      radius: 0.8,
+      label: {
+        type: 'outer',
+      },
+      tip: (obj) => {
+        return `<div>
                              <div>freq:${obj.obj.freq === -1 ? 'unknown' : obj.obj.freq}</div> 
                              <div>cpu:${obj.obj.cpu}</div> 
                              <div>time:${obj.obj.timeStr}</div> 
                              <div>ratio:${obj.obj.ratio}%</div>
                         </div>
                 `;
+      },
+      hoverHandler: (data) => {
+        if (data) {
+          this.frequencyThreadTbl!.setCurrentHover(data);
+        } else {
+          this.frequencyThreadTbl!.mouseOut();
+        }
+      },
+      interactions: [
+        {
+          type: 'element-active',
         },
-        hoverHandler: (data) => {
-          if (data) {
-            this.frequencyThreadTbl!.setCurrentHover(data);
-          } else {
-            this.frequencyThreadTbl!.mouseOut();
-          }
-        },
-        interactions: [
-          {
-            type: 'element-active',
-          },
-        ],
-      };
-      this.frequencyThreadProgress!.loading = false;
-      this.shadowRoot!.querySelector('#tb_vessel')!.scrollTop = 0;
-    });
+      ],
+    };
   }
 
   getPieChartData(res: any[]) {

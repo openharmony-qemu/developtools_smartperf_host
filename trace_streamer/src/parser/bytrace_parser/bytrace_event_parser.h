@@ -79,6 +79,12 @@ private:
     bool BinderTransactionReceived(const ArgsMap& args, const BytraceLine& line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap& args, const BytraceLine& line) const;
     void GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uint32_t& tgid) const;
+    void InterruptEventInitialization();
+    void ClockEventInitialization();
+    void CpuEventInitialization();
+    void RegulatorEventInitialization();
+    void BinderEventInitialization();
+    void StackEventsInitialization();
 
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     const uint32_t MIN_SCHED_SWITCH_ARGS_COUNT = 6;

@@ -28,10 +28,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum FilterType {
-    E_THREADMEASURE_FILTER,
-    E_THREAD_FILTER,
     E_PROCESS_MEASURE_FILTER,
-    E_PROCESS_FILTER_FILTER,
     E_CPU_MEASURE_FILTER,
     E_CLOCK_RATE_FILTER,
     E_CLOCK_ENABLE_FILTER,
@@ -49,31 +46,23 @@ public:
     ~MeasureFilter() override;
     bool AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timeStamp, int64_t value);
     uint32_t GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex);
-    void Clear();
 
 private:
     void AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex, uint64_t filterId);
     DoubleMap<uint64_t, DataIndex, uint64_t> tidStreamIdFilterIdMap_;
     FilterType filterType_;
 
-    const std::map<FilterType, std::string> filterTypeValue = {{E_THREADMEASURE_FILTER, "thread_measure_filter"},
-                                                               {E_THREAD_FILTER, "thread_measure"},
-                                                               {E_PROCESS_MEASURE_FILTER, "process_measure_filter"},
-                                                               {E_PROCESS_FILTER_FILTER, "process_filter"},
-                                                               {E_CPU_MEASURE_FILTER, "cpu_measure_filter"},
-                                                               {E_CLOCK_RATE_FILTER, "clock_rate_filter"},
-                                                               {E_CLOCK_ENABLE_FILTER, "clock_enable_filter"},
-                                                               {E_CLOCK_DISABLE_FILTER, "clock_disable_filter"},
-                                                               {E_CLK_RATE_FILTER, "clk_rate_filter"},
-                                                               {E_CLK_ENABLE_FILTER, "clk_enable_filter"},
-                                                               {E_CLK_DISABLE_FILTER, "clk_disable_filter"}};
+    const std::map<FilterType, std::string> filterTypeValue = {
+        {E_PROCESS_MEASURE_FILTER, "process_measure_filter"}, {E_CPU_MEASURE_FILTER, "cpu_measure_filter"},
+        {E_CLOCK_RATE_FILTER, "clock_rate_filter"},           {E_CLOCK_ENABLE_FILTER, "clock_enable_filter"},
+        {E_CLOCK_DISABLE_FILTER, "clock_disable_filter"},     {E_CLK_RATE_FILTER, "clk_rate_filter"},
+        {E_CLK_ENABLE_FILTER, "clk_enable_filter"},           {E_CLK_DISABLE_FILTER, "clk_disable_filter"}};
     const DataIndex clockSetRateDataIndex_ = traceDataCache_->GetDataIndex("clock_set_rate");
     const DataIndex clockEnableDataIndex_ = traceDataCache_->GetDataIndex("clock_enable");
     const DataIndex clockDisableDataIndex_ = traceDataCache_->GetDataIndex("clock_disable");
     const DataIndex clkSetRateDataIndex_ = traceDataCache_->GetDataIndex("clk_set_rate");
     const DataIndex clkEnableDataIndex_ = traceDataCache_->GetDataIndex("clk_enable");
     const DataIndex clkDisableDataIndex_ = traceDataCache_->GetDataIndex("clk_disable");
-    std::map<uint32_t, uint32_t> filterIdToRow_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

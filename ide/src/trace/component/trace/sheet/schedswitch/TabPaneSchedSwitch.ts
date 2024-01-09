@@ -17,7 +17,6 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitButton } from '../../../../../base-ui/button/LitButton.js';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { querySchedThreadStates, querySingleCutData, queryLoopCutData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
@@ -27,10 +26,8 @@ import {
   ThreadInitConfig,
   SchedThreadCutConfig,
 } from '../../../../bean/SchedSwitchStruct';
-const UNIT: number = 1000000.0;
-const NUM_DIGITS: number = 3;
-const SINGLE_BUTTON_TEXT: string = 'Single';
-const LOOP_BUTTON_TEXT: string = 'Loop';
+import {queryLoopCutData, querySchedThreadStates, querySingleCutData} from "../../../../database/sql/ProcessThread.sql";
+
 @element('tabpane-schedswitch')
 export class TabPaneSchedSwitch extends BaseElement {
   private schedSwitchTbl: LitTable | null | undefined;
@@ -272,10 +269,10 @@ export class TabPaneSchedSwitch extends BaseElement {
       if (!this.isThreadStatesData) {
         this.initThreadStateData(this.selectionParam);
       }
-      if (btnHtml === SINGLE_BUTTON_TEXT) {
+      if (btnHtml === 'Single') {
         await this.singleCutLogic(threadFunName, threadId, leftStartNs, rightEndNs);
       }
-      if (btnHtml === LOOP_BUTTON_TEXT) {
+      if (btnHtml === 'Loop') {
         await this.loopCutLogic(threadFunName, threadId, leftStartNs, rightEndNs);
       }
     } else {
@@ -475,13 +472,13 @@ export class TabPaneSchedSwitch extends BaseElement {
     let flagNumber: number = 0;
     for (let idx = 0; idx < groupItem.length; idx++) {
       //@ts-ignore
-      groupItem[idx].duration = (groupItem[idx].duration / UNIT).toFixed(NUM_DIGITS);
+      groupItem[idx].duration = (groupItem[idx].duration / 1000000.0).toFixed(3);
       if (!groupItem[idx].children.length) {
         flagNumber += 1;
         groupItem[idx].cycle = flagNumber;
         groupItem[idx].title = `cycle ${flagNumber}-` + groupItem[idx].title;
         //@ts-ignore
-        groupItem[idx].cycleStartTime = (groupItem[idx].cycleStartTime / UNIT).toFixed(NUM_DIGITS);
+        groupItem[idx].cycleStartTime = (groupItem[idx].cycleStartTime / 1000000.0).toFixed(3);
       } else {
         this.addCycleNumber(groupItem[idx].children);
       }
@@ -588,23 +585,23 @@ export class TabPaneSchedSwitch extends BaseElement {
           return '#a285d2';
         } else {
           return '#0a59f7';
-        };
+        }
       },
       tip: (a) => {
         if (a && a[0]) {
           let tip = '';
           for (let obj of a) {
             tip = `${tip}
-              <div style="display:flex;flex-direction: row;align-items: center;">
-                <div style="width: 10px;height: 5px;background-color: ${obj.obj.color};margin-right: 5px"></div>
-                <div>${obj.xLabel}:${obj.obj.average}</div>
-              </div>
-            `;
+                                        <div style="display:flex;flex-direction: row;align-items: center;">
+                                            <div style="width: 10px;height: 5px;background-color: ${obj.obj.color};margin-right: 5px"></div>
+                                            <div>${obj.xLabel}:${obj.obj.average}</div>
+                                        </div>
+                                    `;
           }
           return tip;
         } else {
           return '';
-        };
+        }
       },
       label: null,
     };
@@ -615,7 +612,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       this.setAttribute('isCanvansDisplay', '');
     } else {
       this.removeAttribute('isCanvansDisplay');
-    };
+    }
   }
 
   isSingleButtonFn(flag: boolean): void {
@@ -648,181 +645,169 @@ export class TabPaneSchedSwitch extends BaseElement {
   }
   initHtml(): string {
     return `
-      <style>
-      :host{
-          padding: 10px 10px;
-          display: flex;
-          flex-direction: column;
-      }
-      #data-cut{
-          display: flex;
-          justify-content: space-between;
-          width:100%;
-          height:20px;
-          margin-bottom:2px;
-          align-items:center;
-      }
-      button{
-          width:40%;
-          height:100%;
-          border: solid 1px #666666;
-          background-color: rgba(0,0,0,0);
-          border-radius:10px;
-      }
-      #content-section{
-          display: flex;
-          width: 100%;
-      }
-      #query-section{
-          height: 78px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-evenly;
-          padding: 20px 0px 10px 20px;
-      }
-      .sched-subheading{
-          font-weight: bold;
-          text-align: center;
-      }
-      .labels{
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          font-size: 9pt;
-          padding-right: 15px;
-      }
-      `+ this.initContentStyle() + this.initContentTop() + this.initContentBottom();
-  }
-  initContentStyle(): string {
-    return `
-      #right {
-        height: auto;
-        padding-right: 10px;
-        flex-grow: 1;
-      }
-      .range-input {
-        width: 120px; 
-        height: 18px;
-        border-radius:10px;
-        border:solid 1px #979797;
-        font-size:15px;
-        text-indent:3%; 
-      }
-      #cut-threadid {
-        width: 15%;
-        height:90%;
-        border-radius:10px;
-        border:solid 1px #979797;
-        font-size:15px;
-        text-indent:3% 
-      }
-      #cut-thread-func {
-        width: 20%;
-        height:90%;
-        border-radius:10px;
-        border:solid 1px #979797;
-        font-size:15px;
-        text-indent:3%
-      }
-      .hint-label {
-        width: 20px;
-        height: 10px;
-        margin-right: 5px
-      }
-      .cycle-title {
-        display: inline-block;
-        width: 61px;
-        height: 100%;
-      }
-      .range {
-        display:flex;
-        align-items: center;
-      }
-    `
-  }
-  initContentTop(): string {
-    return `
-      .query-btn{
-        height: 20px;
-        width: 90px;
-        border: solid 1px #666666;
-        background-color: rgba(0,0,0,0);
-        border-radius:10px;
-      }
-      button:hover{
-        background-color:#666666;
-        color:white;
-      }
-      :host([isCanvansDisplay]) #right {
-        display: none
-      }
-      :host([isSingleButton]) .single-btn {
-        background-color: #666666;
-        color: white
-      }
-      :host([isLoopButton]) .loop-btn {
-        background-color: #666666;
-        color: white
-      }
-      :host([isQueryButton]) .query-btn:hover {
-        cursor: pointer;
-      }
-      </style>
-      <div id='data-cut'>
-        <input id="cut-threadid" type="text" placeholder="Please input threadId" value='' oninput="this.value=this.value.replace(/\\D/g,'')"/>
-        <input id="cut-thread-func" type="text" placeholder="Please input funcName" value='' />
-        <div style="width:20%;height: 100%;display:flex;justify-content: space-around;">
-            <button class="single-btn cut-button">Single</button>
-            <button class="loop-btn cut-button">Loop</button>
-        </div>
-      </div>
-    `;
-  }
-
-  initContentBottom(): string {
-    return `
-      <div id="content-section">
-        <div style="height: auto; width: 60%; overflow: auto">
-          <lit-table id="tb-running" style="min-height: 380px; width: 100%" tree>
-            <lit-table-column class="running-percent-column" width="450px" title="Process/Thread/Cycle" data-index="title" key="title" align="flex-start" width="27%" retract>
-            </lit-table-column>
-            <lit-table-column class="running-percent-column" width="1fr" title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
-            </lit-table-column>
-            <lit-table-column class="running-percent-column" width="1fr" title="Duration(ms)" data-index="duration" key="dur" align="flex-start">
-            </lit-table-column>
-            <lit-table-column class="running-percent-column" width="1fr" title="Count" data-index="count" key="count" align="flex-start">
-            </lit-table-column>
-          </lit-table>
-        </div>
-        <lit-slicer-track ></lit-slicer-track>
-        <div id="right">
-          <div id="query-section">
-            <div>
-                <span class="cycle-title">Cycle A:</span>
-                <input id="leftA" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/>
-                <span>~</span>
-                <input id="rightA" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/>
+        <style>
+        :host{
+            padding: 10px 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        #data-cut{
+            display: flex;
+            justify-content: space-between;
+            width:100%;
+            height:20px;
+            margin-bottom:2px;
+            align-items:center;
+        }
+        button{
+            width:40%;
+            height:100%;
+            border: solid 1px #666666;
+            background-color: rgba(0,0,0,0);
+            border-radius:10px;
+        }
+        #content-section{
+            display: flex;
+            width: 100%;
+        }
+        #query-section{
+            height: 78px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            padding: 20px 0px 10px 20px;
+        }
+        .sched-subheading{
+            font-weight: bold;
+            text-align: center;
+        }
+        .labels{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            font-size: 9pt;
+            padding-right: 15px;
+        }
+        #right {
+            height: auto;
+            padding-right: 10px;
+            flex-grow: 1;
+        }
+        .range-input {
+            width: 120px; 
+            height: 18px;
+            border-radius:10px;
+            border:solid 1px #979797;
+            font-size:15px;
+            text-indent:3%; 
+        }
+        #cut-threadid {
+            width: 15%;
+            height:90%;
+            border-radius:10px;
+            border:solid 1px #979797;
+            font-size:15px;
+            text-indent:3% 
+        }
+        #cut-thread-func {
+            width: 20%;
+            height:90%;
+            border-radius:10px;
+            border:solid 1px #979797;
+            font-size:15px;
+            text-indent:3%
+        }
+        .hint-label {
+            width: 20px;
+            height: 10px;
+            margin-right: 5px
+        }
+        .cycle-title {
+            display: inline-block;
+            width: 61px;
+            height: 100%;
+        }
+        .range {
+            display:flex;
+            align-items: center;
+        }
+        .query-btn{
+            height: 20px;
+            width: 90px;
+            border: solid 1px #666666;
+            background-color: rgba(0,0,0,0);
+            border-radius:10px;
+        }
+        button:hover{
+            background-color:#666666;
+            color:white;
+        }
+        :host([isCanvansDisplay]) #right {
+            display: none
+        }
+        :host([isSingleButton]) .single-btn {
+            background-color: #666666;
+            color: white
+        }
+        :host([isLoopButton]) .loop-btn {
+            background-color: #666666;
+            color: white
+        }
+        :host([isQueryButton]) .query-btn:hover {
+            cursor: pointer;
+        }
+        </style>
+        <div id='data-cut'>
+            <input id="cut-threadid" type="text" placeholder="Please input threadId" value='' oninput="this.value=this.value.replace(/\\D/g,'')"/>
+            <input id="cut-thread-func" type="text" placeholder="Please input funcName" value='' />
+            <div style="width:20%;height: 100%;display:flex;justify-content: space-around;">
+                <button class="single-btn cut-button">Single</button>
+                <button class="loop-btn cut-button">Loop</button>
             </div>
-            <div style="display: flex; justify-content: space-between">
-              <div>
-                <span class="cycle-title">Cycle B:</span>
-                <input id="leftB" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/> 
-                <span>~</span>
-                <input id="rightB" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/>
-              </div>
-              <button class="query-btn">Query</button>
-            </div>
-          </div>
-          <div class="sched-subheading"></div>
-          <lit-chart-column id="chart_total" style="width:100%;height:300px"></lit-chart-column>
-          <div style="height: 30px;width: 100%;display: flex;flex-direction: row;align-items: center;justify-content: center">
-            <div class="labels"><div class="hint-label" style="background-color: #2f72f8"></div>Total</div>
-            <div class="labels"><div class="hint-label" style="background-color: #ffab67"></div>Cycle A</div>
-            <div class="labels"><div class="hint-label" style="background-color: #a285d2"></div>Cycle B</div>
-          </div>
         </div>
-      </div>
-    `;
+        <div id="content-section">
+            <div style="height: auto; width: 60%; overflow: auto">
+                <lit-table id="tb-running" style="min-height: 380px; width: 100%" tree>
+                    <lit-table-column class="running-percent-column" width="450px" title="Process/Thread/Cycle" data-index="title" key="title" align="flex-start" width="27%" retract>
+                    </lit-table-column>
+                    <lit-table-column class="running-percent-column" width="1fr" title="Cycle start time(ms)" data-index="cycleStartTime" key="cycleStartTime" align="flex-start">
+                    </lit-table-column>
+                    <lit-table-column class="running-percent-column" width="1fr" title="Duration(ms)" data-index="duration" key="dur" align="flex-start">
+                    </lit-table-column>
+                    <lit-table-column class="running-percent-column" width="1fr" title="Count" data-index="count" key="count" align="flex-start">
+                    </lit-table-column>
+                </lit-table>
+            </div>
+            <lit-slicer-track ></lit-slicer-track>
+            <div id="right">
+                <div id="query-section">
+                    <div>
+                        <span class="cycle-title">Cycle A:</span>
+                        <input id="leftA" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/>
+                        <span>~</span>
+                        <input id="rightA" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/>
+                    </div>
+                    <div style="display: flex; justify-content: space-between">
+                        <div>
+                            <span class="cycle-title">Cycle B:</span>
+                            <input id="leftB" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/> 
+                            <span>~</span>
+                            <input id="rightB" type="text" class="range-input" value='' oninput="this.value=this.value.replace(/[^0-9\.]/g,'')" placeholder="Duration(ms)"/>
+                        </div>
+                    <button class="query-btn">Query</button>
+                    </div>
+                </div>
+                <div class="sched-subheading"></div>
+                    <lit-chart-column id="chart_total" style="width:100%;height:300px"></lit-chart-column>
+                    <div style="height: 30px;width: 100%;display: flex;flex-direction: row;align-items: center;justify-content: center">
+                        <div class="labels"><div class="hint-label" style="background-color: #2f72f8"></div>Total</div>
+                        <div class="labels"><div class="hint-label" style="background-color: #ffab67"></div>Cycle A</div>
+                        <div class="labels"><div class="hint-label" style="background-color: #a285d2"></div>Cycle B</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
   }
 }

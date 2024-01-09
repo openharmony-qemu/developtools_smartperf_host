@@ -14,24 +14,25 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
-import { type LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { Utils } from '../../base/Utils';
-import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { SelectionParam } from '../../../../bean/BoxSelection';
 import {
-  type BinderItem,
-  type BinderGroup,
-  type DataSource,
-  type FuncNameCycle,
-  type BinderDataStruct,
+  BinderItem,
+  BinderGroup,
+  DataSource,
+  FuncNameCycle,
+  BinderDataStruct,
 } from '../../../../bean/BinderProcessThread';
-import { querySingleFuncNameCycle, queryBinderByThreadId, queryLoopFuncNameCycle } from '../../../../database/SqlLite';
 import { resizeObserver } from '../SheetUtils';
-import { type LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
+import { LitChartColumn } from '../../../../../base-ui/chart/column/LitChartColumn';
 import '../../../../../base-ui/chart/column/LitChartColumn';
+import {queryLoopFuncNameCycle, querySingleFuncNameCycle} from "../../../../database/sql/Func.sql";
+import {queryBinderByThreadId} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-binder-datacut')
 export class TabPaneBinderDataCut extends BaseElement {
-  private threadBindersCutTbl: LitTable | null | undefined;
+  private threadBindersTbl: LitTable | null | undefined;
   private currentSelectionParam: SelectionParam | any;
   private threadStatesDIV: Element | null | undefined;
   private cycleARangeArr: BinderGroup[] | undefined;
@@ -59,8 +60,8 @@ export class TabPaneBinderDataCut extends BaseElement {
     this.clickLoop(false);
     this.clickSingle(false);
     this.currentSelectionParam = threadStatesParam;
-    this.threadBindersCutTbl!.recycleDataSource = [];
-    this.tHeadClick(this.threadBindersCutTbl!.recycleDataSource);
+    this.threadBindersTbl!.recycleDataSource = [];
+    this.theadClick(this.threadBindersTbl!.recycleDataSource);
   }
 
   dispalyQueryArea(b: boolean): void {
@@ -88,7 +89,6 @@ export class TabPaneBinderDataCut extends BaseElement {
   }
 
   async dataLoopCut(threadId: HTMLInputElement, threadFunc: HTMLInputElement): Promise<void> {
-    this.threadBindersCutTbl!.loading = true;
     this.currentThreadId = '';
     let threadIds: number[] = this.currentSelectionParam.threadIds;
     //@ts-ignore
@@ -100,6 +100,7 @@ export class TabPaneBinderDataCut extends BaseElement {
     if (threadIdValue !== '' && threadFuncName !== '') {
       this.clickLoop(true);
       this.clickSingle(false);
+      this.threadBindersTbl!.loading = true;
       threadId.style.border = '1px solid rgb(151,151,151)';
       threadFunc.style.border = '1px solid rgb(151,151,151)';
       this.funcNameCycleArr = await queryLoopFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
@@ -127,11 +128,13 @@ export class TabPaneBinderDataCut extends BaseElement {
           }
         }
         let finalBinderCutArr: BinderItem[] = this.completionCycleName(binderCutArr, 'loop');
-        this.threadBindersCutTbl!.recycleDataSource = this.transferToTreeData(finalBinderCutArr);
-        this.threadBindersCutTbl!.loading = false;
-        this.tHeadClick(this.threadBindersCutTbl!.recycleDataSource);
+        this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(finalBinderCutArr);
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource);
       } else {
-        this.clearTableData();
+        this.threadBindersTbl!.recycleDataSource = [];
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource);
       }
     } else {
       this.verifyInputIsEmpty(threadIdValue, threadFuncName, threadId, threadFunc);
@@ -139,7 +142,6 @@ export class TabPaneBinderDataCut extends BaseElement {
   }
 
   async dataSingleCut(threadId: HTMLInputElement, threadFunc: HTMLInputElement): Promise<void> {
-    this.threadBindersCutTbl!.loading = true;
     this.currentThreadId = '';
     let threadIds: number[] = this.currentSelectionParam.threadIds;
     //@ts-ignore
@@ -153,6 +155,7 @@ export class TabPaneBinderDataCut extends BaseElement {
       this.clickSingle(true);
       threadId.style.border = '1px solid rgb(151,151,151)';
       threadFunc.style.border = '1px solid rgb(151,151,151)';
+      this.threadBindersTbl!.loading = true;
       this.funcNameCycleArr = await querySingleFuncNameCycle(threadFuncName, threadIdValue, leftNS, rightNS);
       let binderItemArr: BinderItem[] = await queryBinderByThreadId(processIds, threadIds, leftNS, rightNS);
       if (this.funcNameCycleArr.length !== 0) {
@@ -162,7 +165,7 @@ export class TabPaneBinderDataCut extends BaseElement {
             if (
               binderItemArr[i].ts > this.funcNameCycleArr[j].cycleStartTime &&
               binderItemArr[i].ts + binderItemArr[i].dur <
-              this.funcNameCycleArr[j].cycleStartTime + this.funcNameCycleArr[j]!.cycleDur
+                this.funcNameCycleArr[j].cycleStartTime + this.funcNameCycleArr[j]!.cycleDur
             ) {
               binderItemArr[i].cycleDur = this.funcNameCycleArr[j].cycleDur;
               binderItemArr[i].cycleStartTime = this.funcNameCycleArr[j].cycleStartTime;
@@ -176,21 +179,17 @@ export class TabPaneBinderDataCut extends BaseElement {
           }
         }
         let finalBinderCutArr: BinderItem[] = this.completionCycleName(binderCutArr, 'single');
-        this.threadBindersCutTbl!.recycleDataSource = this.transferToTreeData(finalBinderCutArr);
-        this.threadBindersCutTbl!.loading = false;
-        this.tHeadClick(this.threadBindersCutTbl!.recycleDataSource);
+        this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(finalBinderCutArr);
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource);
       } else {
-        this.clearTableData();
+        this.threadBindersTbl!.recycleDataSource = [];
+        this.threadBindersTbl!.loading = false;
+        this.theadClick(this.threadBindersTbl!.recycleDataSource);
       }
     } else {
       this.verifyInputIsEmpty(threadIdValue, threadFuncName, threadId, threadFunc);
     }
-  }
-
-  clearTableData(): void {
-    this.threadBindersCutTbl!.recycleDataSource = [];
-    this.threadBindersCutTbl!.loading = false;
-    this.tHeadClick(this.threadBindersCutTbl!.recycleDataSource);
   }
 
   verifyInputIsEmpty(
@@ -202,7 +201,9 @@ export class TabPaneBinderDataCut extends BaseElement {
     if (threadIdValue === '') {
       threadId.style.border = '1px solid rgb(255,0,0)';
       threadId.setAttribute('placeholder', 'Please input thread id');
-      this.clearTableData();
+      this.threadBindersTbl!.recycleDataSource = [];
+      this.threadBindersTbl!.loading = false;
+      this.theadClick(this.threadBindersTbl!.recycleDataSource);
     } else {
       threadId.style.border = '1px solid rgb(151,151,151)';
     }
@@ -210,7 +211,9 @@ export class TabPaneBinderDataCut extends BaseElement {
     if (threadFuncName === '') {
       threadFunc.style.border = '1px solid rgb(255,0,0)';
       threadFunc.setAttribute('placeholder', 'Please input function name');
-      this.clearTableData();
+      this.threadBindersTbl!.recycleDataSource = [];
+      this.threadBindersTbl!.loading = false;
+      this.theadClick(this.threadBindersTbl!.recycleDataSource);
     } else {
       threadFunc.style.border = '1px solid rgb(151,151,151)';
     }
@@ -314,10 +317,14 @@ export class TabPaneBinderDataCut extends BaseElement {
       if (group[`${it.pid}`]) {
         let process = group[`${it.pid}`];
         process.totalCount += it.count;
-        let thread = process.children.find((child: BinderGroup) => child.title === it.thread + ' ' + '[' + it.tid + ']');
+        let thread = process.children.find(
+          (child: BinderGroup) => child.title === it.thread + ' ' + '[' + it.tid + ']'
+        );
         if (thread) {
           thread.totalCount += it.count;
-          let cycle = thread.children.find((child: BinderGroup) => child.title === it.thread + ' ' + '[' + it.tid + ']' + '[' + it.id + ']');
+          let cycle = thread.children.find(
+            (child: BinderGroup) => child.title === it.thread + ' ' + '[' + it.tid + ']' + '[' + it.id + ']'
+          );
           if (cycle) {
             cycle.totalCount += it.count;
             cycle.binderTransactionCount += it.name === 'binder transaction' ? it.count : 0;
@@ -341,6 +348,8 @@ export class TabPaneBinderDataCut extends BaseElement {
         group[`${it.pid}`] = {
           title: it.process + ' ' + '[' + it.pid + ']',
           totalCount: it.count,
+          tid: it.tid,
+          pid: it.pid,
           type: 'process',
           children: [
             {
@@ -363,7 +372,6 @@ export class TabPaneBinderDataCut extends BaseElement {
   addCycleNumber(groupArr: Array<BinderGroup>): Array<BinderGroup> {
     for (let i = 0; i < groupArr.length; i++) {
       if (groupArr[i].type === 'cycle') {
-        
         groupArr[i].title = 'cycle ' + (i + 1) + '_' + groupArr[i].thread;
         groupArr[i].idx = i + 1;
       } else {
@@ -385,32 +393,32 @@ export class TabPaneBinderDataCut extends BaseElement {
     return groupArr;
   }
 
-  private tHeadClick(data: Array<BinderGroup>): void {
-    let labels = this.threadBindersCutTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+  private theadClick(data: Array<BinderGroup>): void {
+    let labels = this.threadBindersTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
         labels[i].addEventListener('click', (e) => {
-          if (label.includes('Process')) {
-            this.threadBindersCutTbl!.setStatus(data, false);
-            this.threadBindersCutTbl!.recycleDs = this.threadBindersCutTbl!.meauseTreeRowElement(
+          if (label.includes('Process') && i === 0) {
+            this.threadBindersTbl!.setStatus(data, false);
+            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(
               data,
               RedrawTreeForm.Retract
             );
-          } else if (label.includes('Thread')) {
+          } else if (label.includes('Thread') && i === 1) {
             for (let item of data) {
               item.status = true;
               if (item.children != undefined && item.children.length > 0) {
-                this.threadBindersCutTbl!.setStatus(item.children, false);
+                this.threadBindersTbl!.setStatus(item.children, false);
               }
             }
-            this.threadBindersCutTbl!.recycleDs = this.threadBindersCutTbl!.meauseTreeRowElement(
+            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(
               data,
               RedrawTreeForm.Retract
             );
-          } else if (label.includes('Cycle')) {
-            this.threadBindersCutTbl!.setStatus(data, true);
-            this.threadBindersCutTbl!.recycleDs = this.threadBindersCutTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
+          } else if (label.includes('Cycle') && i === 2) {
+            this.threadBindersTbl!.setStatus(data, true);
+            this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
           }
         });
       }
@@ -476,15 +484,36 @@ export class TabPaneBinderDataCut extends BaseElement {
     return currentSelectThread;
   }
 
-  rowClickFunc(): void {
-    this.threadBindersCutTbl!.addEventListener('row-click', (evt: any) => {
+  initElements(): void {
+    this.threadBindersTbl = this.shadowRoot?.querySelector<LitTable>('#tb-binder-count');
+    this.chartTotal = this.shadowRoot!.querySelector<LitChartColumn>('#chart_cycle');
+    this.cycleAStartRangeDIV = this.shadowRoot?.querySelector('#cycle-a-start-range');
+    this.cycleAEndRangeDIV = this.shadowRoot?.querySelector('#cycle-a-end-range');
+    this.cycleBStartRangeDIV = this.shadowRoot?.querySelector('#cycle-b-start-range');
+    this.cycleBEndRangeDIV = this.shadowRoot?.querySelector('#cycle-b-end-range');
+
+    this.threadStatesDIV = this.shadowRoot!.querySelector('#dataCut');
+    this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
+      this.dispalyQueryArea(true);
+      this.dataSource = [];
+      // @ts-ignore
+      this.dataSingleCut(this.threadStatesDIV!.children[0], this.threadStatesDIV?.children[1]);
+    });
+    this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
+      this.dispalyQueryArea(true);
+      this.dataSource = [];
+      // @ts-ignore
+      this.dataLoopCut(this.threadStatesDIV?.children[0], this.threadStatesDIV?.children[1]);
+    });
+
+    this.threadBindersTbl!.addEventListener('row-click', (evt: any) => {
       let currentData: BinderGroup = evt.detail.data;
       if (currentData.type === 'thread') {
         this.currentThreadId = currentData.tid + '' + currentData.pid;
         this.clearCycleRange();
         currentData.isSelected = true;
-        this.threadBindersCutTbl!.clearAllSelection(currentData);
-        this.threadBindersCutTbl!.setCurrentSelection(currentData);
+        this.threadBindersTbl!.clearAllSelection(currentData);
+        this.threadBindersTbl!.setCurrentSelection(currentData);
         this.rowCycleData = currentData.children;
         this.dispalyQueryArea(false);
         let totalCount = currentData.totalCount;
@@ -496,17 +525,18 @@ export class TabPaneBinderDataCut extends BaseElement {
         if (this.dataSource!.length > 0) {
           this.drawColumn();
         }
+        let threaId = currentData.tid;
+        let rowThreadBinderArr = this.findThreadByThreadId(this.cacheBinderArr!, threaId);
+        let binderWithCountList: Array<BinderDataStruct[]> = this.binderWithCountList(rowThreadBinderArr!);
       }
 
       if (currentData.type === 'cycle' && currentData.tid + '' + currentData.pid === this.currentThreadId) {
         currentData.isSelected = true;
-        this.threadBindersCutTbl!.clearAllSelection(currentData);
-        this.threadBindersCutTbl!.setCurrentSelection(currentData);
+        this.threadBindersTbl!.clearAllSelection(currentData);
+        this.threadBindersTbl!.setCurrentSelection(currentData);
       }
     });
-  }
 
-  queryBtnFunc(): void {
     this.shadowRoot?.querySelector('#query-btn')?.addEventListener('click', () => {
       this.cycleARangeArr = this.rowCycleData?.filter((it: BinderGroup) => {
         return (
@@ -541,31 +571,6 @@ export class TabPaneBinderDataCut extends BaseElement {
     });
   }
 
-  initElements(): void {
-    this.threadBindersCutTbl = this.shadowRoot?.querySelector<LitTable>('#tb-binder-count');
-    this.chartTotal = this.shadowRoot!.querySelector<LitChartColumn>('#chart_cycle');
-    this.cycleAStartRangeDIV = this.shadowRoot?.querySelector('#cycle-a-start-range');
-    this.cycleAEndRangeDIV = this.shadowRoot?.querySelector('#cycle-a-end-range');
-    this.cycleBStartRangeDIV = this.shadowRoot?.querySelector('#cycle-b-start-range');
-    this.cycleBEndRangeDIV = this.shadowRoot?.querySelector('#cycle-b-end-range');
-
-    this.threadStatesDIV = this.shadowRoot!.querySelector('#dataCut');
-    this.threadStatesDIV?.children[2].children[0].addEventListener('click', (e) => {
-      this.dispalyQueryArea(true);
-      this.dataSource = [];
-      // @ts-ignore
-      this.dataSingleCut(this.threadStatesDIV!.children[0], this.threadStatesDIV?.children[1]);
-    });
-    this.threadStatesDIV?.children[2].children[1].addEventListener('click', (e) => {
-      this.dispalyQueryArea(true);
-      this.dataSource = [];
-      // @ts-ignore
-      this.dataLoopCut(this.threadStatesDIV?.children[0], this.threadStatesDIV?.children[1]);
-    });
-    this.rowClickFunc();
-    this.queryBtnFunc();
-  }
-
   clearCycleRange(): void {
     this.cycleAStartRangeDIV!.value = '';
     this.cycleAEndRangeDIV!.value = '';
@@ -598,8 +603,8 @@ export class TabPaneBinderDataCut extends BaseElement {
         if (a && a[0]) {
           let tip: string = '';
           tip = `<div>
-                    <div>Average count: ${a[0].obj.yAverage}</div>
-                  </div>`;
+                            <div>Average count: ${a[0].obj.yAverage}</div>
+                        </div>`;
           return tip;
         } else {
           return '';
@@ -611,7 +616,7 @@ export class TabPaneBinderDataCut extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    resizeObserver(this.parentElement!, this.threadBindersCutTbl!);
+    resizeObserver(this.parentElement!, this.threadBindersTbl!);
   }
 
   initHtml(): string {

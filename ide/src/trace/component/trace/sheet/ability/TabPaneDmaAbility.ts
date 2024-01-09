@@ -18,9 +18,9 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Dma } from '../../../../bean/AbilityMonitor';
 import { resizeObserver } from '../SheetUtils';
-import { getTabDmaAbilityData } from '../../../../database/SqlLite';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
+import {getTabDmaAbilityData} from "../../../../database/sql/Dma.sql";
 
 @element('tabpane-dma-ability')
 export class TabPaneDmaAbility extends BaseElement {

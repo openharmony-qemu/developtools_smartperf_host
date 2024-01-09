@@ -44,9 +44,9 @@ void IndexMap::CovertToIndexMap()
 void IndexMap::Print()
 {
     for (auto itor = rowIndex_.begin(); itor != rowIndex_.end(); itor++) {
-        fprintf(stdout, "%d,", *itor);
+        (void)fprintf(stdout, "%d,", *itor);
     }
-    fflush(stdout);
+    (void)fflush(stdout);
 }
 void IndexMap::Sort() {}
 

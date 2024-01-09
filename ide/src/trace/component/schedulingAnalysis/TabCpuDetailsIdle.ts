@@ -88,45 +88,7 @@ export class TabCpuDetailsIdle extends BaseElement {
       this.cpuDetailsLdlData = getDataNo(this.cpuDetailsLdlData);
       this.tableNoData!.noData = this.cpuDetailsLdlData.length == 0;
       this.noData(this.cpuDetailsLdlData.length == 0);
-      this.cpuDetailsLdlPie!.config = {
-        appendPadding: 0,
-        data: this.cpuDetailsLdlData,
-        angleField: 'sum',
-        colorField: 'value',
-        radius: 1,
-        label: {
-          type: 'outer',
-          color:
-            type !== 'CPU Idle'
-              ? undefined
-              : (it) => {
-                  return pieChartColors[(it as any).value];
-                },
-        },
-        hoverHandler: (data) => {
-          if (data) {
-            this.cpuDetailsLdlUsageTbl!.setCurrentHover(data);
-          } else {
-            this.cpuDetailsLdlUsageTbl!.mouseOut();
-          }
-        },
-        tip: (idleObj) => {
-          return `<div>
-                                <div>idle:${idleObj.obj.value}</div> 
-                                <div>min:${idleObj.obj.min}</div>
-                                <div>max:${idleObj.obj.max}</div>
-                                <div>average:${idleObj.obj.avg}</div>
-                                <div>duration:${idleObj.obj.sumTimeStr}</div>
-                                <div>ratio:${idleObj.obj.ratio}%</div>
-                            </div>
-                                `;
-        },
-        interactions: [
-          {
-            type: 'element-active',
-          },
-        ],
-      };
+      this.setLdlPieConfig(type);
       if (this.cpuDetailsLdlSortColumn != '') {
         this.sortByColumn({
           key: this.cpuDetailsLdlSortColumn,
@@ -137,6 +99,48 @@ export class TabCpuDetailsIdle extends BaseElement {
       }
       this.cpuDetailsLdlUsageTbl?.reMeauseHeight();
     });
+  }
+
+  private setLdlPieConfig(type: string): void {
+    this.cpuDetailsLdlPie!.config = {
+      appendPadding: 0,
+      data: this.cpuDetailsLdlData,
+      angleField: 'sum',
+      colorField: 'value',
+      radius: 1,
+      label: {
+        type: 'outer',
+        color:
+          type !== 'CPU Idle'
+            ? undefined
+            : (it) => {
+              return pieChartColors[(it as any).value];
+            },
+      },
+      hoverHandler: (data) => {
+        if (data) {
+          this.cpuDetailsLdlUsageTbl!.setCurrentHover(data);
+        } else {
+          this.cpuDetailsLdlUsageTbl!.mouseOut();
+        }
+      },
+      tip: (idleObj) => {
+        return `<div>
+                                <div>idle:${idleObj.obj.value}</div> 
+                                <div>min:${idleObj.obj.min}</div>
+                                <div>max:${idleObj.obj.max}</div>
+                                <div>average:${idleObj.obj.avg}</div>
+                                <div>duration:${idleObj.obj.sumTimeStr}</div>
+                                <div>ratio:${idleObj.obj.ratio}%</div>
+                            </div>
+                                `;
+      },
+      interactions: [
+        {
+          type: 'element-active',
+        },
+      ],
+    };
   }
 
   noData(value: boolean) {

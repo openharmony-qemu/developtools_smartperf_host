@@ -17,7 +17,7 @@
 bool g_cleanMode = false;
 enum LogLevel g_curLogLevel = LOG_ERROR;
 
-bool SetLogLevel(std::string level)
+bool SetLogLevel(const std::string& level)
 {
     if (level == "D" || level == "DEBUG") {
         g_curLogLevel = LOG_DEBUG;

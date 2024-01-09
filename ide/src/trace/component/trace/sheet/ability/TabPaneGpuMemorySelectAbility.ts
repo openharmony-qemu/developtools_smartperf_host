@@ -16,13 +16,13 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type GpuMemory } from '../../../../bean/AbilityMonitor';
-import { getTabGpuMemoryAbilityClickData } from '../../../../database/SqlLite';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
+import {getTabGpuMemoryAbilityClickData} from "../../../../database/sql/Ability.sql";
 
 @element('tabpane-gpu-memory-selection-ability')
 export class TabPaneGpuMemorySelectAbility extends BaseElement {
-  private gpuMemoryClickTable: LitTable | null | undefined;
+  private gpuMemoryClickTables: LitTable | null | undefined;
   private gpuMemoryClickSource: Array<GpuMemory> = [];
   private tableThead: HTMLDivElement | undefined | null;
 
@@ -33,9 +33,9 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
   }
 
   initElements(): void {
-    this.gpuMemoryClickTable = this.shadowRoot?.querySelector<LitTable>('#gpuMemoryClickTable');
-    this.tableThead = this.gpuMemoryClickTable?.shadowRoot?.querySelector('.thead') as HTMLDivElement;
-    this.gpuMemoryClickTable!.addEventListener('column-click', (e) => {
+    this.gpuMemoryClickTables = this.shadowRoot?.querySelector<LitTable>('#gpuMemoryClickTables');
+    this.tableThead = this.gpuMemoryClickTables?.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.gpuMemoryClickTables!.addEventListener('column-click', (e) => {
       // @ts-ignore
       this.sortGpuMemoryByColumn(e.detail.key, e.detail.sort);
     });
@@ -45,11 +45,11 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
     super.connectedCallback();
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight !== 0) {
-        let gpuMemoryTbl = this.gpuMemoryClickTable?.shadowRoot?.querySelector('.table');
+        let gpuMemoryTbl = this.gpuMemoryClickTables?.shadowRoot?.querySelector('.table');
         // @ts-ignore
         gpuMemoryTbl.style.height = this.parentElement.clientHeight - 18 + 'px';
         this.parentElement!.style.overflow = 'hidden';
-        this.gpuMemoryClickTable?.reMeauseHeight();
+        this.gpuMemoryClickTables?.reMeauseHeight();
       }
     }).observe(this.parentElement!);
   }
@@ -80,7 +80,7 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
           item.sizes = Utils.getBinaryByteWithUnit(item.size);
           item.timeStamp = ns2s(item.startNs);
         });
-        this.gpuMemoryClickTable!.recycleDataSource = data.sort(function (
+        this.gpuMemoryClickTables!.recycleDataSource = data.sort(function (
           gpuMemoryLeftData: GpuMemory,
           gpuMemoryRightData: GpuMemory
         ) {
@@ -88,7 +88,7 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
         });
         this.gpuMemoryClickSource = data;
       } else {
-        this.gpuMemoryClickTable!.recycleDataSource = [];
+        this.gpuMemoryClickTables!.recycleDataSource = [];
         this.gpuMemoryClickSource = [];
       }
     });
@@ -97,7 +97,7 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
   initHtml(): string {
     return `
 <style>
-.gpuMemoryClickTable{
+.gpuMemoryClickTables{
     height: auto;
 }
 :host{
@@ -106,7 +106,7 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
     padding: 10px 10px;
 }
 </style>
-<lit-table id="gpuMemoryClickTable" class="gpuMemoryClickTable">
+<lit-table id="gpuMemoryClickTables" class="gpuMemoryClickTables">
     <lit-table-column order title="TimeStamp" data-index="timeStamp" key="startNs" align="flex-start" width="1fr" >
     </lit-table-column>
     <lit-table-column order title="GpuName" data-index="gpuName" key="gpuName" align="flex-start" width="1fr" >
@@ -122,34 +122,34 @@ export class TabPaneGpuMemorySelectAbility extends BaseElement {
   sortGpuMemoryByColumn(column: string, sort: number): void {
     switch (sort) {
       case 0:
-        this.gpuMemoryClickTable!.recycleDataSource = this.gpuMemoryClickSource;
+        this.gpuMemoryClickTables!.recycleDataSource = this.gpuMemoryClickSource;
         break;
       default:
         let array = [...this.gpuMemoryClickSource];
         switch (column) {
           case 'process':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
               return sort === 1
                 ? `${gpuMemoryLeftData.process}`.localeCompare(`${gpuMemoryRightData.process}`)
                 : `${gpuMemoryRightData.process}`.localeCompare(`${gpuMemoryLeftData.process}`);
             });
             break;
           case 'startNs':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
               return sort === 1
                 ? gpuMemoryLeftData.startNs - gpuMemoryRightData.startNs
                 : gpuMemoryRightData.startNs - gpuMemoryLeftData.startNs;
             });
             break;
           case 'gpuName':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
               return sort === 1
                 ? `${gpuMemoryLeftData.gpuName}`.localeCompare(`${gpuMemoryRightData.gpuName}`)
                 : `${gpuMemoryRightData.gpuName}`.localeCompare(`${gpuMemoryLeftData.gpuName}`);
             });
             break;
           case 'size':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort((gpuMemoryLeftData, gpuMemoryRightData) => {
               return sort === 1
                 ? gpuMemoryLeftData.size - gpuMemoryRightData.size
                 : gpuMemoryRightData.size - gpuMemoryLeftData.size;

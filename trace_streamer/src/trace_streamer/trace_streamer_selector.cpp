@@ -40,7 +40,6 @@
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "string_help.h"
-#include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 
 namespace {
@@ -140,17 +139,10 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->clockFilter_ = std::make_unique<ClockFilterEx>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->filterFilter_ = std::make_unique<FilterFilter>(traceDataCache_.get(), streamFilters_.get());
 
-    streamFilters_->threadMeasureFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_THREADMEASURE_FILTER);
-    streamFilters_->threadFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_THREAD_FILTER);
     streamFilters_->cpuMeasureFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CPU_MEASURE_FILTER);
     streamFilters_->processMeasureFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_PROCESS_MEASURE_FILTER);
-    streamFilters_->processFilterFilter_ =
-        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_PROCESS_FILTER_FILTER);
-    streamFilters_->symbolsFilter_ = std::make_unique<SymbolsFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->statFilter_ = std::make_unique<StatFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->binderFilter_ = std::make_unique<BinderFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->argsFilter_ = std::make_unique<ArgsFilter>(traceDataCache_.get(), streamFilters_.get());
@@ -403,7 +395,7 @@ const std::string TraceStreamerSelector::MetricsSqlQuery(const std::string& metr
 int32_t TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int32_t len)
 {
     std::string traceRangeStr;
-    memcpy(&traceRangeStr, data, len);
+    (void)memcpy_s(&traceRangeStr, len, data, len);
     std::vector<string> vTraceRangeStr = SplitStringToVec(traceRangeStr, ";");
     uint64_t minTs = std::stoull(vTraceRangeStr.at(0));
     uint64_t maxTs = std::stoull(vTraceRangeStr.at(1));
@@ -458,7 +450,7 @@ bool TraceStreamerSelector::LoadQueryFile(const std::string& sqlOperator, std::v
         }
         sqlStrings.push_back(sqlString);
     }
-    fclose(fd);
+    (void)fclose(fd);
     fd = nullptr;
     return true;
 }
@@ -466,6 +458,10 @@ bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOper
 {
     std::vector<std::string> sqlStrings;
     if (!LoadQueryFile(sqlOperator, sqlStrings)) {
+        return false;
+    }
+    if (sqlStrings.empty()) {
+        TS_LOGE("%s is empty!", sqlOperator.c_str());
         return false;
     }
     for (auto& str : sqlStrings) {

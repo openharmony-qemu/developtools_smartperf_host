@@ -1,5 +1,5 @@
 /*
- * Copyright (C) UNIT_HEIGHT22 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,18 +13,14 @@
  * limitations under the License.
  */
 
-import { type SpSystemTrace } from '../SpSystemTrace';
+import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
-import { type FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
-import { type BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
-import { queryIrqList } from '../../database/SqlLite';
-import { type BaseStruct } from '../../bean/BaseStruct';
-
-const UNIT_HEIGHT: number = 20;
-const MS_TO_US: number = 1000000;
-const MIN_HEIGHT: number = 2;
+import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
+import { BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
+import { BaseStruct } from '../../bean/BaseStruct';
+import {queryIrqList} from "../../database/sql/Irq.sql";
 export class SpSegmentationChart {
   static trace: SpSystemTrace;
   static jsonRow: TraceRow<CpuFreqExtendStruct> | undefined;
@@ -56,12 +52,13 @@ export class SpSegmentationChart {
     chartData = binderList.map((v: BinderDataStruct) => {
       return {
         cpu:
-          v.name === 'binder transaction' ?
-            0 :
-            v.name === 'binder transaction async' ?
-              1 :
-              v.name === 'binder reply' ?
-                MS_TO_US : 3,
+          v.name === 'binder transaction'
+            ? 0
+            : v.name === 'binder transaction async'
+            ? 1
+            : v.name === 'binder reply'
+            ? 2
+            : 3,
         startNS: v.startNS,
         dur: v.dur,
         name: `${v.name}`,
@@ -70,13 +67,14 @@ export class SpSegmentationChart {
         cycle: v.idx,
         idx: v.idx,
         count: v.count,
-      }
-    })
+      };
+    });
     SpSegmentationChart.binderRow!.dataList = [];
     SpSegmentationChart.binderRow!.dataListCache = [];
     SpSegmentationChart.binderRow!.isComplete = false;
-    SpSegmentationChart.binderRow!.style.height = `${BinderStruct.maxHeight > MS_TO_US ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40
-      }px`;
+    SpSegmentationChart.binderRow!.style.height = `${
+      BinderStruct.maxHeight > 2 ? BinderStruct.maxHeight * 20 + 20 : 40
+    }px`;
     // @ts-ignore
     SpSegmentationChart.binderRow!.supplier = (): Promise<Array<binderDataStruct>> =>
       new Promise<Array<BinderDataStruct>>((resolve) => resolve(chartData));
@@ -110,7 +108,7 @@ export class SpSegmentationChart {
 
   async init() {
     let irqList = await queryIrqList();
-    if (irqList.length === 0) {
+    if (irqList.length == 0) {
       return;
     } else {
       await this.initFolder();
@@ -124,15 +122,15 @@ export class SpSegmentationChart {
   async initFolder() {
     let row = TraceRow.skeleton();
     row.setAttribute('disabled-check', '');
-    row.rowId = 'segmentation';
+    row.rowId = `unkown`;
     row.index = 0;
     row.rowType = TraceRow.ROW_TYPE_SPSEGNENTATION;
     row.rowParentId = '';
     row.folder = true;
     row.style.height = '40px';
-    row.name = 'Segmentation';
-    row.supplier = (): Promise<Array<BaseStruct>> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
-    row.onThreadHandler = (useCache): void => {
+    row.name = `Segmentation`;
+    row.supplier = () => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
+    row.onThreadHandler = (useCache) => {
       row.canvasSave(SpSegmentationChart.trace.canvasPanelCtx!);
       if (row.expansion) {
         SpSegmentationChart.trace.canvasPanelCtx?.clearRect(0, 0, row.frame.width, row.frame.height);
@@ -141,13 +139,13 @@ export class SpSegmentationChart {
           {
             context: SpSegmentationChart.trace.canvasPanelCtx,
             useCache: useCache,
-            type: '',
+            type: ``,
           },
           row
         );
       }
       row.canvasRestore(SpSegmentationChart.trace.canvasPanelCtx!);
-    }
+    };
     this.rowFolder = row;
     SpSegmentationChart.trace.rowsEL?.appendChild(row);
   }
@@ -155,16 +153,16 @@ export class SpSegmentationChart {
   async initCpuFreq() {
     // json文件泳道
     SpSegmentationChart.jsonRow = TraceRow.skeleton<CpuFreqExtendStruct>();
-    SpSegmentationChart.jsonRow.rowId = 'cpu-freq';
+    SpSegmentationChart.jsonRow.rowId = `json0`;
     SpSegmentationChart.jsonRow.rowType = TraceRow.ROW_TYPE_CPU_COMPUTILITY;
     SpSegmentationChart.jsonRow.rowParentId = '';
     SpSegmentationChart.jsonRow.style.height = '40px';
-    SpSegmentationChart.jsonRow.name = 'Cpu Computility';
+    SpSegmentationChart.jsonRow.name = `Cpu Computility`;
     SpSegmentationChart.jsonRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.jsonRow.addRowCheckFilePop();
     SpSegmentationChart.jsonRow.rowSetting = 'checkFile';
     // 拿到了用户传递的数据
-    SpSegmentationChart.jsonRow.onRowCheckFileChangeHandler = (e: string | ArrayBuffer | null): void => {
+    SpSegmentationChart.jsonRow.onRowCheckFileChangeHandler = (e: string | ArrayBuffer | null) => {
       // @ts-ignore
       let chartData = JSON.parse(e);
       let mapData = new Map<number, number>();
@@ -172,203 +170,204 @@ export class SpSegmentationChart {
       chartData.map((v) => {
         for (let key in v.freqInfo) {
           mapData.set(Number(key), Number(v.freqInfo[key]));
-        };
+        }
         SpSegmentationChart.freqInfoMapData.set(v.cpuId, mapData);
         mapData = new Map();
-      })
-    }
-    SpSegmentationChart.jsonRow.focusHandler = (ev): void => {
+      });
+    };
+    SpSegmentationChart.jsonRow.focusHandler = (ev) => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.jsonRow!,
         CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
+        `<span>${
+          CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
         }</span>`
-      )
-    }
-    SpSegmentationChart.jsonRow.findHoverStruct = (): void => {
+      );
+    };
+    SpSegmentationChart.jsonRow.findHoverStruct = () => {
       CpuFreqExtendStruct.hoverCpuFreqStruct = SpSegmentationChart.jsonRow!.getHoverStruct();
-    }
+    };
     // @ts-ignore
     SpSegmentationChart.jsonRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
       new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
-    SpSegmentationChart.jsonRow.onThreadHandler = (useCache): void => {
+    SpSegmentationChart.jsonRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
       if (SpSegmentationChart.jsonRow!.currentContext) {
         context = SpSegmentationChart.jsonRow!.currentContext;
       } else {
-        context = SpSegmentationChart.jsonRow!.collect ?
-          SpSegmentationChart.trace.canvasFavoritePanelCtx! :
-          SpSegmentationChart.trace.canvasPanelCtx!;
+        context = SpSegmentationChart.jsonRow!.collect
+          ? SpSegmentationChart.trace.canvasFavoritePanelCtx!
+          : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.jsonRow!.canvasSave(context);
       (renders['freq-extend'] as FreqExtendRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
-          type: 'cpu-freq',
+          type: `json0`,
         },
         SpSegmentationChart.jsonRow!
-      )
+      );
       SpSegmentationChart.jsonRow!.canvasRestore(context);
-    }
+    };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.jsonRow);
     this.rowFolder!.addChildTraceRow(SpSegmentationChart.jsonRow);
   }
 
   async initGpuTrace() {
     SpSegmentationChart.GpuRow = TraceRow.skeleton<CpuFreqExtendStruct>();
-    SpSegmentationChart.GpuRow.rowId = 'gpurow';
+    SpSegmentationChart.GpuRow.rowId = `gpurow`;
     SpSegmentationChart.GpuRow.rowType = TraceRow.ROW_TYPE_GPU_COMPUTILITY;
     SpSegmentationChart.GpuRow.rowParentId = '';
     SpSegmentationChart.GpuRow.style.height = '40px';
-    SpSegmentationChart.GpuRow.name = 'Gpu Computility';
+    SpSegmentationChart.GpuRow.name = `Gpu Computility`;
     SpSegmentationChart.GpuRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.GpuRow.selectChangeHandler = SpSegmentationChart.trace.selectChangeHandler;
     // @ts-ignore
     SpSegmentationChart.GpuRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
       new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
-    SpSegmentationChart.GpuRow.focusHandler = (ev): void => {
+    SpSegmentationChart.GpuRow.focusHandler = (ev) => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.GpuRow!,
         CpuFreqExtendStruct.hoverCpuFreqStruct,
-        `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
+        `<span>${
+          CpuFreqExtendStruct.hoverCpuFreqStruct === undefined ? 0 : CpuFreqExtendStruct.hoverCpuFreqStruct.value!
         }</span>`
       );
-    }
-    SpSegmentationChart.GpuRow.findHoverStruct = (): void => {
+    };
+    SpSegmentationChart.GpuRow.findHoverStruct = () => {
       CpuFreqExtendStruct.hoverCpuFreqStruct = SpSegmentationChart.GpuRow!.getHoverStruct();
-    }
-    SpSegmentationChart.GpuRow.onThreadHandler = (useCache): void => {
+    };
+    SpSegmentationChart.GpuRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
       if (SpSegmentationChart.GpuRow!.currentContext) {
         context = SpSegmentationChart.GpuRow!.currentContext;
       } else {
-        context = SpSegmentationChart.GpuRow!.collect ?
-          SpSegmentationChart.trace.canvasFavoritePanelCtx! :
-          SpSegmentationChart.trace.canvasPanelCtx!;
+        context = SpSegmentationChart.GpuRow!.collect
+          ? SpSegmentationChart.trace.canvasFavoritePanelCtx!
+          : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.GpuRow!.canvasSave(context);
       (renders['freq-extend'] as FreqExtendRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
-          type: 'gpu-freq',
+          type: `json1`,
         },
         SpSegmentationChart.GpuRow!
-      )
+      );
       SpSegmentationChart.GpuRow!.canvasRestore(context);
-    }
+    };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.GpuRow);
     this.rowFolder!.addChildTraceRow(SpSegmentationChart.GpuRow);
   }
 
   async initSchedTrace() {
     SpSegmentationChart.schedRow = TraceRow.skeleton<CpuFreqExtendStruct>();
-    SpSegmentationChart.schedRow.rowId = 'sched_switch Count';
+    SpSegmentationChart.schedRow.rowId = `sched_switch Count`;
     SpSegmentationChart.schedRow.rowType = TraceRow.ROW_TYPE_SCHED_SWITCH;
     SpSegmentationChart.schedRow.rowParentId = '';
     SpSegmentationChart.schedRow.style.height = '40px';
-    SpSegmentationChart.schedRow.name = 'Sched_switch Count';
+    SpSegmentationChart.schedRow.name = `Sched_switch Count`;
     SpSegmentationChart.schedRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.schedRow.selectChangeHandler = SpSegmentationChart.trace.selectChangeHandler;
-    SpSegmentationChart.schedRow.focusHandler = (ev): void => {
+    SpSegmentationChart.schedRow.focusHandler = (ev) => {
       SpSegmentationChart.trace?.displayTip(
         SpSegmentationChart.schedRow!,
         CpuFreqExtendStruct.hoverCpuFreqStruct,
         `<span>${CpuFreqExtendStruct.hoverCpuFreqStruct?.value!}</span>`
-      )
-    }
-    SpSegmentationChart.schedRow.findHoverStruct = (): void => {
+      );
+    };
+    SpSegmentationChart.schedRow.findHoverStruct = () => {
       CpuFreqExtendStruct.hoverCpuFreqStruct = SpSegmentationChart.schedRow!.getHoverStruct();
-    }
+    };
     // @ts-ignore
     SpSegmentationChart.schedRow.supplier = (): Promise<Array<freqChartDataStruct>> =>
       new Promise<Array<FreqChartDataStruct>>((resolve) => resolve([]));
-    SpSegmentationChart.schedRow.onThreadHandler = (useCache): void => {
+    SpSegmentationChart.schedRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
       if (SpSegmentationChart.schedRow!.currentContext) {
         context = SpSegmentationChart.schedRow!.currentContext;
       } else {
-        context = SpSegmentationChart.schedRow!.collect ?
-          SpSegmentationChart.trace.canvasFavoritePanelCtx! :
-          SpSegmentationChart.trace.canvasPanelCtx!;
+        context = SpSegmentationChart.schedRow!.collect
+          ? SpSegmentationChart.trace.canvasFavoritePanelCtx!
+          : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.schedRow!.canvasSave(context);
       (renders['freq-extend'] as FreqExtendRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
-          type: 'sched',
+          type: `json0`,
         },
         SpSegmentationChart.schedRow!
-      )
+      );
       SpSegmentationChart.schedRow!.canvasRestore(context);
-    }
+    };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.schedRow);
     this.rowFolder!.addChildTraceRow(SpSegmentationChart.schedRow);
   }
 
   async initBinderTrace() {
     SpSegmentationChart.binderRow = TraceRow.skeleton<BinderStruct>();
-    SpSegmentationChart.binderRow.rowId = 'binderrow';
+    SpSegmentationChart.binderRow.rowId = `binderrow`;
     SpSegmentationChart.binderRow.rowType = TraceRow.ROW_TYPE_BINDER_COUNT;
     SpSegmentationChart.binderRow.rowParentId = '';
-    SpSegmentationChart.binderRow.name = 'Binder Count';
+    SpSegmentationChart.binderRow.name = `Binder Count`;
     SpSegmentationChart.binderRow.style.height = '40px';
     SpSegmentationChart.binderRow.favoriteChangeHandler = SpSegmentationChart.trace.favoriteChangeHandler;
     SpSegmentationChart.binderRow.selectChangeHandler = SpSegmentationChart.trace.selectChangeHandler;
-    SpSegmentationChart.binderRow.findHoverStruct = (): void => {
-      BinderStruct.hoverCpuFreqStruct = SpSegmentationChart.binderRow!.dataListCache.find((v: BinderStruct): BinderStruct => {
+    SpSegmentationChart.binderRow.findHoverStruct = () => {
+      BinderStruct.hoverCpuFreqStruct = SpSegmentationChart.binderRow!.dataListCache.find((v: BinderStruct) => {
         if (SpSegmentationChart.binderRow!.isHover) {
           if (
             v.frame!.x < SpSegmentationChart.binderRow!.hoverX &&
             v.frame!.x + v.frame!.width > SpSegmentationChart.binderRow!.hoverX &&
-            BinderStruct.maxHeight * UNIT_HEIGHT - v.depth * UNIT_HEIGHT + UNIT_HEIGHT < SpSegmentationChart.binderRow!.hoverY &&
-            BinderStruct.maxHeight * UNIT_HEIGHT - v.depth * UNIT_HEIGHT + v.value * UNIT_HEIGHT + UNIT_HEIGHT > SpSegmentationChart.binderRow!.hoverY
+            BinderStruct.maxHeight * 20 - v.depth * 20 + 20 < SpSegmentationChart.binderRow!.hoverY &&
+            BinderStruct.maxHeight * 20 - v.depth * 20 + v.value * 20 + 20 > SpSegmentationChart.binderRow!.hoverY
           ) {
             return v;
-          } else {
-            return new BinderStruct();
           }
-        } else {
-          return new BinderStruct();
         }
-      })
-    }
+      });
+    };
     SpSegmentationChart.binderRow.supplier = (): Promise<Array<BinderStruct>> =>
       new Promise<Array<BinderStruct>>((resolve) => resolve([]));
-    SpSegmentationChart.binderRow.onThreadHandler = (useCache): void => {
+    SpSegmentationChart.binderRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
       if (SpSegmentationChart.binderRow!.currentContext) {
         context = SpSegmentationChart.binderRow!.currentContext;
       } else {
-        context = SpSegmentationChart.binderRow!.collect ?
-          SpSegmentationChart.trace.canvasFavoritePanelCtx! :
-          SpSegmentationChart.trace.canvasPanelCtx!;
+        context = SpSegmentationChart.binderRow!.collect
+          ? SpSegmentationChart.trace.canvasFavoritePanelCtx!
+          : SpSegmentationChart.trace.canvasPanelCtx!;
       }
       SpSegmentationChart.binderRow!.canvasSave(context);
       (renders.binder as BinderRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
-          type: 'binder',
+          type: `binder`,
         },
         SpSegmentationChart.binderRow!
-      )
+      );
       SpSegmentationChart.binderRow!.canvasRestore(context);
-    }
-    SpSegmentationChart.binderRow.focusHandler = (ev): void => {
+    };
+    SpSegmentationChart.binderRow.focusHandler = (ev) => {
       SpSegmentationChart.trace!.displayTip(
         SpSegmentationChart.binderRow!,
         BinderStruct.hoverCpuFreqStruct,
-        `<span style='font-weight: bold;'>Cycle: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
+        `<span style='font-weight: bold;'>Cycle: ${
+          BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.cycle : 0
         }</span><br>
-                <span style='font-weight: bold;'>Name: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
-        }</span><br>
-                <span style='font-weight: bold;'>Count: ${BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
-        }</span>`
+                <span style='font-weight: bold;'>Name: ${
+                  BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.name : ''
+                }</span><br>
+                <span style='font-weight: bold;'>Count: ${
+                  BinderStruct.hoverCpuFreqStruct ? BinderStruct.hoverCpuFreqStruct.value : 0
+                }</span>`
       );
-    }
+    };
     SpSegmentationChart.trace.rowsEL?.appendChild(SpSegmentationChart.binderRow);
     this.rowFolder!.addChildTraceRow(SpSegmentationChart.binderRow);
   }
@@ -408,8 +407,8 @@ function setCpuData(data: Array<FreqChartDataStruct>, currentMaxValue: number, t
       startNS: v.startNS,
       cycle: v.cycle,
       type,
-    }
-  })
+    };
+  });
   CpuFreqExtendStruct.maxValue = currentMaxValue;
   SpSegmentationChart.jsonRow!.dataList = [];
   SpSegmentationChart.jsonRow!.dataListCache = [];
@@ -427,13 +426,13 @@ function setGpuData(data: Array<FreqChartDataStruct>, currentMaxValue: number, t
     }
     return {
       cpu: 7,
-      dur: v.dur ? Number(v.dur * MS_TO_US) : 0,
+      dur: v.dur ? Number(v.dur * 1000000) : 0,
       value: Number(v.count),
       startNS: Number(v.startNS),
       cycle: Number(v.cycle),
       type,
-    }
-  })
+    };
+  });
   CpuFreqExtendStruct.maxValue = currentMaxValue;
   SpSegmentationChart.GpuRow!.dataList = [];
   SpSegmentationChart.GpuRow!.dataListCache = [];
@@ -450,25 +449,23 @@ function setSchedData(data: Array<FreqChartDataStruct>, currentMaxValue: number 
     }
     return {
       cpu: 5,
-      dur: Number(v.duration) * 100000,
-      value: Number(v.count),
-      startNS: Number(v.cycleStartTime) * MS_TO_US,
+      dur: Number(v.duration) * 1000000,
+      value: v.count,
+      startNS: Number(v.cycleStartTime) * 1000000,
       cycle: v.cycle,
       type,
-    }
-  })
+    };
+  });
   CpuFreqExtendStruct.maxValue = currentMaxValue!;
   SpSegmentationChart.schedRow!.dataList = [];
   SpSegmentationChart.schedRow!.dataListCache = [];
   SpSegmentationChart.schedRow!.isComplete = false;
-  // @ts-ignore
-  SpSegmentationChart.schedRow!.supplier = (): Promise<Array<FreqChartDataStruct>> =>
-    new Promise<Array<FreqChartDataStruct>>((resolve) => resolve(chartData));
+  SpSegmentationChart.schedRow!.supplier = (): Promise<Array<any>> =>
+    new Promise<Array<any>>((resolve) => resolve(chartData));
 }
 
 function setBinderData(data: Array<Array<BinderDataStruct>>, binderList: Array<BinderDataStruct>): void {
   data.map((v: Array<BinderDataStruct>) => {
-    // 统计每一竖列的最大count
     let listCount = 0;
     v.map((t: BinderDataStruct) => {
       listCount += t.count;
@@ -480,59 +477,59 @@ function setBinderData(data: Array<Array<BinderDataStruct>>, binderList: Array<B
           t.count +
           (v.filter((i: BinderDataStruct) => {
             return i.name === 'binder transaction';
-          }).length > 0 ?
-            v.filter((i: BinderDataStruct) => {
-              return i.name === 'binder transaction';
-            })[0].count :
-            0);
+          }).length > 0
+            ? v.filter((i: BinderDataStruct) => {
+                return i.name === 'binder transaction';
+              })[0].count
+            : 0);
       }
       if (t.name === 'binder reply') {
         t.depth =
           t.count +
           (v.filter((i: BinderDataStruct) => {
             return i.name === 'binder transaction';
-          }).length > 0 ?
-            v.filter((i: BinderDataStruct) => {
-              return i.name === 'binder transaction';
-            })[0].count :
-            0) +
+          }).length > 0
+            ? v.filter((i: BinderDataStruct) => {
+                return i.name === 'binder transaction';
+              })[0].count
+            : 0) +
           (v.filter((i: BinderDataStruct) => {
             return i.name === 'binder transaction async';
-          }).length > 0 ?
-            v.filter((i: BinderDataStruct) => {
-              return i.name === 'binder transaction async';
-            })[0].count :
-            0);
+          }).length > 0
+            ? v.filter((i: BinderDataStruct) => {
+                return i.name === 'binder transaction async';
+              })[0].count
+            : 0);
       }
       if (t.name === 'binder async rcv') {
         t.depth =
           t.count +
           (v.filter((i: BinderDataStruct) => {
             return i.name === 'binder transaction';
-          }).length > 0 ?
-            v.filter((i: BinderDataStruct) => {
-              return i.name === 'binder transaction';
-            })[0].count :
-            0) +
+          }).length > 0
+            ? v.filter((i: BinderDataStruct) => {
+                return i.name === 'binder transaction';
+              })[0].count
+            : 0) +
           (v.filter((i: BinderDataStruct) => {
             return i.name === 'binder transaction async';
-          }).length > 0 ?
-            v.filter((i: BinderDataStruct) => {
-              return i.name === 'binder transaction async';
-            })[0].count :
-            0) +
+          }).length > 0
+            ? v.filter((i: BinderDataStruct) => {
+                return i.name === 'binder transaction async';
+              })[0].count
+            : 0) +
           (v.filter((i: BinderDataStruct) => {
             return i.name === 'binder reply';
-          }).length > 0 ?
-            v.filter((i: BinderDataStruct) => {
-              return i.name === 'binder reply';
-            })[0].count :
-            0);
+          }).length > 0
+            ? v.filter((i: BinderDataStruct) => {
+                return i.name === 'binder reply';
+              })[0].count
+            : 0);
       }
       binderList.push(t);
-    })
+    });
     BinderStruct.maxHeight =
       BinderStruct.maxHeight > listCount ? BinderStruct.maxHeight : JSON.parse(JSON.stringify(listCount));
     listCount = 0;
-  })
+  });
 }

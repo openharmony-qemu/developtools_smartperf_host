@@ -19,26 +19,26 @@ import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type DmaComparison } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import { getTabDmaVmTrackerComparisonData } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { Utils } from '../../base/Utils';
 import { resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import {getTabDmaVmTrackerComparisonData} from "../../../../database/sql/Dma.sql";
 
 @element('tabpane-dma-vmtracker-comparison')
 export class TabPaneDmaVmTrackerComparison extends BaseElement {
-  private damClickTable: LitTable | null | undefined;
+  private damClickTables: LitTable | null | undefined;
   private comparisonSelect: TabPaneJsMemoryFilter | null | undefined;
   private selectEl: LitSelect | null | undefined;
   private selfData: Array<DmaComparison> = [];
   private comparisonSource: Array<DmaComparison> = [];
 
   initElements(): void {
-    this.damClickTable = this.shadowRoot?.querySelector<LitTable>('#damClickTable');
+    this.damClickTables = this.shadowRoot?.querySelector<LitTable>('#damClickTables');
     this.comparisonSelect = this.shadowRoot?.querySelector('#filter') as TabPaneJsMemoryFilter;
     this.selectEl = this.comparisonSelect?.shadowRoot?.querySelector<LitSelect>('lit-select');
-    this.damClickTable!.addEventListener('column-click', (e) => {
+    this.damClickTables!.addEventListener('column-click', (e) => {
       // @ts-ignore
       this.sortDmaByColumn(e.detail.key, e.detail.sort);
     });
@@ -46,7 +46,7 @@ export class TabPaneDmaVmTrackerComparison extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    resizeObserverFromMemory(this.parentElement!, this.damClickTable!, this.comparisonSelect!);
+    resizeObserverFromMemory(this.parentElement!, this.damClickTables!, this.comparisonSelect!);
   }
 
   async queryDataByDB(startNs: number): Promise<DmaComparison[]> {
@@ -102,19 +102,19 @@ export class TabPaneDmaVmTrackerComparison extends BaseElement {
     comparison[0].value = this.selfData[0].value - comparison[0].value;
     comparison[0].sizes = Utils.getBinaryByteWithUnit(comparison[0].value);
     this.comparisonSource = comparison;
-    this.damClickTable!.recycleDataSource = comparison;
+    this.damClickTables!.recycleDataSource = comparison;
   }
 
   sortDmaByColumn(column: string, sort: number): void {
     switch (sort) {
       case 0:
-        this.damClickTable!.recycleDataSource = this.comparisonSource;
+        this.damClickTables!.recycleDataSource = this.comparisonSource;
         break;
       default:
         let array = [...this.comparisonSource];
         switch (column) {
           case 'sizeDelta':
-            this.damClickTable!.recycleDataSource = array.sort((dmaComparisonLeftData, dmaComparisonRightData) => {
+            this.damClickTables!.recycleDataSource = array.sort((dmaComparisonLeftData, dmaComparisonRightData) => {
               return sort === 1
                 ? dmaComparisonLeftData.value - dmaComparisonRightData.value
                 : dmaComparisonRightData.value - dmaComparisonLeftData.value;
@@ -128,7 +128,7 @@ export class TabPaneDmaVmTrackerComparison extends BaseElement {
   initHtml(): string {
     return `
 <style>
-.damClickTable{
+.damClickTables{
     height: auto;
 }
 :host{
@@ -137,7 +137,7 @@ export class TabPaneDmaVmTrackerComparison extends BaseElement {
     padding: 10px 10px;
 }
 </style>
-<lit-table id="damClickTable" class="damClickTable">
+<lit-table id="damClickTables" class="damClickTables">
     <lit-table-column order title="SizeDelta" data-index="sizes" key="size" align="flex-start" width="1fr" >
     </lit-table-column>
 </lit-table>

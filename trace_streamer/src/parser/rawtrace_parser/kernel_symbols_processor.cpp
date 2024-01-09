@@ -15,7 +15,6 @@
 #include "kernel_symbols_processor.h"
 
 #include "log.h"
-#include "symbols_filter.h"
 #include "string_help.h"
 #include "string_to_numerical.h"
 
@@ -71,7 +70,7 @@ bool KernelSymbolsProcessor::HandleKallSyms(const std::string& kallsyms)
             symbol.name = symbol.name.substr(0, symbol.name.size() - (sizeof(".cfi") - 1));
         }
         if (IsValidKernelSymbol(symbol)) {
-            streamFilters_->symbolsFilter_->RegisterFunc(symbol.addr, traceDataCache_->GetDataIndex(symbol.name));
+            traceDataCache_->GetSymbolsData()->UpdateSymbol(symbol.addr, traceDataCache_->GetDataIndex(symbol.name));
         }
     }
     return true;

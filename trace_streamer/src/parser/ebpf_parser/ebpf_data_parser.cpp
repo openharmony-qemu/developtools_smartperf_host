@@ -32,7 +32,7 @@ EbpfDataParser::~EbpfDataParser()
             static_cast<unsigned long long>(ebpfAllEventEndTime_));
 }
 
-bool EbpfDataParser::Init(const std::deque<uint8_t> dequeBuffer, uint64_t size)
+bool EbpfDataParser::Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF, STAT_EVENT_RECEIVED);
     if (!ebpfDataReader_->InitEbpfData(dequeBuffer, size)) {

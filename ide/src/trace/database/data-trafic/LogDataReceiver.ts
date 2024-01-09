@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TraficEnum } from './QueryEnum';
+import { TraficEnum } from './utils/QueryEnum';
 
 export const chartLogDataSql = (args: any): string => {
   return `SELECT

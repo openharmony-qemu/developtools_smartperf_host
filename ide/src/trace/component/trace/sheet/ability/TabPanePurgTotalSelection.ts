@@ -17,10 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import { queryProcessPurgeableSelectionTab, querySysPurgeableSelectionTab } from '../../../../database/SqlLite';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
+import { querySysPurgeableSelectionTab } from '../../../../database/sql/Ability.sql';
+import { queryProcessPurgeableSelectionTab } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-purg-total-selection')
 export class TabPanePurgTotalSelection extends BaseElement {
@@ -38,7 +39,7 @@ export class TabPanePurgTotalSelection extends BaseElement {
       await querySysPurgeableSelectionTab(startNs).then((purgeTotalSelectResults) => {
         this.purgeableSelectionSource = [];
         if (purgeTotalSelectResults.length > 0) {
-          this.purgeableSelectionSource.push({ name: 'TimeStamp', value: ns2s(startNs) });
+          this.purgeableSelectionSource.push({name: 'TimeStamp', value: ns2s(startNs)});
           this.purgeableSelectionSource.push({
             name: 'TimeStamp(Absolute)',
             value: (startNs + (window as any).recordStartNS) / 1000000000,
@@ -54,7 +55,7 @@ export class TabPanePurgTotalSelection extends BaseElement {
       await queryProcessPurgeableSelectionTab(startNs, MemoryConfig.getInstance().iPid).then((results) => {
         this.purgeableSelectionSource = [];
         if (results.length > 0) {
-          this.purgeableSelectionSource.push({ name: 'TimeStamp(Relative)', value: ns2s(startNs) });
+          this.purgeableSelectionSource.push({name: 'TimeStamp(Relative)', value: ns2s(startNs)});
           this.purgeableSelectionSource.push({
             name: 'TimeStamp(Absolute)',
             value: (startNs + (window as any).recordStartNS) / 1000000000,
@@ -69,25 +70,25 @@ export class TabPanePurgTotalSelection extends BaseElement {
     }
   }
 
-  initElements(): void {
-    this.purgeableSelectionTable = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
-  }
-
   connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.purgeableSelectionTable!);
+  }
+
+  initElements(): void {
+    this.purgeableSelectionTable = this.shadowRoot?.querySelector<LitTable>('#totalSelectionTbl');
   }
 
   initHtml(): string {
     return `
         <style>
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
-        <lit-table id="selectionTbl" no-head>
+        <lit-table id="totalSelectionTbl" no-head>
             <lit-table-column title="name" data-index="name" key="name" align="flex-start" width="180px">
                 <template><div>{{name}}</div></template>
             </lit-table-column>

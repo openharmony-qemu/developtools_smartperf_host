@@ -24,6 +24,7 @@
 #include "trace_streamer_filters.h"
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr int FLAG_SHIFT_LEFT = 63;
 class PerfDataFilter : private FilterBase {
 public:
     PerfDataFilter(TraceDataCache*, const TraceStreamerFilters*);

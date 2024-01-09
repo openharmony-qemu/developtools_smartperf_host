@@ -20,11 +20,6 @@
 
 #include "log.h"
 
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
-
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
@@ -53,9 +48,9 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
 
     auto createFn = [](sqlite3* xdb, void* pAux, int32_t argc, const char* const* argv, sqlite3_vtab** ppVTab,
                        char** pzErr) {
-        UNUSED(argc);
-        UNUSED(argv);
-        UNUSED(pzErr);
+        Unused(argc);
+        Unused(argv);
+        Unused(pzErr);
         auto xdesc = static_cast<const TableContext*>(pAux);
         auto table = xdesc->tmplate(xdesc->dataCache);
         table->name_ = xdesc->tableName;

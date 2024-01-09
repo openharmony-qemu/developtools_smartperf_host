@@ -16,12 +16,13 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabSdkSliceData, queryStartTime, queryTotalTime } from '../../../../database/SqlLite';
 import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column';
 import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TabUtil } from './TabUtil';
 import { resizeObserver } from '../SheetUtils';
+import {getTabSdkSliceData} from "../../../../database/sql/Sdk.sql";
+import {queryTotalTime} from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-sdk-slice')
 export class TabPaneSdkSlice extends BaseElement {

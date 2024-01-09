@@ -18,14 +18,11 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
 import { FuncStruct } from '../../../../database/ui-worker/ProcedureWorkerFunc';
-import {
-  queryConcurrencyTask,
-  queryTaskListByExecuteTaskIds,
-  queryTaskPoolTotalNum,
-} from '../../../../database/SqlLite';
 import { BaseStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import {queryTaskListByExecuteTaskIds, queryTaskPoolTotalNum} from "../../../../database/sql/SqlLite.sql";
+import {queryConcurrencyTask} from "../../../../database/sql/Perf.sql";
 
 const ALLOCATION_TASK = 'H:Task Allocation:';
 const PERFORM_TASK = 'H:Task Perform:';

@@ -14,13 +14,12 @@
  */
 #include "htrace_symbols_detail_parser.h"
 #include "htrace_event_parser.h"
-#include "symbols_filter.h"
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceSymbolsDetailParser::HtraceSymbolsDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : streamFilters_(ctx), traceDataCache_(dataCache)
 {
-    UNUSED(traceDataCache_);
+    Unused(traceDataCache_);
     if (!streamFilters_) {
         TS_LOGF("streamFilters_ should not be null");
         return;
@@ -39,8 +38,8 @@ void HtraceSymbolsDetailParser::Parse(ProtoReader::BytesView tracePacket)
     }
     for (auto i = reader.symbols_detail(); i; ++i) {
         ProtoReader::SymbolsDetailMsg_Reader reader(i->ToBytes());
-        streamFilters_->symbolsFilter_->RegisterFunc(reader.symbol_addr(),
-                                                     traceDataCache_->GetDataIndex(reader.symbol_name().ToStdString()));
+        traceDataCache_->GetSymbolsData()->UpdateSymbol(
+            reader.symbol_addr(), traceDataCache_->GetDataIndex(reader.symbol_name().ToStdString()));
     }
 }
 } // namespace TraceStreamer

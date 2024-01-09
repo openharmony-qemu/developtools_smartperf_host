@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabStaticInit } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { resizeObserver } from '../SheetUtils';
 import { SoStruct } from '../../../../database/ui-worker/ProcedureWorkerSoInit';
+import {getTabStaticInit} from "../../../../database/sql/ProcessThread.sql";
 
 interface SoTreeItem {
   name: string;

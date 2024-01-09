@@ -15,10 +15,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
-import { queryVmTrackerShmSizeData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
+import {queryVmTrackerShmSizeData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-vmtracker-shm')
 export class TabPaneVmTrackerShm extends BaseElement {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { EnergySystemStruct } from '../ui-worker/ProcedureWorkerEnergySystem';

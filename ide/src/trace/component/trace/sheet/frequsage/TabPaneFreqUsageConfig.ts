@@ -14,7 +14,7 @@
  */
 
 export class TabPaneFreqUsageConfig {
-  thread: string = "";
+  thread: string = '';
   ts: number | string;
   pid: number | string;
   tid: number | string;
@@ -22,66 +22,44 @@ export class TabPaneFreqUsageConfig {
   cpu: number | string;
   freq: number | string;
   dur: number = 0;
-  cdur: string = "";
+  cdur: string = '';
   percent: number | string;
-  flag: string = "";
+  flag: string = '';
   id: number = -1;
   children: Array<TabPaneFreqUsageConfig> | undefined;
-  constructor(
-    thread: string,
-    ts: number | string,
-    pid: number | string,
-    tid: number | string,
-    count: number,
-    cpu: number | string,
-    freq: number | string,
-    dur: number,
-    cdur: string,
-    percent: number | string,
-    flag: string,
-    id: number,
-    children: Array<TabPaneFreqUsageConfig> | undefined
-  ) {
-    this.thread = thread;
-    this.ts = ts;
-    this.pid = pid;
-    this.tid = tid;
-    this.count = count;
-    this.cpu = cpu;
-    this.freq = freq;
-    this.dur = dur;
-    this.cdur = cdur;
-    this.percent = percent;
-    this.flag = flag;
-    this.id = id;
-    this.children = children;
+  constructor(thread: string, ts: number | string, pid: number | string, tid: number | string, count: number, cpu: number | string, freq: number | string, dur: number, cdur: string, percent: number | string, flag: string, id: number, children: Array<TabPaneFreqUsageConfig> | undefined) {
+      this.thread = thread;
+      this.ts = ts;
+      this.pid = pid;
+      this.tid = tid;
+      this.count = count;
+      this.cpu = cpu;
+      this.freq = freq;
+      this.dur = dur;
+      this.cdur = cdur;
+      this.percent = percent;
+      this.flag = flag;
+      this.id = id;
+      this.children = children;
   }
 }
 
 export class TabPaneRunningConfig {
-  thread: string = "";
-  process: string = "";
+  thread: string = '';
+  process: string = '';
   ts: number = 0;
   pid: number = 0;
   tid: number = 0;
   cpu: number = -1;
   dur: number = 0;
-  constructor(
-    process: string,
-    thread: string,
-    ts: number,
-    pid: number,
-    tid: number,
-    cpu: number,
-    dur: number
-  ) {
-    this.process = process;
-    this.thread = thread;
-    this.ts = ts;
-    this.pid = pid;
-    this.tid = tid;
-    this.cpu = cpu;
-    this.dur = dur;
+  constructor(process: string, thread: string, ts: number, pid: number, tid: number, cpu: number, dur: number) {
+      this.process = process;
+      this.thread = thread;
+      this.ts = ts;
+      this.pid = pid;
+      this.tid = tid;
+      this.cpu = cpu;
+      this.dur = dur;
   }
 }
 export class TabPaneCpuFreqConfig {
@@ -90,9 +68,9 @@ export class TabPaneCpuFreqConfig {
   cpu: number = 0;
   dur: number = 0;
   constructor(startNS: number, cpu: number, value: number, dur: number) {
-    this.startNS = startNS;
-    this.cpu = cpu;
-    this.value = value;
-    this.dur = dur;
+      this.startNS = startNS;
+      this.cpu = cpu;
+      this.value = value;
+      this.dur = dur;
   }
 }

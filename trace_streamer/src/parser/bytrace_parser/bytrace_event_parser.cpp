@@ -51,71 +51,128 @@ BytraceEventParser::BytraceEventParser(TraceDataCache* dataCache, const TraceStr
 {
     printEventParser_.SetTraceType(TRACE_FILETYPE_BY_TRACE);
     eventToFunctionMap_ = {
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
-         bind(&BytraceEventParser::SchedSwitchEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
-         bind(&BytraceEventParser::BlockedReason, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
          bind(&BytraceEventParser::TaskRenameEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
          bind(&BytraceEventParser::TaskNewtaskEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
-         bind(&BytraceEventParser::TracingMarkWriteOrPrintEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_PRINT),
-         bind(&BytraceEventParser::TracingMarkWriteOrPrintEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
+         bind(&BytraceEventParser::SchedSwitchEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+         bind(&BytraceEventParser::BlockedReason, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
          bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
          bind(&BytraceEventParser::SchedWakingEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
-         bind(&BytraceEventParser::CpuIdleEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
-         bind(&BytraceEventParser::CpuFrequencyEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
-         bind(&BytraceEventParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
-         bind(&BytraceEventParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
-         bind(&BytraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
-         bind(&BytraceEventParser::SetRateEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
-         bind(&BytraceEventParser::ClockEnableEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
-         bind(&BytraceEventParser::ClockDisableEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
-         bind(&BytraceEventParser::RegulatorSetVoltageEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
-         bind(&BytraceEventParser::RegulatorSetVoltageCompleteEvent, this, std::placeholders::_1,
-              std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
-         bind(&BytraceEventParser::RegulatorDisableEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
-         bind(&BytraceEventParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
+         bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
+         bind(&BytraceEventParser::ProcessExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
          bind(&BytraceEventParser::IpiEntryEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
          bind(&BytraceEventParser::IpiExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
-         bind(&BytraceEventParser::IrqHandlerEntryEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
-         bind(&BytraceEventParser::IrqHandlerExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
-         bind(&BytraceEventParser::SoftIrqRaiseEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
-         bind(&BytraceEventParser::SoftIrqEntryEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
-         bind(&BytraceEventParser::SoftIrqExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
-         bind(&BytraceEventParser::BinderTransaction, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
-         bind(&BytraceEventParser::BinderTransactionReceived, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
-         bind(&BytraceEventParser::BinderTransactionAllocBufEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
-         bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
-         bind(&BytraceEventParser::ProcessExitEvent, this, std::placeholders::_1, std::placeholders::_2)}};
+    };
+    InterruptEventInitialization();
+    ClockEventInitialization();
+    CpuEventInitialization();
+    RegulatorEventInitialization();
+    BinderEventInitialization();
+    StackEventsInitialization();
+}
+
+void BytraceEventParser::InterruptEventInitialization()
+{
+    // Interrupt and soft interrupt event initialization
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
+        bind(&BytraceEventParser::IrqHandlerEntryEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
+        bind(&BytraceEventParser::IrqHandlerExitEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
+        bind(&BytraceEventParser::SoftIrqRaiseEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
+        bind(&BytraceEventParser::SoftIrqEntryEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
+        bind(&BytraceEventParser::SoftIrqExitEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::ClockEventInitialization()
+{
+    // Clock event initialization
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
+        bind(&BytraceEventParser::SetRateEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
+        bind(&BytraceEventParser::ClockEnableEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
+        bind(&BytraceEventParser::ClockDisableEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::CpuEventInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
+        bind(&BytraceEventParser::CpuIdleEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
+        bind(&BytraceEventParser::CpuFrequencyEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
+        bind(&BytraceEventParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::RegulatorEventInitialization()
+{
+    // Initialize regulator related events
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
+        bind(&BytraceEventParser::RegulatorSetVoltageEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
+                                bind(&BytraceEventParser::RegulatorSetVoltageCompleteEvent, this, std::placeholders::_1,
+                                     std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
+        bind(&BytraceEventParser::RegulatorDisableEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
+        bind(&BytraceEventParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::BinderEventInitialization()
+{
+    // Binder event initialization
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
+        bind(&BytraceEventParser::BinderTransaction, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
+        bind(&BytraceEventParser::BinderTransactionReceived, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
+        bind(&BytraceEventParser::BinderTransactionAllocBufEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::StackEventsInitialization()
+{
+    // Call stack Events
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
+        bind(&BytraceEventParser::TracingMarkWriteOrPrintEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_PRINT),
+        bind(&BytraceEventParser::TracingMarkWriteOrPrintEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
+        bind(&BytraceEventParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
+        bind(&BytraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const
@@ -224,7 +281,7 @@ bool BytraceEventParser::TaskNewtaskEvent(const ArgsMap& args, const BytraceLine
 
 bool BytraceEventParser::TracingMarkWriteOrPrintEvent(const ArgsMap& args, const BytraceLine& line)
 {
-    UNUSED(args);
+    Unused(args);
     return printEventParser_.ParsePrintEvent(line.task, line.ts, line.pid, line.argsStr.c_str(), line);
 }
 // prefer to use waking, unless no waking, can use wakeup
@@ -250,7 +307,7 @@ bool BytraceEventParser::SchedWakeupEvent(const ArgsMap& args, const BytraceLine
     instants->AppendInstantEventData(line.ts, schedWakeupName_, internalTid, wakeupFromPid);
     std::optional<uint32_t> targetCpu = base::StrToInt<uint32_t>(args.at("target_cpu"));
     if (targetCpu.has_value()) {
-        traceDataCache_->GetRawData()->AppendRawData(0, line.ts, RAW_SCHED_WAKEUP, targetCpu.value(), wakeupFromPid);
+        traceDataCache_->GetRawData()->AppendRawData(line.ts, RAW_SCHED_WAKEUP, targetCpu.value(), wakeupFromPid);
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_RECEIVED);
     }
     return true;
@@ -279,8 +336,7 @@ bool BytraceEventParser::SchedWakingEvent(const ArgsMap& args, const BytraceLine
     instants->AppendInstantEventData(line.ts, schedWakingName_, internalTid, wakeupFromPid);
     std::optional<uint32_t> targetCpu = base::StrToInt<uint32_t>(args.at("target_cpu"));
     if (targetCpu.has_value()) {
-        traceDataCache_->GetRawData()->AppendRawData(0, line.ts, RAW_SCHED_WAKING, targetCpu.value(),
-                                                     internalTidWakeup);
+        traceDataCache_->GetRawData()->AppendRawData(line.ts, RAW_SCHED_WAKING, targetCpu.value(), internalTidWakeup);
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKING, STAT_EVENT_RECEIVED);
     }
 
@@ -387,7 +443,7 @@ bool BytraceEventParser::CpuFrequencyLimitsEvent(const ArgsMap& args, const Bytr
 
 bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
+    Unused(args);
     auto splitStr = GetFunctionName(line.argsStr, "function ");
     auto splitStrIndex = traceDataCache_->GetDataIndex(splitStr);
     size_t result =
@@ -404,7 +460,7 @@ bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap& args, const B
 
 bool BytraceEventParser::WorkqueueExecuteEndEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
+    Unused(args);
     if (streamFilters_->sliceFilter_->EndSlice(line.ts, line.pid, 0, workQueueId_)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_END, STAT_EVENT_RECEIVED);
         return true;
@@ -486,16 +542,16 @@ bool BytraceEventParser::ClockDisableEvent(const ArgsMap& args, const BytraceLin
 
 bool BytraceEventParser::RegulatorSetVoltageEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
-    UNUSED(line);
+    Unused(args);
+    Unused(line);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE, STAT_EVENT_RECEIVED);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
 bool BytraceEventParser::RegulatorSetVoltageCompleteEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
-    UNUSED(line);
+    Unused(args);
+    Unused(line);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE, STAT_EVENT_RECEIVED);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE,
                                                     STAT_EVENT_NOTSUPPORTED);
@@ -503,16 +559,16 @@ bool BytraceEventParser::RegulatorSetVoltageCompleteEvent(const ArgsMap& args, c
 }
 bool BytraceEventParser::RegulatorDisableEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
-    UNUSED(line);
+    Unused(args);
+    Unused(line);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE, STAT_EVENT_RECEIVED);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
 bool BytraceEventParser::RegulatorDisableCompleteEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
-    UNUSED(line);
+    Unused(args);
+    Unused(line);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, STAT_EVENT_RECEIVED);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, STAT_EVENT_NOTSUPPORTED);
     return true;
@@ -520,14 +576,14 @@ bool BytraceEventParser::RegulatorDisableCompleteEvent(const ArgsMap& args, cons
 
 bool BytraceEventParser::IpiEntryEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
+    Unused(args);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_ENTRY, STAT_EVENT_RECEIVED);
     streamFilters_->irqFilter_->IpiHandlerEntry(line.ts, line.cpu, traceDataCache_->GetDataIndex(line.argsStr));
     return true;
 }
 bool BytraceEventParser::IpiExitEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
+    Unused(args);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_EXIT, STAT_EVENT_RECEIVED);
     streamFilters_->irqFilter_->IpiHandlerExit(line.ts, line.cpu);
     return true;
@@ -559,8 +615,8 @@ bool BytraceEventParser::IrqHandlerExitEvent(const ArgsMap& args, const BytraceL
 }
 bool BytraceEventParser::SoftIrqRaiseEvent(const ArgsMap& args, const BytraceLine& line) const
 {
-    UNUSED(args);
-    UNUSED(line);
+    Unused(args);
+    Unused(line);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_RAISE, STAT_EVENT_RECEIVED);
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_RAISE, STAT_EVENT_NOTSUPPORTED);
     return true;

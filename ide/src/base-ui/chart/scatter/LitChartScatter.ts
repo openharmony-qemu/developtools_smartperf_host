@@ -50,8 +50,8 @@ export class LitChartScatter extends BaseElement {
     this.canvas2 = document.createElement('canvas');
     this.canvas2.height = this.clientHeight;
     this.canvas2.width = this.clientWidth;
-    let context2: CanvasRenderingContext2D | null = this.canvas2.getContext('2d');
-    if (this.canvas?.width !== 0 && this.canvas?.height !== 0) {
+    let context2 = this.canvas2.getContext('2d');
+    if (this.canvas?.width != 0 && this.canvas?.height != 0) {
       context2!.drawImage(this.canvas!, 0, 0);
     }
   }
@@ -59,14 +59,7 @@ export class LitChartScatter extends BaseElement {
   drawBackground(): void {
     let w: number = this.clientWidth;
     let h: number = this.clientHeight;
-    let color: CanvasGradient = this.ctx?.createRadialGradient(
-      w / 2,
-      h / 2,
-      0.2 * w,
-      w / 2,
-      h / 2,
-      0.5 * w
-    )!;
+    let color: CanvasGradient = this.ctx?.createRadialGradient(w / 2, h / 2, 0.2 * w, w / 2, h / 2, 0.5 * w)!;
     color?.addColorStop(0, '#eaeaea');
     color?.addColorStop(1, '#ccc');
     if (this.options) {
@@ -104,7 +97,7 @@ export class LitChartScatter extends BaseElement {
   drawAxis(options: LitChartScatterConfig): void {
     let text: Array<string> = new Array();
     if (options) {
-      text = options.axisLabel;
+      text = options.AxisLabel;
     }
     this.ctx!.font = '10px KATTI';
     this.ctx!.fillStyle = '#000000';
@@ -126,29 +119,24 @@ export class LitChartScatter extends BaseElement {
    * 绘制y轴坐标
    */
   drawYLabels(options: LitChartScatterConfig): void {
-    const AXAIS_DELTA: number = 5;
-    const QUYU: number = 100;
     // 添加原点刻度
     this.ctx!.font = '12px KATTI';
     this.ctx!.fillStyle = '#000000';
     this.ctx!.strokeStyle = '#000000';
-    this.ctx?.fillText('0', this.originX - AXAIS_DELTA, this.originY + AXAIS_DELTA * 2);
+    this.ctx?.fillText('0', this.originX - 5, this.originY + 10);
     let yAxis: Array<number> = [];
     if (options) {
       yAxis = options.yAxisLabel;
     }
     // 画Y轴坐标尺
     for (let i = 0; i < yAxis.length; i++) {
-      let length1: number =
-        (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) *
-        (yAxis[i] / yAxis[yAxis.length - 1]);
-      let length2: number = this.originY - length1;
-      let text: string = yAxis[i].toString();
-      let x: number = this.originX - this.ctx?.measureText(text).width! - AXAIS_DELTA;
+      let length1 =
+        (this.originY - this.finalY - ((this.originY - this.finalY) % 100)) * (yAxis[i] / yAxis[yAxis.length - 1]);
+      let length2 = this.originY - length1;
       this.ctx?.beginPath();
       this.ctx?.moveTo(this.originX, length2);
-      this.ctx?.lineTo(this.originX + AXAIS_DELTA, length2);
-      this.ctx?.fillText(text, x, length2 + AXAIS_DELTA);
+      this.ctx?.lineTo(this.originX + 5, length2);
+      this.ctx?.fillText(yAxis[i].toString(), this.originX - 40, length2 + 5);
       this.ctx?.stroke();
     }
   }
@@ -159,21 +147,18 @@ export class LitChartScatter extends BaseElement {
     // 画X轴坐标尺
     this.ctx!.fillStyle = '#000000';
     this.ctx!.strokeStyle = '#000000';
-    const QUYU: number = 100;
-    const DELTA: number = 5;
     let xAxis: Array<number> = [];
     if (options) {
       xAxis = options.xAxisLabel;
     }
     for (let i = 0; i < xAxis.length; i++) {
-      let length3: number =
-        (this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) *
-        (xAxis[i] / xAxis[xAxis.length - 1]);
-      let length4: number = this.originX + length3;
+      let length3 =
+        (this.finalX - this.originX - ((this.finalX - this.originX) % 100)) * (xAxis[i] / xAxis[xAxis.length - 1]);
+      let length4 = this.originX + length3;
       this.ctx?.beginPath();
       this.ctx?.moveTo(length4, this.originY);
-      this.ctx?.lineTo(length4, this.originY - DELTA);
-      this.ctx?.fillText(xAxis[i].toString(), length4 - DELTA * 3, this.originY + DELTA * 2);
+      this.ctx?.lineTo(length4, this.originY - 5);
+      this.ctx?.fillText(xAxis[i].toString(), length4 - 5, this.originY + 10);
       this.ctx?.stroke();
     }
   }
@@ -188,8 +173,6 @@ export class LitChartScatter extends BaseElement {
     let colorPool: Array<string> = new Array();
     let colorPoolText: Array<string> = new Array();
     let rectY: number = this.clientHeight * 0.05;
-    const QUYU: number = 100;
-    const WIDTH_DELTA: number = 70;
     if (options) {
       data = options.data;
       yAxis = options.yAxisLabel;
@@ -198,15 +181,15 @@ export class LitChartScatter extends BaseElement {
       colorPoolText = options.colorPoolText();
       options.paintingData = [];
     }
-    let xLength: number = this.finalX - this.originX - ((this.finalX - this.originX) % QUYU);
-    let yLength: number = this.originY - this.finalY - ((this.originY - this.finalY) % QUYU);
+    let xLength = this.finalX - this.originX - ((this.finalX - this.originX) % 100);
+    let yLength = this.originY - this.finalY - ((this.originY - this.finalY) % 100);
     for (let i = 0; i < data.length; i++) {
       for (let j = 0; j < data[i].length; j++) {
         // 打点x坐标
-        let x: number = this.originX + (data[i][j][0] / xAxis[xAxis.length - 1]) * xLength;
+        let x = this.originX + (data[i][j][0] / xAxis[xAxis.length - 1]) * xLength;
         // 打点y坐标
-        let y: number = this.originY - (data[i][j][1] / yAxis[yAxis.length - 1]) * yLength;
-        let r: number = 6;
+        let y = this.originY - (data[i][j][1] / yAxis[yAxis.length - 1]) * yLength;
+        let r = 6;
         if (i > 0) {
           options.paintingData[data[i][j][2] - 1] = {
             x,
@@ -228,21 +211,15 @@ export class LitChartScatter extends BaseElement {
       }
       if (data[i].length) {
         rectY = rectY + 20;
-        this.ctx?.fillText(colorPoolText[i] + ': ', this.clientWidth - WIDTH_DELTA, rectY + 4);
-        this.drawCycle(this.clientWidth - (QUYU / 5), rectY, 7.5, 0.8, colorPool[i]);
+        this.ctx?.fillText(colorPoolText[i] + ': ', this.clientWidth - 70, rectY + 4);
+        this.drawCycle(this.clientWidth - 20, rectY, 7.5, 0.8, colorPool[i]);
       }
     }
   }
   /**
    * 画圆点
    */
-  drawCycle(
-    x: number,
-    y: number,
-    r: number,
-    transparency: number,
-    color: string
-  ): void {
+  drawCycle(x: number, y: number, r: number, transparency: number, color: string): void {
     this.ctx!.fillStyle = color;
     this.ctx?.beginPath();
     this.ctx!.globalAlpha = transparency;
@@ -256,44 +233,31 @@ export class LitChartScatter extends BaseElement {
    */
   drawLoadLine(data: Array<number>): void {
     let maxXAxis: number = 1;
-    const QUYU: number = 100;
-    const FOR_VALUE = 60;
     if (this.options) {
       maxXAxis = this.options.xAxisLabel[this.options.xAxisLabel.length - 1];
     }
     // data[1]用来标注n Hz负载线
     let addr1: number =
-      this.originX +
-      (this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) *
-        (data[0] / maxXAxis);
-    let addr2: number =
-      (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) / FOR_VALUE;
+      this.originX + (this.finalX - this.originX - ((this.finalX - this.originX) % 100)) * (data[0] / maxXAxis);
+    let addr2: number = (this.originY - this.finalY - ((this.originY - this.finalY) % 100)) / 60;
     let y: number = this.originY;
     this.ctx!.strokeStyle = '#ff0000';
-    for (let i = 0; i < FOR_VALUE; i++) {
+    for (let i = 0; i < 60; i++) {
       this.ctx?.beginPath();
       this.ctx?.moveTo(addr1, y);
       y -= addr2;
       this.ctx?.lineTo(addr1, y);
-      if (i % 2 !== 0) {
+      if (i % 2 != 0) {
         this.ctx?.stroke();
       }
     }
     this.ctx!.font = '10px KATTI';
     this.ctx!.fillStyle = '#ff0000';
-    this.ctx?.fillText(
-      data[1] + 'Hz最大负载线',
-      addr1 - FOR_VALUE / 3,
-      this.originY - addr2 * FOR_VALUE - FOR_VALUE / 4
-    );
+    this.ctx?.fillText(data[1] + 'Hz最大负载线', addr1 - 20, this.originY - addr2 * 60 - 15);
     this.ctx!.fillStyle = '#000000';
-    this.ctx?.fillText('过供给区', addr1 / 2, y + FOR_VALUE / 2);
+    this.ctx?.fillText('过供给区', addr1 / 2, y + 30);
     this.ctx?.fillText('欠供给区', addr1 / 2, this.originY - this.finalY);
-    this.ctx?.fillText(
-      '超负载区',
-      addr1 + FOR_VALUE / 3,
-      (this.finalY + this.originY) / 2
-    );
+    this.ctx?.fillText('超负载区', addr1 + 20, (this.finalY + this.originY) / 2);
   }
 
   /**
@@ -301,27 +265,23 @@ export class LitChartScatter extends BaseElement {
    */
   drawBalanceLine(data: Array<number>): void {
     let maxXAxis: number = 1;
-    const QUYU: number = 100;
-    const FOR_VALUE = 60;
     if (this.options) {
       maxXAxis = this.options.xAxisLabel[this.options.xAxisLabel.length - 1];
     }
     // data[1]用来标注n Hz均衡线
     let addr1: number =
-      ((this.finalX - this.originX - ((this.finalX - this.originX) % QUYU)) *
-        (data[0] / maxXAxis)) / FOR_VALUE;
-    let addr2: number =
-      (this.originY - this.finalY - ((this.originY - this.finalY) % QUYU)) / FOR_VALUE;
+      ((this.finalX - this.originX - ((this.finalX - this.originX) % 100)) * (data[0] / maxXAxis)) / 60;
+    let addr2: number = (this.originY - this.finalY - ((this.originY - this.finalY) % 100)) / 60;
     let x: number = this.originX;
     let y: number = this.originY;
     this.ctx!.strokeStyle = '#00ff00';
-    for (let i = 0; i < FOR_VALUE; i++) {
+    for (let i = 0; i < 60; i++) {
       this.ctx?.beginPath();
       this.ctx?.moveTo(x, y);
       x += addr1;
       y -= addr2;
       this.ctx?.lineTo(x, y);
-      if (i % 2 === 0) {
+      if (i % 2 == 0) {
         this.ctx?.stroke();
       }
     }
@@ -335,10 +295,7 @@ export class LitChartScatter extends BaseElement {
   }
 
   /*检测是否hover在散点之上*/
-  checkHover(
-    options: LitChartScatterConfig | undefined,
-    pos: Object
-  ): Object | boolean {
+  checkHover(options: LitChartScatterConfig | undefined, pos: Object): Object | boolean {
     let data: Array<Object> = [];
     if (options) {
       data = options.paintingData;
@@ -347,13 +304,7 @@ export class LitChartScatter extends BaseElement {
     for (let i = 0; i < data.length; i++) {
       found = false;
       // @ts-ignore
-      if (
-        Math.sqrt(
-					// @ts-ignore
-          Math.pow(pos.x - data[i].x, 2) + Math.pow(pos.y - data[i].y, 2)
-					// @ts-ignore
-        ) < data[i].r
-      ) {
+      if (Math.sqrt(Math.pow(pos.x - data[i].x, 2) + Math.pow(pos.y - data[i].y, 2)) < data[i].r) {
         found = data[i];
         break;
       }
@@ -385,14 +336,10 @@ export class LitChartScatter extends BaseElement {
   //利用离屏canvas恢复hover前的状态
   resetHoverWithOffScreen(): void {
     let obj: Object | null = null;
-    const STEP_VALUE: number = 12;
-    const OUT_CYCLE: number = 2;
     if (this.options) {
       obj = this.options.hoverData;
     }
-    if (!obj) {
-      return;
-    }
+    if (!obj) return;
     // @ts-ignore
     let { x, y, r, c, color } = obj;
     let step = 0.5;
@@ -402,18 +349,18 @@ export class LitChartScatter extends BaseElement {
       //绘制外圆范围
       this.ctx?.drawImage(
         this.canvas2!,
-        x - r - STEP_VALUE * step,
-        y - r - STEP_VALUE * step,
-        OUT_CYCLE * (r + STEP_VALUE * step),
-        OUT_CYCLE * (r + STEP_VALUE * step),
-        x - r - STEP_VALUE * step,
-        y - r - STEP_VALUE * step,
-        OUT_CYCLE * (r + STEP_VALUE * step),
-        OUT_CYCLE * (r + STEP_VALUE * step)
+        x - r - 12 * step,
+        y - r - 12 * step,
+        2 * (r + 12 * step),
+        2 * (r + 12 * step),
+        x - r - 12 * step,
+        y - r - 12 * step,
+        2 * (r + 12 * step),
+        2 * (r + 12 * step)
       );
       //绘制内圆
       this.ctx?.beginPath();
-      this.ctx?.arc(x, y, r + i * step, 0, OUT_CYCLE * Math.PI, false);
+      this.ctx?.arc(x, y, r + i * step, 0, 2 * Math.PI, false);
       this.ctx?.closePath();
       this.ctx!.fillStyle = color;
       this.ctx!.globalAlpha = 0.8;
@@ -427,9 +374,8 @@ export class LitChartScatter extends BaseElement {
    * 显示提示框
    */
   showTip(data: any): void {
-    const Y_DELTA: number = 70;
     this.scatterTipEL!.style.display = 'flex';
-    this.scatterTipEL!.style.top = `${data.y - Y_DELTA}px`;
+    this.scatterTipEL!.style.top = `${data.y - 70}px`;
     this.scatterTipEL!.style.left = `${data.x}px`;
     this.scatterTipEL!.innerHTML = this.options!.tip(data);
     // @ts-ignore
@@ -457,6 +403,7 @@ export class LitChartScatter extends BaseElement {
     this.originY = this.clientHeight * 0.9;
     this.finalX = this.clientWidth;
     this.finalY = this.clientHeight * 0.1;
+
     /*hover效果*/
     this.canvas!.onmousemove = (event) => {
       let pos: Object = {
@@ -469,8 +416,7 @@ export class LitChartScatter extends BaseElement {
        */
       if (hoverPoint) {
         this.showTip(hoverPoint);
-        let samePoint: boolean =
-          this.options!.hoverData === hoverPoint ? true : false;
+        let samePoint: boolean = this.options!.hoverData === hoverPoint ? true : false;
         if (!samePoint) {
           this.resetHoverWithOffScreen();
           this.options!.hoverData = hoverPoint;
@@ -542,60 +488,56 @@ export class LitChartScatter extends BaseElement {
                 background-repeat:no-repeat;
                 background-position:center;
             }
-            ` + this.dismantlingHtml();
-  }
-
-  /**
-   * 拆解initHtml大函数块
-   * @returns html
-   */
-  dismantlingHtml(): string { 
-    return`
-      #labels{
-        display: grid;
-        grid-template-columns: auto auto auto auto auto;
-        width: 100%;
-        height: 25%;
-        box-sizing: border-box;
-        position: absolute;
-        bottom: 0px;
-        left: 0;
-        padding-left: 10px;
-        padding-right: 10px;
-        pointer-events: none;
-      }
-      .name{
-        flex: 1;
-        font-size: 9pt;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        color: var(--dark-color1,#252525);
-        pointer-events: painted;
-      }
-      .label{
-        display: flex;
-        align-items: center;
-        max-lines: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        padding-right: 5px;
-      }
-      .tag{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 10px;
-        height: 10px;
-        border-radius: 5px;
-        margin-right: 5px;
-      }
-      </style>
-      <div id="root">
-          <div id="shape" class="shape active"></div>
-          <canvas id="canvas" style="top: 0;left: 0;z-index: 21;position: absolute"></canvas>
-          <div id="tip"></div>
-          <div id="labels"></div>
-      </div>`;
+            
+            #labels{
+                display: grid;
+                grid-template-columns: auto auto auto auto auto;
+                /*justify-content: center;*/
+                /*align-items: center;*/
+                width: 100%;
+                height: 25%;
+                box-sizing: border-box;
+                position: absolute;
+                bottom: 0px;
+                left: 0;
+                /*margin: 0px 10px;*/
+                padding-left: 10px;
+                padding-right: 10px;
+                pointer-events: none    ;
+            }
+            .name{
+                flex: 1;
+                font-size: 9pt;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                /*color: #666;*/
+                color: var(--dark-color1,#252525);
+                pointer-events: painted;
+            }
+            .label{
+                display: flex;
+                align-items: center;
+                max-lines: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                padding-right: 5px;
+            }
+            .tag{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 10px;
+                height: 10px;
+                border-radius: 5px;
+                margin-right: 5px;
+            }
+            </style>
+            <div id="root">
+                <div id="shape" class="shape active"></div>
+                <canvas id="canvas" style="top: 0;left: 0;z-index: 21;position: absolute"></canvas>
+                <div id="tip"></div>
+                <div id="labels"></div>
+            </div>`;
   }
 }

@@ -39,10 +39,6 @@ const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
 constexpr int32_t DEFAULT_LEN_ROW_STRING = 1024;
 
 enum class DBFiledType : uint8_t { INT = 0, TEXT };
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
 using namespace SysTuning::base;
 
 TraceDataDB::TraceDataDB() : db_(nullptr)
@@ -98,7 +94,7 @@ void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
         resultCallBack(std::string((char*)data, DATABASE_BASE), SEND_CONTINUE);
     }
     close(fd);
-    remove(wasmDBName_.c_str());
+    (void)remove(wasmDBName_.c_str());
     wasmDBName_.clear();
 }
 int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
@@ -110,7 +106,7 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
             return 1;
         }
         auto ret = ftruncate(fd, 0);
-        UNUSED(ret);
+        Unused(ret);
         close(fd);
     }
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
@@ -201,7 +197,7 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
             return 1;
         }
         auto ret = ftruncate(fd, 0);
-        UNUSED(ret);
+        Unused(ret);
         close(fd);
     }
 

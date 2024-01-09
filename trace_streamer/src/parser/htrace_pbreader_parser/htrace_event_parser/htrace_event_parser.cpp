@@ -36,7 +36,6 @@
 #include "signal.pbreader.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
-#include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 #include "task.pbreader.h"
 #include "thread_state_flag.h"
@@ -493,7 +492,7 @@ bool HtraceEventParser::SchedWakeupEvent(const EventInfo& event) const
     instants->AppendInstantEventData(event.timeStamp_, schedWakeupName_, internalTid, wakeupFromPid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(event.timeStamp_, internalTid);
     uint32_t targetCpu = msg.target_cpu();
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
     return true;
 }
 bool HtraceEventParser::SchedWakeupNewEvent(const EventInfo& event) const
@@ -507,7 +506,7 @@ bool HtraceEventParser::SchedWakeupNewEvent(const EventInfo& event) const
     instants->AppendInstantEventData(event.timeStamp_, schedWakeupNewName_, internalTid, wakeupFromPid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(event.timeStamp_, internalTid);
     uint32_t targetCpu = msg.target_cpu();
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
     return true;
 }
 bool HtraceEventParser::SchedWakingEvent(const EventInfo& event) const
@@ -521,7 +520,7 @@ bool HtraceEventParser::SchedWakingEvent(const EventInfo& event) const
     streamFilters_->cpuFilter_->InsertWakeupEvent(event.timeStamp_, internalTid, true);
     instants->AppendInstantEventData(event.timeStamp_, schedWakingName_, internalTid, wakeupFromPid);
     uint32_t targetCpu = msg.target_cpu();
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_SCHED_WAKING, targetCpu, wakeupFromPid);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_SCHED_WAKING, targetCpu, wakeupFromPid);
     return true;
 }
 bool HtraceEventParser::CpuIdleEvent(const EventInfo& event) const
@@ -545,7 +544,7 @@ bool HtraceEventParser::CpuIdleEvent(const EventInfo& event) const
                                                             config_.GetStateValue(newStateValue.value()));
 
     // Add cpu_idle event to raw_data_table
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_CPU_IDLE, eventCpuValue.value(), 0);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_CPU_IDLE, eventCpuValue.value(), 0);
     return true;
 }
 bool HtraceEventParser::CpuFrequencyEvent(const EventInfo& event) const
@@ -590,9 +589,9 @@ bool HtraceEventParser::SuspendResumeEvent(const EventInfo& event) const
     int32_t val = msg.val();
     uint32_t start = msg.start();
     std::string action = msg.action().ToStdString();
-    UNUSED(val);
-    UNUSED(start);
-    UNUSED(action);
+    Unused(val);
+    Unused(start);
+    Unused(action);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SUSPEND_RESUME, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
@@ -600,7 +599,7 @@ bool HtraceEventParser::WorkqueueExecuteStartEvent(const EventInfo& event) const
 {
     ProtoReader::WorkqueueExecuteStartFormat_Reader msg(event.detail_);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_RECEIVED);
-    auto funcNameIndex = streamFilters_->symbolsFilter_->GetFunc(msg.function());
+    auto funcNameIndex = traceDataCache_->GetSymbolsData()->GetFunc(msg.function());
     size_t result = INVALID_UINT32;
     const auto& taskName = traceDataCache_->GetDataFromDict(event.taskNameIndex_);
     if (funcNameIndex == INVALID_UINT64) {
@@ -754,23 +753,6 @@ bool HtraceEventParser::OomScoreAdjUpdate(const EventInfo& event) const
     return true;
 }
 
-bool HtraceEventParser::SignalGenerateEvent(const EventInfo& event) const
-{
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_BIO_BACKMERGE, STAT_EVENT_RECEIVED);
-    ProtoReader::SignalGenerateFormat_Reader msg(event.detail_);
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.timeStamp_, msg.pid(),
-                                                                                           msg.comm().ToStdString());
-    streamFilters_->threadFilter_->AppendNewMeasureData(internalTid, signalGenerateId_, event.timeStamp_, msg.sig());
-    return true;
-}
-bool HtraceEventParser::SignalDeleverEvent(const EventInfo& event) const
-{
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_BIO_BACKMERGE, STAT_EVENT_RECEIVED);
-    ProtoReader::SignalDeliverFormat_Reader msg(event.detail_);
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp_, event.tgid_);
-    streamFilters_->threadFilter_->AppendNewMeasureData(internalTid, signalDeliverId_, event.timeStamp_, msg.sig());
-    return true;
-}
 void HtraceEventParser::FilterAllEventsReader()
 {
 #ifdef SUPPORTTHREAD
@@ -853,7 +835,6 @@ void HtraceEventParser::ProtoReaderDealEvent(EventInfo* eventInfo)
 void HtraceEventParser::Clear()
 {
     const_cast<TraceStreamerFilters*>(streamFilters_)->FilterClear();
-    streamFilters_->symbolsFilter_->Clear();
     streamFilters_->sysEventMemMeasureFilter_->Clear();
     streamFilters_->sysEventVMemMeasureFilter_->Clear();
     printEventParser_.Finish();

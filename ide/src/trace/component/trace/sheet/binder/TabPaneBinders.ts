@@ -17,10 +17,10 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
-import { queryBinderByThreadId } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { BinderGroup, BinderItem } from '../../../../bean/BinderProcessThread';
+import {queryBinderByThreadId} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-binders')
 export class TabPaneBinders extends BaseElement {
@@ -52,12 +52,12 @@ export class TabPaneBinders extends BaseElement {
         this.threadBindersTbl!.recycleDataSource = this.transferToTreeData(binderList);
         this.threadBindersTblSource = this.threadBindersTbl!.recycleDataSource;
         this.threadBindersTbl!.loading = false;
-        this.threadBinderHeadClick(this.threadBindersTbl!.recycleDataSource);
+        this.theadClick(this.threadBindersTbl!.recycleDataSource);
       } else if (binderList.length === 0) {
         this.threadBindersTbl!.recycleDataSource = [];
         this.threadBindersTblSource = [];
         this.threadBindersTbl!.loading = false;
-        this.threadBinderHeadClick(this.threadBindersTbl!.recycleDataSource);
+        this.theadClick(this.threadBindersTbl!.recycleDataSource);
       }
     });
   }
@@ -121,19 +121,19 @@ export class TabPaneBinders extends BaseElement {
     return Object.values(group);
   }
 
-  private threadBinderHeadClick(data: Array<BinderGroup>): void {
+  private theadClick(data: Array<BinderGroup>): void {
     let labels = this.threadBindersTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
         labels[i].addEventListener('click', (e) => {
-          if (label.includes('Process')) {
+          if (label.includes('Process') && i === 0) {
             this.threadBindersTbl!.setStatus(data, false);
             this.threadBindersTbl!.recycleDs = this.threadBindersTbl!.meauseTreeRowElement(
               data,
               RedrawTreeForm.Retract
             );
-          } else if (label.includes('Thread')) {
+          } else if (label.includes('Thread') && i === 1) {
             for (let item of data) {
               item.status = true;
               if (item.children !== undefined && item.children.length > 0) {

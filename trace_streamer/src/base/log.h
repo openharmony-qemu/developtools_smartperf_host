@@ -18,7 +18,7 @@
 
 #include <cstring>
 #include <iostream>
-#include <inttypes.h>
+#include <cinttypes>
 
 // namespace SysTuning {
 // namespace base {
@@ -29,7 +29,7 @@
     } while (0)
 enum LogLevel { LOG_DEBUG = 0, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL, LOG_OFF };
 extern enum LogLevel g_curLogLevel;
-bool SetLogLevel(std::string level);
+bool SetLogLevel(const std::string& level);
 #define LOGWITHLEVEL(level, motify, fmt, ...)                                                           \
     do {                                                                                                \
         if (level >= g_curLogLevel) {                                                                   \

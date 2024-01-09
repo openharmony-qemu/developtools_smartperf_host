@@ -15,11 +15,10 @@
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
 
-import { queryMetric } from '../database/SqlLite';
-
 import '../../base-ui/table/lit-table';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import {queryMetric} from "../database/sql/SqlLite.sql";
 
 @element('sp-metrics')
 export class SpMetrics extends BaseElement {

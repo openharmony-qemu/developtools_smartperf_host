@@ -46,7 +46,6 @@ bool operator<(const int& lhs, const UniqueFdAddDeletor<Deleter>& rhs);
 
 template <typename Deleter = DefaultDeleter>
 class UniqueFdAddDeletor final {
-
     friend bool operator==<Deleter>(const int& lhs, const UniqueFdAddDeletor<Deleter>& rhs);
 
     friend bool operator!=<Deleter>(const int& lhs, const UniqueFdAddDeletor<Deleter>& rhs);

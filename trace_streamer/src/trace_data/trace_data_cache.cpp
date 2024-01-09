@@ -39,11 +39,6 @@
 #include "disk_io_table.h"
 #include "dynamic_frame_table.h"
 #include "ebpf_callstack_table.h"
-#if WITH_EBPF_HELP
-#include "ebpf_elf_symbol_table.h"
-#include "ebpf_elf_table.h"
-#include "ebpf_process_maps_table.h"
-#endif
 #include "file.h"
 #include "file_system_sample_table.h"
 #include "filter_table.h"
@@ -67,7 +62,6 @@
 #include "irq_table.h"
 #include "live_process_table.h"
 #include "log_table.h"
-#include "measure_filter_table.h"
 #include "measure_table.h"
 #include "memory_ashmem_table.h"
 #include "memory_dma_table.h"
@@ -83,13 +77,12 @@
 #include "native_hook_statistic_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
-#include "parser/ebpf_parser/ebpf_stdtype.h"
+#include "parser/ebpf_parser/ebpf_data_structure.h"
 #include "perf_call_chain_table.h"
 #include "perf_files_table.h"
 #include "perf_report_table.h"
 #include "perf_sample_table.h"
 #include "perf_thread_table.h"
-#include "process_filter_table.h"
 #include "process_measure_filter_table.h"
 #include "process_table.h"
 #include "range_table.h"
@@ -109,7 +102,6 @@
 #include "system_event_filter_table.h"
 #include "table_base.h"
 #include "task_pool_table.h"
-#include "thread_filter_table.h"
 #include "thread_state_table.h"
 #include "thread_table.h"
 #include "trace_config_table.h"
@@ -137,9 +129,6 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<CallStackTable>(*db_, this, "callstack");
     TableBase::TableDeclare<ThreadTable>(*db_, this, "thread");
     TableBase::TableDeclare<ThreadStateTable>(*db_, this, "thread_state");
-    TableBase::TableDeclare<ThreadFilterTable>(*db_, this, "thread_filter");
-    TableBase::TableDeclare<ProcessFilterTable>(*db_, this, "process_filter");
-    TableBase::TableDeclare<MeasureFilterTable>(*db_, this, "measure_filter");
     TableBase::TableDeclare<IrqTable>(*db_, this, "irq");
     TableBase::TableDeclare<DataDictTable>(*db_, this, "data_dict");
     TableBase::TableDeclare<RawTable>(*db_, this, "raw");
@@ -192,11 +181,6 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<FileSystemSampleTable>(*db_, this, "file_system_sample");
     TableBase::TableDeclare<EbpfCallStackTable>(*db_, this, "ebpf_callstack");
     TableBase::TableDeclare<PagedMemorySampleTable>(*db_, this, "paged_memory_sample");
-#if WITH_EBPF_HELP
-    TableBase::TableDeclare<EbpfProcessMapsTable>(*db_, this, "ebpf_process_maps");
-    TableBase::TableDeclare<EbpfElfTable>(*db_, this, "ebpf_elf");
-    TableBase::TableDeclare<EbpfElfSymbolTable>(*db_, this, "ebpf_elf_symbol");
-#endif
     TableBase::TableDeclare<SysEventSubkeyTable>(*db_, this, "app_name");
     TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "hisys_event_measure");
     TableBase::TableDeclare<TraceConfigTable>(*db_, this, "trace_config");
@@ -604,122 +588,38 @@ void TraceDataCache::ExportEbpfCallChaninText(uint32_t callChainId, std::string&
 void TraceDataCache::ClearAllPrevCacheData()
 {
     // ftrace plugin
-    rawData_.ClearPrevData();
-    threadStateData_.ClearPrevData();
-    instantsData_.ClearPrevData();
-    filterData_.ClearPrevData();
-    processMeasureFilterData_.ClearPrevData();
-    clockEventFilterData_.ClearPrevData();
-    clkEventFilterData_.ClearPrevData();
-    processFilterData_.ClearPrevData();
-    threadMeasureFilterData_.ClearPrevData();
-    threadFilterData_.ClearPrevData();
-    schedSliceData_.ClearPrevData();
-    callstackData_.ClearPrevData();
-    irqData_.ClearPrevData();
-    measureData_.ClearPrevData();
-    sysMemMeasureData_.ClearPrevData();
-    processMeasureData_.ClearPrevData();
-    cpuMeasureData_.ClearPrevData();
-    taskPoolInfo_.ClearPrevData();
-    appStartupData_.ClearPrevData();
-    animation_.ClearPrevData();
-    dynamicFrame_.ClearPrevData();
-    rsImageDumpInfo_.ClearPrevData();
-    // hilog plugin
-    hilogData_.ClearPrevData();
-    // native_hook plugin
-    nativeHookData_.ClearPrevData();
-    nativeHookFrameData_.ClearPrevData();
-    nativeHookStatisticData_.ClearPrevData();
-    // hidump plugin
-    hidumpData_.ClearPrevData();
-
-    // hisysevent plugin
-    sysEventNameIds_.ClearPrevData();
-    sysEventMeasureData_.ClearPrevData();
-    deviceStateData_.ClearPrevData();
-    traceConfigData_.ClearPrevData();
-    hiSysEventAllEventData_.ClearPrevData();
-
-    sysCallData_.ClearPrevData();
-    sysEvent_.ClearPrevData();
-    networkData_.ClearPrevData();
-    networkDetailData_.ClearPrevData();
-    cpuUsageData_.ClearPrevData();
-    diskIOData_.ClearPrevData();
-    liveProcessDetailData_.ClearPrevData();
-    smapsData_.ClearPrevData();
-    frameSliceData_.ClearPrevData();
-    frameMapsData_.ClearPrevData();
-    gpuSliceData_.ClearPrevData();
-    staticInitalizationData_.ClearPrevData();
-    ashMemData_.ClearPrevData();
-    dmaMemData_.ClearPrevData();
-    gpuProcessMemData_.ClearPrevData();
-    gpuWindowMemData_.ClearPrevData();
-    cpuDumpInfo_.ClearPrevData();
-    profileMemInfo_.ClearPrevData();
+    rawData_.ClearExportedData();
+    threadStateData_.ClearExportedData();
+    instantsData_.ClearExportedData();
+    filterData_.ClearExportedData();
+    processMeasureFilterData_.ClearExportedData();
+    clockEventFilterData_.ClearExportedData();
+    clkEventFilterData_.ClearExportedData();
+    schedSliceData_.ClearExportedData();
+    irqData_.ClearExportedData();
+    measureData_.ClearExportedData();
+    sysMemMeasureData_.ClearExportedData();
+    processMeasureData_.ClearExportedData();
+    cpuMeasureData_.ClearExportedData();
+    sysCallData_.ClearExportedData();
 }
 void TraceDataCache::UpdateAllPrevSize()
 {
     // ftrace plugin
-    rawData_.UpdatePrevSize(rawData_.Size());
-    threadStateData_.UpdatePrevSize(threadStateData_.Size());
-    instantsData_.UpdatePrevSize(instantsData_.Size());
-    filterData_.UpdatePrevSize(filterData_.Size());
-    processMeasureFilterData_.UpdatePrevSize(processMeasureFilterData_.Size());
-    clockEventFilterData_.UpdatePrevSize(clockEventFilterData_.Size());
-    clkEventFilterData_.UpdatePrevSize(clkEventFilterData_.Size());
-    processFilterData_.UpdatePrevSize(processFilterData_.Size());
-    threadMeasureFilterData_.UpdatePrevSize(threadMeasureFilterData_.Size());
-    threadFilterData_.UpdatePrevSize(threadFilterData_.Size());
-    schedSliceData_.UpdatePrevSize(schedSliceData_.Size());
-    callstackData_.UpdatePrevSize(callstackData_.Size());
-    irqData_.UpdatePrevSize(irqData_.Size());
-    measureData_.UpdatePrevSize(measureData_.Size());
-    sysMemMeasureData_.UpdatePrevSize(sysMemMeasureData_.Size());
-    processMeasureData_.UpdatePrevSize(processMeasureData_.Size());
-    cpuMeasureData_.UpdatePrevSize(cpuMeasureData_.Size());
-    rsImageDumpInfo_.UpdatePrevSize(rsImageDumpInfo_.Size());
-    animation_.UpdatePrevSize(animation_.Size());
-    dynamicFrame_.UpdatePrevSize(dynamicFrame_.Size());
-    taskPoolInfo_.UpdatePrevSize(taskPoolInfo_.Size());
-    appStartupData_.UpdatePrevSize(appStartupData_.Size());
-    // hilog plugin
-    hilogData_.UpdatePrevSize(hilogData_.Size());
-    // native_hook plugin
-    nativeHookData_.UpdatePrevSize(nativeHookData_.Size());
-    nativeHookFrameData_.UpdatePrevSize(nativeHookFrameData_.Size());
-    nativeHookStatisticData_.UpdatePrevSize(nativeHookStatisticData_.Size());
-    // hidump plugin
-    hidumpData_.UpdatePrevSize(hidumpData_.Size());
-
-    // hisysevent plugin
-    sysEventNameIds_.UpdatePrevSize(sysEventNameIds_.Size());
-    sysEventMeasureData_.UpdatePrevSize(sysEventMeasureData_.Size());
-    deviceStateData_.UpdatePrevSize(deviceStateData_.Size());
-    traceConfigData_.UpdatePrevSize(traceConfigData_.Size());
-    hiSysEventAllEventData_.UpdatePrevSize(hiSysEventAllEventData_.Size());
-
-    sysCallData_.UpdatePrevSize(sysCallData_.Size());
-    sysEvent_.UpdatePrevSize(sysEvent_.Size());
-    networkData_.UpdatePrevSize(networkData_.Size());
-    networkDetailData_.UpdatePrevSize(networkDetailData_.Size());
-    cpuUsageData_.UpdatePrevSize(cpuUsageData_.Size());
-    diskIOData_.UpdatePrevSize(diskIOData_.Size());
-    liveProcessDetailData_.UpdatePrevSize(liveProcessDetailData_.Size());
-    smapsData_.UpdatePrevSize(smapsData_.Size());
-    frameSliceData_.UpdatePrevSize(frameSliceData_.Size());
-    frameMapsData_.UpdatePrevSize(frameMapsData_.Size());
-    gpuSliceData_.UpdatePrevSize(gpuSliceData_.Size());
-    staticInitalizationData_.UpdatePrevSize(staticInitalizationData_.Size());
-    ashMemData_.UpdatePrevSize(ashMemData_.Size());
-    dmaMemData_.UpdatePrevSize(dmaMemData_.Size());
-    gpuProcessMemData_.UpdatePrevSize(gpuProcessMemData_.Size());
-    gpuWindowMemData_.UpdatePrevSize(gpuWindowMemData_.Size());
-    cpuDumpInfo_.UpdatePrevSize(cpuDumpInfo_.Size());
-    profileMemInfo_.UpdatePrevSize(profileMemInfo_.Size());
+    rawData_.UpdateReadySize(rawData_.Size());
+    threadStateData_.UpdateReadySize(threadStateData_.Size());
+    instantsData_.UpdateReadySize(instantsData_.Size());
+    filterData_.UpdateReadySize(filterData_.Size());
+    processMeasureFilterData_.UpdateReadySize(processMeasureFilterData_.Size());
+    clockEventFilterData_.UpdateReadySize(clockEventFilterData_.Size());
+    clkEventFilterData_.UpdateReadySize(clkEventFilterData_.Size());
+    schedSliceData_.UpdateReadySize(schedSliceData_.Size());
+    irqData_.UpdateReadySize(irqData_.Size());
+    measureData_.UpdateReadySize(measureData_.Size());
+    sysMemMeasureData_.UpdateReadySize(sysMemMeasureData_.Size());
+    processMeasureData_.UpdateReadySize(processMeasureData_.Size());
+    cpuMeasureData_.UpdateReadySize(cpuMeasureData_.Size());
+    sysCallData_.UpdateReadySize(sysCallData_.Size());
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

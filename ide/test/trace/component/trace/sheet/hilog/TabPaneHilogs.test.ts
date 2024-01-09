@@ -167,7 +167,5 @@ describe('TabPaneHilogs Test', (): void => {
     sheetEl!.systemLogFlag = undefined;
     hiLogsTab.initTabSheetEl(htmlElement, sheetEl);
     hiLogsTab.data = logsData;
-    // hiLogsTab.refreshTable();
-    // expect(hiLogsTab.isFilterLog(logsData)).toBeFalsy();
   });
 });

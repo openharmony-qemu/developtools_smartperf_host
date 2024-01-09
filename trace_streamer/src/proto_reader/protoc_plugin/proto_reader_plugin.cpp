@@ -105,7 +105,6 @@ void ProtoReaderGenerator::ParserDependencies()
 
     for (const Descriptor* descriptor : vDescriptor_) {
         for (int32_t i = 0; i < descriptor->field_count(); ++i) {
-
             if (descriptor->field(i)->type() == FieldDescriptor::TYPE_MESSAGE) {
                 if (!publicImports_.count(descriptor->field(i)->message_type()->file())) {
                     referencedMessages_.insert(descriptor->field(i)->message_type());
