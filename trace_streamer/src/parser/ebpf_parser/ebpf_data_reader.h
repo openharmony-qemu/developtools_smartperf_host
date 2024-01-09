@@ -21,7 +21,7 @@
 #include <elf.h>
 #endif
 #include <string>
-#include "ebpf_data_structure.h"
+#include "ebpf_stdtype.h"
 #include "event_parser_base.h"
 #include "process_filter.h"
 #include "quatra_map.h"
@@ -63,7 +63,11 @@ private:
     void UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
     void ReadKernelSymAddrMap(const KernelSymbolInfoHeader* elfAddr, uint32_t size);
     void UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
-
+#if WITH_EBPF_HELP
+    template <class T>
+    void AppendSymbolsToTable(T* firstSymbolAddr, const int size);
+    void UpdateEbpfElfSymbolTable(const ElfEventFixedHeader* elfAddr, uint32_t size);
+#endif
 public:
     uint64_t maxKernelAddr_ = 0;
     uint64_t minKernelAddr_ = std::numeric_limits<uint64_t>::max();
@@ -74,6 +78,9 @@ private:
     uint64_t unresolvedLen_ = 0;
     EbpfDataHeader* ebpfDataHeader_;
     uint8_t* startAddr_ = nullptr;
+#if WITH_EBPF_HELP
+    uint64_t elfId_ = 0;
+#endif
     std::multimap<uint64_t, const FsFixedHeader*> endTsToFsFixedHeader_ = {};
     std::multimap<uint64_t, const PagedMemoryFixedHeader*> endTsToPagedMemoryFixedHeader_ = {};
     std::multimap<uint64_t, const BIOFixedHeader*> endTsToBIOFixedHeader_ = {};

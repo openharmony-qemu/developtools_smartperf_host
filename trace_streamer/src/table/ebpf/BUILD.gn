@@ -22,9 +22,15 @@ ohos_source_set("ebpf_tables") {
     "ebpf_callstack_table.cpp",
     "file_system_sample_table.cpp",
   ]
+  if (with_ebpf_help_table) {
+    sources += [
+      "ebpf_elf_symbol_table.cpp",
+      "ebpf_elf_table.cpp",
+      "ebpf_process_maps_table.cpp",
+    ]
+  }
   include_dirs = [
-    "include",
-    "../base/include",
+    "../base",
     "${THIRD_PARTY}/sqlite/include",
     "${SRC}/base",
     "../../parser",
@@ -35,16 +41,7 @@ ohos_source_set("ebpf_tables") {
     "${THIRD_PARTY}/bounds_checking_function/include",
     "${THIRD_PARTY}/json/single_include/nlohmann",
   ]
-  include_dirs += [
-    "${SRC}/trace_data/trace_stdtype",
-    "${SRC}/trace_data/trace_stdtype/ftrace",
-    "${SRC}/trace_data/trace_stdtype/ftrace/template",
-    "${SRC}/trace_data/trace_stdtype/hilog",
-    "${SRC}/trace_data/trace_stdtype/hiperf",
-    "${SRC}/trace_data/trace_stdtype/hisysevent",
-    "${SRC}/trace_data/trace_stdtype/htrace",
-    "${SRC}/trace_data/trace_stdtype/measure",
-  ]
+
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }

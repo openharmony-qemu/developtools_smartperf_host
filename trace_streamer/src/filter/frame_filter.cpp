@@ -16,7 +16,7 @@
 #include <memory>
 #include <cinttypes>
 #include "log.h"
-#define ISINVALIDU32(value) ((value) == INVALID_UINT32)
+#define ISINVALIDU32(value) (value == INVALID_UINT32)
 namespace SysTuning {
 namespace TraceStreamer {
 FrameFilter::FrameFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
@@ -84,6 +84,7 @@ bool FrameFilter::BeginRSTransactionData(uint64_t ts, uint32_t itid, uint32_t fr
         std::unordered_map<uint32_t /* frameNum */, std::shared_ptr<FrameSlice>> frameMap;
         dstRenderSlice_.emplace(std::make_pair(itid, std::move(frameMap)));
     }
+    // dstRenderSlice_.at(itid).insert(std::make_pair(franeNum, frame->second.begin()));
     dstRenderSlice_[itid][franeNum] = frame->second[0];
     return true;
 }

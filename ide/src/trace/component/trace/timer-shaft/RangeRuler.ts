@@ -17,7 +17,7 @@ import { Graph } from './Graph';
 import { Rect } from './Rect';
 import { ns2s, ns2UnitS, TimerShaftElement } from '../TimerShaftElement';
 import { ColorUtils, interpolateColorBrightness } from '../base/ColorUtils';
-import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
 import { CurrentSlicesTime, SpSystemTrace } from '../../SpSystemTrace';
 
 const MarkPadding = 5;

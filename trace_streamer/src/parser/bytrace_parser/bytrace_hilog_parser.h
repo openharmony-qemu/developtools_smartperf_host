@@ -24,11 +24,6 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-constexpr uint64_t MS_TO_NS = 1e6;
-constexpr uint64_t US_TO_NS = 1e3;
-constexpr uint32_t TM_YEAR_FROM = 1900;
-constexpr uint32_t MS_FORMAT_LEN = 3;
-constexpr uint32_t US_FORMAT_LEN = 6;
 class BytraceHilogParser : public EventParserBase {
 public:
     BytraceHilogParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);

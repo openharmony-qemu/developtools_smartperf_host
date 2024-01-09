@@ -16,10 +16,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection';
+import { getTabBoxChildData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { SPTChild } from '../../../../bean/StateProcessThread';
 import { resizeObserver } from '../SheetUtils';
-import {getTabBoxChildData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {

@@ -90,7 +90,7 @@ void HtraceProcessParser::Finish()
         traceDataCache_->GetLiveProcessData()->AppendNewData(
             (*itor)->ts_, dur, (*itor)->processInfo_->pid, (*itor)->processInfo_->name, (*itor)->processInfo_->ppid,
             (*itor)->processInfo_->uid, std::to_string((*itor)->processInfo_->uid), (*itor)->cpuUsageData_->cpuUsage,
-            (*itor)->pssInfo_->pssInfo, (*itor)->cpuUsageData_->cpuTimeMs, (*itor)->cpuUsageData_->threadSum,
+            (*itor)->pssInfo_->pssInfo, (*itor)->cpuUsageData_->cpu_time_ms_, (*itor)->cpuUsageData_->threadSum,
             (*itor)->diskio_->wbytes, (*itor)->diskio_->rbytes);
     }
     liveProcessData_.clear();

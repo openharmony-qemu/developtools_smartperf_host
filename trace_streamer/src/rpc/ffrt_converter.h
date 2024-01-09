@@ -71,14 +71,14 @@ private:
                                  const std::string& label,
                                  const long long gid,
                                  const int tid,
-                                 const std::string& threadName,
+                                 const std::string& tname,
                                  const int prio);
     std::string MakeEndFakeLog(const std::string& mark,
                                const int pid,
                                const std::string& label,
                                const long long gid,
                                const int tid,
-                               const std::string& threadName,
+                               const std::string& tname,
                                const int prio);
     std::string ReplaceSchedSwitchLog(std::string& fakeLog,
                                       const std::string& mark,

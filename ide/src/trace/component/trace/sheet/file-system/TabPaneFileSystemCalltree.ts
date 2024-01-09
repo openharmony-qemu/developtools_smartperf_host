@@ -289,138 +289,137 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     this.fsCallTreeTbl!.rememberScrollTop = true;
     this.fsCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.fsCallTreeFilter!.disabledTransfer(true);
-    this.tblRowClickEvent();
-    this.fsCallTreeTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
-    this.tbrRowClickEvent();
-    let boundFilterFunc = this.filterFunc.bind(this);
-    this.fsCallTreeFilter!.getDataLibrary(boundFilterFunc);
-    this.fsCallTreeFilter!.getDataMining(boundFilterFunc);
-    this.handleCallTreeData();
-    this.handleConstraintsData();
-    this.handleFilterData();
-    this.callTreeColumnClick();
-  }
-
-  private filterFunc(data: any): void {
-    let fsCallTreeFuncArgs: any[] = [];
-    if (data.type === 'check') {
-      this.handleCheckType(data, fsCallTreeFuncArgs);
-    } else if (data.type === 'select') {
-      this.handleSelectType(fsCallTreeFuncArgs, data);
-    } else if (data.type === 'button') {
-      if (data.item == 'symbol') {
-        if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
-          return;
-        }
-        if (this.fsCallTreeCurrentSelectedData !== undefined) {
-          this.handleSymbolCase(data, fsCallTreeFuncArgs);
-        } else {
-          return;
-        }
-      } else if (data.item === 'library') {
-        if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
-          return;
-        }
-        if (this.fsCallTreeCurrentSelectedData !== undefined && this.fsCallTreeCurrentSelectedData.libName !== '') {
-          this.handleLibraryCase(data, fsCallTreeFuncArgs);
-        } else {
-          return;
-        }
-      } else if (data.item === 'restore') {
-        this.handleRestoreCase(data, fsCallTreeFuncArgs);
+    this.fsCallTreeTbl!.addEventListener('row-click', (evt: any) => {
+      // @ts-ignore
+      let data = evt.detail.data as FileMerageBean;
+      document.dispatchEvent(
+        new CustomEvent('number_calibration', {
+          detail: { time: data.tsArray, durations: data.durArray },
+        })
+      );
+      this.setRightTableData(data);
+      data.isSelected = true;
+      this.fsCallTreeCurrentSelectedData = data;
+      this.fsCallTreeTbr?.clearAllSelection(data);
+      this.fsCallTreeTbr?.setCurrentSelection(data);
+      // @ts-ignore
+      if ((evt.detail as any).callBack) {
+        // @ts-ignore
+        (evt.detail as any).callBack(true);
       }
-    }
-    this.performDataProcessing(fsCallTreeFuncArgs);
-  };
-
-  private handleSymbolCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    this.fsCallTreeFilter!.addDataMining({name: this.fsCallTreeCurrentSelectedData.symbolName}, data.item);
-    fsCallTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [this.fsCallTreeCurrentSelectedData.symbolName, false, true],
     });
-  }
-
-  private handleLibraryCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    this.fsCallTreeFilter!.addDataMining({name: this.fsCallTreeCurrentSelectedData.libName}, data.item);
-    fsCallTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [this.fsCallTreeCurrentSelectedData.libName, false, false],
+    this.fsCallTreeTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
+    this.fsCallTreeTbr!.addEventListener('row-click', (evt: any): void => {
+      // @ts-ignore
+      let data = evt.detail.data as FileMerageBean;
+      this.fsCallTreeTbl?.clearAllSelection(data);
+      (data as any).isSelected = true;
+      this.fsCallTreeTbl!.scrollToData(data);
+      // @ts-ignore
+      if ((evt.detail as any).callBack) {
+        // @ts-ignore
+        (evt.detail as any).callBack(true);
+      }
     });
-  }
-
-  private callTreeColumnClick(): void {
-    this.fsCallTreeTbl!.addEventListener('column-click', (evt): void => {
-      // @ts-ignore
-      this.fsCallTreeSortKey = evt.detail.key;
-      // @ts-ignore
-      this.fsCallTreeSortType = evt.detail.sort;
-      // @ts-ignore
-      this.setLTableData(this.fsCallTreeDataSource);
-      this.frameChart!.data = this.fsCallTreeDataSource;
-    });
-  }
-
-  private handleFilterData(): void {
-    this.fsCallTreeFilter!.getFilterData((data: FilterData): void => {
-      if (this.searchValue != this.fsCallTreeFilter!.filterValue) {
-        this.searchValue = this.fsCallTreeFilter!.filterValue;
-        let fileArgs = [
-          {
-            funcName: 'setSearchValue',
-            funcArgs: [this.searchValue],
-          },
-          {
+    let filterFunc = (data: any): void => {
+      let fsCallTreeFuncArgs: any[] = [];
+      if (data.type === 'check') {
+        if (data.item.checked) {
+          fsCallTreeFuncArgs.push({
+            funcName: 'splitTree',
+            funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
+          });
+        } else {
+          fsCallTreeFuncArgs.push({
+            funcName: 'resotreAllNode',
+            funcArgs: [[data.item.name]],
+          });
+          fsCallTreeFuncArgs.push({
             funcName: 'resetAllNode',
             funcArgs: [],
-          },
-        ];
-        this.getDataByWorker(fileArgs, (result: any[]): void => {
-          this.fsCallTreeTbl!.isSearch = true;
-          this.fsCallTreeTbl!.setStatus(result, true);
-          this.setLTableData(result);
-          this.frameChart!.data = this.fsCallTreeDataSource;
-          this.switchFlameChart(data);
-        });
-      } else {
-        this.fsCallTreeTbl!.setStatus(this.fsCallTreeDataSource, true);
-        this.setLTableData(this.fsCallTreeDataSource);
-        this.switchFlameChart(data);
-      }
-    });
-  }
-
-  private handleConstraintsData(): void {
-    this.fsCallTreeFilter!.getCallTreeConstraintsData((data: any) => {
-      let fsCallTreeConstraintsArgs: any[] = [
-        {
+          });
+          fsCallTreeFuncArgs.push({
+            funcName: 'clearSplitMapData',
+            funcArgs: [data.item.name],
+          });
+        }
+      } else if (data.type === 'select') {
+        fsCallTreeFuncArgs.push({
           funcName: 'resotreAllNode',
-          funcArgs: [[this.fsCallTreeNumRuleName]],
-        },
-        {
-          funcName: 'clearSplitMapData',
-          funcArgs: [this.fsCallTreeNumRuleName],
-        },
-      ];
-      if (data.checked) {
-        fsCallTreeConstraintsArgs.push({
-          funcName: 'hideNumMaxAndMin',
-          funcArgs: [parseInt(data.min), data.max],
+          funcArgs: [[data.item.name]],
         });
+        fsCallTreeFuncArgs.push({
+          funcName: 'clearSplitMapData',
+          funcArgs: [data.item.name],
+        });
+        fsCallTreeFuncArgs.push({
+          funcName: 'splitTree',
+          funcArgs: [data.item.name, data.item.select == '0', data.item.type == 'symbol'],
+        });
+      } else if (data.type === 'button') {
+        if (data.item == 'symbol') {
+          if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
+            return;
+          }
+          if (this.fsCallTreeCurrentSelectedData !== undefined) {
+            this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.symbolName }, data.item);
+            fsCallTreeFuncArgs.push({
+              funcName: 'splitTree',
+              funcArgs: [this.fsCallTreeCurrentSelectedData.symbolName, false, true],
+            });
+          } else {
+            return;
+          }
+        } else if (data.item === 'library') {
+          if (this.fsCallTreeCurrentSelectedData && !this.fsCallTreeCurrentSelectedData.canCharge) {
+            return;
+          }
+          if (this.fsCallTreeCurrentSelectedData !== undefined && this.fsCallTreeCurrentSelectedData.libName !== '') {
+            this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.libName }, data.item);
+            fsCallTreeFuncArgs.push({
+              funcName: 'splitTree',
+              funcArgs: [this.fsCallTreeCurrentSelectedData.libName, false, false],
+            });
+          } else {
+            return;
+          }
+        } else if (data.item === 'restore') {
+          if (data.remove !== undefined && data.remove.length > 0) {
+            let list = data.remove.map((item: any) => {
+              return item.name;
+            });
+            fsCallTreeFuncArgs.push({
+              funcName: 'resotreAllNode',
+              funcArgs: [list],
+            });
+            fsCallTreeFuncArgs.push({
+              funcName: 'resetAllNode',
+              funcArgs: [],
+            });
+            list.forEach((symbolName: string) => {
+              fsCallTreeFuncArgs.push({
+                funcName: 'clearSplitMapData',
+                funcArgs: [symbolName],
+              });
+            });
+          }
+        }
       }
-      fsCallTreeConstraintsArgs.push({
-        funcName: 'resetAllNode',
-        funcArgs: [],
-      });
-      this.getDataByWorker(fsCallTreeConstraintsArgs, (result: any[]): void => {
+      this.getDataByWorker(fsCallTreeFuncArgs, (result: any[]): void => {
         this.setLTableData(result);
         this.frameChart!.data = this.fsCallTreeDataSource;
         if (this.isChartShow) this.frameChart?.calculateChartData();
+        this.fsCallTreeTbl!.move1px();
+        if (this.fsCallTreeCurrentSelectedData) {
+          this.fsCallTreeCurrentSelectedData.isSelected = false;
+          this.fsCallTreeTbl?.clearAllSelection(this.fsCallTreeCurrentSelectedData);
+          this.fsCallTreeTbr!.recycleDataSource = [];
+          this.fsCallTreeCurrentSelectedData = undefined;
+        }
       });
-    });
-  }
-
-  private handleCallTreeData(): void {
+    };
+    this.fsCallTreeFilter!.getDataLibrary(filterFunc);
+    this.fsCallTreeFilter!.getDataMining(filterFunc);
     this.fsCallTreeFilter!.getCallTreeData((data: any): void => {
       if ([InvertOptionIndex, hideThreadOptionIndex, hideEventOptionIndex].includes(data.value)) {
         this.refreshAllNode({
@@ -459,116 +458,67 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         });
       }
     });
-  }
-
-  private performDataProcessing(fsCallTreeFuncArgs: any[]): void {
-    this.getDataByWorker(fsCallTreeFuncArgs, (result: any[]): void => {
-      this.setLTableData(result);
-      this.frameChart!.data = this.fsCallTreeDataSource;
-      if (this.isChartShow) this.frameChart?.calculateChartData();
-      this.fsCallTreeTbl!.move1px();
-      if (this.fsCallTreeCurrentSelectedData) {
-        this.fsCallTreeCurrentSelectedData.isSelected = false;
-        this.fsCallTreeTbl?.clearAllSelection(this.fsCallTreeCurrentSelectedData);
-        this.fsCallTreeTbr!.recycleDataSource = [];
-        this.fsCallTreeCurrentSelectedData = undefined;
-      }
-    });
-  }
-
-  private handleRestoreCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    if (data.remove !== undefined && data.remove.length > 0) {
-      let list = data.remove.map((item: any) => {
-        return item.name;
-      });
-      fsCallTreeFuncArgs.push({
-        funcName: 'resotreAllNode',
-        funcArgs: [list],
-      });
-      fsCallTreeFuncArgs.push({
-        funcName: 'resetAllNode',
-        funcArgs: [],
-      });
-      list.forEach((symbolName: string) => {
-        fsCallTreeFuncArgs.push({
+    this.fsCallTreeFilter!.getCallTreeConstraintsData((data: any) => {
+      let fsCallTreeConstraintsArgs: any[] = [
+        {
+          funcName: 'resotreAllNode',
+          funcArgs: [[this.fsCallTreeNumRuleName]],
+        },
+        {
           funcName: 'clearSplitMapData',
-          funcArgs: [symbolName],
+          funcArgs: [this.fsCallTreeNumRuleName],
+        },
+      ];
+      if (data.checked) {
+        fsCallTreeConstraintsArgs.push({
+          funcName: 'hideNumMaxAndMin',
+          funcArgs: [parseInt(data.min), data.max],
         });
-      });
-    }
-  }
-
-  private handleSelectType(fsCallTreeFuncArgs: any[], data: any): void {
-    fsCallTreeFuncArgs.push({
-      funcName: 'resotreAllNode',
-      funcArgs: [[data.item.name]],
-    });
-    fsCallTreeFuncArgs.push({
-      funcName: 'clearSplitMapData',
-      funcArgs: [data.item.name],
-    });
-    fsCallTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [data.item.name, data.item.select == '0', data.item.type == 'symbol'],
-    });
-  }
-
-  private handleCheckType(data: any, fsCallTreeFuncArgs: any[]): void {
-    if (data.item.checked) {
-      fsCallTreeFuncArgs.push({
-        funcName: 'splitTree',
-        funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
-      });
-    } else {
-      fsCallTreeFuncArgs.push({
-        funcName: 'resotreAllNode',
-        funcArgs: [[data.item.name]],
-      });
-      fsCallTreeFuncArgs.push({
+      }
+      fsCallTreeConstraintsArgs.push({
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      fsCallTreeFuncArgs.push({
-        funcName: 'clearSplitMapData',
-        funcArgs: [data.item.name],
+      this.getDataByWorker(fsCallTreeConstraintsArgs, (result: any[]): void => {
+        this.setLTableData(result);
+        this.frameChart!.data = this.fsCallTreeDataSource;
+        if (this.isChartShow) this.frameChart?.calculateChartData();
       });
-    }
-  }
-
-  private tbrRowClickEvent(): void {
-    this.fsCallTreeTbr!.addEventListener('row-click', (evt: any): void => {
-      // @ts-ignore
-      let data = evt.detail.data as FileMerageBean;
-      this.fsCallTreeTbl?.clearAllSelection(data);
-      (data as any).isSelected = true;
-      this.fsCallTreeTbl!.scrollToData(data);
-      // @ts-ignore
-      if ((evt.detail as any).callBack) {
-        // @ts-ignore
-        (evt.detail as any).callBack(true);
+    });
+    this.fsCallTreeFilter!.getFilterData((data: FilterData): void => {
+      if (this.searchValue != this.fsCallTreeFilter!.filterValue) {
+        this.searchValue = this.fsCallTreeFilter!.filterValue;
+        let fileArgs = [
+          {
+            funcName: 'setSearchValue',
+            funcArgs: [this.searchValue],
+          },
+          {
+            funcName: 'resetAllNode',
+            funcArgs: [],
+          },
+        ];
+        this.getDataByWorker(fileArgs, (result: any[]): void => {
+          this.fsCallTreeTbl!.isSearch = true;
+          this.fsCallTreeTbl!.setStatus(result, true);
+          this.setLTableData(result);
+          this.frameChart!.data = this.fsCallTreeDataSource;
+          this.switchFlameChart(data);
+        });
+      } else {
+        this.fsCallTreeTbl!.setStatus(this.fsCallTreeDataSource, true);
+        this.setLTableData(this.fsCallTreeDataSource);
+        this.switchFlameChart(data);
       }
     });
-  }
-
-  private tblRowClickEvent(): void {
-    this.fsCallTreeTbl!.addEventListener('row-click', (evt: any) => {
+    this.fsCallTreeTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
-      let data = evt.detail.data as FileMerageBean;
-      document.dispatchEvent(
-        new CustomEvent('number_calibration', {
-          detail: {time: data.tsArray, durations: data.durArray},
-        })
-      );
-      this.setRightTableData(data);
-      data.isSelected = true;
-      this.fsCallTreeCurrentSelectedData = data;
-      this.fsCallTreeTbr?.clearAllSelection(data);
-      this.fsCallTreeTbr?.setCurrentSelection(data);
+      this.fsCallTreeSortKey = evt.detail.key;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
-        // @ts-ignore
-        (evt.detail as any).callBack(true);
-      }
+      this.fsCallTreeSortType = evt.detail.sort;
+      // @ts-ignore
+      this.setLTableData(this.fsCallTreeDataSource);
+      this.frameChart!.data = this.fsCallTreeDataSource;
     });
   }
 
@@ -635,12 +585,24 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     let isHideEvent: boolean = filterData.callTree[2];
     let isHideThread: boolean = filterData.callTree[3];
     let list = filterData.dataMining.concat(filterData.dataLibrary);
-    fileSysCallTreeArgs.push({funcName: 'hideThread', funcArgs: [isHideThread],});
-    fileSysCallTreeArgs.push({funcName: 'hideEvent', funcArgs: [isHideEvent],});
-    fileSysCallTreeArgs.push({funcName: 'getCallChainsBySampleIds', funcArgs: [isTopDown, 'fileSystem'],});
+    fileSysCallTreeArgs.push({
+      funcName: 'hideThread',
+      funcArgs: [isHideThread],
+    });
+    fileSysCallTreeArgs.push({
+      funcName: 'hideEvent',
+      funcArgs: [isHideEvent],
+    });
+    fileSysCallTreeArgs.push({
+      funcName: 'getCallChainsBySampleIds',
+      funcArgs: [isTopDown, 'fileSystem'],
+    });
     this.fsCallTreeTbr!.recycleDataSource = [];
     if (isHideSystemLibrary) {
-      fileSysCallTreeArgs.push({funcName: 'hideSystemLibrary', funcArgs: [],});
+      fileSysCallTreeArgs.push({
+        funcName: 'hideSystemLibrary',
+        funcArgs: [],
+      });
     }
     if (filterData.callTreeConstraints.checked) {
       fileSysCallTreeArgs.push({
@@ -648,8 +610,14 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
-    fileSysCallTreeArgs.push({funcName: 'splitAllProcess', funcArgs: [list],});
-    fileSysCallTreeArgs.push({funcName: 'resetAllNode', funcArgs: [],});
+    fileSysCallTreeArgs.push({
+      funcName: 'splitAllProcess',
+      funcArgs: [list],
+    });
+    fileSysCallTreeArgs.push({
+      funcName: 'resetAllNode',
+      funcArgs: [],
+    });
     if (this._fsRowClickData && this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
       fileSysCallTreeArgs.push({
         funcName: 'showLibLevelData',

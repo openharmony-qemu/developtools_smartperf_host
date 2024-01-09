@@ -48,7 +48,10 @@ public:
     ThreadStateData* GetThreadStateData();
     SchedSlice* GetSchedSliceData();
     CpuMeasureFilter* GetCpuMeasuresData();
+    ThreadMeasureFilter* GetThreadMeasureFilterData();
+    ThreadMeasureFilter* GetThreadFilterData();
     Instants* GetInstantsData();
+    ProcessMeasureFilter* GetProcessFilterData();
     ProcessMeasureFilter* GetProcessMeasureFilterData();
     ClockEventData* GetClockEventFilterData();
     ClkEventData* GetClkEventFilterData();
@@ -77,6 +80,11 @@ public:
     FileSystemSample* GetFileSystemSample();
     EbpfCallStackData* GetEbpfCallStack();
     PagedMemorySampleData* GetPagedMemorySampleData();
+#ifdef WITH_EBPF_HELP
+    EbpfProcessMaps* GetEbpfProcessMaps();
+    EbpfElf* GetEbpfElf();
+    EbpfElfSymbol* GetEbpfElfSymbol();
+#endif
     HiSysEventSubkeys* GetHiSysEventSubkeysData();
     HiSysEventMeasureData* GetHiSysEventMeasureData();
     HiSysEventDeviceStateData* GetHiSysEventDeviceStateData();
@@ -103,7 +111,7 @@ public:
     JsCpuProfilerSample* GetJsCpuProfilerSampleData();
     JsConfig* GetJsConfigData();
     AppStartup* GetAppStartupData();
-    SoStaticInitalization* GetSoStaticInitalizationData();
+    SoStaticInitalization* GetStaticInitalizationData();
     Animation* GetAnimation();
     DeviceInfo* GetDeviceInfo();
     DynamicFrame* GetDynamicFrame();

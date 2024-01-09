@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuRender, EmptyRender } from './cpu/ProcedureWorkerCPU';
+import { CpuRender, EmptyRender } from './ProcedureWorkerCPU';
 import { RequestMessage } from './ProcedureWorkerCommon';
 import { FreqRender } from './ProcedureWorkerFreq';
 import { ProcessRender } from './ProcedureWorkerProcess';
@@ -26,22 +26,22 @@ import { CpuAbilityRender } from './ProcedureWorkerCpuAbility';
 import { MemoryAbilityRender } from './ProcedureWorkerMemoryAbility';
 import { DiskIoAbilityRender } from './ProcedureWorkerDiskIoAbility';
 import { NetworkAbilityRender } from './ProcedureWorkerNetworkAbility';
-import { HiperfCpuRender } from './hiperf/ProcedureWorkerHiPerfCPU';
-import { HiperfProcessRender } from './hiperf/ProcedureWorkerHiPerfProcess';
-import { HiperfThreadRender } from './hiperf/ProcedureWorkerHiPerfThread';
-import { HiperfEventRender } from './hiperf/ProcedureWorkerHiPerfEvent';
-import { HiperfReportRender } from './hiperf/ProcedureWorkerHiPerfReport';
+import { HiperfCpuRender } from './ProcedureWorkerHiPerfCPU';
+import { HiperfProcessRender } from './ProcedureWorkerHiPerfProcess';
+import { HiperfThreadRender } from './ProcedureWorkerHiPerfThread';
+import { HiperfEventRender } from './ProcedureWorkerHiPerfEvent';
+import { HiperfReportRender } from './ProcedureWorkerHiPerfReport';
 import { VirtualMemoryRender } from './ProcedureWorkerVirtualMemory';
 import { EBPFRender } from './ProcedureWorkerEBPF';
 import { info } from '../../../log/Log';
 import { SdkSliceRender } from './ProduceWorkerSdkSlice';
 import { SdkCounterRender } from './ProduceWorkerSdkCounter';
-import { CpuStateRender } from './cpu/ProcedureWorkerCpuState';
+import { CpuStateRender } from './ProcedureWorkerCpuState';
 import { EnergyAnomalyRender } from './ProcedureWorkerEnergyAnomaly';
 import { EnergySystemRender } from './ProcedureWorkerEnergySystem';
 import { EnergyPowerRender } from './ProcedureWorkerEnergyPower';
 import { EnergyStateRender } from './ProcedureWorkerEnergyState';
-import { CpuFreqLimitRender } from './cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitRender } from './ProcedureWorkerCpuFreqLimits';
 import { ClockRender } from './ProcedureWorkerClock';
 import { IrqRender } from './ProcedureWorkerIrq';
 import { JankRender } from './ProcedureWorkerJank';
@@ -56,14 +56,16 @@ import { FrameSpacingRender } from './ProcedureWorkerFrameSpacing';
 import { JsCpuProfilerRender } from './ProcedureWorkerCpuProfiler';
 import { SnapshotRender } from './ProcedureWorkerSnapshot';
 import { LogRender } from './ProcedureWorkerLog';
-import { HiPerfCallChartRender } from './hiperf/ProcedureWorkerHiPerfCallChart';
+import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart';
 import { HiSysEventRender } from './ProcedureWorkerHiSysEvent';
-import { HiperfCpuRender2 } from './hiperf/ProcedureWorkerHiPerfCPU2';
-import { HiperfProcessRender2 } from './hiperf/ProcedureWorkerHiPerfProcess2';
-import { HiperfThreadRender2 } from './hiperf/ProcedureWorkerHiPerfThread2';
+import { HiperfCpuRender2 } from './ProcedureWorkerHiPerfCPU2';
+import { HiperfProcessRender2 } from './ProcedureWorkerHiPerfProcess2';
+import { HiperfThreadRender2 } from './ProcedureWorkerHiPerfThread2';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
 import { BinderRender } from './procedureWorkerBinder';
+import { hitchTimeRender } from './ProcedureWorkerHitchTime';
+import { LtpoRender } from './ProcedureWorkerLTPO';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -84,6 +86,8 @@ export let renders: any = {
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
+  'ltpo-present': new LtpoRender(),
+  'hitch': new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -126,7 +130,18 @@ export let renders: any = {
   'freq-extend': new FreqExtendRender(),
   binder: new BinderRender(),
 };
-
+export interface StartUpStrut {
+  dur: number | undefined;
+  value: string | undefined;
+  startTs: number | undefined;
+  pid: number | undefined;
+  process: string | undefined;
+  itid: number | undefined;
+  endItid: number | undefined;
+  tid: number | undefined;
+  startName: number | undefined;
+  stepName: string | undefined;
+}
 function match(type: string, req: RequestMessage): void {
   Reflect.ownKeys(renders).filter((it) => {
     if (type.startsWith(it as string)) {

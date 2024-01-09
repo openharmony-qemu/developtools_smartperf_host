@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TraficEnum } from './utils/QueryEnum';
+import { TraficEnum } from './QueryEnum';
 
 export const chartHiSysEventDataSql = (args: any): string => {
   return `

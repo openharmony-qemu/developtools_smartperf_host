@@ -15,12 +15,12 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
+import { queryAllFuncNames, queryAllIrqNames, queryIrqData, queryIrqList } from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { IrqRender, IrqStruct } from '../../database/ui-worker/ProcedureWorkerIrq';
 import { irqDataSender } from '../../database/data-trafic/IrqDataSender';
-import {queryAllIrqNames, queryIrqList} from "../../database/sql/Irq.sql";
 
 export class SpIrqChart {
   private trace: SpSystemTrace;

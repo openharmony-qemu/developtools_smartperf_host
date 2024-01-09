@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { TraficEnum } from './utils/QueryEnum';
+import { TraficEnum } from './QueryEnum';
 
 export const systemDataSql = (args: any): string => {
   return `SELECT S.id,

@@ -144,9 +144,24 @@ CpuMeasureFilter* TraceDataCacheWriter::GetCpuMeasuresData()
     return &cpuMeasureData_;
 }
 
+ThreadMeasureFilter* TraceDataCacheWriter::GetThreadMeasureFilterData()
+{
+    return &threadMeasureFilterData_;
+}
+
+ThreadMeasureFilter* TraceDataCacheWriter::GetThreadFilterData()
+{
+    return &threadFilterData_;
+}
+
 Instants* TraceDataCacheWriter::GetInstantsData()
 {
     return &instantsData_;
+}
+
+ProcessMeasureFilter* TraceDataCacheWriter::GetProcessFilterData()
+{
+    return &processFilterData_;
 }
 
 ProcessMeasureFilter* TraceDataCacheWriter::GetProcessMeasureFilterData()
@@ -271,6 +286,20 @@ PagedMemorySampleData* TraceDataCacheWriter::GetPagedMemorySampleData()
 {
     return &pagedMemorySampleData_;
 }
+#if WITH_EBPF_HELP
+EbpfProcessMaps* TraceDataCacheWriter::GetEbpfProcessMaps()
+{
+    return &ebpfProcessMaps_;
+}
+EbpfElf* TraceDataCacheWriter::GetEbpfElf()
+{
+    return &ebpfElf_;
+}
+EbpfElfSymbol* TraceDataCacheWriter::GetEbpfElfSymbol()
+{
+    return &ebpfElfSymbol_;
+}
+#endif
 HiSysEventSubkeys* TraceDataCacheWriter::GetHiSysEventSubkeysData()
 {
     return &sysEventNameIds_;
@@ -377,9 +406,9 @@ AppStartup* TraceDataCacheWriter::GetAppStartupData()
 {
     return &appStartupData_;
 }
-SoStaticInitalization* TraceDataCacheWriter::GetSoStaticInitalizationData()
+SoStaticInitalization* TraceDataCacheWriter::GetStaticInitalizationData()
 {
-    return &soStaticInitalizationData_;
+    return &staticInitalizationData_;
 }
 Animation* TraceDataCacheWriter::GetAnimation()
 {
@@ -431,6 +460,9 @@ void TraceDataCacheWriter::Clear()
     processMeasureFilterData_.Clear();
     clockEventFilterData_.Clear();
     clkEventFilterData_.Clear();
+    processFilterData_.Clear();
+    threadMeasureFilterData_.Clear();
+    threadFilterData_.Clear();
     dataDict_.Clear();
 
     schedSliceData_.Clear();
@@ -479,10 +511,16 @@ void TraceDataCacheWriter::Clear()
     jsCpuProfilerSampleData_.Clear();
     jsConfigData_.Clear();
     appStartupData_.Clear();
-    soStaticInitalizationData_.Clear();
+    staticInitalizationData_.Clear();
     animation_.Clear();
     deviceInfo_.Clear();
     dynamicFrame_.Clear();
+
+#if WITH_EBPF_HELP
+    ebpfProcessMaps_.Clear();
+    ebpfElf_.Clear();
+    ebpfElfSymbol_.Clear();
+#endif
     sysEventNameIds_.Clear();
     sysEventMeasureData_.Clear();
     deviceStateData_.Clear();

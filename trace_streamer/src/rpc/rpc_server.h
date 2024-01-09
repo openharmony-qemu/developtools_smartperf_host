@@ -64,7 +64,7 @@ public:
                             uint32_t pageNum,
                             SplitFileCallBack splitFileCallBack);
     bool GetTimeSnap(std::string dataString);
-    const bool GetFfrtConvertStatus()
+    bool GetFfrtConvertStatus()
     {
         return ffrtConvertEnabled_;
     };

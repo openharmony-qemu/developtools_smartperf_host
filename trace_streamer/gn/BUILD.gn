@@ -140,6 +140,9 @@ config("default") {
   if (is_linux) {
     cflags += [ "-D is_linux" ]
   }
+  if (with_ebpf_help_table) {
+    cflags += [ "-D WITH_EBPF_HELP" ]
+  }
 }
 
 config("symbols") {

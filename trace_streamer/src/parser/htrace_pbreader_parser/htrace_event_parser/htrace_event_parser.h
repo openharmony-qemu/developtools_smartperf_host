@@ -100,6 +100,8 @@ private:
     bool SysEnterEvent(const EventInfo& event) const;
     bool SysExitEvent(const EventInfo& event) const;
     bool OomScoreAdjUpdate(const EventInfo& event) const;
+    bool SignalGenerateEvent(const EventInfo& event) const;
+    bool SignalDeleverEvent(const EventInfo& event) const;
     using FuncCall = std::function<bool(const EventInfo& event)>;
     std::map<uint32_t, FuncCall> eventToFunctionMap_ = {};
     std::unordered_set<uint32_t> tids_ = {};

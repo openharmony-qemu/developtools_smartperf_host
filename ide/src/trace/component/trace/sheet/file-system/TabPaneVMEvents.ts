@@ -21,7 +21,7 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 import { procedurePool } from '../../../../database/Procedure';
 import { VirtualMemoryEvent, VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
-import {getTabVirtualMemoryType} from "../../../../database/sql/Memory.sql";
+import { getTabVirtualMemoryType } from '../../../../database/SqlLite';
 
 @element('tabpane-virtualmemory-event')
 export class TabPaneVirtualMemoryEvents extends BaseElement {

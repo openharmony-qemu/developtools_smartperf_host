@@ -586,17 +586,17 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     return std::make_tuple(start, end);
 }
 
-void NativeHookFilter::FillOfflineSymbolizationFrames(
+inline void NativeHookFilter::FillOfflineSymbolizationFrames(
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
 {
     auto curCacheIpid = mapItor->second->back();
     stackIdToCallChainIdMap_.insert(std::make_pair(mapItor->first, ++callChainId_));
     auto framesInfo = OfflineSymbolization(mapItor->second);
     uint16_t depth = 0;
+    uint64_t filePathIndex = INVALID_UINT64;
     if (isSingleProcData_) {
         curCacheIpid = SINGLE_PROC_IPID;
     }
-    uint64_t filePathIndex;
     for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
         // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
         auto frameInfo = itor->get();
@@ -776,9 +776,6 @@ void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>
 
     auto symEntrySize = reader->sym_entry_size();
     auto symTable = reader->sym_table();
-    if (symEntrySize == 0) {
-        return;
-    }
     auto size = symTable.Size() / symEntrySize;
     if (symEntrySize == ELF32_SYM) {
         UpdateSymbolTablePtrAndStValueToSymAddrMap(reinterpret_cast<const Elf32_Sym*>(symTable.Data()), size, reader);

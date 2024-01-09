@@ -124,15 +124,70 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.checkBoxs = popover!.querySelectorAll<LitCheckBox>('.check-wrap > lit-check-box');
     this.fsTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
     for (let fsTable of this.fsTableArray) {
-      this.columnClickListeners(fsTable);
+      fsTable!.addEventListener('column-click', (evt) => {
+        // @ts-ignore
+        this.fsSortColumn = evt.detail.key;
+        // @ts-ignore
+        this.fsSortType = evt.detail.sort;
+        this.sortByColumn();
+      });
       fsTable!.addEventListener('contextmenu', function (event) {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
       });
-      this.initTableRowHoverListeners(fsTable);
-      this.initTableRowClickListeners(fsTable);
+      fsTable!.addEventListener('row-hover', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.data) {
+          let tableData = detail.data;
+          tableData.isHover = true;
+          if (detail.callBack) {
+            detail.callBack(true);
+          }
+        }
+        this.fsPieChart?.showHover();
+        this.fsPieChart?.hideTip();
+      });
+      fsTable!.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.button === 2) {
+          let fsTab = this.parentElement?.parentElement?.querySelector<TabpaneFilesystemCalltree>(
+            '#box-file-system-calltree > tabpane-filesystem-calltree'
+          );
+          fsTab!.cWidth = this.clientWidth;
+          fsTab!.currentFsCallTreeLevel = this.currentLevel;
+          if (this.hideProcessCheckBox?.checked) {
+            detail.data.pid = undefined;
+          }
+          if (this.hideThreadCheckBox?.checked) {
+            detail.data.tid = undefined;
+          }
+          fsTab!.fsRowClickData = detail.data;
+          let title = '';
+          if (this.titleEl?.textContent === '') {
+            title = detail.data.tableName;
+          } else {
+            title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+          }
+          fsTab!.pieTitle = title;
+          //  是否是在表格上右键点击跳转到火焰图的
+          this.fsCurrentSelection!.isRowClick = true;
+          fsTab!.data = this.fsCurrentSelection;
+        }
+      });
     }
     for (let box of this.checkBoxs) {
-      this.checkBoxListener(box);
+      box!.addEventListener('change', (event) => {
+        if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
+          this.hideThread();
+          this.fsBack!.style.visibility = 'hidden';
+        } else if (this.hideProcessCheckBox!.checked && !this.hideThreadCheckBox!.checked) {
+          this.hideProcess();
+        } else {
+          this.reset(this.fileStatisticsAnalysisTableProcess!, false);
+          this.getFilesystemProcess(this.fileStatisticsAnalysisProcessData);
+        }
+      });
     }
     const addRowClickEventListener = (fsTable: LitTable, clickEvent: Function) => {
       fsTable.addEventListener('row-click', (evt) => {
@@ -143,81 +198,11 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
       });
     };
+
     addRowClickEventListener(this.fileStatisticsAnalysisTableProcess!, this.fileProcessLevelClickEvent.bind(this));
     addRowClickEventListener(this.fileStatisticsAnalysisTableType!, this.fileTypeLevelClickEvent.bind(this));
     addRowClickEventListener(this.fileStatisticsAnalysisTableThread!, this.fileThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.fileStatisticsAnalysisTableSo!, this.fileSoLevelClickEvent.bind(this));
-  }
-
-  private checkBoxListener(box: LitCheckBox): void {
-    box!.addEventListener('change', (event) => {
-      if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
-        this.hideThread();
-        this.fsBack!.style.visibility = 'hidden';
-      } else if (this.hideProcessCheckBox!.checked && !this.hideThreadCheckBox!.checked) {
-        this.hideProcess();
-      } else {
-        this.reset(this.fileStatisticsAnalysisTableProcess!, false);
-        this.getFilesystemProcess(this.fileStatisticsAnalysisProcessData);
-      }
-    });
-  }
-
-  private initTableRowClickListeners(fsTable: LitTable): void {
-    fsTable!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let detail = evt.detail;
-      if (detail.button === 2) {
-        let fsTab = this.parentElement?.parentElement?.querySelector<TabpaneFilesystemCalltree>(
-          '#box-file-system-calltree > tabpane-filesystem-calltree'
-        );
-        fsTab!.cWidth = this.clientWidth;
-        fsTab!.currentFsCallTreeLevel = this.currentLevel;
-        if (this.hideProcessCheckBox?.checked) {
-          detail.data.pid = undefined;
-        }
-        if (this.hideThreadCheckBox?.checked) {
-          detail.data.tid = undefined;
-        }
-        fsTab!.fsRowClickData = detail.data;
-        let title = '';
-        if (this.titleEl?.textContent === '') {
-          title = detail.data.tableName;
-        } else {
-          title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
-        }
-        fsTab!.pieTitle = title;
-        //  是否是在表格上右键点击跳转到火焰图的
-        this.fsCurrentSelection!.isRowClick = true;
-        fsTab!.data = this.fsCurrentSelection;
-      }
-    });
-  }
-
-  private initTableRowHoverListeners(fsTable: LitTable): void {
-    fsTable!.addEventListener('row-hover', (evt) => {
-      // @ts-ignore
-      let detail = evt.detail;
-      if (detail.data) {
-        let tableData = detail.data;
-        tableData.isHover = true;
-        if (detail.callBack) {
-          detail.callBack(true);
-        }
-      }
-      this.fsPieChart?.showHover();
-      this.fsPieChart?.hideTip();
-    });
-  }
-
-  private columnClickListeners(fsTable: LitTable): void {
-    fsTable!.addEventListener('column-click', (evt) => {
-      // @ts-ignore
-      this.fsSortColumn = evt.detail.key;
-      // @ts-ignore
-      this.fsSortType = evt.detail.sort;
-      this.sortByColumn();
-    });
   }
 
   private reset(showTable: LitTable, isShowBack: boolean): void {

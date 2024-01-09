@@ -18,13 +18,13 @@ import { LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { GpuMemoryComparison } from '../../../../bean/AbilityMonitor';
+import { getTabGpuMemoryComparisonData } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
 import { compare, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import {getTabGpuMemoryComparisonData} from "../../../../database/sql/Ability.sql";
 
 @element('tabpane-gpu-memory-comparison')
 export class TabPaneGpuMemoryComparison extends BaseElement {

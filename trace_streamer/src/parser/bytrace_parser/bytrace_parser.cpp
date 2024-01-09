@@ -27,8 +27,8 @@
 namespace SysTuning {
 namespace TraceStreamer {
 BytraceParser::BytraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters, TraceFileType fileType)
-    : ParserBase(filters),
-      fileType_(fileType),
+    : fileType_(fileType),
+      ParserBase(filters),
       traceDataCache_(dataCache),
       eventParser_(std::make_unique<BytraceEventParser>(dataCache, filters)),
       hilogParser_(std::make_unique<BytraceHilogParser>(dataCache, filters)),

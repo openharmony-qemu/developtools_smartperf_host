@@ -14,6 +14,7 @@
  */
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
+import { queryVmTrackerShmSelectionData } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
@@ -22,7 +23,6 @@ import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { resizeObserverFromMemory } from '../SheetUtils';
-import {queryVmTrackerShmSelectionData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-vmtracker-shm-comparison')
 export class TabPaneVmTrackerShmComparison extends BaseElement {

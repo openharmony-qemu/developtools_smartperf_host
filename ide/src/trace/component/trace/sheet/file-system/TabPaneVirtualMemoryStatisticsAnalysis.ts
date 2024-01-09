@@ -129,15 +129,70 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.checkBoxs = popover!.querySelectorAll<LitCheckBox>('.check-wrap > lit-check-box');
     this.vmTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
     for (let vmTable of this.vmTableArray) {
-      this.columnClickEvent(vmTable);
+      vmTable!.addEventListener('column-click', (evt) => {
+        // @ts-ignore
+        this.vmSortColumn = evt.detail.key;
+        // @ts-ignore
+        this.vmSortType = evt.detail.sort;
+        this.sortByColumn();
+      });
       vmTable!.addEventListener('contextmenu', function (event) {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
       });
-      this.rowHoverEvent(vmTable);
-      this.rowClickEvent(vmTable);
+      vmTable!.addEventListener('row-hover', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.data) {
+          let tableData = detail.data;
+          tableData.isHover = true;
+          if (detail.callBack) {
+            detail.callBack(true);
+          }
+        }
+        this.vmPieChart?.showHover();
+        this.vmPieChart?.hideTip();
+      });
+      vmTable!.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.button === 2) {
+          let vmTab = this.parentElement?.parentElement?.querySelector<TabPaneVMCallTree>(
+            '#box-vm-calltree > tabpane-vm-calltree'
+          );
+          vmTab!.cWidth = this.clientWidth;
+          vmTab!.currentCallTreeLevel = this.currentLevel;
+          if (this.hideProcessCheckBox?.checked) {
+            detail.data.pid = undefined;
+          }
+          if (this.hideThreadCheckBox?.checked) {
+            detail.data.tid = undefined;
+          }
+          vmTab!.rowClickData = detail.data;
+          let title = '';
+          if (this.titleEl?.textContent === '') {
+            title = detail.data.tableName;
+          } else {
+            title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+          }
+          vmTab!.pieTitle = title;
+          //  是否是在表格上右键点击跳转到火焰图的
+          this.vmCurrentSelection!.isRowClick = true;
+          vmTab!.data = this.vmCurrentSelection;
+        }
+      });
     }
     for (let box of this.checkBoxs) {
-      this.checkBoxEvent(box);
+      box!.addEventListener('change', (event) => {
+        if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
+          this.hideThread();
+          this.vmBack!.style.visibility = 'hidden';
+        } else if (this.hideProcessCheckBox!.checked && !this.hideThreadCheckBox!.checked) {
+          this.hideProcess();
+        } else {
+          this.reset(this.vmStatisticsAnalysisTableProcess!, false);
+          this.getVirtualMemoryProcess(this.vmStatisticsAnalysisProcessData);
+        }
+      });
     }
     const addRowClickEventListener = (vmTable: LitTable, clickEvent: Function) => {
       vmTable.addEventListener('row-click', (evt) => {
@@ -153,77 +208,6 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     addRowClickEventListener(this.vmStatisticsAnalysisTableType!, this.vmTypeLevelClickEvent.bind(this));
     addRowClickEventListener(this.vmStatisticsAnalysisTableThread!, this.vmThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.vmStatisticsAnalysisTableSo!, this.vmSoLevelClickEvent.bind(this));
-  }
-
-  private columnClickEvent(vmTable: LitTable): void {
-    vmTable!.addEventListener('column-click', (evt) => {
-      // @ts-ignore
-      this.vmSortColumn = evt.detail.key;
-      // @ts-ignore
-      this.vmSortType = evt.detail.sort;
-      this.sortByColumn();
-    });
-  }
-
-  private checkBoxEvent(box: LitCheckBox): void {
-    box!.addEventListener('change', (event) => {
-      if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
-        this.hideThread();
-        this.vmBack!.style.visibility = 'hidden';
-      } else if (this.hideProcessCheckBox!.checked && !this.hideThreadCheckBox!.checked) {
-        this.hideProcess();
-      } else {
-        this.reset(this.vmStatisticsAnalysisTableProcess!, false);
-        this.getVirtualMemoryProcess(this.vmStatisticsAnalysisProcessData);
-      }
-    });
-  }
-
-  private rowClickEvent(vmTable: LitTable) {
-    vmTable!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let detail = evt.detail;
-      if (detail.button === 2) {
-        let vmTab = this.parentElement?.parentElement?.querySelector<TabPaneVMCallTree>(
-          '#box-vm-calltree > tabpane-vm-calltree'
-        );
-        vmTab!.cWidth = this.clientWidth;
-        vmTab!.currentCallTreeLevel = this.currentLevel;
-        if (this.hideProcessCheckBox?.checked) {
-          detail.data.pid = undefined;
-        }
-        if (this.hideThreadCheckBox?.checked) {
-          detail.data.tid = undefined;
-        }
-        vmTab!.rowClickData = detail.data;
-        let title = '';
-        if (this.titleEl?.textContent === '') {
-          title = detail.data.tableName;
-        } else {
-          title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
-        }
-        vmTab!.pieTitle = title;
-        //  是否是在表格上右键点击跳转到火焰图的
-        this.vmCurrentSelection!.isRowClick = true;
-        vmTab!.data = this.vmCurrentSelection;
-      }
-    });
-  }
-
-  private rowHoverEvent(vmTable: LitTable): void {
-    vmTable!.addEventListener('row-hover', (evt) => {
-      // @ts-ignore
-      let detail = evt.detail;
-      if (detail.data) {
-        let tableData = detail.data;
-        tableData.isHover = true;
-        if (detail.callBack) {
-          detail.callBack(true);
-        }
-      }
-      this.vmPieChart?.showHover();
-      this.vmPieChart?.hideTip();
-    });
   }
 
   private reset(showTable: LitTable, isShowBack: boolean): void {

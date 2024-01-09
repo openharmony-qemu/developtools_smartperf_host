@@ -41,8 +41,8 @@ private:
     static bool IsValidKernelSymbol(const KernelSymbol& symbol);
 
 private:
-    TraceDataCache* traceDataCache_;
     const TraceStreamerFilters* streamFilters_;
+    TraceDataCache* traceDataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

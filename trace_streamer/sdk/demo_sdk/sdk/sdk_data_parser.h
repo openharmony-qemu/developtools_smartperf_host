@@ -34,7 +34,7 @@ class SDKDataParser : public HtracePluginTimeParser {
 public:
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
     using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int32_t, int32_t)>;
-    explicit SDKDataParser(TraceDataCache* dataCache);
+    SDKDataParser(TraceDataCache* dataCache);
     ~SDKDataParser(){};
 
     // third_party

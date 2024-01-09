@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {TraficEnum} from './utils/QueryEnum';
-import {filterDataByGroup} from './utils/DataFilter';
-import {cpuList} from './utils/AllMemoryCache';
+import {TraficEnum} from './QueryEnum';
+import {filterDataByGroup} from './DataFilter';
+import {cpuList} from './AllMemoryCache';
 
 export const chartCpuDataProtoSql = (args: any): string => {
   return `
@@ -54,9 +54,6 @@ export function cpuDataReceiver(data: any, proc: Function): void {
     let res: any[], list: any[];
     if (!cpuList.has(data.params.cpu)) {
       list = proc(chartCpuDataProtoSqlMem(data.params));
-      if (data.params.cpu === 0) {
-        console.log(list);
-      }
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur == -1) {
           list[i].nofinish = 1;

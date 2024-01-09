@@ -19,8 +19,8 @@ import { SelectionParam } from '../../../../bean/BoxSelection';
 import { resizeObserver } from '../SheetUtils';
 import { procedurePool } from '../../../../database/Procedure';
 import { Utils } from '../../base/Utils';
+import { queryThreadStateArgsByName } from '../../../../database/SqlLite';
 import { Priority } from '../../../../bean/StateProcessThread';
-import {queryThreadStateArgsByName} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-sched-priority')
 export class TabPaneSchedPriority extends BaseElement {

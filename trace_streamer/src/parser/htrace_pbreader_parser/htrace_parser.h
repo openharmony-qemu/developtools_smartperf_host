@@ -61,7 +61,7 @@ public:
     bool ReparseSymbolFilesAndResymbolization(std::string& symbolsPath, std::vector<std::string>& symbolsPaths);
     void WaitForParserEnd();
     void EnableFileSeparate(bool enabled);
-    void ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths);
+    void ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths);
     void TraceDataSegmentEnd(bool isSplitFile);
     void StoreTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, int32_t isFinish);
     const auto& GetTraceDataHtrace()
@@ -163,9 +163,9 @@ private:
     std::unique_ptr<HtraceJSMemoryParser> jsMemoryParser_;
     std::unique_ptr<PerfDataParser> perfDataParser_;
     std::unique_ptr<EbpfDataParser> ebpfDataParser_;
-    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     std::atomic<bool> filterThreadStarted_{false};
     const int32_t maxSegArraySize = 10000;
+    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     int32_t rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;

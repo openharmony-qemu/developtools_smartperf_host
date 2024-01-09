@@ -17,11 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
+import { getTabThreadStatesDetail } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { StackBar } from '../../../StackBar';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import {getTabThreadStatesDetail} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {

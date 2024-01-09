@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits';
 import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
 import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
 import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';

@@ -15,15 +15,16 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import {
+  getTabSmapsMaxSize,
+  getTabSmapsStatisticData,
+  getTabSmapsStatisticMaxSize,
+  getTabSmapsStatisticSelectData,
+} from '../../../../database/SqlLite';
 import { type Smaps, SmapsTreeObj, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import {
-  getTabSmapsMaxSize, getTabSmapsStatisticData,
-  getTabSmapsStatisticMaxSize,
-  getTabSmapsStatisticSelectData
-} from "../../../../database/sql/Smaps.sql";
 @element('tabpane-smaps-statistics')
 export class TabPaneSmapsStatistics extends BaseElement {
   private tblSmapsStatistics: LitTable | null | undefined;

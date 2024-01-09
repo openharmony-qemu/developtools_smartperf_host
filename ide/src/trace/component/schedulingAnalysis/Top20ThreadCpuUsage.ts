@@ -122,10 +122,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
       this.cpuSetting!.style.display = 'inline';
       this.cpuSetting?.init();
     });
-    this.tabListener();
-  }
 
-  private tabListener(): void {
     for (let key of this.map!.keys()) {
       let tab = this.map!.get(key)!.table;
       let chart = this.map!.get(key)!.chart;
@@ -182,7 +179,6 @@ export class Top20ThreadCpuUsage extends BaseElement {
         }
       };
     }
-
     let type = 'number';
 
     if (detail.key === 'bigTimeStr') {
@@ -246,7 +242,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  queryData(): void {
+  queryData() {
     this.progress!.loading = true;
     this.queryLogicWorker(`scheduling-Thread CpuUsage`, `query Thread Cpu Usage Analysis Time:`, (res) => {
       this.nodata!.noData = res.keys().length === 0;
@@ -281,58 +277,39 @@ export class Top20ThreadCpuUsage extends BaseElement {
           }
           return data;
         });
-        this.setChartConfig(obj, key, source);
-        this.assignmentData(key, source, obj);
-      }
-      this.progress!.loading = false;
-    });
-  }
-
-  private assignmentData(key: string, source: any[], obj: { chart: LitChartColumn; table: LitTable }): void {
-    if (key == 'total') {
-      this.data = source;
-    } else if (key == 'small') {
-      this.dataSmall = source;
-    } else if (key == 'mid') {
-      this.dataMid = source;
-    } else if (key == 'big') {
-      this.dataBig = source;
-    }
-    if (this.sort[key].key != '') {
-      this.sortByColumn(this.sort[key], obj.table, source);
-    } else {
-      obj.table.recycleDataSource = source;
-    }
-  }
-
-  private setChartConfig(obj: { chart: LitChartColumn; table: LitTable }, key: string, source: any[]): void {
-    obj.chart.config = {
-      data: this.getArrayDataBySize(key, source),
-      appendPadding: 10,
-      xField: 'tid',
-      yField: 'total',
-      seriesField: key === 'total' ? 'size' : '',
-      color: (a) => {
-        if (a.size === 'big core') {
-          return '#2f72f8';
-        } else if (a.size === 'middle core') {
-          return '#ffab67';
-        } else if (a.size === 'small core') {
-          return '#a285d2';
-        } else {
-          return '#0a59f7';
-        }
-      },
-      hoverHandler: (no) => {
-        this.setHover(source, no, obj);
-      },
-      tip: (a) => {
-        if (a && a[0]) {
-          let tip = '';
-          let total = 0;
-          for (let obj of a) {
-            total += obj.obj.total;
-            tip = `${tip}
+        obj.chart.config = {
+          data: this.getArrayDataBySize(key, source),
+          appendPadding: 10,
+          xField: 'tid',
+          yField: 'total',
+          seriesField: key === 'total' ? 'size' : '',
+          color: (a) => {
+            if (a.size === 'big core') {
+              return '#2f72f8';
+            } else if (a.size === 'middle core') {
+              return '#ffab67';
+            } else if (a.size === 'small core') {
+              return '#a285d2';
+            } else {
+              return '#0a59f7';
+            }
+          },
+          hoverHandler: (no) => {
+            let data = source.find((it) => it.no === no);
+            if (data) {
+              data.isHover = true;
+              obj.table!.setCurrentHover(data);
+            } else {
+              obj.table!.mouseOut();
+            }
+          },
+          tip: (a) => {
+            if (a && a[0]) {
+              let tip = '';
+              let total = 0;
+              for (let obj of a) {
+                total += obj.obj.total;
+                tip = `${tip}
                                 <div style="display:flex;flex-direction: row;align-items: center;">
                                     <div style="width: 10px;height: 5px;background-color: ${
                                       obj.color
@@ -340,29 +317,36 @@ export class Top20ThreadCpuUsage extends BaseElement {
                                     <div>${obj.type || key}:${obj.obj.timeStr}</div>
                                 </div>
                             `;
-          }
-          tip = `<div>
+              }
+              tip = `<div>
                                         <div>tid:${a[0].obj.tid}</div>
                                         ${tip}
                                         ${a.length > 1 ? `<div>total:${getProbablyTime(total)}</div>` : ''}
                                     </div>`;
-          return tip;
-        } else {
-          return '';
+              return tip;
+            } else {
+              return '';
+            }
+          },
+          label: null,
+        };
+        if (key == 'total') {
+          this.data = source;
+        } else if (key == 'small') {
+          this.dataSmall = source;
+        } else if (key == 'mid') {
+          this.dataMid = source;
+        } else if (key == 'big') {
+          this.dataBig = source;
         }
-      },
-      label: null,
-    };
-  }
-
-  private setHover(source: any[], no: number, obj: { chart: LitChartColumn; table: LitTable }): void {
-    let data = source.find((it) => it.no === no);
-    if (data) {
-      data.isHover = true;
-      obj.table!.setCurrentHover(data);
-    } else {
-      obj.table!.mouseOut();
-    }
+        if (this.sort[key].key != '') {
+          this.sortByColumn(this.sort[key], obj.table, source);
+        } else {
+          obj.table.recycleDataSource = source;
+        }
+      }
+      this.progress!.loading = false;
+    });
   }
 
   getArrayDataBySize(type: string, arr: Array<any>) {

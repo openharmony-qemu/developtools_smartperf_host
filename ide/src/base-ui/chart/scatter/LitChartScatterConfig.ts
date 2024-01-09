@@ -19,7 +19,7 @@ export interface LitChartScatterConfig {
   // x轴坐标数组
   xAxisLabel: Array<number>;
   // 坐标轴名称
-  AxisLabel: Array<string>;
+  axisLabel: Array<string>;
   // 用于判断是否绘制负载线及均衡线
   drawload: boolean;
   // 用于存放最大负载线及均衡线的参数值

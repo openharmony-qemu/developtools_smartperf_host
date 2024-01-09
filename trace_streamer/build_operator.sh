@@ -26,7 +26,7 @@ if [ "$#" -ge "7" ];then
     if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
         [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
         [ "$target" != "test" ] && [ "$target" != "spb" ] && [ "$target" != "fuzz" ] &&
-        [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "sdkdemotest" ];then
+        [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "dubaisdk" ] && [ "$target" != "sdkdemotest" ];then
         echo "failed"
         exit
     fi

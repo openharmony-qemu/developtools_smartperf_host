@@ -15,50 +15,45 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import {
-  VirtualMemoryRender,
-  VirtualMemoryStruct
-} from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
+import { queryVirtualMemory } from '../../database/SqlLite';
+import { VirtualMemoryRender, VirtualMemoryStruct } from '../../database/ui-worker/ProcedureWorkerVirtualMemory';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { virtualMemoryDataSender } from '../../database/data-trafic/VirtualMemoryDataSender';
-import { queryVirtualMemory } from '../../database/sql/Memory.sql';
-import { NUM_16 } from '../../bean/NumBean';
-import { BaseStruct } from '../../bean/BaseStruct';
 
 export class SpVirtualMemChart {
-  trace: SpSystemTrace;
+  private trace: SpSystemTrace;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
   }
 
-  async init(): Promise<void> {
+  async init() {
     let array = await queryVirtualMemory();
-    if (array.length === 0) {
+    if (array.length == 0) {
       return;
     }
     let vmFolder = TraceRow.skeleton();
-    vmFolder.rowId = 'VirtualMemory';
+    vmFolder.rowId = `VirtualMemory`;
     vmFolder.index = 0;
     vmFolder.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY_GROUP;
     vmFolder.rowParentId = '';
     vmFolder.folder = true;
-    vmFolder.name = 'Virtual Memory';
+    vmFolder.name = `Virtual Memory`;
     vmFolder.style.height = '40px';
     vmFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     vmFolder.selectChangeHandler = this.trace.selectChangeHandler;
-    vmFolder.supplier = async (): Promise<BaseStruct[]> => new Promise<[]>((resolve) => resolve([]));
-    vmFolder.onThreadHandler = (useCache): void => {
+    vmFolder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+    vmFolder.onThreadHandler = (useCache) => {
       vmFolder.canvasSave(this.trace.canvasPanelCtx!);
       if (vmFolder.expansion) {
         this.trace.canvasPanelCtx?.clearRect(0, 0, vmFolder.frame.width, vmFolder.frame.height);
       } else {
-        (renders.empty as EmptyRender).renderMainThread(
+        (renders['empty'] as EmptyRender).renderMainThread(
           {
             context: this.trace.canvasPanelCtx,
             useCache: useCache,
-            type: '',
+            type: ``,
           },
           vmFolder
         );
@@ -66,40 +61,21 @@ export class SpVirtualMemChart {
       vmFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
     this.trace.rowsEL?.appendChild(vmFolder);
-    array.forEach((it) => this.initVirtualMemoryRow(vmFolder, it.id, it.name));
+    array.forEach((it, idx) => this.initVirtualMemoryRow(vmFolder, it.id, it.name, idx));
   }
 
-  private initVirtualMemoryChartRow(
-    id: number,
-    folder: TraceRow<BaseStruct>,
-    name: string
-  ): TraceRow<VirtualMemoryStruct> {
+  initVirtualMemoryRow(folder: TraceRow<any>, id: number, name: string, idx: number) {
     let virtualMemoryRow = TraceRow.skeleton<VirtualMemoryStruct>();
     virtualMemoryRow.rowId = `${id}`;
     virtualMemoryRow.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY;
     virtualMemoryRow.rowParentId = folder.rowId;
     virtualMemoryRow.rowHidden = !folder.expansion;
     virtualMemoryRow.style.height = '40px';
-    virtualMemoryRow.name = `${name.substring(NUM_16)}`;
+    virtualMemoryRow.name = `${name.substring(16)}`;
     virtualMemoryRow.setAttribute('children', '');
     virtualMemoryRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     virtualMemoryRow.selectChangeHandler = this.trace.selectChangeHandler;
-    virtualMemoryRow.focusHandler = (): void => {
-      this.trace?.displayTip(
-        virtualMemoryRow,
-        VirtualMemoryStruct.hoverStruct,
-        `<span>value:${VirtualMemoryStruct.hoverStruct?.value}</span>`
-      );
-    };
-    virtualMemoryRow.findHoverStruct = (): void => {
-      VirtualMemoryStruct.hoverStruct = virtualMemoryRow.getHoverStruct();
-    };
-    return virtualMemoryRow;
-  }
-
-  initVirtualMemoryRow(folder: TraceRow<BaseStruct>, id: number, name: string): void {
-    let virtualMemoryRow = this.initVirtualMemoryChartRow(id, folder, name);
-    virtualMemoryRow.supplierFrame = async (): Promise<VirtualMemoryStruct[]> =>
+    virtualMemoryRow.supplierFrame = () =>
       virtualMemoryDataSender(id, virtualMemoryRow).then((resultVm) => {
         let maxValue = 0;
         if (!virtualMemoryRow.isComplete) {
@@ -112,7 +88,7 @@ export class SpVirtualMemChart {
           } else {
             resultVm[j].maxValue = Number(virtualMemoryRow.getAttribute('maxValue'));
           }
-          if (j === resultVm.length - 1) {
+          if (j == resultVm.length - 1) {
             resultVm[j].duration = (TraceRow.range?.totalNS || 0) - (resultVm[j].startTime || 0);
           } else {
             resultVm[j].duration = (resultVm[j + 1].startTime || 0) - (resultVm[j].startTime || 0);
@@ -125,7 +101,17 @@ export class SpVirtualMemChart {
         }
         return resultVm;
       });
-    virtualMemoryRow.onThreadHandler = (useCache): void => {
+    virtualMemoryRow.focusHandler = () => {
+      this.trace?.displayTip(
+        virtualMemoryRow,
+        VirtualMemoryStruct.hoverStruct,
+        `<span>value:${VirtualMemoryStruct.hoverStruct?.value}</span>`
+      );
+    };
+    virtualMemoryRow.findHoverStruct = () => {
+      VirtualMemoryStruct.hoverStruct = virtualMemoryRow.getHoverStruct();
+    };
+    virtualMemoryRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;
       if (virtualMemoryRow.currentContext) {
         context = virtualMemoryRow.currentContext;

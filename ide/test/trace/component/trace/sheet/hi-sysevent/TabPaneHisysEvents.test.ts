@@ -94,7 +94,6 @@ describe('TabPaneHisysEvents Test', () => {
   });
   it('TabPaneHisysEvents03', () => {
     let tabPaneHisysEvents = new TabPaneHisysEvents();
-    tabPaneHisysEvents.refreshEventsTitle = jest.fn();
     expect(tabPaneHisysEvents.updateData()).toBeUndefined();
   });
   it('TabPaneHisysEvents04', () => {

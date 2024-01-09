@@ -16,9 +16,9 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPaneFilesystemStatistics } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import {getTabPaneFilesystemStatistics} from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-file-statistics')
 export class TabPaneFileStatistics extends BaseElement {
@@ -117,7 +117,48 @@ export class TabPaneFileStatistics extends BaseElement {
         avgDuration: '',
         children: [],
       };
-      this.handleResult(result, fileStatisticsFatherMap, fileStatisticsAllNode);
+      result.forEach((item, idx) => {
+        if (fileStatisticsFatherMap.has(item.type)) {
+          let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);
+          fileStatisticsObj.count += item.count;
+          fileStatisticsObj.logicalReads += item.logicalReads;
+          fileStatisticsObj.logicalWrites += item.logicalWrites;
+          fileStatisticsObj.otherFile += item.otherFile;
+          fileStatisticsObj.allDuration += item.allDuration;
+          fileStatisticsObj.minDuration =
+            fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration;
+          fileStatisticsObj.maxDuration =
+            fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration;
+          fileStatisticsObj.children.push(this.getInitData(item));
+        } else {
+          fileStatisticsFatherMap.set(item.type, {
+            type: item.type,
+            count: item.count,
+            logicalReads: item.logicalReads,
+            logicalWrites: item.logicalWrites,
+            otherFile: item.otherFile,
+            allDuration: item.allDuration,
+            minDuration: item.minDuration,
+            maxDuration: item.maxDuration,
+            children: [this.getInitData(item)],
+          });
+        }
+        if (idx == 0) {
+          fileStatisticsAllNode.minDuration = item.minDuration;
+        } else {
+          fileStatisticsAllNode.minDuration =
+            fileStatisticsAllNode.minDuration <= item.minDuration
+              ? fileStatisticsAllNode.minDuration
+              : item.minDuration;
+        }
+        fileStatisticsAllNode.count += item.count;
+        fileStatisticsAllNode.logicalReads += item.logicalReads;
+        fileStatisticsAllNode.logicalWrites += item.logicalWrites;
+        fileStatisticsAllNode.otherFile += item.otherFile;
+        fileStatisticsAllNode.allDuration += item.allDuration;
+        fileStatisticsAllNode.maxDuration =
+          fileStatisticsAllNode.maxDuration >= item.maxDuration ? fileStatisticsAllNode.maxDuration : item.maxDuration;
+      });
       fileStatisticsFatherMap.forEach((item) => {
         item.avgDuration = item.allDuration / item.count;
         let node = this.getInitData(item);
@@ -136,51 +177,6 @@ export class TabPaneFileStatistics extends BaseElement {
       if (this.fileStatisticsSortType != 0 && result.length > 0)
         this.sortTable(newSource[0], this.fileStatisticsSortKey);
       this.fileStatisticsTbl!.recycleDataSource = newSource;
-    });
-  }
-
-  private handleResult(result: Array<any>, fileStatisticsFatherMap: Map<any, any>, fileStatisticsAllNode: any): void {
-    result.forEach((item, idx) => {
-      if (fileStatisticsFatherMap.has(item.type)) {
-        let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);
-        fileStatisticsObj.count += item.count;
-        fileStatisticsObj.logicalReads += item.logicalReads;
-        fileStatisticsObj.logicalWrites += item.logicalWrites;
-        fileStatisticsObj.otherFile += item.otherFile;
-        fileStatisticsObj.allDuration += item.allDuration;
-        fileStatisticsObj.minDuration =
-          fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration;
-        fileStatisticsObj.maxDuration =
-          fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration;
-        fileStatisticsObj.children.push(this.getInitData(item));
-      } else {
-        fileStatisticsFatherMap.set(item.type, {
-          type: item.type,
-          count: item.count,
-          logicalReads: item.logicalReads,
-          logicalWrites: item.logicalWrites,
-          otherFile: item.otherFile,
-          allDuration: item.allDuration,
-          minDuration: item.minDuration,
-          maxDuration: item.maxDuration,
-          children: [this.getInitData(item)],
-        });
-      }
-      if (idx == 0) {
-        fileStatisticsAllNode.minDuration = item.minDuration;
-      } else {
-        fileStatisticsAllNode.minDuration =
-          fileStatisticsAllNode.minDuration <= item.minDuration
-            ? fileStatisticsAllNode.minDuration
-            : item.minDuration;
-      }
-      fileStatisticsAllNode.count += item.count;
-      fileStatisticsAllNode.logicalReads += item.logicalReads;
-      fileStatisticsAllNode.logicalWrites += item.logicalWrites;
-      fileStatisticsAllNode.otherFile += item.otherFile;
-      fileStatisticsAllNode.allDuration += item.allDuration;
-      fileStatisticsAllNode.maxDuration =
-        fileStatisticsAllNode.maxDuration >= item.maxDuration ? fileStatisticsAllNode.maxDuration : item.maxDuration;
     });
   }
 

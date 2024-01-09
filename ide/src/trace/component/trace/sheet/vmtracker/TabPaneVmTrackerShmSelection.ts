@@ -14,12 +14,12 @@
  */
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { queryVmTrackerShmSelectionData } from '../../../../database/SqlLite';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
 import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import {queryVmTrackerShmSelectionData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-vmtracker-shm-selection')
 export class TabPaneVmTrackerShmSelection extends BaseElement {
@@ -83,34 +83,82 @@ export class TabPaneVmTrackerShmSelection extends BaseElement {
     }
   }
 
-  private compareValues(a: any, b: any, sort: number): number {
-    if (sort === 1) {
-      return a > b ? 1 : a < b ? -1 : 0;
-    } else {
-      return a < b ? 1 : a > b ? -1 : 0;
-    }
-  }
-
   sortByColumn(column: string, sort: number): void {
-    const comparisonFunctions: { [key: string]: (a: any, b: any) => number } = {
-      'ts': (a, b) => this.compareValues(a.startNS, b.startNS, sort),
-      'fd': (a, b) => this.compareValues(a.fd, b.fd, sort),
-      'sizeStr': (a, b) => this.compareValues(a.size, b.size, sort),
-      'adj': (a, b) => this.compareValues(a.adj, b.adj, sort),
-      'name': (a, b) => this.compareValues(a.name, b.name, sort),
-      'id': (a, b) => this.compareValues(a.id, b.id, sort),
-      'time': (a, b) => this.compareValues(a.time, b.time, sort),
-      'count': (a, b) => this.compareValues(a.count, b.count, sort),
-      'purged': (a, b) => this.compareValues(a.purged, b.purged, sort),
-      'flag': (a, b) => this.compareValues(a.flag, b.flag, sort)
-    };
-
-    if (sort === 0) {
-      this.TableEl!.snapshotDataSource = this.shmData;
-    } else {
-      const array = [...this.shmData];
-      const comparisonFunction = comparisonFunctions[column] || (() => 0);
-      this.TableEl!.snapshotDataSource = array.sort(comparisonFunction);
+    switch (sort) {
+      case 0:
+        this.TableEl!.snapshotDataSource = this.shmData;
+        break;
+      default:
+        let arr = [...this.shmData];
+        switch (column) {
+          case 'ts':
+            this.TableEl!.snapshotDataSource = arr.sort((leftTs, rightTs) => {
+              return sort === 1 ? leftTs.startNS - rightTs.startNS : rightTs.startNS - leftTs.startNS;
+            });
+            break;
+          case 'fd':
+            this.TableEl!.snapshotDataSource = arr.sort((leftFd, rightFd) => {
+              return sort === 1 ? leftFd.fd - rightFd.fd : rightFd.fd - leftFd.fd;
+            });
+            break;
+          case 'sizeStr':
+            this.TableEl!.snapshotDataSource = arr.sort((leftSize, rightSize) => {
+              return sort === 1 ? leftSize.size - rightSize.size : rightSize.size - leftSize.size;
+            });
+            break;
+          case 'adj':
+            this.TableEl!.snapshotDataSource = arr.sort((leftAdj, rightAdj) => {
+              return sort === 1 ? leftAdj.adj - rightAdj.adj : rightAdj.adj - leftAdj.adj;
+            });
+            break;
+          case 'name':
+            this.TableEl!.snapshotDataSource = arr.sort((leftName, rightName) => {
+              if (sort === 1) {
+                if (leftName.name > rightName.name) {
+                  return 1;
+                } else if (leftName.name === rightName.name) {
+                  return 0;
+                } else {
+                  return -1;
+                }
+              } else {
+                if (rightName.name > leftName.name) {
+                  return 1;
+                } else if (leftName.name === rightName.name) {
+                  return 0;
+                } else {
+                  return -1;
+                }
+              }
+            });
+            break;
+          case 'id':
+            this.TableEl!.snapshotDataSource = arr.sort((leftId, rightId) => {
+              return sort === 1 ? leftId.id - rightId.id : rightId.id - leftId.id;
+            });
+            break;
+          case 'time':
+            this.TableEl!.snapshotDataSource = arr.sort((leftTime, rightTime) => {
+              return sort === 1 ? leftTime.time - rightTime.time : rightTime.time - leftTime.time;
+            });
+            break;
+          case 'count':
+            this.TableEl!.snapshotDataSource = arr.sort((leftCount, rightCount) => {
+              return sort === 1 ? leftCount.count - rightCount.count : rightCount.count - leftCount.count;
+            });
+            break;
+          case 'purged':
+            this.TableEl!.snapshotDataSource = arr.sort((leftPurged, rightPurged) => {
+              return sort === 1 ? leftPurged.purged - rightPurged.purged : rightPurged.purged - leftPurged.purged;
+            });
+            break;
+          case 'flag':
+            this.TableEl!.snapshotDataSource = arr.sort((leftFlag, rightFlag) => {
+              return sort === 1 ? leftFlag.flag - rightFlag.flag : rightFlag.flag - leftFlag.flag;
+            });
+            break;
+        }
+        break;
     }
   }
 

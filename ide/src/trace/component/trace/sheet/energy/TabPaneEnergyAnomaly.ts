@@ -17,10 +17,10 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 
+import { queryAnomalyDetailedData } from '../../../../database/SqlLite';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { EnergyAnomalyStruct } from '../../../../database/ui-worker/ProcedureWorkerEnergyAnomaly';
 import { resizeObserver } from '../SheetUtils';
-import {queryAnomalyDetailedData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-anomaly-details')
 export class TabPaneEnergyAnomaly extends BaseElement {

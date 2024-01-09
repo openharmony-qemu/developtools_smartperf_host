@@ -50,9 +50,9 @@ export class EnergyAnomalyRender extends PerfRender {
       req.appName,
       req.useCache || !TraceRow.range!.refresh
     );
-    if (list.length > 0) {
+    if(list.length > 0) {
       filter.length = 0;
-      list.forEach((item) => {
+      list.forEach(item => {
         filter.push(item);
       });
     }
@@ -75,7 +75,108 @@ export class EnergyAnomalyRender extends PerfRender {
     req.context.closePath();
   }
 
-  render(energyAnomalyRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {}
+  render(energyAnomalyRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
+    if (energyAnomalyRequest.lazyRefresh) {
+      anomaly(
+        list,
+        filter,
+        energyAnomalyRequest.startNS,
+        energyAnomalyRequest.endNS,
+        energyAnomalyRequest.totalNS,
+        energyAnomalyRequest.frame,
+        energyAnomalyRequest.params.appName,
+        energyAnomalyRequest.useCache || !energyAnomalyRequest.range.refresh
+      );
+    } else {
+      if (!energyAnomalyRequest.useCache) {
+        anomaly(
+          list,
+          filter,
+          energyAnomalyRequest.startNS,
+          energyAnomalyRequest.endNS,
+          energyAnomalyRequest.totalNS,
+          energyAnomalyRequest.frame,
+          energyAnomalyRequest.params.appName,
+          false
+        );
+      }
+    }
+    if (energyAnomalyRequest.canvas) {
+      energyAnomalyRequest.context.clearRect(
+        0,
+        0,
+        energyAnomalyRequest.canvas.width,
+        energyAnomalyRequest.canvas.height
+      );
+      let energyAnomlyArr = filter;
+      if (
+        energyAnomlyArr.length > 0 &&
+        !energyAnomalyRequest.range.refresh &&
+        !energyAnomalyRequest.useCache &&
+        energyAnomalyRequest.lazyRefresh
+      ) {
+        drawLoading(
+          energyAnomalyRequest.context,
+          energyAnomalyRequest.startNS,
+          energyAnomalyRequest.endNS,
+          energyAnomalyRequest.totalNS,
+          energyAnomalyRequest.frame,
+          energyAnomlyArr[0].startNS,
+          energyAnomlyArr[energyAnomlyArr.length - 1].startNS
+        );
+      }
+      drawLines(
+        energyAnomalyRequest.context,
+        energyAnomalyRequest.xs,
+        energyAnomalyRequest.frame.height,
+        energyAnomalyRequest.lineColor
+      );
+      energyAnomalyRequest.context.stroke();
+      energyAnomalyRequest.context.beginPath();
+      EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
+      if (energyAnomalyRequest.isHover) {
+        let offset = 3;
+        for (let re of filter) {
+          if (
+            re.frame &&
+            energyAnomalyRequest.hoverX >= re.frame.x - offset &&
+            energyAnomalyRequest.hoverX <= re.frame.x + re.frame.width + offset
+          ) {
+            EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
+            break;
+          }
+        }
+      } else {
+        EnergyAnomalyStruct.hoverEnergyAnomalyStruct = energyAnomalyRequest.params.hoverStruct;
+      }
+      EnergyAnomalyStruct.selectEnergyAnomalyStruct = energyAnomalyRequest.params.selectEnergyAnomalyStruct;
+      energyAnomalyRequest.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+      energyAnomalyRequest.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+      for (let re of filter) {
+        EnergyAnomalyStruct.draw(energyAnomalyRequest.context, re);
+      }
+      drawLegend(energyAnomalyRequest);
+      drawSelection(energyAnomalyRequest.context, energyAnomalyRequest.params);
+      energyAnomalyRequest.context.closePath();
+      drawFlagLine(
+        energyAnomalyRequest.context,
+        energyAnomalyRequest.flagMoveInfo,
+        energyAnomalyRequest.flagSelectedInfo,
+        energyAnomalyRequest.startNS,
+        energyAnomalyRequest.endNS,
+        energyAnomalyRequest.totalNS,
+        energyAnomalyRequest.frame,
+        energyAnomalyRequest.slicesTime
+      );
+    }
+    // @ts-ignore
+    self.postMessage({
+      id: energyAnomalyRequest.id,
+      type: energyAnomalyRequest.type,
+      results: energyAnomalyRequest.canvas ? undefined : filter,
+      hover: EnergyAnomalyStruct.hoverEnergyAnomalyStruct,
+    });
+  }
 }
 
 export function drawLegend(req: any, isDark?: boolean) {

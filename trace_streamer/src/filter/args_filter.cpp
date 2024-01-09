@@ -22,13 +22,13 @@ namespace SysTuning {
 namespace TraceStreamer {
 ArgsFilter::ArgsFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
 {
-    (void)traceDataCache_->GetDataTypeData()->UpdateNewDataType(BASE_DATA_TYPE_INT,
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_INT,
                                                                 traceDataCache_->GetDataIndex("int32_t"));
-    (void)traceDataCache_->GetDataTypeData()->UpdateNewDataType(BASE_DATA_TYPE_STRING,
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_STRING,
                                                                 traceDataCache_->GetDataIndex("string"));
-    (void)traceDataCache_->GetDataTypeData()->UpdateNewDataType(BASE_DATA_TYPE_DOUBLE,
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_DOUBLE,
                                                                 traceDataCache_->GetDataIndex("double"));
-    (void)traceDataCache_->GetDataTypeData()->UpdateNewDataType(BASE_DATA_TYPE_BOOLEAN,
+    (void)traceDataCache_->GetDataTypeData()->AppendNewDataType(BASE_DATA_TYPE_BOOLEAN,
                                                                 traceDataCache_->GetDataIndex("boolean"));
 }
 

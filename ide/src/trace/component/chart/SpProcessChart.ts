@@ -14,6 +14,28 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
+import {
+  getMaxDepthByTid,
+  queryAllFuncNames,
+  queryAllJankProcess,
+  queryAllProcessNames,
+  queryAllSoInitNames,
+  queryAllSrcSlices,
+  queryAllThreadName,
+  queryEventCountMap,
+  queryMemFilterIdMaxValue,
+  queryProcess,
+  queryProcessAsyncFunc,
+  queryProcessByTable,
+  queryProcessContentCount,
+  queryProcessMem,
+  queryProcessMemData,
+  queryProcessSoMaxDepth,
+  queryProcessThreads,
+  queryProcessThreadsByTable,
+  queryStartupPidArray,
+  queryTaskPoolProcessIds,
+} from '../../database/SqlLite';
 import { Utils } from '../trace/base/Utils';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
@@ -29,25 +51,15 @@ import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/Pro
 import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit';
 import { FlagsConfig } from '../SpFlags';
 import { JanksStruct } from '../../bean/JanksStruct';
-import { processDataSender } from '../../database/data-trafic/process/ProcessDataSender';
-import { threadDataSender } from '../../database/data-trafic/process/ThreadDataSender';
-import { funcDataSender } from '../../database/data-trafic/process/FuncDataSender';
-import { processMemDataSender } from '../../database/data-trafic/process/ProcessMemDataSender';
-import { processStartupDataSender } from '../../database/data-trafic/process/ProcessStartupDataSender';
-import { processSoInitDataSender } from '../../database/data-trafic/process/ProcessSoInitDataSender';
-import { processExpectedDataSender } from '../../database/data-trafic/process/ProcessExpectedDataSender';
-import { processActualDataSender } from '../../database/data-trafic/process/ProcessActualDataSender';
-import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
-import {getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc} from "../../database/sql/Func.sql";
-import {queryMemFilterIdMaxValue} from "../../database/sql/Memory.sql";
-import {queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap} from "../../database/sql/SqlLite.sql";
-import {
-  queryAllProcessNames,
-  queryAllThreadName, queryProcess, queryProcessByTable,
-  queryProcessContentCount, queryProcessMem, queryProcessSoMaxDepth,
-  queryProcessThreads, queryProcessThreadsByTable, queryStartupPidArray, queryTaskPoolProcessIds
-} from "../../database/sql/ProcessThread.sql";
-import {queryAllJankProcess} from "../../database/sql/Janks.sql";
+import { processDataSender } from '../../database/data-trafic/ProcessDataSender';
+import { threadDataSender } from '../../database/data-trafic/ThreadDataSender';
+import { funcDataSender } from '../../database/data-trafic/FuncDataSender';
+import { processMemDataSender } from '../../database/data-trafic/ProcessMemDataSender';
+import { processStartupDataSender } from '../../database/data-trafic/ProcessStartupDataSender';
+import { processSoInitDataSender } from '../../database/data-trafic/ProcessSoInitDataSender';
+import { processExpectedDataSender } from '../../database/data-trafic/ProcessExpectedDataSender';
+import { processActualDataSender } from '../../database/data-trafic/ProcessActualDataSender';
+import { processDeliverInputEventDataSender } from '../../database/data-trafic/ProcessDeliverInputEventDataSender';
 
 export class SpProcessChart {
   private readonly trace: SpSystemTrace;

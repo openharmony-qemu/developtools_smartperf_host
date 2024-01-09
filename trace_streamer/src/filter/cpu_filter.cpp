@@ -158,7 +158,7 @@ bool CpuFilter::InsertBlockedReasonEvent(uint64_t ts,
 }
 bool CpuFilter::InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint32_t pid)
 {
-    Unused(cpu);
+    UNUSED(cpu);
     auto thread = traceDataCache_->GetThreadData(static_cast<InternalTid>(pid));
     if (thread) {
         thread->endT_ = ts;

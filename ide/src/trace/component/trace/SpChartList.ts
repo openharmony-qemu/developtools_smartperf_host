@@ -28,7 +28,7 @@ import {
 } from '../../database/ui-worker/ProcedureWorkerCommon';
 import { Flag } from './timer-shaft/Flag';
 import { TimerShaftElement } from './TimerShaftElement';
-import { CpuStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { WakeupBean } from '../../bean/WakeupBean';
 import { LitIcon } from '../../../base-ui/icon/LitIcon';
 

@@ -130,12 +130,72 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.ioTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
     for (let ioTable of this.ioTableArray) {
       ioTable.shadowRoot!.querySelector<HTMLDivElement>('.table')!.style.height = 'calc(100% - 31px)';
-      this.columnClickEvent(ioTable);
-      this.rowHoverEvent(ioTable);
-      this.rowClickEvent(ioTable);
+      ioTable!.addEventListener('column-click', (evt) => {
+        // @ts-ignore
+        this.ioSortColumn = evt.detail.key;
+        // @ts-ignore
+        this.ioSortType = evt.detail.sort;
+        this.sortByColumn();
+      });
+      ioTable!.addEventListener('contextmenu', function (event) {
+        event.preventDefault(); // 阻止默认的上下文菜单弹框
+      });
+      ioTable!.addEventListener('row-hover', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.data) {
+          let tableData = detail.data;
+          tableData.isHover = true;
+          if (detail.callBack) {
+            detail.callBack(true);
+          }
+        }
+        this.ioPieChart?.showHover();
+        this.ioPieChart?.hideTip();
+      });
+      ioTable!.addEventListener('row-click', (evt) => {
+        // @ts-ignore
+        let detail = evt.detail;
+        if (detail.button === 2) {
+          let ioTab = this.parentElement?.parentElement?.querySelector<TabPaneIOCallTree>(
+            '#box-io-calltree > tabpane-io-calltree'
+          );
+          if (detail.button === 2) {
+            ioTab!.cWidth = this.clientWidth;
+            ioTab!.currentCallTreeLevel = this.currentLevel;
+            if (this.hideProcessCheckBox?.checked) {
+              detail.data.pid = undefined;
+            }
+            if (this.hideThreadCheckBox?.checked) {
+              detail.data.tid = undefined;
+            }
+            ioTab!.rowClickData = detail.data;
+            let title = '';
+            if (this.titleEl?.textContent === '') {
+              title = detail.data.tableName;
+            } else {
+              title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+            }
+            ioTab!.pieTitle = title;
+            //  是否是在表格上右键点击跳转到火焰图的
+            this.currentSelection!.isRowClick = true;
+            ioTab!.data = this.currentSelection;
+          }
+        }
+      });
     }
     for (let box of this.checkBoxs) {
-      this.checkBoxEvent(box);
+      box!.addEventListener('change', (event) => {
+        if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
+          this.hideThread();
+          this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
+        } else if (this.hideProcessCheckBox!.checked && !this.hideThreadCheckBox!.checked) {
+          this.hideProcess();
+        } else {
+          this.reset(this.ioTierTableProcess!, false);
+          this.getIOTierProcess(this.processData);
+        }
+      });
     }
 
     const addRowClickEventListener = (ioTable: LitTable, clickEvent: Function) => {
@@ -152,82 +212,6 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     addRowClickEventListener(this.tableType!, this.ioTierTypeLevelClickEvent.bind(this));
     addRowClickEventListener(this.ioTierTableThread!, this.ioTierThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.ioTierTableSo!, this.ioTierSoLevelClickEvent.bind(this));
-  }
-
-  private columnClickEvent(ioTable: LitTable): void {
-    ioTable!.addEventListener('column-click', (evt) => {
-      // @ts-ignore
-      this.ioSortColumn = evt.detail.key;
-      // @ts-ignore
-      this.ioSortType = evt.detail.sort;
-      this.sortByColumn();
-    });
-    ioTable!.addEventListener('contextmenu', function (event) {
-      event.preventDefault(); // 阻止默认的上下文菜单弹框
-    });
-  }
-
-  private checkBoxEvent(box: LitCheckBox): void {
-    box!.addEventListener('change', (event) => {
-      if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
-        this.hideThread();
-        this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
-      } else if (this.hideProcessCheckBox!.checked && !this.hideThreadCheckBox!.checked) {
-        this.hideProcess();
-      } else {
-        this.reset(this.ioTierTableProcess!, false);
-        this.getIOTierProcess(this.processData);
-      }
-    });
-  }
-
-  private rowClickEvent(ioTable: LitTable): void {
-    ioTable!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let detail = evt.detail;
-      if (detail.button === 2) {
-        let ioTab = this.parentElement?.parentElement?.querySelector<TabPaneIOCallTree>(
-          '#box-io-calltree > tabpane-io-calltree'
-        );
-        if (detail.button === 2) {
-          ioTab!.cWidth = this.clientWidth;
-          ioTab!.currentCallTreeLevel = this.currentLevel;
-          if (this.hideProcessCheckBox?.checked) {
-            detail.data.pid = undefined;
-          }
-          if (this.hideThreadCheckBox?.checked) {
-            detail.data.tid = undefined;
-          }
-          ioTab!.rowClickData = detail.data;
-          let title = '';
-          if (this.titleEl?.textContent === '') {
-            title = detail.data.tableName;
-          } else {
-            title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
-          }
-          ioTab!.pieTitle = title;
-          //  是否是在表格上右键点击跳转到火焰图的
-          this.currentSelection!.isRowClick = true;
-          ioTab!.data = this.currentSelection;
-        }
-      }
-    });
-  }
-
-  private rowHoverEvent(ioTable: LitTable): void {
-    ioTable!.addEventListener('row-hover', (evt) => {
-      // @ts-ignore
-      let detail = evt.detail;
-      if (detail.data) {
-        let tableData = detail.data;
-        tableData.isHover = true;
-        if (detail.callBack) {
-          detail.callBack(true);
-        }
-      }
-      this.ioPieChart?.showHover();
-      this.ioPieChart?.hideTip();
-    });
   }
 
   private reset(showTable: LitTable, isShowBack: boolean): void {

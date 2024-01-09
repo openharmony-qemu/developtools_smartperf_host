@@ -73,6 +73,107 @@ export class SdkCounterRender extends Render {
     req.context.fillText(maxCounterName, 4, 5 + 9);
   }
 
+  render(sdkCounterRequest: RequestMessage, list: Array<any>, filter: Array<any>): void {
+    if (sdkCounterRequest.lazyRefresh) {
+      this.counter(
+        list,
+        filter,
+        sdkCounterRequest.startNS,
+        sdkCounterRequest.endNS,
+        sdkCounterRequest.totalNS,
+        sdkCounterRequest.frame,
+        sdkCounterRequest.useCache || !sdkCounterRequest.range.refresh
+      );
+    } else {
+      if (!sdkCounterRequest.useCache) {
+        this.counter(
+          list,
+          filter,
+          sdkCounterRequest.startNS,
+          sdkCounterRequest.endNS,
+          sdkCounterRequest.totalNS,
+          sdkCounterRequest.frame,
+          false
+        );
+      }
+    }
+    if (sdkCounterRequest.canvas) {
+      sdkCounterRequest.context.clearRect(0, 0, sdkCounterRequest.frame.width, sdkCounterRequest.frame.height);
+      let sdkCounterArr = filter;
+      if (
+        sdkCounterArr.length > 0 &&
+        !sdkCounterRequest.range.refresh &&
+        !sdkCounterRequest.useCache &&
+        sdkCounterRequest.lazyRefresh
+      ) {
+        drawLoading(
+          sdkCounterRequest.context,
+          sdkCounterRequest.startNS,
+          sdkCounterRequest.endNS,
+          sdkCounterRequest.totalNS,
+          sdkCounterRequest.frame,
+          sdkCounterArr[0].startNS,
+          sdkCounterArr[sdkCounterArr.length - 1].startNS + sdkCounterArr[sdkCounterArr.length - 1].dur
+        );
+      }
+      sdkCounterRequest.context.beginPath();
+      let maxCounter = sdkCounterRequest.params.maxCounter;
+      let maxCounterName = sdkCounterRequest.params.maxCounterName;
+      drawLines(
+        sdkCounterRequest.context,
+        sdkCounterRequest.xs,
+        sdkCounterRequest.frame.height,
+        sdkCounterRequest.lineColor
+      );
+      CounterStruct.hoverCounterStruct = undefined;
+      if (sdkCounterRequest.isHover) {
+        for (let re of filter) {
+          if (
+            re.frame &&
+            sdkCounterRequest.hoverX >= re.frame.x &&
+            sdkCounterRequest.hoverX <= re.frame.x + re.frame.width &&
+            sdkCounterRequest.hoverY >= re.frame.y &&
+            sdkCounterRequest.hoverY <= re.frame.y + re.frame.height
+          ) {
+            CounterStruct.hoverCounterStruct = re;
+            break;
+          }
+        }
+      }
+      CounterStruct.selectCounterStruct = sdkCounterRequest.params.selectCounterStruct;
+      for (let re of filter) {
+        CounterStruct.draw(sdkCounterRequest.context, re, maxCounter);
+      }
+      drawSelection(sdkCounterRequest.context, sdkCounterRequest.params);
+      sdkCounterRequest.context.closePath();
+      let textMetrics = sdkCounterRequest.context.measureText(maxCounterName);
+      sdkCounterRequest.context.globalAlpha = 0.8;
+      sdkCounterRequest.context.fillStyle = '#f0f0f0';
+      sdkCounterRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
+      sdkCounterRequest.context.globalAlpha = 1;
+      sdkCounterRequest.context.fillStyle = '#333';
+      sdkCounterRequest.context.textBaseline = 'middle';
+      sdkCounterRequest.context.fillText(maxCounterName, 4, 5 + 9);
+      drawFlagLine(
+        sdkCounterRequest.context,
+        sdkCounterRequest.flagMoveInfo,
+        sdkCounterRequest.flagSelectedInfo,
+        sdkCounterRequest.startNS,
+        sdkCounterRequest.endNS,
+        sdkCounterRequest.totalNS,
+        sdkCounterRequest.frame,
+        sdkCounterRequest.slicesTime
+      );
+    }
+    // @ts-ignore
+    self.postMessage({
+      id: sdkCounterRequest.id,
+      type: sdkCounterRequest.type,
+      results: sdkCounterRequest.canvas ? undefined : filter,
+      hover: CounterStruct.hoverCounterStruct,
+    });
+  }
+
   counter(
     sdkCounterList: Array<any>,
     sdkCounterFilters: Array<any>,

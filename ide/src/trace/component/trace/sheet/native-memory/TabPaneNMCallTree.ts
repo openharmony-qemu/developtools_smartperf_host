@@ -22,12 +22,12 @@ import { ChartMode } from '../../../../bean/FrameChartStruct';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { procedurePool } from '../../../../database/Procedure';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
+import { queryNativeHookSubType, queryNativeHookStatisticSubType } from '../../../../database/SqlLite';
 import { ParseExpression } from '../SheetUtils';
 import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
-import {queryNativeHookStatisticSubType, queryNativeHookSubType} from "../../../../database/sql/NativeHook.sql";
 
 const InvertOpyionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;

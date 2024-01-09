@@ -21,7 +21,7 @@
 #include <elf.h>
 #endif
 #include <string>
-#include "ebpf_data_structure.h"
+#include "ebpf_stdtype.h"
 #include "event_parser_base.h"
 #include "process_filter.h"
 #include "quatra_map.h"

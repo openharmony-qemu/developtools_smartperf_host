@@ -32,7 +32,7 @@ PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFil
 {
     SymbolsFile::onRecording_ = false;
 }
-uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuffer,
+uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer,
                                              uint64_t size,
                                              uint64_t offset,
                                              bool isSplitFile,
@@ -139,6 +139,7 @@ bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer
         return false;
     }
 
+    uint64_t lengthRemain = size;
     std::copy_n(dequeBuffer.begin(), sizeof(perf_file_header), reinterpret_cast<char*>(&perfHeader_));
 
     if (memcmp(perfHeader_.magic, PERF_MAGIC, sizeof(perfHeader_.magic))) {
@@ -163,6 +164,8 @@ bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer
         .type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
         .buffer = {.address = reinterpret_cast<uint8_t*>(&perfHeader_), .size = sizeof(perf_file_header)}};
     splitResult_.emplace_back(perfHead);
+
+    lengthRemain -= sizeof(perf_file_header);
     processedLen += sizeof(perf_file_header);
     splitState_ = SplitPerfState::WAIT_FOR_ATTR;
     return true;

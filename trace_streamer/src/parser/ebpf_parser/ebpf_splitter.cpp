@@ -55,6 +55,7 @@ bool EbpfSplitter::SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer)
 
 bool EbpfSplitter::AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer)
 {
+
     if (!splitEbpfHeader_) {
         HtraceSplitResult ebpfHtraceHead = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
                                             .buffer = {.address = reinterpret_cast<uint8_t*>(&profilerHeader_),

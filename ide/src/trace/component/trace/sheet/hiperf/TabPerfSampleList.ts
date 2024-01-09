@@ -17,6 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { perfDataQuery } from '../../../chart/PerfDataQuery';
+import {
+  queryPerfProcess,
+  queryPerfSampleCallChain,
+  queryPerfSampleListByTimeRange,
+} from '../../../../database/SqlLite';
 import { PerfFile, PerfSample, PerfStack, PerfThread } from '../../../../bean/PerfProfile';
 import { Utils } from '../../base/Utils';
 import { SpApplication } from '../../../../SpApplication';
@@ -24,11 +29,6 @@ import { log } from '../../../../../log/Log';
 import '../../../../../base-ui/slicer/lit-slicer';
 import { Cmd } from '../../../../../command/Cmd';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import {
-  queryPerfProcess,
-  queryPerfSampleCallChain,
-  queryPerfSampleListByTimeRange
-} from "../../../../database/sql/Perf.sql";
 
 @element('tabpane-perf-sample')
 export class TabPanePerfSample extends BaseElement {

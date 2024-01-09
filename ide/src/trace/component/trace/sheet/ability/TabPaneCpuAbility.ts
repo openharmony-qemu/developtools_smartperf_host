@@ -16,12 +16,12 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabCpuAbilityData } from '../../../../database/SqlLite';
 import { SystemCpuSummary } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import { getTabCpuAbilityData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-cpu-ability')
 export class TabPaneCpuAbility extends BaseElement {
@@ -133,53 +133,61 @@ export class TabPaneCpuAbility extends BaseElement {
         `;
   }
 
-  getPropertyByType = (property: string, type: string) => (data: SystemCpuSummary): number | string => {
-    switch (type) {
-      case 'number':
-        // @ts-ignore
-        return parseFloat(data[property]);
-      case 'durationStr':
-        return data.duration;
-      case 'totalLoadStr':
-        return data.totalLoad;
-      case 'userLoadStr':
-        return data.userLoad;
-      case 'systemLoadStr':
-        return data.systemLoad;
-      default:
-        // @ts-ignore
-        return data[property];
-    }
-  };
-
-  compareFunction = (sort: number, getProperty: (data: SystemCpuSummary) => number | string) =>
-    (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) => {
-    let leftValue = getProperty(cpuAbilityLeftData);
-    let rightValue = getProperty(cpuAbilityRightData);
-    let result = 0;
-    if (leftValue > rightValue) {
-      result = sort === 2 ? -1 : 1;
-    } else if (leftValue < rightValue) {
-      result = sort === 2 ? 1 : -1;
-    }
-    return result;
-  };
-
-  compare = (property: string, sort: number, type: string) => {
-    let getProperty = this.getPropertyByType(property, type);
-    return this.compareFunction(sort, getProperty);
-  };
-
   sortByColumn(detail: any) {
-    let typeMaping: { [key: string]: string } = {
-      startTime: 'string',
-      durationStr: 'durationStr',
-      totalLoadStr: 'totalLoadStr',
-      userLoadStr: 'userLoadStr',
-      systemLoadStr: 'systemLoadStr',
-    };
-    let type = typeMaping[detail.key] || 'number';
-    this.cpuAbilitySource.sort(this.compare(detail.key, detail.sort, type));
+    // @ts-ignore
+    function compare(property, sort, type) {
+      return function (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) {
+        if (type === 'number') {
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(cpuAbilityRightData[property]) - parseFloat(cpuAbilityLeftData[property])
+            : // @ts-ignore
+              parseFloat(cpuAbilityLeftData[property]) - parseFloat(cpuAbilityRightData[property]);
+        } else if (type === 'durationStr') {
+          return sort === 2
+            ? cpuAbilityRightData.duration - cpuAbilityLeftData.duration
+            : cpuAbilityLeftData.duration - cpuAbilityRightData.duration;
+        } else if (type === 'totalLoadStr') {
+          return sort === 2
+            ? cpuAbilityRightData.totalLoad - cpuAbilityLeftData.totalLoad
+            : cpuAbilityLeftData.totalLoad - cpuAbilityRightData.totalLoad;
+        } else if (type === 'userLoadStr') {
+          return sort === 2
+            ? cpuAbilityRightData.userLoad - cpuAbilityLeftData.userLoad
+            : cpuAbilityLeftData.userLoad - cpuAbilityRightData.userLoad;
+        } else if (type === 'systemLoadStr') {
+          return sort === 2
+            ? cpuAbilityRightData.systemLoad - cpuAbilityLeftData.systemLoad
+            : cpuAbilityLeftData.systemLoad - cpuAbilityRightData.systemLoad;
+        } else {
+          // @ts-ignore
+          if (cpuAbilityRightData[property] > cpuAbilityLeftData[property]) {
+            return sort === 2 ? 1 : -1;
+          } else {
+            // @ts-ignore
+            if (cpuAbilityRightData[property] == cpuAbilityLeftData[property]) {
+              return 0;
+            } else {
+              return sort === 2 ? -1 : 1;
+            }
+          }
+        }
+      };
+    }
+
+    if (detail.key === 'startTime') {
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'string'));
+    } else if (detail.key === 'durationStr') {
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'durationStr'));
+    } else if (detail.key === 'totalLoadStr') {
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'totalLoadStr'));
+    } else if (detail.key === 'userLoadStr') {
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'userLoadStr'));
+    } else if (detail.key === 'systemLoadStr') {
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'systemLoadStr'));
+    } else {
+      this.cpuAbilitySource.sort(compare(detail.key, detail.sort, 'number'));
+    }
     this.cpuAbilityTbl!.recycleDataSource = this.cpuAbilitySource;
   }
 }

@@ -87,7 +87,40 @@ export class TabCpuDetailsIrq extends BaseElement {
       this.cpuDetailsLrqData = getDataNo(this.cpuDetailsLrqData);
       this.tableNoData!.noData = this.cpuDetailsLrqData.length == 0;
       this.noData(this.cpuDetailsLrqData.length == 0);
-      this.setLrqPieConfig();
+      this.cpuDetailsLrqPie!.config = {
+        appendPadding: 0,
+        data: this.cpuDetailsLrqData,
+        angleField: 'sum',
+        colorField: 'value',
+        radius: 1,
+        label: {
+          type: 'outer',
+        },
+        tip: (irqObj) => {
+          return `<div>
+                                <div>block:${irqObj.obj.block}</div> 
+                                <div>name:${irqObj.obj.value}</div>
+                                <div>min:${irqObj.obj.min}</div>
+                                <div>max:${irqObj.obj.max}</div>
+                                <div>average:${irqObj.obj.avg}</div>
+                                <div>duration:${irqObj.obj.sumTimeStr}</div>
+                                <div>ratio:${irqObj.obj.ratio}%</div>
+                            </div>
+                                `;
+        },
+        hoverHandler: (data) => {
+          if (data) {
+            this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
+          } else {
+            this.cpuDetailsLrqUsageTbl!.mouseOut();
+          }
+        },
+        interactions: [
+          {
+            type: 'element-active',
+          },
+        ],
+      };
       if (this.cpuDetailsLrqSortColumn != '') {
         this.sortByColumn({
           key: this.cpuDetailsLrqSortColumn,
@@ -98,43 +131,6 @@ export class TabCpuDetailsIrq extends BaseElement {
       }
       this.cpuDetailsLrqUsageTbl?.reMeauseHeight();
     });
-  }
-
-  private setLrqPieConfig(): void {
-    this.cpuDetailsLrqPie!.config = {
-      appendPadding: 0,
-      data: this.cpuDetailsLrqData,
-      angleField: 'sum',
-      colorField: 'value',
-      radius: 1,
-      label: {
-        type: 'outer',
-      },
-      tip: (irqObj) => {
-        return `<div>
-                                <div>block:${irqObj.obj.block}</div> 
-                                <div>name:${irqObj.obj.value}</div>
-                                <div>min:${irqObj.obj.min}</div>
-                                <div>max:${irqObj.obj.max}</div>
-                                <div>average:${irqObj.obj.avg}</div>
-                                <div>duration:${irqObj.obj.sumTimeStr}</div>
-                                <div>ratio:${irqObj.obj.ratio}%</div>
-                            </div>
-                                `;
-      },
-      hoverHandler: (data) => {
-        if (data) {
-          this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
-        } else {
-          this.cpuDetailsLrqUsageTbl!.mouseOut();
-        }
-      },
-      interactions: [
-        {
-          type: 'element-active',
-        },
-      ],
-    };
   }
 
   noData(value: boolean) {

@@ -17,9 +17,9 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type GpuMemory } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { getTabGpuMemoryVMTrackerClickData } from '../../../../database/SqlLite';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
-import {getTabGpuMemoryVMTrackerClickData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-gpu-memory-selection-vmtracker')
 export class TabPaneGpuMemorySelectVmTracker extends BaseElement {

@@ -81,7 +81,7 @@ uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_
 uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
 {
     TraceStdtype::Thread* thread = nullptr;
-    uint32_t internalTid;
+    uint32_t internalTid = INVALID_ID;
     if (pid == 0) {
         internalTid = GetInternalTid(tid);
     } else {

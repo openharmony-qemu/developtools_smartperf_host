@@ -16,14 +16,19 @@
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { procedurePool } from '../../database/Procedure';
+import {
+  getDiskIOLatencyChartDataByProcess,
+  getDiskIOProcess,
+  getFileSysChartDataByType,
+  getFileSysVirtualMemoryChartData,
+  hasFileSysData,
+} from '../../database/SqlLite';
 import { EBPFChartStruct, EBPFRender } from '../../database/ui-worker/ProcedureWorkerEBPF';
 import { ColorUtils } from '../trace/base/ColorUtils';
 import { Utils } from '../trace/base/Utils';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { diskIoSender, fileSysVMSender, fileSystemSender } from '../../database/data-trafic/EBPFSender';
-import { hasFileSysData } from '../../database/sql/Memory.sql';
-import { getDiskIOProcess } from '../../database/sql/SqlLite.sql';
 
 export class SpEBPFChart {
   private trace: SpSystemTrace;

@@ -17,13 +17,13 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
+import { getTabRunningPersent, getTabThreadStatesCpu } from '../../../../database/SqlLite';
 import { StackBar } from '../../../StackBar';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { Utils } from '../../base/Utils';
-import { CpuStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { CpuStruct } from '../../../../database/ui-worker/ProcedureWorkerCPU';
 import { resizeObserver } from '../SheetUtils';
-import {getTabRunningPersent, getTabThreadStatesCpu} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-thread-usage')
 export class TabPaneThreadUsage extends BaseElement {
@@ -76,6 +76,10 @@ export class TabPaneThreadUsage extends BaseElement {
         if (result != null && result.length > 0) {
           log('getTabThreadStates result size : ' + result.length);
           let filterArr = result.filter((it) => threadUsageParam.processIds.includes(it.pid));
+          let totalDurtion = 0;
+          filterArr.forEach((item) => {
+            totalDurtion = totalDurtion + item.wallDuration;
+          })
           let map: Map<number, any> = new Map<number, any>();
           for (let resultEl of filterArr) {
             if (threadUsageParam.processIds.includes(resultEl.pid)) {
@@ -84,7 +88,7 @@ export class TabPaneThreadUsage extends BaseElement {
                 map.get(resultEl.tid)[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);
                 map.get(resultEl.tid)[`cpu${resultEl.cpu}Ratio`] = (
                   (100.0 * (resultEl.wallDuration || 0)) /
-                  (threadUsageParam.rightNs - threadUsageParam.leftNs)
+                  (totalDurtion)
                 ).toFixed(2);
                 map.get(resultEl.tid)[`wallDuration`] =
                   map.get(resultEl.tid)[`wallDuration`] + (resultEl.wallDuration || 0);
@@ -109,7 +113,7 @@ export class TabPaneThreadUsage extends BaseElement {
                 threadStatesStruct[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);
                 threadStatesStruct[`cpu${resultEl.cpu}Ratio`] = (
                   (100.0 * (resultEl.wallDuration || 0)) /
-                  (threadUsageParam.rightNs - threadUsageParam.leftNs)
+                  (totalDurtion)
                 ).toFixed(2);
                 map.set(resultEl.tid, threadStatesStruct);
               }

@@ -68,6 +68,89 @@ export class FpsRender extends Render {
     req.context.textBaseline = 'middle';
     req.context.fillText(maxFps, 4, 5 + 9);
   }
+
+  render(fpsRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (fpsRequest.lazyRefresh) {
+      fps(
+        list,
+        filter,
+        fpsRequest.startNS,
+        fpsRequest.endNS,
+        fpsRequest.totalNS,
+        fpsRequest.frame,
+        fpsRequest.useCache || !fpsRequest.range.refresh
+      );
+    } else {
+      if (!fpsRequest.useCache) {
+        fps(list, filter, fpsRequest.startNS, fpsRequest.endNS, fpsRequest.totalNS, fpsRequest.frame, false);
+      }
+    }
+    if (fpsRequest.canvas) {
+      fpsRequest.context.clearRect(0, 0, fpsRequest.frame.width, fpsRequest.frame.height);
+      let fpsArr = filter;
+      if (fpsArr.length > 0 && !fpsRequest.range.refresh && !fpsRequest.useCache && fpsRequest.lazyRefresh) {
+        drawLoading(
+          fpsRequest.context,
+          fpsRequest.startNS,
+          fpsRequest.endNS,
+          fpsRequest.totalNS,
+          fpsRequest.frame,
+          fpsArr[0].startNS,
+          fpsArr[fpsArr.length - 1].startNS + fpsArr[fpsArr.length - 1].dur
+        );
+      }
+      fpsRequest.context.beginPath();
+      drawLines(fpsRequest.context, fpsRequest.xs, fpsRequest.frame.height, fpsRequest.lineColor);
+      FpsStruct.hoverFpsStruct = undefined;
+      if (fpsRequest.isHover) {
+        for (let re of filter) {
+          if (
+            re.frame &&
+            fpsRequest.hoverX >= re.frame.x &&
+            fpsRequest.hoverX <= re.frame.x + re.frame.width &&
+            fpsRequest.hoverY >= re.frame.y &&
+            fpsRequest.hoverY <= re.frame.y + re.frame.height
+          ) {
+            FpsStruct.hoverFpsStruct = re;
+            break;
+          }
+        }
+      } else {
+        FpsStruct.hoverFpsStruct = fpsRequest.params.hoverFpsStruct;
+      }
+      for (let re of filter) {
+        FpsStruct.draw(fpsRequest.context, re);
+      }
+      drawSelection(fpsRequest.context, fpsRequest.params);
+      fpsRequest.context.closePath();
+      let maxFps = FpsStruct.maxFps + 'FPS';
+      let fpsTextMetrics = fpsRequest.context.measureText(maxFps);
+      fpsRequest.context.globalAlpha = 0.8;
+      fpsRequest.context.fillStyle = '#f0f0f0';
+      fpsRequest.context.fillRect(0, 5, fpsTextMetrics.width + 8, 18);
+      fpsRequest.context.globalAlpha = 1;
+      fpsRequest.context.fillStyle = '#333';
+      fpsRequest.context.textBaseline = 'middle';
+      fpsRequest.context.fillText(maxFps, 4, 5 + 9);
+      drawFlagLine(
+        fpsRequest.context,
+        fpsRequest.flagMoveInfo,
+        fpsRequest.flagSelectedInfo,
+        fpsRequest.startNS,
+        fpsRequest.endNS,
+        fpsRequest.totalNS,
+        fpsRequest.frame,
+        fpsRequest.slicesTime
+      );
+    }
+    // @ts-ignore
+    self.postMessage({
+      id: fpsRequest.id,
+      type: fpsRequest.type,
+      results: fpsRequest.canvas ? undefined : filter,
+      hover: FpsStruct.hoverFpsStruct,
+    });
+  }
 }
 
 export function fps(

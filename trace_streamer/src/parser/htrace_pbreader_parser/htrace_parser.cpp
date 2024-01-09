@@ -55,7 +55,7 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
         dataSegArray_ = std::make_unique<HtraceDataSegment[]>(1);
     }
 }
-void HtraceParser::ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths)
+void HtraceParser::ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths)
 {
     for (const auto& filePath : relativeFilePaths) {
         auto absoluteFilePath = filePath.substr(directory.length());
@@ -606,13 +606,12 @@ bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesB
 #endif
         }
     }
-    std::string bufferLine;
     while (true) {
         if (!hasGotSegLength_) {
             if (currentLength < packetSegLength) {
                 break;
             }
-            bufferLine.assign(packagesBegin, packagesBegin + packetSegLength);
+            std::string bufferLine(packagesBegin, packagesBegin + packetSegLength);
             const uint32_t* len = reinterpret_cast<const uint32_t*>(bufferLine.data());
             nextLength_ = *len;
             lenBuffer_ = bufferLine;
@@ -627,7 +626,7 @@ bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesB
         if (currentLength < nextLength_) {
             break;
         }
-        bufferLine.assign(packagesBegin, packagesBegin + nextLength_);
+        std::string bufferLine(packagesBegin, packagesBegin + nextLength_);
         ParseTraceDataItem(bufferLine);
         hasGotSegLength_ = false;
         packagesBegin += nextLength_;
@@ -719,7 +718,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
         return false;
     }
     uint8_t buffer[packetHeaderLength];
-    (void)memset_s(buffer, sizeof(buffer), 0, sizeof(buffer));
+    (void)memset_s(buffer, packetHeaderLength, 0, packetHeaderLength);
     int32_t i = 0;
     for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + packetHeaderLength; ++it, ++i) {
         buffer[i] = *it;

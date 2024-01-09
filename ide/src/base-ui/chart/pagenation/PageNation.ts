@@ -91,44 +91,6 @@ export class PageNation {
     });
   }
 
-  createElement(jumpDiv:HTMLElement):void{
-    // Create input field
-    this.inputBox = document.createElement('input');
-    this.inputBox.value = this.pageInfo.current;
-    this.setElementStyles(this.inputBox, {
-      width: '35px',
-      height: '30px',
-      textAlign: 'center',
-      outline: 'none',
-      padding: '0',
-      border: '0',
-      'border-radius': '5px',
-    });
-    jumpDiv.appendChild(this.inputBox);
-    let span = document.createElement('span');
-    span.style.width = '1px';
-    span.style.height = '24px';
-    span.style.alignSelf = 'center';
-    span.style.backgroundColor = '#999999';
-    jumpDiv.appendChild(span);
-    // Create button
-    this.btn = document.createElement('button');
-    this.btn.innerText = '';
-    this.btn.name = 'goto';
-    this.setElementStyles(this.btn, {
-      height: '32px',
-      width: '30px',
-      cursor: 'pointer',
-      backgroundColor: '#FFF',
-      border: '0',
-      'border-radius': '5px',
-    });
-    this.btn.style.background = `url('img/arrowright.png') no-repeat 98% center var(--dark-background3,#FFFFFF)`;
-    this.btn.style.backgroundPosition = 'center';
-    jumpDiv.appendChild(this.btn);
-    this.element.appendChild(jumpDiv);
-  }
-
   // 创建元素 首页 上一页 按钮组  下一页 尾页 输入框 按钮
   createPageElement() {
     //首页
@@ -140,15 +102,18 @@ export class PageNation {
       cursor: 'pointer',
       margin: '0 5px',
     });
+
     this.first = this.origin.cloneNode(true);
     this.first.innerText = this.pageInfo.first;
     this.first.name = 'first';
     this.element.appendChild(this.first);
+
     this.prev = this.origin.cloneNode(true);
     this.prev.innerText = '<';
     this.prev.name = 'prev';
     this.prev.style.padding = '5px 10px';
     this.element.appendChild(this.prev);
+
     // 创建ul
     this.list = document.createElement('ul');
     this.setElementStyles(this.list, {
@@ -176,7 +141,41 @@ export class PageNation {
     jumpDiv.style.height = '32px';
     jumpDiv.style.marginLeft = '10px';
 
-    this.createElement(jumpDiv);
+    // 创建输入框
+    this.inputBox = document.createElement('input');
+    this.inputBox.value = this.pageInfo.current;
+    this.setElementStyles(this.inputBox, {
+      width: '35px',
+      height: '30px',
+      textAlign: 'center',
+      outline: 'none',
+      padding: '0',
+      border: '0',
+      'border-radius': '5px',
+    });
+    jumpDiv.appendChild(this.inputBox);
+    let span = document.createElement('span');
+    span.style.width = '1px';
+    span.style.height = '24px';
+    span.style.alignSelf = 'center';
+    span.style.backgroundColor = '#999999';
+    jumpDiv.appendChild(span);
+    // 创建按钮
+    this.btn = document.createElement('button');
+    this.btn.innerText = '';
+    this.btn.name = 'goto';
+    this.setElementStyles(this.btn, {
+      height: '32px',
+      width: '30px',
+      cursor: 'pointer',
+      backgroundColor: '#FFF',
+      border: '0',
+      'border-radius': '5px',
+    });
+    this.btn.style.background = `url('img/arrowright.png') no-repeat 98% center var(--dark-background3,#FFFFFF)`;
+    this.btn.style.backgroundPosition = 'center';
+    jumpDiv.appendChild(this.btn);
+    this.element.appendChild(jumpDiv);
   }
 
   // 判断首页 上一页 下一页 尾页 是否可以点击
@@ -210,8 +209,10 @@ export class PageNation {
   }
 
   bindPageList() {
-    this.list.innerHTML = '';// clear ul its contents
-    const { pageSize, current, totalpage } = this.pageInfo;//Clean the ul before each load
+    // clear ul里面的内容
+    this.list.innerHTML = '';
+    //每次加载之前先清空ul里面的内容
+    const { pageSize, current, totalpage } = this.pageInfo;
     const origin = document.createElement('li');
     origin.dataset.name = 'item';
     this.setElementStyles(origin, {
@@ -228,11 +229,11 @@ export class PageNation {
       }
       return;
     }
-    // Five on the left... Two on the right
+    // 左边5个 中间 ... 右边2个
     if (this.bindLeftList(current, totalpage, origin)) {
       return;
     }
-    // The current page is larger than 5 pages and smaller than the last 5 pages
+    // 当前页面 大于5页 小于倒数第5页
     for (let index = 0; index < 2; index++) {
       this.buildLi(origin, index, current);
     }

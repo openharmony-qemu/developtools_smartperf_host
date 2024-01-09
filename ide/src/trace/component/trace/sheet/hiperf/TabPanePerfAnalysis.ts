@@ -923,9 +923,6 @@ export class TabPanePerfAnalysis extends BaseElement {
   private getCallChainDataFromWorker(val: SelectionParam): void {
     this.getDataByWorker(val, (results: any) => {
       this.processData = results;
-      if (!this.processData[0].processName) {
-        console.log(this.processData);
-      }
       this.getHiperfProcess(val);
     });
   }

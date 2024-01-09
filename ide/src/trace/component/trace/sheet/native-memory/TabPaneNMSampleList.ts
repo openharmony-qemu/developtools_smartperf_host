@@ -17,6 +17,7 @@ import '../../../../../base-ui/table/lit-table-column';
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { queryAllHookData, queryNativeHookSnapshotTypes } from '../../../../database/SqlLite';
 import {
   NativeHookCallInfo,
   NativeHookSampleQueryInfo,
@@ -30,7 +31,6 @@ import '../../../../../base-ui/slicer/lit-slicer';
 import { procedurePool } from '../../../../database/Procedure';
 import { formatRealDateMs, getTimeString } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
-import {queryAllHookData, queryNativeHookSnapshotTypes} from "../../../../database/sql/NativeHook.sql";
 
 @element('tabpane-native-sample')
 export class TabPaneNMSampleList extends BaseElement {

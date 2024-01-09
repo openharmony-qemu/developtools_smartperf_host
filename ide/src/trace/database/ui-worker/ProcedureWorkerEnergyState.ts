@@ -73,6 +73,119 @@ export class EnergyStateRender extends Render {
     }
     req.context.closePath();
   }
+
+  render(energyStateRequest: RequestMessage, stateList: Array<any>, filter: Array<any>) {
+    if (energyStateRequest.lazyRefresh) {
+      state(
+        stateList,
+        filter,
+        energyStateRequest.startNS,
+        energyStateRequest.endNS,
+        energyStateRequest.totalNS,
+        energyStateRequest.frame,
+        energyStateRequest.useCache || !energyStateRequest.range.refresh
+      );
+    } else {
+      if (!energyStateRequest.useCache) {
+        state(
+          stateList,
+          filter,
+          energyStateRequest.startNS,
+          energyStateRequest.endNS,
+          energyStateRequest.totalNS,
+          energyStateRequest.frame,
+          false
+        );
+      }
+    }
+    if (energyStateRequest.canvas) {
+      energyStateRequest.context.clearRect(0, 0, energyStateRequest.canvas.width, energyStateRequest.canvas.height);
+      let energyStateArr = filter;
+      if (
+        energyStateArr.length > 0 &&
+        !energyStateRequest.range.refresh &&
+        !energyStateRequest.useCache &&
+        energyStateRequest.lazyRefresh
+      ) {
+        drawLoading(
+          energyStateRequest.context,
+          energyStateRequest.startNS,
+          energyStateRequest.endNS,
+          energyStateRequest.totalNS,
+          energyStateRequest.frame,
+          energyStateArr[0].startNS,
+          energyStateArr[energyStateArr.length - 1].startNS + energyStateArr[energyStateArr.length - 1].dur
+        );
+      }
+      drawLines(
+        energyStateRequest.context,
+        energyStateRequest.xs,
+        energyStateRequest.frame.height,
+        energyStateRequest.lineColor
+      );
+      energyStateRequest.context.beginPath();
+      EnergyStateStruct.maxState = energyStateRequest.params.maxState;
+      EnergyStateStruct.maxStateName = energyStateRequest.params.maxStateName;
+      drawLines(
+        energyStateRequest.context,
+        energyStateRequest.xs,
+        energyStateRequest.frame.height,
+        energyStateRequest.lineColor
+      );
+      EnergyStateStruct.hoverEnergyStateStruct = undefined;
+      if (energyStateRequest.isHover) {
+        for (let re of filter) {
+          if (
+            re.frame &&
+            energyStateRequest.hoverX >= re.frame.x &&
+            energyStateRequest.hoverX <= re.frame.x + re.frame.width &&
+            energyStateRequest.hoverY >= re.frame.y &&
+            energyStateRequest.hoverY <= re.frame.y + re.frame.height
+          ) {
+            EnergyStateStruct.hoverEnergyStateStruct = re;
+            break;
+          }
+        }
+      }
+      EnergyStateStruct.selectEnergyStateStruct = energyStateRequest.params.selectEnergyStateStruct;
+      for (let re of filter) {
+        EnergyStateStruct.draw(energyStateRequest.context, re, 0, '');
+      }
+      drawSelection(energyStateRequest.context, energyStateRequest.params);
+      energyStateRequest.context.closePath();
+      if (
+        EnergyStateStruct.maxStateName != 'enable' &&
+        EnergyStateStruct.maxStateName != 'disable' &&
+        EnergyStateStruct.maxStateName != '-1'
+      ) {
+        let s = EnergyStateStruct.maxStateName;
+        let textMetrics = energyStateRequest.context.measureText(s);
+        energyStateRequest.context.globalAlpha = 1.0;
+        energyStateRequest.context.fillStyle = '#f0f0f0';
+        energyStateRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
+        energyStateRequest.context.fillStyle = '#333';
+        energyStateRequest.context.textBaseline = 'middle';
+        energyStateRequest.context.fillText(s, 4, 5 + 9);
+      }
+      drawFlagLine(
+        energyStateRequest.context,
+        energyStateRequest.flagMoveInfo,
+        energyStateRequest.flagSelectedInfo,
+        energyStateRequest.startNS,
+        energyStateRequest.endNS,
+        energyStateRequest.totalNS,
+        energyStateRequest.frame,
+        energyStateRequest.slicesTime
+      );
+    }
+    // @ts-ignore
+    self.postMessage({
+      id: energyStateRequest.id,
+      type: energyStateRequest.type,
+      results: energyStateRequest.canvas ? undefined : filter,
+      hover: EnergyStateStruct.hoverEnergyStateStruct,
+    });
+  }
 }
 
 export function state(

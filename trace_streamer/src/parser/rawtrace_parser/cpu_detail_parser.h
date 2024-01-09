@@ -75,17 +75,14 @@ private:
 
 private:
     using FuncCall = std::function<bool(const RawTraceEventInfo& event)>;
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
-    PrintEventParser printEventParser_;
-
     uint32_t eventPid_ = INVALID_UINT32;
     uint32_t eventTid_ = INVALID_UINT32;
     uint64_t lastOverwrite_ = 0;
-
+    PrintEventParser printEventParser_;
     std::deque<std::unique_ptr<RawTraceEventInfo>> rawTraceEventList_ = {};
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
-
+    const TraceStreamerFilters* streamFilters_;
+    TraceDataCache* traceDataCache_;
     TraceStreamerConfig config_{};
     const BuiltinClocks clock_ = TS_CLOCK_BOOTTIME;
     const DataIndex schedWakeupIndex_ = traceDataCache_->GetDataIndex("sched_wakeup");

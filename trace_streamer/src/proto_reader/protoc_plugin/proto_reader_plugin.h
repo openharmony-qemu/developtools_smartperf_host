@@ -80,7 +80,7 @@ private:
         }
     }
     template <class T>
-    const std::string GetDescriptorClass(const T* descriptor)
+    std::string GetDescriptorClass(const T* descriptor)
     {
         std::string name = GetDescriptorName(descriptor);
         size_t pos = name.find(".");

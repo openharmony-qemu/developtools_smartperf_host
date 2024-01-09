@@ -17,10 +17,10 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type Dma } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { getTabDmaVMTrackerClickData } from '../../../../database/SqlLite';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
 import { ns2s } from '../../TimerShaftElement';
-import {getTabDmaVMTrackerClickData} from "../../../../database/sql/Dma.sql";
 
 @element('tabpane-dma-selection-vmtracker')
 export class TabPaneDmaSelectVmTracker extends BaseElement {
@@ -129,33 +129,71 @@ export class TabPaneDmaSelectVmTracker extends BaseElement {
         `;
   }
 
-  private compareValues(a: any, b: any, sort: number): number {
-    if (sort === 1) {
-      return a > b ? 1 : a < b ? -1 : 0;
-    } else {
-      return a < b ? 1 : a > b ? -1 : 0;
-    }
-  }
-
   sortDmaByColumn(column: string, sort: number): void {
-    const comparisonFunctions: { [key: string]: (a: any, b: any) => number } = {
-      'startNs': (a, b) => this.compareValues(a.startNs, b.startNs, sort),
-      'expTaskComm': (a, b) => this.compareValues(`${a.expTaskComm}`, `${b.expTaskComm}`, sort),
-      'fd': (a, b) => this.compareValues(a.fd, b.fd, sort),
-      'size': (a, b) => this.compareValues(a.size, b.size, sort),
-      'ino': (a, b) => this.compareValues(a.ino, b.ino, sort),
-      'expPid': (a, b) => this.compareValues(a.expPid, b.expPid, sort),
-      'flag': (a, b) => this.compareValues(a.flag, b.flag, sort),
-      'bufName': (a, b) => this.compareValues(`${a.bufName}`, `${b.bufName}`, sort),
-      'expName': (a, b) => this.compareValues(`${a.expName}`, `${b.expName}`, sort)
-    };
-
-    if (sort === 0) {
-      this.damClickTable!.recycleDataSource = this.dmaClickSource;
-    } else {
-      const array = [...this.dmaClickSource];
-      const comparisonFunction = comparisonFunctions[column] || (() => 0);
-      this.damClickTable!.recycleDataSource = array.sort(comparisonFunction);
+    switch (sort) {
+      case 0:
+        this.damClickTable!.recycleDataSource = this.dmaClickSource;
+        break;
+      default:
+        let array = [...this.dmaClickSource];
+        switch (column) {
+          case 'startNs':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1
+                ? dmaVmLeftData.startNs - dmaVmRightData.startNs
+                : dmaVmRightData.startNs - dmaVmLeftData.startNs;
+            });
+            break;
+          case 'expTaskComm':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1
+                ? `${dmaVmLeftData.expTaskComm}`.localeCompare(`${dmaVmRightData.expTaskComm}`)
+                : `${dmaVmRightData.expTaskComm}`.localeCompare(`${dmaVmLeftData.expTaskComm}`);
+            });
+            break;
+          case 'fd':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1 ? dmaVmLeftData.fd - dmaVmRightData.fd : dmaVmRightData.fd - dmaVmLeftData.fd;
+            });
+            break;
+          case 'size':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1 ? dmaVmLeftData.size - dmaVmRightData.size : dmaVmRightData.size - dmaVmLeftData.size;
+            });
+            break;
+          case 'ino':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1 ? dmaVmLeftData.ino - dmaVmRightData.ino : dmaVmRightData.ino - dmaVmLeftData.ino;
+            });
+            break;
+          case 'expPid':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1
+                ? dmaVmLeftData.expPid - dmaVmRightData.expPid
+                : dmaVmRightData.expPid - dmaVmLeftData.expPid;
+            });
+            break;
+          case 'flag':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1 ? dmaVmLeftData.flag - dmaVmRightData.flag : dmaVmRightData.flag - dmaVmLeftData.flag;
+            });
+            break;
+          case 'bufName':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1
+                ? `${dmaVmLeftData.bufName}`.localeCompare(`${dmaVmRightData.bufName}`)
+                : `${dmaVmRightData.bufName}`.localeCompare(`${dmaVmLeftData.bufName}`);
+            });
+            break;
+          case 'expName':
+            this.damClickTable!.recycleDataSource = array.sort((dmaVmLeftData, dmaVmRightData) => {
+              return sort === 1
+                ? `${dmaVmLeftData.expName}`.localeCompare(`${dmaVmRightData.expName}`)
+                : `${dmaVmRightData.expName}`.localeCompare(`${dmaVmLeftData.expName}`);
+            });
+            break;
+        }
+        break;
     }
   }
 }

@@ -23,8 +23,8 @@ import { ns2Timestamp, ns2x, Rect } from '../../../../database/ui-worker/Procedu
 import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
 import { ColorUtils } from '../../base/ColorUtils';
 import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
+import { queryLogAllData } from '../../../../database/SqlLite';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import {queryLogAllData} from "../../../../database/sql/SqlLite.sql";
 
 @element('tab-hi-log')
 export class TabPaneHiLogs extends BaseElement {
@@ -61,7 +61,8 @@ export class TabPaneHiLogs extends BaseElement {
       });
     }
   }
-  init(): void {
+
+  initElements(): void {
     this.levelFilterInput = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
     this.logTableTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#log-title');
     this.tagFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#tag-filter');
@@ -110,9 +111,6 @@ export class TabPaneHiLogs extends BaseElement {
     tbl!.addEventListener('scroll', () => {
       this.tableTitleTimeHandle?.();
     });
-  }
-  initElements(): void {
-    this.init();
     this.tagFilterDiv!.onclick = (ev): void => {
       // @ts-ignore
       let parentNode = ev.target.parentNode;
@@ -190,9 +188,12 @@ export class TabPaneHiLogs extends BaseElement {
         </lit-page-table>
         `;
   }
-  rerefreshLogsTab() {
+
+  refreshLogsTitle(): void {
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
+    let firstRowHeight = 27;
+    let tableHeadHeight = 26;
     if (tbl) {
       tbl.querySelectorAll<HTMLElement>('.tr').forEach((trEl: HTMLElement, index: number): void => {
         if (index === 0) {
@@ -212,12 +213,6 @@ export class TabPaneHiLogs extends BaseElement {
         });
       });
     }
-  }
-  refreshLogsTitle(): void {
-    let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
-    let height = 0;
-    let firstRowHeight = 27;
-    let tableHeadHeight = 26;
     if (this.hiLogsTbl && this.hiLogsTbl.currentRecycleList.length > 0) {
       let startDataIndex = this.hiLogsTbl.startSkip + 1;
       let endDataIndex = startDataIndex;

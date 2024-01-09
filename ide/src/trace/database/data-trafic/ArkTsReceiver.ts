@@ -16,7 +16,7 @@
 import { DataCache, JsProfilerSymbol, convertJSON } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { JsCpuProfilerChartFrame, type JsCpuProfilerUIStruct } from '../../bean/JsStruct';
 import { JsCpuProfilerSample, SampleType } from '../logic-worker/ProcedureLogicWorkerJsCpuProfiler';
-import { TraficEnum } from './utils/QueryEnum';
+import { TraficEnum } from './QueryEnum';
 
 const dataCache = DataCache.getInstance();
 const ROOT_ID = 1;

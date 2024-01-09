@@ -14,6 +14,13 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
+import {
+  queryBootTime,
+  queryHeapGroupByEvent,
+  queryNativeHookProcess,
+  queryNativeHookStatisticsCount,
+  queryNativeMemoryRealTime,
+} from '../../database/SqlLite';
 import { TraceRow } from '../trace/base/TraceRow';
 import { info } from '../../../log/Log';
 import { procedurePool } from '../../database/Procedure';
@@ -21,16 +28,12 @@ import { type NativeEventHeap } from '../../bean/NativeHook';
 import { HeapRender, HeapStruct } from '../../database/ui-worker/ProcedureWorkerHeap';
 import { Utils } from '../trace/base/Utils';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { type BaseStruct } from '../../bean/BaseStruct';
 import {
   nativeMemoryChartDataCacheSender,
   nativeMemoryChartDataSender,
 } from '../../database/data-trafic/NativeMemoryDataSender';
-import {queryNativeHookProcess, queryNativeHookStatisticsCount} from "../../database/sql/NativeHook.sql";
-import {queryHeapGroupByEvent} from "../../database/sql/SqlLite.sql";
-import {queryNativeMemoryRealTime} from "../../database/sql/Memory.sql";
-import {queryBootTime} from "../../database/sql/Clock.sql";
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];

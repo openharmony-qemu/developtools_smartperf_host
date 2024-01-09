@@ -438,7 +438,7 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       uint64_t cookie,
                                       DataIndex nameIndex)
 {
-    Unused(pid);
+    UNUSED(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
 
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
@@ -466,7 +466,7 @@ uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
                                        uint64_t cookie,
                                        DataIndex nameIndex)
 {
-    Unused(pid);
+    UNUSED(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();

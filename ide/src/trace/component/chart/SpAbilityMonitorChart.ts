@@ -14,10 +14,20 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
+import {
+  queryAbilityExits,
+  queryCPuAbilityMaxData,
+  queryDiskIoMaxData,
+  queryDmaAbilityData,
+  queryGpuMemoryAbilityData,
+  queryMemoryMaxData,
+  queryNetWorkMaxData,
+  queryPurgeableSysData,
+} from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
 import { Utils } from '../trace/base/Utils';
-import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { type ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
 import { CpuAbilityMonitorStruct, CpuAbilityRender } from '../../database/ui-worker/ProcedureWorkerCpuAbility';
 import { MemoryAbilityMonitorStruct, MemoryAbilityRender } from '../../database/ui-worker/ProcedureWorkerMemoryAbility';
@@ -40,9 +50,6 @@ import {
   abilityPurgeableDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { MemoryConfig } from '../../bean/MemoryConfig';
-import {queryMemoryMaxData} from "../../database/sql/Memory.sql";
-import {queryDiskIoMaxData, queryNetWorkMaxData} from "../../database/sql/SqlLite.sql";
-import {queryAbilityExits, queryCPuAbilityMaxData, queryPurgeableSysData} from "../../database/sql/Ability.sql";
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;
   constructor(trace: SpSystemTrace) {

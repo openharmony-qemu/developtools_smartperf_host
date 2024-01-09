@@ -16,8 +16,8 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { Counter, SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabCounters, getTabVirtualCounters } from '../../../../database/SqlLite';
 import { resizeObserver } from '../SheetUtils';
-import {getTabCounters} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-counter')
 export class TabPaneCounter extends BaseElement {
