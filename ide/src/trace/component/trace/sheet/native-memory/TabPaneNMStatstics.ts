@@ -16,11 +16,6 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import {
-  queryNativeHookStatistics,
-  queryNativeHookStatisticsMalloc,
-  queryNativeHookStatisticsSubType,
-} from '../../../../database/SqlLite';
 import { NativeHookMalloc, NativeHookStatisticsTableData } from '../../../../bean/NativeHook';
 import { Utils } from '../../base/Utils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
@@ -29,6 +24,11 @@ import { SpNativeMemoryChart } from '../../../chart/SpNativeMemoryChart';
 import { resizeObserver } from '../SheetUtils';
 import { TabPaneNMSampleList } from './TabPaneNMSampleList';
 import { env } from 'process';
+import {
+  queryNativeHookStatistics,
+  queryNativeHookStatisticsMalloc,
+  queryNativeHookStatisticsSubType
+} from "../../../../database/sql/NativeHook.sql";
 
 @element('tabpane-native-statistics')
 export class TabPaneNMStatstics extends BaseElement {

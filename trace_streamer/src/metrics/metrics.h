@@ -84,7 +84,7 @@ public:
     using ResultCallBack = std::function<void(const std::string /* json result */, int32_t)>;
     void ParserJson(const std::string& metrics, std::string& result);
     void PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback);
-    auto GetMetricsMap()
+    const auto GetMetricsMap()
     {
         return initMetricsMap_;
     }

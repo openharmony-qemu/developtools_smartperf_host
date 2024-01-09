@@ -14,11 +14,9 @@ is_win = false
 is_linux = false
 is_mac = false
 is_protoc = false
-with_ebpf_help_table = false
 is_mingw = false
 with_libunwind = false
 is_sdkdemo = false
-is_dubai_sdk = false
 is_sdkdemo_test = false
 is_spb = false
 target_cpu = "x64"
@@ -29,7 +27,6 @@ declare_args() {
   wasm_use_thread = false
   is_test = false
   is_sdkdemo = false
-  is_dubai_sdk = false
   is_sdkdemo_test = false
   testonly = false
   is_fuzz = false
@@ -61,9 +58,6 @@ if (target == "wasm") {
   is_protoc = true
 } else if (target == "sdkdemo") {
   is_sdkdemo = true
-  use_wasm = true
-} else if (target == "dubaisdk") {
-  is_dubai_sdk = true
   use_wasm = true
 } else if (target == "sdkdemotest") {
   is_sdkdemo_test = true
@@ -99,9 +93,6 @@ if (!is_debug) {
   default_configs += [ "//gn:release" ]
   hiperf_default_configs -= [ "//gn:symbols" ]
   hiperf_default_configs += [ "//gn:release" ]
-}
-if (is_debug) {
-  with_ebpf_help_table = true
 }
 
 set_defaults("ohos_source_set") {

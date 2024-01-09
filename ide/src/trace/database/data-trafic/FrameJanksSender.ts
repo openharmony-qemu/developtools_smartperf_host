@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { JanksStruct } from '../../bean/JanksStruct';
@@ -22,7 +22,7 @@ export function frameJanksSender(queryEnum: number, row: TraceRow<JanksStruct>):
     transferJankDataType = TraficEnum.ProtoBuffer;
   }
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((transferJankDataType === TraficEnum.SharedArrayBuffer || transferJankDataType === TraficEnum.Memory) && !row.sharedArrayBuffers) {
+  if ((transferJankDataType === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       id: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
       ipid: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),

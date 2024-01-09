@@ -42,7 +42,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   isStatistic: boolean = false;
   boxRangeNativeHook: Array<NativeMemory> = [];
   clearBoxSelectionData: boolean = false;
-  nativeMemoryArgs?: Map<string, any>;
+  nmArgs?: Map<string, any>;
   private dataCache = DataCache.getInstance();
   isHideThread: boolean = false;
   private currentSelectIPid: number = 1;
@@ -52,153 +52,34 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     if (data && data.type) {
       switch (data.type) {
         case 'native-memory-init':
-          this.clearAll();
-          if (data.params.isRealtime) {
-            this.realTimeDif = data.params.realTimeDif;
-          }
-          this.initNMFrameData();
+          this.nmInit(data.params);
           break;
         case 'native-memory-queryNMFrameData':
-          let arr = convertJSON(data.params.list) || [];
-          this.initNMStack(arr);
-          arr = [];
-          self.postMessage({
-            id: data.id,
-            action: 'native-memory-init',
-            results: [],
-          });
+          this.nmQueryNMFrameData(data);
           break;
         case 'native-memory-queryCallchainsSamples':
-          this.searchValue = '';
-          if (data.params.list) {
-            let callchainsSamples = convertJSON(data.params.list) || [];
-            this.queryAllCallchainsSamples = callchainsSamples;
-            this.freshCurrentCallchains(callchainsSamples, true);
-            // @ts-ignore
-            self.postMessage({
-              id: data.id,
-              action: data.action,
-              results: this.allThreads,
-            });
-          } else {
-            this.queryCallchainsSamples(
-              'native-memory-queryCallchainsSamples',
-              data.params.leftNs,
-              data.params.rightNs,
-              data.params.types
-            );
-          }
+          this.nmQueryCallchainsSamples(data);
           break;
         case 'native-memory-queryStatisticCallchainsSamples':
-          this.searchValue = '';
-          if (data.params.list) {
-            let samples = convertJSON(data.params.list) || [];
-            this.queryAllCallchainsSamples = samples;
-            this.freshCurrentCallchains(samples, true);
-            // @ts-ignore
-            self.postMessage({
-              id: data.id,
-              action: data.action,
-              results: this.allThreads,
-            });
-          } else {
-            this.queryStatisticCallchainsSamples(
-              'native-memory-queryStatisticCallchainsSamples',
-              data.params.leftNs,
-              data.params.rightNs,
-              data.params.types
-            );
-          }
+          this.nmQueryStatisticCallchainsSamples(data);
           break;
         case 'native-memory-queryAnalysis':
-          if (data.params.list) {
-            let samples = convertJSON(data.params.list) || [];
-            this.queryAllCallchainsSamples = samples;
-            self.postMessage({
-              id: data.id,
-              action: data.action,
-              results: this.combineStatisticAndCallChain(samples),
-            });
-          } else {
-            if (data.params.isStatistic) {
-              this.isStatistic = true;
-              this.queryStatisticCallchainsSamples(
-                'native-memory-queryAnalysis',
-                data.params.leftNs,
-                data.params.rightNs,
-                data.params.types
-              );
-            } else {
-              this.isStatistic = false;
-              this.queryCallchainsSamples(
-                'native-memory-queryAnalysis',
-                data.params.leftNs,
-                data.params.rightNs,
-                data.params.types
-              );
-            }
-          }
+          this.nmQueryAnalysis(data);
           break;
         case 'native-memory-queryNativeHookEvent':
-          if (data.params) {
-            if (data.params.list) {
-              this.boxRangeNativeHook = convertJSON(data.params.list);
-              if (this.nativeMemoryArgs?.get('refresh')) {
-                this.clearBoxSelectionData = this.boxRangeNativeHook.length > 100_0000;
-              }
-              this.supplementNativeHoodData();
-              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 50_0000);
-              if (this.clearBoxSelectionData) {
-                this.boxRangeNativeHook = [];
-              }
-            } else if (data.params.get('refresh') || this.boxRangeNativeHook.length === 0) {
-              this.nativeMemoryArgs = data.params;
-              let leftNs = data.params.get('leftNs');
-              let rightNs = data.params.get('rightNs');
-              let types = data.params.get('types');
-              this.boxRangeNativeHook = [];
-              this.queryNativeHookEvent(leftNs, rightNs, types);
-            } else {
-              this.nativeMemoryArgs = data.params;
-              postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nativeMemoryArgs!), 50_0000);
-              if (this.clearBoxSelectionData) {
-                this.boxRangeNativeHook = [];
-              }
-            }
-          }
+          this.nmQueryNativeHookEvent(data);
           break;
         case 'native-memory-action':
-          if (data.params) {
-            self.postMessage({
-              id: data.id,
-              action: data.action,
-              results: this.resolvingAction(data.params),
-            });
-          }
+          this.nmAction(data);
           break;
         case 'native-memory-calltree-action':
-          if (data.params) {
-            self.postMessage({
-              id: data.id,
-              action: data.action,
-              results: this.resolvingNMCallAction(data.params),
-            });
-          }
+          this.nmCalltreeAction(data);
           break;
         case 'native-memory-init-responseType':
-          this.initResponseTypeList(data.params);
-          self.postMessage({
-            id: data.id,
-            action: data.action,
-            results: [],
-          });
+          this.nmInitResponseType(data);
           break;
         case 'native-memory-get-responseType':
-          self.postMessage({
-            id: data.id,
-            action: data.action,
-            results: this.responseTypes,
-          });
+          this.nmGetResponseType(data);
           break;
         case 'native-memory-reset':
           this.isHideThread = false;
@@ -208,15 +89,163 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
     }
   }
-
+  private nmInit(params: any): void {
+    this.clearAll();
+    if (params.isRealtime) {
+      this.realTimeDif = params.realTimeDif;
+    }
+    this.initNMFrameData();
+  }
+  private nmQueryNMFrameData(data: any): void {
+    let arr = convertJSON(data.params.list) || [];
+    this.initNMStack(arr);
+    arr = [];
+    self.postMessage({
+      id: data.id,
+      action: 'native-memory-init',
+      results: [],
+    });
+  }
+  private nmQueryCallchainsSamples(data: any): void {
+    this.searchValue = '';
+    if (data.params.list) {
+      let callchainsSamples = convertJSON(data.params.list) || [];
+      this.queryAllCallchainsSamples = callchainsSamples;
+      this.freshCurrentCallchains(callchainsSamples, true);
+      // @ts-ignore
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: this.allThreads,
+      });
+    } else {
+      this.queryCallchainsSamples(
+        'native-memory-queryCallchainsSamples',
+        data.params.leftNs,
+        data.params.rightNs,
+        data.params.types
+      );
+    }
+  }
+  private nmQueryStatisticCallchainsSamples(data: any): void {
+    this.searchValue = '';
+    if (data.params.list) {
+      let samples = convertJSON(data.params.list) || [];
+      this.queryAllCallchainsSamples = samples;
+      this.freshCurrentCallchains(samples, true);
+      // @ts-ignore
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: this.allThreads,
+      });
+    } else {
+      this.queryStatisticCallchainsSamples(
+        'native-memory-queryStatisticCallchainsSamples',
+        data.params.leftNs,
+        data.params.rightNs,
+        data.params.types
+      );
+    }
+  }
+  private nmQueryAnalysis(data: any): void {
+    if (data.params.list) {
+      let samples = convertJSON(data.params.list) || [];
+      this.queryAllCallchainsSamples = samples;
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: this.combineStatisticAndCallChain(samples),
+      });
+    } else {
+      if (data.params.isStatistic) {
+        this.isStatistic = true;
+        this.queryStatisticCallchainsSamples(
+          'native-memory-queryAnalysis',
+          data.params.leftNs,
+          data.params.rightNs,
+          data.params.types
+        );
+      } else {
+        this.isStatistic = false;
+        this.queryCallchainsSamples(
+          'native-memory-queryAnalysis',
+          data.params.leftNs,
+          data.params.rightNs,
+          data.params.types
+        );
+      }
+    }
+  }
+  private nmQueryNativeHookEvent(data: any): void {
+    if (data.params) {
+      if (data.params.list) {
+        this.boxRangeNativeHook = convertJSON(data.params.list);
+        if (this.nmArgs?.get('refresh')) {
+          this.clearBoxSelectionData = this.boxRangeNativeHook.length > 100_0000;
+        }
+        this.supplementNativeHoodData();
+        postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nmArgs!), 50_0000);
+        if (this.clearBoxSelectionData) {
+          this.boxRangeNativeHook = [];
+        }
+      } else if (data.params.get('refresh') || this.boxRangeNativeHook.length === 0) {
+        this.nmArgs = data.params;
+        let leftNs = data.params.get('leftNs');
+        let rightNs = data.params.get('rightNs');
+        let types = data.params.get('types');
+        this.boxRangeNativeHook = [];
+        this.queryNativeHookEvent(leftNs, rightNs, types);
+      } else {
+        this.nmArgs = data.params;
+        postMessage(data.id, data.action, this.resolvingActionNativeMemory(this.nmArgs!), 50_0000);
+        if (this.clearBoxSelectionData) {
+          this.boxRangeNativeHook = [];
+        }
+      }
+    }
+  }
+  private nmAction(data: any): void {
+    if (data.params) {
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: this.resolvingAction(data.params),
+      });
+    }
+  }
+  private nmCalltreeAction(data: any): void {
+    if (data.params) {
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        results: this.resolvingNMCallAction(data.params),
+      });
+    }
+  }
+  private nmInitResponseType(data: any): void {
+    this.initResponseTypeList(data.params);
+    self.postMessage({
+      id: data.id,
+      action: data.action,
+      results: [],
+    });
+  }
+  private nmGetResponseType(data: any): void {
+    self.postMessage({
+      id: data.id,
+      action: data.action,
+      results: this.responseTypes,
+    });
+  }
   queryNativeHookEvent(leftNs: number, rightNs: number, types: Array<string>): void {
     let condition =
       types.length === 1
         ? `and A.event_type = ${types[0]}`
         : "and (A.event_type = 'AllocEvent' or A.event_type = 'MmapEvent')";
-    let libId = this.nativeMemoryArgs?.get('filterResponseType');
-    let allocType = this.nativeMemoryArgs?.get('filterAllocType');
-    let eventType = this.nativeMemoryArgs?.get('filterEventType');
+    let libId = this.nmArgs?.get('filterResponseType');
+    let allocType = this.nmArgs?.get('filterAllocType');
+    let eventType = this.nmArgs?.get('filterEventType');
     if (libId !== undefined && libId !== -1) {
       condition = `${condition} and last_lib_id = ${libId}`; // filter lib
     }
@@ -529,7 +558,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     this.currentTreeList.length = 0;
     this.responseTypes.length = 0;
     this.boxRangeNativeHook = [];
-    this.nativeMemoryArgs?.clear();
+    this.nmArgs?.clear();
     this.isHideThread = false;
   }
 
@@ -607,29 +636,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     const analysisSampleList: Array<AnalysisSample> = [];
     const applyAllocSamples: Array<AnalysisSample> = [];
     const applyMmapSamples: Array<AnalysisSample> = [];
-
     for (const sample of samples) {
       const count = this.isStatistic ? sample.count : 1;
       const analysisSample = new AnalysisSample(sample.id, sample.heapSize, count, sample.eventType, sample.startTs);
-
       if (this.isStatistic) {
-        analysisSample.releaseCount = sample.freeCount;
-        analysisSample.releaseSize = sample.freeSize;
-        switch (sample.subTypeId) {
-          case 1:
-            analysisSample.subType = 'MmapEvent';
-            break;
-          case 2:
-            analysisSample.subType = 'FILE_PAGE_MSG';
-            break;
-          case 3:
-            analysisSample.subType = 'MEMORY_USING_MSG';
-            break;
-          default:
-            analysisSample.subType = this.dataCache.dataDict.get(sample.subTypeId);
-        }
+        this.setStatisticSubType(analysisSample, sample);
       } else {
-        let subType = undefined;
+        let subType: string | undefined;
         if (sample.subTypeId) {
           subType = this.dataCache.dataDict.get(sample.subTypeId);
         }
@@ -639,7 +652,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         analysisSample.threadName = sample.threadName;
         analysisSample.subType = subType;
       }
-
       if (['FreeEvent', 'MunmapEvent'].includes(sample.eventType)) {
         if (sample.eventType === 'FreeEvent') {
           this.setApplyIsRelease(analysisSample, applyAllocSamples);
@@ -654,21 +666,43 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           applyMmapSamples.push(analysisSample);
         }
       }
-
-      const filePath = this.dataCache.dataDict.get(sample.lastLibId)!;
-      let libName = '';
-      if (filePath) {
-        const path = filePath.split('/');
-        libName = path[path.length - 1];
-      }
-      const symbolName = this.dataCache.dataDict.get(sample.lastSymbolId) || libName + ' (' + sample.addr + ')';
-      analysisSample.libId = sample.lastLibId || -1;
-      analysisSample.libName = libName || 'Unknown';
-      analysisSample.symbolId = sample.lastSymbolId || -1;
-      analysisSample.symbolName = symbolName || 'Unknown';;
-      analysisSampleList.push(analysisSample);
+      let s = this.setAnalysisSampleArgs(analysisSample, sample);
+      analysisSampleList.push(s);
     }
     return analysisSampleList;
+  }
+
+  private setStatisticSubType(analysisSample: AnalysisSample, sample: NativeHookStatistics): void {
+    analysisSample.releaseCount = sample.freeCount;
+    analysisSample.releaseSize = sample.freeSize;
+    switch (sample.subTypeId) {
+      case 1:
+        analysisSample.subType = 'MmapEvent';
+        break;
+      case 2:
+        analysisSample.subType = 'FILE_PAGE_MSG';
+        break;
+      case 3:
+        analysisSample.subType = 'MEMORY_USING_MSG';
+        break;
+      default:
+        analysisSample.subType = this.dataCache.dataDict.get(sample.subTypeId);
+    }
+  }
+
+  private setAnalysisSampleArgs(analysisSample: AnalysisSample, sample: NativeHookStatistics): AnalysisSample {
+    const filePath = this.dataCache.dataDict.get(sample.lastLibId)!;
+    let libName = '';
+    if (filePath) {
+      const path = filePath.split('/');
+      libName = path[path.length - 1];
+    }
+    const symbolName = this.dataCache.dataDict.get(sample.lastSymbolId) || libName + ' (' + sample.addr + ')';
+    analysisSample.libId = sample.lastLibId || -1;
+    analysisSample.libName = libName || 'Unknown';
+    analysisSample.symbolId = sample.lastSymbolId || -1;
+    analysisSample.symbolName = symbolName || 'Unknown';
+    return analysisSample;
   }
 
   setApplyIsRelease(sample: AnalysisSample, arr: Array<AnalysisSample>): void {
@@ -683,7 +717,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     }
   }
 
-  freshCurrentCallchains(samples: NativeHookStatistics[], isTopDown: boolean): void {
+  private freshCurrentCallchains(samples: NativeHookStatistics[], isTopDown: boolean): void {
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     let totalSize = 0;
@@ -721,6 +755,11 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         }
       }
     });
+    let rootMerageMap = this.mergeNodeData(totalCount, totalSize);
+    this.handleCurrentTreeList(totalCount, totalSize);
+    this.allThreads = Object.values(rootMerageMap) as NativeHookCallInfo[];
+  }
+  private mergeNodeData(totalCount: number, totalSize: number): Map<any, any> {
     let rootMerageMap: any = {};
     // @ts-ignore
     let threads = Object.values(this.currentTreeMapData);
@@ -761,6 +800,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
       merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
     });
+    return rootMerageMap;
+  }
+  private handleCurrentTreeList(totalCount: number, totalSize: number): void {
     let id = 0;
     this.currentTreeList.forEach((nmTreeNode: any): void => {
       nmTreeNode.totalCount = totalCount;
@@ -778,11 +820,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         nmTreeNode.parentId = nmTreeNode.parentNode.id;
       }
     });
-    this.allThreads = Object.values(rootMerageMap) as NativeHookCallInfo[];
   }
-
-  groupCallchainSample(paramMap: Map<string, any>): void {
-    let groupMap: any = {};
+  private groupCallchainSample(paramMap: Map<string, any>): void {
     let filterAllocType = paramMap.get('filterAllocType');
     let filterEventType = paramMap.get('filterEventType');
     let filterResponseType = paramMap.get('filterResponseType');
@@ -804,22 +843,35 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       this.currentSamples = this.queryAllCallchainsSamples;
       return;
     }
-    let filter = this.queryAllCallchainsSamples.filter((item: NativeHookStatistics): boolean => {
+    let filter = this.dataFilter(
+      libTree,
+      filterAnalysis,
+      filterAllocType,
+      leftNs,
+      rightNs,
+      nativeHookType,
+      filterResponseType,
+      filterEventType,
+      statisticsSelection
+    );
+    let groupMap = this.setGroupMap(filter, filterAllocType, nativeHookType);
+    this.currentSamples = Object.values(groupMap);
+  }
+  private dataFilter(
+    libTree: any,
+    filterAnalysis: any,
+    filterAllocType: string,
+    leftNs: number,
+    rightNs: number,
+    nativeHookType: string,
+    filterResponseType: number,
+    filterEventType: string,
+    statisticsSelection: StatisticsSelection[]
+  ): NativeHookStatistics[] {
+    return this.queryAllCallchainsSamples.filter((item: NativeHookStatistics): boolean => {
       let filterAllocation = true;
       if (nativeHookType === 'native-hook') {
-        if (filterAllocType === '1') {
-          filterAllocation =
-            item.startTs >= leftNs &&
-            item.startTs <= rightNs &&
-            (item.endTs > rightNs || item.endTs === 0 || item.endTs === null);
-        } else if (filterAllocType === '2') {
-          filterAllocation =
-            item.startTs >= leftNs &&
-            item.startTs <= rightNs &&
-            item.endTs <= rightNs &&
-            item.endTs != 0 &&
-            item.endTs != null;
-        }
+        filterAllocation = this.setFilterAllocation(item, filterAllocType, filterAllocation, leftNs, rightNs);
       } else {
         if (filterAllocType === '1') {
           filterAllocation = item.heapSize > item.freeSize;
@@ -827,12 +879,10 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
           filterAllocation = item.heapSize === item.freeSize;
         }
       }
-
       let filterThread = true;
       if (filterAnalysis && filterAnalysis.tid) {
         filterThread = item.tid === filterAnalysis.tid;
       }
-
       let filterLastLib = true;
       if (libTree) {
         filterLastLib = this.filterExpressionSample(item, libTree);
@@ -840,16 +890,38 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       } else {
         filterLastLib = filterResponseType === -1 ? true : filterResponseType === item.lastLibId;
       }
-
       let filterFunction = true;
       if (filterAnalysis && filterAnalysis.symbolId) {
         filterFunction = filterAnalysis.symbolId === item.lastSymbolId;
       }
-
       let filterNative = this.getTypeFromIndex(parseInt(filterEventType), item, statisticsSelection);
-
       return filterAllocation && filterNative && filterLastLib && filterThread && filterFunction;
     });
+  }
+  private setFilterAllocation(
+    item: any,
+    filterAllocType: string,
+    filterAllocation: boolean,
+    leftNs: number,
+    rightNs: number
+  ): boolean {
+    if (filterAllocType === '1') {
+      filterAllocation =
+        item.startTs >= leftNs &&
+        item.startTs <= rightNs &&
+        (item.endTs > rightNs || item.endTs === 0 || item.endTs === null);
+    } else if (filterAllocType === '2') {
+      filterAllocation =
+        item.startTs >= leftNs &&
+        item.startTs <= rightNs &&
+        item.endTs <= rightNs &&
+        item.endTs != 0 &&
+        item.endTs != null;
+    }
+    return filterAllocation;
+  }
+  private setGroupMap(filter: Array<any>, filterAllocType: string, nativeHookType: string): Map<any, any> {
+    let groupMap: any = {};
     filter.forEach((sample: NativeHookStatistics): void => {
       let currentNode = groupMap[sample.tid + '-' + sample.eventId] || new NativeHookStatistics();
       if (currentNode.count === 0) {
@@ -871,8 +943,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       }
       groupMap[sample.tid + '-' + sample.eventId] = currentNode;
     });
-    // @ts-ignore
-    this.currentSamples = Object.values(groupMap);
+    return groupMap;
   }
 
   private filterExpressionSample(sample: NativeHookStatistics, expressStruct: NativeMemoryExpression): boolean {
@@ -981,61 +1052,61 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   resolvingNMCallAction(params: any[]): NativeHookCallInfo[] {
     if (params.length > 0) {
       params.forEach((item: any): void => {
-        if (item.funcName && item.funcArgs) {
-          switch (item.funcName) {
-            case 'hideThread':
-              this.isHideThread = item.funcArgs[0];
-              break;
-            case 'groupCallchainSample':
-              this.groupCallchainSample(item.funcArgs[0] as Map<string, any>);
-              break;
-            case 'getCallChainsBySampleIds':
-              this.freshCurrentCallchains(this.currentSamples, item.funcArgs[0]);
-              break;
-            case 'hideSystemLibrary':
-              merageBeanDataSplit.hideSystemLibrary(this.allThreads, this.splitMapData);
-              break;
-            case 'hideNumMaxAndMin':
-              merageBeanDataSplit.hideNumMaxAndMin(
-                this.allThreads,
-                this.splitMapData,
-                item.funcArgs[0],
-                item.funcArgs[1]
-              );
-              break;
-            case 'splitAllProcess':
-              merageBeanDataSplit.splitAllProcess(this.allThreads, this.splitMapData, item.funcArgs[0]);
-              break;
-            case 'resetAllNode':
-              merageBeanDataSplit.resetAllNode(this.allThreads, this.currentTreeList, this.searchValue);
-              break;
-            case 'resotreAllNode':
-              merageBeanDataSplit.resotreAllNode(this.splitMapData, item.funcArgs[0]);
-              break;
-            case 'splitTree':
-              merageBeanDataSplit.splitTree(
-                this.splitMapData,
-                this.allThreads,
-                item.funcArgs[0],
-                item.funcArgs[1],
-                item.funcArgs[2],
-                this.currentTreeList,
-                this.searchValue
-              );
-              break;
-            case 'setSearchValue':
-              this.searchValue = item.funcArgs[0];
-              break;
-            case 'clearSplitMapData':
-              this.clearSplitMapData(item.funcArgs[0]);
-              break;
-          }
+        let funcName = item.funcName;
+        let args = item.funcArgs;
+        if (funcName && args) {
+          this.handleDataByFuncName(funcName, args);
         }
       });
     }
     return this.allThreads.filter((thread: NativeHookCallInfo): boolean => {
       return thread.children && thread.children.length > 0;
     });
+  }
+  handleDataByFuncName(funcName: any, args: any): void {
+    switch (funcName) {
+      case 'hideThread':
+        this.isHideThread = args[0];
+        break;
+      case 'groupCallchainSample':
+        this.groupCallchainSample(args[0] as Map<string, any>);
+        break;
+      case 'getCallChainsBySampleIds':
+        this.freshCurrentCallchains(this.currentSamples, args[0]);
+        break;
+      case 'hideSystemLibrary':
+        merageBeanDataSplit.hideSystemLibrary(this.allThreads, this.splitMapData);
+        break;
+      case 'hideNumMaxAndMin':
+        merageBeanDataSplit.hideNumMaxAndMin(this.allThreads, this.splitMapData, args[0], args[1]);
+        break;
+      case 'splitAllProcess':
+        merageBeanDataSplit.splitAllProcess(this.allThreads, this.splitMapData, args[0]);
+        break;
+      case 'resetAllNode':
+        merageBeanDataSplit.resetAllNode(this.allThreads, this.currentTreeList, this.searchValue);
+        break;
+      case 'resotreAllNode':
+        merageBeanDataSplit.resotreAllNode(this.splitMapData, args[0]);
+        break;
+      case 'splitTree':
+        merageBeanDataSplit.splitTree(
+          this.splitMapData,
+          this.allThreads,
+          args[0],
+          args[1],
+          args[2],
+          this.currentTreeList,
+          this.searchValue
+        );
+        break;
+      case 'setSearchValue':
+        this.searchValue = args[0];
+        break;
+      case 'clearSplitMapData':
+        this.clearSplitMapData(args[0]);
+        break;
+    }
   }
 }
 

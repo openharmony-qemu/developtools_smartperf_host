@@ -15,12 +15,12 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabSmapsData, getTabSmapsSampleData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { Smaps, SmapsType, TYPE_STRING } from '../../../../bean/SmapsStruct';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SpSystemTrace } from '../../../SpSystemTrace';
+import {getTabSmapsData, getTabSmapsSampleData} from "../../../../database/sql/Smaps.sql";
 @element('tabpane-smaps-sample')
 export class TabPaneSmapsSample extends BaseElement {
   private tblSmapsSample: LitTable | null | undefined;

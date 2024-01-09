@@ -159,17 +159,17 @@ void BinderFilter::TransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSi
     args.AppendArg(dataSizeId_, BASE_DATA_TYPE_INT, dataSize);
     args.AppendArg(dataOffsetSizeId_, BASE_DATA_TYPE_INT, offsetsSize);
     (void)streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, transSliceId_, args);
-    UNUSED(ts);
+    Unused(ts);
 }
 void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string& tag)
 {
-    UNUSED(tag);
+    Unused(tag);
     lastEventTs_[pid] = ts;
     (void)streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockTryId_);
 }
 void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
 {
-    UNUSED(tag);
+    Unused(tag);
     if (!lastEventTs_.count(pid)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, STAT_EVENT_NOTMATCH);
         return;
@@ -181,7 +181,7 @@ void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& t
 }
 void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag)
 {
-    UNUSED(tag);
+    Unused(tag);
     if (!lastEventTs_.count(pid)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, STAT_EVENT_NOTMATCH);
         return;

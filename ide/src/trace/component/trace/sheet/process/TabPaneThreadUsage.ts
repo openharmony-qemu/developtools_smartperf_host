@@ -17,13 +17,13 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
-import { getTabRunningPersent, getTabThreadStatesCpu } from '../../../../database/SqlLite';
 import { StackBar } from '../../../StackBar';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { Utils } from '../../base/Utils';
-import { CpuStruct } from '../../../../database/ui-worker/ProcedureWorkerCPU';
+import { CpuStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { resizeObserver } from '../SheetUtils';
+import {getTabRunningPersent, getTabThreadStatesCpu} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-thread-usage')
 export class TabPaneThreadUsage extends BaseElement {

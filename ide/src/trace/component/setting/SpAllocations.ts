@@ -15,13 +15,22 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement';
 import { log } from '../../../log/Log';
-import { SpApplication } from '../../SpApplication';
-import { LitSearch } from '../trace/search/Search';
 import { SpRecordTrace } from '../SpRecordTrace';
 import { Cmd } from '../../../command/Cmd';
 import LitSwitch from '../../../base-ui/switch/lit-switch';
 import { LitSlider } from '../../../base-ui/slider/LitSlider';
 import { LitSelectV } from '../../../base-ui/select/LitSelectV';
+import { SpAllocationHtml } from './SpAllocation.html';
+import {
+  NUM_16384,
+  NUM_1800,
+  NUM_30,
+  NUM_300,
+  NUM_3600,
+  NUM_450,
+  NUM_60,
+  NUM_600
+} from '../../bean/NumBean';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
@@ -31,10 +40,8 @@ export class SpAllocations extends BaseElement {
   private shareMemoryUnit: HTMLSelectElement | null | undefined;
   private filterMemory: HTMLInputElement | null | undefined;
   private intervalResultInput: HTMLInputElement | null | undefined;
-  private filterMemoryUnit: HTMLSelectElement | null | undefined;
   private fpUnWind: LitSwitch | null | undefined;
   private statisticsSlider: LitSlider | null | undefined;
-
   private recordAccurately: LitSwitch | null | undefined;
   private offlineSymbol: LitSwitch | null | undefined;
   private startupMode: LitSwitch | null | undefined;
@@ -61,24 +68,23 @@ export class SpAllocations extends BaseElement {
   }
 
   get unwind(): number {
-    log('unwind value is :' + this.unwindEL!.value);
+    log(`unwind value is :${  this.unwindEL!.value}`);
     return Number(this.unwindEL!.value);
   }
 
   get shared(): number {
     let value = this.shareMemory?.value || '';
-    log('shareMemory value is :' + value);
-    if (value != '') {
-      let unit = Number(this.shareMemory?.value) || 16384;
-      return unit;
+    log(`shareMemory value is :${  value}`);
+    if (value !== '') {
+      return Number(this.shareMemory?.value) || NUM_16384;
     }
-    return 16384;
+    return NUM_16384;
   }
 
   get filter(): number {
     let value = this.filterMemory?.value || '';
-    log('filter value is :' + value);
-    if (value != '') {
+    log(`filter value is :${  value}`);
+    if (value !== '') {
       return Number(value);
     }
     return 0;
@@ -86,7 +92,7 @@ export class SpAllocations extends BaseElement {
 
   get fp_unwind(): boolean {
     let value = this.fpUnWind?.checked;
-    if (value != undefined) {
+    if (value !== undefined) {
       return value;
     }
     return true;
@@ -94,7 +100,7 @@ export class SpAllocations extends BaseElement {
 
   get record_accurately(): boolean {
     let value = this.recordAccurately?.checked;
-    if (value != undefined) {
+    if (value !== undefined) {
       return value;
     }
     return true;
@@ -102,7 +108,7 @@ export class SpAllocations extends BaseElement {
 
   get offline_symbolization(): boolean {
     let value = this.offlineSymbol?.checked;
-    if (value != undefined) {
+    if (value !== undefined) {
       return value;
     }
     return true;
@@ -125,7 +131,7 @@ export class SpAllocations extends BaseElement {
 
   get response_lib_mode(): boolean {
     let value = this.responseLibMode?.checked;
-    if (value != undefined) {
+    if (value !== undefined) {
       return value;
     }
     return false;
@@ -133,7 +139,7 @@ export class SpAllocations extends BaseElement {
 
   get startup_mode(): boolean {
     let value = this.startupMode?.checked;
-    if (value != undefined) {
+    if (value !== undefined) {
       return value;
     }
     return false;
@@ -164,21 +170,37 @@ export class SpAllocations extends BaseElement {
     return Number(this.sampleInterval!.value);
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     this.unwindEL?.addEventListener('keydown', this.handleInputChange);
     this.shareMemory?.addEventListener('keydown', this.handleInputChange);
     this.shareMemoryUnit?.addEventListener('keydown', this.handleInputChange);
     this.filterMemory?.addEventListener('keydown', this.handleInputChange);
+    this.intervalResultInput?.addEventListener('keydown', this.handleInputChange);
+    this.filterSize?.addEventListener('keydown', this.handleInputChange);
+    this.statisticsSlider?.addEventListener('input', this.statisticsSliderInputHandler);
+    this.intervalResultInput?.addEventListener('input', this.intervalResultInputHandler);
+    this.intervalResultInput?.addEventListener('focusout', this.intervalResultFocusOutHandler);
+    this.statisticsSlider?.shadowRoot?.querySelector<HTMLElement>('#slider')!.
+      addEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.addEventListener('change',this.startupModeChangeHandler);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.unwindEL?.removeEventListener('keydown', this.handleInputChange);
     this.shareMemory?.removeEventListener('keydown', this.handleInputChange);
     this.shareMemoryUnit?.removeEventListener('keydown', this.handleInputChange);
     this.filterMemory?.removeEventListener('keydown', this.handleInputChange);
+    this.intervalResultInput?.removeEventListener('keydown', this.handleInputChange);
+    this.filterSize?.removeEventListener('keydown', this.handleInputChange);
+    this.statisticsSlider?.removeEventListener('input', this.statisticsSliderInputHandler);
+    this.intervalResultInput?.removeEventListener('input', this.intervalResultInputHandler);
+    this.intervalResultInput?.removeEventListener('focusout', this.intervalResultFocusOutHandler);
+    this.statisticsSlider?.shadowRoot?.querySelector<HTMLElement>('#slider')!.
+      removeEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.removeEventListener('change',this.startupModeChangeHandler);
   }
 
-  handleInputChange = (ev: KeyboardEvent) => {
+  handleInputChange = (ev: KeyboardEvent): void => {
     // @ts-ignore
     if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
       ev.preventDefault();
@@ -187,57 +209,22 @@ export class SpAllocations extends BaseElement {
 
   initElements(): void {
     this.filterSize = this.shadowRoot?.querySelector('#filterSized');
-    this.filterSize!.addEventListener('keydown', (ev: any) => {
-      if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
-        ev.preventDefault();
-      }
-    });
     this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
     let process = this.processId.shadowRoot?.querySelector('input') as HTMLInputElement;
-    process!.addEventListener('mousedown', (ev) => {
-      if (this.startSamp) {
-        process.readOnly = false;
-        Cmd.getProcess().then((processList) => {
-          this.processId?.dataSource(processList, '');
-          if (processList.length > 0 && !this.startup_mode) {
-            this.processId?.dataSource(processList, 'ALL-Process');
-          } else {
-            this.processId?.dataSource([], '');
-          }
-        });
-      } else {
-        process.readOnly = true;
-        return;
-      }
-      if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
-        this.processId?.dataSource([], '');
-      } else {
-      }
+    process!.addEventListener('mousedown', () => {
+      this.processMouseDownHandler(process);
     });
     this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
     this.shareMemory = this.shadowRoot?.getElementById('shareMemory') as HTMLInputElement;
     this.shareMemoryUnit = this.shadowRoot?.getElementById('shareMemoryUnit') as HTMLSelectElement;
     this.filterMemory = this.shadowRoot?.getElementById('filterSized') as HTMLInputElement;
-    this.filterMemoryUnit = this.shadowRoot?.getElementById('filterSizedUnit') as HTMLSelectElement;
     this.fpUnWind = this.shadowRoot?.getElementById('use_fp_unwind') as LitSwitch;
     this.recordAccurately = this.shadowRoot?.getElementById('use_record_accurately') as LitSwitch;
     this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
     this.startupMode = this.shadowRoot?.getElementById('use_startup_mode') as LitSwitch;
     this.responseLibMode = this.shadowRoot?.getElementById('response_lib_mode') as LitSwitch;
     this.sampleInterval = this.shadowRoot?.getElementById('sample-interval-input') as HTMLInputElement;
-    let stepValue = [0, 1, 10, 30, 60, 300, 600, 1800, 3600];
     this.statisticsSlider = this.shadowRoot?.querySelector<LitSlider>('#interval-slider') as LitSlider;
-
-    this.unwindEL.addEventListener('keydown', (ev: any) => {
-      if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
-        ev.preventDefault();
-      }
-    });
-    this.shareMemory.addEventListener('keydown', (ev: any) => {
-      if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
-        ev.preventDefault();
-      }
-    });
     this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>(
       '.record-statistics-result'
     ) as HTMLDivElement;
@@ -252,115 +239,12 @@ export class SpAllocations extends BaseElement {
     };
     let parentElement = this.statisticsSlider!.parentNode as Element;
     this.intervalResultInput = this.shadowRoot?.querySelector('.interval-result') as HTMLInputElement;
-    this.intervalResultInput!.addEventListener('keydown', (ev: any) => {
-      if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
-        ev.preventDefault();
-      }
-    });
     this.intervalResultInput.value = '10';
-    this.statisticsSlider.addEventListener('input', (evt) => {
-      this.statisticsSlider!.sliderStyle = {
-        minRange: 0,
-        maxRange: 3600,
-        defaultValue: this.recordStatisticsResult!.getAttribute('percent') + '',
-        resultUnit: 'S',
-        stepSize: 450,
-        lineColor: 'var(--dark-color3,#46B1E3)',
-        buttonColor: '#999999',
-      };
-      this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
-      if (this.recordStatisticsResult!.hasAttribute('percent')) {
-        let step = Math.round(Number(this.recordStatisticsResult!.getAttribute('percent')) / 450);
-        this.recordStatisticsResult!.setAttribute('percentValue', stepValue[step] + '');
-        this.intervalResultInput!.value = stepValue[step] + '';
-      }
-    });
     parentElement.setAttribute('percent', '3600');
     this.intervalResultInput.style.color = 'var(--dark-color1,#000000)';
-    this.intervalResultInput.addEventListener('input', (ev) => {
-      if (this.recordStatisticsResult!.hasAttribute('percent')) {
-        this.recordStatisticsResult!.removeAttribute('percent');
-      }
-      this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
-      this.intervalResultInput!.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
-      this.intervalResultInput!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
-      if (this.intervalResultInput!.value.trim() === '') {
-        this.intervalResultInput!.style.color = 'red';
-        parentElement.setAttribute('percent', '3600');
-        return;
-      }
-      let memorySize = Number(this.intervalResultInput!.value);
-      if (
-        memorySize < this.statisticsSlider!.sliderStyle.minRange ||
-        memorySize > this.statisticsSlider!.sliderStyle.maxRange
-      ) {
-        this.intervalResultInput!.style.color = 'red';
-        parentElement.setAttribute('percent', '3600');
-      } else {
-        let defaultSize = 0;
-        let stepSize = 450;
-        let inputValue = Number(this.intervalResultInput!.value);
-        for (let stepIndex = 0; stepIndex < stepValue.length; stepIndex++) {
-          let currentValue = stepValue[stepIndex];
-          if (inputValue === currentValue) {
-            defaultSize = stepIndex * stepSize;
-            break;
-          } else if (inputValue < currentValue && stepIndex !== 0) {
-            defaultSize =
-              ((inputValue - stepValue[stepIndex - 1]) / (currentValue - stepValue[stepIndex - 1])) * stepSize +
-              stepSize * (stepIndex - 1);
-            break;
-          }
-        }
-        this.statisticsSlider!.percent = defaultSize + '';
-        let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
-        this.statisticsSlider!.sliderStyle = {
-          minRange: 0,
-          maxRange: 3600,
-          defaultValue: defaultSize + '',
-          resultUnit: 'S',
-          stepSize: 1,
-          lineColor: 'var(--dark-color3,#46B1E3)',
-          buttonColor: '#999999',
-        };
-        htmlInputElement.value = defaultSize + '';
-        parentElement.setAttribute('percent', this.intervalResultInput!.value);
-        parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
-      }
-    });
-
-    this.intervalResultInput.addEventListener('focusout', (ev) => {
-      if (this.intervalResultInput!.value.trim() === '') {
-        parentElement.setAttribute('percent', '3600');
-        this.intervalResultInput!.value = '3600';
-        this.intervalResultInput!.style.color = 'var(--dark-color,#6a6f77)';
-        parentElement.setAttribute('percent', this.intervalResultInput!.value);
-        parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
-        this.statisticsSlider!.percent = this.intervalResultInput!.value;
-        let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
-        htmlInputElement.value = this.intervalResultInput!.value;
-      }
-    });
-    this.statisticsSlider.shadowRoot?.querySelector<HTMLElement>('#slider')!.addEventListener('mouseup', (ev) => {
-      setTimeout(() => {
-        let percentValue = this.recordStatisticsResult!.getAttribute('percent');
-        let index = Math.round(Number(percentValue) / 450);
-        index = index < 1 ? 0 : index;
-        this.intervalResultInput!.value = stepValue[index] + '';
-        this.recordStatisticsResult!.setAttribute('percentValue', stepValue[index] + '');
-      });
-    });
-    this.startupMode.addEventListener('change', (evt) => {
-      process.value = '';
-      if (this.startup_mode) {
-        process!.placeholder = 'please input process';
-      } else {
-        process!.placeholder = 'please select process';
-      }
-    });
-
     let litSwitch = this.shadowRoot?.querySelector('#switch-disabled') as LitSwitch;
-    litSwitch.addEventListener('change', (event: any) => {
+    litSwitch.addEventListener('change', (event: Event): void => {
+      // @ts-ignore
       let detail = event.detail;
       if (detail.checked) {
         this.unDisable();
@@ -371,7 +255,130 @@ export class SpAllocations extends BaseElement {
     this.disable();
   }
 
-  private unDisable() {
+  startupModeChangeHandler = (): void => {
+    let process = this.processId?.shadowRoot?.querySelector('input') as HTMLInputElement;
+    process.value = '';
+    if (this.startup_mode) {
+      process!.placeholder = 'please input process';
+    } else {
+      process!.placeholder = 'please select process';
+    }
+  };
+
+  statisticsSliderMouseupHandler = (): void => {
+    setTimeout(() => {
+      let percentValue = this.recordStatisticsResult!.getAttribute('percent');
+      let index = Math.round(Number(percentValue) / NUM_450);
+      index = index < 1 ? 0 : index;
+      this.intervalResultInput!.value = `${stepValue[index]  }`;
+      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]  }`);
+    });
+  };
+
+  intervalResultFocusOutHandler = (): void => {
+    let parentElement = this.statisticsSlider!.parentNode as Element;
+    if (this.intervalResultInput!.value.trim() === '') {
+      parentElement.setAttribute('percent', '3600');
+      this.intervalResultInput!.value = '3600';
+      this.intervalResultInput!.style.color = 'var(--dark-color,#6a6f77)';
+      parentElement.setAttribute('percent', this.intervalResultInput!.value);
+      parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
+      this.statisticsSlider!.percent = this.intervalResultInput!.value;
+      let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+      htmlInputElement.value = this.intervalResultInput!.value;
+    }
+  };
+
+  statisticsSliderInputHandler = (): void => {
+    this.statisticsSlider!.sliderStyle = {
+      minRange: 0,
+      maxRange: 3600,
+      defaultValue: `${this.recordStatisticsResult!.getAttribute('percent')}`,
+      resultUnit: 'S',
+      stepSize: 450,
+      lineColor: 'var(--dark-color3,#46B1E3)',
+      buttonColor: '#999999',
+    };
+    this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
+    if (this.recordStatisticsResult!.hasAttribute('percent')) {
+      let step = Math.round(Number(this.recordStatisticsResult!.getAttribute('percent')) / NUM_450);
+      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[step]}`);
+      this.intervalResultInput!.value = `${stepValue[step]}`;
+    }
+  };
+
+  private processMouseDownHandler(process: HTMLInputElement): void {
+    if (this.startSamp) {
+      process.readOnly = false;
+      Cmd.getProcess().then((processList) => {
+        this.processId?.dataSource(processList, '');
+        if (processList.length > 0 && !this.startup_mode) {
+          this.processId?.dataSource(processList, 'ALL-Process');
+        } else {
+          this.processId?.dataSource([], '');
+        }
+      });
+    } else {
+      process.readOnly = true;
+      return;
+    }
+    if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
+      this.processId?.dataSource([], '');
+    } else {
+    }
+  }
+
+  intervalResultInputHandler = (): void => {
+    let parentElement = this.statisticsSlider!.parentNode as Element;
+    if (this.recordStatisticsResult!.hasAttribute('percent')) {
+      this.recordStatisticsResult!.removeAttribute('percent');
+    }
+    this.intervalResultInput!.style.color = 'var(--dark-color1,#000000)';
+    this.intervalResultInput!.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    this.intervalResultInput!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    if (this.intervalResultInput!.value.trim() === '') {
+      this.intervalResultInput!.style.color = 'red';
+      parentElement.setAttribute('percent', '3600');
+      return;
+    }
+    if (Number(this.intervalResultInput!.value) < this.statisticsSlider!.sliderStyle.minRange ||
+      Number(this.intervalResultInput!.value) > this.statisticsSlider!.sliderStyle.maxRange) {
+      this.intervalResultInput!.style.color = 'red';
+      parentElement.setAttribute('percent', '3600');
+    } else {
+      let defaultSize = 0;
+      let stepSize = 450;
+      let inputValue = Number(this.intervalResultInput!.value);
+      for (let stepIndex = 0; stepIndex < stepValue.length; stepIndex++) {
+        let currentValue = stepValue[stepIndex];
+        if (inputValue === currentValue) {
+          defaultSize = stepIndex * stepSize;
+          break;
+        } else if (inputValue < currentValue && stepIndex !== 0) {
+          defaultSize =
+            ((inputValue - stepValue[stepIndex - 1]) / (currentValue - stepValue[stepIndex - 1])) * stepSize +
+            stepSize * (stepIndex - 1);
+          break;
+        }
+      }
+      this.statisticsSlider!.percent = `${defaultSize}`;
+      let htmlInputElement = this.statisticsSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+      this.statisticsSlider!.sliderStyle = {
+        minRange: 0,
+        maxRange: 3600,
+        defaultValue: `${defaultSize}`,
+        resultUnit: 'S',
+        stepSize: 1,
+        lineColor: 'var(--dark-color3,#46B1E3)',
+        buttonColor: '#999999',
+      };
+      htmlInputElement.value = `${defaultSize}`;
+      parentElement.setAttribute('percent', this.intervalResultInput!.value);
+      parentElement.setAttribute('percentValue', this.intervalResultInput!.value);
+    }
+  };
+
+  private unDisable(): void {
     this.startSamp = true;
     if (this.fpUnWind) {
       this.fpUnWind.disabled = false;
@@ -399,7 +406,7 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider!.disabled = false;
   }
 
-  private disable() {
+  private disable(): void {
     this.startSamp = false;
     if (this.fpUnWind) {
       this.fpUnWind.disabled = true;
@@ -428,272 +435,8 @@ export class SpAllocations extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            display: block;
-            width: 100%;
-            border-radius: 0px 16px 16px 0px;
-            height: 100%;
-        }
-        .title {
-            grid-column: span 2 / auto;
-            margin-top: 5vh;
-        }
-        .allocation-font-style{
-            font-family: Helvetica-Bold;
-            font-size: 1em;
-            color: var(--dark-color1,#000000);
-            line-height: 28px;
-            font-weight: 700;
-        }
-        .root {
-            padding-top: 30px;
-            margin-left: 40px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: min-content 1fr min-content;
-            width: 90%;
-            border-radius: 0px 16px 16px 0px;
-            margin-bottom: 30px;
-        }
-        .allocation-inner-font-style {
-            font-family: Helvetica,serif;
-            font-size: 1em;
-            color: var(--dark-color1,#000000);
-            text-align: left;
-            line-height: 20px;
-            font-weight: 400;
-            display:flex;
-            width:75%; 
-            margin-top: 3px;
-           
-        }
-        input {
-           width: 72%;
-           height: 25px;
-           border:0;
-           outline:none;
-           border-radius: 16px;
-           text-indent:2%
-        }
-        input::-webkit-input-placeholder{
-            color:var(--bark-prompt,#999999);
-        }
-        .allocation-select {
-            height: 30px;
-            border:0;
-            border-radius: 3px;
-            outline:none;
-            border: 1px solid var(--dark-border,#B3B3B3);
-            width: 60px;
-            background-color:var(--dark-background5, #FFFFFF)
-            font-family: Helvetica;
-            font-size: 14px;
-            color:var(--dark-color,#212121)
-            text-align: center;
-            line-height: 16px;
-            font-weight: 400;
-            border-radius: 16px;
-        }
-        .allocation-application{
-           display: flex;
-           flex-direction: column;
-           grid-gap: 15px;
-           margin-top: 40px;
-        }
-        .allocation-switchstyle{
-           margin-top: 40px;
-           display: flex;
-        }
-        .allocation-inputstyle{
-            background: var(--dark-background5,#FFFFFF);
-            border: 1px solid var(--dark-background5,#ccc);
-            font-family: Helvetica;
-            font-size: 14px;
-            color: var(--dark-color1,#212121);
-            text-align: left;
-            line-height: 16px;
-            font-weight: 400;
-        }
-
-        input::-webkit-input-placeholder{
-          background: var(--dark-background5,#FFFFFF);
-        }
-        
-        :host([startSamp]) .allocation-inputstyle {
-            background: var(--dark-background5,#FFFFFF);
-        }
-        
-        :host(:not([startSamp])) .allocation-inputstyle {
-            color: #b7b7b7;
-            background: var(--dark-background1,#f5f5f5);
-        }
-        
-        #one_mb{
-            background-color:var(--dark-background5, #FFFFFF)
-        }
-        #one_kb{
-            background-color:var(--dark-background5, #FFFFFF)
-        }
-        #two_mb{
-            background-color:var(--dark-background5, #FFFFFF)
-        }
-        #two_kb{
-            background-color:var(--dark-background5, #FFFFFF)
-        }
-        .processSelect {
-          border-radius: 15px;
-          width: 84%;
-        }
-        .value-range {
-          opacity: 0.6;
-          font-family: Helvetica;
-          font-size: 1em;
-          color: var(--dark-color,#000000);
-          text-align: left;
-          line-height: 20px;
-          font-weight: 400;
-        }
-        .record-title{
-            margin-bottom: 16px;
-            grid-column: span 3;
-        }
-        #interval-slider {
-            margin: 0 8px;
-            grid-column: span 2;
-        }
-        .resultSize{
-            display: grid;
-            grid-template-rows: 1fr;
-            grid-template-columns:  min-content min-content;
-            background-color: var(--dark-background5,#F2F2F2);
-            -webkit-appearance:none;
-            color:var(--dark-color,#6a6f77);
-            width: 150px;
-            margin: 0 30px 0 0;
-            height: 40px;
-            border-radius:20px;
-            outline:0;
-            border:1px solid var(--dark-border,#c8cccf);
-        }
-        .record-mode{
-            font-family: Helvetica-Bold;
-            font-size: 1em;
-            color: var(--dark-color1,#000000);
-            line-height: 28px;
-            font-weight: 400;
-            margin-bottom: 16px;
-            grid-column: span 1;
-        }
-        .allocation-record-prompt{
-              opacity: 0.6;
-              font-family: Helvetica;
-              font-size: 14px;
-              text-align: center;
-              line-height: 35px;
-              font-weight: 400;
-        }
-        .interval-result{
-            -webkit-appearance:none;
-            border: none;
-            text-align: center;
-            width: 90px;
-            font-size:14px;
-            outline:0;
-            margin: 5px 0 5px 5px;
-            background-color: var(--dark-background5,#F2F2F2);
-            color:var(--dark-color,#6a6f77);
-        }
-        
-        .allocation-title {
-          opacity: 0.9;
-          font-family: Helvetica-Bold;
-          margin-right: 10px;
-          font-size: 18px;
-          text-align: center;
-          line-height: 40px;
-          font-weight: 700;
-        }
-        
-        lit-switch {
-          height: 38px;
-          margin-top: 10px;
-          display:inline;
-          float: right;
-        }
-        
-        </style>
-        <div class="root">
-          <div class = "title" style="width: 92%;">
-            <span class="allocation-title">Start Native Memory Record</span>
-            <lit-switch id="switch-disabled"></lit-switch>
-          </div>
-          <div class="allocation-application">
-             <span class="allocation-inner-font-style">ProcessId or ProcessName</span>
-             <span class="value-range">Record process</span>
-             <lit-select-v class="processSelect" rounded mode="multiple" default-value="" id="pid" placement="bottom" title="process" placeholder="please select process">
-             </lit-select-v>
-          </div>
-          <div class="allocation-application">
-            <span class="allocation-inner-font-style" >Max unwind level</span>
-            <span class="value-range">Max Unwind Level Rang is 0 - 512, default 10</span>
-            <input id= "unwind"  class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the Max Unwind Level" oninput="if(this.value > 512){this.value = '512'} if(this.value > 0 && this.value.toString().startsWith('0')){ this.value = Number(this.value) }"  onkeyup="this.value=this.value.replace(/\\D/g,'')" value="10">
-          </div>
-          <div class="allocation-application">
-            <span class="allocation-inner-font-style">Shared Memory Size (One page equals 4 KB)</span>
-            <span class="value-range">Shared Memory Size Range is 0 - 131072 page, default 16384 page</span>
-            <div>
-              <input id = "shareMemory" class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the Shared Memory Size" oninput="if(this.value > 131072){this.value = '131072'} if(this.value > 0 && this.value.toString().startsWith('0')){ this.value = Number(this.value) }" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="16384">
-              <span>Page</span>
-            </div>
-          </div>
-          <div class="allocation-application">
-            <span class="allocation-inner-font-style" >Filter Memory Size </span>
-            <span class="value-range">Filter size Range is 0 - 65535 byte, default 0 byte</span> 
-            <div>
-                 <input id = "filterSized" class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the Filter Memory Size" oninput="if(this.value > 65535){this.value = '65535'} if(this.value > 0 && this.value.toString().startsWith('0')){ this.value = Number(this.value) }" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="0">
-                 <span>Byte</span>
-            </div>
-          </div>
-          <div class="allocation-switchstyle">
-              <span class="allocation-inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
-              <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
-          </div>
-          <div class="allocation-switchstyle version-controller" style="flex-wrap: wrap;grid-gap: 15px;">
-            <span class="allocation-inner-font-style" >Sample Interval (Available on recent OpenHarmony 4.0)</span>
-            <span class="value-range">Max Sample Interval Rang is 1 - 65535, default 256</span>
-            <input id= "sample-interval-input"  class="allocation-inputstyle inputBoxes" type="text" placeholder="Enter the sample interval" oninput="if(this.value > 65535){this.value = '65535'} if(this.value < 1 && this.value.toString().startsWith('0')){ this.value = '1'}"  onkeyup="this.value=this.value.replace(/\\D/g,'')" value="256">
-          </div>
-          <div class="allocation-switchstyle version-controller">
-              <span class="allocation-inner-font-style" id="record_accurately ">Use Record Accurately (Available on recent OpenHarmony 4.0)</span> 
-              <lit-switch   class="lts" id="use_record_accurately" title="record_accurately" checked="true"></lit-switch>
-          </div>
-          <div class="allocation-switchstyle version-controller">
-              <span class="allocation-inner-font-style" id="offline_symbolization">Use Offline Symbolization (Available on recent OpenHarmony 4.0)</span> 
-              <lit-switch class="lts" id="use_offline_symbolization" title="offline_symbolization" checked="true"></lit-switch>
-          </div>
-           <div class="allocation-switchstyle version-controller">
-              <span class="allocation-inner-font-style" id="startup_mode">Use Startup Mode (Available on recent OpenHarmony 4.0)</span> 
-              <lit-switch class="lts" id="use_startup_mode" title="startup_mode"></lit-switch>
-          </div>   
-          <div class="allocation-switchstyle version-controller">
-              <span class="allocation-inner-font-style" id="response_lib_mode_span">Use Response Lib Mode (Available on recent OpenHarmony 4.0)</span> 
-              <lit-switch class="lts" id="response_lib_mode" title="response_lib_mode"></lit-switch>
-          </div>
-          <div class="allocation-switchstyle record-statistics-result version-controller" style="grid-row: 8; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;grid-template-columns: 1fr min-content;">
-            <div class="record-title">
-                <span class="record-mode">Use Record Statistics (Available on recent OpenHarmony 4.0)</span> 
-                <span class="allocation-record-prompt"> Time between following interval (0 = disabled) </span>
-            </div>
-            <lit-slider id="interval-slider" defaultColor="var(--dark-color3,#46B1E3)" open dir="right">
-            </lit-slider>
-            <div class='resultSize'>
-                <input class="interval-result inputBoxes" type="text" value='0' onkeyup="this.value=this.value.replace(/\\D/g,'')"  oninput="if(this.value > 3600){this.value = '3600'} if(this.value > 0 && this.value.toString().startsWith('0')){ this.value = Number(this.value) }" >
-                <span style="text-align: center; margin: 8px"> S </span>
-            </div>
-          </div>
-        </div>
-        `;
+    return SpAllocationHtml;
   }
 }
+
+const stepValue = [0, 1, 10, NUM_30, NUM_60, NUM_300, NUM_600, NUM_1800, NUM_3600];

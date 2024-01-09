@@ -14,11 +14,11 @@
  */
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
-import { querySelectTraceStats, queryTraceMetaData } from '../database/SqlLite';
 import { LitTable } from '../../base-ui/table/lit-table';
 import '../../base-ui/table/lit-table';
 import { info } from '../../log/Log';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
+import {querySelectTraceStats, queryTraceMetaData} from "../database/sql/SqlLite.sql";
 
 @element('sp-info-and-stats')
 export class SpInfoAndStats extends BaseElement {

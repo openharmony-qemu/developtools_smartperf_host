@@ -53,7 +53,7 @@ class PerfDataParser : public EventParserBase, public HtracePluginTimeParser {
 public:
     PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~PerfDataParser();
-    uint64_t InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer,
+    uint64_t InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuffer,
                                  uint64_t size,
                                  uint64_t offset,
                                  bool isSplitFile,

@@ -1,0 +1,118 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef CALLSTACK_STDTYPE_H
+#define CALLSTACK_STDTYPE_H
+#include "base_stdtype.h"
+
+namespace SysTuning {
+namespace TraceStdtype {
+class CallStack : public CacheBase, public CpuCacheBase, public BatchCacheBase {
+public:
+    size_t AppendInternalAsyncSlice(uint64_t startT,
+                                    uint64_t durationNs,
+                                    InternalTid internalTid,
+                                    DataIndex cat,
+                                    uint16_t nameIdentify,
+                                    DataIndex name,
+                                    uint8_t depth,
+                                    uint64_t cookid,
+                                    const std::optional<uint64_t>& parentId);
+    size_t AppendInternalSlice(uint64_t startT,
+                               uint64_t durationNs,
+                               InternalTid internalTid,
+                               DataIndex cat,
+                               uint16_t nameIdentify,
+                               DataIndex name,
+                               uint8_t depth,
+                               const std::optional<uint64_t>& parentId);
+    void SetDistributeInfo(size_t index,
+                           const std::string& chainId,
+                           const std::string& spanId,
+                           const std::string& parentSpanId,
+                           const std::string& flag,
+                           const std::string& args);
+    void AppendDistributeInfo(const std::string& chainId,
+                              const std::string& spanId,
+                              const std::string& parentSpanId,
+                              const std::string& flag,
+                              const std::string& args);
+    void AppendDistributeInfo();
+    void SetDuration(size_t index, uint64_t timeStamp);
+    void SetDurationWithFlag(size_t index, uint64_t timeStamp);
+    void SetFlag(size_t index, uint8_t flag);
+    void SetDurationEx(size_t index, uint32_t dur);
+    void SetIrqDurAndArg(size_t index, uint64_t timeStamp, uint32_t argSetId);
+    void SetTimeStamp(size_t index, uint64_t timeStamp);
+    void SetDepth(size_t index, uint8_t depth);
+    void SetArgSetId(size_t index, uint32_t argSetId);
+    void Clear() override
+    {
+        CacheBase::Clear();
+        CpuCacheBase::Clear();
+        cats_.clear();
+        cookies_.clear();
+        callIds_.clear();
+        names_.clear();
+        depths_.clear();
+        chainIds_.clear();
+        spanIds_.clear();
+        parentSpanIds_.clear();
+        flags_.clear();
+        args_.clear();
+        argSet_.clear();
+    }
+    void ClearExportedData() override
+    {
+        EraseElements(timeStamps_, ids_, durs_, cats_, cookies_, callIds_, names_, depths_, chainIds_, spanIds_,
+                      parentSpanIds_, flags_, args_, argSet_);
+    }
+    const std::deque<std::optional<uint64_t>>& ParentIdData() const;
+    const std::deque<DataIndex>& CatsData() const;
+    const std::deque<DataIndex>& NamesData() const;
+    const std::deque<uint8_t>& Depths() const;
+    const std::deque<uint64_t>& Cookies() const;
+    const std::deque<uint32_t>& CallIds() const;
+    const std::deque<uint16_t>& IdentifysData() const;
+    const std::deque<std::string>& ChainIds() const;
+    const std::deque<std::string>& SpanIds() const;
+    const std::deque<std::string>& ParentSpanIds() const;
+    const std::deque<std::string>& Flags() const;
+    const std::deque<std::string>& ArgsData() const;
+    const std::deque<uint32_t>& ArgSetIdsData() const;
+
+private:
+    void AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalTid internalTid);
+    void AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, std::optional<uint64_t> parentId);
+
+private:
+    std::deque<std::optional<uint64_t>> parentIds_;
+    std::deque<DataIndex> cats_ = {};
+    std::deque<uint64_t> cookies_ = {};
+    std::deque<uint32_t> callIds_ = {};
+    std::deque<uint16_t> identifys_ = {};
+    std::deque<DataIndex> names_ = {};
+    std::deque<uint8_t> depths_ = {};
+
+    std::deque<std::string> chainIds_ = {};
+    std::deque<std::string> spanIds_ = {};
+    std::deque<std::string> parentSpanIds_ = {};
+    std::deque<std::string> flags_ = {};
+    std::deque<std::string> args_ = {};
+    std::deque<uint32_t> argSet_ = {};
+};
+} // namespace TraceStdtype
+} // namespace SysTuning
+#endif // CALLSTACK_STDTYPE_H

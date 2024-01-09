@@ -16,9 +16,24 @@
 #ifndef TRACE_DATA_CACHE_READER_H
 #define TRACE_DATA_CACHE_READER_H
 
-#include "log.h"
+#include "activity_monitor_stdtype.h"
+#include "animation_stdtype.h"
+#include "app_startup_stdtype.h"
+#include "arkts_stdtype.h"
+#include "base_stdtype.h"
+#include "callstack_stdtype.h"
+#include "common_stdtype.h"
+#include "ebpf_stdtype.h"
+#include "hilog_stdtype.h"
+#include "hiperf_stdtype.h"
+#include "hisysevent_stdtype.h"
+#include "measure_stdtype.h"
+#include "native_memory_stdtype.h"
+#include "render_service_stdtype.h"
+#include "sched_stdtype.h"
+#include "syscall_stdtype.h"
+#include "task_pool_stdtype.h"
 #include "trace_data_cache_base.h"
-#include "trace_stdtype.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -43,13 +58,10 @@ public:
     const Measure& GetConstMeasureData() const;
     const Measure& GetConstSysMemMeasureData() const;
     const Measure& GetConstProcessMeasureData() const;
-    const ThreadMeasureFilter& GetConstThreadMeasureFilterData() const;
     const ThreadStateData& GetConstThreadStateData() const;
     const SchedSlice& GetConstSchedSliceData() const;
     const CpuMeasureFilter& GetConstCpuMeasureData() const;
-    const ThreadMeasureFilter& GetConstThreadFilterData() const;
     const Instants& GetConstInstantsData() const;
-    const ProcessMeasureFilter& GetConstProcessFilterData() const;
     const ProcessMeasureFilter& GetConstProcessMeasureFilterData() const;
     const ClockEventData& GetConstClockEventFilterData() const;
     const ClkEventData& GetConstClkEventFilterData() const;
@@ -81,11 +93,6 @@ public:
     const HiSysEventDeviceStateData& GetConstHiSysEventDeviceStateData() const;
     const EbpfCallStackData& GetConstEbpfCallStackData() const;
     const PagedMemorySampleData& GetConstPagedMemorySampleData() const;
-#ifdef WITH_EBPF_HELP
-    const EbpfProcessMaps& GetConstEbpfProcessMaps() const;
-    const EbpfElf& GetConstEbpfElf() const;
-    const EbpfElfSymbol& GetConstEbpfElfSymbol() const;
-#endif
     const HiSysEventSubkeys& GetConstHiSysEventSubkeysData() const;
     const HiSysEventMeasureData& GetConstHiSyseventMeasureData() const;
     const TraceConfig& GetConstTraceConfigData() const;
@@ -94,8 +101,8 @@ public:
     const BioLatencySampleData& GetConstBioLatencySampleData() const;
     const ClockSnapshotData& GetConstClockSnapshotData() const;
     const DataSourceClockIdData& GetConstDataSourceClockIdData() const;
-    const FrameSlice& GetConstFameSliceData() const;
-    const FrameMaps& GetConstFameMapsData() const;
+    const FrameSlice& GetConstFrameSliceData() const;
+    const FrameMaps& GetConstFrameMapsData() const;
     const GPUSlice& GetConstGPUSliceData() const;
     const TaskPoolInfo& GetConstTaskPoolData() const;
     const JsHeapFiles& GetConstJsHeapFilesData() const;
@@ -111,7 +118,7 @@ public:
     const JsCpuProfilerSample& GetConstJsCpuProfilerSampleData() const;
     const JsConfig& GetConstJsConfigData() const;
     const AppStartup& GetConstAppStartupData() const;
-    const SoStaticInitalization& GetConstStaticInitalizationData() const;
+    const SoStaticInitalization& GetConstSoStaticInitalizationData() const;
     const Animation& GetConstAnimation() const;
     const DeviceInfo& GetConstDeviceInfo() const;
     const DynamicFrame& GetConstDynamicFrame() const;

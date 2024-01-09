@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
@@ -19,9 +19,9 @@ import { IrqStruct } from '../ui-worker/ProcedureWorkerIrq';
 export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct>): Promise<IrqStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer||trafic===TraficEnum.Memory) && !row.sharedArrayBuffers) {
+  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
-      argSetId: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      argSetId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       depth: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       id: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -51,7 +51,7 @@ export function irqDataSender(cpu: number, name: string, row: TraceRow<IrqStruct
 
 function arrayBufferHandler(buffers: any, len: number): IrqStruct[] {
   let outArr: IrqStruct[] = [];
-  let argSetId = new Uint32Array(buffers.argSetId);
+  let argSetId = new Int32Array(buffers.argSetId);
   let depth = new Uint32Array(buffers.depth);
   let startNS = new Float64Array(buffers.startNS);
   let dur = new Float64Array(buffers.dur);

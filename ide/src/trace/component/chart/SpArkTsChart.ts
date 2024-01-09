@@ -16,7 +16,7 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { info } from '../../../log/Log';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { type HeapTimelineRender, HeapTimelineStruct } from '../../database/ui-worker/ProcedureWorkerHeapTimeline';
 import { HeapDataInterface, type ParseListener } from '../../../js-heap/HeapDataInterface';
 import { LoadDatabase } from '../../../js-heap/LoadDatabase';
@@ -28,14 +28,10 @@ import { type JsCpuProfilerChartFrame } from '../../bean/JsStruct';
 import { type JsCpuProfilerRender, JsCpuProfilerStruct } from '../../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { ns2s } from '../../database/ui-worker/ProcedureWorkerCommon';
 import {
-  queryAllSnapshotNames,
-  queryJsCpuProfilerConfig,
-  queryJsCpuProfilerData,
-  queryJsMemoryData,
-} from '../../database/SqlLite';
-import {
   cpuProfilerDataSender
 } from '../../database/data-trafic/ArkTsSender';
+import {queryJsCpuProfilerConfig, queryJsCpuProfilerData} from "../../database/sql/Cpu.sql";
+import {queryJsMemoryData} from "../../database/sql/Memory.sql";
 
 const TYPE_SNAPSHOT = 0;
 const TYPE_TIMELINE = 1;

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { DiskAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerDiskIoAbility';
@@ -24,7 +24,7 @@ export function cpuAbilityUserDataSender(
   row: TraceRow<CpuAbilityMonitorStruct>,
   type: string
 ): Promise<CpuAbilityMonitorStruct[]> {
-  let trafic: number = TraficEnum.ProtoBuffer;
+  let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
@@ -63,7 +63,7 @@ export function abilityMemoryUsedDataSender(
   id: string = '',
   row: TraceRow<MemoryAbilityMonitorStruct>
 ): Promise<MemoryAbilityMonitorStruct[]> {
-  let trafic: number = TraficEnum.ProtoBuffer;
+  let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
@@ -95,7 +95,7 @@ export function abilityBytesReadDataSender(
   row: TraceRow<DiskAbilityMonitorStruct>,
   type: string
 ): Promise<DiskAbilityMonitorStruct[]> {
-  let trafic: number = TraficEnum.ProtoBuffer;
+  let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
@@ -136,7 +136,7 @@ export function abilityBytesInTraceDataSender(
   row: TraceRow<NetworkAbilityMonitorStruct>,
   type: string
 ): Promise<NetworkAbilityMonitorStruct[]> {
-  let trafic: number = TraficEnum.ProtoBuffer;
+  let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {

@@ -14,7 +14,6 @@
  */
 
 import { convertJSON, LogicHandler } from './ProcedureLogicWorkerCommon';
-import { SliceGroup } from '../../bean/StateProcessThread';
 
 export class ProcedureLogicWorkerSPT extends LogicHandler {
   threadSlice: Array<ThreadSlice> = [];
@@ -29,52 +28,66 @@ export class ProcedureLogicWorkerSPT extends LogicHandler {
     if (data && data.type) {
       switch (data.type) {
         case 'spt-init':
-          if (data.params.list) {
-            this.threadSlice = convertJSON(data.params.list);
-            self.postMessage({
-              id: this.currentEventId,
-              action: 'spt-init',
-              results: [],
-            });
-          } else {
-            this.getThreadState();
-          }
+          this.sptInit(data);
           break;
         case 'spt-getPTS':
-          self.postMessage({
-            id: this.currentEventId,
-            action: 'spt-getPTS',
-            results: this.getPTSData(data.params.leftNs, data.params.rightNs, data.params.cpus),
-          });
+          this.sptGetPTS(data.params);
           break;
         case 'spt-getSPT':
-          self.postMessage({
-            id: this.currentEventId,
-            action: 'spt-getSPT',
-            results: this.getSPTData(data.params.leftNs, data.params.rightNs, data.params.cpus),
-          });
+          this.sptGetSPT(data.params);
           break;
         case 'spt-getCpuPriority':
-          self.postMessage({
-            id: this.currentEventId,
-            action: 'spt-getCpuPriority',
-            results: this.threadSlice,
-          });
+          this.sptGetCpuPriority();
           break;
         case 'spt-getCpuPriorityByTime':
-          const result = this.threadSlice.filter((item: ThreadSlice) => {
-            return !(item.endTs! < data.params.leftNs || item.startTs! > data.params.rightNs);
-          });
-          self.postMessage({
-            id: this.currentEventId,
-            action: 'spt-getCpuPriorityByTime',
-            results: result,
-          });
+          this.sptGetCpuPriorityByTime(data.params);
           break;
       }
     }
   }
-
+  private sptInit(data: any): void {
+    if (data.params.list) {
+      this.threadSlice = convertJSON(data.params.list);
+      self.postMessage({
+        id: this.currentEventId,
+        action: 'spt-init',
+        results: [],
+      });
+    } else {
+      this.getThreadState();
+    }
+  }
+  private sptGetPTS(params: any): void {
+    self.postMessage({
+      id: this.currentEventId,
+      action: 'spt-getPTS',
+      results: this.getPTSData(params.leftNs, params.rightNs, params.cpus),
+    });
+  }
+  private sptGetSPT(params: any): void {
+    self.postMessage({
+      id: this.currentEventId,
+      action: 'spt-getSPT',
+      results: this.getSPTData(params.leftNs, params.rightNs, params.cpus),
+    });
+  }
+  private sptGetCpuPriority(): void {
+    self.postMessage({
+      id: this.currentEventId,
+      action: 'spt-getCpuPriority',
+      results: this.threadSlice,
+    });
+  }
+  private sptGetCpuPriorityByTime(params: any): void {
+    const result = this.threadSlice.filter((item: ThreadSlice) => {
+      return !(item.endTs! < params.leftNs || item.startTs! > params.rightNs);
+    });
+    self.postMessage({
+      id: this.currentEventId,
+      action: 'spt-getCpuPriorityByTime',
+      results: result,
+    });
+  }
   queryData(queryName: string, sql: string, args: any) {
     self.postMessage({
       id: this.currentEventId,
@@ -105,7 +118,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     );
   }
 
-  getPTSData(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
+  private getPTSData(ptsLeftNs: number, ptsRightNs: number, cpus: Array<number>) {
     let ptsFilter = this.threadSlice.filter(
       (it) =>
         Math.max(ptsLeftNs, it.startTs!) < Math.min(ptsRightNs, it.startTs! + it.dur!) &&
@@ -113,17 +126,8 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     );
     let group: any = {};
     ptsFilter.forEach((slice) => {
-      let item = {
-        title: `S-${slice.state}`,
-        count: 1,
-        state: slice.state,
-        tid: slice.tid,
-        pid: slice.pid,
-        minDuration: slice.dur || 0,
-        maxDuration: slice.dur || 0,
-        wallDuration: slice.dur || 0,
-        avgDuration: `${slice.dur}`,
-      };
+      let title = `S-${slice.state}`;
+      let item = this.setStateData(slice, title);
       if (group[`${slice.pid}`]) {
         let process = group[`${slice.pid}`];
         process.count += 1;
@@ -149,47 +153,66 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
             thread.children.push(item);
           }
         } else {
-          process.children.push({
-            title: `T-${slice.tid}`,
-            count: 1,
-            pid: slice.pid,
-            tid: slice.tid,
-            minDuration: slice.dur || 0,
-            maxDuration: slice.dur || 0,
-            wallDuration: slice.dur || 0,
-            avgDuration: `${slice.dur}`,
-            children: [item],
-          });
+          let processChild = this.setThreadData(slice, item);
+          process.children.push(processChild);
         }
       } else {
-        group[`${slice.pid}`] = {
-          title: `P-${slice.pid}`,
-          count: 1,
-          pid: slice.pid,
-          minDuration: slice.dur || 0,
-          maxDuration: slice.dur || 0,
-          wallDuration: slice.dur || 0,
-          avgDuration: `${slice.dur}`,
-          children: [
-            {
-              title: `T-${slice.tid}`,
-              count: 1,
-              pid: slice.pid,
-              tid: slice.tid,
-              minDuration: slice.dur || 0,
-              maxDuration: slice.dur || 0,
-              wallDuration: slice.dur || 0,
-              avgDuration: `${slice.dur}`,
-              children: [item],
-            },
-          ],
-        };
+        group[`${slice.pid}`] = this.setProcessData(slice, item);
       }
     });
     return Object.values(group);
   }
-
-  getSPTData(sptLeftNs: number, sptRightNs: number, cpus: Array<number>) {
+  private setStateData(slice: ThreadSlice, title: string): any {
+    return {
+      title: title,
+      count: 1,
+      state: slice.state,
+      tid: slice.tid,
+      pid: slice.pid,
+      minDuration: slice.dur || 0,
+      maxDuration: slice.dur || 0,
+      wallDuration: slice.dur || 0,
+      avgDuration: `${slice.dur}`,
+    };
+  }
+  private setProcessData(slice: ThreadSlice, item: any): any {
+    return {
+      title: `P-${slice.pid}`,
+      count: 1,
+      pid: slice.pid,
+      minDuration: slice.dur || 0,
+      maxDuration: slice.dur || 0,
+      wallDuration: slice.dur || 0,
+      avgDuration: `${slice.dur}`,
+      children: [
+        {
+          title: `T-${slice.tid}`,
+          count: 1,
+          pid: slice.pid,
+          tid: slice.tid,
+          minDuration: slice.dur || 0,
+          maxDuration: slice.dur || 0,
+          wallDuration: slice.dur || 0,
+          avgDuration: `${slice.dur}`,
+          children: [item],
+        },
+      ],
+    };
+  }
+  private setThreadData(slice: ThreadSlice, item: any): any {
+    return {
+      title: `T-${slice.tid}`,
+      count: 1,
+      pid: slice.pid,
+      tid: slice.tid,
+      minDuration: slice.dur || 0,
+      maxDuration: slice.dur || 0,
+      wallDuration: slice.dur || 0,
+      avgDuration: `${slice.dur}`,
+      children: [item],
+    };
+  }
+  private getSPTData(sptLeftNs: number, sptRightNs: number, cpus: Array<number>): any {
     let sptFilter = this.threadSlice.filter(
       (it) =>
         Math.max(sptLeftNs, it.startTs!) < Math.min(sptRightNs, it.startTs! + it.dur!) &&
@@ -209,42 +232,7 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
         avgDuration: `${slice.dur}`,
       };
       if (group[`${slice.state}`]) {
-        let state = group[`${slice.state}`];
-        state.count += 1;
-        state.wallDuration += slice.dur;
-        state.minDuration = Math.min(state.minDuration, slice.dur!);
-        state.maxDuration = Math.max(state.maxDuration, slice.dur!);
-        state.avgDuration = (state.wallDuration / state.count).toFixed(2);
-        let process = state.children.find((child: any) => child.title === `P-${slice.pid}`);
-        if (process) {
-          process.count += 1;
-          process.wallDuration += slice.dur;
-          process.minDuration = Math.min(process.minDuration, slice.dur!);
-          process.maxDuration = Math.max(process.maxDuration, slice.dur!);
-          process.avgDuration = (process.wallDuration / process.count).toFixed(2);
-          let thread = process.children.find((child: any) => child.title === `T-${slice.tid}`);
-          if (thread) {
-            thread.count += 1;
-            thread.wallDuration += slice.dur;
-            thread.minDuration = Math.min(thread.minDuration, slice.dur!);
-            thread.maxDuration = Math.max(thread.maxDuration, slice.dur!);
-            thread.avgDuration = (thread.wallDuration / thread.count).toFixed(2);
-          } else {
-            process.children.push(item);
-          }
-        } else {
-          state.children.push({
-            title: `P-${slice.pid}`,
-            count: 1,
-            state: slice.state,
-            pid: slice.pid,
-            minDuration: slice.dur || 0,
-            maxDuration: slice.dur || 0,
-            wallDuration: slice.dur || 0,
-            avgDuration: `${slice.dur}`,
-            children: [item],
-          });
-        }
+        this.setSPTData(group, slice, item);
       } else {
         group[`${slice.state}`] = {
           title: `S-${slice.state}`,
@@ -271,6 +259,44 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
       }
     });
     return Object.values(group);
+  }
+  private setSPTData(group: any, slice: ThreadSlice, item: any): void {
+    let state = group[`${slice.state}`];
+    state.count += 1;
+    state.wallDuration += slice.dur;
+    state.minDuration = Math.min(state.minDuration, slice.dur!);
+    state.maxDuration = Math.max(state.maxDuration, slice.dur!);
+    state.avgDuration = (state.wallDuration / state.count).toFixed(2);
+    let process = state.children.find((child: any) => child.title === `P-${slice.pid}`);
+    if (process) {
+      process.count += 1;
+      process.wallDuration += slice.dur;
+      process.minDuration = Math.min(process.minDuration, slice.dur!);
+      process.maxDuration = Math.max(process.maxDuration, slice.dur!);
+      process.avgDuration = (process.wallDuration / process.count).toFixed(2);
+      let thread = process.children.find((child: any) => child.title === `T-${slice.tid}`);
+      if (thread) {
+        thread.count += 1;
+        thread.wallDuration += slice.dur;
+        thread.minDuration = Math.min(thread.minDuration, slice.dur!);
+        thread.maxDuration = Math.max(thread.maxDuration, slice.dur!);
+        thread.avgDuration = (thread.wallDuration / thread.count).toFixed(2);
+      } else {
+        process.children.push(item);
+      }
+    } else {
+      state.children.push({
+        title: `P-${slice.pid}`,
+        count: 1,
+        state: slice.state,
+        pid: slice.pid,
+        minDuration: slice.dur || 0,
+        maxDuration: slice.dur || 0,
+        wallDuration: slice.dur || 0,
+        avgDuration: `${slice.dur}`,
+        children: [item],
+      });
+    }
   }
 }
 

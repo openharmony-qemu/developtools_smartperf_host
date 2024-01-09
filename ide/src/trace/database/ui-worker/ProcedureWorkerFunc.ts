@@ -174,7 +174,9 @@ export class FuncStruct extends BaseFuncStruct {
           ctx.fillStyle = ColorUtils.funcTextColor(textColor);
           drawString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
-        if (data === FuncStruct.selectFuncStruct) {
+        if (data.callid == FuncStruct.selectFuncStruct?.callid&&
+          data.startTs == FuncStruct.selectFuncStruct?.startTs&&
+          data.depth == FuncStruct.selectFuncStruct?.depth) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
           ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, miniHeight - padding * 2 - 2);

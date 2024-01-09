@@ -16,10 +16,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabCpuByProcess } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
+import {getTabCpuByProcess} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-process')
 export class TabPaneCpuByProcess extends BaseElement {

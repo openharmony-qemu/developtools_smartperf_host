@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitButton } from '../../../../../base-ui/button/LitButton';
 import { type LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getGpufreqData, getGpufreqDataCut } from '../../../../database/SqlLite';
+import { getGpufreqData, getGpufreqDataCut } from '../../../../database/sql/Perf.sql';
 import { resizeObserver } from '../SheetUtils';
 import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
 import { GpuCountBean, TreeDataBean, type SearchGpuFuncBean } from '../../../../bean/GpufreqBean';
@@ -31,14 +32,15 @@ export class TabPaneGpufreqDataCut extends BaseElement {
   private threadIdValue: string = '';
   private threadFuncName: string = '';
   private initData: Array<GpuCountBean> = [];
+  private SUB_LENGTH: number = 3;
+  private PERCENT_SUB_LENGTH: number = 2;
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
       return;
     } else {
-      this._threadId!.value = '';
-      this._threadFunc!.value = '';
-    }
+      SpSegmentationChart.setChartData('GPU-FREQ', []);
+    };
     this.currentSelectionParam = threadStatesParam;
     this.threadStatesTbl!.recycleDataSource = [];
     this.threadStatesTbl!.loading = true;
@@ -58,83 +60,52 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           resultList[resultList.length - 1].count = String(
             Number(resultList[resultList.length - 1].dur) * Number(resultList[resultList.length - 1].value)
           );
-        }
+        };
 
         this.initData = resultList;
         this.threadStatesTbl!.loading = false;
       } else {
         this.threadStatesTbl!.recycleDataSource = [];
         this.threadStatesTbl!.loading = false;
-      }
+      };
     });
-  }
+    this._threadId!.style.border = '1px solid rgb(151, 151, 151)';
+    this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
+  };
 
   initElements(): void {
     this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpufreq-percent');
-    this._single = this.shadowRoot?.querySelector('#single');
-    this._loop = this.shadowRoot?.querySelector('#loop');
-    this._threadId = this.shadowRoot?.querySelector('#dataCutThreadId');
-    this._threadFunc = this.shadowRoot?.querySelector('#dataCutThreadFunc');
+    this._single = this.shadowRoot?.querySelector<LitButton>('#single');
+    this._loop = this.shadowRoot?.querySelector<LitButton>('#loop');
+    this._threadId = this.shadowRoot?.querySelector<HTMLInputElement>('#dataCutThreadId');
+    this._threadFunc = this.shadowRoot?.querySelector<HTMLInputElement>('#dataCutThreadFunc');
     this.threadIdValue = this._threadId!.value.trim();
     this.threadFuncName = this._threadFunc!.value.trim();
-    const originalThreadIdStyle: string = this._threadId!.style.border;
-    const originalThreadFuncStyle: string = this._threadId!.style.border;
-    const originalThreadIdPlaceholder: string = String(this._threadId!.getAttribute('placeholder'));
-    const originalThreadFuncPlaceholder: string = String(this._threadId!.getAttribute('placeholder'));
     //点击single
     this._single?.addEventListener('click', (e) => {
-      this.threadIdValue = this._threadId!.value.trim();
-      this.threadFuncName = this._threadFunc!.value.trim();
-      this.threadStatesTbl!.loading = true;
-      this.validationFun(
-        this.threadIdValue,
-        this.threadFuncName,
-        originalThreadIdStyle,
-        originalThreadFuncStyle,
-        originalThreadIdPlaceholder,
-        originalThreadFuncPlaceholder,
-        'single'
-      );
+      this.clickFun(this._single!.innerHTML);
     });
     //点击loop
     this._loop?.addEventListener('click', (e) => {
-      this.threadIdValue = this._threadId!.value.trim();
-      this.threadFuncName = this._threadFunc!.value.trim();
-      this.threadStatesTbl!.loading = true;
-      this.validationFun(
-        this.threadIdValue,
-        this.threadFuncName,
-        originalThreadIdStyle,
-        originalThreadFuncStyle,
-        originalThreadIdPlaceholder,
-        originalThreadFuncPlaceholder,
-        'loop'
-      );
+      this.clickFun(this._loop!.innerHTML);
     });
     this.threadStatesTbl?.addEventListener('row-click', (event: Event) => {
+      const EVENT_LEVEL: number = 2;
       // @ts-ignore
-      if (event.detail.level === 2 && event.detail.thread.includes('cycle')) {
+      if (event.detail.level === EVENT_LEVEL && event.detail.thread.includes('cycle')) {
         // @ts-ignore
         SpSegmentationChart.tabHover('GPU-FREQ', true, event.detail.data.cycle);
-      }
+      };
     });
-    this._threadId?.addEventListener('change', function () {
-      if (this.value.trim() !== '') {
-        this.style.border = originalThreadIdStyle;
-        this.setAttribute('placeholder', originalThreadIdPlaceholder);
-      }
-    });
-    this._threadFunc?.addEventListener('change', function () {
-      if (this.value.trim() !== '') {
-        this.style.border = originalThreadFuncStyle;
-        this.setAttribute('placeholder', originalThreadFuncPlaceholder);
-      }
-    });
-  }
+
+    this.addInputBorderEvent(this._threadId!);
+    this.addInputBorderEvent(this._threadFunc!);
+  };
+
   connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.threadStatesTbl!);
-  }
+  };
 
   initHtml(): string {
     return `<style>
@@ -185,84 +156,84 @@ export class TabPaneGpufreqDataCut extends BaseElement {
             <lit-table-column class="running-percent-column" width="1fr" title="Percent(%)" data-index="percent" key="percent" align="flex-start">
             </lit-table-column>
         </lit-table>`;
+  };
+
+  private clickFun(fun: string): void {
+    this.threadIdValue = this._threadId!.value.trim();
+    this.threadFuncName = this._threadFunc!.value.trim();
+    this.threadStatesTbl!.loading = true;
+    SpSegmentationChart.tabHover('GPU-FREQ', false, -1);
+    this.validationFun(this.threadIdValue, this.threadFuncName, fun);
   }
 
-  private validationFun(
-    threadIdValue: string,
-    threadFuncName: string,
-    originalThreadIdStyle: string,
-    originalThreadFuncStyle: string,
-    originalThreadIdPlaceholder: string,
-    originalThreadFuncPlaceholder: string,
-    fun: string
-  ): void {
-    if (threadIdValue === '') {
-      this.threadStatesTbl!.loading = false;
-      this._threadId!.style.border = '1px solid rgb(255,0,0)';
-      this._threadId!.setAttribute('placeholder', 'Please input thread id');
-      this.threadStatesTbl!.recycleDataSource = [];
-    } else if (threadFuncName === '') {
-      this.threadStatesTbl!.loading = false;
-      this._threadFunc!.style.border = '1px solid rgb(255,0,0)';
-      this._threadFunc!.setAttribute('placeholder', 'Please input function name');
-      this.threadStatesTbl!.recycleDataSource = [];
-    } else {
-      this._threadId!.style.border = originalThreadIdStyle;
-      this._threadFunc!.style.border = originalThreadFuncStyle;
-      this._threadId!.setAttribute('placeholder', originalThreadIdPlaceholder);
-      this._threadFunc!.setAttribute('placeholder', originalThreadFuncPlaceholder);
-      if (fun === 'single') {
-        this.getGpufreqDataCut(
-          threadIdValue,
-          threadFuncName,
-          this.currentSelectionParam!.leftNs,
-          this.currentSelectionParam!.rightNs,
-          true,
-          false
-        ).then((result: Array<SearchGpuFuncBean>) => {
-          let _initData = JSON.parse(JSON.stringify(this.initData));
-          this.handleDataCut(_initData, result);
-        });
-      }
-      if (fun === 'loop') {
-        this.getGpufreqDataCut(
-          threadIdValue,
-          threadFuncName,
-          this.currentSelectionParam!.leftNs,
-          this.currentSelectionParam!.rightNs,
-          false,
-          true
-        ).then((result: Array<SearchGpuFuncBean>) => {
-          let _initData = JSON.parse(JSON.stringify(this.initData));
-          this.handleDataCut(_initData, result);
-        });
-      }
+  private addInputBorderEvent(inputElement: HTMLInputElement): void {
+    if (inputElement) {
+      inputElement.addEventListener('change', function () {
+        if (this.value.trim() !== '') {
+          this.style.border = '1px solid rgb(151, 151, 151)';
+        }
+      });
     }
   }
+
+  private validationFun(threadIdValue: string, threadFuncName: string, fun: string): void {
+    if (threadIdValue === '') {
+      this.handleEmptyInput(this._threadId!);
+
+    } else if (threadFuncName === '') {
+      this.handleEmptyInput(this._threadFunc!);
+    } else {
+      this._threadId!.style.border = '1px solid rgb(151, 151, 151)';
+      this._threadFunc!.style.border = '1px solid rgb(151, 151, 151)';
+      if (fun === 'Single') {
+        this.isTrue(threadIdValue, threadFuncName, true, false);
+      };
+      if (fun === 'Loop') {
+        this.isTrue(threadIdValue, threadFuncName, false, true);
+      };
+    };
+  };
+
+  private handleEmptyInput(input: HTMLInputElement): void {
+    this.threadStatesTbl!.loading = false;
+    input!.style.border = '1px solid rgb(255,0,0)';
+    this.threadStatesTbl!.recycleDataSource = [];
+  };
+
+  private isTrue(threadIdValue: string, threadFuncName: string, single: boolean, loop: boolean): void {
+    this.getGpufreqDataCut(threadIdValue, threadFuncName,
+      this.currentSelectionParam!.leftNs,
+      this.currentSelectionParam!.rightNs,
+      single, loop
+    ).then((result: Array<SearchGpuFuncBean>) => {
+      let _initData = JSON.parse(JSON.stringify(this.initData));
+      this.handleDataCut(_initData, result);
+    });
+  };
 
   private handleDataCut(initData: Array<GpuCountBean>, dataCut: Array<SearchGpuFuncBean>): void {
     if (initData.length > 0 && dataCut.length > 0) {
       this.getGpufreqData(this.currentSelectionParam!.leftNs, this.currentSelectionParam!.rightNs, true).then(
         (result: Array<GpuCountBean>) => {
-          if (result.length > 0 && dataCut.length > 0) {
+          if (result !== null && result.length > 0 && dataCut.length > 0) {
             this.filterData(initData, dataCut, result);
           } else {
             this.threadStatesTbl!.recycleDataSource = [];
             this.threadStatesTbl!.loading = false;
-          }
+          };
         }
       );
     } else {
       this.threadStatesTbl!.recycleDataSource = [];
       this.threadStatesTbl!.loading = false;
       SpSegmentationChart.setChartData('GPU-FREQ', []);
-    }
-  }
+    };
+  };
 
   async getGpufreqData(leftNs: number, rightNs: number, isTrue: boolean): Promise<Array<GpuCountBean>> {
     let result: Array<GpuCountBean> = await getGpufreqData(leftNs, rightNs, isTrue);
     return result;
-  }
+  };
 
   async getGpufreqDataCut(
     tIds: string,
@@ -274,7 +245,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
   ): Promise<Array<SearchGpuFuncBean>> {
     let result: Array<SearchGpuFuncBean> = await getGpufreqDataCut(tIds, funcName, leftNS, rightNS, single, loop);
     return result;
-  }
+  };
 
   private filterData(
     initData: Array<GpuCountBean>,
@@ -289,14 +260,14 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       let e: SearchGpuFuncBean = _dataCut[i];
       for (let j of initData) {
         _lastList.push(...this.segmentationData(j, e, i));
-      }
-    }
+      };
+    };
     let tree: TreeDataBean = this.createTree(_lastList);
     finalGpufreqData.push(tree);
     this.threadStatesTbl!.recycleDataSource = finalGpufreqData;
     this.threadStatesTbl!.loading = false;
-    this.theadClick(finalGpufreqData);
-  }
+    this.clickTableHeader(finalGpufreqData);
+  };
 
   private segmentationData(j: GpuCountBean, e: SearchGpuFuncBean, i: number): Array<GpuCountBean> {
     let lastList: Array<GpuCountBean> = [];
@@ -304,67 +275,43 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       if (e.endTime <= Number(j.endTime)) {
         lastList.push(
           new GpuCountBean(
-            j.filterId,
-            j.freq,
-            String((e.endTime - e.startTime) * Number(j.value)),
-            j.value,
-            String(e.startTime + this.currentSelectionParam!.recordStartNs),
-            String(e.endTime - e.startTime),
-            String(e.startTime),
-            String(e.endTime),
-            j.thread,
-            i
+            j.filterId, j.freq, String((e.endTime - e.startTime) * Number(j.value)),
+            j.value, String(e.startTime + this.currentSelectionParam!.recordStartNs),
+            String(e.endTime - e.startTime), String(e.startTime), String(e.endTime),
+            j.thread, i
           )
         );
       } else {
         lastList.push(
           new GpuCountBean(
-            j.filterId,
-            j.freq,
-            String((Number(j.endTime) - e.startTime) * Number(j.value)),
-            j.value,
-            String(e.startTime + this.currentSelectionParam!.recordStartNs),
-            String(Number(j.endTime) - e.startTime),
-            String(e.startTime),
-            String(j.endTime),
-            j.thread,
-            i
+            j.filterId, j.freq, String((Number(j.endTime) - e.startTime) * Number(j.value)),
+            j.value, String(e.startTime + this.currentSelectionParam!.recordStartNs),
+            String(Number(j.endTime) - e.startTime), String(e.startTime), String(j.endTime),
+            j.thread, i
           )
         );
-      }
+      };
     } else if (e.startTime <= Number(j.startNS) && Number(j.endTime) <= e.endTime) {
       lastList.push(
         new GpuCountBean(
-          j.filterId,
-          j.freq,
-          String((Number(j.endTime) - Number(j.startNS)) * Number(j.value)),
-          j.value,
-          String(Number(j.startNS) + this.currentSelectionParam!.recordStartNs),
-          String(Number(j.endTime) - Number(j.startNS)),
-          String(j.startNS),
-          String(j.endTime),
-          j.thread,
-          i
+          j.filterId, j.freq, String((Number(j.endTime) - Number(j.startNS)) * Number(j.value)),
+          j.value, String(Number(j.startNS) + this.currentSelectionParam!.recordStartNs),
+          String(Number(j.endTime) - Number(j.startNS)), String(j.startNS), String(j.endTime),
+          j.thread, i
         )
       );
     } else if (Number(j.startNS) <= e.endTime && e.endTime <= Number(j.endTime)) {
       lastList.push(
         new GpuCountBean(
-          j.filterId,
-          j.freq,
-          String((e.endTime - Number(j.startNS)) * Number(j.value)),
-          j.value,
-          String(Number(j.startNS) + this.currentSelectionParam!.recordStartNs),
-          String(e.endTime - Number(j.startNS)),
-          String(j.startNS),
-          String(e.endTime),
-          j.thread,
-          i
+          j.filterId, j.freq, String((e.endTime - Number(j.startNS)) * Number(j.value)),
+          j.value, String(Number(j.startNS) + this.currentSelectionParam!.recordStartNs),
+          String(e.endTime - Number(j.startNS)), String(j.startNS), String(e.endTime),
+          j.thread, i
         )
       );
-    }
+    };
     return lastList;
-  }
+  };
 
   private createTree(data: Array<GpuCountBean>): TreeDataBean {
     if (data.length > 0) {
@@ -388,9 +335,9 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         let _freq: number = Number(item.freq);
         item.thread = `${item.thread} Frequency`;
         item.level = 4;
-        item.dur = (_dur / UNIT).toFixed(3);
-        item.count = (_count / KUNIT).toFixed(3);
-        item.freq = _freq.toFixed(3);
+        item.dur = (_dur / UNIT).toFixed(this.SUB_LENGTH);
+        item.count = (_count / KUNIT).toFixed(this.SUB_LENGTH);
+        item.freq = _freq.toFixed(this.SUB_LENGTH);
         this.updateValueMap(item, parentIndex, freq, valueMap, UNIT);
       });
       Object.values(valueMap).forEach((node: TreeDataBean) => {
@@ -399,7 +346,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
           this.updateChildNode(node, parentNode);
         } else {
           this.updateRootNode(node, root);
-        }
+        };
       });
       // 移除 key 值
       root.children.forEach((item: TreeDataBean) => {
@@ -410,15 +357,11 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       return root;
     } else {
       return new TreeDataBean();
-    }
-  }
+    };
+  };
 
-  private updateValueMap(
-    item: GpuCountBean,
-    parentIndex: number,
-    freq: string,
-    valueMap: { [parentIndex: string]: TreeDataBean },
-    UNIT: number
+  private updateValueMap(item: GpuCountBean, parentIndex: number, freq: string,
+    valueMap: { [parentIndex: string]: TreeDataBean }, UNIT: number
   ): void {
     if (!valueMap[parentIndex]) {
       valueMap[parentIndex] = {
@@ -426,7 +369,7 @@ export class TabPaneGpufreqDataCut extends BaseElement {
         count: item.count,
         dur: item.dur,
         ts: item.ts,
-        startTime: (Number(item.startNS) / UNIT).toFixed(3),
+        startTime: (Number(item.startNS) / UNIT).toFixed(this.SUB_LENGTH),
         startNS: item.startNS,
         percent: '100',
         level: 2,
@@ -439,10 +382,10 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       let idur: number = Number(item.dur);
       let icount: number = Number(item.count);
       fdur += idur;
-      valueMap[parentIndex].dur = fdur.toFixed(3);
+      valueMap[parentIndex].dur = fdur.toFixed(this.SUB_LENGTH);
       fcount += icount;
-      valueMap[parentIndex].count = fcount.toFixed(3);
-    }
+      valueMap[parentIndex].count = fcount.toFixed(this.SUB_LENGTH);
+    };
     if (!valueMap[parentIndex].children[Number(freq)]) {
       valueMap[parentIndex].children[Number(freq)] = {
         thread: item.thread,
@@ -459,12 +402,12 @@ export class TabPaneGpufreqDataCut extends BaseElement {
       let idur: number = Number(item.dur);
       let icount: number = Number(item.count);
       zdur += idur;
-      valueMap[parentIndex].children[Number(freq)].dur = zdur.toFixed(3);
+      valueMap[parentIndex].children[Number(freq)].dur = zdur.toFixed(this.SUB_LENGTH);
       zcount += icount;
-      valueMap[parentIndex].children[Number(freq)].count = zcount.toFixed(3);
-    }
+      valueMap[parentIndex].children[Number(freq)].count = zcount.toFixed(this.SUB_LENGTH);
+    };
     valueMap[parentIndex].children[Number(freq)].children.push(item as unknown as TreeDataBean);
-  }
+  };
 
   private updateChildNode(node: TreeDataBean, parentNode: TreeDataBean): void {
     parentNode.children.push(node);
@@ -473,10 +416,10 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     let ndur: number = Number(node.dur);
     let ncount: number = Number(node.count);
     pdur += ndur;
-    parentNode.dur = pdur.toFixed(3);
+    parentNode.dur = pdur.toFixed(this.SUB_LENGTH);
     pcount += ncount;
-    parentNode.count += pcount.toFixed(3);
-  }
+    parentNode.count += pcount.toFixed(this.SUB_LENGTH);
+  };
 
   private updateRootNode(node: TreeDataBean, root: TreeDataBean): void {
     root.children.push(node);
@@ -485,54 +428,57 @@ export class TabPaneGpufreqDataCut extends BaseElement {
     let ndur: number = Number(node.dur);
     let ncount: number = Number(node.count);
     rdur += ndur;
-    root.dur = rdur.toFixed(3);
+    root.dur = rdur.toFixed(this.SUB_LENGTH);
     rcount += ncount;
-    root.count = rcount.toFixed(3);
-  }
+    root.count = rcount.toFixed(this.SUB_LENGTH);
+  };
 
   private calculatePercent(node: TreeDataBean, root: TreeDataBean): void {
-    node.percent = ((Number(node.count) / Number(root.count)) * 100).toFixed(2);
+    const UNIT: number = 100
+    node.percent = ((Number(node.count) / Number(root.count)) * UNIT).toFixed(this.PERCENT_SUB_LENGTH);
 
     if (node.children && node.children.length > 0) {
       node.children.forEach((childNode) => this.calculatePercent(childNode, root));
     } else {
       return;
-    }
-  }
+    };
+  };
 
-  private theadClick(data: Array<TreeDataBean>): void {
+  private clickTableHeader(data: Array<TreeDataBean>): void {
     let labels = this.threadStatesTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
-
+    const THREAD_INDEX: number = 0;
+    const CYCLE_INDEX: number = 1;
+    const FREQ_INDEX: number = 2;
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
         labels[i].addEventListener('click', (e) => {
-          if (label.includes('Thread') && i === 0) {
+          if (label.includes('Thread') && i === THREAD_INDEX) {
             this.threadStatesTbl!.setStatus(data, false);
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
-          } else if (label.includes('Cycle') && i === 1) {
+          } else if (label.includes('Cycle') && i === CYCLE_INDEX) {
             for (let item of data) {
               item.status = true;
               if (item.children !== undefined && item.children.length > 0) {
                 this.threadStatesTbl!.setStatus(item.children, false);
-              }
-            }
+              };
+            };
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
-          } else if (label.includes('Freq') && i === 2) {
+          } else if (label.includes('Freq') && i === FREQ_INDEX) {
             for (let item of data) {
               item.status = true;
               for (let e of item.children ? item.children : []) {
                 e.status = true;
                 if (e.children !== undefined && e.children.length > 0) {
                   this.threadStatesTbl!.setStatus(e.children, false, 0);
-                }
-              }
-            }
+                };
+              };
+            };
 
             this.threadStatesTbl!.recycleDs = this.threadStatesTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
-          }
+          };
         });
-      }
-    }
-  }
-}
+      };
+    };
+  };
+};

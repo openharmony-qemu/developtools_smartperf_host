@@ -73,110 +73,6 @@ export class EnergyPowerRender extends Render {
     let isDark = spApplication.hasAttribute('dark');
     drawLegend(powerReq, isDark);
   }
-
-  render(energyPowerRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (energyPowerRequest.lazyRefresh) {
-      power(
-        list,
-        filter,
-        energyPowerRequest.startNS,
-        energyPowerRequest.endNS,
-        energyPowerRequest.totalNS,
-        energyPowerRequest.frame,
-        energyPowerRequest.useCache || !energyPowerRequest.range.refresh,
-        energyPowerRequest.params.maxPowerName
-      );
-    } else {
-      if (!energyPowerRequest.useCache) {
-        power(
-          list,
-          filter,
-          energyPowerRequest.startNS,
-          energyPowerRequest.endNS,
-          energyPowerRequest.totalNS,
-          energyPowerRequest.frame,
-          false,
-          energyPowerRequest.params.maxPowerName
-        );
-      }
-    }
-    if (energyPowerRequest.canvas) {
-      energyPowerRequest.context.clearRect(0, 0, energyPowerRequest.canvas.width, EnergyPowerStruct.rowHeight);
-      let arr = filter;
-      if (
-        arr.length > 0 &&
-        !energyPowerRequest.range.refresh &&
-        !energyPowerRequest.useCache &&
-        energyPowerRequest.lazyRefresh
-      ) {
-        drawLoading(
-          energyPowerRequest.context,
-          energyPowerRequest.startNS,
-          energyPowerRequest.endNS,
-          energyPowerRequest.totalNS,
-          energyPowerRequest.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
-        );
-      }
-      drawLines(
-        energyPowerRequest.context,
-        energyPowerRequest.xs,
-        energyPowerRequest.frame.height,
-        energyPowerRequest.lineColor
-      );
-      energyPowerRequest.context.beginPath();
-      EnergyPowerStruct.hoverEnergyPowerStruct = undefined;
-      if (energyPowerRequest.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            energyPowerRequest.hoverX >= re.frame.x &&
-            energyPowerRequest.hoverX <= re.frame.x + re.frame.width &&
-            energyPowerRequest.hoverY >= re.frame.y &&
-            energyPowerRequest.hoverY <= re.frame.y + re.frame.height
-          ) {
-            EnergyPowerStruct.hoverEnergyPowerStruct = re;
-            break;
-          }
-        }
-      }
-      EnergyPowerStruct.selectEnergyPowerStruct = energyPowerRequest.params.selectEnergyPowerStruct;
-      for (let index = 0; index < filter.length; index++) {}
-      energyPowerRequest.context.stroke();
-      drawSelection(energyPowerRequest.context, energyPowerRequest.params);
-      energyPowerRequest.context.closePath();
-      if (EnergyPowerStruct.maxPower != 0) {
-        let s = EnergyPowerStruct.maxPower + 'mAs';
-        let textMetrics = energyPowerRequest.context.measureText(s);
-        energyPowerRequest.context.globalAlpha = 1.0;
-        energyPowerRequest.context.fillStyle = '#f0f0f0';
-        energyPowerRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
-        energyPowerRequest.context.globalAlpha = 1;
-        energyPowerRequest.context.fillStyle = '#333';
-        energyPowerRequest.context.textBaseline = 'middle';
-        energyPowerRequest.context.fillText(s, 4, 5 + 9);
-      }
-      drawLegend(energyPowerRequest);
-      drawFlagLine(
-        energyPowerRequest.context,
-        energyPowerRequest.flagMoveInfo,
-        energyPowerRequest.flagSelectedInfo,
-        energyPowerRequest.startNS,
-        energyPowerRequest.endNS,
-        energyPowerRequest.totalNS,
-        energyPowerRequest.frame,
-        energyPowerRequest.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: energyPowerRequest.id,
-      type: energyPowerRequest.type,
-      results: energyPowerRequest.canvas ? undefined : filter,
-      hover: EnergyPowerStruct.hoverEnergyPowerStruct,
-    });
-  }
 }
 
 export function drawLegend(req: any, isDark?: boolean) {
@@ -215,7 +111,7 @@ export function power(
   frame: any,
   use: boolean,
   appName: string
-) {
+): void {
   EnergyPowerStruct.maxPower = 0;
   list.length = 0;
   let firstData = [];
@@ -240,7 +136,7 @@ export function power(
           list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
           list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
           list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
-          list[list.length - 1].audio = item.audio ? list[list.length - 1].audio : item.audio;
+          list[list.length - 1].audio = item.audio === 0 ? list[list.length - 1].audio : item.audio;
           list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
         } else {
           list.push(item);
@@ -249,25 +145,36 @@ export function power(
         list.push(item);
       }
     });
-    array.forEach((item) => {
-      if (list.indexOf(item) >= 0) {
-        EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-        let max =
-          (item.cpu || 0) +
-          (item.location || 0) +
-          (item.gpu || 0) +
-          (item.display || 0) +
-          (item.camera || 0) +
-          (item.bluetooth || 0) +
-          (item.flashlight || 0) +
-          (item.audio || 0) +
-          (item.wifiscan || 0);
-        if (max > EnergyPowerStruct.maxPower) {
-          EnergyPowerStruct.maxPower = max;
-        }
-      }
-    });
+    computeMaxPower(array, list, startNS, endNS, totalNS, frame);
   }
+}
+
+function computeMaxPower(
+  array: Array<any>,
+  list: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any
+): void {
+  array.forEach((item) => {
+    if (list.indexOf(item) >= 0) {
+      EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      let max =
+        (item.cpu || 0) +
+        (item.location || 0) +
+        (item.gpu || 0) +
+        (item.display || 0) +
+        (item.camera || 0) +
+        (item.bluetooth || 0) +
+        (item.flashlight || 0) +
+        (item.audio || 0) +
+        (item.wifiscan || 0);
+      if (max > EnergyPowerStruct.maxPower) {
+        EnergyPowerStruct.maxPower = max;
+      }
+    }
+  });
 }
 
 export class EnergyPowerStruct extends BaseStruct {

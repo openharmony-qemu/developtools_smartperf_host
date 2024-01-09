@@ -15,11 +15,11 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
-import { queryGpuResourceTabData } from '../../../../database/SqlLite';
 import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
+import {queryGpuResourceTabData} from "../../../../database/sql/Gpu.sql";
 @element('tabpane-gpu-resource')
 export class TabPaneGpuResourceVmTracker extends BaseElement {
   private gpuResourceTable: LitTable | undefined | null;

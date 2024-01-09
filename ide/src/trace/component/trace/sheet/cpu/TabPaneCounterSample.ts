@@ -16,7 +16,6 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabPaneCounterSampleData } from '../../../../database/SqlLite';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
@@ -25,7 +24,8 @@ import { dataFilterHandler, drawLines } from '../../../../database/ui-worker/Pro
 import { TraceRow } from '../../base/TraceRow';
 import { CpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerFreq';
 import { CpuState } from '../../../../database/logic-worker/ProcedureLogicWorkerCpuState';
-import { CpuStateStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuState';
+import { CpuStateStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
+import {getTabPaneCounterSampleData} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-counter-sample')
 export class TabPaneCounterSample extends BaseElement {
@@ -74,7 +74,10 @@ export class TabPaneCounterSample extends BaseElement {
       // @ts-ignore
       this.sortTable(evt.detail.key, evt.detail.sort);
     });
+    this.rowClickEvent();
+  }
 
+  private rowClickEvent(): void {
     this.counterSampleTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
       let data = evt.detail.data;
@@ -97,7 +100,7 @@ export class TabPaneCounterSample extends BaseElement {
                 cpuStateFilter[i].value === data.value &&
                 cpuStateFilter[i].cpu === data.cpu &&
                 Math.max(TraceRow.rangeSelectObject?.startNS!, cpuStateFilter[i].startTs!) <
-                  Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
+                Math.min(TraceRow.rangeSelectObject?.endNS!, cpuStateFilter[i].startTs! + cpuStateFilter[i].dur!)
               ) {
                 CpuStateStruct.hoverStateStruct = cpuStateFilter[i];
               }

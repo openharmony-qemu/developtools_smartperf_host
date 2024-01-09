@@ -25,7 +25,7 @@ import {
   VM_TYPE_MAP,
 } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
-import { getTabIoCompletionTimesType } from '../../../../database/SqlLite';
+import { getTabIoCompletionTimesType } from '../../../../database/sql/SqlLite.sql';
 
 @element('tabpane-io-completiontimes')
 export class TabPaneIoCompletionTimes extends BaseElement {
@@ -228,66 +228,44 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     });
   }
 
-  sortioCompletionTimesTable(ioCompletionTimesKey: string, type: number) {
+  sortioCompletionTimesTable(ioCompletionTimesKey: string, type: number): void {
     if (type == 0) {
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     } else {
       let arr = Array.from(this.ioCompletionTimesSource);
       arr.sort((ioCompletionTimesA, ioCompletionTimesB): number => {
-        if (ioCompletionTimesKey == 'startTsStr') {
-          if (type == 1) {
-            return ioCompletionTimesA.startTs - ioCompletionTimesB.startTs;
-          } else {
-            return ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
-          }
-        } else if (ioCompletionTimesKey == 'durStr') {
-          if (type == 1) {
-            return ioCompletionTimesA.dur - ioCompletionTimesB.dur;
-          } else {
-            return ioCompletionTimesB.dur - ioCompletionTimesA.dur;
-          }
-        } else if (ioCompletionTimesKey == 'process') {
-          if (ioCompletionTimesA.process > ioCompletionTimesB.process) {
-            return type === 2 ? 1 : -1;
-          } else if (ioCompletionTimesA.process == ioCompletionTimesB.process) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
-        } else if (ioCompletionTimesKey == 'durPer4kStr') {
-          if (type == 1) {
-            return ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k;
-          } else {
-            return ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
-          }
-        } else if (ioCompletionTimesKey == 'thread') {
-          if (ioCompletionTimesA.thread > ioCompletionTimesB.thread) {
-            return type === 2 ? 1 : -1;
-          } else if (ioCompletionTimesA.thread == ioCompletionTimesB.thread) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
-        } else if (ioCompletionTimesKey == 'operation') {
-          if (ioCompletionTimesA.operation > ioCompletionTimesB.operation) {
-            return type === 2 ? 1 : -1;
-          } else if (ioCompletionTimesA.operation == ioCompletionTimesB.operation) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
-        } else if (ioCompletionTimesKey == 'sizeStr') {
-          if (type == 1) {
-            return ioCompletionTimesA.size - ioCompletionTimesB.size;
-          } else {
-            return ioCompletionTimesB.size - ioCompletionTimesA.size;
-          }
-        } else if (ioCompletionTimesKey == 'tier') {
-          if (type == 1) {
-            return ioCompletionTimesA.tier - ioCompletionTimesB.tier;
-          } else {
-            return ioCompletionTimesB.tier - ioCompletionTimesA.tier;
-          }
+        if (ioCompletionTimesKey === 'startTsStr') {
+          return type === 1
+            ? ioCompletionTimesA.startTs - ioCompletionTimesB.startTs
+            : ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
+        } else if (ioCompletionTimesKey === 'durStr') {
+          return type === 1
+            ? ioCompletionTimesA.dur - ioCompletionTimesB.dur
+            : ioCompletionTimesB.dur - ioCompletionTimesA.dur;
+        } else if (ioCompletionTimesKey === 'process') {
+          return ioCompletionTimesA.process === ioCompletionTimesB.process
+            ? 0 : (type === 2 ? (ioCompletionTimesA.process > ioCompletionTimesB.process ? 1 : -1)
+              : (ioCompletionTimesA.process > ioCompletionTimesB.process ? -1 : 1));
+        } else if (ioCompletionTimesKey === 'durPer4kStr') {
+          return type === 1
+            ? ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k
+            : ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
+        } else if (ioCompletionTimesKey === 'thread') {
+          return ioCompletionTimesA.thread > ioCompletionTimesB.thread
+            ? (type === 2 ? 1 : -1) : (ioCompletionTimesA.thread === ioCompletionTimesB.thread
+              ? 0 : (type === 2 ? -1 : 1));
+        } else if (ioCompletionTimesKey === 'operation') {
+          return ioCompletionTimesA.operation > ioCompletionTimesB.operation
+            ? (type === 2 ? 1 : -1) : (ioCompletionTimesA.operation === ioCompletionTimesB.operation
+              ? 0 : (type === 2 ? -1 : 1));
+        } else if (ioCompletionTimesKey === 'sizeStr') {
+          return type === 1
+            ? ioCompletionTimesA.size - ioCompletionTimesB.size
+            : ioCompletionTimesB.size - ioCompletionTimesA.size;
+        } else if (ioCompletionTimesKey === 'tier') {
+          return type === 1
+            ? ioCompletionTimesA.tier - ioCompletionTimesB.tier
+            : ioCompletionTimesB.tier - ioCompletionTimesA.tier;
         } else {
           return 0;
         }

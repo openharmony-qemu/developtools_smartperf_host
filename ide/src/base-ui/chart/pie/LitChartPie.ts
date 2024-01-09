@@ -154,6 +154,38 @@ export class LitChartPie extends BaseElement {
     return this.litChartPieConfig;
   }
 
+  addCanvasOnmousemoveEvent():void{
+    this.canvas!.onmousemove = (ev) => {
+      let rect = this.getBoundingClientRect();
+      let x = ev.pageX - rect.left - this.centerX!;
+      let y = ev.pageY - rect.top - this.centerY!;
+      if (isPointIsCircle(0, 0, x, y, this.radius!)) {
+        let degree = this.computeDegree(x, y);
+        this.data.forEach((it) => {
+          it.hover = degree >= it.startDegree! && degree <= it.endDegree!;
+          this.updateHoverItemStatus(it);
+          it.obj.isHover = it.hover;
+          if (it.hover && this.litChartPieConfig) {
+            this.litChartPieConfig.hoverHandler?.(it.obj);
+            this.showTip(
+              ev.pageX - rect.left + 10,
+              ev.pageY - this.offsetTop - 10,
+              this.litChartPieConfig.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
+            );
+          }
+        });
+      } else {
+        this.hideTip();
+        this.data.forEach((it) => {
+          it.hover = false;
+          it.obj.isHover = false;
+          this.updateHoverItemStatus(it);
+        });
+        this.litChartPieConfig?.hoverHandler?.(undefined);
+      }
+      this.render();
+    };
+  }
   connectedCallback() {
     super.connectedCallback();
     this.eleShape = this.shadowRoot!.querySelector<Element>('#shape');
@@ -188,36 +220,7 @@ export class LitChartPie extends BaseElement {
         });
       }
     };
-    this.canvas!.onmousemove = (ev) => {
-      let rect = this.getBoundingClientRect();
-      let x = ev.pageX - rect.left - this.centerX!;
-      let y = ev.pageY - rect.top - this.centerY!;
-      if (isPointIsCircle(0, 0, x, y, this.radius!)) {
-        let degree = this.computeDegree(x, y);
-        this.data.forEach((it) => {
-          it.hover = degree >= it.startDegree! && degree <= it.endDegree!;
-          this.updateHoverItemStatus(it);
-          it.obj.isHover = it.hover;
-          if (it.hover && this.litChartPieConfig) {
-            this.litChartPieConfig.hoverHandler?.(it.obj);
-            this.showTip(
-              ev.pageX - rect.left + 10,
-              ev.pageY - this.offsetTop - 10,
-              this.litChartPieConfig.tip ? this.litChartPieConfig!.tip(it) : `${it.key}: ${it.value}`
-            );
-          }
-        });
-      } else {
-        this.hideTip();
-        this.data.forEach((it) => {
-          it.hover = false;
-          it.obj.isHover = false;
-          this.updateHoverItemStatus(it);
-        });
-        this.litChartPieConfig?.hoverHandler?.(undefined);
-      }
-      this.render();
-    };
+    this.addCanvasOnmousemoveEvent();
     this.render();
   }
 
@@ -255,6 +258,40 @@ export class LitChartPie extends BaseElement {
     }).observe(this);
   }
 
+  handleData():void{
+    this.textRects = [];
+    if (this.litChartPieConfig!.showChartLine) {
+      this.data.forEach((dataItem) => {
+        let text = `${dataItem.value}`;
+        let metrics = this.ctx!.measureText(text);
+        let textWidth = metrics.width;
+        let textHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+        this.ctx!.beginPath();
+        this.ctx!.strokeStyle = dataItem.color!;
+        this.ctx!.fillStyle = '#595959';
+        let deg = dataItem.startDegree! + (dataItem.endDegree! - dataItem.startDegree!) / 2;
+        let dep = 25;
+        let x1 = 0 + this.radius! * Math.cos((deg * Math.PI) / 180);
+        let y1 = 0 + this.radius! * Math.sin((deg * Math.PI) / 180);
+        let x2 = 0 + (this.radius! + 13) * Math.cos((deg * Math.PI) / 180);
+        let y2 = 0 + (this.radius! + 13) * Math.sin((deg * Math.PI) / 180);
+        let x3 = 0 + (this.radius! + dep) * Math.cos((deg * Math.PI) / 180);
+        let y3 = 0 + (this.radius! + dep) * Math.sin((deg * Math.PI) / 180);
+        this.ctx!.moveTo(x1, y1);
+        this.ctx!.lineTo(x2, y2);
+        this.ctx!.stroke();
+        let rect = this.correctRect({
+          x: x3 - textWidth / 2,
+          y: y3 + textHeight / 2,
+          w: textWidth,
+          h: textHeight,
+        });
+        this.ctx?.fillText(text, rect.x, rect.y);
+        this.ctx?.closePath();
+      });
+    }
+  }
+
   render(ease: boolean = true) {
     if (!this.canvas || !this.litChartPieConfig) return;
     if (this.radius! <= 0) return;
@@ -287,7 +324,6 @@ export class LitChartPie extends BaseElement {
       this.ctx!.stroke();
       this.ctx?.closePath();
     });
-
     this.data
       .filter((it) => it.hover)
       .forEach((it) => {
@@ -301,38 +337,7 @@ export class LitChartPie extends BaseElement {
         this.ctx!.stroke();
         this.ctx?.closePath();
       });
-
-    this.textRects = [];
-    if (this.litChartPieConfig.showChartLine) {
-      this.data.forEach((dataItem) => {
-        let text = `${dataItem.value}`;
-        let metrics = this.ctx!.measureText(text);
-        let textWidth = metrics.width;
-        let textHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
-        this.ctx!.beginPath();
-        this.ctx!.strokeStyle = dataItem.color!;
-        this.ctx!.fillStyle = '#595959';
-        let deg = dataItem.startDegree! + (dataItem.endDegree! - dataItem.startDegree!) / 2;
-        let dep = 25;
-        let x1 = 0 + this.radius! * Math.cos((deg * Math.PI) / 180);
-        let y1 = 0 + this.radius! * Math.sin((deg * Math.PI) / 180);
-        let x2 = 0 + (this.radius! + 13) * Math.cos((deg * Math.PI) / 180);
-        let y2 = 0 + (this.radius! + 13) * Math.sin((deg * Math.PI) / 180);
-        let x3 = 0 + (this.radius! + dep) * Math.cos((deg * Math.PI) / 180);
-        let y3 = 0 + (this.radius! + dep) * Math.sin((deg * Math.PI) / 180);
-        this.ctx!.moveTo(x1, y1);
-        this.ctx!.lineTo(x2, y2);
-        this.ctx!.stroke();
-        let rect = this.correctRect({
-          x: x3 - textWidth / 2,
-          y: y3 + textHeight / 2,
-          w: textWidth,
-          h: textHeight,
-        });
-        this.ctx?.fillText(text, rect.x, rect.y);
-        this.ctx?.closePath();
-      });
-    }
+    this.handleData();
     if (this.data.filter((it) => it.ease!.process).length > 0) {
       requestAnimationFrame(() => this.render(ease));
     }
@@ -390,46 +395,31 @@ export class LitChartPie extends BaseElement {
     let maxY = r1.y + r1.h > rect.y + rect.h ? r1.y + r1.h : rect.y + rect.h;
     let minX = r1.x < rect.x ? r1.x : rect.x;
     let minY = r1.y < rect.y ? r1.y : rect.y;
-    if (maxX - minX < rect.w + r1.w && maxY - minY < r1.h + rect.h) {
-      cross = true;
-    } else {
-      cross = false;
-    }
+    cross = maxX - minX < rect.w + r1.w && maxY - minY < r1.h + rect.h;
     crossW = Math.abs(maxX - minX - (rect.w + r1.w));
     crossH = Math.abs(maxY - minY - (rect.y + r1.y));
     if (rect.x > r1.x) {
-      //right
       if (rect.y > r1.y) {
-        //bottom
         direction = 'Right-Bottom';
       } else if (rect.y == r1.y) {
-        //middle
         direction = 'Right';
       } else {
-        //top
         direction = 'Right-Top';
       }
     } else if (rect.x < r1.x) {
-      //left
       if (rect.y > r1.y) {
-        //bottom
         direction = 'Left-Bottom';
       } else if (rect.y == r1.y) {
-        //middle
         direction = 'Left';
       } else {
-        //top
         direction = 'Left-Top';
       }
     } else {
       if (rect.y > r1.y) {
-        //bottom
         direction = 'Bottom';
       } else if (rect.y == r1.y) {
-        //middle
         direction = 'Right'; //superposition default right
       } else {
-        //top
         direction = 'Top';
       }
     }

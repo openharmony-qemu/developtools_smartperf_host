@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { VirtualMemoryStruct } from '../ui-worker/ProcedureWorkerVirtualMemory';
@@ -20,7 +20,7 @@ export function virtualMemoryDataSender(
   filterId: number,
   row: TraceRow<VirtualMemoryStruct>
 ): Promise<VirtualMemoryStruct[]> {
-  let trafic: number = TraficEnum.ProtoBuffer;
+  let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
@@ -43,18 +43,8 @@ export function virtualMemoryDataSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number) => {
-        switch (trafic) {
-          case TraficEnum.SharedArrayBuffer:
-            resolve(arrayBufferHandler(row.sharedArrayBuffers, len));
-            break;
-          case TraficEnum.ProtoBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-          case TraficEnum.TransferArrayBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-        }
+      (res: any, len: number, transfer: boolean) => {
+        resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });

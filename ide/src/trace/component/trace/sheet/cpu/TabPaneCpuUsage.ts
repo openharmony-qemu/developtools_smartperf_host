@@ -16,9 +16,9 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/SqlLite';
 import { CpuUsage, Freq } from '../../../../bean/CpuUsage';
 import { resizeObserver } from '../SheetUtils';
+import {getTabCpuFreq, getTabCpuUsage} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {

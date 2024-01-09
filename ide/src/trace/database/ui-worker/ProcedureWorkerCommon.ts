@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuStruct, WakeupBean } from './ProcedureWorkerCPU';
+import { CpuStruct, WakeupBean } from './cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
@@ -49,10 +49,10 @@ export class RequestMessage {
   totalNS: any;
   slicesTime:
     | {
-        startTime: number | null;
-        endTime: number | null;
-        color: string | null;
-      }
+      startTime: number | null;
+      endTime: number | null;
+      color: string | null;
+    }
     | undefined;
   range: any;
   scale: any;
@@ -65,9 +65,9 @@ export class RequestMessage {
   id: any;
   postMessage:
     | {
-        (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-        (message: any, options?: WindowPostMessageOptions): void;
-      }
+      (message: any, targetOrigin: string, transfer?: Transferable[]): void;
+      (message: any, options?: WindowPostMessageOptions): void;
+    }
     | undefined;
 }
 
@@ -493,7 +493,7 @@ export class Point {
 export enum LineType {
   brokenLine,
   bezierCurve,
-  StraightLine,
+  straightLine,
 }
 
 export class PairPoint {
@@ -556,10 +556,10 @@ export function drawFlagLine(
   frame: any,
   slicesTime:
     | {
-        startTime: number | null | undefined;
-        endTime: number | null | undefined;
-        color: string | null | undefined;
-      }
+      startTime: number | null | undefined;
+      endTime: number | null | undefined;
+      color: string | null | undefined;
+    }
     | undefined
 ) {
   if (commonCtx) {
@@ -761,106 +761,111 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
       );
       context.globalAlpha = 1;
     }
-
     // 绘制方法H:RSMainThread::DoComposition平均帧率的箭头指示线条
     if (params._docompositionList?.length) {
-      const rateList: Array<number> = [...new Set(params.docompositionList)];
-      if (rateList.length >= 2) {
-        // 计算平均帧率
-        let cutres: number = rateList[rateList.length - 1]! - rateList[0]!;
-        let avgFrameRate: string = (((rateList.length - 1) / cutres) * 1000000000).toFixed(1) + 'fps';
-
-        let avgRateStartX = Math.floor(
-          ns2x(
-            rateList[0]!,
-            TraceRow.range?.startNS ?? 0,
-            TraceRow.range?.endNS ?? 0,
-            TraceRow.range?.totalNS ?? 0,
-            params.frame
-          )
-        );
-        let avgRateEndX = Math.floor(
-          ns2x(
-            rateList[rateList.length - 1]!,
-            TraceRow.range?.startNS ?? 0,
-            TraceRow.range?.endNS ?? 0,
-            TraceRow.range?.totalNS ?? 0,
-            params.frame
-          )
-        );
-        const textWidth = context.measureText(avgFrameRate).width;
-        const textHeight = 25;
-        const padding = 5;
-        let textX =
-          Math.floor(
-            ns2x(
-              (rateList[0]! + rateList[rateList.length - 1]!) / 2,
-              TraceRow.range?.startNS ?? 0,
-              TraceRow.range?.endNS ?? 0,
-              TraceRow.range?.totalNS ?? 0,
-              params.frame
-            )
-          ) -
-          textWidth / 2;
-        const textY = params.frame.y + 25;
-
-        //左移到边界，不画线和文字
-        if (avgRateStartX <= 0) {
-          avgRateStartX = -100;
-        }
-        if (avgRateEndX <= 0) {
-          avgRateEndX = -100;
-        }
-        if (textX <= 0) {
-          textX = -100;
-        }
-        //右移到边界，不画线和文字
-        if (textX + textWidth / 2 >= params.frame.width) {
-          textX = params.frame.width + 100;
-        }
-        if (avgRateStartX >= params.frame.width) {
-          avgRateStartX = params.frame.width + 100;
-        }
-        if (avgRateEndX >= params.frame.width) {
-          avgRateEndX = params.frame.width + 100;
-        }
-        // 绘制文字背景矩形
-        context.fillStyle = 'red';
-        context.fillRect(
-          textX - padding,
-          textY - textHeight + padding,
-          textWidth + padding * 2,
-          textHeight - padding * 2
-        );
-
-        context.lineWidth = 2;
-        context.strokeStyle = 'yellow';
-        context.beginPath();
-        context.moveTo(avgRateStartX, textY);
-        context.lineTo(avgRateEndX, textY);
-        context.stroke();
-
-        const arrowSize = 5.5;
-        const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
-          context.beginPath();
-          const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
-          const headY = y - arrowSize / 2;
-          context.moveTo(x, y);
-          context.lineTo(headX, headY);
-          context.lineTo(headX, y + arrowSize);
-          context.closePath();
-
-          context.fillStyle = 'yellow';
-          context.fill();
-        };
-        arrowHead(avgRateStartX, textY - 1, 'left');
-        arrowHead(avgRateEndX, textY - 1, 'right');
-
-        context.fillStyle = 'white';
-        context.fillText(avgFrameRate, textX, textY - 8);
+      const frameRateList: Array<number> = [...new Set(params.docompositionList)];
+      if (frameRateList.length >= 2) {
+        changeFrameRatePoint(frameRateList, context, params)
       }
     }
   }
+}
+
+// 转换起始点坐标
+function changeFrameRatePoint(rateList: Array<number>, ctx: any, selectParams: TraceRow<any>): void {
+  let avgRateStartX = Math.floor(
+    ns2x(
+      rateList[0]!,
+      TraceRow.range?.startNS ?? 0,
+      TraceRow.range?.endNS ?? 0,
+      TraceRow.range?.totalNS ?? 0,
+      selectParams.frame
+    )
+  );
+  let avgRateEndX = Math.floor(
+    ns2x(
+      rateList[rateList.length - 1]!,
+      TraceRow.range?.startNS ?? 0,
+      TraceRow.range?.endNS ?? 0,
+      TraceRow.range?.totalNS ?? 0,
+      selectParams.frame
+    )
+  );
+  drawAvgFrameRate(rateList, ctx, selectParams, avgRateStartX, avgRateEndX)
+}
+
+// 计算平均帧率
+function calculateAvgRate(arr: Array<number>) {
+  const CONVERT_SECONDS = 1000000000;
+  let cutres: number = (arr[arr.length - 1]! - arr[0]!);
+  let avgRate: string = ((arr.length - 1) / cutres * CONVERT_SECONDS).toFixed(1);
+  return avgRate;
+}
+
+// 绘制平均帧率箭头指示线条
+function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams: TraceRow<any>, startX: number, endX: number): void {
+  let avgFrameRate: string = calculateAvgRate(arrList) + 'fps';
+  const textWidth = ctx.measureText(avgFrameRate).width;
+  const textHeight = 25;
+  const padding = 5;
+  const TEXT_WIDTH_HALF = 2;
+  let textX = Math.floor(ns2x(
+    (arrList[0]! + arrList[arrList.length - 1]!) / 2,
+    TraceRow.range?.startNS ?? 0,
+    TraceRow.range?.endNS ?? 0,
+    TraceRow.range?.totalNS ?? 0,
+    selectParams.frame
+  )) - textWidth / TEXT_WIDTH_HALF;
+  const textY = selectParams.frame.y + 25;
+  if (startX <= 0) {
+    startX = -100;
+  }
+  if (endX <= 0) {
+    endX = -100;
+  }
+  if (textX <= 0) {
+    textX = -100;
+  }
+  const ADD_DISTANCE = 100;
+  if (textX + textWidth / 2 >= selectParams.frame.width) {
+    textX = selectParams.frame.width + ADD_DISTANCE;
+  }
+  if (startX >= selectParams.frame.width) {
+    startX = selectParams.frame.width + ADD_DISTANCE;
+  }
+  if (endX >= selectParams.frame.width) {
+    endX = selectParams.frame.width + ADD_DISTANCE;
+  }
+  const TEXT_RECT_PADDING = 2
+  ctx.fillStyle = 'red';
+  ctx.fillRect(
+    textX - padding,
+    textY - textHeight + padding,
+    textWidth + padding * TEXT_RECT_PADDING,
+    textHeight - padding * TEXT_RECT_PADDING
+  );
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'yellow';
+  ctx.beginPath();
+  ctx.moveTo(startX, textY);
+  ctx.lineTo(endX, textY);
+  ctx.stroke();
+  const arrowSize = 5.5;
+  const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
+    ctx.beginPath();
+    const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
+    const headY = y - arrowSize / 2;
+    ctx.moveTo(x, y);
+    ctx.lineTo(headX, headY);
+    ctx.lineTo(headX, y + arrowSize);
+    ctx.closePath();
+    ctx.fillStyle = 'yellow';
+    ctx.fill();
+  };
+  arrowHead(startX, textY - 1, 'left');
+  arrowHead(endX, textY - 1, 'right');
+  ctx.fillStyle = 'white';
+  ctx.fillText(avgFrameRate, textX, textY - 8);
 }
 
 export function drawWakeUp(
@@ -1001,7 +1006,7 @@ export function drawLinkLines(
       case LineType.bezierCurve:
         drawBezierCurve([newFirstNode, newSecondNode], maxWidth, context, percentage);
         break;
-      case LineType.StraightLine:
+      case LineType.straightLine:
         drawStraightLine([newFirstNode, newSecondNode], maxWidth, context);
         break;
       default:
@@ -1231,7 +1236,6 @@ export function drawLoading(
 
 let loadingText = 'Loading...';
 let loadingTextWidth = 0;
-// let loadingBackground = "#eeeeee";
 let loadingBackground = '#f1f1f1';
 let loadingFont = 'bold 11pt Arial';
 let loadingFontColor = '#696969';
@@ -1255,7 +1259,6 @@ export function drawLoadingFrame(
     ctx.fillRect(0, 1, firstPx, row.frame.height - 2);
     ctx.fillRect(lastPx, 1, row.frame.width - lastPx, row.frame.height - 2);
     ctx.fillStyle = loadingFontColor;
-    // ctx.font = loadingFont;
     if (firstPx > loadingTextWidth) {
       ctx.fillText(loadingText, (firstPx - loadingTextWidth) / 2, row.frame.height / 2);
     }
@@ -1264,7 +1267,6 @@ export function drawLoadingFrame(
     }
   }
   ctx.closePath();
-  // drawSingleVSync(this.canvasPanelCtx!, this.timerShaftEL?.canvas?.clientWidth || 0, canvasHeight);
 }
 
 export function drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {

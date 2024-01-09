@@ -14,20 +14,10 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
-import {
-  queryAbilityExits,
-  queryCPuAbilityMaxData,
-  queryDiskIoMaxData,
-  queryDmaAbilityData,
-  queryGpuMemoryAbilityData,
-  queryMemoryMaxData,
-  queryNetWorkMaxData,
-  queryPurgeableSysData,
-} from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
 import { Utils } from '../trace/base/Utils';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { type ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
 import { CpuAbilityMonitorStruct, CpuAbilityRender } from '../../database/ui-worker/ProcedureWorkerCpuAbility';
 import { MemoryAbilityMonitorStruct, MemoryAbilityRender } from '../../database/ui-worker/ProcedureWorkerMemoryAbility';
@@ -50,7 +40,9 @@ import {
   abilityPurgeableDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { MemoryConfig } from '../../bean/MemoryConfig';
-import { resetAbility } from '../../database/data-trafic/VmTrackerDataReceiver';
+import {queryMemoryMaxData} from "../../database/sql/Memory.sql";
+import {queryDiskIoMaxData, queryNetWorkMaxData} from "../../database/sql/SqlLite.sql";
+import {queryAbilityExits, queryCPuAbilityMaxData, queryPurgeableSysData} from "../../database/sql/Ability.sql";
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;
   constructor(trace: SpSystemTrace) {
@@ -98,7 +90,6 @@ export class SpAbilityMonitorChart {
     if (this.hasTable(result, 'trace_network')) {
       await this.initNetworkAbility(processRow);
     }
-    resetAbility();
     // 初始化PurgeableToTal和PurgeablePin泳道图
     let totalDataList = await queryPurgeableSysData(false);
     let pinDataList = await queryPurgeableSysData(true);
@@ -189,14 +180,7 @@ export class SpAbilityMonitorChart {
     traceRow.name = `CPU ${cpuNameList[0]} Load`;
     traceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
       cpuAbilityUserDataSender(traceRow, 'CpuAbilityMonitorData').then((res): CpuAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     traceRow.focusHandler = (ev): void => {
@@ -240,14 +224,7 @@ export class SpAbilityMonitorChart {
     userTraceRow.name = `CPU ${cpuNameList[1]} Load`;
     userTraceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
       cpuAbilityUserDataSender(userTraceRow, 'CpuAbilityUserData').then((res): CpuAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     userTraceRow.focusHandler = (ev): void => {
@@ -295,14 +272,7 @@ export class SpAbilityMonitorChart {
     sysTraceRow.name = `CPU ${cpuNameList[2]} Load`;
     sysTraceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
       cpuAbilityUserDataSender(sysTraceRow, 'CpuAbilitySystemData').then((res): CpuAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     sysTraceRow.focusHandler = (ev): void => {
@@ -363,14 +333,7 @@ export class SpAbilityMonitorChart {
     memoryUsedTraceRow.supplierFrame = (): Promise<MemoryAbilityMonitorStruct[]> => {
       return abilityMemoryUsedDataSender(memoryTotalId, memoryUsedTraceRow).then(
         (res): MemoryAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -423,14 +386,7 @@ export class SpAbilityMonitorChart {
     cachedFilesTraceRow.name = memoryNameList[1];
     cachedFilesTraceRow.supplierFrame = (): Promise<MemoryAbilityMonitorStruct[]> =>
       abilityMemoryUsedDataSender(cachedId, cachedFilesTraceRow).then((res): MemoryAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     cachedFilesTraceRow.focusHandler = (ev): void => {
@@ -481,14 +437,7 @@ export class SpAbilityMonitorChart {
     compressedTraceRow.name = memoryNameList[2];
     compressedTraceRow.supplierFrame = (): Promise<MemoryAbilityMonitorStruct[]> =>
       abilityMemoryUsedDataSender(swapId, compressedTraceRow).then((res): MemoryAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     compressedTraceRow.focusHandler = (ev): void => {
@@ -545,14 +494,7 @@ export class SpAbilityMonitorChart {
     bytesReadTraceRow.name = 'Disk ' + diskIONameList[0];
     bytesReadTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
       abilityBytesReadDataSender(bytesReadTraceRow, 'AbilityBytesReadData').then((res): DiskAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     bytesReadTraceRow.focusHandler = (ev): void => {
@@ -602,14 +544,7 @@ export class SpAbilityMonitorChart {
     bytesWrittenTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
       abilityBytesReadDataSender(bytesWrittenTraceRow, 'AbilityBytesWrittenData').then(
         (res): DiskAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -659,14 +594,7 @@ export class SpAbilityMonitorChart {
     readOpsTraceRow.name = 'Disk ' + diskIONameList[2];
     readOpsTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
       abilityBytesReadDataSender(readOpsTraceRow, 'AbilityReadOpsData').then((res): DiskAbilityMonitorStruct[] => {
-        let endNS = TraceRow.range?.endNS || 0;
-        res.forEach((it, i) => {
-          if (i === res.length - 1) {
-            it.dur = (endNS || 0) - (it.startNS || 0);
-          } else {
-            it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-          }
-        });
+        this.computeDur(res);
         return res;
       });
     readOpsTraceRow.focusHandler = (ev): void => {
@@ -716,14 +644,7 @@ export class SpAbilityMonitorChart {
     writtenOpsTraceRow.supplierFrame = (): Promise<DiskAbilityMonitorStruct[]> =>
       abilityBytesReadDataSender(writtenOpsTraceRow, 'AbilityWrittenOpsData').then(
         (res): DiskAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -782,14 +703,7 @@ export class SpAbilityMonitorChart {
     bytesInTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
       abilityBytesInTraceDataSender(bytesInTraceRow, 'AbilityBytesInTraceData').then(
         (res): NetworkAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -840,14 +754,7 @@ export class SpAbilityMonitorChart {
     bytesOutTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
       abilityBytesInTraceDataSender(bytesOutTraceRow, 'AbilityBytesOutTraceData').then(
         (res): NetworkAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -898,14 +805,7 @@ export class SpAbilityMonitorChart {
     packetInTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
       abilityBytesInTraceDataSender(packetInTraceRow, 'AbilityPacketInTraceData').then(
         (res): NetworkAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -956,14 +856,7 @@ export class SpAbilityMonitorChart {
     packetOutTraceRow.supplierFrame = (): Promise<NetworkAbilityMonitorStruct[]> =>
       abilityBytesInTraceDataSender(packetOutTraceRow, 'AbilityPacketsOutTraceData').then(
         (res): NetworkAbilityMonitorStruct[] => {
-          let endNS = TraceRow.range?.endNS || 0;
-          res.forEach((it, i) => {
-            if (i === res.length - 1) {
-              it.dur = (endNS || 0) - (it.startNS || 0);
-            } else {
-              it.dur = (res[i + 1].startNS || 0) - (it.startNS || 0);
-            }
-          });
+          this.computeDur(res);
           return res;
         }
       );
@@ -1147,5 +1040,16 @@ export class SpAbilityMonitorChart {
         item.name = `SnapShot ${index}`;
       });
     }
+  }
+
+  private computeDur(list: Array<any>): void {
+    let endNS = TraceRow.range?.endNS || 0;
+    list.forEach((it, i) => {
+      if (i === list.length - 1) {
+        it.dur = (endNS || 0) - (it.startNS || 0);
+      } else {
+        it.dur = (list[i + 1].startNS || 0) - (it.startNS || 0);
+      }
+    });
   }
 }

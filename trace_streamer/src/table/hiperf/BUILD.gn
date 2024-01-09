@@ -19,19 +19,15 @@ ohos_source_set("hiperf_tables") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [
     "perf_call_chain_table.cpp",
-    "perf_call_chain_table.h",
     "perf_files_table.cpp",
-    "perf_files_table.h",
     "perf_report_table.cpp",
-    "perf_report_table.h",
     "perf_sample_table.cpp",
-    "perf_sample_table.h",
     "perf_thread_table.cpp",
-    "perf_thread_table.h",
   ]
 
   include_dirs = [
-    "../base",
+    "include",
+    "../base/include",
     "${THIRD_PARTY}/sqlite/include",
     "${SRC}/base",
     "../../parser",
@@ -41,7 +37,16 @@ ohos_source_set("hiperf_tables") {
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/bounds_checking_function/include",
   ]
-
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+  ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }

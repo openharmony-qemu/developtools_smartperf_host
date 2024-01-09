@@ -135,7 +135,7 @@ class ProcedurePool {
     return newThread;
   }
 
-  logicDataThread() {
+  private logicDataThread(): ProcedureThread | undefined {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -146,6 +146,16 @@ class ProcedurePool {
       })
     );
     thread.name = this.logicDataHandles[this.works.length - this.names.length];
+    this.sendMessage(thread);
+    thread.worker!.onmessageerror = (e) => {};
+    thread.worker!.onerror = (e) => {};
+    thread.id = this.works.length;
+    thread.busy = false;
+    this.works?.push(thread);
+    return thread;
+  }
+
+  private sendMessage(thread: ProcedureThread): void {
     thread.worker!.onmessage = (event: MessageEvent) => {
       thread.busy = false;
       if (event.data.isQuery) {
@@ -184,12 +194,6 @@ class ProcedurePool {
         this.onComplete();
       }
     };
-    thread.worker!.onmessageerror = (e) => {};
-    thread.worker!.onerror = (e) => {};
-    thread.id = this.works.length;
-    thread.busy = false;
-    this.works?.push(thread);
-    return thread;
   }
 
   close = () => {

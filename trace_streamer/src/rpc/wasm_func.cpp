@@ -189,7 +189,7 @@ EMSCRIPTEN_KEEPALIVE void TraceStreamer_Set_Log_Level(uint32_t level)
 int32_t TraceStreamer_Plugin_Out_Filter(const char* pluginData, int32_t len, const std::string& componentName)
 {
     std::map<int32_t, std::string>::iterator itor = g_wasmTraceStreamer.g_thirdPartyConfig.begin();
-    int32_t componentId = 0;
+    int32_t componentId;
     for (; itor != g_wasmTraceStreamer.g_thirdPartyConfig.end(); ++itor) {
         if (itor->second == componentName) {
             componentId = itor->first;

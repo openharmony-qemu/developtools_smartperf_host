@@ -20,7 +20,7 @@
 #include <iostream>
 #include <memory>
 #include <regex>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -28,7 +28,6 @@
 #include "codec_cov.h"
 #include "file.h"
 #include "filter/slice_filter.h"
-#include "http_server.h"
 #include "log.h"
 #include "metrics.h"
 #include "parser/bytrace_parser/bytrace_event_parser.h"
@@ -106,7 +105,7 @@ void PrintInformation()
 }
 void PrintVersion()
 {
-    fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
+    (void)fprintf(stderr, "version %s\n", g_traceStreamerVersion.c_str());
 }
 
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
@@ -220,8 +219,8 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
     endTime += 1; // for any exception of endTime == startTime
-    fprintf(stdout, "ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
+    (void)fprintf(stdout, "ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
+    (void)fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
     return 0;
 }
 bool LongTraceExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
@@ -256,10 +255,6 @@ struct TraceExportOption {
     bool closeMutiThread = false;
     uint8_t parserThreadNum = INVALID_UINT8;
 };
-struct HttpOption {
-    bool enable = false;
-    int port = 9001;
-};
 bool SetDumpFileType(char** argv, const std::string& dumpFileType, TraceExportOption& traceExportOption)
 {
     if (dumpFileType == "perf") {
@@ -274,11 +269,11 @@ bool SetDumpFileType(char** argv, const std::string& dumpFileType, TraceExportOp
     }
     return true;
 }
-int CheckFinal(char** argv, TraceExportOption& traceExportOption, HttpOption& httpOption)
+int CheckFinal(char** argv, TraceExportOption& traceExportOption)
 {
     if (((traceExportOption.traceFilePath.empty() && traceExportOption.longTraceDir.empty()) ||
          (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
-        !httpOption.enable && !traceExportOption.separateFile && traceExportOption.metricsIndex.empty() &&
+        !traceExportOption.separateFile && traceExportOption.metricsIndex.empty() &&
         traceExportOption.sqlOperatorFilePath.empty() && traceExportOption.outputFilePath.empty() &&
         traceExportOption.dumpFileType == DumpFileType::UNKONW_TYPE) {
         ShowHelpInfo(argv[0]);
@@ -296,7 +291,7 @@ bool CheckArgc(int argc, char** argv, int curArgNum)
     return true;
 }
 
-int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpOption& httpOption)
+int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption)
 {
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-e")) {
@@ -352,19 +347,12 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
                    !strcmp(argv[i], "--version")) {
             PrintVersion();
             return 1;
-        } else if (!strcmp(argv[i], "-h")) {
-            httpOption.enable = true;
-            continue;
-        } else if (!strcmp(argv[i], "-p")) {
-            TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), 1);
-            httpOption.port = std::stoi(argv[i]);
-            continue;
         }
         traceExportOption.traceFilePath = std::string(argv[i]);
         auto strVec = SplitStringToVec(traceExportOption.traceFilePath, ".");
         traceExportOption.outputFilePath = strVec.front() + "_ReadableText.txt";
     }
-    return CheckFinal(argv, traceExportOption, httpOption);
+    return CheckFinal(argv, traceExportOption);
 }
 bool GetLongTraceFilePaths(const TraceExportOption& traceExportOption, std::map<int, std::string>& seqToFilePathMap)
 {
@@ -485,19 +473,11 @@ int main(int argc, char** argv)
         return 1;
     }
     TraceExportOption tsOption;
-    HttpOption httpOption;
-    int ret = CheckArgs(argc, argv, tsOption, httpOption);
+    int ret = CheckArgs(argc, argv, tsOption);
     if (ret) {
         if (!tsOption.sqliteFilePath.empty()) {
             ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
         }
-        return 0;
-    }
-    if (httpOption.enable) {
-        RpcServer rpcServer;
-        HttpServer httpServer;
-        httpServer.RegisterRpcFunction(&rpcServer);
-        httpServer.Run(httpOption.port);
         return 0;
     }
     TraceStreamerSelector ts;
@@ -539,8 +519,8 @@ int main(int argc, char** argv)
         metaData->SetTraceDataSize(g_loadSize);
         while (true) {
             auto values = ts.SearchData();
-            std::string symbolsPath = "default";
             if (!values.empty()) {
+                std::string symbolsPath = "default";
                 ts.ReloadSymbolFiles(symbolsPath, values);
             } else {
                 return 0;

@@ -17,10 +17,10 @@ import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
-import { querySysPurgeableSelectionTab } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import {querySysPurgeableSelectionTab} from "../../../../database/sql/Ability.sql";
 @element('tabpane-purgeable-total-comparison-ability')
 export class TabPanePurgTotalComparisonAbility extends BaseElement {
   private purgeableTotalTable: LitTable | null | undefined;

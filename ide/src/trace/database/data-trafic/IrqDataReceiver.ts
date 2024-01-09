@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from './QueryEnum';
-import {filterDataByGroup} from "./DataFilter";
-import {lrqList} from "./AllMemoryCache";
+import { TraficEnum } from './utils/QueryEnum';
+import {filterDataByGroup} from "./utils/DataFilter";
+import {lrqList} from "./utils/AllMemoryCache";
 
 export const chartIrqDataSql = (args: any): string => {
   if (args.name === 'irq') {
@@ -82,7 +82,7 @@ export function irqDataReceiver(data: any, proc: Function): void {
       list = lrqList.get(data.params.cpu + data.params.name) || [];
     }
     res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
-    arrayBufferHandler(data, res,false);
+    arrayBufferHandler(data, res,true);
   } else {
     let sql = chartIrqDataSql(data.params);
     let res = proc(sql);
@@ -94,7 +94,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   let depth = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
-  let argSetId = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
+  let argSetId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argSetId);
   let id = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   res.forEach((it, i) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.irqData);

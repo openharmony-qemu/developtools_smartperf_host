@@ -11,15 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CpuStruct } from '../ui-worker/ProcedureWorkerCPU';
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CpuStruct } from '../ui-worker/cpu/ProcedureWorkerCPU';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<CpuStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer || trafic === TraficEnum.Memory) && !row.sharedArrayBuffers) {
+  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       processId: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
       id: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -27,7 +27,7 @@ export function cpuDataSender(cpu: number, row: TraceRow<CpuStruct>): Promise<Cp
       cpu: new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       startTime: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      argSetId: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      argSetId: new SharedArrayBuffer(Int8Array.BYTES_PER_ELEMENT * MAX_COUNT),
       nofinish: new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
   }
@@ -68,7 +68,7 @@ function arrayBufferHandler(res: any, len: number): CpuStruct[] {
   let processId = new Uint16Array(res.processId);
   let tid = new Uint16Array(res.tid);
   let cpu = new Uint8Array(res.cpu);
-  let argSetID = new Uint8Array(res.argSetID);
+  let argSetID = new Int8Array(res.argSetID);
   let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
@@ -93,7 +93,7 @@ function searchArrayBufferHandler(res: any, len: number): CpuStruct[] {
   let processId = new Uint16Array(res.processId);
   let tid = new Uint16Array(res.tid);
   let cpu = new Uint8Array(res.cpu);
-  let argSetID = new Uint8Array(res.argSetID);
+  let argSetID = new Int8Array(res.argSetID);
   for (let i = 0; i < len; i++) {
     outArr.push({
       processId: processId[i],

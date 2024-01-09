@@ -19,6 +19,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { JankFramesStruct } from '../../../../bean/JankFramesStruct';
 import { JanksStruct } from '../../../../bean/JanksStruct';
 import { resizeObserver } from '../SheetUtils';
+import {querySelectRangeData} from "../../../../database/sql/Janks.sql";
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
@@ -37,40 +38,54 @@ export class TabPaneFrames extends BaseElement {
     let appJank: JankFramesStruct = new JankFramesStruct();
     let rsJank: JankFramesStruct = new JankFramesStruct();
     let noJank: JankFramesStruct = new JankFramesStruct();
-    framesParam.jankFramesData.forEach((data: Array<JanksStruct>) => {
-      sumRes.occurrences += data.length;
-      data.forEach((structValue: JanksStruct) => {
-        if (structValue.frame_type === 'app') {
-          this.appJankDataHandle(structValue, appJank, noJank);
-        } else if (structValue.frame_type === 'renderService') {
-          this.rsJankDataHandle(structValue, rsJank, noJank);
+    if (framesParam.jankFramesData.length > 0) {
+      let allPid: Array<number> = [];
+      let allData: Array<any> = [];
+      framesParam.jankFramesData.forEach((data: any) => {
+        if (typeof data === 'string') {
+          if (Number(data) && allPid.indexOf(Number(data)) < 0) {
+            allPid.push(Number(data));
+          }
         } else {
-          // frameTime
-          this.frameTimelineJankDataHandle(structValue, appJank, noJank);
+          allData.push(data);
         }
       });
-    });
-    tablelist.push(sumRes);
-    if (appJank.occurrences > 0) {
-      appJank.maxDurationStr = appJank.maxDuration + '';
-      appJank.minDurationStr = appJank.minDuration + '';
-      appJank.meanDurationStr = appJank.meanDuration + '';
-      tablelist.push(appJank);
+      querySelectRangeData(allPid, framesParam.leftNs, framesParam.rightNs).then((result: any)=> {
+        sumRes.occurrences = allData.length + result.length;
+        allData.forEach(item => {
+          // frameTime
+          this.frameTimelineJankDataHandle(item, appJank, noJank);
+        });
+        result.forEach((structValue: JanksStruct) => {
+          if (structValue.frame_type === 'app') {
+            this.appJankDataHandle(structValue, appJank, noJank);
+          } else if (structValue.frame_type === 'render_service') {
+            this.rsJankDataHandle(structValue, rsJank, noJank);
+          }
+        });
+        tablelist.push(sumRes);
+        if (appJank.occurrences > 0) {
+          appJank.maxDurationStr = appJank.maxDuration + '';
+          appJank.minDurationStr = appJank.minDuration + '';
+          appJank.meanDurationStr = appJank.meanDuration + '';
+          tablelist.push(appJank);
+        }
+        if (rsJank.occurrences > 0) {
+          rsJank.maxDurationStr = rsJank.maxDuration + '';
+          rsJank.minDurationStr = rsJank.minDuration + '';
+          rsJank.meanDurationStr = rsJank.meanDuration + '';
+          tablelist.push(rsJank);
+        }
+        if (noJank.occurrences > 0) {
+          noJank.maxDurationStr = noJank.maxDuration + '';
+          noJank.minDurationStr = noJank.minDuration + '';
+          noJank.meanDurationStr = noJank.meanDuration + '';
+          tablelist.push(noJank);
+        }
+        this.framesSource = tablelist;
+        this.framesTbl!.recycleDataSource = tablelist;
+      });
     }
-    if (rsJank.occurrences > 0) {
-      rsJank.maxDurationStr = rsJank.maxDuration + '';
-      rsJank.minDurationStr = rsJank.minDuration + '';
-      rsJank.meanDurationStr = rsJank.meanDuration + '';
-      tablelist.push(rsJank);
-    }
-    if (noJank.occurrences > 0) {
-      noJank.maxDurationStr = noJank.maxDuration + '';
-      noJank.minDurationStr = noJank.minDuration + '';
-      noJank.meanDurationStr = noJank.meanDuration + '';
-      tablelist.push(noJank);
-    }
-    this.framesSource = tablelist;
-    this.framesTbl!.recycleDataSource = tablelist;
   }
 
   private frameTimelineJankDataHandle(

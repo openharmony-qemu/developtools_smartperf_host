@@ -39,8 +39,8 @@ std::unique_ptr<TableBase::Cursor> SoStaticInitalizationTable::CreateCursor()
 }
 
 SoStaticInitalizationTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstStaticInitalizationData().Size())),
-      staticInitalizationObj_(dataCache->GetConstStaticInitalizationData())
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSoStaticInitalizationData().Size())),
+      staticInitalizationObj_(dataCache->GetConstSoStaticInitalizationData())
 {
 }
 

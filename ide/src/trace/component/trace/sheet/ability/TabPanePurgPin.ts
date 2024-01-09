@@ -17,10 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import { queryProcessPurgeableTab, querySysPurgeableTab } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { PurgeableTabStruct } from './TabPanePurgTotal';
+import {querySysPurgeableTab} from "../../../../database/sql/Ability.sql";
+import {queryProcessPurgeableTab} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-purg-pin')
 export class TabPanePurgPin extends BaseElement {
@@ -50,26 +51,7 @@ export class TabPanePurgPin extends BaseElement {
         true
       ).then((purgePinResults) => {
         this.purgeablePinTable!.loading = false;
-        if (purgePinResults.length > 0) {
-          for (let i = 0; i < purgePinResults.length; i++) {
-            this.purgeablePinSource.push(
-              this.toTabStruct(
-                purgePinResults[i].name,
-                purgePinResults[i].maxSize,
-                purgePinResults[i].minSize,
-                purgePinResults[i].avgSize
-              )
-            );
-          }
-          this.sortByColumn({ key: this.sortKey, sort: this.sortType });
-          let total = this.totalData(this.purgeablePinSource);
-          this.purgeablePinSource.unshift(total);
-          this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;
-          this.purgeablePinSource.shift();
-        } else {
-          this.purgeablePinSource = [];
-          this.purgeablePinTable!.recycleDataSource = [];
-        }
+        this.getDataSource(purgePinResults)
       });
     } else if (selection.purgeablePinVM.length > 0) {
       this.purgeablePinSource = [];
@@ -81,22 +63,26 @@ export class TabPanePurgPin extends BaseElement {
         true
       ).then((results) => {
         this.purgeablePinTable!.loading = false;
-        if (results.length > 0) {
-          for (let i = 0; i < results.length; i++) {
-            this.purgeablePinSource.push(
-              this.toTabStruct(results[i].name, results[i].maxSize, results[i].minSize, results[i].avgSize)
-            );
-          }
-          this.sortByColumn({ key: this.sortKey, sort: this.sortType });
-          let total = this.totalData(this.purgeablePinSource);
-          this.purgeablePinSource.unshift(total);
-          this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;
-          this.purgeablePinSource.shift();
-        } else {
-          this.purgeablePinSource = [];
-          this.purgeablePinTable!.recycleDataSource = [];
-        }
+        this.getDataSource(results)
       });
+    }
+  }
+
+  getDataSource(res: any): void{
+    if (res.length > 0) {
+      for (let i = 0; i < res.length; i++) {
+        this.purgeablePinSource.push(
+          this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize)
+        );
+      }
+      this.sortByColumn({ key: this.sortKey, sort: this.sortType });
+      let total = this.totalData(this.purgeablePinSource);
+      this.purgeablePinSource.unshift(total);
+      this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;
+      this.purgeablePinSource.shift();
+    } else {
+      this.purgeablePinSource = [];
+      this.purgeablePinTable!.recycleDataSource = [];
     }
   }
 

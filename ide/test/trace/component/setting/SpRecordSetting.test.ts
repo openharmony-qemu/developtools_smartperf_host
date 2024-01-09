@@ -59,7 +59,7 @@ describe('SpRecordSetting Test', () => {
   it('SpRecordSettingTest09', function (){
     let spEle = document.querySelector('#setting') as SpRecordSetting;
     spEle.outputPath = spEle.shadowRoot?.querySelector('#trace_path') as HTMLInputElement;
-    spEle.outputPath.value = 'long_trace/'
+    spEle.outputPath.value = 'long_trace'
     expect(spEle.longOutPath).toEqual('/data/local/tmp/long_trace/');
   })
   it('SpRecordSettingTest10', function (){
