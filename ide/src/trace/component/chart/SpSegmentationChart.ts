@@ -1,5 +1,5 @@
 /*
- * Copyright (C) UNIT_HEIGHT22 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@ import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { type FreqExtendRender, CpuFreqExtendStruct } from '../../database/ui-worker/ProcedureWorkerFreqExtend';
 import { type BinderRender, BinderStruct } from '../../database/ui-worker/procedureWorkerBinder';
-import { queryIrqList } from '../../database/SqlLite';
+import { queryIrqList } from '../../database/sql/Irq.sql';
 import { type BaseStruct } from '../../bean/BaseStruct';
 
 const UNIT_HEIGHT: number = 20;
