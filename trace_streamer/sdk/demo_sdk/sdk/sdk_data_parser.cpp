@@ -23,7 +23,7 @@
 #include "gpu_counter_table.h"
 #include "json.hpp"
 #include "log.h"
-#include "meta_table.h"
+#include "demo_meta_table.h"
 #include "sdk_plugin_data_parser.h"
 #include "slice_object_table.h"
 #include "slice_table.h"
@@ -112,7 +112,7 @@ int32_t SDKDataParser::UpdateJson()
 // 创建对应的表
 int32_t SDKDataParser::CreateTableByJson()
 {
-    TableBase::TableDeclare<MetaTable>(*(traceDataCache_->db_), traceDataCache_, "meta");
+    DemoTableBase::TableDeclare<DemoMetaTable>(*(traceDataCache_->demoDb_), traceDataCache_, "meta");
     // 创建对应的表
     CreateCounterObjectTable(counterObjectTableName_);
     CreateCounterTable(counterTableName_);
@@ -124,28 +124,28 @@ int32_t SDKDataParser::CreateTableByJson()
 // 根据Json配置创建couter object表
 int32_t SDKDataParser::CreateCounterObjectTable(const std::string& tableName)
 {
-    TableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
+    DemoTableBase::TableDeclare<GpuCounterObjectTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // 根据Json配置创建couter表
 int32_t SDKDataParser::CreateCounterTable(const std::string& tableName)
 {
-    TableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
+    DemoTableBase::TableDeclare<GpuCounterTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // 根据Json配置创建slice object表
 int32_t SDKDataParser::CreateSliceObjectTable(const std::string& tableName)
 {
-    TableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
+    DemoTableBase::TableDeclare<SliceObjectTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 
 // 根据Json配置创建slice表
 int32_t SDKDataParser::CreateSliceTable(const std::string& tableName)
 {
-    TableBase::TableDeclare<SliceTable>(*(traceDataCache_->db_), traceDataCache_, tableName);
+    DemoTableBase::TableDeclare<SliceTable>(*(traceDataCache_->demoDb_), traceDataCache_, tableName);
     return 0;
 }
 

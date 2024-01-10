@@ -38,7 +38,6 @@ export function processDeliverInputEventDataSender(tid: number, row: TraceRow<Fu
     threadPool.submitProto(
       QueryEnum.processDeliverInputEventData,
       {
-        tid: tid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -47,19 +46,10 @@ export function processDeliverInputEventDataSender(tid: number, row: TraceRow<Fu
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        tid: tid,
       },
-      (res: any, len: number) => {
-        switch (trafic) {
-          case TraficEnum.SharedArrayBuffer:
-            resolve(arrayBufferHandler(row.sharedArrayBuffers, len));
-            break;
-          case TraficEnum.ProtoBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-          case TraficEnum.TransferArrayBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-        }
+      (res: any, len: number, transfer: boolean) => {
+        resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });

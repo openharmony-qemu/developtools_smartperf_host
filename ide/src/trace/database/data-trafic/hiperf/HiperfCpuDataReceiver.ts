@@ -66,8 +66,6 @@ export function hiperfCpuDataReceiver(data: any, proc: Function): void {
   arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
-function protoBufferHandler(data: any, res: any[]): void {}
-
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let maxCpuCount = data.params.maxCpuCount;
   let intervalPerf = data.params.intervalPerf;
@@ -101,6 +99,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
 function postPerfCpuMessage(data: any, transfer: boolean, perfCpu: PerfCpu, len: number) {
   (self as unknown as Worker).postMessage(
     {
+      transfer: transfer,
       id: data.id,
       action: data.action,
       results: transfer
@@ -114,7 +113,6 @@ function postPerfCpuMessage(data: any, transfer: boolean, perfCpu: PerfCpu, len:
           }
         : {},
       len: len,
-      transfer: transfer,
     },
     transfer
       ? [

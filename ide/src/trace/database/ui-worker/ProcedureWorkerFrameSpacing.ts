@@ -65,7 +65,6 @@ export class FrameSpacingRender extends Render {
     row: TraceRow<FrameSpacingStruct>
   ): void {
     if (req.animationRanges.length > 0 && req.animationRanges[0] && frameSpacingFilter.length > 0) {
-      let preFrameSpacing: FrameSpacingStruct = frameSpacingFilter[0];
       let minValue = 0;
       let maxValue = 0;
       let smallTickStandard = {
@@ -95,53 +94,68 @@ export class FrameSpacingRender extends Render {
           })
         );
       }
-      let isDraw = false;
       let selectUnitWidth: number = 0;
-      for (let index: number = 0; index < frameSpacingFilter.length; index++) {
-        let currentStruct = frameSpacingFilter[index];
-        selectUnitWidth = computeUnitWidth(
-          preFrameSpacing.currentTs,
-          currentStruct.currentTs,
-          row.frame.width,
-          selectUnitWidth
-        );
-        FrameSpacingStruct.refreshHoverStruct(preFrameSpacing, currentStruct, row, minValue, maxValue);
-        if (currentStruct.groupId === 0) {
-          if (currentStruct.currentTs > TraceRow.range!.startNS && currentStruct.currentTs < TraceRow.range!.endNS) {
-            isDraw = true;
-            this.drawPoint(req.context, currentStruct, row, minValue, maxValue);
-          }
-        } else if (
-          currentStruct.groupId !== invalidGroupId &&
-          index > 0 &&
-          currentStruct.groupId === preFrameSpacing!.groupId
-        ) {
-          isDraw = true;
-          FrameSpacingStruct.draw(req.context, preFrameSpacing, currentStruct, row, minValue, maxValue);
-        }
-        FrameSpacingStruct.drawSelect(currentStruct, req.context, row);
-        preFrameSpacing = currentStruct;
-      }
-      if (req.frameRate) {
-        if (isDraw) {
-          this.drawDashedLines(Object.values(smallTickStandard), req, row, minValue, maxValue);
-        }
-      }
+      this.drawTraceRow(frameSpacingFilter, selectUnitWidth, req, row, minValue, maxValue, smallTickStandard);
       let findStructList = frameSpacingFilter.filter(
         (filter) => row.isHover && isSurroundingPoint(row.hoverX, filter.frame!, selectUnitWidth / multiple)
       );
-      let find = false;
-      if (findStructList.length > 0) {
-        find = true;
-        let hoverIndex: number = 0;
-        if (findStructList.length > unitIndex) {
-          hoverIndex = Math.ceil(findStructList.length / multiple);
+      this.setHoverStruct(findStructList, row);
+    }
+  }
+  private drawTraceRow(
+    frameSpacingFilter: Array<FrameSpacingStruct>,
+    selectUnitWidth: number,
+    req: any,
+    row: TraceRow<FrameSpacingStruct>,
+    minValue: number,
+    maxValue: number,
+    smallTickStandard: any
+  ) {
+    let preFrameSpacing: FrameSpacingStruct = frameSpacingFilter[0];
+    let isDraw = false;
+    for (let index: number = 0; index < frameSpacingFilter.length; index++) {
+      let currentStruct = frameSpacingFilter[index];
+      selectUnitWidth = computeUnitWidth(
+        preFrameSpacing.currentTs,
+        currentStruct.currentTs,
+        row.frame.width,
+        selectUnitWidth
+      );
+      FrameSpacingStruct.refreshHoverStruct(preFrameSpacing, currentStruct, row, minValue, maxValue);
+      if (currentStruct.groupId === 0) {
+        if (currentStruct.currentTs > TraceRow.range!.startNS && currentStruct.currentTs < TraceRow.range!.endNS) {
+          isDraw = true;
+          this.drawPoint(req.context, currentStruct, row, minValue, maxValue);
         }
-        FrameSpacingStruct.hoverFrameSpacingStruct = findStructList[hoverIndex];
+      } else if (
+        currentStruct.groupId !== invalidGroupId &&
+        index > 0 &&
+        currentStruct.groupId === preFrameSpacing!.groupId
+      ) {
+        isDraw = true;
+        FrameSpacingStruct.draw(req.context, preFrameSpacing, currentStruct, row, minValue, maxValue);
       }
-      if (!find && row.isHover) {
-        FrameSpacingStruct.hoverFrameSpacingStruct = undefined;
+      FrameSpacingStruct.drawSelect(currentStruct, req.context, row);
+      preFrameSpacing = currentStruct;
+    }
+    if (req.frameRate) {
+      if (isDraw) {
+        this.drawDashedLines(Object.values(smallTickStandard), req, row, minValue, maxValue);
       }
+    }
+  }
+  private setHoverStruct(findStructList: Array<FrameSpacingStruct>, row: TraceRow<FrameSpacingStruct>) {
+    let find = false;
+    if (findStructList.length > 0) {
+      find = true;
+      let hoverIndex: number = 0;
+      if (findStructList.length > unitIndex) {
+        hoverIndex = Math.ceil(findStructList.length / multiple);
+      }
+      FrameSpacingStruct.hoverFrameSpacingStruct = findStructList[hoverIndex];
+    }
+    if (!find && row.isHover) {
+      FrameSpacingStruct.hoverFrameSpacingStruct = undefined;
     }
   }
 

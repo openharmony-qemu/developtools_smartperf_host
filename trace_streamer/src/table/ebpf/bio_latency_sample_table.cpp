@@ -98,9 +98,9 @@ int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto&  bioLateSamTabCs = fc.GetConstraints();
+    for (size_t i = 0; i < bioLateSamTabCs.size(); i++) {
+        const auto& c = bioLateSamTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -110,12 +110,12 @@ int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto bioLatSampleTabOrderbys = fc.GetOrderBys();
+    for (auto i = bioLatSampleTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(bioLatSampleTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(bioLatSampleTabOrderbys[i].desc);
                 break;
             default:
                 break;

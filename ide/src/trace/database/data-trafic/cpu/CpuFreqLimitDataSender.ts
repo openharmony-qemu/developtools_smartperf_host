@@ -24,7 +24,7 @@ export function cpuFreqLimitSender(
 ): Promise<CpuFreqLimitsStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       value: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       max: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -37,9 +37,6 @@ export function cpuFreqLimitSender(
     threadPool.submitProto(
       QueryEnum.CpuFreqLimitData,
       {
-        maxId: maxId,
-        minId: minId,
-        cpu: cpu,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -47,6 +44,9 @@ export function cpuFreqLimitSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        maxId: maxId,
+        minId: minId,
+        cpu: cpu,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

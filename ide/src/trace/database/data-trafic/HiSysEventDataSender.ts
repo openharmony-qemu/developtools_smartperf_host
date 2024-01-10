@@ -37,12 +37,12 @@ export function hiSysEventDataSender(row: TraceRow<HiSysEventStruct>): Promise<H
     threadPool.submitProto(
       QueryEnum.HiSysEventData,
       {
+        width: width,
+        trafic: trafic,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
-        trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {

@@ -58,7 +58,7 @@ public:
         ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
 
         dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                        reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+                            reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
 
         ebpfTypeAndLength_.length = sizeof(fsFixedHeader_);
         ebpfTypeAndLength_.type = ITEM_EVENT_FS;
@@ -294,7 +294,7 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithIPsButNoMaps, TestSize.Level1)
     ebpfTypeAndLength_.length = sizeof(fsFixedHeader_) + IPS_NUM_02 * sizeof(uint64_t);
     UpdateData();
     dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(IPS_02),
-                       reinterpret_cast<const uint8_t*>(&IPS_02 + 1));
+                        reinterpret_cast<const uint8_t*>(&IPS_02 + 1));
 
     EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());

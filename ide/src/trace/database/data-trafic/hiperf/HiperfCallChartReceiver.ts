@@ -83,10 +83,10 @@ export function hiPerfCallChartDataHandler(data: any, proc: Function): void {
     dataCache.sampleList = res;
     (self as unknown as Worker).postMessage(
       {
+        len: 0,
         id: data.id,
         action: data.action,
         results: 'ok',
-        len: 0,
       },
       []
     );
@@ -429,13 +429,13 @@ function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect
   if (endNS === 0) {
     endNS = duration;
   }
-  let xSize: number = ((ns - startNS) * rect.width) / (endNS - startNS);
-  if (xSize < 0) {
-    xSize = 0;
-  } else if (xSize > rect.width) {
-    xSize = rect.width;
+  let xSizeHiperf: number = ((ns - startNS) * rect.width) / (endNS - startNS);
+  if (xSizeHiperf < 0) {
+    xSizeHiperf = 0;
+  } else if (xSizeHiperf > rect.width) {
+    xSizeHiperf = rect.width;
   }
-  return xSize;
+  return xSizeHiperf;
 }
 class PerfCallChart {
   startTs: Float64Array;

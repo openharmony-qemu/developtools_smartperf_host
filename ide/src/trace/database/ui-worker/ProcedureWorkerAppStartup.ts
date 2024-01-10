@@ -19,7 +19,7 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class AppStartupRender {
   renderMainThread(
-    req: {
+    appStartReq: {
       useCache: boolean;
       appStartupContext: CanvasRenderingContext2D;
       type: string;
@@ -27,8 +27,8 @@ export class AppStartupRender {
     appStartUpRow: TraceRow<AppStartupStruct>
   ): void {
     let list = appStartUpRow.dataList;
-    let filter = appStartUpRow.dataListCache;
-    dataFilterHandler(list, filter, {
+    let appStartUpfilter = appStartUpRow.dataListCache;
+    dataFilterHandler(list, appStartUpfilter, {
       startKey: 'startTs',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -36,13 +36,13 @@ export class AppStartupRender {
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: appStartUpRow.frame,
       paddingTop: 5,
-      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
+      useCache: appStartReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.appStartupContext.globalAlpha = 0.6;
+    appStartReq.appStartupContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
-    for (let re of filter) {
-      AppStartupStruct.draw(req.appStartupContext, re);
+    for (let re of appStartUpfilter) {
+      AppStartupStruct.draw(appStartReq.appStartupContext, re);
       if (appStartUpRow.isHover) {
         if (
           re.frame &&
@@ -75,15 +75,15 @@ export class AppStartupStruct extends BaseStruct {
     'First Frame - APP Phase',
     'First Frame - Render Phase',
   ];
+  startTs: number | undefined;
+  startName: number | undefined;
   dur: number | undefined;
   value: string | undefined;
-  startTs: number | undefined;
   pid: number | undefined;
   process: string | undefined;
+  tid: number | undefined;
   itid: number | undefined;
   endItid: number | undefined;
-  tid: number | undefined;
-  startName: number | undefined;
   stepName: string | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: AppStartupStruct): void {

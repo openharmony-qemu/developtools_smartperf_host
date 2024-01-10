@@ -13,52 +13,39 @@
 
 import { TraficEnum } from './utils/QueryEnum';
 import { JanksStruct } from '../../bean/JanksStruct';
-import { CounterStruct } from '../ui-worker/ProduceWorkerSdkCounter';
 
-export const chartExpectedMemoryDataSql = (args: any): string => {
-  return `SELECT sf.id,
-                'frameTime' as frameType,
-                fs.ipid,
-                fs.vsync as name,
-                fs.dur as appDur,
-                (sf.ts + sf.dur - fs.ts) as dur,
-                (fs.ts - ${args.recordStartNS}) AS ts,
-                fs.type,
-                fs.flag as jankTag,
-                pro.pid,
-                pro.name as cmdline,
-                (sf.ts - ${args.recordStartNS}) AS rsTs,
-                sf.vsync AS rsVsync,
-                sf.dur AS rsDur,
-                sf.ipid AS rsIpid,
-                proc.pid AS rsPid,
-                proc.name AS rsName
-            FROM frame_slice AS fs
-            LEFT JOIN process AS pro ON pro.id = fs.ipid
-            LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
-            LEFT JOIN process AS proc ON proc.id = sf.ipid
-            WHERE fs.dst IS NOT NULL AND fs.type = 1
-            UNION
-            SELECT -1 as id,
-                'frameTime' as frameType,
-                fs.ipid,
-                fs.vsync  as name,
-                fs.dur as appDur,
-                fs.dur,
-                (fs.ts - ${args.recordStartNS}) AS ts,
-                fs.type,
-                fs.flag as jankTag,
-                pro.pid,
-                pro.name as cmdline,
-                NULL AS rsTs, NULL AS rsVsync, NULL AS rsDur, NULL AS rsIpid, NULL AS rsPid, NULL AS rsName
-            FROM frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid
-            WHERE fs.dst IS NULL
-            AND pro.name NOT LIKE '%render_service%'
-            AND fs.type = 1
-            ORDER by ts`;
-};
-
-export const chartExpectedDataSql = (args: any): string => {
+export const frameJankDataSql = (args: any, configure: any): string => {
+  let timeLimit: string = '';
+  let flag: string = '';
+  let fsType: number = -1;
+  let fsFlag: string = '';
+  switch (configure) {
+    case 'ExepectMemory':
+      fsType = 1;
+      flag = `fs.flag as jankTag,`;
+      break;
+    case 'ExpectedData':
+      fsType = 1;
+      flag = `fs.flag as jankTag,`;
+      timeLimit = `
+       AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
+       AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}`;
+      break;
+    case 'ActualMemoryData':
+      fsType = 0;
+      flag = `(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,`;
+      fsFlag = 'AND fs.flag <> 2';
+      break;
+    case 'ActualData':
+      fsType = 0;
+      flag = `(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,`;
+      fsFlag = 'AND fs.flag <> 2';
+      timeLimit = `AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
+       AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}`;
+      break;
+    default:
+      break;
+  }
   return `SELECT sf.id,
             'frameTime' as frameType,
             fs.ipid,
@@ -67,7 +54,7 @@ export const chartExpectedDataSql = (args: any): string => {
             (sf.ts + sf.dur - fs.ts) as dur,
             (fs.ts - ${args.recordStartNS}) AS ts,
             fs.type,
-            fs.flag as jankTag,
+            ${flag}
             pro.pid,
             pro.name as cmdline,
             (sf.ts - ${args.recordStartNS}) AS rsTs,
@@ -81,9 +68,9 @@ export const chartExpectedDataSql = (args: any): string => {
         LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
         LEFT JOIN process AS proc ON proc.id = sf.ipid
         WHERE fs.dst IS NOT NULL
-        AND fs.type = 1
-        AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
-        AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
+        AND fs.type = ${fsType}
+        ${fsFlag}
+        ${timeLimit}
         UNION
         SELECT -1 as id,
             'frameTime' as frameType,
@@ -101,104 +88,8 @@ export const chartExpectedDataSql = (args: any): string => {
         WHERE fs.dst IS NULL
         AND pro.name NOT LIKE '%render_service%'
         AND fs.type = 1
-        AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
-        AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
-        ORDER by ts`;
-};
-
-export const chartActualMemoryDataSql = (args: any): string => {
-  return `SELECT sf.id,
-            'frameTime' as frameType,
-            fs.ipid,
-            fs.vsync as name,
-            fs.dur as appDur,
-            (sf.ts + sf.dur - fs.ts) as dur,
-            (fs.ts - ${args.recordStartNS}) AS ts,
-            fs.type,
-            (case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,
-            pro.pid,
-            pro.name as cmdline,
-            (sf.ts - ${args.recordStartNS}) AS rsTs,
-            sf.vsync AS rsVsync,
-            sf.dur AS rsDur,
-            sf.ipid AS rsIpid,
-            proc.pid AS rsPid,
-            proc.name AS rsName
-        FROM frame_slice AS fs
-        LEFT JOIN process AS pro ON pro.id = fs.ipid
-        LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
-        LEFT JOIN process AS proc ON proc.id = sf.ipid
-        WHERE fs.dst IS NOT NULL
-        AND fs.type = 0
-        AND fs.flag <> 2
-        UNION
-        SELECT -1 as id,
-            'frameTime' as frameType,
-            fs.ipid,
-            fs.vsync as name,
-            fs.dur as appDur,
-            fs.dur,
-            (fs.ts - ${args.recordStartNS}) AS ts,
-            fs.type,
-            fs.flag as jankTag,
-            pro.pid,
-            pro.name as cmdline,
-            NULL AS rsTs, NULL AS rsVsync, NULL AS rsDur, NULL AS rsIpid, NULL AS rsPid, NULL AS rsName
-        FROM frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid
-        WHERE fs.dst IS NULL
-        AND pro.name NOT LIKE '%render_service%'
-        AND fs.type = 0
-        AND fs.flag <> 2
-        ORDER by ts;`;
-};
-
-export const chartActualDataSql = (args: any): string => {
-  return `SELECT sf.id,
-            'frameTime' as frameType,
-            fs.ipid,
-            fs.vsync as name,
-            fs.dur as appDur,
-            (sf.ts + sf.dur - fs.ts) as dur,
-            (fs.ts - ${args.recordStartNS}) AS ts,
-            fs.type,
-            (case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,
-            pro.pid,
-            pro.name as cmdline,
-            (sf.ts - ${args.recordStartNS}) AS rsTs,
-            sf.vsync AS rsVsync,
-            sf.dur AS rsDur,
-            sf.ipid AS rsIpid,
-            proc.pid AS rsPid,
-            proc.name AS rsName
-        FROM frame_slice AS fs
-        LEFT JOIN process AS pro ON pro.id = fs.ipid
-        LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
-        LEFT JOIN process AS proc ON proc.id = sf.ipid
-        WHERE fs.dst IS NOT NULL
-        AND fs.type = 0
-        AND fs.flag <> 2
-        AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
-        AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
-        UNION
-        SELECT -1 as id,
-            'frameTime' as frameType,
-            fs.ipid,
-            fs.vsync as name,
-            fs.dur as appDur,
-            fs.dur,
-            (fs.ts - ${args.recordStartNS}) AS ts,
-            fs.type,
-            fs.flag as jankTag,
-            pro.pid,
-            pro.name as cmdline,
-            NULL AS rsTs, NULL AS rsVsync, NULL AS rsDur, NULL AS rsIpid, NULL AS rsPid, NULL AS rsName
-        FROM frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid
-        WHERE fs.dst IS NULL
-        AND pro.name NOT LIKE '%render_service%'
-        AND fs.type = 0
-        AND fs.flag <> 2
-        AND (fs.ts - ${args.recordStartNS} + fs.dur) >= ${Math.floor(args.startNS)}
-        AND (fs.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
+        ${fsFlag}
+        ${timeLimit}
         ORDER by ts`;
 };
 
@@ -207,11 +98,11 @@ let frameDepthList: Map<string, number> = new Map();
 export function frameExpectedReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     frameDepthList = new Map<string, number>();
-    let sql = chartExpectedMemoryDataSql(data.params);
+    let sql = frameJankDataSql(data.params, 'ExepectMemory');
     let res = proc(sql);
     frameJanksReceiver(data, res, 'expect', true);
   } else {
-    let sql = chartExpectedDataSql(data.params);
+    let sql = frameJankDataSql(data.params, 'ExpectedData');
     let res = proc(sql);
     frameJanksReceiver(data, res, 'expect', data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
@@ -219,11 +110,11 @@ export function frameExpectedReceiver(data: any, proc: Function): void {
 
 export function frameActualReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let sql = chartActualMemoryDataSql(data.params);
+    let sql = frameJankDataSql(data.params, 'ActualMemoryData');
     let res = proc(sql);
     frameJanksReceiver(data, res, 'actual', true);
   } else {
-    let sql = chartActualDataSql(data.params);
+    let sql = frameJankDataSql(data.params, 'ActualData');
     let res = proc(sql);
     frameJanksReceiver(data, res, 'actual', data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
@@ -237,34 +128,34 @@ function frameJanksReceiver(data: any, res: any[], type: string, transfer: boole
     let unitIndex: number = 1;
     let depths: any[] = [];
     for (let index = 0; index < res.length; index++) {
-      let itemData = res[index];
-      data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameData);
-      if (!itemData.dur || itemData.dur < 0) {
+      let item = res[index];
+      data.params.trafic === TraficEnum.ProtoBuffer && (item = item.frameData);
+      if (!item.dur || item.dur < 0) {
         continue;
       }
       if (depths.length === 0) {
-        itemData.depth = 0;
-        depths[0] = itemData;
+        item.depth = 0;
+        depths[0] = item;
       } else {
         let depthIndex: number = 0;
         let isContinue: boolean = true;
         while (isContinue) {
-          if (isIntersect(depths[depthIndex], itemData)) {
+          if (isIntersect(depths[depthIndex], item)) {
             if (depths[depthIndex + unitIndex] === undefined || !depths[depthIndex + unitIndex]) {
-              itemData.depth = depthIndex + unitIndex;
-              depths[depthIndex + unitIndex] = itemData;
+              item.depth = depthIndex + unitIndex;
+              depths[depthIndex + unitIndex] = item;
               isContinue = false;
             }
           } else {
-            itemData.depth = depthIndex;
-            depths[depthIndex] = itemData;
+            item.depth = depthIndex;
+            depths[depthIndex] = item;
             isContinue = false;
           }
           depthIndex++;
         }
       }
-      setFrameJanks(frameJanks, itemData, index);
-      frameDepthList.set(`${type}_${itemData.id}_${itemData.ipid}_${itemData.name}`, itemData.depth);
+      setFrameJanks(frameJanks, item, index);
+      frameDepthList.set(`${type}_${item.id}_${item.ipid}_${item.name}`, item.depth);
     }
   } else {
     for (let index = 0; index < res.length; index++) {

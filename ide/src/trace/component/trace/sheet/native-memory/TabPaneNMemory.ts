@@ -266,73 +266,13 @@ export class TabPaneNMemory extends BaseElement {
       this.sortType = evt.detail.sort;
       this.getDataByNativeMemoryWorker(this.currentSelection);
     });
-    this.memoryTbl!.itemTextHandleMap.set('startTs', (startTs) => {
-      return SpNativeMemoryChart.REAL_TIME_DIF === 0
-        ? getTimeString(startTs)
-        : formatRealDateMs(startTs + SpNativeMemoryChart.REAL_TIME_DIF);
-    });
-    this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {
-      return endTs > this.currentSelection!.leftNs &&
-        endTs <= this.currentSelection!.rightNs &&
-        endTs !== 0 &&
-        endTs !== null
-        ? 'Freed'
-        : 'Existing';
-    });
-    this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {
-      return getByteWithUnit(heapSize);
-    });
+    this.setItemTextHandleMapByMemoryTbl();
     this.memoryTbl!.exportTextHandleMap.set('heapSize', (value) => {
       return `${value['heapSize']}`;
     });
-
     this.shadowRoot?.querySelector<TabPaneFilter>('#filter')!.getFilterData((data: FilterData) => {
       if (data.mark) {
-        document.dispatchEvent(
-          new CustomEvent('triangle-flag', {
-            detail: {
-              time: '',
-              type: 'square',
-              timeCallback: (timeArr: number[]) => {
-                if (timeArr && timeArr.length > 0) {
-                  let checkTs = timeArr[0];
-                  let minTs = 0;
-                  let minItem: any = undefined;
-                  let filterTemp = this.memorySource.filter((tempItem) => {
-                    if (
-                      minTs === 0 ||
-                      (tempItem.startTs - checkTs != 0 && Math.abs(tempItem.startTs - checkTs) < minTs)
-                    ) {
-                      minTs = Math.abs(tempItem.startTs - checkTs);
-                      minItem = tempItem;
-                    }
-                    return tempItem.startTs === checkTs;
-                  });
-                  if (filterTemp.length > 0) {
-                    filterTemp[0].isSelected = true;
-                  } else {
-                    if (minItem) {
-                      filterTemp.push(minItem);
-                      minItem.isSelected = true;
-                    }
-                  }
-                  if (filterTemp.length > 0) {
-                    this.rowSelectData = filterTemp[0];
-                    let args = new Map<string, any>();
-                    args.set('startTs', this.rowSelectData.startTs);
-                    args.set('actionType', 'native-memory-state-change');
-                    this.startNmMemoryWorker('native-memory-action', args, (results: any[]) => {});
-                    TabPaneNMSampleList.addSampleData(
-                      this.rowSelectData,
-                      this.currentSelection!.nativeMemoryCurrentIPid
-                    );
-                    this.memoryTbl!.scrollToData(this.rowSelectData);
-                  }
-                }
-              },
-            },
-          })
-        );
+        this.getFilterDataByMark();
       } else {
         this.filterAllocationType = data.firstSelect || '0';
         this.filterNativeType = data.secondSelect || '0';
@@ -346,6 +286,73 @@ export class TabPaneNMemory extends BaseElement {
       }
     });
     this.filter!.firstSelect = '1';
+  }
+
+  private setItemTextHandleMapByMemoryTbl(): void {
+    this.memoryTbl!.itemTextHandleMap.set('startTs', (startTs) => {
+      return SpNativeMemoryChart.REAL_TIME_DIF === 0
+        ? getTimeString(startTs)
+        : formatRealDateMs(startTs + SpNativeMemoryChart.REAL_TIME_DIF);
+    });
+    this.memoryTbl!.itemTextHandleMap.set('endTs', (endTs) => {
+      return endTs > this.currentSelection!.leftNs &&
+      endTs <= this.currentSelection!.rightNs &&
+      endTs !== 0 &&
+      endTs !== null
+        ? 'Freed'
+        : 'Existing';
+    });
+    this.memoryTbl!.itemTextHandleMap.set('heapSize', (heapSize) => {
+      return getByteWithUnit(heapSize);
+    });
+  }
+
+  private getFilterDataByMark(): void{
+    document.dispatchEvent(
+      new CustomEvent('triangle-flag', {
+        detail: {
+          time: '',
+          type: 'square',
+          timeCallback: (timeArr: number[]) => {
+            if (timeArr && timeArr.length > 0) {
+              let checkTs = timeArr[0];
+              let minTs = 0;
+              let minItem: any = undefined;
+              let filterTemp = this.memorySource.filter((tempItem) => {
+                if (
+                  minTs === 0 ||
+                  (tempItem.startTs - checkTs != 0 && Math.abs(tempItem.startTs - checkTs) < minTs)
+                ) {
+                  minTs = Math.abs(tempItem.startTs - checkTs);
+                  minItem = tempItem;
+                }
+                return tempItem.startTs === checkTs;
+              });
+              if (filterTemp.length > 0) {
+                filterTemp[0].isSelected = true;
+              } else {
+                if (minItem) {
+                  filterTemp.push(minItem);
+                  minItem.isSelected = true;
+                }
+              }
+              if (filterTemp.length > 0) {
+                this.rowSelectData = filterTemp[0];
+                let args = new Map<string, any>();
+                args.set('startTs', this.rowSelectData.startTs);
+                args.set('actionType', 'native-memory-state-change');
+                this.startNmMemoryWorker('native-memory-action', args, (results: any[]) => {});
+                TabPaneNMSampleList.addSampleData(
+                  this.rowSelectData,
+                  this.currentSelection!.nativeMemoryCurrentIPid
+                );
+                this.memoryTbl!.scrollToData(this.rowSelectData);
+              }
+            }
+          },
+        },
+      })
+    );
   }
 
   connectedCallback() {

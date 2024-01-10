@@ -19,12 +19,12 @@ export const systemDataSql = (args: any): string => {
   return `SELECT S.id,
                  S.ts - ${args.recordStartNS} AS startNs,
                  D.data                       AS eventName,
-                 '1'                          AS appKey,
+                 (case when D.data == 'POWER_RUNNINGLOCK' then 1 when D.data == 'GNSS_STATE' then 2 else 0 end) AS appKey,
                  contents                     AS eventValue
           FROM hisys_all_event AS S
                    LEFT JOIN data_dict AS D ON S.event_name_id = D.id
                    LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
-          WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
+          WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
 };
 
 export const chartEnergyAnomalyDataSql = (args: any): string => {
@@ -148,9 +148,9 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
     let parseData = JSON.parse(it.eventValue);
     it.eventValue = parseData;
     let beanData: any = {};
-    if (it.eventName === 'POWER_RUNNINGLOCK') {
+    if (it.appKey === '1') {
       eventNameWithPowerRunninglock(beanData, it, systemDataList);
-    } else if (it.eventName === 'GNSS_STATE') {
+    } else if (it.appKey === '2') {
       eventNameWithGnssState(beanData, it, systemDataList);
     } else {
       beanData.dataType = 3;
@@ -169,7 +169,7 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
     hiSysEnergy.id[index] = beanData.id;
     hiSysEnergy.startNs[index] = beanData.startNs;
     hiSysEnergy.count[index] = beanData.count;
-    hiSysEnergy.type[index] = beanData.type;
+    hiSysEnergy.type[index] = beanData.dataType;
     hiSysEnergy.token[index] = beanData.token;
     hiSysEnergy.dataType[index] = beanData.dataType;
   });

@@ -51,27 +51,35 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     this.initFilterTypes(ioCompletionTimesSelection!).then(() => {
       this.queryData(ioCompletionTimesSelection!);
     });
-    // @ts-ignore
-    this.ioCompletionTimesTbl?.shadowRoot.querySelector('.table').style.height =
-      `${this.parentElement!.clientHeight - 20 - 31  }px`;
-    // @ts-ignore
-    this.ioCompletionTimesTblData?.shadowRoot.querySelector('.table').style.height =
-      `${this.parentElement!.clientHeight - 20 - 31  }px`;
-    this.ioCompletionTimesTbl!.recycleDataSource = [];
-    this.ioCompletionTimesTblData!.recycleDataSource = [];
+    if (this.ioCompletionTimesTbl) {
+      // @ts-ignore
+      this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
+        `${this.parentElement!.clientHeight - 20 - 31  }px`;
+      this.ioCompletionTimesTbl.recycleDataSource = [];
+    }
+   if (this.ioCompletionTimesTblData) {
+     // @ts-ignore
+     this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
+       `${this.parentElement!.clientHeight - 20 - 31  }px`;
+     this.ioCompletionTimesTblData.recycleDataSource = [];
+   }
   }
 
   connectedCallback() {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.ioCompletionTimesTbl?.shadowRoot.querySelector('.table').style.height =
-          `${this.parentElement!.clientHeight - 10 - 33  }px`;
-        this.ioCompletionTimesTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.ioCompletionTimesTblData?.shadowRoot.querySelector('.table').style.height =
-          `${this.parentElement!.clientHeight - 10 - 33  }px`;
-        this.ioCompletionTimesTblData?.reMeauseHeight();
+        if (this.ioCompletionTimesTbl) {
+          // @ts-ignore
+          this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
+            `${this.parentElement!.clientHeight - 10 - 33  }px`;
+          this.ioCompletionTimesTbl.reMeauseHeight();
+        }
+        if (this.ioCompletionTimesTblData) {
+          // @ts-ignore
+          this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
+            `${this.parentElement!.clientHeight - 10 - 33  }px`;
+          this.ioCompletionTimesTblData.reMeauseHeight();
+        }
         this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
       }
     }).observe(this.parentElement!);

@@ -42,7 +42,6 @@ import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import {procedurePool} from "../../database/Procedure";
-import { SpSegmentationChart } from './SpSegmentationChart';
 import {
   queryAppStartupProcessIds,
   queryDataDICT,
@@ -75,7 +74,6 @@ export class SpChartManager {
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
-  private spSegmentationChart: SpSegmentationChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -98,7 +96,6 @@ export class SpChartManager {
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
-    this.spSegmentationChart = new SpSegmentationChart(trace);
   }
 
   async init(progress: Function) {
@@ -149,9 +146,6 @@ export class SpChartManager {
     progress('Irq init', 84);
     await this.irqChart.init();
     info('initData Irq Data initialized');
-    progress('SpSegmentationChart inin', 84.5);
-    await this.spSegmentationChart.init();
-    info('initData Segmentation initialized');
     await this.virtualMemChart.init();
     info('initData virtualMemChart initialized');
     progress('fps', 85);

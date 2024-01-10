@@ -19,32 +19,32 @@ import { JankStruct } from '../../ui-worker/ProcedureWorkerJank';
 export function processActualDataSender(pid: number, row: TraceRow<JankStruct>): Promise<JankStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
+      jank_tag: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      dst_slice: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      depth: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
       name: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       pid: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       type: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       id: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       ts: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      jank_tag: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      dst_slice: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      depth: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
   }
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       QueryEnum.processActualData,
       {
-        pid: pid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
+        pid: pid,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        t: Date.now(),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        t: Date.now(),
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
@@ -54,13 +54,13 @@ export function processActualDataSender(pid: number, row: TraceRow<JankStruct>):
 }
 
 function arrayBufferHandler(buffers: any, len: number): JankStruct[] {
-  let outArr: JankStruct[] = [];
   let name = new Int32Array(buffers.name);
+  let id = new Int32Array(buffers.id);
   let pid = new Int32Array(buffers.pid);
   let type = new Int32Array(buffers.type);
-  let id = new Int32Array(buffers.id);
   let ts = new Float64Array(buffers.ts);
   let dur = new Float64Array(buffers.dur);
+  let outArr: JankStruct[] = [];
   let jank_tag = new Int32Array(buffers.jank_tag);
   let dst_slice = new Int32Array(buffers.dst_slice);
   let depth = new Uint16Array(buffers.depth);

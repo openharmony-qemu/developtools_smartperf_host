@@ -213,37 +213,7 @@ export class TabPaneSystemDetails extends BaseElement {
             watchIndex[number] = number + filterData.ts;
           }
         } else {
-          let number = watchIndex.indexOf(filterData.workId);
-          if (number > -1) {
-            lifeCycleData[number].rangeData.push(filterData);
-            let virtualEndData = JSON.parse(JSON.stringify(filterData));
-            virtualEndData.ts = rightNs;
-            virtualEndData.eventName = 'WORK_REMOVE';
-            lifeCycleData[number].endData = virtualEndData;
-          } else {
-            if (filterData.eventName.indexOf('WORK_START') > -1) {
-              lifeCycleData.push({
-                startData: {},
-                endData: {},
-                rangeData: [],
-              });
-              watchIndex.push(filterData.workId);
-              number = watchIndex.indexOf(filterData.workId);
-              let virtualData = JSON.parse(JSON.stringify(filterData));
-              if (filterData.ts > 0) {
-                virtualData.ts = 0;
-              } else {
-                virtualData.ts = filterData.ts - 1;
-              }
-              virtualData.eventName = 'WORK_ADD';
-              lifeCycleData[number].startData = virtualData;
-              lifeCycleData[number].rangeData.push(filterData);
-              let virtualEndData = JSON.parse(JSON.stringify(filterData));
-              virtualEndData.ts = rightNs;
-              virtualEndData.eventName = 'WORK_REMOVE';
-              lifeCycleData[number].endData = virtualEndData;
-            }
-          }
+          lifeCycleData = this.getSysDataExtend(rightNs, watchIndex, filterData, lifeCycleData)
         }
       }
     }
@@ -263,6 +233,46 @@ export class TabPaneSystemDetails extends BaseElement {
       }
     });
     return resultData;
+  }
+
+  getSysDataExtend(
+    rightNs: number,
+    watchIndex: Array<string>,
+    filterData: any,
+    lifeCycleData: any[]
+  ): any[]{
+    let number = watchIndex.indexOf(filterData.workId);
+    if (number > -1) {
+      lifeCycleData[number].rangeData.push(filterData);
+      let virtualEndData = JSON.parse(JSON.stringify(filterData));
+      virtualEndData.ts = rightNs;
+      virtualEndData.eventName = 'WORK_REMOVE';
+      lifeCycleData[number].endData = virtualEndData;
+    } else {
+      if (filterData.eventName.indexOf('WORK_START') > -1) {
+        lifeCycleData.push({
+          startData: {},
+          endData: {},
+          rangeData: [],
+        });
+        watchIndex.push(filterData.workId);
+        number = watchIndex.indexOf(filterData.workId);
+        let virtualData = JSON.parse(JSON.stringify(filterData));
+        if (filterData.ts > 0) {
+          virtualData.ts = 0;
+        } else {
+          virtualData.ts = filterData.ts - 1;
+        }
+        virtualData.eventName = 'WORK_ADD';
+        lifeCycleData[number].startData = virtualData;
+        lifeCycleData[number].rangeData.push(filterData);
+        let virtualEndData = JSON.parse(JSON.stringify(filterData));
+        virtualEndData.ts = rightNs;
+        virtualEndData.eventName = 'WORK_REMOVE';
+        lifeCycleData[number].endData = virtualEndData;
+      }
+    }
+    return lifeCycleData;
   }
 
   private getSystemLocationData(data: Array<any>, leftNs: number) {

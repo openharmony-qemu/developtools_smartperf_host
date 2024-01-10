@@ -33,41 +33,31 @@ export function processStartupDataSender(pid: number, row: TraceRow<AppStartupSt
     threadPool.submitProto(
       QueryEnum.ProcessStartupData,
       {
-        pid: pid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
         t: Date.now(),
         width: width,
+        pid: pid,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number) => {
-        switch (trafic) {
-          case TraficEnum.SharedArrayBuffer:
-            resolve(arrayBufferHandler(row.sharedArrayBuffers, len));
-            break;
-          case TraficEnum.ProtoBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-          case TraficEnum.TransferArrayBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-        }
+      (res: any, len: number, transfer: boolean) => {
+        resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
 function arrayBufferHandler(buffers: any, len: number): AppStartupStruct[] {
-  let outArr: AppStartupStruct[] = [];
   let startName = new Int32Array(buffers.startName);
   let pid = new Int32Array(buffers.pid);
   let tid = new Int32Array(buffers.tid);
   let itid = new Int32Array(buffers.itid);
   let startTs = new Float64Array(buffers.startTs);
   let dur = new Float64Array(buffers.dur);
+  let outArr: AppStartupStruct[] = [];
   for (let i = 0; i < len; i++) {
     outArr.push({
       startName: startName[i],

@@ -285,7 +285,7 @@ export function nativeMemoryDataHandler(data: any, proc: Function): void {
       nativeMemoryChartDataCacheSql(data.params.model, data.params.recordStartNS, data.params.recordEndNS)
     );
     if (data.params.trafic === TraficEnum.ProtoBuffer) {
-      res = res.map(item => {
+      res = res.map((item) => {
         if (data.params.model === 'native_hook') {
           return {
             startTime: item.nativeMemoryNormal.startTime || 0,
@@ -431,13 +431,13 @@ function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect
   if (endNS === 0) {
     endNS = duration;
   }
-  let xSize: number = ((ns - startNS) * rect.width) / (endNS - startNS);
-  if (xSize < 0) {
-    xSize = 0;
-  } else if (xSize > rect.width) {
-    xSize = rect.width;
+  let xSizeNM: number = ((ns - startNS) * rect.width) / (endNS - startNS);
+  if (xSizeNM < 0) {
+    xSizeNM = 0;
+  } else if (xSizeNM > rect.width) {
+    xSizeNM = rect.width;
   }
-  return xSize;
+  return xSizeNM;
 }
 
 function dur2Width(startTime: number, dur: number, startNS: number, endNS: number, rect: any): number {

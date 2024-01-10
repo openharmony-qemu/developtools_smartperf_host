@@ -32,8 +32,10 @@ export class TabPaneSPT extends BaseElement {
       return;
     }
     this.selectionParam = sptValue;
-    // @ts-ignore
-    this.sptTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    if (this.sptTbl) {
+      // @ts-ignore
+      this.sptTbl.shadowRoot.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.range!.textContent =
       'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus);

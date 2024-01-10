@@ -47,9 +47,9 @@ PagedMemorySampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBas
 }
 
 PagedMemorySampleTable::Cursor::~Cursor() {}
-int32_t PagedMemorySampleTable::Cursor::Column(int32_t column) const
+int32_t PagedMemorySampleTable::Cursor::Column(int32_t pagedMemorySampleColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(pagedMemorySampleColumn)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(PagedMemorySampleDataObj_.IdsData()[CurrentRow()]));
             break;
@@ -84,7 +84,7 @@ int32_t PagedMemorySampleTable::Cursor::Column(int32_t column) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered pagedMemorySampleColumn : %d", pagedMemorySampleColumn);
             break;
     }
     return SQLITE_OK;

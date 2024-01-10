@@ -59,8 +59,7 @@ public:
     {
         std::string memStrMsg = "";
         ProcessMemoryInfo* memoryInfo = tracePacket.add_processesinfo();
-        if (memoryInfo == nullptr ||
-            (name == "Process1" && tracePacket.processesinfo_size() != 1) ||
+        if (memoryInfo == nullptr || (name == "Process1" && tracePacket.processesinfo_size() != 1) ||
             (name == "Process2" && tracePacket.processesinfo_size() != 2)) {
             return memStrMsg;
         }

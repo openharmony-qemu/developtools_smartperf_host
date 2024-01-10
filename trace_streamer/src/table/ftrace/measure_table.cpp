@@ -81,17 +81,17 @@ void MeasureTable::FilterByConstraint(FilterConstraints& measurefc,
     }
 }
 
-bool MeasureTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool MeasureTable::CanFilterSorted(const char op, size_t& measureRowCnt) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            measureRowCnt = measureRowCnt / log2(measureRowCnt);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            rowCount = (rowCount >> 1);
+            measureRowCnt = (measureRowCnt >> 1);
             break;
         default:
             return false;

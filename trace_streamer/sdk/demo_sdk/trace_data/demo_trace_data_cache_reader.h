@@ -13,30 +13,29 @@
  * limitations under the License.
  */
 
-#ifndef TRACE_DATA_CACHE_WRITER_H
-#define TRACE_DATA_CACHE_WRITER_H
+#ifndef TRACE_DATA_CACHE_READER_H
+#define TRACE_DATA_CACHE_READER_H
 
-#include "trace_data_cache_reader.h"
+#include "log.h"
+#include "trace_data_cache_base.h"
+#include "trace_stdtype.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
-class TraceDataCacheWriter : virtual public TraceDataCacheBase {
+class DemoTraceDataCacheReader : virtual public TraceDataCacheBase {
 public:
-    TraceDataCacheWriter() = default;
-    TraceDataCacheWriter(const TraceDataCacheWriter&) = delete;
-    TraceDataCacheWriter& operator=(const TraceDataCacheWriter&) = delete;
-    ~TraceDataCacheWriter() override;
-    void Clear();
+    DemoTraceDataCacheReader() = default;
+    DemoTraceDataCacheReader(const DemoTraceDataCacheReader&) = delete;
+    DemoTraceDataCacheReader& operator=(const DemoTraceDataCacheReader&) = delete;
+    ~DemoTraceDataCacheReader() override;
 
 public:
-    GpuCounter* GetGpuCounterData();
-    GpuCounterObject* GetGpuCounterObjectData();
-    SliceObject* GetSliceObjectData();
-    SliceData* GetSliceTableData();
-    MetaData* GetMetaData();
-    void MixTraceTime(uint64_t timestampMin, uint64_t timestampMax);
-    // ThreadState* GetThreadStateData();
+    const GpuCounter& GetConstGpuCounterData() const;
+    const GpuCounterObject& GetConstGpuCounterObjectData() const;
+    const SliceObject& GetConstSliceObjectData() const;
+    const SliceData& GetConstSliceData() const;
+    const MetaData& GetConstMetaData() const;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

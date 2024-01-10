@@ -146,77 +146,44 @@ void ThreadTable::Cursor::FilterIpid(unsigned char op, uint64_t value)
     bool changed = false;
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].internalPid_ != value) {
-                        i++;
-                    } else {
-                        changed = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
-                    }
-                }
-                if (changed) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].internalPid_ == value) {
-                        indexMapBack_->rowIndex_.push_back(i);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
+            HandleIpidConstraint(remove, changed, value, size, threadQueue);
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNULL:
-            if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].internalPid_ != INVALID_UINT32) {
-                        i++;
-                    } else {
-                        changed = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
-                    }
-                }
-                if (changed) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].internalPid_ == INVALID_UINT32) {
-                        indexMapBack_->rowIndex_.push_back(i);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
+            HandleIpidConstraint(remove, changed, INVALID_UINT32, size, threadQueue);
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
-            if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].internalPid_ == INVALID_UINT32) {
-                        i++;
-                    } else {
-                        changed = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
-                    }
-                }
-                if (changed) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].internalPid_ != INVALID_UINT32) {
-                        indexMapBack_->rowIndex_.push_back(i);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
+            HandleIpidConstraint(threadQueue, size, remove, changed);
             break;
         default:
             break;
     } // end of switch (op)
+}
+void ThreadTable::Cursor::HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue,
+                                               std::size_t size,
+                                               bool remove,
+                                               bool changed)
+{
+    if (remove) {
+        for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+            if (threadQueue[*i].internalPid_ == INVALID_UINT32) {
+                i++;
+            } else {
+                changed = true;
+                rowIndexBak_.push_back(*i);
+                i++;
+            }
+        }
+        if (changed) {
+            indexMapBack_->rowIndex_ = rowIndexBak_;
+        }
+    } else {
+        for (auto i = 0; i < size; i++) {
+            if (threadQueue[i].internalPid_ != INVALID_UINT32) {
+                indexMapBack_->rowIndex_.push_back(i);
+            }
+        }
+    }
+    indexMapBack_->FixSize();
 }
 void ThreadTable::Cursor::FilterSwitchCount(unsigned char op, uint64_t value)
 {
@@ -231,50 +198,10 @@ void ThreadTable::Cursor::FilterSwitchCount(unsigned char op, uint64_t value)
     bool changed = false;
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].switchCount_ != value) {
-                        i++;
-                    } else {
-                        changed = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
-                    }
-                }
-                if (changed) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].switchCount_ == value) {
-                        indexMapBack_->rowIndex_.push_back(i);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
+            HandleIpidConstraint(remove, changed, value, size, threadQueue);
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNULL:
-            if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].switchCount_ != INVALID_UINT32) {
-                        i++;
-                    } else {
-                        changed = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
-                    }
-                }
-                if (changed) {
-                    indexMapBack_->rowIndex_ = rowIndexBak_;
-                }
-            } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].switchCount_ == INVALID_UINT32) {
-                        indexMapBack_->rowIndex_.push_back(i);
-                    }
-                }
-            }
-            indexMapBack_->FixSize();
+            HandleIpidConstraint(remove, changed, value, size, threadQueue);
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
             if (remove) {
@@ -463,24 +390,24 @@ void ThreadTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
         return;
     }
 
-    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    auto threadTabArgv = static_cast<TableRowId>(sqlite3_value_int64(argv));
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMapBack_->Intersect(v, v + 1);
+            indexMapBack_->Intersect(threadTabArgv, threadTabArgv + 1);
             break;
         case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMapBack_->Intersect(v, rowCount_);
+            indexMapBack_->Intersect(threadTabArgv, rowCount_);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-            indexMapBack_->Intersect(v, rowCount_);
+            threadTabArgv++;
+            indexMapBack_->Intersect(threadTabArgv, rowCount_);
             break;
         case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-            indexMapBack_->Intersect(0, v);
+            threadTabArgv++;
+            indexMapBack_->Intersect(0, threadTabArgv);
             break;
         case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMapBack_->Intersect(0, v);
+            indexMapBack_->Intersect(0, threadTabArgv);
             break;
         default:
             // can't filter, all rows

@@ -20,7 +20,8 @@ import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import {querySysPurgeableSelectionTab} from "../../../../database/sql/Ability.sql";
+import { querySysPurgeableSelectionTab } from '../../../../database/sql/Ability.sql';
+
 @element('tabpane-purgeable-pin-comparison-ability')
 export class TabPanePurgPinComparisonAbility extends BaseElement {
   private purgeablePinTable: LitTable | null | undefined;
@@ -33,11 +34,14 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
     this.filterEl = this.shadowRoot!.querySelector<TabPaneJsMemoryFilter>('#filter');
     this.selectEl = this.filterEl?.shadowRoot?.querySelector<LitSelect>('lit-select');
   }
+
   public totalData(purgePinComParam: SelectionParam | any, dataList: any): void {
-    //@ts-ignore
-    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
-      this.parentElement!.clientHeight - 45
-    }px`;
+    if (this.purgeablePinTable) {
+      //@ts-ignore
+      this.purgeablePinTable.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 45
+      }px`;
+    }
     this.purgeablePinSource = [];
     let fileArr: any[] = [];
     for (let file of dataList) {
@@ -49,6 +53,7 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
     this.initSelect(purgePinComParam.startNs, fileArr);
     this.updateComparisonData(purgePinComParam.startNs, fileArr[0].startNs);
   }
+
   private initSelect(fileStartNs: number, purgePinComFileArr: Array<any>): void {
     let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
@@ -74,6 +79,7 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
       });
     });
   }
+
   private async updateComparisonData(baseTime: number, targetTime: number): Promise<any> {
     this.purgeablePinSource = [];
     let tableData = await this.queryTableData(baseTime, targetTime);
@@ -84,6 +90,7 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
       this.purgeablePinTable!.recycleDataSource = [];
     }
   }
+
   private async queryTableData(baseTime: number, targetTime: number): Promise<any> {
     let delta = {
       purgPinedDelta: '0Bytes',
@@ -118,6 +125,7 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
     super.connectedCallback();
     resizeObserverFromMemory(this.parentElement!, this.purgeablePinTable!, this.filterEl!);
   }
+
   public initHtml(): string {
     return `
     <style>

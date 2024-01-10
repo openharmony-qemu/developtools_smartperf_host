@@ -45,17 +45,7 @@ export const chartProcessDeliverInputEventDataSql = (args: any): string => {
 export function processDeliverInputEventDataReceiver(data: any, proc: Function): void {
   let sql = chartProcessDeliverInputEventDataSql(data.params);
   let res = proc(sql);
-  switch (data.params.trafic) {
-    case TraficEnum.SharedArrayBuffer:
-      arrayBufferHandler(data, res, false);
-      break;
-    case TraficEnum.ProtoBuffer:
-      arrayBufferHandler(data, res, true);
-      break;
-    case TraficEnum.TransferArrayBuffer:
-      arrayBufferHandler(data, res, true);
-      break;
-  }
+  arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
@@ -79,6 +69,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
 function postMessage(data: any, transfer: boolean, processDeliverInputEvent: ProcessDeliverInputEvent, len: number) {
   (self as unknown as Worker).postMessage(
     {
+      transfer: transfer,
       id: data.id,
       action: data.action,
       results: transfer

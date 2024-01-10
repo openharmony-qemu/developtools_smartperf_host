@@ -69,17 +69,17 @@ void InstantsTable::FilterByConstraint(FilterConstraints& instantsfc,
     }
 }
 
-bool InstantsTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool InstantsTable::CanFilterSorted(const char op, size_t& instantsRowCnt) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            instantsRowCnt = instantsRowCnt / log2(instantsRowCnt);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            rowCount = (rowCount >> 1);
+            instantsRowCnt = (instantsRowCnt >> 1);
             break;
         default:
             return false;

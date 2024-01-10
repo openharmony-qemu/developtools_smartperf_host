@@ -72,17 +72,17 @@ void ThreadStateTable::FilterByConstraint(FilterConstraints& statefc,
     }
 }
 
-bool ThreadStateTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool ThreadStateTable::CanFilterSorted(const char op, size_t& threadRowCnt) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            threadRowCnt = threadRowCnt / log2(threadRowCnt);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            rowCount = (rowCount >> 1);
+            threadRowCnt = (threadRowCnt >> 1);
             break;
         default:
             return false;

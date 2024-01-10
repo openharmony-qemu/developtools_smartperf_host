@@ -60,7 +60,6 @@ import { HiperfProcessRender2 } from './hiperf/ProcedureWorkerHiPerfProcess2';
 import { HiperfThreadRender2 } from './hiperf/ProcedureWorkerHiPerfThread2';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
-import { BinderRender } from './procedureWorkerBinder';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -118,7 +117,6 @@ export let renders: any = {
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
   'freq-extend': new FreqExtendRender(),
-  binder: new BinderRender(),
 };
 
 function match(type: string, req: RequestMessage): void {

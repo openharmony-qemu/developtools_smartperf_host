@@ -19,52 +19,52 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { TS = 0, ENDTS = 1, VALUE = 2, SLICE_ID = 3 };
-SliceTable::SliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SliceTable::SliceTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("slice_id", "INTEGER"));
-    tablePriKey_.push_back("start_ts");
-    tablePriKey_.push_back("slice_id");
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("start_ts", "INTEGER"));
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("end_ts", "INTEGER"));
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("value", "INTEGER"));
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("slice_id", "INTEGER"));
+    demoTablePriKey_.push_back("start_ts");
+    demoTablePriKey_.push_back("slice_id");
 }
 
 SliceTable::~SliceTable() {}
 
-std::unique_ptr<TableBase::Cursor> SliceTable::CreateCursor()
+std::unique_ptr<DemoTableBase::Cursor> SliceTable::CreateCursor()
 {
-    return std::make_unique<Cursor>(dataCache_, this);
+    return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-SliceTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSliceData().Size())),
+SliceTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+    : DemoTableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSliceData().Size())),
       sliceDataObj_(dataCache->GetConstSliceData())
 {
 }
 
 SliceTable::Cursor::~Cursor() {}
 
-int32_t SliceTable::Cursor::Column(int32_t column) const
+int32_t SliceTable::Cursor::Column(int32_t SliceTabColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(SliceTabColumn)) {
         case Index::TS: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.TimeStamp()[CurrentRow()]));
+            sqlite3_result_int64(demoContext_, static_cast<int64_t>(sliceDataObj_.TimeStamp()[CurrentRow()]));
             break;
         }
         case Index::ENDTS: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.EndTs()[CurrentRow()]));
+            sqlite3_result_int64(demoContext_, static_cast<int64_t>(sliceDataObj_.EndTs()[CurrentRow()]));
             break;
         }
         case Index::VALUE: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.Value()[CurrentRow()]));
+            sqlite3_result_int64(demoContext_, static_cast<int64_t>(sliceDataObj_.Value()[CurrentRow()]));
             break;
         }
         case Index::SLICE_ID: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(sliceDataObj_.SliceId()[CurrentRow()]));
+            sqlite3_result_int64(demoContext_, static_cast<int64_t>(sliceDataObj_.SliceId()[CurrentRow()]));
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered SliceTabColumn : %d", SliceTabColumn);
             break;
     }
     return SQLITE_OK;

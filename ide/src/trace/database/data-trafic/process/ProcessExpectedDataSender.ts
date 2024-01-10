@@ -19,7 +19,7 @@ import { JankStruct } from '../../ui-worker/ProcedureWorkerJank';
 export function processExpectedDataSender(pid: number, row: TraceRow<JankStruct>): Promise<JankStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       name: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       pid: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -41,8 +41,8 @@ export function processExpectedDataSender(pid: number, row: TraceRow<JankStruct>
         recordEndNS: window.recordEndNS,
         t: Date.now(),
         width: width,
-        trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        trafic: trafic,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

@@ -40,10 +40,6 @@ export function hiperfProcessDataSender(
     threadPool.submitProto(
       QueryEnum.HiperfProcessData,
       {
-        pid: pid,
-        maxCpuCount: -1,
-        scale: scale,
-        drawType: drawType,
         intervalPerf: intervalPerf,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
@@ -52,6 +48,10 @@ export function hiperfProcessDataSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        pid: pid,
+        maxCpuCount: -1,
+        scale: scale,
+        drawType: drawType,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

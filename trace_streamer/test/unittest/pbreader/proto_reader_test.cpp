@@ -48,7 +48,7 @@ const uint64_t TV_NSEC_03 = 3000000;
 const std::string NAME_03 = "3000";
 const int32_t ALLOC_EVENT_03 = 30000;
 
-struct CoreTest{
+struct CoreTest {
     int32_t number;
     uint64_t tvNsec;
     std::string name;

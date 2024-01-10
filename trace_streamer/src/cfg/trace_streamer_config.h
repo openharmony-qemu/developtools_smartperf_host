@@ -186,6 +186,7 @@ public:
     // different msg may have STAT_EVENT_MAX types of exception when parse, and they have different error level
     // if you think some error level should be improve or depress, you can edit this map
     std::map<SupportedTraceEventType, std::map<StatType, StatSeverityLevel>> eventParserStatSeverityDescMap_ = {};
+    std::map<StatType, StatSeverityLevel> statSeverityDescMap_ = {};
     // process mem info desc
     std::map<MemInfoType, std::string> memNameMap_ = {};
     // sys memorty info desc
@@ -195,9 +196,45 @@ public:
 
 private:
     void InitEventNameMap();
+    void InitBinderEventNameMap();
+    void InitSchedEventNameMap();
+    void InitClkEventNameMap();
+    void InitCpuEventNameMap();
+    void InitInterruptEventNameMap();
+    void InitMemoryEventNameMap();
+    void InitBlockEventNameMap();
+    void InitRegulatorEventNameMap();
+    void InitOtherEventNameMap();
+    void InitEbpfEventNameMap();
+    void InitHookEventNameMap();
+
     void InitSysMemMap();
+
     void InitSysVmemMap();
+    void InitNrZoneEventSysVmemMap();
+    void InitNrDirtierEventSysVmemMap();
+    void InitNrOtherEventSysVmemMap();
+    void InitPgscanEventSysVmemMap();
+    void InitPgstealEventSysVmemMap();
+    void InitCompactEventSysVmemMap();
+    void InitUnevictableEventSysVmemMap();
+    void InitPgreFillEventSysVmemMap();
+    void InitWorkingSetEventSysVmemMap();
+    void InitPgEventSysVmemMap();
+    void InitOtherEventSysVmemMap();
+
     void InitSecurityMap();
+    void InitBinderEventSecurityMap();
+    void InitSchedEventSecurityMap();
+    void InitClkEventSecurityMap();
+    void InitCpuEventSecurityMap();
+    void InitInterruptEventSecurityMap();
+    void InitMemoryEventSecurityMap();
+    void InitBlockEventSecurityMap();
+    void InitRegulatorEventSecurityMap();
+    void InitOtherEventSecurityMap();
+    void InitEbpfEventSecurityMap();
+    void InitHookEventSecurityMap();
     // all supported events should be defined here, these str can be find in text-based trace
     const std::string TRACE_ACTION_BINDER_TRANSACTION = "binder_transaction";
     const std::string TRACE_ACTION_BINDER_TRANSACTION_RECEIVED = "binder_transaction_received";

@@ -106,11 +106,11 @@ int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto fileSystemSampleCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(fileSystemSampleCs, sId);
+    for (size_t i = 0; i < fileSystemSampleCs.size(); i++) {
+        const auto& c = fileSystemSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -124,12 +124,12 @@ int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto fileSystemSampleOrderbys = fc.GetOrderBys();
+    for (auto i = fileSystemSampleOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(fileSystemSampleOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(fileSystemSampleOrderbys[i].desc);
                 break;
             default:
                 break;

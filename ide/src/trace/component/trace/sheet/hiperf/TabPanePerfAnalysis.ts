@@ -539,55 +539,59 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       currentTable!.recycleDataSource = arr;
     } else {
-      let array = [...this.currentLevelData];
-      if (this.sortColumn === 'tableName') {
-        currentTable!.recycleDataSource = array.sort((leftA, rightB) => {
-          if (this.sortType === 1) {
-            if (leftA.tableName > rightB.tableName) {
-              return 1;
-            } else if (leftA.tableName === rightB.tableName) {
-              return 0;
-            } else {
-              return -1;
-            }
-          } else {
-            if (rightB.tableName > leftA.tableName) {
-              return 1;
-            } else if (leftA.tableName === rightB.tableName) {
-              return 0;
-            } else {
-              return -1;
-            }
-          }
-        });
-      } else if (this.sortColumn === 'count' || this.sortColumn === 'percent') {
-        currentTable!.recycleDataSource = array.sort((a, b) => {
-          return this.sortType === 1 ? a.count - b.count : b.count - a.count;
-        });
-      } else if (this.sortColumn === 'eventCount' || this.sortColumn === 'eventPercent') {
-        currentTable!.recycleDataSource = array.sort((a, b) => {
-          return this.sortType === 1 ? a.eventCount - b.eventCount : b.eventCount - a.eventCount;
-        });
-      }
-      switch (this.currentLevel) {
-        case 0:
-          array.unshift(this.allProcessCount);
-          break;
-        case 1:
-          array.unshift(this.allThreadCount);
-          break;
-        case 2:
-          array.unshift(this.allLibCount);
-          break;
-        case 3:
-          array.unshift(this.allSymbolCount);
-          break;
-      }
-      currentTable!.recycleDataSource = array;
+      this.sortTypeNoZero(currentTable);
     }
   }
 
-  async getHiperfProcess(val: SelectionParam): Promise<void> {
+  private sortTypeNoZero(currentTable: LitTable): void{
+    let array = [...this.currentLevelData];
+    if (this.sortColumn === 'tableName') {
+      currentTable!.recycleDataSource = array.sort((leftA, rightB) => {
+        if (this.sortType === 1) {
+          if (leftA.tableName > rightB.tableName) {
+            return 1;
+          } else if (leftA.tableName === rightB.tableName) {
+            return 0;
+          } else {
+            return -1;
+          }
+        } else {
+          if (rightB.tableName > leftA.tableName) {
+            return 1;
+          } else if (leftA.tableName === rightB.tableName) {
+            return 0;
+          } else {
+            return -1;
+          }
+        }
+      });
+    } else if (this.sortColumn === 'count' || this.sortColumn === 'percent') {
+      currentTable!.recycleDataSource = array.sort((a, b) => {
+        return this.sortType === 1 ? a.count - b.count : b.count - a.count;
+      });
+    } else if (this.sortColumn === 'eventCount' || this.sortColumn === 'eventPercent') {
+      currentTable!.recycleDataSource = array.sort((a, b) => {
+        return this.sortType === 1 ? a.eventCount - b.eventCount : b.eventCount - a.eventCount;
+      });
+    }
+    switch (this.currentLevel) {
+      case 0:
+        array.unshift(this.allProcessCount);
+        break;
+      case 1:
+        array.unshift(this.allThreadCount);
+        break;
+      case 2:
+        array.unshift(this.allLibCount);
+        break;
+      case 3:
+        array.unshift(this.allSymbolCount);
+        break;
+    }
+    currentTable!.recycleDataSource = array;
+  }
+
+  private initHiPerfProcessSelect(val: SelectionParam): void{
     this.reset(this.perfTableProcess!, false);
     this.progressEL!.loading = true;
     if (!this.processData || this.processData.length === 0) {
@@ -604,6 +608,10 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       return;
     }
+  }
+
+  async getHiperfProcess(val: SelectionParam): Promise<void> {
+    this.initHiPerfProcessSelect(val);
     let allCount = 0;
     let allEventCount = 0;
     let pidMap = new Map<number, Array<number | string>>();
@@ -698,6 +706,23 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.threadPieChart(val);
   }
 
+  private getHiPerfSoIdByProcessData(item: any, itemData: any): boolean {
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      if (item && (itemData.pid !== item.pid || itemData.tid !== item.tid)) {
+        return true;
+      }
+    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      if (item && itemData.pid !== item.pid) {
+        return true;
+      }
+    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      if (item && itemData.tid !== item.tid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private getHiperfSo(item: any, val: SelectionParam): void {
     this.progressEL!.loading = true;
     let parentEventCount = 0;
@@ -708,18 +733,8 @@ export class TabPanePerfAnalysis extends BaseElement {
       return;
     }
     for (let itemData of this.processData) {
-      if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (item && (itemData.pid !== item.pid || itemData.tid !== item.tid)) {
-          continue;
-        }
-      } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (item && itemData.pid !== item.pid) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (item && itemData.tid !== item.tid) {
-          continue;
-        }
+      if (this.getHiPerfSoIdByProcessData(item, itemData)) {
+        continue;
       }
       allCount += itemData.count;
       allEventCount += itemData.eventCount;
@@ -756,6 +771,10 @@ export class TabPanePerfAnalysis extends BaseElement {
       };
       this.soData.push(libData);
     });
+    this.initPerfSoData(allCount, allEventCount);
+  }
+
+  private initPerfSoData(allCount: number, allEventCount: number): void {
     this.allLibCount = this.totalCountData(allCount, allEventCount);
     this.soData.sort((a, b) => b.count - a.count);
     this.currentLevel = 2;
@@ -768,9 +787,6 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.shadowRoot!.querySelector<HTMLDivElement>('.perf-subheading')!.textContent = 'Statistic By Function Count';
     let parentCount = item.count;
     let parentEventCount = item.eventCount;
-    let tid = item.tid;
-    let pid = item.pid;
-    let libId = item.libId;
     let allCount = 0;
     let allEventCount = 0;
     let symbolMap = new Map<string, Array<any>>();
@@ -778,22 +794,8 @@ export class TabPanePerfAnalysis extends BaseElement {
       return;
     }
     for (let itemData of this.processData) {
-      if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (itemData.pid !== pid || itemData.tid !== tid || itemData.libId !== libId) {
-          continue;
-        }
-      } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (itemData.pid !== pid || itemData.libId !== libId) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (itemData.tid !== tid || itemData.libId !== libId) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (itemData.libId !== libId) {
-          continue;
-        }
+      if (this.getIdByProcessData(itemData, item)) {
+        continue;
       }
       allCount += itemData.count;
       allEventCount += itemData.eventCount;
@@ -828,6 +830,35 @@ export class TabPanePerfAnalysis extends BaseElement {
       };
       this.functionData.push(symbolData);
     });
+    this.initPerfFunData(allCount, allEventCount);
+  }
+
+  private getIdByProcessData(itemData: any, item: any): boolean {
+    let tid = item.tid;
+    let pid = item.pid;
+    let libId = item.libId;
+    let isContinue = false;
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      if (itemData.pid !== pid || itemData.tid !== tid || itemData.libId !== libId) {
+        isContinue = true;
+      }
+    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      if (itemData.pid !== pid || itemData.libId !== libId) {
+        isContinue = true;
+      }
+    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      if (itemData.tid !== tid || itemData.libId !== libId) {
+        isContinue = true;
+      }
+    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      if (itemData.libId !== libId) {
+        isContinue = true;
+      }
+    }
+    return isContinue;
+  }
+
+  private initPerfFunData(allCount: number, allEventCount: number): void {
     this.functionData.sort((a, b) => b.count - a.count);
     this.allSymbolCount = this.totalCountData(allCount, allEventCount);
     this.currentLevel = 3;

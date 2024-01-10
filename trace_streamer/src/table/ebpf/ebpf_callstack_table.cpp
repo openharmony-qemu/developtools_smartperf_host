@@ -84,9 +84,9 @@ int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& ebpfCallStackCs = fc.GetConstraints();
+    for (size_t i = 0; i < ebpfCallStackCs.size(); i++) {
+        const auto& c = ebpfCallStackCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -96,12 +96,12 @@ int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto ebpfCallStackTabOrderbys = fc.GetOrderBys();
+    for (auto i = ebpfCallStackTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(ebpfCallStackTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(ebpfCallStackTabOrderbys[i].desc);
                 break;
             default:
                 break;

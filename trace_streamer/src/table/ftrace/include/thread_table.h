@@ -53,6 +53,68 @@ private:
 
     private:
         void SetNameColumn(const Thread& thread) const;
+        template <typename Value, typename Size>
+        void HandleIpidConstraint(bool remove,
+                                  bool& changed,
+                                  Value value,
+                                  Size size,
+                                  const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue)
+        {
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].switchCount_ != value) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].switchCount_ == value) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+        }
+        template <typename Value, typename Size>
+        void HandleSwitchCount(bool remove,
+                               bool& changed,
+                               Value value,
+                               Size size,
+                               const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue)
+        {
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].internalPid_ != value) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].internalPid_ == value) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+        }
+        void HandleIpidConstraint(const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue,
+                                  std::size_t size,
+                                  bool remove,
+                                  bool changed);
         std::vector<TableRowId> rowIndexBak_;
         IndexMap* indexMapBack_ = nullptr;
     };

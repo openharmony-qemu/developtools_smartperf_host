@@ -19,7 +19,7 @@ import { CpuStateStruct } from '../../ui-worker/cpu/ProcedureWorkerCpuState';
 export function cpuStateSender(filterId: number, row: TraceRow<CpuStateStruct>): Promise<CpuStateStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       value: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -31,7 +31,6 @@ export function cpuStateSender(filterId: number, row: TraceRow<CpuStateStruct>):
     threadPool.submitProto(
       QueryEnum.CpuStateData,
       {
-        filterId: filterId,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -39,6 +38,7 @@ export function cpuStateSender(filterId: number, row: TraceRow<CpuStateStruct>):
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        filterId: filterId,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

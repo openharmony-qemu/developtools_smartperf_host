@@ -31,15 +31,15 @@ export function processMemDataSender(trackId: number, row: TraceRow<ProcessMemSt
     threadPool.submitProto(
       QueryEnum.ProcessMemData,
       {
-        trackId: trackId,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        t: Date.now(),
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        t: Date.now(),
+        trackId: trackId,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

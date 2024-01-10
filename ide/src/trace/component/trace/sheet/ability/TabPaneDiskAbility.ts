@@ -31,8 +31,10 @@ export class TabPaneDiskAbility extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(diskAbilityValue: SelectionParam) {
-    // @ts-ignore
-    this.diskAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    if (this.diskAbilityTbl) {
+      // @ts-ignore
+      this.diskAbilityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(diskAbilityValue);
   }
 

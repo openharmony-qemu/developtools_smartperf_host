@@ -84,17 +84,17 @@ void SchedSliceTable::FilterByConstraint(FilterConstraints& schedfc,
     }
 }
 
-bool SchedSliceTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool SchedSliceTable::CanFilterSorted(const char op, size_t& schedRowCnt) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            schedRowCnt = schedRowCnt / log2(schedRowCnt);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            rowCount = (rowCount >> 1);
+            schedRowCnt = (schedRowCnt >> 1);
             break;
         default:
             return false;
@@ -124,11 +124,11 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto schedSliceTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(schedSliceTabCs, sId);
+    for (size_t i = 0; i < schedSliceTabCs.size(); i++) {
+        const auto& c = schedSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -156,13 +156,13 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto schedSliceOrderbys = fc.GetOrderBys();
+    for (auto i = schedSliceOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(schedSliceOrderbys[i].iColumn)) {
             case Index::ID:
             case Index::TS:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(schedSliceOrderbys[i].desc);
                 break;
             default:
                 break;

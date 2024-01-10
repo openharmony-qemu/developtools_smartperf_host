@@ -49,9 +49,11 @@ export class TabPaneCounterSample extends BaseElement {
     this.sampleProgressEL!.loading = true;
     this.counterLoadingPage.style.visibility = 'visible';
     this.selectionParam = counterSampleValue;
-    // @ts-ignore
-    this.counterSampleTbl!.shadowRoot?.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 25 + 'px';
+    if (this.counterSampleTbl) {
+      // @ts-ignore
+      this.counterSampleTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 25 + 'px';
+    }
     this.queryDataByDB(counterSampleValue);
   }
 

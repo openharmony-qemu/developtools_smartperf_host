@@ -32,10 +32,12 @@ export class TabPanePurgTotal extends BaseElement {
   private sortType = 2;
 
   set data(selection: SelectionParam) {
-    //@ts-ignore
-    this.purgeableTotalTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
-      this.parentElement!.clientHeight - 45
-    }px`;
+    if (this.purgeableTotalTable) {
+      //@ts-ignore
+      this.purgeableTotalTable.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 45
+      }px`;
+    }
     this.init();
     this.purgTotalTimeRange!.textContent =
       'Selected range: ' + ((selection.rightNs - selection.leftNs) / 1000000.0).toFixed(5) + ' ms';

@@ -13,46 +13,46 @@
  * limitations under the License.
  */
 
-#include "meta_table.h"
+#include "demo_meta_table.h"
 #include "trace_stdtype.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { NAMEINDEX = 0, VALUE };
-DemoMetaTable::DemoMetaTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+DemoMetaTable::DemoMetaTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "TEXT"));
-    tablePriKey_.push_back("name");
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("name", "TEXT"));
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("value", "TEXT"));
+    demoTablePriKey_.push_back("name");
 }
 
 DemoMetaTable::~DemoMetaTable() {}
 
-std::unique_ptr<TableBase::Cursor> DemoMetaTable::CreateCursor()
+std::unique_ptr<DemoTableBase::Cursor> DemoMetaTable::CreateCursor()
 {
-    return std::make_unique<Cursor>(dataCache_, this);
+    return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-DemoMetaTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, MetaDataItem::METADATA_ITEM_MAX)
+DemoMetaTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+    : DemoTableBase::Cursor(dataCache, table, MetaDataItem::METADATA_ITEM_MAX)
 {
 }
 
 DemoMetaTable::Cursor::~Cursor() {}
 
-int32_t DemoMetaTable::Cursor::Column(int32_t column) const
+int32_t DemoMetaTable::Cursor::Column(int32_t demoMetaColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(demoMetaColumn)) {
         case Index::NAMEINDEX:
-            sqlite3_result_text(context_, dataCache_->GetConstMetaData().Name(CurrentRow()).c_str(), STR_DEFAULT_LEN,
-                                nullptr);
+            sqlite3_result_text(demoContext_, demoDataCache_->GetConstMetaData().Name(CurrentRow()).c_str(),
+                                STR_DEFAULT_LEN, nullptr);
             break;
         case Index::VALUE:
-            sqlite3_result_text(context_, dataCache_->GetConstMetaData().Value(CurrentRow()).c_str(), STR_DEFAULT_LEN,
-                                nullptr);
+            sqlite3_result_text(demoContext_, demoDataCache_->GetConstMetaData().Value(CurrentRow()).c_str(),
+                                STR_DEFAULT_LEN, nullptr);
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered demoMetaColumn : %d", demoMetaColumn);
             break;
     }
     return SQLITE_OK;

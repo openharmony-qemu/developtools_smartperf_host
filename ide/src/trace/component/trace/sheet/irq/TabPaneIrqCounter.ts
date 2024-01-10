@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import { initSort, resizeObserver } from '../SheetUtils';
-import {queryIrqDataBoxSelect, querySoftIrqDataBoxSelect} from "../../../../database/sql/Irq.sql";
+import { queryIrqDataBoxSelect, querySoftIrqDataBoxSelect } from '../../../../database/sql/Irq.sql';
 
 @element('tabpane-irq-counter')
 export class TabPaneIrqCounter extends BaseElement {
@@ -28,9 +28,11 @@ export class TabPaneIrqCounter extends BaseElement {
   private sortType: number = 2;
 
   set data(irqParam: SelectionParam | any) {
-    //@ts-ignore
-    this.irqCounterTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45
+    if (this.irqCounterTbl) {
+      //@ts-ignore
+      this.irqCounterTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 45
       }px`;
+    }
     this.irqRange!.textContent = `Selected range: ${parseFloat(
       ((irqParam.rightNs - irqParam.leftNs) / 1000000.0).toFixed(5)
     )} ms`;

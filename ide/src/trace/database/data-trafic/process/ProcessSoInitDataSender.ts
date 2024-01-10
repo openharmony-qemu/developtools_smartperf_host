@@ -34,28 +34,18 @@ export function processSoInitDataSender(pid: number, row: TraceRow<SoStruct>): P
     threadPool.submitProto(
       QueryEnum.ProcessSoInitData,
       {
-        pid: pid,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
         t: Date.now(),
+        pid: pid,
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
-      (res: any, len: number): void => {
-        switch (trafic) {
-          case TraficEnum.SharedArrayBuffer:
-            resolve(arrayBufferHandler(row.sharedArrayBuffers, len));
-            break;
-          case TraficEnum.ProtoBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-          case TraficEnum.TransferArrayBuffer:
-            resolve(arrayBufferHandler(res, len));
-            break;
-        }
+      (res: any, len: number, transfer: boolean): void => {
+        resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });

@@ -46,9 +46,11 @@ export class TabPaneFrequencySample extends BaseElement {
       return;
     }
     this.selectionParam = frequencySampleValue;
-    // @ts-ignore
-    this.frequencySampleTbl!.shadowRoot?.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 25 + 'px';
+    if (this.frequencySampleTbl) {
+      // @ts-ignore
+      this.frequencySampleTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 25 + 'px';
+    }
     this.queryDataByDB(frequencySampleValue);
   }
 
@@ -123,19 +125,24 @@ export class TabPaneFrequencySample extends BaseElement {
             }
           }
         }
-        let s = CpuFreqStruct.maxFreqName;
-        let textMetrics = context.measureText(s);
-        context.globalAlpha = 0.8;
-        context.fillStyle = '#f0f0f0';
-        context.fillRect(0, 5, textMetrics.width + 8, 18);
-        context.globalAlpha = 1;
-        context.fillStyle = '#333';
-        context.textBaseline = 'middle';
-        context.fillText(s, 4, 5 + 9);
-        row.canvasRestore(context, this.systemTrace);
+        this.metricsText(context, row);
       }
     }
   }
+
+  private metricsText(context: CanvasRenderingContext2D, row: TraceRow<any>): void {
+    let s = CpuFreqStruct.maxFreqName;
+    let textMetrics = context.measureText(s);
+    context.globalAlpha = 0.8;
+    context.fillStyle = '#f0f0f0';
+    context.fillRect(0, 5, textMetrics.width + 8, 18);
+    context.globalAlpha = 1;
+    context.fillStyle = '#333';
+    context.textBaseline = 'middle';
+    context.fillText(s, 4, 5 + 9);
+    row.canvasRestore(context, this.systemTrace);
+  }
+
   connectedCallback() {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.frequencySampleTbl!, 25, this.frequencyLoadingPage, 24);

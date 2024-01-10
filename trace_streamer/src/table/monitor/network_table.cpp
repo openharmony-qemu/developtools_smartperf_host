@@ -89,9 +89,9 @@ int32_t NetworkTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void NetworkTable::Cursor::HandleTypeColumns(int32_t column) const
+void NetworkTable::Cursor::HandleTypeColumns(int32_t networkColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(networkColumn)) {
         case Index::RX_SPEED: {
             sqlite3_result_double(context_,
                                   static_cast<double>(dataCache_->GetConstNetworkData().RxSpeed()[CurrentRow()]));
@@ -123,7 +123,7 @@ void NetworkTable::Cursor::HandleTypeColumns(int32_t column) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered networkColumn : %d", networkColumn);
             break;
     }
 }

@@ -18,13 +18,13 @@ namespace SysTuning {
 namespace TraceStdtype {
 size_t FileSystemSample::AppendNewData(uint32_t callChainId,
                                        uint16_t type,
-                                       uint32_t ipid,
-                                       uint32_t itid,
+                                       uint32_t iPid,
+                                       uint32_t iTid,
                                        uint64_t startTs,
                                        uint64_t endTs,
                                        uint64_t dur,
-                                       DataIndex returnValue,
-                                       DataIndex errorCode,
+                                       DataIndex retValue,
+                                       DataIndex errCode,
                                        size_t size,
                                        int32_t fd,
                                        DataIndex fileId,
@@ -35,13 +35,13 @@ size_t FileSystemSample::AppendNewData(uint32_t callChainId,
 {
     callChainIds_.emplace_back(callChainId);
     types_.emplace_back(type);
-    ipids_.emplace_back(ipid);
-    itids_.emplace_back(itid);
+    ipids_.emplace_back(iPid);
+    itids_.emplace_back(iTid);
     startTs_.emplace_back(startTs);
     endTs_.emplace_back(endTs);
     durs_.emplace_back(dur);
-    returnValues_.emplace_back(returnValue);
-    errorCodes_.emplace_back(errorCode);
+    returnValues_.emplace_back(retValue);
+    errorCodes_.emplace_back(errCode);
     fds_.emplace_back(fd);
     fileIds_.emplace_back(fileId);
     Sizes_.emplace_back(size);

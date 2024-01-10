@@ -43,7 +43,7 @@ private:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
         int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
-        int32_t Column(int32_t col) const override;
+        int32_t Column(int32_t symbolsTabCol) const override;
     };
 };
 } // namespace TraceStreamer

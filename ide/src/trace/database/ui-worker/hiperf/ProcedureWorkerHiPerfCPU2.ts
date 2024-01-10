@@ -19,23 +19,22 @@ import { TraceRow } from '../../../component/trace/base/TraceRow';
 
 export class HiperfCpuRender2 extends PerfRender {
   renderMainThread(req: any, row: TraceRow<HiPerfCpuStruct>): void {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let hiperfCpu2Filter = row.dataListCache;
     let groupBy10MS = req.scale > 30_000_000;
     let textMetrics;
     if (!groupBy10MS) {
       req.context.font = 'normal 12px Arial';
       textMetrics = req.context.measureText('🄿');
     }
-    hiPerf2(filter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, row.frame);
-    drawLoadingFrame(req.context, filter, row);
+    hiPerf2(hiperfCpu2Filter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, row.frame);
+    drawLoadingFrame(req.context, hiperfCpu2Filter, row);
     req.context.beginPath();
     req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
     req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
     let normalPath = new Path2D();
     let find = false;
     let offset = groupBy10MS ? 0 : 3;
-    for (let re of filter) {
+    for (let re of hiperfCpu2Filter) {
       if (
         row.isHover &&
         re.frame &&

@@ -43,10 +43,10 @@ public:
         EbpfDataHeader ebpfHeader;
         ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
         ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-        memcpy_s(ebpfHeader.cmdline, EbpfDataHeader::EBPF_COMMAND_MAX_SIZE,
-                    COMMAND_LINE.c_str(), COMMAND_LINE.length());
+        memcpy_s(ebpfHeader.cmdline, EbpfDataHeader::EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(),
+                 COMMAND_LINE.length());
         dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfHeader))[0],
-                        &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
+                            &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
     }
     void TearDown() {}
 
@@ -65,9 +65,9 @@ public:
         pagedMemoryFixedHeader_.nips = nips;
         pagedMemoryFixedHeader_.type = 2;
         dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[0],
-                        &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
+                            &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
         dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[0],
-                        &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[sizeof(PagedMemoryFixedHeader)]);
+                            &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[sizeof(PagedMemoryFixedHeader)]);
     }
 
 public:
@@ -144,7 +144,7 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithOneCallback,
     InitData(sizeof(PagedMemoryFixedHeader), 1);
     const uint64_t ips[1] = {IPS_01};
     dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
@@ -161,7 +161,7 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithOneCallback,
     EXPECT_EQ(sampleData.Sizes()[0], 1);
     EXPECT_EQ(sampleData.Addr()[0], ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader_.addr));
     EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0],
-                ebpfDataParser->ConvertToHexTextIndex(ips[0]));
+              ebpfDataParser->ConvertToHexTextIndex(ips[0]));
 }
 
 /**
@@ -176,7 +176,7 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithMultipleCall
     InitData(sizeof(PagedMemoryFixedHeader) + 2 * sizeof(uint64_t), 2);
     const uint64_t ips[2] = {IPS_01, IPS_02};
     dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
@@ -193,8 +193,8 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithMultipleCall
     EXPECT_EQ(sampleData.Sizes()[0], 1);
     EXPECT_EQ(sampleData.Addr()[0], ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader_.addr));
     EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[1],
-                ebpfDataParser->ConvertToHexTextIndex(ips[0]));
+              ebpfDataParser->ConvertToHexTextIndex(ips[0]));
     EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0],
-                ebpfDataParser->ConvertToHexTextIndex(ips[1]));
+              ebpfDataParser->ConvertToHexTextIndex(ips[1]));
 }
 } // namespace SysTuning::TraceStreamer

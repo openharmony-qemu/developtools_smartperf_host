@@ -47,26 +47,34 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     this.initFilterTypes(vmEventSelection!).then(() => {
       this.queryData(vmEventSelection!);
     });
-    // @ts-ignore
-    this.vmEventTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
-    // @ts-ignore
-    this.vmEventTblData?.shadowRoot.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 - 31 + 'px';
-    this.vmEventTbl!.recycleDataSource = [];
-    this.vmEventTblData!.recycleDataSource = [];
+    if (this.vmEventTbl) {
+      // @ts-ignore
+      this.vmEventTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+      this.vmEventTbl.recycleDataSource = [];
+    }
+    if (this.vmEventTblData) {
+      // @ts-ignore
+      this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 20 - 31 + 'px';
+      this.vmEventTblData.recycleDataSource = [];
+    }
   }
 
   connectedCallback() {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.vmEventTbl?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 33 + 'px';
-        this.vmEventTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.vmEventTblData?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 33 + 'px';
-        this.vmEventTblData?.reMeauseHeight();
+        if (this.vmEventTbl) {
+          // @ts-ignore
+          this.vmEventTbl.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 10 - 33 + 'px';
+          this.vmEventTbl.reMeauseHeight();
+        }
+       if (this.vmEventTblData) {
+         // @ts-ignore
+         this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
+           this.parentElement!.clientHeight - 10 - 33 + 'px';
+         this.vmEventTblData.reMeauseHeight();
+       }
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);

@@ -12,180 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BinderItem } from "../../bean/BinderProcessThread";
-import { query } from "../SqlLite";
-import { SelectionData } from "../../bean/BoxSelection";
-import { ThreadStruct } from "../ui-worker/ProcedureWorkerThread";
-import { WakeupBean } from "../../bean/WakeupBean";
-import { SPTChild } from "../../bean/StateProcessThread";
-import { BinderArgBean } from "../../bean/BinderArgBean";
-import { ProcessMemStruct } from "../ui-worker/ProcedureWorkerMem";
-import { AppStartupStruct } from "../ui-worker/ProcedureWorkerAppStartup";
-import { SoStruct } from "../ui-worker/ProcedureWorkerSoInit";
-import { LiveProcess, ProcessHistory } from "../../bean/AbilityMonitor";
-import { EnergyAnomalyStruct } from "../ui-worker/ProcedureWorkerEnergyAnomaly";
-
-export const queryBinderByThreadId = (
-  pIds: number[],
-  tIds: Array<number>,
-  leftNS: number,
-  rightNS: number
-): Promise<Array<BinderItem>> =>
-  query<BinderItem>(
-    'queryBinderByThreadId',
-    `
-      SELECT 
-            c.name, 
-            1 AS count,
-            c.ts - r.start_ts AS ts, 
-            c.dur, 
-            c.ts - r.start_ts AS startTime, 
-            c.ts - r.start_ts + c.dur AS endTime,
-            t.tid,
-            p.pid
-          FROM 
-              callstack c, trace_range r 
-          LEFT JOIN 
-              thread t 
-          ON 
-              c.callid = t.id 
-          LEFT JOIN
-              process p 
-          ON
-              t.ipid = p.id  
-          WHERE 
-              c.name in ('binder transaction', 'binder async rcv', 'binder reply', 'binder transaction async') 
-          AND 
-              t.tid in (${tIds.join(',')})
-          AND 
-              p.pid in (${pIds.join(',')})
-          AND NOT 
-              ((startTime < ${leftNS}) 
-          OR 
-              (endTime > ${rightNS}))
-        `,
-    {
-      $pIds: pIds,
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS,
-    }
-  );
-export const getTabBindersCount = (
-  pIds: number[],
-  tIds: number[],
-  leftNS: number,
-  rightNS: number
-): Promise<Array<BinderItem>> =>
-  query<BinderItem>(
-    'getTabBindersCount',
-    `
-      SELECT 
-          c.name,
-          c.dur,
-          1 AS count,
-          c.ts,
-          c.ts - r.start_ts AS startTime, 
-          c.ts -r.start_ts + c.dur AS endTime,
-          t.tid, 
-          p.pid
-        FROM 
-            callstack c, trace_range r 
-          LEFT JOIN
-            thread t 
-          ON 
-            c.callid = t.id 
-          LEFT JOIN
-            process p 
-          ON
-            t.ipid = p.id 
-        WHERE 
-            c.name in ('binder transaction', 'binder async rcv', 'binder reply', 'binder transaction async') 
-          AND 
-            t.tid in (${tIds.join(',')})
-          AND 
-            p.pid in (${pIds.join(',')})
-          AND NOT 
-            ((startTime < ${leftNS}) 
-          OR 
-            (endTime > ${rightNS}));
-      `,
-    {
-      $pIds: pIds,
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS,
-    }
-  );
-
-export const queryLoopCutData = (
-  funcName: string,
-  tIds: string,
-  leftStartNs: number,
-  rightEndNs: number
-): Promise<Array<any>> =>
-  query(
-    'queryLoopCutData',
-    `
-  select 
-    c.id,
-    c.name,
-    c.ts as cycleStartTime,
-    c.depth,
-    t.tid,
-    p.pid
-  from callstack c 
-  left join
-  thread t on c.callid = t.id 
-  left join
-  process p on t.ipid = p.id
-  where 
-    c.name = '${funcName}' 
-  and
-    t.tid = '${tIds}' 
-  and
-    not ((c.ts < $leftStartNs) or (c.ts > $rightEndNs))
-  order by
-    c.ts
-  `,
-    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-  );
-
-export const querySingleCutData = (
-  funcName: string,
-  tIds: string,
-  leftStartNs: number,
-  rightEndNs: number
-): Promise<Array<any>> =>
-  query(
-    'querySingleCutData',
-    `
-  select 
-  c.id,
-  c.name,
-  c.ts as cycleStartTime,
-  c.ts + c.dur as cycleEndTime,
-  c.depth,
-  t.tid,
-  p.pid,
-  c.dur
-  from
-  callstack c 
-  left join
-  thread t on c.callid = t.id 
-  left join
-  process p on t.ipid = p.id
-  left join
-  trace_range r
-  where
-  c.name = '${funcName}'
-  and 
-  t.tid = '${tIds}'
-  and
-  not ((c.ts < $leftStartNs) or (c.ts + ifnull(c.dur, 0) > $rightEndNs))
-  `,
-    { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
-  );
+import { query } from '../SqlLite';
+import { SelectionData } from '../../bean/BoxSelection';
+import { ThreadStruct } from '../ui-worker/ProcedureWorkerThread';
+import { WakeupBean } from '../../bean/WakeupBean';
+import { SPTChild } from '../../bean/StateProcessThread';
+import { BinderArgBean } from '../../bean/BinderArgBean';
+import { ProcessMemStruct } from '../ui-worker/ProcedureWorkerMem';
+import { AppStartupStruct } from '../ui-worker/ProcedureWorkerAppStartup';
+import { SoStruct } from '../ui-worker/ProcedureWorkerSoInit';
+import { LiveProcess, ProcessHistory } from '../../bean/AbilityMonitor';
+import { EnergyAnomalyStruct } from '../ui-worker/ProcedureWorkerEnergyAnomaly';
 
 export const querySchedThreadStates = (
   tIds: Array<number>,
@@ -337,7 +174,6 @@ order by ts desc limit 1
     `;
   return query('queryThreadWakeUpFrom', sql, {});
 };
-
 
 export const queryRunnableTimeByRunning = (tid: number, startTime: number): Promise<Array<WakeupBean>> => {
   let sql = `

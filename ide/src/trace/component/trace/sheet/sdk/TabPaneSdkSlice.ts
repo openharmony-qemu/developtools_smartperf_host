@@ -69,17 +69,25 @@ export class TabPaneSdkSlice extends BaseElement {
       }
       this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
       let sql = this.sqlMap.get(componentId);
-      if (sql === undefined) {
+      if (sql == undefined) {
         return;
       }
       getTabSdkSliceData(sql, startTime, sdkSliceVal.leftNs, sdkSliceVal.rightNs, slices, componentId).then(
         (sliceItem) => {
-          this.filterSliceItem(sliceItem, totalTime, sdkSliceVal);
+          this.keyList = [];
+          this.tblSdkSlice!.innerHTML = '';
+          this.statDataArray = [];
+          if (sliceItem.length != null && sliceItem.length > 0) {
+            this.initSdkSliceData(sliceItem, totalTime, sdkSliceVal);
+          } else {
+            this.tblSdkSlice!.recycleDataSource = [];
+          }
           this.initDataElement();
+
           setTimeout(() => {
             this.tblSdkSlice!.recycleDataSource = this.statDataArray;
             new ResizeObserver(() => {
-              if (this.parentElement?.clientHeight !== 0) {
+              if (this.parentElement?.clientHeight != 0) {
                 this.tblSdkSlice!.style.height = '100%';
                 this.tblSdkSlice!.reMeauseHeight();
               }
@@ -88,6 +96,56 @@ export class TabPaneSdkSlice extends BaseElement {
         }
       );
     });
+  }
+
+  initSdkSliceData(sliceItem: SdkSliceSummary[], totalTime: number, sdkSliceVal: SelectionParam | any): void {
+    for (let sliceItemIndex = 0; sliceItemIndex < sliceItem.length; sliceItemIndex++) {
+      const dataResult = sliceItem[sliceItemIndex];
+      let keys = Object.keys(dataResult);
+      // @ts-ignore
+      let values = Object.values(dataResult);
+      let sliceJsonText = '{';
+      for (let sliceKeyIndex = 0; sliceKeyIndex < keys.length; sliceKeyIndex++) {
+        let sliceKey = keys[sliceKeyIndex];
+        if (this.keyList!.indexOf(sliceKey) <= -1) {
+          this.keyList!.push(sliceKey);
+        }
+        let sliceValue = values[sliceKeyIndex];
+        if (this.columnMap[sliceKey] == 'TimeStamp') {
+          sliceValue = Utils.getTimeString(Number(sliceValue));
+        } else if (this.columnMap[sliceKey] == 'ClockTime') {
+          sliceValue = Utils.getTimeStampHMS(Number(sliceValue));
+        } else if (this.columnMap[sliceKey] == 'RangTime') {
+          sliceValue = Utils.getDurString(Number(sliceValue));
+        } else if (this.columnMap[sliceKey] == 'PercentType') {
+          sliceValue = sliceValue + '%';
+        } else if (this.columnMap[sliceKey] == 'CurrencyType') {
+          // @ts-ignore
+          sliceValue = sliceValue.toString().replace(/\B(?=(\d{3})+$)/g, ',');
+        } else if (this.columnMap[sliceKey] == 'FIXED') {
+          sliceValue = sliceValue.toFixed(2);
+        }
+        if (typeof sliceValue == 'string') {
+          sliceValue = sliceValue.replace(/</gi, '&lt;').replace(/>/gi, '&gt;');
+        }
+        sliceJsonText += '"' + sliceKey + '"' + ': ' + '"' + sliceValue + '"';
+        if (sliceKeyIndex != keys.length - 1) {
+          sliceJsonText += ',';
+        } else {
+          sliceJsonText += '}';
+        }
+      }
+      let sliceParseData = JSON.parse(sliceJsonText);
+      if (sliceParseData.start_ts != null && sliceParseData.end_ts != null &&
+        sliceParseData.start_ts > sliceParseData.end_ts && sliceParseData.end_ts == 0) {
+        sliceParseData.end_ts = totalTime;
+      }
+      if (this.isDateIntersection(sdkSliceVal.leftNs, sdkSliceVal.rightNs,
+        sliceParseData.start_ts, sliceParseData.end_ts)) {
+        this.statDataArray.push(sliceParseData);
+      }
+    }
+    this.tblSdkSlice!.recycleDataSource = this.statDataArray;
   }
 
   private isDateIntersection(selectStartTime: number, selectEndTime: number, startTime: number, endTime: number) {

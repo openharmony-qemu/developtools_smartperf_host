@@ -58,7 +58,6 @@ import { type SpKeyboard } from './component/SpKeyboard';
 import './component/SpKeyboard';
 import { parseKeyPathJson } from './component/Utils';
 import { Utils } from './component/trace/base/Utils';
-import '../base-ui/chart/scatter/LitChartScatter';
 import {
   applicationHtml,
   clearTraceFileCache,

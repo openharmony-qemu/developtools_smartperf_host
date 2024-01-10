@@ -15,11 +15,7 @@
 
 import {
   BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
   drawLoadingFrame,
-  drawSelection,
   isFrameContainPoint,
   ns2x,
   Render,
@@ -41,9 +37,9 @@ export class EnergySystemRender extends Render {
     system(
       systemList,
       systemFilter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.startNS || 0,
+      TraceRow.range!.endNS || 0,
+      TraceRow.range!.totalNS || 0,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -180,6 +176,16 @@ export function system(
     return;
   }
   res.length = 0;
+  setEnergySystemFilter(systemList, res, startNS, endNS, totalNS, frame);
+}
+function setEnergySystemFilter(
+  systemList: Array<any>,
+  res: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any
+) {
   if (systemList) {
     for (let i = 0; i < 3; i++) {
       let arr = systemList[i];
@@ -187,15 +193,15 @@ export function system(
         for (let index = 0; index < arr.length; index++) {
           let item = arr[index];
           if (index === arr.length - 1) {
-            item.dur = (endNS || 0) - (item.startNs || 0);
+            item.dur = endNS - (item.startNs || 0);
           } else {
             item.dur = (arr[index + 1].startNs || 0) - (item.startNs || 0);
           }
           if (item.count == 0) {
             item.dur = 0;
           }
-          if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
-            EnergySystemStruct.setSystemFrame(item, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
+          if ((item.startNs || 0) + (item.dur || 0) > startNS && (item.startNs || 0) < endNS) {
+            EnergySystemStruct.setSystemFrame(item, 10, startNS, endNS, totalNS, frame);
             res.push(item);
           }
         }

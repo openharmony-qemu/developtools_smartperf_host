@@ -339,9 +339,7 @@ export class TabpaneNMCalltree extends BaseElement {
   async initFilterTypes(): Promise<void> {
     this.currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
     let secondFilterList = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
-
     let that = this;
-
     function addSubType(subTypeList: any) {
       if (!subTypeList) {
         return;
@@ -352,7 +350,6 @@ export class TabpaneNMCalltree extends BaseElement {
         that.subTypeArr.push(data.subTypeId);
       }
     }
-
     if (this.currentSelection!.nativeMemory!.length > 0) {
       let subTypeList = await queryNativeHookSubType(
         this.currentSelection!.leftNs,
@@ -368,6 +365,10 @@ export class TabpaneNMCalltree extends BaseElement {
       );
       addSubType(subTypeList);
     }
+    this.nMCallTreeFilterExtend(secondFilterList);
+  }
+
+  private nMCallTreeFilterExtend(secondFilterList: string[]): void {
     procedurePool.submitWithName('logic0', 'native-memory-get-responseType', {}, undefined, (res: any) => {
       this.responseTypes = res;
       let nullIndex = this.responseTypes.findIndex((item) => {
@@ -415,132 +416,15 @@ export class TabpaneNMCalltree extends BaseElement {
       return `${value['size']}`;
     });
     this.nmCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
-    this.nmCallTreeTbl!.addEventListener('row-click', (event: any): void => {
-      // @ts-ignore
-      let data = event.detail.data as FileMerageBean;
-      this.setRightTableData(data);
-      data.isSelected = true;
-      this.currentSelectedData = data;
-      this.filesystemTbr?.clearAllSelection(data);
-      this.filesystemTbr?.setCurrentSelection(data);
-      // @ts-ignore
-      if ((event.detail as any).callBack) {
-        // @ts-ignore
-        (event.detail as any).callBack(true);
-      }
-      document.dispatchEvent(
-        new CustomEvent('number_calibration', {
-          detail: {time: event.detail.tsArray, counts: event.detail.countArray},
-        })
-      );
-    });
     this.filesystemTbr = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-list');
-    this.filesystemTbr!.addEventListener('row-click', (evt: any): void => {
-      // @ts-ignore
-      let data = evt.detail.data as FileMerageBean;
-      this.nmCallTreeTbl?.clearAllSelection(data);
-      (data as any).isSelected = true;
-      this.nmCallTreeTbl!.scrollToData(data);
-      // @ts-ignore
-      if ((evt.detail as any).callBack) {
-        // @ts-ignore
-        (evt.detail as any).callBack(true);
-      }
-    });
     let filterFunc = (nmCallTreeFuncData: any): void => {
       let nmCallTreeFuncArgs: any[] = [];
       if (nmCallTreeFuncData.type === 'check') {
-        if (nmCallTreeFuncData.item.checked) {
-          nmCallTreeFuncArgs.push({
-            funcName: 'splitTree',
-            funcArgs: [
-              nmCallTreeFuncData.item.name,
-              nmCallTreeFuncData.item.select === '0',
-              nmCallTreeFuncData.item.type === 'symbol',
-            ],
-          });
-        } else {
-          nmCallTreeFuncArgs.push({
-            funcName: 'resotreAllNode',
-            funcArgs: [[nmCallTreeFuncData.item.name]],
-          });
-          nmCallTreeFuncArgs.push({
-            funcName: 'resetAllNode',
-            funcArgs: [],
-          });
-          nmCallTreeFuncArgs.push({
-            funcName: 'clearSplitMapData',
-            funcArgs: [nmCallTreeFuncData.item.name],
-          });
-        }
+        nmCallTreeFuncArgs = this.filterFuncByCheckType(nmCallTreeFuncData, nmCallTreeFuncArgs);
       } else if (nmCallTreeFuncData.type == 'select') {
-        nmCallTreeFuncArgs.push({
-          funcName: 'resotreAllNode',
-          funcArgs: [[nmCallTreeFuncData.item.name]],
-        });
-        nmCallTreeFuncArgs.push({
-          funcName: 'clearSplitMapData',
-          funcArgs: [nmCallTreeFuncData.item.name],
-        });
-        nmCallTreeFuncArgs.push({
-          funcName: 'splitTree',
-          funcArgs: [
-            nmCallTreeFuncData.item.name,
-            nmCallTreeFuncData.item.select === '0',
-            nmCallTreeFuncData.item.type == 'symbol',
-          ],
-        });
+        nmCallTreeFuncArgs = this.filterFuncBySelectType(nmCallTreeFuncData, nmCallTreeFuncArgs);
       } else if (nmCallTreeFuncData.type === 'button') {
-        if (nmCallTreeFuncData.item == 'symbol') {
-          if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
-            return;
-          }
-          if (this.currentSelectedData !== undefined) {
-            this.nmCallTreeFilter!.addDataMining(
-              {name: this.currentSelectedData.symbolName},
-              nmCallTreeFuncData.item
-            );
-            nmCallTreeFuncArgs.push({
-              funcName: 'splitTree',
-              funcArgs: [this.currentSelectedData.symbolName, false, true],
-            });
-          } else {
-            return;
-          }
-        } else if (nmCallTreeFuncData.item === 'library') {
-          if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
-            return;
-          }
-          if (this.currentSelectedData != undefined && this.currentSelectedData.libName !== '') {
-            this.nmCallTreeFilter!.addDataMining({name: this.currentSelectedData.libName}, nmCallTreeFuncData.item);
-            nmCallTreeFuncArgs.push({
-              funcName: 'splitTree',
-              funcArgs: [this.currentSelectedData.libName, false, false],
-            });
-          } else {
-            return;
-          }
-        } else if (nmCallTreeFuncData.item === 'restore') {
-          if (nmCallTreeFuncData.remove != undefined && nmCallTreeFuncData.remove.length > 0) {
-            let list = nmCallTreeFuncData.remove.map((item: any): any => {
-              return item.name;
-            });
-            nmCallTreeFuncArgs.push({
-              funcName: 'resotreAllNode',
-              funcArgs: [list],
-            });
-            nmCallTreeFuncArgs.push({
-              funcName: 'resetAllNode',
-              funcArgs: [],
-            });
-            list.forEach((symbolName: string): void => {
-              nmCallTreeFuncArgs.push({
-                funcName: 'clearSplitMapData',
-                funcArgs: [symbolName],
-              });
-            });
-          }
-        }
+        nmCallTreeFuncArgs = this.filterFuncByButtonType(nmCallTreeFuncData, nmCallTreeFuncArgs);
       }
       this.getDataByWorker(nmCallTreeFuncArgs, (result: any[]): void => {
         this.setLTableData(result);
@@ -557,140 +441,229 @@ export class TabpaneNMCalltree extends BaseElement {
     };
     this.nmCallTreeFilter!.getDataLibrary(filterFunc);
     this.nmCallTreeFilter!.getDataMining(filterFunc);
-    this.nmCallTreeFilter!.getCallTreeData((callTreeData: any): void => {
-      if ([InvertOpyionIndex, HideSystemSoOptionIndex, HideThreadOptionIndex].includes(callTreeData.value)) {
-        this.refreshAllNode({
-          ...this.nmCallTreeFilter!.getFilterTreeData(),
-          callTree: callTreeData.checks,
+    this.nmCallTreeFilter!.getCallTreeData(this.getCallTreeByNMCallTreeFilter);
+    this.nmCallTreeFilter!.getCallTreeConstraintsData(this.getCallTreeConByNMCallTreeFilter);
+    this.nmCallTreeFilter!.getFilterData(this.getFilterDataByNMCallTreeFilter);
+    this.initCloseCallBackByHeadLine();
+  }
+
+  getFilterDataByNMCallTreeFilter = (nmCallTreeData: FilterData): void => {
+    if (
+      (this.isChartShow && nmCallTreeData.icon === 'tree') ||
+      (!this.isChartShow && nmCallTreeData.icon === 'block')
+    ) {
+      this.switchFlameChart(nmCallTreeData);
+    } else {
+      this.initGetFilterByNMCallTreeFilter(nmCallTreeData);
+    }
+  }
+
+  getCallTreeConByNMCallTreeFilter = (nmCallTreeConstraintsData: any): void => {
+    let nmCallTreeConstraintsArgs: any[] = [
+      {
+        funcName: 'resotreAllNode',
+        funcArgs: [[this.numRuleName]],
+      },
+      {
+        funcName: 'clearSplitMapData',
+        funcArgs: [this.numRuleName],
+      },
+    ];
+    if (nmCallTreeConstraintsData.checked) {
+      nmCallTreeConstraintsArgs.push({
+        funcName: 'hideNumMaxAndMin',
+        funcArgs: [parseInt(nmCallTreeConstraintsData.min), nmCallTreeConstraintsData.max],
+      });
+    }
+    nmCallTreeConstraintsArgs.push({
+      funcName: 'resetAllNode',
+      funcArgs: [],
+    });
+    this.getDataByWorker(nmCallTreeConstraintsArgs, (result: any[]): void => {
+      this.setLTableData(result);
+      this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+      if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
+    });
+  }
+
+  getCallTreeByNMCallTreeFilter = (callTreeData: any): void => {
+    if ([InvertOpyionIndex, HideSystemSoOptionIndex, HideThreadOptionIndex].includes(callTreeData.value)) {
+      this.refreshAllNode({
+        ...this.nmCallTreeFilter!.getFilterTreeData(),
+        callTree: callTreeData.checks,
+      });
+    } else {
+      let resultArgs: any[] = [];
+      if (callTreeData.checks[1]) {
+        resultArgs.push({
+          funcName: 'hideSystemLibrary',
+          funcArgs: [],
+        });
+        resultArgs.push({
+          funcName: 'resetAllNode',
+          funcArgs: [],
         });
       } else {
-        let resultArgs: any[] = [];
-        if (callTreeData.checks[1]) {
-          resultArgs.push({
-            funcName: 'hideSystemLibrary',
-            funcArgs: [],
-          });
-          resultArgs.push({
-            funcName: 'resetAllNode',
-            funcArgs: [],
-          });
-        } else {
-          resultArgs.push({
-            funcName: 'resotreAllNode',
-            funcArgs: [[this.systmeRuleName]],
-          });
-          resultArgs.push({
-            funcName: 'resetAllNode',
-            funcArgs: [],
-          });
-          resultArgs.push({
-            funcName: 'clearSplitMapData',
-            funcArgs: [this.systmeRuleName],
-          });
-        }
-        this.getDataByWorker(resultArgs, (result: any[]): void => {
-          this.setLTableData(result);
-          this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-          if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
-        });
-      }
-    });
-    this.nmCallTreeFilter!.getCallTreeConstraintsData((nmCallTreeConstraintsData: any): void => {
-      let nmCallTreeConstraintsArgs: any[] = [
-        {
+        resultArgs.push({
           funcName: 'resotreAllNode',
-          funcArgs: [[this.numRuleName]],
-        },
-        {
+          funcArgs: [[this.systmeRuleName]],
+        });
+        resultArgs.push({
+          funcName: 'resetAllNode',
+          funcArgs: [],
+        });
+        resultArgs.push({
           funcName: 'clearSplitMapData',
-          funcArgs: [this.numRuleName],
-        },
-      ];
-      if (nmCallTreeConstraintsData.checked) {
-        nmCallTreeConstraintsArgs.push({
-          funcName: 'hideNumMaxAndMin',
-          funcArgs: [parseInt(nmCallTreeConstraintsData.min), nmCallTreeConstraintsData.max],
+          funcArgs: [this.systmeRuleName],
         });
       }
-      nmCallTreeConstraintsArgs.push({
-        funcName: 'resetAllNode',
-        funcArgs: [],
-      });
-      this.getDataByWorker(nmCallTreeConstraintsArgs, (result: any[]): void => {
+      this.getDataByWorker(resultArgs, (result: any[]): void => {
         this.setLTableData(result);
         this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
         if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
       });
-    });
-    this.nmCallTreeFilter!.getFilterData((nmCallTreeData: FilterData): void => {
-      if (
-        (this.isChartShow && nmCallTreeData.icon === 'tree') ||
-        (!this.isChartShow && nmCallTreeData.icon === 'block')
-      ) {
-        this.switchFlameChart(nmCallTreeData);
-      } else {
-        if (
-          this.filterAllocationType !== nmCallTreeData.firstSelect ||
-          this.filterNativeType !== nmCallTreeData.secondSelect ||
-          this.filterResponseSelect !== nmCallTreeData.thirdSelect
-        ) {
-          this.filterAllocationType = nmCallTreeData.firstSelect || '0';
-          this.filterNativeType = nmCallTreeData.secondSelect || '0';
-          this.filterResponseSelect = nmCallTreeData.thirdSelect || '0';
-          let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
-          if (this.responseTypes.length > thirdIndex) {
-            this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
-          }
-          this.searchValue = this.nmCallTreeFilter!.filterValue;
-          this.expressionStruct = new ParseExpression(this.searchValue).parse();
-          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-        } else if (this.searchValue !== this.nmCallTreeFilter!.filterValue) {
-          this.searchValue = this.nmCallTreeFilter!.filterValue;
-          this.expressionStruct = new ParseExpression(this.searchValue).parse();
-          let nmArgs = [];
-          if (this.expressionStruct) {
-            this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-            this.lastIsExpression = true;
-            return;
-          } else {
-            if (this.lastIsExpression) {
-              this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-              this.lastIsExpression = false;
-              return;
-            }
-            nmArgs.push({
-              funcName: 'setSearchValue',
-              funcArgs: [this.searchValue],
-            });
-            nmArgs.push({
-              funcName: 'resetAllNode',
-              funcArgs: [],
-            });
-            this.lastIsExpression = false;
-          }
-          this.getDataByWorker(nmArgs, (result: any[]): void => {
-            this.nmCallTreeTbl!.isSearch = true;
-            this.nmCallTreeTbl!.setStatus(result, true);
-            this.setLTableData(result);
-            this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-            this.switchFlameChart(nmCallTreeData);
-          });
-        } else {
-          this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
-          this.setLTableData(this.nmCallTreeSource);
-          this.switchFlameChart(nmCallTreeData);
-        }
+    }
+  }
+
+  private filterFuncByButtonType(nmCallTreeFuncData: any, nmCallTreeFuncArgs: any[]): any[] {
+    if (nmCallTreeFuncData.item == 'symbol') {
+      if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
+        return nmCallTreeFuncArgs;
       }
+      if (this.currentSelectedData !== undefined) {
+        this.nmCallTreeFilter!.addDataMining(
+          {name: this.currentSelectedData.symbolName},nmCallTreeFuncData.item);
+        nmCallTreeFuncArgs.push({
+          funcName: 'splitTree',
+          funcArgs: [this.currentSelectedData.symbolName, false, true],
+        });
+      } else {
+        return nmCallTreeFuncArgs;
+      }
+    } else if (nmCallTreeFuncData.item === 'library') {
+      if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
+        return nmCallTreeFuncArgs;
+      }
+      if (this.currentSelectedData != undefined && this.currentSelectedData.libName !== '') {
+        this.nmCallTreeFilter!.addDataMining({name: this.currentSelectedData.libName}, nmCallTreeFuncData.item);
+        nmCallTreeFuncArgs.push({
+          funcName: 'splitTree',
+          funcArgs: [this.currentSelectedData.libName, false, false],
+        });
+      } else {
+        return nmCallTreeFuncArgs;
+      }
+    } else if (nmCallTreeFuncData.item === 'restore') {
+      if (nmCallTreeFuncData.remove != undefined && nmCallTreeFuncData.remove.length > 0) {
+        let list = nmCallTreeFuncData.remove.map((item: any): any => {
+          return item.name;
+        });
+        nmCallTreeFuncArgs.push({funcName: 'resotreAllNode', funcArgs: [list]});
+        nmCallTreeFuncArgs.push({ funcName: 'resetAllNode', funcArgs: []});
+        list.forEach((symbolName: string): void => {
+          nmCallTreeFuncArgs.push({funcName: 'clearSplitMapData', funcArgs: [symbolName]});
+        });
+      }
+    }
+    return nmCallTreeFuncArgs;
+  }
+
+  private filterFuncBySelectType(nmCallTreeFuncData: any, nmCallTreeFuncArgs: any[]): any[] {
+    nmCallTreeFuncArgs.push({
+      funcName: 'resotreAllNode',
+      funcArgs: [[nmCallTreeFuncData.item.name]],
     });
-    this.nmCallTreeTbl!.addEventListener('column-click', (evt): void => {
-      // @ts-ignore
-      this.sortKey = evt.detail.key;
-      // @ts-ignore
-      this.sortType = evt.detail.sort;
-      // @ts-ignore
-      this.setLTableData(this.nmCallTreeSource, true);
-      this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+    nmCallTreeFuncArgs.push({
+      funcName: 'clearSplitMapData',
+      funcArgs: [nmCallTreeFuncData.item.name],
     });
+    nmCallTreeFuncArgs.push({
+      funcName: 'splitTree',
+      funcArgs: [
+        nmCallTreeFuncData.item.name,
+        nmCallTreeFuncData.item.select === '0',
+        nmCallTreeFuncData.item.type == 'symbol',
+      ],
+    });
+    return nmCallTreeFuncArgs;
+  }
+
+  private filterFuncByCheckType(nmCallTreeFuncData: any, nmCallTreeFuncArgs: any[]): any[] {
+    if (nmCallTreeFuncData.item.checked) {
+      nmCallTreeFuncArgs.push({
+        funcName: 'splitTree',
+        funcArgs: [
+          nmCallTreeFuncData.item.name,
+          nmCallTreeFuncData.item.select === '0',
+          nmCallTreeFuncData.item.type === 'symbol',
+        ],
+      });
+    } else {
+      nmCallTreeFuncArgs.push({
+        funcName: 'resotreAllNode',
+        funcArgs: [[nmCallTreeFuncData.item.name]],
+      });
+      nmCallTreeFuncArgs.push({
+        funcName: 'resetAllNode',
+        funcArgs: [],
+      });
+      nmCallTreeFuncArgs.push({
+        funcName: 'clearSplitMapData',
+        funcArgs: [nmCallTreeFuncData.item.name],
+      });
+    }
+    return nmCallTreeFuncArgs;
+  }
+
+  private initGetFilterByNMCallTreeFilter(nmCallTreeData: FilterData): void {
+    if (
+      this.filterAllocationType !== nmCallTreeData.firstSelect ||
+      this.filterNativeType !== nmCallTreeData.secondSelect ||
+      this.filterResponseSelect !== nmCallTreeData.thirdSelect
+    ) {
+      this.filterAllocationType = nmCallTreeData.firstSelect || '0';
+      this.filterNativeType = nmCallTreeData.secondSelect || '0';
+      this.filterResponseSelect = nmCallTreeData.thirdSelect || '0';
+      let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
+      if (this.responseTypes.length > thirdIndex) {
+        this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
+      }
+      this.searchValue = this.nmCallTreeFilter!.filterValue;
+      this.expressionStruct = new ParseExpression(this.searchValue).parse();
+      this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+    } else if (this.searchValue !== this.nmCallTreeFilter!.filterValue) {
+      this.searchValue = this.nmCallTreeFilter!.filterValue;
+      this.expressionStruct = new ParseExpression(this.searchValue).parse();
+      let nmArgs = [];
+      if (this.expressionStruct) {
+        this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+        this.lastIsExpression = true;
+        return;
+      } else {
+        if (this.lastIsExpression) {
+          this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
+          this.lastIsExpression = false;
+          return;
+        }
+        nmArgs.push({funcName: 'setSearchValue', funcArgs: [this.searchValue]});
+        nmArgs.push({funcName: 'resetAllNode', funcArgs: []});
+        this.lastIsExpression = false;
+      }
+      this.getDataByWorker(nmArgs, (result: any[]): void => {
+        this.nmCallTreeTbl!.isSearch = true;
+        this.nmCallTreeTbl!.setStatus(result, true);
+        this.setLTableData(result);
+        this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+        this.switchFlameChart(nmCallTreeData);
+      });
+    } else {
+      this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
+      this.setLTableData(this.nmCallTreeSource);
+      this.switchFlameChart(nmCallTreeData);
+    }
+  }
+
+  private initCloseCallBackByHeadLine() {
     //点击之后删除掉筛选条件  将所有重置  将目前的title隐藏 高度恢复
     this.headLine!.closeCallback = () => {
       this.headLine!.clear();
@@ -709,6 +682,9 @@ export class TabpaneNMCalltree extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
+    this.nmCallTreeTbl!.addEventListener('row-click', this.nmCallTreeTblRowClickHandler);
+    this.filesystemTbr!.addEventListener('row-click', this.filesystemTbrRowClickHandler);
+    this.nmCallTreeTbl!.addEventListener('column-click', this.nmCallTreeTblColumnClickHandler);
     let filterHeight = 0;
     new ResizeObserver((entries: ResizeObserverEntry[]): void => {
       let nmCallTreeTabFilter = this.shadowRoot!.querySelector('#nm-call-tree-filter') as HTMLElement;
@@ -750,6 +726,56 @@ export class TabpaneNMCalltree extends BaseElement {
     };
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.nmCallTreeTbl!.removeEventListener('row-click', this.nmCallTreeTblRowClickHandler);
+    this.filesystemTbr!.removeEventListener('row-click', this.filesystemTbrRowClickHandler);
+    this.nmCallTreeTbl!.removeEventListener('column-click', this.nmCallTreeTblColumnClickHandler);
+  }
+
+  filesystemTbrRowClickHandler = (event: any): void => {
+    // @ts-ignore
+    let data = evt.detail.data as FileMerageBean;
+    this.nmCallTreeTbl?.clearAllSelection(data);
+    (data as any).isSelected = true;
+    this.nmCallTreeTbl!.scrollToData(data);
+    // @ts-ignore
+    if ((evt.detail as any).callBack) {
+      // @ts-ignore
+      (evt.detail as any).callBack(true);
+    }
+  }
+
+  nmCallTreeTblColumnClickHandler = (event: any): void => {
+    // @ts-ignore
+    this.sortKey = evt.detail.key;
+    // @ts-ignore
+    this.sortType = evt.detail.sort;
+    // @ts-ignore
+    this.setLTableData(this.nmCallTreeSource, true);
+    this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+  }
+
+  nmCallTreeTblRowClickHandler = (event: any): void => {
+    // @ts-ignore
+    let nmCallTreeData = event.detail.data as FileMerageBean;
+    this.setRightTableData(nmCallTreeData);
+    nmCallTreeData.isSelected = true;
+    this.currentSelectedData = nmCallTreeData;
+    this.filesystemTbr?.clearAllSelection(nmCallTreeData);
+    this.filesystemTbr?.setCurrentSelection(nmCallTreeData);
+    // @ts-ignore
+    if ((event.detail as any).callBack) {
+      // @ts-ignore
+      (event.detail as any).callBack(true);
+    }
+    document.dispatchEvent(
+      new CustomEvent('number_calibration', {
+        detail: {time: event.detail.tsArray, counts: event.detail.countArray},
+      })
+    );
+  }
+
   switchFlameChart(flameChartData?: any): void {
     let nmCallTreePageTab = this.shadowRoot?.querySelector('#show_table');
     let nmCallTreePageChart = this.shadowRoot?.querySelector('#show_chart');
@@ -777,6 +803,44 @@ export class TabpaneNMCalltree extends BaseElement {
     let isHideSystemLibrary = filterData.callTree[1];
     this.isHideThread = filterData.callTree[3];
     let list = filterData.dataMining.concat(filterData.dataLibrary);
+    let groupArgs = this.setGroupArgsByRefreshAllNode();
+    if ((this.lastIsExpression && !this.expressionStruct) || isAnalysisReset) {
+      nmCallTreeArgs.push({funcName: 'setSearchValue', funcArgs: [this.searchValue]});
+    }
+    nmCallTreeArgs.push({funcName: 'hideThread', funcArgs: [this.isHideThread]});
+    nmCallTreeArgs.push(
+      {
+        funcName: 'groupCallchainSample',
+        funcArgs: [groupArgs],
+      },
+      {
+        funcName: 'getCallChainsBySampleIds',
+        funcArgs: [isTopDown],
+      }
+    );
+    this.filesystemTbr!.recycleDataSource = [];
+    if (isHideSystemLibrary) {
+      nmCallTreeArgs.push({
+        funcName: 'hideSystemLibrary',
+        funcArgs: [],
+      });
+    }
+    if (filterData.callTreeConstraints.checked) {
+      nmCallTreeArgs.push({
+        funcName: 'hideNumMaxAndMin',
+        funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
+      });
+    }
+    nmCallTreeArgs.push({funcName: 'splitAllProcess', funcArgs: [list]});
+    nmCallTreeArgs.push({funcName: 'resetAllNode', funcArgs: []});
+    this.getDataByWorker(nmCallTreeArgs, (result: any[]) => {
+      this.setLTableData(result);
+      this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
+      if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
+    });
+  }
+
+  private setGroupArgsByRefreshAllNode(): Map<string, any>{
     let groupArgs = new Map<string, any>();
     groupArgs.set('filterAllocType', this.filterAllocationType);
     groupArgs.set('filterEventType', this.filterNativeType);
@@ -805,52 +869,7 @@ export class TabpaneNMCalltree extends BaseElement {
       'nativeHookType',
       this.currentSelection!.nativeMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'
     );
-    if ((this.lastIsExpression && !this.expressionStruct) || isAnalysisReset) {
-      nmCallTreeArgs.push({
-        funcName: 'setSearchValue',
-        funcArgs: [this.searchValue],
-      });
-    }
-    nmCallTreeArgs.push({
-      funcName: 'hideThread',
-      funcArgs: [this.isHideThread],
-    });
-    nmCallTreeArgs.push(
-      {
-        funcName: 'groupCallchainSample',
-        funcArgs: [groupArgs],
-      },
-      {
-        funcName: 'getCallChainsBySampleIds',
-        funcArgs: [isTopDown],
-      }
-    );
-    this.filesystemTbr!.recycleDataSource = [];
-    if (isHideSystemLibrary) {
-      nmCallTreeArgs.push({
-        funcName: 'hideSystemLibrary',
-        funcArgs: [],
-      });
-    }
-    if (filterData.callTreeConstraints.checked) {
-      nmCallTreeArgs.push({
-        funcName: 'hideNumMaxAndMin',
-        funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
-      });
-    }
-    nmCallTreeArgs.push({
-      funcName: 'splitAllProcess',
-      funcArgs: [list],
-    });
-    nmCallTreeArgs.push({
-      funcName: 'resetAllNode',
-      funcArgs: [],
-    });
-    this.getDataByWorker(nmCallTreeArgs, (result: any[]) => {
-      this.setLTableData(result);
-      this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-      if (this.isChartShow) this.nmCallTreeFrameChart?.calculateChartData();
-    });
+    return groupArgs;
   }
 
   setLTableData(resultData: any[], sort?: boolean): void {

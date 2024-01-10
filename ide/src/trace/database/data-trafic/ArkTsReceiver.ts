@@ -39,6 +39,7 @@ const jsDataCache: {
   urlId: Array<number>;
   maxDepth: number;
 } = {
+  samplesIds: [],
   childrenIds: [],
   column: [],
   depth: [],
@@ -47,7 +48,6 @@ const jsDataCache: {
   line: [],
   nameId: [],
   parentId: [],
-  samplesIds: [],
   selfTime: [],
   startTime: [],
   totalTime: [],
@@ -381,11 +381,7 @@ function ns2x(ns: number, startNS: number, endNS: number, duration: number, widt
     endNS = duration;
   }
   let xSize: number = ((ns - startNS) * width) / (endNS - startNS);
-  if (xSize < 0) {
-    xSize = 0;
-  } else if (xSize > width) {
-    xSize = width;
-  }
+  xSize = xSize < 0 ? 0 : xSize > width ? width : xSize;
   return xSize;
 }
 

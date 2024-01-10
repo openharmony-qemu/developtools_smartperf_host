@@ -19,7 +19,6 @@ import {
   dataFilterHandler,
   drawFlagLine,
   drawLines,
-  drawLoading,
   drawLoadingFrame,
   drawSelection,
   drawWakeUp,
@@ -74,12 +73,15 @@ export class CpuRender {
   ) {
     let cpuList = row.dataList;
     let cpuFilter = row.dataListCache;
+    let startNS = TraceRow.range!.startNS ?? 0;
+    let endNS = TraceRow.range!.endNS ?? 0;
+    let totalNS = TraceRow.range!.totalNS ?? 0;
     dataFilterHandler(cpuList, cpuFilter, {
       startKey: 'startTime',
       durKey: 'dur',
-      startNS: TraceRow.range?.startNS ?? 0,
-      endNS: TraceRow.range?.endNS ?? 0,
-      totalNS: TraceRow.range?.totalNS ?? 0,
+      startNS: startNS,
+      endNS: endNS,
+      totalNS: totalNS,
       frame: row.frame,
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
@@ -93,32 +95,16 @@ export class CpuRender {
     });
     req.ctx.closePath();
     let currentCpu = parseInt(req.type!.replace('cpu-data-', ''));
-    drawWakeUp(
-      req.ctx,
-      CpuStruct.wakeupBean,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
-      row.frame,
-      req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined,
-      currentCpu,
-      true
-    );
+    let wakeup = req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined;
+    drawWakeUp(req.ctx, CpuStruct.wakeupBean, startNS, endNS, totalNS, row.frame, wakeup, currentCpu, true);
     for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
       if (i + 1 == SpSystemTrace.wakeupList.length) {
         return;
       }
-      drawWakeUpList(
-        req.ctx,
-        SpSystemTrace.wakeupList[i + 1],
-        TraceRow.range!.startNS,
-        TraceRow.range!.endNS,
-        TraceRow.range!.totalNS,
-        row.frame,
-        req.type == `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined,
-        currentCpu,
-        true
-      );
+      let wake = SpSystemTrace.wakeupList[i + 1];
+      let wakeupListItem =
+        req.type == `cpu-data-${SpSystemTrace.wakeupList[i]?.cpu || 0}` ? SpSystemTrace.wakeupList[i] : undefined;
+      drawWakeUpList(req.ctx, wake, startNS, endNS, totalNS, row.frame, wakeupListItem, currentCpu, true);
     }
   }
 
@@ -242,72 +228,75 @@ export class CpuStruct extends BaseStruct {
 
   static draw(ctx: CanvasRenderingContext2D, data: CpuStruct, translateY: number): void {
     if (data.frame) {
+      let pid = data.processId || 0;
+      let tid = data.tid || 0;
       let width = data.frame.width || 0;
       if (data.tid === CpuStruct.hoverCpuStruct?.tid || !CpuStruct.hoverCpuStruct) {
         ctx.globalAlpha = 1;
-        ctx.fillStyle = ColorUtils.colorForTid((data.processId || 0) > 0 ? data.processId || 0 : data.tid || 0);
+        ctx.fillStyle = ColorUtils.colorForTid(pid > 0 ? pid : tid);
       } else if (data.processId === CpuStruct.hoverCpuStruct?.processId) {
         ctx.globalAlpha = 0.6;
-        ctx.fillStyle = ColorUtils.colorForTid((data.processId || 0) > 0 ? data.processId || 0 : data.tid || 0);
+        ctx.fillStyle = ColorUtils.colorForTid(pid > 0 ? pid : tid);
       } else {
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#e0e0e0';
       }
       ctx.fillRect(data.frame.x, data.frame.y, width, data.frame.height);
       ctx.globalAlpha = 1;
-      let textFillWidth = width - textPadding * 2;
-      if (textFillWidth > 3) {
-        if (data.displayProcess === undefined) {
-          data.displayProcess = `${data.processName || 'Process'} [${data.processId}]`;
-          data.measurePWidth = ctx.measureText(data.displayProcess).width;
-        }
-        if (data.displayThread === undefined) {
-          data.displayThread = `${data.name || 'Thread'} [${data.tid}] [Prio:${data.priority || 0}]`;
-          data.measureTWidth = ctx.measureText(data.displayThread).width;
-        }
-        let processCharWidth = Math.round(data.measurePWidth / data.displayProcess.length);
-        let threadCharWidth = Math.round(data.measureTWidth / data.displayThread.length);
-        ctx.fillStyle = ColorUtils.funcTextColor(
-          ColorUtils.colorForTid((data.processId || 0) > 0 ? data.processId || 0 : data.tid || 0)
-        );
-        let y = data.frame.height / 2 + data.frame.y;
-        if (data.measurePWidth < textFillWidth) {
-          let x1 = Math.floor(width / 2 - data.measurePWidth / 2 + data.frame.x + textPadding);
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(data.displayProcess, x1, y, textFillWidth);
-        } else {
-          if (textFillWidth >= processCharWidth) {
-            let chatNum = textFillWidth / processCharWidth;
-            let x1 = data.frame.x + textPadding;
-            ctx.textBaseline = 'bottom';
-            if (chatNum < 2) {
-              ctx.fillText(data.displayProcess.substring(0, 1), x1, y, textFillWidth);
-            } else {
-              ctx.fillText(data.displayProcess.substring(0, chatNum - 1) + '...', x1, y, textFillWidth);
-            }
-          }
-        }
-        ctx.fillStyle = ColorUtils.funcTextColor(
-          ColorUtils.colorForTid((data.processId || 0) > 0 ? data.processId || 0 : data.tid || 0)
-        );
-        ctx.font = '9px sans-serif';
-        if (data.measureTWidth < textFillWidth) {
-          ctx.textBaseline = 'top';
-          let x2 = Math.floor(width / 2 - data.measureTWidth / 2 + data.frame.x + textPadding);
-          ctx.fillText(data.displayThread, x2, y + 2, textFillWidth);
-        } else {
-          if (textFillWidth >= threadCharWidth) {
-            let chatNum = textFillWidth / threadCharWidth;
-            let x1 = data.frame.x + textPadding;
-            ctx.textBaseline = 'top';
-            if (chatNum < 2) {
-              ctx.fillText(data.displayThread.substring(0, 1), x1, y + 2, textFillWidth);
-            } else {
-              ctx.fillText(data.displayThread.substring(0, chatNum - 1) + '...', x1, y + 2, textFillWidth);
-            }
+      CpuStruct.drawText(ctx, data, width, pid, tid);
+      CpuStruct.drawRim(ctx, data, width);
+    }
+  }
+  static drawText(ctx: CanvasRenderingContext2D, data: CpuStruct, width: number, pid: number, tid: number) {
+    let textFillWidth = width - textPadding * 2;
+    if (data.frame && textFillWidth > 3) {
+      if (data.displayProcess === undefined) {
+        data.displayProcess = `${data.processName || 'Process'} [${data.processId}]`;
+        data.measurePWidth = ctx.measureText(data.displayProcess).width;
+      }
+      if (data.displayThread === undefined) {
+        data.displayThread = `${data.name || 'Thread'} [${data.tid}] [Prio:${data.priority || 0}]`;
+        data.measureTWidth = ctx.measureText(data.displayThread).width;
+      }
+      let processCharWidth = Math.round(data.measurePWidth / data.displayProcess.length);
+      let threadCharWidth = Math.round(data.measureTWidth / data.displayThread.length);
+      ctx.fillStyle = ColorUtils.funcTextColor(ColorUtils.colorForTid(pid > 0 ? pid : tid));
+      ctx.font = '9px sans-serif';
+      ctx.textBaseline = 'bottom';
+      let y = data.frame.height / 2 + data.frame.y;
+      if (data.measurePWidth < textFillWidth) {
+        let x1 = Math.floor(width / 2 - data.measurePWidth / 2 + data.frame.x + textPadding);
+        ctx.fillText(data.displayProcess, x1, y, textFillWidth);
+      } else {
+        if (textFillWidth >= processCharWidth) {
+          let chatNum = textFillWidth / processCharWidth;
+          let x1 = data.frame.x + textPadding;
+          if (chatNum < 2) {
+            ctx.fillText(data.displayProcess.substring(0, 1), x1, y, textFillWidth);
+          } else {
+            ctx.fillText(data.displayProcess.substring(0, chatNum - 1) + '...', x1, y, textFillWidth);
           }
         }
       }
+      ctx.textBaseline = 'top';
+      if (data.measureTWidth < textFillWidth) {
+        let x2 = Math.floor(width / 2 - data.measureTWidth / 2 + data.frame.x + textPadding);
+        ctx.fillText(data.displayThread, x2, y + 2, textFillWidth);
+      } else {
+        if (textFillWidth >= threadCharWidth) {
+          let chatNum = textFillWidth / threadCharWidth;
+          let x1 = data.frame.x + textPadding;
+          if (chatNum < 2) {
+            ctx.fillText(data.displayThread.substring(0, 1), x1, y + 2, textFillWidth);
+          } else {
+            ctx.fillText(data.displayThread.substring(0, chatNum - 1) + '...', x1, y + 2, textFillWidth);
+          }
+        }
+      }
+    }
+  }
+  static drawRim(ctx: CanvasRenderingContext2D, data: CpuStruct, width: number) {
+    if (data.frame) {
       if (data.nofinish && width > 4) {
         ctx.fillStyle = '#fff';
         let ruptureWidth = 4;

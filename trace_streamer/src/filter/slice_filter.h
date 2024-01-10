@@ -132,8 +132,8 @@ private:
     std::unordered_map<InternalTid, StackOnDepth> depthHolder_ = {};
     std::unordered_map<uint32_t, uint32_t> pidTothreadGroupId_ = {};
     uint64_t asyncEventSize_ = 0;
-    uint64_t asyncEventDisMatchCount = 0;
-    uint64_t callEventDisMatchCount = 0;
+    uint64_t asyncEventDisMatchCount_ = 0;
+    uint64_t callEventDisMatchCount_ = 0;
     std::unordered_map<uint32_t, uint32_t> sliceRowToArgsSetId_ = {};
     std::unordered_map<uint32_t, uint32_t> argsSetIdToSliceRow_ = {};
     std::unordered_map<uint32_t, uint32_t> tidToArgsSetId_ = {};

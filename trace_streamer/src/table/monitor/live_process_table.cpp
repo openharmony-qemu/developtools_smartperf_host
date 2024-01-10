@@ -104,9 +104,9 @@ int32_t LiveProcessTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void LiveProcessTable::Cursor::HandleTypeColumns(int32_t column) const
+void LiveProcessTable::Cursor::HandleTypeColumns(int32_t liveProcessColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(liveProcessColumn)) {
         case Index::USER_NAME: {
             sqlite3_result_text(context_, liveProcessDetailDataObj_.UserName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
                                 nullptr);
@@ -133,7 +133,7 @@ void LiveProcessTable::Cursor::HandleTypeColumns(int32_t column) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered liveProcessColumn : %d", liveProcessColumn);
             break;
     }
 }

@@ -102,12 +102,12 @@ int32_t FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
 
     HandleIndex(fc, argv);
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto frameSliceTabOrderbys = fc.GetOrderBys();
+    for (auto i = frameSliceTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(frameSliceTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(frameSliceTabOrderbys[i].desc);
                 break;
             default:
                 break;

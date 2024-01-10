@@ -110,7 +110,7 @@ class ProcedurePool {
     newThread.worker!.onmessage = (event: MessageEvent) => {
       newThread.busy = false;
       if ((event.data.type as string) == 'timeline-range-changed') {
-        this.timelineChange && this.timelineChange(event.data.results);
+        this.timelineChange?.(event.data.results);
         newThread.busy = false;
         return;
       }
@@ -197,16 +197,14 @@ class ProcedurePool {
   }
 
   close = () => {
-    for (let i = 0; i < this.works.length; i++) {
-      let thread = this.works[i];
+    for (let thread of this.works) {
       thread.worker!.terminate();
     }
     this.works.length = 0;
   };
 
   clearCache = () => {
-    for (let i = 0; i < this.works.length; i++) {
-      let thread = this.works[i];
+    for (let thread of this.works) {
       thread.queryFunc('clear', {}, undefined, () => {});
     }
   };

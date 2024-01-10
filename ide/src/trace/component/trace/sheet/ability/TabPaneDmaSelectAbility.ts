@@ -19,7 +19,7 @@ import { type Dma } from '../../../../bean/AbilityMonitor';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
-import {getTabDmaAbilityClickData} from "../../../../database/sql/Dma.sql";
+import { getTabDmaAbilityClickData } from '../../../../database/sql/Dma.sql';
 
 @element('tabpane-dma-selection-ability')
 export class TabPaneDmaSelectAbility extends BaseElement {
@@ -53,9 +53,9 @@ export class TabPaneDmaSelectAbility extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight !== 0) {
+      if (this.parentElement?.clientHeight !== 0 && this.damClickTable) {
         // @ts-ignore
-        this.damClickTable?.shadowRoot?.querySelector('.table').style.height =
+        this.damClickTable.shadowRoot.querySelector('.table').style.height =
           this.parentElement!.clientHeight - 18 + 'px';
         this.parentElement!.style.overflow = 'hidden';
         this.damClickTable?.reMeauseHeight();

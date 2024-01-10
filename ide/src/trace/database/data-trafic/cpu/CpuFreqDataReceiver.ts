@@ -12,37 +12,31 @@
 // limitations under the License.
 
 import { TraficEnum } from '../utils/QueryEnum';
-import {filterDataByGroup} from "../utils/DataFilter";
-import {cpuFreqList} from "../utils/AllMemoryCache";
+import { filterDataByGroup } from '../utils/DataFilter';
+import { cpuFreqList } from '../utils/AllMemoryCache';
 
 export const chartCpuFreqDataSql = (args: any): string => {
-  return `select ${args.cpu}                                                                                     cpu,
+  return `select ${args.cpu} cpu,
                  value,
-                 max(ifnull(dur, ${args.recordEndNS}-c.ts))                                                    dur,
-                 ts - ${
-                   args.recordStartNS
-                 }                                                                   as startNs,
+                 max(ifnull(dur, ${args.recordEndNS}-c.ts)) dur,
+                 ts - ${args.recordStartNS} as startNs,
                  ((ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
           from measure c
-          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${
-            args.cpu
-          } and (t.name = 'cpufreq' or t.name = 'cpu_frequency')
+          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${args.cpu} 
+          and (t.name = 'cpufreq' or t.name = 'cpu_frequency')
               limit 1)
             and startNs + ifnull(dur, ${args.recordEndNS}-c.ts) >= ${Math.floor(args.startNS)}
             and startNs <= ${Math.floor(args.endNS)}
           group by px
             union
-            select ${args.cpu}                                                                                     cpu,
+            select ${args.cpu} cpu,
                  max(value),
-                 dur                                                    dur,
-                 ts - ${
-                   args.recordStartNS
-                 }                                                                   as startNs,
+                 dur dur,
+                 ts - ${args.recordStartNS} as startNs,
                  ((ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
           from measure c
-          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${
-            args.cpu
-          } and (t.name = 'cpufreq' or t.name = 'cpu_frequency')
+          where c.filter_id = (select id from cpu_measure_filter t where t.cpu = ${args.cpu} 
+            and (t.name = 'cpufreq' or t.name = 'cpu_frequency')
               limit 1)
             and startNs + ifnull(dur, ${args.recordEndNS}-c.ts) >= ${Math.floor(args.startNS)}
             and startNs <= ${Math.floor(args.endNS)}
@@ -71,7 +65,7 @@ export function cpuFreqDataReceiver(data: any, proc: Function): void {
     if (!cpuFreqList.has(data.params.cpu)) {
       list = proc(chartCpuFreqDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
-        if (list[i].dur===-1 || list[i].dur===null || list[i].dur === undefined){
+        if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
           list[i].dur = data.params.recordEndNS - data.params.recordStartNS - list[i].startNs;
         }
       }
@@ -79,16 +73,24 @@ export function cpuFreqDataReceiver(data: any, proc: Function): void {
     } else {
       list = cpuFreqList.get(data.params.cpu) || [];
     }
-    res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
-    arrayBufferHandler(data, res,true);
+    res = filterDataByGroup(
+      list || [],
+      'startNs',
+      'dur',
+      data.params.startNS,
+      data.params.endNS,
+      data.params.width,
+      'value'
+    );
+    arrayBufferHandler(data, res, true);
   } else {
     let sql = chartCpuFreqDataSql(data.params);
     let res = proc(sql);
-    arrayBufferHandler(data, res,data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-export function arrayBufferHandler(data: any, res: any[], transfer:boolean): void {
+export function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   let value = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.value);

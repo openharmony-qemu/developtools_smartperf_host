@@ -104,9 +104,9 @@ int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& irqCs = fc.GetConstraints();
+    for (size_t i = 0; i < irqCs.size(); i++) {
+        const auto& c = irqCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -116,12 +116,12 @@ int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto irqTableOrderbys = fc.GetOrderBys();
+    for (auto i = irqTableOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(irqTableOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(irqTableOrderbys[i].desc);
                 break;
             default:
                 break;

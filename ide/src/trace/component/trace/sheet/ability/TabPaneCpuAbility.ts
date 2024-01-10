@@ -32,8 +32,10 @@ export class TabPaneCpuAbility extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(cpuAbilityValue: SelectionParam) {
-    // @ts-ignore
-    this.cpuAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    if (this.cpuAbilityTbl) {
+      // @ts-ignore
+      this.cpuAbilityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(cpuAbilityValue);
   }
 

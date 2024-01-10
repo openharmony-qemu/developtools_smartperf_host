@@ -56,7 +56,7 @@ export class TabPaneNMStatstics extends BaseElement {
       Utils.getInstance().setCurrentSelectIPid(this.currentSelectIPid);
       Utils.getInstance().initResponseTypeList(nativeStatisticsParam);
     }
-    if( this.nativeStatisticsTbl){
+    if (this.nativeStatisticsTbl) {
       // @ts-ignore
       this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25}px`;
       // @ts-ignore
@@ -177,63 +177,45 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     for (let hook of result) {
       if (all !== null) {
-        all.totalBytes += hook.allocByte;
-        all.totalCount += hook.allocCount;
-        all.freeByte += hook.freeByte;
-        all.freeCount += hook.freeCount;
-        if (hook.max > all.max) {
-          all.max = hook.max;
-          all.maxStr = Utils.getByteWithUnit(all.max);
-        }
+        this.processHookData(hook, all);
       }
       if (heap !== null && hook.eventType === 'AllocEvent') {
-        heap.totalBytes += hook.allocByte;
-        heap.totalCount += hook.allocCount;
-        heap.freeByte += hook.freeByte;
-        heap.freeCount += hook.freeCount;
-        if (hook.max > heap.max) {
-          heap.max = hook.max;
-          heap.maxStr = Utils.getByteWithUnit(heap.max);
-        }
+        this.processHookData(hook, heap);
       }
       if (anonymous !== null && hook.eventType === 'MmapEvent') {
-        anonymous.totalBytes += hook.allocByte;
-        anonymous.totalCount += hook.allocCount;
-        anonymous.freeByte += hook.freeByte;
-        anonymous.freeCount += hook.freeCount;
-        if (hook.max > anonymous.max) {
-          anonymous.max = hook.max;
-          anonymous.maxStr = Utils.getByteWithUnit(anonymous.max);
-        }
+        this.processHookData(hook, anonymous);
       }
     }
     if (all !== null) {
-      all.existing = all.totalBytes - all.freeByte;
-      all.allocCount = all.totalCount - all.freeCount;
-      all.existingString = Utils.getByteWithUnit(all.existing);
-      all.totalBytesString = Utils.getByteWithUnit(all.totalBytes);
-      all.freeByteString = Utils.getByteWithUnit(all.freeByte);
-      all.existingValue = [all.existing, all.totalBytes, this.allMax];
-      arr.push(all);
+      this.updateHookData(all, arr);
     }
     if (heap !== null) {
-      heap.existing = heap.totalBytes - heap.freeByte;
-      heap.allocCount = heap.totalCount - heap.freeCount;
-      heap.existingString = Utils.getByteWithUnit(heap.existing);
-      heap.totalBytesString = Utils.getByteWithUnit(heap.totalBytes);
-      heap.freeByteString = Utils.getByteWithUnit(heap.freeByte);
-      heap.existingValue = [heap.existing, heap.totalBytes, this.allMax];
-      arr.push(heap);
+      this.updateHookData(heap, arr);
     }
     if (anonymous !== null) {
-      anonymous.existing = anonymous.totalBytes - anonymous.freeByte;
-      anonymous.allocCount = anonymous.totalCount - anonymous.freeCount;
-      anonymous.existingString = Utils.getByteWithUnit(anonymous.existing);
-      anonymous.totalBytesString = Utils.getByteWithUnit(anonymous.totalBytes);
-      anonymous.freeByteString = Utils.getByteWithUnit(anonymous.totalBytes - anonymous.existing);
-      anonymous.existingValue = [anonymous.existing, anonymous.totalBytes, this.allMax];
-      arr.push(anonymous);
+      this.updateHookData(anonymous, arr);
     }
+  }
+
+  private processHookData(hook: any, data: NativeHookStatisticsTableData): void {
+    data.totalBytes += hook.allocByte;
+    data.totalCount += hook.allocCount;
+    data.freeByte += hook.freeByte;
+    data.freeCount += hook.freeCount;
+    if (hook.max > data.max) {
+      data.max = hook.max;
+      data.maxStr = Utils.getByteWithUnit(data.max);
+    }
+  }
+
+  private updateHookData(data: NativeHookStatisticsTableData, arr: Array<NativeHookStatisticsTableData>): void {
+    data.existing = data.totalBytes - data.freeByte;
+    data.allocCount = data.totalCount - data.freeCount;
+    data.existingString = Utils.getByteWithUnit(data.existing);
+    data.totalBytesString = Utils.getByteWithUnit(data.totalBytes);
+    data.freeByteString = Utils.getByteWithUnit(data.freeByte);
+    data.existingValue = [data.existing, data.totalBytes, this.allMax];
+    arr.push(data);
   }
 
   initElements(): void {

@@ -13,34 +13,34 @@
  * limitations under the License.
  */
 
-#include "trace_data_cache_writer.h"
+#include "demo_trace_data_cache_writer.h"
 #include "log.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
-TraceDataCacheWriter::~TraceDataCacheWriter() {}
+DemoTraceDataCacheWriter::~DemoTraceDataCacheWriter() {}
 
-GpuCounter* TraceDataCacheWriter::GetGpuCounterData()
+GpuCounter* DemoTraceDataCacheWriter::GetGpuCounterData()
 {
     return &gpuCounter_;
 }
-GpuCounterObject* TraceDataCacheWriter::GetGpuCounterObjectData()
+GpuCounterObject* DemoTraceDataCacheWriter::GetGpuCounterObjectData()
 {
     return &gpuCounterObject_;
 }
-SliceObject* TraceDataCacheWriter::GetSliceObjectData()
+SliceObject* DemoTraceDataCacheWriter::GetSliceObjectData()
 {
     return &sliceObject_;
 }
-SliceData* TraceDataCacheWriter::GetSliceTableData()
+SliceData* DemoTraceDataCacheWriter::GetSliceTableData()
 {
     return &sliceData_;
 }
-MetaData* TraceDataCacheWriter::GetMetaData()
+MetaData* DemoTraceDataCacheWriter::GetMetaData()
 {
     return &metaData_;
 }
-void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestampMax)
+void DemoTraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestampMax)
 {
     if (timestampMin == std::numeric_limits<uint64_t>::max() || timestampMax == 0) {
         return;
@@ -56,7 +56,7 @@ void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestam
         traceEndTime_ = timestampMax;
     }
 }
-void TraceDataCacheWriter::Clear()
+void DemoTraceDataCacheWriter::Clear()
 {
     gpuCounter_.Clear();
     gpuCounterObject_.Clear();

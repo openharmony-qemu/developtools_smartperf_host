@@ -162,8 +162,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     }
     if (this.functionUsageTbl) {
       // @ts-ignore
-      this.functionUsageTbl.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 30
+      this.functionUsageTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 30
       }px`;
     }
     this.clearData();
@@ -181,28 +180,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.getNMEventTypeSize(statisticAnalysisParam);
   }
 
-  initElements(): void {
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.nmPieChart = this.shadowRoot!.querySelector<LitChartPie>('#nm-chart-pie');
-    this.nmTableBox = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-table-box');
-    this.tableType = this.shadowRoot!.querySelector<LitTable>('#tb-eventtype-usage');
-    this.threadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-usage');
-    this.soUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
-    this.functionUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
-    this.nmBack = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-go-back');
-    this.tabName = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-subheading');
-    this.progressEL = this.shadowRoot?.querySelector('.nm-progress') as LitProgressBar;
-    this.getBack();
-    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
-    this.filterEl = this.shadowRoot?.querySelector('#filter');
-    this.filterEl!.setOptionsList(['Hide Thread']);
-    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
-    this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
+  initNmTableArray(): void {
     this.nmTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
-    this.hideThreadCheckBox?.addEventListener('change', (evt) => {
-      this.reset(this.tableType!, false);
-      this.getNMTypeSize(this.currentSelection, this.processData);
-    });
     for (let nmTable of this.nmTableArray) {
       nmTable!.addEventListener('contextmenu', function (event) {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
@@ -228,20 +207,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         this.nmPieChart?.hideTip();
       });
     }
-    this.tableType!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let button = evt.detail.button;
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (button === 0) {
-        if (data.tableName !== '' && data.existSize !== 0) {
-          this.nativeProcessLevelClickEvent(data);
-        }
-      } else if (button === 2) {
-        const typeName = data.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : data.typeName;
-        this.clickRight(evt, typeName);
-      }
-    });
     this.threadUsageTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
       let button = evt.detail.button;
@@ -254,6 +219,23 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       } else if (button === 2) {
         let title = `${this.titleEl!.textContent}/${data.tName}`;
         this.clickRight(evt, title);
+      }
+    });
+  }
+
+  initTable(): void {
+    this.tableType!.addEventListener('row-click', (evt) => {
+      // @ts-ignore
+      let button = evt.detail.button;
+      // @ts-ignore
+      let data = evt.detail.data;
+      if (button === 0) {
+        if (data.tableName !== '' && data.existSize !== 0) {
+          this.nativeProcessLevelClickEvent(data);
+        }
+      } else if (button === 2) {
+        const typeName = data.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : data.typeName;
+        this.clickRight(evt, typeName);
       }
     });
     this.soUsageTbl!.addEventListener('row-click', (evt) => {
@@ -270,6 +252,31 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         this.clickRight(evt, title);
       }
     });
+  }
+
+  initElements(): void {
+    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.nmPieChart = this.shadowRoot!.querySelector<LitChartPie>('#nm-chart-pie');
+    this.nmTableBox = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-table-box');
+    this.tableType = this.shadowRoot!.querySelector<LitTable>('#tb-eventtype-usage');
+    this.threadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-usage');
+    this.soUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
+    this.functionUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
+    this.nmBack = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-go-back');
+    this.tabName = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-subheading');
+    this.progressEL = this.shadowRoot?.querySelector('.nm-progress') as LitProgressBar;
+    this.getBack();
+    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
+    this.filterEl = this.shadowRoot?.querySelector('#filter');
+    this.filterEl!.setOptionsList(['Hide Thread']);
+    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
+    this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
+    this.hideThreadCheckBox?.addEventListener('change', () => {
+      this.reset(this.tableType!, false);
+      this.getNMTypeSize(this.currentSelection, this.processData);
+    });
+    this.initNmTableArray();
+    this.initTable();
     this.functionUsageTbl?.addEventListener('row-click', (evt) => {
       // @ts-ignore
       let title = `${this.titleEl!.textContent}/${evt.detail.data.symbolName}`;
@@ -516,18 +523,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.threadUsageTbl?.reMeauseHeight();
   }
 
-  private libraryPieChart(item?: any): void {
-    this.nmPieChart!.config = {
-      appendPadding: 0,
-      data: this.getPieChartData(this.soData),
-      angleField: 'existSize',
-      colorField: 'tableName',
-      radius: 1,
-      label: {
-        type: 'outer',
-      },
-      tip: (libraryTipValue): string => {
-        return `<div>
+  private getLibraryTipValue(libraryTipValue: any): string {
+    return `<div>
                     <div>Library:${libraryTipValue.obj.libName}</div>
                     <div>Existing:${libraryTipValue.obj.existSizeFormat} 
                     (${libraryTipValue.obj.existSizePercent}%)</div>
@@ -542,6 +539,20 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
                     <div># Transient:${libraryTipValue.obj.releaseCount} 
                     (${libraryTipValue.obj.releaseCountPercent}%)</div>
                 </div>`;
+  }
+
+  private libraryPieChart(item?: any): void {
+    this.nmPieChart!.config = {
+      appendPadding: 0,
+      data: this.getPieChartData(this.soData),
+      angleField: 'existSize',
+      colorField: 'tableName',
+      radius: 1,
+      label: {
+        type: 'outer',
+      },
+      tip: (libraryTipValue): string => {
+        return this.getLibraryTipValue(libraryTipValue);
       },
       angleClick: (it): void => {
         // @ts-ignore
@@ -759,32 +770,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     let types = this.getTypes(item);
     let typeName = item.typeName;
     this.resetCurrentLevelData(item);
-
     for (let itemData of this.processData) {
       // @ts-ignore
-      if (typeName === TYPE_ALLOC_STRING) {
-        // @ts-ignore
-        if (!types.includes(itemData.type)) {
-          continue;
-        }
-      } else if (typeName === TYPE_MAP_STRING) {
-        if (!itemData.subType) {
-          // @ts-ignore
-          if (!types.includes(itemData.type)) {
-            continue;
-          }
-        } else {
-          continue;
-        }
-      } else {
-        if (itemData.subType) {
-          // @ts-ignore
-          if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
-            continue;
-          }
-        } else {
-          continue;
-        }
+      if (this.shouldSkipItem(typeName, types, itemData)) {
+        continue;
       }
       if (threadMap.has(itemData.tid)) {
         threadMap.get(itemData.tid)?.push(itemData);
@@ -818,6 +807,37 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.threadPieChart();
   }
 
+  private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: any): boolean {
+    if (typeName === TYPE_ALLOC_STRING) {
+      // @ts-ignore
+      return !types.includes(itemData.type);
+    } else if (typeName === TYPE_MAP_STRING) {
+      if (this.isStatistic) {
+        if (itemData.subType) {
+          // @ts-ignore
+          return !types.includes(itemData.subType) || !types.includes(itemData.type);
+        } else {
+          return true;
+        }
+      } else {
+        if (!itemData.subType) {
+          // @ts-ignore
+          return !types.includes(itemData.type);
+        } else {
+          return true;
+        }
+      }
+    } else {
+      if (itemData.subType) {
+        // @ts-ignore
+        return !types.includes(itemData.subType) || !types.includes(itemData.type);
+      } else {
+        return true;
+      }
+    }
+  }
+
+
   private getNMLibSize(item: any): void {
     this.progressEL!.loading = true;
     let typeId = item.typeId;
@@ -829,46 +849,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.soData = [];
     if (!this.processData) return;
     for (let itemData of this.processData) {
-      if (typeName === TYPE_ALLOC_STRING) {
-        // @ts-ignore
-        if (!types.includes(itemData.type)) {
-          continue;
-        }
-      } else if (typeName === TYPE_MAP_STRING) {
-        if (this.isStatistic) {
-          if (itemData.subType) {
-            // @ts-ignore
-            if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        } else {
-          if (!itemData.subType) {
-            // @ts-ignore
-            if (!types.includes(itemData.type)) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        }
-      } else {
-        if (itemData.subType) {
-          // @ts-ignore
-          if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
-            continue;
-          }
-        } else {
-          continue;
-        }
+      if (this.shouldSkipItem(typeName, types, itemData)) {
+        continue;
       }
       if (tid !== undefined && tid !== itemData.tid) {
         continue;
       }
       let libId = itemData.libId;
-
       if (libMap.has(libId)) {
         libMap.get(libId)?.push(itemData);
       } else {
@@ -896,11 +883,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       analysis.tableName = analysis.libName;
       this.soData.push(analysis);
     });
-    this.soData.sort((a, b) => b.existSize - a.existSize);
-    this.libStatisticsData = this.totalData(this.libStatisticsData);
-    this.currentLevel = 2;
+    this.baseSort(this.soData);
     this.libraryPieChart(item);
-    this.progressEL!.loading = false;
   }
 
   private getNMFunctionSize(item: any): void {
@@ -917,40 +901,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       return;
     }
     for (let data of this.processData) {
-      if (typeName === TYPE_ALLOC_STRING) {
-        // @ts-ignore
-        if (!types.includes(data.type) || data.libId !== libId) {
-          continue;
-        }
-      } else if (typeName === TYPE_MAP_STRING) {
-        if (this.isStatistic) {
-          if (data.subType) {
-            // @ts-ignore
-            if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        } else {
-          if (!data.subType) {
-            // @ts-ignore
-            if (!types.includes(data.type) || data.libId !== libId) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        }
-      } else {
-        if (data.subType) {
-          // @ts-ignore
-          if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-            continue;
-          }
-        } else {
-          continue;
-        }
+      if (this.shouldSkipItem(typeName, types, data)) {
+        continue;
       }
       if (tid !== undefined && tid !== data.tid) {
         continue;
@@ -963,7 +915,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         symbolMap.set(data.symbolId, dataArray);
       }
     }
-
     this.functionData = [];
     symbolMap.forEach((symbolItems, symbolId) => {
       let symbolPath = SpSystemTrace.DATA_DICT.get(symbolId)?.split('/');
@@ -982,12 +933,25 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       analysis.tableName = analysis.symbolName;
       this.functionData.push(analysis);
     });
-    this.functionData.sort((a, b) => b.existSize - a.existSize);
-    // @ts-ignore
-    this.functionStatisticsData = this.totalData(this.functionStatisticsData);
-    this.currentLevel = 3;
-    this.progressEL!.loading = false;
+    this.baseSort(this.functionData);
     this.functionPieChart();
+  }
+
+  private baseSort(data: Array<AnalysisObj>): void {
+    if (data === this.functionData) {
+      this.functionData.sort((a, b) => b.existSize - a.existSize);
+      // @ts-ignore
+      this.functionStatisticsData = this.totalData(this.functionStatisticsData);
+      this.currentLevel = 3;
+      this.progressEL!.loading = false;
+    }
+    ;
+    if (data === this.soData) {
+      this.soData.sort((a, b) => b.existSize - a.existSize);
+      this.libStatisticsData = this.totalData(this.libStatisticsData);
+      this.currentLevel = 2;
+      this.progressEL!.loading = false;
+    }
   }
 
   private getPieChartData(res: any[]): unknown[] {
@@ -1214,7 +1178,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     return total;
   }
 
-  private sortByColumn(): void {
+  private getNmCurrentTable(): LitTable | null | undefined {
     let nmCurrentTable: LitTable | null | undefined;
     switch (this.currentLevel) {
       case 0:
@@ -1230,127 +1194,154 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         nmCurrentTable = this.functionUsageTbl;
         break;
     }
+    return nmCurrentTable;
+  }
+
+  private getSortedColumnZeroArr(data: any[]): any[] {
+    let sortColumnZeroArr = [...data];
+    switch (this.currentLevel) {
+      case 0:
+        sortColumnZeroArr.unshift(this.typeStatisticsData);
+        break;
+      case 1:
+        sortColumnZeroArr.unshift(this.threadStatisticsData);
+        break;
+      case 2:
+        sortColumnZeroArr.unshift(this.libStatisticsData);
+        break;
+      case 3:
+        sortColumnZeroArr.unshift(this.functionStatisticsData);
+        break;
+    }
+    return sortColumnZeroArr;
+  }
+
+  private updateSortColumnArr(sortColumnArr: any[]): any[] {
+    switch (this.currentLevel) {
+      case 0:
+        sortColumnArr.unshift(this.typeStatisticsData);
+        break;
+      case 1:
+        sortColumnArr.unshift(this.threadStatisticsData);
+        break;
+      case 2:
+        sortColumnArr.unshift(this.libStatisticsData);
+        break;
+      case 3:
+        sortColumnArr.unshift(this.functionStatisticsData);
+        break;
+    }
+    return sortColumnArr;
+  }
+
+
+  private caseTableName(statisticAnalysisLeftData: { tableName: number; }, statisticAnalysisRightData: { tableName: number; }): number {
+    if (this.nmSortType === 1) {
+      if (statisticAnalysisLeftData.tableName > statisticAnalysisRightData.tableName) {
+        return 1;
+      } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } else {
+      if (statisticAnalysisRightData.tableName > statisticAnalysisLeftData.tableName) {
+        return 1;
+      } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
+        return 0;
+      } else {
+        return -1;
+      }
+    }
+  }
+
+  private sortDataByExistSize(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize
+        : statisticAnalysisRightData.existSize - statisticAnalysisLeftData.existSize;
+    });
+  }
+
+  private sortDataByExistCount(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount
+        : statisticAnalysisRightData.existCount - statisticAnalysisLeftData.existCount;
+    });
+  }
+
+  private sortDataByReleaseSize(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize
+        : statisticAnalysisRightData.releaseSize - statisticAnalysisLeftData.releaseSize;
+    });
+  }
+
+  private sortDataByReleaseCount(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount
+        : statisticAnalysisRightData.releaseCount - statisticAnalysisLeftData.releaseCount;
+    });
+  }
+
+  private sortDataByApplySize(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize
+        : statisticAnalysisRightData.applySize - statisticAnalysisLeftData.applySize;
+    });
+  }
+
+  private sortDataByApplyCount(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount
+        : statisticAnalysisRightData.applyCount - statisticAnalysisLeftData.applyCount;
+    });
+  }
+
+  private sortByColumn(): void {
+    let nmCurrentTable = this.getNmCurrentTable();
     if (!nmCurrentTable) {
       return;
     }
     if (this.nmSortType === 0) {
-      let sortColumnZeroArr = [...this.currentLevelData];
-      switch (this.currentLevel) {
-        case 0:
-          sortColumnZeroArr.unshift(this.typeStatisticsData);
-          break;
-        case 1:
-          sortColumnZeroArr.unshift(this.threadStatisticsData);
-          break;
-        case 2:
-          sortColumnZeroArr.unshift(this.libStatisticsData);
-          break;
-        case 3:
-          sortColumnZeroArr.unshift(this.functionStatisticsData);
-          break;
-      }
-      nmCurrentTable!.recycleDataSource = sortColumnZeroArr;
+      nmCurrentTable!.recycleDataSource = this.getSortedColumnZeroArr(this.currentLevelData);
     } else {
       let sortColumnArr = [...this.currentLevelData];
       switch (this.nmSortColumn) {
         case 'tableName':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              if (this.nmSortType === 1) {
-                if (statisticAnalysisLeftData.tableName > statisticAnalysisRightData.tableName) {
-                  return 1;
-                } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
-                  return 0;
-                } else {
-                  return -1;
-                }
-              } else {
-                if (statisticAnalysisRightData.tableName > statisticAnalysisLeftData.tableName) {
-                  return 1;
-                } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
-                  return 0;
-                } else {
-                  return -1;
-                }
-              }
-            }
-          );
+          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(this.caseTableName);
           break;
         case 'existSizeFormat':
         case 'existSizePercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize
-                : statisticAnalysisRightData.existSize - statisticAnalysisLeftData.existSize;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByExistSize(this.nmSortType, sortColumnArr);
           break;
         case 'existCount':
         case 'existCountPercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount
-                : statisticAnalysisRightData.existCount - statisticAnalysisLeftData.existCount;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByExistCount(this.nmSortType, sortColumnArr);
           break;
         case 'releaseSizeFormat':
         case 'releaseSizePercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize
-                : statisticAnalysisRightData.releaseSize - statisticAnalysisLeftData.releaseSize;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByReleaseSize(this.nmSortType, sortColumnArr);
           break;
         case 'releaseCount':
         case 'releaseCountPercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount
-                : statisticAnalysisRightData.releaseCount - statisticAnalysisLeftData.releaseCount;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByReleaseCount(this.nmSortType, sortColumnArr);
           break;
         case 'applySizeFormat':
         case 'applySizePercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize
-                : statisticAnalysisRightData.applySize - statisticAnalysisLeftData.applySize;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByApplySize(this.nmSortType, sortColumnArr);
           break;
         case 'applyCount':
         case 'applyCountPercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount
-                : statisticAnalysisRightData.applyCount - statisticAnalysisLeftData.applyCount;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByApplyCount(this.nmSortType, sortColumnArr);
           break;
       }
-      switch (this.currentLevel) {
-        case 0:
-          sortColumnArr.unshift(this.typeStatisticsData);
-          break;
-        case 1:
-          sortColumnArr.unshift(this.threadStatisticsData);
-          break;
-        case 2:
-          sortColumnArr.unshift(this.libStatisticsData);
-          break;
-        case 3:
-          sortColumnArr.unshift(this.functionStatisticsData);
-          break;
-      }
+      sortColumnArr = this.updateSortColumnArr(sortColumnArr);
       nmCurrentTable!.recycleDataSource = sortColumnArr;
     }
   }

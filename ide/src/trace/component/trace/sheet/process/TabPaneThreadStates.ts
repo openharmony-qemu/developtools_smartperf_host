@@ -73,27 +73,23 @@ export class TabPaneThreadStates extends BaseElement {
     this.addSumLine(threadStatesParam, targetListTemp);
   }
 
-  updateThreadStates(
-    threadStatesDetail: Array<any>,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Array<SelectionData> {
+  updateThreadStates(threadStatDetail: Array<any>, leftNs: number, rightNs: number): Array<SelectionData> {
     let targetListTemp: any[] = [];
-    if (threadStatesDetail.length > 0) {
+    if (threadStatDetail.length > 0) {
       let durExceptionDataMap: Map<string, any> = new Map<string, any>();
       let source: Map<string, any> = new Map<string, any>();
-      let target = threadStatesDetail.reduce((map, current) => {
+      let target = threadStatDetail.reduce((map, current) => {
         let mapKey = `${current.pid}-${current.tid}`;
         let key = `${current.state}-${mapKey}`;
         if (durExceptionDataMap.has(mapKey)) {
           // 如果某线程中间有dur 为 -1的数据，则重新计算dur值，并给统计的值加上重新计算的dur
           let pre = durExceptionDataMap.get(mapKey);
           pre.dur = current.ts - pre.ts;
-          if (pre.ts < leftStartNs && pre.dur > 0) {
-            pre.dur = pre.dur - (leftStartNs - pre.ts);
+          if (pre.ts < leftNs && pre.dur > 0) {
+            pre.dur = pre.dur - (leftNs - pre.ts);
           }
-          if (pre.ts + pre.dur > rightEndNs && pre.dur > 0) {
-            pre.dur = pre.dur - (pre.ts + pre.dur - rightEndNs);
+          if (pre.ts + pre.dur > rightNs && pre.dur > 0) {
+            pre.dur = pre.dur - (pre.ts + pre.dur - rightNs);
           }
           map.get(`${pre.state}-${mapKey}`).wallDuration += pre.dur;
           durExceptionDataMap['delete'](mapKey);
@@ -103,11 +99,11 @@ export class TabPaneThreadStates extends BaseElement {
           current.dur = 0;
           durExceptionDataMap.set(mapKey, current);
         } else {
-          if (current.ts < leftStartNs && current.dur > 0) {
-            current.dur = current.dur - (leftStartNs - current.ts);
+          if (current.ts < leftNs && current.dur > 0) {
+            current.dur = current.dur - (leftNs - current.ts);
           }
-          if (current.ts + current.dur > rightEndNs && current.dur > 0) {
-            current.dur = current.dur - (current.ts + current.dur - rightEndNs);
+          if (current.ts + current.dur > rightNs && current.dur > 0) {
+            current.dur = current.dur - (current.ts + current.dur - rightNs);
           }
         }
         if (map.has(key)) {
@@ -125,26 +121,37 @@ export class TabPaneThreadStates extends BaseElement {
         }
         return map;
       }, source);
-      // 通过上面循环之后，durExceptionDataMap 中的值即为 该线程 在框选时间内最后一条数据且dur 为-1，需要根据框选的时间把dur计算出来加上，
-      let arr = Array.from(durExceptionDataMap.values());
-      for (let item of arr) {
-        let key = `${item.state}-${item.pid}-${item.tid}`;
-        if (target.has(key)) {
-          target.get(key).wallDuration += (rightEndNs - Math.max(item.ts, leftStartNs));
-        } else {
-          target.set(key, {
-            pid: item.pid,
-            tid: item.tid,
-            state: item.state,
-            wallDuration: rightEndNs - Math.max(item.ts, leftStartNs),
-            avgDuration: 0,
-            occurrences: 1
-          });
-        }
-      }
-      durExceptionDataMap.clear();
-      targetListTemp = Array.from(target.values());
+      targetListTemp = this.updateThreadStatesExtend(durExceptionDataMap, target, leftNs, rightNs, targetListTemp);
     }
+    return targetListTemp;
+  }
+
+  private updateThreadStatesExtend(
+    durExceptionDataMap: Map<string, any>,
+    target: any,
+    leftNs: number,
+    rightNs: number,
+    targetListTemp: any[]
+  ): any[] {
+    // 通过上面循环之后，durExceptionDataMap 中的值即为 该线程 在框选时间内最后一条数据且dur 为-1，需要根据框选的时间把dur计算出来加上，
+    let arr = Array.from(durExceptionDataMap.values());
+    for (let item of arr) {
+      let key = `${item.state}-${item.pid}-${item.tid}`;
+      if (target.has(key)) {
+        target.get(key).wallDuration += (rightNs - Math.max(item.ts, leftNs));
+      } else {
+        target.set(key, {
+          pid: item.pid,
+          tid: item.tid,
+          state: item.state,
+          wallDuration: rightNs - Math.max(item.ts, leftNs),
+          avgDuration: 0,
+          occurrences: 1
+        });
+      }
+    }
+    durExceptionDataMap.clear();
+    targetListTemp = Array.from(target.values());
     return targetListTemp;
   }
 

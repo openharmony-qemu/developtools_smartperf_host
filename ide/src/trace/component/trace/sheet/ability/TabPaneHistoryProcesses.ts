@@ -30,9 +30,11 @@ export class TabPaneHistoryProcesses extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(historyProcessValue: SelectionParam | any) {
-    // @ts-ignore
-    this.historyProcessTbl?.shadowRoot.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 45 + 'px';
+    if (this.historyProcessTbl) {
+      // @ts-ignore
+      this.historyProcessTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(historyProcessValue);
   }
 

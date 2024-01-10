@@ -91,14 +91,28 @@ public:
     }
 
 private:
+    void ProcSymbolTable(uint32_t ipid, uint32_t filePathId, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     void FilterNativeHookMainEvent(size_t num);
     void ParseStatisticEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
     template <class T1, class T2>
     void UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value);
     void ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
     void ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void SetFreeEventCallChainId(uint32_t& callChainId,
+                                 uint32_t ipid,
+                                 uint32_t itid,
+                                 const ProtoReader::FreeEvent_Reader& freeEventReader);
     void ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void SetMmapEventCallChainId(uint32_t& callChainId,
+                                 uint32_t ipid,
+                                 uint32_t itid,
+                                 const ProtoReader::MmapEvent_Reader& mMapEventReader);
     void ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void SetMunmapEventCallChainId(uint32_t& callChainId,
+                                   uint32_t ipid,
+                                   uint32_t itid,
+                                   const ProtoReader::MunmapEvent_Reader& mUnmapEventReader);
+
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();

@@ -750,7 +750,7 @@ HWTEST_F(TableTest, MeasureFilterTableTest, TestSize.Level1)
     uint32_t nameIndex = stream_.traceDataCache_->GetDataIndex("name");
     uint64_t internalTid = 1;
 
-    stream_.traceDataCache_->GetThreadMeasureFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
+    stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 0);
 }
@@ -1064,7 +1064,7 @@ HWTEST_F(TableTest, ProcessFilterTableTest, TestSize.Level1)
     DataIndex name = stream_.traceDataCache_->GetDataIndex("name");
     uint32_t internalPid = 1;
 
-    stream_.traceDataCache_->GetProcessFilterData()->AppendNewFilter(id, name, internalPid);
+    stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(id, name, internalPid);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }
@@ -1130,20 +1130,18 @@ HWTEST_F(TableTest, RawTableTest, TestSize.Level1)
     std::string sqlSelect2 = "select * from raw where name = \"sched_waking\"";
     std::string sqlSelect3 = "select * from raw where ts = 1663869124160";
     std::string sqlSelect4 = "select * from raw where itid < 2";
-    uint32_t id = 1;
     uint64_t timeStamp = 1663869124160;
     uint32_t name = stream_.traceDataCache_->GetDataIndex("cpu_idle");
     uint32_t cpu = 1;
     uint32_t internalTid = 1;
 
-    uint32_t id1 = 2;
     uint64_t timestamp1 = 1663869224160;
     uint32_t name1 = stream_.traceDataCache_->GetDataIndex("sched_waking");
     uint32_t cpu1 = 2;
     uint32_t internalTid1 = 2;
 
-    stream_.traceDataCache_->GetRawData()->AppendRawData(id, timeStamp, name, cpu, internalTid);
-    stream_.traceDataCache_->GetRawData()->AppendRawData(id1, timestamp1, name1, cpu1, internalTid1);
+    stream_.traceDataCache_->GetRawData()->AppendRawData(timeStamp, name, cpu, internalTid);
+    stream_.traceDataCache_->GetRawData()->AppendRawData(timestamp1, name1, cpu1, internalTid1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
@@ -1254,8 +1252,8 @@ HWTEST_F(TableTest, SymbolsTableTest, TestSize.Level1)
     const DataIndex& name1 = stream_.traceDataCache_->GetDataIndex("name1");
     const uint64_t& addr1 = 2;
 
-    stream_.traceDataCache_->GetSymbolsData()->InsertSymbol(name, addr);
-    stream_.traceDataCache_->GetSymbolsData()->InsertSymbol(name1, addr1);
+    stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(addr, name);
+    stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(addr1, name1);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 2);
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
@@ -1363,7 +1361,7 @@ HWTEST_F(TableTest, ThreadFilterTableTest, TestSize.Level1)
     uint32_t nameIndex = stream_.traceDataCache_->GetDataIndex("name");
     uint64_t internalTid = 1;
 
-    stream_.traceDataCache_->GetThreadFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
+    stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
     EXPECT_EQ(row, 1);
 }

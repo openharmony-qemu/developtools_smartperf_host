@@ -13,13 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  Rect,
-  Render,
-  isFrameContainPoint,
-  ns2x,
-  drawLoadingFrame,
-} from './ProcedureWorkerCommon';
+import { Rect, Render, isFrameContainPoint, ns2x, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
 export class NativeMemoryRender extends Render {
@@ -85,8 +79,8 @@ export function heap(
   if (use && res.length > 0) {
     for (let i = 0; i < res.length; i++) {
       let it = res[i];
-      if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) <= (endNS || 0)) {
-        HeapStruct.setFrame(res[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) <= endNS) {
+        HeapStruct.setFrame(res[i], 5, startNS, endNS, totalNS, frame);
       } else {
         res[i].frame = null;
       }
@@ -96,8 +90,8 @@ export function heap(
   res.length = 0;
   for (let i = 0, len = heapList.length; i < len; i++) {
     let it = heapList[i];
-    if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) <= (endNS || 0)) {
-      HeapStruct.setFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+    if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) <= endNS) {
+      HeapStruct.setFrame(it, 5, startNS, endNS, totalNS, frame);
       if (i > 0) {
         let last = heapList[i - 1];
         if (last.frame?.x != it.frame.x || last.frame.width != it.frame.width) {

@@ -19,7 +19,7 @@
 #include <cstdio>
 #include <emscripten.h>
 #include <string>
-#include "rpc_server.h"
+#include "demo_rpc_server.h"
 #include "trace_streamer/trace_streamer_selector.h"
 
 namespace SysTuning {

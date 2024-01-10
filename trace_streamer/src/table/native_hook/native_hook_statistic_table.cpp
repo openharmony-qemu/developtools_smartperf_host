@@ -96,11 +96,11 @@ int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sq
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto nativeHookStatisticCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(nativeHookStatisticCs, sId);
+    for (size_t i = 0; i < nativeHookStatisticCs.size(); i++) {
+        const auto& c = nativeHookStatisticCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -114,12 +114,12 @@ int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sq
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto nativeHookStatisticOrderbys = fc.GetOrderBys();
+    for (auto i = nativeHookStatisticOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(nativeHookStatisticOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(nativeHookStatisticOrderbys[i].desc);
                 break;
             default:
                 break;

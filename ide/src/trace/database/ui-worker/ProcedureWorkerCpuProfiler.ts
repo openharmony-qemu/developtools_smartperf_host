@@ -49,34 +49,41 @@ export class JsCpuProfilerRender extends Render {
     let jsCpuProfilerFind = false;
     for (let re of filter) {
       JsCpuProfilerStruct.draw(req.context, re);
-      if (jsCpuProfilerRow.isHover) {
-        if (
-          re.endTime - re.startTime === 0 ||
-          re.endTime - re.startTime == null ||
-          re.endTime - re.startTime === undefined
-        ) {
-          if (
-            re.frame &&
-            jsCpuProfilerRow.hoverX >= re.frame.x - 5 &&
-            jsCpuProfilerRow.hoverX <= re.frame.x + 5 &&
-            jsCpuProfilerRow.hoverY >= re.frame.y &&
-            jsCpuProfilerRow.hoverY <= re.frame.y + re.frame.height
-          ) {
-            JsCpuProfilerStruct.hoverJsCpuProfilerStruct = re;
-            jsCpuProfilerFind = true;
-          }
-        } else {
-          if (re.frame && isFrameContainPoint(re.frame, jsCpuProfilerRow.hoverX, jsCpuProfilerRow.hoverY)) {
-            JsCpuProfilerStruct.hoverJsCpuProfilerStruct = re;
-            jsCpuProfilerFind = true;
-          }
-        }
-      }
+      setHoveStruct(jsCpuProfilerRow, re, jsCpuProfilerFind);
     }
     if (!jsCpuProfilerFind && jsCpuProfilerRow.isHover) {
       JsCpuProfilerStruct.hoverJsCpuProfilerStruct = undefined;
     }
     req.context.closePath();
+  }
+}
+function setHoveStruct(
+  jsCpuProfilerRow: TraceRow<JsCpuProfilerStruct>,
+  re: JsCpuProfilerStruct,
+  jsCpuProfilerFind: boolean
+) {
+  if (jsCpuProfilerRow.isHover) {
+    if (
+      re.endTime - re.startTime === 0 ||
+      re.endTime - re.startTime == null ||
+      re.endTime - re.startTime === undefined
+    ) {
+      if (
+        re.frame &&
+        jsCpuProfilerRow.hoverX >= re.frame.x - 5 &&
+        jsCpuProfilerRow.hoverX <= re.frame.x + 5 &&
+        jsCpuProfilerRow.hoverY >= re.frame.y &&
+        jsCpuProfilerRow.hoverY <= re.frame.y + re.frame.height
+      ) {
+        JsCpuProfilerStruct.hoverJsCpuProfilerStruct = re;
+        jsCpuProfilerFind = true;
+      }
+    } else {
+      if (re.frame && isFrameContainPoint(re.frame, jsCpuProfilerRow.hoverX, jsCpuProfilerRow.hoverY)) {
+        JsCpuProfilerStruct.hoverJsCpuProfilerStruct = re;
+        jsCpuProfilerFind = true;
+      }
+    }
   }
 }
 export function jsCpuProfiler(

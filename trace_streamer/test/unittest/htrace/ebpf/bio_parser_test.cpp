@@ -173,7 +173,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithOneCallback, TestSize.Level1
 
     const uint64_t ips[1] = {IPS_01};
     dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
@@ -221,7 +221,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithMultipleCallback, TestSize.L
 
     const uint64_t ips[2] = {IPS_01, IPS_02};
     dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));

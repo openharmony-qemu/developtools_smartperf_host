@@ -182,7 +182,7 @@ HWTEST_F(SliceFilterTest, SliceTestWithMultiNestedCall, TestSize.Level1)
     EXPECT_TRUE(slices->Depths()[2] == 1);
     EXPECT_TRUE(slices->DursData()[3] == TS_11 - TS_04); // slice 3
     EXPECT_TRUE(slices->Depths()[3] == 1);
-    EXPECT_TRUE(slices->DursData()[4] == TS_07 - TS_05);  // slice 4
+    EXPECT_TRUE(slices->DursData()[4] == TS_07 - TS_05); // slice 4
     EXPECT_TRUE(slices->DursData()[5] == TS_10 - TS_06); // slice 5
 }
 

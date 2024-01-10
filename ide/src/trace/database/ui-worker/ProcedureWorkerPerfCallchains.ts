@@ -14,9 +14,9 @@
  */
 
 class PerfCallChainThread {
-  busy: boolean = false;
   taskMap: any = {};
   worker?: Worker;
+  busy: boolean = false;
 
   constructor(worker: Worker) {
     this.worker = worker;

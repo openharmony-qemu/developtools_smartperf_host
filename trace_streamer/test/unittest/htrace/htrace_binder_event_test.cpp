@@ -37,17 +37,17 @@ public:
 
     void TearDown() {}
 
-    std::string SetBinderTransactionFormat()
+    std::string SetBinderTransactionFormat(uint32_t flags = 0x02, bool isReply = false)
     {
         const int64_t ts1 = 100;
         const int32_t destTgid1 = 2;
         const int32_t destTid1 = 3;
-        const uint32_t flags = 0x02; // if need reply  bool needReply = !isReply && !(flags & noReturnMsgFlag_); 0x01
         BinderTransactionFormat* binderEvent = new BinderTransactionFormat();
         binderEvent->set_to_proc(destTgid1);
         binderEvent->set_target_node(1);
         binderEvent->set_to_thread(destTid1);
         binderEvent->set_debug_id(1);
+        binderEvent->set_reply(static_cast<int32_t>(isReply));
         binderEvent->set_flags(flags);
         TracePluginResult tracePacket;
         FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
@@ -62,11 +62,11 @@ public:
         return cpuDetailStrMsg;
     }
 
-    std::string SetBinderTransactionReceivedFormat()
+    std::string SetBinderTransactionReceivedFormat(uint64_t transactionId = 1)
     {
         const int64_t ts1 = 200;
         BinderTransactionReceivedFormat* binderReceivedEvent = new BinderTransactionReceivedFormat();
-        binderReceivedEvent->set_debug_id(1);
+        binderReceivedEvent->set_debug_id(transactionId);
         TracePluginResult tracePacket;
         FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
         auto ftraceEvent = ftraceCpuDetail->add_event();
@@ -118,8 +118,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReply, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -145,8 +145,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -161,8 +161,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetBinderTransactionReceivedFormat();
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                               cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+                                               dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
     eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
@@ -186,8 +186,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -202,8 +202,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetBinderTransactionAllocBufFormat();
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                               cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+                                               dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
     eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
@@ -214,8 +214,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
     dataSeg3.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetBinderTransactionReceivedFormat();
     dataSeg3.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView3(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                               cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView3(reinterpret_cast<const uint8_t*>(dataSeg3.seg->data()),
+                                               dataSeg3.seg->size());
     dataSeg3.protoData = cpuDetailBytesView3;
     ProtoReader::TracePluginResult_Reader tracePluginResult3(dataSeg3.protoData);
     eventParser.ParseDataItem(dataSeg3, tracePluginResult3, haveSplit);
@@ -240,8 +240,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, T
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
     bool isSplit = false;
     ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
@@ -251,10 +251,10 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, T
 
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    cpuDetailStrMsg = SetBinderTransactionReceivedFormat();
+    cpuDetailStrMsg = SetBinderTransactionReceivedFormat(2);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                               cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+                                               dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
     eventParser.ParseDataItem(dataSeg2, tracePluginResult2, isSplit);
@@ -276,8 +276,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -301,8 +301,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -316,15 +316,15 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
     cpuDetailStrMsg = SetBinderTransactionReceivedFormat();
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                               cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+                                               dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
     eventParser.ParseDataItem(dataSeg2, tracePluginResult2, isSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 2);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 0);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 1);
 }
 
 /**
@@ -340,8 +340,8 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch,
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
     std::string cpuDetailStrMsg = SetBinderTransactionFormat();
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -353,10 +353,10 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch,
 
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    cpuDetailStrMsg = SetBinderTransactionReceivedFormat();
+    cpuDetailStrMsg = SetBinderTransactionReceivedFormat(2);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                               cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(dataSeg2.seg->data()),
+                                               dataSeg2.seg->size());
     dataSeg2.protoData = cpuDetailBytesView2;
     ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
     eventParser.ParseDataItem(dataSeg2, tracePluginResult2, isSplit);
@@ -376,10 +376,10 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterWrongReply, TestSize.Level1)
 
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = SetBinderTransactionFormat();
+    std::string cpuDetailStrMsg = SetBinderTransactionFormat(0x01, true);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());

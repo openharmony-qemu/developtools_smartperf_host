@@ -13,18 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawWakeUp,
-  Render,
-  RequestMessage,
-  BaseStruct,
-  isFrameContainPoint,
-  ns2x,
-  drawSelection,
-} from './ProcedureWorkerCommon';
+import { Render, BaseStruct, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class SdkSliceRender extends Render {
@@ -78,8 +67,8 @@ export class SdkSliceRender extends Render {
     if (use && sdkSliceFilters.length > 0) {
       for (let index = 0; index < sdkSliceFilters.length; index++) {
         let item = sdkSliceFilters[index];
-        if ((item.end_ts || 0) > (startNS || 0) && (item.start_ts || 0) < (endNS || 0)) {
-          SdkSliceStruct.setSdkSliceFrame(sdkSliceFilters[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
+          SdkSliceStruct.setSdkSliceFrame(sdkSliceFilters[index], 5, startNS, endNS, totalNS, frame);
         } else {
           sdkSliceFilters[index].frame = null;
         }
@@ -87,22 +76,32 @@ export class SdkSliceRender extends Render {
       return;
     }
     sdkSliceFilters.length = 0;
-    if (sdkList) {
-      for (let index = 0; index < sdkList.length; index++) {
-        let item = sdkList[index];
-        if (item.start_ts >= startNS && item.end_ts == 0) {
-          item.end_ts = endNS;
-        }
-        if ((item.end_ts || 0) > (startNS || 0) && (item.start_ts || 0) < (endNS || 0)) {
-          SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-          if (
-            index > 0 &&
-            (sdkList[index - 1].frame?.x || 0) == (sdkList[index].frame?.x || 0) &&
-            (sdkList[index - 1].frame?.width || 0) == (sdkList[index].frame?.width || 0)
-          ) {
-          } else {
-            sdkSliceFilters.push(item);
-          }
+    setSdkSliceFilter(sdkList, sdkSliceFilters, startNS, endNS, totalNS, frame);
+  }
+}
+function setSdkSliceFilter(
+  sdkList: Array<any>,
+  sdkSliceFilters: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any
+) {
+  if (sdkList) {
+    for (let index = 0; index < sdkList.length; index++) {
+      let item = sdkList[index];
+      if (item.start_ts >= startNS && item.end_ts === 0) {
+        item.end_ts = endNS;
+      }
+      if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
+        SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS, endNS, totalNS, frame);
+        if (
+          index > 0 &&
+          (sdkList[index - 1].frame?.x || 0) === (sdkList[index].frame?.x || 0) &&
+          (sdkList[index - 1].frame?.width || 0) === (sdkList[index].frame?.width || 0)
+        ) {
+        } else {
+          sdkSliceFilters.push(item);
         }
       }
     }

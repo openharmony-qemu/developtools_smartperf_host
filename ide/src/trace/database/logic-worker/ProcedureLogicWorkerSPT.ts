@@ -203,8 +203,8 @@ from thread_state,trace_range where dur > 0 and (ts - start_ts) >= 0;
     return {
       title: `T-${slice.tid}`,
       count: 1,
-      pid: slice.pid,
       tid: slice.tid,
+      pid: slice.pid,
       minDuration: slice.dur || 0,
       maxDuration: slice.dur || 0,
       wallDuration: slice.dur || 0,

@@ -83,8 +83,8 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -117,8 +117,8 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -164,8 +164,8 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -207,8 +207,8 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -251,8 +251,8 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -295,8 +295,8 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -339,8 +339,8 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -381,8 +381,8 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -423,8 +423,8 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -467,8 +467,8 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -508,8 +508,8 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -551,8 +551,8 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -594,8 +594,8 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -637,8 +637,8 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -678,8 +678,8 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -719,8 +719,8 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -761,8 +761,8 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -802,8 +802,8 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -843,8 +843,8 @@ HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());

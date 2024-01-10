@@ -13,30 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef TRACE_DATA_CACHE_READER_H
-#define TRACE_DATA_CACHE_READER_H
-
+#include "demo_trace_data_cache_reader.h"
 #include "log.h"
-#include "trace_data_cache_base.h"
-#include "trace_stdtype.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
-class TraceDataCacheReader : virtual public TraceDataCacheBase {
-public:
-    TraceDataCacheReader() = default;
-    TraceDataCacheReader(const TraceDataCacheReader&) = delete;
-    TraceDataCacheReader& operator=(const TraceDataCacheReader&) = delete;
-    ~TraceDataCacheReader() override;
+DemoTraceDataCacheReader::~DemoTraceDataCacheReader() {}
 
-public:
-    const GpuCounter& GetConstGpuCounterData() const;
-    const GpuCounterObject& GetConstGpuCounterObjectData() const;
-    const SliceObject& GetConstSliceObjectData() const;
-    const SliceData& GetConstSliceData() const;
-    const MetaData& GetConstMetaData() const;
-};
+const GpuCounter& DemoTraceDataCacheReader::GetConstGpuCounterData() const
+{
+    return gpuCounter_;
+}
+const GpuCounterObject& DemoTraceDataCacheReader::GetConstGpuCounterObjectData() const
+{
+    return gpuCounterObject_;
+}
+const SliceObject& DemoTraceDataCacheReader::GetConstSliceObjectData() const
+{
+    return sliceObject_;
+}
+const SliceData& DemoTraceDataCacheReader::GetConstSliceData() const
+{
+    return sliceData_;
+}
+const MetaData& DemoTraceDataCacheReader::GetConstMetaData() const
+{
+    return metaData_;
+}
 } // namespace TraceStreamer
 } // namespace SysTuning
-#endif

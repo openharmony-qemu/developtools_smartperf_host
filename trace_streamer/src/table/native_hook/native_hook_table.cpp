@@ -102,11 +102,11 @@ int32_t NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto nativeHookCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(nativeHookCs, sId);
+    for (size_t i = 0; i < nativeHookCs.size(); i++) {
+        const auto& c = nativeHookCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -127,12 +127,12 @@ int32_t NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto nativeHookOrderbys = fc.GetOrderBys();
+    for (auto i = nativeHookOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(nativeHookOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(nativeHookOrderbys[i].desc);
                 break;
             default:
                 break;

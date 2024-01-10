@@ -258,6 +258,7 @@ void DataType::UpdateNewDataType(BaseDataType dataType, DataIndex dataDescIndex)
     if (typeToDesc_.count(dataType) == 0) {
         dataTypes_.emplace_back(dataType);
         descs_.emplace_back(dataDescIndex);
+        typeToDesc_.insert({dataType, dataDescIndex});
     }
 }
 const std::deque<BaseDataType>& DataType::DataTypes() const

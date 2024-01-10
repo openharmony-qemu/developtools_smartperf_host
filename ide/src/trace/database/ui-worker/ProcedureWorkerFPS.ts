@@ -13,18 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  BaseStruct,
-  drawFlagLine,
-  drawLoading,
-  drawSelection,
-  isFrameContainPoint,
-  ns2x,
-  drawLines,
-  Rect,
-  Render,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, isFrameContainPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class FpsRender extends Render {
@@ -41,9 +30,9 @@ export class FpsRender extends Render {
     fps(
       fpsList,
       fpsFilter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.startNS || 0,
+      TraceRow.range!.endNS || 0,
+      TraceRow.range!.totalNS || 0,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -92,22 +81,26 @@ export function fps(
         FpsStruct.maxFps = it.fps || 0;
       }
       if (i === list.length - 1) {
-        it.dur = (endNS || 0) - (it.startNS || 0);
+        it.dur = endNS - (it.startNS || 0);
       } else {
         it.dur = (list[i + 1].startNS || 0) - (it.startNS || 0);
       }
       if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
         FpsStruct.setFrame(list[i], 5, startNS, endNS, totalNS, frame);
-        if (
-          i > 0 &&
-          (list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) &&
-          (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)
-        ) {
-        } else {
-          res.push(list[i]);
-        }
+        setFPSFilter(list, i, res);
       }
     }
+  }
+}
+
+function setFPSFilter(list: Array<any>, i: number, res: Array<any>) {
+  if (
+    i > 0 &&
+    (list[i - 1].frame?.x || 0) === (list[i].frame?.x || 0) &&
+    (list[i - 1].frame?.width || 0) === (list[i].frame?.width || 0)
+  ) {
+  } else {
+    res.push(list[i]);
   }
 }
 

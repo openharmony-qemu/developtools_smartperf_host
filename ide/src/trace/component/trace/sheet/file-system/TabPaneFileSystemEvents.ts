@@ -49,12 +49,16 @@ export class TabPaneFileSystemEvents extends BaseElement {
       return;
     }
     this.currentSelection = fsSysEventSelection;
-    // @ts-ignore
-    this.fsSysEventTbl?.shadowRoot.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 - 31 + 'px';
-    // @ts-ignore
-    this.fsSysEventTblData?.shadowRoot.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 - 31 + 'px';
+    if (this.fsSysEventTbl) {
+      // @ts-ignore
+      this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 20 - 31 + 'px';
+    }
+    if (this.fsSysEventTblData) {
+      // @ts-ignore
+      this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 20 - 31 + 'px';
+    }
     this.filterEventType = '0';
     this.filterProcess = '0';
     this.queryData(fsSysEventSelection);
@@ -218,14 +222,18 @@ export class TabPaneFileSystemEvents extends BaseElement {
     super.connectedCallback();
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.fsSysEventTbl?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 33 + 'px';
-        this.fsSysEventTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.fsSysEventTblData?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 33 + 'px';
-        this.fsSysEventTblData?.reMeauseHeight();
+        if (this.fsSysEventTbl) {
+          // @ts-ignore
+          this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 10 - 33 + 'px';
+          this.fsSysEventTbl.reMeauseHeight();
+        }
+        if (this.fsSysEventTblData) {
+          // @ts-ignore
+          this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 10 - 33 + 'px';
+          this.fsSysEventTblData.reMeauseHeight();
+        }
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -238,60 +246,64 @@ export class TabPaneFileSystemEvents extends BaseElement {
       let arr = Array.from(this.fsSysEventFilterSource);
       arr.sort((fsEventA, fsEventB): number => {
         if (key == 'startTsStr') {
-          if (type == 1) {
-            return fsEventA.startTs - fsEventB.startTs;
-          } else {
-            return fsEventB.startTs - fsEventA.startTs;
-          }
+          return (type === 1) ? (fsEventA.startTs - fsEventB.startTs) : (fsEventB.startTs - fsEventA.startTs);
         } else if (key == 'durStr') {
-          if (type == 1) {
-            return fsEventA.dur - fsEventB.dur;
-          } else {
-            return fsEventB.dur - fsEventA.dur;
-          }
+          return (type === 1) ? (fsEventA.dur - fsEventB.dur) : (fsEventB.dur - fsEventA.dur);
         } else if (key == 'process') {
-          if (fsEventA.process > fsEventB.process) {
-            return type === 2 ? 1 : -1;
-          } else if (fsEventA.process == fsEventB.process) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
+          return this.sortProcessCase(fsEventA, fsEventB, type);
         } else if (key == 'thread') {
-          if (fsEventA.thread > fsEventB.thread) {
-            return type === 2 ? 1 : -1;
-          } else if (fsEventA.thread == fsEventB.thread) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
+          return this.sortThreadCase(fsEventA, fsEventB, type);
         } else if (key == 'typeStr') {
-          if (fsEventA.typeStr > fsEventB.typeStr) {
-            return type === 2 ? 1 : -1;
-          } else if (fsEventA.typeStr == fsEventB.typeStr) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
+          return this.sortTypeCase(fsEventA, fsEventB, type);
         } else if (key == 'fd') {
-          if (type == 1) {
-            return (fsEventA.fd || 0) - (fsEventB.fd || 0);
-          } else {
-            return (fsEventB.fd || 0) - (fsEventA.fd || 0);
-          }
+          return (type === 1) ? ((fsEventA.fd || 0) - (fsEventB.fd || 0)) : ((fsEventB.fd || 0) - (fsEventA.fd || 0));
         } else if (key == 'path') {
-          if (fsEventA.path > fsEventB.path) {
-            return type === 2 ? 1 : -1;
-          } else if (fsEventA.path == fsEventB.path) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
+          return this.sortPathCase(fsEventA, fsEventB, type);
         } else {
           return 0;
         }
       });
       this.fsSysEventTbl!.recycleDataSource = arr;
+    }
+  }
+
+  private sortPathCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
+    if (fsEventA.path > fsEventB.path) {
+      return type === 2 ? 1 : -1;
+    } else if (fsEventA.path == fsEventB.path) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  private sortTypeCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
+    if (fsEventA.typeStr > fsEventB.typeStr) {
+      return type === 2 ? 1 : -1;
+    } else if (fsEventA.typeStr == fsEventB.typeStr) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  private sortThreadCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
+    if (fsEventA.thread > fsEventB.thread) {
+      return type === 2 ? 1 : -1;
+    } else if (fsEventA.thread == fsEventB.thread) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  private sortProcessCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
+    if (fsEventA.process > fsEventB.process) {
+      return type === 2 ? 1 : -1;
+    } else if (fsEventA.process == fsEventB.process) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
     }
   }
 

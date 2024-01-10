@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+export const NUM_1 = 1;
 export const NUM_2 = 2;
 export const NUM_3 = 3;
 export const NUM_4 = 4;

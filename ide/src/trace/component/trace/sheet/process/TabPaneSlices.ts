@@ -91,14 +91,11 @@ export class TabPaneSlices extends BaseElement {
         'div > div.content > sp-system-trace'
       ) as SpSystemTrace;
       let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
-      let input = search.shadowRoot?.querySelector('input') as HTMLInputElement;
-      let indexEL = search.shadowRoot!.querySelector<HTMLSpanElement>('#index');
       spSystemTrace?.visibleRows.forEach((it) => {
         it.highlight = false;
         it.draw();
       });
       spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
-
       await spSystemTrace!.searchFunction([], data.name).then((mixedResults) => {
         if (mixedResults && mixedResults.length === 0) {
           return;
@@ -121,44 +118,50 @@ export class TabPaneSlices extends BaseElement {
         if (sliceRowList.length === 0) {
           return;
         }
-        // search 到的内容与框选泳道的内容取并集
-        let rangeSelectList: Array<unknown> = []; // 框选范围的数据
-        for (const searchItem of search.list) {
-          for (const traceRow of sliceRowList) {
-            if (
-              Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
-              Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
-              !rangeSelectList.includes(searchItem)
-            ) {
-              // 异步调用栈
-              if (traceRow.asyncFuncName) {
-                if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}`) {
-                  rangeSelectList.push(searchItem);
-                }
-              } else {
-                // 线程调用栈
-                if (`${searchItem.tid}` === traceRow.rowId) {
-                  rangeSelectList.push(searchItem);
-                }
-              }
-            }
-          }
-        }
-        if (rangeSelectList.length === 0) {
-          return;
-        }
-        input.value = data.name;
-        search.list = rangeSelectList;
-        search.total = search.list.length;
-        search.index = spSystemTrace!.showStruct(true, 1, search.list);
-        search.isClearValue = true;
-        indexEL!.textContent = '1';
+        this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
       });
     });
   }
 
-  slicesTblRowClick() {
+  private slicesTblFreshSearchSelect(
+    search: LitSearch,
+    sliceRowList: Array<TraceRow<any>>,
+    data: any,
+    spSystemTrace: SpSystemTrace
+  ): void {
+    let input = search.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let indexEL = search.shadowRoot!.querySelector<HTMLSpanElement>('#index');
+    let rangeSelectList: Array<unknown> = []; // 框选范围的数据
+    // search 到的内容与框选泳道的内容取并集
+    for (const searchItem of search.list) {
+      for (const traceRow of sliceRowList) {
+        if (Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
+          Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+          !rangeSelectList.includes(searchItem)) {
+          // 异步调用栈
+          if (traceRow.asyncFuncName) {
+            if (`${searchItem.pid}` === `${traceRow.asyncFuncNamePID}`) {
+              rangeSelectList.push(searchItem);
+            }
+          } else {
+            // 线程调用栈
+            if (`${searchItem.tid}` === traceRow.rowId) {
+              rangeSelectList.push(searchItem);
+            }
+          }
+        }
+      }
+    }
 
+    if (rangeSelectList.length === 0) {
+      return;
+    }
+    input.value = data.name
+    search.list = rangeSelectList;
+    search.total = search.list.length;
+    search.index = spSystemTrace!.showStruct(true, 1, search.list);
+    search.isClearValue = true;
+    indexEL!.textContent = '1';
   }
 
   connectedCallback(): void {

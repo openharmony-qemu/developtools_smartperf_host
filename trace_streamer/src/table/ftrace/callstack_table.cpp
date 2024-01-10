@@ -106,11 +106,11 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto callStackTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(callStackTabCs, sId);
+    for (size_t i = 0; i < callStackTabCs.size(); i++) {
+        const auto& c = callStackTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -129,12 +129,12 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto callStackTableOrderbys = fc.GetOrderBys();
+    for (auto i = callStackTableOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(callStackTableOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(callStackTableOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -171,7 +171,6 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
             break;
             default:
                 HandleTypeColumns(col);
-                break;
         }
     }
     return SQLITE_OK;

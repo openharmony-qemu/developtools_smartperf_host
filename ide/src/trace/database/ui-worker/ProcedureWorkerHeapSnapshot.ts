@@ -16,6 +16,7 @@
 import { BaseStruct, Rect, Render, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
+
 export class HeapSnapshotRender extends Render {
   renderMainThread(
     req: {
@@ -124,34 +125,34 @@ export class HeapSnapshotStruct extends BaseStruct {
     str: string,
     textPadding: number,
     frame: Rect,
-    data: HeapSnapshotStruct,
+    HeapSnapshotdata: HeapSnapshotStruct,
     location: number
-  ) {
-    if (data.textWidth === undefined) {
-      data.textWidth = ctx.measureText(str).width;
+  ): void {
+    if (HeapSnapshotdata.textWidth === undefined) {
+      HeapSnapshotdata.textWidth = ctx.measureText(str).width;
     }
-    let textWidth = Math.round(data.textWidth / str.length);
-    let fillTextWidth = frame.width - textPadding * 2;
-    if (data.textWidth < fillTextWidth) {
-      let x = Math.floor(frame.width / 2 - data.textWidth / 2 + frame.x + textPadding);
-      ctx.fillText(str, x, Math.floor(frame.y + frame.height / location + textPadding), fillTextWidth);
+    let textWidth = Math.round(HeapSnapshotdata.textWidth / str.length);
+    let maxTextWidth = frame.width - textPadding * 2;
+    if (HeapSnapshotdata.textWidth < maxTextWidth) {
+      let x = Math.floor(frame.width / 2 - HeapSnapshotdata.textWidth / 2 + frame.x + textPadding);
+      ctx.fillText(str, x, Math.floor(frame.y + frame.height / location + textPadding), maxTextWidth);
     } else {
-      if (fillTextWidth >= textWidth) {
-        let characterNum = fillTextWidth / textWidth;
+      if (maxTextWidth >= textWidth) {
+        let characterNum = maxTextWidth / textWidth;
         let x = frame.x + textPadding;
         if (characterNum < 2) {
           ctx.fillText(
             str.substring(0, 1),
             x,
             Math.floor(frame.y + frame.height / location + textPadding),
-            fillTextWidth
+            maxTextWidth
           );
         } else {
           ctx.fillText(
             str.substring(0, characterNum - 1) + '...',
             x,
             Math.floor(frame.y + frame.height / location + textPadding),
-            fillTextWidth
+            maxTextWidth
           );
         }
       }

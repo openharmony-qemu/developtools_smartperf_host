@@ -376,18 +376,7 @@ export class TabPaneComparison extends BaseElement {
     (item as any).isSelected = true;
     this.retainsData = HeapDataInterface.getInstance().getRetains(item);
     if (this.retainsData && this.retainsData.length > 0) {
-      this.retainsData.forEach((comparisonRetainEl) => {
-        let shallow = `${Math.round((comparisonRetainEl.shallowSize / this.fileSize) * 100)  }%`;
-        let retained = `${Math.round((comparisonRetainEl.retainedSize / this.fileSize) * 100)  }%`;
-        comparisonRetainEl.shallowPercent = shallow;
-        comparisonRetainEl.retainedPercent = retained;
-        if (comparisonRetainEl.distance >= 100000000 || comparisonRetainEl.distance === -5) {
-          // @ts-ignore
-          comparisonRetainEl.distance = '-';
-        }
-        let nodeId = `${comparisonRetainEl.nodeName  } @${comparisonRetainEl.id}`;
-        comparisonRetainEl.objectName = `${comparisonRetainEl.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
-      });
+      this.retainsDataInit();
       let i = 0;
       let that = this;
       if (this.retainsData[0].distance > 1) {
@@ -427,16 +416,35 @@ export class TabPaneComparison extends BaseElement {
     } else {
       this.retainerTableEl!.snapshotDataSource = [];
     }
-    new ResizeObserver(() => {
-      this.retainerTableEl!.style.height = 'calc(100% - 21px)';
-      this.retainerTableEl!.reMeauseHeight();
-    }).observe(this.parentElement!);
+    this.resizeObserverObserve();
     // @ts-ignore
     if ((e.detail as any).callBack) {
       // @ts-ignore
       (e.detail as any).callBack(true);
     }
   };
+
+  private resizeObserverObserve(){
+    new ResizeObserver(() => {
+      this.retainerTableEl!.style.height = 'calc(100% - 21px)';
+      this.retainerTableEl!.reMeauseHeight();
+    }).observe(this.parentElement!);
+  }
+
+  private retainsDataInit(): void{
+    this.retainsData.forEach((comparisonRetainEl) => {
+      let shallow = `${Math.round((comparisonRetainEl.shallowSize / this.fileSize) * 100)  }%`;
+      let retained = `${Math.round((comparisonRetainEl.retainedSize / this.fileSize) * 100)  }%`;
+      comparisonRetainEl.shallowPercent = shallow;
+      comparisonRetainEl.retainedPercent = retained;
+      if (comparisonRetainEl.distance >= 100000000 || comparisonRetainEl.distance === -5) {
+        // @ts-ignore
+        comparisonRetainEl.distance = '-';
+      }
+      let nodeId = `${comparisonRetainEl.nodeName  } @${comparisonRetainEl.id}`;
+      comparisonRetainEl.objectName = `${comparisonRetainEl.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+    });
+  }
 
   private retainerTblRowClickHandler = (evt: Event): void => {
     // @ts-ignore
@@ -510,10 +518,7 @@ export class TabPaneComparison extends BaseElement {
       } else {
         this.retainerTableEl!.snapshotDataSource = [];
       }
-      new ResizeObserver(() => {
-        this.retainerTableEl!.style.height = 'calc(100% - 21px)';
-        this.retainerTableEl!.reMeauseHeight();
-      }).observe(this.parentElement!);
+      this.resizeObserverObserve();
     }
   };
 

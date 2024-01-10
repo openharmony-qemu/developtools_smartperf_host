@@ -46,9 +46,9 @@ LogTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 LogTable::Cursor::~Cursor() {}
 
-int32_t LogTable::Cursor::Column(int32_t column) const
+int32_t LogTable::Cursor::Column(int32_t logColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(logColumn)) {
         case Index::SEQ:
             sqlite3_result_int64(context_, static_cast<int64_t>(logInfoObj_.HilogLineSeqs()[CurrentRow()]));
             break;
@@ -91,7 +91,7 @@ int32_t LogTable::Cursor::Column(int32_t column) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered logColumn : %d", logColumn);
             break;
     }
     return SQLITE_OK;
