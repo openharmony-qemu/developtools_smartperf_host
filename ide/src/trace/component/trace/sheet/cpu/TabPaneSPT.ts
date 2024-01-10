@@ -95,9 +95,9 @@ export class TabPaneSPT extends BaseElement {
     return `
         <style>
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
         <label id="spt-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>

@@ -15,7 +15,7 @@
 
 import { Graph } from './Graph';
 import { Rect } from './Rect';
-import { ns2s, ns2UnitS, TimerShaftElement } from '../TimerShaftElement';
+import { ns2UnitS, TimerShaftElement } from '../TimerShaftElement';
 import { ColorUtils, interpolateColorBrightness } from '../base/ColorUtils';
 import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { CurrentSlicesTime, SpSystemTrace } from '../../SpSystemTrace';
@@ -156,7 +156,7 @@ export class RangeRuler extends Graph {
     this.draw();
   }
 
-  drawCpuUsage() {
+  drawCpuUsage(): void {
     this.context2D.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
     let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount); //每格高度
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
@@ -280,7 +280,7 @@ export class RangeRuler extends Graph {
     return this.scale;
   }
 
-  mouseDown(mouseEventDown: MouseEvent) {
+  mouseDown(mouseEventDown: MouseEvent): void {
     let mouseDown_x = mouseEventDown.offsetX - (this.canvas?.offsetLeft || 0);
     let mouseDown_y = mouseEventDown.offsetY - (this.canvas?.offsetTop || 0);
     this.isMouseDown = true;
@@ -314,7 +314,7 @@ export class RangeRuler extends Graph {
     this.movingMark = null;
   }
 
-  mouseMove(ev: MouseEvent, trace: SpSystemTrace) {
+  mouseMove(ev: MouseEvent, trace: SpSystemTrace): void {
     this.range.refresh = false;
     let move_x = ev.offsetX - (this.canvas?.offsetLeft || 0);
     let move_y = ev.offsetY - (this.canvas?.offsetTop || 0);
@@ -437,7 +437,7 @@ export class RangeRuler extends Graph {
     }, this.cacheInterval.interval + 50);
   }
 
-  mouseOut(ev: MouseEvent) {
+  mouseOut(ev: MouseEvent): void {
     this.movingMark = null;
   }
 
@@ -675,8 +675,7 @@ export class RangeRuler extends Graph {
         sliceMidX < midX - MID_OFFSET ||
         sliceMidX > midX + MID_OFFSET ||
         Math.round(totalX) < FIT_TOTALX_MIN - MID_OFFSET ||
-        Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET
-      );
+        Math.round(totalX) > FIT_TOTALX_MAX + MID_OFFSET);
       this.pressFrameIdF = requestAnimationFrame(animF);
     };
     if ((totalX < FIT_TOTALX_MIN - MID_OFFSET && totalX > 0) || totalX > FIT_TOTALX_MAX + MID_OFFSET) {
@@ -690,7 +689,7 @@ export class RangeRuler extends Graph {
   fixReg = 76; //速度上线
   f = 11; //加速度系数,值越小加速度越大
   keyPressW() {
-    let animW = () => {
+    let animW = (): void => {
       if (this.scale === 50) {
         this.fillX();
         this.range.refresh = true;
@@ -699,7 +698,9 @@ export class RangeRuler extends Graph {
         return;
       }
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f; //reg
-      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      if (this.currentDuration >= this.fixReg) {
+        this.currentDuration = this.fixReg;
+      }
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       this.range.startNS += this.centerXPercentage * bb * this.scale;
       this.range.endNS -= (1 - this.centerXPercentage) * bb * this.scale;
@@ -711,8 +712,8 @@ export class RangeRuler extends Graph {
     this.pressFrameIdW = requestAnimationFrame(animW);
   }
 
-  keyPressS() {
-    let animS = () => {
+  keyPressS(): void {
+    let animS = (): void => {
       if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.range.refresh = true;
@@ -721,7 +722,9 @@ export class RangeRuler extends Graph {
         return;
       }
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
-      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      if (this.currentDuration >= this.fixReg) {
+        this.currentDuration = this.fixReg;
+      }
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       this.range.startNS -= this.centerXPercentage * bb * this.scale;
       this.range.endNS += (1 - this.centerXPercentage) * bb * this.scale;
@@ -733,8 +736,8 @@ export class RangeRuler extends Graph {
     this.pressFrameIdS = requestAnimationFrame(animS);
   }
 
-  keyPressA() {
-    let animA = () => {
+  keyPressA(): void {
+    let animA = (): void => {
       if (this.range.startNS <= 0) {
         this.fillX();
         this.range.refresh = true;
@@ -743,7 +746,9 @@ export class RangeRuler extends Graph {
         return;
       }
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
-      if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
+      if (this.currentDuration >= this.fixReg) {
+        this.currentDuration = this.fixReg;
+      }
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);
       let s = this.scale * bb;
       this.range.startNS -= s;
@@ -756,8 +761,8 @@ export class RangeRuler extends Graph {
     this.pressFrameIdA = requestAnimationFrame(animA);
   }
 
-  keyPressD() {
-    let animD = () => {
+  keyPressD(): void {
+    let animD = (): void => {
       if (this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.range.refresh = true;
@@ -794,7 +799,7 @@ export class RangeRuler extends Graph {
     d: this.keyUpD,
   };
 
-  keyUp(ev: KeyboardEvent) {
+  keyUp(ev: KeyboardEvent): void {
     this.cacheInterval.value = 0;
     if (this.pressedKeys.length > 0) {
       let number = this.pressedKeys.findIndex((value) => value === ev.key.toLocaleLowerCase());
@@ -810,7 +815,7 @@ export class RangeRuler extends Graph {
     this.isPress = false;
   }
 
-  keyUpW() {
+  keyUpW(): void {
     let startTime = new Date().getTime();
     let animW = () => {
       if (this.scale === 50) {
@@ -837,7 +842,7 @@ export class RangeRuler extends Graph {
 
   keyUpS(): void {
     let startTime = new Date().getTime();
-    let animS = () => {
+    let animS = (): void => {
       if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
         this.fillX();
         this.keyUpEnd();
@@ -862,7 +867,7 @@ export class RangeRuler extends Graph {
 
   keyUpA(): void {
     let startTime = new Date().getTime();
-    let animA = () => {
+    let animA = (): void => {
       if (this.range.startNS <= 0) {
         this.fillX();
         this.keyUpEnd();
@@ -885,7 +890,7 @@ export class RangeRuler extends Graph {
     this.upFrameIdA = requestAnimationFrame(animA);
   }
 
-  keyUpEnd() {
+  keyUpEnd(): void {
     this.range.refresh = true;
     window.isLastFrame = true;
     this.notifyHandler(this.range);
@@ -895,7 +900,7 @@ export class RangeRuler extends Graph {
 
   keyUpD(): void {
     let startTime = new Date().getTime();
-    let animD = () => {
+    let animD = (): void => {
       if (this.range.endNS >= this.range.totalNS) {
         this.keyUpEnd();
         return;
@@ -948,7 +953,7 @@ export class RangeRuler extends Graph {
     let totalXMap = new Map();
     let count1 = 0;
     let count2 = 0;
-    let animW = () => {
+    let animW = (): void => {
       startX = Math.round((this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
       endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
       totalX = endX - startX;
@@ -1027,7 +1032,7 @@ export class RangeRuler extends Graph {
       }
       this.pressFrameIdW = requestAnimationFrame(animW);
     };
-    let animS = () => {
+    let animS = (): void => {
       startX = Math.round((this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
       endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
       totalX = endX - startX;

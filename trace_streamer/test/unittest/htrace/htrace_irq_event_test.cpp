@@ -30,6 +30,12 @@ using namespace SysTuning::TraceStreamer;
 namespace SysTuning {
 namespace TraceStreamer {
 class HtraceIrqEventTest : public ::testing::Test {
+const uint32_t RET = 1;
+const std::string APP_NAME = "app1";
+const uint32_t TID = 1;
+const int32_t IRQ = 12; // 1 for handled, else for unhandled
+const uint32_t VEC = 1;
+
 public:
     void SetUp()
     {
@@ -37,6 +43,80 @@ public:
     }
 
     void TearDown() {}
+
+    std::string SetIrqHandlerEntryFormat(int64_t ts, uint32_t cpu)
+    {
+        IrqHandlerEntryFormat* irqHandlerEvent = new IrqHandlerEntryFormat();
+        irqHandlerEvent->set_irq(IRQ);
+        irqHandlerEvent->set_name("user_irq");
+        TracePluginResult tracePacket;
+        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        ftraceCpuDetail->set_cpu(cpu);
+        auto ftraceEvent = ftraceCpuDetail->add_event();
+        ftraceEvent->set_timestamp(ts);
+        ftraceEvent->set_tgid(TID);
+        ftraceEvent->set_comm(APP_NAME);
+        ftraceEvent->set_allocated_irq_handler_entry_format(irqHandlerEvent);
+
+        std::string cpuDetailStrMsg = "";
+        tracePacket.SerializeToString(&cpuDetailStrMsg);
+        return cpuDetailStrMsg;
+    }
+
+    std::string SetIrqHandlerExitFormat(int64_t ts, uint32_t cpu)
+    {
+        IrqHandlerExitFormat* irqHandlerExitEvent = new IrqHandlerExitFormat();
+        irqHandlerExitEvent->set_irq(IRQ);
+        irqHandlerExitEvent->set_ret(RET);
+        TracePluginResult tracePacket;
+        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        ftraceCpuDetail->set_cpu(cpu);
+        auto ftraceEvent = ftraceCpuDetail->add_event();
+        ftraceEvent->set_timestamp(ts);
+        ftraceEvent->set_tgid(TID);
+        ftraceEvent->set_comm(APP_NAME);
+        ftraceEvent->set_allocated_irq_handler_exit_format(irqHandlerExitEvent);
+
+        std::string cpuDetailStrMsg = "";
+        tracePacket.SerializeToString(&cpuDetailStrMsg);
+        return cpuDetailStrMsg;
+    }
+
+    std::string SetSoftIrqEntryFormat(int64_t ts, uint32_t cpu)
+    {
+        SoftirqEntryFormat* softirqEntryEvent = new SoftirqEntryFormat();
+        softirqEntryEvent->set_vec(VEC);
+        TracePluginResult tracePacket;
+        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        ftraceCpuDetail->set_cpu(cpu);
+        auto ftraceEvent = ftraceCpuDetail->add_event();
+        ftraceEvent->set_timestamp(ts);
+        ftraceEvent->set_tgid(TID);
+        ftraceEvent->set_comm(APP_NAME);
+        ftraceEvent->set_allocated_softirq_entry_format(softirqEntryEvent);
+
+        std::string cpuDetailStrMsg = "";
+        tracePacket.SerializeToString(&cpuDetailStrMsg);
+        return cpuDetailStrMsg;
+    }
+
+    std::string SetSoftIrqExitFormat(int64_t ts, uint32_t cpu)
+    {
+        SoftirqExitFormat* softirqExitEvent = new SoftirqExitFormat();
+        softirqExitEvent->set_vec(VEC);
+        TracePluginResult tracePacket;
+        FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
+        ftraceCpuDetail->set_cpu(cpu);
+        auto ftraceEvent = ftraceCpuDetail->add_event();
+        ftraceEvent->set_timestamp(ts);
+        ftraceEvent->set_tgid(TID);
+        ftraceEvent->set_comm(APP_NAME);
+        ftraceEvent->set_allocated_softirq_exit_format(softirqExitEvent);
+
+        std::string cpuDetailStrMsg = "";
+        tracePacket.SerializeToString(&cpuDetailStrMsg);
+        return cpuDetailStrMsg;
+    }
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
@@ -50,37 +130,21 @@ public:
 HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTest, TestSize.Level1)
 {
     TS_LOGI("test15-1");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
-    int32_t irq = 12;
-    IrqHandlerEntryFormat* irqHandlerEvent = new IrqHandlerEntryFormat();
-    irqHandlerEvent->set_irq(irq);
-    irqHandlerEvent->set_name("user_irq");
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
 
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_irq_handler_entry_format(irqHandlerEvent);
-
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     eventParser.Clear();
@@ -94,61 +158,34 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTest, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
 {
     TS_LOGI("test15-2");
-    int64_t ts1 = 120;
-    uint32_t cpu1 = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
-    int32_t irq = 12;
-    IrqHandlerEntryFormat* irqHandlerEvent = new IrqHandlerEntryFormat();
-    irqHandlerEvent->set_irq(irq);
-    irqHandlerEvent->set_name("user_irq");
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
 
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_irq_handler_entry_format(irqHandlerEvent);
-
+    const int64_t ts = 120;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    ts1 = 110;
-    IrqHandlerEntryFormat* irqHandlerEvent2 = new IrqHandlerEntryFormat();
-    irqHandlerEvent2->set_irq(irq);
-    irqHandlerEvent2->set_name("user_irq");
-    TracePluginResult tracePacket2;
-    FtraceCpuDetailMsg* ftraceCpuDetail2 = tracePacket2.add_ftrace_cpu_detail();
-    ftraceCpuDetail2->set_cpu(cpu1);
-    ftraceCpuDetail2->set_overwrite(0);
-    auto ftraceEvent2 = ftraceCpuDetail2->add_event();
 
-    ftraceEvent2->set_timestamp(ts1);
-    ftraceEvent2->set_tgid(tid1);
-    ftraceEvent2->set_comm(appName);
-    ftraceEvent2->set_allocated_irq_handler_entry_format(irqHandlerEvent2);
+    const int64_t ts2 = 110;
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket2.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts2, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg2.protoData = cpuDetailBytesView2;
-    eventParser.ParseDataItem(dataSeg2, dataSeg2.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
+    eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 2);
 
@@ -166,39 +203,21 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, IrqHandlerExitTestEmpty, TestSize.Level1)
 {
     TS_LOGI("test15-3");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    uint32_t ret = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
-    int32_t irq = 12; // 1 for handled, else for unhandled
 
-    IrqHandlerExitFormat* irqHandlerExitEvent = new IrqHandlerExitFormat();
-    irqHandlerExitEvent->set_irq(irq);
-    irqHandlerExitEvent->set_ret(ret);
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_irq_handler_exit_format(irqHandlerExitEvent);
-
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetIrqHandlerExitFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 0);
     auto eventCount =
@@ -215,63 +234,33 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerExitTestEmpty, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
 {
     TS_LOGI("test15-4");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
-    int32_t irq = 12;
 
-    IrqHandlerEntryFormat* irqHandlerEvent = new IrqHandlerEntryFormat();
-    irqHandlerEvent->set_irq(irq);
-    irqHandlerEvent->set_name("user_irq");
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_irq_handler_entry_format(irqHandlerEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    uint32_t ret = 1; // 1 for handled, else for unhandled
-
-    IrqHandlerExitFormat* irqHandlerExitEvent = new IrqHandlerExitFormat();
-    irqHandlerExitEvent->set_irq(irq);
-    irqHandlerExitEvent->set_ret(ret);
-    TracePluginResult tracePacket2;
-    FtraceCpuDetailMsg* ftraceCpuDetail2 = tracePacket2.add_ftrace_cpu_detail();
-    ftraceCpuDetail2->set_cpu(cpu1);
-    ftraceCpuDetail2->set_overwrite(0);
-    auto ftraceEvent2 = ftraceCpuDetail2->add_event();
-
-    ftraceEvent2->set_timestamp(ts1);
-    ftraceEvent2->set_tgid(tid1);
-    ftraceEvent2->set_comm(appName);
-    ftraceEvent2->set_allocated_irq_handler_exit_format(irqHandlerExitEvent);
 
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket2.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetIrqHandlerExitFormat(ts, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg2.protoData = cpuDetailBytesView2;
-    eventParser.ParseDataItem(dataSeg2, dataSeg2.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
+    eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
     eventParser.FilterAllEvents();
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
@@ -287,94 +276,50 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTestTwice, TestSize.Level1)
 {
     TS_LOGI("test15-5");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
-    int32_t irq = 12;
 
-    IrqHandlerEntryFormat* irqHandlerEvent = new IrqHandlerEntryFormat();
-    irqHandlerEvent->set_irq(irq);
-    irqHandlerEvent->set_name("user_irq");
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_irq_handler_entry_format(irqHandlerEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetIrqHandlerEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    uint32_t ret = 1; // 1 for handled, else for unhandled
-    cpu1 = 2;
-    ts1 = 150;
 
-    IrqHandlerExitFormat* irqHandlerExitEvent = new IrqHandlerExitFormat();
-    irqHandlerExitEvent->set_irq(irq);
-    irqHandlerExitEvent->set_ret(ret);
-    TracePluginResult tracePacket2;
-    FtraceCpuDetailMsg* ftraceCpuDetail2 = tracePacket2.add_ftrace_cpu_detail();
-    ftraceCpuDetail2->set_cpu(cpu1);
-    ftraceCpuDetail2->set_overwrite(0);
-    auto ftraceEvent2 = ftraceCpuDetail2->add_event();
-
-    ftraceEvent2->set_timestamp(ts1);
-    ftraceEvent2->set_tgid(tid1);
-    ftraceEvent2->set_comm(appName);
-    ftraceEvent2->set_allocated_irq_handler_exit_format(irqHandlerExitEvent);
-
+    const int64_t ts2 = 150;
+    const uint32_t cpu2 = 2;
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket2.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetIrqHandlerExitFormat(ts2, cpu2);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg2.protoData = cpuDetailBytesView2;
-    eventParser.ParseDataItem(dataSeg2, dataSeg2.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
+    eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_IRQ_HANDLER_EXIT,
                                                                         STAT_EVENT_NOTMATCH) == 1);
-    cpu1 = 1;
-    ts1 = 200;
 
-    IrqHandlerExitFormat* irqHandlerExitEvent2 = new IrqHandlerExitFormat();
-    irqHandlerExitEvent2->set_irq(irq);
-    irqHandlerExitEvent2->set_ret(ret);
-    TracePluginResult tracePacket3;
-    FtraceCpuDetailMsg* ftraceCpuDetail3 = tracePacket3.add_ftrace_cpu_detail();
-    ftraceCpuDetail3->set_cpu(cpu1);
-    ftraceCpuDetail3->set_overwrite(0);
-    auto ftraceEvent3 = ftraceCpuDetail3->add_event();
-
-    ftraceEvent3->set_timestamp(ts1);
-    ftraceEvent3->set_tgid(tid1);
-    ftraceEvent3->set_comm(appName);
-    ftraceEvent3->set_allocated_irq_handler_exit_format(irqHandlerExitEvent2);
-
+    const int64_t ts3 = 200;
     HtraceDataSegment dataSeg3;
     dataSeg3.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket3.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetIrqHandlerExitFormat(ts3, cpu);
     dataSeg3.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView3(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg3.protoData = cpuDetailBytesView3;
-    eventParser.ParseDataItem(dataSeg3, dataSeg3.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult3(dataSeg3.protoData);
+    eventParser.ParseDataItem(dataSeg3, tracePluginResult3, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().ArgSetIdsData()[0] == 0);
@@ -389,36 +334,21 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTestTwice, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, SoftIrqEntryTest, TestSize.Level1)
 {
     TS_LOGI("test15-6");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    uint32_t vec = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
 
-    SoftirqEntryFormat* softirqEntryEvent = new SoftirqEntryFormat();
-    softirqEntryEvent->set_vec(vec);
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_softirq_entry_format(softirqEntryEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     eventParser.Clear();
@@ -432,60 +362,34 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryTest, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, SoftIrqEntryNotMatch, TestSize.Level1)
 {
     TS_LOGI("test15-7");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    uint32_t vec = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
 
-    SoftirqEntryFormat* softirqEntryEvent = new SoftirqEntryFormat();
-    softirqEntryEvent->set_vec(vec);
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_softirq_entry_format(softirqEntryEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    ts1 = 150;
 
-    SoftirqEntryFormat* softirqEntryEvent2 = new SoftirqEntryFormat();
-    softirqEntryEvent2->set_vec(vec);
-    TracePluginResult tracePacket2;
-    FtraceCpuDetailMsg* ftraceCpuDetail2 = tracePacket2.add_ftrace_cpu_detail();
-    ftraceCpuDetail2->set_cpu(cpu1);
-    ftraceCpuDetail2->set_overwrite(0);
-    auto ftraceEvent2 = ftraceCpuDetail2->add_event();
-
-    ftraceEvent2->set_timestamp(ts1);
-    ftraceEvent2->set_tgid(tid1);
-    ftraceEvent2->set_comm(appName);
-    ftraceEvent2->set_allocated_softirq_entry_format(softirqEntryEvent2);
+    const int64_t ts2 = 150;
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket2.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetSoftIrqEntryFormat(ts2, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg2.protoData = cpuDetailBytesView2;
-    eventParser.ParseDataItem(dataSeg2, dataSeg2.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
+    eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 2);
     EXPECT_TRUE(
@@ -501,36 +405,21 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryNotMatch, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, SoftIrqExitEmptyTest, TestSize.Level1)
 {
     TS_LOGI("test15-8");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    uint32_t vec = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
 
-    SoftirqExitFormat* softirqExitEvent = new SoftirqExitFormat();
-    softirqExitEvent->set_vec(vec);
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_softirq_exit_format(softirqExitEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetSoftIrqExitFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 0);
     EXPECT_TRUE(
@@ -546,61 +435,36 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqExitEmptyTest, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, SoftIrqTest, TestSize.Level1)
 {
     TS_LOGI("test15-9");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    uint32_t vec = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
 
-    SoftirqEntryFormat* softirqEntryEvent = new SoftirqEntryFormat();
-    softirqEntryEvent->set_vec(vec);
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_softirq_entry_format(softirqEntryEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     eventParser.Clear();
-    ts1 = 150;
-    SoftirqExitFormat* softirqExitEvent = new SoftirqExitFormat();
-    softirqExitEvent->set_vec(vec);
-    TracePluginResult tracePacket2;
-    FtraceCpuDetailMsg* ftraceCpuDetail2 = tracePacket2.add_ftrace_cpu_detail();
-    ftraceCpuDetail2->set_cpu(cpu1);
-    ftraceCpuDetail2->set_overwrite(0);
-    auto ftraceEvent2 = ftraceCpuDetail2->add_event();
 
-    ftraceEvent2->set_timestamp(ts1);
-    ftraceEvent2->set_tgid(tid1);
-    ftraceEvent2->set_comm(appName);
-    ftraceEvent2->set_allocated_softirq_exit_format(softirqExitEvent);
+    const int64_t ts1 = 150;
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket2.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetSoftIrqExitFormat(ts1, cpu);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg2.protoData = cpuDetailBytesView2;
-    eventParser.ParseDataItem(dataSeg2, dataSeg2.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
+    eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     eventParser.Clear();
@@ -614,62 +478,36 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTest, TestSize.Level1)
 HWTEST_F(HtraceIrqEventTest, SoftIrqTestNotMatch, TestSize.Level1)
 {
     TS_LOGI("test15-10");
-    int64_t ts1 = 100;
-    uint32_t cpu1 = 1;
-    uint32_t vec = 1;
-    std::string appName = "app1";
-    uint32_t tid1 = 1;
 
-    SoftirqEntryFormat* softirqEntryEvent = new SoftirqEntryFormat();
-    softirqEntryEvent->set_vec(vec);
-    TracePluginResult tracePacket;
-    FtraceCpuDetailMsg* ftraceCpuDetail = tracePacket.add_ftrace_cpu_detail();
-    ftraceCpuDetail->set_cpu(cpu1);
-    ftraceCpuDetail->set_overwrite(0);
-    auto ftraceEvent = ftraceCpuDetail->add_event();
-
-    ftraceEvent->set_timestamp(ts1);
-    ftraceEvent->set_tgid(tid1);
-    ftraceEvent->set_comm(appName);
-    ftraceEvent->set_allocated_softirq_entry_format(softirqEntryEvent);
+    const int64_t ts = 100;
+    const uint32_t cpu = 1;
     HtraceDataSegment dataSeg;
     dataSeg.clockId = TS_CLOCK_BOOTTIME;
-    std::string cpuDetailStrMsg = "";
-    tracePacket.SerializeToString(&cpuDetailStrMsg);
+    std::string cpuDetailStrMsg = SetSoftIrqEntryFormat(ts, cpu);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                               cpuDetailStrMsg.size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    eventParser.ParseDataItem(dataSeg, tracePluginResult, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     eventParser.Clear();
-    ts1 = 150;
-    cpu1 = 2;
 
-    SoftirqExitFormat* softirqExitEvent = new SoftirqExitFormat();
-    softirqExitEvent->set_vec(vec);
-    TracePluginResult tracePacket2;
-    FtraceCpuDetailMsg* ftraceCpuDetail2 = tracePacket2.add_ftrace_cpu_detail();
-    ftraceCpuDetail2->set_cpu(cpu1);
-    ftraceCpuDetail2->set_overwrite(0);
-    auto ftraceEvent2 = ftraceCpuDetail2->add_event();
-
-    ftraceEvent2->set_timestamp(ts1);
-    ftraceEvent2->set_tgid(tid1);
-    ftraceEvent2->set_comm(appName);
-    ftraceEvent2->set_allocated_softirq_exit_format(softirqExitEvent);
+    const int64_t ts2 = 150;
+    const uint32_t cpu2 = 2;
     HtraceDataSegment dataSeg2;
     dataSeg2.clockId = TS_CLOCK_BOOTTIME;
-    tracePacket2.SerializeToString(&cpuDetailStrMsg);
+    cpuDetailStrMsg = SetSoftIrqExitFormat(ts2, cpu2);
     dataSeg2.seg = std::make_shared<std::string>(cpuDetailStrMsg);
     ProtoReader::BytesView cpuDetailBytesView2(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
                                                cpuDetailStrMsg.size());
     dataSeg2.protoData = cpuDetailBytesView2;
-    eventParser.ParseDataItem(dataSeg2, dataSeg2.clockId, hasSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult2(dataSeg2.protoData);
+    eventParser.ParseDataItem(dataSeg2, tracePluginResult2, haveSplit);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     EXPECT_TRUE(

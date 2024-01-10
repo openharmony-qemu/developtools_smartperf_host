@@ -27,19 +27,6 @@ using namespace SysTuning::TraceStreamer;
 using namespace SysTuning::EbpfStdtype;
 namespace SysTuning {
 namespace TraceStreamer {
-class EbpfFileSystemTest : public ::testing::Test {
-public:
-    void SetUp()
-    {
-        stream_.InitFilter();
-    }
-
-    void TearDown() {}
-
-public:
-    SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
-};
-
 const uint32_t PID_01 = 32;
 const uint32_t TID_01 = 12;
 const uint32_t PID_02 = 33;
@@ -60,6 +47,69 @@ const char PROCESS_NAME_02[MAX_PROCESS_NAME_SZIE] = "process02";
 const uint64_t IPS_01[IPS_NUM_01] = {0x100000000};
 const uint64_t IPS_02[IPS_NUM_02] = {0x100000000, 0x100000001};
 
+class EbpfFileSystemTest : public ::testing::Test {
+public:
+    void SetUp()
+    {
+        stream_.InitFilter();
+        parser_ = std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+
+        EbpfDataHeader ebpfHeader;
+        ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+
+        dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
+                        reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+
+        ebpfTypeAndLength_.length = sizeof(fsFixedHeader_);
+        ebpfTypeAndLength_.type = ITEM_EVENT_FS;
+    }
+
+    void TearDown() {}
+
+    void InitData(uint16_t nrUserIPs = IPS_NUM_00)
+    {
+        fsFixedHeader_.pid = PID_01;
+        fsFixedHeader_.tid = TID_01;
+        fsFixedHeader_.startTime = START_TIME_01;
+        fsFixedHeader_.endTime = END_TIME_01;
+        fsFixedHeader_.ret = RET_01;
+        fsFixedHeader_.nrUserIPs = nrUserIPs;
+        for (auto i = 0; i < ARGS_MAX; i++) {
+            fsFixedHeader_.args[i] = ARGS_01[i];
+        }
+        strncpy_s(fsFixedHeader_.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_01, MAX_PROCESS_NAME_SZIE);
+    }
+
+    void ResetData()
+    {
+        fsFixedHeader_.pid = PID_02;
+        fsFixedHeader_.tid = TID_02;
+        fsFixedHeader_.startTime = START_TIME_02;
+        fsFixedHeader_.endTime = END_TIME_02;
+        fsFixedHeader_.ret = RET_02;
+        fsFixedHeader_.nrUserIPs = IPS_NUM_00;
+        for (auto i = 0; i < ARGS_MAX; i++) {
+            fsFixedHeader_.args[i] = ARGS_02[i];
+        }
+        strncpy_s(fsFixedHeader_.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_02, MAX_PROCESS_NAME_SZIE);
+    }
+
+    void UpdateData()
+    {
+        dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength_),
+                            reinterpret_cast<uint8_t*>(&ebpfTypeAndLength_ + 1));
+        dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader_),
+                            reinterpret_cast<uint8_t*>(&fsFixedHeader_ + 1));
+    }
+
+public:
+    SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
+    FsFixedHeader fsFixedHeader_;
+    EbpfTypeAndLength ebpfTypeAndLength_;
+    std::deque<uint8_t> dequeBuffer_ = {};
+    std::unique_ptr<EbpfDataParser> parser_ = nullptr;
+};
+
 /**
  * @tc.name: ParseFileSystemWithTypeOpen
  * @tc.desc: Test parse Ebpf data has one file system data with type open and no ips
@@ -69,76 +119,33 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeOpen, TestSize.Level1)
 {
     TS_LOGI("test30-1");
 
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+    InitData();
+    ebpfTypeAndLength_.length = sizeof(FsFixedHeader);
+    fsFixedHeader_.type = SYS_OPENAT2;
+    UpdateData();
 
-    std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
+    EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());
+    parser_->ParseFileSystemEvent();
+    parser_->Finish();
+    EXPECT_TRUE(parser_->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
+    auto fileSystemSample = stream_.traceDataCache_->GetConstFileSystemSample();
+    EXPECT_EQ(fileSystemSample.CallChainIds()[0], INVALID_UINT32);
+    EXPECT_EQ(fileSystemSample.Types()[0], OPEN);
+    EXPECT_EQ(fileSystemSample.StartTs()[0], START_TIME_01);
+    EXPECT_EQ(fileSystemSample.EndTs()[0], END_TIME_01);
+    EXPECT_EQ(fileSystemSample.Durs()[0], END_TIME_01 - START_TIME_01);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(RET_01), fileSystemSample.ReturnValues()[0]);
+    EXPECT_EQ(fileSystemSample.ErrorCodes()[0], INVALID_UINT64);
+    EXPECT_EQ(fileSystemSample.Fds()[0], RET_01);
+    EXPECT_EQ(fileSystemSample.FileIds()[0], INVALID_UINT64);
+    EXPECT_EQ(fileSystemSample.Sizes()[0], MAX_SIZE_T);
 
-    FsFixedHeader fsFixedHeader;
-    fsFixedHeader.pid = PID_01;
-    fsFixedHeader.tid = TID_01;
-    fsFixedHeader.startTime = START_TIME_01;
-    fsFixedHeader.endTime = END_TIME_01;
-    fsFixedHeader.ret = RET_01;
-    fsFixedHeader.nrUserIPs = IPS_NUM_00;
-    fsFixedHeader.type = SYS_OPENAT2;
-    for (auto i = 0; i < ARGS_MAX; i++) {
-        fsFixedHeader.args[i] = ARGS_01[i];
-    }
-    strncpy_s(fsFixedHeader.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_01, MAX_PROCESS_NAME_SZIE);
-
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(fsFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_FS;
-
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader),
-                       reinterpret_cast<uint8_t*>(&fsFixedHeader + 1));
-
-    std::unique_ptr<EbpfDataParser> parser =
-        std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
-    EXPECT_TRUE(parser->reader_->GetFileSystemEventMap().size());
-    parser->ParseFileSystemEvent();
-    parser->Finish();
-    EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT32);
-    auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
-    EXPECT_EQ(type, OPEN);
-    auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME_01);
-    auto endTs = stream_.traceDataCache_->GetConstFileSystemSample().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME_01);
-    auto dur = stream_.traceDataCache_->GetConstFileSystemSample().Durs()[0];
-    EXPECT_EQ(dur, END_TIME_01 - START_TIME_01);
-    auto ExpectReturnValue = parser->ConvertToHexTextIndex(RET_01);
-    auto returnValue = stream_.traceDataCache_->GetConstFileSystemSample().ReturnValues()[0];
-    EXPECT_EQ(returnValue, ExpectReturnValue);
-    auto errorCode = stream_.traceDataCache_->GetConstFileSystemSample().ErrorCodes()[0];
-    EXPECT_EQ(errorCode, INVALID_UINT64);
-    auto fd = stream_.traceDataCache_->GetConstFileSystemSample().Fds()[0];
-    EXPECT_EQ(fd, RET_01);
-    auto fileId = stream_.traceDataCache_->GetConstFileSystemSample().FileIds()[0];
-    EXPECT_EQ(fileId, INVALID_UINT64);
-    auto size = stream_.traceDataCache_->GetConstFileSystemSample().Sizes()[0];
-    EXPECT_EQ(size, MAX_SIZE_T);
     auto i = 0;
-    auto ExpectFirstArg = parser->ConvertToHexTextIndex(ARGS_01[i++]);
-    auto firstArg = stream_.traceDataCache_->GetConstFileSystemSample().FirstArguments()[0];
-    EXPECT_EQ(firstArg, ExpectFirstArg);
-    auto ExpectSecondArg = parser->ConvertToHexTextIndex(ARGS_01[i++]);
-    auto secondArg = stream_.traceDataCache_->GetConstFileSystemSample().SecondArguments()[0];
-    EXPECT_EQ(secondArg, ExpectSecondArg);
-    auto ExpectThirdArg = parser->ConvertToHexTextIndex(ARGS_01[i++]);
-    auto thirdArg = stream_.traceDataCache_->GetConstFileSystemSample().ThirdArguments()[0];
-    EXPECT_EQ(thirdArg, ExpectThirdArg);
-    auto ExpectFourthArg = parser->ConvertToHexTextIndex(ARGS_01[i]);
-    auto fourthArg = stream_.traceDataCache_->GetConstFileSystemSample().FourthArguments()[0];
-    EXPECT_EQ(fourthArg, ExpectFourthArg);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i++]), fileSystemSample.FirstArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i++]), fileSystemSample.SecondArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i++]), fileSystemSample.ThirdArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i]), fileSystemSample.FourthArguments()[0]);
 }
 
 /**
@@ -150,77 +157,32 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeClose, TestSize.Level1)
 {
     TS_LOGI("test30-2");
 
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+    ResetData();
+    fsFixedHeader_.type = SYS_CLOSE;
+    UpdateData();
 
-    std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
+    EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());
+    parser_->ParseFileSystemEvent();
+    parser_->Finish();
+    EXPECT_TRUE(parser_->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
+    auto fileSystemSample = stream_.traceDataCache_->GetConstFileSystemSample();
+    EXPECT_EQ(fileSystemSample.CallChainIds()[0], INVALID_UINT32);
+    EXPECT_EQ(fileSystemSample.Types()[0], CLOSE);
+    EXPECT_EQ(fileSystemSample.StartTs()[0], START_TIME_02);
+    EXPECT_EQ(fileSystemSample.EndTs()[0], END_TIME_02);
+    EXPECT_EQ(fileSystemSample.Durs()[0], END_TIME_02 - START_TIME_02);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(0), fileSystemSample.ReturnValues()[0]);
+    EXPECT_EQ(fileSystemSample.ErrorCodes()[0], parser_->ConvertToHexTextIndex(-RET_02));
+    EXPECT_EQ(fileSystemSample.Fds()[0], ARGS_02[1]);
+    EXPECT_EQ(fileSystemSample.FileIds()[0], INVALID_UINT64);
+    EXPECT_EQ(fileSystemSample.Sizes()[0], MAX_SIZE_T);
 
-    FsFixedHeader fsFixedHeader;
-    fsFixedHeader.pid = PID_02;
-    fsFixedHeader.tid = TID_02;
-    fsFixedHeader.startTime = START_TIME_02;
-    fsFixedHeader.endTime = END_TIME_02;
-    fsFixedHeader.ret = RET_02;
-    fsFixedHeader.nrUserIPs = IPS_NUM_00;
-    fsFixedHeader.type = SYS_CLOSE;
-    for (auto i = 0; i < ARGS_MAX; i++) {
-        fsFixedHeader.args[i] = ARGS_02[i];
-    }
-    strncpy_s(fsFixedHeader.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_02, MAX_PROCESS_NAME_SZIE);
-
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(fsFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_FS;
-
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader),
-                       reinterpret_cast<uint8_t*>(&fsFixedHeader + 1));
-
-    std::unique_ptr<EbpfDataParser> parser =
-        std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
-    EXPECT_TRUE(parser->reader_->GetFileSystemEventMap().size());
-    parser->ParseFileSystemEvent();
-    parser->Finish();
-    EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT32);
-    auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
-    EXPECT_EQ(type, CLOSE);
-    auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME_02);
-    auto endTs = stream_.traceDataCache_->GetConstFileSystemSample().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME_02);
-    auto dur = stream_.traceDataCache_->GetConstFileSystemSample().Durs()[0];
-    EXPECT_EQ(dur, END_TIME_02 - START_TIME_02);
-    auto ExpectReturnValue = parser->ConvertToHexTextIndex(0);
-    auto returnValue = stream_.traceDataCache_->GetConstFileSystemSample().ReturnValues()[0];
-    EXPECT_EQ(returnValue, ExpectReturnValue);
-    auto ExpectErrorValue = parser->ConvertToHexTextIndex(-RET_02);
-    auto errorCode = stream_.traceDataCache_->GetConstFileSystemSample().ErrorCodes()[0];
-    EXPECT_EQ(errorCode, ExpectErrorValue);
-    auto fd = stream_.traceDataCache_->GetConstFileSystemSample().Fds()[0];
-    EXPECT_EQ(fd, ARGS_02[1]);
-    auto fileId = stream_.traceDataCache_->GetConstFileSystemSample().FileIds()[0];
-    EXPECT_EQ(fileId, INVALID_UINT64);
-    auto size = stream_.traceDataCache_->GetConstFileSystemSample().Sizes()[0];
-    EXPECT_EQ(size, MAX_SIZE_T);
     auto i = 0;
-    auto ExpectFirstArg = parser->ConvertToHexTextIndex(ARGS_02[i++]);
-    auto firstArg = stream_.traceDataCache_->GetConstFileSystemSample().FirstArguments()[0];
-    EXPECT_EQ(firstArg, ExpectFirstArg);
-    auto ExpectSecondArg = parser->ConvertToHexTextIndex(ARGS_02[i++]);
-    auto secondArg = stream_.traceDataCache_->GetConstFileSystemSample().SecondArguments()[0];
-    EXPECT_EQ(secondArg, ExpectSecondArg);
-    auto ExpectThirdArg = parser->ConvertToHexTextIndex(ARGS_02[i++]);
-    auto thirdArg = stream_.traceDataCache_->GetConstFileSystemSample().ThirdArguments()[0];
-    EXPECT_EQ(thirdArg, ExpectThirdArg);
-    auto ExpectFourthArg = parser->ConvertToHexTextIndex(ARGS_02[i]);
-    auto fourthArg = stream_.traceDataCache_->GetConstFileSystemSample().FourthArguments()[0];
-    EXPECT_EQ(fourthArg, ExpectFourthArg);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i++]), fileSystemSample.FirstArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i++]), fileSystemSample.SecondArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i++]), fileSystemSample.ThirdArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i]), fileSystemSample.FourthArguments()[0]);
 }
 
 /**
@@ -232,76 +194,32 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeRead, TestSize.Level1)
 {
     TS_LOGI("test30-3");
 
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+    InitData();
+    fsFixedHeader_.type = SYS_READ;
+    UpdateData();
 
-    std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
+    EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());
+    parser_->ParseFileSystemEvent();
+    parser_->Finish();
+    EXPECT_TRUE(parser_->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
+    auto fileSystemSample = stream_.traceDataCache_->GetConstFileSystemSample();
+    EXPECT_EQ(fileSystemSample.CallChainIds()[0], INVALID_UINT32);
+    EXPECT_EQ(fileSystemSample.Types()[0], READ);
+    EXPECT_EQ(fileSystemSample.StartTs()[0], START_TIME_01);
+    EXPECT_EQ(fileSystemSample.EndTs()[0], END_TIME_01);
+    EXPECT_EQ(fileSystemSample.Durs()[0], END_TIME_01 - START_TIME_01);
+    EXPECT_EQ(fileSystemSample.ReturnValues()[0], parser_->ConvertToHexTextIndex(RET_01));
+    EXPECT_EQ(fileSystemSample.ErrorCodes()[0], INVALID_UINT64);
+    EXPECT_EQ(fileSystemSample.Fds()[0], ARGS_01[0]);
+    EXPECT_EQ(fileSystemSample.FileIds()[0], INVALID_UINT64);
+    EXPECT_EQ(fileSystemSample.Sizes()[0], RET_01);
 
-    FsFixedHeader fsFixedHeader;
-    fsFixedHeader.pid = PID_01;
-    fsFixedHeader.tid = TID_01;
-    fsFixedHeader.startTime = START_TIME_01;
-    fsFixedHeader.endTime = END_TIME_01;
-    fsFixedHeader.ret = RET_01;
-    fsFixedHeader.nrUserIPs = IPS_NUM_00;
-    fsFixedHeader.type = SYS_READ;
-    for (auto i = 0; i < ARGS_MAX; i++) {
-        fsFixedHeader.args[i] = ARGS_01[i];
-    }
-    strncpy_s(fsFixedHeader.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_01, MAX_PROCESS_NAME_SZIE);
-
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(fsFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_FS;
-
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader),
-                       reinterpret_cast<uint8_t*>(&fsFixedHeader + 1));
-
-    std::unique_ptr<EbpfDataParser> parser =
-        std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
-    EXPECT_TRUE(parser->reader_->GetFileSystemEventMap().size());
-    parser->ParseFileSystemEvent();
-    parser->Finish();
-    EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT32);
-    auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
-    EXPECT_EQ(type, READ);
-    auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME_01);
-    auto endTs = stream_.traceDataCache_->GetConstFileSystemSample().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME_01);
-    auto dur = stream_.traceDataCache_->GetConstFileSystemSample().Durs()[0];
-    EXPECT_EQ(dur, END_TIME_01 - START_TIME_01);
-    auto ExpectReturnValue = parser->ConvertToHexTextIndex(RET_01);
-    auto returnValue = stream_.traceDataCache_->GetConstFileSystemSample().ReturnValues()[0];
-    EXPECT_EQ(returnValue, ExpectReturnValue);
-    auto errorCode = stream_.traceDataCache_->GetConstFileSystemSample().ErrorCodes()[0];
-    EXPECT_EQ(errorCode, INVALID_UINT64);
-    auto fd = stream_.traceDataCache_->GetConstFileSystemSample().Fds()[0];
-    EXPECT_EQ(fd, ARGS_01[0]);
-    auto fileId = stream_.traceDataCache_->GetConstFileSystemSample().FileIds()[0];
-    EXPECT_EQ(fileId, INVALID_UINT64);
-    auto size = stream_.traceDataCache_->GetConstFileSystemSample().Sizes()[0];
-    EXPECT_EQ(size, RET_01);
     auto i = 0;
-    auto ExpectFirstArg = parser->ConvertToHexTextIndex(ARGS_01[i++]);
-    auto firstArg = stream_.traceDataCache_->GetConstFileSystemSample().FirstArguments()[0];
-    EXPECT_EQ(firstArg, ExpectFirstArg);
-    auto ExpectSecondArg = parser->ConvertToHexTextIndex(ARGS_01[i++]);
-    auto secondArg = stream_.traceDataCache_->GetConstFileSystemSample().SecondArguments()[0];
-    EXPECT_EQ(secondArg, ExpectSecondArg);
-    auto ExpectThirdArg = parser->ConvertToHexTextIndex(ARGS_01[i++]);
-    auto thirdArg = stream_.traceDataCache_->GetConstFileSystemSample().ThirdArguments()[0];
-    EXPECT_EQ(thirdArg, ExpectThirdArg);
-    auto ExpectFourthArg = parser->ConvertToHexTextIndex(ARGS_01[i]);
-    auto fourthArg = stream_.traceDataCache_->GetConstFileSystemSample().FourthArguments()[0];
-    EXPECT_EQ(fourthArg, ExpectFourthArg);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i++]), fileSystemSample.FirstArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i++]), fileSystemSample.SecondArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i++]), fileSystemSample.ThirdArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_01[i]), fileSystemSample.FourthArguments()[0]);
 }
 
 /**
@@ -313,77 +231,32 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeWrite, TestSize.Level1)
 {
     TS_LOGI("test30-4");
 
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+    ResetData();
+    fsFixedHeader_.type = SYS_WRITE;
+    UpdateData();
 
-    std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
+    EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
+    EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());
+    parser_->ParseFileSystemEvent();
+    parser_->Finish();
+    EXPECT_TRUE(parser_->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
+    auto fileSystemSample = stream_.traceDataCache_->GetConstFileSystemSample();
+    EXPECT_EQ(fileSystemSample.CallChainIds()[0], INVALID_UINT32);
+    EXPECT_EQ(fileSystemSample.Types()[0], WRITE);
+    EXPECT_EQ(fileSystemSample.StartTs()[0], START_TIME_02);
+    EXPECT_EQ(fileSystemSample.EndTs()[0], END_TIME_02);
+    EXPECT_EQ(fileSystemSample.Durs()[0], END_TIME_02 - START_TIME_02);
+    EXPECT_EQ(fileSystemSample.ReturnValues()[0], parser_->ConvertToHexTextIndex(0));
+    EXPECT_EQ(fileSystemSample.ErrorCodes()[0], parser_->ConvertToHexTextIndex(-RET_02));
+    EXPECT_EQ(fileSystemSample.Fds()[0], ARGS_02[0]);
+    EXPECT_EQ(fileSystemSample.FileIds()[0], INVALID_UINT64);
+    EXPECT_EQ(fileSystemSample.Sizes()[0], MAX_SIZE_T);
 
-    FsFixedHeader fsFixedHeader;
-    fsFixedHeader.pid = PID_02;
-    fsFixedHeader.tid = TID_02;
-    fsFixedHeader.startTime = START_TIME_02;
-    fsFixedHeader.endTime = END_TIME_02;
-    fsFixedHeader.ret = RET_02;
-    fsFixedHeader.nrUserIPs = IPS_NUM_00;
-    fsFixedHeader.type = SYS_WRITE;
-    for (auto i = 0; i < ARGS_MAX; i++) {
-        fsFixedHeader.args[i] = ARGS_02[i];
-    }
-    strncpy_s(fsFixedHeader.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_02, MAX_PROCESS_NAME_SZIE);
-
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(fsFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_FS;
-
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader),
-                       reinterpret_cast<uint8_t*>(&fsFixedHeader + 1));
-
-    std::unique_ptr<EbpfDataParser> parser =
-        std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
-    EXPECT_TRUE(parser->reader_->GetFileSystemEventMap().size());
-    parser->ParseFileSystemEvent();
-    parser->Finish();
-    EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT32);
-    auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
-    EXPECT_EQ(type, WRITE);
-    auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME_02);
-    auto endTs = stream_.traceDataCache_->GetConstFileSystemSample().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME_02);
-    auto dur = stream_.traceDataCache_->GetConstFileSystemSample().Durs()[0];
-    EXPECT_EQ(dur, END_TIME_02 - START_TIME_02);
-    auto ExpectReturnValue = parser->ConvertToHexTextIndex(0);
-    auto returnValue = stream_.traceDataCache_->GetConstFileSystemSample().ReturnValues()[0];
-    EXPECT_EQ(returnValue, ExpectReturnValue);
-    auto errorCode = stream_.traceDataCache_->GetConstFileSystemSample().ErrorCodes()[0];
-    auto ExpectErrorValue = parser->ConvertToHexTextIndex(-RET_02);
-    EXPECT_EQ(errorCode, ExpectErrorValue);
-    auto fd = stream_.traceDataCache_->GetConstFileSystemSample().Fds()[0];
-    EXPECT_EQ(fd, ARGS_02[0]);
-    auto fileId = stream_.traceDataCache_->GetConstFileSystemSample().FileIds()[0];
-    EXPECT_EQ(fileId, INVALID_UINT64);
-    auto size = stream_.traceDataCache_->GetConstFileSystemSample().Sizes()[0];
-    EXPECT_EQ(size, MAX_SIZE_T);
     auto i = 0;
-    auto ExpectFirstArg = parser->ConvertToHexTextIndex(ARGS_02[i++]);
-    auto firstArg = stream_.traceDataCache_->GetConstFileSystemSample().FirstArguments()[0];
-    EXPECT_EQ(firstArg, ExpectFirstArg);
-    auto ExpectSecondArg = parser->ConvertToHexTextIndex(ARGS_02[i++]);
-    auto secondArg = stream_.traceDataCache_->GetConstFileSystemSample().SecondArguments()[0];
-    EXPECT_EQ(secondArg, ExpectSecondArg);
-    auto ExpectThirdArg = parser->ConvertToHexTextIndex(ARGS_02[i++]);
-    auto thirdArg = stream_.traceDataCache_->GetConstFileSystemSample().ThirdArguments()[0];
-    EXPECT_EQ(thirdArg, ExpectThirdArg);
-    auto ExpectFourthArg = parser->ConvertToHexTextIndex(ARGS_02[i]);
-    auto fourthArg = stream_.traceDataCache_->GetConstFileSystemSample().FourthArguments()[0];
-    EXPECT_EQ(fourthArg, ExpectFourthArg);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i++]), fileSystemSample.FirstArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i++]), fileSystemSample.SecondArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i++]), fileSystemSample.ThirdArguments()[0]);
+    EXPECT_EQ(parser_->ConvertToHexTextIndex(ARGS_02[i]), fileSystemSample.FourthArguments()[0]);
 }
 
 /**
@@ -395,42 +268,15 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithErrorType, TestSize.Level1)
 {
     TS_LOGI("test30-5");
 
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+    InitData();
+    fsFixedHeader_.type = 0;
+    UpdateData();
 
-    std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-
-    FsFixedHeader fsFixedHeader;
-    fsFixedHeader.pid = PID_01;
-    fsFixedHeader.tid = TID_01;
-    fsFixedHeader.startTime = START_TIME_01;
-    fsFixedHeader.endTime = END_TIME_01;
-    fsFixedHeader.ret = RET_01;
-    fsFixedHeader.nrUserIPs = IPS_NUM_00;
-    fsFixedHeader.type = 0;
-    for (auto i = 0; i < ARGS_MAX; i++) {
-        fsFixedHeader.args[i] = ARGS_01[i];
-    }
-    strncpy_s(fsFixedHeader.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_01, MAX_PROCESS_NAME_SZIE);
-
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(fsFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_FS;
-
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader),
-                       reinterpret_cast<uint8_t*>(&fsFixedHeader + 1));
-
-    std::unique_ptr<EbpfDataParser> parser =
-        std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
-    EXPECT_TRUE(parser->reader_->GetFileSystemEventMap().size());
-    parser->ParseFileSystemEvent();
-    parser->Finish();
-    EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
+    EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
+    EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());
+    parser_->ParseFileSystemEvent();
+    parser_->Finish();
+    EXPECT_TRUE(parser_->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     EXPECT_FALSE(stream_.traceDataCache_->GetConstFileSystemSample().Size());
 }
 
@@ -443,68 +289,30 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithIPsButNoMaps, TestSize.Level1)
 {
     TS_LOGI("test30-6");
 
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-
-    std::deque<uint8_t> dequeBuffer = {};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-
-    FsFixedHeader fsFixedHeader;
-    fsFixedHeader.pid = PID_01;
-    fsFixedHeader.tid = TID_01;
-    fsFixedHeader.startTime = START_TIME_01;
-    fsFixedHeader.endTime = END_TIME_01;
-    fsFixedHeader.ret = RET_01;
-    fsFixedHeader.nrUserIPs = IPS_NUM_02;
-    fsFixedHeader.type = SYS_OPENAT2;
-    for (auto i = 0; i < ARGS_MAX; i++) {
-        fsFixedHeader.args[i] = ARGS_01[i];
-    }
-    strncpy_s(fsFixedHeader.processName, MAX_PROCESS_NAME_SZIE, PROCESS_NAME_01, MAX_PROCESS_NAME_SZIE);
-
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(fsFixedHeader) + IPS_NUM_02 * sizeof(uint64_t);
-    ebpfTypeAndLength.type = ITEM_EVENT_FS;
-
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&fsFixedHeader),
-                       reinterpret_cast<uint8_t*>(&fsFixedHeader + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<const uint8_t*>(IPS_02),
+    InitData(IPS_NUM_02);
+    fsFixedHeader_.type = SYS_OPENAT2;
+    ebpfTypeAndLength_.length = sizeof(fsFixedHeader_) + IPS_NUM_02 * sizeof(uint64_t);
+    UpdateData();
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(IPS_02),
                        reinterpret_cast<const uint8_t*>(&IPS_02 + 1));
 
-    std::unique_ptr<EbpfDataParser> parser =
-        std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(parser->Init(dequeBuffer, dequeBuffer.size()));
-    EXPECT_TRUE(parser->reader_->GetFileSystemEventMap().size());
-    parser->ParseFileSystemEvent();
-    parser->Finish();
-    EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, 0);
-    auto callStackFirstLevelCallChainId = stream_.traceDataCache_->GetConstEbpfCallStackData().CallChainIds()[0];
-    EXPECT_EQ(callStackFirstLevelCallChainId, 0);
-    auto callStackSecondLevelCallChainId = stream_.traceDataCache_->GetConstEbpfCallStackData().CallChainIds()[1];
-    EXPECT_EQ(callStackSecondLevelCallChainId, 0);
-    auto callStackFirstLevelDepth = stream_.traceDataCache_->GetConstEbpfCallStackData().Depths()[0];
-    EXPECT_EQ(callStackFirstLevelDepth, 0);
-    auto callStackSecondLevelDepth = stream_.traceDataCache_->GetConstEbpfCallStackData().Depths()[1];
-    EXPECT_EQ(callStackSecondLevelDepth, 1);
-    auto ExpectCallStackFirstLevelIp = parser->ConvertToHexTextIndex(IPS_02[1]);
-    auto callStackFirstLevelIp = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0];
-    EXPECT_EQ(callStackFirstLevelIp, ExpectCallStackFirstLevelIp);
-    auto ExpectCallStackSecondLevelIp = parser->ConvertToHexTextIndex(IPS_02[0]);
-    auto callStackSecondLevelIp = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[1];
-    EXPECT_EQ(callStackSecondLevelIp, ExpectCallStackSecondLevelIp);
-    auto callStackFirstLevelSymbolId = stream_.traceDataCache_->GetConstEbpfCallStackData().SymbolIds()[0];
-    EXPECT_EQ(callStackFirstLevelSymbolId, INVALID_UINT64);
-    auto callStackSecondLevelSymbolId = stream_.traceDataCache_->GetConstEbpfCallStackData().SymbolIds()[1];
-    EXPECT_EQ(callStackSecondLevelSymbolId, INVALID_UINT64);
-    auto callStackFirstLevelFilePathIds = stream_.traceDataCache_->GetConstEbpfCallStackData().FilePathIds()[0];
-    EXPECT_EQ(callStackFirstLevelFilePathIds, INVALID_UINT64);
-    auto callStackSecondLevelFilePathIds = stream_.traceDataCache_->GetConstEbpfCallStackData().FilePathIds()[1];
-    EXPECT_EQ(callStackSecondLevelFilePathIds, INVALID_UINT64);
+    EXPECT_TRUE(parser_->Init(dequeBuffer_, dequeBuffer_.size()));
+    EXPECT_TRUE(parser_->reader_->GetFileSystemEventMap().size());
+    parser_->ParseFileSystemEvent();
+    parser_->Finish();
+    EXPECT_TRUE(parser_->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0], 0);
+    auto ebpfCallStackData = stream_.traceDataCache_->GetConstEbpfCallStackData();
+    EXPECT_EQ(ebpfCallStackData.CallChainIds()[0], 0);
+    EXPECT_EQ(ebpfCallStackData.CallChainIds()[1], 0);
+    EXPECT_EQ(ebpfCallStackData.Depths()[0], 0);
+    EXPECT_EQ(ebpfCallStackData.Depths()[1], 1);
+    EXPECT_EQ(ebpfCallStackData.Ips()[0], parser_->ConvertToHexTextIndex(IPS_02[1]));
+    EXPECT_EQ(ebpfCallStackData.Ips()[1], parser_->ConvertToHexTextIndex(IPS_02[0]));
+    EXPECT_EQ(ebpfCallStackData.SymbolIds()[0], INVALID_UINT64);
+    EXPECT_EQ(ebpfCallStackData.SymbolIds()[1], INVALID_UINT64);
+    EXPECT_EQ(ebpfCallStackData.FilePathIds()[0], INVALID_UINT64);
+    EXPECT_EQ(ebpfCallStackData.FilePathIds()[1], INVALID_UINT64);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {TraficEnum} from './utils/QueryEnum';
-import {filterDataByGroup} from './utils/DataFilter';
-import {cpuList} from './utils/AllMemoryCache';
+import { TraficEnum } from './utils/QueryEnum';
+import { filterDataByGroup } from './utils/DataFilter';
+import { cpuList } from './utils/AllMemoryCache';
 
 export const chartCpuDataProtoSql = (args: any): string => {
   return `
@@ -23,7 +23,7 @@ export const chartCpuDataProtoSql = (args: any): string => {
              B.itid                                                                                       as id,
              max(B.dur)                                                                                   AS dur,
              B.ts - ${
-                     args.recordStartNS
+               args.recordStartNS
              }                                                                                            AS startTime,
              ifnull(B.arg_setid, -1)                                                                      as argSetId,
              ((B.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
@@ -54,9 +54,6 @@ export function cpuDataReceiver(data: any, proc: Function): void {
     let res: any[], list: any[];
     if (!cpuList.has(data.params.cpu)) {
       list = proc(chartCpuDataProtoSqlMem(data.params));
-      if (data.params.cpu === 0) {
-        console.log(list);
-      }
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur == -1) {
           list[i].nofinish = 1;
@@ -87,7 +84,7 @@ export function searchDataHandler(data: any): void {
   let pidArr = data.params.pidArr as number[];
   let tidArr = data.params.tidArr as number[];
   for (let value of Array.from(cpuList.values())) {
-    res.push(...value.filter((cpuData) => pidArr.includes(cpuData.processId) || tidArr.includes(cpuData.tid)))
+    res.push(...value.filter((cpuData) => pidArr.includes(cpuData.processId) || tidArr.includes(cpuData.tid)));
   }
   res.sort((dataA, dataB) => dataA.startTime - dataB.startTime);
   arrayBufferHandler(data, res, true);
@@ -119,14 +116,14 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
       action: data.action,
       results: transfer
         ? {
-          startTime: startTime.buffer,
-          dur: dur.buffer,
-          tid: tid.buffer,
-          id: id.buffer,
-          processId: processId.buffer,
-          cpu: cpu.buffer,
-          argSetID: argSetId.buffer,
-        }
+            startTime: startTime.buffer,
+            dur: dur.buffer,
+            tid: tid.buffer,
+            id: id.buffer,
+            processId: processId.buffer,
+            cpu: cpu.buffer,
+            argSetID: argSetId.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,

@@ -27,7 +27,11 @@ import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/Nativ
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
-import {queryNativeHookStatisticSubType, queryNativeHookSubType} from "../../../../database/sql/NativeHook.sql";
+import { TabPaneNMCallTreeHtml } from './TabPaneNMCallTree.html';
+import {
+  queryNativeHookStatisticSubType,
+  queryNativeHookSubType
+} from '../../../../database/sql/NativeHook.sql';
 
 const InvertOpyionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
@@ -138,7 +142,8 @@ export class TabpaneNMCalltree extends BaseElement {
     } else {
       this.nmCallTreeFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => {});
+    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => {
+    });
     this.nmCallTreeFilter!.disabledTransfer(true);
     this.nmCallTreeFilter!.initializeFilterTree(true, true, this.currentSelection!.nativeMemory.length > 0);
     this.nmCallTreeFilter!.filterValue = '';
@@ -151,14 +156,14 @@ export class TabpaneNMCalltree extends BaseElement {
     if (nmCallTreeParam.nativeMemory.length > 0) {
       this.nmCallTreeFilter!.isStatisticsMemory = false;
       if (nmCallTreeParam.nativeMemory.indexOf(this.nativeType[0]) !== -1) {
-        types.push("'AllocEvent'");
-        types.push("'MmapEvent'");
+        types.push('\'AllocEvent\'');
+        types.push('\'MmapEvent\'');
       } else {
         if (nmCallTreeParam.nativeMemory.indexOf(this.nativeType[1]) !== -1) {
-          types.push("'AllocEvent'");
+          types.push('\'AllocEvent\'');
         }
         if (nmCallTreeParam.nativeMemory.indexOf(this.nativeType[2]) !== -1) {
-          types.push("'MmapEvent'");
+          types.push('\'MmapEvent\'');
         }
       }
     } else {
@@ -234,13 +239,14 @@ export class TabpaneNMCalltree extends BaseElement {
     });
     this.banTypeAndLidSelect();
   }
+
   banTypeAndLidSelect(): void {
     this.currentNMCallTreeFilter!.firstSelect = '0';
     let secondSelect = this.shadowRoot
-      ?.querySelector('#nm-call-tree-filter')!
+    ?.querySelector('#nm-call-tree-filter')!
       .shadowRoot!.querySelector('#second-select');
     let thirdSelect = this.shadowRoot
-      ?.querySelector('#nm-call-tree-filter')!
+    ?.querySelector('#nm-call-tree-filter')!
       .shadowRoot!.querySelector('#third-select');
     thirdSelect?.setAttribute('disabled', '');
     secondSelect?.setAttribute('disabled', '');
@@ -310,6 +316,7 @@ export class TabpaneNMCalltree extends BaseElement {
     let resultLength = resultValue.length;
     this.filesystemTbr!.dataSource = resultLength == 0 ? [] : resultValue;
   }
+
   //底部的筛选菜单
   showBottomMenu(isShow: boolean): void {
     if (isShow) {
@@ -334,6 +341,7 @@ export class TabpaneNMCalltree extends BaseElement {
     let secondFilterList = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
 
     let that = this;
+
     function addSubType(subTypeList: any) {
       if (!subTypeList) {
         return;
@@ -422,7 +430,7 @@ export class TabpaneNMCalltree extends BaseElement {
       }
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: { time: event.detail.tsArray, counts: event.detail.countArray },
+          detail: {time: event.detail.tsArray, counts: event.detail.countArray},
         })
       );
     });
@@ -489,7 +497,7 @@ export class TabpaneNMCalltree extends BaseElement {
           }
           if (this.currentSelectedData !== undefined) {
             this.nmCallTreeFilter!.addDataMining(
-              { name: this.currentSelectedData.symbolName },
+              {name: this.currentSelectedData.symbolName},
               nmCallTreeFuncData.item
             );
             nmCallTreeFuncArgs.push({
@@ -504,7 +512,7 @@ export class TabpaneNMCalltree extends BaseElement {
             return;
           }
           if (this.currentSelectedData != undefined && this.currentSelectedData.libName !== '') {
-            this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.libName }, nmCallTreeFuncData.item);
+            this.nmCallTreeFilter!.addDataMining({name: this.currentSelectedData.libName}, nmCallTreeFuncData.item);
             nmCallTreeFuncArgs.push({
               funcName: 'splitTree',
               funcArgs: [this.currentSelectedData.libName, false, false],
@@ -720,15 +728,19 @@ export class TabpaneNMCalltree extends BaseElement {
           this.nmCallTreeFrameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.nmCallTreeFrameChart?.calculateChartData();
         }
-        // @ts-ignore
-        this.nmCallTreeTbl?.shadowRoot.querySelector('.table').style.height = `${
-          this.parentElement!.clientHeight - 10 - 35
-        }px`;
+        if (this.nmCallTreeTbl){
+          // @ts-ignore
+          this.nmCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 10 - 35
+          }px`;
+        }
         this.nmCallTreeTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.filesystemTbr?.shadowRoot.querySelector('.table').style.height = `${
-          this.parentElement!.clientHeight - 45 - 21
-        }px`;
+        if (this.filesystemTbr){
+          // @ts-ignore
+          this.filesystemTbr.shadowRoot.querySelector('.table').style.height = `${
+            this.parentElement!.clientHeight - 45 - 21
+          }px`;
+        }
         this.filesystemTbr?.reMeauseHeight();
         this.nmCallTreeLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
@@ -926,91 +938,6 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            padding: 10px 10px 0 10px;
-            display: flex;
-            flex-direction: column;
-        }
-        .show{
-            display: flex;
-            flex: 1;
-        }
-        #nm-call-tree-filter {
-            border: solid rgb(216,216,216) 1px;
-            float: left;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        selector{
-            display: none;
-        }
-        .nm-call-tree-progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        .nm-call-tree-loading{
-            bottom: 0;
-            position: absolute;
-            left: 0;
-            right: 0;
-            width:100%;
-            background:transparent;
-            z-index: 999999;
-        }
-    </style>
-    <lit-headline class="titleBox"></lit-headline>
-    <div class="nm-call-tree-content" style="display: flex;flex-direction: row">
-    <selector id='show_table' class="show">
-        <lit-slicer style="width:100%">
-        <div id="left_table" style="width: 65%">
-            <tab-native-data-modal id="modal"></tab-native-data-modal>
-            <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
-                <lit-table-column class="nm-call-tree-column" width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start" retract>
-                </lit-table-column>
-                <lit-table-column class="nm-call-tree-column" width="1fr" title="Size" data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column class="nm-call-tree-column" width="1fr" title="%" data-index="heapPercent" key="heapPercent" align="flex-start"  order>
-                </lit-table-column>
-                <lit-table-column class="nm-call-tree-column" width="1fr" title="Count" data-index="countValue" key="countValue" align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column class="nm-call-tree-column" width="1fr" title="%" data-index="countPercent" key="countPercent" align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column class="nm-call-tree-column" width="1fr" title="  " data-index="type" key="type"  align="flex-start" >
-                    <template>
-                        <img src="img/library.png" size="20" v-if=" type == 1 ">
-                        <img src="img/function.png" size="20" v-if=" type == 0 ">
-                        <div v-if=" type == - 1 "></div>
-                    </template>
-                </lit-table-column>
-            </lit-table>
-            
-        </div>
-        <lit-slicer-track class="nm-call-tree-slicer-track" ></lit-slicer-track>
-        <lit-table id="tb-filesystem-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-            <span slot="head">Heaviest Stack Trace</span>
-            <lit-table-column class="nm-call-tree-column" width="30px" title="" data-index="type" key="type"  align="flex-start" >
-                <template>
-                    <img src="img/library.png" size="20" v-if=" type == 1 ">
-                    <img src="img/function.png" size="20" v-if=" type == 0 ">
-                </template>
-            </lit-table-column>
-            <lit-table-column class="nm-call-tree-column" width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
-        </lit-table>
-        </div>
-        </lit-slicer>
-     </selector>
-     <tab-pane-filter id="nm-call-tree-filter" first second icon nativeMemory></tab-pane-filter>
-     <lit-progress-bar class="progress nm-call-tree-progress"></lit-progress-bar>
-    <selector class="nm-call-tree-selector" id='show_chart'>
-        <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
-    </selector>  
-    <div class="loading nm-call-tree-loading"></div>
-    </div>`;
+    return TabPaneNMCallTreeHtml;
   }
 }

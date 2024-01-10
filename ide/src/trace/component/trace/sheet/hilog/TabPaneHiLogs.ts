@@ -24,7 +24,7 @@ import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
 import { ColorUtils } from '../../base/ColorUtils';
 import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import {queryLogAllData} from "../../../../database/sql/SqlLite.sql";
+import { queryLogAllData } from '../../../../database/sql/SqlLite.sql';
 
 @element('tab-hi-log')
 export class TabPaneHiLogs extends BaseElement {
@@ -61,6 +61,7 @@ export class TabPaneHiLogs extends BaseElement {
       });
     }
   }
+
   init(): void {
     this.levelFilterInput = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
     this.logTableTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#log-title');
@@ -68,8 +69,8 @@ export class TabPaneHiLogs extends BaseElement {
     this.searchFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#search-filter');
     this.processFilter = this.shadowRoot?.querySelector<HTMLInputElement>('#process-filter');
     this.spSystemTrace = document
-      .querySelector('body > sp-application')
-      ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
+    .querySelector('body > sp-application')
+    ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.tableTimeHandle = this.delayedRefresh(this.refreshTable);
     this.tableTitleTimeHandle = this.delayedRefresh(this.refreshLogsTitle);
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
@@ -111,6 +112,7 @@ export class TabPaneHiLogs extends BaseElement {
       this.tableTitleTimeHandle?.();
     });
   }
+
   initElements(): void {
     this.init();
     this.tagFilterDiv!.onclick = (ev): void => {
@@ -190,7 +192,8 @@ export class TabPaneHiLogs extends BaseElement {
         </lit-page-table>
         `;
   }
-  rerefreshLogsTab() {
+
+  rerefreshLogsTab(): void {
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     if (tbl) {
@@ -213,11 +216,13 @@ export class TabPaneHiLogs extends BaseElement {
       });
     }
   }
+
   refreshLogsTitle(): void {
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     let firstRowHeight = 27;
     let tableHeadHeight = 26;
+    this.rerefreshLogsTab();
     if (this.hiLogsTbl && this.hiLogsTbl.currentRecycleList.length > 0) {
       let startDataIndex = this.hiLogsTbl.startSkip + 1;
       let endDataIndex = startDataIndex;

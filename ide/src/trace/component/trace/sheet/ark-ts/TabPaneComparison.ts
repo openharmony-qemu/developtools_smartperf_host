@@ -16,14 +16,18 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { HeapDataInterface } from '../../../../../js-heap/HeapDataInterface';
-import { ConstructorComparison, ConstructorItem, ConstructorType } from '../../../../../js-heap/model/UiStruct';
-import { LitTableColumn } from '../../../../../base-ui/table/lit-table-column';
+import {
+  ConstructorComparison,
+  ConstructorItem,
+  ConstructorType
+} from '../../../../../js-heap/model/UiStruct';
 import '../../../../../base-ui/table/lit-table-column';
 import { TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import '../TabPaneJsMemoryFilter';
 import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { LitSelect } from '../../../../../base-ui/select/LitSelect';
+import { TabPaneComparisonHtml } from './TabPaneComparison.html';
 
 @element('tabpane-comparison')
 export class TabPaneComparison extends BaseElement {
@@ -54,214 +58,10 @@ export class TabPaneComparison extends BaseElement {
     this.rightTheadTable = this.retainerTableEl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.leftTheadTable = this.comparisonTableEl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.comparisonTable = this.comparisonTableEl.shadowRoot?.querySelector('.table') as HTMLDivElement;
-    this.comparisonTableEl!.addEventListener('icon-click', (e) => {
-      // @ts-ignore
-      let clickRow = e.detail.data;
-      if (clickRow.status) {
-        clickRow.targetFileId = this.targetFileId;
-        let next = HeapDataInterface.getInstance().getNextForComparison(clickRow);
-        clickRow.children = next;
-        if (clickRow.children.length > 0) {
-          for (let item of clickRow.children) {
-            let nodeName = item.nodeName + ` @${item.id}`;
-            item.nodeId = ` @${item.id}`;
-            if (item.isString()) {
-              item.objectName = '"' + item.nodeName + '"' + ` @${item.id}`;
-            } else {
-              item.objectName = nodeName;
-            }
-            item.deltaCount = '-';
-            item.deltaSize = '-';
-            if (item.edgeName !== '') {
-              item.objectName = item.edgeName + '\xa0' + '::' + '\xa0' + nodeName;
-            } else {
-              if (item.fileId == this.baseFileId) {
-                item.addedCount = '•';
-                item.addedSize = item.shallowSize;
-                item.removedCount = '-';
-                item.removedSize = '-';
-              } else if (item.fileId) {
-                item.removedCount = '•';
-                item.removedSize = item.shallowSize;
-                item.addedCount = '-';
-                item.addedSize = '-';
-              }
-            }
-            if (item.type == ConstructorType.FiledType) {
-              item.removedCount = '-';
-              item.removedSize = '-';
-              item.addedCount = '-';
-              item.addedSize = '-';
-            }
-          }
-        } else {
-          this.comparisonTableEl!.snapshotDataSource = [];
-        }
-      } else {
-        clickRow.status = true;
-      }
-      if (this.search!.value !== '') {
-        if (this.leftTheadTable!.hasAttribute('sort')) {
-          this.comparisonTableEl!.snapshotDataSource = this.leftArray;
-        } else {
-          this.comparisonTableEl!.snapshotDataSource = this.comparisonFilter;
-        }
-      } else {
-        if (this.leftTheadTable!.hasAttribute('sort')) {
-          this.comparisonTableEl!.snapshotDataSource = this.leftArray;
-        } else {
-          this.comparisonTableEl!.snapshotDataSource = this.comparisonsData;
-        }
-      }
-      new ResizeObserver(() => {
-        this.comparisonTableEl!.style.height = '100%';
-        this.comparisonTableEl!.reMeauseHeight();
-      }).observe(this.parentElement!);
-    });
-    this.retainerTableEl!.addEventListener('icon-click', (e) => {
-      // @ts-ignore
-      let retainerNext = e.detail.data as ConstructorItem;
-      if (retainerNext) {
-        if (this.retainsData.length > 0) {
-          if (retainerNext.status) {
-            retainerNext.getChildren();
-            let i = 0;
-            let that = this;
-            let retainsTable = () => {
-              const getList = (comList: Array<ConstructorItem>): void => {
-                comList.forEach((row) => {
-                  let shallow = Math.round((row.shallowSize / this.fileSize) * 100) + '%';
-                  let retained = Math.round((row.retainedSize / this.fileSize) * 100) + '%';
-                  row.shallowPercent = shallow;
-                  row.retainedPercent = retained;
-                  let nodeId = row.nodeName + ` @${row.id}`;
-                  row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-                  if (row.distance >= 100000000 || row.distance === -5) {
-                    // @ts-ignore
-                    row.distance = '-';
-                  }
-                  i++;
-                  // @ts-ignore
-                  if (i < that.retainsData[0].distance - 1 && comList[0].distance !== '-') {
-                    comList[0].getChildren();
-                    comList[0].expanded = false;
-                    if (row.hasNext) {
-                      getList(row.children);
-                    }
-                  } else {
-                    return;
-                  }
-                });
-              };
-              getList(retainerNext.children);
-            };
-            retainsTable();
-          } else {
-            retainerNext.status = true;
-          }
-          if (this.rightTheadTable!.hasAttribute('sort')) {
-            this.retainerTableEl!.snapshotDataSource = this.rightArray;
-          } else {
-            this.retainerTableEl!.snapshotDataSource = this.retainsData;
-          }
-        } else {
-          this.retainerTableEl!.snapshotDataSource = [];
-        }
-        new ResizeObserver(() => {
-          this.retainerTableEl!.style.height = 'calc(100% - 21px)';
-          this.retainerTableEl!.reMeauseHeight();
-        }).observe(this.parentElement!);
-      }
-    });
-    this.comparisonTableEl!.addEventListener('column-click', (e) => {
-      // @ts-ignore
-      this.sortComprisonByColumn(e.detail.key, e.detail.sort);
-      this.comparisonTableEl!.reMeauseHeight();
-    });
-    this.retainerTableEl!.addEventListener('column-click', (e) => {
-      // @ts-ignore
-      this.sortRetainerByColumn(e.detail.key, e.detail.sort);
-      this.retainerTableEl!.reMeauseHeight();
-    });
-    this.comparisonTableEl!.addEventListener('row-click', (e) => {
-      this.rightTheadTable!.removeAttribute('sort');
-      // @ts-ignore
-      let item = e.detail.data as ConstructorItem;
-      (item as any).isSelected = true;
-      this.retainsData = HeapDataInterface.getInstance().getRetains(item);
-      if (this.retainsData && this.retainsData.length > 0) {
-        this.retainsData.forEach((comparisonRetainEl) => {
-          let shallow = Math.round((comparisonRetainEl.shallowSize / this.fileSize) * 100) + '%';
-          let retained = Math.round((comparisonRetainEl.retainedSize / this.fileSize) * 100) + '%';
-          comparisonRetainEl.shallowPercent = shallow;
-          comparisonRetainEl.retainedPercent = retained;
-          if (comparisonRetainEl.distance >= 100000000 || comparisonRetainEl.distance === -5) {
-            // @ts-ignore
-            comparisonRetainEl.distance = '-';
-          }
-          let nodeId = comparisonRetainEl.nodeName + ` @${comparisonRetainEl.id}`;
-          comparisonRetainEl.objectName = comparisonRetainEl.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-        });
-        let i = 0;
-        let that = this;
-        if (this.retainsData[0].distance > 1) {
-          this.retainsData[0].getChildren();
-          this.retainsData[0].expanded = false;
-        }
-        let retainsTable = () => {
-          const getList = (list: Array<ConstructorItem>) => {
-            list.forEach((structRow) => {
-              let shallow = Math.round((structRow.shallowSize / this.fileSize) * 100) + '%';
-              let retained = Math.round((structRow.retainedSize / this.fileSize) * 100) + '%';
-              structRow.shallowPercent = shallow;
-              structRow.retainedPercent = retained;
-              let nodeId = structRow.nodeName + ` @${structRow.id}`;
-              structRow.objectName = structRow.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-              if (structRow.distance >= 100000000 || structRow.distance === -5) {
-                // @ts-ignore
-                structRow.distance = '-';
-              }
-              i++;
-              // @ts-ignore
-              if (i < that.retainsData[0].distance - 1 && list[0].distance !== '-') {
-                list[0].getChildren();
-                list[0].expanded = false;
-                if (structRow.hasNext) {
-                  getList(structRow.children);
-                }
-              } else {
-                return;
-              }
-            });
-          };
-          getList(that.retainsData[0].children);
-        };
-        retainsTable();
-        this.retainerTableEl!.snapshotDataSource = this.retainsData;
-      } else {
-        this.retainerTableEl!.snapshotDataSource = [];
-      }
-      new ResizeObserver(() => {
-        this.retainerTableEl!.style.height = 'calc(100% - 21px)';
-        this.retainerTableEl!.reMeauseHeight();
-      }).observe(this.parentElement!);
-      // @ts-ignore
-      if ((e.detail as any).callBack) {
-        // @ts-ignore
-        (e.detail as any).callBack(true);
-      }
-    });
-    this.retainerTableEl!.addEventListener('row-click', (evt: any) => {
-      let data = evt.detail.data as ConstructorItem;
-      (data as any).isSelected = true;
-      if ((evt.detail as any).callBack) {
-        (evt.detail as any).callBack(true);
-      }
-    });
     this.classFilter();
   }
 
-  initComparison(data: HeapSnapshotStruct, dataListCache: Array<HeapSnapshotStruct>) {
+  initComparison(data: HeapSnapshotStruct, dataListCache: Array<HeapSnapshotStruct>): void {
     this.clear();
     this.retainerTableEl!.snapshotDataSource = [];
     let fileArr: HeapSnapshotStruct[] = [];
@@ -283,7 +83,7 @@ export class TabPaneComparison extends BaseElement {
     }).observe(this.parentElement!);
   }
 
-  updateComparisonData(baseFileId: number, targetFileId: number) {
+  updateComparisonData(baseFileId: number, targetFileId: number): void {
     this.comparisonsData = HeapDataInterface.getInstance().getClassListForComparison(baseFileId, targetFileId);
     this.comparisonsData.forEach((dataList) => {
       dataList.objectName = dataList.nodeName;
@@ -340,45 +140,49 @@ export class TabPaneComparison extends BaseElement {
         } else {
           this.leftArray = [...this.comparisonFilter];
         }
-        switch (column) {
-          case 'addedCount':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.addedCount - b.addedCount : b.addedCount - a.addedCount;
-            });
-            break;
-          case 'removedCount':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.removedCount - b.removedCount : b.removedCount - a.removedCount;
-            });
-            break;
-          case 'deltaCount':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.deltaCount - b.deltaCount : b.deltaCount - a.deltaCount;
-            });
-            break;
-          case 'objectName':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1
-                ? (a.objectName + '').localeCompare(b.objectName + '')
-                : (b.objectName + '').localeCompare(a.objectName + '');
-            });
-            break;
-          case 'addedSize':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.addedSize - b.addedSize : b.addedSize - a.addedSize;
-            });
-            break;
-          case 'removedSize':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.removedSize - b.removedSize : b.removedSize - a.removedSize;
-            });
-            break;
-          case 'deltaSize':
-            this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
-              return sort === 1 ? a.deltaSize - b.deltaSize : b.deltaSize - a.deltaSize;
-            });
-            break;
-        }
+        this.sortComprisonByColumnExtend(column, sort);
+        break;
+    }
+  }
+
+  private sortComprisonByColumnExtend(column: string, sort: number): void{
+    switch (column) {
+      case 'addedCount':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ? a.addedCount - b.addedCount : b.addedCount - a.addedCount;
+        });
+        break;
+      case 'removedCount':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ? a.removedCount - b.removedCount : b.removedCount - a.removedCount;
+        });
+        break;
+      case 'deltaCount':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ? a.deltaCount - b.deltaCount : b.deltaCount - a.deltaCount;
+        });
+        break;
+      case 'objectName':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ?
+            (`${a.objectName  }`).localeCompare(`${b.objectName  }`) :
+            (`${b.objectName  }`).localeCompare(`${a.objectName  }`);
+        });
+        break;
+      case 'addedSize':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ? a.addedSize - b.addedSize : b.addedSize - a.addedSize;
+        });
+        break;
+      case 'removedSize':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ? a.removedSize - b.removedSize : b.removedSize - a.removedSize;
+        });
+        break;
+      case 'deltaSize':
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray.sort((a, b) => {
+          return sort === 1 ? a.deltaSize - b.deltaSize : b.deltaSize - a.deltaSize;
+        });
         break;
     }
   }
@@ -392,114 +196,130 @@ export class TabPaneComparison extends BaseElement {
         this.rightArray = [...this.retainsData];
         switch (column) {
           case 'distance':
-            this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((a, b) => {
-              return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
-            });
-            this.rightArray.forEach((list) => {
-              let retainsTable = function () {
-                const getList = function (currentList: Array<ConstructorItem>) {
-                  currentList.sort((a, b) => {
-                    return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
-                  });
-                  currentList.forEach(function (currentRow) {
-                    if (currentRow.children.length > 0) {
-                      getList(currentRow.children);
-                    }
-                  });
-                };
-                getList(list.children);
-              };
-              retainsTable();
-            });
-            this.retainerTableEl!.snapshotDataSource = this.rightArray;
+            this.sortRetainerByDistanceType(sort);
             break;
           case 'shallowSize':
-            this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
-              return sort === 1
-                ? rightArrA.shallowSize - rightArrB.shallowSize
-                : rightArrB.shallowSize - rightArrA.shallowSize;
-            });
-            this.rightArray.forEach((list) => {
-              let retainsTable = function () {
-                const getList = function (listArr: Array<ConstructorItem>) {
-                  listArr.sort((listArrA, listArrB) => {
-                    return sort === 1
-                      ? listArrA.shallowSize - listArrB.shallowSize
-                      : listArrB.shallowSize - listArrA.shallowSize;
-                  });
-                  listArr.forEach(function (rowEl) {
-                    if (rowEl.children.length > 0) {
-                      getList(rowEl.children);
-                    }
-                  });
-                };
-                getList(list.children);
-              };
-              retainsTable();
-            });
-            this.retainerTableEl!.snapshotDataSource = this.rightArray;
+            this.sortRetainerByShallowSizeType(sort);
             break;
           case 'retainedSize':
-            this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
-              return sort === 1
-                ? rightArrA.retainedSize - rightArrB.retainedSize
-                : rightArrB.retainedSize - rightArrA.retainedSize;
-            });
-            this.rightArray.forEach((list) => {
-              let retainsTable = function () {
-                const getList = function (listArr: Array<ConstructorItem>) {
-                  listArr.sort((listArrA, listArrB) => {
-                    return sort === 1
-                      ? listArrA.retainedSize - listArrB.retainedSize
-                      : listArrB.retainedSize - listArrA.retainedSize;
-                  });
-                  listArr.forEach(function (row) {
-                    if (row.children.length > 0) {
-                      getList(row.children);
-                    }
-                  });
-                };
-                getList(list.children);
-              };
-              retainsTable();
-            });
-            this.retainerTableEl!.snapshotDataSource = this.rightArray;
+            this.sortRetainerByRetainedSizeType(sort);
             break;
           case 'objectName':
-            this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
-              return sort === 1
-                ? (rightArrA.objectName + '').localeCompare(rightArrB.objectName + '')
-                : (rightArrB.objectName + '').localeCompare(rightArrA.objectName + '');
-            });
-            this.rightArray.forEach((list) => {
-              let retainsTable = function () {
-                const getList = function (listArr: Array<ConstructorItem>) {
-                  listArr.sort((listArrA, listArrB) => {
-                    return sort === 1
-                      ? (listArrA.objectName + '').localeCompare(listArrB.objectName + '')
-                      : (listArrB.objectName + '').localeCompare(listArrA.objectName + '');
-                  });
-                  listArr.forEach(function (currentRow) {
-                    if (currentRow.children.length > 0) {
-                      getList(currentRow.children);
-                    }
-                  });
-                };
-                getList(list.children);
-              };
-              retainsTable();
-            });
-            this.retainerTableEl!.snapshotDataSource = this.rightArray;
+            this.sortRetainerByObjectNameType(sort);
             break;
         }
         break;
     }
   }
 
+  private sortRetainerByObjectNameType(sort: number): void {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
+      return sort === 1 ?
+        (`${rightArrA.objectName  }`).localeCompare(`${rightArrB.objectName  }`) :
+        (`${rightArrB.objectName  }`).localeCompare(`${rightArrA.objectName  }`);
+    });
+    this.rightArray.forEach((list) => {
+      let retainsTable = (): void => {
+        const getList = (listArr: Array<ConstructorItem>): void => {
+          listArr.sort((listArrA, listArrB) => {
+            return sort === 1 ?
+              (`${listArrA.objectName  }`).localeCompare(`${listArrB.objectName  }`) :
+              (`${listArrB.objectName  }`).localeCompare(`${listArrA.objectName  }`);
+          });
+          listArr.forEach(function (currentRow) {
+            if (currentRow.children.length > 0) {
+              getList(currentRow.children);
+            }
+          });
+        };
+        getList(list.children);
+      };
+      retainsTable();
+    });
+    this.retainerTableEl!.snapshotDataSource = this.rightArray;
+  }
+
+  private sortRetainerByRetainedSizeType(sort: number): void {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
+      return sort === 1 ?
+        rightArrA.retainedSize - rightArrB.retainedSize :
+        rightArrB.retainedSize - rightArrA.retainedSize;
+    });
+    this.rightArray.forEach((list) => {
+      let retainsTable = (): void => {
+        const getList = (listArr: Array<ConstructorItem>): void => {
+          listArr.sort((listArrA, listArrB) => {
+            return sort === 1 ?
+              listArrA.retainedSize - listArrB.retainedSize :
+              listArrB.retainedSize - listArrA.retainedSize;
+          });
+          listArr.forEach(function (row) {
+            if (row.children.length > 0) {
+              getList(row.children);
+            }
+          });
+        };
+        getList(list.children);
+      };
+      retainsTable();
+    });
+    this.retainerTableEl!.snapshotDataSource = this.rightArray;
+  }
+
+  private sortRetainerByShallowSizeType(sort: number): void {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((rightArrA, rightArrB) => {
+      return sort === 1 ?
+        rightArrA.shallowSize - rightArrB.shallowSize :
+        rightArrB.shallowSize - rightArrA.shallowSize;
+    });
+    this.rightArray.forEach((list) => {
+      let retainsTable = (): void => {
+        const getList = (listArr: Array<ConstructorItem>): void => {
+          listArr.sort((listArrA, listArrB) => {
+            return sort === 1 ?
+              listArrA.shallowSize - listArrB.shallowSize :
+              listArrB.shallowSize - listArrA.shallowSize;
+          });
+          listArr.forEach(function (rowEl) {
+            if (rowEl.children.length > 0) {
+              getList(rowEl.children);
+            }
+          });
+        };
+        getList(list.children);
+      };
+      retainsTable();
+    });
+    this.retainerTableEl!.snapshotDataSource = this.rightArray;
+  }
+
+  private sortRetainerByDistanceType(sort: number): void {
+    this.retainerTableEl!.snapshotDataSource = this.rightArray.sort((a, b) => {
+      return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
+    });
+    this.rightArray.forEach((list) => {
+      let retainsTable =  (): void => {
+        const getList = (currentList: Array<ConstructorItem>): void => {
+          currentList.sort((a, b) => {
+            return sort === 1 ? a.distance - b.distance : b.distance - a.distance;
+          });
+          currentList.forEach(function (currentRow) {
+            if (currentRow.children.length > 0) {
+              getList(currentRow.children);
+            }
+          });
+        };
+        getList(list.children);
+      };
+      retainsTable();
+    });
+    this.retainerTableEl!.snapshotDataSource = this.rightArray;
+  }
+
   classFilter(): void {
     this.search!.addEventListener('keyup', () => {
       this.comparisonFilter = [];
-      this.comparisonData.forEach((a: any, key: number) => {
+      this.comparisonData.forEach((a: any) => {
         if (a.objectName.toLowerCase().includes(this.search!.value.toLowerCase())) {
           this.comparisonFilter.push(a);
         } else {
@@ -522,104 +342,250 @@ export class TabPaneComparison extends BaseElement {
   connectedCallback(): void {
     super.connectedCallback();
     let filterHeight = 0;
-    new ResizeObserver((entries) => {
+    new ResizeObserver(() => {
       let comparisonPanelFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (comparisonPanelFilter.clientHeight > 0) filterHeight = comparisonPanelFilter.clientHeight;
+      if (comparisonPanelFilter.clientHeight > 0) {filterHeight = comparisonPanelFilter.clientHeight}
       if (this.parentElement!.clientHeight > filterHeight) {
         comparisonPanelFilter.style.display = 'flex';
       } else {
         comparisonPanelFilter.style.display = 'none';
       }
     }).observe(this.parentElement!);
+    this.comparisonTableEl!.addEventListener('icon-click', this.comparisonTblIconClickHandler);
+    this.retainerTableEl!.addEventListener('icon-click', this.retainerTblIconClickHandler);
+    this.comparisonTableEl!.addEventListener('column-click', this.comparisonTblColumnClickHandler);
+    this.retainerTableEl!.addEventListener('column-click', this.retainerTblColumnClickHandler);
+    this.comparisonTableEl!.addEventListener('row-click', this.comparisonTblRowClickHandler);
+    this.retainerTableEl!.addEventListener('row-click', this.retainerTblRowClickHandler);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.comparisonTableEl!.removeEventListener('icon-click', this.comparisonTblIconClickHandler);
+    this.retainerTableEl!.removeEventListener('icon-click', this.retainerTblIconClickHandler);
+    this.comparisonTableEl!.removeEventListener('column-click', this.comparisonTblColumnClickHandler);
+    this.retainerTableEl!.removeEventListener('column-click', this.retainerTblColumnClickHandler);
+    this.comparisonTableEl!.removeEventListener('row-click', this.comparisonTblRowClickHandler);
+    this.retainerTableEl!.removeEventListener('row-click', this.retainerTblRowClickHandler);
+  }
+
+  private comparisonTblRowClickHandler = (e: Event): void => {
+    this.rightTheadTable!.removeAttribute('sort');
+    // @ts-ignore
+    let item = e.detail.data as ConstructorItem;
+    (item as any).isSelected = true;
+    this.retainsData = HeapDataInterface.getInstance().getRetains(item);
+    if (this.retainsData && this.retainsData.length > 0) {
+      this.retainsData.forEach((comparisonRetainEl) => {
+        let shallow = `${Math.round((comparisonRetainEl.shallowSize / this.fileSize) * 100)  }%`;
+        let retained = `${Math.round((comparisonRetainEl.retainedSize / this.fileSize) * 100)  }%`;
+        comparisonRetainEl.shallowPercent = shallow;
+        comparisonRetainEl.retainedPercent = retained;
+        if (comparisonRetainEl.distance >= 100000000 || comparisonRetainEl.distance === -5) {
+          // @ts-ignore
+          comparisonRetainEl.distance = '-';
+        }
+        let nodeId = `${comparisonRetainEl.nodeName  } @${comparisonRetainEl.id}`;
+        comparisonRetainEl.objectName = `${comparisonRetainEl.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+      });
+      let i = 0;
+      let that = this;
+      if (this.retainsData[0].distance > 1) {
+        this.retainsData[0].getChildren();
+        this.retainsData[0].expanded = false;
+      }
+      let retainsTable = (): void => {
+        const getList = (list: Array<ConstructorItem>): void => {
+          list.forEach((structRow) => {
+            let shallow = `${Math.round((structRow.shallowSize / this.fileSize) * 100)  }%`;
+            let retained = `${Math.round((structRow.retainedSize / this.fileSize) * 100)  }%`;
+            structRow.shallowPercent = shallow;
+            structRow.retainedPercent = retained;
+            let nodeId = `${structRow.nodeName  } @${structRow.id}`;
+            structRow.objectName = `${structRow.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+            if (structRow.distance >= 100000000 || structRow.distance === -5) {
+              // @ts-ignore
+              structRow.distance = '-';
+            }
+            i++;
+            // @ts-ignore
+            if (i < that.retainsData[0].distance - 1 && list[0].distance !== '-') {
+              list[0].getChildren();
+              list[0].expanded = false;
+              if (structRow.hasNext) {
+                getList(structRow.children);
+              }
+            } else {
+              return;
+            }
+          });
+        };
+        getList(that.retainsData[0].children);
+      };
+      retainsTable();
+      this.retainerTableEl!.snapshotDataSource = this.retainsData;
+    } else {
+      this.retainerTableEl!.snapshotDataSource = [];
+    }
+    new ResizeObserver(() => {
+      this.retainerTableEl!.style.height = 'calc(100% - 21px)';
+      this.retainerTableEl!.reMeauseHeight();
+    }).observe(this.parentElement!);
+    // @ts-ignore
+    if ((e.detail as any).callBack) {
+      // @ts-ignore
+      (e.detail as any).callBack(true);
+    }
+  };
+
+  private retainerTblRowClickHandler = (evt: Event): void => {
+    // @ts-ignore
+    let data = evt.detail.data as ConstructorItem;
+    (data as any).isSelected = true;
+    // @ts-ignore
+    if ((evt.detail as any).callBack) {
+      // @ts-ignore
+      (evt.detail as any).callBack(true);
+    }
+  };
+
+  private comparisonTblColumnClickHandler = (e: Event): void => {
+    // @ts-ignore
+    this.sortComprisonByColumn(e.detail.key, e.detail.sort);
+    this.comparisonTableEl!.reMeauseHeight();
+  };
+
+  private retainerTblColumnClickHandler = (e: Event): void => {
+    // @ts-ignore
+    this.sortRetainerByColumn(e.detail.key, e.detail.sort);
+    this.retainerTableEl!.reMeauseHeight();
+  };
+
+  retainerTblIconClickHandler = (e: Event): void => {
+    // @ts-ignore
+    let retainerNext = e.detail.data as ConstructorItem;
+    if (retainerNext) {
+      if (this.retainsData.length > 0) {
+        if (retainerNext.status) {
+          retainerNext.getChildren();
+          let i = 0;
+          let that = this;
+          let retainsTable = (): void => {
+            const getList = (comList: Array<ConstructorItem>): void => {
+              comList.forEach((row) => {
+                let shallow = `${Math.round((row.shallowSize / this.fileSize) * 100)  }%`;
+                let retained = `${Math.round((row.retainedSize / this.fileSize) * 100)  }%`;
+                row.shallowPercent = shallow;
+                row.retainedPercent = retained;
+                let nodeId = `${row.nodeName  } @${row.id}`;
+                row.objectName = `${row.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+                if (row.distance >= 100000000 || row.distance === -5) {
+                  // @ts-ignore
+                  row.distance = '-';
+                }
+                i++;
+                // @ts-ignore
+                if (i < that.retainsData[0].distance - 1 && comList[0].distance !== '-') {
+                  comList[0].getChildren();
+                  comList[0].expanded = false;
+                  if (row.hasNext) {
+                    getList(row.children);
+                  }
+                } else {
+                  return;
+                }
+              });
+            };
+            getList(retainerNext.children);
+          };
+          retainsTable();
+        } else {
+          retainerNext.status = true;
+        }
+        if (this.rightTheadTable!.hasAttribute('sort')) {
+          this.retainerTableEl!.snapshotDataSource = this.rightArray;
+        } else {
+          this.retainerTableEl!.snapshotDataSource = this.retainsData;
+        }
+      } else {
+        this.retainerTableEl!.snapshotDataSource = [];
+      }
+      new ResizeObserver(() => {
+        this.retainerTableEl!.style.height = 'calc(100% - 21px)';
+        this.retainerTableEl!.reMeauseHeight();
+      }).observe(this.parentElement!);
+    }
+  };
+
+  comparisonTblIconClickHandler = (e: Event): void => {
+    // @ts-ignore
+    let clickRow = e.detail.data;
+    if (clickRow.status) {
+      clickRow.targetFileId = this.targetFileId;
+      clickRow.children = HeapDataInterface.getInstance().getNextForComparison(clickRow);
+      if (clickRow.children.length > 0) {
+        for (let item of clickRow.children) {
+          let nodeName = `${item.nodeName  } @${item.id}`;
+          item.nodeId = ` @${item.id}`;
+          if (item.isString()) {
+            item.objectName = `"${  item.nodeName}"` + ` @${item.id}`;
+          } else {
+            item.objectName = nodeName;
+          }
+          item.deltaCount = '-';
+          item.deltaSize = '-';
+          if (item.edgeName !== '') {
+            item.objectName = `${item.edgeName  }\xa0` + '::' + `\xa0${  nodeName}`;
+          } else {
+            if (item.fileId === this.baseFileId) {
+              item.addedCount = '•';
+              item.addedSize = item.shallowSize;
+              item.removedCount = '-';
+              item.removedSize = '-';
+            } else if (item.fileId) {
+              item.removedCount = '•';
+              item.removedSize = item.shallowSize;
+              item.addedCount = '-';
+              item.addedSize = '-';
+            }
+          }
+          if (item.type === ConstructorType.FiledType) {
+            item.removedCount = '-';
+            item.removedSize = '-';
+            item.addedCount = '-';
+            item.addedSize = '-';
+          }
+        }
+      } else {
+        this.comparisonTableEl!.snapshotDataSource = [];
+      }
+    } else {
+      clickRow.status = true;
+    }
+    this.comparisonTblIconClickData();
+  };
+
+  private comparisonTblIconClickData(): void{
+    if (this.search!.value !== '') {
+      if (this.leftTheadTable!.hasAttribute('sort')) {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray;
+      } else {
+        this.comparisonTableEl!.snapshotDataSource = this.comparisonFilter;
+      }
+    } else {
+      if (this.leftTheadTable!.hasAttribute('sort')) {
+        this.comparisonTableEl!.snapshotDataSource = this.leftArray;
+      } else {
+        this.comparisonTableEl!.snapshotDataSource = this.comparisonsData;
+      }
+    }
+    new ResizeObserver(() => {
+      this.comparisonTableEl!.style.height = '100%';
+      this.comparisonTableEl!.reMeauseHeight();
+    }).observe(this.parentElement!);
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px 0 10px;
-            height: calc(100% - 10px - 31px);
-        }
-        .show{
-            display: flex;
-            flex: 1;
-        }
-        .progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        selector{
-            display: none;
-        }
-        tab-pane-filter {
-            border: solid rgb(216,216,216) 1px;
-            float: left;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        .loading{
-            bottom: 0;
-            position: absolute;
-            left: 0;
-            right: 0;
-            width:100%;
-            background:transparent;
-            z-index: 999999;
-        }
-        </style>
-        <div style="display: flex;flex-direction: row;height: 100%;">
-            <selector id='show_table' class="show">
-                <lit-slicer style="width:100%">
-                    <div style="width: 65%">
-                        <lit-table id="tb-comparison" style="height: auto" tree>
-                            <lit-table-column width="30%" title="#Constructor" data-index="objectName" key="objectName"  align="flex-start" order>
-                            </lit-table-column>
-                            <lit-table-column width="1fr" title="#New" data-index="addedCount" key="addedCount"  align="flex-start" order>
-                            </lit-table-column>
-                            <lit-table-column width="1fr" title="#Deleted" data-index="removedCount" key="removedCount" align="flex-start"  order>
-                            </lit-table-column>
-                            <lit-table-column width="1fr" title="#Delta" data-index="deltaCount" key="deltaCount" align="flex-start"  order>
-                            </lit-table-column>
-                            <lit-table-column width="1fr" title="Alloc.Size" data-index="addedSize" key="addedSize" align="flex-start" order>
-                            </lit-table-column>
-                            <lit-table-column width="1fr" title="Freed Size" data-index="removedSize" key="removedSize" align="flex-start"  order>
-                            </lit-table-column>
-                            <lit-table-column width="1fr" title="Size Delta" data-index="deltaSize" key="deltaSize" align="flex-start"  order>
-                            </lit-table-column>
-                        </lit-table>
-                    </div>
-                    <lit-slicer-track ></lit-slicer-track>
-                    <div style="flex: 1;display: flex; flex-direction: row;">
-                        <div style="flex: 1;display: flex; flex-direction: column;">
-                            <span slot="head" >Retainers</span>
-                            <lit-table id="tb-retainer" style="height: calc(100% - 21px);" tree>
-                                <lit-table-column width="30%" title="Object" data-index="objectName" key="objectName"  align="flex-start" order>
-                                </lit-table-column>
-                                <lit-table-column width="1fr" title="distance" data-index="distance" key="distance"  align="flex-start" order>
-                                </lit-table-column>
-                                <lit-table-column width="1fr" title="ShallowSize" data-index="shallowSize" key="shallowSize" align="flex-start"  order>
-                                </lit-table-column>
-                                <lit-table-column width="1fr" title="" data-index="shallowPercent" key="shallowPercent" align="flex-start">
-                                </lit-table-column>
-                                <lit-table-column width="1fr" title="RetainedSize" data-index="retainedSize" key="retainedSize" align="flex-start" order>
-                                </lit-table-column>
-                                <lit-table-column width="1fr" title="" data-index="retainedPercent" key="retainedPercent" align="flex-start">
-                                </lit-table-column>
-                            </div>
-                        </div>
-                    </lit-table>
-                </lit-slicer>
-            </selector>
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-js-memory-filter id="filter" input inputLeftText first ></tab-pane-js-memory-filter>
-            <div class="loading"></div>
-        </div>
-        `;
+    return TabPaneComparisonHtml;
   }
 }

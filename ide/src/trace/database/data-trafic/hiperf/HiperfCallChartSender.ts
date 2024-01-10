@@ -70,6 +70,7 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
       {
         recordStartNS: window.recordStartNS,
         trafic: TraficEnum.TransferArrayBuffer,
+        endNS: (TraceRow.range?.endNS || 0) - (TraceRow.range?.startNS || 0),
         isCache: true,
       },
       (res: any, len: number): void => {

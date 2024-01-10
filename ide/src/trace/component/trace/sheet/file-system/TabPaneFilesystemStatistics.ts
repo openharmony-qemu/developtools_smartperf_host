@@ -90,7 +90,7 @@ export class TabPaneFileStatistics extends BaseElement {
     };
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(val: SelectionParam | any): void {
     this.fileStatisticsLoadingList.push(1);
     this.fileStatisticsProgressEL!.loading = true;
     this.fileStatisticsLoadingPage.style.visibility = 'visible';

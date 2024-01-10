@@ -26,9 +26,6 @@ import { CpuAbilityRender } from './ProcedureWorkerCpuAbility';
 import { MemoryAbilityRender } from './ProcedureWorkerMemoryAbility';
 import { DiskIoAbilityRender } from './ProcedureWorkerDiskIoAbility';
 import { NetworkAbilityRender } from './ProcedureWorkerNetworkAbility';
-import { HiperfCpuRender } from './hiperf/ProcedureWorkerHiPerfCPU';
-import { HiperfProcessRender } from './hiperf/ProcedureWorkerHiPerfProcess';
-import { HiperfThreadRender } from './hiperf/ProcedureWorkerHiPerfThread';
 import { HiperfEventRender } from './hiperf/ProcedureWorkerHiPerfEvent';
 import { HiperfReportRender } from './hiperf/ProcedureWorkerHiPerfReport';
 import { VirtualMemoryRender } from './ProcedureWorkerVirtualMemory';
@@ -94,12 +91,9 @@ export let renders: any = {
   native: new NativeMemoryRender(),
   'HiPerf-Group': new EmptyRender(),
   monitorGroup: new EmptyRender(),
-  'HiPerf-Cpu': new HiperfCpuRender(),
   'HiPerf-Cpu-2': new HiperfCpuRender2(),
   'HiPerf-callchart': new HiPerfCallChartRender(),
-  'HiPerf-Process': new HiperfProcessRender(),
   'HiPerf-Process-2': new HiperfProcessRender2(),
-  'HiPerf-Thread': new HiperfThreadRender(),
   'HiPerf-Thread-2': new HiperfThreadRender2(),
   'HiPerf-Report-Event': new HiperfEventRender(),
   'HiPerf-Report-Fold': new HiperfReportRender(),
@@ -162,7 +156,7 @@ let convertJSON = (arr: any): any => {
     return arr;
   }
 };
-self.onmessage = function (e: any): void {
+self.onmessage = (e: any): void => {
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
     dataList2 = {};

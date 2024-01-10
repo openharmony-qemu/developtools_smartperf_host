@@ -98,7 +98,15 @@ int32_t LiveProcessTable::Cursor::Column(int32_t column) const
         case Index::UID: {
             sqlite3_result_int(context_, static_cast<int32_t>(liveProcessDetailDataObj_.Uid()[CurrentRow()]));
             break;
+            default:
+                HandleTypeColumns(column);
         }
+    }
+    return SQLITE_OK;
+}
+void LiveProcessTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
         case Index::USER_NAME: {
             sqlite3_result_text(context_, liveProcessDetailDataObj_.UserName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
                                 nullptr);
@@ -128,7 +136,6 @@ int32_t LiveProcessTable::Cursor::Column(int32_t column) const
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

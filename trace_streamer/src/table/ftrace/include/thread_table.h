@@ -49,10 +49,10 @@ private:
         void FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv);
         int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int32_t Column(int32_t col) const override;
-
         void FilterId(unsigned char op, sqlite3_value* argv) override;
 
     private:
+        void SetNameColumn(const Thread& thread) const;
         std::vector<TableRowId> rowIndexBak_;
         IndexMap* indexMapBack_ = nullptr;
     };

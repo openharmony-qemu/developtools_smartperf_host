@@ -324,6 +324,10 @@ export class LitChartPie extends BaseElement {
       this.ctx!.stroke();
       this.ctx?.closePath();
     });
+    this.setData(ease);
+  }
+
+  setData(ease: boolean):void{
     this.data
       .filter((it) => it.hover)
       .forEach((it) => {
@@ -444,7 +448,18 @@ export class LitChartPie extends BaseElement {
 
   initHtml(): string {
     return `
-        <style>   
+        ${this.initHtmlStyle()}
+        <div id="root">
+            <div id="shape" class="shape active"></div>
+            <canvas id="canvas" style="top: 0;left: 0;z-index: 21"></canvas>
+            <div id="tip"></div>
+            <div id="labels"></div>
+        </div>`;
+  }
+
+  private initHtmlStyle(): string {
+    return `
+    <style>   
         :host {
             display: flex;
             flex-direction: column;
@@ -532,11 +547,6 @@ export class LitChartPie extends BaseElement {
             margin-right: 5px;
         }
         </style>
-        <div id="root">
-            <div id="shape" class="shape active"></div>
-            <canvas id="canvas" style="top: 0;left: 0;z-index: 21"></canvas>
-            <div id="tip"></div>
-            <div id="labels"></div>
-        </div>`;
+    `
   }
 }

@@ -65,12 +65,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   let maxCpuCount = data.params.maxCpuCount;
   let intervalPerf = data.params.intervalPerf;
   let usage = data.params.drawType === -2;
-  let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
-  let eventCount = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.eventCount);
-  let sampleCount = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.sampleCount);
-  let eventTypeId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.eventTypeId);
-  let callChainId = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.callChainId);
-  let height = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.height);
+  let perfThread = new PerfThread(data, transfer, res.length);
   let maxEventCount = Math.max(
     ...res.map((it) => {
       data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiperfData);
@@ -79,40 +74,66 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   );
   res.forEach((it, i) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiperfData);
-    startNS[i] = it.startNS || it.startNs;
-    eventCount[i] = it.eventCount;
-    sampleCount[i] = it.sampleCount;
-    eventTypeId[i] = it.eventTypeId;
-    callChainId[i] = it.callchainId;
+    perfThread.startNS[i] = it.startNS || it.startNs;
+    perfThread.eventCount[i] = it.eventCount;
+    perfThread.sampleCount[i] = it.sampleCount;
+    perfThread.eventTypeId[i] = it.eventTypeId;
+    perfThread.callChainId[i] = it.callchainId;
     if (usage) {
       if (maxCpuCount === -1) {
-        height[i] = Math.floor((it.sampleCount / (10 / intervalPerf)) * 40);
+        perfThread.height[i] = Math.floor((it.sampleCount / (10 / intervalPerf)) * 40);
       } else {
-        height[i] = Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
+        perfThread.height[i] = Math.floor((it.sampleCount / (10 / intervalPerf) / maxCpuCount) * 40);
       }
     } else {
-      height[i] = Math.floor((it.eventCount / maxEventCount) * 40);
+      perfThread.height[i] = Math.floor((it.eventCount / maxEventCount) * 40);
     }
   });
+  postPerfThreadMessage(data, transfer, perfThread, res.length);
+}
+function postPerfThreadMessage(data: any, transfer: boolean, perfThread: PerfThread, len: number) {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
       action: data.action,
       results: transfer
         ? {
-            startNS: startNS.buffer,
-            eventCount: eventCount.buffer,
-            sampleCount: sampleCount.buffer,
-            eventTypeId: eventTypeId.buffer,
-            callChainId: callChainId.buffer,
-            height: height.buffer,
+            startNS: perfThread.startNS.buffer,
+            eventCount: perfThread.eventCount.buffer,
+            sampleCount: perfThread.sampleCount.buffer,
+            eventTypeId: perfThread.eventTypeId.buffer,
+            callChainId: perfThread.callChainId.buffer,
+            height: perfThread.height.buffer,
           }
         : {},
-      len: res.length,
+      len: len,
       transfer: transfer,
     },
     transfer
-      ? [startNS.buffer, eventCount.buffer, sampleCount.buffer, eventTypeId.buffer, callChainId.buffer, height.buffer]
+      ? [
+          perfThread.startNS.buffer,
+          perfThread.eventCount.buffer,
+          perfThread.sampleCount.buffer,
+          perfThread.eventTypeId.buffer,
+          perfThread.callChainId.buffer,
+          perfThread.height.buffer,
+        ]
       : []
   );
+}
+class PerfThread {
+  startNS: Float64Array;
+  eventCount: Int32Array;
+  sampleCount: Int32Array;
+  eventTypeId: Int32Array;
+  callChainId: Int32Array;
+  height: Int32Array;
+  constructor(data: any, transfer: boolean, len: number) {
+    this.startNS = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.startNS);
+    this.eventCount = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.eventCount);
+    this.sampleCount = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.sampleCount);
+    this.eventTypeId = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.eventTypeId);
+    this.callChainId = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.callChainId);
+    this.height = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.height);
+  }
 }

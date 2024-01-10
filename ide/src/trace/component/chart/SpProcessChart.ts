@@ -28,7 +28,6 @@ import { ns2xByTimeShaft } from '../../database/ui-worker/ProcedureWorkerCommon'
 import { AppStartupRender, AppStartupStruct } from '../../database/ui-worker/ProcedureWorkerAppStartup';
 import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoInit';
 import { FlagsConfig } from '../SpFlags';
-import { JanksStruct } from '../../bean/JanksStruct';
 import { processDataSender } from '../../database/data-trafic/process/ProcessDataSender';
 import { threadDataSender } from '../../database/data-trafic/process/ThreadDataSender';
 import { funcDataSender } from '../../database/data-trafic/process/FuncDataSender';
@@ -38,16 +37,24 @@ import { processSoInitDataSender } from '../../database/data-trafic/process/Proc
 import { processExpectedDataSender } from '../../database/data-trafic/process/ProcessExpectedDataSender';
 import { processActualDataSender } from '../../database/data-trafic/process/ProcessActualDataSender';
 import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
-import {getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc} from "../../database/sql/Func.sql";
-import {queryMemFilterIdMaxValue} from "../../database/sql/Memory.sql";
-import {queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap} from "../../database/sql/SqlLite.sql";
+import { getMaxDepthByTid, queryAllFuncNames, queryProcessAsyncFunc } from '../../database/sql/Func.sql';
+import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
+import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
 import {
   queryAllProcessNames,
-  queryAllThreadName, queryProcess, queryProcessByTable,
-  queryProcessContentCount, queryProcessMem, queryProcessSoMaxDepth,
-  queryProcessThreads, queryProcessThreadsByTable, queryStartupPidArray, queryTaskPoolProcessIds
-} from "../../database/sql/ProcessThread.sql";
-import {queryAllJankProcess} from "../../database/sql/Janks.sql";
+  queryAllThreadName,
+  queryProcess,
+  queryProcessByTable,
+  queryProcessContentCount,
+  queryProcessMem,
+  queryProcessSoMaxDepth,
+  queryProcessThreads,
+  queryProcessThreadsByTable,
+  queryStartupPidArray,
+  queryRsProcess,
+  queryTaskPoolProcessIds,
+} from '../../database/sql/ProcessThread.sql';
+import { queryAllJankProcess } from '../../database/sql/Janks.sql';
 
 export class SpProcessChart {
   private readonly trace: SpSystemTrace;
@@ -188,6 +195,7 @@ export class SpProcessChart {
     processNamesArray.forEach((it) => {
       this.processNameMap.set(it.pid, it.name);
     });
+    let renderServiceProcess = await queryRsProcess();
     let processSrcSliceArray = await queryAllSrcSlices();
     processSrcSliceArray.forEach((it) => {
       this.processSrcSliceMap.set(it.id, it.src);
@@ -341,10 +349,11 @@ export class SpProcessChart {
                 maxDepth = expectedItem.depth! + 1;
               }
               expectedItem.cmdline = this.processNameMap.get(res[j].pid!);
-              if (expectedItem.cmdline != 'render_service') {
-                expectedItem.frame_type = 'app';
-              } else {
+              if (res[j].pid! === renderServiceProcess[0].pid) {
+                expectedItem.cmdline = 'render_service';
                 expectedItem.frame_type = expectedItem.cmdline;
+              } else {
+                expectedItem.frame_type = 'app';
               }
             }
             if (expectedRow && !expectedRow.isComplete && res.length > 0) {
@@ -395,10 +404,11 @@ export class SpProcessChart {
               }
               actualItem.src_slice = this.processSrcSliceMap.get(res[j].id!);
               actualItem.cmdline = this.processNameMap.get(res[j].pid!);
-              if (actualItem.cmdline != 'render_service') {
-                actualItem.frame_type = 'app';
-              } else {
+              if (res[j].pid! === renderServiceProcess[0].pid) {
+                actualItem.cmdline = 'render_service';
                 actualItem.frame_type = actualItem.cmdline;
+              } else {
+                actualItem.frame_type = 'app';
               }
             }
             if (actualRow && !actualRow.isComplete && res.length > 0) {
@@ -724,7 +734,7 @@ export class SpProcessChart {
       /**
        * add thread list
        */
-      let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid != 0 && (thread.switchCount||0)>0);
+      let threads = this.processThreads.filter((thread) => thread.pid === it.pid && thread.tid != 0);
       for (let j = 0; j < threads.length; j++) {
         let thread = threads[j];
         let threadRow = TraceRow.skeleton<ThreadStruct>();
@@ -741,11 +751,11 @@ export class SpProcessChart {
         threadRow.selectChangeHandler = this.trace.selectChangeHandler;
         threadRow.supplierFrame = (): Promise<Array<ThreadStruct>> => {
           return threadDataSender(thread.tid || 0, it.pid || 0, threadRow).then((res) => {
-            if(res === true){
+            if (res === true) {
               // threadRow.rowDiscard = true;
               return [];
-            }else{
-              let rs = res as ThreadStruct[]
+            } else {
+              let rs = res as ThreadStruct[];
               if (rs.length <= 0 && !threadRow.isComplete) {
                 this.trace.refreshCanvas(true);
               }
@@ -802,31 +812,33 @@ export class SpProcessChart {
           funcRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
           funcRow.setAttribute('children', '');
           funcRow.supplierFrame = (): Promise<Array<FuncStruct>> => {
-            return funcDataSender(thread.tid || 0, thread.upid || 0, funcRow).then((rs: Array<FuncStruct>|boolean) => {
-              if(rs === true){
-                funcRow.rowDiscard = true;
-                return [];
-              }else{
-                let funs = rs as FuncStruct[];
-                if (funs.length > 0) {
-                  funs.forEach((fun, index) => {
-                    funs[index].itid = thread.utid;
-                    funs[index].ipid = thread.upid;
-                    funs[index].funName = this.funcNameMap.get(funs[index].id!);
-                    if (Utils.isBinder(fun)) {
-                    } else {
-                      if (fun.dur === -1) {
-                        fun.dur = (TraceRow.range?.totalNS || 0) - (fun.startTs || 0);
-                        fun.flag = 'Did not end';
-                      }
-                    }
-                  });
+            return funcDataSender(thread.tid || 0, thread.upid || 0, funcRow).then(
+              (rs: Array<FuncStruct> | boolean) => {
+                if (rs === true) {
+                  funcRow.rowDiscard = true;
+                  return [];
                 } else {
-                  this.trace.refreshCanvas(true);
+                  let funs = rs as FuncStruct[];
+                  if (funs.length > 0) {
+                    funs.forEach((fun, index) => {
+                      funs[index].itid = thread.utid;
+                      funs[index].ipid = thread.upid;
+                      funs[index].funName = this.funcNameMap.get(funs[index].id!);
+                      if (Utils.isBinder(fun)) {
+                      } else {
+                        if (fun.dur === -1) {
+                          fun.dur = (TraceRow.range?.totalNS || 0) - (fun.startTs || 0);
+                          fun.flag = 'Did not end';
+                        }
+                      }
+                    });
+                  } else {
+                    this.trace.refreshCanvas(true);
+                  }
+                  return funs;
                 }
-                return funs;
               }
-            });
+            );
           };
           funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
           funcRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -849,6 +861,9 @@ export class SpProcessChart {
             funcRow.canvasRestore(context, this.trace);
           };
           processRow.addChildTraceRowAfter(funcRow, threadRow);
+        }
+        if ((thread.switchCount || 0) === 0) {
+          threadRow.rowDiscard = true;
         }
       }
       await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!);

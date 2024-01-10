@@ -17,10 +17,15 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { Utils } from '../trace/base/Utils';
 import { PerfThread } from '../../bean/PerfProfile';
-import { HiperfCpuRender, HiPerfCpuStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
-import { HiPerfCallChartRender, HiPerfCallChartStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
-import { HiperfThreadRender, HiPerfThreadStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread';
-import { HiperfProcessRender, HiPerfProcessStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess';
+import { HiPerfCpuStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
+import {
+  HiPerfCallChartRender,
+  HiPerfCallChartStruct,
+} from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
+import {  HiPerfThreadStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
+import {
+  HiPerfProcessStruct,
+} from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
 import { info } from '../../../log/Log';
 import { HiPerfEventStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
 import { perfDataQuery } from './PerfDataQuery';
@@ -45,8 +50,8 @@ import {
   queryHiPerfCpuMergeData2,
   queryPerfCmdline,
   queryPerfEventType,
-  queryPerfThread
-} from "../../database/sql/Perf.sql";
+  queryPerfThread,
+} from '../../database/sql/Perf.sql';
 
 export interface ResultData {
   existA: boolean | null | undefined;

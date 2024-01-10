@@ -138,37 +138,35 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, CurrentRow());
             break;
         case Index::TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.TimeStampData()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.DursData()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CALL_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.CallIds()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.CallIds()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CAT: {
-            if (slicesObj_.CatsData()[CurrentRow()] != INVALID_UINT64) {
-                auto catsDataIndex = static_cast<size_t>(slicesObj_.CatsData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(catsDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.CatsData()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::NAME: {
-            if (slicesObj_.NamesData()[CurrentRow()] != INVALID_UINT64) {
-                auto nameDataIndex = static_cast<size_t>(slicesObj_.NamesData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(nameDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.NamesData()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::DEPTH:
             sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Depths()[CurrentRow()]));
             break;
+        default:
+            HandleTypeColumns(column);
+    }
+    return SQLITE_OK;
+}
+void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
         case Index::COOKIE_ID:
-            if (slicesObj_.Cookies()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Cookies()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {
@@ -177,9 +175,7 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
             break;
         }
         case Index::ARGSET:
-            if (slicesObj_.ArgSetIdsData()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.ArgSetIdsData()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::CHAIN_ID:
             sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
@@ -200,7 +196,6 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 void IrqTable::GetOrbyes(FilterConstraints& irqfc, EstimatedIndexInfo& irqei)
 {

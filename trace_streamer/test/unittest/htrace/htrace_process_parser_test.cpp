@@ -30,6 +30,24 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+uint64_t TS = 100;
+const uint32_t PID_01 = 311;
+const std::string NAME_01 = "resource_schedu01";
+const int32_t PPID_01 = 21;
+const int32_t UID_01 = 1;
+const uint32_t PID_02 = 312;
+const std::string NAME_02 = "resource_schedu02";
+const int32_t PPID_02 = 22;
+const int32_t UID_02 = 2;
+const uint32_t PID_03 = 313;
+const std::string NAME_03 = "resource_schedu03";
+const int32_t PPID_03 = 23;
+const int32_t UID_03 = 3;
+const uint32_t PID_04 = 313;
+const std::string NAME_04 = "resource_schedu03";
+const int32_t PPID_04 = 23;
+const int32_t UID_04 = 3;
+
 class HtraceProcessParserTest : public ::testing::Test {
 public:
     void SetUp()
@@ -38,6 +56,15 @@ public:
     }
 
     void TearDown() {}
+
+    void SetProcessesinfo(ProcessData* processData, uint32_t pid, std::string name, uint32_t ppid, uint32_t uid)
+    {
+        ProcessInfo* processInfo = processData->add_processesinfo();
+        processInfo->set_pid(pid);
+        processInfo->set_name(name);
+        processInfo->set_ppid(ppid);
+        processInfo->set_uid(uid);
+    }
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
@@ -51,14 +78,13 @@ public:
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithoutProcessData, TestSize.Level1)
 {
     TS_LOGI("test18-1");
-    uint64_t ts = 100;
     auto processData = std::make_unique<ProcessData>();
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
     ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
                                             processStrMsg.size());
     HtraceProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceProcessParser.Parse(processBytesView, ts);
+    htraceProcessParser.Parse(processBytesView, TS);
     auto size = stream_.traceDataCache_->GetConstLiveProcessData().Size();
     EXPECT_FALSE(size);
 }
@@ -71,25 +97,18 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithoutProcessData, TestSize
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithProcessData, TestSize.Level1)
 {
     TS_LOGI("test18-2");
-    uint64_t ts = 100;
     const uint32_t pid = 312;
     const string name = "resource_schedu";
     const int32_t ppid = 22;
     const int32_t uid = 23;
-
     auto processData = std::make_unique<ProcessData>();
-    ProcessInfo* processInfo = processData->add_processesinfo();
-    processInfo->set_pid(pid);
-    processInfo->set_name(name);
-    processInfo->set_ppid(ppid);
-    processInfo->set_uid(uid);
-
+    SetProcessesinfo(processData.get(), pid, name, ppid, uid);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
     ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
                                             processStrMsg.size());
     HtraceProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceProcessParser.Parse(processBytesView, ts);
+    htraceProcessParser.Parse(processBytesView, TS);
     htraceProcessParser.Finish();
 
     auto size = stream_.traceDataCache_->GetConstLiveProcessData().Size();
@@ -104,51 +123,24 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithProcessData, TestSize.Le
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithTwoProcessData, TestSize.Level1)
 {
     TS_LOGI("test18-3");
-    uint64_t ts = 100;
-    const uint32_t PID_01 = 311;
-    const string NAME_01 = "resource_schedu01";
-    const int32_t PPID_01 = 21;
-    const int32_t UID_01 = 1;
-
-    const uint32_t PID_02 = 312;
-    const string NAME_02 = "resource_schedu02";
-    const int32_t PPID_02 = 22;
-    const int32_t UID_02 = 2;
-
     auto processData = std::make_unique<ProcessData>();
-    ProcessInfo* processInfoFirst = processData->add_processesinfo();
-    processInfoFirst->set_pid(PID_01);
-    processInfoFirst->set_name(NAME_01);
-    processInfoFirst->set_ppid(PPID_01);
-    processInfoFirst->set_uid(UID_01);
-
-    ProcessInfo* processInfoSecond = processData->add_processesinfo();
-    processInfoSecond->set_pid(PID_02);
-    processInfoSecond->set_name(NAME_02);
-    processInfoSecond->set_ppid(PPID_02);
-    processInfoSecond->set_uid(UID_02);
-
+    SetProcessesinfo(processData.get(), PID_01, NAME_01, PPID_01, UID_01);
+    SetProcessesinfo(processData.get(), PID_02, NAME_02, PPID_02, UID_02);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
     ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
                                             processStrMsg.size());
     HtraceProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceProcessParser.Parse(processBytesView, ts);
+    htraceProcessParser.Parse(processBytesView, TS);
     htraceProcessParser.Finish();
 
-    auto size = stream_.traceDataCache_->GetConstLiveProcessData().Size();
-    EXPECT_EQ(1, size);
-
-    auto pidFirst = stream_.traceDataCache_->GetConstLiveProcessData().ProcessID()[0];
-    EXPECT_EQ(pidFirst, PID_02);
-    auto processNameFirst = stream_.traceDataCache_->GetConstLiveProcessData().ProcessName()[0];
-    EXPECT_EQ(processNameFirst, NAME_02);
-    auto parentProcessIDFirst = stream_.traceDataCache_->GetConstLiveProcessData().ParentProcessID()[0];
-    EXPECT_EQ(parentProcessIDFirst, PPID_02);
-    auto uidFirst = stream_.traceDataCache_->GetConstLiveProcessData().Uid()[0];
-    EXPECT_EQ(uidFirst, UID_02);
-    auto userNameFirst = stream_.traceDataCache_->GetConstLiveProcessData().UserName()[0];
-    EXPECT_EQ(userNameFirst, std::to_string(UID_02));
+    auto liveProcessData = stream_.traceDataCache_->GetConstLiveProcessData();
+    ASSERT_EQ(1, liveProcessData.Size());
+    EXPECT_EQ(liveProcessData.ProcessID()[0], PID_02);
+    EXPECT_EQ(liveProcessData.ProcessName()[0], NAME_02);
+    EXPECT_EQ(liveProcessData.ParentProcessID()[0], PPID_02);
+    EXPECT_EQ(liveProcessData.Uid()[0], UID_02);
+    EXPECT_EQ(liveProcessData.UserName()[0], std::to_string(UID_02));
 }
 
 /**
@@ -159,69 +151,31 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithTwoProcessData, TestSize
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithThreeProcessData, TestSize.Level1)
 {
     TS_LOGI("test18-4");
-    uint64_t ts = 100;
-    const uint32_t PID_01 = 311;
-    const string NAME_01 = "resource_schedu01";
-    const int32_t PPID_01 = 21;
-    const int32_t UID_01 = 1;
-
-    const uint32_t PID_02 = 312;
-    const string NAME_02 = "resource_schedu02";
-    const int32_t PPID_02 = 22;
-    const int32_t UID_02 = 2;
-
-    const uint32_t PID_03 = 313;
-    const string NAME_03 = "resource_schedu03";
-    const int32_t PPID_03 = 23;
-    const int32_t UID_03 = 3;
 
     auto processData = std::make_unique<ProcessData>();
-    ProcessInfo* processInfoFirst = processData->add_processesinfo();
-    processInfoFirst->set_pid(PID_01);
-    processInfoFirst->set_name(NAME_01);
-    processInfoFirst->set_ppid(PPID_01);
-    processInfoFirst->set_uid(UID_01);
-
-    ProcessInfo* processInfoSecond = processData->add_processesinfo();
-    processInfoSecond->set_pid(PID_02);
-    processInfoSecond->set_name(NAME_02);
-    processInfoSecond->set_ppid(PPID_02);
-    processInfoSecond->set_uid(UID_02);
-
-    ProcessInfo* processInfoThird = processData->add_processesinfo();
-    processInfoThird->set_pid(PID_03);
-    processInfoThird->set_name(NAME_03);
-    processInfoThird->set_ppid(PPID_03);
-    processInfoThird->set_uid(UID_03);
-
+    SetProcessesinfo(processData.get(), PID_01, NAME_01, PPID_01, UID_01);
+    SetProcessesinfo(processData.get(), PID_02, NAME_02, PPID_02, UID_02);
+    SetProcessesinfo(processData.get(), PID_03, NAME_03, PPID_03, UID_03);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
     ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
                                             processStrMsg.size());
     HtraceProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceProcessParser.Parse(processBytesView, ts);
+    htraceProcessParser.Parse(processBytesView, TS);
     htraceProcessParser.Finish();
 
-    auto pidFirst = stream_.traceDataCache_->GetConstLiveProcessData().ProcessID()[0];
-    auto pidSecond = stream_.traceDataCache_->GetConstLiveProcessData().ProcessID()[1];
-    EXPECT_EQ(pidFirst, PID_02);
-    EXPECT_EQ(pidSecond, PID_03);
-    auto processNameFirst = stream_.traceDataCache_->GetConstLiveProcessData().ProcessName()[0];
-    auto processNameSecond = stream_.traceDataCache_->GetConstLiveProcessData().ProcessName()[1];
-    EXPECT_EQ(processNameFirst, NAME_02);
-    EXPECT_EQ(processNameSecond, NAME_03);
-    auto parentProcessIDFirst = stream_.traceDataCache_->GetConstLiveProcessData().ParentProcessID()[0];
-    auto parentProcessIDSecond = stream_.traceDataCache_->GetConstLiveProcessData().ParentProcessID()[1];
-    EXPECT_EQ(parentProcessIDFirst, PPID_02);
-    EXPECT_EQ(parentProcessIDSecond, PPID_03);
-    auto uidFirst = stream_.traceDataCache_->GetConstLiveProcessData().Uid()[0];
-    auto uidSecond = stream_.traceDataCache_->GetConstLiveProcessData().Uid()[1];
-    EXPECT_EQ(uidFirst, UID_02);
-    EXPECT_EQ(uidSecond, UID_03);
-    auto userNameFirst = stream_.traceDataCache_->GetConstLiveProcessData().UserName()[0];
-    auto userNameSecond = stream_.traceDataCache_->GetConstLiveProcessData().UserName()[1];
-    EXPECT_EQ(userNameFirst, std::to_string(UID_02));
-    EXPECT_EQ(userNameSecond, std::to_string(UID_03));
+    auto liveProcessData = stream_.traceDataCache_->GetConstLiveProcessData();
+    ASSERT_EQ(2, liveProcessData.Size());
+    EXPECT_EQ(liveProcessData.ProcessID()[0], PID_02);
+    EXPECT_EQ(liveProcessData.ProcessID()[1], PID_03);
+    EXPECT_EQ(liveProcessData.ProcessName()[0], NAME_02);
+    EXPECT_EQ(liveProcessData.ProcessName()[1], NAME_03);
+    EXPECT_EQ(liveProcessData.ParentProcessID()[0], PPID_02);
+    EXPECT_EQ(liveProcessData.ParentProcessID()[1], PPID_03);
+    EXPECT_EQ(liveProcessData.Uid()[0], UID_02);
+    EXPECT_EQ(liveProcessData.Uid()[1], UID_03);
+    EXPECT_EQ(liveProcessData.UserName()[0], std::to_string(UID_02));
+    EXPECT_EQ(liveProcessData.UserName()[1], std::to_string(UID_03));
 }
 
 /**
@@ -232,90 +186,36 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithThreeProcessData, TestSi
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithMultipleProcessData, TestSize.Level1)
 {
     TS_LOGI("test18-5");
-    uint64_t ts = 100;
-    const uint32_t PID_01 = 311;
-    const string NAME_01 = "resource_schedu01";
-    const int32_t PPID_01 = 21;
-    const int32_t UID_01 = 1;
-
-    const uint32_t PID_02 = 312;
-    const string NAME_02 = "resource_schedu02";
-    const int32_t PPID_02 = 22;
-    const int32_t UID_02 = 2;
-
-    const uint32_t PID_03 = 313;
-    const string NAME_03 = "resource_schedu03";
-    const int32_t PPID_03 = 23;
-    const int32_t UID_03 = 3;
-
-    const uint32_t PID_04 = 313;
-    const string NAME_04 = "resource_schedu03";
-    const int32_t PPID_04 = 23;
-    const int32_t UID_04 = 3;
-
     auto processData = std::make_unique<ProcessData>();
-    ProcessInfo* processInfoFirst = processData->add_processesinfo();
-    processInfoFirst->set_pid(PID_01);
-    processInfoFirst->set_name(NAME_01);
-    processInfoFirst->set_ppid(PPID_01);
-    processInfoFirst->set_uid(UID_01);
-
-    ProcessInfo* processInfoSecond = processData->add_processesinfo();
-    processInfoSecond->set_pid(PID_02);
-    processInfoSecond->set_name(NAME_02);
-    processInfoSecond->set_ppid(PPID_02);
-    processInfoSecond->set_uid(UID_02);
-
-    ProcessInfo* processInfoThird = processData->add_processesinfo();
-    processInfoThird->set_pid(PID_03);
-    processInfoThird->set_name(NAME_03);
-    processInfoThird->set_ppid(PPID_03);
-    processInfoThird->set_uid(UID_03);
-
-    ProcessInfo* processInfoFour = processData->add_processesinfo();
-    processInfoFour->set_pid(PID_04);
-    processInfoFour->set_name(NAME_04);
-    processInfoFour->set_ppid(PPID_04);
-    processInfoFour->set_uid(UID_04);
-
+    SetProcessesinfo(processData.get(), PID_01, NAME_01, PPID_01, UID_01);
+    SetProcessesinfo(processData.get(), PID_02, NAME_02, PPID_02, UID_02);
+    SetProcessesinfo(processData.get(), PID_03, NAME_03, PPID_03, UID_03);
+    SetProcessesinfo(processData.get(), PID_04, NAME_04, PPID_04, UID_04);
     std::string processStrMsg = "";
     processData->SerializeToString(&processStrMsg);
     ProtoReader::BytesView processBytesView(reinterpret_cast<const uint8_t*>(processStrMsg.data()),
                                             processStrMsg.size());
     HtraceProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceProcessParser.Parse(processBytesView, ts);
+    htraceProcessParser.Parse(processBytesView, TS);
     htraceProcessParser.Finish();
 
-    auto pidFirst = stream_.traceDataCache_->GetConstLiveProcessData().ProcessID()[0];
-    auto pidSecond = stream_.traceDataCache_->GetConstLiveProcessData().ProcessID()[1];
-    auto pidThird = stream_.traceDataCache_->GetConstLiveProcessData().ProcessID()[2];
-    EXPECT_EQ(pidFirst, PID_02);
-    EXPECT_EQ(pidSecond, PID_03);
-    EXPECT_EQ(pidThird, PID_04);
-    auto processNameFirst = stream_.traceDataCache_->GetConstLiveProcessData().ProcessName()[0];
-    auto processNameSecond = stream_.traceDataCache_->GetConstLiveProcessData().ProcessName()[1];
-    auto processNameThird = stream_.traceDataCache_->GetConstLiveProcessData().ProcessName()[2];
-    EXPECT_EQ(processNameFirst, NAME_02);
-    EXPECT_EQ(processNameSecond, NAME_03);
-    EXPECT_EQ(processNameThird, NAME_04);
-    auto parentProcessIDFirst = stream_.traceDataCache_->GetConstLiveProcessData().ParentProcessID()[0];
-    auto parentProcessIDSecond = stream_.traceDataCache_->GetConstLiveProcessData().ParentProcessID()[1];
-    auto parentProcessIDThird = stream_.traceDataCache_->GetConstLiveProcessData().ParentProcessID()[2];
-    EXPECT_EQ(parentProcessIDFirst, PPID_02);
-    EXPECT_EQ(parentProcessIDSecond, PPID_03);
-    EXPECT_EQ(parentProcessIDThird, PPID_04);
-    auto uidFirst = stream_.traceDataCache_->GetConstLiveProcessData().Uid()[0];
-    auto uidSecond = stream_.traceDataCache_->GetConstLiveProcessData().Uid()[1];
-    auto uidThird = stream_.traceDataCache_->GetConstLiveProcessData().Uid()[2];
-    EXPECT_EQ(uidFirst, UID_02);
-    EXPECT_EQ(uidSecond, UID_03);
-    EXPECT_EQ(uidThird, UID_04);
-    auto userNameFirst = stream_.traceDataCache_->GetConstLiveProcessData().UserName()[0];
-    auto userNameSecond = stream_.traceDataCache_->GetConstLiveProcessData().UserName()[1];
-    auto userNameThird = stream_.traceDataCache_->GetConstLiveProcessData().UserName()[2];
-    EXPECT_EQ(userNameFirst, std::to_string(UID_02));
-    EXPECT_EQ(userNameSecond, std::to_string(UID_03));
-    EXPECT_EQ(userNameThird, std::to_string(UID_04));
+    auto liveProcessData = stream_.traceDataCache_->GetConstLiveProcessData();
+    ASSERT_EQ(3, liveProcessData.Size());
+    EXPECT_EQ(liveProcessData.ProcessID()[0], PID_02);
+    EXPECT_EQ(liveProcessData.ProcessID()[1], PID_03);
+    EXPECT_EQ(liveProcessData.ProcessID()[2], PID_04);
+    EXPECT_EQ(liveProcessData.ProcessName()[0], NAME_02);
+    EXPECT_EQ(liveProcessData.ProcessName()[1], NAME_03);
+    EXPECT_EQ(liveProcessData.ProcessName()[2], NAME_04);
+    EXPECT_EQ(liveProcessData.ParentProcessID()[0], PPID_02);
+    EXPECT_EQ(liveProcessData.ParentProcessID()[1], PPID_03);
+    EXPECT_EQ(liveProcessData.ParentProcessID()[2], PPID_04);
+    EXPECT_EQ(liveProcessData.Uid()[0], UID_02);
+    EXPECT_EQ(liveProcessData.Uid()[1], UID_03);
+    EXPECT_EQ(liveProcessData.Uid()[2], UID_04);
+    EXPECT_EQ(liveProcessData.UserName()[0], std::to_string(UID_02));
+    EXPECT_EQ(liveProcessData.UserName()[1], std::to_string(UID_03));
+    EXPECT_EQ(liveProcessData.UserName()[2], std::to_string(UID_04));
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -132,7 +132,7 @@ export class TabPaneFlag extends BaseElement {
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
     tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
-    tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
+    tr[0].querySelector('.removeAll')!.addEventListener('click', () => {
       this.systemTrace!.flagList = [];
       let flagList = [...this.flagList];
       for (let i = 0; i < flagList.length; i++) {
@@ -176,7 +176,7 @@ export class TabPaneFlag extends BaseElement {
       // 修改备注
       tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.flagList[i - 1].text;
       tr[i].querySelector<HTMLInputElement>('#text-input')?.addEventListener('keyup', (event: any) => {
-        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time && event.keyCode == '13') {
+        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time && event.keyCode === '13') {
           this.flagList[i - 1].text = event?.target.value;
           document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
           //   旗子颜色改变时，重绘泳道图

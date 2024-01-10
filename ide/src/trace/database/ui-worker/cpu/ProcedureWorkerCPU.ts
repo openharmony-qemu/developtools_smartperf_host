@@ -122,82 +122,6 @@ export class CpuRender {
     }
   }
 
-  render(cpuReq: RequestMessage, list: Array<any>, filter: Array<any>, translateY: number) {
-    if (cpuReq.lazyRefresh) {
-      this.cpu(
-        list,
-        filter,
-        cpuReq.startNS,
-        cpuReq.endNS,
-        cpuReq.totalNS,
-        cpuReq.frame,
-        cpuReq.useCache || !cpuReq.range.refresh
-      );
-    } else {
-      if (!cpuReq.useCache) {
-        this.cpu(list, filter, cpuReq.startNS, cpuReq.endNS, cpuReq.totalNS, cpuReq.frame, false);
-      }
-    }
-    if (cpuReq.canvas) {
-      cpuReq.context.clearRect(0, 0, cpuReq.frame.width, cpuReq.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !cpuReq.range.refresh && !cpuReq.useCache && cpuReq.lazyRefresh) {
-        drawLoading(
-          cpuReq.context,
-          cpuReq.startNS,
-          cpuReq.endNS,
-          cpuReq.totalNS,
-          cpuReq.frame,
-          arr[0].startTime,
-          arr[arr.length - 1].startTime + arr[arr.length - 1].dur
-        );
-      }
-      cpuReq.context.beginPath();
-      drawLines(cpuReq.context, cpuReq.xs, cpuReq.frame.height, cpuReq.lineColor);
-      CpuStruct.hoverCpuStruct = undefined;
-      if (cpuReq.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            cpuReq.hoverX >= re.frame.x &&
-            cpuReq.hoverX <= re.frame.x + re.frame.width &&
-            cpuReq.hoverY >= re.frame.y &&
-            cpuReq.hoverY <= re.frame.y + re.frame.height
-          ) {
-            CpuStruct.hoverCpuStruct = re;
-            break;
-          }
-        }
-      } else {
-        CpuStruct.hoverCpuStruct = cpuReq.params.hoverCpuStruct;
-      }
-      CpuStruct.selectCpuStruct = cpuReq.params.selectCpuStruct;
-      cpuReq.context.font = '11px sans-serif';
-      for (let re of filter) {
-        CpuStruct.draw(cpuReq.context, re, translateY);
-      }
-      drawSelection(cpuReq.context, cpuReq.params);
-      cpuReq.context.closePath();
-      drawFlagLine(
-        cpuReq.context,
-        cpuReq.flagMoveInfo,
-        cpuReq.flagSelectedInfo,
-        cpuReq.startNS,
-        cpuReq.endNS,
-        cpuReq.totalNS,
-        cpuReq.frame,
-        cpuReq.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: cpuReq.id,
-      type: cpuReq.type,
-      results: cpuReq.canvas ? undefined : filter,
-      hover: CpuStruct.hoverCpuStruct,
-    });
-  }
-
   cpu(
     cpuList: Array<any>,
     cpuRes: Array<any>,
@@ -208,71 +132,79 @@ export class CpuRender {
     use: boolean
   ): void {
     if (use && cpuRes.length > 0) {
-      let pns = (endNS - startNS) / frame.width;
-      let y = frame.y + 5;
-      let height = frame.height - 10;
-      for (let i = 0, len = cpuRes.length; i < len; i++) {
-        let it = cpuRes[i];
-        if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
-          if (!cpuRes[i].frame) {
-            cpuRes[i].frame = {};
-            cpuRes[i].frame.y = y;
-            cpuRes[i].frame.height = height;
-          }
-          CpuStruct.setCpuFrame(cpuRes[i], pns, startNS, endNS, frame);
-        } else {
-          cpuRes[i].frame = null;
-        }
-      }
+      this.setFrameCpuByRes(cpuRes, startNS, endNS, frame);
       return;
     }
     if (cpuList) {
-      cpuRes.length = 0;
-      let pns = (endNS - startNS) / frame.width; //每个像素多少ns
-      let y = frame.y + 5;
-      let height = frame.height - 10;
-      let left = 0,
-        right = 0;
-      for (let i = 0, j = cpuList.length - 1, ib = true, jb = true; i < cpuList.length, j >= 0; i++, j--) {
-        if (cpuList[j].startTime <= endNS && jb) {
-          right = j;
-          jb = false;
+      this.setFrameCpuByList(cpuRes, startNS, endNS, frame, cpuList);
+    }
+  }
+
+  setFrameCpuByRes(cpuRes: Array<any>, startNS: number, endNS: number, frame: any) {
+    let pns = (endNS - startNS) / frame.width;
+    let y = frame.y + 5;
+    let height = frame.height - 10;
+    for (let i = 0, len = cpuRes.length; i < len; i++) {
+      let it = cpuRes[i];
+      if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
+        if (!cpuRes[i].frame) {
+          cpuRes[i].frame = {};
+          cpuRes[i].frame.y = y;
+          cpuRes[i].frame.height = height;
         }
-        if (cpuList[i].startTime + cpuList[i].dur >= startNS && ib) {
-          left = i;
-          ib = false;
-        }
-        if (!ib && !jb) {
-          break;
-        }
+        CpuStruct.setCpuFrame(cpuRes[i], pns, startNS, endNS, frame);
+      } else {
+        cpuRes[i].frame = null;
       }
-      let slice = cpuList.slice(left, right + 1);
-      let sum = 0;
-      for (let i = 0; i < slice.length; i++) {
-        if (!slice[i].frame) {
-          slice[i].frame = {};
-          slice[i].frame.y = y;
-          slice[i].frame.height = height;
-        }
-        if (slice[i].dur >= pns) {
-          slice[i].v = true;
-          CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
-        } else {
-          if (i > 0) {
-            let c = slice[i].startTime - slice[i - 1].startTime - slice[i - 1].dur;
-            if (c < pns && sum < pns) {
-              sum += c + slice[i - 1].dur;
-              slice[i].v = false;
-            } else {
-              slice[i].v = true;
-              CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
-              sum = 0;
-            }
+    }
+  }
+
+  setFrameCpuByList(cpuRes: Array<any>, startNS: number, endNS: number, frame: any, cpuList: Array<any>): void {
+    cpuRes.length = 0;
+    let pns = (endNS - startNS) / frame.width; //每个像素多少ns
+    let y = frame.y + 5;
+    let height = frame.height - 10;
+    let left = 0,
+      right = 0;
+    for (let i = 0, j = cpuList.length - 1, ib = true, jb = true; i < cpuList.length, j >= 0; i++, j--) {
+      if (cpuList[j].startTime <= endNS && jb) {
+        right = j;
+        jb = false;
+      }
+      if (cpuList[i].startTime + cpuList[i].dur >= startNS && ib) {
+        left = i;
+        ib = false;
+      }
+      if (!ib && !jb) {
+        break;
+      }
+    }
+    let slice = cpuList.slice(left, right + 1);
+    let sum = 0;
+    for (let i = 0; i < slice.length; i++) {
+      if (!slice[i].frame) {
+        slice[i].frame = {};
+        slice[i].frame.y = y;
+        slice[i].frame.height = height;
+      }
+      if (slice[i].dur >= pns) {
+        slice[i].v = true;
+        CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
+      } else {
+        if (i > 0) {
+          let c = slice[i].startTime - slice[i - 1].startTime - slice[i - 1].dur;
+          if (c < pns && sum < pns) {
+            sum += c + slice[i - 1].dur;
+            slice[i].v = false;
+          } else {
+            slice[i].v = true;
+            CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame);
+            sum = 0;
           }
         }
       }
-      cpuRes.push(...slice.filter((it) => it.v));
     }
+    cpuRes.push(...slice.filter((it) => it.v));
   }
 }
 

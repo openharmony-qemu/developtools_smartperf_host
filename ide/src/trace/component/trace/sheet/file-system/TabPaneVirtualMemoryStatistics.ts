@@ -121,7 +121,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     });
   }
 
-  sortStatus(result: Array<any>, firstLevel: string, secondLevel: string) {
+  sortStatus(result: Array<any>, firstLevel: string, secondLevel: string): void {
     let vmMemoryStatFatherMap = new Map<any, any>();
     let vmMemoryStatChildMap = new Map<any, any>();
     let vmMemoryStatAllNode: any = {

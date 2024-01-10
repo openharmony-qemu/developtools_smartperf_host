@@ -24,16 +24,8 @@ export default class LitSwitch extends BaseElement {
     return ['disabled', 'checked'];
   }
 
-  get disabled() {
+  get disabled():boolean {
     return this.getAttribute('disabled') !== null;
-  }
-
-  set disabled(value) {
-    if (value === null || value === false) {
-      this.removeAttribute('disabled');
-    } else {
-      this.setAttribute('disabled', '');
-    }
   }
 
   get checked() {
@@ -45,6 +37,14 @@ export default class LitSwitch extends BaseElement {
       this.removeAttribute('checked');
     } else {
       this.setAttribute('checked', '');
+    }
+  }
+
+  set disabled(value:boolean) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', '');
     }
   }
 
@@ -154,7 +154,11 @@ export default class LitSwitch extends BaseElement {
           break;
       }
     };
-    this.switch.onfocus = (ev) => {
+    this.setEvent();
+  }
+
+  setEvent():void{
+    this.switch!.onfocus = (ev) => {
       ev.stopPropagation();
       if (!this.isfocus) {
         this.dispatchEvent(
@@ -164,7 +168,7 @@ export default class LitSwitch extends BaseElement {
         );
       }
     };
-    this.switch.onblur = (ev) => {
+    this.switch!.onblur = (ev) => {
       ev.stopPropagation();
       if (getComputedStyle(this.switch!).zIndex == '2') {
         this.isfocus = true;

@@ -99,6 +99,14 @@ int32_t SysEventAllEventTable::Cursor::Column(int32_t column) const
         case Index::UID:
             sqlite3_result_int(context_, hiSysEventAllEventObj_.Uids()[CurrentRow()]);
             break;
+        default:
+            HandleTypeColumns(column);
+    }
+    return SQLITE_OK;
+}
+void SysEventAllEventTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
         case Index::LEVEL:
             sqlite3_result_text(context_, hiSysEventAllEventObj_.Levels()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
                                 nullptr);
@@ -126,7 +134,6 @@ int32_t SysEventAllEventTable::Cursor::Column(int32_t column) const
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

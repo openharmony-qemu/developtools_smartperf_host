@@ -26,6 +26,7 @@ import '../../../../../base-ui/progress-bar/LitProgressBar';
 import '../../../../../base-ui/slicer/lit-slicer';
 import { HeapSnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerHeapSnapshot';
 import { HeapTraceFunctionInfo } from '../../../../../js-heap/model/DatabaseStruct';
+import { TabPaneSummaryHtml } from './TabPaneSummary.html';
 
 @element('tabpane-summary')
 export class TabPaneSummary extends BaseElement {
@@ -68,228 +69,6 @@ export class TabPaneSummary extends BaseElement {
     this.leftTheadTable = this.tblSummary!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.tbsTable = this.tbs!.shadowRoot?.querySelector('.table') as HTMLDivElement;
     this.leftTable = this.shadowRoot?.querySelector('#summary_left_table') as HTMLDivElement;
-    this.tblSummary!.addEventListener('row-click', (evt) => {
-      this.rightTheadTable!.removeAttribute('sort');
-      this.tbsTable!.scrollTop = 0;
-      //@ts-ignore
-      let data = evt.detail.data as ConstructorItem;
-      (data as any).isSelected = true;
-      this.retainsData = [];
-      this.retainsData = HeapDataInterface.getInstance().getRetains(data);
-      this.retainsData.forEach((element) => {
-        let shallow = Math.round((element.shallowSize / this.fileSize) * 100) + '%';
-        let retained = Math.round((element.retainedSize / this.fileSize) * 100) + '%';
-        element.shallowPercent = shallow;
-        element.retainedPercent = retained;
-        if (element.distance >= 100000000 || element.distance === -5) {
-          //@ts-ignore
-          element.distance = '-';
-        }
-        let nodeId = element.nodeName + ` @${element.id}`;
-        element.objectName = element.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-      });
-      if (this.retainsData.length > 0) {
-        if (this.retainsData[0].distance > 1) {
-          this.retainsData[0].getChildren();
-          this.retainsData[0].expanded = false;
-        }
-        let i = 0;
-        let that = this;
-        let retainsTable = () => {
-          const getList = (list: Array<ConstructorItem>) => {
-            list.forEach((row: ConstructorItem) => {
-              let shallow = Math.round((row.shallowSize / this.fileSize) * 100) + '%';
-              let retained = Math.round((row.retainedSize / this.fileSize) * 100) + '%';
-              row.shallowPercent = shallow;
-              row.retainedPercent = retained;
-              let nodeId = row.nodeName + ` @${row.id}`;
-              row.objectName = row.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-              if (row.distance >= 100000000 || row.distance === -5) {
-                //@ts-ignore
-                row.distance = '-';
-              }
-              i++;
-              //@ts-ignore
-              if (i < that.retainsData[0].distance - 1 && list[0].distance != '-') {
-                list[0].getChildren();
-                list[0].expanded = false;
-                if (row.hasNext) {
-                  getList(row.children);
-                }
-              } else {
-                return;
-              }
-            });
-          };
-          getList(that.retainsData[0].children);
-        };
-        retainsTable();
-        this.tbs!.snapshotDataSource = this.retainsData;
-      } else {
-        this.tbs!.snapshotDataSource = [];
-      }
-      if (this.file!.name.includes('Timeline')) {
-        this.stackData = HeapDataInterface.getInstance().getAllocationStackData(data);
-        if (this.stackData.length > 0) {
-          this.stackTable!.recycleDataSource = this.stackData;
-          this.stackText!.textContent = '';
-          this.stackText!.style.display = 'none';
-          if (this.stack!.className == 'active') {
-            this.stackTable!.style.display = 'grid';
-            this.tbs!.style.display = 'none';
-          }
-        } else {
-          this.stackText!.style.display = 'flex';
-          this.stackTable!.recycleDataSource = [];
-          this.stackTable!.style.display = 'none';
-          if (this.retainers!.className == 'active') {
-            this.stackText!.style.display = 'none';
-          }
-          if (this.retainsData === undefined || this.retainsData.length === 0) {
-            this.stackText!.textContent = '';
-          } else {
-            this.stackText!.textContent =
-              'Stack was not recorded for this object because it had been allocated before this profile recording started.';
-          }
-        }
-      }
-      new ResizeObserver(() => {
-        this.tbs!.style.height = 'calc(100% - 30px)';
-        this.tbs!.reMeauseHeight();
-        this.stackTable!.style.height = 'calc(100% - 30px)';
-        this.stackTable!.reMeauseHeight();
-      }).observe(this.parentElement!);
-      // @ts-ignore
-      if ((evt.detail as any).callBack) {
-        // @ts-ignore
-        (evt.detail as any).callBack(true);
-      }
-    });
-
-    this.tbs!.addEventListener('row-click', (summanyRowEvent: any) => {
-      let data = summanyRowEvent.detail.data as ConstructorItem;
-      (data as any).isSelected = true;
-      if ((summanyRowEvent.detail as any).callBack) {
-        // @ts-ignore
-        (summanyRowEvent.detail as any).callBack(true);
-      }
-    });
-
-    this.tblSummary!.addEventListener('icon-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.status) {
-        data.getChildren();
-        if (data.children.length > 0) {
-          data.children.sort(function (a: ConstructorItem, b: ConstructorItem) {
-            return b.retainedSize - a.retainedSize;
-          });
-          data.children.forEach((summaryDataEl: any) => {
-            let shallow = Math.round((summaryDataEl.shallowSize / this.fileSize) * 100) + '%';
-            let retained = Math.round((summaryDataEl.retainedSize / this.fileSize) * 100) + '%';
-            summaryDataEl.shallowPercent = shallow;
-            summaryDataEl.retainedPercent = retained;
-            if (summaryDataEl.distance >= 100000000 || summaryDataEl.distance === -5) {
-              summaryDataEl.distance = '-';
-            }
-            let nodeId = summaryDataEl.nodeName + ` @${summaryDataEl.id}`;
-            summaryDataEl.nodeId = ` @${summaryDataEl.id}`;
-            if (data.isString()) {
-              summaryDataEl.objectName = '"' + summaryDataEl.nodeName + '"' + ` @${summaryDataEl.id}`;
-            } else {
-              summaryDataEl.objectName = nodeId;
-            }
-            if (summaryDataEl.edgeName != '') {
-              summaryDataEl.objectName = summaryDataEl.edgeName + '\xa0' + '::' + '\xa0' + nodeId;
-            }
-          });
-        } else {
-          this.tblSummary!.snapshotDataSource = [];
-        }
-      } else {
-        data.status = true;
-      }
-      if (this.search!.value != '') {
-        if (this.leftTheadTable!.hasAttribute('sort')) {
-          this.tblSummary!.snapshotDataSource = this.leftArray;
-        } else {
-          this.tblSummary!.snapshotDataSource = this.summaryFilter;
-        }
-      } else {
-        if (this.leftTheadTable!.hasAttribute('sort')) {
-          this.tblSummary!.snapshotDataSource = this.leftArray;
-        } else {
-          this.tblSummary!.snapshotDataSource = this.summary;
-        }
-      }
-      new ResizeObserver(() => {
-        if (this.parentElement?.clientHeight !== 0) {
-          this.tblSummary!.style.height = '100%';
-          this.tblSummary!.reMeauseHeight();
-        }
-      }).observe(this.parentElement!);
-    });
-    this.tbs!.addEventListener('icon-click', (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (data.status) {
-        data.getChildren();
-        let i = 0;
-        let retainsTable = () => {
-          const getList = (list: Array<ConstructorItem>) => {
-            list.forEach((currentRow: ConstructorItem) => {
-              let shallow = Math.round((currentRow.shallowSize / this.fileSize) * 100) + '%';
-              let retained = Math.round((currentRow.retainedSize / this.fileSize) * 100) + '%';
-              currentRow.shallowPercent = shallow;
-              currentRow.retainedPercent = retained;
-              let nodeId = currentRow.nodeName + ` @${currentRow.id}`;
-              currentRow.objectName = currentRow.edgeName + '\xa0' + 'in' + '\xa0' + nodeId;
-              if (currentRow.distance >= 100000000 || currentRow.distance === -5) {
-                // @ts-ignore
-                currentRow.distance = '-';
-              }
-              i++;
-              // @ts-ignore
-              if (i < evt.detail.data.distance - 1 && list[0].distance != '-') {
-                list[0].getChildren();
-                list[0].expanded = false;
-                if (currentRow.hasNext) {
-                  getList(currentRow.children);
-                }
-              } else {
-                return;
-              }
-            });
-          };
-          getList(data.children);
-        };
-        retainsTable();
-      } else {
-        data.status = true;
-      }
-      if (this.rightTheadTable!.hasAttribute('sort')) {
-        this.tbs!.snapshotDataSource = this.rightArray;
-      } else {
-        this.tbs!.snapshotDataSource = this.retainsData;
-      }
-      new ResizeObserver(() => {
-        if (this.parentElement?.clientHeight !== 0) {
-          this.tbs!.style.height = 'calc(100% - 30px)';
-          this.tbs!.reMeauseHeight();
-        }
-      }).observe(this.parentElement!);
-    });
-
-    this.tblSummary!.addEventListener('column-click', (evt) => {
-      // @ts-ignore
-      this.sortByLeftTable(evt.detail.key, evt.detail.sort);
-      this.tblSummary!.reMeauseHeight();
-    });
-    this.tbs!.addEventListener('column-click', (evt) => {
-      // @ts-ignore
-      this.sortByRightTable(evt.detail.key, evt.detail.sort);
-      this.tbs!.reMeauseHeight();
-    });
     this.classFilter();
   }
 
@@ -297,7 +76,7 @@ export class TabPaneSummary extends BaseElement {
     data: HeapSnapshotStruct,
     dataListCache: Array<HeapSnapshotStruct>,
     scrollCallback: ((d: HeapSnapshotStruct, ds: Array<HeapSnapshotStruct>) => void) | undefined
-  ) {
+  ): void {
     if (scrollCallback) {
       scrollCallback(data, dataListCache);
     }
@@ -314,14 +93,14 @@ export class TabPaneSummary extends BaseElement {
     this.fileSize = file.size;
     this.summary.forEach((summaryEl: any) => {
       if (summaryEl.childCount > 1) {
-        let count = summaryEl.nodeName + ` ×${summaryEl.childCount}`;
+        let count = `${summaryEl.nodeName  } ×${summaryEl.childCount}`;
         summaryEl.objectName = count;
         summaryEl.count = ` ×${summaryEl.childCount}`;
       } else {
         summaryEl.objectName = summaryEl.nodeName;
       }
-      let shallow = Math.round((summaryEl.shallowSize / file.size) * 100) + '%';
-      let retained = Math.round((summaryEl.retainedSize / file.size) * 100) + '%';
+      let shallow = `${Math.round((summaryEl.shallowSize / file.size) * 100)  }%`;
+      let retained = `${Math.round((summaryEl.retainedSize / file.size) * 100)  }%`;
       summaryEl.shallowPercent = shallow;
       summaryEl.retainedPercent = retained;
       if (summaryEl.distance >= 100000000 || summaryEl.distance === -5) {
@@ -399,9 +178,9 @@ export class TabPaneSummary extends BaseElement {
   private retainsTableByObjectName(currentLeftItem: ConstructorItem, sort: number): void {
     const getList = function (list: Array<ConstructorItem>): void {
       list.sort((leftA, rightB) => {
-        return sort === 1
-          ? (leftA.objectName + '').localeCompare(rightB.objectName + '')
-          : (rightB.objectName + '').localeCompare(leftA.objectName + '');
+        return sort === 1 ?
+          (`${leftA.objectName  }`).localeCompare(`${rightB.objectName  }`) :
+          (`${rightB.objectName  }`).localeCompare(`${leftA.objectName  }`);
       });
       list.forEach(function (row) {
         if (row.children.length > 0) {
@@ -412,7 +191,7 @@ export class TabPaneSummary extends BaseElement {
     getList(currentLeftItem.children);
   }
 
-  sortByLeftTable(column: string, sort: number) {
+  sortByLeftTable(column: string, sort: number): void {
     switch (sort) {
       case 0:
         if (this.search!.value === '') {
@@ -429,53 +208,68 @@ export class TabPaneSummary extends BaseElement {
         }
         switch (column) {
           case 'distance':
-            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-              return sort === 1 ? leftData.distance - rightData.distance : rightData.distance - leftData.distance;
-            });
-            this.leftArray.forEach((currentLeftItem) => {
-              this.retainsTableByDistance(currentLeftItem, sort);
-            });
-            this.tblSummary!.snapshotDataSource = this.leftArray;
+            this.sortLeftByDistanceColum(sort);
             break;
           case 'shallowSize':
-            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-              return sort === 1
-                ? leftData.shallowSize - rightData.shallowSize
-                : rightData.shallowSize - leftData.shallowSize;
-            });
-            this.leftArray.forEach((currentLeftItem) => {
-              this.retainsTableByShallowSize(currentLeftItem, sort);
-            });
-            this.tblSummary!.snapshotDataSource = this.leftArray;
+            this.sortLeftByShallowSizeColum(sort);
             break;
           case 'retainedSize':
-            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-              return sort === 1
-                ? leftData.retainedSize - rightData.retainedSize
-                : rightData.retainedSize - leftData.retainedSize;
-            });
-            this.leftArray.forEach((currentLeftItem) => {
-              this.retainsTableByRetainedSize(currentLeftItem, sort);
-            });
-            this.tblSummary!.snapshotDataSource = this.leftArray;
+            this.sortLeftByRetainedSizeColum(sort);
             break;
           case 'objectName':
-            this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
-              return sort === 1
-                ? (leftData.objectName + '').localeCompare(rightData.objectName + '')
-                : (rightData.objectName + '').localeCompare(leftData.objectName + '');
-            });
-            this.leftArray.forEach((currentLeftItem) => {
-              this.retainsTableByObjectName(currentLeftItem, sort);
-            });
-            this.tblSummary!.snapshotDataSource = this.leftArray;
+            this.sortLeftByObjectNameColum(sort);
             break;
         }
         break;
     }
   }
+  private sortLeftByObjectNameColum(sort: number): void {
+    this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+      return sort === 1 ?
+        (`${leftData.objectName  }`).localeCompare(`${rightData.objectName  }`) :
+        (`${rightData.objectName  }`).localeCompare(`${leftData.objectName  }`);
+    });
+    this.leftArray.forEach((currentLeftItem) => {
+      this.retainsTableByObjectName(currentLeftItem, sort);
+    });
+    this.tblSummary!.snapshotDataSource = this.leftArray;
+  }
 
-  sortByRightTable(column: string, sort: number) {
+  private sortLeftByRetainedSizeColum(sort: number): void {
+    this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+      return sort === 1 ?
+        leftData.retainedSize - rightData.retainedSize :
+        rightData.retainedSize - leftData.retainedSize;
+    });
+    this.leftArray.forEach((currentLeftItem) => {
+      this.retainsTableByRetainedSize(currentLeftItem, sort);
+    });
+    this.tblSummary!.snapshotDataSource = this.leftArray;
+  }
+
+  private sortLeftByShallowSizeColum(sort: number): void {
+    this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+      return sort === 1 ?
+        leftData.shallowSize - rightData.shallowSize :
+        rightData.shallowSize - leftData.shallowSize;
+    });
+    this.leftArray.forEach((currentLeftItem) => {
+      this.retainsTableByShallowSize(currentLeftItem, sort);
+    });
+    this.tblSummary!.snapshotDataSource = this.leftArray;
+  }
+
+  private sortLeftByDistanceColum(sort: number): void {
+    this.tblSummary!.snapshotDataSource = this.leftArray.sort((leftData, rightData) => {
+      return sort === 1 ? leftData.distance - rightData.distance : rightData.distance - leftData.distance;
+    });
+    this.leftArray.forEach((currentLeftItem) => {
+      this.retainsTableByDistance(currentLeftItem, sort);
+    });
+    this.tblSummary!.snapshotDataSource = this.leftArray;
+  }
+
+  sortByRightTable(column: string, sort: number): void {
     switch (sort) {
       case 0:
         this.tbs!.snapshotDataSource = this.retainsData;
@@ -512,9 +306,9 @@ export class TabPaneSummary extends BaseElement {
             break;
           case 'objectName':
             this.tbs!.snapshotDataSource = this.rightArray.sort((a, b) => {
-              return sort === 1
-                ? (a.objectName + '').localeCompare(b.objectName + '')
-                : (b.objectName + '').localeCompare(a.objectName + '');
+              return sort === 1 ?
+                (`${a.objectName  }`).localeCompare(`${b.objectName  }`) :
+                (`${b.objectName  }`).localeCompare(`${a.objectName  }`);
             });
             this.rightArray.forEach((list) => {
               this.retainsTableByObjectName(list, sort);
@@ -526,13 +320,13 @@ export class TabPaneSummary extends BaseElement {
     }
   }
 
-  clickToggleTable() {
-    let lis = this.shadowRoot?.querySelectorAll('li') as any;
+  clickToggleTable(): void {
+    let lis = this.shadowRoot?.querySelectorAll<HTMLElement>('li');
     let that = this;
-    lis.forEach((li: any, i: any) => {
-      lis[i].onclick = function () {
-        for (let i = 0; i < lis.length; i++) {
-          lis[i].className = '';
+    lis!.forEach((li: HTMLElement, i: number) => {
+      lis![i].onclick = function (): void {
+        for (let i = 0; i < lis!.length; i++) {
+          lis![i].className = '';
         }
         switch (li.textContent) {
           case 'Retainers':
@@ -552,18 +346,20 @@ export class TabPaneSummary extends BaseElement {
                 that.stackText!.textContent = '';
               } else {
                 that.stackText!.textContent =
-                  'Stack was not recorded for this object because it had been allocated before this profile recording started.';
+                  'Stack was not recorded for this object because it had been allocated before ' +
+                  'this profile recording started.';
               }
             }
             that.tbs!.style.display = 'none';
             break;
         }
+        // @ts-ignore
         this.className = 'active';
       };
     });
   }
 
-  classFilter() {
+  classFilter(): void {
     this.search!.addEventListener('keyup', () => {
       this.summaryFilter = [];
       this.summaryData.forEach((a) => {
@@ -579,7 +375,7 @@ export class TabPaneSummary extends BaseElement {
     });
   }
 
-  clear() {
+  clear(): void {
     this.tbs!.snapshotDataSource = [];
     this.stackTable!.recycleDataSource = [];
     this.retainsData = [];
@@ -594,184 +390,294 @@ export class TabPaneSummary extends BaseElement {
     this.leftTheadTable!.removeAttribute('sort');
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     let filterHeight = 0;
-    let parentWidth = this.parentElement!.clientWidth + 'px';
+    let parentWidth = `${this.parentElement!.clientWidth  }px`;
     let system = document
       .querySelector('body > sp-application')
       ?.shadowRoot?.querySelector('#app-content > sp-system-trace');
     new ResizeObserver(() => {
       let summaryPaneFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (summaryPaneFilter.clientHeight > 0) filterHeight = summaryPaneFilter.clientHeight;
+      if (summaryPaneFilter.clientHeight > 0) {filterHeight = summaryPaneFilter.clientHeight}
       if (this.parentElement!.clientHeight > filterHeight) {
         summaryPaneFilter.style.display = 'flex';
       } else {
         summaryPaneFilter.style.display = 'none';
       }
-      parentWidth = this.parentElement!.clientWidth + 'px';
+      parentWidth = `${this.parentElement!.clientWidth  }px`;
       this.tbs!.style.height = 'calc(100% - 30px)';
       this.tbsTable!.style.width = `calc(${parentWidth} - ${this.leftTable!.style.width} - 5px)`;
       this.tbs!.reMeauseHeight();
       this.tblSummary!.reMeauseHeight();
     }).observe(this.parentElement!);
     new ResizeObserver(() => {
-      this.parentElement!.style.width = system!.clientWidth + 'px';
-      this.style.width = system!.clientWidth + 'px';
+      this.parentElement!.style.width = `${system!.clientWidth  }px`;
+      this.style.width = `${system!.clientWidth  }px`;
     }).observe(system!);
     new ResizeObserver(() => {
       this.tbsTable!.style.width = `calc(${parentWidth} - ${this.leftTable!.style.width} - 5px)`;
     }).observe(this.leftTable!);
+
+    this.tblSummary!.addEventListener('row-click', this.tblSummaryRowClick);
+    this.tbs!.addEventListener('row-click', this.tbsRowClick);
+    this.tblSummary!.addEventListener('icon-click', this.tblSummaryIconClick);
+    this.tbs!.addEventListener('icon-click', this.tbsIconClick);
+    this.tblSummary!.addEventListener('column-click', this.tblSummaryColumnClick);
+    this.tbs!.addEventListener('column-click', this.tblColumnClick);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.tblSummary!.removeEventListener('row-click', this.tblSummaryRowClick);
+    this.tbs!.removeEventListener('row-click', this.tbsRowClick);
+    this.tblSummary!.removeEventListener('icon-click', this.tblSummaryIconClick);
+    this.tbs!.removeEventListener('icon-click', this.tbsIconClick);
+    this.tblSummary!.removeEventListener('column-click', this.tblSummaryColumnClick);
+    this.tbs!.removeEventListener('column-click', this.tblColumnClick);
+  }
+
+  tblColumnClick = (evt: Event): void => {
+    // @ts-ignore
+    this.sortByRightTable(evt.detail.key, evt.detail.sort);
+    this.tbs!.reMeauseHeight();
+  };
+
+  tblSummaryColumnClick = (evt: Event): void => {
+    // @ts-ignore
+    this.sortByLeftTable(evt.detail.key, evt.detail.sort);
+    this.tblSummary!.reMeauseHeight();
+  };
+
+  tbsIconClick = (evt: Event): void => {
+    // @ts-ignore
+    let data = evt.detail.data;
+    if (data.status) {
+      data.getChildren();
+      let i = 0;
+      let retainsTable = (): void => {
+        const getList = (list: Array<ConstructorItem>): void => {
+          list.forEach((currentRow: ConstructorItem) => {
+            let shallow = `${Math.round((currentRow.shallowSize / this.fileSize) * 100)  }%`;
+            let retained = `${Math.round((currentRow.retainedSize / this.fileSize) * 100)  }%`;
+            currentRow.shallowPercent = shallow;
+            currentRow.retainedPercent = retained;
+            let nodeId = `${currentRow.nodeName  } @${currentRow.id}`;
+            currentRow.objectName = `${currentRow.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+            if (currentRow.distance >= 100000000 || currentRow.distance === -5) {
+              // @ts-ignore
+              currentRow.distance = '-';
+            }
+            i++;
+            // @ts-ignore
+            if (i < evt.detail.data.distance - 1 && list[0].distance !== '-') {
+              list[0].getChildren();
+              list[0].expanded = false;
+              if (currentRow.hasNext) {
+                getList(currentRow.children);
+              }
+            } else {
+              return;
+            }
+          });
+        };
+        getList(data.children);
+      };
+      retainsTable();
+    } else {
+      data.status = true;
+    }
+    if (this.rightTheadTable!.hasAttribute('sort')) {
+      this.tbs!.snapshotDataSource = this.rightArray;
+    } else {
+      this.tbs!.snapshotDataSource = this.retainsData;
+    }
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight !== 0) {
+        this.tbs!.style.height = 'calc(100% - 30px)';
+        this.tbs!.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  };
+
+  tblSummaryIconClick = (evt: Event): void => {
+    // @ts-ignore
+    let data = evt.detail.data;
+    if (data.status) {
+      data.getChildren();
+      if (data.children.length > 0) {
+        data.children.sort(function (a: ConstructorItem, b: ConstructorItem) {
+          return b.retainedSize - a.retainedSize;
+        });
+        data.children.forEach((summaryDataEl: any) => {
+          let shallow = `${Math.round((summaryDataEl.shallowSize / this.fileSize) * 100)  }%`;
+          let retained = `${Math.round((summaryDataEl.retainedSize / this.fileSize) * 100)  }%`;
+          summaryDataEl.shallowPercent = shallow;
+          summaryDataEl.retainedPercent = retained;
+          if (summaryDataEl.distance >= 100000000 || summaryDataEl.distance === -5) {
+            summaryDataEl.distance = '-';
+          }
+          let nodeId = `${summaryDataEl.nodeName  } @${summaryDataEl.id}`;
+          summaryDataEl.nodeId = ` @${summaryDataEl.id}`;
+          if (data.isString()) {
+            summaryDataEl.objectName = `"${  summaryDataEl.nodeName  }"` + ` @${summaryDataEl.id}`;
+          } else {
+            summaryDataEl.objectName = nodeId;
+          }
+          if (summaryDataEl.edgeName !== '') {
+            summaryDataEl.objectName = `${summaryDataEl.edgeName  }\xa0` + '::' + `\xa0${  nodeId}`;
+          }
+        });
+      } else {
+        this.tblSummary!.snapshotDataSource = [];
+      }
+    } else {
+      data.status = true;
+    }
+    this.tblSummaryIconClickExtend();
+  };
+
+  tblSummaryIconClickExtend(): void {
+    if (this.search!.value !== '') {
+      if (this.leftTheadTable!.hasAttribute('sort')) {
+        this.tblSummary!.snapshotDataSource = this.leftArray;
+      } else {
+        this.tblSummary!.snapshotDataSource = this.summaryFilter;
+      }
+    } else {
+      if (this.leftTheadTable!.hasAttribute('sort')) {
+        this.tblSummary!.snapshotDataSource = this.leftArray;
+      } else {
+        this.tblSummary!.snapshotDataSource = this.summary;
+      }
+    }
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight !== 0) {
+        this.tblSummary!.style.height = '100%';
+        this.tblSummary!.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
+  }
+
+  tbsRowClick = (rowEvent: Event): void => {
+    // @ts-ignore
+    let data = rowEvent.detail.data as ConstructorItem;
+    (data as any).isSelected = true;
+    // @ts-ignore
+    if ((rowEvent.detail as any).callBack) {
+      // @ts-ignore
+      (rowEvent.detail as any).callBack(true);
+    }
+  };
+
+  tblSummaryRowClick = (evt: Event): void => {
+    this.rightTheadTable!.removeAttribute('sort');
+    this.tbsTable!.scrollTop = 0;
+    //@ts-ignore
+    let data = evt.detail.data as ConstructorItem;
+    (data as any).isSelected = true;
+    this.initRetainsData(data);
+    if (this.retainsData.length > 0) {
+      if (this.retainsData[0].distance > 1) {
+        this.retainsData[0].getChildren();
+        this.retainsData[0].expanded = false;
+      }
+      let i = 0;
+      let that = this;
+      let retainsTable = (): void => {
+        const getList = (list: Array<ConstructorItem>): void => {
+          list.forEach((summaryRow: ConstructorItem) => {
+            let retainsShallow = `${Math.round((summaryRow.shallowSize / this.fileSize) * 100)  }%`;
+            let retained = `${Math.round((summaryRow.retainedSize / this.fileSize) * 100)  }%`;
+            summaryRow.shallowPercent = retainsShallow;
+            summaryRow.retainedPercent = retained;
+            let nodeId = `${summaryRow.nodeName  } @${summaryRow.id}`;
+            summaryRow.objectName = `${summaryRow.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+            if (summaryRow.distance >= 100000000 || summaryRow.distance === -5) {
+              //@ts-ignore
+              summaryRow.distance = '-';
+            }
+            i++;
+            //@ts-ignore
+            if (i < that.retainsData[0].distance - 1 && list[0].distance !== '-') {
+              list[0].getChildren();
+              list[0].expanded = false;
+              if (summaryRow.hasNext) {
+                getList(summaryRow.children);
+              }
+            } else {
+              return;
+            }
+          });
+        };
+        getList(that.retainsData[0].children);
+      };
+      retainsTable();
+      this.tbs!.snapshotDataSource = this.retainsData;
+    } else {
+      this.tbs!.snapshotDataSource = [];
+    }
+    this.tblSummaryRowClickExtend(data);
+  };
+
+  private initRetainsData(data: ConstructorItem): void {
+    this.retainsData = [];
+    this.retainsData = HeapDataInterface.getInstance().getRetains(data);
+    this.retainsData.forEach((element) => {
+      let shallow = `${Math.round((element.shallowSize / this.fileSize) * 100)  }%`;
+      let retained = `${Math.round((element.retainedSize / this.fileSize) * 100)  }%`;
+      element.shallowPercent = shallow;
+      element.retainedPercent = retained;
+      if (element.distance >= 100000000 || element.distance === -5) {
+        //@ts-ignore
+        element.distance = '-';
+      }
+      let nodeId = `${element.nodeName  } @${element.id}`;
+      element.objectName = `${element.edgeName  }\xa0` + 'in' + `\xa0${  nodeId}`;
+    });
+  }
+
+  private tblSummaryRowClickExtend(data: ConstructorItem): void {
+    if (this.file!.name.includes('Timeline')) {
+      this.stackData = HeapDataInterface.getInstance().getAllocationStackData(data);
+      if (this.stackData.length > 0) {
+        this.stackTable!.recycleDataSource = this.stackData;
+        this.stackText!.textContent = '';
+        this.stackText!.style.display = 'none';
+        if (this.stack!.className === 'active') {
+          this.stackTable!.style.display = 'grid';
+          this.tbs!.style.display = 'none';
+        }
+      } else {
+        this.stackText!.style.display = 'flex';
+        this.stackTable!.recycleDataSource = [];
+        this.stackTable!.style.display = 'none';
+        if (this.retainers!.className === 'active') {
+          this.stackText!.style.display = 'none';
+        }
+        if (this.retainsData === undefined || this.retainsData.length === 0) {
+          this.stackText!.textContent = '';
+        } else {
+          this.stackText!.textContent =
+            'Stack was not recorded for this object because it had been allocated before ' +
+            'this profile recording started.';
+        }
+      }
+    }
+    new ResizeObserver(() => {
+      this.tbs!.style.height = 'calc(100% - 30px)';
+      this.tbs!.reMeauseHeight();
+      this.stackTable!.style.height = 'calc(100% - 30px)';
+      this.stackTable!.reMeauseHeight();
+    }).observe(this.parentElement!);
+    // @ts-ignore
+    if ((evt.detail as any).callBack) {
+      // @ts-ignore
+      (evt.detail as any).callBack(true);
+    }
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 1px 0 0px;
-            height: calc(100% - 25px);
-        }
-        .vessel {
-            /* overflow: hidden; */
-            width: 100%;
-            height: 100%;
-        }
-        .vessel-left {
-            height: 79.5vh;
-            position: relative;
-            float: left;
-            max-width: 70%
-        }
-        .vessel-right {
-            height: 70vh;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-        .text{
-            opacity: 0.9;
-            font-family: Helvetica;
-            font-size: 16px;
-            color: #000000;
-            line-height: 28px;
-            font-weight: 400;
-            margin-left: 70%;
-        }
-        ul{
-            display: inline-flex;
-            margin-top: 0px;
-            width: 40%;
-            position: absolute;
-            padding-left: 5px;
-        }
-        li{
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            opacity: 0.9;
-            font-family: Helvetica;
-            font-size: 16px;
-            color: #000000;
-            line-height: 28px;
-            font-weight: 400;
-            cursor: pointer;
-        }
-        .active{
-            border-bottom:2px solid #6C9BFA;
-        }
-        .stackText{
-            opacity: 0.9;
-            font-family: Helvetica;
-            font-size: 16px;
-            color: #000000;
-            line-height: 28px;
-            font-weight: 400;
-        }
-        tab-pane-filter {
-            border: solid rgb(216,216,216) 1px;
-            float: left;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        .summary_progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        selector{
-            display: none;
-        }
-        .summary_show{
-            display: flex;
-            flex: 1;
-        }
-        .summary_retainers{
-            height: 30px;
-            width: 100%;
-            display: flex;
-        }
-        #summary_right{
-            height: calc(100% - 30px);
-        }
-    </style>
-    <div style="display: flex;flex-direction: row;height: 100%;">
-    <selector id='show_table' class="summary_show">
-        <lit-slicer style="width:100%">
-        <div id="summary_left_table" style="width: 65%;">
-            <lit-table id="summary_left" style="height: 100%" tree>
-                <lit-table-column width="40%" title="Constructor" data-index="objectName" key="objectName" align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column width="2fr" title="Distance" data-index="distance" key="distance" align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column width="2fr" title="ShallowSize" data-index="shallowSize" key="shallowSize" align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column width="1fr" title="" data-index="shallowPercent" key="shallowPercent" align="flex-start">
-                </lit-table-column>
-                <lit-table-column width="2fr" title="RetainedSize" data-index="retainedSize" key="retainedSize" align="flex-start" order>
-                </lit-table-column>
-                <lit-table-column width="1fr" title="" data-index="retainedPercent" key="retainedPercent" align="flex-start">
-                </lit-table-column>
-            </lit-table>
-        </div>
-        <lit-slicer-track ></lit-slicer-track>
-        <div style="flex: 1;display: flex; flex-direction: row;">
-            <div style="flex: 1;display: block;">
-                <div class="summary_retainers">
-                    <ul>
-                        <li href="#" id="retainers" style="width: 80px; text-align: center;" class="active">Retainers</li>
-                        <li href="#" id="stack" style="width: 120px; text-align: center; display: none; padding-left: 10px;">Allocation stack</li>
-                    </ul>
-                </div>
-                <lit-table id="summary_right" tree>
-                    <lit-table-column width="40%" title="Object" data-index="objectName" key="objectName" align="flex-start" order>
-                    </lit-table-column>
-                    <lit-table-column width="2fr" title="Distance" data-index="distance" key="distance" align="flex-start" order>
-                    </lit-table-column>
-                    <lit-table-column width="2fr" title="ShallowSize" data-index="shallowSize" key="shallowSize" align="flex-start" order>
-                    </lit-table-column>
-                    <lit-table-column width="1fr" title="" data-index="shallowPercent" key="shallowPercent" align="flex-start">
-                    </lit-table-column>
-                    <lit-table-column width="2fr" title="RetainedSize" data-index="retainedSize" key="retainedSize" align="flex-start" order>
-                    </lit-table-column>
-                    <lit-table-column width="1fr" title="" data-index="retainedPercent" key="retainedPercent" align="flex-start">
-                    </lit-table-column>
-                </lit-table>
-                <text class="stackText" style="display: none;"></text>
-                <lit-table id="stackTable" style="height: auto; display: none" hideDownload>
-                    <lit-table-column width="100%" title="" data-index="name" key="name" align="flex-start" order>
-                    </lit-table-column>
-                </lit-table>
-            </div>
-        </div>
-        </lit-slicer>
-    </selector>
-    <tab-pane-js-memory-filter id="filter" input inputLeftText></tab-pane-js-memory-filter>
-    <lit-progress-bar class="summary_progress"></lit-progress-bar>
-    </div>
-    `;
+    return TabPaneSummaryHtml;
   }
 }

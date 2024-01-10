@@ -124,6 +124,52 @@ void EbpfBase::UpdateFilePathIndexToPidAndIpMap(DataIndex filePathIndex, uint32_
     }
 }
 
+template <typename StartToMapsAddr>
+void EbpfBase::GetSymbolSave(EbpfSymbolInfo& ebpfSymbolInfo,
+                             StartToMapsAddr& startToMapsAddr,
+                             uint32_t pid,
+                             uint64_t ip)
+{
+    // Obtain symbol information based on the given IP value and store the relevant information in the EbpfSymbolInfo
+    // object
+    uint64_t vmStart = INVALID_UINT64;
+    uint64_t vmOffset = INVALID_UINT64;
+    auto end = startToMapsAddr->upper_bound(ip);
+    auto length = std::distance(startToMapsAddr->begin(), end);
+    if (length > 0) {
+        end--;
+        // Follow the rules of front closing and rear opening, [start, end)
+        if (ip < end->second->end) {
+            vmStart = end->first;
+            vmOffset = end->second->offset;
+            ebpfSymbolInfo.filePathIndex =
+                traceDataCache_->GetDataIndex(reinterpret_cast<const char*>((end->second) + 1));
+        }
+    }
+    ebpfSymbolInfo.flag = true;
+    if (ebpfSymbolInfo.filePathIndex == INVALID_INT64) {
+        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+        return;
+    }
+
+    auto itor = reader_->GetElfPathIndexToElfAddr().find(ebpfSymbolInfo.filePathIndex);
+    if (itor == reader_->GetElfPathIndexToElfAddr().end()) {
+        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+        return;
+    }
+    uint64_t symVaddr = ip - vmStart + vmOffset + itor->second->textVaddr - itor->second->textOffset;
+    ebpfSymbolInfo.vaddr = symVaddr;
+    auto symbolIndex = GetSymbolNameIndexFromSymVaddr(itor->second, symVaddr);
+    if (symbolIndex != INVALID_UINT64) {
+        ebpfSymbolInfo.symbolIndex = symbolIndex;
+    }
+    pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
+    UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+    return;
+}
+
 EbpfSymbolInfo EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
 {
     EbpfSymbolInfo ebpfSymbolInfo(false);
@@ -144,41 +190,7 @@ EbpfSymbolInfo EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
         return ebpfSymbolInfo;
     }
 
-    uint64_t vmStart = INVALID_UINT64;
-    uint64_t vmOffset = INVALID_UINT64;
-    auto end = startToMapsAddr->upper_bound(ip);
-    auto length = std::distance(startToMapsAddr->begin(), end);
-    if (length > 0) {
-        end--;
-        // Follow the rules of front closing and rear opening, [start, end)
-        if (ip < end->second->end) {
-            vmStart = end->first;
-            vmOffset = end->second->offset;
-            ebpfSymbolInfo.filePathIndex =
-                traceDataCache_->GetDataIndex(reinterpret_cast<const char*>((end->second) + 1));
-        }
-    }
-    ebpfSymbolInfo.flag = true;
-    if (ebpfSymbolInfo.filePathIndex == INVALID_INT64) {
-        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
-        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
-        return ebpfSymbolInfo;
-    }
-
-    auto itor = reader_->GetElfPathIndexToElfAddr().find(ebpfSymbolInfo.filePathIndex);
-    if (itor == reader_->GetElfPathIndexToElfAddr().end()) {
-        pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
-        UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
-        return ebpfSymbolInfo;
-    }
-    uint64_t symVaddr = ip - vmStart + vmOffset + itor->second->textVaddr - itor->second->textOffset;
-    ebpfSymbolInfo.vaddr = symVaddr;
-    auto symbolIndex = GetSymbolNameIndexFromSymVaddr(itor->second, symVaddr);
-    if (symbolIndex != INVALID_UINT64) {
-        ebpfSymbolInfo.symbolIndex = symbolIndex;
-    }
-    pidAndIpToEbpfSymbolInfo_.Insert(pid, ip, ebpfSymbolInfo);
-    UpdateFilePathIndexToPidAndIpMap(ebpfSymbolInfo.filePathIndex, pid, ip);
+    GetSymbolSave(ebpfSymbolInfo, startToMapsAddr, pid, ip);
     return ebpfSymbolInfo;
 }
 

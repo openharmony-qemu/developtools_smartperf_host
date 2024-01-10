@@ -64,7 +64,8 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseCpudetaulNoEvents, TestSize.Level1)
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
     auto size = tracePacket.ftrace_cpu_detail_size();
     auto eventSize = cpuDetail->event_size();
@@ -93,7 +94,8 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseHtraceWithoutCpuDetailData, TestSize.Le
     dataSeg.protoData = cpuDetailBytesView;
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
     auto size = tracePacket.ftrace_cpu_detail_size();
     auto eventSize = cpuDetail->event_size();
@@ -130,7 +132,8 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseHtraceCpuDetailData, TestSize.Level1)
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
     auto size = tracePacket.ftrace_cpu_detail_size();
     auto eventSize = cpuDetail->event_size();
@@ -179,7 +182,8 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseMultipleCpuDetailData, TestSize.Level1)
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
     auto size = tracePacket.ftrace_cpu_detail_size();
     auto eventSize = cpuDetail->event_size();

@@ -69,6 +69,44 @@ bool EbpfDataReader::InitEbpfHeader()
     return true;
 }
 
+bool EbpfDataReader::EbpfTypeHandle(EbpfTypeAndLength* dataTitle, const uint8_t* startAddr_)
+{
+    bool ret = true;
+    switch (dataTitle->type) {
+        case ITEM_EVENT_MAPS: {
+            ret = ReadItemEventMaps(startAddr_, dataTitle->length);
+            break;
+        }
+        case ITEM_SYMBOL_INFO: {
+            ret = ReadItemSymbolInfo(startAddr_, dataTitle->length);
+            break;
+        }
+        case ITEM_EVENT_FS: {
+            ret = ReadItemEventFs(startAddr_, dataTitle->length);
+            break;
+        }
+        case ITEM_EVENT_VM: {
+            ret = ReadItemEventPagedMemory(startAddr_, dataTitle->length);
+            break;
+        }
+        case ITEM_EVENT_BIO: {
+            ret = ReadItemEventBIO(startAddr_, dataTitle->length);
+            break;
+        }
+        case ITEM_EVENT_STR: {
+            ret = ReadItemEventStr(startAddr_, dataTitle->length);
+            break;
+        }
+        case ITEM_EVENT_KENEL_SYMBOL_INFO: {
+            ret = ReaItemKernelSymbolInfo(startAddr_, dataTitle->length);
+            break;
+        }
+        default:
+            TS_LOGI("Do not support EBPF type: %d, length: %d", dataTitle->type, dataTitle->length);
+    }
+    return ret;
+}
+
 bool EbpfDataReader::ReadEbpfData()
 {
     while (unresolvedLen_ > EBPF_TITLE_SIZE) {
@@ -84,42 +122,11 @@ bool EbpfDataReader::ReadEbpfData()
             continue;
         }
 
-        bool ret = true;
-        switch (dataTitle->type) {
-            case ITEM_EVENT_MAPS: {
-                ret = ReadItemEventMaps(startAddr_, dataTitle->length);
-                break;
-            }
-            case ITEM_SYMBOL_INFO: {
-                ret = ReadItemSymbolInfo(startAddr_, dataTitle->length);
-                break;
-            }
-            case ITEM_EVENT_FS: {
-                ret = ReadItemEventFs(startAddr_, dataTitle->length);
-                break;
-            }
-            case ITEM_EVENT_VM: {
-                ret = ReadItemEventPagedMemory(startAddr_, dataTitle->length);
-                break;
-            }
-            case ITEM_EVENT_BIO: {
-                ret = ReadItemEventBIO(startAddr_, dataTitle->length);
-                break;
-            }
-            case ITEM_EVENT_STR: {
-                ret = ReadItemEventStr(startAddr_, dataTitle->length);
-                break;
-            }
-            case ITEM_EVENT_KENEL_SYMBOL_INFO: {
-                ret = ReaItemKernelSymbolInfo(startAddr_, dataTitle->length);
-                break;
-            }
-            default:
-                TS_LOGI("Do not support EBPF type: %d, length: %d", dataTitle->type, dataTitle->length);
-        }
+        auto ret = EbpfTypeHandle(dataTitle, startAddr_);
         if (!ret) {
             return false;
         }
+
         startAddr_ += dataTitle->length;
         unresolvedLen_ -= dataTitle->length;
     }

@@ -90,15 +90,15 @@ export class Utils {
     );
   }
 
-  public static transferPTSTitle(value: any) {
-    if (value.startsWith('S-')) {
-      return Utils.getEndState(value.replace('S-', ''));
-    } else if (value.startsWith('P-')) {
-      let pid = value.replace('P-', '');
+  public static transferPTSTitle(ptsValue: any) {
+    if (ptsValue.startsWith('S-')) {
+      return Utils.getEndState(ptsValue.replace('S-', ''));
+    } else if (ptsValue.startsWith('P-')) {
+      let pid = ptsValue.replace('P-', '');
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
       return `${process} [${pid}]`;
-    } else if (value.startsWith('T-')) {
-      let tid = value.replace('T-', '');
+    } else if (ptsValue.startsWith('T-')) {
+      let tid = ptsValue.replace('T-', '');
       let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
     } else {

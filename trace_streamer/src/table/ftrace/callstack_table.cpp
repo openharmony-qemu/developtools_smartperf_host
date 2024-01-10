@@ -151,40 +151,39 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, CurrentRow());
             break;
         case Index::TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.TimeStampData()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.DursData()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CALL_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.CallIds()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.CallIds()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CAT: {
-            if (slicesObj_.CatsData()[CurrentRow()] != INVALID_UINT64) {
-                auto catsDataIndex = static_cast<size_t>(slicesObj_.CatsData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(catsDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.CatsData()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::IDENTIFY:
             sqlite3_result_int(context_, slicesObj_.IdentifysData()[CurrentRow()]);
             break;
         case Index::NAME: {
-            if (slicesObj_.NamesData()[CurrentRow()] != INVALID_UINT64) {
-                auto nameDataIndex = static_cast<size_t>(slicesObj_.NamesData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(nameDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.NamesData()[CurrentRow()], INVALID_UINT64);
             break;
+            default:
+                HandleTypeColumns(col);
+                break;
         }
+    }
+    return SQLITE_OK;
+}
+void CallStackTable::Cursor::HandleTypeColumns(int32_t col) const
+{
+    switch (static_cast<Index>(col)) {
         case Index::DEPTH:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Depths()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.Depths()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::COOKIE_ID:
-            if (slicesObj_.Cookies()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Cookies()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {
@@ -193,41 +192,32 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
             break;
         }
         case Index::ARGSET:
-            if (slicesObj_.ArgSetIdsData()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.ArgSetIdsData()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::CHAIN_ID:
-            if (!slicesObj_.ChainIds()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+            SetTypeColumnTextNotEmpty(slicesObj_.ChainIds()[CurrentRow()].empty(),
+                                      slicesObj_.ChainIds()[CurrentRow()].c_str());
             break;
         case Index::SPAN_ID:
-            if (!slicesObj_.SpanIds()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+            SetTypeColumnTextNotEmpty(slicesObj_.SpanIds()[CurrentRow()].empty(),
+                                      slicesObj_.SpanIds()[CurrentRow()].c_str());
             break;
         case Index::PARENT_SPAN_ID:
-            if (!slicesObj_.ParentSpanIds()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnTextNotEmpty(slicesObj_.ParentSpanIds()[CurrentRow()].empty(),
+                                      slicesObj_.ParentSpanIds()[CurrentRow()].c_str());
             break;
         case Index::FLAG:
-            if (!slicesObj_.Flags()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.Flags()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+            SetTypeColumnTextNotEmpty(slicesObj_.Flags()[CurrentRow()].empty(),
+                                      slicesObj_.Flags()[CurrentRow()].c_str());
             break;
         case Index::ARGS:
-            if (!slicesObj_.ArgsData()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.ArgsData()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+            SetTypeColumnTextNotEmpty(slicesObj_.ArgsData()[CurrentRow()].empty(),
+                                      slicesObj_.ArgsData()[CurrentRow()].c_str());
             break;
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;
     }
-    return SQLITE_OK;
 }
 void CallStackTable::GetOrbyes(FilterConstraints& callfc, EstimatedIndexInfo& callei)
 {

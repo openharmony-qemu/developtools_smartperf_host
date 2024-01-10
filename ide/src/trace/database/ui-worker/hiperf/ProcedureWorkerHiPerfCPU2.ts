@@ -14,7 +14,7 @@
  */
 
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
-import { HiPerfStruct, hiPerf, PerfRender, RequestMessage, hiPerf2, drawLoadingFrame } from '../ProcedureWorkerCommon';
+import { PerfRender, RequestMessage, hiPerf2, drawLoadingFrame, HiPerfStruct } from '../ProcedureWorkerCommon';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 
 export class HiperfCpuRender2 extends PerfRender {
@@ -33,7 +33,6 @@ export class HiperfCpuRender2 extends PerfRender {
     req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
     req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
     let normalPath = new Path2D();
-    // let specPath = new Path2D();
     let find = false;
     let offset = groupBy10MS ? 0 : 3;
     for (let re of filter) {

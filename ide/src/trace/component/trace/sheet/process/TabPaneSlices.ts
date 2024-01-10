@@ -21,8 +21,8 @@ import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
 import { LitSearch } from '../../search/Search';
 import { resizeObserver } from '../SheetUtils';
-import {getTabSlicesAsyncFunc} from "../../../../database/sql/Func.sql";
-import {getTabSlices} from "../../../../database/sql/ProcessThread.sql";
+import { getTabSlicesAsyncFunc } from '../../../../database/sql/Func.sql';
+import { getTabSlices } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {
@@ -37,7 +37,7 @@ export class TabPaneSlices extends BaseElement {
     }
     this.currentSelectionParam = slicesParam;
     this.slicesRange!.textContent =
-      'Selected range: ' + parseFloat(((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      `Selected range: ${  parseFloat(((slicesParam.rightNs - slicesParam.leftNs) / 1000000.0).toFixed(5))  } ms`;
     let asyncNames: Array<string> = [];
     let asyncPid: Array<number> = [];
     slicesParam.funAsync.forEach((it: any) => {
@@ -50,11 +50,11 @@ export class TabPaneSlices extends BaseElement {
         (res2) => {
           this.slicesTbl!.loading = false;
           let processSlicesResult = (res || []).concat(res2 || []);
-          if (processSlicesResult != null && processSlicesResult.length > 0) {
+          if (processSlicesResult !== null && processSlicesResult.length > 0) {
             let sumWall = 0.0;
             let sumOcc = 0;
             for (let processSliceItem of processSlicesResult) {
-              processSliceItem.name = processSliceItem.name == null ? '' : processSliceItem.name;
+              processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
               sumWall += processSliceItem.wallDuration;
               sumOcc += processSliceItem.occurrences;
               processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
@@ -127,7 +127,7 @@ export class TabPaneSlices extends BaseElement {
           for (const traceRow of sliceRowList) {
             if (
               Math.max(TraceRow.rangeSelectObject?.startNS!, searchItem.startTime) <=
-                Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
+              Math.min(TraceRow.rangeSelectObject?.endNS!, searchItem.startTime + searchItem.dur) &&
               !rangeSelectList.includes(searchItem)
             ) {
               // 异步调用栈
@@ -157,7 +157,11 @@ export class TabPaneSlices extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  slicesTblRowClick() {
+
+  }
+
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.slicesTbl!);
   }
@@ -174,41 +178,46 @@ export class TabPaneSlices extends BaseElement {
             flex-direction: column;
         }
         </style>
-        <label id="time-range" class="slice-label" style="width: 100%;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <label id="time-range" class="slice-label" style="width: 100%;text-align: end;font-size: 10pt;
+        margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-slices" style="height: auto">
-            <lit-table-column class="slices-column" title="Name" width="500px" data-index="name" key="name"  align="flex-start" order>
+            <lit-table-column class="slices-column" title="Name" width="500px" data-index="name" 
+            key="name"  align="flex-start" order>
             </lit-table-column>
-            <lit-table-column class="slices-column" title="Wall duration(ms)" width="1fr" data-index="wallDuration" key="wallDuration"  align="flex-start" order >
+            <lit-table-column class="slices-column" title="Wall duration(ms)" width="1fr" data-index="wallDuration" 
+            key="wallDuration"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="slices-column" title="Avg Wall duration(ms)" width="1fr" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
+            <lit-table-column class="slices-column" title="Avg Wall duration(ms)" width="1fr" data-index="avgDuration" 
+            key="avgDuration"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="slices-column" title="Occurrences" width="1fr" data-index="occurrences" key="occurrences"  align="flex-start" order >
+            <lit-table-column class="slices-column" title="Occurrences" width="1fr" data-index="occurrences" 
+            key="occurrences"  align="flex-start" order >
             </lit-table-column>
         </lit-table>
         `;
   }
 
-  sortByColumn(slicesDetail: any) {
+  sortByColumn(slicesDetail: any): void {
     // @ts-ignore
     function compare(property, slicesSort, type) {
       return function (slicesLeftData: SelectionData, slicesRightData: SelectionData) {
-        if (slicesLeftData.process == ' ' || slicesRightData.process == ' ') {
+        if (slicesLeftData.process === ' ' || slicesRightData.process === ' ') {
           return 0;
         }
         if (type === 'number') {
           // @ts-ignore
           return slicesSort === 2
             ? // @ts-ignore
-              parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
+            parseFloat(slicesRightData[property]) - parseFloat(slicesLeftData[property])
             : // @ts-ignore
-              parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
+            parseFloat(slicesLeftData[property]) - parseFloat(slicesRightData[property]);
         } else {
           // @ts-ignore
           if (slicesRightData[property] > slicesLeftData[property]) {
             return slicesSort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (slicesRightData[property] == slicesLeftData[property]) {
+            if (slicesRightData[property] === slicesLeftData[property]) {
               return 0;
             } else {
               return slicesSort === 2 ? -1 : 1;

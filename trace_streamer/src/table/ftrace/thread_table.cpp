@@ -383,34 +383,23 @@ int32_t ThreadTable::Cursor::Column(int32_t col) const
             break;
         }
         case Index::TID: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(thread.tid_));
+            SetTypeColumnInt64(thread.tid_, INVALID_UINT32);
             break;
         }
         case Index::NAME: {
-            const auto& name = dataCache_->GetDataFromDict(thread.nameIndex_);
-            if (name.size()) {
-                sqlite3_result_text(context_, name.c_str(), static_cast<int32_t>(name.length()), nullptr);
-            }
+            SetNameColumn(thread);
             break;
         }
-        case Index::START_TS: {
-            if (thread.startT_) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(thread.startT_));
-            }
+        case Index::START_TS:
+            SetTypeColumnInt64NotZero(thread.startT_);
             break;
-        }
-        case Index::END_TS: {
-            if (thread.endT_) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(thread.endT_));
-            }
+        case Index::END_TS:
+            SetTypeColumnInt64NotZero(thread.endT_);
+
             break;
-        }
-        case Index::INTERNAL_PID: {
-            if (thread.internalPid_ != INVALID_UINT32) {
-                sqlite3_result_int(context_, static_cast<int32_t>(thread.internalPid_));
-            }
+        case Index::INTERNAL_PID:
+            SetTypeColumnInt32(thread.internalPid_, INVALID_UINT32);
             break;
-        }
         case Index::IS_MAIN_THREAD: {
             // When it is not clear which process the thread belongs to, is_main_thread should be set to null
             if (thread.internalPid_ == INVALID_UINT32) {
@@ -431,6 +420,14 @@ int32_t ThreadTable::Cursor::Column(int32_t col) const
             break;
     }
     return SQLITE_OK;
+}
+
+void ThreadTable::Cursor::SetNameColumn(const Thread& thread) const
+{
+    const auto& name = dataCache_->GetDataFromDict(thread.nameIndex_);
+    if (name.size()) {
+        sqlite3_result_text(context_, name.c_str(), static_cast<int32_t>(name.length()), nullptr);
+    }
 }
 
 int32_t ThreadTable::Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid)

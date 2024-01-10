@@ -70,6 +70,50 @@ public:
             return 0;
         }
         virtual int32_t Column(int32_t n) const = 0;
+        template <typename T1, typename T2>
+        void SetTypeColumnInt64(const T1& data, const T2& invalidValue) const
+        {
+            if (data != invalidValue) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(data));
+            }
+        }
+        template <typename T1, typename T2>
+        void SetTypeColumnInt32(const T1& data, const T2& invalidValue) const
+        {
+            if (data != invalidValue) {
+                sqlite3_result_int(context_, static_cast<int32_t>(data));
+            }
+        }
+        template <typename T>
+        void SetTypeColumnInt64NotZero(const T& data) const
+        {
+            if (data) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(data));
+            }
+        }
+        template <typename T1, typename T2>
+        void SetTypeColumnText(const T1& data, const T2& invalidValue) const
+        {
+            if (data != invalidValue) {
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(data).c_str(), STR_DEFAULT_LEN, nullptr);
+            }
+        }
+        template <typename T1, typename T2, typename T3>
+        void SetTypeColumn(const T1& data, const T2& invalidValue, const T3 invalidTypeId) const
+        {
+            if (data != invalidValue) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(data));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(invalidTypeId));
+            }
+        }
+        template <typename T1, typename T2>
+        void SetTypeColumnTextNotEmpty(const T1& data, const T2& dataToString) const
+        {
+            if (!data) {
+                sqlite3_result_text(context_, dataToString, STR_DEFAULT_LEN, nullptr);
+            }
+        }
         virtual void FilterId(unsigned char op, sqlite3_value* argv);
         virtual void FilterEnd();
         void SwapIndexFront(std::vector<FilterConstraints::Constraint>& cs, const std::set<uint32_t>& sId)
@@ -111,6 +155,7 @@ protected:
     };
 
     static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& tableName, TabTemplate tmplate);
+    static void SetModuleCallbacks(sqlite3_module& module, const std::string& tableName);
     virtual int32_t Update(int32_t argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     {
         return SQLITE_READONLY;

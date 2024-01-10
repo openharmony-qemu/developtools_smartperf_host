@@ -11,7 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from "../utils/QueryEnum";
+import { ConstructorComparison } from '../../../../js-heap/model/UiStruct';
+import { TraficEnum } from '../utils/QueryEnum';
 
 interface HiPerfSampleType {
   callchainId: number;
@@ -59,27 +60,27 @@ export const chartHiperfCallChartDataSql = (args: any): string => {
            cpu_id                                   as cpuId,
            event_type_id                            as eventTypeId
     from perf_sample A
-    where callchain_id != -1 and A.thread_id != 0`;
+    where callchain_id != -1 and A.thread_id != 0
+    order by cpuId, startTs`;
   return sql;
 };
 
 export function hiPerfCallChartDataHandler(data: any, proc: Function): void {
   if (data.params.isCache) {
     let res: Array<any> = proc(chartHiperfCallChartDataSql(data.params));
-    dataCache.sampleList = res.map(it => {
-      if (data.params.trafic === TraficEnum.ProtoBuffer) {
-        return {
-          callchainId: it.hiperfCallChartData.callchainId || 0,
-          startTs: it.hiperfCallChartData.startTs || 0,
-          eventCount: it.hiperfCallChartData.eventCount || 0,
-          threadId: it.hiperfCallChartData.threadId || 0,
-          cpuId: it.hiperfCallChartData.cpuId || 0,
-          eventTypeId: it.hiperfCallChartData.eventTypeId || 0,
+    for (let i = 0; i < res.length; i++) {
+      if (i > 0) {
+        if (res[i].cpuId === res[i - 1].cpuId) {
+          res[i - 1].dur = res[i].startTs - res[i - 1].startTs;
+        } else {
+          res[i - 1].dur = data.params.endNS - res[i - 1].startTs;
         }
-      } else {
-        return it;
       }
-    });
+      if (i === res.length - 1) {
+        res[i].dur = data.params.endNS - res[i].startTs;
+      }
+    }
+    dataCache.sampleList = res;
     (self as unknown as Worker).postMessage(
       {
         id: data.id,
@@ -148,49 +149,39 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean, loadData: 
 }
 
 function arrayBufferCallback(data: any, transfer: boolean): void {
-  let dataFilter = filterPerfCallChartData(
-    data.params.startNS,
-    data.params.endNS,
-    data.params.totalNS,
-    data.params.frame,
-    data.params.expand
-  );
+  let params = data.params;
+  let dataFilter = filterPerfCallChartData(params.startNS, params.endNS, params.totalNS, params.frame, params.expand);
   let len = dataFilter.startTs.length;
-  let startTs = new Float64Array(len);
-  let dur = new Float64Array(len);
-  let depth = new Int32Array(len);
-  let eventCount = new Int32Array(len);
-  let symbolId = new Int32Array(len);
-  let fileId = new Int32Array(len);
-  let callchainId = new Int32Array(len);
-  let selfDur = new Int32Array(len);
-  let name = new Int32Array(len);
+  let perfCallChart = new PerfCallChart(len);
   for (let i = 0; i < len; i++) {
-    startTs[i] = dataFilter.startTs[i];
-    dur[i] = dataFilter.dur[i];
-    depth[i] = dataFilter.depth[i];
-    eventCount[i] = dataFilter.eventCount[i];
-    symbolId[i] = dataFilter.symbolId[i];
-    fileId[i] = dataFilter.fileId[i];
-    callchainId[i] = dataFilter.callchainId[i];
-    selfDur[i] = dataFilter.selfDur[i];
-    name[i] = dataFilter.name[i];
+    perfCallChart.startTs[i] = dataFilter.startTs[i];
+    perfCallChart.dur[i] = dataFilter.dur[i];
+    perfCallChart.depth[i] = dataFilter.depth[i];
+    perfCallChart.eventCount[i] = dataFilter.eventCount[i];
+    perfCallChart.symbolId[i] = dataFilter.symbolId[i];
+    perfCallChart.fileId[i] = dataFilter.fileId[i];
+    perfCallChart.callchainId[i] = dataFilter.callchainId[i];
+    perfCallChart.selfDur[i] = dataFilter.selfDur[i];
+    perfCallChart.name[i] = dataFilter.name[i];
   }
+  postPerfCallChartMessage(data, transfer, perfCallChart, len);
+}
+function postPerfCallChartMessage(data: any, transfer: boolean, perfCallChart: PerfCallChart, len: number) {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
       action: data.action,
       results: transfer
         ? {
-            startTs: startTs.buffer,
-            dur: dur.buffer,
-            depth: depth.buffer,
-            callchainId: callchainId.buffer,
-            eventCount: eventCount.buffer,
-            symbolId: symbolId.buffer,
-            fileId: fileId.buffer,
-            selfDur: selfDur.buffer,
-            name: name.buffer,
+            startTs: perfCallChart.startTs.buffer,
+            dur: perfCallChart.dur.buffer,
+            depth: perfCallChart.depth.buffer,
+            callchainId: perfCallChart.callchainId.buffer,
+            eventCount: perfCallChart.eventCount.buffer,
+            symbolId: perfCallChart.symbolId.buffer,
+            fileId: perfCallChart.fileId.buffer,
+            selfDur: perfCallChart.selfDur.buffer,
+            name: perfCallChart.name.buffer,
             maxDepth: dataCache.maxDepth,
           }
         : {},
@@ -198,15 +189,15 @@ function arrayBufferCallback(data: any, transfer: boolean): void {
     },
     transfer
       ? [
-          startTs.buffer,
-          dur.buffer,
-          depth.buffer,
-          callchainId.buffer,
-          eventCount.buffer,
-          symbolId.buffer,
-          fileId.buffer,
-          selfDur.buffer,
-          name.buffer,
+          perfCallChart.startTs.buffer,
+          perfCallChart.dur.buffer,
+          perfCallChart.depth.buffer,
+          perfCallChart.callchainId.buffer,
+          perfCallChart.eventCount.buffer,
+          perfCallChart.symbolId.buffer,
+          perfCallChart.fileId.buffer,
+          perfCallChart.selfDur.buffer,
+          perfCallChart.name.buffer,
         ]
       : []
   );
@@ -218,38 +209,8 @@ export function filterPerfCallChartData(
   totalNS: number,
   frame: any,
   expand: boolean
-): {
-  startTs: Array<number>;
-  dur: Array<number>;
-  depth: Array<number>;
-  eventCount: Array<number>;
-  symbolId: Array<number>;
-  fileId: Array<number>;
-  callchainId: Array<number>;
-  selfDur: Array<number>;
-  name: Array<number>;
-} {
-  let dataSource: {
-    startTs: Array<number>;
-    dur: Array<number>;
-    depth: Array<number>;
-    eventCount: Array<number>;
-    symbolId: Array<number>;
-    fileId: Array<number>;
-    callchainId: Array<number>;
-    selfDur: Array<number>;
-    name: Array<number>;
-  } = {
-    startTs: [],
-    dur: [],
-    depth: [],
-    eventCount: [],
-    symbolId: [],
-    fileId: [],
-    callchainId: [],
-    selfDur: [],
-    name: [],
-  };
+): DataSource {
+  let dataSource = new DataSource();
   let data: any = {};
   dataCache.startTs.reduce((pre, current, index) => {
     if (
@@ -274,6 +235,10 @@ export function filterPerfCallChartData(
     }
     return pre;
   }, data);
+  setDataSource(data, dataSource);
+  return dataSource;
+}
+function setDataSource(data: any, dataSource: DataSource) {
   Reflect.ownKeys(data).map((kv: string | symbol): void => {
     let index = data[kv as string] as number;
     dataSource.startTs.push(dataCache.startTs[index]);
@@ -286,44 +251,27 @@ export function filterPerfCallChartData(
     dataSource.selfDur.push(dataCache.selfDur[index]);
     dataSource.name.push(dataCache.name[index]);
   });
-  return dataSource;
 }
-
 // 将perf_sample表的数据根据callchain_id分组并赋值startTime,endTime等等
 function combinePerfSampleByCallChainId(sampleList: Array<any>, params: any): any[] {
-  let arr: any = new Array();
-  let newPerfData = (sample: any): any => {
-    let perfSample: any = {};
-    perfSample.children = new Array<any>();
-    perfSample.children[0] = {};
-    perfSample.depth = -1;
-    perfSample.callchainId = sample.callchainId;
-    perfSample.threadId = sample.threadId;
-    perfSample.id = sample.id;
-    perfSample.startTime = sample.startTs;
-    perfSample.eventCount = sample.eventCount;
-    return perfSample;
-  };
-  for (let i = 0; i < sampleList.length; i++) {
-    if (arr.length > 0) {
-      let last = arr[arr.length - 1];
-      last.endTime = sampleList[i].startTs;
-      last.totalTime = last.endTime - last.startTime;
-      if (last.callchainId === sampleList[i].callchainId) {
-        last.eventCount += sampleList[i].eventCount;
-      } else {
-        arr.push(newPerfData(sampleList[i]));
-      }
-    } else {
-      arr.push(newPerfData(sampleList[i]));
-    }
-  }
-  let last = arr[arr.length - 1];
-  if (last && (last.endTime === 0 || last.endTime === undefined)) {
-    last.endTime = params.totalNS;
-    last.totalTime = last.endTime - last.startTime;
-  }
-  return combineChartData(arr, params);
+  return combineChartData(
+    sampleList.map((sample) => {
+      let perfSample: any = {};
+      perfSample.children = new Array<any>();
+      perfSample.children[0] = {};
+      perfSample.depth = -1;
+      perfSample.callchainId = sample.callchainId;
+      perfSample.threadId = sample.threadId;
+      perfSample.id = sample.id;
+      perfSample.cpuId = sample.cpuId;
+      perfSample.startTime = sample.startTs;
+      perfSample.endTime = sample.startTs + sample.dur;
+      perfSample.totalTime = sample.dur;
+      perfSample.eventCount = sample.eventCount;
+      return perfSample;
+    }),
+    params
+  );
 }
 
 function combineChartData(samples: any, params: any): Array<any> {
@@ -335,7 +283,7 @@ function combineChartData(samples: any, params: any): Array<any> {
       let stackTopSymbol = JSON.parse(JSON.stringify(stackTop));
       stackTopSymbol.startTime = sample.startTime;
       stackTopSymbol.endTime = sample.endTime;
-      stackTopSymbol.totalTime = sample.endTime - sample.startTime;
+      stackTopSymbol.totalTime = sample.totalTime;
       stackTopSymbol.threadId = sample.threadId;
       stackTopSymbol.cpuId = sample.cpuId;
       stackTopSymbol.eventCount = sample.eventCount;
@@ -346,14 +294,15 @@ function combineChartData(samples: any, params: any): Array<any> {
       if (combineSample.length === 0) {
         combineSample.push(sample);
       } else {
+        let pre = combineSample[combineSample.length - 1];
         if (params.type === 0) {
-          if (combineSample[combineSample.length - 1].threadId === sample.threadId) {
+          if (pre.threadId === sample.threadId && pre.endTime === sample.startTime) {
             combinePerfCallData(combineSample[combineSample.length - 1], sample);
           } else {
             combineSample.push(sample);
           }
         } else {
-          if (combineSample[combineSample.length - 1].cpuId === sample.cpuId) {
+          if (pre.cpuId === sample.cpuId && pre.endTime === sample.startTime) {
             combinePerfCallData(combineSample[combineSample.length - 1], sample);
           } else {
             combineSample.push(sample);
@@ -384,6 +333,7 @@ function setDur(data: any): void {
 function combinePerfCallData(data1: any, data2: any): void {
   if (fixMergeRuler(data1, data2)) {
     data1.endTime = data2.endTime;
+    data1.totalTime = data1.endTime - data1.startTime;
     data1.eventCount += data2.eventCount;
     if (data1.children && data1.children.length > 0 && data2.children && data2.children.length > 0) {
       if (fixMergeRuler(data1.children[data1.children.length - 1], data2.children[0])) {
@@ -395,13 +345,12 @@ function combinePerfCallData(data1: any, data2: any): void {
       }
     } else if (data2.children && data2.children.length > 0 && (!data1.children || data1.children.length === 0)) {
       data1.endTime = data2.endTime;
-      data1.totalTime = data1.endTime - data1.endTime;
+      data1.totalTime = data1.endTime - data1.startTime;
       data1.children = new Array<any>();
       data1.children.push(data2.children[0]);
     } else {
     }
   }
-  data1.totalTime = data1.endTime - data1.startTime;
   return;
 }
 
@@ -451,7 +400,7 @@ function arrayBufferCallStackHandler(data: any, res: any[]): void {
         depth: stack.hiperfCallStackData.depth || 0,
         symbolId: stack.hiperfCallStackData.symbolId || 0,
         name: stack.hiperfCallStackData.name || 0,
-      }
+      };
     }
     dataCache.callstack.set(`${item.callchainId}-${item.depth}`, item);
     let parentSymbol = dataCache.callstack.get(`${item.callchainId}-${item.depth - 1}`);
@@ -487,4 +436,48 @@ function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect
     xSize = rect.width;
   }
   return xSize;
+}
+class PerfCallChart {
+  startTs: Float64Array;
+  dur: Float64Array;
+  depth: Int32Array;
+  eventCount: Int32Array;
+  symbolId: Int32Array;
+  fileId: Int32Array;
+  callchainId: Int32Array;
+  selfDur: Int32Array;
+  name: Int32Array;
+  constructor(len: number) {
+    this.startTs = new Float64Array(len);
+    this.dur = new Float64Array(len);
+    this.depth = new Int32Array(len);
+    this.eventCount = new Int32Array(len);
+    this.symbolId = new Int32Array(len);
+    this.fileId = new Int32Array(len);
+    this.callchainId = new Int32Array(len);
+    this.selfDur = new Int32Array(len);
+    this.name = new Int32Array(len);
+  }
+}
+class DataSource {
+  startTs: Array<number>;
+  dur: Array<number>;
+  depth: Array<number>;
+  eventCount: Array<number>;
+  symbolId: Array<number>;
+  fileId: Array<number>;
+  callchainId: Array<number>;
+  selfDur: Array<number>;
+  name: Array<number>;
+  constructor() {
+    this.startTs = [];
+    this.dur = [];
+    this.depth = [];
+    this.eventCount = [];
+    this.symbolId = [];
+    this.fileId = [];
+    this.callchainId = [];
+    this.selfDur = [];
+    this.name = [];
+  }
 }

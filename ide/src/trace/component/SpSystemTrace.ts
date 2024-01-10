@@ -53,9 +53,9 @@ import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCp
 import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread';
 import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
 import { CpuStateStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
-import { HiPerfCpuStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
-import { HiPerfProcessStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess';
-import { HiPerfThreadStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread';
+import { HiPerfCpuStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
+import { HiPerfProcessStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
+import { HiPerfThreadStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
 import { HiPerfEventStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
 import { HiPerfReportStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfReport';
 import { FpsStruct } from '../database/ui-worker/ProcedureWorkerFPS';

@@ -711,6 +711,17 @@ export const queryAllProcessNames = (): Promise<Array<any>> => {
   );
 };
 
+export const queryRsProcess = (): Promise<Array<any>> => {
+  return query(
+    'queryRsProcess',
+    `
+        SELECT p.pid FROM process p WHERE p.ipid = (SELECT t.ipid FROM thread t WHERE t.itid IN 
+        ( SELECT c.callid FROM callstack c WHERE name LIKE '%H:RSMainThread::DoComposition%' LIMIT 1 ) 
+      LIMIT 1 
+      )`
+  );
+};
+
 export const queryProcessSoInitData = (pid: number): Promise<Array<SoStruct>> =>
   query(
     'queryProcessSoInitData',

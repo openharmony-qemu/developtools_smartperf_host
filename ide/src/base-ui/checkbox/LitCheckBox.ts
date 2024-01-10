@@ -23,10 +23,6 @@ export class LitCheckBox extends BaseElement {
     return ['checked', 'value', 'disabled'];
   }
 
-  get disabled() {
-    return this.getAttribute('disabled') !== null;
-  }
-
   set disabled(value) {
     if (value === null || value === false) {
       this.removeAttribute('disabled');
@@ -45,6 +41,10 @@ export class LitCheckBox extends BaseElement {
     } else {
       this.checkbox!.indeterminate = true;
     }
+  }
+
+  get disabled() {
+    return this.getAttribute('disabled') !== null;
   }
 
   get checked() {
@@ -69,7 +69,21 @@ export class LitCheckBox extends BaseElement {
 
   initHtml(): string {
     return `
-        <style>
+        ${this.initHtmlStyle()}
+        <input type="checkbox" id="checkbox">
+        <label for="checkbox">
+          <span class="chekebox">
+          <lit-icon name="checkmark" class="icon" color="#3391FF" size="15">
+          </lit-icon>
+          </span>
+          <slot id="slot"></slot>
+       </label>
+        `;
+  }
+
+  private initHtmlStyle(): string {
+    return `
+    <style>
         :host{ 
             display:flex;
             opacity: 0.86;
@@ -142,15 +156,7 @@ export class LitCheckBox extends BaseElement {
           pointer-events: none;
         }
         </style>
-        <input type="checkbox" id="checkbox">
-        <label for="checkbox">
-          <span class="chekebox">
-          <lit-icon name="checkmark" class="icon" color="#3391FF" size="15">
-          </lit-icon>
-          </span>
-          <slot id="slot"></slot>
-       </label>
-        `;
+    `
   }
 
   initElements(): void {

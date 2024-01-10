@@ -313,8 +313,8 @@ export class TabPaneFrequencySample extends BaseElement {
     return `
         <style>
         :host{
-            padding: 10px 10px;
             display: flex;
+            padding: 10px 10px;
             flex-direction: column;
         }
         </style>

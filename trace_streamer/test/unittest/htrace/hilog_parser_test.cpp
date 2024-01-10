@@ -30,6 +30,23 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+const uint32_t PID = 2716;
+const uint32_t TID = 1532;
+const uint64_t LOG_ID = 1;
+const uint32_t LOG_LEVEL_D = 68;
+const uint64_t TV_SEC = 1632675525;
+const uint64_t TV_NSEC = 996560700;
+const std::string LOG_TAG = "HwMSDPMovementService";
+const std::string LOG_CONTEXT = "handleGetSupportedModule";
+const uint32_t PID_02 = 2532;
+const uint32_t TID_02 = 1716;
+const uint64_t LOG_ID_02 = 2;
+const uint32_t LOG_LEVEL_E = 69;
+const uint64_t TV_SEC_02 = 1632688888;
+const uint64_t TV_NSEC_02 = 996588888;
+const std::string LOG_TAG_02 = "ProfilerService";
+const std::string LOG_CONTEXT_02 = "POST_RECV_MESSAGE method: /IProfilerService/CreateSession";
+
 class HilogParserTest : public ::testing::Test {
 public:
     void SetUp()
@@ -38,6 +55,40 @@ public:
     }
 
     void TearDown() {}
+
+    void InitData(std::string& hilogData, bool isRepeatedData = false)
+    {
+        HilogInfo* hilogInfo = new HilogInfo();
+        HilogDetails* hilogDetails = new HilogDetails();
+        hilogDetails->set_tv_sec(TV_SEC);
+        hilogDetails->set_tv_nsec(TV_NSEC);
+        hilogDetails->set_pid(PID);
+        hilogDetails->set_tid(TID);
+        hilogDetails->set_level(LOG_LEVEL_D);
+        hilogDetails->set_tag(LOG_TAG);
+
+        auto hilogLine = hilogInfo->add_info();
+        hilogLine->set_allocated_detail(hilogDetails);
+        hilogLine->set_context(LOG_CONTEXT);
+        hilogLine->set_id(LOG_ID);
+
+        if (isRepeatedData) {
+            HilogDetails* hilogDetailsSecond = new HilogDetails();
+            hilogDetailsSecond->set_tv_sec(TV_SEC_02);
+            hilogDetailsSecond->set_tv_nsec(TV_NSEC_02);
+            hilogDetailsSecond->set_pid(PID_02);
+            hilogDetailsSecond->set_tid(TID_02);
+            hilogDetailsSecond->set_level(LOG_LEVEL_E);
+            hilogDetailsSecond->set_tag(LOG_TAG_02);
+
+            auto hilogLineSecond = hilogInfo->add_info();
+            hilogLineSecond->set_allocated_detail(hilogDetailsSecond);
+            hilogLineSecond->set_context(LOG_CONTEXT_02);
+            hilogLineSecond->set_id(LOG_ID_02);
+        }
+
+        hilogInfo->SerializeToString(&hilogData);
+    }
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
@@ -70,66 +121,29 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithoutHilogLine, TestSize.Level1)
 HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-2");
-    const uint64_t TV_SEC = 1632675525;
-    const uint64_t TV_NSEC = 996560700;
-    const std::string LOG_TAG = "HwMSDPMovementService";
-    const std::string LOG_CONTEXT = "handleGetSupportedModule";
-    const uint32_t LOG_LEVEL_D = 68;
-    const uint32_t PID = 2716;
-    const uint32_t TID = 1532;
-    const uint64_t LOG_ID = 1;
 
-    HilogDetails* hilogDetails = new HilogDetails();
-    hilogDetails->set_tv_sec(TV_SEC);
-    hilogDetails->set_tv_nsec(TV_NSEC);
-    hilogDetails->set_pid(PID);
-    hilogDetails->set_tid(TID);
-    hilogDetails->set_level(LOG_LEVEL_D);
-    hilogDetails->set_tag(LOG_TAG);
-
-    HilogInfo* hilogInfo = new HilogInfo();
-    auto hilogLine = hilogInfo->add_info();
-    hilogLine->set_allocated_detail(hilogDetails);
-    hilogLine->set_context(LOG_CONTEXT);
-    hilogLine->set_id(LOG_ID);
-
-    HtraceHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
-    hilogInfo->SerializeToString(&hilogData);
+    InitData(hilogData);
+    HtraceHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 
-    auto seq = stream_.traceDataCache_->GetConstHilogData().HilogLineSeqs()[0];
-    EXPECT_EQ(seq, LOG_ID);
+    auto constHilogData = stream_.traceDataCache_->GetConstHilogData();
+    EXPECT_EQ(constHilogData.HilogLineSeqs()[0], LOG_ID);
+    EXPECT_EQ(constHilogData.TimeStampData()[0], (TV_NSEC + TV_SEC * SEC_TO_NS));
+    EXPECT_EQ(constHilogData.Pids()[0], PID);
+    EXPECT_EQ(constHilogData.Tids()[0], TID);
 
-    auto timeStamp = stream_.traceDataCache_->GetConstHilogData().TimeStampData()[0];
-    EXPECT_EQ(timeStamp, (TV_NSEC + TV_SEC * SEC_TO_NS));
-
-    auto pid = stream_.traceDataCache_->GetConstHilogData().Pids()[0];
-    EXPECT_EQ(pid, PID);
-
-    auto tid = stream_.traceDataCache_->GetConstHilogData().Tids()[0];
-    EXPECT_EQ(tid, TID);
-
-    auto level = stream_.traceDataCache_->GetConstHilogData().Levels()[0];
     auto iter = htraceHiLogParser.logLevelString_.find(LOG_LEVEL_D);
     if (iter == htraceHiLogParser.logLevelString_.end()) {
         EXPECT_FALSE(0);
     }
-    DataIndex levelDIndex = stream_.traceDataCache_->dataDict_.GetStringIndex(iter->second.c_str());
-    EXPECT_EQ(level, levelDIndex);
-
-    auto readTagIndex = stream_.traceDataCache_->GetConstHilogData().Tags()[0];
-    DataIndex writeTagIndex = stream_.traceDataCache_->dataDict_.GetStringIndex(LOG_TAG);
-    EXPECT_EQ(readTagIndex, writeTagIndex);
-
-    auto readContextIndex = stream_.traceDataCache_->GetConstHilogData().Contexts()[0];
-    DataIndex writeContextIndex = stream_.traceDataCache_->dataDict_.GetStringIndex(LOG_CONTEXT);
-    EXPECT_EQ(readContextIndex, writeContextIndex);
-
-    auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_HILOG, STAT_EVENT_RECEIVED);
-    EXPECT_TRUE(1 == eventCount);
+    auto& dataDict = stream_.traceDataCache_->dataDict_;
+    EXPECT_EQ(constHilogData.Levels()[0], dataDict.GetStringIndex(iter->second.c_str()));
+    EXPECT_EQ(constHilogData.Tags()[0], dataDict.GetStringIndex(LOG_TAG));
+    EXPECT_EQ(constHilogData.Contexts()[0], dataDict.GetStringIndex(LOG_CONTEXT));
+    EXPECT_EQ(stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_HILOG, STAT_EVENT_RECEIVED), 1);
 }
 
 /**
@@ -140,110 +154,42 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
 HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-3");
-    const uint64_t TV_SEC_01 = 1632675525;
-    const uint64_t TV_NSEC_01 = 996560700;
-    const uint32_t PID_01 = 2716;
-    const uint32_t TID_01 = 1532;
-    const uint32_t LOG_LEVEL_D = 68;
-    const std::string LOG_TAG_01 = "HwMSDPMovementService";
-    const std::string LOG_CONTEXT_01 = "handleGetSupportedModule";
-    const uint64_t LOG_ID_01 = 1;
 
-    HilogDetails* hilogDetailsFirst = new HilogDetails();
-    hilogDetailsFirst->set_tv_sec(TV_SEC_01);
-    hilogDetailsFirst->set_tv_nsec(TV_NSEC_01);
-    hilogDetailsFirst->set_pid(PID_01);
-    hilogDetailsFirst->set_tid(TID_01);
-    hilogDetailsFirst->set_level(LOG_LEVEL_D);
-    hilogDetailsFirst->set_tag(LOG_TAG_01);
-
-    const uint64_t TV_SEC_02 = 1632688888;
-    const uint64_t TV_NSEC_02 = 996588888;
-    const uint32_t PID_02 = 2532;
-    const uint32_t TID_02 = 1716;
-    const uint32_t LOG_LEVEL_E = 69;
-    const std::string LOG_TAG_02 = "ProfilerService";
-    const std::string LOG_CONTEXT_02 = "POST_RECV_MESSAGE method: /IProfilerService/CreateSession";
-    const uint64_t LOG_ID_02 = 2;
-
-    HilogDetails* hilogDetailsSecond = new HilogDetails();
-    hilogDetailsSecond->set_tv_sec(TV_SEC_02);
-    hilogDetailsSecond->set_tv_nsec(TV_NSEC_02);
-    hilogDetailsSecond->set_pid(PID_02);
-    hilogDetailsSecond->set_tid(TID_02);
-    hilogDetailsSecond->set_level(LOG_LEVEL_E);
-    hilogDetailsSecond->set_tag(LOG_TAG_02);
-
-    HilogInfo* hilogInfo = new HilogInfo();
-    auto hilogLineFirst = hilogInfo->add_info();
-    hilogLineFirst->set_allocated_detail(hilogDetailsFirst);
-    hilogLineFirst->set_context(LOG_CONTEXT_01);
-    hilogLineFirst->set_id(LOG_ID_01);
-
-    auto hilogLineSecond = hilogInfo->add_info();
-    hilogLineSecond->set_allocated_detail(hilogDetailsSecond);
-    hilogLineSecond->set_context(LOG_CONTEXT_02);
-    hilogLineSecond->set_id(LOG_ID_02);
-
-    HtraceHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
-    hilogInfo->SerializeToString(&hilogData);
+    InitData(hilogData, true);
+    HtraceHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView hilogInfoData(reinterpret_cast<const uint8_t*>(hilogData.data()), hilogData.size());
     bool issplit = false;
     htraceHiLogParser.Parse(hilogInfoData, issplit);
 
-    auto seqFirst = stream_.traceDataCache_->GetConstHilogData().HilogLineSeqs()[0];
-    auto seqSecond = stream_.traceDataCache_->GetConstHilogData().HilogLineSeqs()[1];
-    EXPECT_EQ(seqFirst, LOG_ID_01);
-    EXPECT_EQ(seqSecond, LOG_ID_02);
+    auto constHilogData = stream_.traceDataCache_->GetConstHilogData();
+    EXPECT_EQ(constHilogData.HilogLineSeqs()[0], LOG_ID);
+    EXPECT_EQ(constHilogData.HilogLineSeqs()[1], LOG_ID_02);
+    EXPECT_EQ(constHilogData.TimeStampData()[0], (TV_NSEC + TV_SEC * SEC_TO_NS));
+    EXPECT_EQ(constHilogData.TimeStampData()[1], (TV_NSEC_02 + TV_SEC_02 * SEC_TO_NS));
+    EXPECT_EQ(constHilogData.Pids()[0], PID);
+    EXPECT_EQ(constHilogData.Pids()[1], PID_02);
+    EXPECT_EQ(constHilogData.Tids()[0], TID);
+    EXPECT_EQ(constHilogData.Tids()[1], TID_02);
 
-    auto timestampFirst = stream_.traceDataCache_->GetConstHilogData().TimeStampData()[0];
-    auto timestampSecond = stream_.traceDataCache_->GetConstHilogData().TimeStampData()[1];
-    EXPECT_EQ(timestampFirst, (TV_NSEC_01 + TV_SEC_01 * SEC_TO_NS));
-    EXPECT_EQ(timestampSecond, (TV_NSEC_02 + TV_SEC_02 * SEC_TO_NS));
-
-    auto pidFirst = stream_.traceDataCache_->GetConstHilogData().Pids()[0];
-    auto pidSecond = stream_.traceDataCache_->GetConstHilogData().Pids()[1];
-    EXPECT_EQ(pidFirst, PID_01);
-    EXPECT_EQ(pidSecond, PID_02);
-
-    auto tidFirst = stream_.traceDataCache_->GetConstHilogData().Tids()[0];
-    auto tidSecond = stream_.traceDataCache_->GetConstHilogData().Tids()[1];
-    EXPECT_EQ(tidFirst, TID_01);
-    EXPECT_EQ(tidSecond, TID_02);
-
-    auto levelFirst = stream_.traceDataCache_->GetConstHilogData().Levels()[0];
     auto iterFirst = htraceHiLogParser.logLevelString_.find(LOG_LEVEL_D);
     if (iterFirst == htraceHiLogParser.logLevelString_.end()) {
         EXPECT_FALSE(0);
     }
-    DataIndex levelDIndex = stream_.traceDataCache_->dataDict_.GetStringIndex(iterFirst->second.c_str());
-    EXPECT_EQ(levelFirst, levelDIndex);
+    auto& dataDict = stream_.traceDataCache_->dataDict_;
+    EXPECT_EQ(constHilogData.Levels()[0], dataDict.GetStringIndex(iterFirst->second.c_str()));
 
-    auto levelSecond = stream_.traceDataCache_->GetConstHilogData().Levels()[1];
     auto iterSecond = htraceHiLogParser.logLevelString_.find(LOG_LEVEL_E);
     if (iterSecond == htraceHiLogParser.logLevelString_.end()) {
         EXPECT_FALSE(0);
     }
-    DataIndex levelEIndex = stream_.traceDataCache_->dataDict_.GetStringIndex(iterSecond->second.c_str());
-    EXPECT_EQ(levelSecond, levelEIndex);
+    EXPECT_EQ(constHilogData.Levels()[1], dataDict.GetStringIndex(iterSecond->second.c_str()));
 
-    auto readTagIndexFirst = stream_.traceDataCache_->GetConstHilogData().Tags()[0];
-    auto readTagIndexSecond = stream_.traceDataCache_->GetConstHilogData().Tags()[1];
-    DataIndex writeTagIndexFirst = stream_.traceDataCache_->dataDict_.GetStringIndex(LOG_TAG_01);
-    DataIndex writeTagIndexSecond = stream_.traceDataCache_->dataDict_.GetStringIndex(LOG_TAG_02);
-    EXPECT_EQ(readTagIndexFirst, writeTagIndexFirst);
-    EXPECT_EQ(readTagIndexSecond, writeTagIndexSecond);
-
-    auto readContextIndexFirst = stream_.traceDataCache_->GetConstHilogData().Contexts()[0];
-    auto readContextIndexSecond = stream_.traceDataCache_->GetConstHilogData().Contexts()[1];
-    DataIndex writeContextIndexFirst = stream_.traceDataCache_->dataDict_.GetStringIndex(LOG_CONTEXT_01);
-    DataIndex writeContextIndexSecond = stream_.traceDataCache_->dataDict_.GetStringIndex(LOG_CONTEXT_02);
-    EXPECT_EQ(readContextIndexFirst, writeContextIndexFirst);
-    EXPECT_EQ(readContextIndexSecond, writeContextIndexSecond);
-
-    auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_HILOG, STAT_EVENT_RECEIVED);
-    EXPECT_TRUE(2 == eventCount);
+    EXPECT_EQ(constHilogData.Tags()[0], dataDict.GetStringIndex(LOG_TAG));
+    EXPECT_EQ(constHilogData.Tags()[1], dataDict.GetStringIndex(LOG_TAG_02));
+    EXPECT_EQ(constHilogData.Contexts()[0], dataDict.GetStringIndex(LOG_CONTEXT));
+    EXPECT_EQ(constHilogData.Contexts()[1], dataDict.GetStringIndex(LOG_CONTEXT_02));
+    EXPECT_EQ(stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_HILOG, STAT_EVENT_RECEIVED), 2);
 }
 
 /**
@@ -254,21 +200,12 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
 HWTEST_F(HilogParserTest, ParseHilogInfoWithErrLevelHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-4");
-    const uint64_t TV_SEC = 1632675525;
-    const uint64_t TV_NSEC = 996560700;
-    const std::string LOG_TAG = "HwMSDPMovementService";
-    const std::string LOG_CONTEXT = "handleGetSupportedModule";
-    const uint32_t LOG_LEVEL_ILLEGAL = 0;
-    const uint32_t PID = 2716;
-    const uint32_t TID = 1532;
-    const uint64_t LOG_ID = 1;
 
     HilogDetails* hilogDetails = new HilogDetails();
     hilogDetails->set_tv_sec(TV_SEC);
     hilogDetails->set_tv_nsec(TV_NSEC);
     hilogDetails->set_pid(PID);
     hilogDetails->set_tid(TID);
-    hilogDetails->set_level(LOG_LEVEL_ILLEGAL);
     hilogDetails->set_tag(LOG_TAG);
 
     HilogInfo* hilogInfo = new HilogInfo();
@@ -298,14 +235,6 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithErrLevelHilogLine, TestSize.Level1)
 HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-5");
-    const uint64_t TV_SEC = 1632675525;
-    const uint64_t TV_NSEC = 996560700;
-    const std::string LOG_TAG = "HwMSDPMovementService";
-    const std::string LOG_CONTEXT = "handleGetSupportedModule";
-    const uint32_t LOG_LEVEL_D = 68;
-    const uint32_t PID = 2716;
-    const uint32_t TID = 1532;
-    const uint64_t LOG_ID = 2;
 
     HilogDetails* hilogDetails = new HilogDetails();
     hilogDetails->set_tv_sec(TV_SEC);
@@ -319,7 +248,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
     auto hilogLine = hilogInfo->add_info();
     hilogLine->set_allocated_detail(hilogDetails);
     hilogLine->set_context(LOG_CONTEXT);
-    hilogLine->set_id(LOG_ID);
+    hilogLine->set_id(LOG_ID_02);
 
     HtraceHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hilogData = "";
@@ -342,14 +271,6 @@ HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
 HWTEST_F(HilogParserTest, ParseHilogInfoHasDuplicateHilogLine, TestSize.Level1)
 {
     TS_LOGI("test8-6");
-    const uint64_t TV_SEC = 1632675525;
-    const uint64_t TV_NSEC = 996560700;
-    const std::string LOG_TAG = "HwMSDPMovementService";
-    const std::string LOG_CONTEXT = "handleGetSupportedModule";
-    const uint32_t LOG_LEVEL_D = 68;
-    const uint32_t PID = 2716;
-    const uint32_t TID = 1532;
-    const uint64_t LOG_ID = 1;
 
     HilogDetails* hilogDetails = new HilogDetails();
     hilogDetails->set_tv_sec(TV_SEC);

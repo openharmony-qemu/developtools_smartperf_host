@@ -208,21 +208,19 @@ void ProcessTable::Cursor::FilterPid(unsigned char op, uint64_t value)
         indexMap_->CovertToIndexMap();
         remove = true;
     }
-    const auto& processQueue = dataCache_->GetConstProcessData();
-    auto size = processQueue.size();
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
             if (remove) {
                 for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
-                    if (processQueue[*i].pid_ != value) {
+                    if (dataCache_->GetConstProcessData()[*i].pid_ != value) {
                         i = indexMap_->rowIndex_.erase(i);
                     } else {
                         i++;
                     }
                 }
             } else {
-                for (auto i = 0; i < size; i++) {
-                    if (processQueue[i].pid_ == value) {
+                for (auto i = 0; i < dataCache_->GetConstProcessData().size(); i++) {
+                    if (dataCache_->GetConstProcessData()[i].pid_ == value) {
                         indexMap_->rowIndex_.push_back(i);
                     }
                 }
@@ -232,15 +230,15 @@ void ProcessTable::Cursor::FilterPid(unsigned char op, uint64_t value)
         case SQLITE_INDEX_CONSTRAINT_NE:
             if (remove) {
                 for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
-                    if (processQueue[*i].pid_ == value) {
+                    if (dataCache_->GetConstProcessData()[*i].pid_ == value) {
                         i = indexMap_->rowIndex_.erase(i);
                     } else {
                         i++;
                     }
                 }
             } else {
-                for (auto i = 0; i < size; i++) {
-                    if (processQueue[i].pid_ != value) {
+                for (auto i = 0; i < dataCache_->GetConstProcessData().size(); i++) {
+                    if (dataCache_->GetConstProcessData()[i].pid_ != value) {
                         indexMap_->rowIndex_.push_back(i);
                     }
                 }

@@ -1,17 +1,17 @@
-  /*
- * Copyright (C) 2022 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/*
+* Copyright (C) 2022 Huawei Device Co., Ltd.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { SelectionParam } from '../../../../bean/BoxSelection';
@@ -19,6 +19,8 @@ import { LitIcon } from '../../../../../base-ui/icon/LitIcon';
 import { HiSysEventStruct } from '../../../../database/ui-worker/ProcedureWorkerHiSysEvent';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { ColorUtils } from '../../base/ColorUtils';
+import { TabPaneHiSysEventSummaryHtml } from './TabPaneHiSysEventSummary.html';
+import { NUM_30, NUM_40 } from '../../../../bean/NumBean';
 
 @element('tab-hi-sysevent-summary')
 export class TabPaneHiSysEventSummary extends BaseElement {
@@ -73,84 +75,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
   }
 
   initHtml(): string {
-    return `<style>
-        :host{
-          padding: 10px 10px;
-          display: flex;
-          flex-direction: column;
-        }
-        .tree-row-tr {
-          display: flex;
-          height: 30px;
-          line-height: 30px;
-          align-items: center;
-          background-color: white;
-          width: 100%;
-        }
-        .tab-summary-head {
-          display: grid;
-          grid-template-columns: 69% 25%;
-          height: 30px;
-          line-height: 30px;
-          align-items: center;
-          background-color: white;
-        }
-         .head-label, .head-count {
-          white-space: nowrap;
-          overflow: hidden;
-        }
-        .head-label, .head-count {
-          font-weight: bold;
-        }
-        .tree-row-tr:hover {
-          background-color: #DEEDFF;
-        }
-        .tree-row-tr:nth-last-child(1):hover {
-          background-color: white;
-        }
-        .row-name-td {
-          height: 30px;
-          white-space: nowrap;
-          display: inline-block;
-          overflow-y: hidden;
-          margin-right: 15px;
-        }
-        tr {
-          height: 30px;
-        }
-        .row-name-td::-webkit-scrollbar {
-          display: none;
-        }
-        .event-tree-table {
-          display: grid;
-          overflow: hidden;
-          grid-template-rows: repeat(auto-fit, 30px);
-          position: sticky;
-          top: 0;
-        }
-        .event-tree-table:hover{
-          overflow: auto hidden;
-        }
-        </style>
-        <div class="tab-summary-head">
-          <div style="justify-content: flex-start; display: flex">
-            <div class="expansion-div" style="display: grid;">
-              <lit-icon class="expansion-up-icon" name="up"></lit-icon>
-              <lit-icon class="expansion-down-icon" name="down"></lit-icon>
-            </div>
-            <label class="head-label" style="cursor: pointer;">Level</label>
-            <label class="head-label" style="cursor: pointer;">/Domain</label>
-            <label class="head-label" style="cursor: pointer;">/EventName</label>
-          </div>
-          <label class="head-count">Count</label> 
-        </div>
-        <div id="tab-summary" style="overflow: auto;display: grid; grid-template-columns: 70% 25%;"></div>
-        <lit-table id="tb-event-summary" style="display: none" tree>
-          <lit-table-column title="Level/Domain/EventName" data-index="summaryName" key="summaryName">
-          </lit-table-column>
-          <lit-table-column title="Count" data-index="count" key="count"></lit-table-column>
-        </lit-table>
-        `;
+    return TabPaneHiSysEventSummaryHtml;
   }
 
   connectedCallback(): void {
@@ -192,6 +117,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
       }
     });
   }
+
   private createRowNodeTableEL(
     rowNodeList: HiSysEventTreeNode[],
     tableTreeEl: HTMLDivElement,
@@ -253,7 +179,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
   private refreshRowNodeTable(useCacheRefresh: boolean = false): void {
     this.eventSummaryTable!.innerHTML = '';
     if (this.eventSummaryTable && this.parentElement) {
-      this.eventSummaryTable.style.height = `${this.parentElement.clientHeight - 30}px`;
+      this.eventSummaryTable.style.height = `${this.parentElement.clientHeight - NUM_30}px`;
     }
     if (!useCacheRefresh) {
       this.eventTreeNodes = this.buildTreeTblNodes(this.summarySource);
@@ -268,7 +194,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
     tableTreeEl.className = 'event-tree-table';
     let tableCountEl: HTMLDivElement = document.createElement('div');
     if (this.parentElement) {
-      tableTreeEl.style.height = `${this.parentElement!.clientHeight - 40}px`;
+      tableTreeEl.style.height = `${this.parentElement!.clientHeight - NUM_40}px`;
     }
     this.createRowNodeTableEL(this.eventTreeNodes, tableTreeEl, tableCountEl, '');
     const emptyTr = document.createElement('tr');
@@ -293,7 +219,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
 
   private buildTreeTblNodes(eventTreeNodes: HiSysEventStruct[]): HiSysEventTreeNode[] {
     let id = 0;
-    let root: HiSysEventTreeNode = { id: id, depth: 0, children: [], summaryName: '', count: 0 };
+    let root: HiSysEventTreeNode = {id: id, depth: 0, children: [], summaryName: '', count: 0};
     eventTreeNodes.forEach((item) => {
       id++;
       let levelNode = root.children.find((node) => node.summaryName === item.level);
@@ -301,7 +227,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         levelNode.count++;
       } else {
         id++;
-        levelNode = { id: id, depth: 0, children: [], summaryName: item.level, count: 1 };
+        levelNode = {id: id, depth: 0, children: [], summaryName: item.level, count: 1};
         root.children.push(levelNode);
       }
       let domainNode = levelNode.children.find((node) => node.summaryName === item.domain);
@@ -309,7 +235,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         domainNode.count++;
       } else {
         id++;
-        domainNode = { id: id, depth: 1, children: [], summaryName: item.domain, count: 1 };
+        domainNode = {id: id, depth: 1, children: [], summaryName: item.domain, count: 1};
         levelNode.children.push(domainNode);
       }
       let eventNameNode = domainNode.children.find((node) => node.summaryName === item.eventName);
@@ -317,7 +243,7 @@ export class TabPaneHiSysEventSummary extends BaseElement {
         eventNameNode.count++;
       } else {
         id++;
-        eventNameNode = { id: id, depth: 2, children: [], summaryName: item.eventName, count: 1 };
+        eventNameNode = {id: id, depth: 2, children: [], summaryName: item.eventName, count: 1};
         domainNode.children.push(eventNameNode);
       }
       root.count++;

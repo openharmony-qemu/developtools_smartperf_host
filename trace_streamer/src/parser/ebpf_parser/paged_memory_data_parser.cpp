@@ -30,6 +30,39 @@ PagedMemoryDataParser::~PagedMemoryDataParser()
             static_cast<unsigned long long>(timeParser_->GetPluginStartTime()),
             static_cast<unsigned long long>(timeParser_->GetPluginEndTime()));
 }
+
+int32_t PagedMemoryDataParser::PagingData(const PagedMemoryFixedHeader* pagedMemoryFixedHeadrAddr)
+{
+    // Parsing paging memory data
+    auto type = pagedMemoryFixedHeadrAddr->type;
+    // Init process name data
+    const char* processName = reinterpret_cast<const char*>(pagedMemoryFixedHeadrAddr->comm);
+    uint32_t ipid =
+        streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pagedMemoryFixedHeadrAddr->pid, processName);
+    uint32_t itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pagedMemoryFixedHeadrAddr->tid,
+                                                                             pagedMemoryFixedHeadrAddr->pid);
+    uint64_t startTs = pagedMemoryFixedHeadrAddr->startTime;
+    uint64_t endTs = pagedMemoryFixedHeadrAddr->endTime;
+    auto newStartTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(clockId_, startTs);
+    timeParser_->UpdatePluginTimeRange(clockId_, startTs, newStartTs);
+    auto newEndTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(clockId_, endTs);
+    timeParser_->UpdatePluginTimeRange(clockId_, endTs, newEndTs);
+    if (newStartTs > newEndTs) {
+        TS_LOGE("startTs = %" PRIu64 ", endTs = %" PRIu64 ", newStartTs = %" PRIu64 ", newEndTs = %" PRIu64 "", startTs,
+                endTs, newStartTs, newEndTs);
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_PAGED_MEMORY, STAT_EVENT_DATA_INVALID);
+        return -1;
+    }
+    uint64_t duration = newEndTs - newStartTs;
+
+    auto addr = ConvertToHexTextIndex(pagedMemoryFixedHeadrAddr->addr);
+    auto size = pagedMemoryFixedHeadrAddr->size;
+
+    traceDataCache_->GetPagedMemorySampleData()->AppendNewData(currentCallId_, type, ipid, newStartTs, newEndTs,
+                                                               duration, size, addr, itid);
+    return 1;
+}
+
 void PagedMemoryDataParser::ParsePagedMemoryEvent()
 {
     if (!reader_->GetPagedMemoryMap().size()) {
@@ -58,33 +91,8 @@ void PagedMemoryDataParser::ParsePagedMemoryEvent()
             currentCallId_ = INVALID_UINT32;
         }
 
-        auto type = pagedMemoryFixedHeadrAddr->type;
-        // Init process name data
-        const char* processName = reinterpret_cast<const char*>(pagedMemoryFixedHeadrAddr->comm);
-        uint32_t ipid =
-            streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pagedMemoryFixedHeadrAddr->pid, processName);
-        uint32_t itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pagedMemoryFixedHeadrAddr->tid,
-                                                                                 pagedMemoryFixedHeadrAddr->pid);
-        uint64_t startTs = pagedMemoryFixedHeadrAddr->startTime;
-        uint64_t endTs = pagedMemoryFixedHeadrAddr->endTime;
-        auto newStartTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(clockId_, startTs);
-        timeParser_->UpdatePluginTimeRange(clockId_, startTs, newStartTs);
-        auto newEndTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(clockId_, endTs);
-        timeParser_->UpdatePluginTimeRange(clockId_, endTs, newEndTs);
-        if (newStartTs > newEndTs) {
-            TS_LOGE("startTs = %" PRIu64 ", endTs = %" PRIu64 ", newStartTs = %" PRIu64 ", newEndTs = %" PRIu64 "",
-                    startTs, endTs, newStartTs, newEndTs);
-            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_PAGED_MEMORY, STAT_EVENT_DATA_INVALID);
-            return;
-        }
-        uint64_t duration = newEndTs - newStartTs;
-
-        auto addr = ConvertToHexTextIndex(pagedMemoryFixedHeadrAddr->addr);
-        auto size = pagedMemoryFixedHeadrAddr->size;
-
-        traceDataCache_->GetPagedMemorySampleData()->AppendNewData(currentCallId_, type, ipid, newStartTs, newEndTs,
-                                                                   duration, size, addr, itid);
-        if (!callIdExistFlag) {
+        int32_t ret = PagingData(pagedMemoryFixedHeadrAddr);
+        if (1 == ret && !callIdExistFlag) {
             ParseCallStackData(userIpsAddr, pagedMemoryFixedHeadrAddr->nips, pagedMemoryFixedHeadrAddr->pid,
                                currentCallId_);
         }

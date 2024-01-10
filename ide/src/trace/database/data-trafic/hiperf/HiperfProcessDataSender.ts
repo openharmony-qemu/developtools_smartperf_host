@@ -14,8 +14,8 @@
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
 import { threadPool } from '../../SqlLite';
-import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
-import { HiPerfProcessStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfProcess';
+import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
+import { HiPerfProcessStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
 
 export function hiperfProcessDataSender(
   pid: number,

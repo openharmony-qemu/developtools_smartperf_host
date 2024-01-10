@@ -62,6 +62,15 @@ public:
 private:
     bool SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer);
     void SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer);
+
+    template <typename Structdata, typename DataLength, typename StructDetermine>
+    void StructAddData(Structdata& structdata,
+                       DataLength datalegnth,
+                       std::deque<uint8_t>& dequeBuffer,
+                       StructDetermine& structdetermine);
+
+    template <typename Structdata, typename DataLength>
+    void StructWriteData(Structdata& structdata, DataLength datalegnth);
     uint64_t splittedLen_ = 0;
     uint64_t usefulDataLen_ = 0;
     std::deque<uint8_t> ebpfBuffer_;

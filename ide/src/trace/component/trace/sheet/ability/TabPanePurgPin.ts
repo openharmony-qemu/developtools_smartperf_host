@@ -20,8 +20,8 @@ import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { PurgeableTabStruct } from './TabPanePurgTotal';
-import {querySysPurgeableTab} from "../../../../database/sql/Ability.sql";
-import {queryProcessPurgeableTab} from "../../../../database/sql/ProcessThread.sql";
+import { querySysPurgeableTab } from '../../../../database/sql/Ability.sql';
+import { queryProcessPurgeableTab } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-purg-pin')
 export class TabPanePurgPin extends BaseElement {
@@ -51,7 +51,7 @@ export class TabPanePurgPin extends BaseElement {
         true
       ).then((purgePinResults) => {
         this.purgeablePinTable!.loading = false;
-        this.getDataSource(purgePinResults)
+        this.getDataSource(purgePinResults);
       });
     } else if (selection.purgeablePinVM.length > 0) {
       this.purgeablePinSource = [];
@@ -63,7 +63,7 @@ export class TabPanePurgPin extends BaseElement {
         true
       ).then((results) => {
         this.purgeablePinTable!.loading = false;
-        this.getDataSource(results)
+        this.getDataSource(results);
       });
     }
   }

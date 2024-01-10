@@ -54,12 +54,8 @@ int32_t PagedMemorySampleTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(PagedMemorySampleDataObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
-            if (PagedMemorySampleDataObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_,
-                                     static_cast<int64_t>(PagedMemorySampleDataObj_.CallChainIds()[CurrentRow()]));
-            } else {
-                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
-            }
+            SetTypeColumn(PagedMemorySampleDataObj_.CallChainIds()[CurrentRow()], INVALID_UINT32,
+                          INVALID_CALL_CHAIN_ID);
             break;
         case Index::TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(PagedMemorySampleDataObj_.Types()[CurrentRow()]));
@@ -80,17 +76,11 @@ int32_t PagedMemorySampleTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(PagedMemorySampleDataObj_.Durs()[CurrentRow()]));
             break;
         case Index::SIZE: {
-            if (PagedMemorySampleDataObj_.Sizes()[CurrentRow()] != MAX_SIZE_T) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(PagedMemorySampleDataObj_.Sizes()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(PagedMemorySampleDataObj_.Sizes()[CurrentRow()], MAX_SIZE_T);
             break;
         }
         case Index::ADDR: {
-            if (PagedMemorySampleDataObj_.Addr()[CurrentRow()] != INVALID_UINT64) {
-                auto firstArgIndex = PagedMemorySampleDataObj_.Addr()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(firstArgIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(PagedMemorySampleDataObj_.Addr()[CurrentRow()], INVALID_UINT64);
             break;
         }
         default:

@@ -81,8 +81,8 @@ function initWASM() {
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => { },
-      printErr: (line: any) => { },
+      print: (line: any) => {},
+      printErr: (line: any) => {},
       onRuntimeInitialized: () => {
         resolve('ok');
       },
@@ -100,10 +100,10 @@ function initThirdWASM(wasmFunctionName: string) {
       locateFile: (s: any) => {
         return s;
       },
-      print: (line: any) => { },
-      printErr: (line: any) => { },
-      onRuntimeInitialized: () => { },
-      onAbort: () => { },
+      print: (line: any) => {},
+      printErr: (line: any) => {},
+      onRuntimeInitialized: () => {},
+      onAbort: () => {},
     });
   }
 
@@ -600,7 +600,7 @@ self.onmessage = async (e: MessageEvent) => {
           string,
           {
             traceFileType: string;
-            dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number; }>; dataTypes: string; }];
+            dataArray: [{ data: Uint8Array | Array<{ offset: number; size: number }>; dataTypes: string }];
           }
         > = new Map();
         let cutFileCallBack = (heapPtr: number, size: number, dataType: number, isEnd: number) => {
@@ -626,7 +626,7 @@ self.onmessage = async (e: MessageEvent) => {
             if (cutFilePageInfo) {
               let jsonStr: string = dec.decode(out);
               let jsonObj = JSON.parse(jsonStr);
-              let valueArray: Array<{ offset: number; size: number; }> = jsonObj.value;
+              let valueArray: Array<{ offset: number; size: number }> = jsonObj.value;
               cutFilePageInfo.dataArray.push({ data: valueArray, dataTypes: 'json' });
             }
           }
@@ -699,7 +699,7 @@ self.onmessage = async (e: MessageEvent) => {
               }
             } else {
               if (receiveData.data.length > 0) {
-                let needCutMessage = receiveData.data as Array<{ offset: number; size: number; }>;
+                let needCutMessage = receiveData.data as Array<{ offset: number; size: number }>;
                 let startOffset = needCutMessage[0].offset;
                 let nowCutInfoList: Array<any> = [];
                 let isBeforeCutFinish = false;
@@ -849,7 +849,8 @@ async function splitFileAndSaveArkTs(
   saveStartOffset: number,
   saveIndex: number,
   timStamp: number,
-  db: IDBDatabase) {
+  db: IDBDatabase
+) {
   for (let arkTsAllDataIndex = 0; arkTsAllDataIndex < arkTsData.length; arkTsAllDataIndex++) {
     let currentArkTsData = arkTsData[arkTsAllDataIndex];
     let freeSize = maxSize - currentChunkOffset;
@@ -885,7 +886,7 @@ async function splitFileAndSaveArkTs(
   }
 }
 
-async function splitFileAndSave(
+const splitFileAndSave = async (
   timStamp: number,
   fileType: string,
   startIndex: number,
@@ -895,7 +896,7 @@ async function splitFileAndSave(
   pageNum: number,
   maxSize: number,
   splitReqBufferAddr?: any
-) {
+): Promise<void> => {
   let queryStartIndex = startIndex;
   let queryEndIndex = startIndex;
   let saveIndex = 0;
@@ -931,8 +932,17 @@ async function splitFileAndSave(
           Module._TraceStreamerLongTraceSplitFileEx(sliceLen, 0, pageNum);
         }
         if (arkTsDataSize > 0 && fileType === 'arkts') {
-          splitFileAndSaveArkTs(maxSize, currentChunkOffset,
-            currentChunk, fileType, pageNum, saveStartOffset, saveIndex, timStamp, db);
+          splitFileAndSaveArkTs(
+            maxSize,
+            currentChunkOffset,
+            currentChunk,
+            fileType,
+            pageNum,
+            saveStartOffset,
+            saveIndex,
+            timStamp,
+            db
+          );
         }
       }
     }
@@ -946,7 +956,7 @@ async function splitFileAndSave(
     arkTsDataSize = 0;
     arkTsData.length = 0;
   }
-}
+};
 
 function setArg(
   remnantArray: Uint8Array,
@@ -1045,7 +1055,7 @@ enum FileTypeEnum {
 function cutFileBufferByOffSet(out: Uint8Array, uint8Array: Uint8Array) {
   let jsonStr: string = dec.decode(out);
   let jsonObj = JSON.parse(jsonStr);
-  let valueArray: Array<{ offset: number; size: number; }> = jsonObj.value;
+  let valueArray: Array<{ offset: number; size: number }> = jsonObj.value;
   const sum = valueArray.reduce((total, obj) => total + obj.size, 0);
   let cutBuffer = new Uint8Array(sum);
   let offset = 0;

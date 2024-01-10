@@ -285,6 +285,60 @@ export class LitSelect extends BaseElement {
     this.selectIconEl = this.shadowRoot!.querySelector('.icon');
     this.selectSearchEl = this.shadowRoot!.querySelector('.search');
     this.selectMultipleRootEl = this.shadowRoot!.querySelector('.multipleRoot');
+    this.setEventClick();
+    this.setEvent();
+    this.selectInputEl.onblur = (ev: any) => {
+      if (this.hasAttribute('disabled')) return;
+      if (this.isMultiple()) {
+        if (this.hasAttribute('show-search')) {
+          this.selectSearchEl.style.display = 'none';
+          this.selectIconEl.style.display = 'flex';
+        }
+      } else {
+        if (this.selectInputEl.placeholder !== this.defaultPlaceholder) {
+          this.selectInputEl.value = this.selectInputEl.placeholder;
+          this.selectInputEl.placeholder = this.defaultPlaceholder;
+        }
+        if (this.hasAttribute('show-search')) {
+          this.selectSearchEl.style.display = 'none';
+          this.selectIconEl.style.display = 'flex';
+        }
+      }
+    };
+    this.setOninput();
+    this.setOnkeydown();
+  }
+
+  setOninput():void{
+    this.selectInputEl.oninput = (ev: any) => {
+      let els: Element[] = [...this.querySelectorAll('lit-select-option')];
+      if (this.hasAttribute('show-search')) {
+        if (!ev.target.value) {
+          els.forEach((a: any) => (a.style.display = 'flex'));
+        } else {
+          this.setSelectItem(els,ev)
+        }
+      } else {
+        this.value = ev.target.value;
+      }
+    };
+  }
+
+  setSelectItem(els:Element[],ev:any):void{
+    els.forEach((a: any) => {
+      let value = a.getAttribute('value');
+      if (
+        value.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1 ||
+        a.textContent.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1
+      ) {
+        a.style.display = 'flex';
+      } else {
+        a.style.display = 'none';
+      }
+    });
+  }
+
+  setEventClick():void{
     this.selectClearEl.onclick = (ev: any) => {
       if (this.isMultiple()) {
         let delNodes: Array<any> = [];
@@ -323,6 +377,9 @@ export class LitSelect extends BaseElement {
         }
       }
     };
+  }
+
+  setEvent():void{
     this.onmouseover = this.onfocus = (ev) => {
       if (this.focused === false && this.hasAttribute('adaptive-expansion')) {
         if (this.parentElement!.offsetTop < this.bodyEl!.clientHeight) {
@@ -363,46 +420,9 @@ export class LitSelect extends BaseElement {
         a.style.display = 'flex';
       });
     };
-    this.selectInputEl.onblur = (ev: any) => {
-      if (this.hasAttribute('disabled')) return;
-      if (this.isMultiple()) {
-        if (this.hasAttribute('show-search')) {
-          this.selectSearchEl.style.display = 'none';
-          this.selectIconEl.style.display = 'flex';
-        }
-      } else {
-        if (this.selectInputEl.placeholder !== this.defaultPlaceholder) {
-          this.selectInputEl.value = this.selectInputEl.placeholder;
-          this.selectInputEl.placeholder = this.defaultPlaceholder;
-        }
-        if (this.hasAttribute('show-search')) {
-          this.selectSearchEl.style.display = 'none';
-          this.selectIconEl.style.display = 'flex';
-        }
-      }
-    };
-    this.selectInputEl.oninput = (ev: any) => {
-      let els = [...this.querySelectorAll('lit-select-option')];
-      if (this.hasAttribute('show-search')) {
-        if (!ev.target.value) {
-          els.forEach((a: any) => (a.style.display = 'flex'));
-        } else {
-          els.forEach((a: any) => {
-            let value = a.getAttribute('value');
-            if (
-              value.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1 ||
-              a.textContent.toLowerCase().indexOf(ev.target.value.toLowerCase()) !== -1
-            ) {
-              a.style.display = 'flex';
-            } else {
-              a.style.display = 'none';
-            }
-          });
-        }
-      } else {
-        this.value = ev.target.value;
-      }
-    };
+  }
+
+  setOnkeydown():void{
     this.selectInputEl.onkeydown = (ev: any) => {
       if (ev.key === 'Backspace') {
         if (this.isMultiple()) {
@@ -469,42 +489,46 @@ export class LitSelect extends BaseElement {
       a.addEventListener('mousedown', (e) => {
         e.stopPropagation();
       });
-      a.addEventListener('onSelected', (e: any) => {
-        if (this.isMultiple()) {
-          if (a.hasAttribute('selected')) {
-            let tag = this.shadowRoot!.querySelector(`div[data-value=${e.detail.value}]`) as HTMLElement;
-            if (tag) {
-              tag.parentElement!.removeChild(tag);
-            }
-            e.detail.selected = false;
-          } else {
-            let tag = this.newTag(e.detail.value, e.detail.text);
-            this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);
-            this.selectInputEl.placeholder = '';
-            this.selectInputEl.value = '';
-            this.selectInputEl.style.width = '1px';
-          }
-          if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
-            this.selectInputEl.style.width = 'auto';
-            this.selectInputEl.placeholder = this.defaultPlaceholder;
-          }
-          this.selectInputEl.focus();
-        } else {
-          [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
-          this.blur();
-          this.bodyEl!.style.display = 'none';
-          // @ts-ignore
-          this.selectInputEl.value = e.detail.text;
-        }
+      this.onSelectedEvent(a);
+    });
+  }
+
+  onSelectedEvent(a:Element):void{
+    a.addEventListener('onSelected', (e: any) => {
+      if (this.isMultiple()) {
         if (a.hasAttribute('selected')) {
-          a.removeAttribute('selected');
+          let tag = this.shadowRoot!.querySelector(`div[data-value=${e.detail.value}]`) as HTMLElement;
+          if (tag) {
+            tag.parentElement!.removeChild(tag);
+          }
+          e.detail.selected = false;
         } else {
-          a.setAttribute('selected', '');
+          let tag = this.newTag(e.detail.value, e.detail.text);
+          this.selectMultipleRootEl.insertBefore(tag, this.selectInputEl);
+          this.selectInputEl.placeholder = '';
+          this.selectInputEl.value = '';
+          this.selectInputEl.style.width = '1px';
         }
+        if (this.shadowRoot!.querySelectorAll('.tag').length == 0) {
+          this.selectInputEl.style.width = 'auto';
+          this.selectInputEl.placeholder = this.defaultPlaceholder;
+        }
+        this.selectInputEl.focus();
+      } else {
+        [...this.querySelectorAll('lit-select-option')].forEach((a) => a.removeAttribute('selected'));
+        this.blur();
+        this.bodyEl!.style.display = 'none';
         // @ts-ignore
-        this.value = e.detail.value;
-        this.dispatchEvent(new CustomEvent('change', { detail: e.detail })); //向外层派发change事件，返回当前选中项
-      });
+        this.selectInputEl.value = e.detail.text;
+      }
+      if (a.hasAttribute('selected')) {
+        a.removeAttribute('selected');
+      } else {
+        a.setAttribute('selected', '');
+      }
+      // @ts-ignore
+      this.value = e.detail.value;
+      this.dispatchEvent(new CustomEvent('change', { detail: e.detail })); //向外层派发change事件，返回当前选中项
     });
   }
 

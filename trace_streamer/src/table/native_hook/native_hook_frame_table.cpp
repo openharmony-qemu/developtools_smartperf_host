@@ -126,31 +126,19 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case Index::CALLCHAIN_ID:
-            if (nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_,
-                                     static_cast<int64_t>(nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()]));
-            } else {
-                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
-            }
+            SetTypeColumn(nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()], INVALID_UINT32, INVALID_CALL_CHAIN_ID);
             break;
         case Index::DEPTH:
             sqlite3_result_int(context_, static_cast<int32_t>(nativeHookFrameInfoObj_.Depths()[CurrentRow()]));
             break;
         case Index::IP:
-            if (nativeHookFrameInfoObj_.Ips()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Ips()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(nativeHookFrameInfoObj_.Ips()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::SYMBOL_ID:
-            if (nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_,
-                                     static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::FILE_ID: {
-            if (nativeHookFrameInfoObj_.FilePaths()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.FilePaths()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(nativeHookFrameInfoObj_.FilePaths()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::OFFSET: {
@@ -162,10 +150,8 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t column) const
             break;
         }
         case Index::VADDR: {
-            if (!nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnTextNotEmpty(nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].empty(),
+                                      nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].c_str());
             break;
         }
         default:
