@@ -30,6 +30,31 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+const uint64_t TS = 100;
+const uint64_t RD_01 = 100;
+const uint64_t WR_01 = 101;
+const uint64_t RDPERSEC_01 = 102;
+const uint64_t WRPERSEC_01 = 103;
+const uint64_t RD_02 = 104;
+const uint64_t WR_02 = 105;
+const uint64_t RDPERSEC_02 = 106;
+const uint64_t WRPERSEC_02 = 107;
+const uint64_t RD_03 = 108;
+const uint64_t WR_03 = 109;
+const uint64_t RDPERSEC_03 = 110;
+const uint64_t WRPERSEC_03 = 111;
+const uint64_t RD_04 = 112;
+const uint64_t WR_04 = 113;
+const uint64_t RDPERSEC_04 = 114;
+const uint64_t WRPERSEC_04 = 115;
+
+struct DiskiodataInfo {
+    uint64_t rd_kb;
+    uint64_t wr_kb;
+    uint64_t rd_per_sec;
+    uint64_t wr_per_sec;
+};
+
 class HtracediskioParserTest : public ::testing::Test {
 public:
     void SetUp()
@@ -38,6 +63,22 @@ public:
     }
 
     void TearDown() {}
+
+    std::string SetDiskioData(DiskiodataInfo& diskiodataInfo)
+    {
+        auto diskioInfo(std::make_unique<DiskioData>());
+        StatsData* statsDataSecond = new StatsData();
+        auto ioStatDataSecond = statsDataSecond->add_statsinfo();
+        ioStatDataSecond->set_rd_kb(diskiodataInfo.rd_kb);
+        ioStatDataSecond->set_wr_kb(diskiodataInfo.wr_kb);
+        ioStatDataSecond->set_rd_per_sec(diskiodataInfo.rd_per_sec);
+        ioStatDataSecond->set_wr_per_sec(diskiodataInfo.wr_per_sec);
+        diskioInfo->set_allocated_statsdata(statsDataSecond);
+
+        std::string diskioData = "";
+        diskioInfo->SerializeToString(&diskioData);
+        return diskioData;
+    }
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
@@ -51,13 +92,12 @@ public:
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithoutDiskioData, TestSize.Level1)
 {
     TS_LOGI("test13-1");
-    uint64_t ts = 100;
     auto diskioInfo = std::make_unique<DiskioData>();
     std::string diskioData = "";
     diskioInfo->SerializeToString(&diskioData);
     ProtoReader::BytesView diskioInfoData(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
     HtraceDiskIOParser htraceDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceDiskioParser.Parse(diskioInfoData, ts);
+    htraceDiskioParser.Parse(diskioInfoData, TS);
     auto size = stream_.traceDataCache_->GetConstDiskIOData().Size();
     EXPECT_FALSE(size);
 }
@@ -70,26 +110,12 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithoutDiskioData, TestSize.Le
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithOneDiskioData, TestSize.Level1)
 {
     TS_LOGI("test13-2");
-    uint64_t ts = 100;
-    const uint64_t RD = 100;
-    const uint64_t WR = 101;
-    const uint64_t RDPERSEC = 102;
-    const uint64_t WRPERSEC = 103;
-    StatsData* statsData = new StatsData();
-    auto ioStatData = statsData->add_statsinfo();
-    ioStatData->set_rd_kb(RD);
-    ioStatData->set_wr_kb(WR);
-    ioStatData->set_rd_per_sec(RDPERSEC);
-    ioStatData->set_wr_per_sec(WRPERSEC);
 
-    auto diskioInfo(std::make_unique<DiskioData>());
-    diskioInfo->set_allocated_statsdata(statsData);
-
-    std::string diskioData = "";
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
+    std::string diskioData = SetDiskioData(diskiodataInfo);
     ProtoReader::BytesView diskioInfoData(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
     HtraceDiskIOParser htraceDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceDiskioParser.Parse(diskioInfoData, ts);
+    htraceDiskioParser.Parse(diskioInfoData, TS);
     htraceDiskioParser.Finish();
     auto size = stream_.traceDataCache_->GetConstDiskIOData().Size();
     EXPECT_FALSE(size);
@@ -103,60 +129,26 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithOneDiskioData, TestSize.Le
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithTwoDiskioData, TestSize.Level1)
 {
     TS_LOGI("test13-3");
-    uint64_t ts = 100;
-    const uint64_t RD_01 = 100;
-    const uint64_t WR_01 = 101;
-    const uint64_t RDPERSEC_01 = 102;
-    const uint64_t WRPERSEC_01 = 103;
 
-    const uint64_t RD_02 = 104;
-    const uint64_t WR_02 = 105;
-    const uint64_t RDPERSEC_02 = 106;
-    const uint64_t WRPERSEC_02 = 107;
-
-    StatsData* statsDataFirst = new StatsData();
-    auto ioStatDatafirst = statsDataFirst->add_statsinfo();
-    ioStatDatafirst->set_rd_kb(RD_01);
-    ioStatDatafirst->set_wr_kb(WR_01);
-    ioStatDatafirst->set_rd_per_sec(RDPERSEC_01);
-    ioStatDatafirst->set_wr_per_sec(WRPERSEC_01);
-
-    auto diskioInfo = std::make_unique<DiskioData>();
-    diskioInfo->set_allocated_statsdata(statsDataFirst);
-
-    std::string diskioData = "";
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
+    std::string diskioData = SetDiskioData(diskiodataInfo);
     ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
 
     HtraceDiskIOParser htraceDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceDiskioParser.Parse(diskioInfoData01, ts);
+    htraceDiskioParser.Parse(diskioInfoData01, TS);
 
-    StatsData* statsDataSecond = new StatsData();
-    auto ioStatDataSecond = statsDataSecond->add_statsinfo();
-    ioStatDataSecond->set_rd_kb(RD_02);
-    ioStatDataSecond->set_wr_kb(WR_02);
-    ioStatDataSecond->set_rd_per_sec(RDPERSEC_02);
-    ioStatDataSecond->set_wr_per_sec(WRPERSEC_02);
-    diskioInfo->set_allocated_statsdata(statsDataSecond);
-
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo02 = {RD_02, WR_02, RDPERSEC_02, WRPERSEC_02};
+    diskioData = SetDiskioData(diskiodataInfo02);
     ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
-    htraceDiskioParser.Parse(diskioInfoData02, ts);
+    htraceDiskioParser.Parse(diskioInfoData02, TS);
     htraceDiskioParser.Finish();
-    auto size = stream_.traceDataCache_->GetConstDiskIOData().Size();
-    EXPECT_EQ(1, size);
 
-    auto rdCountPerSecFirst = stream_.traceDataCache_->GetConstDiskIOData().RdCountPerSecDatas()[0];
-    EXPECT_EQ(rdCountPerSecFirst, RDPERSEC_02);
-
-    auto wrCountPerSecFirst = stream_.traceDataCache_->GetConstDiskIOData().WrCountPerSecDatas()[0];
-    EXPECT_EQ(wrCountPerSecFirst, WRPERSEC_02);
-
-    auto rdCountDatasFirst = stream_.traceDataCache_->GetConstDiskIOData().RdCountDatas()[0];
-    EXPECT_EQ(rdCountDatasFirst, RD_02);
-
-    auto wrCountDatasFirst = stream_.traceDataCache_->GetConstDiskIOData().WrCountDatas()[0];
-    EXPECT_EQ(wrCountDatasFirst, WR_02);
+    auto diskIOData = stream_.traceDataCache_->GetConstDiskIOData();
+    ASSERT_EQ(1, diskIOData.Size());
+    EXPECT_EQ(diskIOData.RdCountPerSecDatas()[0], RDPERSEC_02);
+    EXPECT_EQ(diskIOData.WrCountPerSecDatas()[0], WRPERSEC_02);
+    EXPECT_EQ(diskIOData.RdCountDatas()[0], RD_02);
+    EXPECT_EQ(diskIOData.WrCountDatas()[0], WR_02);
 }
 
 /**
@@ -167,85 +159,35 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithTwoDiskioData, TestSize.Le
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithThreeDiskioData, TestSize.Level1)
 {
     TS_LOGI("test13-4");
-    uint64_t ts = 100;
-    const uint64_t RD_01 = 100;
-    const uint64_t WR_01 = 101;
-    const uint64_t RDPERSEC_01 = 102;
-    const uint64_t WRPERSEC_01 = 103;
 
-    const uint64_t RD_02 = 104;
-    const uint64_t WR_02 = 105;
-    const uint64_t RDPERSEC_02 = 106;
-    const uint64_t WRPERSEC_02 = 107;
-
-    const uint64_t RD_03 = 108;
-    const uint64_t WR_03 = 109;
-    const uint64_t RDPERSEC_03 = 110;
-    const uint64_t WRPERSEC_03 = 111;
-
-    StatsData* statsDataFirst = new StatsData();
-    auto ioStatDatafirst = statsDataFirst->add_statsinfo();
-    ioStatDatafirst->set_rd_kb(RD_01);
-    ioStatDatafirst->set_wr_kb(WR_01);
-    ioStatDatafirst->set_rd_per_sec(RDPERSEC_01);
-    ioStatDatafirst->set_wr_per_sec(WRPERSEC_01);
-
-    auto diskioInfo = std::make_unique<DiskioData>();
-    diskioInfo->set_allocated_statsdata(statsDataFirst);
-
-    std::string diskioData = "";
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
+    std::string diskioData = SetDiskioData(diskiodataInfo);
     ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
 
     HtraceDiskIOParser htraceDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceDiskioParser.Parse(diskioInfoData01, ts);
+    htraceDiskioParser.Parse(diskioInfoData01, TS);
 
-    StatsData* statsDataSecond = new StatsData();
-    auto ioStatDataSecond = statsDataSecond->add_statsinfo();
-    ioStatDataSecond->set_rd_kb(RD_02);
-    ioStatDataSecond->set_wr_kb(WR_02);
-    ioStatDataSecond->set_rd_per_sec(RDPERSEC_02);
-    ioStatDataSecond->set_wr_per_sec(WRPERSEC_02);
-    diskioInfo->set_allocated_statsdata(statsDataSecond);
-
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo02 = {RD_02, WR_02, RDPERSEC_02, WRPERSEC_02};
+    diskioData = SetDiskioData(diskiodataInfo02);
     ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
-    htraceDiskioParser.Parse(diskioInfoData02, ts);
+    htraceDiskioParser.Parse(diskioInfoData02, TS);
 
-    StatsData* statsDataThird = new StatsData();
-    auto ioStatDataThird = statsDataThird->add_statsinfo();
-    ioStatDataThird->set_rd_kb(RD_03);
-    ioStatDataThird->set_wr_kb(WR_03);
-    ioStatDataThird->set_rd_per_sec(RDPERSEC_03);
-    ioStatDataThird->set_wr_per_sec(WRPERSEC_03);
-    diskioInfo->set_allocated_statsdata(statsDataThird);
-
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo03 = {RD_03, WR_03, RDPERSEC_03, WRPERSEC_03};
+    diskioData = SetDiskioData(diskiodataInfo03);
     ProtoReader::BytesView diskioInfoData03(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
-    htraceDiskioParser.Parse(diskioInfoData03, ts);
+    htraceDiskioParser.Parse(diskioInfoData03, TS);
     htraceDiskioParser.Finish();
-    auto size = stream_.traceDataCache_->GetConstDiskIOData().Size();
-    EXPECT_EQ(2, size);
 
-    auto rdCountPerSecFirst = stream_.traceDataCache_->GetConstDiskIOData().RdCountPerSecDatas()[0];
-    auto rdCountPerSecSecond = stream_.traceDataCache_->GetConstDiskIOData().RdCountPerSecDatas()[1];
-    EXPECT_EQ(rdCountPerSecFirst, RDPERSEC_02);
-    EXPECT_EQ(rdCountPerSecSecond, RDPERSEC_03);
-
-    auto wrCountPerSecFirst = stream_.traceDataCache_->GetConstDiskIOData().WrCountPerSecDatas()[0];
-    auto wrCountPerSecSecond = stream_.traceDataCache_->GetConstDiskIOData().WrCountPerSecDatas()[1];
-    EXPECT_EQ(wrCountPerSecFirst, WRPERSEC_02);
-    EXPECT_EQ(wrCountPerSecSecond, WRPERSEC_03);
-
-    auto rdCountDatasFirst = stream_.traceDataCache_->GetConstDiskIOData().RdCountDatas()[0];
-    auto rdCountDatasSecond = stream_.traceDataCache_->GetConstDiskIOData().RdCountDatas()[1];
-    EXPECT_EQ(rdCountDatasFirst, RD_02);
-    EXPECT_EQ(rdCountDatasSecond, RD_03);
-
-    auto wrCountDatasFirst = stream_.traceDataCache_->GetConstDiskIOData().WrCountDatas()[0];
-    auto wrCountDatasSecond = stream_.traceDataCache_->GetConstDiskIOData().WrCountDatas()[1];
-    EXPECT_EQ(wrCountDatasFirst, WR_02);
-    EXPECT_EQ(wrCountDatasSecond, WR_03);
+    auto diskIOData = stream_.traceDataCache_->GetConstDiskIOData();
+    ASSERT_EQ(2, diskIOData.Size());
+    EXPECT_EQ(diskIOData.RdCountPerSecDatas()[0], RDPERSEC_02);
+    EXPECT_EQ(diskIOData.RdCountPerSecDatas()[1], RDPERSEC_03);
+    EXPECT_EQ(diskIOData.WrCountPerSecDatas()[0], WRPERSEC_02);
+    EXPECT_EQ(diskIOData.WrCountPerSecDatas()[1], WRPERSEC_03);
+    EXPECT_EQ(diskIOData.RdCountDatas()[0], RD_02);
+    EXPECT_EQ(diskIOData.RdCountDatas()[1], RD_03);
+    EXPECT_EQ(diskIOData.WrCountDatas()[0], WR_02);
+    EXPECT_EQ(diskIOData.WrCountDatas()[1], WR_03);
 }
 
 /**
@@ -256,111 +198,44 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithThreeDiskioData, TestSize.
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithMultipleDiskioData, TestSize.Level1)
 {
     TS_LOGI("test13-5");
-    uint64_t ts = 100;
-    const uint64_t RD_01 = 100;
-    const uint64_t WR_01 = 101;
-    const uint64_t RDPERSEC_01 = 102;
-    const uint64_t WRPERSEC_01 = 103;
 
-    const uint64_t RD_02 = 104;
-    const uint64_t WR_02 = 105;
-    const uint64_t RDPERSEC_02 = 106;
-    const uint64_t WRPERSEC_02 = 107;
-
-    const uint64_t RD_03 = 108;
-    const uint64_t WR_03 = 109;
-    const uint64_t RDPERSEC_03 = 110;
-    const uint64_t WRPERSEC_03 = 111;
-
-    const uint64_t RD_04 = 112;
-    const uint64_t WR_04 = 113;
-    const uint64_t RDPERSEC_04 = 114;
-    const uint64_t WRPERSEC_04 = 115;
-
-    StatsData* statsDataFirst = new StatsData();
-    auto ioStatDatafirst = statsDataFirst->add_statsinfo();
-    ioStatDatafirst->set_rd_kb(RD_01);
-    ioStatDatafirst->set_wr_kb(WR_01);
-    ioStatDatafirst->set_rd_per_sec(RDPERSEC_01);
-    ioStatDatafirst->set_wr_per_sec(WRPERSEC_01);
-
-    auto diskioInfo = std::make_unique<DiskioData>();
-    diskioInfo->set_allocated_statsdata(statsDataFirst);
-
-    std::string diskioData = "";
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo = {RD_01, WR_01, RDPERSEC_01, WRPERSEC_01};
+    std::string diskioData = SetDiskioData(diskiodataInfo);
     ProtoReader::BytesView diskioInfoData01(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
 
     HtraceDiskIOParser htraceDiskioParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceDiskioParser.Parse(diskioInfoData01, ts);
+    htraceDiskioParser.Parse(diskioInfoData01, TS);
 
-    StatsData* statsDataSecond = new StatsData();
-    auto ioStatDataSecond = statsDataSecond->add_statsinfo();
-    ioStatDataSecond->set_rd_kb(RD_02);
-    ioStatDataSecond->set_wr_kb(WR_02);
-    ioStatDataSecond->set_rd_per_sec(RDPERSEC_02);
-    ioStatDataSecond->set_wr_per_sec(WRPERSEC_02);
-    diskioInfo->set_allocated_statsdata(statsDataSecond);
-
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo02 = {RD_02, WR_02, RDPERSEC_02, WRPERSEC_02};
+    diskioData = SetDiskioData(diskiodataInfo02);
     ProtoReader::BytesView diskioInfoData02(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
-    htraceDiskioParser.Parse(diskioInfoData02, ts);
+    htraceDiskioParser.Parse(diskioInfoData02, TS);
 
-    StatsData* statsDataThird = new StatsData();
-    auto ioStatDataThird = statsDataThird->add_statsinfo();
-    ioStatDataThird->set_rd_kb(RD_03);
-    ioStatDataThird->set_wr_kb(WR_03);
-    ioStatDataThird->set_rd_per_sec(RDPERSEC_03);
-    ioStatDataThird->set_wr_per_sec(WRPERSEC_03);
-    diskioInfo->set_allocated_statsdata(statsDataThird);
-
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo03 = {RD_03, WR_03, RDPERSEC_03, WRPERSEC_03};
+    diskioData = SetDiskioData(diskiodataInfo03);
     ProtoReader::BytesView diskioInfoData03(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
-    htraceDiskioParser.Parse(diskioInfoData03, ts);
+    htraceDiskioParser.Parse(diskioInfoData03, TS);
 
-    StatsData* statsDataForth = new StatsData();
-    auto ioStatDataForth = statsDataForth->add_statsinfo();
-    ioStatDataForth->set_rd_kb(RD_04);
-    ioStatDataForth->set_wr_kb(WR_04);
-    ioStatDataForth->set_rd_per_sec(RDPERSEC_04);
-    ioStatDataForth->set_wr_per_sec(WRPERSEC_04);
-    diskioInfo->set_allocated_statsdata(statsDataForth);
-
-    diskioInfo->SerializeToString(&diskioData);
+    DiskiodataInfo diskiodataInfo04 = {RD_04, WR_04, RDPERSEC_04, WRPERSEC_04};
+    diskioData = SetDiskioData(diskiodataInfo04);
     ProtoReader::BytesView diskioInfoData04(reinterpret_cast<const uint8_t*>(diskioData.data()), diskioData.size());
-    htraceDiskioParser.Parse(diskioInfoData04, ts);
+    htraceDiskioParser.Parse(diskioInfoData04, TS);
     htraceDiskioParser.Finish();
 
-    auto size = stream_.traceDataCache_->GetConstDiskIOData().Size();
-    EXPECT_EQ(3, size);
-
-    auto rdCountPerSecFirst = stream_.traceDataCache_->GetConstDiskIOData().RdCountPerSecDatas()[0];
-    auto rdCountPerSecSecond = stream_.traceDataCache_->GetConstDiskIOData().RdCountPerSecDatas()[1];
-    auto rdCountPerSecThird = stream_.traceDataCache_->GetConstDiskIOData().RdCountPerSecDatas()[2];
-    EXPECT_EQ(rdCountPerSecFirst, RDPERSEC_02);
-    EXPECT_EQ(rdCountPerSecSecond, RDPERSEC_03);
-    EXPECT_EQ(rdCountPerSecThird, RDPERSEC_04);
-
-    auto wrCountPerSecFirst = stream_.traceDataCache_->GetConstDiskIOData().WrCountPerSecDatas()[0];
-    auto wrCountPerSecSecond = stream_.traceDataCache_->GetConstDiskIOData().WrCountPerSecDatas()[1];
-    auto wrCountPerSecThird = stream_.traceDataCache_->GetConstDiskIOData().WrCountPerSecDatas()[2];
-    EXPECT_EQ(wrCountPerSecFirst, WRPERSEC_02);
-    EXPECT_EQ(wrCountPerSecSecond, WRPERSEC_03);
-    EXPECT_EQ(wrCountPerSecThird, WRPERSEC_04);
-
-    auto rdCountDatasFirst = stream_.traceDataCache_->GetConstDiskIOData().RdCountDatas()[0];
-    auto rdCountDatasSecond = stream_.traceDataCache_->GetConstDiskIOData().RdCountDatas()[1];
-    auto rdCountDatasThird = stream_.traceDataCache_->GetConstDiskIOData().RdCountDatas()[2];
-    EXPECT_EQ(rdCountDatasFirst, RD_02);
-    EXPECT_EQ(rdCountDatasSecond, RD_03);
-    EXPECT_EQ(rdCountDatasThird, RD_04);
-
-    auto wrCountDatasFirst = stream_.traceDataCache_->GetConstDiskIOData().WrCountDatas()[0];
-    auto wrCountDatasSecond = stream_.traceDataCache_->GetConstDiskIOData().WrCountDatas()[1];
-    auto wrCountDatasThird = stream_.traceDataCache_->GetConstDiskIOData().WrCountDatas()[2];
-    EXPECT_EQ(wrCountDatasFirst, WR_02);
-    EXPECT_EQ(wrCountDatasSecond, WR_03);
-    EXPECT_EQ(wrCountDatasThird, WR_04);
+    auto diskIOData = stream_.traceDataCache_->GetConstDiskIOData();
+    ASSERT_EQ(3, diskIOData.Size());
+    EXPECT_EQ(diskIOData.RdCountPerSecDatas()[0], RDPERSEC_02);
+    EXPECT_EQ(diskIOData.RdCountPerSecDatas()[1], RDPERSEC_03);
+    EXPECT_EQ(diskIOData.RdCountPerSecDatas()[2], RDPERSEC_04);
+    EXPECT_EQ(diskIOData.WrCountPerSecDatas()[0], WRPERSEC_02);
+    EXPECT_EQ(diskIOData.WrCountPerSecDatas()[1], WRPERSEC_03);
+    EXPECT_EQ(diskIOData.WrCountPerSecDatas()[2], WRPERSEC_04);
+    EXPECT_EQ(diskIOData.RdCountDatas()[0], RD_02);
+    EXPECT_EQ(diskIOData.RdCountDatas()[1], RD_03);
+    EXPECT_EQ(diskIOData.RdCountDatas()[2], RD_04);
+    EXPECT_EQ(diskIOData.WrCountDatas()[0], WR_02);
+    EXPECT_EQ(diskIOData.WrCountDatas()[1], WR_03);
+    EXPECT_EQ(diskIOData.WrCountDatas()[2], WR_04);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

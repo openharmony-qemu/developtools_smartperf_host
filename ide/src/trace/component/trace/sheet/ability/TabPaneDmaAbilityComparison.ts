@@ -23,7 +23,7 @@ import { Utils } from '../../base/Utils';
 import { compare, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import {getTabDmaAbilityComparisonData} from "../../../../database/sql/Dma.sql";
+import { getTabDmaAbilityComparisonData } from '../../../../database/sql/Dma.sql';
 
 @element('tabpane-dma-ability-comparison')
 export class TabPaneDmaAbilityComparison extends BaseElement {

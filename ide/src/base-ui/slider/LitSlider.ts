@@ -45,9 +45,6 @@ export class LitSlider extends BaseElement {
     }
   }
 
-  get disabled() {
-    return this.getAttribute('disabled') !== null;
-  }
 
   set disabled(value) {
     if (value === null || value === false) {
@@ -55,6 +52,10 @@ export class LitSlider extends BaseElement {
     } else {
       this.setAttribute('disabled', '');
     }
+  }
+
+  get disabled() {
+    return this.getAttribute('disabled') !== null;
   }
 
   set sliderStyle(value: LitSliderStyle) {

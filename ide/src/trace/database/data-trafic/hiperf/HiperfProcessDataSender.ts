@@ -14,8 +14,8 @@
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
 import { threadPool } from '../../SqlLite';
-import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
-import { HiPerfProcessStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfProcess';
+import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
+import { HiPerfProcessStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
 
 export function hiperfProcessDataSender(
   pid: number,
@@ -40,10 +40,6 @@ export function hiperfProcessDataSender(
     threadPool.submitProto(
       QueryEnum.HiperfProcessData,
       {
-        pid: pid,
-        maxCpuCount: -1,
-        scale: scale,
-        drawType: drawType,
         intervalPerf: intervalPerf,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
@@ -52,6 +48,10 @@ export function hiperfProcessDataSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        pid: pid,
+        maxCpuCount: -1,
+        scale: scale,
+        drawType: drawType,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

@@ -26,6 +26,7 @@ import {
 } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { getTabIoCompletionTimesType } from '../../../../database/sql/SqlLite.sql';
+import { TabPaneIoCompletionTimesHtml } from './TabPaneIoCompletionTimes.html';
 
 @element('tabpane-io-completiontimes')
 export class TabPaneIoCompletionTimes extends BaseElement {
@@ -50,28 +51,36 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     this.initFilterTypes(ioCompletionTimesSelection!).then(() => {
       this.queryData(ioCompletionTimesSelection!);
     });
-    // @ts-ignore
-    this.ioCompletionTimesTbl?.shadowRoot.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 - 31 + 'px';
-    // @ts-ignore
-    this.ioCompletionTimesTblData?.shadowRoot.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 20 - 31 + 'px';
-    this.ioCompletionTimesTbl!.recycleDataSource = [];
-    this.ioCompletionTimesTblData!.recycleDataSource = [];
+    if (this.ioCompletionTimesTbl) {
+      // @ts-ignore
+      this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
+        `${this.parentElement!.clientHeight - 20 - 31  }px`;
+      this.ioCompletionTimesTbl.recycleDataSource = [];
+    }
+   if (this.ioCompletionTimesTblData) {
+     // @ts-ignore
+     this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
+       `${this.parentElement!.clientHeight - 20 - 31  }px`;
+     this.ioCompletionTimesTblData.recycleDataSource = [];
+   }
   }
 
   connectedCallback() {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.ioCompletionTimesTbl?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 33 + 'px';
-        this.ioCompletionTimesTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.ioCompletionTimesTblData?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 33 + 'px';
-        this.ioCompletionTimesTblData?.reMeauseHeight();
-        this.ioCompletionTimesLoadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
+        if (this.ioCompletionTimesTbl) {
+          // @ts-ignore
+          this.ioCompletionTimesTbl.shadowRoot.querySelector('.table').style.height =
+            `${this.parentElement!.clientHeight - 10 - 33  }px`;
+          this.ioCompletionTimesTbl.reMeauseHeight();
+        }
+        if (this.ioCompletionTimesTblData) {
+          // @ts-ignore
+          this.ioCompletionTimesTblData.shadowRoot.querySelector('.table').style.height =
+            `${this.parentElement!.clientHeight - 10 - 33  }px`;
+          this.ioCompletionTimesTblData.reMeauseHeight();
+        }
+        this.ioCompletionTimesLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
       }
     }).observe(this.parentElement!);
   }
@@ -146,14 +155,14 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     if (this.currentSelection != ioCompletionTimeParam) {
       this.currentSelection = ioCompletionTimeParam;
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = typeIndexOf + '';
+      filter!.firstSelect = `${typeIndexOf  }`;
       this.queryData(ioCompletionTimeParam);
     } else {
       if (typeIndexOf == parseInt(filter!.firstSelect)) {
         return;
       }
       filter!.setSelectList(this.native_type, null, 'Tier');
-      filter!.firstSelect = typeIndexOf + '';
+      filter!.firstSelect = `${typeIndexOf  }`;
       this.filterTypeData(ioCompletionTimeParam?.fileSystemIoData?.path || undefined);
       ioCompletionTimeParam.fileSystemIoData = undefined;
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
@@ -233,124 +242,79 @@ export class TabPaneIoCompletionTimes extends BaseElement {
       this.ioCompletionTimesTbl!.recycleDataSource = this.ioCompletionTimesSource;
     } else {
       let arr = Array.from(this.ioCompletionTimesSource);
-      arr.sort((ioCompletionTimesA, ioCompletionTimesB): number => {
-        if (ioCompletionTimesKey === 'startTsStr') {
-          return type === 1
-            ? ioCompletionTimesA.startTs - ioCompletionTimesB.startTs
-            : ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
-        } else if (ioCompletionTimesKey === 'durStr') {
-          return type === 1
-            ? ioCompletionTimesA.dur - ioCompletionTimesB.dur
-            : ioCompletionTimesB.dur - ioCompletionTimesA.dur;
-        } else if (ioCompletionTimesKey === 'process') {
-          return ioCompletionTimesA.process === ioCompletionTimesB.process
-            ? 0 : (type === 2 ? (ioCompletionTimesA.process > ioCompletionTimesB.process ? 1 : -1)
-              : (ioCompletionTimesA.process > ioCompletionTimesB.process ? -1 : 1));
-        } else if (ioCompletionTimesKey === 'durPer4kStr') {
-          return type === 1
-            ? ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k
-            : ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
-        } else if (ioCompletionTimesKey === 'thread') {
-          return ioCompletionTimesA.thread > ioCompletionTimesB.thread
-            ? (type === 2 ? 1 : -1) : (ioCompletionTimesA.thread === ioCompletionTimesB.thread
-              ? 0 : (type === 2 ? -1 : 1));
-        } else if (ioCompletionTimesKey === 'operation') {
-          return ioCompletionTimesA.operation > ioCompletionTimesB.operation
-            ? (type === 2 ? 1 : -1) : (ioCompletionTimesA.operation === ioCompletionTimesB.operation
-              ? 0 : (type === 2 ? -1 : 1));
-        } else if (ioCompletionTimesKey === 'sizeStr') {
-          return type === 1
-            ? ioCompletionTimesA.size - ioCompletionTimesB.size
-            : ioCompletionTimesB.size - ioCompletionTimesA.size;
-        } else if (ioCompletionTimesKey === 'tier') {
-          return type === 1
-            ? ioCompletionTimesA.tier - ioCompletionTimesB.tier
-            : ioCompletionTimesB.tier - ioCompletionTimesA.tier;
-        } else {
-          return 0;
-        }
-      });
+      this.sortHandle(arr, ioCompletionTimesKey, type);
       this.ioCompletionTimesTbl!.recycleDataSource = arr;
     }
   }
 
+  private sortHandle(arr: IoCompletionTimes[], ioCompletionTimesKey: string, type: number) {
+    arr.sort((ioCompletionTimesA, ioCompletionTimesB): number => {
+      if (ioCompletionTimesKey == 'startTsStr') {
+        return type === 1
+          ? ioCompletionTimesA.startTs - ioCompletionTimesB.startTs
+          : ioCompletionTimesB.startTs - ioCompletionTimesA.startTs;
+      } else if (ioCompletionTimesKey == 'durStr') {
+        return type === 1
+          ? ioCompletionTimesA.dur - ioCompletionTimesB.dur
+          : ioCompletionTimesB.dur - ioCompletionTimesA.dur;
+      } else if (ioCompletionTimesKey == 'process') {
+        return this.sortProcessCase(ioCompletionTimesA, ioCompletionTimesB, type);
+      } else if (ioCompletionTimesKey == 'durPer4kStr') {
+        return type === 1
+          ? ioCompletionTimesA.durPer4k - ioCompletionTimesB.durPer4k
+          : ioCompletionTimesB.durPer4k - ioCompletionTimesA.durPer4k;
+      } else if (ioCompletionTimesKey == 'thread') {
+        return this.sortThreadCase(ioCompletionTimesA, ioCompletionTimesB, type);
+      } else if (ioCompletionTimesKey == 'operation') {
+        return this.sortOperationCase(ioCompletionTimesA, ioCompletionTimesB, type);
+      } else if (ioCompletionTimesKey == 'sizeStr') {
+        return type === 1
+          ? ioCompletionTimesA.size - ioCompletionTimesB.size
+          : ioCompletionTimesB.size - ioCompletionTimesA.size;
+      } else if (ioCompletionTimesKey == 'tier') {
+        return type === 1
+          ? ioCompletionTimesA.tier - ioCompletionTimesB.tier
+          : ioCompletionTimesB.tier - ioCompletionTimesA.tier;
+      } else {
+        return 0;
+      }
+    });
+  }
+
+  private sortOperationCase(ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes, type: number): number {
+    if (ioCompletionTimesA.operation > ioCompletionTimesB.operation) {
+      return type === 2 ? 1 : -1;
+    } else if (ioCompletionTimesA.operation == ioCompletionTimesB.operation) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  private sortThreadCase(ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes, type: number): number {
+    if (ioCompletionTimesA.thread > ioCompletionTimesB.thread) {
+      return type === 2 ? 1 : -1;
+    } else if (ioCompletionTimesA.thread == ioCompletionTimesB.thread) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  private sortProcessCase(ioCompletionTimesA: IoCompletionTimes,
+    ioCompletionTimesB: IoCompletionTimes, type: number): number {
+    if (ioCompletionTimesA.process > ioCompletionTimesB.process) {
+      return type === 2 ? 1 : -1;
+    } else if (ioCompletionTimesA.process == ioCompletionTimesB.process) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
   initHtml(): string {
-    return `
-    <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px 0 10px;
-        }
-        .io-completiontimes-loading{
-            bottom: 0;
-            position: absolute;
-            left: 0;
-            right: 0;
-            width:100%;
-            background:transparent;
-            z-index: 999999;
-        }
-        .io-completion-progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            z-index: 99;
-            left: 0;
-            right: 0;
-        }
-        #io-completion-filter {
-            border: solid rgb(216,216,216) 1px;
-            float: left;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        </style>
-        <div class="io-completion-content" style="display: flex;flex-direction: column">
-            <div style="display: flex;flex-direction: row;">
-                <lit-slicer style="width:100%">
-                    <div style="width: 65%">
-                        <lit-table id="tbl-io-completion-times" style="height: auto">
-                            <lit-table-column class="io-completion-column" width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="260px" title="Total Latency" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="200px" title="Latency per 4KB" data-index="durPer4kStr" key="durPer4kStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="200px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="200px" title="Operation" data-index="operation" key="operation" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="200px" title="Bytes" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="280px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="200px" title="Block number" data-index="blockNumber" key="blockNumber" align="flex-start" ></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="240px" title="Tier" data-index="tier" key="tier" align="flex-start" order></lit-table-column>
-                            <lit-table-column class="io-completion-column" width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
-                                <template>
-                                    <div>
-                                        <span>{{backtrace[0]}}</span>
-                                        <span v-if="backtrace.length > 1">⬅</span>
-                                        <span v-if="backtrace.length > 1"style="color: #565656"> {{backtrace[1]}}</span>
-                                    </div>
-                                </template>
-                            </lit-table-column>
-                        </lit-table>
-                    </div>
-                    <lit-slicer-track class="io-completion-slicer-tracker"></lit-slicer-track>
-                    <lit-table id="tbr-io-completion-times" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-                        <lit-table-column class="io-completion-column" width="60px" title="" data-index="type" key="type"  align="flex-start" >
-                            <template>
-                                <div v-if=" type == -1 ">Thread:</div>
-                                <img src="img/library.png" size="20" v-if=" type == 1 ">
-                                <img src="img/function.png" size="20" v-if=" type == 0 ">
-                            </template>
-                        </lit-table-column>
-                        <lit-table-column class="io-completion-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
-                        </lit-table-column>
-                    </lit-table>
-                </lit-slicer>
-            </div>
-            <lit-progress-bar class="progress io-completion-progress"></lit-progress-bar>
-            <tab-pane-filter id="io-completion-filter" first></tab-pane-filter>
-            <div class="io-completiontimes-loading"></div>
-        </div>
-`;
+    return TabPaneIoCompletionTimesHtml;
   }
 }

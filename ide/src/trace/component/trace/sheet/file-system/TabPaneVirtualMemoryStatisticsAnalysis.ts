@@ -25,6 +25,7 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { TabPaneFilter } from '../TabPaneFilter';
 import { initSort } from '../SheetUtils';
 import { TabPaneVMCallTree } from './TabPaneIOCallTree';
+import { TabPaneVirtualMemoryStatisticsAnalysisHtml } from './TabPaneVirtualMemoryStatisticsAnalysis.html';
 
 @element('tabpane-virtual-memory-statistics-analysis')
 export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
@@ -58,8 +59,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   private threadStatisticsData!: {};
   private libStatisticsData!: {};
   private functionStatisticsData!: {};
-  private titleEl: HTMLDivElement | undefined | null;
-  private filterEl: TabPaneFilter | undefined | null;
+  private virtualMemoryTitleEl: HTMLDivElement | undefined | null;
+  private virtualMemoryFilterEl: TabPaneFilter | undefined | null;
   private hideProcessCheckBox: LitCheckBox | undefined | null;
   private hideThreadCheckBox: LitCheckBox | undefined | null;
   private checkBoxs: NodeListOf<LitCheckBox> | undefined | null;
@@ -82,7 +83,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.hideProcessCheckBox!.checked = false;
     this.hideThreadCheckBox!.checked = false;
     this.vmCurrentSelection = vmStatisticsAnalysisSelection;
-    this.titleEl!.textContent = '';
+    this.virtualMemoryTitleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.vmStatisticsAnalysisRange!.textContent =
       'Selected range: ' +
@@ -120,10 +121,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.tabName = this.shadowRoot!.querySelector<HTMLDivElement>('.vm-subheading');
     this.vmStatisticsAnalysisProgressEL = this.shadowRoot?.querySelector('.vm-progress') as LitProgressBar;
     this.goBack();
-    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
-    this.filterEl = this.shadowRoot?.querySelector('#filter');
-    this.filterEl!.setOptionsList(['Hide Process', 'Hide Thread']);
-    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
+    this.virtualMemoryTitleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
+    this.virtualMemoryFilterEl = this.shadowRoot?.querySelector('#filter');
+    this.virtualMemoryFilterEl!.setOptionsList(['Hide Process', 'Hide Thread']);
+    let popover = this.virtualMemoryFilterEl!.shadowRoot!.querySelector('#check-popover');
     this.hideProcessCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideProcess');
     this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
     this.checkBoxs = popover!.querySelectorAll<LitCheckBox>('.check-wrap > lit-check-box');
@@ -197,10 +198,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         }
         vmTab!.rowClickData = detail.data;
         let title = '';
-        if (this.titleEl?.textContent === '') {
+        if (this.virtualMemoryTitleEl?.textContent === '') {
           title = detail.data.tableName;
         } else {
-          title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+          title = this.virtualMemoryTitleEl?.textContent + ' / ' + detail.data.tableName;
         }
         vmTab!.pieTitle = title;
         //  是否是在表格上右键点击跳转到火焰图的
@@ -232,17 +233,17 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       this.vmBack!.style.visibility = 'visible';
     } else {
       this.vmBack!.style.visibility = 'hidden';
-      this.titleEl!.textContent = '';
+      this.virtualMemoryTitleEl!.textContent = '';
     }
     if (this.vmTableArray) {
-      for (let table of this.vmTableArray) {
-        if (table === showTable) {
-          initSort(table!, this.vmSortColumn, this.vmSortType);
-          table.style.display = 'grid';
-          table.setAttribute('hideDownload', '');
+      for (let virtualMemoryTable of this.vmTableArray) {
+        if (virtualMemoryTable === showTable) {
+          initSort(virtualMemoryTable!, this.vmSortColumn, this.vmSortType);
+          virtualMemoryTable.style.display = 'grid';
+          virtualMemoryTable.setAttribute('hideDownload', '');
         } else {
-          table!.style.display = 'none';
-          table!.removeAttribute('hideDownload');
+          virtualMemoryTable!.style.display = 'none';
+          virtualMemoryTable!.removeAttribute('hideDownload');
         }
       }
     }
@@ -346,7 +347,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.titleEl!.textContent = '';
+    this.virtualMemoryTitleEl!.textContent = '';
     this.tabName!.textContent = 'Statistic By Process AllDuration';
     this.vmStatisticsAnalysisPidData.unshift(this.processStatisticsData);
     this.vmStatisticsAnalysisTableProcess!.recycleDataSource = this.vmStatisticsAnalysisPidData;
@@ -371,7 +372,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.reset(this.vmStatisticsAnalysisTableType!, true);
     this.getVirtualMemoryType(it);
     this.vmProcessName = it.tableName;
-    this.titleEl!.textContent = this.vmProcessName;
+    this.virtualMemoryTitleEl!.textContent = this.vmProcessName;
     this.vmPieChart?.hideTip();
   }
 
@@ -402,7 +403,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.titleEl!.textContent = this.vmProcessName;
+    this.virtualMemoryTitleEl!.textContent = this.vmProcessName;
     this.tabName!.textContent = 'Statistic By type AllDuration';
     this.vmStatisticsAnalysisTypeData.unshift(this.typeStatisticsData);
     this.vmStatisticsAnalysisTableType!.recycleDataSource = this.vmStatisticsAnalysisTypeData;
@@ -429,7 +430,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     if (this.vmtypeName.length > 0) {
       title += this.vmtypeName;
     }
-    this.titleEl!.textContent = title;
+    this.virtualMemoryTitleEl!.textContent = title;
   }
 
   private threadPieChart(): void {
@@ -471,7 +472,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     if (this.vmtypeName.length > 0) {
       title += this.vmtypeName;
     }
-    this.titleEl!.textContent = title;
+    this.virtualMemoryTitleEl!.textContent = title;
     this.tabName!.textContent = 'Statistic By Thread AllDuration';
     this.vmStatisticsAnalysisThreadData.unshift(this.threadStatisticsData);
     this.vmStatisticsAnalysisTableThread!.recycleDataSource = this.vmStatisticsAnalysisThreadData;
@@ -486,17 +487,17 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     this.getVirtualMemorySo(it);
     this.vmThreadName = it.tableName;
     this.vmPieChart?.hideTip();
-    let title = '';
+    let virtualMemoryTitleTitle = '';
     if (this.vmProcessName.length > 0) {
-      title += this.vmProcessName + ' / ';
+      virtualMemoryTitleTitle += this.vmProcessName + ' / ';
     }
     if (this.vmtypeName.length > 0) {
-      title += this.vmtypeName + ' / ';
+      virtualMemoryTitleTitle += this.vmtypeName + ' / ';
     }
     if (this.vmThreadName.length > 0) {
-      title += this.vmThreadName;
+      virtualMemoryTitleTitle += this.vmThreadName;
     }
-    this.titleEl!.textContent = title;
+    this.virtualMemoryTitleEl!.textContent = virtualMemoryTitleTitle;
   }
 
   private libraryPieChart(): void {
@@ -552,7 +553,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     if (this.vmThreadName.length > 0) {
       title += this.vmThreadName;
     }
-    this.titleEl!.textContent = title;
+    this.virtualMemoryTitleEl!.textContent = title;
     this.tabName!.textContent = 'Statistic By Library AllDuration';
     this.vmStatisticsAnalysisSoData.unshift(this.libStatisticsData);
     this.vmStatisticsAnalysisTableSo!.recycleDataSource = this.vmStatisticsAnalysisSoData;
@@ -579,7 +580,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     if (it.tableName.length > 0) {
       title += it.tableName;
     }
-    this.titleEl!.textContent = title;
+    this.virtualMemoryTitleEl!.textContent = title;
   }
 
   private sortByColumn(): void {
@@ -1076,109 +1077,15 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         this.vmStatisticsAnalysisTableFunction!.style.height = this.parentElement!.clientHeight - 50 + 'px';
         this.vmStatisticsAnalysisTableFunction?.reMeauseHeight();
         if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
-          this.filterEl!.style.display = 'none';
+          this.virtualMemoryFilterEl!.style.display = 'none';
         } else {
-          this.filterEl!.style.display = 'flex';
+          this.virtualMemoryFilterEl!.style.display = 'flex';
         }
       }
     }).observe(this.parentElement!);
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host {
-            display: flex;
-            flex-direction: column;
-        }
-        #vm-chart-pie{
-            height: 300px;
-            margin-bottom: 31px;
-        }
-        .vm-table-box{
-            width: 60%;
-            border-left: solid 1px var(--dark-border1,#e0e0e0);
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 31px;
-        }
-        .vm-go-back{
-            display:flex;
-            align-items: center;
-            cursor: pointer;
-            margin-left: 20px;
-            visibility: hidden;
-        }
-        .vm-back-box{
-            background-color: var(--bark-expansion,#0C65D1);
-            border-radius: 5px;
-            color: #fff;
-            display: flex;
-            margin-right: 10px;
-            width: 40px;
-            height: 20px;
-            justify-content: center;
-            align-items: center;
-        }
-        .vm-subheading{
-            font-weight: bold;
-            text-align: center;
-        }
-        .vm-progress{
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        #filter{
-            position: absolute;
-            bottom: 0px;
-        } 
-        </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label> 
-        <div style="display: flex;flex-direction: row;"class="d-box">
-            <lit-progress-bar class="vm-progress"></lit-progress-bar>
-            <div id="left_table" style="width: 40%;height:auto;">
-                <div style="display: flex;margin-bottom: 10px">
-                    <div class="vm-go-back">
-                        <div class="vm-back-box">
-                            <lit-icon name="arrowleft"></lit-icon>
-                        </div>
-                    </div>
-                    <div class="title"></div>
-                </div>
-                <div class="vm-subheading"></div>                     
-                <lit-chart-pie  id="vm-chart-pie"></lit-chart-pie>     
-            </div>
-            <div class="vm-table-box" style="height:auto;overflow: auto">
-                <lit-table id="tb-process-usage" style="max-height:565px;min-height: 350px">
-                    <lit-table-column width="1fr" title="ProcessName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-type-usage" class="vm-analysis" style="max-height:565px;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Type" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-thread-usage" class="vm-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="ThreadName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                    <lit-table id="tb-so-usage" class="vm-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-function-usage" class="vm-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-            </div>
-        </div>
-        <tab-pane-filter id="filter" options></tab-pane-filter>
-`;
+    return TabPaneVirtualMemoryStatisticsAnalysisHtml;
   }
 }

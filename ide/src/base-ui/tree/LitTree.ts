@@ -17,7 +17,7 @@ import './LitTreeNode';
 import { BaseElement, element } from '../BaseElement';
 import { type LitTreeNode } from './LitTreeNode';
 
-export interface TreeItemData {
+export interface TreeItemData   {
   key: string;
   title: string;
   icon?: string; //节点的自定义图标  设置show-icon才会生效
@@ -95,16 +95,16 @@ export class LitTree extends BaseElement {
     this.proxyData = new Proxy(this._treeData, handler);
   }
 
+  get multiple(): boolean {
+    return this.hasAttribute('multiple');
+  }
+
   set multiple(value: boolean) {
     if (value) {
       this.setAttribute('multiple', '');
     } else {
       this.removeAttribute('multiple');
     }
-  }
-
-  get multiple(): boolean {
-    return this.hasAttribute('multiple');
   }
 
   get treeData(): TreeItemData[] {
@@ -177,98 +177,22 @@ export class LitTree extends BaseElement {
   }
 
   drawTree(parent: any, array: Array<TreeItemData>, topDepth: boolean = false): void {
-    let that = this;
-    array.forEach((a) => {
-      let li = document.createElement('li');
+    array.forEach((a:TreeItemData) => {
+      let li: HTMLLIElement = document.createElement('li');
       let node: LitTreeNode = document.createElement('lit-tree-node') as LitTreeNode;
       node.title = a.title;
       node.setAttribute('key', a.key);
       node.topDepth = topDepth;
-      if (this.hasAttribute('dragable')) {
-        node.draggable = true;
-        document.ondragover = function (e) {
-          e.preventDefault();
-        };
-        //在拖动目标上触发事件 (源元素)
-        node.ondrag = (ev) => this.onDrag(ev); //元素正在拖动时触发
-        node.ondragstart = (ev) => this.onDragStart(ev); //用户开始拖动元素时触发
-        node.ondragend = (ev) => this.onDragEnd(ev); // 用户完成元素拖动后触发
-        //释放目标时触发的事件:
-        node.ondragenter = (ev) => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
-        node.ondragover = (ev) => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
-        node.ondragleave = (ev) => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
-        node.ondrop = (ev) => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
-      }
-      node.selected = a.selected || false; //是否选中行
-      node.checked = a.checked || false; // 是否勾选
-      node.data = a;
-      node.addEventListener('change', (e: any): void => {
-        if (e.detail && !this.multiple) {
-          this.nodeList.forEach((item) => {
-            item.checked = item.data!.key === node.data!.key;
-            item.data!.checked = item.checked;
-          });
-        }
-        var litTreeNodes = this.nodeList.filter((it) => it.checked);
-        if (litTreeNodes.length === 0) {
-          node.checked = true;
-          node.data!.checked = true;
-        }
-        that.dispatchEvent(new CustomEvent('onChange', { detail: { data: (node as any).data, checked: e.detail } }));
-      });
-      node.multiple = this.hasAttribute('multiple');
-      node.checkable = this.getAttribute('checkable') || 'false';
-      this.nodeList.push(node);
+      this.treeNodeDragable(node,a);
       // @ts-ignore
       li.data = a;
       li.append(node);
       parent.append(li);
-      let ul = document.createElement('ul');
+      let ul: HTMLUListElement = document.createElement('ul');
       // @ts-ignore
       ul.open = 'true';
       ul.style.transition = '.3s all';
-      if (a.children && a.children.length > 0) {
-        if (this.hasAttribute('show-icon')) {
-          if (a.icon) {
-            (node as any).iconName = a.icon;
-          } else {
-            (node as any).iconName = 'folder';
-          }
-        } else {
-          node.iconName = '';
-        }
-        node.arrow = true;
-        li.append(ul);
-        this.drawTree(ul, a.children);
-      } else {
-        if (this.hasAttribute('show-icon')) {
-          if (a.icon) {
-            node.iconName = a.icon;
-          } else {
-            node.iconName = 'file';
-          }
-        } else {
-          node.iconName = '';
-        }
-        node.arrow = false;
-      }
-      li.onclick = (e): void => {
-        e.stopPropagation();
-        if (this.hasAttribute('foldable')) {
-          // @ts-ignore
-          if (li.data.children && li.data.children.length > 0) {
-            node.autoExpand();
-          } else {
-            // @ts-ignore
-            this.dispatchEvent(new CustomEvent('onSelect', { detail: li.data }));
-            this.selectedNode(node);
-          }
-        } else {
-          // @ts-ignore
-          this.dispatchEvent(new CustomEvent('onSelect', { detail: li.data }));
-          this.selectedNode(node);
-        }
-      };
+      this.addEvent(a,node,li,ul);
       // node 添加右键菜单功能
       node.oncontextmenu = (ev): void => {
         ev.preventDefault();
@@ -285,6 +209,90 @@ export class LitTree extends BaseElement {
       this.contextMenu!.style.display = 'block';
       this.contextMenu!.style.left = ev.pageX + 'px';
       this.contextMenu!.style.top = ev.pageY + 'px';
+    };
+  }
+
+  treeNodeDragable(node: LitTreeNode,a:TreeItemData):void{
+    let that = this;
+    if (this.hasAttribute('dragable')) {
+      node.draggable = true;
+      document.ondragover = function (e) {
+        e.preventDefault();
+      };
+      //在拖动目标上触发事件 (源元素)
+      node.ondrag = (ev) => this.onDrag(ev); //元素正在拖动时触发
+      node.ondragstart = (ev) => this.onDragStart(ev); //用户开始拖动元素时触发
+      node.ondragend = (ev) => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      //释放目标时触发的事件:
+      node.ondragenter = (ev) => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      node.ondragover = (ev) => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      node.ondragleave = (ev) => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      node.ondrop = (ev) => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+    }
+    node.selected = a.selected || false; //是否选中行
+    node.checked = a.checked || false; // 是否勾选
+    node.data = a;
+    node.addEventListener('change', (e: any): void => {
+      if (e.detail && !this.multiple) {
+        this.nodeList.forEach((item) => {
+          item.checked = item.data!.key === node.data!.key;
+          item.data!.checked = item.checked;
+        });
+      }
+      var litTreeNodes = this.nodeList.filter((it) => it.checked);
+      if (litTreeNodes.length === 0) {
+        node.checked = true;
+        node.data!.checked = true;
+      }
+      that.dispatchEvent(new CustomEvent('onChange', { detail: { data: (node as any).data, checked: e.detail } }));
+    });
+    node.multiple = this.hasAttribute('multiple');
+    node.checkable = this.getAttribute('checkable') || 'false';
+    this.nodeList.push(node);
+  }
+
+  addEvent(a:TreeItemData,node: LitTreeNode,li: HTMLLIElement,ul: HTMLUListElement):void{
+    if (a.children && a.children.length > 0) {
+      if (this.hasAttribute('show-icon')) {
+        if (a.icon) {
+          (node as any).iconName = a.icon;
+        } else {
+          (node as any).iconName = 'folder';
+        }
+      } else {
+        node.iconName = '';
+      }
+      node.arrow = true;
+      li.append(ul);
+      this.drawTree(ul, a.children);
+    } else {
+      if (this.hasAttribute('show-icon')) {
+        if (a.icon) {
+          node.iconName = a.icon;
+        } else {
+          node.iconName = 'file';
+        }
+      } else {
+        node.iconName = '';
+      }
+      node.arrow = false;
+    }
+    li.onclick = (e): void => {
+      e.stopPropagation();
+      if (this.hasAttribute('foldable')) {
+        // @ts-ignore
+        if (li.data.children && li.data.children.length > 0) {
+          node.autoExpand();
+        } else {
+          // @ts-ignore
+          this.dispatchEvent(new CustomEvent('onSelect', { detail: li.data }));
+          this.selectedNode(node);
+        }
+      } else {
+        // @ts-ignore
+        this.dispatchEvent(new CustomEvent('onSelect', { detail: li.data }));
+        this.selectedNode(node);
+      }
     };
   }
 
@@ -451,10 +459,11 @@ export class LitTree extends BaseElement {
     if (!parent) {
       parent = this.shadowRoot!.querySelector('#root');
     }
-    let li = document.createElement('li');
-    let insertNode = document.createElement('lit-tree-node') as LitTreeNode;
+    let li: HTMLLIElement = document.createElement('li');
+    let insertNode: LitTreeNode = document.createElement('lit-tree-node') as LitTreeNode;
     insertNode.title = a.title;
     insertNode.setAttribute('key', a.key);
+    this.setDragableOfEvent(insertNode);
     if (this.hasAttribute('dragable')) {
       insertNode.draggable = true;
       document.ondragover = function (e): void {
@@ -488,10 +497,42 @@ export class LitTree extends BaseElement {
     li.data = a;
     li.append(insertNode);
     parent.append(li);
-    let ul = document.createElement('ul');
+    let ul: HTMLUListElement = document.createElement('ul');
     // @ts-ignore
     ul.open = 'true';
     ul.style.transition = '.3s all';
+    this.setChildren(a,insertNode,li,ul);
+    // node 添加右键菜单功能
+    insertNode.oncontextmenu = (ev): void => {
+      ev.preventDefault();
+      this.selectedNode(insertNode);
+      this.currentSelectedNode = insertNode;
+      this.currentSelectedData = insertNode.data;
+      this.contextMenu!.style.display = 'block';
+      this.contextMenu!.style.left = ev.pageX + 'px';
+      this.contextMenu!.style.top = ev.pageY + 'px';
+    };
+  }
+
+  setDragableOfEvent(insertNode: LitTreeNode):void{
+    if (this.hasAttribute('dragable')) {
+      insertNode.draggable = true;
+      document.ondragover = function (e): void {
+        e.preventDefault();
+      };
+      //在拖动目标上触发事件 (源元素)
+      insertNode.ondrag = (ev): void => this.onDrag(ev); //元素正在拖动时触发
+      insertNode.ondragstart = (ev): undefined => this.onDragStart(ev); //用户开始拖动元素时触发
+      insertNode.ondragend = (ev): undefined => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      //释放目标时触发的事件:
+      insertNode.ondragenter = (ev): undefined => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+    }
+  }
+
+  setChildren(a:any,insertNode: LitTreeNode,li: HTMLLIElement,ul: HTMLUListElement):void{
     if (a.children && a.children.length > 0) {
       if (this.hasAttribute('show-icon')) {
         if (a.icon) {
@@ -533,16 +574,6 @@ export class LitTree extends BaseElement {
         this.dispatchEvent(new CustomEvent('onSelect', { detail: li.data }));
         this.selectedNode(insertNode);
       }
-    };
-    // node 添加右键菜单功能
-    insertNode.oncontextmenu = (ev): void => {
-      ev.preventDefault();
-      this.selectedNode(insertNode);
-      this.currentSelectedNode = insertNode;
-      this.currentSelectedData = insertNode.data;
-      this.contextMenu!.style.display = 'block';
-      this.contextMenu!.style.left = ev.pageX + 'px';
-      this.contextMenu!.style.top = ev.pageY + 'px';
     };
   }
 

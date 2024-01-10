@@ -124,7 +124,7 @@ export interface MemoryConfig {
   reportGpuDumpInfo?: boolean;
 }
 
-export function sysVMeminfoTypeFromJSON(object: any): SysVMeminfoType {
+const switchCase = (object: any): SysVMeminfoType => {
   switch (object) {
     case 0:
     case 'VMEMINFO_UNSPECIFIED':
@@ -518,6 +518,10 @@ export function sysVMeminfoTypeFromJSON(object: any): SysVMeminfoType {
     default:
       return SysVMeminfoType.UNRECOGNIZED;
   }
+};
+
+export function sysVMeminfoTypeFromJSON(object: any): SysVMeminfoType {
+  return switchCase(object);
 }
 
 export enum SysVMeminfoType {
@@ -695,7 +699,7 @@ export enum SysMeminfoType {
   UNRECOGNIZED = 'UNRECOGNIZED',
 }
 
-export function sysMeminfoTypeFromJSON(object: any): SysMeminfoType {
+const sysMeminfoCase = (object: any): SysMeminfoType => {
   switch (object) {
     case 0:
     case 'MEMINFO_UNSPECIFIED':
@@ -816,6 +820,10 @@ export function sysMeminfoTypeFromJSON(object: any): SysMeminfoType {
     default:
       return SysMeminfoType.UNRECOGNIZED;
   }
+};
+
+export function sysMeminfoTypeFromJSON(object: any): SysMeminfoType {
+  return sysMeminfoCase(object);
 }
 
 export enum Type {
@@ -915,7 +923,8 @@ export interface DiskioConfig {
   reportIoStats: string;
 }
 
-export interface NetworkConfig {}
+export interface NetworkConfig {
+}
 
 export interface HiperfPluginConfig {
   isRoot: boolean;

@@ -16,15 +16,15 @@
 namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {
-RpcServer* rpcServer_;
+DemoRpcServer* rpcServer_;
 bool g_isUseExternalModify = true;
 int32_t SDK_SetTableName(const char* counterTableName,
                          const char* counterObjectTableName,
                          const char* sliceTableName,
                          const char* sliceObjectName)
 {
-    rpcServer_->ts_->sdkDataParser_->SetTableName(counterTableName, counterObjectTableName, sliceTableName,
-                                                  sliceObjectName);
+    rpcServer_->demoTs_->sdkDataParser_->SetTableName(counterTableName, counterObjectTableName, sliceTableName,
+                                                      sliceObjectName);
     if (g_isUseExternalModify) {
         TS_LOGE("If you want to use the SDK_SetTableName, please modify g_isUseExternalModify to false.");
     }
@@ -33,21 +33,21 @@ int32_t SDK_SetTableName(const char* counterTableName,
 
 int32_t SDK_AppendCounterObject(int32_t counterId, const char* columnName)
 {
-    return rpcServer_->ts_->sdkDataParser_->AppendCounterObject(counterId, columnName);
+    return rpcServer_->demoTs_->sdkDataParser_->AppendCounterObject(counterId, columnName);
 }
 int32_t SDK_AppendCounter(int32_t counterId, uint64_t ts, int32_t value)
 {
-    return rpcServer_->ts_->sdkDataParser_->AppendCounter(counterId, ts, value);
+    return rpcServer_->demoTs_->sdkDataParser_->AppendCounter(counterId, ts, value);
 }
 int32_t SDK_AppendSliceObject(int32_t sliceId, const char* columnName)
 {
-    return rpcServer_->ts_->sdkDataParser_->AppendSliceObject(sliceId, columnName);
+    return rpcServer_->demoTs_->sdkDataParser_->AppendSliceObject(sliceId, columnName);
 }
 int32_t SDK_AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, int32_t value)
 {
-    return rpcServer_->ts_->sdkDataParser_->AppendSlice(sliceId, ts, endTs, value);
+    return rpcServer_->demoTs_->sdkDataParser_->AppendSlice(sliceId, ts, endTs, value);
 }
-void SetRpcServer(RpcServer* rpcServer)
+void SetRpcServer(DemoRpcServer* rpcServer)
 {
     rpcServer_ = std::move(rpcServer);
 }

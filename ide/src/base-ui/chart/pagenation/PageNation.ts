@@ -308,18 +308,22 @@ export class PageNation {
     }
     if (current == totalpage - 4) {
       // 左边5个 中间 ... 右边2个
-      for (let i = 0; i < 2; i++) {
-        this.buildLi(origin, i, current);
-      }
-      span = document.createElement('span');
-      span.innerText = '...';
-      this.list.appendChild(span);
-      for (let i = totalpage - 7; i < totalpage; i++) {
-        this.buildLi(origin, i, current);
-      }
+      this.nodeAppendChild(origin,current,span,totalpage);
       return true;
     }
     return false;
+  }
+
+  nodeAppendChild(origin: HTMLElement,current: number,span: any,totalpage: number):void{
+    for (let i = 0; i < 2; i++) {
+      this.buildLi(origin, i, current);
+    }
+    span = document.createElement('span');
+    span.innerText = '...';
+    this.list.appendChild(span);
+    for (let i = totalpage - 7; i < totalpage; i++) {
+      this.buildLi(origin, i, current);
+    }
   }
 
   bindPageEvent() {

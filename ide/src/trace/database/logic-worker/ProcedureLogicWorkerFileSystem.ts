@@ -597,21 +597,24 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
       if (!lastCallChain) {
         lastCallChain = callChainList[callChainList.length - 1];
       }
-      analysisSample.libId = lastCallChain.pathId;
-      analysisSample.symbolId = lastCallChain.symbolsId;
-      let libPath = this.dataCache.dataDict?.get(analysisSample.libId) || '';
-      let pathArray = libPath.split('/');
-      analysisSample.libName = pathArray[pathArray.length - 1];
-      let symbolName = this.dataCache.dataDict?.get(analysisSample.symbolId);
-      if (!symbolName) {
-        symbolName = lastCallChain.ip + ' (' + analysisSample.libName + ')';
-      }
-      analysisSample.symbolName = symbolName;
+      this.setAnalysisSample(analysisSample, lastCallChain);
       if ((obj && obj.libId === analysisSample.libId) || (obj && obj.symbolId === analysisSample.symbolId) || !obj) {
         analysisSampleList.push(analysisSample);
       }
     }
     return analysisSampleList;
+  }
+  private setAnalysisSample(analysisSample: FileAnalysisSample, lastCallChain: FileCallChain): void {
+    analysisSample.libId = lastCallChain.pathId;
+    analysisSample.symbolId = lastCallChain.symbolsId;
+    let libPath = this.dataCache.dataDict?.get(analysisSample.libId) || '';
+    let pathArray = libPath.split('/');
+    analysisSample.libName = pathArray[pathArray.length - 1];
+    let symbolName = this.dataCache.dataDict?.get(analysisSample.symbolId);
+    if (!symbolName) {
+      symbolName = lastCallChain.ip + ' (' + analysisSample.libName + ')';
+    }
+    analysisSample.symbolName = symbolName;
   }
 }
 

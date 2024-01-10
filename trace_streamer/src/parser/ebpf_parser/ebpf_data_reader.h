@@ -58,6 +58,7 @@ private:
     bool ReadItemEventPagedMemory(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventBIO(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventStr(const uint8_t* buffer, uint32_t size);
+    bool EbpfTypeHandle(EbpfTypeAndLength* dataTitle, const uint8_t* startAddr_);
     template <class T>
     void AddSymbolsToTable(T* firstSymbolAddr, const int size, const ElfEventFixedHeader* elfAddr);
     void UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);

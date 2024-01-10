@@ -44,6 +44,8 @@ private:
         ~Cursor() override;
         int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int32_t Column(int32_t column) const override;
+        void HandleIndex(const FilterConstraints& fc, sqlite3_value** argv);
+        void HandleTypeColumns(int32_t column) const;
 
     private:
         const FrameSlice& frameSliceObj_;

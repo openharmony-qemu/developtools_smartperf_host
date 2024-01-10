@@ -33,17 +33,7 @@ where P.pid = ${args.pid};`;
 export function processSoInitDataReceiver(data: any, proc: Function): void {
   let sql = chartProcessSoInitDataSql(data.params);
   let res = proc(sql);
-  switch (data.params.trafic) {
-    case TraficEnum.SharedArrayBuffer:
-      arrayBufferHandler(data, res, false);
-      break;
-    case TraficEnum.ProtoBuffer:
-      arrayBufferHandler(data, res, true);
-      break;
-    case TraficEnum.TransferArrayBuffer:
-      arrayBufferHandler(data, res, true);
-      break;
-  }
+  arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
@@ -66,6 +56,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
   });
   (self as unknown as Worker).postMessage(
     {
+      transfer: transfer,
       id: data.id,
       action: data.action,
       results: transfer

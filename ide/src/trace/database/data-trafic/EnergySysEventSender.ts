@@ -17,9 +17,9 @@ import { MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { EnergySystemStruct } from '../ui-worker/ProcedureWorkerEnergySystem';
-import { EnergyAnomalyStruct } from "../ui-worker/ProcedureWorkerEnergyAnomaly";
-import { EnergyPowerStruct } from "../ui-worker/ProcedureWorkerEnergyPower";
-import { EnergyStateStruct } from "../ui-worker/ProcedureWorkerEnergyState";
+import { EnergyAnomalyStruct } from '../ui-worker/ProcedureWorkerEnergyAnomaly';
+import { EnergyPowerStruct } from '../ui-worker/ProcedureWorkerEnergyPower';
+import { EnergyStateStruct } from '../ui-worker/ProcedureWorkerEnergyState';
 
 export function energySysEventSender(row: TraceRow<EnergySystemStruct>): Promise<EnergySystemStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
@@ -38,13 +38,13 @@ export function energySysEventSender(row: TraceRow<EnergySystemStruct>): Promise
     threadPool.submitProto(
       QueryEnum.EnergySystemData,
       {
-        startNS: TraceRow.range?.startNS || 0,
-        endNS: TraceRow.range?.endNS || 0,
+        sharedArrayBuffers: row.sharedArrayBuffers,
+        trafic: trafic,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
         width: width,
-        trafic: trafic,
-        sharedArrayBuffers: row.sharedArrayBuffers,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(systemBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
@@ -70,9 +70,9 @@ export function hiSysEnergyAnomalyDataSender(row: TraceRow<EnergyAnomalyStruct>)
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
+        sharedArrayBuffers: row.sharedArrayBuffers,
         width: width,
         trafic: trafic,
-        sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(anomalyBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

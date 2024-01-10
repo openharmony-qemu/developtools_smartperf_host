@@ -29,17 +29,6 @@ namespace SysTuning ::TraceStreamer {
 const std::string COMMAND_LINE = "hiebpf --events ptrace --duration 50";
 const uint64_t EPBF_ERROR_MAGIC = 0x12345678;
 const uint32_t EPBF_ERROR_HEAD_SIZE = 0;
-class EbpfBioParserTest : public ::testing::Test {
-public:
-    void SetUp()
-    {
-        stream_.InitFilter();
-    }
-    void TearDown() {}
-
-public:
-    TraceStreamerSelector stream_ = {};
-};
 const char PROCESS_NAME_01[MAX_PROCESS_NAME_SZIE] = "process01";
 const uint64_t START_TIME = 1725645867369;
 const uint64_t END_TIME = 1725645967369;
@@ -48,6 +37,54 @@ const uint64_t IPS_01 = 548606407208;
 const uint64_t IPS_02 = 548607407208;
 const uint64_t EBPF_COMMAND_MAX_SIZE = 1000;
 const uint32_t DURPER4K = 4096;
+
+class EbpfBioParserTest : public ::testing::Test {
+public:
+    void SetUp()
+    {
+        stream_.InitFilter();
+    }
+
+    void TearDown()
+    {
+        dequeBuffer_.clear();
+    }
+
+    void InitData(uint32_t length, uint32_t nips, const uint64_t startTime, const uint64_t endTime)
+    {
+        ebpfHeader_.header.clock = EBPF_CLOCK_BOOTTIME;
+        ebpfHeader_.header.cmdLineLen = COMMAND_LINE.length();
+        strcpy(ebpfHeader_.cmdline, COMMAND_LINE.c_str());
+        ebpfTypeAndLength_.type = ITEM_EVENT_BIO;
+        ebpfTypeAndLength_.length = length;
+        bioFixedHeader_.pid = 32;
+        bioFixedHeader_.tid = 32;
+        memcpy_s(bioFixedHeader_.processName, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
+        bioFixedHeader_.prio = 0;
+        bioFixedHeader_.size = DURPER4K;
+        bioFixedHeader_.blkcnt = BLKCNT;
+        bioFixedHeader_.type = 2;
+        bioFixedHeader_.nips = nips;
+        bioFixedHeader_.startTime = startTime;
+        bioFixedHeader_.endTime = endTime;
+
+        dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<uint8_t*>(&ebpfHeader_),
+                            reinterpret_cast<uint8_t*>(&ebpfHeader_ + 1));
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength_))[0],
+                            &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength_))[sizeof(EbpfTypeAndLength)]);
+
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&bioFixedHeader_))[0],
+                            &(reinterpret_cast<uint8_t*>(&bioFixedHeader_))[sizeof(BIOFixedHeader)]);
+    }
+
+public:
+    TraceStreamerSelector stream_ = {};
+    EbpfDataHeader ebpfHeader_;
+    EbpfTypeAndLength ebpfTypeAndLength_;
+    BIOFixedHeader bioFixedHeader_;
+    std::deque<uint8_t> dequeBuffer_;
+};
+
 /**
  * @tc.name: EbpfBioParserCorrectWithoutCallback
  * @tc.desc: Test parse BIO data without callback
@@ -56,34 +93,11 @@ const uint32_t DURPER4K = 4096;
 HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1)
 {
     TS_LOGI("test32-1");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    strcpy(ebpfHeader.cmdline, COMMAND_LINE.c_str());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(BIOFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_BIO;
-    BIOFixedHeader bioFixedHeader;
-    bioFixedHeader.pid = 32;
-    bioFixedHeader.tid = 32;
-    memcpy_s(bioFixedHeader.processName, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    bioFixedHeader.startTime = START_TIME;
-    bioFixedHeader.endTime = END_TIME;
-    bioFixedHeader.prio = 0;
-    bioFixedHeader.size = DURPER4K;
-    bioFixedHeader.blkcnt = BLKCNT;
-    bioFixedHeader.nips = 0;
-    bioFixedHeader.type = 2;
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[0],
-                       &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&bioFixedHeader))[0],
-                       &(reinterpret_cast<uint8_t*>(&bioFixedHeader))[sizeof(BIOFixedHeader)]);
+    InitData(sizeof(BIOFixedHeader), 0, START_TIME, END_TIME);
+
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetBIOSampleMap().size());
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
@@ -117,34 +131,11 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1
 HWTEST_F(EbpfBioParserTest, EbpfBioParserwrongWithoutCallback, TestSize.Level1)
 {
     TS_LOGI("test32-2");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    strcpy(ebpfHeader.cmdline, COMMAND_LINE.c_str());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(BIOFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_BIO;
-    BIOFixedHeader bioFixedHeader;
-    bioFixedHeader.pid = 32;
-    bioFixedHeader.tid = 32;
-    memcpy_s(bioFixedHeader.processName, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    bioFixedHeader.startTime = END_TIME;
-    bioFixedHeader.endTime = START_TIME;
-    bioFixedHeader.prio = 0;
-    bioFixedHeader.size = DURPER4K;
-    bioFixedHeader.blkcnt = BLKCNT;
-    bioFixedHeader.nips = 0;
-    bioFixedHeader.type = 2;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&bioFixedHeader),
-                       reinterpret_cast<uint8_t*>(&bioFixedHeader + 1));
+    InitData(sizeof(BIOFixedHeader), 0, END_TIME, START_TIME);
+
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetBIOSampleMap().size());
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
@@ -178,37 +169,14 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserwrongWithoutCallback, TestSize.Level1)
 HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithOneCallback, TestSize.Level1)
 {
     TS_LOGI("test32-3");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    memcpy_s(ebpfHeader.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(), COMMAND_LINE.length());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(BIOFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_BIO;
-    BIOFixedHeader bioFixedHeader;
-    bioFixedHeader.pid = 32;
-    bioFixedHeader.tid = 32;
-    memcpy_s(bioFixedHeader.processName, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    bioFixedHeader.startTime = START_TIME;
-    bioFixedHeader.endTime = END_TIME;
-    bioFixedHeader.prio = 0;
-    bioFixedHeader.size = DURPER4K;
-    bioFixedHeader.blkcnt = BLKCNT;
-    bioFixedHeader.nips = 1;
-    bioFixedHeader.type = 2;
+    InitData(sizeof(BIOFixedHeader), 1, START_TIME, END_TIME);
+
     const uint64_t ips[1] = {IPS_01};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&bioFixedHeader),
-                       reinterpret_cast<uint8_t*>(&bioFixedHeader + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetBIOSampleMap().size());
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
@@ -249,37 +217,14 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithOneCallback, TestSize.Level1
 HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithMultipleCallback, TestSize.Level1)
 {
     TS_LOGI("test32-4");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    memcpy_s(ebpfHeader.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(), COMMAND_LINE.length());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&ebpfHeader))[0],
-                       &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(BIOFixedHeader) + 2 * sizeof(uint64_t);
-    ebpfTypeAndLength.type = ITEM_EVENT_BIO;
-    BIOFixedHeader bioFixedHeader;
-    bioFixedHeader.pid = 32;
-    bioFixedHeader.tid = 32;
-    memcpy_s(bioFixedHeader.processName, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    bioFixedHeader.startTime = START_TIME;
-    bioFixedHeader.endTime = END_TIME;
-    bioFixedHeader.prio = 0;
-    bioFixedHeader.size = DURPER4K;
-    bioFixedHeader.blkcnt = BLKCNT;
-    bioFixedHeader.nips = 2;
-    bioFixedHeader.type = 2;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&bioFixedHeader),
-                       reinterpret_cast<uint8_t*>(&bioFixedHeader + 1));
+    InitData(sizeof(BIOFixedHeader) + 2 * sizeof(uint64_t), 2, START_TIME, END_TIME);
+
     const uint64_t ips[2] = {IPS_01, IPS_02};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetBIOSampleMap().size());
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();

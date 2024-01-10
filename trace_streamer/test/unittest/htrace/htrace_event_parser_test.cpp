@@ -83,14 +83,15 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, haveSplit);
-    eventParser.FilterAllEvents();
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     EXPECT_TRUE(1);
     auto realTimeStamp = stream_.traceDataCache_->GetConstSchedSliceData().TimeStampData()[0];
     EXPECT_TRUE(TIMESTAMP == realTimeStamp);
@@ -116,14 +117,15 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
     EXPECT_TRUE(0 == eventCount);
@@ -162,14 +164,15 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
     EXPECT_TRUE(1 == eventCount);
 }
@@ -204,14 +207,15 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_TASK_RENAME, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -247,14 +251,15 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -290,14 +295,15 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -333,14 +339,15 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SCHED_WAKING, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -374,14 +381,15 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CPU_IDLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -415,14 +423,15 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -458,14 +467,15 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_WORKQUEUE_EXECUTE_START,
                                                                               STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -498,14 +508,15 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_WORKQUEUE_EXECUTE_END, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -540,14 +551,15 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLOCK_DISABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -582,14 +594,15 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -624,14 +637,15 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLOCK_SET_RATE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -664,14 +678,15 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLK_DISABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -704,14 +719,15 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLK_ENABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -745,14 +761,15 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLK_SET_RATE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -785,14 +802,15 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -825,14 +843,15 @@ HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
-    HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bool hasSplit = false;
-    eventParser.ParseDataItem(dataSeg, dataSeg.clockId, hasSplit);
-    eventParser.FilterAllEvents();
+    HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool haveSplit = false;
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
+    htraceCpuDetailParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { ns2s, Rect, Render, RequestMessage } from './ProcedureWorkerCommon';
+import { ns2s, Rect, Render } from './ProcedureWorkerCommon';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { CpuStruct } from './ProcedureWorkerCPU';
+import { CpuStruct } from './cpu/ProcedureWorkerCPU';
 
 //绘制时间轴
 let timeRuler: TimeRuler | undefined;
@@ -30,12 +30,8 @@ export class TimelineRender extends Render {
 }
 
 export function timeline(
-  // @ts-ignore
   canvas: OffscreenCanvas,
-  // @ts-ignore
   ctx: OffscreenCanvasRenderingContext2D,
-  startNS: number,
-  endNS: number,
   totalNS: number,
   frame: Rect,
   keyPressCode: any,
@@ -78,25 +74,34 @@ export function timeline(
       }
     );
   }
-
   rangeRuler.frame.width = frame.width;
   sportRuler.frame.width = frame.width;
   timeRuler.frame.width = frame.width;
+  timelineMouseEvent(keyPressCode, keyUpCode, mouseDown, mouseUp, mouseMove, mouseOut);
+}
+function timelineMouseEvent(
+  keyPressCode: any,
+  keyUpCode: any,
+  mouseDown: any,
+  mouseUp: any,
+  mouseMove: any,
+  mouseOut: any
+) {
   if (keyPressCode) {
-    rangeRuler.keyPress(keyPressCode);
+    rangeRuler!.keyPress(keyPressCode);
   } else if (keyUpCode) {
-    rangeRuler.keyUp(keyUpCode);
+    rangeRuler!.keyUp(keyUpCode);
   } else if (mouseDown) {
-    rangeRuler.mouseDown(mouseDown);
+    rangeRuler!.mouseDown(mouseDown);
   } else if (mouseUp) {
-    rangeRuler.mouseUp(mouseUp);
+    rangeRuler!.mouseUp(mouseUp);
   } else if (mouseMove) {
-    rangeRuler.mouseMove(mouseMove);
+    rangeRuler!.mouseMove(mouseMove);
   } else if (mouseOut) {
-    rangeRuler.mouseOut(mouseOut);
+    rangeRuler!.mouseOut(mouseOut);
   } else {
-    timeRuler.draw();
-    rangeRuler.draw();
+    timeRuler!.draw();
+    rangeRuler!.draw();
   }
 }
 
@@ -561,13 +566,6 @@ export class RangeRuler extends Graph {
     }
   }
 
-  mouseUp(ev: MouseEvent) {
-    this.isMouseDown = false;
-    this.isMovingRange = false;
-    this.isNewRange = false;
-    this.movingMark = null;
-  }
-
   movingRange(maxX: number, x: number): void {
     let result = x - this.mouseDownOffsetX;
     let mA = result + this.markAX;
@@ -589,6 +587,13 @@ export class RangeRuler extends Graph {
     }
     this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
     requestAnimationFrame(() => this.draw());
+  }
+
+  mouseUp(ev: MouseEvent) {
+    this.isMouseDown = false;
+    this.isMovingRange = false;
+    this.isNewRange = false;
+    this.movingMark = null;
   }
 
   movingNewRange(maxX: number, x: number): void {

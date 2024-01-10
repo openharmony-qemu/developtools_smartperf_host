@@ -48,6 +48,8 @@ private:
         void FilterPid(unsigned char op, uint64_t value);
         void FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv);
         void FilterId(unsigned char op, sqlite3_value* argv) override;
+        void HandleIndexConstraintEQ(bool remove, uint64_t value);
+        void HandleIndexConstraintNQ(bool remove, uint64_t value);
     };
 };
 } // namespace TraceStreamer

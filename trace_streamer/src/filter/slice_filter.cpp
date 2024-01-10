@@ -358,25 +358,19 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
     } else {
         internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     }
-    if (binderStackMap_.find(internalTid) == binderStackMap_.end()) {
-        return SIZE_MAX;
-    }
+    TS_CHECK_TRUE_RET(binderStackMap_.find(internalTid) != binderStackMap_.end(), SIZE_MAX);
     auto& stackInfo = binderStackMap_[internalTid];
     SlicesStack& stack = stackInfo.sliceStack;
     CloseUnMatchedSlice(timeStamp, stack, internalTid);
     if (stack.empty()) {
-        callEventDisMatchCount++;
+        callEventDisMatchCount_++;
         return SIZE_MAX;
     }
     auto stackIdx = MatchingIncompleteSliceIndex(stack, category, name);
-    if (stackIdx < 0) {
-        TS_LOGE("MatchingIncompleteSliceIndex failed");
-        return SIZE_MAX;
-    }
+    TS_CHECK_TRUE(stackIdx >= 0, SIZE_MAX, "MatchingIncompleteSliceIndex failed");
     auto lastRow = stack[stackIdx].index;
     auto slices = traceDataCache_->GetInternalSlicesData();
     slices->SetDuration(lastRow, timeStamp);
-
     auto argSize = sliceRowToArgsSetId_.count(lastRow);
     size_t argSetId = 0;
     if (args.valuesMap_.size()) {
@@ -444,7 +438,7 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId != INVALID_UINT64) {
-        asyncEventDisMatchCount++;
+        asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     asyncEventSize_++;
@@ -471,12 +465,12 @@ uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId == INVALID_UINT64) { // if failed
-        asyncEventDisMatchCount++;
+        asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     if (asyncEventFilterMap_.find(lastFilterId) == asyncEventFilterMap_.end()) {
         TS_LOGE("logic error");
-        asyncEventDisMatchCount++;
+        asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     // update timeStamp

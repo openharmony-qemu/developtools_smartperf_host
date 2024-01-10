@@ -44,6 +44,7 @@ private:
         ~Cursor() override;
         int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int32_t Column(int32_t col) const override;
+        void HandleTypeColumns(int32_t col) const;
 
     private:
         const CallStack& slicesObj_;

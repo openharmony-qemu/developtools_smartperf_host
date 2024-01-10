@@ -21,7 +21,6 @@ import { getTabRunningPercent } from '../../../../database/sql/ProcessThread.sql
 import { queryCpuFreqUsageData, queryCpuFreqFilterId } from '../../../../database/sql/Cpu.sql';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
 import { TabPaneFreqUsageConfig, type TabPaneRunningConfig, TabPaneCpuFreqConfig } from './TabPaneFreqUsageConfig';
 
 @element('tabpane-frequsage')
@@ -186,8 +185,7 @@ export class TabPaneFreqUsage extends BaseElement {
       for (let i = 0; i < value.length; i++) {
         this.pushCpuMap(cpuArr, cpuMap, value[i], key);
         for (let j = 0; j < dealArr.length; j++) {
-          const consumption: number = (SpSegmentationChart.freqInfoMapData.size > 0
-              ? SpSegmentationChart.freqInfoMapData.get(value[i].cpu)?.get(dealArr[j].value) : dealArr[j].value)!;
+          const consumption: number = dealArr[j].value!;
           // 只需要合并相同cpu的数据
           if (value[i].cpu === dealArr[j].cpu) {
             // 当running状态数据的开始时间大于频点数据开始时间,小于频点结束时间。且running数据的持续时间小于频点结束时间减去running数据开始时间的差值的情况

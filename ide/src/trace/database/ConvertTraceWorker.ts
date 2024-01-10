@@ -28,11 +28,11 @@ function initConvertWASM() {
       },
       print: (line: any) => {},
       printErr: (line: any) => {},
-      onRuntimeInitialized: () => {
-        resolve('ok');
-      },
       onAbort: () => {
         reject('on abort');
+      },
+      onRuntimeInitialized: () => {
+        resolve('ok');
       },
     });
   });

@@ -69,9 +69,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
     });
   }
   protected createTreeData(result: any): Array<any> {
-    let gpuDataObj = result.reduce(
-      (
-        group: any,
+    let gpuDataObj = result.reduce((group: any,
         item: { categoryId: number; size: number; windowNameId: number; moduleId: number; windowId: any }
       ) => {
         let categoryItem: GpuTreeItem = {
@@ -104,23 +102,19 @@ export class TabPaneGpuClickSelect extends BaseElement {
             id: item.windowNameId,
             size: item.size,
             sizeStr: Utils.getBinaryByteWithUnit(item.size),
-            children: [
-              {
+            children: [{
                 name: SpSystemTrace.DATA_DICT.get(item.moduleId),
                 id: item.moduleId,
                 size: item.size,
                 sizeStr: Utils.getBinaryByteWithUnit(item.size),
                 children: [categoryItem],
-              },
-            ],
+            }],
           };
         }
         return group;
-      },
-      {}
+      },{}
     );
-    let items = Object.values(gpuDataObj) as GpuTreeItem[];
-    return items;
+    return Object.values(gpuDataObj) as GpuTreeItem[];
   }
   initElements(): void {
     this.gpuTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu');

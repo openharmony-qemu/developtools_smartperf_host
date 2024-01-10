@@ -21,7 +21,7 @@ import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import {getTabNetworkAbilityData} from "../../../../database/sql/Ability.sql";
+import { getTabNetworkAbilityData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-network-ability')
 export class TabPaneNetworkAbility extends BaseElement {
@@ -32,9 +32,11 @@ export class TabPaneNetworkAbility extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(networkAbilityValue: SelectionParam | any) {
-    // @ts-ignore
-    this.networkAbilityTbl?.shadowRoot?.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 45 + 'px';
+    if (this.networkAbilityTbl) {
+      // @ts-ignore
+      this.networkAbilityTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(networkAbilityValue);
   }
 

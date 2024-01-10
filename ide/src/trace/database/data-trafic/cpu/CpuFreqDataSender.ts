@@ -19,7 +19,7 @@ import { CpuFreqStruct } from '../../ui-worker/ProcedureWorkerFreq';
 export function cpuFreqDataSender(cpu: number, row: TraceRow<CpuFreqStruct>): Promise<CpuFreqStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
-  if ((trafic === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
+  if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       cpu: new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * MAX_COUNT),
       value: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -37,9 +37,9 @@ export function cpuFreqDataSender(cpu: number, row: TraceRow<CpuFreqStruct>): Pr
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
         t: Date.now(),
-        width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        width: width,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

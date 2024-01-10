@@ -24,6 +24,15 @@ using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
 namespace SysTuning {
 namespace TraceStreamer {
+const uint64_t TS_BOOT_TIME = 100;
+const uint64_t TS_MONOTONIC_TIME = 200;
+const uint64_t TS_REAL_TIME = 300;
+const uint64_t TS_REAL_TIME_COARSE_TIME = 400;
+const uint64_t TS_SECOND_BOOT_TIME = 200;
+const uint64_t TS_SECOND_MONOTONIC_TIME = 350;
+const uint64_t TS_SECOND_REAL_TIME = 400;
+const uint64_t TS_SECOND_REAL_TIME_COARSE_TIME = 800;
+
 class ClockFilterTest : public ::testing::Test {
 public:
     void SetUp()
@@ -46,11 +55,9 @@ public:
 HWTEST_F(ClockFilterTest, ConvertBoottimeToMonitonicTime, TestSize.Level1)
 {
     TS_LOGI("test3-1");
-    uint64_t tsBoottime = 100;
-    uint64_t tsMonotonicTime = 200;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     uint64_t time1 = 150;
@@ -66,11 +73,9 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToMonitonicTime, TestSize.Level1)
 HWTEST_F(ClockFilterTest, ConvertBoottimeToMonitonicTimeTwice, TestSize.Level1)
 {
     TS_LOGI("test3-2");
-    uint64_t tsBoottime = 100;
-    uint64_t tsMonotonicTime = 200;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     uint64_t time1 = 150;
@@ -89,18 +94,14 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToMonitonicTimeTwice, TestSize.Level1)
 HWTEST_F(ClockFilterTest, ConvertTimestampInvalid, TestSize.Level1)
 {
     TS_LOGI("test3-3");
-    uint64_t tsBoottime = 100;
-    uint64_t tsMonotonicTime = 200;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsMonotonicTime2 = 350;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_MONOTONIC, tsMonotonicTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_MONOTONIC, TS_SECOND_MONOTONIC_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
     uint64_t time2 = 200;
     uint64_t expectTime2 = 200;
@@ -115,18 +116,14 @@ HWTEST_F(ClockFilterTest, ConvertTimestampInvalid, TestSize.Level1)
 HWTEST_F(ClockFilterTest, ConvertTimestampBoottimeToRealtime, TestSize.Level1)
 {
     TS_LOGI("test3-4");
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsRealTime2 = 400;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
     uint64_t time3 = 101;
     uint64_t expectTime3 = 301;
@@ -141,18 +138,14 @@ HWTEST_F(ClockFilterTest, ConvertTimestampBoottimeToRealtime, TestSize.Level1)
 HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeTwiceWithTwoSnapShot, TestSize.Level1)
 {
     TS_LOGI("test3-5");
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsRealTime2 = 400;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
     uint64_t time3 = 101;
     uint64_t expectTime3 = 301;
@@ -170,11 +163,9 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeTwiceWithTwoSnapShot, TestSiz
 HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeWithSingleSnapShot, TestSize.Level1)
 {
     TS_LOGI("test3-6");
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     uint64_t time3 = 101;
@@ -193,11 +184,9 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeWithSingleSnapShot, TestSize.
 HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottime, TestSize.Level1)
 {
     TS_LOGI("test3-7");
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
     uint64_t time7 = 301;
     uint64_t expectTime7 = 101;
@@ -212,11 +201,9 @@ HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottime, TestSize.Level1)
 HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottimeTwice, TestSize.Level1)
 {
     TS_LOGI("test3-8");
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
     uint64_t time7 = 301;
     uint64_t expectTime7 = 101;
@@ -234,18 +221,14 @@ HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottimeTwice, TestSize.Level1)
 HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottimeTwiceWithTwoSnapshot, TestSize.Level1)
 {
     TS_LOGI("test3-9");
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsRealTime2 = 400;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
     uint64_t time7 = 401;
     uint64_t expectTime7 = 201;
@@ -263,26 +246,18 @@ HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottimeTwiceWithTwoSnapshot, TestSiz
 HWTEST_F(ClockFilterTest, ConvertTimestamp, TestSize.Level1)
 {
     TS_LOGI("test3-10");
-    uint64_t tsBoottime = 100;
-    uint64_t tsMonotonicTime = 200;
-    uint64_t tsRealTime = 300;
-    uint64_t tsRealTimeCoarseTime = 400;
     std::vector<SnapShot> snapShot0;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
-    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, TS_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsMonotonicTime2 = 350;
-    uint64_t tsRealTime2 = 400;
-    uint64_t tsRealTimeCoarseTime2 = 800;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_MONOTONIC, tsMonotonicTime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_MONOTONIC, TS_SECOND_MONOTONIC_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME_COARSE, TS_SECOND_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
     uint64_t time1 = 150;
     uint64_t expectTime1 = 250;
@@ -325,17 +300,13 @@ HWTEST_F(ClockFilterTest, ConvertToPrimary, TestSize.Level1)
 {
     TS_LOGI("test3-11");
     std::vector<SnapShot> snapShot0;
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsRealTime2 = 400;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
 
     streamFilters_.clockFilter_->SetPrimaryClock(TS_CLOCK_REALTIME);
@@ -353,17 +324,13 @@ HWTEST_F(ClockFilterTest, ConvertToPrimaryTwice, TestSize.Level1)
 {
     TS_LOGI("test3-12");
     std::vector<SnapShot> snapShot0;
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsRealTime2 = 400;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
 
     streamFilters_.clockFilter_->SetPrimaryClock(TS_CLOCK_BOOTTIME);
@@ -381,10 +348,8 @@ HWTEST_F(ClockFilterTest, ConvertToPrimaryTimestampLessThanSnapShop, TestSize.Le
 {
     TS_LOGI("test3-13");
     std::vector<SnapShot> snapShot0;
-    uint64_t tsBoottime = 100;
-    uint64_t tsRealTime = 300;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     streamFilters_.clockFilter_->SetPrimaryClock(TS_CLOCK_BOOTTIME);
@@ -402,10 +367,8 @@ HWTEST_F(ClockFilterTest, ConvertMonotonicTimeToPrimaryTwice, TestSize.Level1)
 {
     TS_LOGI("test3-14");
     std::vector<SnapShot> snapShot0;
-    uint64_t tsMonotonicTime = 200;
-    uint64_t tsRealTimeCoarseTime = 400;
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
-    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, TS_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     streamFilters_.clockFilter_->SetPrimaryClock(TS_CLOCK_REALTIME_COARSE);
@@ -426,17 +389,14 @@ HWTEST_F(ClockFilterTest, ConvertToPrimaryTwiceWithTwoSnapshop, TestSize.Level1)
 {
     TS_LOGI("test3-15");
     std::vector<SnapShot> snapShot0;
-    uint64_t tsMonotonicTime = 200;
-    uint64_t tsRealTimeCoarseTime = 400;
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
-    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, TS_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
     uint64_t tsBootTime2 = 350;
-    uint64_t tsRealTimeCoarseTime2 = 800;
     snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBootTime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime2});
+    snapShot1.push_back({TS_CLOCK_REALTIME_COARSE, TS_SECOND_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
 
     streamFilters_.clockFilter_->SetPrimaryClock(TS_CLOCK_REALTIME_COARSE);
@@ -459,25 +419,17 @@ HWTEST_F(ClockFilterTest, MutiTimeTypeConvertWithMutiSnapshop, TestSize.Level1)
 {
     TS_LOGI("test3-16");
     std::vector<SnapShot> snapShot0;
-    uint64_t tsBoottime = 100;
-    uint64_t tsMonotonicTime = 200;
-    uint64_t tsRealTime = 300;
-    uint64_t tsRealTimeCoarseTime = 400;
-    snapShot0.push_back({TS_CLOCK_BOOTTIME, tsBoottime});
-    snapShot0.push_back({TS_MONOTONIC, tsMonotonicTime});
-    snapShot0.push_back({TS_CLOCK_REALTIME, tsRealTime});
-    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime});
+    snapShot0.push_back({TS_CLOCK_BOOTTIME, TS_BOOT_TIME});
+    snapShot0.push_back({TS_MONOTONIC, TS_MONOTONIC_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME, TS_REAL_TIME});
+    snapShot0.push_back({TS_CLOCK_REALTIME_COARSE, TS_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot0);
 
     std::vector<SnapShot> snapShot1;
-    uint64_t tsBoottime2 = 200;
-    uint64_t tsMonotonicTime2 = 350;
-    uint64_t tsRealTime2 = 400;
-    uint64_t tsRealTimeCoarseTime2 = 800;
-    snapShot1.push_back({TS_CLOCK_BOOTTIME, tsBoottime2});
-    snapShot1.push_back({TS_MONOTONIC, tsMonotonicTime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME, tsRealTime2});
-    snapShot1.push_back({TS_CLOCK_REALTIME_COARSE, tsRealTimeCoarseTime2});
+    snapShot1.push_back({TS_CLOCK_BOOTTIME, TS_SECOND_BOOT_TIME});
+    snapShot1.push_back({TS_MONOTONIC, TS_SECOND_MONOTONIC_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME, TS_SECOND_REAL_TIME});
+    snapShot1.push_back({TS_CLOCK_REALTIME_COARSE, TS_SECOND_REAL_TIME_COARSE_TIME});
     streamFilters_.clockFilter_->AddClockSnapshot(snapShot1);
 
     streamFilters_.clockFilter_->SetPrimaryClock(TS_CLOCK_REALTIME);

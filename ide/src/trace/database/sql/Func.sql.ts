@@ -12,99 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FuncNameCycle } from "../../bean/BinderProcessThread";
-import { query } from "../SqlLite";
-import { FuncStruct } from "../ui-worker/ProcedureWorkerFunc";
-import { SearchFuncBean } from "../../bean/SearchFuncBean";
-import { SelectionData } from "../../bean/BoxSelection";
-import { HeapTraceFunctionInfo } from "../../../js-heap/model/DatabaseStruct";
+import { query } from '../SqlLite';
+import { FuncStruct } from '../ui-worker/ProcedureWorkerFunc';
+import { SearchFuncBean } from '../../bean/SearchFuncBean';
+import { SelectionData } from '../../bean/BoxSelection';
+import { HeapTraceFunctionInfo } from '../../../js-heap/model/DatabaseStruct';
 
-export const queryLoopFuncNameCycle = (
-  funcName: string,
-  tIds: string,
-  leftNS: number,
-  rightNS: number
-): Promise<Array<FuncNameCycle>> =>
-  query(
-    'queryLoopFuncNameCycle',
-    `
-      SELECT 
-          c.name AS funcName,
-          c.ts - r.start_ts AS cycleStartTime,
-          0 AS cycleDur,
-          c.id,
-          t.tid,
-          p.pid
-        FROM
-            callstack c, trace_range r 
-          LEFT JOIN 
-            thread t 
-          ON 
-            c.callid = t.id 
-          LEFT JOIN  
-            process p 
-          ON 
-            t.ipid = p.id  
-        WHERE 
-            c.name = '${funcName}' 
-          AND 
-            t.tid = ${tIds}
-          AND NOT 
-            ((cycleStartTime < ${leftNS}) 
-          OR  
-            (cycleStartTime > ${rightNS})) 
-        `,
-    {
-      $funcName: funcName,
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS,
-    }
-  );
-
-export const querySingleFuncNameCycle = (
-  funcName: string,
-  tIds: string,
-  leftNS: number,
-  rightNS: number
-): Promise<Array<FuncNameCycle>> =>
-  query(
-    'querySingleFuncNameCycle',
-    `
-      SELECT 
-            c.name AS funcName, 
-            c.ts - r.start_ts AS cycleStartTime, 
-            c.dur AS cycleDur,
-            c.id,
-            t.tid,
-            p.pid,
-            c.ts - r.start_ts + c.dur AS endTime
-          FROM 
-              callstack c, trace_range r 
-          LEFT JOIN 
-              thread t 
-          ON 
-              c.callid = t.id 
-          LEFT JOIN
-              process p 
-          ON
-              t.ipid = p.id  
-          WHERE 
-              c.name = '${funcName}'
-          AND 
-              t.tid = ${tIds} 
-          AND NOT 
-              ((cycleStartTime < ${leftNS}) 
-          OR 
-              (endTime > ${rightNS}))
-        `,
-    {
-      $funcName: funcName,
-      $tIds: tIds,
-      $leftNS: leftNS,
-      $rightNS: rightNS,
-    }
-  );
 export const queryAllFuncNames = (): Promise<Array<any>> => {
   return query(
     'queryAllFuncNames',
@@ -362,12 +275,7 @@ export const queryHeapTraceNode = (fileId: number): Promise<Array<any>> =>
     ORDER BY
         N.id`
   );
-export const queryTaskPoolOtherRelationData = (
-  ids: Array<number>,
-  tid: number
-): Promise<
-  Array<FuncStruct>
-> => {
+export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number): Promise<Array<FuncStruct>> => {
   let sqlStr = `select
                     c.ts-D.start_ts as startTs,
                     c.dur,
@@ -383,12 +291,7 @@ export const queryTaskPoolOtherRelationData = (
   return query('queryTaskPoolOtherRelationData', sqlStr, { $ids: ids, $tid: tid });
 };
 
-export const queryTaskPoolRelationData = (
-  ids: Array<number>,
-  tids: Array<number>
-): Promise<
-  Array<FuncStruct>
-> => {
+export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number>): Promise<Array<FuncStruct>> => {
   const sqlArray: Array<string> = [];
   if (ids.length > 0) {
     for (let index = 0; index < ids.length; index++) {

@@ -15,13 +15,9 @@
 
 import {
   BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
   ns2x,
   Render,
   RequestMessage,
-  drawSelection,
   isFrameContainPoint,
   drawLoadingFrame,
 } from './ProcedureWorkerCommon';
@@ -205,84 +201,40 @@ export class EnergyPowerStruct extends BaseStruct {
 
   static draw(req: any, index: number, data: EnergyPowerStruct, row: TraceRow<EnergyPowerStruct>) {
     if (data.frame) {
-      let width = data.frame.width || 0;
       req!.context.globalAlpha = 1.0;
       req!.context.lineWidth = 1;
       this.currentTextWidth = 0;
       let cpuHeight = this.drawHistogram(req, data, -1, data.cpu!, 'CPU', row.frame);
       let locationHeight = this.drawHistogram(req, data, cpuHeight, data.location!, 'LOCATION', row.frame);
       let gpuHeight = this.drawHistogram(req, data, cpuHeight - locationHeight, data.gpu!, 'GPU', row.frame);
-      let displayHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight,
-        data.display!,
-        'DISPLAY',
-        row.frame
-      );
-      let cameraHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight,
-        data.camera!,
-        'CAMERA',
-        row.frame
-      );
-      let bluetoothHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight,
-        data.bluetooth!,
-        'BLUETOOTH',
-        row.frame
-      );
-      let flashlightHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight,
-        data.flashlight!,
-        'FLASHLIGHT',
-        row.frame
-      );
-      let audioHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight - flashlightHeight,
-        data.audio!,
-        'AUDIO',
-        row.frame
-      );
-      let wifiHeight = this.drawHistogram(
-        req,
-        data,
+      let dHight = cpuHeight - locationHeight - gpuHeight;
+      let displayHeight = this.drawHistogram(req, data, dHight, data.display!, 'DISPLAY', row.frame);
+      let cHight = cpuHeight - locationHeight - gpuHeight - displayHeight;
+      let cameraHeight = this.drawHistogram(req, data, cHight, data.camera!, 'CAMERA', row.frame);
+      let bHeight = cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight;
+      let bluetoothHeight = this.drawHistogram(req, data, bHeight, data.bluetooth!, 'BLUETOOTH', row.frame);
+      let fHeight = cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight;
+      let flashlightHeight = this.drawHistogram(req, data, fHeight, data.flashlight!, 'FLASHLIGHT', row.frame);
+      let aHeight =
+        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight - flashlightHeight;
+      let audioHeight = this.drawHistogram(req, data, aHeight, data.audio!, 'AUDIO', row.frame);
+      let wHeight =
         cpuHeight -
-          locationHeight -
-          gpuHeight -
-          displayHeight -
-          cameraHeight -
-          bluetoothHeight -
-          flashlightHeight -
-          audioHeight,
-        data.wifiscan!,
-        'WIFISCAN',
-        row.frame
-      );
+        locationHeight -
+        gpuHeight -
+        displayHeight -
+        cameraHeight -
+        bluetoothHeight -
+        flashlightHeight -
+        audioHeight;
+      let wifiHeight = this.drawHistogram(req, data, wHeight, data.wifiscan!, 'WIFISCAN', row.frame);
       let maxPointY = this.drawPolyline(req, index, data, row.frame, wifiHeight);
+      let startNS = TraceRow.range!.startNS;
+      let endNS = TraceRow.range!.endNS;
+      let totalNS = TraceRow.range!.totalNS;
       if (data.ts === EnergyPowerStruct.hoverEnergyPowerStruct?.ts) {
-        let endPointX = ns2x(
-          (data.ts || 0) + 500000000,
-          TraceRow.range!.startNS,
-          TraceRow.range!.endNS,
-          TraceRow.range!.totalNS,
-          row.frame
-        );
-        let startPointX = ns2x(
-          (data.ts || 0) - 500000000,
-          TraceRow.range!.startNS,
-          TraceRow.range!.endNS,
-          TraceRow.range!.totalNS,
-          row.frame
-        );
+        let endPointX = ns2x((data.ts || 0) + 500000000, startNS, endNS, totalNS, row.frame);
+        let startPointX = ns2x((data.ts || 0) - 500000000, startNS, endNS, totalNS, row.frame);
         let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
         req.context.globalAlpha = 1;
         req!.context.lineWidth = 2;

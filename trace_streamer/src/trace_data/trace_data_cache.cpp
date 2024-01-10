@@ -116,50 +116,21 @@ TraceDataCache::TraceDataCache()
 }
 
 TraceDataCache::~TraceDataCache() {}
-
-void TraceDataCache::InitDB()
+void TraceDataCache::InitEbpfDB()
 {
-    if (dbInited_) {
-        return;
-    }
-    TableBase::TableDeclare<AnimationTable>(*db_, this, "animation");
-    TableBase::TableDeclare<DynamicFrameTable>(*db_, this, "dynamic_frame");
-    TableBase::TableDeclare<ProcessTable>(*db_, this, "process");
-    TableBase::TableDeclare<SchedSliceTable>(*db_, this, "sched_slice");
-    TableBase::TableDeclare<CallStackTable>(*db_, this, "callstack");
-    TableBase::TableDeclare<ThreadTable>(*db_, this, "thread");
-    TableBase::TableDeclare<ThreadStateTable>(*db_, this, "thread_state");
-    TableBase::TableDeclare<IrqTable>(*db_, this, "irq");
-    TableBase::TableDeclare<DataDictTable>(*db_, this, "data_dict");
-    TableBase::TableDeclare<RawTable>(*db_, this, "raw");
-    TableBase::TableDeclare<SymbolsTable>(*db_, this, "symbols");
-    TableBase::TableDeclare<DataTypeTable>(*db_, this, "data_type");
-    TableBase::TableDeclare<HidumpTable>(*db_, this, "hidump");
+    TableBase::TableDeclare<EbpfCallStackTable>(*db_, this, "ebpf_callstack");
+    TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "bio_latency_sample");
+    TableBase::TableDeclare<FileSystemSampleTable>(*db_, this, "file_system_sample");
+    TableBase::TableDeclare<PagedMemorySampleTable>(*db_, this, "paged_memory_sample");
+}
+void TraceDataCache::InitNativeMemoryDB()
+{
     TableBase::TableDeclare<NativeHookTable>(*db_, this, "native_hook");
     TableBase::TableDeclare<NativeHookFrameTable>(*db_, this, "native_hook_frame");
     TableBase::TableDeclare<NativeHookStatisticTable>(*db_, this, "native_hook_statistic");
-    TableBase::TableDeclare<SpanJoin>(*db_, this, "span_join");
-
-    // no id
-    TableBase::TableDeclare<DeviceInfoTable>(*db_, this, "device_info");
-    TableBase::TableDeclare<InstantsTable>(*db_, this, "instant");
-    TableBase::TableDeclare<MeasureTable>(*db_, this, "measure");
-    TableBase::TableDeclare<MeasureTable>(*db_, this, "sys_mem_measure");
-    TableBase::TableDeclare<MeasureTable>(*db_, this, "process_measure");
-    TableBase::TableDeclare<RangeTable>(*db_, this, "trace_range");
-    TableBase::TableDeclare<StatTable>(*db_, this, "stat");
-    TableBase::TableDeclare<SystemCallTable>(*db_, this, "syscall");
-    TableBase::TableDeclare<MetaTable>(*db_, this, "meta");
-    TableBase::TableDeclare<LogTable>(*db_, this, "log");
-    TableBase::TableDeclare<NetworkTable>(*db_, this, "network");
-
-    // id is not real id
-    TableBase::TableDeclare<CpuMeasureFilterTable>(*db_, this, "cpu_measure_filter");
-    TableBase::TableDeclare<FilterTable>(*db_, this, "measure_filter");
-    TableBase::TableDeclare<ProcessMeasureFilterTable>(*db_, this, "process_measure_filter");
-    TableBase::TableDeclare<ClockEventFilterTable>(*db_, this, "clock_event_filter");
-    TableBase::TableDeclare<ClkEventFilterTable>(*db_, this, "clk_event_filter");
-    TableBase::TableDeclare<TaskPoolTable>(*db_, this, "task_pool");
+}
+void TraceDataCache::InitArkTsDB()
+{
     TableBase::TableDeclare<JsHeapFilesTable>(*db_, this, "js_heap_files");
     TableBase::TableDeclare<JsHeapEdgesTable>(*db_, this, "js_heap_edges");
     TableBase::TableDeclare<JsHeapInfoTable>(*db_, this, "js_heap_info");
@@ -172,29 +143,64 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<JsCpuProfilerNodeTable>(*db_, this, "js_cpu_profiler_node");
     TableBase::TableDeclare<JsCpuProfilerSampleTable>(*db_, this, "js_cpu_profiler_sample");
     TableBase::TableDeclare<JsConfigTable>(*db_, this, "js_config");
+}
+void TraceDataCache::InitHiperfDB()
+{
+    TableBase::TableDeclare<PerfReportTable>(*db_, this, "perf_report");
+    TableBase::TableDeclare<PerfSampleTable>(*db_, this, "perf_sample");
+    TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
+    TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
+    TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
+}
+void TraceDataCache::InitMeasureDB()
+{
+    TableBase::TableDeclare<MeasureTable>(*db_, this, "measure");
+    TableBase::TableDeclare<MeasureTable>(*db_, this, "sys_mem_measure");
+    TableBase::TableDeclare<MeasureTable>(*db_, this, "process_measure");
+    TableBase::TableDeclare<CpuMeasureFilterTable>(*db_, this, "cpu_measure_filter");
+    TableBase::TableDeclare<FilterTable>(*db_, this, "measure_filter");
+    TableBase::TableDeclare<ProcessMeasureFilterTable>(*db_, this, "process_measure_filter");
+    TableBase::TableDeclare<ClockEventFilterTable>(*db_, this, "clock_event_filter");
+    TableBase::TableDeclare<ClkEventFilterTable>(*db_, this, "clk_event_filter");
+}
+void TraceDataCache::InitBaseDB()
+{
+    TableBase::TableDeclare<ProcessTable>(*db_, this, "process");
+    TableBase::TableDeclare<ThreadTable>(*db_, this, "thread");
+    TableBase::TableDeclare<RangeTable>(*db_, this, "trace_range");
+    TableBase::TableDeclare<DataTypeTable>(*db_, this, "data_type");
+    TableBase::TableDeclare<SpanJoin>(*db_, this, "span_join");
+    TableBase::TableDeclare<SymbolsTable>(*db_, this, "symbols");
+    TableBase::TableDeclare<StatTable>(*db_, this, "stat");
     TableBase::TableDeclare<ArgsTable>(*db_, this, "args");
-
-    TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "sys_event_filter");
-    TableBase::TableDeclare<DiskIOTable>(*db_, this, "diskio");
-    TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");
-    TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
-    TableBase::TableDeclare<FileSystemSampleTable>(*db_, this, "file_system_sample");
-    TableBase::TableDeclare<EbpfCallStackTable>(*db_, this, "ebpf_callstack");
-    TableBase::TableDeclare<PagedMemorySampleTable>(*db_, this, "paged_memory_sample");
-    TableBase::TableDeclare<SysEventSubkeyTable>(*db_, this, "app_name");
-    TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "hisys_event_measure");
+    TableBase::TableDeclare<MetaTable>(*db_, this, "meta");
     TableBase::TableDeclare<TraceConfigTable>(*db_, this, "trace_config");
-    TableBase::TableDeclare<DeviceStateTable>(*db_, this, "device_state");
-    TableBase::TableDeclare<SysEventAllEventTable>(*db_, this, "hisys_all_event");
-    TableBase::TableDeclare<SmapsTable>(*db_, this, "smaps");
-    TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "bio_latency_sample");
+    TableBase::TableDeclare<DataDictTable>(*db_, this, "data_dict");
     TableBase::TableDeclare<DataSourceClockIdTableTable>(*db_, this, "datasource_clockid");
     TableBase::TableDeclare<ClockSnapShotTable>(*db_, this, "clock_snapshot");
+}
+void TraceDataCache::InitTemplateDB()
+{
+    // task pool business
+    TableBase::TableDeclare<TaskPoolTable>(*db_, this, "task_pool");
+    // app start up business
+    TableBase::TableDeclare<AppStartupTable>(*db_, this, "app_startup");
+    // so initalize business
+    TableBase::TableDeclare<SoStaticInitalizationTable>(*db_, this, "static_initalize");
+    // animation business
+    TableBase::TableDeclare<AnimationTable>(*db_, this, "animation");
+    TableBase::TableDeclare<DynamicFrameTable>(*db_, this, "dynamic_frame");
+    TableBase::TableDeclare<DeviceInfoTable>(*db_, this, "device_info");
+}
+void TraceDataCache::InitRenderServiceDB()
+{
     TableBase::TableDeclare<FrameSliceTable>(*db_, this, "frame_slice");
     TableBase::TableDeclare<FrameMapsTable>(*db_, this, "frame_maps");
     TableBase::TableDeclare<GPUSliceTable>(*db_, this, "gpu_slice");
-    TableBase::TableDeclare<AppStartupTable>(*db_, this, "app_startup");
-    TableBase::TableDeclare<SoStaticInitalizationTable>(*db_, this, "static_initalize");
+}
+void TraceDataCache::InitMemoryDB()
+{
+    TableBase::TableDeclare<SmapsTable>(*db_, this, "smaps");
     TableBase::TableDeclare<MemoryAshMemTable>(*db_, this, "memory_ashmem");
     TableBase::TableDeclare<MemoryDmaTable>(*db_, this, "memory_dma");
     TableBase::TableDeclare<MemoryProcessGpuTable>(*db_, this, "memory_process_gpu");
@@ -202,12 +208,43 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<MemoryCpuTable>(*db_, this, "memory_cpu");
     TableBase::TableDeclare<MemoryProfileTable>(*db_, this, "memory_profile");
     TableBase::TableDeclare<MemoryRSImageTable>(*db_, this, "memory_rs_image");
-
-    TableBase::TableDeclare<PerfReportTable>(*db_, this, "perf_report");
-    TableBase::TableDeclare<PerfSampleTable>(*db_, this, "perf_sample");
-    TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
-    TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
-    TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
+}
+void TraceDataCache::InitHisysEventDB()
+{
+    TableBase::TableDeclare<SysEventSubkeyTable>(*db_, this, "app_name");
+    TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "hisys_event_measure");
+    TableBase::TableDeclare<DeviceStateTable>(*db_, this, "device_state");
+    TableBase::TableDeclare<SysEventAllEventTable>(*db_, this, "hisys_all_event");
+}
+void TraceDataCache::InitDB()
+{
+    if (dbInited_) {
+        return;
+    }
+    InitBaseDB();
+    InitEbpfDB();
+    InitNativeMemoryDB();
+    InitArkTsDB();
+    InitHiperfDB();
+    InitMeasureDB();
+    InitTemplateDB();
+    InitRenderServiceDB();
+    InitMemoryDB();
+    InitHisysEventDB();
+    TableBase::TableDeclare<RawTable>(*db_, this, "raw");
+    TableBase::TableDeclare<InstantsTable>(*db_, this, "instant");
+    TableBase::TableDeclare<SchedSliceTable>(*db_, this, "sched_slice");
+    TableBase::TableDeclare<ThreadStateTable>(*db_, this, "thread_state");
+    TableBase::TableDeclare<CallStackTable>(*db_, this, "callstack");
+    TableBase::TableDeclare<IrqTable>(*db_, this, "irq");
+    TableBase::TableDeclare<HidumpTable>(*db_, this, "hidump");
+    TableBase::TableDeclare<SystemCallTable>(*db_, this, "syscall");
+    TableBase::TableDeclare<LogTable>(*db_, this, "log");
+    TableBase::TableDeclare<NetworkTable>(*db_, this, "network");
+    TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "sys_event_filter");
+    TableBase::TableDeclare<DiskIOTable>(*db_, this, "diskio");
+    TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");
+    TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const

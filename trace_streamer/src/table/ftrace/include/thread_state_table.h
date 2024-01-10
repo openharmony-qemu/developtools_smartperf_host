@@ -46,6 +46,7 @@ private:
         ~Cursor() override;
         int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int32_t Column(int32_t col) const override;
+        void HandleIndex(const FilterConstraints& fc, sqlite3_value** argv, IndexMap* indexMapBack);
 
     private:
         const ThreadStateData& threadStateObj_;

@@ -28,6 +28,7 @@ import { showButtonMenu } from '../SheetUtils';
 import { CallTreeLevelStruct } from '../../../../bean/EbpfStruct';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
+import { TabPaneFileSystemCalltreeHtml } from './TabPaneFileSystemCalltree.html';
 
 const InvertOptionIndex: number = 0;
 const hideEventOptionIndex: number = 2;
@@ -62,14 +63,14 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private _currentFsCallTreeLevel: number = 0;
   private _fsRowClickData: any = undefined;
   private FsCallTreeLevel: CallTreeLevelStruct | undefined | null;
-  private headLine: LitHeadLine | null | undefined;
+  private fileSystemHeadLine: LitHeadLine | null | undefined;
 
   set pieTitle(value: string) {
     this._pieTitle = value;
     if (this._pieTitle.length > 0) {
-      this.headLine!.isShow = true;
-      this.headLine!.titleTxt = this._pieTitle;
-      this.headLine!.closeCallback = () => {
+      this.fileSystemHeadLine!.isShow = true;
+      this.fileSystemHeadLine!.titleTxt = this._pieTitle;
+      this.fileSystemHeadLine!.closeCallback = () => {
         this.restore();
       };
     }
@@ -120,7 +121,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     if (this._fsRowClickData && this.currentRowClickData !== undefined && this.currentSelection?.isRowClick) {
       this.getFsCallTreeDataByPieLevel();
     } else {
-      this.headLine!.isShow = false;
+      this.fileSystemHeadLine!.isShow = false;
       this.getFsCallTreeData(fsCallTreeSelection, this.initWidth);
     }
   }
@@ -201,7 +202,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   private restore(): void {
     this.searchValue = '';
     this.fsCallTreeFilter.filterValue = '';
-    this.headLine!.isShow = false;
+    this.fileSystemHeadLine!.isShow = false;
     this._fsRowClickData = undefined;
     this.getFsCallTreeData(this.currentSelection, this.initWidth);
   }
@@ -273,7 +274,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   initElements(): void {
-    this.headLine = this.shadowRoot?.querySelector('.titleBox');
+    this.fileSystemHeadLine = this.shadowRoot?.querySelector('.titleBox');
     this.fsCallTreeTbl = this.shadowRoot?.querySelector<LitTable>('#tb-filesystem-calltree');
     this.fsCallTreeProgressEL = this.shadowRoot?.querySelector('.fs-call-tree-progress') as LitProgressBar;
     this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
@@ -591,14 +592,18 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.frameChart?.calculateChartData();
         }
-        // @ts-ignore
-        this.fsCallTreeTbl?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 10 - 35 + 'px';
-        this.fsCallTreeTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.fsCallTreeTbr?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 45 - 21 + 'px';
-        this.fsCallTreeTbr?.reMeauseHeight();
+        if (this.fsCallTreeTbl) {
+          // @ts-ignore
+          this.fsCallTreeTbl.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 10 - 35 + 'px';
+          this.fsCallTreeTbl.reMeauseHeight();
+        }
+       if (this.fsCallTreeTbr) {
+         // @ts-ignore
+         this.fsCallTreeTbr.shadowRoot.querySelector('.table').style.height =
+           this.parentElement!.clientHeight - 45 - 21 + 'px';
+         this.fsCallTreeTbr.reMeauseHeight();
+       }
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -724,81 +729,6 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        .fs-call-tree-filter {
-            border: solid rgb(216,216,216) 1px;
-            float: left;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px 0 10px;
-        }
-        .fs-call-tree-progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        selector{
-            display: none;
-        }
-        .fs-call-tree-loading{
-            bottom: 0;
-            position: absolute;
-            left: 0;
-            right: 0;
-            width:100%;
-            background:transparent;
-            z-index: 999999;
-        }
-        .show{
-            display: flex;
-            flex: 1;
-        }
-        #level{
-            display: none;
-        }
-    </style>
-    <div class="fs-call-tree-content" style="display: flex;flex-direction: column">
-    <lit-headline class="titleBox"></lit-headline>
-    <selector id='show_table' class="show">
-        <lit-slicer style="width:100%">
-        <div id="left_table" style="width: 65%">
-            <lit-table id="tb-filesystem-calltree" style="height: auto" tree>
-                <lit-table-column class="fs-call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start"retract></lit-table-column>
-                <lit-table-column class="fs-call-tree-column" width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>
-                <lit-table-column class="fs-call-tree-column" width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
-                <lit-table-column class="fs-call-tree-column" width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>
-            </lit-table>
-            
-        </div>
-        <lit-slicer-track ></lit-slicer-track>
-        <lit-table id="tb-filesystem-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
-            <span slot="head">Heaviest Stack Trace</span>
-            <lit-table-column class="fs-call-tree-column" width="30px" title="" data-index="type" key="type"  align="flex-start" >
-                <template>
-                    <img src="img/library.png" size="20" v-if=" type == 1 ">
-                    <img src="img/function.png" size="20" v-if=" type == 0 ">
-                </template>
-            </lit-table-column>
-            <lit-table-column class="fs-call-tree-column" width="60px" title="" data-index="count" key="count"  align="flex-start"></lit-table-column>
-            <lit-table-column class="fs-call-tree-column" width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
-        </lit-table>
-        </div>
-        </lit-slicer>
-     </selector>
-     <tab-pane-filter id="filter" class="fs-call-tree-filter" input inputLeftText icon tree fileSystem></tab-pane-filter>
-     <lit-progress-bar class="progress fs-call-tree-progress"></lit-progress-bar>
-    <selector id='show_chart' class="fs-call-tree-selector" >
-        <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
-    </selector>
-    <div class="loading fs-call-tree-loading"></div>
-    </div>`;
+    return TabPaneFileSystemCalltreeHtml;
   }
 }

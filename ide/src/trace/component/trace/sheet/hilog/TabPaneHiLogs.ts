@@ -24,7 +24,8 @@ import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
 import { ColorUtils } from '../../base/ColorUtils';
 import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import {queryLogAllData} from "../../../../database/sql/SqlLite.sql";
+import { queryLogAllData } from '../../../../database/sql/SqlLite.sql';
+import { TabPaneHiLogsHtml } from './TabPaneHiLogs.html';
 
 @element('tab-hi-log')
 export class TabPaneHiLogs extends BaseElement {
@@ -61,6 +62,7 @@ export class TabPaneHiLogs extends BaseElement {
       });
     }
   }
+
   init(): void {
     this.levelFilterInput = this.shadowRoot?.querySelector<HTMLSelectElement>('#level-filter');
     this.logTableTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#log-title');
@@ -68,8 +70,8 @@ export class TabPaneHiLogs extends BaseElement {
     this.searchFilterInput = this.shadowRoot?.querySelector<HTMLInputElement>('#search-filter');
     this.processFilter = this.shadowRoot?.querySelector<HTMLInputElement>('#process-filter');
     this.spSystemTrace = document
-      .querySelector('body > sp-application')
-      ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
+    .querySelector('body > sp-application')
+    ?.shadowRoot?.querySelector<SpSystemTrace>('#sp-system-trace');
     this.tableTimeHandle = this.delayedRefresh(this.refreshTable);
     this.tableTitleTimeHandle = this.delayedRefresh(this.refreshLogsTitle);
     this.tagFilterDiv = this.shadowRoot!.querySelector<HTMLDivElement>('#tagFilter');
@@ -111,6 +113,7 @@ export class TabPaneHiLogs extends BaseElement {
       this.tableTitleTimeHandle?.();
     });
   }
+
   initElements(): void {
     this.init();
     this.tagFilterDiv!.onclick = (ev): void => {
@@ -138,9 +141,11 @@ export class TabPaneHiLogs extends BaseElement {
     this.tagFilterInput?.addEventListener('keyup', this.tagFilterKeyEvent);
     new ResizeObserver((): void => {
       this.parentElement!.style.overflow = 'hidden';
-      // @ts-ignore
-      this.hiLogsTbl?.shadowRoot?.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 45 + 'px';
+      if (this.hiLogsTbl) {
+        // @ts-ignore
+        this.hiLogsTbl.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 20 - 45 + 'px';
+      }
       this.tableTimeHandle?.();
       this.tableTitleTimeHandle?.();
     }).observe(this.parentElement!);
@@ -152,45 +157,10 @@ export class TabPaneHiLogs extends BaseElement {
   }
 
   initHtml(): string {
-    return `${this.initTitleCssStyle()}
-        <div class="logs-title-content">
-          <label id="log-title">Hilogs [0, 0] / 0</label>
-          <div style="display: flex;flex-wrap: wrap;">
-            <div class="level-content">
-            <select id="level-filter">
-              <option>Debug</option>
-              <option>Info</option>
-              <option>Warn</option>
-              <option>Error</option>
-              <option>Fatal</option>
-            </select>
-          </div>
-            <div style="display: flex;">
-              <div id="tagFilter" style='display: flex;width: auto; height: 100%;flex-wrap: wrap;'></div>
-                 <input type="text" id="tag-filter" class="filter-input" placeholder="Filter by tag...">
-              </div>
-              <input type="text" id="process-filter" class="filter-input" placeholder="Search process name...">
-              <input type="text" id="search-filter" class="filter-input" placeholder="Search message...">
-            </div>
-          </div>
-       <lit-progress-bar class="progress"></lit-progress-bar>
-        <lit-page-table id="tb-hilogs">
-            <lit-table-column title="Timestamp" width="10%" data-index="startTs" key="startTs">
-            </lit-table-column>
-            <lit-table-column title="Time" width="10%" data-index="originTime" key="originTime">
-            </lit-table-column>
-            <lit-table-column title="Level" width="5%" data-index="level" key="level">
-            </lit-table-column>
-            <lit-table-column title="Tag" width="15%" data-index="tag" key="tag">
-            </lit-table-column>
-            <lit-table-column title="Process Name" width="12%" data-index="processName" key="processName">
-            </lit-table-column>
-            <lit-table-column title="Message" width="44%" data-index="context" key="context">
-            </lit-table-column>
-        </lit-page-table>
-        `;
+    return TabPaneHiLogsHtml;
   }
-  rerefreshLogsTab() {
+
+  rerefreshLogsTab(): void {
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     if (tbl) {
@@ -213,11 +183,13 @@ export class TabPaneHiLogs extends BaseElement {
       });
     }
   }
+
   refreshLogsTitle(): void {
     let tbl = this.hiLogsTbl?.shadowRoot?.querySelector<HTMLDivElement>('.table');
     let height = 0;
     let firstRowHeight = 27;
     let tableHeadHeight = 26;
+    this.rerefreshLogsTab();
     if (this.hiLogsTbl && this.hiLogsTbl.currentRecycleList.length > 0) {
       let startDataIndex = this.hiLogsTbl.startSkip + 1;
       let endDataIndex = startDataIndex;
@@ -293,8 +265,10 @@ export class TabPaneHiLogs extends BaseElement {
     if (this.systemLogSource?.length > 0) {
       this.filterData = this.systemLogSource.filter((data) => this.isFilterLog(data));
     }
-    // @ts-ignore
-    this.hiLogsTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 45 + 'px';
+    if (this.hiLogsTbl) {
+      // @ts-ignore
+      this.hiLogsTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 45 + 'px';
+    }
     if (this.filterData.length > 0) {
       this.hiLogsTbl!.recycleDataSource = this.filterData;
     } else {
@@ -336,78 +310,6 @@ export class TabPaneHiLogs extends BaseElement {
         optionFn.apply(this, ...args);
       }, dur);
     };
-  }
-
-  private initTitleCssStyle(): string {
-    return `<style>
-        :host{
-          padding: 10px 10px;
-          display: flex;
-          flex-direction: column;
-        }
-        .logs-title-content {
-          display: flex;
-          flex-wrap: wrap;
-          width: 100%;
-          align-items: center;
-          justify-content: space-between;
-          border-bottom: 1px solid #D5D5D5;
-          padding: 10px 0px;
-        }
-        #log-title {
-          flex-grow: 1;
-        }
-        .filter-input {
-          line-height: 16px;
-          margin-right: 20px;
-          padding: 3px 12px;
-          height: 16px;
-        }
-        .level-content {
-          margin-right: 20px;
-        }
-        input {
-          background: #FFFFFF;
-          font-size: 14px;
-          color: #212121;
-          text-align: left;
-          line-height: 16px;
-          font-weight: 400;
-          text-indent: 2%;
-          border: 1px solid #979797;
-          border-radius: 10px;
-        }
-        select {
-          border: 1px solid rgba(0,0,0,0.60);
-          border-radius: 10px;
-        }
-        option {
-          font-weight: 400;
-          font-size: 14px;
-        }
-        .tagElement {
-          display: flex;
-          background-color: #0A59F7;
-          align-items: center;
-          margin-right: 5px;
-          border-radius: 10px;
-          font-size: 14px;
-          height: 22px;
-          margin-bottom: 5px;
-        }
-        .tag {
-          line-height: 14px;
-          padding: 4px 8px;
-          color: #FFFFFF;
-        }
-        #level-filter {
-          padding: 1px 12px;
-          opacity: 0.6;
-          font-size: 14px;
-          line-height: 20px;
-          font-weight: 400;
-        }
-        </style>`;
   }
 }
 

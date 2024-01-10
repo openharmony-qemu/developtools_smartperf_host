@@ -114,6 +114,15 @@ public:
     CpuDumpInfo* GetCpuDumpInfo();
     ProfileMemInfo* GetProfileMemInfo();
     RSImageDumpInfo* GetRSImageDumpInfo();
+
+private:
+    void ClearBase();
+    void ClearMeasure();
+    void ClearHiperf();
+    void ClearArkTs();
+    void ClearNativeMemory();
+    void ClearEbpf();
+    void ClearTemplate();
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -25,6 +25,8 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { TabPaneFilter } from '../TabPaneFilter';
 import { initSort } from '../SheetUtils';
 import { TabpaneFilesystemCalltree } from './TabPaneFileSystemCalltree';
+import { NUM_5, NUM_MILLON } from '../../../../bean/NumBean';
+import { TabPaneFilesystemStatisticsAnalysisHtml } from './TabPaneFilesystemStatisticsAnalysis.html';
 
 @element('tabpane-file-statistics-analysis')
 export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
@@ -58,8 +60,8 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   private threadStatisticsData!: {};
   private libStatisticsData!: {};
   private functionStatisticsData!: {};
-  private titleEl: HTMLDivElement | undefined | null;
-  private filterEl: TabPaneFilter | undefined | null;
+  private fileSystemTitleEl: HTMLDivElement | undefined | null;
+  private fileSystemFilterEl: TabPaneFilter | undefined | null;
   private hideProcessCheckBox: LitCheckBox | undefined | null;
   private hideThreadCheckBox: LitCheckBox | undefined | null;
   private checkBoxs: NodeListOf<LitCheckBox> | undefined | null;
@@ -82,10 +84,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.reset(this.fileStatisticsAnalysisTableProcess!, false);
     this.hideProcessCheckBox!.checked = false;
     this.hideThreadCheckBox!.checked = false;
-    this.titleEl!.textContent = '';
+    this.fileSystemTitleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.fileStatisticsAnalysisRange!.textContent =
-      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + ' ms';
+      'Selected range: ' + parseFloat(((val.rightNs - val.leftNs) / NUM_MILLON).toFixed(NUM_5)) + ' ms';
     this.fileStatisticsAnalysisProgressEL!.loading = true;
     this.getDataByWorker(
       [
@@ -115,10 +117,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.fileStatisticsAnalysisTableType = this.shadowRoot!.querySelector<LitTable>('#tb-type-usage');
     this.fileStatisticsAnalysisProgressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.goBack();
-    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
-    this.filterEl = this.shadowRoot?.querySelector('#filter');
-    this.filterEl!.setOptionsList(['Hide Process', 'Hide Thread']);
-    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
+    this.fileSystemTitleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
+    this.fileSystemFilterEl = this.shadowRoot?.querySelector('#filter');
+    this.fileSystemFilterEl!.setOptionsList(['Hide Process', 'Hide Thread']);
+    let popover = this.fileSystemFilterEl!.shadowRoot!.querySelector('#check-popover');
     this.hideProcessCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideProcess');
     this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
     this.checkBoxs = popover!.querySelectorAll<LitCheckBox>('.check-wrap > lit-check-box');
@@ -150,7 +152,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
   }
 
   private checkBoxListener(box: LitCheckBox): void {
-    box!.addEventListener('change', (event) => {
+    box!.addEventListener('change', () => {
       if (this.hideProcessCheckBox!.checked && this.hideThreadCheckBox!.checked) {
         this.hideThread();
         this.fsBack!.style.visibility = 'hidden';
@@ -181,10 +183,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         }
         fsTab!.fsRowClickData = detail.data;
         let title = '';
-        if (this.titleEl?.textContent === '') {
+        if (this.fileSystemTitleEl?.textContent === '') {
           title = detail.data.tableName;
         } else {
-          title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+          title = this.fileSystemTitleEl?.textContent + ' / ' + detail.data.tableName;
         }
         fsTab!.pieTitle = title;
         //  是否是在表格上右键点击跳转到火焰图的
@@ -226,17 +228,17 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       this.fsBack!.style.visibility = 'visible';
     } else {
       this.fsBack!.style.visibility = 'hidden';
-      this.titleEl!.textContent = '';
+      this.fileSystemTitleEl!.textContent = '';
     }
     if (this.fsTableArray) {
-      for (let table of this.fsTableArray) {
-        if (table === showTable) {
-          initSort(table!, this.fsSortColumn, this.fsSortType);
-          table.style.display = 'grid';
-          table.setAttribute('hideDownload', '');
+      for (let fileSystemTable of this.fsTableArray) {
+        if (fileSystemTable === showTable) {
+          initSort(fileSystemTable!, this.fsSortColumn, this.fsSortType);
+          fileSystemTable.style.display = 'grid';
+          fileSystemTable.setAttribute('hideDownload', '');
         } else {
-          table!.style.display = 'none';
-          table!.removeAttribute('hideDownload');
+          fileSystemTable!.style.display = 'none';
+          fileSystemTable!.removeAttribute('hideDownload');
         }
       }
     }
@@ -340,7 +342,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.titleEl!.textContent = '';
+    this.fileSystemTitleEl!.textContent = '';
     this.tabName!.textContent = 'Statistic By Process AllDuration';
     this.fileStatisticsAnalysisPidData.unshift(this.processStatisticsData);
     this.fileStatisticsAnalysisTableProcess!.recycleDataSource = this.fileStatisticsAnalysisPidData;
@@ -355,7 +357,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.getFilesystemType(it);
     // @ts-ignore
     this.fsProcessName = it.tableName;
-    this.titleEl!.textContent = this.fsProcessName;
+    this.fileSystemTitleEl!.textContent = this.fsProcessName;
     this.fsPieChart?.hideTip();
   }
 
@@ -386,7 +388,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.titleEl!.textContent = this.fsProcessName;
+    this.fileSystemTitleEl!.textContent = this.fsProcessName;
     this.tabName!.textContent = 'Statistic By type AllDuration';
     this.fileStatisticsAnalysisTypeData.unshift(this.typeStatisticsData);
     this.fileStatisticsAnalysisTableType!.recycleDataSource = this.fileStatisticsAnalysisTypeData;
@@ -424,7 +426,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     if (this.typeName.length > 0) {
       title += this.typeName;
     }
-    this.titleEl!.textContent = title;
+    this.fileSystemTitleEl!.textContent = title;
     this.fsPieChart?.hideTip();
   }
 
@@ -467,7 +469,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     if (this.typeName.length > 0) {
       title += this.typeName;
     }
-    this.titleEl!.textContent = title;
+    this.fileSystemTitleEl!.textContent = title;
     this.tabName!.textContent = 'Statistic By Thread AllDuration';
     this.fileStatisticsAnalysisThreadData.unshift(this.threadStatisticsData);
     this.fileStatisticsAnalysisTableThread!.recycleDataSource = this.fileStatisticsAnalysisThreadData;
@@ -503,7 +505,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     if (this.fileStatisticsAnalysisThreadName.length > 0) {
       title += this.fileStatisticsAnalysisThreadName;
     }
-    this.titleEl!.textContent = title;
+    this.fileSystemTitleEl!.textContent = title;
     this.fsPieChart?.hideTip();
   }
   private libraryPieChart(): void {
@@ -545,21 +547,21 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    let title = '';
+    let fileSystemTitle = '';
     if (this.fsProcessName.length > 0) {
-      title += this.fsProcessName + ' / ';
+      fileSystemTitle += this.fsProcessName + ' / ';
     }
     if (this.typeName.length > 0) {
       if (this.hideThreadCheckBox?.checked) {
-        title += this.typeName;
+        fileSystemTitle += this.typeName;
       } else {
-        title += this.typeName + ' / ';
+        fileSystemTitle += this.typeName + ' / ';
       }
     }
     if (this.fileStatisticsAnalysisThreadName.length > 0) {
-      title += this.fileStatisticsAnalysisThreadName;
+      fileSystemTitle += this.fileStatisticsAnalysisThreadName;
     }
-    this.titleEl!.textContent = title;
+    this.fileSystemTitleEl!.textContent = fileSystemTitle;
     this.tabName!.textContent = 'Statistic By Library AllDuration';
     this.fileStatisticsAnalysisSoData.unshift(this.libStatisticsData);
     this.fileStatisticsAnalysisTableSo!.recycleDataSource = this.fileStatisticsAnalysisSoData;
@@ -585,7 +587,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     if (it.tableName.length > 0) {
       title += it.tableName;
     }
-    this.titleEl!.textContent = title;
+    this.fileSystemTitleEl!.textContent = title;
     this.fsPieChart?.hideTip();
   }
 
@@ -1088,109 +1090,15 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         this.fileStatisticsAnalysisTableType!.style.height = this.parentElement!.clientHeight - 50 + 'px';
         this.fileStatisticsAnalysisTableType?.reMeauseHeight();
         if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
-          this.filterEl!.style.display = 'none';
+          this.fileSystemFilterEl!.style.display = 'none';
         } else {
-          this.filterEl!.style.display = 'flex';
+          this.fileSystemFilterEl!.style.display = 'flex';
         }
       }
     }).observe(this.parentElement!);
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host {
-            display: flex;
-            flex-direction: column;
-        }
-        #fs-chart-pie{
-             height: 300px;
-             margin-bottom: 31px;
-        }
-        .fs-table-box{
-            width: 60%;
-            border-left: solid 1px var(--dark-border1,#e0e0e0);
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 31px;
-        }
-        .fs-go-back{
-            display:flex;
-            align-items: center;
-            cursor: pointer;
-            margin-left: 20px;
-            visibility: hidden;
-        }
-        .fs-back-box{
-            width: 40px;
-            height: 20px;
-            background-color: var(--bark-expansion,#0C65D1);
-            border-radius: 5px;
-            color: #fff;
-            display: flex;
-            margin-right: 10px;
-            justify-content: center;
-            align-items: center;
-        }
-        .fs-subheading{
-            font-weight: bold;
-            text-align: center;
-        }
-        .fs-stat-analysis-progress{
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        #filter{
-            position: absolute;
-            bottom: 0px;
-        }
-        </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label> 
-        <div style="display: flex;flex-direction: row;" class="d-box">
-            <lit-progress-bar class="progress fs-stat-analysis-progress"></lit-progress-bar>
-            <div id="left_table" style="width: 40%;height:auto;">
-                <div style="display: flex;margin-bottom: 10px">
-                    <div class="fs-go-back">
-                        <div class="fs-back-box">
-                            <lit-icon class="file-analysis" name="arrowleft"></lit-icon>
-                        </div>
-                    </div>
-                    <div class="title"></div>
-                </div>
-                <div class="fs-subheading"></div>                 
-                <lit-chart-pie  id="fs-chart-pie"></lit-chart-pie>     
-            </div>
-            <div class="fs-table-box" style="height:auto;overflow: auto">
-                <lit-table id="tb-process-usage"class="file-analysis" style="max-height:565px;min-height: 350px">
-                    <lit-table-column width="1fr" title="ProcessName" data-index="tableName" key="tableName" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-type-usage" class="file-analysis" style="max-height:565px;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Type" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-thread-usage" class="file-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="ThreadName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                    <lit-table id="tb-so-usage" class="file-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-function-usage" class="file-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-            </div>
-        </div>
-        <tab-pane-filter id="filter" options></tab-pane-filter>
-`;
+    return TabPaneFilesystemStatisticsAnalysisHtml;
   }
 }

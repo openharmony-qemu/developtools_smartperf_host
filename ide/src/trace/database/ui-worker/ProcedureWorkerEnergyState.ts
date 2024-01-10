@@ -13,18 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  BaseStruct,
-  drawLines,
-  drawLoading,
-  drawFlagLine,
-  drawSelection,
-  isFrameContainPoint,
-  drawLoadingFrame,
-  ns2x,
-  Render,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, isFrameContainPoint, drawLoadingFrame, ns2x, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyStateRender extends Render {
@@ -43,9 +32,9 @@ export class EnergyStateRender extends Render {
     state(
       stateList,
       stateFilter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.startNS || 0,
+      TraceRow.range!.endNS || 0,
+      TraceRow.range!.totalNS || 0,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -88,27 +77,37 @@ export function state(
     for (let i = 0; i < res.length; i++) {
       let stateItem = res[i];
       if (i === res.length - 1) {
-        stateItem.dur = (endNS || 0) - (stateItem.startNs || 0);
+        stateItem.dur = endNS - (stateItem.startNs || 0);
       } else {
         stateItem.dur = (res[i + 1].startNs || 0) - (stateItem.startNs || 0);
       }
-      if ((stateItem.startNs || 0) + (stateItem.dur || 0) > (startNS || 0) && (stateItem.startNs || 0) < (endNS || 0)) {
-        EnergyStateStruct.setStateFrame(res[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if ((stateItem.startNs || 0) + (stateItem.dur || 0) > startNS && (stateItem.startNs || 0) < endNS) {
+        EnergyStateStruct.setStateFrame(res[i], 5, startNS, endNS, totalNS, frame);
       }
     }
     return;
   }
   res.length = 0;
+  stateFilter(stateList, startNS, endNS, totalNS, frame, res);
+}
+function stateFilter(
+  stateList: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any,
+  res: Array<any>
+): void {
   if (stateList) {
     for (let index = 0; index < stateList.length; index++) {
       let item = stateList[index];
       if (index === stateList.length - 1) {
-        item.dur = (endNS || 0) - (item.startNs || 0);
+        item.dur = endNS - (item.startNs || 0);
       } else {
         item.dur = (stateList[index + 1].startNs || 0) - (item.startNs || 0);
       }
-      if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
-        EnergyStateStruct.setStateFrame(stateList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if ((item.startNs || 0) + (item.dur || 0) > startNS && (item.startNs || 0) < endNS) {
+        EnergyStateStruct.setStateFrame(stateList[index], 5, startNS, endNS, totalNS, frame);
         if (
           index > 0 &&
           (stateList[index - 1].frame?.x || 0) == (stateList[index].frame?.x || 0) &&

@@ -74,11 +74,11 @@ int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto frameMapsTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(frameMapsTabCs, sId);
+    for (size_t i = 0; i < frameMapsTabCs.size(); i++) {
+        const auto& c = frameMapsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -95,12 +95,12 @@ int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto frameMapsTabOrderbys = fc.GetOrderBys();
+    for (auto i = frameMapsTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(frameMapsTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(frameMapsTabOrderbys[i].desc);
                 break;
             default:
                 break;

@@ -14,8 +14,7 @@
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
 import { threadPool } from '../../SqlLite';
-import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
-import { HiPerfThreadStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfThread';
+import { HiPerfThreadStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
 
 export function hiperfThreadDataSender(
   tid: number,
@@ -28,10 +27,10 @@ export function hiperfThreadDataSender(
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
+      eventTypeId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       startNS: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       eventCount: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       sampleCount: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      eventTypeId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       callChainId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       height: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
@@ -40,8 +39,6 @@ export function hiperfThreadDataSender(
     threadPool.submitProto(
       QueryEnum.HiperfThreadData,
       {
-        tid: tid,
-        maxCpuCount: -1,
         scale: scale,
         drawType: drawType,
         intervalPerf: intervalPerf,
@@ -52,6 +49,8 @@ export function hiperfThreadDataSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        tid: tid,
+        maxCpuCount: -1,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
@@ -70,13 +69,13 @@ function arrayBufferHandler(buffers: any, len: number): HiPerfThreadStruct[] {
   let height = new Int32Array(buffers.height);
   for (let i = 0; i < len; i++) {
     outArr.push({
+      dur: 10_000_000,
       startNS: startNS[i],
       event_count: eventCount[i],
       sampleCount: sampleCount[i],
       event_type_id: eventTypeId[i],
       callchain_id: callChainId[i],
       height: height[i],
-      dur: 10_000_000,
     } as unknown as HiPerfThreadStruct);
   }
   return outArr;

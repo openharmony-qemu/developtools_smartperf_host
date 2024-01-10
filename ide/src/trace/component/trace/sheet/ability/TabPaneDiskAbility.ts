@@ -21,7 +21,7 @@ import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import {getTabDiskAbilityData} from "../../../../database/sql/Ability.sql";
+import { getTabDiskAbilityData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-disk-ability')
 export class TabPaneDiskAbility extends BaseElement {
@@ -30,9 +30,11 @@ export class TabPaneDiskAbility extends BaseElement {
   private queryDiskResult: Array<SystemDiskIOSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(diskAbilityValue: SelectionParam | any) {
-    // @ts-ignore
-    this.diskAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+  set data(diskAbilityValue: SelectionParam) {
+    if (this.diskAbilityTbl) {
+      // @ts-ignore
+      this.diskAbilityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(diskAbilityValue);
   }
 
@@ -44,12 +46,12 @@ export class TabPaneDiskAbility extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.diskAbilityTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryDiskResult.length > 0) {
       let filterDisk = this.queryDiskResult.filter((item) => {
         let array = this.toDiskAbilityArray(item);
@@ -66,7 +68,7 @@ export class TabPaneDiskAbility extends BaseElement {
     }
   }
 
-  toDiskAbilityArray(systemDiskIOSummary: SystemDiskIOSummary): any[] {
+  toDiskAbilityArray(systemDiskIOSummary: SystemDiskIOSummary): string[] {
     let array: Array<string> = [];
     array.push(systemDiskIOSummary.startTimeStr);
     array.push(systemDiskIOSummary.durationStr);
@@ -80,10 +82,10 @@ export class TabPaneDiskAbility extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(val: SelectionParam): void {
     getTabDiskAbilityData(val.leftNs, val.rightNs).then((result) => {
       log('getTabDiskAbilityData result size : ' + result.length);
-      if (result.length != null && result.length > 0) {
+      if (result.length !== null && result.length > 0) {
         for (const systemDiskIOSummary of result) {
           if (systemDiskIOSummary.startTime <= 0) {
             systemDiskIOSummary.startTimeStr = '0:000.000.000';
@@ -124,25 +126,35 @@ export class TabPaneDiskAbility extends BaseElement {
         }
         </style>
         <lit-table id="tb-disk-ability" class="disk-ability-table">
-            <lit-table-column order width="1fr" title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start">
+            <lit-table-column order width="1fr"
+            title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Data Read" data-index="dataReadStr" key="dataReadStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Data Read" data-index="dataReadStr" key="dataReadStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Data Read/sec" data-index="dataReadSecStr" key="dataReadSecStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Data Read/sec" data-index="dataReadSecStr" key="dataReadSecStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Data Write" data-index="dataWriteStr" key="dataWriteStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Data Write" data-index="dataWriteStr" key="dataWriteStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Data Write/sec" data-index="dataWriteSecStr" key="dataWriteSecStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Data Write/sec" data-index="dataWriteSecStr" key="dataWriteSecStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Reads In" data-index="readsIn" key="readsInStr" align="flex-startStr" >
+            <lit-table-column order width="1fr"
+            title="Reads In" data-index="readsIn" key="readsInStr" align="flex-startStr" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Reads In/sec" data-index="readsInSecStr" key="readsInSecStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Reads In/sec" data-index="readsInSecStr" key="readsInSecStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Write Out" data-index="writeOutStr" key="writeOutStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Write Out" data-index="writeOutStr" key="writeOutStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Write Out/sec" data-index="writeOutSecStr" key="writeOutSecStr" align="flex-start" >
+            <lit-table-column order width="1fr"
+            title="Write Out/sec" data-index="writeOutSecStr" key="writeOutSecStr" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;
@@ -167,7 +179,7 @@ export class TabPaneDiskAbility extends BaseElement {
   };
 
   compareFunction = (sort: number, getProperty: (data: SystemDiskIOSummary) => number | string) =>
-    (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) => {
+    (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary): number => {
       let leftValue = getProperty(diskAbilityLeftData);
       let rightValue = getProperty(diskAbilityRightData);
       let result = 0;
@@ -179,12 +191,13 @@ export class TabPaneDiskAbility extends BaseElement {
       return result;
     };
 
-  compareDisk(property: string, sort: number, type: string) {
+  compareDisk(property: string, sort: number, type: string):
+    (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) => number {
     let getProperty = this.getPropertyByType(property, type);
     return this.compareFunction(sort, getProperty);
   }
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     let typeMapping = {
       startTime: 'string',
       durationStr: 'durationStr',

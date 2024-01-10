@@ -30,6 +30,31 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+const uint64_t TS = 104;
+const uint64_t TOTALLOAD_01 = 4;
+const uint64_t USERLOAD_01 = 44;
+const uint64_t SYSTEMLOAD_01 = 34;
+const uint64_t PROCESS_NUM_01 = 204;
+const uint64_t TOTALLOAD_02 = 5;
+const uint64_t USERLOAD_02 = 45;
+const uint64_t SYSTEMLOAD_02 = 35;
+const uint64_t PROCESS_NUM_02 = 205;
+const uint64_t TOTALLOAD_03 = 6;
+const uint64_t USERLOAD_03 = 46;
+const uint64_t SYSTEMLOAD_03 = 36;
+const uint64_t PROCESS_NUM_03 = 206;
+const uint64_t TOTALLOAD_04 = 6;
+const uint64_t USERLOAD_04 = 46;
+const uint64_t SYSTEMLOAD_04 = 36;
+const uint64_t PROCESS_NUM_04 = 206;
+
+struct CpudataInfo {
+    uint64_t total_load;
+    uint64_t user_load;
+    uint64_t sys_load;
+    uint64_t process_num;
+};
+
 class HtraceCpuDataParserTest : public ::testing::Test {
 public:
     void SetUp()
@@ -38,6 +63,23 @@ public:
     }
 
     void TearDown() const {}
+
+    std::string SetCpuData(CpudataInfo& cpudataInfo, bool isSetUsageInfo)
+    {
+        auto cpuInfo(std::make_unique<CpuData>());
+        cpuInfo->set_total_load(cpudataInfo.total_load);
+        cpuInfo->set_user_load(cpudataInfo.user_load);
+        cpuInfo->set_sys_load(cpudataInfo.sys_load);
+        cpuInfo->set_process_num(cpudataInfo.process_num);
+        if (isSetUsageInfo) {
+            CpuUsageInfo* cpuUsageInfo = new CpuUsageInfo();
+            cpuInfo->set_allocated_cpu_usage_info(cpuUsageInfo);
+        }
+
+        std::string cpuData = "";
+        cpuInfo->SerializeToString(&cpuData);
+        return cpuData;
+    }
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
@@ -51,13 +93,13 @@ public:
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithoutCpuData, TestSize.Level1)
 {
     TS_LOGI("test11-1");
-    uint64_t ts = 100;
+
     auto cpuInfo = std::make_unique<CpuData>();
     std::string cpuData = "";
     cpuInfo->SerializeToString(&cpuData);
     ProtoReader::BytesView cpuInfoData(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceCpuDataParser.Parse(cpuInfoData, ts);
+    htraceCpuDataParser.Parse(cpuInfoData, TS);
     auto size = stream_.traceDataCache_->GetConstCpuUsageInfoData().Size();
     EXPECT_FALSE(size);
 }
@@ -70,23 +112,12 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithoutCpuData, TestSize.Level1)
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithOneCpuData, TestSize.Level1)
 {
     TS_LOGI("test11-2");
-    uint64_t ts = 102;
-    const uint64_t TOTAL_LOAD = 2;
-    const uint64_t USER_LOAD = 42;
-    const uint64_t SYSTEM_LOAD = 32;
-    const uint64_t PROCESS_NUM = 202;
 
-    auto cpuInfo(std::make_unique<CpuData>());
-    cpuInfo->set_total_load(TOTAL_LOAD);
-    cpuInfo->set_user_load(USER_LOAD);
-    cpuInfo->set_sys_load(SYSTEM_LOAD);
-    cpuInfo->set_process_num(PROCESS_NUM);
-
-    std::string cpuData = "";
-    cpuInfo->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
+    std::string cpuData = SetCpuData(cpudataInfo, false);
     ProtoReader::BytesView cpuInfoData(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceCpuDataParser.Parse(cpuInfoData, ts);
+    htraceCpuDataParser.Parse(cpuInfoData, TS);
     htraceCpuDataParser.Finish();
     auto size = stream_.traceDataCache_->GetConstCpuUsageInfoData().Size();
     EXPECT_FALSE(size);
@@ -100,55 +131,24 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithOneCpuData, TestSize.Level1)
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithTwoCpuData, TestSize.Level1)
 {
     TS_LOGI("test11-3");
-    uint64_t ts = 103;
-    const uint64_t TOTALLOAD_01 = 2;
-    const uint64_t USERLOAD_01 = 42;
-    const uint64_t SYSTEMLOAD_01 = 32;
-    const uint64_t PROCESS_NUM_01 = 202;
 
-    const uint64_t TOTALLOAD_02 = 3;
-    const uint64_t USERLOAD_02 = 43;
-    const uint64_t SYSTEMLOAD_02 = 33;
-    const uint64_t PROCESS_NUM_02 = 203;
-
-    CpuUsageInfo* cpuUsageInfo01 = new CpuUsageInfo();
-    auto cpuDataInfo01(std::make_unique<CpuData>());
-    cpuDataInfo01->set_allocated_cpu_usage_info(cpuUsageInfo01);
-    cpuDataInfo01->set_total_load(TOTALLOAD_01);
-    cpuDataInfo01->set_user_load(USERLOAD_01);
-    cpuDataInfo01->set_sys_load(SYSTEMLOAD_01);
-    cpuDataInfo01->set_process_num(PROCESS_NUM_01);
-
-    std::string cpuData = "";
-    cpuDataInfo01->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo01 = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
+    std::string cpuData = SetCpuData(cpudataInfo01, true);
     ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceCpuDataParser.Parse(cpuInfoData01, ts);
+    htraceCpuDataParser.Parse(cpuInfoData01, TS);
 
-    CpuUsageInfo* cpuUsageInfo02 = new CpuUsageInfo();
-    auto cpuDataInfo02(std::make_unique<CpuData>());
-    cpuDataInfo02->set_allocated_cpu_usage_info(cpuUsageInfo02);
-    cpuDataInfo02->set_total_load(TOTALLOAD_02);
-    cpuDataInfo02->set_user_load(USERLOAD_02);
-    cpuDataInfo02->set_sys_load(SYSTEMLOAD_02);
-    cpuDataInfo02->set_process_num(PROCESS_NUM_02);
-
-    cpuDataInfo02->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo02 = {TOTALLOAD_02, USERLOAD_02, SYSTEMLOAD_02, PROCESS_NUM_02};
+    cpuData = SetCpuData(cpudataInfo02, true);
     ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
-    htraceCpuDataParser.Parse(cpuInfoData02, ts);
+    htraceCpuDataParser.Parse(cpuInfoData02, TS);
     htraceCpuDataParser.Finish();
 
-    auto size = stream_.traceDataCache_->GetConstCpuUsageInfoData().Size();
-    EXPECT_EQ(1, size);
-
-    auto totalLoad = stream_.traceDataCache_->GetConstCpuUsageInfoData().TotalLoad()[0];
-    EXPECT_EQ(totalLoad, TOTALLOAD_02);
-
-    auto userLoad = stream_.traceDataCache_->GetConstCpuUsageInfoData().UserLoad()[0];
-    EXPECT_EQ(userLoad, USERLOAD_02);
-
-    auto systemLoad = stream_.traceDataCache_->GetConstCpuUsageInfoData().SystemLoad()[0];
-    EXPECT_EQ(systemLoad, SYSTEMLOAD_02);
+    auto cpuUsageInfoData = stream_.traceDataCache_->GetConstCpuUsageInfoData();
+    ASSERT_EQ(1, cpuUsageInfoData.Size());
+    EXPECT_EQ(cpuUsageInfoData.TotalLoad()[0], TOTALLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.UserLoad()[0], USERLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.SystemLoad()[0], SYSTEMLOAD_02);
 }
 
 /**
@@ -159,78 +159,32 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithTwoCpuData, TestSize.Level1)
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithThreeCpuData, TestSize.Level1)
 {
     TS_LOGI("test11-4");
-    uint64_t ts = 104;
-    const uint64_t TOTALLOAD_01 = 4;
-    const uint64_t USERLOAD_01 = 44;
-    const uint64_t SYSTEMLOAD_01 = 34;
-    const uint64_t PROCESS_NUM_01 = 204;
 
-    const uint64_t TOTALLOAD_02 = 5;
-    const uint64_t USERLOAD_02 = 45;
-    const uint64_t SYSTEMLOAD_02 = 35;
-    const uint64_t PROCESS_NUM_02 = 205;
-
-    const uint64_t TOTALLOAD_03 = 6;
-    const uint64_t USERLOAD_03 = 46;
-    const uint64_t SYSTEMLOAD_03 = 36;
-    const uint64_t PROCESS_NUM_03 = 206;
-
-    CpuUsageInfo* cpuUsageInfo01 = new CpuUsageInfo();
-    auto cpuDataInfo01(std::make_unique<CpuData>());
-    cpuDataInfo01->set_allocated_cpu_usage_info(cpuUsageInfo01);
-    cpuDataInfo01->set_total_load(TOTALLOAD_01);
-    cpuDataInfo01->set_user_load(USERLOAD_01);
-    cpuDataInfo01->set_sys_load(SYSTEMLOAD_01);
-    cpuDataInfo01->set_process_num(PROCESS_NUM_01);
-
-    std::string cpuData = "";
-    cpuDataInfo01->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo01 = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
+    std::string cpuData = SetCpuData(cpudataInfo01, true);
     ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceCpuDataParser.Parse(cpuInfoData01, ts);
+    htraceCpuDataParser.Parse(cpuInfoData01, TS);
 
-    CpuUsageInfo* cpuUsageInfo02 = new CpuUsageInfo();
-    auto cpuDataInfo02(std::make_unique<CpuData>());
-    cpuDataInfo02->set_allocated_cpu_usage_info(cpuUsageInfo02);
-    cpuDataInfo02->set_total_load(TOTALLOAD_02);
-    cpuDataInfo02->set_user_load(USERLOAD_02);
-    cpuDataInfo02->set_sys_load(SYSTEMLOAD_02);
-    cpuDataInfo02->set_process_num(PROCESS_NUM_02);
-
-    cpuDataInfo02->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo02 = {TOTALLOAD_02, USERLOAD_02, SYSTEMLOAD_02, PROCESS_NUM_02};
+    cpuData = SetCpuData(cpudataInfo02, true);
     ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
-    htraceCpuDataParser.Parse(cpuInfoData02, ts);
+    htraceCpuDataParser.Parse(cpuInfoData02, TS);
 
-    CpuUsageInfo* cpuUsageInfo03 = new CpuUsageInfo();
-    auto cpuDataInfo03(std::make_unique<CpuData>());
-    cpuDataInfo03->set_allocated_cpu_usage_info(cpuUsageInfo03);
-    cpuDataInfo03->set_total_load(TOTALLOAD_03);
-    cpuDataInfo03->set_user_load(USERLOAD_03);
-    cpuDataInfo03->set_sys_load(SYSTEMLOAD_03);
-    cpuDataInfo03->set_process_num(PROCESS_NUM_03);
-
-    cpuDataInfo03->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo03 = {TOTALLOAD_03, USERLOAD_03, SYSTEMLOAD_03, PROCESS_NUM_03};
+    cpuData = SetCpuData(cpudataInfo03, true);
     ProtoReader::BytesView cpuInfoData03(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
-    htraceCpuDataParser.Parse(cpuInfoData03, ts);
+    htraceCpuDataParser.Parse(cpuInfoData03, TS);
     htraceCpuDataParser.Finish();
 
-    auto size = stream_.traceDataCache_->GetConstCpuUsageInfoData().Size();
-    EXPECT_EQ(2, size);
-
-    auto totalLoadFirst = stream_.traceDataCache_->GetConstCpuUsageInfoData().TotalLoad()[0];
-    auto totalLoadSecond = stream_.traceDataCache_->GetConstCpuUsageInfoData().TotalLoad()[1];
-    EXPECT_EQ(totalLoadFirst, TOTALLOAD_02);
-    EXPECT_EQ(totalLoadSecond, TOTALLOAD_03);
-
-    auto userLoadFirst = stream_.traceDataCache_->GetConstCpuUsageInfoData().UserLoad()[0];
-    auto userLoadSecond = stream_.traceDataCache_->GetConstCpuUsageInfoData().UserLoad()[1];
-    EXPECT_EQ(userLoadFirst, USERLOAD_02);
-    EXPECT_EQ(userLoadSecond, USERLOAD_03);
-
-    auto systemLoadFirst = stream_.traceDataCache_->GetConstCpuUsageInfoData().SystemLoad()[0];
-    auto systemLoadSecond = stream_.traceDataCache_->GetConstCpuUsageInfoData().SystemLoad()[1];
-    EXPECT_EQ(systemLoadFirst, SYSTEMLOAD_02);
-    EXPECT_EQ(systemLoadSecond, SYSTEMLOAD_03);
+    auto cpuUsageInfoData = stream_.traceDataCache_->GetConstCpuUsageInfoData();
+    ASSERT_EQ(2, cpuUsageInfoData.Size());
+    EXPECT_EQ(cpuUsageInfoData.TotalLoad()[0], TOTALLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.TotalLoad()[1], TOTALLOAD_03);
+    EXPECT_EQ(cpuUsageInfoData.UserLoad()[0], USERLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.UserLoad()[1], USERLOAD_03);
+    EXPECT_EQ(cpuUsageInfoData.SystemLoad()[0], SYSTEMLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.SystemLoad()[1], SYSTEMLOAD_03);
 }
 
 /**
@@ -241,101 +195,40 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithThreeCpuData, TestSize.Level1)
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithMultipleCpuData, TestSize.Level1)
 {
     TS_LOGI("test11-5");
-    uint64_t ts = 104;
-    const uint64_t TOTALLOAD_01 = 4;
-    const uint64_t USERLOAD_01 = 44;
-    const uint64_t SYSTEMLOAD_01 = 34;
-    const uint64_t PROCESS_NUM_01 = 204;
 
-    const uint64_t TOTALLOAD_02 = 5;
-    const uint64_t USERLOAD_02 = 45;
-    const uint64_t SYSTEMLOAD_02 = 35;
-    const uint64_t PROCESS_NUM_02 = 205;
-
-    const uint64_t TOTALLOAD_03 = 6;
-    const uint64_t USERLOAD_03 = 46;
-    const uint64_t SYSTEMLOAD_03 = 36;
-    const uint64_t PROCESS_NUM_03 = 206;
-
-    const uint64_t TOTALLOAD_04 = 6;
-    const uint64_t USERLOAD_04 = 46;
-    const uint64_t SYSTEMLOAD_04 = 36;
-    const uint64_t PROCESS_NUM_04 = 206;
-
-    CpuUsageInfo* cpuUsageInfo01 = new CpuUsageInfo();
-    auto cpuDataInfo01(std::make_unique<CpuData>());
-    cpuDataInfo01->set_allocated_cpu_usage_info(cpuUsageInfo01);
-    cpuDataInfo01->set_total_load(TOTALLOAD_01);
-    cpuDataInfo01->set_user_load(USERLOAD_01);
-    cpuDataInfo01->set_sys_load(SYSTEMLOAD_01);
-    cpuDataInfo01->set_process_num(PROCESS_NUM_01);
-
-    std::string cpuData = "";
-    cpuDataInfo01->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo01 = {TOTALLOAD_01, USERLOAD_01, SYSTEMLOAD_01, PROCESS_NUM_01};
+    std::string cpuData = SetCpuData(cpudataInfo01, true);
     ProtoReader::BytesView cpuInfoData01(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    htraceCpuDataParser.Parse(cpuInfoData01, ts);
+    htraceCpuDataParser.Parse(cpuInfoData01, TS);
 
-    CpuUsageInfo* cpuUsageInfo02 = new CpuUsageInfo();
-    auto cpuDataInfo02(std::make_unique<CpuData>());
-    cpuDataInfo02->set_allocated_cpu_usage_info(cpuUsageInfo02);
-    cpuDataInfo02->set_total_load(TOTALLOAD_02);
-    cpuDataInfo02->set_user_load(USERLOAD_02);
-    cpuDataInfo02->set_sys_load(SYSTEMLOAD_02);
-    cpuDataInfo02->set_process_num(PROCESS_NUM_02);
-
-    cpuDataInfo02->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo02 = {TOTALLOAD_02, USERLOAD_02, SYSTEMLOAD_02, PROCESS_NUM_02};
+    cpuData = SetCpuData(cpudataInfo02, true);
     ProtoReader::BytesView cpuInfoData02(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
-    htraceCpuDataParser.Parse(cpuInfoData02, ts);
+    htraceCpuDataParser.Parse(cpuInfoData02, TS);
 
-    CpuUsageInfo* cpuUsageInfo03 = new CpuUsageInfo();
-    auto cpuDataInfo03(std::make_unique<CpuData>());
-    cpuDataInfo03->set_allocated_cpu_usage_info(cpuUsageInfo03);
-    cpuDataInfo03->set_total_load(TOTALLOAD_03);
-    cpuDataInfo03->set_user_load(USERLOAD_03);
-    cpuDataInfo03->set_sys_load(SYSTEMLOAD_03);
-    cpuDataInfo03->set_process_num(PROCESS_NUM_03);
-
-    cpuDataInfo03->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo03 = {TOTALLOAD_03, USERLOAD_03, SYSTEMLOAD_03, PROCESS_NUM_03};
+    cpuData = SetCpuData(cpudataInfo03, true);
     ProtoReader::BytesView cpuInfoData03(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
-    htraceCpuDataParser.Parse(cpuInfoData03, ts);
+    htraceCpuDataParser.Parse(cpuInfoData03, TS);
 
-    CpuUsageInfo* cpuUsageInfo04 = new CpuUsageInfo();
-    auto cpuDataInfo04(std::make_unique<CpuData>());
-    cpuDataInfo04->set_allocated_cpu_usage_info(cpuUsageInfo04);
-    cpuDataInfo04->set_total_load(TOTALLOAD_04);
-    cpuDataInfo04->set_user_load(USERLOAD_04);
-    cpuDataInfo04->set_sys_load(SYSTEMLOAD_04);
-    cpuDataInfo04->set_process_num(PROCESS_NUM_04);
-
-    cpuDataInfo04->SerializeToString(&cpuData);
+    CpudataInfo cpudataInfo04 = {TOTALLOAD_04, USERLOAD_04, SYSTEMLOAD_04, PROCESS_NUM_04};
+    cpuData = SetCpuData(cpudataInfo04, true);
     ProtoReader::BytesView cpuInfoData04(reinterpret_cast<const uint8_t*>(cpuData.data()), cpuData.size());
-    htraceCpuDataParser.Parse(cpuInfoData04, ts);
+    htraceCpuDataParser.Parse(cpuInfoData04, TS);
     htraceCpuDataParser.Finish();
 
-    auto size = stream_.traceDataCache_->GetConstCpuUsageInfoData().Size();
-    EXPECT_EQ(3, size);
-
-    auto totalLoadFirst = stream_.traceDataCache_->GetConstCpuUsageInfoData().TotalLoad()[0];
-    auto totalLoadSecond = stream_.traceDataCache_->GetConstCpuUsageInfoData().TotalLoad()[1];
-    auto totalLoadThird = stream_.traceDataCache_->GetConstCpuUsageInfoData().TotalLoad()[2];
-    EXPECT_EQ(totalLoadFirst, TOTALLOAD_02);
-    EXPECT_EQ(totalLoadSecond, TOTALLOAD_03);
-    EXPECT_EQ(totalLoadThird, TOTALLOAD_04);
-
-    auto userLoadFirst = stream_.traceDataCache_->GetConstCpuUsageInfoData().UserLoad()[0];
-    auto userLoadSecond = stream_.traceDataCache_->GetConstCpuUsageInfoData().UserLoad()[1];
-    auto userLoadThird = stream_.traceDataCache_->GetConstCpuUsageInfoData().UserLoad()[2];
-    EXPECT_EQ(userLoadFirst, USERLOAD_02);
-    EXPECT_EQ(userLoadSecond, USERLOAD_03);
-    EXPECT_EQ(userLoadThird, USERLOAD_04);
-
-    auto systemLoadFirst = stream_.traceDataCache_->GetConstCpuUsageInfoData().SystemLoad()[0];
-    auto systemLoadSecond = stream_.traceDataCache_->GetConstCpuUsageInfoData().SystemLoad()[1];
-    auto systemLoadThird = stream_.traceDataCache_->GetConstCpuUsageInfoData().SystemLoad()[2];
-    EXPECT_EQ(systemLoadFirst, SYSTEMLOAD_02);
-    EXPECT_EQ(systemLoadSecond, SYSTEMLOAD_03);
-    EXPECT_EQ(systemLoadThird, SYSTEMLOAD_04);
+    auto cpuUsageInfoData = stream_.traceDataCache_->GetConstCpuUsageInfoData();
+    ASSERT_EQ(3, cpuUsageInfoData.Size());
+    EXPECT_EQ(cpuUsageInfoData.TotalLoad()[0], TOTALLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.TotalLoad()[1], TOTALLOAD_03);
+    EXPECT_EQ(cpuUsageInfoData.TotalLoad()[2], TOTALLOAD_04);
+    EXPECT_EQ(cpuUsageInfoData.UserLoad()[0], USERLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.UserLoad()[1], USERLOAD_03);
+    EXPECT_EQ(cpuUsageInfoData.UserLoad()[2], USERLOAD_04);
+    EXPECT_EQ(cpuUsageInfoData.SystemLoad()[0], SYSTEMLOAD_02);
+    EXPECT_EQ(cpuUsageInfoData.SystemLoad()[1], SYSTEMLOAD_03);
+    EXPECT_EQ(cpuUsageInfoData.SystemLoad()[2], SYSTEMLOAD_04);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

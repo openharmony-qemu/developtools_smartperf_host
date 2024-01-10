@@ -58,18 +58,17 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseCpudetaulNoEvents, TestSize.Level1)
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
     dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
-    auto size = tracePacket.ftrace_cpu_detail_size();
-    auto eventSize = cpuDetail->event_size();
-    EXPECT_EQ(size, 1);
-    EXPECT_EQ(eventSize, 0);
+    EXPECT_EQ(tracePacket.ftrace_cpu_detail_size(), 1);
+    EXPECT_EQ(cpuDetail->event_size(), 0);
 }
 /**
  * @tc.name: ParseHtraceWithoutCpuDetailData
@@ -88,17 +87,17 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseHtraceWithoutCpuDetailData, TestSize.Le
 
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
-    auto size = tracePacket.ftrace_cpu_detail_size();
-    auto eventSize = cpuDetail->event_size();
-    EXPECT_EQ(size, 1);
-    EXPECT_EQ(eventSize, 1);
+    EXPECT_EQ(tracePacket.ftrace_cpu_detail_size(), 1);
+    EXPECT_EQ(cpuDetail->event_size(), 1);
 }
 /**
  * @tc.name: ParseHtraceCpuDetailData
@@ -124,20 +123,19 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseHtraceCpuDetailData, TestSize.Level1)
 
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
-    auto size = tracePacket.ftrace_cpu_detail_size();
-    auto eventSize = cpuDetail->event_size();
-    auto state = stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0];
-    EXPECT_EQ(size, 1);
-    EXPECT_EQ(eventSize, 1);
-    EXPECT_EQ(state, 1500);
+    EXPECT_EQ(tracePacket.ftrace_cpu_detail_size(), 1);
+    EXPECT_EQ(cpuDetail->event_size(), 1);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0], 1500);
 }
 /**
  * @tc.name: ParseMultipleCpuDetailData
@@ -173,24 +171,21 @@ HWTEST_F(HtraceCpuDetailParserTest, ParseMultipleCpuDetailData, TestSize.Level1)
 
     std::string cpuDetailStrMsg = "";
     tracePacket.SerializeToString(&cpuDetailStrMsg);
-    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(cpuDetailStrMsg.data()),
-                                              cpuDetailStrMsg.size());
+    dataSeg.seg = std::make_shared<std::string>(cpuDetailStrMsg);
+    ProtoReader::BytesView cpuDetailBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                              dataSeg.seg->size());
     dataSeg.protoData = cpuDetailBytesView;
 
     HtraceCpuDetailParser htraceCpuDetailParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool haveSplit = false;
-    htraceCpuDetailParser.Parse(dataSeg, dataSeg.clockId, haveSplit);
+    ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
+    htraceCpuDetailParser.Parse(dataSeg, tracePluginResult, haveSplit);
     htraceCpuDetailParser.FilterAllEvents();
-    auto size = tracePacket.ftrace_cpu_detail_size();
-    auto eventSize = cpuDetail->event_size();
-    auto state0 = stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0];
-    auto cpuId0 = stream_.traceDataCache_->GetConstMeasureData().FilterIdData()[0];
-    auto state1 = stream_.traceDataCache_->GetConstMeasureData().ValuesData()[1];
-    auto cpuId1 = stream_.traceDataCache_->GetConstMeasureData().FilterIdData()[1];
-    EXPECT_EQ(size, 2);
-    EXPECT_EQ(eventSize, 1);
-    EXPECT_EQ(state0, 1500);
-    EXPECT_EQ(state1, 3000);
+    EXPECT_EQ(tracePacket.ftrace_cpu_detail_size(), 2);
+    EXPECT_EQ(cpuDetail->event_size(), 1);
+    auto measureData = stream_.traceDataCache_->GetConstMeasureData();
+    EXPECT_EQ(measureData.ValuesData()[0], 1500);
+    EXPECT_EQ(measureData.ValuesData()[1], 3000);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

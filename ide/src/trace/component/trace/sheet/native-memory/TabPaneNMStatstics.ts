@@ -28,7 +28,7 @@ import {
   queryNativeHookStatistics,
   queryNativeHookStatisticsMalloc,
   queryNativeHookStatisticsSubType
-} from "../../../../database/sql/NativeHook.sql";
+} from '../../../../database/sql/NativeHook.sql';
 
 @element('tabpane-native-statistics')
 export class TabPaneNMStatstics extends BaseElement {
@@ -56,12 +56,12 @@ export class TabPaneNMStatstics extends BaseElement {
       Utils.getInstance().setCurrentSelectIPid(this.currentSelectIPid);
       Utils.getInstance().initResponseTypeList(nativeStatisticsParam);
     }
-    // @ts-ignore
-    this.nativeStatisticsTbl?.shadowRoot.querySelector('.table').style.height = `${
-      this.parentElement!.clientHeight - 25
-    }px`;
-    // @ts-ignore
-    this.nativeStatisticsTbl?.recycleDataSource = [];
+    if (this.nativeStatisticsTbl) {
+      // @ts-ignore
+      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25}px`;
+      // @ts-ignore
+      this.nativeStatisticsTbl.recycleDataSource = [];
+    }
     this.nativeStatisticsTbl!.loading = true;
     this.queryData(nativeStatisticsParam);
   }
@@ -177,63 +177,45 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     for (let hook of result) {
       if (all !== null) {
-        all.totalBytes += hook.allocByte;
-        all.totalCount += hook.allocCount;
-        all.freeByte += hook.freeByte;
-        all.freeCount += hook.freeCount;
-        if (hook.max > all.max) {
-          all.max = hook.max;
-          all.maxStr = Utils.getByteWithUnit(all.max);
-        }
+        this.processHookData(hook, all);
       }
       if (heap !== null && hook.eventType === 'AllocEvent') {
-        heap.totalBytes += hook.allocByte;
-        heap.totalCount += hook.allocCount;
-        heap.freeByte += hook.freeByte;
-        heap.freeCount += hook.freeCount;
-        if (hook.max > heap.max) {
-          heap.max = hook.max;
-          heap.maxStr = Utils.getByteWithUnit(heap.max);
-        }
+        this.processHookData(hook, heap);
       }
       if (anonymous !== null && hook.eventType === 'MmapEvent') {
-        anonymous.totalBytes += hook.allocByte;
-        anonymous.totalCount += hook.allocCount;
-        anonymous.freeByte += hook.freeByte;
-        anonymous.freeCount += hook.freeCount;
-        if (hook.max > anonymous.max) {
-          anonymous.max = hook.max;
-          anonymous.maxStr = Utils.getByteWithUnit(anonymous.max);
-        }
+        this.processHookData(hook, anonymous);
       }
     }
     if (all !== null) {
-      all.existing = all.totalBytes - all.freeByte;
-      all.allocCount = all.totalCount - all.freeCount;
-      all.existingString = Utils.getByteWithUnit(all.existing);
-      all.totalBytesString = Utils.getByteWithUnit(all.totalBytes);
-      all.freeByteString = Utils.getByteWithUnit(all.freeByte);
-      all.existingValue = [all.existing, all.totalBytes, this.allMax];
-      arr.push(all);
+      this.updateHookData(all, arr);
     }
     if (heap !== null) {
-      heap.existing = heap.totalBytes - heap.freeByte;
-      heap.allocCount = heap.totalCount - heap.freeCount;
-      heap.existingString = Utils.getByteWithUnit(heap.existing);
-      heap.totalBytesString = Utils.getByteWithUnit(heap.totalBytes);
-      heap.freeByteString = Utils.getByteWithUnit(heap.freeByte);
-      heap.existingValue = [heap.existing, heap.totalBytes, this.allMax];
-      arr.push(heap);
+      this.updateHookData(heap, arr);
     }
     if (anonymous !== null) {
-      anonymous.existing = anonymous.totalBytes - anonymous.freeByte;
-      anonymous.allocCount = anonymous.totalCount - anonymous.freeCount;
-      anonymous.existingString = Utils.getByteWithUnit(anonymous.existing);
-      anonymous.totalBytesString = Utils.getByteWithUnit(anonymous.totalBytes);
-      anonymous.freeByteString = Utils.getByteWithUnit(anonymous.totalBytes - anonymous.existing);
-      anonymous.existingValue = [anonymous.existing, anonymous.totalBytes, this.allMax];
-      arr.push(anonymous);
+      this.updateHookData(anonymous, arr);
     }
+  }
+
+  private processHookData(hook: any, data: NativeHookStatisticsTableData): void {
+    data.totalBytes += hook.allocByte;
+    data.totalCount += hook.allocCount;
+    data.freeByte += hook.freeByte;
+    data.freeCount += hook.freeCount;
+    if (hook.max > data.max) {
+      data.max = hook.max;
+      data.maxStr = Utils.getByteWithUnit(data.max);
+    }
+  }
+
+  private updateHookData(data: NativeHookStatisticsTableData, arr: Array<NativeHookStatisticsTableData>): void {
+    data.existing = data.totalBytes - data.freeByte;
+    data.allocCount = data.totalCount - data.freeCount;
+    data.existingString = Utils.getByteWithUnit(data.existing);
+    data.totalBytesString = Utils.getByteWithUnit(data.totalBytes);
+    data.freeByteString = Utils.getByteWithUnit(data.freeByte);
+    data.existingValue = [data.existing, data.totalBytes, this.allMax];
+    arr.push(data);
   }
 
   initElements(): void {
@@ -268,67 +250,27 @@ export class TabPaneNMStatstics extends BaseElement {
       this.nativeStatisticsTbl!.recycleDataSource = this.nativeStatisticsSource;
     } else {
       let arr = [...this.nativeStatisticsSource];
-      if (nmStatColumn === 'existingString') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.existing - nativeStatisticsRightData.existing
-              : nativeStatisticsRightData.existing - nativeStatisticsLeftData.existing;
-          }
-        );
-      } else if (nmStatColumn === 'allocCount') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.allocCount - nativeStatisticsRightData.allocCount
-              : nativeStatisticsRightData.allocCount - nativeStatisticsLeftData.allocCount;
-          }
-        );
-      } else if (nmStatColumn === 'freeByteString') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.totalBytes -
-                  nativeStatisticsLeftData.existing -
-                  (nativeStatisticsRightData.totalBytes - nativeStatisticsRightData.existing)
-              : nativeStatisticsRightData.totalBytes -
-                  nativeStatisticsRightData.existing -
-                  (nativeStatisticsLeftData.totalBytes - nativeStatisticsLeftData.existing);
-          }
-        );
-      } else if (nmStatColumn === 'freeCount') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.freeCount - nativeStatisticsRightData.freeCount
-              : nativeStatisticsRightData.freeCount - nativeStatisticsLeftData.freeCount;
-          }
-        );
-      } else if (nmStatColumn === 'totalBytesString') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.totalBytes - nativeStatisticsRightData.totalBytes
-              : nativeStatisticsRightData.totalBytes - nativeStatisticsLeftData.totalBytes;
-          }
-        );
-      } else if (nmStatColumn === 'maxStr') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.max - nativeStatisticsRightData.max
-              : nativeStatisticsRightData.max - nativeStatisticsLeftData.max;
-          }
-        );
-      } else if (nmStatColumn === 'totalCount') {
-        this.nativeStatisticsTbl!.recycleDataSource = arr.sort(
-          (nativeStatisticsLeftData, nativeStatisticsRightData) => {
-            return nmStatSort === 1
-              ? nativeStatisticsLeftData.totalCount - nativeStatisticsRightData.totalCount
-              : nativeStatisticsRightData.totalCount - nativeStatisticsLeftData.totalCount;
-          }
-        );
-      }
+      let compareFunction = (nativeStatisticsLeftData: any, nativeStatisticsRightData: any, column: string, sortType: number) => {
+        if (sortType === 1) {
+          return nativeStatisticsLeftData[column] - nativeStatisticsRightData[column];
+        } else {
+          return nativeStatisticsRightData[column] - nativeStatisticsLeftData[column];
+        }
+      };
+
+      let columnMap: { [key: string]: string } = {
+        existingString: 'existing',
+        allocCount: 'allocCount',
+        freeByteString: 'totalBytes',
+        freeCount: 'freeCount',
+        totalBytesString: 'totalBytes',
+        maxStr: 'max',
+        totalCount: 'totalCount'
+      };
+      let sortColumnKey = columnMap[nmStatColumn];
+      this.nativeStatisticsTbl!.recycleDataSource = arr.sort((leftData, rightData) =>
+        compareFunction(leftData, rightData, sortColumnKey, nmStatSort)
+      );
     }
   }
 
@@ -345,16 +287,25 @@ export class TabPaneNMStatstics extends BaseElement {
 }
 </style>
 <lit-table id="tb-native-statstics" class="nm-stat-tbl">
-    <lit-table-column class="nm-stat-column" width="25%" title="Memory Type" data-index="memoryTap" key="memoryTap"  align="flex-start"></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="Existing" data-index="existingString" key="existingString"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="# Existing" data-index="allocCount" key="allocCount"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="Transient" data-index="freeByteString" key="freeByteString"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="# Transient" data-index="freeCount" key="freeCount"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="Total Bytes" data-index="totalBytesString" key="totalBytesString"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="# Total" data-index="totalCount" key="totalCount"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="1fr" title="Peak Value" data-index="maxStr" key="maxStr"  align="flex-start" order></lit-table-column>
-    <lit-table-column class="nm-stat-column" width="160px" title="Existing / Total" data-index="existingValue" key="existingValue"  align="flex-start" >
-        <template><tab-progress-bar data="{{existingValue}}"></tab-progress-bar></template>
+    <lit-table-column class="nm-stat-column" width="25%" title="Memory Type" 
+    data-index="memoryTap" key="memoryTap"  align="flex-start"></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="Existing" 
+    data-index="existingString" key="existingString"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="# Existing" 
+    data-index="allocCount" key="allocCount"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="Transient" 
+    data-index="freeByteString" key="freeByteString"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="# Transient" 
+    data-index="freeCount" key="freeCount"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="Total Bytes" 
+    data-index="totalBytesString" key="totalBytesString"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="# Total" 
+    data-index="totalCount" key="totalCount"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="1fr" title="Peak Value" 
+    data-index="maxStr" key="maxStr"  align="flex-start" order></lit-table-column>
+    <lit-table-column class="nm-stat-column" width="160px" title="Existing / Total" 
+    data-index="existingValue" key="existingValue"  align="flex-start" >
+    <template><tab-progress-bar data="{{existingValue}}"></tab-progress-bar></template>
     </lit-table-column>
 </lit-table>
         `;

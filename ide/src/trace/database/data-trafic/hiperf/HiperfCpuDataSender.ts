@@ -14,7 +14,7 @@
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
 import { threadPool } from '../../SqlLite';
-import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU';
+import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
 
 export function hiperfCpuDataSender(
   cpu: number,
@@ -28,23 +28,18 @@ export function hiperfCpuDataSender(
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
+      height: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       startNS: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       eventCount: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       sampleCount: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       eventTypeId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       callChainId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      height: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
   }
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
       QueryEnum.HiperfCpuData,
       {
-        cpu: cpu,
-        scale: scale,
-        maxCpuCount: maxCpuCount,
-        drawType: drawType,
-        intervalPerf: intervalPerf,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -52,6 +47,11 @@ export function hiperfCpuDataSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        cpu: cpu,
+        scale: scale,
+        maxCpuCount: maxCpuCount,
+        drawType: drawType,
+        intervalPerf: intervalPerf,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

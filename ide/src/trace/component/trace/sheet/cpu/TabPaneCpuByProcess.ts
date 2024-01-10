@@ -37,9 +37,11 @@ export class TabPaneCpuByProcess extends BaseElement {
       'Selected range: ' +
       parseFloat(((cpuByProcessValue.rightNs - cpuByProcessValue.leftNs) / 1000000.0).toFixed(5)) +
       ' ms';
-    // @ts-ignore
-    this.cpuByProcessTbl!.shadowRoot!.querySelector('.table')?.style?.height =
-      this.parentElement!.clientHeight - 50 + 'px';
+    if (this.cpuByProcessTbl) {
+      // @ts-ignore
+      this.cpuByProcessTbl.shadowRoot!.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 50 + 'px';
+    }
     this.cpuByProcessTbl!.recycleDataSource = [];
     this.cpuByProcessTbl!.loading = true;
     getTabCpuByProcess(cpuByProcessValue.cpus, cpuByProcessValue.leftNs, cpuByProcessValue.rightNs).then((result) => {

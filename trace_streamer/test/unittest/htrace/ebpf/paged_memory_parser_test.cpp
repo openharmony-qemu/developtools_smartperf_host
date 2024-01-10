@@ -27,23 +27,55 @@ using namespace SysTuning::TraceStreamer;
 using namespace SysTuning::EbpfStdtype;
 namespace SysTuning ::TraceStreamer {
 const std::string COMMAND_LINE = "hiebpf --events ptrace --duration 50";
-class EbpfPagedMemoryParserTest : public ::testing::Test {
-public:
-    void SetUp()
-    {
-        stream_.InitFilter();
-    }
-    void TearDown() {}
-
-public:
-    TraceStreamerSelector stream_ = {};
-};
 const uint64_t START_TIME = 1725645867369;
 const uint64_t END_TIME = 1725645967369;
 const uint64_t PAGEED_MEM_ADDR = 46549876;
 const uint64_t IPS_01 = 548606407208;
 const uint64_t IPS_02 = 548607407208;
 const uint64_t EBPF_COMMAND_MAX_SIZE = 1000;
+
+class EbpfPagedMemoryParserTest : public ::testing::Test {
+public:
+    void SetUp()
+    {
+        stream_.InitFilter();
+
+        EbpfDataHeader ebpfHeader;
+        ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
+        ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
+        memcpy_s(ebpfHeader.cmdline, EbpfDataHeader::EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(),
+                 COMMAND_LINE.length());
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfHeader))[0],
+                            &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
+    }
+    void TearDown() {}
+
+    void InitData(uint32_t length, uint16_t nips, uint64_t ts1 = START_TIME, uint64_t ts2 = END_TIME)
+    {
+        EbpfTypeAndLength ebpfTypeAndLength;
+        ebpfTypeAndLength.length = length;
+        ebpfTypeAndLength.type = ITEM_EVENT_VM;
+        pagedMemoryFixedHeader_.pid = 32;
+        pagedMemoryFixedHeader_.tid = 32;
+        memcpy_s(pagedMemoryFixedHeader_.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
+        pagedMemoryFixedHeader_.startTime = ts1;
+        pagedMemoryFixedHeader_.endTime = ts2;
+        pagedMemoryFixedHeader_.addr = PAGEED_MEM_ADDR;
+        pagedMemoryFixedHeader_.size = 1;
+        pagedMemoryFixedHeader_.nips = nips;
+        pagedMemoryFixedHeader_.type = 2;
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[0],
+                            &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
+        dequeBuffer_.insert(dequeBuffer_.end(), &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[0],
+                            &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader_))[sizeof(PagedMemoryFixedHeader)]);
+    }
+
+public:
+    TraceStreamerSelector stream_ = {};
+    std::deque<uint8_t> dequeBuffer_;
+    PagedMemoryFixedHeader pagedMemoryFixedHeader_;
+};
+
 /**
  * @tc.name: EbpfPagedMemoryParserCorrectWithoutCallback
  * @tc.desc: Test parse PagedMem data without callback
@@ -52,54 +84,23 @@ const uint64_t EBPF_COMMAND_MAX_SIZE = 1000;
 HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithoutCallback, TestSize.Level1)
 {
     TS_LOGI("test31-1");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    memcpy_s(ebpfHeader.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(), COMMAND_LINE.length());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&ebpfHeader))[0],
-                       &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(PagedMemoryFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_VM;
-    PagedMemoryFixedHeader pagedMemoryFixedHeader;
-    pagedMemoryFixedHeader.pid = 32;
-    pagedMemoryFixedHeader.tid = 32;
-    memcpy_s(pagedMemoryFixedHeader.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    pagedMemoryFixedHeader.startTime = START_TIME;
-    pagedMemoryFixedHeader.endTime = END_TIME;
-    pagedMemoryFixedHeader.addr = PAGEED_MEM_ADDR;
-    pagedMemoryFixedHeader.size = 1;
-    pagedMemoryFixedHeader.nips = 0;
-    pagedMemoryFixedHeader.type = 2;
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[0],
-                       &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader))[0],
-                       &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader))[sizeof(PagedMemoryFixedHeader)]);
 
+    InitData(sizeof(PagedMemoryFixedHeader), 0);
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetPagedMemoryMap().size());
     ebpfDataParser->ParsePagedMemoryEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstPagedMemorySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT32);
-    auto type = stream_.traceDataCache_->GetConstPagedMemorySampleData().Types()[0];
-    EXPECT_EQ(type, 2);
-
-    auto startTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME);
-    auto dur = stream_.traceDataCache_->GetConstPagedMemorySampleData().Durs()[0];
-    EXPECT_EQ(dur, END_TIME - START_TIME);
-    auto size = stream_.traceDataCache_->GetConstPagedMemorySampleData().Sizes()[0];
-    EXPECT_EQ(size, 1);
-    auto ExpectAddr = ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader.addr);
-    auto addr = stream_.traceDataCache_->GetConstPagedMemorySampleData().Addr()[0];
-    EXPECT_EQ(addr, ExpectAddr);
+    auto sampleData = stream_.traceDataCache_->GetConstPagedMemorySampleData();
+    EXPECT_EQ(sampleData.CallChainIds()[0], INVALID_UINT32);
+    EXPECT_EQ(sampleData.Types()[0], 2);
+    EXPECT_EQ(sampleData.StartTs()[0], START_TIME);
+    EXPECT_EQ(sampleData.EndTs()[0], END_TIME);
+    EXPECT_EQ(sampleData.Durs()[0], END_TIME - START_TIME);
+    EXPECT_EQ(sampleData.Sizes()[0], 1);
+    EXPECT_EQ(sampleData.Addr()[0], ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader_.addr));
 }
 
 /**
@@ -110,54 +111,25 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithoutCallback,
 HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserwrongWithoutCallback, TestSize.Level1)
 {
     TS_LOGI("test31-2");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    memcpy_s(ebpfHeader.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(), COMMAND_LINE.length());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&ebpfHeader))[0],
-                       &(reinterpret_cast<uint8_t*>(&ebpfHeader))[EbpfDataHeader::EBPF_DATA_HEADER_SIZE]);
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(PagedMemoryFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_VM;
-    PagedMemoryFixedHeader pagedMemoryFixedHeader;
-    pagedMemoryFixedHeader.pid = 32;
-    pagedMemoryFixedHeader.tid = 32;
-    memcpy_s(pagedMemoryFixedHeader.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    pagedMemoryFixedHeader.startTime = END_TIME;
-    pagedMemoryFixedHeader.endTime = START_TIME;
-    pagedMemoryFixedHeader.addr = PAGEED_MEM_ADDR;
-    pagedMemoryFixedHeader.size = 1;
-    pagedMemoryFixedHeader.nips = 0;
-    pagedMemoryFixedHeader.type = 2;
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[0],
-                       &(reinterpret_cast<uint8_t*>(&ebpfTypeAndLength))[sizeof(EbpfTypeAndLength)]);
-    dequeBuffer.insert(dequeBuffer.end(), &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader))[0],
-                       &(reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader))[sizeof(PagedMemoryFixedHeader)]);
 
+    InitData(sizeof(PagedMemoryFixedHeader), 0, END_TIME, START_TIME);
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetPagedMemoryMap().size());
     ebpfDataParser->ParsePagedMemoryEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstPagedMemorySampleData().CallChainIds()[0];
-    EXPECT_FALSE(callChainId == INVALID_UINT64);
-    auto type = stream_.traceDataCache_->GetConstPagedMemorySampleData().Types()[0];
-    EXPECT_FALSE(type == 2);
-
-    auto startTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().StartTs()[0];
-    EXPECT_FALSE(startTs == pagedMemoryFixedHeader.startTime);
-    auto endTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().EndTs()[0];
-    EXPECT_FALSE(endTs == pagedMemoryFixedHeader.endTime);
-    auto dur = stream_.traceDataCache_->GetConstPagedMemorySampleData().Durs()[0];
-    EXPECT_FALSE(dur == endTs - startTs);
-    auto size = stream_.traceDataCache_->GetConstPagedMemorySampleData().Sizes()[0];
-    EXPECT_FALSE(size == 1);
-    auto ExpectAddr = ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader.addr);
-    auto addr = stream_.traceDataCache_->GetConstPagedMemorySampleData().Addr()[0];
-    EXPECT_FALSE(addr == ExpectAddr);
+    auto sampleData = stream_.traceDataCache_->GetConstPagedMemorySampleData();
+    EXPECT_FALSE(sampleData.CallChainIds()[0] == INVALID_UINT64);
+    EXPECT_FALSE(sampleData.Types()[0] == 2);
+    auto startTs = sampleData.StartTs()[0];
+    auto endTs = sampleData.EndTs()[0];
+    EXPECT_FALSE(startTs == pagedMemoryFixedHeader_.startTime);
+    EXPECT_FALSE(endTs == pagedMemoryFixedHeader_.endTime);
+    EXPECT_FALSE(sampleData.Durs()[0] == endTs - startTs);
+    EXPECT_FALSE(sampleData.Sizes()[0] == 1);
+    EXPECT_FALSE(sampleData.Addr()[0] == ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader_.addr));
 }
 
 /**
@@ -168,58 +140,28 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserwrongWithoutCallback, T
 HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithOneCallback, TestSize.Level1)
 {
     TS_LOGI("test31-3");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    memcpy_s(ebpfHeader.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(), COMMAND_LINE.length());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(PagedMemoryFixedHeader);
-    ebpfTypeAndLength.type = ITEM_EVENT_VM;
-    PagedMemoryFixedHeader pagedMemoryFixedHeader;
-    pagedMemoryFixedHeader.pid = 32;
-    pagedMemoryFixedHeader.tid = 32;
-    memcpy_s(pagedMemoryFixedHeader.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    pagedMemoryFixedHeader.startTime = START_TIME;
-    pagedMemoryFixedHeader.endTime = END_TIME;
-    pagedMemoryFixedHeader.addr = PAGEED_MEM_ADDR;
-    pagedMemoryFixedHeader.size = 1;
-    pagedMemoryFixedHeader.nips = 1;
-    pagedMemoryFixedHeader.type = 2;
+
+    InitData(sizeof(PagedMemoryFixedHeader), 1);
     const uint64_t ips[1] = {IPS_01};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader),
-                       reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetPagedMemoryMap().size());
     ebpfDataParser->ParsePagedMemoryEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstPagedMemorySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, 0);
-    auto type = stream_.traceDataCache_->GetConstPagedMemorySampleData().Types()[0];
-    EXPECT_EQ(type, 2);
-    auto startTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME);
-    auto dur = stream_.traceDataCache_->GetConstPagedMemorySampleData().Durs()[0];
-    EXPECT_EQ(dur, END_TIME - START_TIME);
-    auto size = stream_.traceDataCache_->GetConstPagedMemorySampleData().Sizes()[0];
-    EXPECT_EQ(size, 1);
-    auto ExpectAddr = ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader.addr);
-    auto addr = stream_.traceDataCache_->GetConstPagedMemorySampleData().Addr()[0];
-    EXPECT_EQ(addr, ExpectAddr);
-    auto ExpectIps0 = ebpfDataParser->ConvertToHexTextIndex(ips[0]);
-    auto ips0 = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0];
-    EXPECT_EQ(ips0, ExpectIps0);
+    auto sampleData = stream_.traceDataCache_->GetConstPagedMemorySampleData();
+    EXPECT_EQ(sampleData.CallChainIds()[0], 0);
+    EXPECT_EQ(sampleData.Types()[0], 2);
+    EXPECT_EQ(sampleData.StartTs()[0], START_TIME);
+    EXPECT_EQ(sampleData.EndTs()[0], END_TIME);
+    EXPECT_EQ(sampleData.Durs()[0], END_TIME - START_TIME);
+    EXPECT_EQ(sampleData.Sizes()[0], 1);
+    EXPECT_EQ(sampleData.Addr()[0], ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader_.addr));
+    EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0],
+              ebpfDataParser->ConvertToHexTextIndex(ips[0]));
 }
 
 /**
@@ -230,60 +172,29 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithOneCallback,
 HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithMultipleCallback, TestSize.Level1)
 {
     TS_LOGI("test31-4");
-    EbpfDataHeader ebpfHeader;
-    ebpfHeader.header.clock = EBPF_CLOCK_BOOTTIME;
-    ebpfHeader.header.cmdLineLen = COMMAND_LINE.length();
-    memcpy_s(ebpfHeader.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str(), COMMAND_LINE.length());
-    std::deque<uint8_t> dequeBuffer;
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfHeader),
-                       reinterpret_cast<uint8_t*>(&ebpfHeader + 1));
-    EbpfTypeAndLength ebpfTypeAndLength;
-    ebpfTypeAndLength.length = sizeof(PagedMemoryFixedHeader) + 2 * sizeof(uint64_t);
-    ebpfTypeAndLength.type = ITEM_EVENT_VM;
-    PagedMemoryFixedHeader pagedMemoryFixedHeader;
-    pagedMemoryFixedHeader.pid = 32;
-    pagedMemoryFixedHeader.tid = 32;
-    memcpy_s(pagedMemoryFixedHeader.comm, MAX_PROCESS_NAME_SZIE, "process", MAX_PROCESS_NAME_SZIE);
-    pagedMemoryFixedHeader.startTime = START_TIME;
-    pagedMemoryFixedHeader.endTime = END_TIME;
-    pagedMemoryFixedHeader.addr = PAGEED_MEM_ADDR;
-    pagedMemoryFixedHeader.size = 1;
-    pagedMemoryFixedHeader.nips = 2;
-    pagedMemoryFixedHeader.type = 2;
+
+    InitData(sizeof(PagedMemoryFixedHeader) + 2 * sizeof(uint64_t), 2);
     const uint64_t ips[2] = {IPS_01, IPS_02};
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&ebpfTypeAndLength),
-                       reinterpret_cast<uint8_t*>(&ebpfTypeAndLength + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader),
-                       reinterpret_cast<uint8_t*>(&pagedMemoryFixedHeader + 1));
-    dequeBuffer.insert(dequeBuffer.end(), reinterpret_cast<const uint8_t*>(ips),
-                       reinterpret_cast<const uint8_t*>(&ips + 1));
+    dequeBuffer_.insert(dequeBuffer_.end(), reinterpret_cast<const uint8_t*>(ips),
+                        reinterpret_cast<const uint8_t*>(&ips + 1));
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer, dequeBuffer.size()));
+    EXPECT_TRUE(ebpfDataParser->Init(dequeBuffer_, dequeBuffer_.size()));
     EXPECT_TRUE(ebpfDataParser->reader_->GetPagedMemoryMap().size());
     ebpfDataParser->ParsePagedMemoryEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstPagedMemorySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, 0);
-    auto type = stream_.traceDataCache_->GetConstPagedMemorySampleData().Types()[0];
-    EXPECT_EQ(type, 2);
-    auto startTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstPagedMemorySampleData().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME);
-    auto dur = stream_.traceDataCache_->GetConstPagedMemorySampleData().Durs()[0];
-    EXPECT_EQ(dur, END_TIME - START_TIME);
-    auto size = stream_.traceDataCache_->GetConstPagedMemorySampleData().Sizes()[0];
-    EXPECT_EQ(size, 1);
-    auto ExpectAddr = ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader.addr);
-    auto addr = stream_.traceDataCache_->GetConstPagedMemorySampleData().Addr()[0];
-    EXPECT_EQ(addr, ExpectAddr);
-    auto ExpectIps0 = ebpfDataParser->ConvertToHexTextIndex(ips[0]);
-    auto ips0 = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[1];
-    EXPECT_EQ(ips0, ExpectIps0);
-    auto ExpectIps1 = ebpfDataParser->ConvertToHexTextIndex(ips[1]);
-    auto ips1 = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0];
-    EXPECT_EQ(ips1, ExpectIps1);
+    auto sampleData = stream_.traceDataCache_->GetConstPagedMemorySampleData();
+    EXPECT_EQ(sampleData.CallChainIds()[0], 0);
+    EXPECT_EQ(sampleData.Types()[0], 2);
+    EXPECT_EQ(sampleData.StartTs()[0], START_TIME);
+    EXPECT_EQ(sampleData.EndTs()[0], END_TIME);
+    EXPECT_EQ(sampleData.Durs()[0], END_TIME - START_TIME);
+    EXPECT_EQ(sampleData.Sizes()[0], 1);
+    EXPECT_EQ(sampleData.Addr()[0], ebpfDataParser->ConvertToHexTextIndex(pagedMemoryFixedHeader_.addr));
+    EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[1],
+              ebpfDataParser->ConvertToHexTextIndex(ips[0]));
+    EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0],
+              ebpfDataParser->ConvertToHexTextIndex(ips[1]));
 }
 } // namespace SysTuning::TraceStreamer

@@ -262,21 +262,21 @@ class MerageBeanDataSplit {
 
   findSearchNode(data: MerageBean[], search: string, parentSearch: boolean): void {
     search = search.toLocaleLowerCase();
-    data.forEach((node) => {
-      if ((node.symbolName && node.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
-        node.searchShow = true;
-        node.isSearch = node.symbolName != undefined && node.symbolName.toLocaleLowerCase().includes(search);
-        let parentNode = node.parent;
+    data.forEach((item) => {
+      if ((item.symbolName && item.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
+        item.searchShow = true;
+        item.isSearch = item.symbolName != undefined && item.symbolName.toLocaleLowerCase().includes(search);
+        let parentNode = item.parent;
         while (parentNode && !parentNode.searchShow) {
           parentNode.searchShow = true;
           parentNode = parentNode.parent;
         }
       } else {
-        node.searchShow = false;
-        node.isSearch = false;
+        item.searchShow = false;
+        item.isSearch = false;
       }
-      if (node.children.length > 0) {
-        this.findSearchNode(node.children, search, node.searchShow);
+      if (item.children.length > 0) {
+        this.findSearchNode(item.children, search, item.searchShow);
       }
     });
   }

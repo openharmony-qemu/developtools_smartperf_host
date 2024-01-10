@@ -22,6 +22,7 @@ import { ColorUtils } from '../../base/ColorUtils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
 import { getTabCpuAbilityData } from '../../../../database/sql/Ability.sql';
+import { NUM_2 } from '../../../../bean/NumBean';
 
 @element('tabpane-cpu-ability')
 export class TabPaneCpuAbility extends BaseElement {
@@ -30,9 +31,11 @@ export class TabPaneCpuAbility extends BaseElement {
   private queryCpuResult: Array<SystemCpuSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(cpuAbilityValue: SelectionParam | any) {
-    // @ts-ignore
-    this.cpuAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+  set data(cpuAbilityValue: SelectionParam) {
+    if (this.cpuAbilityTbl) {
+      // @ts-ignore
+      this.cpuAbilityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(cpuAbilityValue);
   }
 
@@ -44,12 +47,12 @@ export class TabPaneCpuAbility extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.cpuAbilityTbl!);
   }
 
-  filterData() {
+  filterData(): void {
     if (this.queryCpuResult.length > 0) {
       let filterCpu = this.queryCpuResult.filter((item) => {
         let array = this.toCpuAbilityArray(item);
@@ -66,7 +69,7 @@ export class TabPaneCpuAbility extends BaseElement {
     }
   }
 
-  toCpuAbilityArray(systemCpuSummary: SystemCpuSummary): any[] {
+  toCpuAbilityArray(systemCpuSummary: SystemCpuSummary): string[] {
     let array: Array<string> = [];
     array.push(systemCpuSummary.startTimeStr);
     array.push(systemCpuSummary.durationStr);
@@ -77,20 +80,20 @@ export class TabPaneCpuAbility extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(val: SelectionParam): void {
     getTabCpuAbilityData(val.leftNs, val.rightNs).then((result) => {
       log('getTabCpuAbilityData size :' + result.length);
-      if (result.length != null && result.length > 0) {
+      if (result.length !== null && result.length > 0) {
         for (const systemCpuSummary of result) {
-          if (systemCpuSummary.startTime == 0) {
+          if (systemCpuSummary.startTime === 0) {
             systemCpuSummary.startTimeStr = '0:000.000.000';
           } else {
             systemCpuSummary.startTimeStr = Utils.getTimeStampHMS(systemCpuSummary.startTime);
           }
           systemCpuSummary.durationStr = Utils.getDurString(systemCpuSummary.duration);
-          systemCpuSummary.totalLoadStr = systemCpuSummary.totalLoad.toFixed(2) + '%';
-          systemCpuSummary.userLoadStr = systemCpuSummary.userLoad.toFixed(2) + '%';
-          systemCpuSummary.systemLoadStr = systemCpuSummary.systemLoad.toFixed(2) + '%';
+          systemCpuSummary.totalLoadStr = systemCpuSummary.totalLoad.toFixed(NUM_2) + '%';
+          systemCpuSummary.userLoadStr = systemCpuSummary.userLoad.toFixed(NUM_2) + '%';
+          systemCpuSummary.systemLoadStr = systemCpuSummary.systemLoad.toFixed(NUM_2) + '%';
           systemCpuSummary.threadsStr = ColorUtils.formatNumberComma(systemCpuSummary.threads);
         }
         this.cpuAbilitySource = result;
@@ -117,17 +120,23 @@ export class TabPaneCpuAbility extends BaseElement {
         }
         </style>
         <lit-table id="tb-cpu-ability" class="cpu-ability">
-            <lit-table-column order width="1fr" title="Start Time" data-index="startTimeStr" key="startTimeStr" align="flex-start" >
+            <lit-table-column order width="1fr" 
+            title="Start Time" data-index="startTimeStr" key="startTimeStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
+            <lit-table-column order width="1fr" 
+            title="Duration" data-index="durationStr" key="durationStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="TotalLoad %" data-index="totalLoadStr" key="totalLoadStr" align="flex-start" >
+            <lit-table-column order width="1fr" 
+            title="TotalLoad %" data-index="totalLoadStr" key="totalLoadStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="UserLoad %" data-index="userLoadStr" key="userLoadStr" align="flex-start" >
+            <lit-table-column order width="1fr" 
+            title="UserLoad %" data-index="userLoadStr" key="userLoadStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="SystemLoad %" data-index="systemLoadStr" key="systemLoadStr" align="flex-start" >
+            <lit-table-column order width="1fr" 
+            title="SystemLoad %" data-index="systemLoadStr" key="systemLoadStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr" title="Process" data-index="threadsStr" key="threadsStr" align="flex-start" >
+            <lit-table-column order width="1fr" 
+            title="Process" data-index="threadsStr" key="threadsStr" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;
@@ -153,24 +162,25 @@ export class TabPaneCpuAbility extends BaseElement {
   };
 
   compareFunction = (sort: number, getProperty: (data: SystemCpuSummary) => number | string) =>
-    (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) => {
-    let leftValue = getProperty(cpuAbilityLeftData);
-    let rightValue = getProperty(cpuAbilityRightData);
-    let result = 0;
-    if (leftValue > rightValue) {
-      result = sort === 2 ? -1 : 1;
-    } else if (leftValue < rightValue) {
-      result = sort === 2 ? 1 : -1;
-    }
-    return result;
-  };
+    (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary): number => {
+      let leftValue = getProperty(cpuAbilityLeftData);
+      let rightValue = getProperty(cpuAbilityRightData);
+      let result = 0;
+      if (leftValue > rightValue) {
+        result = sort === 2 ? -1 : 1;
+      } else if (leftValue < rightValue) {
+        result = sort === 2 ? 1 : -1;
+      }
+      return result;
+    };
 
-  compare = (property: string, sort: number, type: string) => {
+  compare = (property: string, sort: number, type: string):
+    (cpuAbilityLeftData: SystemCpuSummary, cpuAbilityRightData: SystemCpuSummary) => number => {
     let getProperty = this.getPropertyByType(property, type);
     return this.compareFunction(sort, getProperty);
   };
 
-  sortByColumn(detail: any) {
+  sortByColumn(detail: any): void {
     let typeMaping: { [key: string]: string } = {
       startTime: 'string',
       durationStr: 'durationStr',

@@ -552,6 +552,7 @@ bool RpcServer::SqlMetricsQueryWithCallback(const uint8_t* data, size_t len, Res
             return true;
         }
     }
+    return true;
 }
 int32_t RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const
 {

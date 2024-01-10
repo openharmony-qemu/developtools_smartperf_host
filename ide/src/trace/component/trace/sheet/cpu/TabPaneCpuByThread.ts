@@ -57,69 +57,81 @@ export class TabPaneCpuByThread extends BaseElement {
       parseFloat(((cpuByThreadValue.rightNs - cpuByThreadValue.leftNs) / 1000000.0).toFixed(5)) +
       ' ms';
     this.cpuByThreadTbl!.loading = true;
+    this.handleAsyncRequest(cpuByThreadValue);
+  }
+
+  private handleAsyncRequest(cpuByThreadValue: any): void {
     getTabCpuByThread(cpuByThreadValue.cpus, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs).then((result) => {
       this.cpuByThreadTbl!.loading = false;
       if (result != null && result.length > 0) {
         log('getTabCpuByThread size :' + result.length);
-        let sumWall = 0.0;
-        let sumOcc = 0;
-        let map: Map<string, any> = new Map<string, any>();
-        for (let e of result) {
-          sumWall += e.wallDuration;
-          sumOcc += e.occurrences;
-          if (map.has(`${e.tid}`)) {
-            let thread = map.get(`${e.tid}`)!;
-            thread.wallDuration += e.wallDuration;
-            thread.occurrences += e.occurrences;
-            thread[`cpu${e.cpu}`] = e.wallDuration || 0;
-            thread[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-            thread[`cpu${e.cpu}Ratio`] = (
-              (100.0 * (e.wallDuration || 0)) /
-              (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
-            ).toFixed(2);
-          } else {
-            let process = Utils.PROCESS_MAP.get(e.pid);
-            let thread = Utils.THREAD_MAP.get(e.tid);
-            let cpuByThreadObject: any = {
-              tid: e.tid,
-              pid: e.pid,
-              thread: thread == null || thread.length == 0 ? '[NULL]' : thread,
-              process: process == null || process.length == 0 ? '[NULL]' : process,
-              wallDuration: e.wallDuration || 0,
-              occurrences: e.occurrences || 0,
-              avgDuration: 0,
-            };
-            for (let i of cpuByThreadValue.cpus) {
-              cpuByThreadObject[`cpu${i}`] = 0;
-              cpuByThreadObject[`cpu${i}TimeStr`] = '0';
-              cpuByThreadObject[`cpu${i}Ratio`] = '0';
-            }
-            cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
-            cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-            cpuByThreadObject[`cpu${e.cpu}Ratio`] = (
-              (100.0 * (e.wallDuration || 0)) /
-              (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
-            ).toFixed(2);
-            map.set(`${e.tid}`, cpuByThreadObject);
-          }
-        }
-        let arr = Array.from(map.values()).sort((a, b) => b.wallDuration - a.wallDuration);
-        for (let e of arr) {
-          e.avgDuration = (e.wallDuration / (e.occurrences || 1.0) / 1000000.0).toFixed(5);
-          e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
-        }
-        let count: any = {};
-        count.process = ' ';
-        count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(7));
-        count.occurrences = sumOcc;
-        arr.splice(0, 0, count);
-        this.cpuByThreadSource = arr;
-        this.cpuByThreadTbl!.recycleDataSource = arr;
+        this.processResult(result, cpuByThreadValue);
       } else {
         this.cpuByThreadSource = [];
         this.cpuByThreadTbl!.recycleDataSource = this.cpuByThreadSource;
       }
     });
+  }
+
+  private processResult(result: Array<any>, cpuByThreadValue: any): void {
+    let sumWall = 0.0;
+    let sumOcc = 0;
+    let map: Map<string, any> = new Map<string, any>();
+    for (let e of result) {
+      sumWall += e.wallDuration;
+      sumOcc += e.occurrences;
+      if (map.has(`${e.tid}`)) {
+        let thread = map.get(`${e.tid}`)!;
+        thread.wallDuration += e.wallDuration;
+        thread.occurrences += e.occurrences;
+        thread[`cpu${e.cpu}`] = e.wallDuration || 0;
+        thread[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
+        thread[`cpu${e.cpu}Ratio`] = (
+          (100.0 * (e.wallDuration || 0)) /
+          (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
+        ).toFixed(2);
+      } else {
+        let process = Utils.PROCESS_MAP.get(e.pid);
+        let thread = Utils.THREAD_MAP.get(e.tid);
+        let cpuByThreadObject: any = {
+          tid: e.tid,
+          pid: e.pid,
+          thread: thread == null || thread.length == 0 ? '[NULL]' : thread,
+          process: process == null || process.length == 0 ? '[NULL]' : process,
+          wallDuration: e.wallDuration || 0,
+          occurrences: e.occurrences || 0,
+          avgDuration: 0,
+        };
+        for (let i of cpuByThreadValue.cpus) {
+          cpuByThreadObject[`cpu${i}`] = 0;
+          cpuByThreadObject[`cpu${i}TimeStr`] = '0';
+          cpuByThreadObject[`cpu${i}Ratio`] = '0';
+        }
+        cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
+        cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
+        cpuByThreadObject[`cpu${e.cpu}Ratio`] = (
+          (100.0 * (e.wallDuration || 0)) /
+          (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
+        ).toFixed(2);
+        map.set(`${e.tid}`, cpuByThreadObject);
+      }
+    }
+    this.calculateCount(map, sumWall, sumOcc);
+  }
+
+  private calculateCount(map: Map<string, any>, sumWall: number, sumOcc: number): void {
+    let arr = Array.from(map.values()).sort((a, b) => b.wallDuration - a.wallDuration);
+    for (let e of arr) {
+      e.avgDuration = (e.wallDuration / (e.occurrences || 1.0) / 1000000.0).toFixed(5);
+      e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
+    }
+    let count: any = {};
+    count.process = ' ';
+    count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(7));
+    count.occurrences = sumOcc;
+    arr.splice(0, 0, count);
+    this.cpuByThreadSource = arr;
+    this.cpuByThreadTbl!.recycleDataSource = arr;
   }
 
   getTableColumns(cpus: Array<number>) {

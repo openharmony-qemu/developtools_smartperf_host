@@ -45,7 +45,9 @@ export const chartProcessActualProtoDataSql = (args: any): string => {
                a.flag AS jankTag,
                a.dst AS dstSlice,
                a.depth,
-               (a.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (a.depth * ${ args.width })  AS px
+               (a.ts - ${args.recordStartNS}) / (${Math.floor(
+    (args.endNS - args.startNS) / args.width
+  )}) + (a.depth * ${args.width})  AS px
         FROM frame_slice AS a
         WHERE a.type = 0
           AND a.flag <> 2
@@ -56,7 +58,6 @@ export const chartProcessActualProtoDataSql = (args: any): string => {
         group by px
         ORDER BY a.ipid;`;
 };
-
 
 export function processActualDataReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
@@ -73,53 +74,80 @@ export function processActualDataReceiver(data: any, proc: Function): void {
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
-  let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts);
-  let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
-  let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
-  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
-  let name = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.name);
-  let type = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.type);
-  let jank_tag = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.jank_tag);
-  let dst_slice = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.dst_slice);
-  let depth = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
+  let processActual = new ProcessActual(data, transfer, res.length);
   for (let index = 0; index < res.length; index++) {
     let itemData = res[index];
     data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.processJanksActualData);
     if (!itemData.dur || itemData.dur < 0) {
       continue;
     }
-    dur[index] = itemData.dur;
-    ts[index] = itemData.ts;
-    pid[index] = itemData.pid;
-    id[index] = itemData.id;
-    name[index] = itemData.name;
-    type[index] = itemData.type;
-    jank_tag[index] = itemData.jankTag;
-    dst_slice[index] = itemData.dstSlice;
-    depth[index] = itemData.depth;
+    processActual.dur[index] = itemData.dur;
+    processActual.ts[index] = itemData.ts;
+    processActual.pid[index] = itemData.pid;
+    processActual.id[index] = itemData.id;
+    processActual.name[index] = itemData.name;
+    processActual.type[index] = itemData.type;
+    processActual.jank_tag[index] = itemData.jankTag;
+    processActual.dst_slice[index] = itemData.dstSlice;
+    processActual.depth[index] = itemData.depth;
   }
+  postProcessActualMessage(data, transfer, processActual, res.length);
+}
+function postProcessActualMessage(data: any, transfer: boolean, processActual: ProcessActual, len: number) {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
       action: data.action,
       results: transfer
         ? {
-            dur: dur.buffer,
-            ts: ts.buffer,
-            pid: pid.buffer,
-            id: id.buffer,
-            name: name.buffer,
-            type: type.buffer,
-            jank_tag: jank_tag.buffer,
-            dst_slice: dst_slice.buffer,
-            depth: depth.buffer,
+            dur: processActual.dur.buffer,
+            ts: processActual.ts.buffer,
+            pid: processActual.pid.buffer,
+            id: processActual.id.buffer,
+            name: processActual.name.buffer,
+            type: processActual.type.buffer,
+            jank_tag: processActual.jank_tag.buffer,
+            dst_slice: processActual.dst_slice.buffer,
+            depth: processActual.depth.buffer,
           }
         : {},
-      len: res.length,
+      len: len,
       transfer: transfer,
     },
     transfer
-      ? [dur.buffer, ts.buffer, pid.buffer, type.buffer, id.buffer, name.buffer, jank_tag.buffer, dst_slice.buffer, depth.buffer]
+      ? [
+          processActual.dur.buffer,
+          processActual.ts.buffer,
+          processActual.pid.buffer,
+          processActual.type.buffer,
+          processActual.id.buffer,
+          processActual.name.buffer,
+          processActual.jank_tag.buffer,
+          processActual.dst_slice.buffer,
+          processActual.depth.buffer,
+        ]
       : []
   );
+}
+class ProcessActual {
+  ts: Float64Array;
+  dur: Float64Array;
+  pid: Int32Array;
+  id: Int32Array;
+  name: Int32Array;
+  type: Int32Array;
+  jank_tag: Int32Array;
+  dst_slice: Int32Array;
+  depth: Uint16Array;
+  constructor(data: any, transfer: boolean, len: number) {
+    this.ts = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.ts);
+    this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur);
+    this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid);
+    this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id);
+    this.name = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.name);
+    this.type = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.type);
+    this.jank_tag = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.jank_tag);
+    this.dst_slice = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.dst_slice);
+    this.depth = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.depth);
+  }
 }

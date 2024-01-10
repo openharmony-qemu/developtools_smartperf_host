@@ -100,6 +100,14 @@ int32_t TaskPoolTable::Cursor::Column(int32_t column) const
                                                    dataCache_->GetConstTaskPoolData().ExecuteItids()[CurrentRow()]));
             }
             break;
+        default:
+            HandleTypeColumns(column);
+    }
+    return SQLITE_OK;
+}
+void TaskPoolTable::Cursor::HandleTypeColumns(int32_t taskPoolTabColumn) const
+{
+    switch (static_cast<Index>(taskPoolTabColumn)) {
         case Index::RETURN_ITID:
             if (taskPoolObj_.ReturnItids()[CurrentRow()] != INVALID_INT32) {
                 sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
@@ -137,10 +145,9 @@ int32_t TaskPoolTable::Cursor::Column(int32_t column) const
             }
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered taskPoolTabColumn : %d", taskPoolTabColumn);
             break;
     }
-    return SQLITE_OK;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -20,7 +20,7 @@ import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { resizeObserver } from '../SheetUtils';
 import { AppStartupStruct } from '../../../../database/ui-worker/ProcedureWorkerAppStartup';
-import {getTabStartups} from "../../../../database/sql/ProcessThread.sql";
+import { getTabStartups } from '../../../../database/sql/ProcessThread.sql';
 
 interface StartupTreeItem {
   name: string;
@@ -44,22 +44,23 @@ export class TabPaneStartup extends BaseElement {
     }
     this.currentSelectionParam = startupParam;
     //@ts-ignore
-    this.startupTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    this.startupTbl?.shadowRoot?.querySelector('.table')?.style?.height =
+      `${this.parentElement!.clientHeight - 45  }px`;
     this.range!.textContent =
-      'Selected range: ' + ((startupParam.rightNs - startupParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
+      `Selected range: ${  ((startupParam.rightNs - startupParam.leftNs) / 1000000.0).toFixed(5)  } ms`;
     this.startupTbl!.loading = true;
     getTabStartups(startupParam.processIds, startupParam.leftNs, startupParam.rightNs).then(
       (result: AppStartupStruct[]) => {
         this.startupTbl!.loading = false;
-        if (result != null && result.length > 0) {
-          log('getTabStartups result  size : ' + result.length);
+        if (result !== null && result.length > 0) {
+          log(`getTabStartups result  size : ${  result.length}`);
           let map: Map<number, StartupTreeItem> = new Map<number, StartupTreeItem>();
           result.forEach((item) => {
             let startup = {
               name: AppStartupStruct.getStartupName(item.startName),
               dur: item.dur || 0,
               durStr: getProbablyTime(item.dur || 0),
-              ratio: `0%`,
+              ratio: '0%',
               step: item.startName || 0,
               children: [],
             };
@@ -74,7 +75,7 @@ export class TabPaneStartup extends BaseElement {
                 name: item.process || `Process ${item.pid}`,
                 dur: item.dur || 0,
                 durStr: '',
-                ratio: `100%`,
+                ratio: '100%',
                 step: 0,
                 children: [startup],
               });
@@ -90,7 +91,7 @@ export class TabPaneStartup extends BaseElement {
               if (it.dur === 0) {
                 child.ratio = '0%';
               } else {
-                child.ratio = ((child.dur * 100) / it.dur).toFixed(2) + '%';
+                child.ratio = `${((child.dur * 100) / it.dur).toFixed(2)  }%`;
               }
             });
           });
@@ -130,17 +131,22 @@ export class TabPaneStartup extends BaseElement {
             padding: 10px 10px;
         }
         </style>
-        <div class="startup-table" style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
+        <div class="startup-table" style="display: flex;height: 20px;align-items: center;
+        flex-direction: row;margin-bottom: 5px">
             <div style="flex: 1"></div>
-            <label id="startup-time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
+            <label id="startup-time-range"  style="width: auto;text-align: end;font-size: 10pt;">
+            Selected range:0.0 ms</label>
         </div>
         <div style="overflow: auto">
             <lit-table id="tb-startup" style="height: auto" tree>
-                <lit-table-column width="600px" title="Process / Startup"  data-index="name" key="name"  align="flex-start" >
+                <lit-table-column width="600px" title="Process / Startup"  data-index="name" 
+                key="name"  align="flex-start" >
                 </lit-table-column>
-                <lit-table-column width="200px" title="Duration" data-index="durStr" key="durStr"  align="flex-start" order >
+                <lit-table-column width="200px" title="Duration" data-index="durStr" 
+                key="durStr"  align="flex-start" order >
                 </lit-table-column>
-                <lit-table-column width="200px" title="%" data-index="ratio" key="ratio"  align="flex-start" order >
+                <lit-table-column width="200px" title="%" data-index="ratio" 
+                key="ratio"  align="flex-start" order >
                 </lit-table-column>
             </lit-table>
         </div>

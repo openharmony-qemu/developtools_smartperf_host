@@ -106,11 +106,11 @@ int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto fileSystemSampleCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(fileSystemSampleCs, sId);
+    for (size_t i = 0; i < fileSystemSampleCs.size(); i++) {
+        const auto& c = fileSystemSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -124,12 +124,12 @@ int32_t FileSystemSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto fileSystemSampleOrderbys = fc.GetOrderBys();
+    for (auto i = fileSystemSampleOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(fileSystemSampleOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(fileSystemSampleOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -145,102 +145,68 @@ int32_t FileSystemSampleTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(fileSystemSampleTableObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
-            if (fileSystemSampleTableObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_,
-                                     static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
-            } else {
-                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
-            }
+            SetTypeColumn(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()], INVALID_UINT32,
+                          INVALID_CALL_CHAIN_ID);
             break;
         case Index::TYPE:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Types()[CurrentRow()]));
+            SetTypeColumnInt64(fileSystemSampleTableObj_.Types()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::IPID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Ipids()[CurrentRow()]));
+            SetTypeColumnInt64(fileSystemSampleTableObj_.Ipids()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::ITID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Itids()[CurrentRow()]));
+            SetTypeColumnInt64(fileSystemSampleTableObj_.Itids()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::START_TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.StartTs()[CurrentRow()]));
+            SetTypeColumnInt64(fileSystemSampleTableObj_.StartTs()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::END_TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.EndTs()[CurrentRow()]));
+            SetTypeColumnInt64(fileSystemSampleTableObj_.EndTs()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Durs()[CurrentRow()]));
+            SetTypeColumnInt64(fileSystemSampleTableObj_.Durs()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::RETURN_VALUE: {
-            if (fileSystemSampleTableObj_.ReturnValues()[CurrentRow()] != INVALID_UINT64) {
-                auto returnValueIndex = fileSystemSampleTableObj_.ReturnValues()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(returnValueIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::RETURN_VALUE:
+            SetTypeColumnText(fileSystemSampleTableObj_.ReturnValues()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::ERROR_VALUE: {
-            if (fileSystemSampleTableObj_.ErrorCodes()[CurrentRow()] != INVALID_UINT64) {
-                auto errorValueIndex = fileSystemSampleTableObj_.ErrorCodes()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(errorValueIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::ERROR_VALUE:
+            SetTypeColumnText(fileSystemSampleTableObj_.ErrorCodes()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::FD: {
-            if (fileSystemSampleTableObj_.Fds()[CurrentRow()] != INVALID_INT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Fds()[CurrentRow()]));
-            }
+        default:
+            HandleTypeColumns(column);
             break;
-        }
-        case Index::FILE_ID: {
-            if (fileSystemSampleTableObj_.FileIds()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.FileIds()[CurrentRow()]));
-            }
+    }
+    return SQLITE_OK;
+}
+void FileSystemSampleTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
+        case Index::FD:
+            SetTypeColumnInt64(fileSystemSampleTableObj_.Fds()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::SIZE: {
-            if (fileSystemSampleTableObj_.Sizes()[CurrentRow()] != MAX_SIZE_T) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Sizes()[CurrentRow()]));
-            }
+        case Index::FILE_ID:
+            SetTypeColumnInt64(fileSystemSampleTableObj_.FileIds()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::FIRST_ARGUMENT: {
-            if (fileSystemSampleTableObj_.FirstArguments()[CurrentRow()] != INVALID_UINT64) {
-                auto firstArgIndex = fileSystemSampleTableObj_.FirstArguments()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(firstArgIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::SIZE:
+            SetTypeColumnInt64(fileSystemSampleTableObj_.Sizes()[CurrentRow()], MAX_SIZE_T);
+
             break;
-        }
-        case Index::SECOND_ARGUMENT: {
-            if (fileSystemSampleTableObj_.SecondArguments()[CurrentRow()] != INVALID_UINT64) {
-                auto secondArgIndex = fileSystemSampleTableObj_.SecondArguments()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(secondArgIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::FIRST_ARGUMENT:
+            SetTypeColumnText(fileSystemSampleTableObj_.FirstArguments()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::THIRD_ARGUMENT: {
-            if (fileSystemSampleTableObj_.ThirdArguments()[CurrentRow()] != INVALID_UINT64) {
-                auto thirdArgIndex = fileSystemSampleTableObj_.ThirdArguments()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(thirdArgIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::SECOND_ARGUMENT:
+            SetTypeColumnText(fileSystemSampleTableObj_.SecondArguments()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::FOURTH_ARGUMENT: {
-            if (fileSystemSampleTableObj_.FourthArguments()[CurrentRow()] != INVALID_UINT64) {
-                auto fourthArgIndex = fileSystemSampleTableObj_.FourthArguments()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(fourthArgIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::THIRD_ARGUMENT:
+            SetTypeColumnText(fileSystemSampleTableObj_.ThirdArguments()[CurrentRow()], INVALID_UINT64);
             break;
-        }
+        case Index::FOURTH_ARGUMENT:
+            SetTypeColumnText(fileSystemSampleTableObj_.FourthArguments()[CurrentRow()], INVALID_UINT64);
+            break;
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 void FileSystemSampleTable::GetOrbyes(FilterConstraints& sysfc, EstimatedIndexInfo& sysei)
 {

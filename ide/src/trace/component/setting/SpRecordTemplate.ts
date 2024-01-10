@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../../../base-ui/BaseElement';
 import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
 import { HiperfPluginConfig, ProfilerPluginConfig, TracePluginConfig } from './bean/ProfilerServiceTypes';
-import { SpRecordTrace } from '../SpRecordTrace';
+import { SpRecordTemplateHtml } from './SpRecordTemplate.html';
 
 @element('sp-record-template')
 export class SpRecordTemplate extends BaseElement {
@@ -100,7 +100,7 @@ export class SpRecordTemplate extends BaseElement {
     );
   }
 
-  addProbeListener(...elements: HTMLElement[]) {
+  addProbeListener(...elements: HTMLElement[]): void {
     elements.forEach((element) => {
       element.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
         let detail = event.detail;
@@ -112,20 +112,21 @@ export class SpRecordTemplate extends BaseElement {
       });
     });
   }
+
   getTemplateConfig(): Array<ProfilerPluginConfig<{}>> {
     let config: Array<ProfilerPluginConfig<{}>> = [];
-    let traceEventSet = new Array<string>();
-    let hitraceCategories = new Array<string>();
+    let traceEventSet: string[] = [];
+    let hiTraceCategories: string[] = [];
     let useFtracePlugin: boolean = false;
     if (this.frameTimeline?.checked || this.appStartup?.checked || this.dynamicEffectEl?.checked) {
       useFtracePlugin = true;
       SpRecordTemplate.FRAME_TIMELINE_CATEGORIES_EVENT.forEach((categories) => {
-        if (hitraceCategories.indexOf(categories) == -1) {
-          hitraceCategories.push(categories);
+        if (hiTraceCategories.indexOf(categories) === -1) {
+          hiTraceCategories.push(categories);
         }
       });
       if (this.appStartup?.checked) {
-        hitraceCategories.push('musl');
+        hiTraceCategories.push('musl');
         config.push(this.createHiperfDefaultConfig());
       }
       SpRecordTemplate.FRAME_TIMELINE_EVENTS.forEach((ev) => {
@@ -134,22 +135,12 @@ export class SpRecordTemplate extends BaseElement {
         }
       });
     }
-    if (this.schedulingAnalysis?.checked) {
-      useFtracePlugin = true;
-      SpRecordTemplate.SCHEDULING_ANALYSIS_EVENT.forEach((event) => {
-        if (traceEventSet.indexOf(event) < 0) {
-          traceEventSet.push(event);
-        }
-      });
-    }
-    if (this.taskPoolEl!.checked) {
-      useFtracePlugin = true;
-      hitraceCategories.push('commonlibrary');
-    }
+    useFtracePlugin = this.schedulingAnalysisConfig(useFtracePlugin, traceEventSet);
+    useFtracePlugin = this.taskPoolElConfig(useFtracePlugin, hiTraceCategories);
     if (useFtracePlugin) {
       let tracePluginConfig: TracePluginConfig = {
         ftraceEvents: traceEventSet,
-        hitraceCategories: hitraceCategories,
+        hitraceCategories: hiTraceCategories,
         flushIntervalMs: 1000,
         hitraceApps: [],
         bufferSizeKb: 2048,
@@ -171,93 +162,40 @@ export class SpRecordTemplate extends BaseElement {
     return config;
   }
 
+  private schedulingAnalysisConfig(useFtracePlugin: boolean, traceEventSet: string[]): boolean {
+    if (this.schedulingAnalysis?.checked) {
+      useFtracePlugin = true;
+      SpRecordTemplate.SCHEDULING_ANALYSIS_EVENT.forEach((event) => {
+        if (traceEventSet.indexOf(event) < 0) {
+          traceEventSet.push(event);
+        }
+      });
+    }
+    return useFtracePlugin;
+  }
+
+  private taskPoolElConfig(useFtracePlugin: boolean, hitraceCategories: string[]): boolean {
+    if (this.taskPoolEl!.checked) {
+      useFtracePlugin = true;
+      hitraceCategories.push('commonlibrary');
+    }
+    return useFtracePlugin;
+  }
+
   private createHiperfDefaultConfig(): ProfilerPluginConfig<HiperfPluginConfig> {
     let hiPerf: HiperfPluginConfig = {
       isRoot: false,
       outfileName: '/data/local/tmp/perf.data',
       recordArgs: SpRecordTemplate.HIPERF_DEFAULT_RECORD_ARGS,
     };
-    let htraceProfilerPluginConfig: ProfilerPluginConfig<HiperfPluginConfig> = {
+    return {
       pluginName: 'hiperf-plugin',
       sampleInterval: 5000,
       configData: hiPerf,
     };
-    return htraceProfilerPluginConfig;
   }
 
   initHtml(): string {
-    return `
-        <style>
-        .template-config-div {
-          flex-direction: column;
-          margin-bottom: 3vh;
-          width: 80%;
-          display: flex;
-        }
-        .template-title {
-            line-height: 40px;
-            font-weight: 700;
-            margin-right: 10px;
-            opacity: 0.9;
-            font-family: Helvetica-Bold;
-            font-size: 18px;
-            text-align: center;
-        }
-        :host{
-            background: var(--dark-background3,#FFFFFF);
-            border-radius: 0px 16px 16px 0px;
-            display: inline-block;
-            width: 100%;
-            height: 100%;
-         }
-         .root {
-            font-size:16px;
-            width: 100%;
-            height: 95%;
-            padding-top: 50px;
-            padding-left: 54px;
-            margin-right: 30px;
-            margin-bottom: 30px;
-        }
-        lit-switch {
-             display: inline;
-             float: right;
-             height: 38px;
-             margin-top: 10px;
-        }
-        </style>
-        <div class="root">
-            <div class="template-config-div">
-               <div>
-                 <span class="template-title">FrameTimeline</span>
-                 <lit-switch class="config_switch" id="frame_timeline" name="FrameTimeline"></lit-switch>
-               </div>
-            </div>
-             <div class="template-config-div">
-               <div>
-                 <span class="template-title">SchedulingAnalysis</span>
-                 <lit-switch class="config_switch" id="scheduling_analysis" name="SchedulingAnalysis"></lit-switch>
-               </div>
-            </div>
-            <div class="template-config-div">
-               <div>
-                 <span class="template-title">AppStartup</span>
-                 <lit-switch class="config_switch" id="app_startup" name="AppStartup"></lit-switch>
-               </div>
-            </div>
-            <div class="template-config-div">
-               <div>
-                 <span class="template-title">TaskPool</span>
-                 <lit-switch class="config_switch" id="task_pool" name="TaskPool"></lit-switch>
-               </div>
-            </div>
-            <div class="template-config-div">
-               <div>
-                 <span class="template-title">AnimationAnalysis</span>
-                 <lit-switch class="config_switch" id="dynamic_effect" name="AnimationAnalysis"></lit-switch>
-               </div>
-            </div> 
-        </div>
-        `;
+    return SpRecordTemplateHtml;
   }
 }

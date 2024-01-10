@@ -17,12 +17,7 @@ import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {
   BaseStruct,
   dataFilterHandler,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawSelection,
   Render,
-  RequestMessage,
   isFrameContainPoint,
   ns2x,
   drawLoadingFrame,
@@ -94,10 +89,10 @@ export function memoryAbility(
     for (let i = 0; i < res.length; i++) {
       let memoryAbilityItem = res[i];
       if (
-        (memoryAbilityItem.startNS || 0) + (memoryAbilityItem.dur || 0) > (startNS || 0) &&
-        (memoryAbilityItem.startNS || 0) < (endNS || 0)
+        (memoryAbilityItem.startNS || 0) + (memoryAbilityItem.dur || 0) > startNS &&
+        (memoryAbilityItem.startNS || 0) < endNS
       ) {
-        MemoryAbilityMonitorStruct.setMemoryFrame(memoryAbilityItem, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        MemoryAbilityMonitorStruct.setMemoryFrame(memoryAbilityItem, 5, startNS, endNS, totalNS, frame);
       } else {
         memoryAbilityItem.frame = null;
       }
@@ -105,6 +100,16 @@ export function memoryAbility(
     return;
   }
   res.length = 0;
+  setMemoryAbility(memoryAbilityList, res, startNS, endNS, totalNS, frame);
+}
+function setMemoryAbility(
+  memoryAbilityList: Array<any>,
+  res: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any
+) {
   if (memoryAbilityList) {
     for (let memoryAbilityIndex = 0; memoryAbilityIndex < memoryAbilityList.length; memoryAbilityIndex++) {
       let item = memoryAbilityList[memoryAbilityIndex];
@@ -113,21 +118,12 @@ export function memoryAbility(
       } else {
         item.dur = (memoryAbilityList[memoryAbilityIndex + 1].startNS || 0) - (item.startNS || 0);
       }
-      if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-        MemoryAbilityMonitorStruct.setMemoryFrame(
-          memoryAbilityList[memoryAbilityIndex],
-          5,
-          startNS || 0,
-          endNS || 0,
-          totalNS || 0,
-          frame
-        );
+      if ((item.startNS || 0) + (item.dur || 0) > startNS && (item.startNS || 0) < endNS) {
+        MemoryAbilityMonitorStruct.setMemoryFrame(item, 5, startNS, endNS, totalNS, frame);
         if (
           memoryAbilityIndex > 0 &&
-          (memoryAbilityList[memoryAbilityIndex - 1].frame?.x || 0) ==
-            (memoryAbilityList[memoryAbilityIndex].frame?.x || 0) &&
-          (memoryAbilityList[memoryAbilityIndex - 1].frame?.width || 0) ==
-            (memoryAbilityList[memoryAbilityIndex].frame?.width || 0)
+          (memoryAbilityList[memoryAbilityIndex - 1].frame?.x || 0) == (item.frame?.x || 0) &&
+          (memoryAbilityList[memoryAbilityIndex - 1].frame?.width || 0) == (item.frame?.width || 0)
         ) {
         } else {
           res.push(item);
@@ -158,40 +154,23 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
       let index = 2;
       memoryAbilityContext2D.fillStyle = ColorUtils.colorForTid(index);
       memoryAbilityContext2D.strokeStyle = ColorUtils.colorForTid(index);
+      let drawHeight: number = Math.floor(
+        ((memoryAbilityData.value || 0) * (memoryAbilityData.frame.height || 0) * 1.0) / maxMemoryByte
+      );
+      let y = memoryAbilityData.frame.y + memoryAbilityData.frame.height - drawHeight + 4;
       if (memoryAbilityData.startNS === MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.startNS && isHover) {
         memoryAbilityContext2D.lineWidth = 1;
         memoryAbilityContext2D.globalAlpha = 0.6;
-        let drawHeight: number = Math.floor(
-          ((memoryAbilityData.value || 0) * (memoryAbilityData.frame.height || 0) * 1.0) / maxMemoryByte
-        );
-        memoryAbilityContext2D.fillRect(
-          memoryAbilityData.frame.x,
-          memoryAbilityData.frame.y + memoryAbilityData.frame.height - drawHeight + 4,
-          width,
-          drawHeight
-        );
+        memoryAbilityContext2D.fillRect(memoryAbilityData.frame.x, y, width, drawHeight);
         memoryAbilityContext2D.beginPath();
-        memoryAbilityContext2D.arc(
-          memoryAbilityData.frame.x,
-          memoryAbilityData.frame.y + memoryAbilityData.frame.height - drawHeight + 4,
-          3,
-          0,
-          2 * Math.PI,
-          true
-        );
+        memoryAbilityContext2D.arc(memoryAbilityData.frame.x, y, 3, 0, 2 * Math.PI, true);
         memoryAbilityContext2D.fill();
         memoryAbilityContext2D.globalAlpha = 1.0;
         memoryAbilityContext2D.stroke();
         memoryAbilityContext2D.beginPath();
-        memoryAbilityContext2D.moveTo(
-          memoryAbilityData.frame.x + 3,
-          memoryAbilityData.frame.y + memoryAbilityData.frame.height - drawHeight + 4
-        );
+        memoryAbilityContext2D.moveTo(memoryAbilityData.frame.x + 3, y);
         memoryAbilityContext2D.lineWidth = 3;
-        memoryAbilityContext2D.lineTo(
-          memoryAbilityData.frame.x + width,
-          memoryAbilityData.frame.y + memoryAbilityData.frame.height - drawHeight + 4
-        );
+        memoryAbilityContext2D.lineTo(memoryAbilityData.frame.x + width, y);
         memoryAbilityContext2D.stroke();
       } else {
         memoryAbilityContext2D.globalAlpha = 0.6;
@@ -199,12 +178,7 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
         let drawHeight: number = Math.floor(
           ((memoryAbilityData.value || 0) * (memoryAbilityData.frame.height || 0)) / maxMemoryByte
         );
-        memoryAbilityContext2D.fillRect(
-          memoryAbilityData.frame.x,
-          memoryAbilityData.frame.y + memoryAbilityData.frame.height - drawHeight + 4,
-          width,
-          drawHeight
-        );
+        memoryAbilityContext2D.fillRect(memoryAbilityData.frame.x, y, width, drawHeight);
       }
     }
     memoryAbilityContext2D.globalAlpha = 1.0;

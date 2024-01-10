@@ -32,7 +32,7 @@ private:
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int32_t Column(int32_t column) const override;
+        int32_t Column(int32_t rangeTabColumn) const override;
     };
 };
 } // namespace TraceStreamer

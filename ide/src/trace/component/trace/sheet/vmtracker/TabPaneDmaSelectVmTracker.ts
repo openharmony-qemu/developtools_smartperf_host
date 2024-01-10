@@ -41,11 +41,13 @@ export class TabPaneDmaSelectVmTracker extends BaseElement {
     super.connectedCallback();
     new ResizeObserver(() => {
       if (this.parentElement?.clientHeight !== 0) {
-        // @ts-ignore
-        this.damClickTable?.shadowRoot?.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 18 + 'px';
+        if (this.damClickTable) {
+          // @ts-ignore
+          this.damClickTable.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 18 + 'px';
+          this.damClickTable.reMeauseHeight();
+        }
         this.parentElement!.style.overflow = 'hidden';
-        this.damClickTable?.reMeauseHeight();
       }
     }).observe(this.parentElement!);
   }

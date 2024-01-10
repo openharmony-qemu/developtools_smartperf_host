@@ -30,11 +30,12 @@ export class TabPaneLiveProcesses extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(liveProcessValue: SelectionParam | any) {
-    // @ts-ignore
-    this.liveProcessTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    if (this.liveProcessTbl) {
+      // @ts-ignore
+      this.liveProcessTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(liveProcessValue);
   }
-
   initElements(): void {
     this.liveProcessTbl = this.shadowRoot?.querySelector<LitTable>('#tb-live-processes');
     this.liveProcessTbl!.addEventListener('column-click', (evt) => {

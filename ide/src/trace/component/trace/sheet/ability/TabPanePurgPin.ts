@@ -20,8 +20,8 @@ import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { PurgeableTabStruct } from './TabPanePurgTotal';
-import {querySysPurgeableTab} from "../../../../database/sql/Ability.sql";
-import {queryProcessPurgeableTab} from "../../../../database/sql/ProcessThread.sql";
+import { querySysPurgeableTab } from '../../../../database/sql/Ability.sql';
+import { queryProcessPurgeableTab } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-purg-pin')
 export class TabPanePurgPin extends BaseElement {
@@ -33,10 +33,12 @@ export class TabPanePurgPin extends BaseElement {
   private sortType = 2;
 
   set data(selection: SelectionParam) {
-    //@ts-ignore
-    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
-      this.parentElement!.clientHeight - 45
-    }px`;
+    if (this.purgeablePinTable) {
+      //@ts-ignore
+      this.purgeablePinTable.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 45
+      }px`;
+    }
     this.init();
     this.purgPinTimeRange!.textContent =
       'Selected range: ' + ((selection.rightNs - selection.leftNs) / 1000000.0).toFixed(5) + ' ms';
@@ -51,7 +53,7 @@ export class TabPanePurgPin extends BaseElement {
         true
       ).then((purgePinResults) => {
         this.purgeablePinTable!.loading = false;
-        this.getDataSource(purgePinResults)
+        this.getDataSource(purgePinResults);
       });
     } else if (selection.purgeablePinVM.length > 0) {
       this.purgeablePinSource = [];
@@ -63,19 +65,19 @@ export class TabPanePurgPin extends BaseElement {
         true
       ).then((results) => {
         this.purgeablePinTable!.loading = false;
-        this.getDataSource(results)
+        this.getDataSource(results);
       });
     }
   }
 
-  getDataSource(res: any): void{
+  getDataSource(res: any): void {
     if (res.length > 0) {
       for (let i = 0; i < res.length; i++) {
         this.purgeablePinSource.push(
           this.toTabStruct(res[i].name, res[i].maxSize, res[i].minSize, res[i].avgSize)
         );
       }
-      this.sortByColumn({ key: this.sortKey, sort: this.sortType });
+      this.sortByColumn({key: this.sortKey, sort: this.sortType});
       let total = this.totalData(this.purgeablePinSource);
       this.purgeablePinSource.unshift(total);
       this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;
@@ -157,6 +159,7 @@ export class TabPanePurgPin extends BaseElement {
         }
       };
     }
+
     if (detail.key === 'type') {
       this.purgeablePinSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {

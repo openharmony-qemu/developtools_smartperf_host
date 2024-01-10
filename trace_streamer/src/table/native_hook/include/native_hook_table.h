@@ -46,6 +46,7 @@ private:
         int32_t Column(int32_t column) const override;
 
     private:
+        void HandleTypeColumns(int32_t column) const;
         const NativeHook& nativeHookObj_;
     };
 };

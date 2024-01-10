@@ -123,7 +123,7 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
  * enable/disable SingleVSync
  */
 export function enableVSync(press: boolean, ev: KeyboardEvent, handler?: Function): void {
-  if (!isQuery){
+  if (!isQuery) {
     window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Query VSync' });
     setVSyncData();
     window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Query VSync' });
@@ -143,11 +143,11 @@ function ns2x(ns: number, width: number): number {
   if (endNS === 0) {
     endNS = (window as any).totalNS;
   }
-  let xSize: number = ((ns - startNS) * width) / (endNS - startNS);
-  if (xSize < 0) {
-    xSize = 0;
-  } else if (xSize > width) {
-    xSize = width;
+  let xWidth: number = ((ns - startNS) * width) / (endNS - startNS);
+  if (xWidth < 0) {
+    xWidth = 0;
+  } else if (xWidth > width) {
+    xWidth = width;
   }
-  return xSize;
+  return xWidth;
 }

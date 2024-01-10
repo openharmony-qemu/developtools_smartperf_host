@@ -34,7 +34,6 @@ export function LogDataSender(row: TraceRow<LogStruct>): Promise<LogStruct[]> {
     threadPool.submitProto(
       QueryEnum.HilogData,
       {
-        oneDayTime: window.recordEndNS - ONE_DAY_NS,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -42,6 +41,7 @@ export function LogDataSender(row: TraceRow<LogStruct>): Promise<LogStruct[]> {
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        oneDayTime: window.recordEndNS - ONE_DAY_NS,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

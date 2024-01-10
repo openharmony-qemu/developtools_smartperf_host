@@ -30,16 +30,13 @@ export class LitRadioBox extends BaseElement {
     return this.getAttribute('disabled') !== null;
   }
 
-  set disabled(value) {
-    if (value === null || value === false) {
-      this.removeAttribute('disabled');
-    } else {
-      this.setAttribute('disabled', '');
-    }
-  }
 
   get checked() {
     return this.getAttribute('checked') !== null;
+  }
+
+  get name() {
+    return this.getAttribute('name');
   }
 
   set checked(radioValue: boolean) {
@@ -50,21 +47,25 @@ export class LitRadioBox extends BaseElement {
     }
   }
 
-  get name() {
-    return this.getAttribute('name');
-  }
-
   get value() {
     let slot = this.shadowRoot?.getElementById('slot');
     return slot!.textContent || this.textContent || '';
   }
 
-  set value(value: string) {
-    this.setAttribute('value', value);
+  set disabled(value: boolean) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', '');
+    }
   }
 
   set dis(dis: string) {
     this.setAttribute('dis', dis);
+  }
+
+  set value(value: string) {
+    this.setAttribute('value', value);
   }
 
   initHtml(): string {

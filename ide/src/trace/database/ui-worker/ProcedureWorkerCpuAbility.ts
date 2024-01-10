@@ -24,7 +24,6 @@ import {
   drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { DiskAbilityMonitorStruct } from './ProcedureWorkerDiskIoAbility';
 
 export class CpuAbilityRender extends Render {
   renderMainThread(
@@ -96,7 +95,7 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
     cpuAbilityData: CpuAbilityMonitorStruct,
     maxCpuUtilization: number,
     isHover: boolean
-  ) {
+  ): void {
     if (cpuAbilityData.frame) {
       let width = cpuAbilityData.frame.width || 0;
       let index = 2;
@@ -108,34 +107,17 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
         let drawHeight: number = Math.floor(
           ((cpuAbilityData.value || 0) * (cpuAbilityData.frame.height || 0) * 1.0) / maxCpuUtilization
         );
-        cpuAbilityContext2D.fillRect(
-          cpuAbilityData.frame.x,
-          cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4,
-          width,
-          drawHeight
-        );
+        let y = cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4;
+        cpuAbilityContext2D.fillRect(cpuAbilityData.frame.x, y, width, drawHeight);
         cpuAbilityContext2D.beginPath();
-        cpuAbilityContext2D.arc(
-          cpuAbilityData.frame.x,
-          cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4,
-          3,
-          0,
-          2 * Math.PI,
-          true
-        );
+        cpuAbilityContext2D.arc(cpuAbilityData.frame.x, y, 3, 0, 2 * Math.PI, true);
         cpuAbilityContext2D.fill();
         cpuAbilityContext2D.globalAlpha = 1.0;
         cpuAbilityContext2D.stroke();
         cpuAbilityContext2D.beginPath();
-        cpuAbilityContext2D.moveTo(
-          cpuAbilityData.frame.x + 3,
-          cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4
-        );
+        cpuAbilityContext2D.moveTo(cpuAbilityData.frame.x + 3, y);
         cpuAbilityContext2D.lineWidth = 3;
-        cpuAbilityContext2D.lineTo(
-          cpuAbilityData.frame.x + width,
-          cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4
-        );
+        cpuAbilityContext2D.lineTo(cpuAbilityData.frame.x + width, y);
         cpuAbilityContext2D.stroke();
       } else {
         cpuAbilityContext2D.globalAlpha = 0.6;
@@ -143,12 +125,8 @@ export class CpuAbilityMonitorStruct extends BaseStruct {
         let drawHeight: number = Math.floor(
           ((cpuAbilityData.value || 0) * (cpuAbilityData.frame.height || 0)) / maxCpuUtilization
         );
-        cpuAbilityContext2D.fillRect(
-          cpuAbilityData.frame.x,
-          cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4,
-          width,
-          drawHeight
-        );
+        let rectY = cpuAbilityData.frame.y + cpuAbilityData.frame.height - drawHeight + 4;
+        cpuAbilityContext2D.fillRect(cpuAbilityData.frame.x, rectY, width, drawHeight);
       }
     }
     cpuAbilityContext2D.globalAlpha = 1.0;

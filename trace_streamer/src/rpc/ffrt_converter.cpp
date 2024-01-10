@@ -102,7 +102,7 @@ std::string FfrtConverter::MakeBeginFakeLog(const std::string& mark,
 {
     auto timestamp = ExtractTimeStr(mark);
     auto cpuId = ExtractCpuId(mark);
-    std::unique_ptr<char[]> result(new char[MAX_LEN]);
+    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     auto taskId = GetTaskId(pid, gid);
     (void)sprintf_s(
         result.get(), MAX_LEN,
@@ -123,7 +123,7 @@ std::string FfrtConverter::MakeEndFakeLog(const std::string& mark,
 {
     auto timestamp = ExtractTimeStr(mark);
     auto cpuId = ExtractCpuId(mark);
-    std::unique_ptr<char[]> result(new char[MAX_LEN]);
+    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     auto taskId = GetTaskId(pid, gid);
     (void)sprintf_s(
         result.get(), MAX_LEN,
@@ -203,7 +203,7 @@ std::string FfrtConverter::ReplaceSchedWakeLog(std::string& fakeLog,
 
 std::string FfrtConverter::ReplaceSchedBlockLog(std::string& fakeLog, const int pid, const long long gid)
 {
-    std::unique_ptr<char[]> result(new char[MAX_LEN]);
+    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     auto taskId = GetTaskId(pid, gid);
     (void)sprintf_s(result.get(), MAX_LEN, "pid=%s ", taskId.c_str());
     size_t pidPos = fakeLog.find("pid");
@@ -412,7 +412,7 @@ void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string>& results, Ff
                         missLog = MakeEndFakeLog(mark, pid, taskLabels[pid][gid], gid, tid, threadName, prio);
                         auto timestamp = ExtractTimeStr(mark);
                         auto cpuId = ExtractCpuId(mark);
-                        std::unique_ptr<char[]> result(new char[MAX_LEN]);
+                        std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
                         (void)sprintf_s(result.get(), MAX_LEN, "  %s-%d    (%7d) [%s] ....   %s: %sE|%d\n",
                                         threadName.c_str(), tid, pid, cpuId.c_str(), timestamp.c_str(),
                                         tracingMarkerKey_.c_str(), pid);

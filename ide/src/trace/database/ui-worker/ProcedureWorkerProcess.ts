@@ -36,9 +36,9 @@ export class ProcessRender extends Render {
     proc(
       list,
       filter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.startNS || 0,
+      TraceRow.range!.endNS || 0,
+      TraceRow.range!.totalNS || 0,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -65,15 +65,15 @@ export function proc(
   use: boolean
 ) {
   if (use && res.length > 0) {
-    res.forEach((it) => ProcessStruct.setProcessFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame));
+    res.forEach((it) => ProcessStruct.setProcessFrame(it, 5, startNS, endNS, totalNS, frame));
     return;
   }
   res.length = 0;
   if (processList) {
     for (let i = 0, len = processList.length; i < len; i++) {
       let it = processList[i];
-      if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
-        ProcessStruct.setProcessFrame(processList[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
+        ProcessStruct.setProcessFrame(processList[i], 5, startNS, endNS, totalNS, frame);
         if (
           i > 0 &&
           (processList[i - 1].frame?.x || 0) == (processList[i].frame?.x || 0) &&

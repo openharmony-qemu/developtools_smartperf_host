@@ -20,8 +20,8 @@ import { SystemMemorySummary } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import {queryStartTime} from "../../../../database/sql/SqlLite.sql";
-import {getTabMemoryAbilityData} from "../../../../database/sql/Ability.sql";
+import { queryStartTime } from '../../../../database/sql/SqlLite.sql';
+import { getTabMemoryAbilityData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-memory-ability')
 export class TabPaneMemoryAbility extends BaseElement {
@@ -31,9 +31,11 @@ export class TabPaneMemoryAbility extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(memoryAbilityValue: SelectionParam | any) {
-    // @ts-ignore
-    this.memoryAbilityTbl?.shadowRoot?.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 45 + 'px';
+    if (this.memoryAbilityTbl) {
+      // @ts-ignore
+      this.memoryAbilityTbl.shadowRoot.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(memoryAbilityValue);
   }
 

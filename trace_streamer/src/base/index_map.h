@@ -35,7 +35,7 @@ public:
     static void Sort();
     void Print();
     void Init();
-    void Merge(IndexMap* other);
+    bool Merge(IndexMap* other);
     void FilterId(unsigned char op, sqlite3_value* argv);
     void FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<InternalTime>& times);
     template <class T>
@@ -78,36 +78,44 @@ public:
         rowIndexBak_.clear();
         switch (op) {
             case SQLITE_INDEX_CONSTRAINT_EQ:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] == value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] == value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_NE:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] != value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] != value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_ISNULL:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_GT:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] <= value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] > value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] <= value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] > value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_GE:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] < value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] >= value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] < value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] >= value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_LE:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] > value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] <= value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] > value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] <= value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_LT:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] >= value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] < value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] >= value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] < value; });
                 break;
             default:
                 break;
@@ -209,6 +217,9 @@ public:
     bool HasData() const;
     std::vector<TableRowId> rowIndex_ = {};
     std::vector<TableRowId> rowIndexBak_ = {};
+
+private:
+    bool MergeIndexTypeId(IndexMap* other);
 
 private:
     TableRowId end_ = INVALID_INT32;

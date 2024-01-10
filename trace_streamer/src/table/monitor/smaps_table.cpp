@@ -107,6 +107,14 @@ int32_t SmapsTable::Cursor::Column(int32_t col) const
         case Index::SIZE:
             sqlite3_result_int64(context_, smapsObj_.Sizes()[CurrentRow()]);
             break;
+        default:
+            HandleTypeColumns(col);
+    }
+    return SQLITE_OK;
+}
+void SmapsTable::Cursor::HandleTypeColumns(int32_t col) const
+{
+    switch (static_cast<Index>(col)) {
         case Index::RESIDE:
             sqlite3_result_double(context_, smapsObj_.Resides()[CurrentRow()]);
             break;
@@ -141,8 +149,6 @@ int32_t SmapsTable::Cursor::Column(int32_t col) const
             TS_LOGF("Unregistered column : %d", col);
             break;
     }
-    return SQLITE_OK;
 }
-
 } // namespace TraceStreamer
 } // namespace SysTuning

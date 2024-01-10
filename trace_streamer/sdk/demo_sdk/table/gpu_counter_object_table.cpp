@@ -19,42 +19,43 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { COUNTER_ID = 0, COUNTER_NAME = 1 };
-GpuCounterObjectTable::GpuCounterObjectTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+GpuCounterObjectTable::GpuCounterObjectTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("counter_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("counter_name", "REAL"));
-    tablePriKey_.push_back("counter_id");
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("counter_id", "INTEGER"));
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("counter_name", "REAL"));
+    demoTablePriKey_.push_back("counter_id");
 }
 
 GpuCounterObjectTable::~GpuCounterObjectTable() {}
 
-std::unique_ptr<TableBase::Cursor> GpuCounterObjectTable::CreateCursor()
+std::unique_ptr<DemoTableBase::Cursor> GpuCounterObjectTable::CreateCursor()
 {
-    return std::make_unique<Cursor>(dataCache_, this);
+    return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-GpuCounterObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGpuCounterObjectData().Size())),
+GpuCounterObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+    : DemoTableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstGpuCounterObjectData().Size())),
       gpuCounterObjectDataObj_(dataCache->GetConstGpuCounterObjectData())
 {
 }
 
 GpuCounterObjectTable::Cursor::~Cursor() {}
 
-int32_t GpuCounterObjectTable::Cursor::Column(int32_t column) const
+int32_t GpuCounterObjectTable::Cursor::Column(int32_t GpuCntObjColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(GpuCntObjColumn)) {
         case Index::COUNTER_ID: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(gpuCounterObjectDataObj_.CounterId()[CurrentRow()]));
+            sqlite3_result_int64(demoContext_,
+                                 static_cast<int64_t>(gpuCounterObjectDataObj_.CounterId()[CurrentRow()]));
             break;
         }
         case Index::COUNTER_NAME: {
-            sqlite3_result_text(context_, gpuCounterObjectDataObj_.CounterName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
-                                nullptr);
+            sqlite3_result_text(demoContext_, gpuCounterObjectDataObj_.CounterName()[CurrentRow()].c_str(),
+                                STR_DEFAULT_LEN, nullptr);
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered GpuCntObjColumn : %d", GpuCntObjColumn);
             break;
     }
     return SQLITE_OK;

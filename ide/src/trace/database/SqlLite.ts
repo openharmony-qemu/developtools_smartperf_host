@@ -182,16 +182,7 @@ export class DbPool {
       this.currentWasmThread = undefined;
     }
     await this.close();
-    const { port1, port2 } = new MessageChannel();
-    if (type === 'wasm') {
-      this.maxThreadNumber = 1;
-    } else if (type === 'server') {
-      this.maxThreadNumber = 1;
-    } else if (type === 'sqlite') {
-      this.maxThreadNumber = 1;
-    } else if (type === 'duck') {
-      this.maxThreadNumber = 1;
-    }
+    this.maxThreadNumber = 1;
     for (let i = 0; i < this.maxThreadNumber; i++) {
       let thread: DbThread | undefined;
       if (threadBuild) {
@@ -230,7 +221,7 @@ export class DbPool {
             } else if (Reflect.has(event.data, 'ready')) {
               this.progress!('database opened', this.num + event.data.index);
               this.progressTimer(this.num + event.data.index, this.progress!);
-              DbPool.sharedBuffer = null; //todo
+              DbPool.sharedBuffer = null;
             } else if (Reflect.has(event.data, 'init')) {
               if (this.cutDownTimer != undefined) {
                 clearInterval(this.cutDownTimer);
@@ -268,8 +259,7 @@ export class DbPool {
     progress('database loaded', 15);
     DbPool.sharedBuffer = await fetch(url).then((res) => res.arrayBuffer());
     progress('open database', 20);
-    for (let i = 0; i < this.works.length; i++) {
-      let thread = this.works[i];
+    for (let thread of this.works) {
       let { status, msg } = await thread.dbOpen('');
       if (!status) {
         DbPool.sharedBuffer = null;
@@ -284,8 +274,7 @@ export class DbPool {
     DbPool.sharedBuffer = buf;
     progress('parse database', 20);
     let configMap;
-    for (let i = 0; i < this.works.length; i++) {
-      let thread = this.works[i];
+    for (let thread of this.works) {
       let { status, msg, buffer, sdkConfigMap, fileKey } = await thread.dbOpen(parseConfig, sdkWasmConfig, buf);
       if (!status) {
         DbPool.sharedBuffer = null;
@@ -355,8 +344,7 @@ export class DbPool {
 
   close = async () => {
     clearInterval(this.cutDownTimer);
-    for (let i = 0; i < this.works.length; i++) {
-      let thread = this.works[i];
+    for (let thread of this.works) {
       thread.worker?.terminate();
     }
     this.works.length = 0;
@@ -426,7 +414,7 @@ export class DbPool {
 
 export const threadPool = new DbPool();
 
-export function query<T extends any>(
+export function query<T>(
   name: string,
   sql: string,
   args: any = null,

@@ -194,7 +194,10 @@ export class LitSelectV extends BaseElement {
         }
       });
     });
+    this.setEvent();
+  }
 
+  setEvent():void{
     this.onmouseout = this.onblur = (ev) => {
       this.focused = false;
     };

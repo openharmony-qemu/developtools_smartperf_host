@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export function selectHtmlStr(): string {
+export const selectHtmlStr = () :string=>{
   return `
         :host{
             display: inline-flex;

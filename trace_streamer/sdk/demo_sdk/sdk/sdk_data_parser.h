@@ -21,7 +21,7 @@
 #include <clock_filter.h>
 #include "file.h"
 #include "htrace_plugin_time_parser.h"
-#include "table/table_base.h"
+#include "table/demo_table_base.h"
 #include "trace_streamer/trace_streamer_selector.h"
 
 namespace SysTuning {

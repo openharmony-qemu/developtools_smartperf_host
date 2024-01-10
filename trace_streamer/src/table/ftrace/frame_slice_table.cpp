@@ -100,6 +100,24 @@ int32_t FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
+    HandleIndex(fc, argv);
+
+    auto frameSliceTabOrderbys = fc.GetOrderBys();
+    for (auto i = frameSliceTabOrderbys.size(); i > 0;) {
+        i--;
+        switch (static_cast<Index>(frameSliceTabOrderbys[i].iColumn)) {
+            case Index::ID:
+                indexMap_->SortBy(frameSliceTabOrderbys[i].desc);
+                break;
+            default:
+                break;
+        }
+    }
+
+    return SQLITE_OK;
+}
+void FrameSliceTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_value** argv)
+{
     auto& cs = fc.GetConstraints();
     for (size_t i = 0; i < cs.size(); i++) {
         const auto& c = cs[i];
@@ -140,22 +158,7 @@ int32_t FrameSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
                 break;
         }
     }
-
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
-        i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
-            case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
-                break;
-            default:
-                break;
-        }
-    }
-
-    return SQLITE_OK;
 }
-
 int32_t FrameSliceTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
@@ -163,7 +166,7 @@ int32_t FrameSliceTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case Index::TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.TimeStampData()[CurrentRow()]));
+            SetTypeColumnInt64(frameSliceObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::VSYNC:
             sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.VsyncIds()[CurrentRow()]));
@@ -175,49 +178,47 @@ int32_t FrameSliceTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.InternalTidsData()[CurrentRow()]));
             break;
         case Index::CALLSTACK_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.CallStackIds()[CurrentRow()]));
+            SetTypeColumnInt64(frameSliceObj_.CallStackIds()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::DUR:
-            if (frameSliceObj_.Durs()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.Durs()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(frameSliceObj_.Durs()[CurrentRow()], INVALID_UINT64);
             break;
+        default:
+            HandleTypeColumns(column);
+    }
+
+    return SQLITE_OK;
+}
+void FrameSliceTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
         case Index::SRC:
             sqlite3_result_text(context_, frameSliceObj_.Srcs()[CurrentRow()].c_str(),
                                 frameSliceObj_.Srcs()[CurrentRow()].length(), nullptr);
             break;
         case Index::DST:
-            if (frameSliceObj_.Dsts()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.Dsts()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(frameSliceObj_.Dsts()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::TYPE:
-            sqlite3_result_int64(context_, static_cast<int64_t>(frameSliceObj_.Types()[CurrentRow()]));
+            SetTypeColumnInt64(frameSliceObj_.Types()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::TYPE_DESC:
             sqlite3_result_text(context_, frameSliceObj_.Types()[CurrentRow()] == 0 ? "actural" : "expect",
                                 STR_DEFAULT_LEN, nullptr);
             break;
         case Index::FLAG:
-            if (frameSliceObj_.Flags()[CurrentRow()] != INVALID_UINT8) {
-                sqlite3_result_int(context_, static_cast<int32_t>(frameSliceObj_.Flags()[CurrentRow()]));
-            }
+            SetTypeColumnInt32(frameSliceObj_.Flags()[CurrentRow()], INVALID_UINT8);
             break;
         case Index::DEPTH:
-            if (frameSliceObj_.Depths()[CurrentRow()] != INVALID_UINT8) {
-                sqlite3_result_int(context_, static_cast<int32_t>(frameSliceObj_.Depths()[CurrentRow()]));
-            }
+            SetTypeColumnInt32(frameSliceObj_.Depths()[CurrentRow()], INVALID_UINT8);
             break;
         case Index::FRAME_NO:
-            if (frameSliceObj_.FrameNos()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int(context_, static_cast<int32_t>(frameSliceObj_.FrameNos()[CurrentRow()]));
-            }
+            SetTypeColumnInt32(frameSliceObj_.FrameNos()[CurrentRow()], INVALID_UINT32);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 void FrameSliceTable::GetOrbyes(FilterConstraints& slicefc, EstimatedIndexInfo& sliceei)
 {

@@ -25,9 +25,11 @@ export function resizeObserver(
 ): void {
   new ResizeObserver((entries) => {
     if (parentEl.clientHeight !== 0) {
-      // @ts-ignore
-      tableEl?.shadowRoot.querySelector('.table').style.height = parentEl.clientHeight - tblOffsetHeight + 'px';
-      tableEl?.reMeauseHeight();
+      if (tableEl) {
+        // @ts-ignore
+        tableEl.shadowRoot.querySelector('.table').style.height = parentEl.clientHeight - tblOffsetHeight + 'px';
+        tableEl.reMeauseHeight();
+      }
       if (loadingPage) {
         loadingPage.style.height = parentEl.clientHeight - loadingPageOffsetHeight + 'px';
       }
@@ -44,9 +46,11 @@ export function resizeObserverFromMemory(
   new ResizeObserver((entries) => {
     let filterHeight = 0;
     if (parentElement.clientHeight !== 0) {
-      // @ts-ignore
-      tableEl?.shadowRoot.querySelector('.table').style.height = parentElement.clientHeight - tblOffsetHeight + 'px';
-      tableEl?.reMeauseHeight();
+      if (tableEl) {
+        // @ts-ignore
+        tableEl.shadowRoot.querySelector('.table').style.height = parentElement.clientHeight - tblOffsetHeight + 'px';
+        tableEl.reMeauseHeight();
+      }
     }
     if (filterEl!.clientHeight > 0) {
       filterHeight = filterEl!.clientHeight;

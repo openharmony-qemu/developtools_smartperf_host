@@ -50,7 +50,6 @@ public:
     int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     void ClearAllPrevCacheData();
     void UpdateAllPrevSize();
-    void UpdateAllDatabaseStableSize();
 
 private:
     void InitDB();
@@ -65,6 +64,16 @@ private:
     bool ExportEbpfPagedMemReadableText(int32_t fd, std::string& bufferLine, const EbpfEventTypeMap& ebpfEventTypeMap);
     bool ExportEbpfBIOReadableText(int32_t fd, std::string& bufferLine, const EbpfEventTypeMap& ebpfEventTypeMap);
     void ExportEbpfCallChaninText(uint32_t callChainId, std::string& bufferLine);
+    void InitBaseDB();
+    void InitEbpfDB();
+    void InitNativeMemoryDB();
+    void InitArkTsDB();
+    void InitHiperfDB();
+    void InitMeasureDB();
+    void InitTemplateDB();
+    void InitRenderServiceDB();
+    void InitMemoryDB();
+    void InitHisysEventDB();
 
 private:
     bool dbInited_ = false;

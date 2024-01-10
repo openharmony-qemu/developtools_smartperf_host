@@ -20,7 +20,8 @@ import { Dma } from '../../../../bean/AbilityMonitor';
 import { resizeObserver } from '../SheetUtils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
-import {getTabDmaAbilityData} from "../../../../database/sql/Dma.sql";
+import { getTabDmaAbilityData } from '../../../../database/sql/Dma.sql';
+import { NUM_5, NUM_MILLON } from '../../../../bean/NumBean';
 
 @element('tabpane-dma-ability')
 export class TabPaneDmaAbility extends BaseElement {
@@ -30,11 +31,11 @@ export class TabPaneDmaAbility extends BaseElement {
   private dmaTimeRange: HTMLLabelElement | null | undefined;
   private total: Dma = new Dma();
 
-  set data(dmaAbilityValue: SelectionParam | any) {
+  set data(dmaAbilityValue: SelectionParam) {
     if (dmaAbilityValue.dmaAbilityData.length > 0) {
       this.init();
       this.dmaTimeRange!.textContent =
-        'Selected range: ' + ((dmaAbilityValue.rightNs - dmaAbilityValue.leftNs) / 1000000.0).toFixed(5) + ' ms';
+        'Selected range: ' + ((dmaAbilityValue.rightNs - dmaAbilityValue.leftNs) / NUM_MILLON).toFixed(NUM_5) + ' ms';
       this.dmaTbl!.loading = true;
       this.queryDataByDB(dmaAbilityValue);
     }
@@ -68,8 +69,9 @@ export class TabPaneDmaAbility extends BaseElement {
     }
   }
 
-  queryDataByDB(val: SelectionParam | any): void {
-    getTabDmaAbilityData(val.leftNs, val.rightNs, (MemoryConfig.getInstance().interval * 1000000) / 5).then((data) => {
+  queryDataByDB(val: SelectionParam): void {
+    getTabDmaAbilityData(val.leftNs, val.rightNs,
+      (MemoryConfig.getInstance().interval * NUM_MILLON) / NUM_5).then((data) => {
       this.dmaSource = data;
       this.dmaTbl!.loading = false;
       if (data.length !== null && data.length > 0) {
@@ -123,9 +125,11 @@ export class TabPaneDmaAbility extends BaseElement {
             padding: 10px 10px;
         }
         </style>
-        <div class="dma-label" style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
+        <div class="dma-label"
+        style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
             <div style="flex: 1"></div>
-            <label id="dma-time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
+            <label id="dma-time-range"
+            style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
         </div>
         <div style="overflow: auto">
         <lit-table id="damTable" class="damTable">

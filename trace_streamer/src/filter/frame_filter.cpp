@@ -16,7 +16,7 @@
 #include <memory>
 #include <cinttypes>
 #include "log.h"
-#define ISINVALIDU32(value) ((value) == INVALID_UINT32)
+
 namespace SysTuning {
 namespace TraceStreamer {
 FrameFilter::FrameFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
@@ -165,7 +165,7 @@ bool FrameFilter::EndVsyncEvent(uint64_t ts, uint32_t itid)
     } else { // for app
         traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(
             lastFrameSlice->frameSliceRow_, ts, lastFrameSlice->expectedDur_, lastFrameSlice->expectedEndTs_);
-        if (ISINVALIDU32(lastFrameSlice->frameNum_)) {
+        if (lastFrameSlice->frameNum_ == INVALID_UINT32) {
             // if app's frame num not received
             traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameSliceRow_);
             traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameExpectedSliceRow_);

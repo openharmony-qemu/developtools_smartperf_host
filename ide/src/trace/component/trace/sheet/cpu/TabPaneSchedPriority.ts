@@ -34,8 +34,10 @@ export class TabPaneSchedPriority extends BaseElement {
       return;
     }
     this.selectionParam = sptValue;
-    // @ts-ignore
-    this.sptTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    if (this.priorityTbl) {
+      // @ts-ignore
+      this.priorityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.range!.textContent =
       'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     this.queryDataByDB(sptValue);
@@ -54,16 +56,9 @@ export class TabPaneSchedPriority extends BaseElement {
   private async queryDataByDB(sptParam: SelectionParam | any): Promise<void> {
     this.priorityTbl!.loading = true;
     const resultData: Array<Priority> = [];
-    if (this.strValueMap.size === 0) {
-      await queryThreadStateArgsByName('next_info').then((value) => {
-        for (const item of value) {
-          this.strValueMap.set(item.argset, item.strValue);
-        }
-      });
-    }
+    await this.fetchAndProcessData();
 
     const filterList = ['0', '0x0']; //next_info第2字段不为0 || next_info第3字段不为0
-
     // 通过priority与next_info结合判断优先级等级
     function setPriority(item: Priority, strArg: string[]) {
       if (item.priority >= 0 && item.priority <= 88) {
@@ -95,41 +90,74 @@ export class TabPaneSchedPriority extends BaseElement {
           if (item.cpu === null || !sptParam.cpus.includes(item.cpu)) {
             continue;
           }
-
-          let strArg: string[] = [];
-          const args = this.strValueMap.get(item.argSetID);
-          if (args) {
-            strArg = args!.split(',');
-          }
-
-          const slice = Utils.SCHED_SLICE_MAP.get(`${item.itId}-${item.startTs}`);
-          if (slice) {
-            const runningPriority = new Priority();
-            runningPriority.priority = slice.priority;
-            runningPriority.state = 'Running';
-            runningPriority.dur = item.dur;
-            setPriority(runningPriority, strArg);
-            resultData.push(runningPriority);
-
-            const runnableItem = runnableMap.get(`${item.itId}_${item.startTs}`);
-            if (runnableItem) {
-              const runnablePriority = new Priority();
-              runnablePriority.priority = slice.priority;
-              runnablePriority.state = 'Runnable';
-              runnablePriority.dur = runnableItem.dur;
-              setPriority(runnablePriority, strArg);
-              resultData.push(runnablePriority);
-            }
-          }
+          this.fetchData(item, setPriority, resultData, runnableMap);
         }
         this.getDataByPriority(resultData);
       }
     );
   }
 
+  private fetchData(item: any, setPriority: (item: Priority, strArg: string[]) => void,
+    resultData: Array<Priority>, runnableMap: Map<string, Priority>) {
+    let strArg: string[] = [];
+    const args = this.strValueMap.get(item.argSetID);
+    if (args) {
+      strArg = args!.split(',');
+    }
+    const slice = Utils.SCHED_SLICE_MAP.get(`${item.itId}-${item.startTs}`);
+    if (slice) {
+      const runningPriority = new Priority();
+      runningPriority.priority = slice.priority;
+      runningPriority.state = 'Running';
+      runningPriority.dur = item.dur;
+      setPriority(runningPriority, strArg);
+      resultData.push(runningPriority);
+
+      const runnableItem = runnableMap.get(`${item.itId}_${item.startTs}`);
+      if (runnableItem) {
+        const runnablePriority = new Priority();
+        runnablePriority.priority = slice.priority;
+        runnablePriority.state = 'Runnable';
+        runnablePriority.dur = runnableItem.dur;
+        setPriority(runnablePriority, strArg);
+        resultData.push(runnablePriority);
+      }
+    }
+  }
+
+  private async fetchAndProcessData() {
+    if (this.strValueMap.size === 0) {
+      await queryThreadStateArgsByName('next_info').then((value) => {
+        for (const item of value) {
+          this.strValueMap.set(item.argset, item.strValue);
+        }
+      });
+    }
+  }
+
   private getDataByPriority(source: Array<Priority>): void {
     const priorityMap: Map<string, Priority> = new Map<string, Priority>();
     const stateMap: Map<string, Priority> = new Map<string, Priority>();
+    this.prepareMaps(source, priorityMap, stateMap);
+
+    const priorityArr: Array<Priority> = [];
+    for (const key of priorityMap.keys()) {
+      const ptsValues = priorityMap.get(key);
+      ptsValues!.children = [];
+      for (const itemKey of stateMap.keys()) {
+        if (itemKey.startsWith(key + '_')) {
+          const sp = stateMap.get(itemKey);
+          ptsValues!.children.push(sp!);
+        }
+      }
+      priorityArr.push(ptsValues!);
+    }
+    this.priorityTbl!.loading = false;
+    this.priorityTbl!.recycleDataSource = priorityArr;
+    this.theadClick(priorityArr);
+  }
+
+  private prepareMaps(source: Array<Priority>, priorityMap: Map<string, Priority>, stateMap: Map<string, Priority>) {
     source.map((priorityItem) => {
       if (priorityMap.has(priorityItem.priorityType + '')) {
         const priorityMapObj = priorityMap.get(priorityItem.priorityType + '');
@@ -174,22 +202,6 @@ export class TabPaneSchedPriority extends BaseElement {
         stateMap.set(priorityItem.priorityType + '_' + priorityItem.state, ptsPtMapObj);
       }
     });
-
-    const priorityArr: Array<Priority> = [];
-    for (const key of priorityMap.keys()) {
-      const ptsValues = priorityMap.get(key);
-      ptsValues!.children = [];
-      for (const itemKey of stateMap.keys()) {
-        if (itemKey.startsWith(key + '_')) {
-          const sp = stateMap.get(itemKey);
-          ptsValues!.children.push(sp!);
-        }
-      }
-      priorityArr.push(ptsValues!);
-    }
-    this.priorityTbl!.loading = false;
-    this.priorityTbl!.recycleDataSource = priorityArr;
-    this.theadClick(priorityArr);
   }
 
   private theadClick(data: Array<Priority>) {

@@ -53,8 +53,8 @@ export function hiperfCallStackCacheSender(): Promise<any> {
       QueryEnum.HiperfCallStack,
       {
         recordStartNS: window.recordStartNS,
-        trafic: TraficEnum.TransferArrayBuffer,
         isCache: true,
+        trafic: TraficEnum.TransferArrayBuffer,
       },
       (res: any, len: number): void => {
         resolve('ok');
@@ -71,6 +71,7 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
         recordStartNS: window.recordStartNS,
         trafic: TraficEnum.TransferArrayBuffer,
         isCache: true,
+        endNS: (TraceRow.range?.endNS || 0) - (TraceRow.range?.startNS || 0),
       },
       (res: any, len: number): void => {
         resolve('ok');
@@ -80,7 +81,6 @@ export function hiperfCallChartDataCacheSender(): Promise<any> {
 }
 
 function arrayBufferHandler(res: any, len: number) {
-  let outArr: any[] = [];
   let startTs = new Float64Array(res.startTs);
   let dur = new Float64Array(res.dur);
   let depth = new Int32Array(res.depth);
@@ -90,6 +90,7 @@ function arrayBufferHandler(res: any, len: number) {
   let callchainId = new Int32Array(res.callchainId);
   let selfDur = new Int32Array(res.selfDur);
   let name = new Int32Array(res.name);
+  let outArr: any[] = [];
   for (let i = 0; i < len; i++) {
     outArr.push({
       startTime: startTs[i],
@@ -109,4 +110,3 @@ function arrayBufferHandler(res: any, len: number) {
     dataList: outArr,
   };
 }
-

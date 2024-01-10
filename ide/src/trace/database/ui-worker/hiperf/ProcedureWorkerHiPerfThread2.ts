@@ -19,16 +19,15 @@ import { TraceRow } from '../../../component/trace/base/TraceRow';
 
 export class HiperfThreadRender2 extends PerfRender {
   renderMainThread(req: any, row: TraceRow<HiPerfThreadStruct>): void {
-    let list = row.dataList;
-    let filter = row.dataListCache;
+    let hiperfThreadFilter = row.dataListCache;
     let groupBy10MS = req.scale > 30_000_000;
     let textMetrics;
     if (!groupBy10MS) {
       req.context.font = 'normal 12px Arial';
       textMetrics = req.context.measureText('🄿');
     }
-    hiPerf2(filter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, row.frame);
-    drawLoadingFrame(req.context, filter, row);
+    hiPerf2(hiperfThreadFilter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, row.frame);
+    drawLoadingFrame(req.context, hiperfThreadFilter, row);
     req.context.beginPath();
     req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
     req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
@@ -36,7 +35,7 @@ export class HiperfThreadRender2 extends PerfRender {
     let specPath = new Path2D();
     let offset = groupBy10MS ? 0 : 3;
     let find = false;
-    for (let re of filter) {
+    for (let re of hiperfThreadFilter) {
       HiPerfThreadStruct.draw(req.context, normalPath, specPath, re, groupBy10MS, textMetrics);
       if (row.isHover) {
         if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {

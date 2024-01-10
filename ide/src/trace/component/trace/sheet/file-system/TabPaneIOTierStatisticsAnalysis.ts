@@ -25,6 +25,7 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { TabPaneFilter } from '../TabPaneFilter';
 import { initSort } from '../SheetUtils';
 import { TabPaneIOCallTree } from './TabPaneIOCallTree';
+import { TabPaneIOTierStatisticsAnalysisHtml } from './TabPaneIOTierStatisticsAnalysis.html';
 
 @element('tabpane-tb-vm-statistics')
 export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
@@ -38,7 +39,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private typeData!: any[];
   private ioTierTableProcess: LitTable | null | undefined;
   private ioTierTableThread: LitTable | null | undefined;
-  private tableType: LitTable | null | undefined;
+  private tierTableType: LitTable | null | undefined;
   private ioTierTableSo: LitTable | null | undefined;
   private tableFunction: LitTable | null | undefined;
   private sumDur: number = 0;
@@ -58,8 +59,8 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private threadStatisticsData!: {};
   private libStatisticsData!: {};
   private functionStatisticsData!: {};
-  private titleEl: HTMLDivElement | undefined | null;
-  private filterEl: TabPaneFilter | undefined | null;
+  private tierTitleEl: HTMLDivElement | undefined | null;
+  private tierFilterEl: TabPaneFilter | undefined | null;
   private hideProcessCheckBox: LitCheckBox | undefined | null;
   private hideThreadCheckBox: LitCheckBox | undefined | null;
   private checkBoxs: NodeListOf<LitCheckBox> | undefined | null;
@@ -82,7 +83,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.hideProcessCheckBox!.checked = false;
     this.hideThreadCheckBox!.checked = false;
     this.currentSelection = ioTierStatisticsAnalysisSelection;
-    this.titleEl!.textContent = '';
+    this.tierTitleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.range!.textContent =
       'Selected range: ' +
@@ -115,15 +116,15 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.ioTierTableThread = this.shadowRoot!.querySelector<LitTable>('#tb-thread-usage');
     this.ioTierTableSo = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
     this.tableFunction = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
-    this.tableType = this.shadowRoot!.querySelector<LitTable>('#tb-type-usage');
+    this.tierTableType = this.shadowRoot!.querySelector<LitTable>('#tb-type-usage');
     this.iOTierStatisticsAnalysisBack = this.shadowRoot!.querySelector<HTMLDivElement>('.io-tier-go-back');
     this.tabName = this.shadowRoot!.querySelector<HTMLDivElement>('.io-tier-subheading');
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.goBack();
-    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
-    this.filterEl = this.shadowRoot?.querySelector('#filter');
-    this.filterEl!.setOptionsList(['Hide Process', 'Hide Thread']);
-    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
+    this.tierTitleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
+    this.tierFilterEl = this.shadowRoot?.querySelector('#filter');
+    this.tierFilterEl!.setOptionsList(['Hide Process', 'Hide Thread']);
+    let popover = this.tierFilterEl!.shadowRoot!.querySelector('#check-popover');
     this.hideProcessCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideProcess');
     this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
     this.checkBoxs = popover!.querySelectorAll<LitCheckBox>('.check-wrap > lit-check-box');
@@ -149,7 +150,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     };
 
     addRowClickEventListener(this.ioTierTableProcess!, this.ioTierProcessLevelClickEvent.bind(this));
-    addRowClickEventListener(this.tableType!, this.ioTierTypeLevelClickEvent.bind(this));
+    addRowClickEventListener(this.tierTableType!, this.ioTierTypeLevelClickEvent.bind(this));
     addRowClickEventListener(this.ioTierTableThread!, this.ioTierThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.ioTierTableSo!, this.ioTierSoLevelClickEvent.bind(this));
   }
@@ -200,10 +201,10 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
           }
           ioTab!.rowClickData = detail.data;
           let title = '';
-          if (this.titleEl?.textContent === '') {
+          if (this.tierTitleEl?.textContent === '') {
             title = detail.data.tableName;
           } else {
-            title = this.titleEl?.textContent + ' / ' + detail.data.tableName;
+            title = this.tierTitleEl?.textContent + ' / ' + detail.data.tableName;
           }
           ioTab!.pieTitle = title;
           //  是否是在表格上右键点击跳转到火焰图的
@@ -236,17 +237,17 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       this.iOTierStatisticsAnalysisBack!.style.visibility = 'visible';
     } else {
       this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
-      this.titleEl!.textContent = '';
+      this.tierTitleEl!.textContent = '';
     }
     if (this.ioTableArray) {
-      for (let table of this.ioTableArray) {
-        if (table === showTable) {
-          initSort(table!, this.ioSortColumn, this.ioSortType);
-          table.style.display = 'grid';
-          table.setAttribute('hideDownload', '');
+      for (let tierTable of this.ioTableArray) {
+        if (tierTable === showTable) {
+          initSort(tierTable!, this.ioSortColumn, this.ioSortType);
+          tierTable.style.display = 'grid';
+          tierTable.setAttribute('hideDownload', '');
         } else {
-          table!.style.display = 'none';
-          table!.removeAttribute('hideDownload');
+          tierTable!.style.display = 'none';
+          tierTable!.removeAttribute('hideDownload');
         }
       }
     }
@@ -255,7 +256,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   private clearData(): void {
     this.ioPieChart!.dataSource = [];
     this.ioTierTableProcess!.recycleDataSource = [];
-    this.tableType!.recycleDataSource = [];
+    this.tierTableType!.recycleDataSource = [];
     this.ioTierTableThread!.recycleDataSource = [];
     this.ioTierTableSo!.recycleDataSource = [];
     this.tableFunction!.recycleDataSource = [];
@@ -273,7 +274,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     this.iOTierStatisticsAnalysisBack!.addEventListener('click', () => {
       if (this.tabName!.textContent === 'Statistic By type AllDuration') {
         this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
-        this.showAssignLevel(this.ioTierTableProcess!, this.tableType!, 0);
+        this.showAssignLevel(this.ioTierTableProcess!, this.tierTableType!, 0);
         this.processPieChart();
       } else if (this.tabName!.textContent === 'Statistic By Thread AllDuration') {
         if (this.hideProcessCheckBox?.checked) {
@@ -281,14 +282,14 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         } else {
           this.iOTierStatisticsAnalysisBack!.style.visibility = 'visible';
         }
-        this.showAssignLevel(this.tableType!, this.ioTierTableThread!, 1);
+        this.showAssignLevel(this.tierTableType!, this.ioTierTableThread!, 1);
         this.typePieChart();
       } else if (this.tabName!.textContent === 'Statistic By Library AllDuration') {
         if (this.hideThreadCheckBox?.checked) {
           if (this.hideProcessCheckBox?.checked) {
             this.iOTierStatisticsAnalysisBack!.style.visibility = 'hidden';
           }
-          this.showAssignLevel(this.tableType!, this.ioTierTableSo!, 1);
+          this.showAssignLevel(this.tierTableType!, this.ioTierTableSo!, 1);
           this.typePieChart();
         } else {
           this.showAssignLevel(this.ioTierTableThread!, this.ioTierTableSo!, 2);
@@ -302,13 +303,13 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private hideProcess(): void {
-    this.reset(this.tableType!, false);
+    this.reset(this.tierTableType!, false);
     this.processName = '';
     this.getIOTierType(null);
   }
 
   private hideThread(it?: any): void {
-    this.reset(this.tableType!, true);
+    this.reset(this.tierTableType!, true);
     this.processName = '';
     this.threadName = '';
     if (it) {
@@ -350,7 +351,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.titleEl!.textContent = '';
+    this.tierTitleEl!.textContent = '';
     this.tabName!.textContent = 'Statistic By Process AllDuration';
     this.pidData.unshift(this.processStatisticsData);
     this.ioTierTableProcess!.recycleDataSource = this.pidData;
@@ -361,11 +362,11 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
   }
 
   private ioTierProcessLevelClickEvent(it: any): void {
-    this.reset(this.tableType!, true);
+    this.reset(this.tierTableType!, true);
     this.getIOTierType(it);
     this.processName = it.tableName;
     this.ioPieChart?.hideTip();
-    this.titleEl!.textContent = this.processName;
+    this.tierTitleEl!.textContent = this.processName;
   }
 
   private typePieChart(): void {
@@ -386,9 +387,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
       },
       hoverHandler: (ioTierData): void => {
         if (ioTierData) {
-          this.tableType!.setCurrentHover(ioTierData);
+          this.tierTableType!.setCurrentHover(ioTierData);
         } else {
-          this.tableType!.mouseOut();
+          this.tierTableType!.mouseOut();
         }
       },
       interactions: [
@@ -397,14 +398,14 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.titleEl!.textContent = this.processName;
+    this.tierTitleEl!.textContent = this.processName;
     this.tabName!.textContent = 'Statistic By type AllDuration';
     this.typeData.unshift(this.typeStatisticsData);
-    this.tableType!.recycleDataSource = this.typeData;
+    this.tierTableType!.recycleDataSource = this.typeData;
     // @ts-ignore
     this.typeData.shift(this.typeStatisticsData);
     this.currentLevelData = this.typeData;
-    this.tableType?.reMeauseHeight();
+    this.tierTableType?.reMeauseHeight();
   }
 
   private ioTierTypeLevelClickEvent(it: any): void {
@@ -417,14 +418,14 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     }
     this.typeName = it.tableName;
     this.ioPieChart?.hideTip();
-    let title = '';
+    let tierTitle = '';
     if (this.processName.length > 0) {
-      title += this.processName + ' / ';
+      tierTitle += this.processName + ' / ';
     }
     if (this.typeName.length > 0) {
-      title += this.typeName;
+      tierTitle += this.typeName;
     }
-    this.titleEl!.textContent = title;
+    this.tierTitleEl!.textContent = tierTitle;
   }
 
   private threadPieChart(): void {
@@ -468,7 +469,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     if (this.typeName.length > 0) {
       title += this.typeName;
     }
-    this.titleEl!.textContent = title;
+    this.tierTitleEl!.textContent = title;
     this.tabName!.textContent = 'Statistic By Thread AllDuration';
     this.threadData.unshift(this.threadStatisticsData);
     this.ioTierTableThread!.recycleDataSource = this.threadData;
@@ -502,7 +503,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     if (this.threadName.length > 0) {
       title += this.threadName;
     }
-    this.titleEl!.textContent = title;
+    this.tierTitleEl!.textContent = title;
   }
 
   private libraryPieChart(): void {
@@ -558,7 +559,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     if (this.threadName.length > 0) {
       title += this.threadName;
     }
-    this.titleEl!.textContent = title;
+    this.tierTitleEl!.textContent = title;
     this.tabName!.textContent = 'Statistic By Library AllDuration';
     this.soData.unshift(this.libStatisticsData);
     this.ioTierTableSo!.recycleDataSource = this.soData;
@@ -585,7 +586,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
     if (it.tableName.length > 0) {
       title += it.tableName;
     }
-    this.titleEl!.textContent = title;
+    this.tierTitleEl!.textContent = title;
   }
 
   private sortByColumn(): void {
@@ -595,7 +596,7 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         ioTierCurrentTable = this.ioTierTableProcess;
         break;
       case 1:
-        ioTierCurrentTable = this.tableType;
+        ioTierCurrentTable = this.tierTableType;
         break;
       case 2:
         ioTierCurrentTable = this.ioTierTableThread;
@@ -981,9 +982,9 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: this.getTip(),
-      hoverHandler: (data): void => {
-        if (data) {
-          this.tableFunction!.setCurrentHover(data);
+      hoverHandler: (tierData): void => {
+        if (tierData) {
+          this.tableFunction!.setCurrentHover(tierData);
         } else {
           this.tableFunction!.mouseOut();
         }
@@ -1094,112 +1095,18 @@ export class TabPaneIOTierStatisticsAnalysis extends BaseElement {
         this.ioTierTableSo?.reMeauseHeight();
         this.tableFunction!.style.height = this.parentElement!.clientHeight - 50 + 'px';
         this.tableFunction?.reMeauseHeight();
-        this.tableType!.style.height = this.parentElement!.clientHeight - 50 + 'px';
-        this.tableType?.reMeauseHeight();
+        this.tierTableType!.style.height = this.parentElement!.clientHeight - 50 + 'px';
+        this.tierTableType?.reMeauseHeight();
         if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
-          this.filterEl!.style.display = 'none';
+          this.tierFilterEl!.style.display = 'none';
         } else {
-          this.filterEl!.style.display = 'flex';
+          this.tierFilterEl!.style.display = 'flex';
         }
       }
     }).observe(this.parentElement!);
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host {
-            display: flex;
-            flex-direction: column;
-        }
-        #io-tier-chart-pie{
-            height: 300px;
-            margin-bottom: 31px;
-        }
-        .io-tier-table-box{
-            width: 60%;
-            border-left: solid 1px var(--dark-border1,#e0e0e0);
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 31px;
-        }
-        .io-tier-go-back{
-            display:flex;
-            align-items: center;
-            cursor: pointer;
-            margin-left: 20px;
-            visibility: hidden;
-        }
-        .io-tier-back-box{
-            background-color: var(--bark-expansion,#0C65D1);
-            border-radius: 5px;
-            color: #fff;
-            display: flex;
-            margin-right: 10px;
-            width: 40px;
-            height: 20px;
-            justify-content: center;
-            align-items: center;
-        }
-        .io-tier-subheading{
-            font-weight: bold;
-            text-align: center;
-        }
-        .progress{
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        #filter{
-            position: absolute;
-            bottom: 0px;
-        }
-        </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label> 
-        <div style="display: flex;flex-direction: row;"class="d-box">
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <div id="left_table" style="width: 40%;height:auto;">
-                <div style="display: flex;margin-bottom: 10px">
-                    <div class="io-tier-go-back">
-                        <div class="io-tier-back-box">
-                            <lit-icon name="arrowleft"></lit-icon>
-                        </div>
-                    </div>
-                    <div class="title"></div>
-                </div>
-                <div class="io-tier-subheading"></div>                       
-                <lit-chart-pie  id="io-tier-chart-pie"></lit-chart-pie>     
-            </div>
-            <div class="io-tier-table-box" style="height:auto;overflow: auto">
-                <lit-table id="tb-process-usage" style="max-height:565px;min-height: 350px">
-                    <lit-table-column width="1fr" title="ProcessName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-type-usage" class="io-analysis" style="max-height:565px;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Type" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-thread-usage" class="io-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="ThreadName" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                    <lit-table id="tb-so-usage" class="io-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-function-usage" class="io-analysis" style="max-height:565px;display: none;min-height: 350px"hideDownload>
-                    <lit-table-column width="1fr" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="1fr" title="Duration" data-index="durFormat" key="durFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start"order></lit-table-column>
-                </lit-table>
-            </div>
-        </div>
-        <tab-pane-filter id="filter" options></tab-pane-filter>
-`;
+    return TabPaneIOTierStatisticsAnalysisHtml;
   }
 }

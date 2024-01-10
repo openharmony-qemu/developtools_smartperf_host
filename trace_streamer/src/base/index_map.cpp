@@ -165,37 +165,42 @@ void IndexMap::FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<
             break;
     } // end of switch (op)
 }
-void IndexMap::Merge(IndexMap* other)
+bool IndexMap::MergeIndexTypeId(IndexMap* other)
 {
-    if (indexType_ == INDEX_TYPE_ID && other->indexType_ == INDEX_TYPE_ID) {
-        if ((other->start_ >= start_ && other->start_ <= end_) || (start_ >= other->start_ && start_ <= other->end_)) {
-            start_ = std::min(start_, other->start_);
-            end_ = std::max(end_, other->end_);
-        } else if (start_ > other->start_) {
-            this->CovertToIndexMap();
-            other->CovertToIndexMap();
-            const std::vector<TableRowId> b = other->rowIndex_;
-            uint32_t bIndex = 0;
-            uint32_t bSize = b.size();
-            while (bIndex != bSize) {
-                rowIndex_.push_back(b[bIndex]);
-            }
-            start_ = current_ = 0;
-            end_ = rowIndex_.size();
-        } else {
-            this->CovertToIndexMap();
-            other->CovertToIndexMap();
-            std::vector<TableRowId> c = other->rowIndex_;
-            uint32_t aIndex = 0;
-            uint32_t aSize = rowIndex_.size();
-            while (aIndex != aSize) {
-                c.push_back(rowIndex_[aIndex]);
-            }
-            start_ = current_ = 0;
-            end_ = rowIndex_.size();
-        }
-        return;
+    if (indexType_ != INDEX_TYPE_ID && other->indexType_ != INDEX_TYPE_ID) {
+        return false;
     }
+    if ((other->start_ >= start_ && other->start_ <= end_) || (start_ >= other->start_ && start_ <= other->end_)) {
+        start_ = std::min(start_, other->start_);
+        end_ = std::max(end_, other->end_);
+    } else if (start_ > other->start_) {
+        this->CovertToIndexMap();
+        other->CovertToIndexMap();
+        const std::vector<TableRowId> b = other->rowIndex_;
+        uint32_t bIndex = 0;
+        uint32_t bSize = b.size();
+        while (bIndex != bSize) {
+            rowIndex_.push_back(b[bIndex]);
+        }
+        start_ = current_ = 0;
+        end_ = rowIndex_.size();
+    } else {
+        this->CovertToIndexMap();
+        other->CovertToIndexMap();
+        std::vector<TableRowId> c = other->rowIndex_;
+        uint32_t aIndex = 0;
+        uint32_t aSize = rowIndex_.size();
+        while (aIndex != aSize) {
+            c.push_back(rowIndex_[aIndex]);
+        }
+        start_ = current_ = 0;
+        end_ = rowIndex_.size();
+    }
+    return true;
+}
+bool IndexMap::Merge(IndexMap* other)
+{
+    TS_CHECK_TRUE_RET(MergeIndexTypeId(other) == false, true);
     this->CovertToIndexMap();
     other->CovertToIndexMap();
     const std::vector<TableRowId> b = other->rowIndex_;
@@ -235,6 +240,7 @@ void IndexMap::Merge(IndexMap* other)
     rowIndex_ = c;
     start_ = current_ = 0;
     end_ = rowIndex_.size();
+    return true;
 }
 
 bool IndexMap::Eof() const

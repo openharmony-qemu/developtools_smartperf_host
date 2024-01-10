@@ -24,7 +24,7 @@ void GpuCounter::AppendNewData(uint64_t ts, int32_t counterId, int32_t value)
     ts_.emplace_back(ts);
     counterId_.emplace_back(counterId);
     value_.emplace_back(value);
-    ids_.push_back(counterId_.size() - 1);
+    demoIds_.push_back(counterId_.size() - 1);
 }
 const std::deque<uint64_t>& GpuCounter::TimeStamp() const
 {
@@ -43,7 +43,7 @@ void GpuCounterObject::AppendNewData(int32_t counterId, const std::string counte
 {
     counterId_.emplace_back(counterId);
     counterName_.emplace_back(counterName);
-    ids_.push_back(counterId_.size() - 1);
+    demoIds_.push_back(counterId_.size() - 1);
 }
 const std::deque<int32_t>& GpuCounterObject::CounterId() const
 {
@@ -57,7 +57,7 @@ void SliceObject::AppendNewData(int32_t sliceId, std::string sliceName)
 {
     sliceId_.emplace_back(sliceId);
     sliceName_.emplace_back(sliceName);
-    ids_.push_back(sliceId_.size() - 1);
+    demoIds_.push_back(sliceId_.size() - 1);
 }
 const std::deque<int32_t>& SliceObject::SliceId() const
 {
@@ -73,7 +73,7 @@ void SliceData::AppendNewData(int32_t sliceId, uint64_t startTs, uint64_t endTs,
     endTs_.emplace_back(endTs);
     sliceId_.emplace_back(sliceId);
     value_.emplace_back(value);
-    ids_.push_back(sliceId_.size() - 1);
+    demoIds_.push_back(sliceId_.size() - 1);
 }
 const std::deque<int32_t>& SliceData::SliceId() const
 {
