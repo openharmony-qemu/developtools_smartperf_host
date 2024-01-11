@@ -371,12 +371,12 @@ void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 }
 void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
-    auto splitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
+    auto ebpfSplitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
     std::string result = VALUE;
-    for (auto it = splitResult.begin(); it != splitResult.end(); ++it) {
-        if (it->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
-            result += OFFSET + std::to_string(it->originSeg.offset);
-            result += SIZE + std::to_string(it->originSeg.size);
+    for (auto ebpfIter = ebpfSplitResult.begin(); ebpfIter != ebpfSplitResult.end(); ++ebpfIter) {
+        if (ebpfIter->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
+            result += OFFSET + std::to_string(ebpfIter->originSeg.offset);
+            result += SIZE + std::to_string(ebpfIter->originSeg.size);
             result += "},";
         } else {
             if (result != VALUE) {
@@ -385,7 +385,7 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
                 splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
                 result = VALUE;
             }
-            std::string buffer(reinterpret_cast<char*>(it->buffer.address), it->buffer.size);
+            std::string buffer(reinterpret_cast<char*>(ebpfIter->buffer.address), ebpfIter->buffer.size);
             splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
         }
     }
@@ -397,12 +397,12 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
 }
 void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
-    auto splitResult = ts_->GetHtraceData()->GetPerfSplitResult();
+    auto perfSplitResult = ts_->GetHtraceData()->GetPerfSplitResult();
     std::string result = VALUE;
-    for (auto it = splitResult.begin(); it != splitResult.end(); ++it) {
-        if (it->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
-            result += OFFSET + std::to_string(it->originSeg.offset);
-            result += SIZE + std::to_string(it->originSeg.size);
+    for (auto perfIter = perfSplitResult.begin(); perfIter != perfSplitResult.end(); ++perfIter) {
+        if (perfIter->type == (int32_t)SplitDataDataType::SPLIT_FILE_JSON) {
+            result += OFFSET + std::to_string(perfIter->originSeg.offset);
+            result += SIZE + std::to_string(perfIter->originSeg.size);
             result += "},";
         } else {
             if (result != VALUE) {
@@ -411,7 +411,7 @@ void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool is
                 splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
                 result = VALUE;
             }
-            std::string buffer(reinterpret_cast<char*>(it->buffer.address), it->buffer.size);
+            std::string buffer(reinterpret_cast<char*>(perfIter->buffer.address), perfIter->buffer.size);
             splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
         }
     }

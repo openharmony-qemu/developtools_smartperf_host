@@ -178,9 +178,9 @@ int32_t FileSystemSampleTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void FileSystemSampleTable::Cursor::HandleTypeColumns(int32_t column) const
+void FileSystemSampleTable::Cursor::HandleTypeColumns(int32_t fileSysSampleCol) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(fileSysSampleCol)) {
         case Index::FD:
             SetTypeColumnInt64(fileSystemSampleTableObj_.Fds()[CurrentRow()], INVALID_UINT64);
             break;
@@ -204,15 +204,15 @@ void FileSystemSampleTable::Cursor::HandleTypeColumns(int32_t column) const
             SetTypeColumnText(fileSystemSampleTableObj_.FourthArguments()[CurrentRow()], INVALID_UINT64);
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered fileSysSampleCol : %d", fileSysSampleCol);
             break;
     }
 }
 void FileSystemSampleTable::GetOrbyes(FilterConstraints& sysfc, EstimatedIndexInfo& sysei)
 {
-    auto sysorderbys = sysfc.GetOrderBys();
-    for (auto i = 0; i < sysorderbys.size(); i++) {
-        switch (static_cast<Index>(sysorderbys[i].iColumn)) {
+    auto sysOrderbys = sysfc.GetOrderBys();
+    for (auto i = 0; i < sysOrderbys.size(); i++) {
+        switch (static_cast<Index>(sysOrderbys[i].iColumn)) {
             case Index::ID:
                 break;
             default: // other columns can be sorted by SQLite

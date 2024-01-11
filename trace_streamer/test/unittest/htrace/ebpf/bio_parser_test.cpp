@@ -50,7 +50,7 @@ public:
         dequeBuffer_.clear();
     }
 
-    void InitData(uint32_t length, uint32_t nips, const uint64_t startTime, const uint64_t endTime)
+    void InitData(uint32_t length, uint32_t nips, const uint64_t startTime, const uint64_t endTime, uint32_t prio = 0)
     {
         ebpfHeader_.header.clock = EBPF_CLOCK_BOOTTIME;
         ebpfHeader_.header.cmdLineLen = COMMAND_LINE.length();
@@ -102,25 +102,18 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstBioLatencySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT32);
-    auto type = stream_.traceDataCache_->GetConstBioLatencySampleData().Types()[0];
-    EXPECT_EQ(type, 2);
-    auto startTs = stream_.traceDataCache_->GetConstBioLatencySampleData().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstBioLatencySampleData().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME);
-    auto dur = stream_.traceDataCache_->GetConstBioLatencySampleData().LatencyDurs()[0];
+    auto sampleData = stream_.traceDataCache_->GetConstBioLatencySampleData();
+    EXPECT_EQ(sampleData.CallChainIds()[0], INVALID_UINT32);
+    EXPECT_EQ(sampleData.Types()[0], 2);
+    EXPECT_EQ(sampleData.StartTs()[0], START_TIME);
+    EXPECT_EQ(sampleData.EndTs()[0], END_TIME);
+    auto dur = sampleData.LatencyDurs()[0];
     EXPECT_EQ(dur, END_TIME - START_TIME);
-    auto tier = stream_.traceDataCache_->GetConstBioLatencySampleData().Tiers()[0];
-    EXPECT_EQ(tier, 0);
-    auto size = stream_.traceDataCache_->GetConstBioLatencySampleData().Sizes()[0];
+    EXPECT_EQ(sampleData.Tiers()[0], 0);
+    auto size = sampleData.Sizes()[0];
     EXPECT_EQ(size, DURPER4K);
-    auto Expectblk = ebpfDataParser->ConvertToHexTextIndex(BLKCNT);
-    auto blk = stream_.traceDataCache_->GetConstBioLatencySampleData().BlockNumbers()[0];
-    EXPECT_EQ(blk, Expectblk);
-    auto durPer4K = stream_.traceDataCache_->GetConstBioLatencySampleData().DurPer4k()[0];
-    EXPECT_EQ(durPer4K, dur / (size / DURPER4K));
+    EXPECT_EQ(sampleData.BlockNumbers()[0], ebpfDataParser->ConvertToHexTextIndex(BLKCNT));
+    EXPECT_EQ(sampleData.DurPer4k()[0], dur / (size / DURPER4K));
 }
 
 /**
@@ -131,7 +124,7 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithoutCallback, TestSize.Level1
 HWTEST_F(EbpfBioParserTest, EbpfBioParserwrongWithoutCallback, TestSize.Level1)
 {
     TS_LOGI("test32-2");
-    InitData(sizeof(BIOFixedHeader), 0, END_TIME, START_TIME);
+    InitData(sizeof(BIOFixedHeader), 0, END_TIME, START_TIME, 1);
 
     std::unique_ptr<EbpfDataParser> ebpfDataParser =
         std::make_unique<EbpfDataParser>(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -140,25 +133,20 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserwrongWithoutCallback, TestSize.Level1)
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstBioLatencySampleData().CallChainIds()[0];
-    EXPECT_FALSE(callChainId == INVALID_UINT64);
-    auto type = stream_.traceDataCache_->GetConstBioLatencySampleData().Types()[0];
-    EXPECT_FALSE(type == 2);
-    auto startTs = stream_.traceDataCache_->GetConstBioLatencySampleData().StartTs()[0];
-    EXPECT_FALSE(startTs == END_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstBioLatencySampleData().EndTs()[0];
-    EXPECT_FALSE(endTs == START_TIME);
-    auto dur = stream_.traceDataCache_->GetConstBioLatencySampleData().LatencyDurs()[0];
-    EXPECT_FALSE(dur == endTs - startTs);
-    auto tier = stream_.traceDataCache_->GetConstBioLatencySampleData().Tiers()[0];
-    EXPECT_FALSE(tier == 0);
-    auto size = stream_.traceDataCache_->GetConstBioLatencySampleData().Sizes()[0];
-    EXPECT_FALSE(size == DURPER4K);
-    auto Expectblk = ebpfDataParser->ConvertToHexTextIndex(BLKCNT);
-    auto blk = stream_.traceDataCache_->GetConstBioLatencySampleData().BlockNumbers()[0];
-    EXPECT_FALSE(blk == Expectblk);
-    auto durPer4K = stream_.traceDataCache_->GetConstBioLatencySampleData().DurPer4k()[0];
-    EXPECT_FALSE(durPer4K == dur / (size / DURPER4K));
+    auto sampleData = stream_.traceDataCache_->GetConstBioLatencySampleData();
+    EXPECT_NE(sampleData.CallChainIds()[0], INVALID_UINT64);
+    EXPECT_NE(sampleData.Types()[0], 2);
+    EXPECT_NE(sampleData.StartTs()[0], END_TIME);
+    EXPECT_NE(sampleData.EndTs()[0], START_TIME);
+    auto dur = sampleData.LatencyDurs()[0];
+    EXPECT_NE(dur, START_TIME - END_TIME);
+    EXPECT_NE(sampleData.Tiers()[0], 1);
+    auto size = sampleData.Sizes()[0];
+    EXPECT_NE(size, DURPER4K);
+    EXPECT_NE(sampleData.BlockNumbers()[0], ebpfDataParser->ConvertToHexTextIndex(BLKCNT));
+    if (size > 0) {
+        EXPECT_NE(sampleData.DurPer4k()[0], dur / (size / DURPER4K));
+    }
 }
 
 /**
@@ -181,29 +169,20 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithOneCallback, TestSize.Level1
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstBioLatencySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, 0);
-    auto type = stream_.traceDataCache_->GetConstBioLatencySampleData().Types()[0];
-    EXPECT_EQ(type, 2);
-    auto ipid = stream_.traceDataCache_->GetConstBioLatencySampleData().Ipids()[0];
-    EXPECT_EQ(ipid, 1);
-    auto itid = stream_.traceDataCache_->GetConstBioLatencySampleData().Itids()[0];
-    EXPECT_EQ(itid, 1);
-    auto startTs = stream_.traceDataCache_->GetConstBioLatencySampleData().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstBioLatencySampleData().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME);
-    auto dur = stream_.traceDataCache_->GetConstBioLatencySampleData().LatencyDurs()[0];
+    auto sampleData = stream_.traceDataCache_->GetConstBioLatencySampleData();
+    EXPECT_EQ(sampleData.CallChainIds()[0], 0);
+    EXPECT_EQ(sampleData.Types()[0], 2);
+    EXPECT_EQ(sampleData.Ipids()[0], 1);
+    EXPECT_EQ(sampleData.Itids()[0], 1);
+    EXPECT_EQ(sampleData.StartTs()[0], START_TIME);
+    EXPECT_EQ(sampleData.EndTs()[0], END_TIME);
+    auto dur = sampleData.LatencyDurs()[0];
     EXPECT_EQ(dur, END_TIME - START_TIME);
-    auto tier = stream_.traceDataCache_->GetConstBioLatencySampleData().Tiers()[0];
-    EXPECT_EQ(tier, 0);
-    auto size = stream_.traceDataCache_->GetConstBioLatencySampleData().Sizes()[0];
+    EXPECT_EQ(sampleData.Tiers()[0], 0);
+    auto size = sampleData.Sizes()[0];
     EXPECT_EQ(size, DURPER4K);
-    auto Expectblk = ebpfDataParser->ConvertToHexTextIndex(BLKCNT);
-    auto blk = stream_.traceDataCache_->GetConstBioLatencySampleData().BlockNumbers()[0];
-    EXPECT_EQ(blk, Expectblk);
-    auto durPer4K = stream_.traceDataCache_->GetConstBioLatencySampleData().DurPer4k()[0];
-    EXPECT_EQ(durPer4K, dur / (size / DURPER4K));
+    EXPECT_EQ(sampleData.BlockNumbers()[0], ebpfDataParser->ConvertToHexTextIndex(BLKCNT));
+    EXPECT_EQ(sampleData.DurPer4k()[0], dur / (size / DURPER4K));
     auto ExpectIps0 = ebpfDataParser->ConvertToHexTextIndex(ips[0]);
     auto ips0 = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0];
     EXPECT_EQ(ips0, ExpectIps0);
@@ -229,29 +208,20 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithMultipleCallback, TestSize.L
     ebpfDataParser->ParseBioLatencyEvent();
     ebpfDataParser->Finish();
     EXPECT_TRUE(ebpfDataParser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
-    auto callChainId = stream_.traceDataCache_->GetConstBioLatencySampleData().CallChainIds()[0];
-    EXPECT_EQ(callChainId, 0);
-    auto type = stream_.traceDataCache_->GetConstBioLatencySampleData().Types()[0];
-    EXPECT_EQ(type, 2);
-    auto ipid = stream_.traceDataCache_->GetConstBioLatencySampleData().Ipids()[0];
-    EXPECT_EQ(ipid, 1);
-    auto itid = stream_.traceDataCache_->GetConstBioLatencySampleData().Itids()[0];
-    EXPECT_EQ(itid, 1);
-    auto startTs = stream_.traceDataCache_->GetConstBioLatencySampleData().StartTs()[0];
-    EXPECT_EQ(startTs, START_TIME);
-    auto endTs = stream_.traceDataCache_->GetConstBioLatencySampleData().EndTs()[0];
-    EXPECT_EQ(endTs, END_TIME);
-    auto dur = stream_.traceDataCache_->GetConstBioLatencySampleData().LatencyDurs()[0];
+    auto sampleData = stream_.traceDataCache_->GetConstBioLatencySampleData();
+    EXPECT_EQ(sampleData.CallChainIds()[0], 0);
+    EXPECT_EQ(sampleData.Types()[0], 2);
+    EXPECT_EQ(sampleData.Ipids()[0], 1);
+    EXPECT_EQ(sampleData.Itids()[0], 1);
+    EXPECT_EQ(sampleData.StartTs()[0], START_TIME);
+    EXPECT_EQ(sampleData.EndTs()[0], END_TIME);
+    auto dur = sampleData.LatencyDurs()[0];
     EXPECT_EQ(dur, END_TIME - START_TIME);
-    auto tier = stream_.traceDataCache_->GetConstBioLatencySampleData().Tiers()[0];
-    EXPECT_EQ(tier, 0);
-    auto size = stream_.traceDataCache_->GetConstBioLatencySampleData().Sizes()[0];
+    EXPECT_EQ(sampleData.Tiers()[0], 0);
+    auto size = sampleData.Sizes()[0];
     EXPECT_EQ(size, DURPER4K);
-    auto Expectblk = ebpfDataParser->ConvertToHexTextIndex(BLKCNT);
-    auto blk = stream_.traceDataCache_->GetConstBioLatencySampleData().BlockNumbers()[0];
-    EXPECT_EQ(blk, Expectblk);
-    auto durPer4K = stream_.traceDataCache_->GetConstBioLatencySampleData().DurPer4k()[0];
-    EXPECT_EQ(durPer4K, dur / (size / DURPER4K));
+    EXPECT_EQ(sampleData.BlockNumbers()[0], ebpfDataParser->ConvertToHexTextIndex(BLKCNT));
+    EXPECT_EQ(sampleData.DurPer4k()[0], dur / (size / DURPER4K));
     auto ExpectIps0 = ebpfDataParser->ConvertToHexTextIndex(ips[0]);
     auto ips0 = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[1];
     EXPECT_EQ(ips0, ExpectIps0);

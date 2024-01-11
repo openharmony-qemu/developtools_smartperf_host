@@ -31,22 +31,22 @@ PerfThreadTable::~PerfThreadTable() {}
 
 void PerfThreadTable::FilterByConstraint(FilterConstraints& threadfc,
                                          double& threadfilterCost,
-                                         size_t threadrowCount,
+                                         size_t threadRowCnt,
                                          uint32_t threadcurrenti)
 {
-    const auto& threadc = threadfc.GetConstraints()[threadcurrenti];
-    switch (static_cast<Index>(threadc.col)) {
+    const auto& perfThreadc = threadfc.GetConstraints()[threadcurrenti];
+    switch (static_cast<Index>(perfThreadc.col)) {
         case Index::ID: {
-            if (CanFilterId(threadc.op, threadrowCount)) {
+            if (CanFilterId(perfThreadc.op, threadRowCnt)) {
                 threadfc.UpdateConstraint(threadcurrenti, true);
                 threadfilterCost += 1; // id can position by 1 step
             } else {
-                threadfilterCost += threadrowCount; // scan all rows
+                threadfilterCost += threadRowCnt; // scan all rows
             }
             break;
         }
-        default:                                // other column
-            threadfilterCost += threadrowCount; // scan all rows
+        default:                              // other column
+            threadfilterCost += threadRowCnt; // scan all rows
             break;
     }
 }

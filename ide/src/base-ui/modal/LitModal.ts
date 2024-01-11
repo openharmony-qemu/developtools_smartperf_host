@@ -15,6 +15,111 @@
 
 import { BaseElement, element } from '../BaseElement';
 
+const initHtmlStyle = (width:string) => {
+  return `
+  <style>
+        :host{ 
+            display: flex;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0px;
+            z-index: 1000;
+            overflow: auto;
+            transition: all 0.3s;
+        }
+        :host([visible]){
+            background-color: #00000066;
+            transition: all .3s;
+            opacity: 1;
+            visibility: visible;
+        }
+        :host(:not([visible])){
+            pointer-events: none;
+            transition: all .3s;
+            opacity: 0;
+            visibility: hidden;
+        }
+       
+        .modal{
+            width: ${width};
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            background-color: #fff;
+            top: 100px;
+            left: 50%;
+            right: auto;
+            transform-origin: left top;
+            pointer-events: all;
+            border-radius: 2px;
+        }
+        :host(:not([visible])) .modal{
+            transition: transform .3s , opacity .3s,visibility .3s;
+            opacity: 0;
+            transform:scale(0.1) translate(-50%,50%) translateZ(0) skew(0deg);
+            visibility: hidden;
+         }
+         :host([visible]) .modal{
+            transition: transform .3s , opacity .3s ,visibility .3s;
+            opacity: 1;
+            transform: scale(1) translate(-50%,0%) translateZ(0) skew(0deg);
+            visibility: visible;
+            box-shadow: 0 0 20px #00000055;
+         }
+        .header{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            font-size: 17px;
+            font-weight: bold;
+        }
+        :host([moveable]) .header label{
+            pointer-events: none;
+        }
+        :host([moveable]) .header:hover{
+            background-color: #8c8c8c11;
+        }
+        :host([moveable]) .header{
+            /*cursor: move;*/
+        }
+        .close-icon{
+            color:#8c8c8c;
+            cursor: pointer;
+        }
+        .close-icon:hover{
+            color: #414141;
+        }
+        .footer{
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 8px 8px;
+        }
+        .footer lit-button{
+            min-width: 70px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        :host([line=false]){
+            padding: 10px 20px;
+            flex:1;
+        }
+        :host([line=true]) .body,
+        :host(:not([line])) .body{
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 10px 20px;
+            flex:1;
+        }
+       
+        </style>
+  `;
+}
+
 @element('lit-modal')
 export class LitModal extends BaseElement {
   private headerTitleElement: HTMLElement | null | undefined;
@@ -123,7 +228,7 @@ export class LitModal extends BaseElement {
 
   initHtml(): string {
     return `
-        ${this.initHtmlStyle()}
+        ${initHtmlStyle(this.width)}
         <div class="modal" title="">
             <div class="header">
                 <label id="modal-title"></label>
@@ -140,111 +245,6 @@ export class LitModal extends BaseElement {
             </slot>
         </div>
         `;
-  }
-
-  private initHtmlStyle(): string {
-    return `
-    <style>
-        :host{ 
-            display: flex;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0px;
-            z-index: 1000;
-            overflow: auto;
-            transition: all 0.3s;
-        }
-        :host([visible]){
-            background-color: #00000066;
-            transition: all .3s;
-            opacity: 1;
-            visibility: visible;
-        }
-        :host(:not([visible])){
-            pointer-events: none;
-            transition: all .3s;
-            opacity: 0;
-            visibility: hidden;
-        }
-       
-        .modal{
-            width: ${this.width};
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-            background-color: #fff;
-            top: 100px;
-            left: 50%;
-            right: auto;
-            transform-origin: left top;
-            pointer-events: all;
-            border-radius: 2px;
-        }
-        :host(:not([visible])) .modal{
-            transition: transform .3s , opacity .3s,visibility .3s;
-            opacity: 0;
-            transform:scale(0.1) translate(-50%,50%) translateZ(0) skew(0deg);
-            visibility: hidden;
-         }
-         :host([visible]) .modal{
-            transition: transform .3s , opacity .3s ,visibility .3s;
-            opacity: 1;
-            transform: scale(1) translate(-50%,0%) translateZ(0) skew(0deg);
-            visibility: visible;
-            box-shadow: 0 0 20px #00000055;
-         }
-        .header{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 20px;
-            font-size: 17px;
-            font-weight: bold;
-        }
-        :host([moveable]) .header label{
-            pointer-events: none;
-        }
-        :host([moveable]) .header:hover{
-            background-color: #8c8c8c11;
-        }
-        :host([moveable]) .header{
-            /*cursor: move;*/
-        }
-        .close-icon{
-            color:#8c8c8c;
-            cursor: pointer;
-        }
-        .close-icon:hover{
-            color: #414141;
-        }
-        .footer{
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 8px 8px;
-        }
-        .footer lit-button{
-            min-width: 70px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        :host([line=false]){
-            padding: 10px 20px;
-            flex:1;
-        }
-        :host([line=true]) .body,
-        :host(:not([line])) .body{
-            border-top: 1px solid #f0f0f0;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 10px 20px;
-            flex:1;
-        }
-       
-        </style>
-    `
   }
 
   //当 custom element首次被插入文档DOM时，被调用。
@@ -277,7 +277,7 @@ export class LitModal extends BaseElement {
         this.onmousemoveFunc = (e: any) => {
           e.stopPropagation();
           srcResizeRect = this.modalElement!.getBoundingClientRect();
-          this.onmousemoveFuncRule(direction,e,srcResizeRect,resizeWidth);
+          direction = this.onmousemoveFuncRule(direction,e,srcResizeRect,resizeWidth);
           this.resizingFunc(direction,e,srcResizeClientX,srcResizeClientY,srcResizeHeight,srcResizeWidth,srcResizeLeft,srcResizeTop);
         };
         this.setOnmousedownFunc(resizeWidth,srcResizeClientX,srcResizeClientY,srcResizeRect,srcResizeHeight,srcResizeWidth,srcResizeRight,srcResizeLeft,srcResizeTop);
@@ -398,7 +398,7 @@ export class LitModal extends BaseElement {
     };
   }
 
-  onmousemoveFuncRule(direction:string,e:any,srcResizeRect:any,resizeWidth:number):void{
+  onmousemoveFuncRule(direction:string,e:any,srcResizeRect:any,resizeWidth:number):string{
     if (
       e.clientX > srcResizeRect.left - resizeWidth &&
       e.clientX < srcResizeRect.left + resizeWidth &&
@@ -406,7 +406,7 @@ export class LitModal extends BaseElement {
       e.clientY < srcResizeRect.top + resizeWidth
     ) {
       this.style.cursor = 'nwse-resize';
-      if (!this.resizing) direction = 'left-top';
+      if (!this.resizing) return 'left-top';
     } else if (
       e.clientX > srcResizeRect.right - resizeWidth &&
       e.clientX < srcResizeRect.right + resizeWidth &&
@@ -414,7 +414,7 @@ export class LitModal extends BaseElement {
       e.clientY < srcResizeRect.top + resizeWidth
     ) {
       this.style.cursor = 'nesw-resize';
-      if (!this.resizing) direction = 'right-top';
+      if (!this.resizing) return 'right-top';
     } else if (
       e.clientX > srcResizeRect.left - resizeWidth &&
       e.clientX < srcResizeRect.left + resizeWidth &&
@@ -422,31 +422,39 @@ export class LitModal extends BaseElement {
       e.clientY < srcResizeRect.bottom + resizeWidth
     ) {
       this.style.cursor = 'nesw-resize';
-      if (!this.resizing) direction = 'left-bottom';
-    } else if (
+      if (!this.resizing) return 'left-bottom';
+    } else {
+      return this.funcRuleIf(direction,e,srcResizeRect,resizeWidth);
+    }
+    return ''
+  }
+
+  funcRuleIf(direction:string,e:any,srcResizeRect:any,resizeWidth:number):string{
+    if (
       e.clientX > srcResizeRect.right - resizeWidth &&
       e.clientX < srcResizeRect.right + resizeWidth &&
       e.clientY > srcResizeRect.bottom - resizeWidth &&
       e.clientY < srcResizeRect.bottom + resizeWidth
     ) {
       this.style.cursor = 'nwse-resize';
-      if (!this.resizing) direction = 'right-bottom';
+      if (!this.resizing) return 'right-bottom';
     } else if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
       this.style.cursor = 'ew-resize';
-      if (!this.resizing) direction = 'left';
+      if (!this.resizing) return 'left';
     } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
       this.style.cursor = 'ew-resize';
-      if (!this.resizing) direction = 'right';
+      if (!this.resizing) return 'right';
     } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
       this.style.cursor = 'ns-resize';
-      if (!this.resizing) direction = 'top';
+      if (!this.resizing) return 'top';
     } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
       this.style.cursor = 'ns-resize';
-      if (!this.resizing) direction = 'bottom';
+      if (!this.resizing) return 'bottom';
     } else {
       this.style.cursor = '';
-      if (!this.resizing) direction = '';
+      if (!this.resizing) return '';
     }
+    return '';
   }
 
   resizingFunc(direction:string,e:any,srcResizeClientX:number,srcResizeClientY:number,srcResizeHeight:number,srcResizeWidth:number,srcResizeLeft:number,srcResizeTop:number):void{
@@ -524,19 +532,25 @@ export class LitModal extends BaseElement {
         e.clientY < srcResizeRect.bottom + resizeWidth
       ) {
         this.resizing = true;
-      } else if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
-        this.resizing = true;
-      } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
-        this.resizing = true;
-      } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
-        this.resizing = true;
-      } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
-        this.resizing = true;
       } else {
-        this.resizing = false;
+        this.resizeIf(e,srcResizeRect,resizeWidth);
       }
       if (this.resizing) document.body.style.userSelect = 'none';
     };
+  }
+
+  resizeIf(e:any,srcResizeRect:any,resizeWidth:number){
+    if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
+      this.resizing = true;
+    } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
+      this.resizing = true;
+    } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
+      this.resizing = true;
+    } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
+      this.resizing = true;
+    } else {
+      this.resizing = false;
+    }
   }
 
   //当 custom element从文档DOM中删除时，被调用。

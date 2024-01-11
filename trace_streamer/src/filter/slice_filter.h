@@ -111,6 +111,7 @@ private:
     void CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTid itid);
     int32_t MatchingIncompleteSliceIndex(const SlicesStack& stack, DataIndex category, DataIndex name);
     uint8_t CurrentDepth(InternalTid internalTid);
+    void HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo);
 
 private:
     // The parameter list is tid, cookid, functionName, asyncCallId.

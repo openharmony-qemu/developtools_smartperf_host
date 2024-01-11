@@ -90,6 +90,31 @@ private:
     void ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseProfileMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
+
+    void SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader& processMemoryInfo,
+                             uint64_t timeStamp,
+                             uint32_t ipid,
+                             uint32_t hasValue) const;
+
+    void ParseMemInfoOne(ProtoReader::SysMeminfo_Reader& sysMeminfo, uint64_t timeStamp) const;
+    void ParseMemInfoTwo(ProtoReader::SysMeminfo_Reader& sysMeminfo, uint64_t timeStamp) const;
+    void ParseMemInfoThree(ProtoReader::SysMeminfo_Reader& sysMeminfo, uint64_t timeStamp) const;
+    void ParseMemInfoFour(ProtoReader::SysMeminfo_Reader& sysMeminfo, uint64_t timeStamp) const;
+
+    void ParseVMemInfoOne(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoTwo(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoThree(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoFour(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoFive(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoSix(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoSeven(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoEight(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoNine(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoTen(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoEleven(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoTwelve(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+    void ParseVMemInfoThirteen(ProtoReader::SysVMeminfo_Reader& sysVMeminfo, uint64_t timeStamp) const;
+
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
     std::map<uint32_t, DataIndex> sysMemNameDictMap_ = {};
     std::map<uint32_t, DataIndex> sysVMemNameDictMap_ = {};

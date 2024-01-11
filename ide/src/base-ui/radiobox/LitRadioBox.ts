@@ -16,61 +16,8 @@
 import { BaseElement, element } from '../BaseElement';
 import { LitRadioGroup } from './LitRadioGroup';
 
-@element('lit-radio')
-export class LitRadioBox extends BaseElement {
-  private group: LitRadioGroup | undefined | null;
-  private parent: LitRadioGroup | undefined | null;
-  private radio: HTMLInputElement | undefined | null;
-
-  static get observedAttributes() {
-    return ['checked', 'value', 'disabled'];
-  }
-
-  get disabled() {
-    return this.getAttribute('disabled') !== null;
-  }
-
-
-  get checked() {
-    return this.getAttribute('checked') !== null;
-  }
-
-  get name() {
-    return this.getAttribute('name');
-  }
-
-  set checked(radioValue: boolean) {
-    if (radioValue === null || !radioValue) {
-      this.removeAttribute('checked');
-    } else {
-      this.setAttribute('checked', '');
-    }
-  }
-
-  get value() {
-    let slot = this.shadowRoot?.getElementById('slot');
-    return slot!.textContent || this.textContent || '';
-  }
-
-  set disabled(value: boolean) {
-    if (value === null || value === false) {
-      this.removeAttribute('disabled');
-    } else {
-      this.setAttribute('disabled', '');
-    }
-  }
-
-  set dis(dis: string) {
-    this.setAttribute('dis', dis);
-  }
-
-  set value(value: string) {
-    this.setAttribute('value', value);
-  }
-
-  initHtml(): string {
-    return `
-        <style>
+const initHtmlStyle: string = `
+    <style>
         :host([dis=round]):host{ 
             font-family: Helvetica,serif;
             font-size: 14px;
@@ -204,6 +151,63 @@ export class LitRadioBox extends BaseElement {
             pointer-events: none;
         }
         </style>
+    `;
+
+@element('lit-radio')
+export class LitRadioBox extends BaseElement {
+  private group: LitRadioGroup | undefined | null;
+  private parent: LitRadioGroup | undefined | null;
+  private radio: HTMLInputElement | undefined | null;
+
+  static get observedAttributes() {
+    return ['checked', 'value', 'disabled'];
+  }
+
+  get disabled() {
+    return this.getAttribute('disabled') !== null;
+  }
+
+
+  get checked() {
+    return this.getAttribute('checked') !== null;
+  }
+
+  get name() {
+    return this.getAttribute('name');
+  }
+
+  set checked(radioValue: boolean) {
+    if (radioValue === null || !radioValue) {
+      this.removeAttribute('checked');
+    } else {
+      this.setAttribute('checked', '');
+    }
+  }
+
+  get value() {
+    let slot = this.shadowRoot?.getElementById('slot');
+    return slot!.textContent || this.textContent || '';
+  }
+
+  set disabled(value: boolean) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', '');
+    }
+  }
+
+  set dis(dis: string) {
+    this.setAttribute('dis', dis);
+  }
+
+  set value(value: string) {
+    this.setAttribute('value', value);
+  }
+
+  initHtml(): string {
+    return `
+        ${initHtmlStyle}
         <input type="checkbox" id="radio" >
         <label id="label" for="radio">
             <span class="selected">

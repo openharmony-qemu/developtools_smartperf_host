@@ -28,10 +28,7 @@ import { SpSystemTrace } from '../../../SpSystemTrace';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPaneNMCallTreeHtml } from './TabPaneNMCallTree.html';
-import {
-  queryNativeHookStatisticSubType,
-  queryNativeHookSubType
-} from '../../../../database/sql/NativeHook.sql';
+import { queryNativeHookStatisticSubType, queryNativeHookSubType } from '../../../../database/sql/NativeHook.sql';
 
 const InvertOpyionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
@@ -142,8 +139,7 @@ export class TabpaneNMCalltree extends BaseElement {
     } else {
       this.nmCallTreeFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => {
-    });
+    procedurePool.submitWithName('logic0', 'native-memory-reset', [], undefined, () => {});
     this.nmCallTreeFilter!.disabledTransfer(true);
     this.nmCallTreeFilter!.initializeFilterTree(true, true, this.currentSelection!.nativeMemory.length > 0);
     this.nmCallTreeFilter!.filterValue = '';
@@ -156,14 +152,14 @@ export class TabpaneNMCalltree extends BaseElement {
     if (nmCallTreeParam.nativeMemory.length > 0) {
       this.nmCallTreeFilter!.isStatisticsMemory = false;
       if (nmCallTreeParam.nativeMemory.indexOf(this.nativeType[0]) !== -1) {
-        types.push('\'AllocEvent\'');
-        types.push('\'MmapEvent\'');
+        types.push("'AllocEvent'");
+        types.push("'MmapEvent'");
       } else {
         if (nmCallTreeParam.nativeMemory.indexOf(this.nativeType[1]) !== -1) {
-          types.push('\'AllocEvent\'');
+          types.push("'AllocEvent'");
         }
         if (nmCallTreeParam.nativeMemory.indexOf(this.nativeType[2]) !== -1) {
-          types.push('\'MmapEvent\'');
+          types.push("'MmapEvent'");
         }
       }
     } else {
@@ -243,10 +239,10 @@ export class TabpaneNMCalltree extends BaseElement {
   banTypeAndLidSelect(): void {
     this.currentNMCallTreeFilter!.firstSelect = '0';
     let secondSelect = this.shadowRoot
-    ?.querySelector('#nm-call-tree-filter')!
+      ?.querySelector('#nm-call-tree-filter')!
       .shadowRoot!.querySelector('#second-select');
     let thirdSelect = this.shadowRoot
-    ?.querySelector('#nm-call-tree-filter')!
+      ?.querySelector('#nm-call-tree-filter')!
       .shadowRoot!.querySelector('#third-select');
     thirdSelect?.setAttribute('disabled', '');
     secondSelect?.setAttribute('disabled', '');
@@ -439,15 +435,15 @@ export class TabpaneNMCalltree extends BaseElement {
         }
       });
     };
-    this.nmCallTreeFilter!.getDataLibrary(filterFunc);
-    this.nmCallTreeFilter!.getDataMining(filterFunc);
-    this.nmCallTreeFilter!.getCallTreeData(this.getCallTreeByNMCallTreeFilter);
-    this.nmCallTreeFilter!.getCallTreeConstraintsData(this.getCallTreeConByNMCallTreeFilter);
-    this.nmCallTreeFilter!.getFilterData(this.getFilterDataByNMCallTreeFilter);
+    this.nmCallTreeFilter!.getDataLibrary(filterFunc.bind(this));
+    this.nmCallTreeFilter!.getDataMining(filterFunc.bind(this));
+    this.nmCallTreeFilter!.getCallTreeData(this.getCallTreeByNMCallTreeFilter.bind(this));
+    this.nmCallTreeFilter!.getCallTreeConstraintsData(this.getCallTreeConByNMCallTreeFilter.bind(this));
+    this.nmCallTreeFilter!.getFilterData(this.getFilterDataByNMCallTreeFilter.bind(this));
     this.initCloseCallBackByHeadLine();
   }
 
-  getFilterDataByNMCallTreeFilter = (nmCallTreeData: FilterData): void => {
+  private getFilterDataByNMCallTreeFilter(nmCallTreeData: FilterData): void {
     if (
       (this.isChartShow && nmCallTreeData.icon === 'tree') ||
       (!this.isChartShow && nmCallTreeData.icon === 'block')
@@ -458,7 +454,7 @@ export class TabpaneNMCalltree extends BaseElement {
     }
   }
 
-  getCallTreeConByNMCallTreeFilter = (nmCallTreeConstraintsData: any): void => {
+  private getCallTreeConByNMCallTreeFilter(nmCallTreeConstraintsData: any): void {
     let nmCallTreeConstraintsArgs: any[] = [
       {
         funcName: 'resotreAllNode',
@@ -486,7 +482,7 @@ export class TabpaneNMCalltree extends BaseElement {
     });
   }
 
-  getCallTreeByNMCallTreeFilter = (callTreeData: any): void => {
+  private getCallTreeByNMCallTreeFilter(callTreeData: any): void {
     if ([InvertOpyionIndex, HideSystemSoOptionIndex, HideThreadOptionIndex].includes(callTreeData.value)) {
       this.refreshAllNode({
         ...this.nmCallTreeFilter!.getFilterTreeData(),
@@ -531,8 +527,7 @@ export class TabpaneNMCalltree extends BaseElement {
         return nmCallTreeFuncArgs;
       }
       if (this.currentSelectedData !== undefined) {
-        this.nmCallTreeFilter!.addDataMining(
-          {name: this.currentSelectedData.symbolName},nmCallTreeFuncData.item);
+        this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.symbolName }, nmCallTreeFuncData.item);
         nmCallTreeFuncArgs.push({
           funcName: 'splitTree',
           funcArgs: [this.currentSelectedData.symbolName, false, true],
@@ -545,7 +540,7 @@ export class TabpaneNMCalltree extends BaseElement {
         return nmCallTreeFuncArgs;
       }
       if (this.currentSelectedData != undefined && this.currentSelectedData.libName !== '') {
-        this.nmCallTreeFilter!.addDataMining({name: this.currentSelectedData.libName}, nmCallTreeFuncData.item);
+        this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.libName }, nmCallTreeFuncData.item);
         nmCallTreeFuncArgs.push({
           funcName: 'splitTree',
           funcArgs: [this.currentSelectedData.libName, false, false],
@@ -558,10 +553,10 @@ export class TabpaneNMCalltree extends BaseElement {
         let list = nmCallTreeFuncData.remove.map((item: any): any => {
           return item.name;
         });
-        nmCallTreeFuncArgs.push({funcName: 'resotreAllNode', funcArgs: [list]});
-        nmCallTreeFuncArgs.push({ funcName: 'resetAllNode', funcArgs: []});
+        nmCallTreeFuncArgs.push({ funcName: 'resotreAllNode', funcArgs: [list] });
+        nmCallTreeFuncArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
         list.forEach((symbolName: string): void => {
-          nmCallTreeFuncArgs.push({funcName: 'clearSplitMapData', funcArgs: [symbolName]});
+          nmCallTreeFuncArgs.push({ funcName: 'clearSplitMapData', funcArgs: [symbolName] });
         });
       }
     }
@@ -645,8 +640,8 @@ export class TabpaneNMCalltree extends BaseElement {
           this.lastIsExpression = false;
           return;
         }
-        nmArgs.push({funcName: 'setSearchValue', funcArgs: [this.searchValue]});
-        nmArgs.push({funcName: 'resetAllNode', funcArgs: []});
+        nmArgs.push({ funcName: 'setSearchValue', funcArgs: [this.searchValue] });
+        nmArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
         this.lastIsExpression = false;
       }
       this.getDataByWorker(nmArgs, (result: any[]): void => {
@@ -704,14 +699,14 @@ export class TabpaneNMCalltree extends BaseElement {
           this.nmCallTreeFrameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.nmCallTreeFrameChart?.calculateChartData();
         }
-        if (this.nmCallTreeTbl){
+        if (this.nmCallTreeTbl) {
           // @ts-ignore
           this.nmCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${
             this.parentElement!.clientHeight - 10 - 35
           }px`;
         }
         this.nmCallTreeTbl?.reMeauseHeight();
-        if (this.filesystemTbr){
+        if (this.filesystemTbr) {
           // @ts-ignore
           this.filesystemTbr.shadowRoot.querySelector('.table').style.height = `${
             this.parentElement!.clientHeight - 45 - 21
@@ -744,7 +739,7 @@ export class TabpaneNMCalltree extends BaseElement {
       // @ts-ignore
       (evt.detail as any).callBack(true);
     }
-  }
+  };
 
   nmCallTreeTblColumnClickHandler = (event: any): void => {
     // @ts-ignore
@@ -754,7 +749,7 @@ export class TabpaneNMCalltree extends BaseElement {
     // @ts-ignore
     this.setLTableData(this.nmCallTreeSource, true);
     this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
-  }
+  };
 
   nmCallTreeTblRowClickHandler = (event: any): void => {
     // @ts-ignore
@@ -771,12 +766,12 @@ export class TabpaneNMCalltree extends BaseElement {
     }
     document.dispatchEvent(
       new CustomEvent('number_calibration', {
-        detail: {time: event.detail.tsArray, counts: event.detail.countArray},
+        detail: { time: event.detail.tsArray, counts: event.detail.countArray },
       })
     );
-  }
+  };
 
-  switchFlameChart(flameChartData?: any): void {
+  private switchFlameChart(flameChartData?: any): void {
     let nmCallTreePageTab = this.shadowRoot?.querySelector('#show_table');
     let nmCallTreePageChart = this.shadowRoot?.querySelector('#show_chart');
     if (!flameChartData || flameChartData.icon === 'block') {
@@ -797,7 +792,7 @@ export class TabpaneNMCalltree extends BaseElement {
     }
   }
 
-  refreshAllNode(filterData: any, isAnalysisReset?: boolean): void {
+  private refreshAllNode(filterData: any, isAnalysisReset?: boolean): void {
     let nmCallTreeArgs: any[] = [];
     let isTopDown: boolean = !filterData.callTree[0];
     let isHideSystemLibrary = filterData.callTree[1];
@@ -805,9 +800,9 @@ export class TabpaneNMCalltree extends BaseElement {
     let list = filterData.dataMining.concat(filterData.dataLibrary);
     let groupArgs = this.setGroupArgsByRefreshAllNode();
     if ((this.lastIsExpression && !this.expressionStruct) || isAnalysisReset) {
-      nmCallTreeArgs.push({funcName: 'setSearchValue', funcArgs: [this.searchValue]});
+      nmCallTreeArgs.push({ funcName: 'setSearchValue', funcArgs: [this.searchValue] });
     }
-    nmCallTreeArgs.push({funcName: 'hideThread', funcArgs: [this.isHideThread]});
+    nmCallTreeArgs.push({ funcName: 'hideThread', funcArgs: [this.isHideThread] });
     nmCallTreeArgs.push(
       {
         funcName: 'groupCallchainSample',
@@ -831,8 +826,8 @@ export class TabpaneNMCalltree extends BaseElement {
         funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
-    nmCallTreeArgs.push({funcName: 'splitAllProcess', funcArgs: [list]});
-    nmCallTreeArgs.push({funcName: 'resetAllNode', funcArgs: []});
+    nmCallTreeArgs.push({ funcName: 'splitAllProcess', funcArgs: [list] });
+    nmCallTreeArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
     this.getDataByWorker(nmCallTreeArgs, (result: any[]) => {
       this.setLTableData(result);
       this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
@@ -840,7 +835,7 @@ export class TabpaneNMCalltree extends BaseElement {
     });
   }
 
-  private setGroupArgsByRefreshAllNode(): Map<string, any>{
+  private setGroupArgsByRefreshAllNode(): Map<string, any> {
     let groupArgs = new Map<string, any>();
     groupArgs.set('filterAllocType', this.filterAllocationType);
     groupArgs.set('filterEventType', this.filterNativeType);

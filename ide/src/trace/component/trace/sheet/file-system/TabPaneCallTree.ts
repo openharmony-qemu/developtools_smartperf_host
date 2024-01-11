@@ -106,8 +106,7 @@ export class TabPaneCallTree extends BaseElement {
     } else {
       this.callTreeFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic0', 'fileSystem-reset', [], undefined, () => {
-    });
+    procedurePool.submitWithName('logic0', 'fileSystem-reset', [], undefined, () => {});
     this.callTreeFilter!.initializeFilterTree(true, true, true);
     this.callTreeFilter!.filterValue = '';
     this.callTreeProgressEL!.loading = true;
@@ -138,7 +137,7 @@ export class TabPaneCallTree extends BaseElement {
         },
         {
           funcName: 'getCurrentDataFromDb',
-          funcArgs: [{queryFuncName: this.queryFuncName, ...callTreeSelection}],
+          funcArgs: [{ queryFuncName: this.queryFuncName, ...callTreeSelection }],
         },
       ],
       (results: any[]) => {
@@ -178,7 +177,11 @@ export class TabPaneCallTree extends BaseElement {
         funcName: 'showLibLevelData',
         funcArgs: [this.callTreeLevel.libId, this.callTreeLevel.libName],
       });
-    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === NUM_4) {
+    } else if (
+      this._rowClickData &&
+      this._rowClickData.symbolId !== undefined &&
+      this._currentCallTreeLevel === NUM_4
+    ) {
       this.callTreeLevel.symbolName = this._rowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
@@ -388,10 +391,10 @@ export class TabPaneCallTree extends BaseElement {
       }
     }
     this.performDataProcessing(callTreeFuncArgs);
-  };
+  }
 
   private handleLibraryCase(data: any, callTreeFuncArgs: any[]): void {
-    this.callTreeFilter!.addDataMining({name: this.callTreeSelectedData.libName}, data.item);
+    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.libName }, data.item);
     callTreeFuncArgs.push({
       funcName: 'splitTree',
       funcArgs: [this.callTreeSelectedData.libName, false, false],
@@ -399,7 +402,7 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   private handleSymbolCase(data: any, callTreeFuncArgs: any[]): void {
-    this.callTreeFilter!.addDataMining({name: this.callTreeSelectedData.symbolName}, data.item);
+    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbolName }, data.item);
     callTreeFuncArgs.push({
       funcName: 'splitTree',
       funcArgs: [this.callTreeSelectedData.symbolName, false, true],
@@ -600,7 +603,7 @@ export class TabPaneCallTree extends BaseElement {
       let data = evt.detail.data as MerageBean;
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: {time: data.tsArray, durations: data.durArray},
+          detail: { time: data.tsArray, durations: data.durArray },
         })
       );
       this.setRightTableData(data);
@@ -657,22 +660,23 @@ export class TabPaneCallTree extends BaseElement {
     let isHideEvent: boolean = filterData.callTree[2];
     let isHideThread: boolean = filterData.callTree[3];
     let list = filterData.dataMining.concat(filterData.dataLibrary);
-    callTreeArgs.push({funcName: 'hideThread', funcArgs: [isHideThread],});
-    callTreeArgs.push({funcName: 'hideEvent', funcArgs: [isHideEvent],});
-    callTreeArgs.push({funcName: 'getCallChainsBySampleIds', funcArgs: [isTopDown, this.queryFuncName],});
+    callTreeArgs.push({ funcName: 'hideThread', funcArgs: [isHideThread] });
+    callTreeArgs.push({ funcName: 'hideEvent', funcArgs: [isHideEvent] });
+    callTreeArgs.push({ funcName: 'getCallChainsBySampleIds', funcArgs: [isTopDown, this.queryFuncName] });
     this.callTreeTbr!.recycleDataSource = [];
     if (isHideSystemLibrary) {
-      callTreeArgs.push({funcName: 'hideSystemLibrary', funcArgs: [true],});
+      callTreeArgs.push({ funcName: 'hideSystemLibrary', funcArgs: [true] });
     }
     if (filterData.callTreeConstraints.checked) {
       callTreeArgs.push({
-        funcName: 'hideNumMaxAndMin', funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]),
-          filterData.callTreeConstraints.inputs[1]],
+        funcName: 'hideNumMaxAndMin',
+        funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
-    callTreeArgs.push({funcName: 'splitAllProcess', funcArgs: [list],});
+    callTreeArgs.push({ funcName: 'splitAllProcess', funcArgs: [list] });
     callTreeArgs.push({
-      funcName: 'resetAllNode', funcArgs: [],
+      funcName: 'resetAllNode',
+      funcArgs: [],
     });
     if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
       callTreeArgs.push({
@@ -730,7 +734,7 @@ export class TabPaneCallTree extends BaseElement {
     procedurePool.submitWithName(
       'logic0',
       this.procedureAction,
-      {args, callType: this.queryFuncName},
+      { args, callType: this.queryFuncName },
       undefined,
       (callTreeResults: any): void => {
         handler(callTreeResults);

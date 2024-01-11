@@ -101,7 +101,9 @@ HWTEST_F(RpcServerTest, ParserConfig, TestSize.Level1)
     BytraceLine line;
     // if the configuration changes, the current variable also needs to change
     std::string json(
-        "{\"config\": {\"TaskPool\": 1,\"AnimationAnalysis\": 0,\"AppStartup\": 0, \"BinderRunnable\": 0}}");
+        "{\"config\": {"
+        "\"TaskPool\": 1,\"AnimationAnalysis\": 0,\"AppStartup\": 0, \"BinderRunnable\": 0, \"FfrtConvert\": 0"
+        "}}");
 
     RpcServer rpcServer;
     auto ret = rpcServer.ParserConfig(json);

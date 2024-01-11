@@ -156,78 +156,7 @@ export class LitSelect extends BaseElement {
 
   initHtml() {
     return `
-        <style>
-        ${selectHtmlStr()}
-        :host(:not([mode]))  input{
-            width: 100%;
-        }
-        .body{
-            max-height: ${this.listHeight};
-            overflow: auto;
-            border-radius: 2px;
-            box-shadow: 0 5px 15px 0px #00000033;
-        }
-        .multipleRoot input::-webkit-input-placeholder {
-            color: var(--dark-color,#aab2bd);
-        }
-        :host(:not([loading])) .loading{
-            display: none;
-        }
-        :host([loading]) .loading{
-            display: flex;
-        }
-        :host(:not([allow-clear])) .clear{
-            display: none;
-        }
-        :host([loading]) .icon{
-            display: none;
-        }
-        :host(:not([loading])) .icon{
-            display: flex;
-        }
-        .clear:hover{
-            color: #8c8c8c;
-        }
-        .clear{
-            color: #bfbfbf;
-            display: none;
-        }
-        .multipleRoot{
-            display: flex;
-            align-items: center;
-            flex-flow: wrap;
-            flex-wrap: wrap;
-            flex-direction: column;
-        }
-        .search{
-            color: #bfbfbf;
-            display: none;
-        }
-        .tag{
-            overflow: auto;
-            height: auto;
-            display: inline-flex;
-            position: relative;
-            align-items: center;
-            font-size: .75rem;
-            font-weight: bold;
-            padding: 1px 4px;
-            margin-right: 4px;
-            margin-top: 1px;
-            margin-bottom: 1px;
-            color: #242424;
-            background-color: #f5f5f5;
-        }
-        .tag-close:hover{
-            color: #333;
-        }
-        .tag-close{
-            padding: 2px;
-            font-size: .8rem;
-            color: #999999;
-            margin-left: 0px;
-        }
-        </style>
+        ${selectHtmlStr(this.listHeight)}
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <div class="multipleRoot">
             <input placeholder="${this.placeholder}" autocomplete="off" ${

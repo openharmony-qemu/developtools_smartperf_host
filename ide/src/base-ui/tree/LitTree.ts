@@ -503,6 +503,10 @@ export class LitTree extends BaseElement {
     ul.style.transition = '.3s all';
     this.setChildren(a,insertNode,li,ul);
     // node 添加右键菜单功能
+    this.addedRightClickMenuFunction(insertNode);
+  }
+
+  addedRightClickMenuFunction(insertNode: LitTreeNode):void{
     insertNode.oncontextmenu = (ev): void => {
       ev.preventDefault();
       this.selectedNode(insertNode);

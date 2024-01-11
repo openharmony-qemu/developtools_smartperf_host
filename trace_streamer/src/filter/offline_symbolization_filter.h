@@ -93,12 +93,15 @@ private:
                                                    uint64_t symVaddr,
                                                    uint64_t ip,
                                                    FrameInfo* frameInfo);
-    bool FillFrameInfo(const std::shared_ptr<FrameInfo>& frameInfo,
-                       uint64_t ip,
-                       uint64_t& vmStart,
-                       uint64_t& vmOffset,
-                       uint64_t ipid);
+    bool FillFrameInfo(const std::shared_ptr<FrameInfo>& frameInfo, uint64_t ip, uint64_t ipid);
+    bool CalcSymInfo(uint64_t ipid,
+                     uint64_t ip,
+                     uint32_t& symbolStart,
+                     std::shared_ptr<FrameInfo>& frameInfo,
+                     std::shared_ptr<ProtoReader::SymbolTable_Reader>& symbolTable);
     const uint64_t usefulIpMask_ = 0xffffff0000000000;
+    uint64_t vmStart_ = INVALID_UINT64;
+    uint64_t vmOffset_ = INVALID_UINT64;
 };
 
 } // namespace TraceStreamer

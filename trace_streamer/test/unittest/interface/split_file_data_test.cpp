@@ -43,6 +43,7 @@ protected:
     {
         ta->EnableMetaTable(false);
 
+        size_t readSize = 0;
         int32_t fd(base::OpenFile(path, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(READ_SIZE);
@@ -57,6 +58,10 @@ protected:
             if (!ta->ParseTraceDataSegment(std::move(buf), rsize, 1, 1)) {
                 break;
             };
+
+            dataBuf_ = std::make_unique<uint8_t[]>(readSize + rsize);
+            memcpy_s(dataBuf_.get() + readSize, rsize, buf.get(), rsize);
+            readSize += rsize;
         }
 
         ta->WaitForParserEnd();
@@ -108,6 +113,9 @@ protected:
         bool ret = ts->ParseTraceDataSegment(std::move(combinedBuf), dataSize + PROFILE_HEADER + headDataSize, 1, 1);
         return ret;
     }
+
+public:
+    std::unique_ptr<uint8_t[]> dataBuf_;
 };
 
 /**
@@ -172,12 +180,9 @@ HWTEST_F(SplitFileDataTest, SplitFileDataBySystraceTest, TestSize.Level1)
         ta->maxTs_ = 88032820831000;
         ParseData(ta, tracePath);
 
-        std::unique_ptr<uint8_t[]> bufParser(new uint8_t[ta->GetBytraceData()->GetTraceDataBytrace().size()]);
-        std::copy(ta->GetBytraceData()->GetTraceDataBytrace().begin(),
-                  ta->GetBytraceData()->GetTraceDataBytrace().end(), bufParser.get());
         std::unique_ptr<TraceStreamerSelector> ts = std::make_unique<TraceStreamerSelector>();
         EXPECT_TRUE(
-            ts->ParseTraceDataSegment(std::move(bufParser), ta->GetBytraceData()->GetTraceDataBytrace().size(), 1, 1));
+            ts->ParseTraceDataSegment(std::move(dataBuf_), ta->GetBytraceData()->GetTraceDataBytrace().size(), 1, 1));
     } else {
         EXPECT_TRUE(false);
     }

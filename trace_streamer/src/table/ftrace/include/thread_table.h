@@ -61,22 +61,22 @@ private:
                                   const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue)
         {
             if (remove) {
-                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
-                    if (threadQueue[*i].switchCount_ != value) {
-                        i++;
+                for (auto idx = indexMapBack_->rowIndex_.begin(); idx != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*idx].switchCount_ != value) {
+                        idx++;
                     } else {
                         changed = true;
-                        rowIndexBak_.push_back(*i);
-                        i++;
+                        rowIndexBak_.push_back(*idx);
+                        idx++;
                     }
                 }
                 if (changed) {
                     indexMapBack_->rowIndex_ = rowIndexBak_;
                 }
             } else {
-                for (auto i = 0; i < size; i++) {
-                    if (threadQueue[i].switchCount_ == value) {
-                        indexMapBack_->rowIndex_.push_back(i);
+                for (auto idx = 0; idx < size; idx++) {
+                    if (threadQueue[idx].switchCount_ == value) {
+                        indexMapBack_->rowIndex_.push_back(idx);
                     }
                 }
             }
@@ -84,7 +84,7 @@ private:
         }
         template <typename Value, typename Size>
         void HandleSwitchCount(bool remove,
-                               bool& changed,
+                               bool& isChanged,
                                Value value,
                                Size size,
                                const std::deque<SysTuning::TraceStdtype::Thread>& threadQueue)
@@ -94,12 +94,12 @@ private:
                     if (threadQueue[*i].internalPid_ != value) {
                         i++;
                     } else {
-                        changed = true;
+                        isChanged = true;
                         rowIndexBak_.push_back(*i);
                         i++;
                     }
                 }
-                if (changed) {
+                if (isChanged) {
                     indexMapBack_->rowIndex_ = rowIndexBak_;
                 }
             } else {

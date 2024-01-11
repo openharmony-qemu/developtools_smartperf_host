@@ -193,6 +193,14 @@ export class LitChartColumn extends BaseElement {
     return this.litChartColumnCfg?.data || [];
   }
 
+  dataSort():void{
+    if (!this.litChartColumnCfg!.notSort) {
+      this.litChartColumnCfg?.data.sort(
+        (a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]
+      );
+    }
+  }
+
   haveSeriesField():void{
     let maxValue = Math.max(...this.litChartColumnCfg!.data.map((it) => it[this.litChartColumnCfg!.yField]));
     maxValue = Math.ceil(maxValue * 0.1) * 10;
@@ -209,11 +217,7 @@ export class LitChartColumn extends BaseElement {
             : `${getProbablyTime(maxValue - valGap * i)}`,
       });
     }
-    if (!this.litChartColumnCfg!.notSort) {
-      this.litChartColumnCfg?.data.sort(
-        (a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]
-      );
-    }
+    this.dataSort();
     this.litChartColumnCfg?.data.forEach((litChartColumnItem, litChartColumnIndex, array) => {
       this.data.push({
         color: this.litChartColumnCfg!.color(litChartColumnItem),

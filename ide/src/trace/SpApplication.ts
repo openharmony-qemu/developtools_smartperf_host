@@ -61,7 +61,7 @@ import { Utils } from './component/trace/base/Utils';
 import {
   applicationHtml,
   clearTraceFileCache,
-  findFreeSizeAlgorithm,
+  findFreeSizeAlgorithm, getCurrentDataTime,
   indexedDataToBufferData,
   postLog,
   readTraceFileBuffer,
@@ -143,6 +143,7 @@ export class SpApplication extends BaseElement {
   fileTypeList: string[] = ['ebpf', 'arkts', 'hiperf'];
   private pageTimStamp: number = 0;
   private currentPageNum: number = 1;
+  private currentDataTime: string[] = [];
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -979,10 +980,7 @@ export class SpApplication extends BaseElement {
       this.progressEL!.loading = false;
       return false;
     }
-    if (this.pageTimStamp === 0) {
-      return false;
-    }
-    return true;
+    return this.pageTimStamp !== 0;
   }
 
   private queryFileByPage(
@@ -1010,7 +1008,9 @@ export class SpApplication extends BaseElement {
         let hiPerfArray = new Uint8Array(hiperfData);
         let allOtherData = [ebpfData, arkTsData, hiperfData];
         let otherDataLength = traceData.byteLength + ebpfData.byteLength + arkTsData.byteLength + hiperfData.byteLength;
-        this.traceFileName = `hiprofiler_long_trace_${indexedDbPageNum}.htrace`;
+        let timeStamp = this.currentDataTime[0] + this.currentDataTime[1] + this.currentDataTime[2] + '_' +
+          this.currentDataTime[3] + this.currentDataTime[4] + this.currentDataTime[5];
+        this.traceFileName = `hiprofiler_long_${timeStamp}_${indexedDbPageNum}.htrace`;
         if (otherDataLength > maxTraceFileLength) {
           if (traceData.byteLength > maxTraceFileLength) {
             this.traceFileLoadFailedHandler('hitrace file too big!');
@@ -1105,6 +1105,7 @@ export class SpApplication extends BaseElement {
         },
         (res: Array<any>) => {
           this.litSearch!.setPercent('Cut in file ', 100);
+          this.currentDataTime = getCurrentDataTime();
           if (this.longTraceHeadMessageList.length > 0) {
             this.getTraceFileByPage(this.currentPageNum);
             this.litSearch!.style.marginLeft = '80px';
@@ -1112,7 +1113,7 @@ export class SpApplication extends BaseElement {
             this.initCutFileEvent();
           } else {
             this.progressEL!.loading = false;
-            this.litSearch!.setPercent('The basic trace file in the large-file scenario is missing!', -1);
+            this.litSearch!.setPercent('Missing basic trace in the large-file scenario!', -1);
             this.freshMenuDisable(false);
             return;
           }

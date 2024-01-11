@@ -119,9 +119,9 @@ int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite
     return SQLITE_OK;
 }
 
-int32_t NativeHookFrameTable::Cursor::Column(int32_t column) const
+int32_t NativeHookFrameTable::Cursor::Column(int32_t nativeHookFrameCol) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(nativeHookFrameCol)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
@@ -155,7 +155,7 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t column) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered nativeHookFrameCol : %d", nativeHookFrameCol);
             break;
     }
     return SQLITE_OK;
