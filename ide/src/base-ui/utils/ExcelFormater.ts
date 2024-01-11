@@ -13,6 +13,54 @@
  * limitations under the License.
  */
 
+const htmlStr = () => {
+  const html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+  return {
+    uri : 'data:application/vnd.ms-excel;base64,',
+    template_ExcelWorksheet : `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`,
+    template_ListWorksheet : `<o:File HRef="sheet{SheetIndex}.htm"/>`,
+    template_WorkBook :
+    `MIME-Version: 1.0
+X-Document-Type: Workbook
+Content-Type: multipart/related; boundary="----=_NextPart_dummy"
+
+------=_NextPart_dummy
+Content-Location: WorkBook.htm
+Content-Type: text/html; charset=windows-1252
+
+` +
+    html_start +
+    `
+<head>
+<meta name="Excel Workbook Frameset">
+<meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
+<link rel="File-List" href="filelist.xml">
+<!--[if gte mso 9]><xml>
+ <x:ExcelWorkbook>
+    <x:ExcelWorksheets>{ExcelWorksheets}</x:ExcelWorksheets>
+    <x:ActiveSheet>0</x:ActiveSheet>
+ </x:ExcelWorkbook>
+</xml><![endif]-->
+</head>
+<frameset>
+    <frame src="sheet0.htm" name="frSheet">
+    <noframes><body><p>This page uses frames, but your browser does not support them.</p></body></noframes>
+</frameset>
+</html>
+{HTMLWorksheets}
+Content-Location: filelist.xml
+Content-Type: text/xml; charset="utf-8"
+
+<xml xmlns:o="urn:schemas-microsoft-com:office:office">
+    <o:MainFile HRef="../WorkBook.htm"/>
+    {ListWorksheets}
+    <o:File HRef="filelist.xml"/>
+</xml>
+------=_NextPart_dummy--
+`
+  }
+}
+
 export class ExcelFormater {
   static tmplCellXML = '<Cell{attributeStyleID}{attributeFormula}><Data ss:Type="{nameType}">{data}</Data></Cell>';
   static base64 = function (s: any) {
@@ -135,11 +183,9 @@ export class ExcelFormater {
     filename: string,
     dataSource: { columns: any[]; tables: any[]; sheetName: string }[]
   ) {
-    let uri = 'data:application/vnd.ms-excel;base64,',
-      html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`,
-      template_ExcelWorksheet = `<x:ExcelWorksheet><x:Name>{SheetName}</x:Name><x:WorksheetSource HRef="sheet{SheetIndex}.htm"/><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>`,
-      template_ListWorksheet = `<o:File HRef="sheet{SheetIndex}.htm"/>`,
-      template_HTMLWorksheet =
+    const html_start = `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">`;
+    let {uri,template_ExcelWorksheet,template_ListWorksheet,template_WorkBook} = htmlStr();
+      let template_HTMLWorksheet =
         `
 ------=_NextPart_dummy
 Content-Location: sheet{SheetIndex}.htm
@@ -154,46 +200,7 @@ Content-Type: text/html; charset=windows-1252
     <link rel="File-List" href="filelist.xml">
 </head>
 <body><table>{SheetContent}</table></body>
-</html>`,
-      template_WorkBook =
-        `MIME-Version: 1.0
-X-Document-Type: Workbook
-Content-Type: multipart/related; boundary="----=_NextPart_dummy"
-
-------=_NextPart_dummy
-Content-Location: WorkBook.htm
-Content-Type: text/html; charset=windows-1252
-
-` +
-        html_start +
-        `
-<head>
-<meta name="Excel Workbook Frameset">
-<meta http-equiv="Content-Type" charset="UTF-8" content="text/html; charset=windows-1252">
-<link rel="File-List" href="filelist.xml">
-<!--[if gte mso 9]><xml>
- <x:ExcelWorkbook>
-    <x:ExcelWorksheets>{ExcelWorksheets}</x:ExcelWorksheets>
-    <x:ActiveSheet>0</x:ActiveSheet>
- </x:ExcelWorkbook>
-</xml><![endif]-->
-</head>
-<frameset>
-    <frame src="sheet0.htm" name="frSheet">
-    <noframes><body><p>This page uses frames, but your browser does not support them.</p></body></noframes>
-</frameset>
-</html>
-{HTMLWorksheets}
-Content-Location: filelist.xml
-Content-Type: text/xml; charset="utf-8"
-
-<xml xmlns:o="urn:schemas-microsoft-com:office:office">
-    <o:MainFile HRef="../WorkBook.htm"/>
-    {ListWorksheets}
-    <o:File HRef="filelist.xml"/>
-</xml>
-------=_NextPart_dummy--
-`;
+</html>`;
     let context_WorkBook = {
       ExcelWorksheets: '',
       HTMLWorksheets: '',

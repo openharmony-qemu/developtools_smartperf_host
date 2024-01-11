@@ -45,6 +45,97 @@ class Sector {
   };
 }
 
+const initHtmlStyle = `
+    <style>   
+        :host {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        .shape.active {
+            animation: color 3.75 both;    
+        }
+        @keyframes color {
+            0% { background-color: white; }
+           100% { background-color: black; }    
+        }
+        #tip{
+            background-color: #f5f5f4;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            color: #333322;
+            font-size: 8pt;
+            position: absolute;
+            display: none;
+            top: 0;
+            left: 0;
+            z-index: 99;
+            pointer-events: none;
+            user-select: none;
+            padding: 5px 10px;
+            box-shadow: 0 0 10px #22ffffff;
+        }
+        #root{
+            position:relative;
+        }
+        .bg_nodata{
+            background-repeat:no-repeat;
+            background-position:center;
+            background-image: url("img/pie_chart_no_data.png");
+        }
+        .bg_hasdata{
+            background-repeat:no-repeat;
+            background-position:center;
+        }
+        
+        #labels{
+            display: grid;
+            grid-template-columns: auto auto auto auto auto;
+            /*justify-content: center;*/
+            /*align-items: center;*/
+            width: 100%;
+            height: 25%;
+            box-sizing: border-box;
+            position: absolute;
+            bottom: 0px;
+            left: 0;
+            /*margin: 0px 10px;*/
+            padding-left: 10px;
+            padding-right: 10px;
+            pointer-events: none    ;
+        }
+        .name{
+            flex: 1;
+            font-size: 9pt;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            /*color: #666;*/
+            color: var(--dark-color1,#252525);
+            pointer-events: painted;
+        }
+        .label{
+            display: flex;
+            align-items: center;
+            max-lines: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            padding-right: 5px;
+        }
+        .tag{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        </style>
+    `
+
 @element('lit-chart-pie')
 export class LitChartPie extends BaseElement {
   private eleShape: Element | null | undefined;
@@ -98,10 +189,15 @@ export class LitChartPie extends BaseElement {
     this.render();
   }
 
-  measure() {
-    if (!this.litChartPieConfig) return;
+  measureInitialize():void{
     this.data = [];
     this.radius = (Math.min(this.clientHeight, this.clientWidth) * 0.65) / 2 - 10;
+    this.labelsEL!.textContent = '';
+  }
+
+  measure() {
+    if (!this.litChartPieConfig) return;
+    this.measureInitialize();
     let pieCfg = this.litChartPieConfig!;
     let startAngle = 0;
     let startDegree = 0;
@@ -111,7 +207,6 @@ export class LitChartPie extends BaseElement {
       (previousValue, currentValue) => currentValue[pieCfg.angleField] + previousValue,
       0
     );
-    this.labelsEL!.textContent = '';
     let labelArray: string[] = [];
     this.litChartPieConfig.data.forEach((pieItem, index) => {
       let item: Sector = {
@@ -392,7 +487,7 @@ export class LitChartPie extends BaseElement {
     crossH: number;
   } {
     let cross: boolean;
-    let direction: string;
+    let direction: string = '';
     let crossW: number;
     let crossH: number;
     let maxX = r1.x + r1.w > rect.x + rect.w ? r1.x + r1.w : rect.x + rect.w;
@@ -419,13 +514,7 @@ export class LitChartPie extends BaseElement {
         direction = 'Left-Top';
       }
     } else {
-      if (rect.y > r1.y) {
-        direction = 'Bottom';
-      } else if (rect.y == r1.y) {
-        direction = 'Right'; //superposition default right
-      } else {
-        direction = 'Top';
-      }
+      direction = this.rectSuperposition(rect,r1);
     }
     return {
       cross,
@@ -433,6 +522,16 @@ export class LitChartPie extends BaseElement {
       crossW,
       crossH,
     };
+  }
+
+  rectSuperposition(rect: Rectangle,r1: Rectangle):string{
+    if (rect.y > r1.y) {
+      return 'Bottom';
+    } else if (rect.y == r1.y) {
+      return 'Right'; //superposition default right
+    } else {
+      return 'Top';
+    }
   }
 
   showTip(x: number, y: number, msg: string) {
@@ -448,105 +547,12 @@ export class LitChartPie extends BaseElement {
 
   initHtml(): string {
     return `
-        ${this.initHtmlStyle()}
+        ${initHtmlStyle}
         <div id="root">
             <div id="shape" class="shape active"></div>
             <canvas id="canvas" style="top: 0;left: 0;z-index: 21"></canvas>
             <div id="tip"></div>
             <div id="labels"></div>
         </div>`;
-  }
-
-  private initHtmlStyle(): string {
-    return `
-    <style>   
-        :host {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-        }
-        .shape.active {
-            animation: color 3.75 both;    
-        }
-        @keyframes color {
-            0% { background-color: white; }
-           100% { background-color: black; }    
-        }
-        #tip{
-            background-color: #f5f5f4;
-            border: 1px solid #fff;
-            border-radius: 5px;
-            color: #333322;
-            font-size: 8pt;
-            position: absolute;
-            display: none;
-            top: 0;
-            left: 0;
-            z-index: 99;
-            pointer-events: none;
-            user-select: none;
-            padding: 5px 10px;
-            box-shadow: 0 0 10px #22ffffff;
-        }
-        #root{
-            position:relative;
-        }
-        .bg_nodata{
-            background-repeat:no-repeat;
-            background-position:center;
-            background-image: url("img/pie_chart_no_data.png");
-        }
-        .bg_hasdata{
-            background-repeat:no-repeat;
-            background-position:center;
-        }
-        
-        #labels{
-            display: grid;
-            grid-template-columns: auto auto auto auto auto;
-            /*justify-content: center;*/
-            /*align-items: center;*/
-            width: 100%;
-            height: 25%;
-            box-sizing: border-box;
-            position: absolute;
-            bottom: 0px;
-            left: 0;
-            /*margin: 0px 10px;*/
-            padding-left: 10px;
-            padding-right: 10px;
-            pointer-events: none    ;
-        }
-        .name{
-            flex: 1;
-            font-size: 9pt;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            /*color: #666;*/
-            color: var(--dark-color1,#252525);
-            pointer-events: painted;
-        }
-        .label{
-            display: flex;
-            align-items: center;
-            max-lines: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            padding-right: 5px;
-        }
-        .tag{
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 10px;
-            height: 10px;
-            border-radius: 5px;
-            margin-right: 5px;
-        }
-        </style>
-    `
   }
 }

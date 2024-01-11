@@ -304,7 +304,6 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerTbl!.rememberScrollTop = true;
     this.perfProfilerFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#filter');
     this.perfProfilerList = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
-    this.perfProfilerList = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
     this.initPerfProfilerDataAndListener();
   }
 
@@ -340,11 +339,11 @@ export class TabpanePerfProfile extends BaseElement {
         (evt.detail as any).callBack(true);
       }
     });
-    this.perfProfilerFilter!.getDataLibrary(this.filterFunc);
-    this.perfProfilerFilter!.getDataMining(this.filterFunc);
-    this.perfProfilerFilter!.getCallTreeData(this.perfProfilerFilterGetCallTree);
-    this.perfProfilerFilter!.getCallTreeConstraintsData(this.perfProfilerFilterGetCallTreeConstraints);
-    this.perfProfilerFilter!.getFilterData(this.perfProfilerFilterGetFilter);
+    this.perfProfilerFilter!.getDataLibrary(this.filterFunc.bind(this));
+    this.perfProfilerFilter!.getDataMining(this.filterFunc.bind(this));
+    this.perfProfilerFilter!.getCallTreeData(this.perfProfilerFilterGetCallTree.bind(this));
+    this.perfProfilerFilter!.getCallTreeConstraintsData(this.perfProfilerFilterGetCallTreeConstraints.bind(this));
+    this.perfProfilerFilter!.getFilterData(this.perfProfilerFilterGetFilter.bind(this));
     this.perfProfilerTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
       this.perfProfileSortKey = evt.detail.key;
@@ -443,7 +442,7 @@ export class TabpanePerfProfile extends BaseElement {
     }
   }
 
-  filterFunc = (data: any): void => {
+  private filterFunc(data: any): void {
     let perfProfileFuncArgs: any[] = [];
     if (data.type === 'check') {
       this.filterFuncByCheckType(data, perfProfileFuncArgs);
@@ -455,7 +454,9 @@ export class TabpanePerfProfile extends BaseElement {
     this.getDataByWorker(perfProfileFuncArgs, (result: any[]): void => {
       this.setPerfProfilerLeftTableData(result);
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-      if (this.isChartShow) {this.perfProfileFrameChart?.calculateChartData()}
+      if (this.isChartShow) {
+        this.perfProfileFrameChart?.calculateChartData();
+      }
       this.perfProfilerTbl!.move1px();
       if (this.perfSelectedData) {
         this.perfSelectedData.isSelected = false;
@@ -464,9 +465,9 @@ export class TabpanePerfProfile extends BaseElement {
         this.perfSelectedData = undefined;
       }
     });
-  };
+  }
 
-  perfProfilerFilterGetFilter = (data: FilterData): void => {
+  private perfProfilerFilterGetFilter(data: FilterData): void {
     if (this.searchValue !== this.perfProfilerFilter!.filterValue) {
       this.searchValue = this.perfProfilerFilter!.filterValue;
       let perfArgs = [
@@ -491,9 +492,9 @@ export class TabpanePerfProfile extends BaseElement {
       this.setPerfProfilerLeftTableData(this.perfProfilerDataSource);
       this.switchFlameChart(data);
     }
-  };
+  }
 
-  perfProfilerFilterGetCallTreeConstraints = (data: any): void => {
+  private perfProfilerFilterGetCallTreeConstraints(data: any): void {
     let perfProfilerConstraintsArgs: any[] = [
       {
         funcName: 'resotreAllNode',
@@ -517,11 +518,13 @@ export class TabpanePerfProfile extends BaseElement {
     this.getDataByWorker(perfProfilerConstraintsArgs, (result: any[]): void => {
       this.setPerfProfilerLeftTableData(result);
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-      if (this.isChartShow) {this.perfProfileFrameChart?.calculateChartData()}
+      if (this.isChartShow) {
+        this.perfProfileFrameChart?.calculateChartData();
+      }
     });
-  };
+  }
 
-  perfProfilerFilterGetCallTree = (data: any): void => {
+  private perfProfilerFilterGetCallTree(data: any): void {
     if (callTreeValueNoSample.includes(data.value)) {
       this.refreshAllNode({
         ...this.perfProfilerFilter!.getFilterTreeData(),
@@ -551,10 +554,12 @@ export class TabpanePerfProfile extends BaseElement {
       this.getDataByWorker(perfProfileArgs, (result: any[]): void => {
         this.setPerfProfilerLeftTableData(result);
         this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
-        if (this.isChartShow) {this.perfProfileFrameChart?.calculateChartData()}
+        if (this.isChartShow) {
+          this.perfProfileFrameChart?.calculateChartData();
+        }
       });
     }
-  };
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -564,7 +569,9 @@ export class TabpanePerfProfile extends BaseElement {
     let filterHeight = 0;
     new ResizeObserver((entries): void => {
       let perfProfileTabFilter = this.shadowRoot!.querySelector('#filter') as HTMLElement;
-      if (perfProfileTabFilter.clientHeight > 0) {filterHeight = perfProfileTabFilter.clientHeight}
+      if (perfProfileTabFilter.clientHeight > 0) {
+        filterHeight = perfProfileTabFilter.clientHeight;
+      }
       if (this.parentElement!.clientHeight > filterHeight) {
         perfProfileTabFilter.style.display = 'flex';
       } else {
@@ -581,14 +588,14 @@ export class TabpanePerfProfile extends BaseElement {
         // @ts-ignore
         this.perfProfilerTbl?.shadowRoot.querySelector('.table').style.height =
           // @ts-ignore
-          `${this.parentElement.clientHeight - 10 - 35  }px`;
+          `${this.parentElement.clientHeight - 10 - 35}px`;
         this.perfProfilerTbl?.reMeauseHeight();
         // @ts-ignore
         this.perfProfilerList?.shadowRoot.querySelector('.table').style.height =
           // @ts-ignore
-          `${this.parentElement.clientHeight - 45 - 21  }px`;
+          `${this.parentElement.clientHeight - 45 - 21}px`;
         this.perfProfilerList?.reMeauseHeight();
-        this.perfProfileLoadingPage.style.height = `${this.parentElement!.clientHeight - 24  }px`;
+        this.perfProfileLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }
     }).observe(this.parentElement!);
   }
@@ -658,7 +665,7 @@ export class TabpanePerfProfile extends BaseElement {
     this.refreshAllNodeExtend(perfProfileArgs);
   }
 
-  refreshAllNodeExtend(perfProfileArgs: any[]): void{
+  refreshAllNodeExtend(perfProfileArgs: any[]): void {
     if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentLevel === 2) {
       perfProfileArgs.push({
         funcName: 'showLibLevelData',

@@ -107,11 +107,11 @@ int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
     if (rowCount_ <= 0) {
         return SQLITE_OK;
     }
-    auto cs = fc.GetConstraints();
+    auto measureTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(measureTabCs, sId);
+    for (size_t i = 0; i < measureTabCs.size(); i++) {
+        const auto& c = measureTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
                 FilterTS(c.op, argv[i], measureObj.TimeStampData());

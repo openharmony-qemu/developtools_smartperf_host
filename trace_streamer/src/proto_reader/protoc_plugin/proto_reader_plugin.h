@@ -59,6 +59,7 @@ public:
     void WriteEnumDescriptor(const EnumDescriptor* enumeration);
     void WriteDecoder(const Descriptor* descriptor);
     void WriteEnum(const Descriptor* descriptor);
+    void WriteFunc(const Descriptor* descriptor, const int32_t maxFieldID);
     void WriteEnd();
     const std::string& GetError() const
     {

@@ -46,9 +46,9 @@ AppStartupTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 AppStartupTable::Cursor::~Cursor() {}
 
-int32_t AppStartupTable::Cursor::Column(int32_t column) const
+int32_t AppStartupTable::Cursor::Column(int32_t appStartupCol) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(appStartupCol)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
@@ -76,7 +76,7 @@ int32_t AppStartupTable::Cursor::Column(int32_t column) const
                                 STR_DEFAULT_LEN, nullptr);
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered appStartupCol : %d", appStartupCol);
             break;
     }
     return SQLITE_OK;

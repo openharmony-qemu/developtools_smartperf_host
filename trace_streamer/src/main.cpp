@@ -436,16 +436,16 @@ bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector& ta,
     g_loadSize = 0;
     while (true) {
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
-        auto rsize = Read(fd, buf.get(), G_CHUNK_SIZE);
-        if (rsize == 0) {
+        auto rSize = Read(fd, buf.get(), G_CHUNK_SIZE);
+        if (rSize == 0) {
             break;
         }
-        if (rsize < 0) {
+        if (rSize < 0) {
             TS_LOGE("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
             return false;
         }
-        g_loadSize += rsize;
-        if (!ta.BatchParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize))) {
+        g_loadSize += rSize;
+        if (!ta.BatchParseTraceDataSegment(std::move(buf), static_cast<size_t>(rSize))) {
             return false;
         }
         printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);

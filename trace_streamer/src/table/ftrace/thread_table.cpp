@@ -135,24 +135,24 @@ void ThreadTable::Cursor::FilterTid(unsigned char op, uint64_t value)
 }
 void ThreadTable::Cursor::FilterIpid(unsigned char op, uint64_t value)
 {
-    bool remove = false;
+    bool isRemove = false;
     if (indexMapBack_->HasData()) {
         indexMapBack_->CovertToIndexMap();
-        remove = true;
+        isRemove = true;
     }
     const auto& threadQueue = dataCache_->GetConstThreadData();
-    auto size = threadQueue.size();
+    auto thdQueueSize = threadQueue.size();
     rowIndexBak_.clear();
     bool changed = false;
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            HandleIpidConstraint(remove, changed, value, size, threadQueue);
+            HandleIpidConstraint(isRemove, changed, value, thdQueueSize, threadQueue);
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNULL:
-            HandleIpidConstraint(remove, changed, INVALID_UINT32, size, threadQueue);
+            HandleIpidConstraint(isRemove, changed, INVALID_UINT32, thdQueueSize, threadQueue);
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
-            HandleIpidConstraint(threadQueue, size, remove, changed);
+            HandleIpidConstraint(threadQueue, thdQueueSize, isRemove, changed);
             break;
         default:
             break;

@@ -119,7 +119,7 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
         ProcNextPidSwitchEvent(ts, cpu, prevPid, nextPid, nextInfo);
     }
     if (prevPid) {
-        ProcPrevPidSwitchEvent(ts, cpu, prevPid, prevPior, btInfo);
+        ProcPrevPidSwitchEvent(ts, cpu, prevPid, prevState, btInfo);
     }
     if (traceDataCache_->BinderRunnableTraceEnabled() && iTidToTransaction_.find(prevPid) != iTidToTransaction_.end()) {
         uint64_t transactionId = iTidToTransaction_.at(prevPid);

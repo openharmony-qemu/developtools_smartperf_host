@@ -482,3 +482,14 @@ export function findFreeSizeAlgorithm(numbers: Array<number>, freeSize: number):
   reBackFind(0);
   return finalIndex;
 }
+
+export function getCurrentDataTime(): string[]{
+  let current = new Date();
+  let year = '' + current.getFullYear();
+  let month = ('0' + (current.getMonth() + 1)).slice(-2);
+  let day = ('0' + current.getDate()).slice(-2);
+  let hours = ('0' + current.getHours()).slice(-2);
+  let minutes = ('0' + current.getMinutes()).slice(-2);
+  let seconds = ('0' + current.getSeconds()).slice(-2);
+  return [year, month, day, hours, minutes, seconds];
+}

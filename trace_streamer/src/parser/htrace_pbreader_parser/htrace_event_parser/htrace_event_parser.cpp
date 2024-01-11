@@ -418,30 +418,12 @@ bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader& even
                                      EventInfo& eventInfo,
                                      ProtoReader::BytesView& bytesView)
 {
-    bool judgment = false;
-    judgment = ConstructEventSet(event, eventInfo, bytesView);
-    if (!judgment) {
-        judgment = ConstructEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
-        judgment = InterruptEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
-        judgment = ClockEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
-        judgment = CpuEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
-        judgment = LockEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
-        judgment = BinderEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
-        judgment = StackEventSet(event, eventInfo, bytesView);
-    }
-    if (!judgment) {
+    // If all conditions are false, execute the data in else
+    if (ConstructEventSet(event, eventInfo, bytesView) || InterruptEventSet(event, eventInfo, bytesView) ||
+        ClockEventSet(event, eventInfo, bytesView) || CpuEventSet(event, eventInfo, bytesView) ||
+        LockEventSet(event, eventInfo, bytesView) || BinderEventSet(event, eventInfo, bytesView) ||
+        StackEventSet(event, eventInfo, bytesView)) {
+    } else {
         // Tracking event signal generation and transmission
         if (event.has_signal_generate_format()) {
             bytesView = event.signal_generate_format();
@@ -454,6 +436,7 @@ bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader& even
             return false;
         }
     }
+
     return true;
 }
 bool HtraceEventParser::BinderTractionAllocBufEvent(const EventInfo& event) const
@@ -942,8 +925,8 @@ void HtraceEventParser::FilterAllEvents()
     while (htraceEventList_.size()) {
         int32_t size = std::min(MAX_BUFF_SIZE, htraceEventList_.size());
         auto endOfList = htraceEventList_.begin() + size;
-        for (auto eventItor = htraceEventList_.begin(); eventItor != endOfList; eventItor++) {
-            auto event = eventItor->get();
+        for (auto eventIter = htraceEventList_.begin(); eventIter != endOfList; ++eventIter) {
+            auto event = eventIter->get();
             if (event->tgid_ != INVALID_INT32) {
                 if (!pids_.count(event->tgid_)) {
                     pids_.insert(event->tgid_);
@@ -951,7 +934,7 @@ void HtraceEventParser::FilterAllEvents()
                 streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->tgid_, event->tgid_);
             }
             ProtoReaderDealEvent(event);
-            eventItor->reset();
+            eventIter->reset();
         }
         htraceEventList_.erase(htraceEventList_.begin(), endOfList);
     }

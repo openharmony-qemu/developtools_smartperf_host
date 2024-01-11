@@ -16,14 +16,8 @@
 import { BaseElement } from '../BaseElement';
 import '../icon/LitIcon';
 
-export class LitSelectOption extends BaseElement {
-  static get observedAttributes() {
-    return ['selected', 'disabled', 'check'];
-  }
-
-  initHtml() {
-    return `
-        <style>
+const initHtmlStyle:string = `
+    <style>
         :host{ 
             display: flex;
             padding: 8px 10px;
@@ -70,6 +64,16 @@ export class LitSelectOption extends BaseElement {
             display: none;
         }
         </style>
+    `;
+
+export class LitSelectOption extends BaseElement {
+  static get observedAttributes() {
+    return ['selected', 'disabled', 'check'];
+  }
+
+  initHtml() {
+    return `
+        ${initHtmlStyle}
         <div class="selected-box">
             <lit-icon class="selected" name="check" size="20"></lit-icon>
         </div>

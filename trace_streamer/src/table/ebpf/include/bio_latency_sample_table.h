@@ -32,17 +32,17 @@ private:
     {
         return dataCache_->GetConstBioLatencySampleData().Size();
     }
-    void GetOrbyes(FilterConstraints& argsfc, EstimatedIndexInfo& argsei) override;
-    void FilterByConstraint(FilterConstraints& argsfc,
-                            double& argsfilterCost,
-                            size_t argsrowCount,
-                            uint32_t argscurrenti) override;
+    void GetOrbyes(FilterConstraints& biofc, EstimatedIndexInfo& bioei) override;
+    void FilterByConstraint(FilterConstraints& biofc,
+                            double& biofilterCost,
+                            size_t biorowCount,
+                            uint32_t biocurrenti) override;
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int32_t Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int32_t Filter(const FilterConstraints& fcs, sqlite3_value** argv) override;
         int32_t Column(int32_t column) const override;
 
     private:

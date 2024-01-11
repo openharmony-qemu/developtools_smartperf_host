@@ -73,8 +73,7 @@ HWTEST_F(TableTest, AppnameTableTest, TestSize.Level1)
     DataIndex eventSource = stream_.traceDataCache_->GetDataIndex("eventSource");
     DataIndex appName = stream_.traceDataCache_->GetDataIndex("app1");
     stream_.traceDataCache_->GetHiSysEventSubkeysData()->AppendSysEventSubkey(eventSource, appName);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: ArgsTableTest
@@ -101,18 +100,12 @@ HWTEST_F(TableTest, ArgsTableTest, TestSize.Level1)
     stream_.traceDataCache_->InitDB();
     stream_.traceDataCache_->GetArgSetData()->AppendNewArg(nameId0, dataType0, value0, argSet0);
     stream_.traceDataCache_->GetArgSetData()->AppendNewArg(nameId1, dataType1, value1, argSet1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 2);
 }
 /**
  * @tc.name: CallstackTableTest
@@ -185,18 +178,12 @@ HWTEST_F(TableTest, ClkEventFilterTableTest, TestSize.Level1)
     uint64_t cpu1 = 1;
     stream_.traceDataCache_->GetClkEventFilterData()->AppendNewFilter(id, rate, name, cpu);
     stream_.traceDataCache_->GetClkEventFilterData()->AppendNewFilter(id1, rate1, name1, cpu1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 0);
 }
 /**
  * @tc.name: ClockEventFilterTableTest
@@ -223,18 +210,12 @@ HWTEST_F(TableTest, ClockEventFilterTableTest, TestSize.Level1)
     uint64_t cpu1 = 1;
     stream_.traceDataCache_->GetClockEventFilterData()->AppendNewFilter(id, type, name, cpu);
     stream_.traceDataCache_->GetClockEventFilterData()->AppendNewFilter(id1, type1, name1, cpu1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 2);
 }
 /**
  * @tc.name: CpuMeasureFilterTableTest
@@ -260,18 +241,12 @@ HWTEST_F(TableTest, CpuMeasureFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetCpuMeasuresData()->AppendNewFilter(filterId, name, cpu);
     stream_.traceDataCache_->GetCpuMeasuresData()->AppendNewFilter(filterId1, name1, cpu1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 1);
 }
 /**
  * @tc.name: CpuUsageFilterTableTest
@@ -298,11 +273,10 @@ HWTEST_F(TableTest, CpuUsageFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetCpuUsageInfoData()->AppendNewData(newTimeStamp, dur, totalLoad, userLoad, userLoad,
                                                                   thread);
-    stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
     stream_.traceDataCache_->GetCpuUsageInfoData()->AppendNewData(newTimeStamp1, dur1, totalLoad1, userLoad1, userLoad1,
                                                                   thread1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
 }
 /**
  * @tc.name: DataDictTableTest
@@ -319,18 +293,12 @@ HWTEST_F(TableTest, DataDictTableTest, TestSize.Level1)
     std::string sqlSelect4 = "select * from data_dict where id >= 1";
     std::string sqlSelect5 = "select * from data_dict where data <= 1";
     stream_.traceDataCache_->GetDataFromDict(1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 69);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 67);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 68);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 69);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 67);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 68);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 1);
 }
 /**
  * @tc.name: DataTypeTableTest
@@ -351,20 +319,20 @@ HWTEST_F(TableTest, DataTypeTableTest, TestSize.Level1)
     BaseDataType dataType1 = BASE_DATA_TYPE_STRING;
     DataIndex dataDescIndex1 = stream_.traceDataCache_->GetDataIndex("dataDescIndex1");
 
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 4);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 3);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 2);
     stream_.traceDataCache_->GetDataTypeData()->UpdateNewDataType(dataType, dataDescIndex);
     stream_.traceDataCache_->GetDataTypeData()->UpdateNewDataType(dataType1, dataDescIndex1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 6);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 4);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 4);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 4);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 3);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 2);
 }
 /**
  * @tc.name: DiskIoTableTest
@@ -418,23 +386,16 @@ HWTEST_F(TableTest, EbpfCallstackTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, FPS);
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, FPS1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect6, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect6, false), 2);
 
     stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(CALLCHAIN_ID, depth, ip, symbolId, filePathId, 0);
     stream_.traceDataCache_->GetEbpfCallStack()->AppendNewData(CALLCHAIN_ID1, depth1, ip1, symbolId1, filePathId1, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 2);
 }
 /**
  * @tc.name: FileSystemSampleTableTest
@@ -495,8 +456,7 @@ HWTEST_F(TableTest, HidumpTableTest, TestSize.Level1)
     uint32_t fps = 1;
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, fps);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: HisysEventMeasureTableTest
@@ -517,8 +477,7 @@ HWTEST_F(TableTest, HisysEventMeasureTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetHiSysEventMeasureData()->AppendData(ts, nameId, keyId, type, numericValue, stringValue,
                                                                     serial);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: InstantTableTest
@@ -554,8 +513,7 @@ HWTEST_F(TableTest, InstantTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type1, timestamp1, value1, filterId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 
     stream_.traceDataCache_->GetInstantsData()->AppendInstantEventData(timeStamp, nameIndex, internalTid,
                                                                        wakeupFromInternalPid);
@@ -608,18 +566,15 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timeStamp, fps);
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(
         CALLCHAIN_ID, TYPE, IPID, ITID, startTs, endTs, latencyDur, tier, size, blockNumber, filePathId, durPer4k);
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(callChainId1, type1, ipid1, itid1, startTs1,
                                                                       endTs1, latencyDur1, tier1, size1, blockNumber1,
                                                                       filePathId1, durPer4k1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
 }
 /**
  * @tc.name: IrqTableTest
@@ -653,10 +608,8 @@ HWTEST_F(TableTest, IrqTableTest, TestSize.Level1)
                                                                depth, parentId);
     stream_.traceDataCache_->GetIrqData()->AppendInternalSlice(startT1, durationNs1, internalTid1, cat1, nameIdentify1,
                                                                name1, depth1, parentId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 }
 /**
  * @tc.name: LiveProcessTableTest
@@ -684,8 +637,7 @@ HWTEST_F(TableTest, LiveProcessTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetLiveProcessData()->AppendNewData(newTimeStamp, dur, processID, processName,
                                                                  parentProcessID, uid, userName, cpuUsage, pssInfo,
                                                                  cpuTime, threads, diskWrites, diskReads);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: LogTableTest
@@ -706,8 +658,7 @@ HWTEST_F(TableTest, LogTableTest, TestSize.Level1)
     uint64_t originTs = 1;
 
     stream_.traceDataCache_->GetHilogData()->AppendNewLogInfo(seq, timeStamp, pid, tid, level, tag, context, originTs);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: MeasureTableTest
@@ -731,10 +682,8 @@ HWTEST_F(TableTest, MeasureTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
     stream_.traceDataCache_->GetMeasureData()->AppendMeasureData(type1, timestamp1, value1, filterId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
 }
 /**
  * @tc.name: MeasureFilterTableTest
@@ -746,13 +695,11 @@ HWTEST_F(TableTest, MeasureFilterTableTest, TestSize.Level1)
     TS_LOGI("test31-21");
     std::string sqlSelect = "select * from measure_filter";
     uint64_t filterId = stream_.traceDataCache_->GetDataIndex("filter");
-    ;
     uint32_t nameIndex = stream_.traceDataCache_->GetDataIndex("name");
     uint64_t internalTid = 1;
 
     stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 0);
 }
 /**
  * @tc.name: MetaTableTest
@@ -765,8 +712,7 @@ HWTEST_F(TableTest, MetaTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from meta";
 
     stream_.traceDataCache_->GetMetaData();
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 9);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 9);
 }
 /**
  * @tc.name: NativeHookTableTest
@@ -874,8 +820,7 @@ HWTEST_F(TableTest, NetworkTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetNetworkData()->AppendNewNetData(newTimeStamp, tx, rx, dur, rxSpeed, txSpeed, packetIn,
                                                                 packetInSec, packetOut, packetOutSec, netType);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: PerfCallchainTableTest
@@ -938,12 +883,9 @@ HWTEST_F(TableTest, PerfFilesTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds, serial, symbols, filePath);
     stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds1, serial1, symbols1, filePath1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
 }
 /**
  * @tc.name: PerfReportTableTest
@@ -958,8 +900,7 @@ HWTEST_F(TableTest, PerfReportTableTest, TestSize.Level1)
     DataIndex value = stream_.traceDataCache_->GetDataIndex("value");
 
     stream_.traceDataCache_->GetPerfReportData()->AppendNewPerfReport(type, value);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: PerfSampleTableTest
@@ -1026,14 +967,10 @@ HWTEST_F(TableTest, PerfThreadTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetPerfThreadData()->AppendNewPerfThread(pid, tid, threadName);
     stream_.traceDataCache_->GetPerfThreadData()->AppendNewPerfThread(pid1, tid1, threadName1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 0);
 }
 /**
  * @tc.name: ProcessTableTest
@@ -1046,27 +983,8 @@ HWTEST_F(TableTest, ProcessTableTest, TestSize.Level1)
     std::string sqlSelect = "select * from process";
     std::string sqlSelect1 = "select * from process where id = 1";
 
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 0);
-}
-/**
- * @tc.name: ProcessFilterTableTest
- * @tc.desc: Process filter table test
- * @tc.type: FUNC
- */
-HWTEST_F(TableTest, ProcessFilterTableTest, TestSize.Level1)
-{
-    TS_LOGI("test31-32");
-    std::string sqlSelect = "select * from process_filter";
-    uint64_t id = 1;
-    DataIndex name = stream_.traceDataCache_->GetDataIndex("name");
-    uint32_t internalPid = 1;
-
-    stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(id, name, internalPid);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 0);
 }
 /**
  * @tc.name: ProcessMeasureTableTest
@@ -1075,7 +993,7 @@ HWTEST_F(TableTest, ProcessFilterTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, ProcessMeasureTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-33");
+    TS_LOGI("test31-32");
     std::string sqlSelect = "select * from process_measure";
     uint32_t type = 1;
     uint64_t timeStamp = 1663869124160;
@@ -1083,8 +1001,7 @@ HWTEST_F(TableTest, ProcessMeasureTableTest, TestSize.Level1)
     uint32_t filterId = 1;
 
     stream_.traceDataCache_->GetProcessMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: ProcessMeasureFilterTableTest
@@ -1093,7 +1010,7 @@ HWTEST_F(TableTest, ProcessMeasureTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, ProcessMeasureFilterTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-34");
+    TS_LOGI("test31-33");
     std::string sqlSelect = "select * from process_measure_filter";
     std::string sqlSelect1 = "select * from process_measure_filter where id = 1";
     std::string sqlSelect2 = "select * from process_measure_filter where ipid < 1";
@@ -1108,14 +1025,10 @@ HWTEST_F(TableTest, ProcessMeasureFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(id, name, internalPid);
     stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(id1, name1, internalPid1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 0);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 2);
 }
 /**
  * @tc.name: RawTableTest
@@ -1124,7 +1037,7 @@ HWTEST_F(TableTest, ProcessMeasureFilterTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, RawTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-35");
+    TS_LOGI("test31-34");
     std::string sqlSelect = "select * from raw";
     std::string sqlSelect1 = "select * from raw where id = 1";
     std::string sqlSelect2 = "select * from raw where name = \"sched_waking\"";
@@ -1155,7 +1068,7 @@ HWTEST_F(TableTest, RawTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, SchedSliceTest, TestSize.Level1)
 {
-    TS_LOGI("test31-36");
+    TS_LOGI("test31-35");
     std::string sqlSelect = "select * from sched_slice";
     std::string sqlSelect1 = "select * from sched_slice where id = 1";
     std::string sqlSelect2 = "select * from sched_slice where ts > 1";
@@ -1194,7 +1107,7 @@ HWTEST_F(TableTest, SchedSliceTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, SmapsTest, TestSize.Level1)
 {
-    TS_LOGI("test31-37");
+    TS_LOGI("test31-36");
     std::string sqlSelect = "select * from smaps";
     uint64_t timeStamp = 1663869124160;
     std::string startAddr = "startAddr";
@@ -1219,8 +1132,7 @@ HWTEST_F(TableTest, SmapsTest, TestSize.Level1)
     stream_.traceDataCache_->GetSmapsData()->AppendNewData(
         timeStamp, IPID, startAddr, endAddr, dirty, swapper, rss, pss, size, reside, protectionId, pathId, sharedClean,
         sharedDirty, privateClean, privateDirty, swap, swapPss, type);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: StatTableTest
@@ -1229,11 +1141,10 @@ HWTEST_F(TableTest, SmapsTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-38");
+    TS_LOGI("test31-37");
     std::string sqlSelect = "select * from stat";
     stream_.traceDataCache_->GetStatAndInfo();
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 455);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 455);
 }
 /**
  * @tc.name: SymbolsTableTest
@@ -1242,7 +1153,7 @@ HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, SymbolsTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-39");
+    TS_LOGI("test31-38");
     std::string sqlSelect = "select * from symbols";
     std::string sqlSelect1 = "select * from symbols where id = 1";
     std::string sqlSelect2 = "select * from symbols where id < 1";
@@ -1254,12 +1165,9 @@ HWTEST_F(TableTest, SymbolsTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(addr, name);
     stream_.traceDataCache_->GetSymbolsData()->UpdateSymbol(addr1, name1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
 }
 /**
  * @tc.name: SyscallTableTest
@@ -1268,7 +1176,7 @@ HWTEST_F(TableTest, SymbolsTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, SyscallTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-40");
+    TS_LOGI("test31-39");
     std::string sqlSelect = "select * from syscall";
     int64_t sysCallNum = 1;
     DataIndex type = stream_.traceDataCache_->GetDataIndex("type");
@@ -1277,8 +1185,7 @@ HWTEST_F(TableTest, SyscallTableTest, TestSize.Level1)
     int64_t ret = 1;
 
     stream_.traceDataCache_->GetSysCallData()->AppendSysCallData(sysCallNum, type, ipid, timeStamp, ret);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: SysEventFilterTableTest
@@ -1287,7 +1194,7 @@ HWTEST_F(TableTest, SyscallTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, SysEventFilterTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-41");
+    TS_LOGI("test31-40");
     std::string sqlSelect = "select * from sys_event_filter";
     std::string sqlSelect1 = "select * from sys_event_filter where id = 1";
     std::string sqlSelect2 = "select * from sys_event_filter where id > 1";
@@ -1304,18 +1211,12 @@ HWTEST_F(TableTest, SysEventFilterTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetSysMeasureFilterData()->AppendNewFilter(filterId, type, nameId);
     stream_.traceDataCache_->GetSysMeasureFilterData()->AppendNewFilter(filterId1, type1, nameId1);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect1, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect2, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect3, false);
-    EXPECT_EQ(row, 1);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect4, false);
-    EXPECT_EQ(row, 2);
-    row = stream_.traceDataCache_->SearchDatabase(sqlSelect5, false);
-    EXPECT_EQ(row, 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect5, false), 2);
 }
 /**
  * @tc.name: SysMemMeasureTableTest
@@ -1324,7 +1225,7 @@ HWTEST_F(TableTest, SysEventFilterTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, SysMemMeasureTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-42");
+    TS_LOGI("test31-41");
     std::string sqlSelect = "select * from sys_mem_measure";
     uint32_t type = 1;
     uint64_t timeStamp = 1663869124160;
@@ -1332,8 +1233,7 @@ HWTEST_F(TableTest, SysMemMeasureTableTest, TestSize.Level1)
     uint32_t filterId = stream_.traceDataCache_->GetDataIndex("filter");
 
     stream_.traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(type, timeStamp, value, filterId);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: ThreadTableTest
@@ -1342,28 +1242,10 @@ HWTEST_F(TableTest, SysMemMeasureTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, ThreadTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-43");
+    TS_LOGI("test31-42");
     std::string sqlSelect = "select * from thread";
 
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
-}
-/**
- * @tc.name: ThreadFilterTableTest
- * @tc.desc: ThreadFilter table test
- * @tc.type: FUNC
- */
-HWTEST_F(TableTest, ThreadFilterTableTest, TestSize.Level1)
-{
-    TS_LOGI("test31-44");
-    std::string sqlSelect = "select * from thread_filter";
-    uint64_t filterId = stream_.traceDataCache_->GetDataIndex("ilter");
-    uint32_t nameIndex = stream_.traceDataCache_->GetDataIndex("name");
-    uint64_t internalTid = 1;
-
-    stream_.traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(filterId, nameIndex, internalTid);
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 /**
  * @tc.name: ThreadStateTableTest
@@ -1372,7 +1254,7 @@ HWTEST_F(TableTest, ThreadFilterTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, ThreadStateTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-45");
+    TS_LOGI("test31-43");
     std::string sqlSelect = "select * from thread_state";
     std::string sqlSelect1 = "select * from thread_state where id = 1";
     std::string sqlSelect2 = "select * from thread_state where tid > 1";
@@ -1413,12 +1295,11 @@ HWTEST_F(TableTest, ThreadStateTableTest, TestSize.Level1)
  */
 HWTEST_F(TableTest, TraceRangeTableTest, TestSize.Level1)
 {
-    TS_LOGI("test31-46");
+    TS_LOGI("test31-44");
     std::string sqlSelect = "select * from trace_range";
 
     stream_.traceDataCache_->UpdateTraceRange();
-    auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect, false);
-    EXPECT_EQ(row, 1);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

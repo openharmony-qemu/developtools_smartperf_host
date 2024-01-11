@@ -21,8 +21,8 @@ enum class Index : int32_t {
     ID = 0,
     CALLCHAIN_ID,
     TYPE,
-    IPID,
-    ITID,
+    IPIDS,
+    ITIDS,
     START_TS,
     END_TS,
     LATENCY_DUR,
@@ -98,7 +98,7 @@ int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto&  bioLateSamTabCs = fc.GetConstraints();
+    auto& bioLateSamTabCs = fc.GetConstraints();
     for (size_t i = 0; i < bioLateSamTabCs.size(); i++) {
         const auto& c = bioLateSamTabCs[i];
         switch (static_cast<Index>(c.col)) {
@@ -137,10 +137,10 @@ int32_t BioLatencySampleTable::Cursor::Column(int32_t column) const
         case Index::TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Types()[CurrentRow()]));
             break;
-        case Index::IPID:
+        case Index::IPIDS:
             SetTypeColumnInt64(bioLatencySampleObj_.Ipids()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::ITID:
+        case Index::ITIDS:
             SetTypeColumnInt64(bioLatencySampleObj_.Itids()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::START_TS:

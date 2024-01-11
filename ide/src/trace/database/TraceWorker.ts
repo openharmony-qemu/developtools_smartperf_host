@@ -369,7 +369,7 @@ self.onmessage = async (e: MessageEvent) => {
     }
     let wrSize = 0;
     let r2 = -1;
-    let rowTraceStr = Array.from(new Uint32Array(e.data.buffer.slice(0, 4)));
+    let rowTraceStr = Array.from(new Uint16Array(e.data.buffer.slice(0, 2)));
     if (rowTraceStr[0] === 57161) {
       let commonDataOffsetList: Array<{
         startOffset: number;

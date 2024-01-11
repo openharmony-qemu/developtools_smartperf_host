@@ -15,48 +15,8 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-@element('lit-switch')
-export default class LitSwitch extends BaseElement {
-  private switch: HTMLInputElement | null | undefined;
-  private isfocus: boolean | undefined;
-
-  static get observedAttributes() {
-    return ['disabled', 'checked'];
-  }
-
-  get disabled():boolean {
-    return this.getAttribute('disabled') !== null;
-  }
-
-  get checked() {
-    return this.getAttribute('checked') !== null;
-  }
-
-  set checked(value) {
-    if (value === null || value === false) {
-      this.removeAttribute('checked');
-    } else {
-      this.setAttribute('checked', '');
-    }
-  }
-
-  set disabled(value:boolean) {
-    if (value === null || value === false) {
-      this.removeAttribute('disabled');
-    } else {
-      this.setAttribute('disabled', '');
-    }
-  }
-
-  get name() {
-    return this.getAttribute('name');
-  }
-
-  initElements(): void {}
-
-  initHtml(): string {
-    return `
-        <style>
+const initHtmlStyle:string = `
+    <style>
         :host{ 
             display:inline-block; 
             -webkit-tap-highlight-color: transparent;
@@ -122,6 +82,50 @@ export default class LitSwitch extends BaseElement {
             cursor: not-allowed; 
         }
         </style>
+    `;
+
+@element('lit-switch')
+export default class LitSwitch extends BaseElement {
+  private switch: HTMLInputElement | null | undefined;
+  private isfocus: boolean | undefined;
+
+  static get observedAttributes() {
+    return ['disabled', 'checked'];
+  }
+
+  get disabled():boolean {
+    return this.getAttribute('disabled') !== null;
+  }
+
+  get checked() {
+    return this.getAttribute('checked') !== null;
+  }
+
+  set checked(value) {
+    if (value === null || value === false) {
+      this.removeAttribute('checked');
+    } else {
+      this.setAttribute('checked', '');
+    }
+  }
+
+  set disabled(value:boolean) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', '');
+    }
+  }
+
+  get name() {
+    return this.getAttribute('name');
+  }
+
+  initElements(): void {}
+
+  initHtml(): string {
+    return `
+        ${initHtmlStyle}
         <input type="checkbox" id="switch"><label id="name" for="switch"></label>
         `;
   }

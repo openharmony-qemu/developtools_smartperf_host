@@ -15,6 +15,82 @@
 
 import { BaseElement, element } from '../BaseElement';
 
+const initHtmlStyle = `
+    <style>
+        :host{
+            display:flex;
+            opacity: 0.86;
+            font-family: Helvetica;
+            font-size: 14px;
+            text-align: left;
+            line-height: 16px;
+            font-weight: 400;
+        }
+        #checkbox{
+            position:absolute;
+            clip:rect(0,0,0,0);
+        }
+
+        label{
+            box-sizing:border-box;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            gap: 12px;
+        }
+        .chekebox{
+            position:relative;
+            display:flex;
+            justify-content: center;
+            align-items: center;
+            width: 16px;
+            height:16px;
+            border: 1px solid var(--dark-color1,#4D4D4D);
+            border-radius: 20%;
+        }
+        .chekebox::before{
+            position:absolute;
+            content:'';
+            width:74%;
+            height:0.15em;
+            background:#3391FF;
+            transform:scale(0);
+            border-radius: 0.15em;
+        }
+        .chekebox{
+            background:var(--dark-background,#FFFFFF);
+        }
+        .chekebox::after{
+            content:'';
+            position:absolute;
+            width:100%;
+            height:100%;
+            border-radius:50%;
+            background:#FFFFFF;
+            opacity:0.2;
+            transform:scale(0);
+            z-index:-1;
+        }
+        #checkbox:checked:not(:indeterminate)+label .chekebox .icon{
+            transform: scale(1.5);
+        }
+        #checkbox:checked+label .chekebox,#checkbox:indeterminate+label .chekebox{
+            border-color:#3391FF;
+        }
+        #checkbox:indeterminate+label .chekebox::before{
+            transform:scale(1);
+        }
+        .icon{
+            width: 100%;
+            height: 94%;
+            transform: scale(0);
+        }
+        :host([disabled]){
+          pointer-events: none;
+        }
+        </style>
+    `;
+
 @element('lit-check-box')
 export class LitCheckBox extends BaseElement {
   private checkbox: HTMLInputElement | undefined;
@@ -69,7 +145,7 @@ export class LitCheckBox extends BaseElement {
 
   initHtml(): string {
     return `
-        ${this.initHtmlStyle()}
+        ${initHtmlStyle}
         <input type="checkbox" id="checkbox">
         <label for="checkbox">
           <span class="chekebox">
@@ -79,84 +155,6 @@ export class LitCheckBox extends BaseElement {
           <slot id="slot"></slot>
        </label>
         `;
-  }
-
-  private initHtmlStyle(): string {
-    return `
-    <style>
-        :host{ 
-            display:flex;
-            opacity: 0.86;
-            font-family: Helvetica;
-            font-size: 14px;
-            text-align: left;
-            line-height: 16px;
-            font-weight: 400;
-        }
-        #checkbox{
-            position:absolute;
-            clip:rect(0,0,0,0);
-        }
-
-        label{
-            box-sizing:border-box;
-            cursor:pointer;
-            display:flex;
-            align-items:center;
-            gap: 12px;
-        }
-        .chekebox{
-            position:relative;
-            display:flex;
-            justify-content: center;
-            align-items: center;
-            width: 16px;
-            height:16px;
-            border: 1px solid var(--dark-color1,#4D4D4D);
-            border-radius: 20%;
-        }
-        .chekebox::before{
-            position:absolute;
-            content:'';
-            width:74%;
-            height:0.15em;
-            background:#3391FF;
-            transform:scale(0);
-            border-radius: 0.15em;
-        }
-        .chekebox{ 
-            background:var(--dark-background,#FFFFFF);
-        }
-        .chekebox::after{
-            content:'';
-            position:absolute;
-            width:100%;
-            height:100%;
-            border-radius:50%;
-            background:#FFFFFF;
-            opacity:0.2;
-            transform:scale(0);
-            z-index:-1;
-        }
-        #checkbox:checked:not(:indeterminate)+label .chekebox .icon{
-            transform: scale(1.5);
-        }
-        #checkbox:checked+label .chekebox,#checkbox:indeterminate+label .chekebox{
-            border-color:#3391FF;
-        }
-        #checkbox:indeterminate+label .chekebox::before{
-            transform:scale(1);
-        }
-        .icon{
-            width: 100%;
-            height: 94%;
-            transform: scale(0);
-        }
-        :host([disabled]){
-          pointer-events: none;
-        }
-        </style>
-    `
   }
 
   initElements(): void {

@@ -118,13 +118,13 @@ int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
         indexMap_->Merge(indexMapBack);
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto ThreadStateOrderbys = fc.GetOrderBys();
+    for (auto i = ThreadStateOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(ThreadStateOrderbys[i].iColumn)) {
             case Index::ID:
             case Index::TS:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(ThreadStateOrderbys[i].desc);
                 break;
             default:
                 break;

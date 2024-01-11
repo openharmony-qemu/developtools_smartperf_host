@@ -15,15 +15,9 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-@element('lit-drawer')
-export class LitDrawer extends BaseElement {
-  static get observedAttributes() {
-    return ['title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
-  }
-
-  initHtml(): string {
-    return `
-        <style>
+const initHtmlStyle = (contentPadding:string, contentWidth:string) => {
+  return `
+  <style>
         :host{
             display: flex;
             position: absolute;
@@ -63,7 +57,7 @@ export class LitDrawer extends BaseElement {
             color: var(--dark-color1,#262626);
          }
          slot{
-            padding: ${this.contentPadding};
+            padding: ${contentPadding};
             display: block;
          }
          :host([visible]) .bg{
@@ -81,7 +75,7 @@ export class LitDrawer extends BaseElement {
          */
          :host(:not([placement])) .drawer,
          :host([placement='right']) .drawer{
-            width: ${this.contentWidth};
+            width: ${contentWidth};
             box-sizing: border-box;
             position: absolute;
             display: flex;
@@ -113,7 +107,7 @@ export class LitDrawer extends BaseElement {
             左边
          */
          :host([placement='left']) .drawer{
-            width: ${this.contentWidth};
+            width: ${contentWidth};
             box-sizing: border-box;
             position: absolute;
             display: flex;
@@ -215,6 +209,18 @@ export class LitDrawer extends BaseElement {
             display: none;
          }
         </style>
+  `;
+}
+
+@element('lit-drawer')
+export class LitDrawer extends BaseElement {
+  static get observedAttributes() {
+    return ['title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
+  }
+
+  initHtml(): string {
+    return `
+        ${initHtmlStyle(this.contentPadding,this.contentWidth)}
         <div class="bg"></div>
         <div class="drawer">
             <div class="title">

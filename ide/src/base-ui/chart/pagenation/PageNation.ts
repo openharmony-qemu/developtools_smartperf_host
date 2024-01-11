@@ -336,26 +336,7 @@ export class PageNation {
           innerText: number;
         };
       }) => {
-        if (event.target.name === 'first') {
-          if (this.pageInfo.current === 1) return;
-          this.pageInfo.current = 1;
-          this.bindPageHtml();
-        }
-        if (event.target.name === 'prev') {
-          if (this.pageInfo.current === 1) return;
-          this.pageInfo.current--;
-          this.bindPageHtml();
-        }
-        if (event.target.name === 'next') {
-          if (this.pageInfo.current === this.pageInfo.totalpage) return;
-          this.pageInfo.current++;
-          this.bindPageHtml();
-        }
-        if (event.target.name === 'last') {
-          if (this.pageInfo.current === this.pageInfo.totalpage) return;
-          this.pageInfo.current = this.pageInfo.totalpage;
-          this.bindPageHtml();
-        }
+        this.targetName(event);
         if (event.target.name === 'goto') {
           // 拿到你文本的内容
           let page = this.inputBox.value - 0;
@@ -377,5 +358,34 @@ export class PageNation {
         }
       }
     );
+  }
+
+  targetName(event:{
+    target: {
+      name: string;
+      dataset: { name: string };
+      innerText: number;
+    };
+  }):void{
+    if (event.target.name === 'first') {
+      if (this.pageInfo.current === 1) return;
+      this.pageInfo.current = 1;
+      this.bindPageHtml();
+    }
+    if (event.target.name === 'prev') {
+      if (this.pageInfo.current === 1) return;
+      this.pageInfo.current--;
+      this.bindPageHtml();
+    }
+    if (event.target.name === 'next') {
+      if (this.pageInfo.current === this.pageInfo.totalpage) return;
+      this.pageInfo.current++;
+      this.bindPageHtml();
+    }
+    if (event.target.name === 'last') {
+      if (this.pageInfo.current === this.pageInfo.totalpage) return;
+      this.pageInfo.current = this.pageInfo.totalpage;
+      this.bindPageHtml();
+    }
   }
 }

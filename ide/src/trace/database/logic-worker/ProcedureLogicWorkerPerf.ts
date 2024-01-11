@@ -432,7 +432,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.addOtherCallchainsData(perfSample, perfCallChains);
         let topIndex = isTopDown ? 0 : perfCallChains.length - 1;
         if (perfCallChains.length > 0) {
-          const symbolName = this.dataCache.dataDict.get(perfCallChains[topIndex].name) || '';
+          let symbolName = this.dataCache.dataDict.get(perfCallChains[topIndex].name) || '';
+          if (typeof perfCallChains[topIndex].name === 'number') {
+            symbolName = this.dataCache.dataDict.get(perfCallChains[topIndex].name) || '';
+          } else {
+            symbolName = perfCallChains[topIndex].name;
+          }
           let perfRootNode = this.currentTreeMapData[symbolName + perfSample.pid];
           if (perfRootNode === undefined) {
             perfRootNode = new PerfCallChainMerageData();

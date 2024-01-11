@@ -20,40 +20,39 @@ namespace TraceStreamer {
 enum class Index : int32_t {
     ID = 0,
     TS,
-    DUR,
-    CALL_ID,
+    DURS,
+    CALL_IDS,
     CAT,
     NAME,
     DEPTH,
     COOKIE_ID,
     PARENT_ID,
     ARGSET,
-    CHAIN_ID,
-    SPAN_ID,
-    PARENT_SPAN_ID,
+    CHAIN_IDS,
+    SPAN_IDS,
+    PARENT_SPAN_IDS,
     FLAG,
     ARGS
 };
 IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cat", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cookie", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("chainId", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("spanId", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("flag", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("args", "TEXT"));
-    tablePriKey_.push_back("callid");
-    tablePriKey_.push_back("ts");
-    tablePriKey_.push_back("depth");
+    tableColumn_.emplace_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("callid", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("cat", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("depth", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("cookie", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("spanId", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("flag", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("args", "TEXT"));
+    tablePriKey_.emplace_back("callid");
+    tablePriKey_.emplace_back("ts");
+    tablePriKey_.emplace_back("depth");
 }
 
 IrqTable::~IrqTable() {}
@@ -140,10 +139,10 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
         case Index::TS:
             SetTypeColumnInt64(slicesObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::DUR:
+        case Index::DURS:
             SetTypeColumnInt64(slicesObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::CALL_ID:
+        case Index::CALL_IDS:
             SetTypeColumnInt64(slicesObj_.CallIds()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CAT: {
@@ -177,13 +176,13 @@ void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
         case Index::ARGSET:
             SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
-        case Index::CHAIN_ID:
+        case Index::CHAIN_IDS:
             sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
-        case Index::SPAN_ID:
+        case Index::SPAN_IDS:
             sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
-        case Index::PARENT_SPAN_ID:
+        case Index::PARENT_SPAN_IDS:
             sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         case Index::FLAG:

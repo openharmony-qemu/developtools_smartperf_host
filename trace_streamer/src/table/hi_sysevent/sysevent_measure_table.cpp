@@ -46,9 +46,9 @@ SysEventMeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase*
 
 SysEventMeasureTable::Cursor::~Cursor() {}
 
-int32_t SysEventMeasureTable::Cursor::Column(int32_t column) const
+int32_t SysEventMeasureTable::Cursor::Column(int32_t sysEntMeasureCol) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(sysEntMeasureCol)) {
         case Index::ID:
             sqlite3_result_int64(context_, dataCache_->GetConstHiSyseventMeasureData().IdsData()[CurrentRow()]);
             break;
@@ -76,7 +76,7 @@ int32_t SysEventMeasureTable::Cursor::Column(int32_t column) const
                                 STR_DEFAULT_LEN, nullptr);
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered sysEntMeasureCol : %d", sysEntMeasureCol);
             break;
     }
     return SQLITE_OK;

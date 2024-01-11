@@ -15,65 +15,9 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-@element('lit-popover')
-export class LitPopover extends BaseElement {
-  static get observedAttributes() {
-    return ['title', 'trigger', 'width', 'placement', 'visible'];
-  }
-
-  get visible() {
-    return this.getAttribute('visible') || 'false';
-  }
-
-  set visible(value) {
-    if (value) {
-      this.setAttribute('visible', 'true');
-    } else {
-      this.setAttribute('visible', 'false');
-    }
-  }
-
-  set placement(value) {
-    this.setAttribute('placement', value || 'bottomLeft');
-  }
-
-  get placement() {
-    return this.getAttribute('placement');
-  }
-
-  get trigger() {
-    return this.getAttribute('trigger') || 'hover';
-  }
-
-  set trigger(value) {
-    this.setAttribute('trigger', value);
-  }
-
-  get title() {
-    return this.getAttribute('title');
-  }
-
-  set title(value: any) {
-    this.setAttribute('title', value);
-  }
-
-  get width() {
-    return this.getAttribute('width') || 'max-content';
-  }
-
-  set width(value) {
-    this.setAttribute('width', value);
-  }
-
-  get haveRadio() {
-    return this.getAttribute('haveRadio');
-  }
-
-  initElements(): void {}
-
-  initHtml() {
-    return `
-        <style>
+const initHtmlStyle = (width: string) => {
+  return `
+    <style>
         :host{ 
             outline: none;
             display:inline-block;
@@ -99,7 +43,7 @@ export class LitPopover extends BaseElement {
         }
         /*通用*/
         .popover{
-            width: ${this.width};
+            width: ${width};
             min-width: 160px;
             display: flex;
             flex-direction: column;
@@ -417,6 +361,68 @@ export class LitPopover extends BaseElement {
             display: none;
         }
         </style>
+    `;
+};
+
+@element('lit-popover')
+export class LitPopover extends BaseElement {
+  static get observedAttributes() {
+    return ['title', 'trigger', 'width', 'placement', 'visible'];
+  }
+
+  get visible() {
+    return this.getAttribute('visible') || 'false';
+  }
+
+  set visible(value) {
+    if (value) {
+      this.setAttribute('visible', 'true');
+    } else {
+      this.setAttribute('visible', 'false');
+    }
+  }
+
+  set placement(value) {
+    this.setAttribute('placement', value || 'bottomLeft');
+  }
+
+  get placement() {
+    return this.getAttribute('placement');
+  }
+
+  get trigger() {
+    return this.getAttribute('trigger') || 'hover';
+  }
+
+  set trigger(value) {
+    this.setAttribute('trigger', value);
+  }
+
+  get title() {
+    return this.getAttribute('title');
+  }
+
+  set title(value: any) {
+    this.setAttribute('title', value);
+  }
+
+  get width() {
+    return this.getAttribute('width') || 'max-content';
+  }
+
+  set width(value) {
+    this.setAttribute('width', value);
+  }
+
+  get haveRadio() {
+    return this.getAttribute('haveRadio');
+  }
+
+  initElements(): void {}
+
+  initHtml() {
+    return `
+        ${initHtmlStyle(this.width)}
         <input class="trigger-click" type="checkbox">
         <div class="popover" title="">
             <div class="title">${this.title}</div>

@@ -292,17 +292,7 @@ std::vector<std::string> TraceDataDB::SearchData()
         }
         values.clear();
         std::string option = "";
-        size_t pos = std::string::npos;
-        if ((pos = line.find(" ")) != std::string::npos) {
-            option = line.substr(0, pos);
-            auto left = line.substr(pos + 1);
-            while ((pos = left.find(",")) != std::string::npos) {
-                values.push_back(left.substr(0, pos + 1));
-                left = left.substr(pos + 1);
-            }
-            values.push_back(left);
-        }
-        printf("option:%s\n", option.c_str());
+        ParseCommandLine(option, line, values);
         if (!line.compare("-q") || !line.compare("-quit")) {
             break;
         } else if (!line.compare("-e")) {
@@ -332,14 +322,31 @@ std::vector<std::string> TraceDataDB::SearchData()
             }
             continue;
         }
-
-        using namespace std::chrono;
-        const auto start = steady_clock::now();
-        int32_t rowCount = SearchDatabase(line, printResult);
-        std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
-        printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
+        PrintSearchResult(line, printResult);
     }
     return values;
+}
+void TraceDataDB::ParseCommandLine(std::string& option, std::string line, std::vector<std::string>& values)
+{
+    size_t pos = std::string::npos;
+    if ((pos = line.find(" ")) != std::string::npos) {
+        option = line.substr(0, pos);
+        auto left = line.substr(pos + 1);
+        while ((pos = left.find(",")) != std::string::npos) {
+            values.push_back(left.substr(0, pos + 1));
+            left = left.substr(pos + 1);
+        }
+        values.push_back(left);
+    }
+    printf("option:%s\n", option.c_str());
+}
+void TraceDataDB::PrintSearchResult(std::string line, bool printResult)
+{
+    using namespace std::chrono;
+    const auto start = steady_clock::now();
+    int32_t rowCount = SearchDatabase(line, printResult);
+    std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
+    printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
 }
 int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
 {
@@ -521,13 +528,13 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     sqlite3_stmt* stmt = nullptr;
     std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
-    stmtLocal.reset(stmt);
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
         return -1;
     }
-    char* res = reinterpret_cast<char*>(out);
+    stmtLocal.reset(stmt);
     std::string snprintfInfo("ok");
+    char* res = reinterpret_cast<char*>(out);
     int32_t retSnprintf = snprintf_s(res, outLen, snprintfInfo.size(), snprintfInfo.data());
     if (retSnprintf < 0) {
         return -1;
@@ -537,8 +544,17 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     if (colCount == 0) {
         return pos;
     }
-    snprintfInfo = "{\"columns\":[";
-    retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), "%s", snprintfInfo.c_str());
+    auto returnvalue = HandleColumnNames(stmt, res, outLen, pos, colCount);
+    if (returnvalue == -1) {
+        return -1;
+    }
+    pos = returnvalue;
+    return HandleRowData(stmt, res, outLen, pos, colCount);
+}
+int32_t TraceDataDB::HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount)
+{
+    std::string snprintfInfo = "{\"columns\":[";
+    int32_t retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), "%s", snprintfInfo.c_str());
     if (retSnprintf < 0) {
         return -1;
     }
@@ -551,13 +567,19 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
         }
         pos += retSnprintf;
     }
-    pos--; // rmove the last ','
+    pos--; // Remove the last ','
     snprintfInfo = "],\"values\":[";
     retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), snprintfInfo.data());
     if (retSnprintf < 0) {
         return -1;
     }
     pos += retSnprintf;
+    return pos;
+}
+int32_t TraceDataDB::HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount)
+{
+    std::string snprintfInfo;
+    int32_t retSnprintf;
     bool hasRow = false;
     std::string row;
     row.reserve(DEFAULT_LEN_ROW_STRING);

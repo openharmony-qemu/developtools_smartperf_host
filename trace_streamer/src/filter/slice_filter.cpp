@@ -371,6 +371,16 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
     auto lastRow = stack[stackIdx].index;
     auto slices = traceDataCache_->GetInternalSlicesData();
     slices->SetDuration(lastRow, timeStamp);
+
+    HandleAsyncEventAndOther(args, slices, lastRow, stackInfo);
+    if (stackIdx == stack.size() - 1) {
+        stack.pop_back();
+    }
+    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
+    return lastRow;
+}
+void SliceFilter::HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo)
+{
     auto argSize = sliceRowToArgsSetId_.count(lastRow);
     size_t argSetId = 0;
     if (args.valuesMap_.size()) {
@@ -395,11 +405,6 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
             streamFilters_->argsFilter_->AppendArgs(args, argSetId);
         }
     }
-    if (stackIdx == stack.size() - 1) {
-        stack.pop_back();
-    }
-    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
-    return lastRow;
 }
 size_t SliceFilter::EndBinder(uint64_t timeStamp, uint32_t pid, DataIndex category, DataIndex name, ArgsSet args)
 {

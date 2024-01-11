@@ -100,7 +100,7 @@ std::string FfrtConverter::MakeBeginFakeLog(const std::string& mark,
                                             const std::string& threadName,
                                             const int prio)
 {
-    auto timestamp = ExtractTimeStr(mark);
+    auto beginTimeStamp = ExtractTimeStr(mark);
     auto cpuId = ExtractCpuId(mark);
     std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     auto taskId = GetTaskId(pid, gid);
@@ -108,8 +108,8 @@ std::string FfrtConverter::MakeBeginFakeLog(const std::string& mark,
         result.get(), MAX_LEN,
         "\n  %s-%d    (%7d) [%s] ....   %s: sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=S ==> "
         "next_comm=%s next_pid=%s next_prio=%d\n",
-        threadName.c_str(), tid, pid, cpuId.c_str(), timestamp.c_str(), threadName.c_str(), tid, prio, label.c_str(),
-        taskId.c_str(), prio);
+        threadName.c_str(), tid, pid, cpuId.c_str(), beginTimeStamp.c_str(), threadName.c_str(), tid, prio,
+        label.c_str(), taskId.c_str(), prio);
     return mark + result.get();
 }
 
@@ -121,7 +121,7 @@ std::string FfrtConverter::MakeEndFakeLog(const std::string& mark,
                                           const std::string& threadName,
                                           const int prio)
 {
-    auto timestamp = ExtractTimeStr(mark);
+    auto endTimeStamp = ExtractTimeStr(mark);
     auto cpuId = ExtractCpuId(mark);
     std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
     auto taskId = GetTaskId(pid, gid);
@@ -129,13 +129,13 @@ std::string FfrtConverter::MakeEndFakeLog(const std::string& mark,
         result.get(), MAX_LEN,
         "  %s-%s    (%7d) [%s] ....   %s: sched_switch: prev_comm=%s prev_pid=%s prev_prio=%d prev_state=S ==> "
         "next_comm=%s next_pid=%s next_prio=%d\n",
-        label.c_str(), taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), label.c_str(), taskId.c_str(), prio,
+        label.c_str(), taskId.c_str(), pid, cpuId.c_str(), endTimeStamp.c_str(), label.c_str(), taskId.c_str(), prio,
         threadName.c_str(), tid, prio);
     std::string fakeLog = result.get();
     memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
     if (mark.find("|B|") != std::string::npos || mark.find("|H:B ") != std::string::npos) {
         (void)sprintf_s(result.get(), MAX_LEN, "  %s-%s    (%7d) [%s] ....   %s: %sE|%d\n", label.c_str(),
-                        taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(), pid);
+                        taskId.c_str(), pid, cpuId.c_str(), endTimeStamp.c_str(), tracingMarkerKey_.c_str(), pid);
         fakeLog = result.get() + fakeLog;
     }
     return fakeLog;

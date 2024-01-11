@@ -54,7 +54,7 @@ export class TabPaneHisysEvents extends BaseElement {
   private eventTableTitle: HTMLLabelElement | undefined | null;
   tableTitleTimeHandle: (() => void) | undefined;
   private currentDetailList: Array<{ key: string; value: string }> = [];
-  private realTime: number = 0;
+  private realTime: number = -1;
   private baseTime: string = '';
 
   set data(systemEventParam: SelectionParam) {
@@ -69,17 +69,17 @@ export class TabPaneHisysEvents extends BaseElement {
       this.detailsTbl!.recycleDataSource = [];
     }
     this.initTabSheetEl();
-    queryHiSysEventTabData(systemEventParam.leftNs, systemEventParam.rightNs).then((res) => {
-      this.currentSelection = systemEventParam;
-      systemEventParam.sysAllEventsData = res;
-      this.hiSysEventTable!.recycleDataSource = res;
-      this.hisysEventSource = res;
-      this.updateData();
-    });
     queryRealTime().then((result) => {
       if (result && result.length > 0) {
         this.realTime = Math.floor(result[0].ts / millisecond);
       }
+      queryHiSysEventTabData(systemEventParam.leftNs, systemEventParam.rightNs).then((res) => {
+        this.currentSelection = systemEventParam;
+        systemEventParam.sysAllEventsData = res;
+        this.hiSysEventTable!.recycleDataSource = res;
+        this.hisysEventSource = res;
+        this.updateData();
+      });
     });
   }
 
@@ -151,7 +151,7 @@ export class TabPaneHisysEvents extends BaseElement {
     this.detailsTbl!.addEventListener('row-hover', (e) => {
       // @ts-ignore
       let data = e.detail.data;
-      if (data && data.key) {
+      if (data && data.key && this.realTime >= 0) {
         if (data.key.endsWith('_TIME') || data.key.endsWith('_LATENCY')) {
           this.drawFlag(data.value, '#999999');
           return;
@@ -404,6 +404,9 @@ export class TabPaneHisysEvents extends BaseElement {
         if (key.endsWith('_TIME')) {
           if (!isNaN(Number(value))) {
             contentValue = ((Number(value) - this.realTime) * millisecond).toString();
+            if (this.realTime < 0) {
+              contentValue = value;
+            }
             if (isFirstTime) {
               this.baseTime = contentValue;
               isFirstTime = false;
