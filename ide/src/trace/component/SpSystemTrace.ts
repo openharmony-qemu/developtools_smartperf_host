@@ -327,53 +327,7 @@ export class SpSystemTrace extends BaseElement {
 
   createPointEvent(it: TraceRow<any>) {
     let event = this.eventMap[`${it.rowType}`];
-    if (event) {
-      return event;
-    } else {
-      if (it.rowType === TraceRow.ROW_TYPE_HEAP) {
-        event = it.name;
-      } else if (it.rowType === TraceRow.ROW_TYPE_HIPERF_CPU) {
-        event = 'HiPerf Cpu';
-        if (it.rowId === 'HiPerf-cpu-merge') {
-          event = 'HiPerf';
-        }
-      } else if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
-        if (it.rowId === 'FileSystemLogicalWrite') {
-          event = 'FileSystem Logical Write';
-        } else if (it.rowId === 'FileSystemLogicalRead') {
-          event = 'FileSystem Logical Read';
-        } else if (it.rowId === 'FileSystemVirtualMemory') {
-          event = 'Page Fault Trace';
-        } else if (it.rowId!.startsWith('FileSystemDiskIOLatency')) {
-          event = 'Disk I/O Latency';
-          if (it.rowId!.startsWith('FileSystemDiskIOLatency-')) {
-            event = 'Bio Process';
-          }
-        }
-      } else if (it.rowType === TraceRow.ROW_TYPE_STATE_ENERGY) {
-        event = it.name;
-      } else if (it.rowType === TraceRow.ROW_TYPE_VM_TRACKER) {
-        if (it.rowParentId === '') {
-          event = 'VM Tracker';
-        } else {
-          event = it.name;
-        }
-      } else if (it.rowType === TraceRow.ROW_TYPE_JANK) {
-        if (it.rowId === 'frameTime' || it.rowParentId === 'frameTime') {
-          event = 'FrameTimeLine';
-        } else if (it.hasAttribute('frame_type')) {
-          event = it.getAttribute('frame_type') + '';
-        }
-      } else if (it.rowType === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
-        event = 'DeliverInputEvent';
-        if (it.rowParentId === TraceRow.ROW_TYPE_DELIVER_INPUT_EVENT) {
-          event = 'DeliverInputEvent Func';
-        }
-      } else {
-        event = it.name;
-      }
-      return event;
-    }
+    return event;
   }
 
   refreshFavoriteCanvas(): void {

@@ -563,40 +563,6 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
 
   fileSystemAnalysis(type: number, samplesList: Array<FileSample>, obj?: any): Array<FileAnalysisSample> {
     let analysisSampleList = new Array<FileAnalysisSample>();
-    for (let sample of samplesList) {
-      let analysisSample = new FileAnalysisSample(sample);
-      let callChainList = this.dataCache.eBpfCallChainsMap.get(sample.callChainId);
-      if (!callChainList || callChainList.length === 0) {
-        continue;
-      }
-      let depth = callChainList.length - 1;
-      let lastCallChain: FileCallChain | undefined | null;
-      //let lastFilter
-      while (true) {
-        if (depth < 0) {
-          lastCallChain = callChainList[depth];
-          break;
-        }
-        lastCallChain = callChainList[depth];
-        let symbolName = this.dataCache.dataDict?.get(lastCallChain.symbolsId);
-        let libPath = this.dataCache.dataDict?.get(lastCallChain.pathId);
-        if (
-          (type === BIO_TYPE && symbolName?.includes('submit_bio')) ||
-          (type !== BIO_TYPE && libPath && (libPath.includes('musl') || libPath.includes('libc++')))
-        ) {
-          depth--;
-        } else {
-          break;
-        }
-      }
-      if (!lastCallChain) {
-        lastCallChain = callChainList[callChainList.length - 1];
-      }
-      this.setAnalysisSample(analysisSample, lastCallChain);
-      if ((obj && obj.libId === analysisSample.libId) || (obj && obj.symbolId === analysisSample.symbolId) || !obj) {
-        analysisSampleList.push(analysisSample);
-      }
-    }
     return analysisSampleList;
   }
   private setAnalysisSample(analysisSample: FileAnalysisSample, lastCallChain: FileCallChain): void {

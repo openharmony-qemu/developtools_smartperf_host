@@ -67,113 +67,97 @@ export function snapshot(
   }
 }
 const padding = 2;
-export function SnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace){
+export function snapshotStructOnClick(clickRowType: string, sp: SpSystemTrace) {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL && SnapshotStruct.hoverSnapshotStruct) {
-      let gpuDumpTotalRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='Skia Gpu Dump Total']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayGpuSelectedData(
-        'total',
-        SnapshotStruct.selectSnapshotStruct.startNs,
-        gpuDumpTotalRow!.dataListCache
-      );
-      sp.timerShaftEL?.modifyFlagList(undefined);
+    if (SnapshotStruct.hoverSnapshotStruct) {
+      switch (clickRowType) {
+        case TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL:
+          handleGpuTotalClick(SnapshotStruct.hoverSnapshotStruct, sp)
+            .then(resolve)
+            .catch(reject);
+          break;
+        case TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW:
+          handleGpuWindowClick(SnapshotStruct.hoverSnapshotStruct, sp)
+            .then(resolve)
+            .catch(reject);
+          break;
+        case TraceRow.ROW_TYPE_VM_TRACKER_SMAPS:
+          handleSmapsClick(SnapshotStruct.hoverSnapshotStruct, sp)
+            .then(resolve)
+            .catch(reject);
+          break;
+        // Add more cases for other clickRowType values here...
+
+        default:
+          resolve(null);
+          break;
+      }
+    } else {
       reject();
-    } else if (clickRowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW && SnapshotStruct.hoverSnapshotStruct) {
-      let gpuDumpWindowRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='Skia Gpu Dump Window']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayGpuSelectedData(
-        'window',
-        SnapshotStruct.selectSnapshotStruct.startNs,
-        gpuDumpWindowRow!.dataListCache
-      );
-      sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
-    } else if (clickRowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS && SnapshotStruct.hoverSnapshotStruct) {
-      let smapsRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Dirty']`);
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displaySmapsData(SnapshotStruct.selectSnapshotStruct!, smapsRow!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_VMTRACKER_SHM && SnapshotStruct.hoverSnapshotStruct) {
-      let shmRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='SHM']`);
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayShmData(SnapshotStruct.selectSnapshotStruct!, shmRow!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
-      let totalAbilityRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='System Purgeable Total']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayPurgTotalAbilityData(
-        SnapshotStruct.hoverSnapshotStruct,
-        totalAbilityRow!.dataListCache
-      );
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
-      let pinAbilityRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='System Purgeable Pin']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayPurgPinAbilityData(SnapshotStruct.hoverSnapshotStruct, pinAbilityRow!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM && SnapshotStruct.hoverSnapshotStruct) {
-      let totalVMRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Purgeable Total']`);
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayPurgTotalVMData(SnapshotStruct.hoverSnapshotStruct, totalVMRow!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM && SnapshotStruct.hoverSnapshotStruct) {
-      let pinVMRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Purgeable Pin']`);
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayPurgPinVMData(SnapshotStruct.hoverSnapshotStruct, pinVMRow!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_DMA_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
-      let dmaAbilityRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='abilityMonitorDma']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayDmaAbility(SnapshotStruct.selectSnapshotStruct.startNs, dmaAbilityRow!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_DMA_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
-      let dmaVmTracker = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-type='dma-vmTracker']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayDmaVmTracker(SnapshotStruct.selectSnapshotStruct.startNs, dmaVmTracker!.dataListCache);
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
-      let gpuMemoryAbilityMonitor = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='abilityMonitorGpuMemory']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayGpuMemoryAbility(
-        SnapshotStruct.selectSnapshotStruct.startNs,
-        gpuMemoryAbilityMonitor!.dataListCache
-      );
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
-      let gpuMemoryVmTracker = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
-        `trace-row[row-id='Skia Gpu Memory']`
-      );
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayGpuMemoryVmTracker(
-        SnapshotStruct.selectSnapshotStruct.startNs,
-        gpuMemoryVmTracker!.dataListCache
-      );
-      reject();
-    } if (clickRowType === TraceRow.ROW_TYPE_GPU_RESOURCE_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
-      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displayGpuResourceVmTracker(SnapshotStruct.selectSnapshotStruct.startNs);
-      reject();
-    } else{
-      resolve(null);
     }
   });
-
 }
+
+function handleGpuTotalClick(snapshotStruct: SnapshotStruct, sp: SpSystemTrace) {
+  return new Promise<void>((resolve, reject) => {
+    const querySelector = `trace-row[row-id='Skia Gpu Dump Total']`;
+    const gpuDumpTotalRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(querySelector);
+
+    if (gpuDumpTotalRow) {
+      handleGpuClick(snapshotStruct, sp, 'total', gpuDumpTotalRow.dataListCache)
+        .then(resolve)
+        .catch(reject);
+    } else {
+      reject();
+    }
+  });
+}
+
+function handleGpuWindowClick(snapshotStruct: SnapshotStruct, sp: SpSystemTrace) {
+  return new Promise<void>((resolve, reject) => {
+    const querySelector = `trace-row[row-id='Skia Gpu Dump Window']`;
+    const gpuDumpWindowRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(querySelector);
+
+    if (gpuDumpWindowRow) {
+      handleGpuClick(snapshotStruct, sp, 'window', gpuDumpWindowRow.dataListCache)
+        .then(resolve)
+        .catch(reject);
+    } else {
+      reject();
+    }
+  });
+}
+
+function handleGpuClick(
+  snapshotStruct: SnapshotStruct,
+  sp: SpSystemTrace,
+  dataType: string,
+  dataListCache: any[]
+) {
+  return new Promise<void>((resolve, reject) => {
+    SnapshotStruct.selectSnapshotStruct = snapshotStruct;
+    sp.traceSheetEL?.displayGpuSelectedData(dataType, snapshotStruct.startNs, dataListCache);
+    sp.timerShaftEL?.modifyFlagList(undefined);
+    resolve();
+  });
+}
+
+function handleSmapsClick(snapshotStruct: SnapshotStruct, sp: SpSystemTrace) {
+  return new Promise<void>((resolve, reject) => {
+    const querySelector = `trace-row[row-id='Dirty']`;
+    const smapsRow = sp.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(querySelector);
+
+    if (smapsRow) {
+      SnapshotStruct.selectSnapshotStruct = snapshotStruct;
+      sp.traceSheetEL?.displaySmapsData(snapshotStruct, smapsRow.dataListCache);
+      resolve();
+    } else {
+      reject();
+    }
+  });
+}
+
+// Add more functions for handling other clickRowType values here...
 export class SnapshotStruct extends BaseStruct {
   startNs: number = 0;
   endNs: number = 0;

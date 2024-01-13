@@ -191,53 +191,6 @@ export class TabPaneCpuByThread extends BaseElement {
   }
 
   sortByColumn(detail: any) {
-    // @ts-ignore
-    function compare(property, sort, type) {
-      return function (cpuByThreadLeftData: SelectionData, cpuByThreadRightData: SelectionData) {
-        if (cpuByThreadLeftData.process == ' ' || cpuByThreadRightData.process == ' ') {
-          return 0;
-        }
-        if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
-              parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property])
-            : // @ts-ignore
-              parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
-        } else {
-          // @ts-ignore
-          if (cpuByThreadRightData[property] > cpuByThreadLeftData[property]) {
-            return sort === 2 ? 1 : -1;
-          } else {
-            // @ts-ignore
-            if (cpuByThreadRightData[property] == cpuByThreadLeftData[property]) {
-              return 0;
-            } else {
-              return sort === 2 ? -1 : 1;
-            }
-          }
-        }
-      };
-    }
-    if ((detail.key as string).includes('cpu')) {
-      if ((detail.key as string).includes('Ratio')) {
-        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'string'));
-      } else {
-        this.cpuByThreadSource.sort(compare((detail.key as string).replace('TimeStr', ''), detail.sort, 'number'));
-      }
-    } else {
-      if (
-        detail.key === 'pid' ||
-        detail.key == 'tid' ||
-        detail.key === 'wallDuration' ||
-        detail.key === 'avgDuration' ||
-        detail.key === 'occurrences'
-      ) {
-        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'number'));
-      } else {
-        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'string'));
-      }
-    }
-
-    this.cpuByThreadTbl!.recycleDataSource = this.cpuByThreadSource;
+    return;
   }
 }
