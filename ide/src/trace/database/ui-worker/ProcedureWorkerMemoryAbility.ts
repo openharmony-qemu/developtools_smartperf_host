@@ -113,19 +113,19 @@ function setMemoryAbility(
   if (memoryAbilityList) {
     for (let memoryAbilityIndex = 0; memoryAbilityIndex < memoryAbilityList.length; memoryAbilityIndex++) {
       let item = memoryAbilityList[memoryAbilityIndex];
-      if (memoryAbilityIndex === memoryAbilityList.length - 1) {
-        item.dur = (endNS || 0) - (item.startNS || 0);
-      } else {
-        item.dur = (memoryAbilityList[memoryAbilityIndex + 1].startNS || 0) - (item.startNS || 0);
-      }
+      item.dur =
+        memoryAbilityIndex === memoryAbilityList.length - 1
+          ? (endNS || 0) - (item.startNS || 0)
+          : (memoryAbilityList[memoryAbilityIndex + 1].startNS || 0) - (item.startNS || 0);
       if ((item.startNS || 0) + (item.dur || 0) > startNS && (item.startNS || 0) < endNS) {
         MemoryAbilityMonitorStruct.setMemoryFrame(item, 5, startNS, endNS, totalNS, frame);
         if (
-          memoryAbilityIndex > 0 &&
-          (memoryAbilityList[memoryAbilityIndex - 1].frame?.x || 0) == (item.frame?.x || 0) &&
-          (memoryAbilityList[memoryAbilityIndex - 1].frame?.width || 0) == (item.frame?.width || 0)
+          !(
+            memoryAbilityIndex > 0 &&
+            (memoryAbilityList[memoryAbilityIndex - 1].frame.x || 0) == (item.frame.x || 0) &&
+            (memoryAbilityList[memoryAbilityIndex - 1].frame.width || 0) == (item.frame.width || 0)
+          )
         ) {
-        } else {
           res.push(item);
         }
       }

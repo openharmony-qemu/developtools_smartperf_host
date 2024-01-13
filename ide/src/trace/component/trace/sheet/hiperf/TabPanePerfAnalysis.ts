@@ -81,8 +81,9 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.hideThreadCheckBox!.checked = false;
     this.reset(this.perfTableProcess!, false);
     this.titleEl!.textContent = '';
-    this.perfAnalysisRange!.textContent =
-      `Selected range: ${  parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5))  } ms`;
+    this.perfAnalysisRange!.textContent = `Selected range: ${parseFloat(
+      ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)
+    )} ms`;
     if (!this.callChainMap) {
       this.getCallChainDataFromWorker(val);
     }
@@ -125,7 +126,7 @@ export class TabPanePerfAnalysis extends BaseElement {
           if (this.titleEl?.textContent === '') {
             title = detail.data.tableName;
           } else {
-            title = `${this.titleEl?.textContent  } / ${  detail.data.tableName}`;
+            title = `${this.titleEl?.textContent} / ${detail.data.tableName}`;
           }
           perfProfileTab!.pieTitle = title;
           //  是否是在表格上右键点击跳转到火焰图的
@@ -342,7 +343,9 @@ export class TabPanePerfAnalysis extends BaseElement {
     };
     this.titleEl!.textContent = '';
     this.tabName!.textContent = 'Statistic By Process Count';
-    this.pidData.unshift(this.allProcessCount);
+    if (this.pidData.length > 0) {
+      this.pidData.unshift(this.allProcessCount);
+    }
     this.perfTableProcess!.recycleDataSource = this.pidData;
     this.perfTableProcess?.reMeauseHeight();
     // @ts-ignore
@@ -402,7 +405,7 @@ export class TabPanePerfAnalysis extends BaseElement {
           this.perfTableThread!.mouseOut();
         }
       },
-      interactions: [{type: 'element-active',}],
+      interactions: [{ type: 'element-active' }],
     };
     this.tabName!.textContent = 'Statistic By Thread Count';
     this.threadData.unshift(this.allThreadCount);
@@ -418,7 +421,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.getHiperfSo(it, val);
     let pName = this.processName;
     if (this.processName.length > 0 && it.tableName.length > 0) {
-      pName = `${this.processName  } / `;
+      pName = `${this.processName} / `;
     }
     this.titleEl!.textContent = pName + it.tableName;
     // @ts-ignore
@@ -473,7 +476,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.initPerfAnalysisPieConfig();
     let pName = this.processName;
     if (this.processName.length > 0 && this.threadName.length > 0) {
-      pName = `${this.processName  } / `;
+      pName = `${this.processName} / `;
     }
     this.titleEl!.textContent = pName + this.threadName;
     this.tabName!.textContent = 'Statistic By Library Count';
@@ -490,10 +493,10 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.getHiperfFunction(it);
     let title = '';
     if (this.processName.length > 0) {
-      title += `${this.processName  } / `;
+      title += `${this.processName} / `;
     }
     if (this.threadName.length > 0) {
-      title += `${this.threadName  } / `;
+      title += `${this.threadName} / `;
     }
     if (it.tableName.length > 0) {
       title += it.tableName;
@@ -543,7 +546,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     }
   }
 
-  private sortTypeNoZero(currentTable: LitTable): void{
+  private sortTypeNoZero(currentTable: LitTable): void {
     let array = [...this.currentLevelData];
     if (this.sortColumn === 'tableName') {
       currentTable!.recycleDataSource = array.sort((leftA, rightB) => {
@@ -591,7 +594,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     currentTable!.recycleDataSource = array;
   }
 
-  private initHiPerfProcessSelect(val: SelectionParam): void{
+  private initHiPerfProcessSelect(val: SelectionParam): void {
     this.reset(this.perfTableProcess!, false);
     this.progressEL!.loading = true;
     if (!this.processData || this.processData.length === 0) {
@@ -617,7 +620,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     let pidMap = new Map<number, Array<number | string>>();
     if (val.perfThread.length > 0 && val.perfProcess.length === 0) {
       this.perfTableProcess!.style.display = 'none';
-      this.getHiperfThread(this.processData[0], val);
+      this.getHiperfThread(null, val);
     } else {
       for (let itemData of this.processData) {
         allCount += itemData.count;
@@ -638,7 +641,7 @@ export class TabPanePerfAnalysis extends BaseElement {
           count += item.count;
           eventCount += item.eventCount;
         }
-        const pName = `${arr[0].processName  }(${  pid  })`;
+        const pName = `${arr[0].processName}(${pid})`;
         const pidData = {
           tableName: pName,
           pid: pid,
@@ -683,7 +686,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     threadMap.forEach((arr: Array<any>, tid: number) => {
       let threadCount = 0;
       let threadEventCount = 0;
-      let tName = `${arr[0].threadName  }(${  tid  })`;
+      let tName = `${arr[0].threadName}(${tid})`;
       for (let item of arr) {
         threadCount += item.count;
         threadEventCount += item.eventCount;
@@ -738,12 +741,12 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       allCount += itemData.count;
       allEventCount += itemData.eventCount;
-      if (libMap.has(`${itemData.libId  }-${  itemData.libName}`)) {
-        libMap.get(`${itemData.libId  }-${  itemData.libName}`)?.push(itemData);
+      if (libMap.has(`${itemData.libId}-${itemData.libName}`)) {
+        libMap.get(`${itemData.libId}-${itemData.libName}`)?.push(itemData);
       } else {
         let dataArray: Array<number | string> = [];
         dataArray.push(itemData);
-        libMap.set(`${itemData.libId  }-${  itemData.libName}`, dataArray);
+        libMap.set(`${itemData.libId}-${itemData.libName}`, dataArray);
       }
     }
     if (!item) {
@@ -799,12 +802,12 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       allCount += itemData.count;
       allEventCount += itemData.eventCount;
-      if (symbolMap.has(`${itemData.symbolId  }-${  itemData.symbolName}`)) {
-        symbolMap.get(`${itemData.symbolId  }-${  itemData.symbolName}`)?.push(itemData);
+      if (symbolMap.has(`${itemData.symbolId}-${itemData.symbolName}`)) {
+        symbolMap.get(`${itemData.symbolId}-${itemData.symbolName}`)?.push(itemData);
       } else {
         let dataArray: Array<number | string> = [];
         dataArray.push(itemData);
-        symbolMap.set(`${itemData.symbolId  }-${  itemData.symbolName}`, dataArray);
+        symbolMap.set(`${itemData.symbolId}-${itemData.symbolName}`, dataArray);
       }
     }
     this.functionData = [];
@@ -958,8 +961,12 @@ export class TabPanePerfAnalysis extends BaseElement {
   private getCallChainDataFromWorker(val: SelectionParam): void {
     this.getDataByWorker(val, (results: any) => {
       this.processData = results;
-      if (!this.processData[0].processName) {
-        console.log(this.processData);
+      if (this.processData.length === 0) {
+        this.hideProcessCheckBox?.setAttribute('disabled', 'disabled');
+        this.hideThreadCheckBox?.setAttribute('disabled', 'disabled');
+      } else {
+        this.hideProcessCheckBox?.removeAttribute('disabled');
+        this.hideThreadCheckBox?.removeAttribute('disabled');
       }
       this.getHiperfProcess(val);
     });
@@ -989,13 +996,13 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   public connectedCallback(): void {
     new ResizeObserver(() => {
-      this.perfTableProcess!.style.height = `${this.parentElement!.clientHeight - 50  }px`;
+      this.perfTableProcess!.style.height = `${this.parentElement!.clientHeight - 50}px`;
       this.perfTableProcess?.reMeauseHeight();
-      this.perfTableThread!.style.height = `${this.parentElement!.clientHeight - 50  }px`;
+      this.perfTableThread!.style.height = `${this.parentElement!.clientHeight - 50}px`;
       this.perfTableThread?.reMeauseHeight();
-      this.tableFunction!.style.height = `${this.parentElement!.clientHeight - 50  }px`;
+      this.tableFunction!.style.height = `${this.parentElement!.clientHeight - 50}px`;
       this.tableFunction?.reMeauseHeight();
-      this.perfTableSo!.style.height = `${this.parentElement!.clientHeight - 50  }px`;
+      this.perfTableSo!.style.height = `${this.parentElement!.clientHeight - 50}px`;
       this.perfTableSo?.reMeauseHeight();
       if (this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) {
         this.filterEl!.style.display = 'none';

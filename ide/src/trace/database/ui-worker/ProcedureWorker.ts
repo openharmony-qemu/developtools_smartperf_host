@@ -154,7 +154,26 @@ let convertJSON = (arr: any): any => {
     return arr;
   }
 };
+
 self.onmessage = (e: any): void => {
+  clear(e);
+  if (e.data.params && e.data.params.list) {
+    dataList[e.data.type] = convertJSON(e.data.params.list);
+    if (e.data.params.offscreen) {
+      canvasList[e.data.type] = e.data.params.offscreen;
+      contextList[e.data.type] = e.data.params.offscreen!.getContext('2d');
+      contextList[e.data.type].scale(e.data.params.dpr, e.data.params.dpr);
+    }
+  }
+  if (!dataFilter[e.data.type]) {
+    dataFilter[e.data.type] = [];
+  }
+  let req = new RequestMessage();
+  setReq(req, e);
+
+  match(req.type!, req);
+};
+function clear(e: any) {
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
     dataList2 = {};
@@ -169,18 +188,8 @@ self.onmessage = (e: any): void => {
     });
     return;
   }
-  if (e.data.params && e.data.params.list) {
-    dataList[e.data.type] = convertJSON(e.data.params.list);
-    if (e.data.params.offscreen) {
-      canvasList[e.data.type] = e.data.params.offscreen;
-      contextList[e.data.type] = e.data.params.offscreen!.getContext('2d');
-      contextList[e.data.type].scale(e.data.params.dpr, e.data.params.dpr);
-    }
-  }
-  if (!dataFilter[e.data.type]) {
-    dataFilter[e.data.type] = [];
-  }
-  let req = new RequestMessage();
+}
+function setReq(req: RequestMessage, e: any) {
   req.canvas = canvasList[e.data.type];
   req.context = contextList[e.data.type];
   req.type = e.data.type as string;
@@ -210,7 +219,6 @@ self.onmessage = (e: any): void => {
     req.wakeupBean = e.data.params.wakeupBean;
     req.intervalPerf = e.data.params.intervalPerf;
   }
-
   req.id = e.data.id;
   if (!req.frame) {
     info(req.frame);
@@ -223,6 +231,5 @@ self.onmessage = (e: any): void => {
       req.context.scale(e.data.params.dpr, e.data.params.dpr);
     }
   }
-  match(req.type, req);
-};
+}
 self.onmessageerror = function (e: any): void {};

@@ -315,47 +315,54 @@ int32_t TraceDataCache::ExportPerfReadableText(const std::string& outputName,
     std::string perfBufferLine;
     perfBufferLine.reserve(G_CHUNK_SIZE);
     for (uint64_t row = 0; row < perfSample_.Size();) {
-        std::string perfTaskName;
-        std::string cpuIdStr = std::to_string(perfSample_.CpuIds()[row]);
-        std::string eventTypeName;
-        auto perfTaskId = perfSample_.Tids()[row];
-        if (perfTaskId == 0) {
-            auto threadDataRow = 0;
-            perfTaskName = GetDataFromDict(GetConstThreadData(threadDataRow).nameIndex_);
-        } else {
-            auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), perfTaskId);
-            if (perfThreadTidItor != perfThread_.Tids().end()) {
-                auto perfThreadRow = std::distance(perfThread_.Tids().begin(), perfThreadTidItor);
-                perfTaskName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
-            }
-        }
-        auto perfReportIdItor =
-            std::find(perfReport_.IdsData().begin(), perfReport_.IdsData().end(), perfSample_.EventTypeIds()[row]);
-        if (perfReportIdItor != perfReport_.IdsData().end()) {
-            auto perfReportRow = std::distance(perfReport_.IdsData().begin(), perfReportIdItor);
-            eventTypeName = GetDataFromDict(perfReport_.Values()[perfReportRow]);
-        }
-        perfBufferLine.append(perfTaskName);
-        perfBufferLine.append("  ").append(std::to_string(perfTaskId));
-        perfBufferLine.append(" [")
-            .append(std::string(CPU_ID_FORMAT_WIDTH - cpuIdStr.size(), '0'))
-            .append(cpuIdStr)
-            .append("]");
-        perfBufferLine.append(" ")
-            .append(base::ConvertTimestampToSecStr(perfSample_.TimeStampData()[row], TIME_PRECISION_SIX))
-            .append(":");
-        perfBufferLine.append("          ").append(std::to_string(perfSample_.EventCounts()[row]));
-        perfBufferLine.append(" ").append(eventTypeName).append(" \r\n");
-        ExportPerfCallChaninText(perfSample_.SampleIds()[row], perfBufferLine);
-        if (++row != perfSample_.Size() && perfBufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
-            continue;
-        }
+        ExportPerfSampleToFile(perfBufferLine, perfFd, outputName, row);
         TS_CHECK_TRUE(write(perfFd, perfBufferLine.data(), perfBufferLine.size()) != -1, 1,
                       "Failed to write file: %s, err:%s", outputName.c_str(), strerror(errno));
         perfBufferLine.clear();
+        if (++row != perfSample_.Size() && perfBufferLine.size() < FLUSH_CHUNK_THRESHOLD) {
+            continue;
+        }
     }
     TS_LOGI("ExportPerfReadableText end...");
     return 0;
+}
+void TraceDataCache::ExportPerfSampleToFile(std::string& perfBufferLine,
+                                            int32_t perfFd,
+                                            const std::string& outputName,
+                                            uint64_t row)
+{
+    std::string perfTaskName;
+    std::string cpuIdStr = std::to_string(perfSample_.CpuIds()[row]);
+    std::string eventTypeName;
+    auto perfTaskId = perfSample_.Tids()[row];
+    if (perfTaskId == 0) {
+        auto threadDataRow = 0;
+        perfTaskName = GetDataFromDict(GetConstThreadData(threadDataRow).nameIndex_);
+    } else {
+        auto perfThreadTidItor = std::find(perfThread_.Tids().begin(), perfThread_.Tids().end(), perfTaskId);
+        if (perfThreadTidItor != perfThread_.Tids().end()) {
+            auto perfThreadRow = std::distance(perfThread_.Tids().begin(), perfThreadTidItor);
+            perfTaskName = GetDataFromDict(perfThread_.ThreadNames()[perfThreadRow]);
+        }
+    }
+    auto perfReportIdItor =
+        std::find(perfReport_.IdsData().begin(), perfReport_.IdsData().end(), perfSample_.EventTypeIds()[row]);
+    if (perfReportIdItor != perfReport_.IdsData().end()) {
+        auto perfReportRow = std::distance(perfReport_.IdsData().begin(), perfReportIdItor);
+        eventTypeName = GetDataFromDict(perfReport_.Values()[perfReportRow]);
+    }
+    perfBufferLine.append(perfTaskName);
+    perfBufferLine.append("  ").append(std::to_string(perfTaskId));
+    perfBufferLine.append(" [")
+        .append(std::string(CPU_ID_FORMAT_WIDTH - cpuIdStr.size(), '0'))
+        .append(cpuIdStr)
+        .append("]");
+    perfBufferLine.append(" ")
+        .append(base::ConvertTimestampToSecStr(perfSample_.TimeStampData()[row], TIME_PRECISION_SIX))
+        .append(":");
+    perfBufferLine.append("          ").append(std::to_string(perfSample_.EventCounts()[row]));
+    perfBufferLine.append(" ").append(eventTypeName).append(" \r\n");
+    ExportPerfCallChaninText(perfSample_.SampleIds()[row], perfBufferLine);
 }
 void TraceDataCache::ExportPerfCallChaninText(uint32_t callChainId, std::string& bufferLine)
 {

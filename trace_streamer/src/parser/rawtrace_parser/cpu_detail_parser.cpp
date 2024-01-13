@@ -40,6 +40,10 @@ CpuDetailParser::CpuDetailParser(TraceDataCache* dataCache, const TraceStreamerF
     printEventParser_.SetTraceType(TRACE_FILETYPE_RAW_TRACE);
     printEventParser_.SetTraceClockId(clock_);
     eventToFunctionMap_ = {
+        {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
+         std::bind(&CpuDetailParser::TaskRenameEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
+         std::bind(&CpuDetailParser::TaskNewtaskEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
          std::bind(&CpuDetailParser::SchedSwitchEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
@@ -52,70 +56,99 @@ CpuDetailParser::CpuDetailParser(TraceDataCache* dataCache, const TraceStreamerF
          std::bind(&CpuDetailParser::SchedWakeupNewEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
          std::bind(&CpuDetailParser::ProcessExitEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_FREE),
-         std::bind(&CpuDetailParser::ProcessFreeEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
-         std::bind(&CpuDetailParser::BinderTractionEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
-         std::bind(&CpuDetailParser::BinderTractionReceivedEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
-         std::bind(&CpuDetailParser::BinderTractionAllocBufEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCK),
-         std::bind(&CpuDetailParser::BinderTractionLockEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCKED),
-         std::bind(&CpuDetailParser::BinderTractionLockedEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK),
-         std::bind(&CpuDetailParser::BinderTractionUnLockEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
-         std::bind(&CpuDetailParser::TaskRenameEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
-         std::bind(&CpuDetailParser::TaskNewtaskEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_PRINT),
-         std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
-         std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
-         std::bind(&CpuDetailParser::CpuIdleEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
-         std::bind(&CpuDetailParser::CpuFrequencyEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
-         std::bind(&CpuDetailParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SUSPEND_RESUME),
-         std::bind(&CpuDetailParser::SuspendResumeEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
-         std::bind(&CpuDetailParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
-         std::bind(&CpuDetailParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
-         std::bind(&CpuDetailParser::IrqHandlerEntryEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
-         std::bind(&CpuDetailParser::IrqHandlerExitEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
          std::bind(&CpuDetailParser::IpiHandlerEntryEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
          std::bind(&CpuDetailParser::IpiHandlerExitEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
-         std::bind(&CpuDetailParser::SoftIrqEntryEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
-         std::bind(&CpuDetailParser::SoftIrqRaiseEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
-         std::bind(&CpuDetailParser::SoftIrqExitEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
-         std::bind(&CpuDetailParser::SetRateEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
-         std::bind(&CpuDetailParser::ClockEnableEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
-         std::bind(&CpuDetailParser::ClockDisableEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
-         std::bind(&CpuDetailParser::RegulatorSetVoltageEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
-         std::bind(&CpuDetailParser::RegulatorSetVoltageCompleteEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
-         std::bind(&CpuDetailParser::RegulatorDisableEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
-         std::bind(&CpuDetailParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_FREE),
+         std::bind(&CpuDetailParser::ProcessFreeEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SUSPEND_RESUME),
+         std::bind(&CpuDetailParser::SuspendResumeEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
+         std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1)},
     };
+    InterruptEventInitialization();
+    ClockEventInitialization();
+    CpuEventInitialization();
+    LockEventInitialization();
+    BinderEventInitialization();
+    StackEventsInitialization();
+    VoltageEventInitialization();
 }
+
+void CpuDetailParser::InterruptEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
+                                std::bind(&CpuDetailParser::IrqHandlerEntryEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
+                                std::bind(&CpuDetailParser::IrqHandlerExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
+                                std::bind(&CpuDetailParser::SoftIrqRaiseEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
+                                std::bind(&CpuDetailParser::SoftIrqEntryEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
+                                std::bind(&CpuDetailParser::SoftIrqExitEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::ClockEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
+                                std::bind(&CpuDetailParser::SetRateEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
+                                std::bind(&CpuDetailParser::ClockEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
+                                std::bind(&CpuDetailParser::ClockDisableEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::CpuEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
+                                std::bind(&CpuDetailParser::CpuIdleEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
+                                std::bind(&CpuDetailParser::CpuFrequencyEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
+                                std::bind(&CpuDetailParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::LockEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCK),
+                                std::bind(&CpuDetailParser::BinderTractionLockEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCKED),
+                                std::bind(&CpuDetailParser::BinderTractionLockedEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK),
+                                std::bind(&CpuDetailParser::BinderTractionUnLockEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::BinderEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
+                                std::bind(&CpuDetailParser::BinderTractionEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
+                                std::bind(&CpuDetailParser::BinderTractionReceivedEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
+                                std::bind(&CpuDetailParser::BinderTractionAllocBufEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::StackEventsInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_PRINT),
+        std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
+                                std::bind(&CpuDetailParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
+                                std::bind(&CpuDetailParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::VoltageEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
+                                std::bind(&CpuDetailParser::RegulatorSetVoltageEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
+        std::bind(&CpuDetailParser::RegulatorSetVoltageCompleteEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
+                                std::bind(&CpuDetailParser::RegulatorDisableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
+        std::bind(&CpuDetailParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1));
+}
+
 void CpuDetailParser::EventAppend(std::unique_ptr<RawTraceEventInfo> event)
 {
     rawTraceEventList_.emplace_back(std::move(event));

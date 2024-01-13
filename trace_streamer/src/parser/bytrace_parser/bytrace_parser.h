@@ -32,12 +32,18 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr int32_t DETERMINE_CONTINUE = 2;
+constexpr int32_t DETERMINE_RETURN = 3;
 class BytraceParser : public ParserBase {
 public:
     BytraceParser(TraceDataCache* dataCache,
                   const TraceStreamerFilters* filters,
                   TraceFileType fileType = TRACE_FILETYPE_BY_TRACE);
     ~BytraceParser();
+
+    template <typename Iterator>
+    int32_t WhileDetermine(Iterator& determine, Iterator& packagesBegin, bool& isParsingOver_, bool isFinish);
+    int32_t GotoDetermine(std::string& bufferLine, bool& haveSplitSeg);
 
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish = false) override;
     size_t ParsedTraceValidLines() const

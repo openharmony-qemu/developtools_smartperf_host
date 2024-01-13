@@ -15,107 +15,112 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle = (colorStr: string | null,colorText: string | null) => {
-  return `
-  <style>
-        /*
-         * Outer box style
-         */
-        :host{ 
-            box-sizing:border-box; 
-            display:flex;
-            
-        }
-        /*
-         * The mouse is missing
-         */
-        :host([disabled]){ 
-            opacity:0.8; 
-            cursor:not-allowed; 
-        }
-        /*
-         * Disable sliding
-         */
-        :host([disabled]) input[type="range"]{
-            pointer-events:none;
-        }
-        /*
-         * Currently the entire sliding vessel is controlled
-         */
-        #slider-con{ 
-            cursor:pointer;
-            display:flex;
-            align-items:center;
-            width:95%;
-            grid-auto-flow: row dense;
-            position: relative;
-        }
-        /*
-         * Display prompt information
-         */
-        :host([showtips]){
-            pointer-events:all;
-        }
-        
-        #slider{
-            background-color: var(--dark-background7,#D8D8D8);
-            z-index: 5;
-        }
-    
-        /*
-         * Slider basic style
-         */
-        input[type="range"]{
-            pointer-events:all;
-            margin:0 -5px;
-            width: 100%;
-            -webkit-appearance: none;
-            outline : 0;
-            background: rgba(0,0,0,0.1);
-            height: 10px;
-            border-radius:2px;
-            background: -webkit-linear-gradient(right, ${colorStr}, ${colorText}) no-repeat;
-        }
-        
-        /*
-         * Slider-line slidedAble area component
-         */
-        input[type="range"]::-webkit-slider-runnable-track{
-            display: flex;
-            align-items: center;
-            position: relative;
-            height: 10px;
-            border-radius:5px;
-        }
-        
-         /*
-         * Slider slider component
-         */
-        input[type="range"]::-webkit-slider-thumb{
-            -webkit-appearance: none;
-            position: relative;
-            width:20px;
-            height:20px;
-            margin-top: -4px;
-            border-radius: 5px;
-            background:#999999;
-            transition:0.2s cubic-bezier(.12, .4, .29, 1.46);
-        }
-        
-        input[type="range"]:focus{
-            z-index:2;
-        }
+let colorStr: string | null = '';
+let colorText: string | null = '';
+let css = `
+<style>
+      /*
+       * Outer box style
+       */
+      :host{ 
+          box-sizing:border-box; 
+          display:flex;
+          
+      }
+      /*
+       * The mouse is missing
+       */
+      :host([disabled]){ 
+          opacity:0.8; 
+          cursor:not-allowed; 
+      }
+      /*
+       * Disable sliding
+       */
+      :host([disabled]) input[type="range"]{
+          pointer-events:none;
+      }
+      /*
+       * Currently the entire sliding vessel is controlled
+       */
+      #slider-con{ 
+          cursor:pointer;
+          display:flex;
+          align-items:center;
+          width:95%;
+          grid-auto-flow: row dense;
+          position: relative;
+      }
+      /*
+       * Display prompt information
+       */
+      :host([showtips]){
+          pointer-events:all;
+      }
+      
+      #slider{
+          background-color: var(--dark-background7,#D8D8D8);
+          z-index: 5;
+      }
+  
+      /*
+       * Slider basic style
+       */
+      input[type="range"]{
+          pointer-events:all;
+          margin:0 -5px;
+          width: 100%;
+          -webkit-appearance: none;
+          outline : 0;
+          background: rgba(0,0,0,0.1);
+          height: 10px;
+          border-radius:2px;
+          background: -webkit-linear-gradient(right, ${colorStr}, ${colorText}) no-repeat;
+      }
+      
+      /*
+       * Slider-line slidedAble area component
+       */
+      input[type="range"]::-webkit-slider-runnable-track{
+          display: flex;
+          align-items: center;
+          position: relative;
+          height: 10px;
+          border-radius:5px;
+      }
+      
+       /*
+       * Slider slider component
+       */
+      input[type="range"]::-webkit-slider-thumb{
+          -webkit-appearance: none;
+          position: relative;
+          width:20px;
+          height:20px;
+          margin-top: -4px;
+          border-radius: 5px;
+          background:#999999;
+          transition:0.2s cubic-bezier(.12, .4, .29, 1.46);
+      }
+      
+      input[type="range"]:focus{
+          z-index:2;
+      }
 
-        :host(:focus-within) #slider-con,:host(:hover) #slider-con{
-            z-index:10
-        }
-        
-        :host([disabled]) #slider{ 
-            opacity:0.6; 
-        }
-        </style>
-  `;
-}
+      :host(:focus-within) #slider-con,:host(:hover) #slider-con{
+          z-index:10
+      }
+      
+      :host([disabled]) #slider{ 
+          opacity:0.6; 
+      }
+      </style>
+`;
+const initHtmlStyle = (str: string | null, text: string | null) => {
+  colorStr = str;
+  colorText = text;
+  return css;
+};
 
 @element('lit-slider')
 export class LitSlider extends BaseElement {
@@ -146,7 +151,6 @@ export class LitSlider extends BaseElement {
       };
     }
   }
-
 
   set disabled(value) {
     if (value === null || value === false) {
@@ -258,7 +262,10 @@ export class LitSlider extends BaseElement {
 
   initHtml(): string {
     return `
-        ${initHtmlStyle(this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3',this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3')}
+        ${initHtmlStyle(
+          this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3',
+          this.getAttribute('defaultColor') ? this.getAttribute('defaultColor') : '#46B1E3'
+        )}
         <slot id="slot"></slot>
         <div id='slider-con' dir="right">
             <input id="slider" type="range" max="10000000">

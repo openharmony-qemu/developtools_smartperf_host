@@ -300,8 +300,10 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         TS_LOGE("ParserData failed!");
         return false;
     }
-    if (isSplitFile && isFinish &&
-        (ts_->GetFileType() == TRACE_FILETYPE_BY_TRACE || ts_->GetFileType() == TRACE_FILETYPE_HILOG ||
+    if (!isSplitFile || !isFinish) {
+        return false;
+    }
+    if ((ts_->GetFileType() == TRACE_FILETYPE_BY_TRACE || ts_->GetFileType() == TRACE_FILETYPE_HILOG ||
          ts_->GetFileType() == TRACE_FILETYPE_HI_SYSEVENT)) {
         SendBytraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
@@ -309,54 +311,56 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
-    if (isSplitFile && isFinish && ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
-        uint64_t dataSize = 0;
-        std::string result = VALUE;
-        ts_->GetHtraceData()->ClearNativehookData();
-        for (const auto& itemHtrace : ts_->GetHtraceData()->GetTraceDataHtrace()) {
-            dataSize += itemHtrace.second;
-            result += OFFSET + std::to_string(itemHtrace.first);
-            result += SIZE + std::to_string(itemHtrace.second);
-            result += "},";
-        }
-        auto dataSourceType = ts_->GetHtraceData()->GetDataSourceType();
-        auto profilerHeader = ts_->GetHtraceData()->GetProfilerHeader();
-        if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
-            dataSize += ts_->GetHtraceData()->GetArkTsConfigData().size() +
-                        ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSize();
-        }
-        for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
-            dataSize += (sizeof(uint32_t) + commProto->size());
-        }
-        // Send Header
-        profilerHeader.data.length = PACKET_HEADER_LENGTH + dataSize;
-        std::string buffer(reinterpret_cast<char*>(&profilerHeader), sizeof(profilerHeader));
-        splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
-        // Send Datas
-        ProcHookCommSplitResult(splitFileCallBack);
-        if (result != VALUE && !ts_->GetHtraceData()->GetTraceDataHtrace().empty()) {
-            result.pop_back();
-            result += "]}\r\n";
-            splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
-        }
-        if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
-            splitFileCallBack(ts_->GetHtraceData()->GetArkTsConfigData() +
-                                  ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSplitFileData(),
-                              (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
-        }
-        ProcPerfSplitResult(splitFileCallBack, true);
-        ProcEbpfSplitResult(splitFileCallBack, true);
+    if (ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
+        ProcHtraceSplitResult(splitFileCallBack);
     }
-    if (isSplitFile && isFinish && ts_->GetFileType() == TRACE_FILETYPE_PERF) {
+    if (ts_->GetFileType() == TRACE_FILETYPE_PERF) {
         ProcPerfSplitResult(splitFileCallBack, true);
     }
-    if (isSplitFile && isFinish) {
-        splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-        ts_->GetHtraceData()->ClearTraceDataHtrace();
-        ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
-        ts_->GetTraceDataCache()->isSplitFile_ = false;
-    }
+    splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
+    ts_->GetHtraceData()->ClearTraceDataHtrace();
+    ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
+    ts_->GetTraceDataCache()->isSplitFile_ = false;
     return true;
+}
+void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
+{
+    uint64_t dataSize = 0;
+    std::string result = VALUE;
+    ts_->GetHtraceData()->ClearNativehookData();
+    for (const auto& itemHtrace : ts_->GetHtraceData()->GetTraceDataHtrace()) {
+        dataSize += itemHtrace.second;
+        result += OFFSET + std::to_string(itemHtrace.first);
+        result += SIZE + std::to_string(itemHtrace.second);
+        result += "},";
+    }
+    auto dataSourceType = ts_->GetHtraceData()->GetDataSourceType();
+    auto profilerHeader = ts_->GetHtraceData()->GetProfilerHeader();
+    if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
+        dataSize +=
+            ts_->GetHtraceData()->GetArkTsConfigData().size() + ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSize();
+    }
+    for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
+        dataSize += (sizeof(uint32_t) + commProto->size());
+    }
+    // Send Header
+    profilerHeader.data.length = PACKET_HEADER_LENGTH + dataSize;
+    std::string buffer(reinterpret_cast<char*>(&profilerHeader), sizeof(profilerHeader));
+    splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+    // Send Datas
+    ProcHookCommSplitResult(splitFileCallBack);
+    if (result != VALUE && !ts_->GetHtraceData()->GetTraceDataHtrace().empty()) {
+        result.pop_back();
+        result += "]}\r\n";
+        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
+    }
+    if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
+        splitFileCallBack(ts_->GetHtraceData()->GetArkTsConfigData() +
+                              ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSplitFileData(),
+                          (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
+    }
+    ProcPerfSplitResult(splitFileCallBack, true);
+    ProcEbpfSplitResult(splitFileCallBack, true);
 }
 void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 {
@@ -580,19 +584,8 @@ int32_t RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 }
 
 #if IS_WASM
-int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
-                                       size_t totalLen,
-                                       const uint8_t* data,
-                                       size_t len,
-                                       int32_t finish,
-                                       ParseELFFileCallBack parseELFFile)
+void RpcServer::CreateFilePath(const std::string& filePath)
 {
-    g_fileLen += len;
-    std::string filePath = "";
-    TS_LOGI("fileName = %s", fileName.c_str());
-    std::string symbolsPath = fileName.substr(0, fileName.find("/"));
-    TS_LOGI("symbolsPath = %s", symbolsPath.c_str());
-    filePath = fileName.substr(0, fileName.find_last_of("/"));
     if (std::filesystem::exists(filePath)) {
         TS_LOGE("%s exist", filePath.c_str());
     } else {
@@ -603,21 +596,61 @@ int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
         }
     }
     TS_LOGI("filePath = %s", filePath.c_str());
-    if (g_fileLen < totalLen) {
+}
+
+bool RpcServer::WriteToFile(const std::string& fileName, const uint8_t* data, size_t len)
+{
+    if (g_importFileFd == nullptr) {
+        g_importFileFd = fopen(fileName.c_str(), "a+");
         if (g_importFileFd == nullptr) {
-            g_importFileFd = fopen(fileName.c_str(), "a+");
-            if (g_importFileFd == nullptr) {
-                TS_LOGE("wasm file create failed");
-                return false;
-            }
-        }
-        int32_t writeLength = fwrite(data, len, 1, g_importFileFd);
-        if (!writeLength) {
-            fclose(g_importFileFd);
-            TS_LOGE("wasm write file failed");
+            TS_LOGE("wasm file create failed");
             return false;
         }
+    }
+    int32_t writeLength = fwrite(data, len, 1, g_importFileFd);
+    if (!writeLength) {
+        fclose(g_importFileFd);
+        TS_LOGE("wasm write file failed");
         return false;
+    }
+    return false;
+}
+
+bool RpcServer::ClearPathFile(string& symbolsPath, int32_t finish, ParseELFFileCallBack& parseELFFile)
+{
+    if (finish) {
+        if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
+            symbolsPathFiles_.clear();
+            if (parseELFFile) {
+                parseELFFile("formaterror\r\n", SEND_FINISH);
+            }
+            return false;
+        }
+        symbolsPathFiles_.clear();
+        if (parseELFFile) {
+            parseELFFile("ok\r\n", SEND_FINISH);
+        }
+        std::filesystem::remove_all(symbolsPath);
+    }
+    return true;
+}
+
+bool RpcServer::DownloadELFCallback(const std::string& fileName,
+                                    size_t totalLen,
+                                    const uint8_t* data,
+                                    size_t len,
+                                    int32_t finish,
+                                    ParseELFFileCallBack parseELFFile)
+{
+    g_fileLen += len;
+    std::string filePath = "";
+    TS_LOGI("fileName = %s", fileName.c_str());
+    std::string symbolsPath = fileName.substr(0, fileName.find("/"));
+    TS_LOGI("symbolsPath = %s", symbolsPath.c_str());
+    filePath = fileName.substr(0, fileName.find_last_of("/"));
+    CreateFilePath(filePath);
+    if (g_fileLen < totalLen) {
+        return WriteToFile(fileName, data, len);
     }
     g_fileLen = 0;
     if (g_importFileFd == nullptr) {
@@ -637,20 +670,10 @@ int32_t RpcServer::DownloadELFCallback(const std::string& fileName,
     TS_LOGI("symbolsPath = %s, fileName = %s", symbolsPath.c_str(), fileName.c_str());
     symbolsPathFiles_.emplace_back(fileName);
     parseELFFile("file send over\r\n", SEND_FINISH);
-
-    if (finish) {
-        if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
-            symbolsPathFiles_.clear();
-            if (parseELFFile) {
-                parseELFFile("formaterror\r\n", SEND_FINISH);
-            }
-            return false;
-        }
-        symbolsPathFiles_.clear();
-        if (parseELFFile) {
-            parseELFFile("ok\r\n", SEND_FINISH);
-        }
-        std::filesystem::remove_all(symbolsPath);
+    // When the transfer is completed, reload the symbol file, clear the symbol path file list, call the callback
+    // function, and delete the symbol path and all files under it
+    if (!ClearPathFile(symbolsPath, finish, parseELFFile)) {
+        return false;
     }
     return true;
 }

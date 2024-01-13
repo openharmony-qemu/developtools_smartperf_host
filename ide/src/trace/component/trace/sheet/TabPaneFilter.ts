@@ -22,6 +22,7 @@ import '../../../../base-ui/popover/LitPopoverV';
 import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
 import {queryTransferList} from "../../../database/sql/Perf.sql";
+import { TabPaneFilterHtml } from './TabPaneFilter.html';
 
 export interface FilterData {
   inputValue: string;
@@ -119,7 +120,58 @@ export class TabPaneFilter extends BaseElement {
     this.iconEL = this.shadowRoot?.querySelector<LitIcon>('#icon');
     this.statisticsName = this.shadowRoot?.querySelector<HTMLDivElement>('.statistics-name');
     let transferEL = this.shadowRoot?.querySelector<HTMLDivElement>('.transfer-text');
-    this.iconEL!.onclick = (e): void => {
+    transferEL!.onclick = (): void => {
+      this.getTransferList();
+    };
+    this.setSelectList();
+    this.initializeCallTree();
+    this.initializeTreeConstraints();
+    this.initializeMining();
+    this.initializeLibrary();
+    this.initBaseElListener();
+    this.queryElListener();
+  }
+
+  private queryElListener(): void {
+    this.shadowRoot!.querySelectorAll<HTMLDivElement>('.mining-button').forEach(
+      (e: HTMLDivElement, idx: number): void => {
+        this.miningButtonClickListener(e, idx);
+      }
+    );
+    this.shadowRoot!.querySelector<HTMLDivElement>('.library-button')!.onclick = (ev): void => {
+      const restoreList = this.libraryList!.filter((item) => item.highlight === true);
+      const list = this.libraryList!.filter((item) => item.highlight === false);
+      this.libraryList = list;
+      if (this.getLibrary) {
+        this.getLibrary({
+          type: 'button',
+          item: 'restore',
+          remove: restoreList,
+        });
+      }
+      this.initializeLibrary();
+    };
+    this.shadowRoot!.querySelector<HTMLDivElement>('#data-mining')!.onclick = (e): void => {
+      if (this.getMining) {
+        this.getMining({ type: 'button', item: 'symbol' });
+      }
+    };
+    this.shadowRoot!.querySelector<HTMLDivElement>('#data-library')!.onclick = (e): void => {
+      if (this.getLibrary) {
+        this.getLibrary({ type: 'button', item: 'library' });
+      }
+    };
+    this.shadowRoot!.querySelector<HTMLDivElement>('.sort')!.onclick = (e): void => {
+      let statisticsType = this.statisticsName!.textContent === 'Statistics by Operation';
+      this.statisticsName!.textContent = statisticsType ? 'Statistics by Thread' : 'Statistics by Operation';
+      if (this.getStatisticsType) {
+        this.getStatisticsType(statisticsType ? 'thread' : 'operation');
+      }
+    };
+  }
+
+  private initBaseElListener(): void {
+    this.iconEL!.onclick = (): void => {
       if (this.iconEL!.name === 'statistics') {
         this.iconEL!.name = 'menu';
         this.iconEL!.size = 18;
@@ -140,92 +192,40 @@ export class TabPaneFilter extends BaseElement {
         }
       }
     };
-
-    transferEL!.onclick = (): void => {
-      this.getTransferList();
-    };
-
-    this.markButtonEL!.onclick = (e: MouseEvent): void => {
+    this.markButtonEL!.onclick = (): void => {
       if (this.getFilter) {
         this.getFilter(this.filterData('mark', { mark: true }));
       }
-    };
-
+    }
     this.filterInputEL?.addEventListener('keyup', (event: any): void => {
-      if (event.keyCode === 13) {
-        if (this.getFilter) {
-          this.getFilter(
-            this.filterData('inputValue', {
-              inputValue: event.target.value,
-            })
-          );
-        }
+      if (event.keyCode === 13 && this.getFilter) {
+        this.getFilter(
+          this.filterData('inputValue', {
+            inputValue: event.target.value,
+          })
+        );
       }
       event.stopPropagation();
     });
-
     this.filterInputEL?.addEventListener('keypress', (event: any): void => {
       event.stopPropagation();
     });
+  }
 
-    this.setSelectList();
-
-    this.initializeCallTree();
-
-    this.initializeTreeConstraints();
-
-    this.initializeMining();
-
-    this.initializeLibrary();
-
-    this.shadowRoot!.querySelectorAll<HTMLDivElement>('.mining-button').forEach(
-      (e: HTMLDivElement, idx: number): void => {
-        e!.onclick = (ev): void => {
-          if (idx === 0) {
-            const restoreList = this.cutList!.filter((item: any): boolean => item.highlight === true);
-            const list = this.cutList!.filter((item): boolean => item.highlight === false);
-            this.cutList = list;
-            if (this.getMining) {
-              this.getMining({
-                type: 'button',
-                item: 'restore',
-                remove: restoreList,
-              });
-            }
-            this.initializeMining();
-          }
-        };
-      }
-    );
-    this.shadowRoot!.querySelector<HTMLDivElement>('.library-button')!.onclick = (ev): void => {
-      const restoreList = this.libraryList!.filter((item) => item.highlight === true);
-      const list = this.libraryList!.filter((item) => item.highlight === false);
-      this.libraryList = list;
-      if (this.getLibrary) {
-        this.getLibrary({
-          type: 'button',
-          item: 'restore',
-          remove: restoreList,
-        });
-      }
-      this.initializeLibrary();
-    };
-
-    this.shadowRoot!.querySelector<HTMLDivElement>('#data-mining')!.onclick = (e): void => {
-      if (this.getMining) {
-        this.getMining({ type: 'button', item: 'symbol' });
-      }
-    };
-    this.shadowRoot!.querySelector<HTMLDivElement>('#data-library')!.onclick = (e): void => {
-      if (this.getLibrary) {
-        this.getLibrary({ type: 'button', item: 'library' });
-      }
-    };
-    this.shadowRoot!.querySelector<HTMLDivElement>('.sort')!.onclick = (e): void => {
-      let statisticsType = this.statisticsName!.textContent === 'Statistics by Operation';
-      this.statisticsName!.textContent = statisticsType ? 'Statistics by Thread' : 'Statistics by Operation';
-      if (this.getStatisticsType) {
-        this.getStatisticsType(statisticsType ? 'thread' : 'operation');
+  private miningButtonClickListener(e: HTMLDivElement, idx: number): void {
+    e!.onclick = (ev): void => {
+      if (idx === 0) {
+        const restoreList = this.cutList!.filter((item: any): boolean => item.highlight === true);
+        const list = this.cutList!.filter((item): boolean => item.highlight === false);
+        this.cutList = list;
+        if (this.getMining) {
+          this.getMining({
+            type: 'button',
+            item: 'restore',
+            remove: restoreList,
+          });
+        }
+        this.initializeMining();
       }
     };
   }
@@ -336,26 +336,36 @@ export class TabPaneFilter extends BaseElement {
   ): void {
     let sLE = this.shadowRoot?.querySelector('#load');
     let html = ``;
-    if (firstList) {
-      html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
-      if (firstTitle != '') {
-        html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`;
-      }
-      firstList!.forEach((a, b) => {
-        html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
-      });
-      html += `</lit-select>`;
+    html = this.getSelectFirstListHtml(firstTitle, firstList, html);
+    html = this.getSelectSecondListHtml(secondTitle, secondList, html);
+    let thtml = this.getSelectThirdListHtml(thirdTitle, thirdList);
+    if (!firstList && !secondList) {
+      this.thirdSelectEL!.outerHTML = thtml;
+      this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+      this.thirdSelectEL!.onchange = (e): void => {
+        if (this.getFilter) {
+          this.getFilter(this.filterData('thirdSelect'));
+        }
+      };
+      return;
     }
-    if (secondList) {
-      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
-      if (secondTitle != '') {
-        html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
-      }
-      secondList!.forEach((a, b) => {
-        html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
-      });
-      html += `</lit-select>`;
+    if (!firstList) {
+      this.secondSelectEL!.outerHTML = html;
+    } else if (!secondList) {
+      this.firstSelectEL!.outerHTML = html;
+    } else {
+      sLE!.innerHTML = html + thtml;
     }
+    this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+    this.thirdSelectEL!.outerHTML = thtml;
+    this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+
+    this.firstSelectEL = this.shadowRoot?.querySelector('#first-select');
+    this.secondSelectEL = this.shadowRoot?.querySelector('#second-select');
+    this.initSelectElListener();
+  }
+
+  private getSelectThirdListHtml(thirdTitle: string, thirdList: Array<any> | null | undefined): string {
     let thtml = '';
     if (thirdList) {
       this.setAttribute('third', '');
@@ -370,32 +380,38 @@ export class TabPaneFilter extends BaseElement {
       });
     }
     thtml += `</lit-select>`;
+    return thtml;
+  }
 
-    if (!firstList && !secondList) {
-      this.thirdSelectEL!.outerHTML = thtml;
-      this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
-      this.thirdSelectEL!.onchange = (e): void => {
-        if (this.getFilter) {
-          this.getFilter(this.filterData('thirdSelect'));
-        }
-      };
-      return;
+  private getSelectSecondListHtml(secondTitle: string, secondList: Array<any> | null | undefined, html: string): string {
+    if (secondList) {
+      html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`;
+      if (secondTitle != '') {
+        html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`;
+      }
+      secondList!.forEach((a, b) => {
+        html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
+      });
+      html += `</lit-select>`;
     }
+    return html;
+  }
 
-    if (!firstList) {
-      this.secondSelectEL!.outerHTML = html;
-    } else if (!secondList) {
-      this.firstSelectEL!.outerHTML = html;
-    } else {
-      sLE!.innerHTML = html + thtml;
+  private getSelectFirstListHtml(firstTitle: string, firstList: Array<any> | null | undefined, html: string): string {
+    if (firstList) {
+      html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`;
+      if (firstTitle != '') {
+        html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`;
+      }
+      firstList!.forEach((a, b) => {
+        html += `<lit-select-option value="${b}">${a}</lit-select-option>`;
+      });
+      html += `</lit-select>`;
     }
-    this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
-    this.thirdSelectEL!.outerHTML = thtml;
-    this.thirdSelectEL = this.shadowRoot?.querySelector('#third-select');
+    return html;
+  }
 
-    this.firstSelectEL = this.shadowRoot?.querySelector('#first-select');
-    this.secondSelectEL = this.shadowRoot?.querySelector('#second-select');
-
+  private initSelectElListener(): void{
     this.firstSelectEL!.onchange = (e): void => {
       if (this.getFilter) {
         this.getFilter(this.filterData('firstSelect'));
@@ -423,129 +439,34 @@ export class TabPaneFilter extends BaseElement {
     }
   }
 
+  private treeCheckClickSwitch(idx: number, check: boolean, row: NodeListOf<Element>): void{
+    let checkList = [];
+    for (let index = 0; index < 5; index++) {
+      if (idx === index) {
+        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked)
+      } else {
+        checkList.push(check);
+      }
+    }
+    this.getCallTree!({
+      checks: [checkList[0], checkList[1], checkList[2], checkList[3], checkList[4]],
+      value: idx,
+    });
+  }
+
   initializeCallTree() {
     let row = this.shadowRoot!.querySelectorAll('.tree-check');
     row.forEach((e, idx): void => {
       let check = e.querySelector<LitCheckBox>('lit-check-box');
       e.querySelector('div')!.onclick = (ev): void => {
         if (this.getCallTree) {
-          if (idx === 0) {
-            this.getCallTree({
-              checks: [
-                !check!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 1) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                !check!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 2) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                !check!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 3) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                !check!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 4) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                !check!.checked,
-              ],
-              value: idx,
-            });
-          }
+          this.treeCheckClickSwitch(idx, !check!.checked, row);
         }
         check!.checked = !check!.checked;
       };
       check!.onchange = (ev: any): void => {
         if (this.getCallTree) {
-          if (idx === 0) {
-            this.getCallTree({
-              checks: [
-                ev.target.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 1) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                ev.target.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 2) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                ev.target.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 3) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                ev.target.checked,
-                row[4].querySelector<LitCheckBox>('lit-check-box')!.checked,
-              ],
-              value: idx,
-            });
-          } else if (idx === 4) {
-            this.getCallTree({
-              checks: [
-                row[0].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[1].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[2].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                row[3].querySelector<LitCheckBox>('lit-check-box')!.checked,
-                ev.target.checked,
-              ],
-              value: idx,
-            });
-          }
+          this.treeCheckClickSwitch(idx, ev.target.checked, row);
         }
       };
     });
@@ -809,312 +730,6 @@ export class TabPaneFilter extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            height: 30px;
-            background: var(--dark-background4,#F2F2F2);
-            border-top: 1px solid var(--dark-border1,#c9d0da);display: flex;align-items: center;z-index: 2;
-            margin-left: -10px;
-            width: calc(100% + 20px);
-        }
-
-        .chosen-single {
-            position: relative;
-            display: block;
-            overflow: hidden;
-            text-decoration: none;
-            white-space: nowrap;
-            height: 34px;
-            padding: 3px 6px;
-            font-size: 14px;
-            line-height: 1.42857143;
-            color: #555;
-            background-color: #fff;
-            background-image: none;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
-            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);    
-        }
-        .disabled{
-        color: rgba(0,0,0,0.4);
-        }
-        #pane-filter-input{
-        background: var(--dark-background4,#FFFFFF);
-        border: 1px solid var(--dark-border,rgba(0,0,0,0.60));
-        color: var(--dark-color2,#000000);
-        border-radius: 8px;
-        width: 200px;
-        }
-        #pane-filter-input:focus{
-            outline: none;
-            box-shadow: 1px 1px 1px var(--dark-color,#bebebe);
-        }
-        #pane-filter-input::-webkit-input-placeholder {
-                color: var(--dark-color,#aab2bd);
-            }
-        .describe{
-            /*display: inline-block*/
-            font-size: 0.8rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            min-width: 50px;
-        }
-
-        #mark{
-            border: 1px solid var(--bark-prompt,#999999);
-            border-radius: 1px;
-            background: var(--dark-background4,#F2F2F2);
-            color: var(--dark-color2,rgba(0,0,0,0.9));
-            transition: all 0.1s;
-        }
-        #mark:hover{
-            background: var(--dark-background1,#dfdfdf);
-        }
-        #mark:active{
-            background: var(--dark-background4,#F2F2F2);
-            transition: all 0.05s;
-        }
-        #first-select{
-        width: 200px;
-        }
-        #second-select{
-        width: 200px;
-        }
-        .spacing{
-        margin-left: 10px;
-        }
-        .max-spacing{
-        margin-left: 15px;
-        }
-
-        :host(:not([inputLeftText])) .left-text{
-            display: none;
-        }
-        :host(:not([input])) #pane-filter-input{
-            display: none;
-        }
-        :host(:not([fileSystem])) .popover .tree-check:nth-child(3){
-          display: none;
-        }
-        :host([fileSystem]) .popover .tree-check:nth-child(5){
-          display: none;
-        }
-        :host([nativeMemory]) .popover .tree-check:nth-child(3){
-          display:none;
-        }
-        :host([nativeMemory]) .popover .tree-check:nth-child(5){
-          display:none;
-        }
-        :host([isStatisticsMemory]) .popover .tree-check:nth-child(4){
-          display:none;
-        }
-        :host(:not([mark])) #mark{
-            display: none;
-        }
-        :host(:not([first])) #first-select{
-            display: none;
-        }
-        :host(:not([second])) #second-select{
-            display: none;
-        }
-        :host(:not([third])) #third-select{
-            display: none;
-        }
-        :host(:not([tree])) .tree{
-            display: none;
-        }
-        :host([disabledMining]) #data-mining{
-            display: none;
-        }
-        :host([disabledMining]) #data-library{
-            display: none;
-        }
-        :host([disableTransfer]) .transfer-text{
-          display: none;
-        }
-        :host(:not([icon])) #icon{
-            display: none;
-        }
-        :host(:not([options])) #check-popover{
-            display: none;
-        }
-        #icon[name="statistics"]{
-            margin-left: 12px;
-        }
-        
-        .constraints-input{
-            background: var(--dark-border,#ffffff);
-            color: var(--dark-color1,rgba(0,0,0,0.86));
-            border: 1px solid var(--dark-border,rgba(0,0,0,0.60));
-            border-radius: 10px;
-            width: 40px;
-            margin-left: 10px;
-            outline: none;
-        }
-        .constraints-input[disabled]{
-            background: var(--dark-background5,#ededed);
-        }
-        .reset-button{
-            opacity: 0.9;
-            font-size: 13px;
-            color: #0A59F7;
-            text-align: center;
-            line-height: 16px;
-            background: var(--dark-background3,#F4F3F4);
-            border: 1px solid var(--dark-background8,#F4F3F4);
-            border-radius: 16px;
-            padding: 2px 18px;
-        }
-        
-        #call-tree-popover[visible="true"] #call-tree{
-            color: #0A59F7;
-        }
-        #check-popover[visible="true"] #check-des{
-            color: #0A59F7;
-        }
-        #tree-constraints-popover[visible="true"] #tree-constraints{
-            color: #0A59F7;
-        }
-        #data-mining-popover[visible="true"] #data-mining{
-            color: #0A59F7;
-        }
-        
-        .mining-checked[highlight]{
-            color: #FFFFFF;
-            background: #0C65D1;
-        }
-        #data-library-popover[visible="true"] #data-library{
-            color: #0A59F7;
-        }
-        .library-checked[highlight]{
-            color: #FFFFFF;
-            background: #0C65D1;
-        }
-        #title{
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            flex: 1;
-            text-align: left;
-        }
-        #mining-row{
-            background: var(--dark-background4,#F2F2F2);
-            border-radius: 2px;
-            height: 135px;
-            width: 250px;
-            overflow-y: auto;
-        }
-        #library-row{
-            background: var(--dark-background4,#F2F2F2);
-            border-radius: 2px;
-            height: 135px;
-            width: 250px;
-            overflow-y: auto;
-        }
-        .check-wrap, .tree-check{
-            margin-bottom: 5px;
-            display: flex;
-            align-content: center;
-        }
-        .sort{
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        :host(:not([sort])) .sort{
-            display: none;
-        }
-        .popover{
-            display: flex;
-        }
-        .lit-check-box{
-            margin-right: 5px;
-        }
-        .transfer-list{
-          display: flex;
-          flex-derection: column;
-        }
-        .tree-radio{
-          margin: 5px 0;
-          cursor: pointer;
-        }
-        .radio{
-          cursor: pointer;
-        }
-        .hide{
-          display: none;
-        }
-</style>
-    <lit-icon name="menu" class="spacing" id="icon" size="20"></lit-icon>
-    <span class="describe left-text spacing">Input Filter</span>
-    <input id="pane-filter-input" class="spacing" placeholder="${this.inputPlaceholder}"/>
-    <button id="mark" class="spacing">Mark Snapshot</button>
-    <div id="load" style="display: flex">
-    
-    </div>
-        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="call-tree-popover">
-             <div slot="content">
-                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Invert</div></div>
-                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide System so</div></div>
-                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide Event</div></div>
-                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide Thread</div></div>
-                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide Thread State</div></div>
-             </div>
-             <span class="describe tree max-spacing" id="call-tree">Options</span>
-      </lit-popover>
-        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="check-popover">
-             <div slot="content"></div>
-             <span class="describe max-spacing" id="check-des">Options</span>
-        </lit-popover>
-        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="tree-constraints-popover">
-             <div slot="content" style="display: flex; align-items: flex-end">
-                 <lit-check-box id="constraints-check" not-close></lit-check-box>
-                 <input class="constraints-input" disabled value="0" not-close/>
-                 <lit-popover placement="topLeft" class="popover" haveRadio="true" not-close>
-                     <div slot="content">
-                         <div style="font-size: 0.7rem">Constraints：Only enabled with data and while stopped；</div>
-                         <div style="font-size: 0.7rem">filters data to thresholds. </div>
-                     </div>
-                     <input class="constraints-input" disabled value="∞" not-close/>
-                  </lit-popover>
-             </div>
-             <span class="describe tree max-spacing" id="tree-constraints">Sample Count Filter</span>
-        </lit-popover>
-         <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-mining-popover">
-            <div slot="content">
-                 <div id="mining-row">
-                     
-                 </div>
-                 <div style="display: flex;justify-content: space-around; margin-top: 8px">
-                     <div class="mining-button reset-button">Reset</div>
-                 </div>
-            </div>
-            <span class="describe tree max-spacing" id="data-mining">Symbol Filter</span>
-        </lit-popover>
-        <lit-popover placement="topLeft" class="popover transfer-area" haveRadio="true" trigger="click" id="call-tree-popover">
-        <div slot="content" id="transfer-list" style="display:block; height:auto; max-height: 200px; overflow-y:auto;">
-            
-        </div>
-        <span class="describe tree max-spacing transfer-text" id="call-tree">Transfer</span>
-        </lit-popover>
-        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-library-popover">
-            <div slot="content">
-                 <div id="library-row">
-                     
-                 </div>
-                 <div style="display: flex;justify-content: space-around; margin-top: 8px">
-                     <div class="library-button reset-button">Reset</div>
-                 </div>
-            </div>
-            <span class="describe tree max-spacing" id="data-library">Library Filter</span>
-        </lit-popover>
-        <div class="sort">
-            <lit-icon name="swap" class="spacing" size="16"></lit-icon>
-            <div style="margin-left: 5px" class="describe statistics-name">Statistics by Thread</div>
-        </div>
-        `;
+    return TabPaneFilterHtml(this.inputPlaceholder);
   }
 }

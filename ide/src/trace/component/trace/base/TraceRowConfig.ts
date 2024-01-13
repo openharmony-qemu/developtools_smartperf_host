@@ -408,6 +408,14 @@ export class TraceRowConfig extends BaseElement {
     this.switchButton = this.shadowRoot?.querySelector<LitIcon>('#switch-button');
     this.openFileIcon = this.shadowRoot?.querySelector<LitIcon>('#open-file-icon');
     this.configTitle = this.shadowRoot?.querySelector<HTMLDivElement>('#config_title');
+    this.initSwitchClickListener();
+    this.openFileIcon!.addEventListener('click', () => {
+      this.openTempFile!.value = '';
+      this.openTempFile?.click();
+    });
+  }
+
+  private initSwitchClickListener(): void {
     let jsonUrl = `https://${window.location.host.split(':')[0]}:${
       window.location.port
     }/application/trace/config/custom_temp_config.json`;
@@ -431,14 +439,14 @@ export class TraceRowConfig extends BaseElement {
         } else {
           if (localJson === '') {
             fetch(jsonUrl)
-              .then((res) => {
-                if (res.ok) {
-                  res.text().then((text) => {
-                    localJson = text;
-                    this.loadTempConfig(localJson);
-                  });
-                }
-              })
+            .then((res) => {
+              if (res.ok) {
+                res.text().then((text) => {
+                  localJson = text;
+                  this.loadTempConfig(localJson);
+                });
+              }
+            })
               ['catch']((err) => {
               console.log(err);
             });
@@ -447,11 +455,6 @@ export class TraceRowConfig extends BaseElement {
           }
         }
       }
-    });
-
-    this.openFileIcon!.addEventListener('click', () => {
-      this.openTempFile!.value = '';
-      this.openTempFile?.click();
     });
   }
 

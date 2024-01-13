@@ -87,6 +87,10 @@ export class SpChartList extends BaseElement {
       }
       this.refreshFavoriteCanvas();
     });
+    this.initChartListListener();
+  }
+
+  private initChartListListener(): void {
     this.icon1?.addEventListener('click', () => {
       this.collect1Expand = !this.collect1Expand;
       if (this.collect1Expand) {
@@ -514,41 +518,44 @@ export class SpChartList extends BaseElement {
     window.publish(window.SmartEvent.UI.RefreshCanvas, {});
   }
 
+  private getHtmlCss(): string {
+    return `<style>
+    :host{
+        display: none;
+        width: 100%;
+        height: auto;
+        overflow-anchor: none;
+        z-index: 1;
+        box-shadow: 0 10px 10px #00000044;
+        position: relative;
+        overflow: auto;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+    }
+    .root{
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .panel-canvas{
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        box-sizing: border-box;
+    }
+    .icon:hover {
+     color:#ecb93f;
+    }
+    .icon {
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    </style>`;
+  }
+
   initHtml(): string {
     return `
-<style>
-:host{
-    display: none;
-    width: 100%;
-    height: auto;
-    overflow-anchor: none;
-    z-index: 1;
-    /*background-color: #00a3f5;*/
-    box-shadow: 0 10px 10px #00000044;
-    position: relative;
-    overflow: auto;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
-}
-.root{
-    width: 100%;
-    box-sizing: border-box;
-}
-.panel-canvas{
-    position: absolute;
-    top: 0;
-    right: 0px;
-    bottom: 0px;
-    box-sizing: border-box;
-}
-.icon:hover {
- color:#ecb93f;
-}
-.icon {
-    margin-right: 10px;
-    cursor: pointer;
-}
-</style>
+ ${this.getHtmlCss()}
 <canvas id="canvas-panel" class="panel-canvas" ondragstart="return false"></canvas>
 <div class="root">
     <div id="group-1-title" style="background-color: #efefef;padding: 10px;align-items: center">

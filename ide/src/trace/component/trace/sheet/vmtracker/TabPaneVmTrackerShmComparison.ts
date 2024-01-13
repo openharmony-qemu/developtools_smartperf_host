@@ -12,17 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { Utils } from '../../base/Utils';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { resizeObserverFromMemory } from '../SheetUtils';
-import {queryVmTrackerShmSelectionData} from "../../../../database/sql/Memory.sql";
+import { queryVmTrackerShmSelectionData } from '../../../../database/sql/Memory.sql';
+import { TabPaneVmTrackerShmComparisonHtml } from './TabPaneVmTrackerShmComparison.html';
 
 @element('tabpane-vmtracker-shm-comparison')
 export class TabPaneVmTrackerShmComparison extends BaseElement {
@@ -144,61 +145,7 @@ export class TabPaneVmTrackerShmComparison extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 10px 10px 0 10px;
-            height: calc(100% - 10px - 31px);
-        }
-        tab-pane-filter {
-            border: solid rgb(216,216,216) 1px;
-            float: left;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        selector{
-            display: none;
-        }
-        .show{
-            display: flex;
-            flex: 1;
-        }
-        .progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        .loading{
-            bottom: 0;
-            position: absolute;
-            left: 0;
-            right: 0;
-            width:100%;
-            background:transparent;
-            z-index: 999999;
-        }
-        </style>
-        <div style="display: flex;flex-direction: row;height: 100%;">
-            <selector id='show_table' class="show">
-                <lit-slicer style="width:100%">
-                    <div style="width: 100%">
-                        <lit-table id="tb-comparison" style="height: auto">
-                            <lit-table-column width="1fr" title="SizeDelta" data-index="sizeDeltaStr" key="sizeDelta" align="flex-start"  order>
-                            </lit-table-column>
-                        </lit-table>
-                    </div>
-                </lit-slicer>
-            </selector>
-            <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-js-memory-filter id="filter" first hideFilter ></tab-pane-js-memory-filter>
-            <div class="loading"></div>
-        </div>
-        `;
+    return TabPaneVmTrackerShmComparisonHtml;
   }
 }
 

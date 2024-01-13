@@ -75,11 +75,12 @@ export function proc(
       if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
         ProcessStruct.setProcessFrame(processList[i], 5, startNS, endNS, totalNS, frame);
         if (
-          i > 0 &&
-          (processList[i - 1].frame?.x || 0) == (processList[i].frame?.x || 0) &&
-          (processList[i - 1].frame?.width || 0) == (processList[i].frame?.width || 0)
+          !(
+            i > 0 &&
+            (processList[i - 1].frame.x || 0) == (processList[i].frame.x || 0) &&
+            (processList[i - 1].frame.width || 0) == (processList[i].frame.width || 0)
+          )
         ) {
-        } else {
           res.push(processList[i]);
         }
       }

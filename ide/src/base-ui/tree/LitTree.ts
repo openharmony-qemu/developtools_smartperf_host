@@ -454,7 +454,23 @@ export class LitTree extends BaseElement {
       this.treeData.push(obj);
     }
   }
-
+  insertNodeDragEvent(insertNode: LitTreeNode){
+    if (this.hasAttribute('dragable')) {
+      insertNode.draggable = true;
+      document.ondragover = function (e): void {
+        e.preventDefault();
+      };
+      //在拖动目标上触发事件 (源元素)
+      insertNode.ondrag = (ev): void => this.onDrag(ev); //元素正在拖动时触发
+      insertNode.ondragstart = (ev): undefined => this.onDragStart(ev); //用户开始拖动元素时触发
+      insertNode.ondragend = (ev): undefined => this.onDragEnd(ev); // 用户完成元素拖动后触发
+      //释放目标时触发的事件:
+      insertNode.ondragenter = (ev): undefined => this.onDragEnter(ev); //当被鼠标拖动的对象进入其容器范围内时触发此事件
+      insertNode.ondragover = (ev): undefined => this.onDragOver(ev); //当某被拖动的对象在另一对象容器范围内拖动时触发此事件
+      insertNode.ondragleave = (ev): undefined => this.onDragLeave(ev); //当被鼠标拖动的对象离开其容器范围内时触发此事件
+      insertNode.ondrop = (ev): undefined => this.onDrop(ev); //在一个拖动过程中，释放鼠标键时触发此事件
+    }
+  }
   _insertNode(parent: any, a: any): void {
     if (!parent) {
       parent = this.shadowRoot!.querySelector('#root');

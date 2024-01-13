@@ -1155,54 +1155,41 @@ void HtraceMemParser::ParseVMemInfo(const ProtoReader::MemoryData_Reader* traceP
         ProtoReader::SysVMeminfo_Reader sysVMeminfo(i->ToBytes());
         if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_UNSPECIFIED &&
             sysVMeminfo.key() <= ProtoReader::VMEMINFO_NR_ANON_PAGES) {
-            // key  0 <----> 9
             ParseVMemInfoOne(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_NR_MAPPED &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_NR_UNSTABLE) {
-            // key  10 <----> 19
             ParseVMemInfoTwo(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_NR_BOUNCE &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_NR_PAGES_SCANNED) {
-            // key  20 <----> 29
             ParseVMemInfoThree(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_WORKINGSET_REFAULT &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_PGPGOUT) {
-            // key  30 <----> 39
             ParseVMemInfoFour(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_PGPGOUTCLEAN &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_PGFAULT) {
-            // key  40 <----> 49
             ParseVMemInfoFive(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_PGMAJFAULT &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_PGSTEAL_DIRECT_MOVABLE) {
-            // key  50 <----> 59
             ParseVMemInfoSix(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_PGSCAN_KSWAPD_DMA &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_KSWAPD_INODESTEAL) {
-            // key  60 <----> 69
             ParseVMemInfoSeven(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_COMPACT_MIGRATE_SCANNED) {
-            // key  70 <----> 79
             ParseVMemInfoEight(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_COMPACT_FREE_SCANNED &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_UNEVICTABLE_PGS_MLOCKED) {
-            // key  80 <----> 89
             ParseVMemInfoNine(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_COMPACT_DAEMON_FREE_SCANNED) {
-            // key  90 <----> 99
             ParseVMemInfoTen(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_NR_ZONE_ACTIVE_ANON) {
-            // key  100 <----> 109
             ParseVMemInfoEleven(sysVMeminfo, timeStamp);
         } else if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_NR_ZONE_ACTIVE_FILE &&
                    sysVMeminfo.key() <= ProtoReader::VMEMINFO_PGSCAN_DIRECT) {
-            // key  110 <----> 119
             ParseVMemInfoTwelve(sysVMeminfo, timeStamp);
         } else {
-            // key  120 <---->
             ParseVMemInfoThirteen(sysVMeminfo, timeStamp);
         }
     }

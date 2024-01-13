@@ -28,6 +28,7 @@ import {
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { convertJSON } from '../../logic-worker/ProcedureLogicWorkerCommon';
+import {SpSystemTrace} from "../../../component/SpSystemTrace";
 
 export class CpuFreqLimitRender extends Render {
   renderMainThread(
@@ -80,7 +81,18 @@ export class CpuFreqLimitRender extends Render {
     cpuFreqLimitReq.context.fillText(s, 4, 5 + 9);
   }
 }
-
+export function CpuFreqLimitsStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+    return new Promise((resolve, reject) => {
+      if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT && CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct) {
+        CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
+        sp.traceSheetEL?.displayFreqLimitData();
+        sp.timerShaftEL?.modifyFlagList(undefined);
+        reject();
+      }else{
+        resolve(null);
+      }
+    });
+}
 export class CpuFreqLimitsStruct extends BaseStruct {
   static hoverCpuFreqLimitsStruct: CpuFreqLimitsStruct | undefined;
   static selectCpuFreqLimitsStruct: CpuFreqLimitsStruct | undefined;

@@ -260,7 +260,7 @@ void HtraceParser::FilterData(HtraceDataSegment& seg, bool isSplitFile)
         htraceMemParser_->ParseMemoryConfig(seg);
     }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
-        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
     if (traceDataCache_->supportThread_ && !traceDataCache_->isSplitFile_) {
         filterHead_ = (filterHead_ + 1) % maxSegArraySize;
@@ -303,7 +303,7 @@ bool HtraceParser::SpliteConfigData(const std::string& pluginName, const HtraceD
         arkTsConfigData_ = lenBuffer_ + dataString;
         return true;
     } else if (EndWith(pluginName, "config")) {
-        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
         return true;
     }
     return false;
@@ -322,7 +322,7 @@ bool HtraceParser::SpliteDataBySegment(DataIndex pluginNameIndex, HtraceDataSegm
     }
     if (dataSeg.timeStamp >= traceDataCache_->SplitFileMinTime() &&
         dataSeg.timeStamp <= traceDataCache_->SplitFileMaxTime()) {
-        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
     if (pluginNameIndex == arktsPluginConfigIndex_ || pluginNameIndex == arktsPluginIndex_) {
         return false;
@@ -507,7 +507,7 @@ void HtraceParser::ParseFtrace(HtraceDataSegment& dataSeg)
         dataSeg.status = TS_PARSE_STATUS_PARSED;
     }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
-        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
     dataSeg.status = TS_PARSE_STATUS_INVALID;
 }
@@ -601,14 +601,14 @@ int32_t HtraceParser::GetNextSegment()
 }
 bool HtraceParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
-    auto standaloneDataLength = profilerDataLength_ - packetHeaderLength;
+    auto standaloneDataLength = profilerDataLength_ - packetHeaderLength_;
     if (traceDataCache_->isSplitFile_ && !parsedEbpfOver_) {
         if (!hasInitEbpfPublicData_) {
             // Record the offset of Hiperf's 1024-byte header relative to the entire file.
             ebpfDataParser_->SetEbpfDataOffset(processedDataLen_);
             ebpfDataParser_->SetSpliteTimeRange(traceDataCache_->SplitFileMinTime(),
                                                 traceDataCache_->SplitFileMaxTime());
-            parsedFileOffset_ += profilerDataLength_ - packetHeaderLength;
+            parsedFileOffset_ += profilerDataLength_ - packetHeaderLength_;
             hasInitEbpfPublicData_ = true;
         }
         parsedEbpfOver_ = ebpfDataParser_->AddAndSplitEbpfData(packagesBuffer_);
@@ -630,25 +630,68 @@ bool HtraceParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegi
     return false;
 }
 
-bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+bool HtraceParser::GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
     if (!hasGotHeader_) {
-        if (InitProfilerTraceFileHeader()) {
-            packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + packetHeaderLength);
-            processedDataLen_ += packetHeaderLength;
-            currentLength -= packetHeaderLength;
-            packagesBegin += packetHeaderLength;
-            parsedFileOffset_ += packetHeaderLength;
-            htraceCurentLength_ = profilerDataLength_;
-            htraceCurentLength_ -= packetHeaderLength;
-            hasGotHeader_ = true;
-            if (!currentLength) {
-                return false;
-            }
-        } else {
+        if (!InitProfilerTraceFileHeader()) {
+            return false;
+        }
+        packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + packetHeaderLength_);
+        processedDataLen_ += packetHeaderLength_;
+        currentLength -= packetHeaderLength_;
+        packagesBegin += packetHeaderLength_;
+        parsedFileOffset_ += packetHeaderLength_;
+        htraceCurentLength_ = profilerDataLength_;
+        htraceCurentLength_ -= packetHeaderLength_;
+        hasGotHeader_ = true;
+        if (!currentLength) {
             return false;
         }
     }
+    return true;
+}
+#if IS_WASM
+bool HtraceParser::ParseSDKData()
+{
+    if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_) {
+        auto thirdPartySize = profilerDataLength_ - packetHeaderLength_;
+        auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
+        std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
+        TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(buffer), thirdPartySize, standalonePluginName_);
+        return true;
+    }
+    return false;
+}
+#endif
+
+bool HtraceParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator& packagesBegin,
+                                                        size_t& currentLength)
+{
+    std::string bufferLine;
+    if (!hasGotSegLength_) {
+        if (currentLength < packetSegLength_) {
+            return false;
+        }
+        bufferLine.assign(packagesBegin, packagesBegin + packetSegLength_);
+        const uint32_t* len = reinterpret_cast<const uint32_t*>(bufferLine.data());
+        nextLength_ = *len;
+        lenBuffer_ = bufferLine;
+        htraceLength_ += nextLength_ + packetSegLength_;
+        hasGotSegLength_ = true;
+        currentLength -= packetSegLength_;
+        packagesBegin += packetSegLength_;
+        parsedFileOffset_ += packetSegLength_;
+        splitFileOffset_ = profilerDataLength_ - htraceCurentLength_;
+        htraceCurentLength_ -= packetSegLength_;
+    }
+    if (currentLength < nextLength_) {
+        return false;
+    }
+    return true;
+}
+bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+{
+    TS_CHECK_TRUE_RET(GetHeaderAndUpdateLengthMark(packagesBegin, currentLength), false);
     if (profilerDataType_ == ProfilerTraceFileHeader::HIPERF_DATA) {
         return ParseHiperfData(packagesBegin, currentLength);
     }
@@ -657,38 +700,13 @@ bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesB
             return CalcEbpfCutOffset(packagesBegin, currentLength);
         } else {
 #if IS_WASM
-            if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength) {
-                auto thirdPartySize = profilerDataLength_ - packetHeaderLength;
-                auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
-                std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
-                TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(buffer), thirdPartySize,
-                                                standalonePluginName_);
-                return true;
-            }
+            TS_CHECK_TRUE_RET(ParseSDKData(), false); // 三方sdk逻辑待验证。
 #endif
         }
     }
     std::string bufferLine;
     while (true) {
-        if (!hasGotSegLength_) {
-            if (currentLength < packetSegLength) {
-                break;
-            }
-            bufferLine.assign(packagesBegin, packagesBegin + packetSegLength);
-            const uint32_t* len = reinterpret_cast<const uint32_t*>(bufferLine.data());
-            nextLength_ = *len;
-            lenBuffer_ = bufferLine;
-            htraceLength_ += nextLength_ + packetSegLength;
-            hasGotSegLength_ = true;
-            currentLength -= packetSegLength;
-            packagesBegin += packetSegLength;
-            parsedFileOffset_ += packetSegLength;
-            splitFileOffset_ = profilerDataLength_ - htraceCurentLength_;
-            htraceCurentLength_ -= packetSegLength;
-        }
-        if (currentLength < nextLength_) {
-            break;
-        }
+        TS_CHECK_TRUE_RET(ParseSegLengthAndEnsureSegDataEnough(packagesBegin, currentLength), true);
         bufferLine.assign(packagesBegin, packagesBegin + nextLength_);
         ParseTraceDataItem(bufferLine);
         hasGotSegLength_ = false;
@@ -726,8 +744,8 @@ void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, s
 bool HtraceParser::ParseHiperfData(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
     if (!traceDataCache_->isSplitFile_) {
-        if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength) {
-            auto size = profilerDataLength_ - packetHeaderLength;
+        if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_) {
+            auto size = profilerDataLength_ - packetHeaderLength_;
             (void)perfDataParser_->InitPerfDataAndLoad(packagesBuffer_, size, processedDataLen_, false, true);
             currentLength -= size;
             packagesBegin += size;
@@ -738,10 +756,10 @@ bool HtraceParser::ParseHiperfData(std::deque<uint8_t>::iterator& packagesBegin,
         return false;
     }
 
-    bool isFinish = perfProcessedLen_ + packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength;
+    bool isFinish = perfProcessedLen_ + packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_;
     auto size = packagesBuffer_.size();
     if (isFinish) {
-        size = profilerDataLength_ - packetHeaderLength - perfProcessedLen_;
+        size = profilerDataLength_ - packetHeaderLength_ - perfProcessedLen_;
     }
     auto ret = perfDataParser_->InitPerfDataAndLoad(packagesBuffer_, size, processedDataLen_, true, isFinish);
     perfProcessedLen_ += ret;
@@ -776,29 +794,29 @@ void HtraceParser::TraceDataSegmentEnd(bool isSplitFile)
 
 bool HtraceParser::InitProfilerTraceFileHeader()
 {
-    if (packagesBuffer_.size() < packetHeaderLength) {
+    if (packagesBuffer_.size() < packetHeaderLength_) {
         TS_LOGI("buffer size less than profiler trace file header");
         return false;
     }
-    uint8_t buffer[packetHeaderLength];
+    uint8_t buffer[packetHeaderLength_];
     (void)memset_s(buffer, sizeof(buffer), 0, sizeof(buffer));
     int32_t i = 0;
-    for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + packetHeaderLength; ++it, ++i) {
+    for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + packetHeaderLength_; ++it, ++i) {
         buffer[i] = *it;
     }
     ProfilerTraceFileHeader* pHeader = reinterpret_cast<ProfilerTraceFileHeader*>(buffer);
-    if (pHeader->data.length <= packetHeaderLength || pHeader->data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
+    if (pHeader->data.length <= packetHeaderLength_ || pHeader->data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
         TS_LOGE("Profiler Trace data is truncated or invalid magic! len = %" PRIu64 ", maigc = %" PRIx64 "",
                 pHeader->data.length, pHeader->data.magic);
         return false;
     }
     if (pHeader->data.dataType == ProfilerTraceFileHeader::HIPERF_DATA) {
-        perfDataParser_->RecordPerfProfilerHeader(buffer, packetHeaderLength);
+        perfDataParser_->RecordPerfProfilerHeader(buffer, packetHeaderLength_);
     } else if (pHeader->data.dataType == ProfilerTraceFileHeader::STANDALONE_DATA &&
                EBPF_PLUGIN_NAME.compare(pHeader->data.standalonePluginName) == 0) {
-        ebpfDataParser_->RecordEbpfProfilerHeader(buffer, packetHeaderLength);
+        ebpfDataParser_->RecordEbpfProfilerHeader(buffer, packetHeaderLength_);
     } else {
-        auto ret = memcpy_s(&profilerTraceFileHeader_, sizeof(profilerTraceFileHeader_), buffer, packetHeaderLength);
+        auto ret = memcpy_s(&profilerTraceFileHeader_, sizeof(profilerTraceFileHeader_), buffer, packetHeaderLength_);
         if (ret == -1 || profilerTraceFileHeader_.data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
             TS_LOGE("Get profiler trace file header failed! ret = %d, magic = %" PRIx64 "", ret,
                     profilerTraceFileHeader_.data.magic);
@@ -814,7 +832,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
             pHeader->data.length, pHeader->data.dataType, pHeader->data.boottime);
 #if IS_WASM
     const int32_t DATA_TYPE_CLOCK = 100;
-    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(buffer), packetHeaderLength, DATA_TYPE_CLOCK);
+    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
 #endif
     htraceClockDetailParser_->Parse(pHeader);
     return true;

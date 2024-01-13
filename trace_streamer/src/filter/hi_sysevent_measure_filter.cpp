@@ -140,11 +140,15 @@ bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool& haveSplitSe
         }
         return false;
     }
+    UpdataAllHiSysEvent(jsMassage, newTimeStamp);
+    return true;
+}
+void HiSysEventMeasureFilter::UpdataAllHiSysEvent(const JsonMessage& jsMassage, uint64_t newTimeStamp)
+{
     traceDataCache_->GetHiSysEventAllEventData()->AppendHiSysEventData(
         jsMassage.domainId, jsMassage.eventNameId, newTimeStamp, jsMassage.type, jsMassage.timeZone, jsMassage.pid,
         jsMassage.tid, jsMassage.uid, jsMassage.level, jsMassage.tag, jsMassage.eventId, jsMassage.seq, jsMassage.info,
         jsMassage.content.dump());
-    return true;
 }
 bool HiSysEventMeasureFilter::JGetData(const json& jMessage,
                                        JsonData& jData,

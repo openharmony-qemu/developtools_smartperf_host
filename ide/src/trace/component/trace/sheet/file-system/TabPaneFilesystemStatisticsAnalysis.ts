@@ -97,7 +97,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         },
         {
           funcName: 'getCurrentDataFromDb',
-          funcArgs: [{ queryFuncName: 'fileSystem', ...val }],
+          funcArgs: [{queryFuncName: 'fileSystem', ...val}],
         },
       ],
       (results: any[]) => {
@@ -105,6 +105,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       }
     );
   }
+
   initElements(): void {
     this.fileStatisticsAnalysisRange = this.shadowRoot?.querySelector('#time-range');
     this.fsPieChart = this.shadowRoot!.querySelector<LitChartPie>('#fs-chart-pie');
@@ -508,9 +509,36 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.fileSystemTitleEl!.textContent = title;
     this.fsPieChart?.hideTip();
   }
+
   private libraryPieChart(): void {
     // @ts-ignore
     this.sumDur = this.libStatisticsData.allDuration;
+    this.setFsPieChartConfig();
+    let fileSystemTitle = '';
+    if (this.fsProcessName.length > 0) {
+      fileSystemTitle += this.fsProcessName + ' / ';
+    }
+    if (this.typeName.length > 0) {
+      if (this.hideThreadCheckBox?.checked) {
+        fileSystemTitle += this.typeName;
+      } else {
+        fileSystemTitle += this.typeName + ' / ';
+      }
+    }
+    if (this.fileStatisticsAnalysisThreadName.length > 0) {
+      fileSystemTitle += this.fileStatisticsAnalysisThreadName;
+    }
+    this.fileSystemTitleEl!.textContent = fileSystemTitle;
+    this.tabName!.textContent = 'Statistic By Library AllDuration';
+    this.fileStatisticsAnalysisSoData.unshift(this.libStatisticsData);
+    this.fileStatisticsAnalysisTableSo!.recycleDataSource = this.fileStatisticsAnalysisSoData;
+    // @ts-ignore
+    this.fileStatisticsAnalysisSoData.shift(this.libStatisticsData);
+    this.currentLevelData = this.fileStatisticsAnalysisSoData;
+    this.fileStatisticsAnalysisTableSo?.reMeauseHeight();
+  }
+
+  private setFsPieChartConfig(): void {
     this.fsPieChart!.config = {
       appendPadding: 0,
       data: this.getFsPieChartData(this.fileStatisticsAnalysisSoData),
@@ -547,33 +575,21 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    let fileSystemTitle = '';
-    if (this.fsProcessName.length > 0) {
-      fileSystemTitle += this.fsProcessName + ' / ';
-    }
-    if (this.typeName.length > 0) {
-      if (this.hideThreadCheckBox?.checked) {
-        fileSystemTitle += this.typeName;
-      } else {
-        fileSystemTitle += this.typeName + ' / ';
-      }
-    }
-    if (this.fileStatisticsAnalysisThreadName.length > 0) {
-      fileSystemTitle += this.fileStatisticsAnalysisThreadName;
-    }
-    this.fileSystemTitleEl!.textContent = fileSystemTitle;
-    this.tabName!.textContent = 'Statistic By Library AllDuration';
-    this.fileStatisticsAnalysisSoData.unshift(this.libStatisticsData);
-    this.fileStatisticsAnalysisTableSo!.recycleDataSource = this.fileStatisticsAnalysisSoData;
-    // @ts-ignore
-    this.fileStatisticsAnalysisSoData.shift(this.libStatisticsData);
-    this.currentLevelData = this.fileStatisticsAnalysisSoData;
-    this.fileStatisticsAnalysisTableSo?.reMeauseHeight();
   }
 
   private fileSoLevelClickEvent(it: any): void {
     this.reset(this.fileStatisticsAnalysisTableFunction!, true);
-    this.getFilesystemFunction(it);
+    // this.getFilesystemFunction(it);
+    this.fileStatisticsAnalysisProgressEL!.loading = true;
+    this.shadowRoot!.querySelector<HTMLDivElement>('.fs-subheading')!.textContent = 'Statistic By Function AllDuration';
+    if (!this.fileStatisticsAnalysisProcessData || this.fileStatisticsAnalysisProcessData.length === 0) {
+      return;
+    }
+    let allDur = 0;
+    let symbolMap = new Map<number, Array<any>>();
+    allDur = this.symbolMapProcessData(it, allDur, symbolMap);
+    this.updateFunctionData(symbolMap, it, allDur);
+    this.getFilesystemFunction(allDur);
     let title = '';
     if (this.fsProcessName.length > 0) {
       title += this.fsProcessName + ' / ';
@@ -589,6 +605,51 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     }
     this.fileSystemTitleEl!.textContent = title;
     this.fsPieChart?.hideTip();
+  }
+
+  private getFilesystemFunction(allDur: number): void {
+    this.fileStatisticsAnalysisFunctionData.sort((a, b) => b.duration - a.duration);
+    this.functionStatisticsData = this.totalDurationData(allDur);
+    this.currentLevel = 4;
+    this.fileStatisticsAnalysisProgressEL!.loading = false;
+    // @ts-ignore
+    this.sumDur = this.functionStatisticsData.allDuration;
+    this.fsPieChart!.config = {
+      appendPadding: 0,
+      data: this.getFsPieChartData(this.fileStatisticsAnalysisFunctionData),
+      angleField: 'duration',
+      colorField: 'tableName',
+      radius: 1,
+      label: {
+        type: 'outer',
+      },
+      tip: (fsaObj): string => {
+        return `<div>
+                    <div>Function:${fsaObj.obj.tableName}</div>
+                    <div>Duration:${fsaObj.obj.durFormat}</div>
+                    <div>percent:${fsaObj.obj.percent}</div>
+                </div>
+                `;
+      },
+      hoverHandler: (data): void => {
+        if (data) {
+          this.fileStatisticsAnalysisTableFunction!.setCurrentHover(data);
+        } else {
+          this.fileStatisticsAnalysisTableFunction!.mouseOut();
+        }
+      },
+      interactions: [
+        {
+          type: 'element-active',
+        },
+      ],
+    };
+    this.fileStatisticsAnalysisFunctionData.unshift(this.functionStatisticsData);
+    this.fileStatisticsAnalysisTableFunction!.recycleDataSource = this.fileStatisticsAnalysisFunctionData;
+    this.fileStatisticsAnalysisTableFunction?.reMeauseHeight();
+    // @ts-ignore
+    this.fileStatisticsAnalysisFunctionData.shift(this.functionStatisticsData);
+    this.currentLevelData = this.fileStatisticsAnalysisFunctionData;
   }
 
   private sortByColumn(): void {
@@ -614,71 +675,83 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       return;
     }
     if (this.fsSortType === 0) {
-      let fsaArr = [...this.currentLevelData];
-      switch (this.currentLevel) {
-        case 0:
-          fsaArr.unshift(this.processStatisticsData);
-          break;
-        case 1:
-          fsaArr.unshift(this.typeStatisticsData);
-          break;
-        case 2:
-          fsaArr.unshift(this.threadStatisticsData);
-          break;
-        case 3:
-          fsaArr.unshift(this.libStatisticsData);
-          break;
-        case 4:
-          fsaArr.unshift(this.functionStatisticsData);
-          break;
-      }
-      fsaCurrentTable!.recycleDataSource = fsaArr;
+      this.sortAndRefreshTable(fsaCurrentTable);
     } else {
-      let fsaArray = [...this.currentLevelData];
-      if (this.fsSortColumn === 'tableName') {
-        fsaCurrentTable!.recycleDataSource = fsaArray.sort((firstElement, secondElement) => {
-          if (this.fsSortType === 1) {
-            if (firstElement.tableName > secondElement.tableName) {
-              return 1;
-            } else if (firstElement.tableName === secondElement.tableName) {
-              return 0;
-            } else {
-              return -1;
-            }
-          } else {
-            if (secondElement.tableName > firstElement.tableName) {
-              return 1;
-            } else if (firstElement.tableName === secondElement.tableName) {
-              return 0;
-            } else {
-              return -1;
-            }
-          }
-        });
-      } else if (this.fsSortColumn === 'durFormat' || this.fsSortColumn === 'percent') {
-        fsaCurrentTable!.recycleDataSource = fsaArray.sort((a, b) => {
-          return this.fsSortType === 1 ? a.duration - b.duration : b.duration - a.duration;
-        });
-      }
-      switch (this.currentLevel) {
-        case 0:
-          fsaArray.unshift(this.processStatisticsData);
-          break;
-        case 1:
-          fsaArray.unshift(this.typeStatisticsData);
-          break;
-        case 2:
-          fsaArray.unshift(this.threadStatisticsData);
-          break;
-        case 3:
-          fsaArray.unshift(this.libStatisticsData);
-          break;
-        case 4:
-          fsaArray.unshift(this.functionStatisticsData);
-          break;
-      }
-      fsaCurrentTable!.recycleDataSource = fsaArray;
+      this.sortAndRefreshTableByColumn(fsaCurrentTable);
     }
+  }
+
+  private sortAndRefreshTableByColumn(fsaCurrentTable: LitTable): void {
+    let fsaArray = [...this.currentLevelData];
+    if (this.fsSortColumn === 'tableName') {
+      this.sortTableNameCase(fsaCurrentTable, fsaArray);
+    } else if (this.fsSortColumn === 'durFormat' || this.fsSortColumn === 'percent') {
+      fsaCurrentTable!.recycleDataSource = fsaArray.sort((a, b) => {
+        return this.fsSortType === 1 ? a.duration - b.duration : b.duration - a.duration;
+      });
+    }
+    switch (this.currentLevel) {
+      case 0:
+        fsaArray.unshift(this.processStatisticsData);
+        break;
+      case 1:
+        fsaArray.unshift(this.typeStatisticsData);
+        break;
+      case 2:
+        fsaArray.unshift(this.threadStatisticsData);
+        break;
+      case 3:
+        fsaArray.unshift(this.libStatisticsData);
+        break;
+      case 4:
+        fsaArray.unshift(this.functionStatisticsData);
+        break;
+    }
+    fsaCurrentTable!.recycleDataSource = fsaArray;
+  }
+
+  private sortAndRefreshTable(fsaCurrentTable: LitTable): void {
+    let fsaArr = [...this.currentLevelData];
+    switch (this.currentLevel) {
+      case 0:
+        fsaArr.unshift(this.processStatisticsData);
+        break;
+      case 1:
+        fsaArr.unshift(this.typeStatisticsData);
+        break;
+      case 2:
+        fsaArr.unshift(this.threadStatisticsData);
+        break;
+      case 3:
+        fsaArr.unshift(this.libStatisticsData);
+        break;
+      case 4:
+        fsaArr.unshift(this.functionStatisticsData);
+        break;
+    }
+    fsaCurrentTable!.recycleDataSource = fsaArr;
+  }
+
+  private sortTableNameCase(fsaCurrentTable: LitTable, fsaArray: any[]) {
+    fsaCurrentTable!.recycleDataSource = fsaArray.sort((firstElement, secondElement) => {
+      if (this.fsSortType === 1) {
+        if (firstElement.tableName > secondElement.tableName) {
+          return 1;
+        } else if (firstElement.tableName === secondElement.tableName) {
+          return 0;
+        } else {
+          return -1;
+        }
+      } else {
+        if (secondElement.tableName > firstElement.tableName) {
+          return 1;
+        } else if (firstElement.tableName === secondElement.tableName) {
+          return 0;
+        } else {
+          return -1;
+        }
+      }
+    });
   }
 
   private getFilesystemProcess(result: Array<any>): void {
@@ -800,6 +873,15 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         threadMap.set(fspItem.tid, itemArray);
       }
     }
+    this.updateThreadData(threadMap, fileSysStatThreadItem, allDur);
+    this.fileStatisticsAnalysisThreadData.sort((a, b) => b.duration - a.duration);
+    this.threadStatisticsData = this.totalDurationData(allDur);
+    this.currentLevel = 2;
+    this.fileStatisticsAnalysisProgressEL!.loading = false;
+    this.threadPieChart();
+  }
+
+  private updateThreadData(threadMap: Map<string, Array<number | string>>, fileSysStatThreadItem: any, allDur: number): void {
     this.fileStatisticsAnalysisThreadData = [];
     threadMap.forEach((value: Array<any>, key: string) => {
       let dur = 0;
@@ -822,11 +904,6 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       };
       this.fileStatisticsAnalysisThreadData.push(threadData);
     });
-    this.fileStatisticsAnalysisThreadData.sort((a, b) => b.duration - a.duration);
-    this.threadStatisticsData = this.totalDurationData(allDur);
-    this.currentLevel = 2;
-    this.fileStatisticsAnalysisProgressEL!.loading = false;
-    this.threadPieChart();
   }
 
   private getFilesystemSo(item: any): void {
@@ -836,23 +913,18 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     if (!this.fileStatisticsAnalysisProcessData || this.fileStatisticsAnalysisProcessData.length === 0) {
       return;
     }
+    allDur = this.libMapProcessData(item, allDur, libMap);
+    this.updateSoData(libMap, item, allDur);
+    this.libStatisticsData = this.totalDurationData(allDur);
+    this.currentLevel = 3;
+    this.fileStatisticsAnalysisProgressEL!.loading = false;
+    this.libraryPieChart();
+  }
+
+  private libMapProcessData(item: any, allDur: number, libMap: Map<number, Array<number | string>>): number {
     for (let itemData of this.fileStatisticsAnalysisProcessData) {
-      if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (item && (itemData.pid !== item.pid || itemData.tid !== item.tid || itemData.type !== item.type)) {
-          continue;
-        }
-      } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (item && (itemData.pid !== item.pid || itemData.type !== item.type)) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if ((item && itemData.tid !== item.tid) || itemData.type !== item.type) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (item && itemData.type !== item.type) {
-          continue;
-        }
+      if (this.libIsAccumulationData(item, itemData)) {
+        continue;
       }
       allDur += itemData.dur;
       if (libMap.has(itemData.libId)) {
@@ -863,6 +935,29 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         libMap.set(itemData.libId, dataArray);
       }
     }
+    return allDur;
+  }
+
+  private libIsAccumulationData(item: any, itemData: any): boolean {
+    if (!item) {
+      return false;
+    }
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return (itemData.pid !== item.pid || itemData.tid !== item.tid || itemData.type !== item.type);
+    }
+    if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return (itemData.pid !== item.pid || itemData.type !== item.type);
+    }
+    if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return (itemData.tid !== item.tid || itemData.type !== item.type);
+    }
+    if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return (itemData.type !== item.type);
+    }
+    return false;
+  }
+
+  private updateSoData(libMap: Map<number, Array<number | string>>, item: any, allDur: number): void {
     this.fileStatisticsAnalysisSoData = [];
     libMap.forEach((value: any[], key: number) => {
       let dur = 0;
@@ -891,46 +986,16 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       this.fileStatisticsAnalysisSoData.push(soData);
     });
     this.fileStatisticsAnalysisSoData.sort((a, b) => b.duration - a.duration);
-    this.libStatisticsData = this.totalDurationData(allDur);
-    this.currentLevel = 3;
-    this.fileStatisticsAnalysisProgressEL!.loading = false;
-    this.libraryPieChart();
   }
 
-  private getFilesystemFunction(item: any): void {
-    this.fileStatisticsAnalysisProgressEL!.loading = true;
-    this.shadowRoot!.querySelector<HTMLDivElement>('.fs-subheading')!.textContent = 'Statistic By Function AllDuration';
+  private symbolMapProcessData(item: any, allDur: number, symbolMap: Map<number, Array<any>>): number {
     let tid = item.tid;
     let pid = item.pid;
     let type = item.type;
     let libId = item.libId;
-    let allDur = 0;
-    let symbolMap = new Map<number, Array<any>>();
-    if (!this.fileStatisticsAnalysisProcessData || this.fileStatisticsAnalysisProcessData.length === 0) {
-      return;
-    }
     for (let fsProcessData of this.fileStatisticsAnalysisProcessData) {
-      if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (
-          fsProcessData.pid !== pid ||
-          fsProcessData.tid !== tid ||
-          fsProcessData.type !== type ||
-          fsProcessData.libId !== libId
-        ) {
-          continue;
-        }
-      } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (fsProcessData.pid !== pid || fsProcessData.type !== type || fsProcessData.libId !== libId) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (fsProcessData.tid !== tid || fsProcessData.type !== type || fsProcessData.libId !== libId) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (fsProcessData.type !== type || fsProcessData.libId !== libId) {
-          continue;
-        }
+      if (this.symbolIsAccumulationData(fsProcessData, tid, pid, type, libId)) {
+        continue;
       }
       allDur += fsProcessData.dur;
       if (symbolMap.has(fsProcessData.symbolId)) {
@@ -941,6 +1006,29 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         symbolMap.set(fsProcessData.symbolId, dataArray);
       }
     }
+    return allDur;
+  }
+
+  private symbolIsAccumulationData(fsProcessData: any, tid: number, pid: number, type: string, libId: number): boolean {
+    if (!fsProcessData) {
+      return false;
+    }
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return (fsProcessData.pid !== pid || fsProcessData.tid !== tid || fsProcessData.type !== type || fsProcessData.libId !== libId);
+    }
+    if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return (fsProcessData.pid !== pid || fsProcessData.type !== type || fsProcessData.libId !== libId);
+    }
+    if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return (fsProcessData.tid !== tid || fsProcessData.type !== type || fsProcessData.libId !== libId);
+    }
+    if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return (fsProcessData.type !== type || fsProcessData.libId !== libId);
+    }
+    return false;
+  }
+
+  private updateFunctionData(symbolMap: Map<number, Array<any>>, item: any, allDur: number): void {
     this.fileStatisticsAnalysisFunctionData = [];
     symbolMap.forEach((symbolItems, key) => {
       let dur = 0;
@@ -966,48 +1054,6 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       };
       this.fileStatisticsAnalysisFunctionData.push(symbolData);
     });
-    this.fileStatisticsAnalysisFunctionData.sort((a, b) => b.duration - a.duration);
-    this.functionStatisticsData = this.totalDurationData(allDur);
-    this.currentLevel = 4;
-    this.fileStatisticsAnalysisProgressEL!.loading = false;
-    // @ts-ignore
-    this.sumDur = this.functionStatisticsData.allDuration;
-    this.fsPieChart!.config = {
-      appendPadding: 0,
-      data: this.getFsPieChartData(this.fileStatisticsAnalysisFunctionData),
-      angleField: 'duration',
-      colorField: 'tableName',
-      radius: 1,
-      label: {
-        type: 'outer',
-      },
-      tip: (fsaObj): string => {
-        return `<div>
-                    <div>Function:${fsaObj.obj.tableName}</div>
-                    <div>Duration:${fsaObj.obj.durFormat}</div>
-                    <div>percent:${fsaObj.obj.percent}</div>
-                </div>
-                `;
-      },
-      hoverHandler: (data): void => {
-        if (data) {
-          this.fileStatisticsAnalysisTableFunction!.setCurrentHover(data);
-        } else {
-          this.fileStatisticsAnalysisTableFunction!.mouseOut();
-        }
-      },
-      interactions: [
-        {
-          type: 'element-active',
-        },
-      ],
-    };
-    this.fileStatisticsAnalysisFunctionData.unshift(this.functionStatisticsData);
-    this.fileStatisticsAnalysisTableFunction!.recycleDataSource = this.fileStatisticsAnalysisFunctionData;
-    this.fileStatisticsAnalysisTableFunction?.reMeauseHeight();
-    // @ts-ignore
-    this.fileStatisticsAnalysisFunctionData.shift(this.functionStatisticsData);
-    this.currentLevelData = this.fileStatisticsAnalysisFunctionData;
   }
 
   private typeIdToString(transformType: number): string {
@@ -1067,7 +1113,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-action',
-      { args, callType: 'fileSystem', isAnalysis: true },
+      {args, callType: 'fileSystem', isAnalysis: true},
       undefined,
       (results: any) => {
         handler(results);

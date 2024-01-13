@@ -193,7 +193,27 @@ export class CpuRender {
     cpuRes.push(...slice.filter((it) => it.v));
   }
 }
+export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHandler: any) {
+  return new Promise((resolve,reject) => {
+    if (rowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
+      CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
+      sp.timerShaftEL?.drawTriangle(CpuStruct.selectCpuStruct!.startTime || 0, 'inverted');
+      sp.traceSheetEL?.displayCpuData(
+        CpuStruct.selectCpuStruct,
+        (wakeUpBean) => {
+          CpuStruct.wakeupBean = wakeUpBean;
+          sp.refreshCanvas(false);
+        },
+        cpuClickHandler
+      );
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
+    }else{
+      resolve(null);
+    }
+  });
 
+}
 export class CpuStruct extends BaseStruct {
   static cpuCount: number = 1; //最大cpu数量
   static hoverCpuStruct: CpuStruct | undefined;

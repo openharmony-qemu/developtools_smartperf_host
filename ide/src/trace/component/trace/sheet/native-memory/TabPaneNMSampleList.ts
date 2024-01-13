@@ -169,27 +169,31 @@ export class TabPaneNMSampleList extends BaseElement {
             }
           }
         });
-        if (this.sampleTypesList.length > 0) {
-          let sampleTypesListElement = this.sampleTypesList[this.sampleTypesList.length - 1];
-          sampleTypesListElement.forEach((item: any, index: number) => {
-            copyTypes[index].current = copyTypes[index].growth;
-            if (index < copyTypes.length) {
-              copyTypes[index].growth -= item.current;
-              copyTypes[index].total -= item.total;
-            }
-          });
-        } else {
-          copyTypes.forEach((item: any) => {
-            item.current = item.growth;
-          });
-        }
-        this.sampleTypesList.push(copyTypes);
+        this.updateSampleTypesList(copyTypes);
         this.createTree(nameGroup, rootSample);
         rootSample.tempList = [...rootSample.children];
         this.samplerInfoSource.push(rootSample);
         TabPaneNMSampleList.sampleTbl!.recycleDataSource = TabPaneNMSampleList.samplerInfoSource;
       }
     });
+  }
+
+  private static updateSampleTypesList(copyTypes: NativeHookSampleQueryInfo[]): void {
+    if (this.sampleTypesList.length > 0) {
+      let sampleTypesListElement = this.sampleTypesList[this.sampleTypesList.length - 1];
+      sampleTypesListElement.forEach((item: any, index: number) => {
+        copyTypes[index].current = copyTypes[index].growth;
+        if (index < copyTypes.length) {
+          copyTypes[index].growth -= item.current;
+          copyTypes[index].total -= item.total;
+        }
+      });
+    } else {
+      copyTypes.forEach((item: any) => {
+        item.current = item.growth;
+      });
+    }
+    this.sampleTypesList.push(copyTypes);
   }
 
   static createTree(nameGroup: any, rootSample: NativeHookSamplerInfo): void {

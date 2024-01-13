@@ -578,20 +578,15 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
           break;
         }
         lastCallChain = callChainList[depth];
-        if (type === BIO_TYPE) {
-          let symbolName = this.dataCache.dataDict?.get(lastCallChain.symbolsId);
-          if (symbolName?.includes('submit_bio')) {
-            depth--;
-          } else {
-            break;
-          }
+        let symbolName = this.dataCache.dataDict?.get(lastCallChain.symbolsId);
+        let libPath = this.dataCache.dataDict?.get(lastCallChain.pathId);
+        if (
+          (type === BIO_TYPE && symbolName?.includes('submit_bio')) ||
+          (type !== BIO_TYPE && libPath && (libPath.includes('musl') || libPath.includes('libc++')))
+        ) {
+          depth--;
         } else {
-          let libPath = this.dataCache.dataDict?.get(lastCallChain.pathId);
-          if (libPath?.includes('musl') || libPath?.includes('libc++')) {
-            depth--;
-          } else {
-            break;
-          }
+          break;
         }
       }
       if (!lastCallChain) {

@@ -15,109 +15,113 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle = (width:string) => {
-  return `
-  <style>
-        :host{ 
-            display: flex;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0px;
-            z-index: 1000;
-            overflow: auto;
-            transition: all 0.3s;
-        }
-        :host([visible]){
-            background-color: #00000066;
-            transition: all .3s;
-            opacity: 1;
-            visibility: visible;
-        }
-        :host(:not([visible])){
-            pointer-events: none;
-            transition: all .3s;
-            opacity: 0;
-            visibility: hidden;
-        }
-       
-        .modal{
-            width: ${width};
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-            background-color: #fff;
-            top: 100px;
-            left: 50%;
-            right: auto;
-            transform-origin: left top;
-            pointer-events: all;
-            border-radius: 2px;
-        }
-        :host(:not([visible])) .modal{
-            transition: transform .3s , opacity .3s,visibility .3s;
-            opacity: 0;
-            transform:scale(0.1) translate(-50%,50%) translateZ(0) skew(0deg);
-            visibility: hidden;
-         }
-         :host([visible]) .modal{
-            transition: transform .3s , opacity .3s ,visibility .3s;
-            opacity: 1;
-            transform: scale(1) translate(-50%,0%) translateZ(0) skew(0deg);
-            visibility: visible;
-            box-shadow: 0 0 20px #00000055;
-         }
-        .header{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 20px;
-            font-size: 17px;
-            font-weight: bold;
-        }
-        :host([moveable]) .header label{
-            pointer-events: none;
-        }
-        :host([moveable]) .header:hover{
-            background-color: #8c8c8c11;
-        }
-        :host([moveable]) .header{
-            /*cursor: move;*/
-        }
-        .close-icon{
-            color:#8c8c8c;
-            cursor: pointer;
-        }
-        .close-icon:hover{
-            color: #414141;
-        }
-        .footer{
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 8px 8px;
-        }
-        .footer lit-button{
-            min-width: 70px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-        :host([line=false]){
-            padding: 10px 20px;
-            flex:1;
-        }
-        :host([line=true]) .body,
-        :host(:not([line])) .body{
-            border-top: 1px solid #f0f0f0;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 10px 20px;
-            flex:1;
-        }
-       
-        </style>
-  `;
+let width = '';
+let css = `
+<style>
+      :host{ 
+          display: flex;
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: 0px;
+          z-index: 1000;
+          overflow: auto;
+          transition: all 0.3s;
+      }
+      :host([visible]){
+          background-color: #00000066;
+          transition: all .3s;
+          opacity: 1;
+          visibility: visible;
+      }
+      :host(:not([visible])){
+          pointer-events: none;
+          transition: all .3s;
+          opacity: 0;
+          visibility: hidden;
+      }
+     
+      .modal{
+          width: ${width};
+          position: absolute;
+          display: flex;
+          flex-direction: column;
+          overflow: auto;
+          background-color: #fff;
+          top: 100px;
+          left: 50%;
+          right: auto;
+          transform-origin: left top;
+          pointer-events: all;
+          border-radius: 2px;
+      }
+      :host(:not([visible])) .modal{
+          transition: transform .3s , opacity .3s,visibility .3s;
+          opacity: 0;
+          transform:scale(0.1) translate(-50%,50%) translateZ(0) skew(0deg);
+          visibility: hidden;
+       }
+       :host([visible]) .modal{
+          transition: transform .3s , opacity .3s ,visibility .3s;
+          opacity: 1;
+          transform: scale(1) translate(-50%,0%) translateZ(0) skew(0deg);
+          visibility: visible;
+          box-shadow: 0 0 20px #00000055;
+       }
+      .header{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 15px 20px;
+          font-size: 17px;
+          font-weight: bold;
+      }
+      :host([moveable]) .header label{
+          pointer-events: none;
+      }
+      :host([moveable]) .header:hover{
+          background-color: #8c8c8c11;
+      }
+      :host([moveable]) .header{
+          /*cursor: move;*/
+      }
+      .close-icon{
+          color:#8c8c8c;
+          cursor: pointer;
+      }
+      .close-icon:hover{
+          color: #414141;
+      }
+      .footer{
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          padding: 8px 8px;
+      }
+      .footer lit-button{
+          min-width: 70px;
+          margin-right: 10px;
+          cursor: pointer;
+      }
+      :host([line=false]){
+          padding: 10px 20px;
+          flex:1;
+      }
+      :host([line=true]) .body,
+      :host(:not([line])) .body{
+          border-top: 1px solid #f0f0f0;
+          border-bottom: 1px solid #f0f0f0;
+          padding: 10px 20px;
+          flex:1;
+      }
+     
+      </style>
+`
+
+const initHtmlStyle = (wid: string) => {
+  width = wid;
+  return css;
 }
 
 @element('lit-modal')
@@ -280,7 +284,7 @@ export class LitModal extends BaseElement {
           direction = this.onmousemoveFuncRule(direction,e,srcResizeRect,resizeWidth);
           this.resizingFunc(direction,e,srcResizeClientX,srcResizeClientY,srcResizeHeight,srcResizeWidth,srcResizeLeft,srcResizeTop);
         };
-        this.setOnmousedownFunc(resizeWidth,srcResizeClientX,srcResizeClientY,srcResizeRect,srcResizeHeight,srcResizeWidth,srcResizeRight,srcResizeLeft,srcResizeTop);
+        this.setOnmousedownFunc(resizeWidth);
         this.onmouseupFunc = (e: any) => {
           this.resizing = false;
         };
@@ -494,48 +498,39 @@ export class LitModal extends BaseElement {
     }
   }
 
-  setOnmousedownFunc(resizeWidth:number,srcResizeClientX:number,srcResizeClientY:number,srcResizeRect:any,srcResizeHeight:number,srcResizeWidth:number,srcResizeRight:number,srcResizeLeft:number,srcResizeTop:number):void{
+  setOnmousedownFunc(resizeWidth: number): void {
     this.onmousedownFunc = (e: any) => {
-      srcResizeRect = this.modalElement!.getBoundingClientRect();
-      srcResizeClientX = e.clientX;
-      srcResizeClientY = e.clientY;
-      srcResizeHeight = srcResizeRect.height;
-      srcResizeWidth = srcResizeRect.width;
-      srcResizeRight = srcResizeRect.right;
-      srcResizeLeft = srcResizeRect.left;
-      srcResizeTop = srcResizeRect.top;
+      const srcResizeRect = this.modalElement!.getBoundingClientRect();
+      const { clientX, clientY } = e;
+      const { left, right, top, bottom, width, height } = srcResizeRect;
+      const resizeRange = resizeWidth * 2;
+  
+      const isWithinRange = (coord: number, target: number, range: number) =>
+        coord > target - range && coord < target + range;
+  
+      const isWithinCornerRange = (cornerX: number, cornerY: number) =>
+        isWithinRange(clientX, cornerX, resizeRange) &&
+        isWithinRange(clientY, cornerY, resizeRange);
+  
+      const isWithinTopLeft = isWithinCornerRange(left, top);
+      const isWithinTopRight = isWithinCornerRange(right, top);
+      const isWithinBottomLeft = isWithinCornerRange(left, bottom);
+      const isWithinBottomRight = isWithinCornerRange(right, bottom);
+  
       if (
-        e.clientX > srcResizeRect.left - resizeWidth &&
-        e.clientX < srcResizeRect.left + resizeWidth &&
-        e.clientY > srcResizeRect.top - resizeWidth &&
-        e.clientY < srcResizeRect.top + resizeWidth
-      ) {
-        this.resizing = true;
-      } else if (
-        e.clientX > srcResizeRect.right - resizeWidth &&
-        e.clientX < srcResizeRect.right + resizeWidth &&
-        e.clientY > srcResizeRect.top - resizeWidth &&
-        e.clientY < srcResizeRect.top + resizeWidth
-      ) {
-        this.resizing = true;
-      } else if (
-        e.clientX > srcResizeRect.left - resizeWidth &&
-        e.clientX < srcResizeRect.left + resizeWidth &&
-        e.clientY > srcResizeRect.bottom - resizeWidth &&
-        e.clientY < srcResizeRect.bottom + resizeWidth
-      ) {
-        this.resizing = true;
-      } else if (
-        e.clientX > srcResizeRect.right - resizeWidth &&
-        e.clientX < srcResizeRect.right + resizeWidth &&
-        e.clientY > srcResizeRect.bottom - resizeWidth &&
-        e.clientY < srcResizeRect.bottom + resizeWidth
+        isWithinTopLeft ||
+        isWithinTopRight ||
+        isWithinBottomLeft ||
+        isWithinBottomRight
       ) {
         this.resizing = true;
       } else {
-        this.resizeIf(e,srcResizeRect,resizeWidth);
+        this.resizeIf(e, srcResizeRect, resizeWidth);
       }
-      if (this.resizing) document.body.style.userSelect = 'none';
+  
+      if (this.resizing) {
+        document.body.style.userSelect = 'none';
+      }
     };
   }
 
