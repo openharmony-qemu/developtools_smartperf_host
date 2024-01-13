@@ -237,12 +237,17 @@ public:
         nativeHookData->set_allocated_munmap_event(munmapEvent);
     }
 
-    BatchNativeHookData CreateBatchNativeHookData(std::string& hookStrMsg)
+    BatchNativeHookData CreateBatchNativeHookData(HtraceDataSegment& dataSeg)
     {
+        std::string hookStrMsg = "";
         BatchNativeHookData batchNativeHookData;
         SetAllocEvent(batchNativeHookData, {TID_01, ADDR_01, SIZE_01, "", SEC_01, NSEC_01}, true);
         SetAllocEvent(batchNativeHookData, {TID_02, ADDR_02, SIZE_02, "", SEC_02, NSEC_02}, true);
         batchNativeHookData.SerializeToString(&hookStrMsg);
+        dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+        ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(dataSeg.seg->data()),
+                                             dataSeg.seg->size());
+        dataSeg.protoData = hookBytesView;
         return batchNativeHookData;
     }
 
@@ -561,12 +566,8 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMalloc, TestSize.Level
 HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMalloc, TestSize.Level1)
 {
     TS_LOGI("test24-3");
-    std::string hookStrMsg = "";
-    BatchNativeHookData batchNativeHookData = CreateBatchNativeHookData(hookStrMsg);
     HtraceDataSegment dataSeg;
-    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
-    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
-    dataSeg.protoData = hookBytesView;
+    BatchNativeHookData batchNativeHookData = CreateBatchNativeHookData(dataSeg);
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);

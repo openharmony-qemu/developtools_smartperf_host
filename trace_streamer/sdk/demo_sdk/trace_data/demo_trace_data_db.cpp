@@ -201,7 +201,6 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, bool print)
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(demoDb_));
         return 0;
     }
-
     int32_t demoColCount = sqlite3_column_count(demoStmt);
     if (demoColCount == 0) {
         TS_LOGI("sqlite3_column_count(%s) no column", sql.c_str());
@@ -214,7 +213,6 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, bool print)
         }
         printf("\n");
     }
-
     while (sqlite3_step(demoStmt) == SQLITE_ROW) {
         demoRowCount++;
         for (int32_t i = 0; i < demoColCount; i++) {

@@ -118,7 +118,10 @@ private:
                            DataIndex eventSourceIndex,
                            DataIndex keyIndex,
                            uint64_t timeStamp);
-    void UpdataAllHiSysEvent(const JsonMessage& jsMassage, uint64_t newTimeStamp);
+    void UpdataAllHiSysEvent(const JsonMessage& jsMessage, uint64_t newTimeStamp);
+    void FillJsMessage(const json& jMessage, JsonMessage& jsMessage);
+
+private:
     const uint64_t MSEC_TO_NS = 1000 * 1000;
     DataIndex GetOrCreateFilterIdInternal(DataIndex appNameId, DataIndex key);
     DoubleMap<DataIndex, DataIndex, DataIndex> appKey_;
