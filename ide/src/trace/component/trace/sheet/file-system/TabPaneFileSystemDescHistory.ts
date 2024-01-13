@@ -207,51 +207,7 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
   }
 
   sortFsDescHistoryTable(key: string, type: number) {
-    if (type == 0) {
-      this.fsDescHistoryTbl!.recycleDataSource = this.fsDescHistoryFilterSource;
-    } else {
-      let arr = Array.from(this.fsDescHistoryFilterSource);
-      arr.sort((fsHistoryA, fsHistoryB): number => {
-        if (key == 'startTsStr') {
-          if (type == 1) {
-            return fsHistoryA.startTs - fsHistoryB.startTs;
-          } else {
-            return fsHistoryB.startTs - fsHistoryA.startTs;
-          }
-        } else if (key == 'durStr') {
-          if (type == 1) {
-            return fsHistoryA.dur - fsHistoryB.dur;
-          } else {
-            return fsHistoryB.dur - fsHistoryA.dur;
-          }
-        } else if (key == 'process') {
-          if (fsHistoryA.process > fsHistoryB.process) {
-            return type === 2 ? 1 : -1;
-          } else if (fsHistoryA.process == fsHistoryB.process) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
-        } else if (key == 'typeStr') {
-          if (fsHistoryA.typeStr > fsHistoryB.typeStr) {
-            return type === 2 ? 1 : -1;
-          } else if (fsHistoryA.typeStr == fsHistoryB.typeStr) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
-        } else if (key == 'fd') {
-          if (type == 1) {
-            return fsHistoryA.fd - fsHistoryB.fd;
-          } else {
-            return fsHistoryB.fd - fsHistoryA.fd;
-          }
-        } else {
-          return 0;
-        }
-      });
-      this.fsDescHistoryTbl!.recycleDataSource = arr;
-    }
+    return;
   }
 
   initHtml(): string {

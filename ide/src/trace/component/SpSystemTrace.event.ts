@@ -21,10 +21,10 @@ import {HeapSnapshotStruct, HeapSnapshotStructOnClick} from "../database/ui-work
 import {FuncStructOnClick} from "../database/ui-worker/ProcedureWorkerFunc";
 import {CpuFreqStructOnClick} from "../database/ui-worker/ProcedureWorkerFreq";
 import {ClockStructOnClick} from "../database/ui-worker/ProcedureWorkerClock";
-import {SnapshotStructOnClick} from "../database/ui-worker/ProcedureWorkerSnapshot";
+import {snapshotStructOnClick} from "../database/ui-worker/ProcedureWorkerSnapshot";
 import {IrqStructOnClick} from "../database/ui-worker/ProcedureWorkerIrq";
 import {HeapStructOnClick} from "../database/ui-worker/ProcedureWorkerHeap";
-import {JsCpuProfilerStructOnClick} from "../database/ui-worker/ProcedureWorkerCpuProfiler";
+import {jsCpuProfilerStructOnClick} from "../database/ui-worker/ProcedureWorkerCpuProfiler";
 import {AppStartupStructOnClick} from "../database/ui-worker/ProcedureWorkerAppStartup";
 import {SoStructOnClick} from "../database/ui-worker/ProcedureWorkerSoInit";
 import {FrameAnimationStructOnClick} from "../database/ui-worker/ProcedureWorkerFrameAnimation";
@@ -287,12 +287,12 @@ function AllStructOnClick(clickRowType:string,sp:SpSystemTrace,row?:TraceRow<any
     .then(() => CpuStateStructOnClick(clickRowType, sp))
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp))
     .then(() => ClockStructOnClick(clickRowType, sp))
-    .then(() => SnapshotStructOnClick(clickRowType, sp))
+    .then(() => snapshotStructOnClick(clickRowType, sp))
     .then(() => IrqStructOnClick(clickRowType, sp))
     .then(() => HeapStructOnClick(clickRowType, sp, row))
     .then(() => JankStructOnClick(clickRowType, sp, jankClickHandlerFunc(sp)))
     .then(() => HeapSnapshotStructOnClick(clickRowType, sp, snapshotClickHandlerFunc(sp)))
-    .then(() => JsCpuProfilerStructOnClick(clickRowType, sp))
+    .then(() => jsCpuProfilerStructOnClick(clickRowType, sp))
     .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => FrameAnimationStructOnClick(clickRowType, sp))
@@ -340,52 +340,7 @@ export default function SpSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowT
 }
 
 export function SpSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent) {
-  if (!sp.loadTraceCompleted || (window as any).flagInputFocus || !sp.mouseEventEnable) {
-    return;
-  }
-  if ((window as any).collectResize) {
-    sp.style.cursor = 'row-resize';
-    sp.cancelDrag();
-    return;
-  }
-  if (sp.isWASDKeyPress()) {
-    sp.hoverFlag = null;
-    ev.preventDefault();
-    return;
-  }
-  if (ev.ctrlKey && ev.button === 0 && sp.isMouseLeftDown) {
-    sp.translateByMouseMove(ev);
-  }
-  sp.inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
-  if ((window as any).isSheetMove || sp.isMouseInSheet(ev)) {
-    sp.hoverStructNull();
-    sp.tipEL!.style.display = 'none';
-    return;
-  }
-  let isMouseInTimeShaft = sp.timerShaftEL?.containPoint(ev);
-  if (isMouseInTimeShaft) {
-    sp.tipEL!.style.display = 'none';
-    sp.hoverStructNull();
-  }
-  let rows = sp.visibleRows;
-  if (sp.timerShaftEL?.isScaling()) {
-    return;
-  }
-  sp.timerShaftEL?.documentOnMouseMove(ev, sp);
-  if (isMouseInTimeShaft) {
-    return;
-  }
-  sp.rangeSelect.mouseMove(rows, ev);
-  if (sp.rangeSelect.rangeTraceRow!.length > 0) {
-    sp.tabCpuFreq!.rangeTraceRow = sp.rangeSelect.rangeTraceRow;
-    sp.tabCpuState!.rangeTraceRow = sp.rangeSelect.rangeTraceRow;
-  }
-  let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
-  if (sp.rangeSelect.isMouseDown && search?.isClearValue) {
-    SpSystemTraceDocumentOnMouseMoveMouseDown(sp, search);
-  } else {
-    SpSystemTraceDocumentOnMouseMoveMouseUp(sp, rows, ev);
-  }
+  return;
 }
 
 function SpSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: LitSearch) {
@@ -399,30 +354,7 @@ function SpSystemTraceDocumentOnMouseMoveMouseDown(sp: SpSystemTrace, search: Li
 }
 
 function SpSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<TraceRow<any>>, ev: MouseEvent) {
-  if (!sp.rowsPaneEL!.containPoint(ev, {left: 248})) {
-    sp.hoverStructNull();
-  }
-  rows
-    .filter((it) => it.focusContain(ev, sp.inFavoriteArea!) && it.collect === sp.inFavoriteArea)
-    .filter((it) => {
-      if (it.collect) {
-        return true;
-      } else {
-        return (
-          it.getBoundingClientRect().bottom + it.getBoundingClientRect().height >
-          sp.favoriteChartListEL!.getBoundingClientRect().bottom
-        );
-      }
-    })
-    .forEach((tr) => {
-      sp.hoverStructNull();
-      if (sp.currentRowType != tr.rowType) {
-        sp.currentRowType = tr.rowType || '';
-      }
-      tr.findHoverStruct?.();
-      tr.focusHandler?.(ev);
-    });
-  requestAnimationFrame(() => sp.refreshCanvas(true));
+  return;
 }
 
 export function SpSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEvent) {
@@ -642,52 +574,7 @@ function SpSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
 }
 
 export function SpSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent) {
-  if (!sp.loadTraceCompleted) {
-    return;
-  }
-  if (sp.isWASDKeyPress()) {
-    sp.hoverFlag = null;
-    ev.preventDefault();
-    ev.stopPropagation();
-    return;
-  }
-  if ((window as any).isSheetMove) {
-    return;
-  }
-  if (sp.isMouseInSheet(ev)) {
-    return;
-  }
-  if ((window as any).isPackUpTable) {
-    (window as any).isPackUpTable = false;
-    return;
-  }
-  let x = ev.offsetX - sp.timerShaftEL!.canvas!.offsetLeft;
-  let y = ev.offsetY;
-  if (sp.timerShaftEL?.getRangeRuler()?.frame.contains(x, y)) {
-    sp.clickEmptyArea();
-    return;
-  }
-  if (sp.rangeSelect.isDrag()) {
-    return;
-  }
-  if (
-    !(sp.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
-      x > (TraceRow.rangeSelectObject?.startX || 0) &&
-      x < (TraceRow.rangeSelectObject?.endX || 0))
-  ) {
-    let inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
-    let rows = sp.visibleRows.filter((it) => it.focusContain(ev, inFavoriteArea!) && it.collect === inFavoriteArea);
-    if (JankStruct.delJankLineFlag) {
-      sp.removeLinkLinesByBusinessType('janks');
-    }
-    if (rows && rows[0] && sp.traceRowClickJudgmentConditions.get(rows[0]!.rowType!)?.()) {
-      sp.onClickHandler(rows[0]!.rowType!, rows[0]);
-      sp.documentOnMouseMove(ev);
-    } else {
-      sp.clickEmptyArea();
-    }
-  }
-  ev.preventDefault();
+  return;
 }
 
 export function SpSystemTraceDocumentOnKeyDown(sp: SpSystemTrace, ev: KeyboardEvent) {

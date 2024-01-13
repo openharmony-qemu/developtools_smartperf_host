@@ -103,45 +103,7 @@ export class TabPaneCpuFreqLimits extends BaseElement {
   }
 
   sortCpuFreqLimitTable(key: string, type: number) {
-    if (type == 0) {
-      this.cpuFreqLimitsTbl!.recycleDataSource = this.cpuFreqLimitSource;
-    } else {
-      let cpuFreqLimitsArr = Array.from(this.cpuFreqLimitSource);
-      cpuFreqLimitsArr.sort((cpuFreqLimitA, cpuFreqLimitB): number => {
-        if (key == 'timeStr') {
-          if (type == 1) {
-            return cpuFreqLimitA.time - cpuFreqLimitB.time;
-          } else {
-            return cpuFreqLimitB.time - cpuFreqLimitA.time;
-          }
-        } else if (key == 'valueStr') {
-          if (type == 1) {
-            return cpuFreqLimitA.value - cpuFreqLimitB.value;
-          } else {
-            return cpuFreqLimitB.value - cpuFreqLimitA.value;
-          }
-        } else if (key == 'cpu') {
-          if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
-            return type === 2 ? -1 : 1;
-          } else if (cpuFreqLimitA.cpu == cpuFreqLimitB.cpu) {
-            return 0;
-          } else {
-            return type === 2 ? 1 : -1;
-          }
-        } else if (key == 'type') {
-          if (cpuFreqLimitA.type > cpuFreqLimitB.type) {
-            return type === 2 ? 1 : -1;
-          } else if (cpuFreqLimitA.type == cpuFreqLimitB.type) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
-        } else {
-          return 0;
-        }
-      });
-      this.cpuFreqLimitsTbl!.recycleDataSource = cpuFreqLimitsArr;
-    }
+    return;
   }
 
   initHtml(): string {

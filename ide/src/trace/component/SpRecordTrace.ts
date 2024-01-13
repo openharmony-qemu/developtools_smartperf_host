@@ -325,40 +325,6 @@ export class SpRecordTrace extends BaseElement {
   }
 
   initElements(): void {
-    let parentElement = this.parentNode as HTMLElement;
-    if (parentElement) {
-      parentElement.style.overflow = 'hidden';
-    }
-    this.initConfigPage();
-    this.hintEl = this.shadowRoot?.querySelector('#hint') as HTMLSpanElement;
-    this.deviceSelect = this.shadowRoot?.querySelector('#device-select') as HTMLSelectElement;
-    this.deviceVersion = this.shadowRoot?.querySelector('#device-version') as HTMLSelectElement;
-    this.devicePrompt = this.shadowRoot?.querySelector('.prompt') as HTMLSpanElement;
-    this.disconnectButton = this.shadowRoot?.querySelector<LitButton>('.disconnect');
-    this.recordButton = this.shadowRoot?.querySelector('.record') as LitButton;
-    this.recordButtonText = this.shadowRoot?.querySelector('.record_text') as HTMLSpanElement;
-    this.cancelButton = this.shadowRoot?.querySelector('.cancel') as LitButton;
-    this.sp = document.querySelector('sp-application') as SpApplication;
-    this.progressEL = this.sp?.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.litSearch = this.sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
-    this.menuGroup = this.shadowRoot?.querySelector('#menu-group') as LitMainMenuGroup;
-    this.addButton = this.shadowRoot?.querySelector<LitButton>('.add');
-    if (this.record_template) {
-      this.buildTemplateTraceItem();
-    } else {
-      this.buildNormalTraceItem();
-    }
-    this.initMenuItems();
-    this.appendDeviceVersion();
-    if (this.deviceSelect?.options && this.deviceSelect?.options.length > 0) {
-      this.disconnectButton!.hidden = false;
-      this.recordButton!.hidden = false;
-      this.devicePrompt!.innerText = '';
-    } else {
-      this.disconnectButton!.hidden = true;
-      this.recordButton!.hidden = true;
-      this.devicePrompt!.innerText = 'Device not connected';
-    }
   }
 
   connectedCallback(): void {

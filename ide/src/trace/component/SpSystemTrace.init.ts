@@ -596,51 +596,7 @@ function smartEventSubscribe(sp: SpSystemTrace) {
     window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => sp.currentCollectGroup = group);
 }
 export function SpSystemTraceInitElement(sp:SpSystemTrace){
-    window.subscribe(window.SmartEvent.UI.LoadFinishFrame, () => sp.drawAllLines());
-    sp.traceSheetEL = sp.shadowRoot?.querySelector('.trace-sheet');
-    let rightButton: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot
-      ?.querySelector('#current-selection > tabpane-current-selection')
-      ?.shadowRoot?.querySelector('#rightButton');
-    let rightStar: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot
-      ?.querySelector('#current-selection > tabpane-current-selection')
-      ?.shadowRoot?.querySelector('#right-star');
-    sp.tipEL = sp.shadowRoot?.querySelector<HTMLDivElement>('.tip');
-    sp.rowsPaneEL = sp.shadowRoot?.querySelector<HTMLDivElement>('.rows-pane');
-    sp.rowsEL = sp.rowsPaneEL;
-    sp.spacerEL = sp.shadowRoot?.querySelector<HTMLDivElement>('.spacer');
-    sp.timerShaftEL = sp.shadowRoot?.querySelector('.timer-shaft');
-    sp.favoriteChartListEL = sp.shadowRoot?.querySelector('#favorite-chart-list');
-    sp.tabCpuFreq = sp.traceSheetEL?.shadowRoot?.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
-    sp.tabCpuState = sp.traceSheetEL?.shadowRoot?.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
-    sp.rangeSelect = new RangeSelect(sp);
-    rightButton?.addEventListener('click', rightButtonOnClick(sp,rightStar));
-    rightStar?.addEventListener('click', rightStarOnClick(sp));
-    document?.addEventListener('triangle-flag', triangleFlagHandler(sp));
-    document?.addEventListener('number_calibration', numberCalibrationHandler(sp));
-    document?.addEventListener('flag-change', flagChangeHandler(sp));
-    document?.addEventListener('slices-change', slicesChangeHandler(sp));
-    if (sp.timerShaftEL?.collecBtn) {
-        sp.timerShaftEL.collecBtn.onclick = () => {
-            if (sp.timerShaftEL!.collecBtn!.hasAttribute('close')) {
-                sp.timerShaftEL!.collecBtn!.removeAttribute('close');
-                sp.favoriteChartListEL?.showCollectArea();
-            } else {
-                sp.timerShaftEL!.collecBtn!.setAttribute('close', '');
-                sp.favoriteChartListEL?.hideCollectArea();
-            }
-        };
-    }
-    document?.addEventListener('collect', collectHandler(sp));
-    SpSystemTrace.scrollViewWidth = sp.getScrollWidth();
-    selectHandler(sp);
-    observerHandler(sp);
-    window.addEventListener('keydown', windowKeyDownHandler(sp));
-    sp.chartManager = new SpChartManager(sp);
-    sp.canvasPanel = sp.shadowRoot!.querySelector<HTMLCanvasElement>('#canvas-panel')!;
-    sp.canvasPanelCtx = sp.canvasPanel.getContext('2d');
-    sp.canvasFavoritePanelCtx = sp.favoriteChartListEL!.context();
-    sp.canvasPanelConfig();
-    smartEventSubscribe(sp);
+    return;
 }
 
 export function SpSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number){
