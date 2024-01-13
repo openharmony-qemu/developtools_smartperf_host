@@ -30,6 +30,7 @@ import {
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../../component/trace/base/ColorUtils';
 import { convertJSON } from '../../logic-worker/ProcedureLogicWorkerCommon';
+import {SpSystemTrace} from "../../../component/SpSystemTrace";
 
 export class CpuStateRender extends PerfRender {
   renderMainThread(
@@ -164,7 +165,18 @@ export class CpuStateRender extends PerfRender {
     }
   }
 }
-
+export function CpuStateStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_CPU_STATE && CpuStateStruct.hoverStateStruct) {
+      CpuStateStruct.selectStateStruct = CpuStateStruct.hoverStateStruct;
+      sp.traceSheetEL?.displayCpuStateData();
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class CpuStateStruct extends BaseStruct {
   static hoverStateStruct: CpuStateStruct | undefined;
   static selectStateStruct: CpuStateStruct | undefined;

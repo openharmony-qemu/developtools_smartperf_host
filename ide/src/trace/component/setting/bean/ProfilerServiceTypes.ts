@@ -125,398 +125,23 @@ export interface MemoryConfig {
 }
 
 const switchCase = (object: any): SysVMeminfoType => {
-  switch (object) {
-    case 0:
-    case 'VMEMINFO_UNSPECIFIED':
-      return SysVMeminfoType.VMEMINFO_UNSPECIFIED;
-    case 1:
-    case 'VMEMINFO_NR_FREE_PAGES':
-      return SysVMeminfoType.VMEMINFO_NR_FREE_PAGES;
-    case 2:
-    case 'VMEMINFO_NR_ALLOC_BATCH':
-      return SysVMeminfoType.VMEMINFO_NR_ALLOC_BATCH;
-    case 3:
-    case 'VMEMINFO_NR_INACTIVE_ANON':
-      return SysVMeminfoType.VMEMINFO_NR_INACTIVE_ANON;
-    case 4:
-    case 'VMEMINFO_NR_ACTIVE_ANON':
-      return SysVMeminfoType.VMEMINFO_NR_ACTIVE_ANON;
-    case 5:
-    case 'VMEMINFO_NR_INACTIVE_FILE':
-      return SysVMeminfoType.VMEMINFO_NR_INACTIVE_FILE;
-    case 6:
-    case 'VMEMINFO_NR_ACTIVE_FILE':
-      return SysVMeminfoType.VMEMINFO_NR_ACTIVE_FILE;
-    case 7:
-    case 'VMEMINFO_NR_UNEVICTABLE':
-      return SysVMeminfoType.VMEMINFO_NR_UNEVICTABLE;
-    case 8:
-    case 'VMEMINFO_NR_MLOCK':
-      return SysVMeminfoType.VMEMINFO_NR_MLOCK;
-    case 9:
-    case 'VMEMINFO_NR_ANON_PAGES':
-      return SysVMeminfoType.VMEMINFO_NR_ANON_PAGES;
-    case 10:
-    case 'VMEMINFO_NR_MAPPED':
-      return SysVMeminfoType.VMEMINFO_NR_MAPPED;
-    case 11:
-    case 'VMEMINFO_NR_FILE_PAGES':
-      return SysVMeminfoType.VMEMINFO_NR_FILE_PAGES;
-    case 12:
-    case 'VMEMINFO_NR_DIRTY':
-      return SysVMeminfoType.VMEMINFO_NR_DIRTY;
-    case 13:
-    case 'VMEMINFO_NR_WRITEBACK':
-      return SysVMeminfoType.VMEMINFO_NR_WRITEBACK;
-    case 14:
-    case 'VMEMINFO_NR_SLAB_RECLAIMABLE':
-      return SysVMeminfoType.VMEMINFO_NR_SLAB_RECLAIMABLE;
-    case 15:
-    case 'VMEMINFO_NR_SLAB_UNRECLAIMABLE':
-      return SysVMeminfoType.VMEMINFO_NR_SLAB_UNRECLAIMABLE;
-    case 16:
-    case 'VMEMINFO_NR_PAGE_TABLE_PAGES':
-      return SysVMeminfoType.VMEMINFO_NR_PAGE_TABLE_PAGES;
-    case 17:
-    case 'VMEMINFO_NR_KERNEL_STACK':
-      return SysVMeminfoType.VMEMINFO_NR_KERNEL_STACK;
-    case 18:
-    case 'VMEMINFO_NR_OVERHEAD':
-      return SysVMeminfoType.VMEMINFO_NR_OVERHEAD;
-    case 19:
-    case 'VMEMINFO_NR_UNSTABLE':
-      return SysVMeminfoType.VMEMINFO_NR_UNSTABLE;
-    case 20:
-    case 'VMEMINFO_NR_BOUNCE':
-      return SysVMeminfoType.VMEMINFO_NR_BOUNCE;
-    case 21:
-    case 'VMEMINFO_NR_VMSCAN_WRITE':
-      return SysVMeminfoType.VMEMINFO_NR_VMSCAN_WRITE;
-    case 22:
-    case 'VMEMINFO_NR_VMSCAN_IMMEDIATE_RECLAIM':
-      return SysVMeminfoType.VMEMINFO_NR_VMSCAN_IMMEDIATE_RECLAIM;
-    case 23:
-    case 'VMEMINFO_NR_WRITEBACK_TEMP':
-      return SysVMeminfoType.VMEMINFO_NR_WRITEBACK_TEMP;
-    case 24:
-    case 'VMEMINFO_NR_ISOLATED_ANON':
-      return SysVMeminfoType.VMEMINFO_NR_ISOLATED_ANON;
-    case 25:
-    case 'VMEMINFO_NR_ISOLATED_FILE':
-      return SysVMeminfoType.VMEMINFO_NR_ISOLATED_FILE;
-    case 26:
-    case 'VMEMINFO_NR_SHMEM':
-      return SysVMeminfoType.VMEMINFO_NR_SHMEM;
-    case 27:
-    case 'VMEMINFO_NR_DIRTIED':
-      return SysVMeminfoType.VMEMINFO_NR_DIRTIED;
-    case 28:
-    case 'VMEMINFO_NR_WRITTEN':
-      return SysVMeminfoType.VMEMINFO_NR_WRITTEN;
-    case 29:
-    case 'VMEMINFO_NR_PAGES_SCANNED':
-      return SysVMeminfoType.VMEMINFO_NR_PAGES_SCANNED;
-    case 30:
-    case 'VMEMINFO_WORKINGSET_REFAULT':
-      return SysVMeminfoType.VMEMINFO_WORKINGSET_REFAULT;
-    case 31:
-    case 'VMEMINFO_WORKINGSET_ACTIVATE':
-      return SysVMeminfoType.VMEMINFO_WORKINGSET_ACTIVATE;
-    case 32:
-    case 'VMEMINFO_WORKINGSET_NODERECLAIM':
-      return SysVMeminfoType.VMEMINFO_WORKINGSET_NODERECLAIM;
-    case 33:
-    case 'VMEMINFO_NR_ANON_TRANSPARENT_HUGEPAGES':
-      return SysVMeminfoType.VMEMINFO_NR_ANON_TRANSPARENT_HUGEPAGES;
-    case 34:
-    case 'VMEMINFO_NR_FREE_CMA':
-      return SysVMeminfoType.VMEMINFO_NR_FREE_CMA;
-    case 35:
-    case 'VMEMINFO_NR_SWAPCACHE':
-      return SysVMeminfoType.VMEMINFO_NR_SWAPCACHE;
-    case 36:
-    case 'VMEMINFO_NR_DIRTY_THRESHOLD':
-      return SysVMeminfoType.VMEMINFO_NR_DIRTY_THRESHOLD;
-    case 37:
-    case 'VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD':
-      return SysVMeminfoType.VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD;
-    case 38:
-    case 'VMEMINFO_PGPGIN':
-      return SysVMeminfoType.VMEMINFO_PGPGIN;
-    case 39:
-    case 'VMEMINFO_PGPGOUT':
-      return SysVMeminfoType.VMEMINFO_PGPGOUT;
-    case 40:
-    case 'VMEMINFO_PGPGOUTCLEAN':
-      return SysVMeminfoType.VMEMINFO_PGPGOUTCLEAN;
-    case 41:
-    case 'VMEMINFO_PSWPIN':
-      return SysVMeminfoType.VMEMINFO_PSWPIN;
-    case 42:
-    case 'VMEMINFO_PSWPOUT':
-      return SysVMeminfoType.VMEMINFO_PSWPOUT;
-    case 43:
-    case 'VMEMINFO_PGALLOC_DMA':
-      return SysVMeminfoType.VMEMINFO_PGALLOC_DMA;
-    case 44:
-    case 'VMEMINFO_PGALLOC_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGALLOC_NORMAL;
-    case 45:
-    case 'VMEMINFO_PGALLOC_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGALLOC_MOVABLE;
-    case 46:
-    case 'VMEMINFO_PGFREE':
-      return SysVMeminfoType.VMEMINFO_PGFREE;
-    case 47:
-    case 'VMEMINFO_PGACTIVATE':
-      return SysVMeminfoType.VMEMINFO_PGACTIVATE;
-    case 48:
-    case 'VMEMINFO_PGDEACTIVATE':
-      return SysVMeminfoType.VMEMINFO_PGDEACTIVATE;
-    case 49:
-    case 'VMEMINFO_PGFAULT':
-      return SysVMeminfoType.VMEMINFO_PGFAULT;
-    case 50:
-    case 'VMEMINFO_PGMAJFAULT':
-      return SysVMeminfoType.VMEMINFO_PGMAJFAULT;
-    case 51:
-    case 'VMEMINFO_PGREFILL_DMA':
-      return SysVMeminfoType.VMEMINFO_PGREFILL_DMA;
-    case 52:
-    case 'VMEMINFO_PGREFILL_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGREFILL_NORMAL;
-    case 53:
-    case 'VMEMINFO_PGREFILL_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGREFILL_MOVABLE;
-    case 54:
-    case 'VMEMINFO_PGSTEAL_KSWAPD_DMA':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_KSWAPD_DMA;
-    case 55:
-    case 'VMEMINFO_PGSTEAL_KSWAPD_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_KSWAPD_NORMAL;
-    case 56:
-    case 'VMEMINFO_PGSTEAL_KSWAPD_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_KSWAPD_MOVABLE;
-    case 57:
-    case 'VMEMINFO_PGSTEAL_DIRECT_DMA':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_DIRECT_DMA;
-    case 58:
-    case 'VMEMINFO_PGSTEAL_DIRECT_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_DIRECT_NORMAL;
-    case 59:
-    case 'VMEMINFO_PGSTEAL_DIRECT_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_DIRECT_MOVABLE;
-    case 60:
-    case 'VMEMINFO_PGSCAN_KSWAPD_DMA':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_KSWAPD_DMA;
-    case 61:
-    case 'VMEMINFO_PGSCAN_KSWAPD_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_KSWAPD_NORMAL;
-    case 62:
-    case 'VMEMINFO_PGSCAN_KSWAPD_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_KSWAPD_MOVABLE;
-    case 63:
-    case 'VMEMINFO_PGSCAN_DIRECT_DMA':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_DIRECT_DMA;
-    case 64:
-    case 'VMEMINFO_PGSCAN_DIRECT_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_DIRECT_NORMAL;
-    case 65:
-    case 'VMEMINFO_PGSCAN_DIRECT_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_DIRECT_MOVABLE;
-    case 66:
-    case 'VMEMINFO_PGSCAN_DIRECT_THROTTLE':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_DIRECT_THROTTLE;
-    case 67:
-    case 'VMEMINFO_PGINODESTEAL':
-      return SysVMeminfoType.VMEMINFO_PGINODESTEAL;
-    case 68:
-    case 'VMEMINFO_SLABS_SCANNED':
-      return SysVMeminfoType.VMEMINFO_SLABS_SCANNED;
-    case 69:
-    case 'VMEMINFO_KSWAPD_INODESTEAL':
-      return SysVMeminfoType.VMEMINFO_KSWAPD_INODESTEAL;
-    case 70:
-    case 'VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY':
-      return SysVMeminfoType.VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY;
-    case 71:
-    case 'VMEMINFO_KSWAPD_HIGH_WMARK_HIT_QUICKLY':
-      return SysVMeminfoType.VMEMINFO_KSWAPD_HIGH_WMARK_HIT_QUICKLY;
-    case 72:
-    case 'VMEMINFO_PAGEOUTRUN':
-      return SysVMeminfoType.VMEMINFO_PAGEOUTRUN;
-    case 73:
-    case 'VMEMINFO_ALLOCSTALL':
-      return SysVMeminfoType.VMEMINFO_ALLOCSTALL;
-    case 74:
-    case 'VMEMINFO_PGROTATED':
-      return SysVMeminfoType.VMEMINFO_PGROTATED;
-    case 75:
-    case 'VMEMINFO_DROP_PAGECACHE':
-      return SysVMeminfoType.VMEMINFO_DROP_PAGECACHE;
-    case 76:
-    case 'VMEMINFO_DROP_SLAB':
-      return SysVMeminfoType.VMEMINFO_DROP_SLAB;
-    case 77:
-    case 'VMEMINFO_PGMIGRATE_SUCCESS':
-      return SysVMeminfoType.VMEMINFO_PGMIGRATE_SUCCESS;
-    case 78:
-    case 'VMEMINFO_PGMIGRATE_FAIL':
-      return SysVMeminfoType.VMEMINFO_PGMIGRATE_FAIL;
-    case 79:
-    case 'VMEMINFO_COMPACT_MIGRATE_SCANNED':
-      return SysVMeminfoType.VMEMINFO_COMPACT_MIGRATE_SCANNED;
-    case 80:
-    case 'VMEMINFO_COMPACT_FREE_SCANNED':
-      return SysVMeminfoType.VMEMINFO_COMPACT_FREE_SCANNED;
-    case 81:
-    case 'VMEMINFO_COMPACT_ISOLATED':
-      return SysVMeminfoType.VMEMINFO_COMPACT_ISOLATED;
-    case 82:
-    case 'VMEMINFO_COMPACT_STALL':
-      return SysVMeminfoType.VMEMINFO_COMPACT_STALL;
-    case 83:
-    case 'VMEMINFO_COMPACT_FAIL':
-      return SysVMeminfoType.VMEMINFO_COMPACT_FAIL;
-    case 84:
-    case 'VMEMINFO_COMPACT_SUCCESS':
-      return SysVMeminfoType.VMEMINFO_COMPACT_SUCCESS;
-    case 85:
-    case 'VMEMINFO_COMPACT_DAEMON_WAKE':
-      return SysVMeminfoType.VMEMINFO_COMPACT_DAEMON_WAKE;
-    case 86:
-    case 'VMEMINFO_UNEVICTABLE_PGS_CULLED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_CULLED;
-    case 87:
-    case 'VMEMINFO_UNEVICTABLE_PGS_SCANNED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_SCANNED;
-    case 88:
-    case 'VMEMINFO_UNEVICTABLE_PGS_RESCUED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_RESCUED;
-    case 89:
-    case 'VMEMINFO_UNEVICTABLE_PGS_MLOCKED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_MLOCKED;
-    case 90:
-    case 'VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED;
-    case 91:
-    case 'VMEMINFO_UNEVICTABLE_PGS_CLEARED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_CLEARED;
-    case 92:
-    case 'VMEMINFO_UNEVICTABLE_PGS_STRANDED':
-      return SysVMeminfoType.VMEMINFO_UNEVICTABLE_PGS_STRANDED;
-    case 93:
-    case 'VMEMINFO_NR_ZSPAGES':
-      return SysVMeminfoType.VMEMINFO_NR_ZSPAGES;
-    case 94:
-    case 'VMEMINFO_NR_ION_HEAP':
-      return SysVMeminfoType.VMEMINFO_NR_ION_HEAP;
-    case 95:
-    case 'VMEMINFO_NR_GPU_HEAP':
-      return SysVMeminfoType.VMEMINFO_NR_GPU_HEAP;
-    case 96:
-    case 'VMEMINFO_ALLOCSTALL_DMA':
-      return SysVMeminfoType.VMEMINFO_ALLOCSTALL_DMA;
-    case 97:
-    case 'VMEMINFO_ALLOCSTALL_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_ALLOCSTALL_MOVABLE;
-    case 98:
-    case 'VMEMINFO_ALLOCSTALL_NORMAL':
-      return SysVMeminfoType.VMEMINFO_ALLOCSTALL_NORMAL;
-    case 99:
-    case 'VMEMINFO_COMPACT_DAEMON_FREE_SCANNED':
-      return SysVMeminfoType.VMEMINFO_COMPACT_DAEMON_FREE_SCANNED;
-    case 100:
-    case 'VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED':
-      return SysVMeminfoType.VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED;
-    case 101:
-    case 'VMEMINFO_NR_FASTRPC':
-      return SysVMeminfoType.VMEMINFO_NR_FASTRPC;
-    case 102:
-    case 'VMEMINFO_NR_INDIRECTLY_RECLAIMABLE':
-      return SysVMeminfoType.VMEMINFO_NR_INDIRECTLY_RECLAIMABLE;
-    case 103:
-    case 'VMEMINFO_NR_ION_HEAP_POOL':
-      return SysVMeminfoType.VMEMINFO_NR_ION_HEAP_POOL;
-    case 104:
-    case 'VMEMINFO_NR_KERNEL_MISC_RECLAIMABLE':
-      return SysVMeminfoType.VMEMINFO_NR_KERNEL_MISC_RECLAIMABLE;
-    case 105:
-    case 'VMEMINFO_NR_SHADOW_CALL_STACK_BYTES':
-      return SysVMeminfoType.VMEMINFO_NR_SHADOW_CALL_STACK_BYTES;
-    case 106:
-    case 'VMEMINFO_NR_SHMEM_HUGEPAGES':
-      return SysVMeminfoType.VMEMINFO_NR_SHMEM_HUGEPAGES;
-    case 107:
-    case 'VMEMINFO_NR_SHMEM_PMDMAPPED':
-      return SysVMeminfoType.VMEMINFO_NR_SHMEM_PMDMAPPED;
-    case 108:
-    case 'VMEMINFO_NR_UNRECLAIMABLE_PAGES':
-      return SysVMeminfoType.VMEMINFO_NR_UNRECLAIMABLE_PAGES;
-    case 109:
-    case 'VMEMINFO_NR_ZONE_ACTIVE_ANON':
-      return SysVMeminfoType.VMEMINFO_NR_ZONE_ACTIVE_ANON;
-    case 110:
-    case 'VMEMINFO_NR_ZONE_ACTIVE_FILE':
-      return SysVMeminfoType.VMEMINFO_NR_ZONE_ACTIVE_FILE;
-    case 111:
-    case 'VMEMINFO_NR_ZONE_INACTIVE_ANON':
-      return SysVMeminfoType.VMEMINFO_NR_ZONE_INACTIVE_ANON;
-    case 112:
-    case 'VMEMINFO_NR_ZONE_INACTIVE_FILE':
-      return SysVMeminfoType.VMEMINFO_NR_ZONE_INACTIVE_FILE;
-    case 113:
-    case 'VMEMINFO_NR_ZONE_UNEVICTABLE':
-      return SysVMeminfoType.VMEMINFO_NR_ZONE_UNEVICTABLE;
-    case 114:
-    case 'VMEMINFO_NR_ZONE_WRITE_PENDING':
-      return SysVMeminfoType.VMEMINFO_NR_ZONE_WRITE_PENDING;
-    case 115:
-    case 'VMEMINFO_OOM_KILL':
-      return SysVMeminfoType.VMEMINFO_OOM_KILL;
-    case 116:
-    case 'VMEMINFO_PGLAZYFREE':
-      return SysVMeminfoType.VMEMINFO_PGLAZYFREE;
-    case 117:
-    case 'VMEMINFO_PGLAZYFREED':
-      return SysVMeminfoType.VMEMINFO_PGLAZYFREED;
-    case 118:
-    case 'VMEMINFO_PGREFILL':
-      return SysVMeminfoType.VMEMINFO_PGREFILL;
-    case 119:
-    case 'VMEMINFO_PGSCAN_DIRECT':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_DIRECT;
-    case 120:
-    case 'VMEMINFO_PGSCAN_KSWAPD':
-      return SysVMeminfoType.VMEMINFO_PGSCAN_KSWAPD;
-    case 121:
-    case 'VMEMINFO_PGSKIP_DMA':
-      return SysVMeminfoType.VMEMINFO_PGSKIP_DMA;
-    case 122:
-    case 'VMEMINFO_PGSKIP_MOVABLE':
-      return SysVMeminfoType.VMEMINFO_PGSKIP_MOVABLE;
-    case 123:
-    case 'VMEMINFO_PGSKIP_NORMAL':
-      return SysVMeminfoType.VMEMINFO_PGSKIP_NORMAL;
-    case 124:
-    case 'VMEMINFO_PGSTEAL_DIRECT':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_DIRECT;
-    case 125:
-    case 'VMEMINFO_PGSTEAL_KSWAPD':
-      return SysVMeminfoType.VMEMINFO_PGSTEAL_KSWAPD;
-    case 126:
-    case 'VMEMINFO_SWAP_RA':
-      return SysVMeminfoType.VMEMINFO_SWAP_RA;
-    case 127:
-    case 'VMEMINFO_SWAP_RA_HIT':
-      return SysVMeminfoType.VMEMINFO_SWAP_RA_HIT;
-    case 128:
-    case 'VMEMINFO_WORKINGSET_RESTORE':
-      return SysVMeminfoType.VMEMINFO_WORKINGSET_RESTORE;
-    case -1:
-    case 'UNRECOGNIZED':
-    default:
-      return SysVMeminfoType.UNRECOGNIZED;
+  if (typeof object === 'number') {
+    let sysVMemInfos = Object.keys(SysVMeminfoType);
+    if (object < 0) {
+      let sysInfo = sysVMemInfos[0];
+      // @ts-ignore
+      return SysVMeminfoType[sysInfo];
+    } else {
+      let infoType = sysVMemInfos[object + 1];
+      if (infoType) {
+        // @ts-ignore
+        return SysVMeminfoType[infoType];
+      }
+    }
+    return SysVMeminfoType.UNRECOGNIZED;
+  } else {
+    // @ts-ignore
+    return SysVMeminfoType[object];
   }
 };
 
@@ -699,126 +324,64 @@ export enum SysMeminfoType {
   UNRECOGNIZED = 'UNRECOGNIZED',
 }
 
+const sysMemInfo = [
+  SysMeminfoType.MEMINFO_UNSPECIFIED,
+  SysMeminfoType.MEMINFO_MEM_TOTAL,
+  SysMeminfoType.MEMINFO_MEM_FREE,
+  SysMeminfoType.MEMINFO_MEM_AVAILABLE,
+  SysMeminfoType.MEMINFO_BUFFERS,
+  SysMeminfoType.MEMINFO_CACHED,
+  SysMeminfoType.MEMINFO_SWAP_CACHED,
+  SysMeminfoType.MEMINFO_ACTIVE,
+  SysMeminfoType.MEMINFO_INACTIVE,
+  SysMeminfoType.MEMINFO_ACTIVE_ANON,
+  SysMeminfoType.MEMINFO_INACTIVE_ANON,
+  SysMeminfoType.MEMINFO_ACTIVE_FILE,
+  SysMeminfoType.MEMINFO_INACTIVE_FILE,
+  SysMeminfoType.MEMINFO_UNEVICTABLE,
+  SysMeminfoType.MEMINFO_MLOCKED,
+  SysMeminfoType.MEMINFO_SWAP_TOTAL,
+  SysMeminfoType.MEMINFO_SWAP_FREE,
+  SysMeminfoType.MEMINFO_DIRTY,
+  SysMeminfoType.MEMINFO_WRITEBACK,
+  SysMeminfoType.MEMINFO_ANON_PAGES,
+  SysMeminfoType.MEMINFO_MAPPED,
+  SysMeminfoType.MEMINFO_SHMEM,
+  SysMeminfoType.MEMINFO_SLAB,
+  SysMeminfoType.MEMINFO_SLAB_RECLAIMABLE,
+  SysMeminfoType.MEMINFO_SLAB_UNRECLAIMABLE,
+  SysMeminfoType.MEMINFO_KERNEL_STACK,
+  SysMeminfoType.MEMINFO_PAGE_TABLES,
+  SysMeminfoType.MEMINFO_COMMIT_LIMIT,
+  SysMeminfoType.MEMINFO_COMMITED_AS,
+  SysMeminfoType.MEMINFO_VMALLOC_TOTAL,
+  SysMeminfoType.MEMINFO_VMALLOC_USED,
+  SysMeminfoType.MEMINFO_VMALLOC_CHUNK,
+  SysMeminfoType.MEMINFO_CMA_TOTAL,
+  SysMeminfoType.MEMINFO_CMA_FREE,
+  SysMeminfoType.MEMINFO_KERNEL_RECLAIMABLE,
+  SysMeminfoType.PMEM_ACTIVE_PURG,
+  SysMeminfoType.PMEM_INACTIVE_PURG,
+  SysMeminfoType.PMEM_PINED_PURG,
+  SysMeminfoType.UNRECOGNIZED
+];
+
 const sysMeminfoCase = (object: any): SysMeminfoType => {
-  switch (object) {
-    case 0:
-    case 'MEMINFO_UNSPECIFIED':
-      return SysMeminfoType.MEMINFO_UNSPECIFIED;
-    case 1:
-    case 'MEMINFO_MEM_TOTAL':
-      return SysMeminfoType.MEMINFO_MEM_TOTAL;
-    case 2:
-    case 'MEMINFO_MEM_FREE':
-      return SysMeminfoType.MEMINFO_MEM_FREE;
-    case 3:
-    case 'MEMINFO_MEM_AVAILABLE':
-      return SysMeminfoType.MEMINFO_MEM_AVAILABLE;
-    case 4:
-    case 'MEMINFO_BUFFERS':
-      return SysMeminfoType.MEMINFO_BUFFERS;
-    case 5:
-    case 'MEMINFO_CACHED':
-      return SysMeminfoType.MEMINFO_CACHED;
-    case 6:
-    case 'MEMINFO_SWAP_CACHED':
-      return SysMeminfoType.MEMINFO_SWAP_CACHED;
-    case 7:
-    case 'MEMINFO_ACTIVE':
-      return SysMeminfoType.MEMINFO_ACTIVE;
-    case 8:
-    case 'MEMINFO_INACTIVE':
-      return SysMeminfoType.MEMINFO_INACTIVE;
-    case 9:
-    case 'MEMINFO_ACTIVE_ANON':
-      return SysMeminfoType.MEMINFO_ACTIVE_ANON;
-    case 10:
-    case 'MEMINFO_INACTIVE_ANON':
-      return SysMeminfoType.MEMINFO_INACTIVE_ANON;
-    case 11:
-    case 'MEMINFO_ACTIVE_FILE':
-      return SysMeminfoType.MEMINFO_ACTIVE_FILE;
-    case 12:
-    case 'MEMINFO_INACTIVE_FILE':
-      return SysMeminfoType.MEMINFO_INACTIVE_FILE;
-    case 13:
-    case 'MEMINFO_UNEVICTABLE':
-      return SysMeminfoType.MEMINFO_UNEVICTABLE;
-    case 14:
-    case 'MEMINFO_MLOCKED':
-      return SysMeminfoType.MEMINFO_MLOCKED;
-    case 15:
-    case 'MEMINFO_SWAP_TOTAL':
-      return SysMeminfoType.MEMINFO_SWAP_TOTAL;
-    case 16:
-    case 'MEMINFO_SWAP_FREE':
-      return SysMeminfoType.MEMINFO_SWAP_FREE;
-    case 17:
-    case 'MEMINFO_DIRTY':
-      return SysMeminfoType.MEMINFO_DIRTY;
-    case 18:
-    case 'MEMINFO_WRITEBACK':
-      return SysMeminfoType.MEMINFO_WRITEBACK;
-    case 19:
-    case 'MEMINFO_ANON_PAGES':
-      return SysMeminfoType.MEMINFO_ANON_PAGES;
-    case 20:
-    case 'MEMINFO_MAPPED':
-      return SysMeminfoType.MEMINFO_MAPPED;
-    case 21:
-    case 'MEMINFO_SHMEM':
-      return SysMeminfoType.MEMINFO_SHMEM;
-    case 22:
-    case 'MEMINFO_SLAB':
-      return SysMeminfoType.MEMINFO_SLAB;
-    case 23:
-    case 'MEMINFO_SLAB_RECLAIMABLE':
-      return SysMeminfoType.MEMINFO_SLAB_RECLAIMABLE;
-    case 24:
-    case 'MEMINFO_SLAB_UNRECLAIMABLE':
-      return SysMeminfoType.MEMINFO_SLAB_UNRECLAIMABLE;
-    case 25:
-    case 'MEMINFO_KERNEL_STACK':
-      return SysMeminfoType.MEMINFO_KERNEL_STACK;
-    case 26:
-    case 'MEMINFO_PAGE_TABLES':
-      return SysMeminfoType.MEMINFO_PAGE_TABLES;
-    case 27:
-    case 'MEMINFO_COMMIT_LIMIT':
-      return SysMeminfoType.MEMINFO_COMMIT_LIMIT;
-    case 28:
-    case 'MEMINFO_COMMITED_AS':
-      return SysMeminfoType.MEMINFO_COMMITED_AS;
-    case 29:
-    case 'MEMINFO_VMALLOC_TOTAL':
-      return SysMeminfoType.MEMINFO_VMALLOC_TOTAL;
-    case 30:
-    case 'MEMINFO_VMALLOC_USED':
-      return SysMeminfoType.MEMINFO_VMALLOC_USED;
-    case 31:
-    case 'MEMINFO_VMALLOC_CHUNK':
-      return SysMeminfoType.MEMINFO_VMALLOC_CHUNK;
-    case 32:
-    case 'MEMINFO_CMA_TOTAL':
-      return SysMeminfoType.MEMINFO_CMA_TOTAL;
-    case 33:
-    case 'MEMINFO_CMA_FREE':
-      return SysMeminfoType.MEMINFO_CMA_FREE;
-    case 34:
-    case 'MEMINFO_KERNEL_RECLAIMABLE':
-      return SysMeminfoType.MEMINFO_KERNEL_RECLAIMABLE;
-    case 35:
-    case 'PMEM_ACTIVE_PURG':
-      return SysMeminfoType.PMEM_ACTIVE_PURG;
-    case 36:
-    case 'PMEM_INACTIVE_PURG':
-      return SysMeminfoType.PMEM_INACTIVE_PURG;
-    case 37:
-    case 'PMEM_PINED_PURG':
-      return SysMeminfoType.PMEM_PINED_PURG;
-    case -1:
-    case 'UNRECOGNIZED':
-    default:
+  if (typeof object === 'number') {
+    if (object >= 0) {
+      let sysMemType = sysMemInfo[object];
+      if (sysMemType) {
+        return sysMemType;
+      }
+    }
+    return SysMeminfoType.UNRECOGNIZED
+  } else {
+    // @ts-ignore
+    let sysMemType = SysMeminfoType[object];
+    if (!sysMemType) {
       return SysMeminfoType.UNRECOGNIZED;
+    }
+    return sysMemType;
   }
 };
 

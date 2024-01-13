@@ -113,19 +113,19 @@ function setDiskIoAbilityFilter(
   if (diskIoAbilityList) {
     for (let index = 0; index < diskIoAbilityList.length; index++) {
       let item = diskIoAbilityList[index];
-      if (index === diskIoAbilityList.length - 1) {
-        item.dur = endNS - (item.startNS || 0);
-      } else {
-        item.dur = (diskIoAbilityList[index + 1].startNS || 0) - (item.startNS || 0);
-      }
+      item.dur =
+        index === diskIoAbilityList.length - 1
+          ? endNS - (item.startNS || 0)
+          : (diskIoAbilityList[index + 1].startNS || 0) - (item.startNS || 0);
       if ((item.startNS || 0) + (item.dur || 0) > startNS && (item.startNS || 0) < endNS) {
         DiskAbilityMonitorStruct.setDiskIOFrame(diskIoAbilityList[index], 5, startNS, endNS, totalNS, frame);
         if (
-          index > 0 &&
-          (diskIoAbilityList[index - 1].frame?.x || 0) == (diskIoAbilityList[index].frame?.x || 0) &&
-          (diskIoAbilityList[index - 1].frame?.width || 0) == (diskIoAbilityList[index].frame?.width || 0)
+          !(
+            index > 0 &&
+            (diskIoAbilityList[index - 1].frame.x || 0) === (diskIoAbilityList[index].frame.x || 0) &&
+            (diskIoAbilityList[index - 1].frame.width || 0) === (diskIoAbilityList[index].frame.width || 0)
+          )
         ) {
-        } else {
           res.push(item);
         }
       }

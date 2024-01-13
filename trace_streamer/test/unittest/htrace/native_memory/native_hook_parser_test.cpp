@@ -237,6 +237,15 @@ public:
         nativeHookData->set_allocated_munmap_event(munmapEvent);
     }
 
+    BatchNativeHookData CreateBatchNativeHookData(std::string& hookStrMsg)
+    {
+        BatchNativeHookData batchNativeHookData;
+        SetAllocEvent(batchNativeHookData, {TID_01, ADDR_01, SIZE_01, "", SEC_01, NSEC_01}, true);
+        SetAllocEvent(batchNativeHookData, {TID_02, ADDR_02, SIZE_02, "", SEC_02, NSEC_02}, true);
+        batchNativeHookData.SerializeToString(&hookStrMsg);
+        return batchNativeHookData;
+    }
+
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
 };
@@ -552,74 +561,45 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMalloc, TestSize.Level
 HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMalloc, TestSize.Level1)
 {
     TS_LOGI("test24-3");
-
-    // construct BatchNativeHookData
-    BatchNativeHookData batchNativeHookData;
-    SetAllocEvent(batchNativeHookData, {TID_01, ADDR_01, SIZE_01, "", SEC_01, NSEC_01}, true);
-    SetAllocEvent(batchNativeHookData, {TID_02, ADDR_02, SIZE_02, "", SEC_02, NSEC_02}, true);
     std::string hookStrMsg = "";
-    batchNativeHookData.SerializeToString(&hookStrMsg);
-
+    BatchNativeHookData batchNativeHookData = CreateBatchNativeHookData(hookStrMsg);
     HtraceDataSegment dataSeg;
     dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
     ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t*>(hookStrMsg.data()), hookStrMsg.size());
     dataSeg.protoData = hookBytesView;
-
-    // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
-
-    // Verification parse NativeHook results
-    // Calculate partial expectations
     const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
     EXPECT_TRUE(SIZE_01 == nativeHook.AllMemSizes()[0]);
     EXPECT_TRUE(nativeHook.CurrentSizeDurs()[0] == TIMESTAMP_02 - TIMESTAMP_01);
-
-    // Construct the nativehookcache object using the element with subscript 0 in nativehook and compare it with the
-    // expected value
     NativeHookCache firstExpectNativeHookCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
                                                TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01,
                                                TIMESTAMP_02 - TIMESTAMP_01);
     NativeHookCache firstResultNativeHookCache(nativeHook, 0);
     EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
-
-    // construct first Malloc event's first frame expect value.
-    // Note: the nativehookframe data is parsed in reverse order
     auto firstExpectSymbol = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
     auto firstExpectFilePath = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
     NativeHookFrameCache firstMallocExpectFirstFrame(1, 0, IP_02, firstExpectSymbol, firstExpectFilePath, OFFSET_02,
                                                      SYMBOL_OFFSET_02);
-    // Construct the NativeHookFrameCache object using the element with subscript 0 in NativeHookFrame and compare it
-    // with the expected value
     EXPECT_TRUE(firstMallocExpectFirstFrame == NativeHookFrameCache(nativeHookFrame, 0));
-
-    // construct first Malloc event's second frame expect value.
     auto secondExpectSymbol = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto secondExpectFilePath = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache firstMallocExpectSecondFrame(1, 1, IP_01, secondExpectSymbol, secondExpectFilePath, OFFSET_01,
                                                       SYMBOL_OFFSET_01);
     NativeHookFrameCache firstMallocResultSecondFrame(nativeHookFrame, 1);
     EXPECT_TRUE(firstMallocExpectSecondFrame == firstMallocResultSecondFrame);
-
-    // Construct the nativehookcache object using the element with subscript 1 in nativehook and compare it with the
-    // expected value
     expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
     NativeHookCache secondExpectNativeHookCache(1, expect_ipid, expect_itid, ALLOCEVENT.c_str(), INVALID_UINT64,
                                                 TIMESTAMP_02, 0, 0, ADDR_02, SIZE_02, SIZE_01 + SIZE_02, 0);
     NativeHookCache secondResultNativeHookCache(nativeHook, 1);
     EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-
-    // construct second Malloc event's first frame expect value.
-    // Note: the nativehookframe data is parsed in reverse order
     NativeHookFrameCache secondMallocExpectFirstFrame(1, 0, IP_02, firstExpectSymbol, firstExpectFilePath, OFFSET_02,
                                                       SYMBOL_OFFSET_02);
-    // Construct the NativeHookFrameCache object using the element with subscript 2 in NativeHookFrame and compare it
-    // Verify the compression algorithm here=
     EXPECT_EQ(nativeHookFrame.CallChainIds()[1], 1);
     EXPECT_EQ(nativeHookFrame.Depths()[1], 1);
     EXPECT_EQ(nativeHookFrame.Ips()[1], IP_01);
@@ -1047,13 +1027,9 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMunmap, TestSize.Level
 HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Level1)
 {
     TS_LOGI("test24-12");
-
-    // construct BatchNativeHookData
     BatchNativeHookData batchNativeHookData;
     SetMmapEvent(batchNativeHookData, {TID_01, ADDR_01, SIZE_01, TYPE_01, SEC_01, NSEC_01});
     SetMmapEvent(batchNativeHookData, {TID_02, ADDR_02, SIZE_02, TYPE_02, SEC_02, NSEC_02}, false, true);
-
-    // start parse
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     std::string hookStrMsg = "";
     batchNativeHookData.SerializeToString(&hookStrMsg);
@@ -1064,8 +1040,6 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
     bool hasSplit = false;
     htraceNativeHookParser.Parse(dataSeg, hasSplit);
     htraceNativeHookParser.FinishParseNativeHookData();
-
-    // Verification parse NativeHook results
     const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
     auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
@@ -1074,40 +1048,28 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMmap, TestSize.Le
     NativeHookCache firstExpectNativeHookCache(1, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType,
                                                TIMESTAMP_01, 0, 0, ADDR_01, SIZE_01, SIZE_01,
                                                TIMESTAMP_02 - TIMESTAMP_01);
-    NativeHookCache firstResultNativeHookCache(nativeHook, 0);
-    EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
+    EXPECT_TRUE(firstExpectNativeHookCache == NativeHookCache(nativeHook, 0));
 
     expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
     mmapSubType = stream_.traceDataCache_->dataDict_.GetStringIndex(TYPE_02);
     NativeHookCache secondExpectNativeHookCache(2, expect_ipid, expect_itid, MMAPEVENT.c_str(), mmapSubType,
                                                 TIMESTAMP_02, 0, 0, ADDR_02, SIZE_02, SIZE_01 + SIZE_02, 0);
-    NativeHookCache secondResultNativeHookCache(nativeHook, 1);
-    EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-    auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(2, size);
-
-    // Verification parse NativeHook Frame results
+    EXPECT_TRUE(secondExpectNativeHookCache == NativeHookCache(nativeHook, 1));
+    EXPECT_EQ(2, stream_.traceDataCache_->GetConstNativeHookData().Size());
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
     auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
     auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
     NativeHookFrameCache firstExpectFrameCache(1, 0, IP_01, expectSymbolData, expectFilePathData, OFFSET_01,
                                                SYMBOL_OFFSET_01);
-    NativeHookFrameCache firstResultFrameCache(nativeHookFrame, 0);
-    EXPECT_TRUE(firstExpectFrameCache == firstResultFrameCache);
+    EXPECT_TRUE(firstExpectFrameCache == NativeHookFrameCache(nativeHookFrame, 0));
 
     expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
     expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
     NativeHookFrameCache expectFrameCache(2, 0, IP_02, expectSymbolData, expectFilePathData, OFFSET_02,
                                           SYMBOL_OFFSET_02);
-    NativeHookFrameCache resultFrameCache(nativeHookFrame, 1);
-    EXPECT_TRUE(expectFrameCache == resultFrameCache);
-
-    size = nativeHookFrame.Size();
-    EXPECT_EQ(2, size);
-
-    auto eventCount =
-        stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED);
-    EXPECT_TRUE(2 == eventCount);
+    EXPECT_TRUE(expectFrameCache == NativeHookFrameCache(nativeHookFrame, 1));
+    EXPECT_EQ(2, nativeHookFrame.Size());
+    EXPECT_EQ(2, stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED));
 }
 
 /**

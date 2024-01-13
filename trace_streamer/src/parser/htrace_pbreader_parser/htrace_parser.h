@@ -118,7 +118,12 @@ private:
     void ParserData(HtraceDataSegment& dataSeg, bool isSplitFile);
 
 private:
+#if IS_WASM
+    bool ParseSDKData();
+#endif
     void InitPluginNameIndex();
+    bool GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    bool ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
     void ParseMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero, HtraceDataSegment& dataSeg);
     void ParseMemoryConfig(HtraceDataSegment& dataSeg, const ProtoReader::ProfilerPluginData_Reader& pluginDataZero);
     void ParseHilog(HtraceDataSegment& dataSeg);
@@ -154,8 +159,8 @@ private:
     bool hasGotSegLength_ = false;
     bool hasGotHeader_ = false;
     uint32_t nextLength_ = 0;
-    const size_t packetSegLength = 4;
-    const size_t packetHeaderLength = 1024;
+    const size_t packetSegLength_ = 4;
+    const size_t packetHeaderLength_ = 1024;
     TraceDataCache* traceDataCache_;
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
     std::unique_ptr<HtraceSymbolsDetailParser> htraceSymbolsDetailParser_;

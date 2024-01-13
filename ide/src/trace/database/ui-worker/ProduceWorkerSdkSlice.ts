@@ -76,7 +76,9 @@ export class SdkSliceRender extends Render {
       return;
     }
     sdkSliceFilters.length = 0;
-    setSdkSliceFilter(sdkList, sdkSliceFilters, startNS, endNS, totalNS, frame);
+    if (sdkList) {
+      setSdkSliceFilter(sdkList, sdkSliceFilters, startNS, endNS, totalNS, frame);
+    }
   }
 }
 function setSdkSliceFilter(
@@ -87,22 +89,21 @@ function setSdkSliceFilter(
   totalNS: number,
   frame: any
 ) {
-  if (sdkList) {
-    for (let index = 0; index < sdkList.length; index++) {
-      let item = sdkList[index];
-      if (item.start_ts >= startNS && item.end_ts === 0) {
-        item.end_ts = endNS;
-      }
-      if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
-        SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS, endNS, totalNS, frame);
-        if (
+  for (let index = 0; index < sdkList.length; index++) {
+    let item = sdkList[index];
+    if (item.start_ts >= startNS && item.end_ts === 0) {
+      item.end_ts = endNS;
+    }
+    if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
+      SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS, endNS, totalNS, frame);
+      if (
+        !(
           index > 0 &&
           (sdkList[index - 1].frame?.x || 0) === (sdkList[index].frame?.x || 0) &&
           (sdkList[index - 1].frame?.width || 0) === (sdkList[index].frame?.width || 0)
-        ) {
-        } else {
-          sdkSliceFilters.push(item);
-        }
+        )
+      ) {
+        sdkSliceFilters.push(item);
       }
     }
   }

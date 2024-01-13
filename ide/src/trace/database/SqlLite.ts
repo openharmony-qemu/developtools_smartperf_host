@@ -200,59 +200,62 @@ export class DbPool {
         this.currentWasmThread = thread;
         thread!.worker!.onerror = (err) => {
           console.warn(err);
-        }
+        };
         thread!.worker!.onmessageerror = (err) => {
           console.warn(err);
-        }
-        thread!.worker!.onmessage = (event: MessageEvent) => {
-          thread!.busy = false;
-          if (Reflect.has(thread!.taskMap, event.data.id)) {
-            if (event.data.results) {
-              let fun = thread!.taskMap[event.data.id];
-              if (fun) {
-                fun(event.data.results, event.data.len, event.data.transfer,event.data.isEmpty);
-              }
-              Reflect.deleteProperty(thread!.taskMap, event.data.id);
-            } else if (Reflect.has(event.data, 'cutStatus')) {
-              let fun = thread!.taskMap[event.data.id];
-              if (fun) {
-                fun(event.data);
-              }
-            } else if (Reflect.has(event.data, 'ready')) {
-              this.progress!('database opened', this.num + event.data.index);
-              this.progressTimer(this.num + event.data.index, this.progress!);
-              DbPool.sharedBuffer = null;
-            } else if (Reflect.has(event.data, 'init')) {
-              if (this.cutDownTimer != undefined) {
-                clearInterval(this.cutDownTimer);
-              }
-              let fun = thread!.taskMap[event.data.id];
-              if (!event.data.init && !event.data.status) {
-                if (fun) {
-                  fun(['error', event.data.msg]);
-                }
-              } else {
-                this.progress!('database ready', 40);
-                if (fun) {
-                  fun(event.data);
-                }
-              }
-              Reflect.deleteProperty(thread!.taskMap, event.data.id);
-            } else {
-              let fun = thread!.taskMap[event.data.id];
-              if (fun) {
-                fun([]);
-              }
-              Reflect.deleteProperty(thread!.taskMap, event.data.id);
-            }
-          }
         };
+        this.threadPostMessage(thread);
         thread!.id = i;
         thread!.busy = false;
         this.works?.push(thread!);
       }
     }
   };
+  threadPostMessage(thread: DbThread) {
+    thread!.worker!.onmessage = (event: MessageEvent) => {
+      thread!.busy = false;
+      if (Reflect.has(thread!.taskMap, event.data.id)) {
+        if (event.data.results) {
+          let fun = thread!.taskMap[event.data.id];
+          if (fun) {
+            fun(event.data.results, event.data.len, event.data.transfer, event.data.isEmpty);
+          }
+          Reflect.deleteProperty(thread!.taskMap, event.data.id);
+        } else if (Reflect.has(event.data, 'cutStatus')) {
+          let fun = thread!.taskMap[event.data.id];
+          if (fun) {
+            fun(event.data);
+          }
+        } else if (Reflect.has(event.data, 'ready')) {
+          this.progress!('database opened', this.num + event.data.index);
+          this.progressTimer(this.num + event.data.index, this.progress!);
+          DbPool.sharedBuffer = null;
+        } else if (Reflect.has(event.data, 'init')) {
+          if (this.cutDownTimer != undefined) {
+            clearInterval(this.cutDownTimer);
+          }
+          let fun = thread!.taskMap[event.data.id];
+          if (!event.data.init && !event.data.status) {
+            if (fun) {
+              fun(['error', event.data.msg]);
+            }
+          } else {
+            this.progress!('database ready', 40);
+            if (fun) {
+              fun(event.data);
+            }
+          }
+          Reflect.deleteProperty(thread!.taskMap, event.data.id);
+        } else {
+          let fun = thread!.taskMap[event.data.id];
+          if (fun) {
+            fun([]);
+          }
+          Reflect.deleteProperty(thread!.taskMap, event.data.id);
+        }
+      }
+    };
+  }
 
   initServer = async (url: string, progress: Function): Promise<{ status: boolean; msg: string }> => {
     this.progress = progress;
@@ -299,13 +302,15 @@ export class DbPool {
       let headers = new Headers();
       headers.append('Content-Length', `${buffer.byteLength}`);
       headers.append('Content-Type', 'application/octet-stream');
-      cache.put(
-        key,
-        new Response(buffer, {
-          status: 200,
-          headers: headers,
-        })
-      ).then();
+      cache
+        .put(
+          key,
+          new Response(buffer, {
+            status: 200,
+            headers: headers,
+          })
+        )
+        .then();
     });
   }
 
@@ -324,7 +329,7 @@ export class DbPool {
           let splitB = keyB.split('/');
           let timeA = splitA[splitA.length - 1].split('-')[0];
           let timeB = splitB[splitB.length - 1].split('-')[0];
-          return  parseInt(timeA) - parseInt(timeB)
+          return parseInt(timeA) - parseInt(timeB);
         } else {
           return 0;
         }
@@ -414,12 +419,7 @@ export class DbPool {
 
 export const threadPool = new DbPool();
 
-export function query<T>(
-  name: string,
-  sql: string,
-  args: any = null,
-  action: string | null = null
-): Promise<Array<T>> {
+export function query<T>(name: string, sql: string, args: any = null, action: string | null = null): Promise<Array<T>> {
   return new Promise<Array<T>>((resolve, reject) => {
     threadPool.submit(
       name,

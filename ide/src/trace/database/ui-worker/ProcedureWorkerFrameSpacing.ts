@@ -25,6 +25,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { type AnimationRanges } from '../../bean/FrameComponentBean';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class FrameSpacingRender extends Render {
   renderMainThread(
@@ -297,7 +298,18 @@ export class FrameSpacingRender extends Render {
     return [min, max];
   }
 }
-
+export function FrameSpacingStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+  return new Promise((resolve,reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING && FrameSpacingStruct.hoverFrameSpacingStruct) {
+      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct;
+      sp.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class FrameSpacingStruct extends BaseStruct {
   static hoverFrameSpacingStruct: FrameSpacingStruct | undefined;
   static selectFrameSpacingStruct: FrameSpacingStruct | undefined;

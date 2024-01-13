@@ -65,6 +65,12 @@ private:
                                  std::unordered_map<int, std::vector<int>>& traceMap,
                                  FfrtConverter::TypeFfrtPid& ffrtPidsMap);
     int FindTid(string& log);
+    void ConvertFfrtThreadToFfrtTaskByLine(int pid,
+                                           int tid,
+                                           int& prio,
+                                           std::vector<std::string>& results,
+                                           ffrtContent& content,
+                                           std::unordered_map<int, std::unordered_map<int, std::string>>& taskLabels);
     void ConvertFfrtThreadToFfrtTask(vector<std::string>& results, TypeFfrtPid& ffrtPidsMap);
     std::string MakeBeginFakeLog(const std::string& mark,
                                  const int pid,
@@ -97,10 +103,26 @@ private:
                                        const std::string& label,
                                        const long long gid,
                                        const int tid);
-    void SupplementFfrtBlockAndWakeInfo(vector<std::string>& results);
     std::string GetTaskId(int pid, long long gid);
     bool IsDigit(const std::string& str);
     void CheckTraceMarker(vector<std::string>& lines);
+    void UpdatePrio(int& prio, const std::string& mark, const int tid);
+    std::string GetLabel(const std::string& mark);
+    void DeleteRedundance(const std::string& mark,
+                          std::string& log,
+                          bool switchInFakeLog,
+                          bool switchOutFakeLog,
+                          const int pid,
+                          const std::string& label,
+                          long long gid,
+                          const int tid,
+                          const std::string& threadName,
+                          const int prio);
+    std::string getNewMissLog(std::string& missLog,
+                              const std::string& mark,
+                              const int pid,
+                              const int tid,
+                              std::string threadName);
 
 private:
     const std::regex indexPattern_ = std::regex(R"(\(.+\)\s+\[\d)");

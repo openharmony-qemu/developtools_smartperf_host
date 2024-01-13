@@ -342,7 +342,35 @@ bool CheckAndSetLongTraceDir(TraceExportOption& traceExportOption, int argc, cha
     traceExportOption.longTraceDir = std::string(argv[index]);
     return true;
 }
-
+bool ParseOtherArgs(int argc, char** argv, TraceExportOption& traceExportOption, int i)
+{
+    if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
+        PrintInformation();
+    } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
+        TS_CHECK_TRUE_RET(CheckAndSetLogLevel(argc, argv, i), false);
+        return true;
+    } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
+        traceExportOption.separateFile = true;
+        return true;
+    } else if (!strcmp(argv[i], "-tn") || !strcmp(argv[i], "--threadnum")) {
+        TS_CHECK_TRUE_RET(CheckAndSetThreadNum(traceExportOption, argc, argv, i), false);
+        return true;
+    } else if (!strcmp(argv[i], "-nt") || !strcmp(argv[i], "--nothreads")) {
+        traceExportOption.closeMutiThread = true;
+        return true;
+    } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
+        traceExportOption.exportMetaTable = false;
+        return true;
+    } else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--run-metrics")) {
+        TS_CHECK_TRUE_RET(CheckAndSetMetrics(traceExportOption, argc, argv, i), false);
+        return true;
+    } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
+        PrintVersion();
+        return false;
+    }
+    traceExportOption.traceFilePath = std::string(argv[i]);
+    return true;
+}
 bool ParseArgs(int argc, char** argv, TraceExportOption& traceExportOption)
 {
     for (int i = 1; i < argc; i++) {
@@ -364,34 +392,13 @@ bool ParseArgs(int argc, char** argv, TraceExportOption& traceExportOption)
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--out")) {
             TS_CHECK_TRUE_RET(CheckAndSetOutputFilePath(traceExportOption, argc, argv, i), false);
             continue;
-        } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
-            PrintInformation();
-        } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
-            TS_CHECK_TRUE_RET(CheckAndSetLogLevel(argc, argv, i), false);
-            continue;
-        } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
-            traceExportOption.separateFile = true;
-            continue;
-        } else if (!strcmp(argv[i], "-tn") || !strcmp(argv[i], "--threadnum")) {
-            TS_CHECK_TRUE_RET(CheckAndSetThreadNum(traceExportOption, argc, argv, i), false);
-            continue;
-        } else if (!strcmp(argv[i], "-nt") || !strcmp(argv[i], "--nothreads")) {
-            traceExportOption.closeMutiThread = true;
-            continue;
-        } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
-            traceExportOption.exportMetaTable = false;
-            continue;
-        } else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--run-metrics")) {
-            TS_CHECK_TRUE_RET(CheckAndSetMetrics(traceExportOption, argc, argv, i), false);
-            continue;
-        } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
-            PrintVersion();
+        } else if (!ParseOtherArgs(argc, argv, traceExportOption, i)) {
             return false;
         }
-        traceExportOption.traceFilePath = std::string(argv[i]);
     }
     return CheckFinal(argv, traceExportOption);
 }
+
 bool GetLongTraceFilePaths(const TraceExportOption& traceExportOption, std::map<int, std::string>& seqToFilePathMap)
 {
     std::regex traceInvalidStr("\\\\");

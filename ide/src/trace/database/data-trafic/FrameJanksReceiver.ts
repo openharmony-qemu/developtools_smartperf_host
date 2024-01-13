@@ -46,6 +46,10 @@ export const frameJankDataSql = (args: any, configure: any): string => {
     default:
       break;
   }
+  let sql = setFrameJanksSql(args, timeLimit, flag, fsType, fsFlag);
+  return sql;
+};
+function setFrameJanksSql(args: any, timeLimit: string, flag: string, fsType: number, fsFlag: string): string {
   return `SELECT sf.id,
             'frameTime' as frameType,
             fs.ipid,
@@ -69,8 +73,7 @@ export const frameJankDataSql = (args: any, configure: any): string => {
         LEFT JOIN process AS proc ON proc.id = sf.ipid
         WHERE fs.dst IS NOT NULL
         AND fs.type = ${fsType}
-        ${fsFlag}
-        ${timeLimit}
+        ${fsFlag} ${timeLimit}
         UNION
         SELECT -1 as id,
             'frameTime' as frameType,
@@ -88,11 +91,9 @@ export const frameJankDataSql = (args: any, configure: any): string => {
         WHERE fs.dst IS NULL
         AND pro.name NOT LIKE '%render_service%'
         AND fs.type = 1
-        ${fsFlag}
-        ${timeLimit}
+        ${fsFlag} ${timeLimit}
         ORDER by ts`;
-};
-
+}
 let frameDepthList: Map<string, number> = new Map();
 
 export function frameExpectedReceiver(data: any, proc: Function): void {

@@ -101,19 +101,19 @@ function stateFilter(
   if (stateList) {
     for (let index = 0; index < stateList.length; index++) {
       let item = stateList[index];
-      if (index === stateList.length - 1) {
-        item.dur = endNS - (item.startNs || 0);
-      } else {
-        item.dur = (stateList[index + 1].startNs || 0) - (item.startNs || 0);
-      }
+      item.dur =
+        index === stateList.length - 1
+          ? endNS - (item.startNs || 0)
+          : (stateList[index + 1].startNs || 0) - (item.startNs || 0);
       if ((item.startNs || 0) + (item.dur || 0) > startNS && (item.startNs || 0) < endNS) {
         EnergyStateStruct.setStateFrame(stateList[index], 5, startNS, endNS, totalNS, frame);
         if (
-          index > 0 &&
-          (stateList[index - 1].frame?.x || 0) == (stateList[index].frame?.x || 0) &&
-          (stateList[index - 1].frame?.width || 0) == (stateList[index].frame?.width || 0)
+          !(
+            index > 0 &&
+            (stateList[index - 1].frame?.x || 0) == (stateList[index].frame?.x || 0) &&
+            (stateList[index - 1].frame?.width || 0) == (stateList[index].frame?.width || 0)
+          )
         ) {
-        } else {
           res.push(item);
         }
       }

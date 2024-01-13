@@ -100,7 +100,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         },
         {
           funcName: 'getCurrentDataFromDb',
-          funcArgs: [{ queryFuncName: 'virtualMemory', ...vmStatisticsAnalysisSelection }],
+          funcArgs: [{queryFuncName: 'virtualMemory', ...vmStatisticsAnalysisSelection}],
         },
       ],
       (results: any[]) => {
@@ -503,6 +503,32 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   private libraryPieChart(): void {
     // @ts-ignore
     this.sumDur = this.libStatisticsData.allDuration;
+    this.setVmPieConfig();
+    let title = '';
+    if (this.vmProcessName.length > 0) {
+      title += this.vmProcessName + ' / ';
+    }
+    if (this.vmtypeName.length > 0) {
+      if (this.hideThreadCheckBox?.checked) {
+        title += this.vmtypeName;
+      } else {
+        title += this.vmtypeName + ' / ';
+      }
+    }
+    if (this.vmThreadName.length > 0) {
+      title += this.vmThreadName;
+    }
+    this.virtualMemoryTitleEl!.textContent = title;
+    this.tabName!.textContent = 'Statistic By Library AllDuration';
+    this.vmStatisticsAnalysisSoData.unshift(this.libStatisticsData);
+    this.vmStatisticsAnalysisTableSo!.recycleDataSource = this.vmStatisticsAnalysisSoData;
+    // @ts-ignore
+    this.vmStatisticsAnalysisSoData.shift(this.libStatisticsData);
+    this.currentLevelData = this.vmStatisticsAnalysisSoData;
+    this.vmStatisticsAnalysisTableSo?.reMeauseHeight();
+  }
+
+  private setVmPieChartConfig(): void {
     this.vmPieChart!.config = {
       appendPadding: 0,
       data: this.getVmPieChartData(this.vmStatisticsAnalysisSoData),
@@ -539,28 +565,6 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    let title = '';
-    if (this.vmProcessName.length > 0) {
-      title += this.vmProcessName + ' / ';
-    }
-    if (this.vmtypeName.length > 0) {
-      if (this.hideThreadCheckBox?.checked) {
-        title += this.vmtypeName;
-      } else {
-        title += this.vmtypeName + ' / ';
-      }
-    }
-    if (this.vmThreadName.length > 0) {
-      title += this.vmThreadName;
-    }
-    this.virtualMemoryTitleEl!.textContent = title;
-    this.tabName!.textContent = 'Statistic By Library AllDuration';
-    this.vmStatisticsAnalysisSoData.unshift(this.libStatisticsData);
-    this.vmStatisticsAnalysisTableSo!.recycleDataSource = this.vmStatisticsAnalysisSoData;
-    // @ts-ignore
-    this.vmStatisticsAnalysisSoData.shift(this.libStatisticsData);
-    this.currentLevelData = this.vmStatisticsAnalysisSoData;
-    this.vmStatisticsAnalysisTableSo?.reMeauseHeight();
   }
 
   private vmSoLevelClickEvent(it: any): void {
@@ -605,6 +609,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     if (!vmsCurrentTable) {
       return;
     }
+    this.sortByType(vmsCurrentTable);
+  }
+
+  private sortByType(vmsCurrentTable: LitTable): void {
     if (this.vmSortType === 0) {
       let vmsArr = [...this.currentLevelData];
       switch (this.currentLevel) {
@@ -628,25 +636,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     } else {
       let vmsArray = [...this.currentLevelData];
       if (this.vmSortColumn === 'tableName') {
-        vmsCurrentTable!.recycleDataSource = vmsArray.sort((firstVMElement, secondVMElement) => {
-          if (this.vmSortType === 1) {
-            if (firstVMElement.tableName > secondVMElement.tableName) {
-              return 1;
-            } else if (firstVMElement.tableName === secondVMElement.tableName) {
-              return 0;
-            } else {
-              return -1;
-            }
-          } else {
-            if (secondVMElement.tableName > firstVMElement.tableName) {
-              return 1;
-            } else if (firstVMElement.tableName === secondVMElement.tableName) {
-              return 0;
-            } else {
-              return -1;
-            }
-          }
-        });
+        this.sortTableNameCase(vmsCurrentTable, vmsArray);
       } else if (this.vmSortColumn === 'durFormat' || this.vmSortColumn === 'percent') {
         vmsCurrentTable!.recycleDataSource = vmsArray.sort((a, b) => {
           return this.vmSortType === 1 ? a.duration - b.duration : b.duration - a.duration;
@@ -671,6 +661,28 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       }
       vmsCurrentTable!.recycleDataSource = vmsArray;
     }
+  }
+
+  private sortTableNameCase(vmsCurrentTable: LitTable, vmsArray: any[]): void {
+    vmsCurrentTable!.recycleDataSource = vmsArray.sort((firstVMElement, secondVMElement) => {
+      if (this.vmSortType === 1) {
+        if (firstVMElement.tableName > secondVMElement.tableName) {
+          return 1;
+        } else if (firstVMElement.tableName === secondVMElement.tableName) {
+          return 0;
+        } else {
+          return -1;
+        }
+      } else {
+        if (secondVMElement.tableName > firstVMElement.tableName) {
+          return 1;
+        } else if (firstVMElement.tableName === secondVMElement.tableName) {
+          return 0;
+        } else {
+          return -1;
+        }
+      }
+    });
   }
 
   private getVirtualMemoryProcess(result: Array<any>): void {
@@ -793,6 +805,14 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         threadMap.set(vmapItem.tid, itemArray);
       }
     }
+    this.updateVmThreadData(threadMap, item, allDur);
+    this.threadStatisticsData = this.totalDurationData(allDur);
+    this.currentLevel = 2;
+    this.vmStatisticsAnalysisProgressEL!.loading = false;
+    this.threadPieChart();
+  }
+
+  private updateVmThreadData(threadMap: Map<string, Array<number | string>>, item: any, allDur: number): void {
     this.vmStatisticsAnalysisThreadData = [];
     threadMap.forEach((value: Array<any>, key: string) => {
       let vmThreadDur = 0;
@@ -814,10 +834,6 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       this.vmStatisticsAnalysisThreadData.push(threadData);
     });
     this.vmStatisticsAnalysisThreadData.sort((a, b) => b.duration - a.duration);
-    this.threadStatisticsData = this.totalDurationData(allDur);
-    this.currentLevel = 2;
-    this.vmStatisticsAnalysisProgressEL!.loading = false;
-    this.threadPieChart();
   }
 
   private getVirtualMemorySo(item: any): void {
@@ -828,22 +844,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       return;
     }
     for (let vmItemData of this.vmStatisticsAnalysisProcessData) {
-      if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (item && (vmItemData.pid !== item.pid || vmItemData.tid !== item.tid || vmItemData.type !== item.type)) {
-          continue;
-        }
-      } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (item && (vmItemData.pid !== item.pid || vmItemData.type !== item.type)) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if ((item && vmItemData.tid !== item.tid) || vmItemData.type !== item.type) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (item && vmItemData.type !== item.type) {
-          continue;
-        }
+      if (this.soIsAccumulationData(item, vmItemData)) {
+        continue;
       }
       allDur += vmItemData.dur;
       if (libMap.has(vmItemData.libId)) {
@@ -854,6 +856,27 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         libMap.set(vmItemData.libId, dataArray);
       }
     }
+    this.updateVmSoData(libMap, item, allDur);
+    this.libStatisticsData = this.totalDurationData(allDur);
+    this.currentLevel = 3;
+    this.vmStatisticsAnalysisProgressEL!.loading = false;
+    this.libraryPieChart();
+  }
+
+  private soIsAccumulationData(item: any, vmItemData: any): boolean {
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return item && (vmItemData.pid !== item.pid || vmItemData.tid !== item.tid || vmItemData.type !== item.type);
+    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return item && (vmItemData.pid !== item.pid || vmItemData.type !== item.type);
+    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return (item && vmItemData.tid !== item.tid) || vmItemData.type !== item.type;
+    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return item && vmItemData.type !== item.type;
+    }
+    return false;
+  }
+
+  private updateVmSoData(libMap: Map<number, Array<number | string>>, item: any, allDur: number): void {
     this.vmStatisticsAnalysisSoData = [];
     libMap.forEach((value: any[], key: number) => {
       let dur = 0;
@@ -882,10 +905,6 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       this.vmStatisticsAnalysisSoData.push(soData);
     });
     this.vmStatisticsAnalysisSoData.sort((a, b) => b.duration - a.duration);
-    this.libStatisticsData = this.totalDurationData(allDur);
-    this.currentLevel = 3;
-    this.vmStatisticsAnalysisProgressEL!.loading = false;
-    this.libraryPieChart();
   }
 
   private getVirtualMemoryFunction(item: any): void {
@@ -901,27 +920,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       return;
     }
     for (let vmProcessData of this.vmStatisticsAnalysisProcessData) {
-      if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (
-          vmProcessData.pid !== pid ||
-          vmProcessData.tid !== tid ||
-          vmProcessData.type !== type ||
-          vmProcessData.libId !== libId
-        ) {
-          continue;
-        }
-      } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (vmProcessData.pid !== pid || vmProcessData.type !== type || vmProcessData.libId !== libId) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-        if (vmProcessData.tid !== tid || vmProcessData.type !== type || vmProcessData.libId !== libId) {
-          continue;
-        }
-      } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-        if (vmProcessData.type !== type || vmProcessData.libId !== libId) {
-          continue;
-        }
+      if (this.vmFunctionIsAccumulationData(vmProcessData, tid, pid, type, libId)) {
+        continue;
       }
       allDur += vmProcessData.dur;
       if (symbolMap.has(vmProcessData.symbolId)) {
@@ -932,37 +932,22 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         symbolMap.set(vmProcessData.symbolId, dataArray);
       }
     }
-    this.vmStatisticsAnalysisFunctionData = [];
-    symbolMap.forEach((symbolItems, key) => {
-      let dur = 0;
-      let symbolName = '';
-      for (let symbolItem of symbolItems) {
-        symbolName = symbolItem.symbolName;
-        dur += symbolItem.dur;
-      }
-      let symbolPath = symbolName?.split('/');
-      if (symbolPath) {
-        symbolName = symbolPath[symbolPath.length - 1];
-      }
-      const symbolData = {
-        pid: item.pid,
-        type: item.type,
-        tid: item.tid,
-        libId: item.libId,
-        symbol: key,
-        percent: ((dur / allDur) * 100).toFixed(2),
-        tableName: symbolName,
-        durFormat: Utils.getProbablyTime(dur),
-        duration: dur,
-      };
-      this.vmStatisticsAnalysisFunctionData.push(symbolData);
-    });
-    this.vmStatisticsAnalysisFunctionData.sort((a, b) => b.duration - a.duration);
+    this.updateVmFunctionData(symbolMap, item, allDur);
     this.functionStatisticsData = this.totalDurationData(allDur);
     this.currentLevel = 4;
     // @ts-ignore
     this.sumDur = this.libStatisticsData.allDuration;
     this.vmStatisticsAnalysisProgressEL!.loading = false;
+    this.setVmPieChartConfig();
+    this.vmStatisticsAnalysisFunctionData.unshift(this.functionStatisticsData);
+    this.vmStatisticsAnalysisTableFunction!.recycleDataSource = this.vmStatisticsAnalysisFunctionData;
+    this.vmStatisticsAnalysisTableFunction?.reMeauseHeight();
+    // @ts-ignore
+    this.vmStatisticsAnalysisFunctionData.shift(this.functionStatisticsData);
+    this.currentLevelData = this.vmStatisticsAnalysisFunctionData;
+  }
+
+  private setVmPieConfig() {
     this.vmPieChart!.config = {
       appendPadding: 0,
       data: this.getVmPieChartData(this.vmStatisticsAnalysisFunctionData),
@@ -993,12 +978,49 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         },
       ],
     };
-    this.vmStatisticsAnalysisFunctionData.unshift(this.functionStatisticsData);
-    this.vmStatisticsAnalysisTableFunction!.recycleDataSource = this.vmStatisticsAnalysisFunctionData;
-    this.vmStatisticsAnalysisTableFunction?.reMeauseHeight();
-    // @ts-ignore
-    this.vmStatisticsAnalysisFunctionData.shift(this.functionStatisticsData);
-    this.currentLevelData = this.vmStatisticsAnalysisFunctionData;
+  }
+
+  private vmFunctionIsAccumulationData(vmProcessData: any, tid: number, pid: number, type: string, libId: number) {
+    if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return vmProcessData.pid !== pid || vmProcessData.tid !== tid || vmProcessData.type !== type ||
+        vmProcessData.libId !== libId;
+    } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return vmProcessData.pid !== pid || vmProcessData.type !== type || vmProcessData.libId !== libId;
+    } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
+      return vmProcessData.tid !== tid || vmProcessData.type !== type || vmProcessData.libId !== libId;
+    } else if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
+      return vmProcessData.type !== type || vmProcessData.libId !== libId;
+    }
+    return false;
+  }
+
+  private updateVmFunctionData(symbolMap: Map<number, Array<any>>, item: any, allDur: number): void {
+    this.vmStatisticsAnalysisFunctionData = [];
+    symbolMap.forEach((symbolItems, key) => {
+      let dur = 0;
+      let symbolName = '';
+      for (let symbolItem of symbolItems) {
+        symbolName = symbolItem.symbolName;
+        dur += symbolItem.dur;
+      }
+      let symbolPath = symbolName?.split('/');
+      if (symbolPath) {
+        symbolName = symbolPath[symbolPath.length - 1];
+      }
+      const symbolData = {
+        pid: item.pid,
+        type: item.type,
+        tid: item.tid,
+        libId: item.libId,
+        symbol: key,
+        percent: ((dur / allDur) * 100).toFixed(2),
+        tableName: symbolName,
+        durFormat: Utils.getProbablyTime(dur),
+        duration: dur,
+      };
+      this.vmStatisticsAnalysisFunctionData.push(symbolData);
+    });
+    this.vmStatisticsAnalysisFunctionData.sort((a, b) => b.duration - a.duration);
   }
 
   private typeIdToString(type: number): string {
@@ -1054,7 +1076,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-action',
-      { args, callType: 'virtualMemory', isAnalysis: true },
+      {args, callType: 'virtualMemory', isAnalysis: true},
       undefined,
       (results: any) => {
         handler(results);

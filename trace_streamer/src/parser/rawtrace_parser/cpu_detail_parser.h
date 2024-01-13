@@ -73,6 +73,14 @@ private:
     bool RegulatorDisableEvent(const RawTraceEventInfo& event) const;
     bool RegulatorDisableCompleteEvent(const RawTraceEventInfo& event) const;
 
+    void InterruptEventInitialization();
+    void ClockEventInitialization();
+    void CpuEventInitialization();
+    void LockEventInitialization();
+    void BinderEventInitialization();
+    void StackEventsInitialization();
+    void VoltageEventInitialization();
+
 private:
     using FuncCall = std::function<bool(const RawTraceEventInfo& event)>;
     const TraceStreamerFilters* streamFilters_;

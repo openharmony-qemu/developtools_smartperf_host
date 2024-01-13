@@ -115,34 +115,36 @@ export function power(
     for (let index = 0; index < res.length; index++) {
       let item = res[index];
       let obj = item[appName];
-      if (obj != undefined) {
-        if (obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
-          firstData.push(obj);
-        }
+      if (obj != undefined && obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
+        firstData.push(obj);
       }
     }
     let array = firstData.sort((a, b) => a.ts - b.ts);
-    array.forEach((item) => {
-      if (list.length > 0) {
-        if (item.ts + 500000000 >= list[list.length - 1].ts && item.ts - 500000000 <= list[list.length - 1].ts) {
-          list[list.length - 1].cpu = item.cpu === 0 ? list[list.length - 1].cpu : item.cpu;
-          list[list.length - 1].location = item.location === 0 ? list[list.length - 1].location : item.location;
-          list[list.length - 1].gpu = item.gpu === 0 ? list[list.length - 1].gpu : item.gpu;
-          list[list.length - 1].display = item.display === 0 ? list[list.length - 1].display : item.display;
-          list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
-          list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
-          list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
-          list[list.length - 1].audio = item.audio === 0 ? list[list.length - 1].audio : item.audio;
-          list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
-        } else {
-          list.push(item);
-        }
-      } else {
-        list.push(item);
-      }
-    });
+    setFirstDataArray(array, list);
     computeMaxPower(array, list, startNS, endNS, totalNS, frame);
   }
+}
+
+function setFirstDataArray(array: any[], list: Array<any>): void {
+  array.forEach((item) => {
+    if (
+      list.length > 0 &&
+      item.ts + 500000000 >= list[list.length - 1].ts &&
+      item.ts - 500000000 <= list[list.length - 1].ts
+    ) {
+      list[list.length - 1].cpu = item.cpu === 0 ? list[list.length - 1].cpu : item.cpu;
+      list[list.length - 1].location = item.location === 0 ? list[list.length - 1].location : item.location;
+      list[list.length - 1].gpu = item.gpu === 0 ? list[list.length - 1].gpu : item.gpu;
+      list[list.length - 1].display = item.display === 0 ? list[list.length - 1].display : item.display;
+      list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
+      list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
+      list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
+      list[list.length - 1].audio = item.audio === 0 ? list[list.length - 1].audio : item.audio;
+      list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
+    } else {
+      list.push(item);
+    }
+  });
 }
 
 function computeMaxPower(

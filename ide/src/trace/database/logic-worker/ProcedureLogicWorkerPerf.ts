@@ -165,8 +165,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       if (funFilter.length !== 0) {
         this.setSymbol(funFilter);
       }
-      let result = this.calReturnData(data.params);
       if (filter.length === 0) {
+        let result = this.calReturnData(data.params);
         self.postMessage({
           id: data.id,
           action: data.action,

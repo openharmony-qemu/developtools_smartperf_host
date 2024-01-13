@@ -51,58 +51,66 @@ export class TabPaneStartup extends BaseElement {
     this.startupTbl!.loading = true;
     getTabStartups(startupParam.processIds, startupParam.leftNs, startupParam.rightNs).then(
       (result: AppStartupStruct[]) => {
-        this.startupTbl!.loading = false;
-        if (result !== null && result.length > 0) {
-          log(`getTabStartups result  size : ${  result.length}`);
-          let map: Map<number, StartupTreeItem> = new Map<number, StartupTreeItem>();
-          result.forEach((item) => {
-            let startup = {
-              name: AppStartupStruct.getStartupName(item.startName),
-              dur: item.dur || 0,
-              durStr: getProbablyTime(item.dur || 0),
-              ratio: '0%',
-              step: item.startName || 0,
-              children: [],
-            };
-            if (map.has(item.pid!)) {
-              let ps = map.get(item.pid!);
-              if (ps && ps.children) {
-                ps.dur += item.dur || 0;
-                ps.children!.push(startup);
-              }
-            } else {
-              map.set(item.pid!, {
-                name: item.process || `Process ${item.pid}`,
-                dur: item.dur || 0,
-                durStr: '',
-                ratio: '100%',
-                step: 0,
-                children: [startup],
-              });
-            }
-          });
-          let startups = Array.from(map.values());
-          startups.forEach((it) => {
-            it.durStr = getProbablyTime(it.dur);
-            if (it.dur === 0) {
-              it.ratio = '0%';
-            }
-            it.children!.forEach((child) => {
-              if (it.dur === 0) {
-                child.ratio = '0%';
-              } else {
-                child.ratio = `${((child.dur * 100) / it.dur).toFixed(2)  }%`;
-              }
-            });
-          });
-          this.startupSource = startups;
-          this.startupTbl!.recycleDataSource = this.startupSource;
-        } else {
-          this.startupSource = [];
-          this.startupTbl!.recycleDataSource = [];
-        }
+        this.processTabStartups(result);
       }
     );
+  }
+
+  private processTabStartups(result: AppStartupStruct[]): void {
+    this.startupTbl!.loading = false;
+    if (result !== null && result.length > 0) {
+      log(`getTabStartups result  size : ${result.length}`);
+      let map: Map<number, StartupTreeItem> = new Map<number, StartupTreeItem>();
+      result.forEach((item) => {
+        this.processStartupItem(item, map);
+      });
+      let startups = Array.from(map.values());
+      startups.forEach((it) => {
+        it.durStr = getProbablyTime(it.dur);
+        if (it.dur === 0) {
+          it.ratio = '0%';
+        }
+        it.children!.forEach((child) => {
+          if (it.dur === 0) {
+            child.ratio = '0%';
+          } else {
+            child.ratio = `${((child.dur * 100) / it.dur).toFixed(2)}%`;
+          }
+        });
+      });
+      this.startupSource = startups;
+      this.startupTbl!.recycleDataSource = this.startupSource;
+    } else {
+      this.startupSource = [];
+      this.startupTbl!.recycleDataSource = [];
+    }
+  }
+
+  private processStartupItem(item: AppStartupStruct, map: Map<number, StartupTreeItem>): void {
+    let startup = {
+      name: AppStartupStruct.getStartupName(item.startName),
+      dur: item.dur || 0,
+      durStr: getProbablyTime(item.dur || 0),
+      ratio: '0%',
+      step: item.startName || 0,
+      children: [],
+    };
+    if (map.has(item.pid!)) {
+      let ps = map.get(item.pid!);
+      if (ps && ps.children) {
+        ps.dur += item.dur || 0;
+        ps.children!.push(startup);
+      }
+    } else {
+      map.set(item.pid!, {
+        name: item.process || `Process ${item.pid}`,
+        dur: item.dur || 0,
+        durStr: '',
+        ratio: '100%',
+        step: 0,
+        children: [startup],
+      });
+    }
   }
 
   initElements(): void {

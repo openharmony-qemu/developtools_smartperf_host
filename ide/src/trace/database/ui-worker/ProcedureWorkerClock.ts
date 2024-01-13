@@ -16,6 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class ClockRender extends Render {
   renderMainThread(
@@ -65,7 +66,19 @@ export class ClockRender extends Render {
     clockReq.context.fillText(s, 4, 5 + 9);
   }
 }
+export function ClockStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_CLOCK && ClockStruct.hoverClockStruct) {
+      ClockStruct.selectClockStruct = ClockStruct.hoverClockStruct;
+      sp.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
+    }else{
+      resolve(null);
+    }
+  });
 
+}
 export class ClockStruct extends BaseStruct {
   static maxValue: number = 0;
   static maxName: string = '';

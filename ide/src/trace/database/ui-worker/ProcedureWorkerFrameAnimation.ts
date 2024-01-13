@@ -24,6 +24,7 @@ import {
   Rect,
   Render,
 } from './ProcedureWorkerCommon';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class FrameAnimationRender extends Render {
   renderMainThread(
@@ -105,7 +106,18 @@ export class FrameAnimationRender extends Render {
     }
   }
 }
-
+export function FrameAnimationStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+  return new Promise((resolve,reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION && FrameAnimationStruct.hoverFrameAnimationStruct) {
+      FrameAnimationStruct.selectFrameAnimationStruct = FrameAnimationStruct.hoverFrameAnimationStruct;
+      sp.traceSheetEL?.displayFrameAnimationData(FrameAnimationStruct.selectFrameAnimationStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class FrameAnimationStruct extends BaseStruct {
   static hoverFrameAnimationStruct: FrameAnimationStruct | undefined;
   static selectFrameAnimationStruct: FrameAnimationStruct | undefined;

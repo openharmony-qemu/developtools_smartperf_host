@@ -39,35 +39,44 @@ export class HiperfReportRender extends PerfRender {
       hiPerfReportReq.intervalPerf,
       hiPerfReportReq.useCache || (TraceRow.range?.refresh ?? false)
     );
-    hiPerfReportReq.context.beginPath();
-    hiPerfReportReq.context.fillStyle = ColorUtils.FUNC_COLOR[0];
-    hiPerfReportReq.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
-    let normalPath = new Path2D();
-    let specPath = new Path2D();
-    let offset = groupBy10MS ? 0 : 3;
-    let find = false;
-    for (let re of filter) {
-      HiPerfReportStruct.draw(hiPerfReportReq.context, normalPath, specPath, re, groupBy10MS);
-      if (row.isHover) {
-        if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {
-          HiPerfReportStruct.hoverStruct = re;
-          find = true;
-        }
-      }
-    }
-    if (!find && row.isHover) {
-      HiPerfReportStruct.hoverStruct = undefined;
-    }
-    if (groupBy10MS) {
-      hiPerfReportReq.context.fill(normalPath);
-    } else {
-      hiPerfReportReq.context.stroke(normalPath);
-      HiPerfStruct.drawSpecialPath(hiPerfReportReq.context, specPath);
-    }
-    hiPerfReportReq.context.closePath();
+    drawHiperfReportRender(hiPerfReportReq, groupBy10MS, filter, row);
   }
 
   render(hiPerfReportRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
+}
+
+function drawHiperfReportRender(
+  hiPerfReportReq: any,
+  groupBy10MS: boolean,
+  filter: HiPerfReportStruct[],
+  row: TraceRow<HiPerfReportStruct>
+) {
+  hiPerfReportReq.context.beginPath();
+  hiPerfReportReq.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+  hiPerfReportReq.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+  let normalPath = new Path2D();
+  let specPath = new Path2D();
+  let offset = groupBy10MS ? 0 : 3;
+  let find = false;
+  for (let re of filter) {
+    HiPerfReportStruct.draw(hiPerfReportReq.context, normalPath, specPath, re, groupBy10MS);
+    if (row.isHover) {
+      if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {
+        HiPerfReportStruct.hoverStruct = re;
+        find = true;
+      }
+    }
+  }
+  if (!find && row.isHover) {
+    HiPerfReportStruct.hoverStruct = undefined;
+  }
+  if (groupBy10MS) {
+    hiPerfReportReq.context.fill(normalPath);
+  } else {
+    hiPerfReportReq.context.stroke(normalPath);
+    HiPerfStruct.drawSpecialPath(hiPerfReportReq.context, specPath);
+  }
+  hiPerfReportReq.context.closePath();
 }
 
 function setFrameByfilter(startNS: number, endNS: number, frame: any, hiPerfFilters: Array<any>): void {

@@ -18,6 +18,7 @@ import { TraceRow } from '../../component/trace/base/TraceRow';
 import { TimerShaftElement } from '../../component/trace/TimerShaftElement';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { drawVSync } from '../../component/chart/VSync';
+import { draw } from '../../bean/FrameChartStruct';
 
 export abstract class Render {
   abstract renderMainThread(req: any, row: TraceRow<any>): void;
@@ -281,23 +282,44 @@ export const dataFilterHandler = (fullData: Array<any>, filterData: Array<any>, 
     let y = condition.frame.y + condition.paddingTop;
     let height = condition.frame.height - condition.paddingTop * 2;
     let slice = findRange(fullData, condition);
-    let sum = 0;
     for (let i = 0; i < slice.length; i++) {
       if (!slice[i].frame) {
         slice[i].frame = {};
         slice[i].frame.y = y;
         slice[i].frame.height = height;
       }
-      if (i === slice.length - 1) {
-        if (slice[i][condition.durKey] === undefined || slice[i][condition.durKey] === null) {
+      if (slice[i][condition.durKey] === undefined || slice[i][condition.durKey] === null) {
+        if (i === slice.length - 1) {
           slice[i][condition.durKey] = (condition.endNS || 0) - (slice[i][condition.startKey] || 0);
-        }
-      } else {
-        if (slice[i][condition.durKey] === undefined || slice[i][condition.durKey] === null) {
+        } else {
           slice[i][condition.durKey] = (slice[i + 1][condition.startKey] || 0) - (slice[i][condition.startKey] || 0);
         }
       }
-      if (slice[i][condition.durKey] >= pns || slice.length < 100) {
+      setSliceFrame(slice, condition, pns, i);
+    }
+    filterData.push(...slice.filter((it) => it.v));
+  }
+};
+function setSliceFrame(slice: Array<any>, condition: FilterConfig, pns: number, i: number) {
+  let sum = 0;
+  if (slice[i][condition.durKey] >= pns || slice.length < 100) {
+    slice[i].v = true;
+    setNodeFrame(
+      slice[i],
+      pns,
+      condition.startNS,
+      condition.endNS,
+      condition.frame,
+      condition.startKey,
+      condition.durKey
+    );
+  } else {
+    if (i > 0) {
+      let c = slice[i][condition.startKey] - slice[i - 1][condition.startKey] - slice[i - 1][condition.durKey];
+      if (c < pns && sum < pns) {
+        sum += c + slice[i - 1][condition.durKey];
+        slice[i].v = false;
+      } else {
         slice[i].v = true;
         setNodeFrame(
           slice[i],
@@ -308,32 +330,11 @@ export const dataFilterHandler = (fullData: Array<any>, filterData: Array<any>, 
           condition.startKey,
           condition.durKey
         );
-      } else {
-        if (i > 0) {
-          let c = slice[i][condition.startKey] - slice[i - 1][condition.startKey] - slice[i - 1][condition.durKey];
-          if (c < pns && sum < pns) {
-            sum += c + slice[i - 1][condition.durKey];
-            slice[i].v = false;
-          } else {
-            slice[i].v = true;
-            setNodeFrame(
-              slice[i],
-              pns,
-              condition.startNS,
-              condition.endNS,
-              condition.frame,
-              condition.startKey,
-              condition.durKey
-            );
-            sum = 0;
-          }
-        }
+        sum = 0;
       }
     }
-    filterData.push(...slice.filter((it) => it.v));
   }
-};
-
+}
 function setNodeFrame(
   node: any,
   pns: number,
@@ -897,8 +898,6 @@ function drawAvgFrameRate(
 ): void {
   let avgFrameRate: string = calculateAvgRate(arrList) + 'fps';
   const textWidth = ctx.measureText(avgFrameRate).width;
-  const textHeight = 25;
-  const padding = 5;
   const TEXT_WIDTH_HALF = 2;
   let textX =
     Math.floor(
@@ -931,6 +930,19 @@ function drawAvgFrameRate(
   if (endX >= selectParams.frame.width) {
     endX = selectParams.frame.width + ADD_DISTANCE;
   }
+  drawAvgFrameRateArrow(ctx, textX, textY, textWidth, startX, endX, avgFrameRate);
+}
+function drawAvgFrameRateArrow(
+  ctx: any,
+  textX: number,
+  textY: number,
+  textWidth: number,
+  startX: number,
+  endX: number,
+  avgFrameRate: string
+) {
+  const textHeight = 25;
+  const padding = 5;
   const TEXT_RECT_PADDING = 2;
   ctx.fillStyle = 'red';
   ctx.fillRect(
@@ -945,23 +957,23 @@ function drawAvgFrameRate(
   ctx.moveTo(startX, textY);
   ctx.lineTo(endX, textY);
   ctx.stroke();
-  const arrowSize = 5.5;
-  const arrowHead = (x: number, y: number, direction: 'left' | 'right') => {
-    ctx.beginPath();
-    const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
-    const headY = y - arrowSize / 2;
-    ctx.moveTo(x, y);
-    ctx.lineTo(headX, headY);
-    ctx.lineTo(headX, y + arrowSize);
-    ctx.closePath();
-    ctx.fillStyle = 'yellow';
-    ctx.fill();
-  };
-  arrowHead(startX, textY - 1, 'left');
-  arrowHead(endX, textY - 1, 'right');
+  arrowHead(ctx, startX, textY - 1, 'left');
+  arrowHead(ctx, endX, textY - 1, 'right');
   ctx.fillStyle = 'white';
   ctx.fillText(avgFrameRate, textX, textY - 8);
 }
+const arrowSize = 5.5;
+const arrowHead = (ctx: any, x: number, y: number, direction: 'left' | 'right') => {
+  ctx.beginPath();
+  const headX = x + (direction === 'left' ? arrowSize : -arrowSize);
+  const headY = y - arrowSize / 2;
+  ctx.moveTo(x, y);
+  ctx.lineTo(headX, headY);
+  ctx.lineTo(headX, y + arrowSize);
+  ctx.closePath();
+  ctx.fillStyle = 'yellow';
+  ctx.fill();
+};
 
 export function drawWakeUp(
   wakeUpContext: CanvasRenderingContext2D | any,
@@ -1499,18 +1511,16 @@ function setFrameByArr(
 
 function setResultArr(groupBy10MS: boolean, list: Array<any>, i: number, res: Array<any>) {
   if (groupBy10MS) {
-    if (
+    let flag: boolean =
       i > 0 &&
-      (list[i - 1].frame?.x || 0) === (list[i].frame?.x || 0) &&
-      (list[i - 1].frame?.width || 0) === (list[i].frame?.width || 0) &&
-      (list[i - 1].frame?.height || 0) === (list[i].frame?.height || 0)
-    ) {
-    } else {
+      (list[i - 1].frame.x || 0) === (list[i].frame.x || 0) &&
+      (list[i - 1].frame.width || 0) === (list[i].frame.width || 0) &&
+      (list[i - 1].frame.height || 0) === (list[i].frame.height || 0);
+    if (!flag) {
       res.push(list[i]);
     }
   } else {
-    if (i > 0 && Math.abs((list[i - 1].frame?.x || 0) - (list[i].frame?.x || 0)) < 4) {
-    } else {
+    if (!(i > 0 && Math.abs((list[i - 1].frame.x || 0) - (list[i].frame.x || 0)) < 4)) {
       res.push(list[i]);
     }
   }

@@ -98,19 +98,19 @@ function setSdkCounterFilter(
   if (sdkCounterList) {
     for (let index = 0; index < sdkCounterList.length; index++) {
       let item = sdkCounterList[index];
-      if (index === sdkCounterList.length - 1) {
-        item.dur = endNS - (item.ts || 0);
-      } else {
-        item.dur = (sdkCounterList[index + 1].ts || 0) - (item.ts || 0);
-      }
+      item.dur =
+        index === sdkCounterList.length - 1
+          ? endNS - (item.ts || 0)
+          : (sdkCounterList[index + 1].ts || 0) - (item.ts || 0);
       if ((item.ts || 0) + (item.dur || 0) > startNS && (item.ts || 0) < endNS) {
         CounterStruct.setCounterFrame(sdkCounterList[index], 5, startNS, endNS, totalNS, frame);
         if (
-          index > 0 &&
-          (sdkCounterList[index - 1].frame?.x || 0) === (sdkCounterList[index].frame?.x || 0) &&
-          (sdkCounterList[index - 1].frame?.width || 0) === (sdkCounterList[index].frame?.width || 0)
+          !(
+            index > 0 &&
+            (sdkCounterList[index - 1].frame?.x || 0) === (sdkCounterList[index].frame?.x || 0) &&
+            (sdkCounterList[index - 1].frame?.width || 0) === (sdkCounterList[index].frame?.width || 0)
+          )
         ) {
-        } else {
           sdkCounterFilters.push(item);
         }
       }
