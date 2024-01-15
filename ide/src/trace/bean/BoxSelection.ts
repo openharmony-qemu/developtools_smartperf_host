@@ -517,7 +517,52 @@ export class SelectionParam {
   }
 
   pushHeapTimeline(it: TraceRow<any>, sp: SpSystemTrace) {
-    return;
+    if (it.rowType == TraceRow.ROW_TYPE_HEAP_TIMELINE) {
+      let endNS = TraceRow.rangeSelectObject?.endNS ? TraceRow.rangeSelectObject?.endNS : TraceRow.range?.endNS;
+      let startNS = TraceRow.rangeSelectObject?.startNS
+        ? TraceRow.rangeSelectObject?.startNS
+        : TraceRow.range?.startNS;
+      let minNodeId, maxNodeId;
+      if (!it.dataListCache || it.dataListCache.length === 0) {
+        return;
+      }
+      for (let sample of it.dataListCache) {
+        if (sample.timestamp * 1000 <= startNS!) {
+          minNodeId = sample.lastAssignedId;
+        }
+        // 个别文件的sample的最大timestamp小于时间的框选结束时间，不能给maxNodeId赋值
+        // 所以加上此条件：sample.timestamp === it.dataListCache[it.dataListCache.length -1].timestamp
+        if (
+          sample.timestamp * 1000 >= endNS! ||
+          sample.timestamp === it.dataListCache[it.dataListCache.length - 1].timestamp
+        ) {
+          if (maxNodeId === undefined) {
+            maxNodeId = sample.lastAssignedId;
+          }
+        }
+      }
+
+      // If the start time range of the selected box is greater than the end time of the sampled data
+      if (startNS! >= it.dataListCache[it.dataListCache.length - 1].timestamp * 1000) {
+        minNodeId = it.dataListCache[it.dataListCache.length - 1].lastAssignedId;
+      }
+      // If you select the box from the beginning
+      if (startNS! <= TraceRow.range?.startNS!) {
+        minNodeId = HeapDataInterface.getInstance().getMinNodeId(sp.snapshotFiles!.id);
+      }
+      //If you select the box from the ending
+      if (
+        endNS! >= TraceRow.range?.endNS! ||
+        endNS! >= it.dataListCache[it.dataListCache.length - 1].timestampUs * 1000
+      ) {
+        maxNodeId = HeapDataInterface.getInstance().getMaxNodeId(sp.snapshotFiles!.id);
+      }
+      let summary = (sp.traceSheetEL?.shadowRoot?.querySelector('#tabs') as LitTabs)
+        ?.querySelector('#box-heap-summary')
+        ?.querySelector('tabpane-summary') as TabPaneSummary;
+      summary.initSummaryData(sp.snapshotFiles!, minNodeId, maxNodeId);
+      this.jsMemory.push(1);
+    }
   }
 
   pushJsCpuProfiler(it: TraceRow<any>, sp: SpSystemTrace) {

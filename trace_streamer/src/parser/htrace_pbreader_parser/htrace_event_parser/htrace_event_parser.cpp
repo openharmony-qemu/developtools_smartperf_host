@@ -423,18 +423,19 @@ bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader& even
         ClockEventSet(event, eventInfo, bytesView) || CpuEventSet(event, eventInfo, bytesView) ||
         LockEventSet(event, eventInfo, bytesView) || BinderEventSet(event, eventInfo, bytesView) ||
         StackEventSet(event, eventInfo, bytesView)) {
+        return true;
+    }
+
+    // Tracking event signal generation and transmission
+    if (event.has_signal_generate_format()) {
+        bytesView = event.signal_generate_format();
+        eventInfo.eventType_ = TRACE_EVENT_SIGNAL_GENERATE;
+    } else if (event.has_signal_deliver_format()) {
+        bytesView = event.signal_deliver_format();
+        eventInfo.eventType_ = TRACE_EVENT_SIGNAL_DELIVER;
     } else {
-        // Tracking event signal generation and transmission
-        if (event.has_signal_generate_format()) {
-            bytesView = event.signal_generate_format();
-            eventInfo.eventType_ = TRACE_EVENT_SIGNAL_GENERATE;
-        } else if (event.has_signal_deliver_format()) {
-            bytesView = event.signal_deliver_format();
-            eventInfo.eventType_ = TRACE_EVENT_SIGNAL_DELIVER;
-        } else {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
-            return false;
-        }
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
+        return false;
     }
 
     return true;

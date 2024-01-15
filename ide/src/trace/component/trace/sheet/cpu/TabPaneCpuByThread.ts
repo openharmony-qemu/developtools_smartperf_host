@@ -20,7 +20,7 @@ import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import {getTabCpuByThread} from "../../../../database/sql/Cpu.sql";
+import { getTabCpuByThread } from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {
@@ -80,43 +80,58 @@ export class TabPaneCpuByThread extends BaseElement {
     for (let e of result) {
       sumWall += e.wallDuration;
       sumOcc += e.occurrences;
-      if (map.has(`${e.tid}`)) {
-        let thread = map.get(`${e.tid}`)!;
-        thread.wallDuration += e.wallDuration;
-        thread.occurrences += e.occurrences;
-        thread[`cpu${e.cpu}`] = e.wallDuration || 0;
-        thread[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-        thread[`cpu${e.cpu}Ratio`] = (
-          (100.0 * (e.wallDuration || 0)) /
-          (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
-        ).toFixed(2);
-      } else {
-        let process = Utils.PROCESS_MAP.get(e.pid);
-        let thread = Utils.THREAD_MAP.get(e.tid);
-        let cpuByThreadObject: any = {
-          tid: e.tid,
-          pid: e.pid,
-          thread: thread == null || thread.length == 0 ? '[NULL]' : thread,
-          process: process == null || process.length == 0 ? '[NULL]' : process,
-          wallDuration: e.wallDuration || 0,
-          occurrences: e.occurrences || 0,
-          avgDuration: 0,
-        };
-        for (let i of cpuByThreadValue.cpus) {
-          cpuByThreadObject[`cpu${i}`] = 0;
-          cpuByThreadObject[`cpu${i}TimeStr`] = '0';
-          cpuByThreadObject[`cpu${i}Ratio`] = '0';
-        }
-        cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
-        cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-        cpuByThreadObject[`cpu${e.cpu}Ratio`] = (
-          (100.0 * (e.wallDuration || 0)) /
-          (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
-        ).toFixed(2);
-        map.set(`${e.tid}`, cpuByThreadObject);
-      }
+      this.updateThreadMap(e, cpuByThreadValue, map);
     }
     this.calculateCount(map, sumWall, sumOcc);
+  }
+
+  private updateThreadMap(e: any, cpuByThreadValue: any, map: Map<string, any>): void {
+    if (map.has(`${e.tid}`)) {
+      this.updateExistingThread(e, cpuByThreadValue, map);
+    } else {
+      this.createThread(e, cpuByThreadValue, map);
+    }
+  }
+
+  private updateExistingThread(e: any, cpuByThreadValue: any, map: Map<string, any>): void {
+    let thread = map.get(`${e.tid}`)!;
+    thread.wallDuration += e.wallDuration;
+    thread.occurrences += e.occurrences;
+    this.updateCpuValues(e, cpuByThreadValue, thread);
+  }
+
+  private createThread(e: any, cpuByThreadValue: any, map: Map<string, any>): void {
+    let process = Utils.PROCESS_MAP.get(e.pid);
+    let thread = Utils.THREAD_MAP.get(e.tid);
+    let cpuByThreadObject: any = {
+      tid: e.tid,
+      pid: e.pid,
+      thread: thread == null || thread.length == 0 ? '[NULL]' : thread,
+      process: process == null || process.length == 0 ? '[NULL]' : process,
+      wallDuration: e.wallDuration || 0,
+      occurrences: e.occurrences || 0,
+      avgDuration: 0,
+    };
+    this.initializeCpuValues(cpuByThreadValue, cpuByThreadObject);
+    this.updateCpuValues(e, cpuByThreadValue, cpuByThreadObject);
+    map.set(`${e.tid}`, cpuByThreadObject);
+  }
+
+  private initializeCpuValues(cpuByThreadValue: any, cpuByThreadObject: any): void {
+    for (let i of cpuByThreadValue.cpus) {
+      cpuByThreadObject[`cpu${i}`] = 0;
+      cpuByThreadObject[`cpu${i}TimeStr`] = '0';
+      cpuByThreadObject[`cpu${i}Ratio`] = '0';
+    }
+  }
+
+  private updateCpuValues(e: any, cpuByThreadValue: any, cpuByThreadObject: any): void {
+    cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
+    cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
+    cpuByThreadObject[`cpu${e.cpu}Ratio`] = (
+      (100.0 * (e.wallDuration || 0)) /
+      (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
+    ).toFixed(2);
   }
 
   private calculateCount(map: Map<string, any>, sumWall: number, sumOcc: number): void {
@@ -191,6 +206,53 @@ export class TabPaneCpuByThread extends BaseElement {
   }
 
   sortByColumn(detail: any) {
-    return;
+    // @ts-ignore
+    function compare(property, sort, type) {
+      return function (cpuByThreadLeftData: SelectionData, cpuByThreadRightData: SelectionData) {
+        if (cpuByThreadLeftData.process == ' ' || cpuByThreadRightData.process == ' ') {
+          return 0;
+        }
+        if (type === 'number') {
+          return sort === 2
+            ? // @ts-ignore
+            parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property])
+            : // @ts-ignore
+            parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
+        } else {
+          // @ts-ignore
+          if (cpuByThreadRightData[property] > cpuByThreadLeftData[property]) {
+            return sort === 2 ? 1 : -1;
+          } else {
+            // @ts-ignore
+            if (cpuByThreadRightData[property] == cpuByThreadLeftData[property]) {
+              return 0;
+            } else {
+              return sort === 2 ? -1 : 1;
+            }
+          }
+        }
+      };
+    }
+    if ((detail.key as string).includes('cpu')) {
+      if ((detail.key as string).includes('Ratio')) {
+        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'string'));
+      } else {
+        this.cpuByThreadSource.sort(compare((detail.key as string).replace('TimeStr', ''), detail.sort, 'number'));
+      }
+    } else {
+      if (
+        detail.key === 'pid' ||
+        detail.key == 'tid' ||
+        detail.key === 'wallDuration' ||
+        detail.key === 'avgDuration' ||
+        detail.key === 'occurrences'
+      ) {
+        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'number'));
+      } else {
+        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'string'));
+      }
+    }
+
+    this.cpuByThreadTbl!.recycleDataSource = this.cpuByThreadSource;
   }
 }

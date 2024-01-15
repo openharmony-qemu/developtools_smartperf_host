@@ -206,8 +206,72 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     }).observe(this.parentElement!);
   }
 
-  sortFsDescHistoryTable(key: string, type: number) {
-    return;
+  sortFsDescHistoryTable(key: string, type: number): void {
+    if (type == 0) {
+      this.fsDescHistoryTbl!.recycleDataSource = this.fsDescHistoryFilterSource;
+    } else {
+      let arr = Array.from(this.fsDescHistoryFilterSource);
+      arr.sort((fsHistoryA, fsHistoryB): number => {
+        if (key == 'startTsStr') {
+          return this.compareStartTs(fsHistoryA, fsHistoryB, type);
+        } else if (key == 'durStr') {
+          return this.compareDur(fsHistoryA, fsHistoryB, type);
+        } else if (key == 'process') {
+          return this.compareProcess(fsHistoryA, fsHistoryB, type);
+        } else if (key == 'typeStr') {
+          return this.compareTypeStr(fsHistoryA, fsHistoryB, type);
+        } else if (key == 'fd') {
+          return this.compareFd(fsHistoryA, fsHistoryB, type);
+        } else {
+          return 0;
+        }
+      });
+      this.fsDescHistoryTbl!.recycleDataSource = arr;
+    }
+  }
+
+  compareStartTs(fsHistoryA: any, fsHistoryB: any, type: number): number {
+    if (type == 1) {
+      return fsHistoryA.startTs - fsHistoryB.startTs;
+    } else {
+      return fsHistoryB.startTs - fsHistoryA.startTs;
+    }
+  }
+
+  compareDur(fsHistoryA: any, fsHistoryB: any, type: number): number {
+    if (type == 1) {
+      return fsHistoryA.dur - fsHistoryB.dur;
+    } else {
+      return fsHistoryB.dur - fsHistoryA.dur;
+    }
+  }
+
+  compareProcess(fsHistoryA: any, fsHistoryB: any, type: number): number {
+    if (fsHistoryA.process > fsHistoryB.process) {
+      return type === 2 ? 1 : -1;
+    } else if (fsHistoryA.process == fsHistoryB.process) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  compareTypeStr(fsHistoryA: any, fsHistoryB: any, type: number): number {
+    if (fsHistoryA.typeStr > fsHistoryB.typeStr) {
+      return type === 2 ? 1 : -1;
+    } else if (fsHistoryA.typeStr == fsHistoryB.typeStr) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
+    }
+  }
+
+  compareFd(fsHistoryA: any, fsHistoryB: any, type: number): number {
+    if (type == 1) {
+      return fsHistoryA.fd - fsHistoryB.fd;
+    } else {
+      return fsHistoryB.fd - fsHistoryA.fd;
+    }
   }
 
   initHtml(): string {

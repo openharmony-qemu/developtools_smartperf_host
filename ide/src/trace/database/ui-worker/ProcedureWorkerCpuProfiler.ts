@@ -106,7 +106,61 @@ export function jsCpuProfiler(
   }
 }
 
-function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfilerStruct, parentIdArr: Array<number>) {
+const padding = 1;
+export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
+      JsCpuProfilerStruct.selectJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
+      let selectStruct = JsCpuProfilerStruct.selectJsCpuProfilerStruct;
+      let dataArr: Array<JsCpuProfilerChartFrame> = [];
+      let parentIdArr: Array<number> = [];
+      let that = sp;
+      getTopJsCpuProfilerStruct(selectStruct.parentId, selectStruct, that, dataArr, parentIdArr);
+      that.traceSheetEL?.displayJsProfilerData(dataArr);
+      reject();
+    } else {
+      resolve(null);
+    }
+  });
+}
+
+function getTopJsCpuProfilerStruct(
+  parentId: number,
+  selectStruct: JsCpuProfilerStruct,
+  that: SpSystemTrace,
+  dataArr: Array<JsCpuProfilerChartFrame> = [],
+  parentIdArr: Array<number> = []
+) {
+  if (parentId === -1 && selectStruct.parentId === -1) {
+    // 点击的函数是第一层，直接设置其children的isSelect为true，不用重新算totalTime
+    let data = that.chartManager!.arkTsChart.chartFrameMap.get(selectStruct!.id);
+    if (data && dataArr.length === 0) {
+      let copyData = JSON.parse(JSON.stringify(data));
+      setSelectChildrenState(copyData);
+      dataArr.push(copyData);
+    }
+  } else {
+    let parent = that.chartManager!.arkTsChart.chartFrameMap.get(parentId);
+    if (parent) {
+      parentIdArr.push(parent.id);
+      getTopJsCpuProfilerStruct(parent.parentId!, selectStruct, that, dataArr, parentIdArr);
+      if (parent.parentId === -1 && dataArr.length === 0) {
+        let data = that.chartManager!.arkTsChart.chartFrameMap.get(parent.id);
+        let copyParent = JSON.parse(JSON.stringify(data));
+        copyParent.totalTime = selectStruct.totalTime;
+        copyParent.selfTime = 0;
+        // depth为0的isSelect改为true
+        copyParent.isSelect = true;
+        if (copyParent.children.length > 0) {
+          getSelectStruct(copyParent, selectStruct, parentIdArr);
+        }
+        dataArr.push(copyParent);
+      }
+    }
+  }
+}
+
+function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfilerStruct, parentIdArr: number[]) {
   for (let child of data.children) {
     if (child === null) {
       continue;
@@ -125,42 +179,6 @@ function getSelectStruct(data: JsCpuProfilerChartFrame, selectStruct: JsCpuProfi
   }
 }
 
-function getTopJsCpuProfilerStruct(
-  parentId: number,
-  selectStruct: JsCpuProfilerStruct,
-  parentIdArr: Array<number>,
-  sp: SpSystemTrace,
-  dataArr: Array<JsCpuProfilerChartFrame>
-) {
-  if (parentId === -1 && selectStruct.parentId === -1) {
-    // 点击的函数是第一层，直接设置其children的isSelect为true，不用重新算totalTime
-    let data = sp.chartManager!.arkTsChart.chartFrameMap.get(selectStruct!.id);
-    if (data && dataArr.length === 0) {
-      let copyData = JSON.parse(JSON.stringify(data));
-      setSelectChildrenState(copyData);
-      dataArr.push(copyData);
-    }
-  } else {
-    let parent = sp.chartManager!.arkTsChart.chartFrameMap.get(parentId);
-    if (parent) {
-      parentIdArr.push(parent.id);
-      getTopJsCpuProfilerStruct(parent.parentId!, selectStruct, parentIdArr, sp, dataArr);
-      if (parent.parentId === -1 && dataArr.length === 0) {
-        let data = sp.chartManager!.arkTsChart.chartFrameMap.get(parent.id);
-        let copyParent = JSON.parse(JSON.stringify(data));
-        copyParent.totalTime = selectStruct.totalTime;
-        copyParent.selfTime = 0;
-        // depth为0的isSelect改为true
-        copyParent.isSelect = true;
-        if (copyParent.children.length > 0) {
-          getSelectStruct(copyParent, selectStruct, parentIdArr);
-        }
-        dataArr.push(copyParent);
-      }
-    }
-  }
-}
-
 function setSelectChildrenState(data: JsCpuProfilerChartFrame) {
   data.isSelect = true;
   if (data.children.length > 0) {
@@ -173,23 +191,6 @@ function setSelectChildrenState(data: JsCpuProfilerChartFrame) {
   }
 }
 
-const padding = 1;
-export function jsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTrace) {
-  return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
-      JsCpuProfilerStruct.selectJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
-      let selectStruct = JsCpuProfilerStruct.selectJsCpuProfilerStruct;
-      let dataArr: Array<JsCpuProfilerChartFrame> = [];
-      let parentIdArr: Array<number> = [];
-      let that = sp;
-      getTopJsCpuProfilerStruct(selectStruct.parentId, selectStruct, parentIdArr, sp, dataArr);
-      that.traceSheetEL?.displayJsProfilerData(dataArr);
-      reject();
-    } else {
-      resolve(null);
-    }
-  });
-}
 export class JsCpuProfilerStruct extends BaseStruct {
   static lastSelectJsCpuProfilerStruct: JsCpuProfilerStruct | undefined;
   static selectJsCpuProfilerStruct: JsCpuProfilerStruct | undefined;
