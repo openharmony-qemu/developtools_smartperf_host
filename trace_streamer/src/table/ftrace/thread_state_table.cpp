@@ -197,7 +197,7 @@ int32_t ThreadStateTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.TimeStamsData()[CurrentRow()]));
             break;
         case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]));
+            SetTypeColumnInt64(threadStateObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CPU:
             if (threadStateObj_.CpusData()[CurrentRow()] != INVALID_CPU) {

@@ -60,6 +60,11 @@ DemoTraceDataDB::~DemoTraceDataDB()
     sqlite3_close(demoDb_);
 }
 
+void DemoTraceDataDB::DemoSetCancel(bool cancel)
+{
+    demoCancelQuery_ = cancel;
+}
+
 void DemoTraceDataDB::DemoAppendNewTable(std::string tableName)
 {
     demoInternalTables_.push_back(tableName);
@@ -249,6 +254,7 @@ int32_t DemoTraceDataDB::DemoOperateDatabase(const std::string& sql)
     }
     return ret;
 }
+
 int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, ResultCallBack resultCallBack)
 {
     DemoPrepare();
@@ -262,7 +268,6 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, ResultCallBa
     if (!resultCallBack) {
         return ret;
     }
-
     std::string resValue = "ok\r\n";
     int32_t colCount = sqlite3_column_count(stmt);
     if (colCount == 0) {
@@ -295,15 +300,103 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, ResultCallBa
     }
     resValue += "]}\r\n";
     resultCallBack(resValue, SEND_FINISH, 0);
-
     sqlite3_finalize(stmt);
     return ret;
 }
 
-void DemoTraceDataDB::DemoSetCancel(bool cancel)
+bool DemoTraceDataDB::AddColumnsToJsonArray(sqlite3_stmt* stmtSql,
+                                            char* resValue,
+                                            const int32_t outLen,
+                                            int32_t& pos,
+                                            const int32_t colCount)
 {
-    demoCancelQuery_ = cancel;
+    int32_t retSnprintf = snprintf_s(resValue + pos, outLen - pos, 1, "%s", "{\"columns\":[");
+    if (retSnprintf < 0) {
+        return false;
+    }
+    pos += retSnprintf;
+    for (int32_t i = 0; i < colCount; i++) {
+        retSnprintf =
+            snprintf_s(resValue + pos, outLen - pos, 1, "%s%s%s", "\"", sqlite3_column_name(stmtSql, i), "\",");
+        if (retSnprintf < 0) {
+            return false;
+        }
+        pos += retSnprintf;
+    }
+    pos--; // remove the last ','
+    retSnprintf = snprintf_s(resValue + pos, outLen - pos, 1, "],\"values\":[");
+    if (retSnprintf < 0) {
+        return false;
+    }
+    pos += retSnprintf;
+    return true;
 }
+bool DemoTraceDataDB::AddRowsToJsonArray(sqlite3_stmt* stmtSql,
+                                         char* resValue,
+                                         const int32_t outLen,
+                                         int32_t& pos,
+                                         const int32_t colCount)
+{
+    bool hasRow = false;
+    constexpr int32_t defaultLenRowString = 1024;
+    std::string row;
+    row.reserve(defaultLenRowString);
+    while (sqlite3_step(stmtSql) == SQLITE_ROW) {
+        hasRow = true;
+        DemoGetRowString(stmtSql, colCount, row);
+        if (pos + row.size() + strlen(",]}\r\n") >= size_t(outLen)) {
+            int32_t retSnprintf = snprintf_s(resValue + pos, outLen - pos, 1, "]}\r\n");
+            if (retSnprintf < 0) {
+                return false;
+            }
+            pos += retSnprintf;
+            return true;
+        }
+        int32_t retSnprintf = snprintf_s(resValue + pos, outLen - pos, 1, "%s%s", row.c_str(), ",");
+        if (retSnprintf < 0) {
+            return false;
+        }
+        pos += retSnprintf;
+    }
+    if (hasRow) {
+        pos--; // remove the last ','
+    }
+    int32_t retSnprintf = snprintf_s(resValue + pos, outLen - pos, 1, "]}\r\n");
+    if (retSnprintf < 0) {
+        return false;
+    }
+    pos += retSnprintf;
+    return true;
+}
+int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
+{
+    DemoPrepare();
+    sqlite3_stmt* stmtSql = nullptr;
+    int32_t ret = sqlite3_prepare_v2(demoDb_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmtSql, nullptr);
+    if (ret != SQLITE_OK) {
+        TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(demoDb_));
+        return -1;
+    }
+    char* resValue = reinterpret_cast<char*>(out);
+    int32_t retSnprintf = snprintf_s(resValue, outLen, 1, "ok\r\n");
+    if (retSnprintf < 0) {
+        return -1;
+    }
+    int32_t pos = retSnprintf;
+    int32_t colCount = sqlite3_column_count(stmtSql);
+    if (colCount == 0) {
+        return pos;
+    }
+    if (!AddColumnsToJsonArray(stmtSql, resValue, outLen, pos, colCount)) {
+        return -1;
+    }
+    if (!AddRowsToJsonArray(stmtSql, resValue, outLen, pos, colCount)) {
+        return -1;
+    }
+    sqlite3_finalize(stmtSql);
+    return pos;
+}
+
 void DemoTraceDataDB::DemoGetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowString)
 {
     rowString.clear();

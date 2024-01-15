@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TRACE_DATA_DB_H
-#define TRACE_DATA_DB_H
+#ifndef DEMO_TRACE_DATA_DB_H
+#define DEMO_TRACE_DATA_DB_H
 
 #include <functional>
 #include <list>
@@ -39,6 +39,16 @@ public:
     int32_t DemoSearchData();
     int32_t DemoOperateDatabase(const std::string& sql);
     using ResultCallBack = std::function<void(const std::string /* json result */, int32_t, int32_t)>;
+    bool AddColumnsToJsonArray(sqlite3_stmt* stmtSql,
+                               char* resValue,
+                               const int32_t outLen,
+                               int32_t& pos,
+                               const int32_t colCount);
+    bool AddRowsToJsonArray(sqlite3_stmt* stmtSql,
+                            char* resValue,
+                            const int32_t outLen,
+                            int32_t& pos,
+                            const int32_t colCount);
     int32_t DemoSearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int32_t DemoSearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen);
     void DemoSetCancel(bool cancel);

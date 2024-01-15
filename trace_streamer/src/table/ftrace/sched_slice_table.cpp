@@ -185,7 +185,7 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TimeStampData()[CurrentRow()]));
             break;
         case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.DursData()[CurrentRow()]));
+            SetTypeColumnInt64(schedSliceObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::TS_END:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TsEndData()[CurrentRow()]));

@@ -44,6 +44,7 @@ public:
         });
         dataCache->DemoAppendNewTable(name);
     }
+    static void SetModuleCallbacks(sqlite3_module& demoModule, const std::string& demoTableName);
     std::string DemoCreateTableSql() const;
 
     class Cursor : public sqlite3_vtab_cursor {

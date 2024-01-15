@@ -641,8 +641,7 @@ bool HtraceParser::GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& p
         currentLength -= packetHeaderLength_;
         packagesBegin += packetHeaderLength_;
         parsedFileOffset_ += packetHeaderLength_;
-        htraceCurentLength_ = profilerDataLength_;
-        htraceCurentLength_ -= packetHeaderLength_;
+        htraceCurentLength_ = profilerDataLength_ - packetHeaderLength_;
         hasGotHeader_ = true;
         if (!currentLength) {
             return false;
