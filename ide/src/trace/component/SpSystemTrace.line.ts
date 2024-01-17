@@ -421,7 +421,7 @@ function taskAllocationOrPerformTask(sp: SpSystemTrace, row: TraceRow<any>, exec
   });
 }
 
-export function SpSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<any>): void {
+export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<any>): void {
   let executeID = TabPaneTaskFrames.getExecuteId(FuncStruct.selectFuncStruct!.funName!);
   TabPaneTaskFrames.TaskArray.push(FuncStruct.selectFuncStruct!);
   if (!row) {

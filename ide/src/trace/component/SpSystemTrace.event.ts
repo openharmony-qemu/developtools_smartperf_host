@@ -89,6 +89,7 @@ function threadClickHandlerFunc(sp: SpSystemTrace) {
       `trace-row[row-id='${d.cpu}'][row-type='cpu-data']`,
       (row) => row.rowId === `${d.cpu}` && row.rowType === 'cpu-data'
     )[0];
+    sp.currentRow = cpuRow;
     cpuRow.fixedList = [
       {
         startTime: d.startTime,
@@ -255,6 +256,7 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
       `trace-row[row-id='${d.tid}'][row-type='thread']`,
       (row) => row.rowId === `${d.tid}` && row.rowType === 'thread'
     )[0];
+    sp.currentRow = threadRow;
     if (threadRow) {
       threadRow.fixedList = [
         {
@@ -309,9 +311,9 @@ function AllStructOnClick(clickRowType:string,sp:SpSystemTrace,row?:TraceRow<any
         sp.traceSheetEL?.setAttribute('mode', 'hidden');
         sp.refreshCanvas(true);
       }
-    });
+    }).catch(e => {});
 }
-export default function SpSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowType: string, row?: TraceRow<any>) {
+export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowType: string, row?: TraceRow<any>) {
   if (row) {
     sp.currentRow = row;
     sp.setAttribute('clickRow', clickRowType);
@@ -362,7 +364,7 @@ function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent) {
   return isMouseInTimeShaft;
 }
 
-export function SpSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent) {
   if (!sp.loadTraceCompleted || (window as any).flagInputFocus || !sp.mouseEventEnable) {
     return;
   }
@@ -434,7 +436,7 @@ function SpSystemTraceDocumentOnMouseMoveMouseUp(sp: SpSystemTrace, rows: Array<
   requestAnimationFrame(() => sp.refreshCanvas(true));
 }
 
-export function SpSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEvent) {
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -491,7 +493,7 @@ export function SpSystemTraceDocumentOnKeyPress(sp: SpSystemTrace, ev: KeyboardE
   }
 }
 
-export function SpSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) {
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
@@ -562,7 +564,7 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace) {
   }
 }
 
-export function SpSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {
   if ((window as any).collectResize) {
     return;
   }
@@ -597,7 +599,7 @@ export function SpSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   sp.timerShaftEL?.documentOnMouseUp(ev);
 }
 
-export function SpSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent) {
+export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent) {
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
       clearTimeout(timerId);
@@ -636,11 +638,11 @@ export function SpSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
     document.addEventListener('keydown', sp.documentOnKeyDown);
   }
   if (ev.ctrlKey) {
-    SpSystemTraceDocumentOnKeyUpCtrlKey(keyPress, sp);
+    spSystemTraceDocumentOnKeyUpCtrlKey(keyPress, sp);
   }
 }
 
-function SpSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace) {
+function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace) {
   if (keyPress === '[' && sp._slicesList.length > 1) {
     sp.MarkJump(sp._slicesList, 'slice', 'previous');
   } else if (keyPress === ',' && sp._flagList.length > 1) {
@@ -674,7 +676,7 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
   }
 }
 
-export function SpSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent) {
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -707,7 +709,7 @@ export function SpSystemTraceDocumentOnClick(sp: SpSystemTrace, ev: MouseEvent) 
   ev.preventDefault();
 }
 
-export function SpSystemTraceDocumentOnKeyDown(sp: SpSystemTrace, ev: KeyboardEvent) {
+export function spSystemTraceDocumentOnKeyDown(sp: SpSystemTrace, ev: KeyboardEvent) {
   document.removeEventListener('keyup', sp.documentOnKeyUp);
   sp.debounce(sp.continueSearch, 250, ev)();
   document.addEventListener('keyup', sp.documentOnKeyUp);

@@ -602,39 +602,42 @@ function initHiPerfConfig(
   perfConfig: PerfConfig | undefined,
   recordArgs: string
 ): string{
-  if (perfConfig?.cpu && !perfConfig?.cpu.includes('ALL') && perfConfig?.cpu.length > 0) {
-    recordArgs = `${recordArgs} -c ${perfConfig?.cpu}`;
+  if (!perfConfig){
+    return '';
   }
-  if (perfConfig?.cpuPercent !== 0) {
-    recordArgs = `${recordArgs} --cpu-limit ${perfConfig?.cpuPercent}`;
+  if (perfConfig.cpu && !perfConfig.cpu.includes('ALL') && perfConfig.cpu.length > 0) {
+    recordArgs = `${recordArgs} -c ${perfConfig.cpu}`;
   }
-  if (perfConfig?.eventList && !perfConfig?.eventList.includes('NONE') && perfConfig?.eventList.length > 0) {
-    recordArgs = `${recordArgs} -e ${perfConfig?.eventList}`;
-    if (perfConfig?.isOffCpu) {
+  if (perfConfig.cpuPercent !== 0) {
+    recordArgs = `${recordArgs} --cpu-limit ${perfConfig.cpuPercent}`;
+  }
+  if (perfConfig.eventList && !perfConfig.eventList.includes('NONE') && perfConfig.eventList.length > 0) {
+    recordArgs = `${recordArgs} -e ${perfConfig.eventList}`;
+    if (perfConfig.isOffCpu) {
       recordArgs = `${recordArgs},sched:sched_waking`;
     }
   } else {
     recordArgs = `${recordArgs} -e hw-cpu-cycles`;
-    if (perfConfig?.isOffCpu) {
+    if (perfConfig.isOffCpu) {
       recordArgs = `${recordArgs},sched:sched_waking`;
     }
   }
-  if (perfConfig?.callStack !== 'none') {
-    recordArgs = `${recordArgs} --call-stack ${perfConfig?.callStack}`;
+  if (perfConfig.callStack !== 'none') {
+    recordArgs = `${recordArgs} --call-stack ${perfConfig.callStack}`;
   }
-  if (perfConfig?.branch !== 'none') {
-    recordArgs = `${recordArgs} -j ${perfConfig?.branch}`;
+  if (perfConfig.branch !== 'none') {
+    recordArgs = `${recordArgs} -j ${perfConfig.branch}`;
   }
-  if (perfConfig?.clockType) {
-    recordArgs = `${recordArgs} --clockid ${perfConfig?.clockType}`;
+  if (perfConfig.clockType) {
+    recordArgs = `${recordArgs} --clockid ${perfConfig.clockType}`;
   }
-  if (perfConfig?.isOffCpu) {
+  if (perfConfig.isOffCpu) {
     recordArgs = `${recordArgs} --offcpu`;
   }
-  if (perfConfig?.noInherit) {
+  if (perfConfig.noInherit) {
     recordArgs = `${recordArgs} --no-inherit`;
   }
-  if (perfConfig?.mmap) {
+  if (perfConfig.mmap) {
     recordArgs = `${recordArgs} -m ${perfConfig.mmap}`;
   }
   return recordArgs;

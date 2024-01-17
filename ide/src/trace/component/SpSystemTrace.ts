@@ -97,26 +97,28 @@ import { QueryEnum } from '../database/data-trafic/utils/QueryEnum';
 import { SpSystemTraceHtml } from './SpSystemTrace.html';
 import { querySceneSearchFunc, querySearchFunc } from '../database/sql/Func.sql';
 import { queryCpuKeyPathData } from '../database/sql/Cpu.sql';
+import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
+import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime';
 import {
-  SpSystemTraceInit,
-  SpSystemTraceInitElement,
-  SpSystemTraceInitPointToEvent,
-  SpSystemTraceShowStruct,
+  spSystemTraceInit,
+  spSystemTraceInitElement,
+  spSystemTraceInitPointToEvent,
+  spSystemTraceShowStruct,
 } from './SpSystemTrace.init';
 import {
   spSystemTraceDrawJankLine,
-  SpSystemTraceDrawTaskPollLine,
+  spSystemTraceDrawTaskPollLine,
   spSystemTraceDrawThreadLine,
 } from './SpSystemTrace.line';
-import SpSystemTraceOnClickHandler, {
-  SpSystemTraceDocumentOnClick,
-  SpSystemTraceDocumentOnKeyDown,
+import spSystemTraceOnClickHandler, {
+  spSystemTraceDocumentOnClick,
+  spSystemTraceDocumentOnKeyDown,
   SpSystemTraceDocumentOnKeyPress,
-  SpSystemTraceDocumentOnKeyUp,
-  SpSystemTraceDocumentOnMouseDown,
-  SpSystemTraceDocumentOnMouseMove,
-  SpSystemTraceDocumentOnMouseOut,
-  SpSystemTraceDocumentOnMouseUp,
+  spSystemTraceDocumentOnKeyUp,
+  spSystemTraceDocumentOnMouseDown,
+  spSystemTraceDocumentOnMouseMove,
+  spSystemTraceDocumentOnMouseOut,
+  spSystemTraceDocumentOnMouseUp,
 } from './SpSystemTrace.event';
 
 function dpr(): number {
@@ -300,7 +302,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   initElements(): void {
-    SpSystemTraceInitElement(this);
+    spSystemTraceInitElement(this);
   }
 
   // 清除上一次点击调用栈产生的三角旗子
@@ -670,7 +672,7 @@ export class SpSystemTrace extends BaseElement {
     drawLogsLineSegment(context, this.traceSheetEL?.systemLogFlag, row.frame, this.timerShaftEL!);
   }
 
-  documentOnMouseDown = (ev: MouseEvent): void => SpSystemTraceDocumentOnMouseDown(this, ev);
+  documentOnMouseDown = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseDown(this, ev);
 
   onContextMenuHandler = (e: Event): void => {
     setTimeout(() => {
@@ -683,7 +685,7 @@ export class SpSystemTrace extends BaseElement {
     }, 100);
   };
 
-  documentOnMouseUp = (ev: MouseEvent): void => SpSystemTraceDocumentOnMouseUp(this, ev);
+  documentOnMouseUp = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseUp(this, ev);
 
   cancelDrag(): void {
     this.rangeSelect.drag = false;
@@ -696,7 +698,7 @@ export class SpSystemTrace extends BaseElement {
     };
   }
 
-  documentOnMouseOut = (ev: MouseEvent) => SpSystemTraceDocumentOnMouseOut(this, ev);
+  documentOnMouseOut = (ev: MouseEvent) => spSystemTraceDocumentOnMouseOut(this, ev);
 
   keyPressMap: Map<string, boolean> = new Map([
     ['w', false],
@@ -706,13 +708,14 @@ export class SpSystemTrace extends BaseElement {
     ['f', false],
   ]);
 
-  documentOnKeyDown = (ev: KeyboardEvent): void => SpSystemTraceDocumentOnKeyDown(this, ev);
+  documentOnKeyDown = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyDown(this, ev);
 
   documentOnKeyPress = (ev: KeyboardEvent): void => SpSystemTraceDocumentOnKeyPress(this, ev);
 
   verticalScrollToRow(): void {
     if (this.currentRow) {
-      this.currentRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      //@ts-ignore
+      this.currentRow.scrollIntoViewIfNeeded();
     }
   }
 
@@ -739,6 +742,7 @@ export class SpSystemTrace extends BaseElement {
         this.currentSlicesTime.endTime = IrqStruct.selectIrqStruct.startNS + IrqStruct.selectIrqStruct.dur;
       }
     } else if (TraceRow.rangeSelectObject) {
+      this.currentRow = undefined;
       if (TraceRow.rangeSelectObject.startNS && TraceRow.rangeSelectObject.endNS) {
         this.currentSlicesTime.startTime = TraceRow.rangeSelectObject.startNS;
         this.currentSlicesTime.endTime = TraceRow.rangeSelectObject.endNS;
@@ -755,7 +759,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   public setSLiceMark = (shiftKey: boolean): SlicesTime | null | undefined => {
-    const selectedStruct : any =
+    const selectedStruct: any =
       CpuStruct.selectCpuStruct ||
       ThreadStruct.selectThreadStruct ||
       FuncStruct.selectFuncStruct ||
@@ -814,7 +818,7 @@ export class SpSystemTrace extends BaseElement {
     }
   };
 
-  documentOnKeyUp = (ev: KeyboardEvent): void => SpSystemTraceDocumentOnKeyUp(this, ev);
+  documentOnKeyUp = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyUp(this, ev);
 
   /**
    * 根据传入的参数实现卡尺和旗子的快捷跳转
@@ -971,7 +975,7 @@ export class SpSystemTrace extends BaseElement {
     this.rangeSelect.selectHandler?.(this.rangeSelect.rangeTraceRow, false);
   };
   inFavoriteArea: boolean | undefined;
-  documentOnMouseMove = (ev: MouseEvent): void => SpSystemTraceDocumentOnMouseMove(this, ev);
+  documentOnMouseMove = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseMove(this, ev);
 
   hoverStructNull() {
     CpuStruct.hoverCpuStruct = undefined;
@@ -1030,6 +1034,8 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.selectSnapshotStruct = undefined;
     HiPerfCallChartStruct.selectStruct = undefined;
     AllAppStartupStruct.selectStartupStruct = undefined;
+    LtpoStruct.selectLtpoStruct = undefined;
+    HitchTimeStruct.selectHitchTimeStruct = undefined;
     return this;
   }
 
@@ -1039,7 +1045,7 @@ export class SpSystemTrace extends BaseElement {
     );
   }
 
-  documentOnClick = (ev: MouseEvent) => SpSystemTraceDocumentOnClick(this, ev);
+  documentOnClick = (ev: MouseEvent) => spSystemTraceDocumentOnClick(this, ev);
 
   clickEmptyArea() {
     this.queryAllTraceRow().forEach((it) => {
@@ -1187,7 +1193,7 @@ export class SpSystemTrace extends BaseElement {
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {
-    SpSystemTraceOnClickHandler(this, clickRowType, row);
+    spSystemTraceOnClickHandler(this, clickRowType, row);
   }
 
   makePoint(
@@ -1213,7 +1219,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   drawTaskPollLine(row?: TraceRow<any>) {
-    SpSystemTraceDrawTaskPollLine(this, row);
+    spSystemTraceDrawTaskPollLine(this, row);
   }
   drawJankLine(endParentRow: any, selectJankStruct: JankStruct, data: any) {
     spSystemTraceDrawJankLine(this, endParentRow, selectJankStruct, data);
@@ -1691,7 +1697,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number) {
-    return SpSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
+    return spSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
   }
 
   private toTargetDepth = (entry: any, funcRowID: number, funcStract: any) => {
@@ -1708,7 +1714,7 @@ export class SpSystemTrace extends BaseElement {
 
   scrollToActFunc(funcStract: any, highlight: boolean): void {
     if (!Utils.isBinder(funcStract)) {
-      if (funcStract.dur === -1) {
+      if (funcStract.dur === -1 || funcStract.dur === null || funcStract.dur === undefined) {
         funcStract.dur = (TraceRow.range?.totalNS || 0) - (funcStract.startTs || 0);
         funcStract.flag = 'Did not end';
       }
@@ -1741,6 +1747,7 @@ export class SpSystemTrace extends BaseElement {
     filterRow.fixedList = [funcStract];
     filterRow!.highlight = highlight;
     let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
+    this.currentRow = row;
     if (row && !row.expansion) {
       row.expansion = true;
     }
@@ -1793,12 +1800,12 @@ export class SpSystemTrace extends BaseElement {
     it.name = t;
     it.type = 'thread';
     if (next) {
-      if (it.startTime! + it.dur! > next!.startTime! || it.dur == -1) {
+      if (it.startTime! + it.dur! > next!.startTime! || it.dur == -1 || it.dur === null || it.dur === undefined) {
         it.dur = next!.startTime! - it.startTime!;
         it.nofinish = true;
       }
     } else {
-      if (it.dur == -1) {
+      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
         it.dur = TraceRow.range!.endNS - it.startTime!;
         it.nofinish = true;
       }
@@ -1852,7 +1859,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {
-    return SpSystemTraceInit(this, param, wasmConfigUri, progress);
+    return spSystemTraceInit(this, param, wasmConfigUri, progress);
   };
 
   extracted(it: TraceRow<any>) {
@@ -1935,7 +1942,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   initPointToEvent(): void {
-    SpSystemTraceInitPointToEvent(this);
+    spSystemTraceInitPointToEvent(this);
   }
 
   initHtml(): string {

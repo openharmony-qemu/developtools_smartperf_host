@@ -23,16 +23,16 @@ import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSp
 import { JsCpuProfilerChartFrame } from './JsStruct';
 import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog';
 import { HiSysEventStruct } from '../database/ui-worker/ProcedureWorkerHiSysEvent';
-import {RangeSelectStruct, TraceRow} from "../component/trace/base/TraceRow";
-import {info} from "../../log/Log";
-import {SpSystemTrace} from "../component/SpSystemTrace";
-import {intersectData, isExistPidInArray, setSelectState} from "../component/Utils";
-import {TabPaneTaskFrames} from "../component/trace/sheet/task/TabPaneTaskFrames";
-import {JanksStruct} from "./JanksStruct";
-import {HeapDataInterface} from "../../js-heap/HeapDataInterface";
-import {LitTabs} from "../../base-ui/tabs/lit-tabs";
-import {TabPaneSummary} from "../component/trace/sheet/ark-ts/TabPaneSummary";
-import {JsCpuProfilerStruct} from "../database/ui-worker/ProcedureWorkerCpuProfiler";
+import { RangeSelectStruct, TraceRow } from '../component/trace/base/TraceRow';
+import { info } from '../../log/Log';
+import { SpSystemTrace } from '../component/SpSystemTrace';
+import { intersectData, isExistPidInArray, setSelectState } from '../component/Utils';
+import { TabPaneTaskFrames } from '../component/trace/sheet/task/TabPaneTaskFrames';
+import { JanksStruct } from './JanksStruct';
+import { HeapDataInterface } from '../../js-heap/HeapDataInterface';
+import { LitTabs } from '../../base-ui/tabs/lit-tabs';
+import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
+import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 
 export class SelectionParam {
   recordStartNs: number = 0;
@@ -64,8 +64,10 @@ export class SelectionParam {
   processTrackIds: Array<number> = [];
   virtualTrackIds: Array<number> = [];
   cpuFreqLimit: Array<any> = [];
-  clockMapData: Map<string, ((arg: any) => Promise<Array<any>> | undefined) | undefined>
-    = new Map<string, ((arg: any) => (Promise<Array<any>> | undefined)) | undefined>();
+  clockMapData: Map<string, ((arg: any) => Promise<Array<any>> | undefined) | undefined> = new Map<
+    string,
+    ((arg: any) => Promise<Array<any>> | undefined) | undefined
+  >();
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
@@ -127,12 +129,12 @@ export class SelectionParam {
   sysAllEventsData: Array<HiSysEventStruct> = [];
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
-  pushCpus(it:TraceRow<any>){
+  pushCpus(it: TraceRow<any>) {
     if (it.rowType == TraceRow.ROW_TYPE_CPU) {
       this.cpus.push(parseInt(it.rowId!));
       info('load CPU traceRow id is : ', it.rowId);
     }
-  };
+  }
 
   pushCpuStateFilterIds(it: TraceRow<any>) {
     if (it.rowType == TraceRow.ROW_TYPE_CPU_STATE) {
@@ -166,7 +168,7 @@ export class SelectionParam {
     }
   }
 
-  pushProcess(it: TraceRow<any>,sp:SpSystemTrace) {
+  pushProcess(it: TraceRow<any>, sp: SpSystemTrace) {
     if (it.rowType == TraceRow.ROW_TYPE_PROCESS) {
       sp.pushPidToSelection(this, it.rowId!);
       if (it.getAttribute('hasStartup') === 'true') {
@@ -250,8 +252,8 @@ export class SelectionParam {
 
       let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
         Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-        Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-        filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+          Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+          filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
         filterFunc.funName!.indexOf('H:Task ') >= 0;
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
         taskData!.tid = parseInt(it.rowId!);
@@ -407,32 +409,38 @@ export class SelectionParam {
       }
     }
   }
-  vMTrackerGpuChildRowsEvery(item:TraceRow<any>){
+  vMTrackerGpuChildRowsEvery(item: TraceRow<any>) {
     item.rangeSelect = true;
     if (item.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
       this.gpuMemoryTrackerData.push(...intersectData(item)!);
     } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
-      this.gpu.gl = item.dataListCache.filter((it) =>
-        (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
-        (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
-      ).length > 0;
+      this.gpu.gl =
+        item.dataListCache.filter(
+          (it) =>
+            (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
+        ).length > 0;
     } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
       this.gpu.graph =
-        item.dataListCache.filter((it) =>
-          (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
-          (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
+        item.dataListCache.filter(
+          (it) =>
+            (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
       this.gpu.gpuTotal =
-        item.dataListCache.filter((it) =>
-          (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
-          (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
+        item.dataListCache.filter(
+          (it) =>
+            (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
         ).length > 0;
     } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
-      this.gpu.gpuWindow = item.dataListCache.filter((it) =>
-        (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
-        (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
-      ).length > 0;
+      this.gpu.gpuWindow =
+        item.dataListCache.filter(
+          (it) =>
+            (it.startNs >= this.leftNs && it.startNs <= this.rightNs) ||
+            (it.endNs >= this.leftNs && it.endNs <= this.rightNs)
+        ).length > 0;
     }
   }
   pushVmTracker(it: TraceRow<any>, sp: SpSystemTrace) {
@@ -485,7 +493,7 @@ export class SelectionParam {
     if (it.rowType == TraceRow.ROW_TYPE_JANK) {
       let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
         Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-        Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+          Math.min(filterJank.ts!, rangeData!.startNS || 0) <
         filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
       if (it.name == 'Actual Timeline') {
         if (it.rowParentId === 'frameTime') {
@@ -518,10 +526,9 @@ export class SelectionParam {
 
   pushHeapTimeline(it: TraceRow<any>, sp: SpSystemTrace) {
     if (it.rowType == TraceRow.ROW_TYPE_HEAP_TIMELINE) {
-      let endNS = TraceRow.rangeSelectObject?.endNS ? TraceRow.rangeSelectObject?.endNS : TraceRow.range?.endNS;
-      let startNS = TraceRow.rangeSelectObject?.startNS
-        ? TraceRow.rangeSelectObject?.startNS
-        : TraceRow.range?.startNS;
+      const [rangeStart, rangeEnd] = [TraceRow.range?.startNS, TraceRow.range?.endNS];
+      const endNS = TraceRow.rangeSelectObject?.endNS || rangeStart;
+      const startNS = TraceRow.rangeSelectObject?.startNS || rangeEnd;
       let minNodeId, maxNodeId;
       if (!it.dataListCache || it.dataListCache.length === 0) {
         return;
@@ -547,18 +554,15 @@ export class SelectionParam {
         minNodeId = it.dataListCache[it.dataListCache.length - 1].lastAssignedId;
       }
       // If you select the box from the beginning
-      if (startNS! <= TraceRow.range?.startNS!) {
+      if (startNS! <= rangeStart!) {
         minNodeId = HeapDataInterface.getInstance().getMinNodeId(sp.snapshotFiles!.id);
       }
       //If you select the box from the ending
-      if (
-        endNS! >= TraceRow.range?.endNS! ||
-        endNS! >= it.dataListCache[it.dataListCache.length - 1].timestampUs * 1000
-      ) {
+      if (endNS! >= rangeEnd! || endNS! >= it.dataListCache[it.dataListCache.length - 1].timestampUs * 1000) {
         maxNodeId = HeapDataInterface.getInstance().getMaxNodeId(sp.snapshotFiles!.id);
       }
-      let summary = (sp.traceSheetEL?.shadowRoot?.querySelector('#tabs') as LitTabs)
-        ?.querySelector('#box-heap-summary')
+      let summary = (sp.traceSheetEL!.shadowRoot!.querySelector('#tabs') as LitTabs)
+        .querySelector('#box-heap-summary')
         ?.querySelector('tabpane-summary') as TabPaneSummary;
       summary.initSummaryData(sp.snapshotFiles!, minNodeId, maxNodeId);
       this.jsMemory.push(1);
@@ -732,7 +736,7 @@ export class SelectionParam {
     if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
       let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
         Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-        Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+          Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
         animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
       let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {
         return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
@@ -948,16 +952,16 @@ export class SelectionParam {
     this.pushCpuStateFilterIds(it);
     this.pushCpuFreqFilter(it);
     this.pushCpuFreqLimit(it);
-    this.pushProcess(it,sp);
-    this.pushNativeMemory(it,sp);
-    this.pushFunc(it,sp);
-    this.pushHeap(it,sp);
-    this.pushMonitor(it,sp);
-    this.pushHiperf(it,sp);
-    this.pushFileSystem(it,sp);
-    this.pushJank(it,sp);
-    this.pushHeapTimeline(it,sp);
-    this.pushJsCpuProfiler(it,sp);
+    this.pushProcess(it, sp);
+    this.pushNativeMemory(it, sp);
+    this.pushFunc(it, sp);
+    this.pushHeap(it, sp);
+    this.pushMonitor(it, sp);
+    this.pushHiperf(it, sp);
+    this.pushFileSystem(it, sp);
+    this.pushJank(it, sp);
+    this.pushHeapTimeline(it, sp);
+    this.pushJsCpuProfiler(it, sp);
     this.pushSysMemoryGpu(it, sp);
     this.pushSDK(it, sp);
     this.pushVmTrackerSmaps(it, sp);
@@ -969,28 +973,28 @@ export class SelectionParam {
     this.pushSysMemoryGpuWindow(it);
     this.pushSysMemoryGpuTotal(it);
     this.pushSysMemoryGpuGraph(it);
-    this.pushStaticInit(it,sp);
-    this.pushAppStartUp(it,sp);
-    this.pushThread(it,sp);
-    this.pushVirtualMemory(it,sp);
-    this.pushFps(it,sp);
-    this.pushCpuAbility(it,sp);
-    this.pushMemoryAbility(it,sp);
-    this.pushDiskAbility(it,sp);
-    this.pushNetworkAbility(it,sp);
-    this.pushDmaAbility(it,sp);
-    this.pushGpuMemoryAbility(it,sp);
-    this.pushPowerEnergy(it,sp);
-    this.pushSystemEnergy(it,sp);
-    this.pushAnomalyEnergy(it,sp);
-    this.pushVmTracker(it,sp);
-    this.pushVmTrackerShm(it,sp);
-    this.pushClock(it,sp);
-    this.pushGpuMemoryVmTracker(it,sp);
-    this.pushDmaVmTracker(it,sp);
-    this.pushPugreable(it,sp);
-    this.pushLogs(it,sp);
-    this.pushHiSysEvent(it,sp);
+    this.pushStaticInit(it, sp);
+    this.pushAppStartUp(it, sp);
+    this.pushThread(it, sp);
+    this.pushVirtualMemory(it, sp);
+    this.pushFps(it, sp);
+    this.pushCpuAbility(it, sp);
+    this.pushMemoryAbility(it, sp);
+    this.pushDiskAbility(it, sp);
+    this.pushNetworkAbility(it, sp);
+    this.pushDmaAbility(it, sp);
+    this.pushGpuMemoryAbility(it, sp);
+    this.pushPowerEnergy(it, sp);
+    this.pushSystemEnergy(it, sp);
+    this.pushAnomalyEnergy(it, sp);
+    this.pushVmTracker(it, sp);
+    this.pushVmTrackerShm(it, sp);
+    this.pushClock(it, sp);
+    this.pushGpuMemoryVmTracker(it, sp);
+    this.pushDmaVmTracker(it, sp);
+    this.pushPugreable(it, sp);
+    this.pushLogs(it, sp);
+    this.pushHiSysEvent(it, sp);
   }
 }
 
