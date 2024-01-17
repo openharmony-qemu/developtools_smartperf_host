@@ -20,7 +20,7 @@ import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import { getTabCpuByThread } from "../../../../database/sql/Cpu.sql";
+import { getTabCpuByThread } from '../../../../database/sql/Cpu.sql';
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {
@@ -204,40 +204,38 @@ export class TabPaneCpuByThread extends BaseElement {
         </lit-table>
         `;
   }
-
-  sortByColumn(detail: any) {
-    // @ts-ignore
-    function compare(property, sort, type) {
-      return function (cpuByThreadLeftData: SelectionData, cpuByThreadRightData: SelectionData) {
-        if (cpuByThreadLeftData.process == ' ' || cpuByThreadRightData.process == ' ') {
-          return 0;
-        }
-        if (type === 'number') {
-          return sort === 2
-            ? // @ts-ignore
+  compare(property: any, sort: any, type: string) {
+    return function (cpuByThreadLeftData: SelectionData, cpuByThreadRightData: SelectionData) {
+      if (cpuByThreadLeftData.process == ' ' || cpuByThreadRightData.process == ' ') {
+        return 0;
+      }
+      if (type === 'number') {
+        return sort === 2
+          ? // @ts-ignore
             parseFloat(cpuByThreadRightData[property]) - parseFloat(cpuByThreadLeftData[property])
-            : // @ts-ignore
+          : // @ts-ignore
             parseFloat(cpuByThreadLeftData[property]) - parseFloat(cpuByThreadRightData[property]);
+      } else {
+        // @ts-ignore
+        if (cpuByThreadRightData[property] > cpuByThreadLeftData[property]) {
+          return sort === 2 ? 1 : -1;
         } else {
           // @ts-ignore
-          if (cpuByThreadRightData[property] > cpuByThreadLeftData[property]) {
-            return sort === 2 ? 1 : -1;
+          if (cpuByThreadRightData[property] == cpuByThreadLeftData[property]) {
+            return 0;
           } else {
-            // @ts-ignore
-            if (cpuByThreadRightData[property] == cpuByThreadLeftData[property]) {
-              return 0;
-            } else {
-              return sort === 2 ? -1 : 1;
-            }
+            return sort === 2 ? -1 : 1;
           }
         }
-      };
-    }
+      }
+    };
+  }
+  sortByColumn(detail: any) {
     if ((detail.key as string).includes('cpu')) {
       if ((detail.key as string).includes('Ratio')) {
-        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'string'));
+        this.cpuByThreadSource.sort(this.compare(detail.key, detail.sort, 'string'));
       } else {
-        this.cpuByThreadSource.sort(compare((detail.key as string).replace('TimeStr', ''), detail.sort, 'number'));
+        this.cpuByThreadSource.sort(this.compare((detail.key as string).replace('TimeStr', ''), detail.sort, 'number'));
       }
     } else {
       if (
@@ -247,9 +245,9 @@ export class TabPaneCpuByThread extends BaseElement {
         detail.key === 'avgDuration' ||
         detail.key === 'occurrences'
       ) {
-        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'number'));
+        this.cpuByThreadSource.sort(this.compare(detail.key, detail.sort, 'number'));
       } else {
-        this.cpuByThreadSource.sort(compare(detail.key, detail.sort, 'string'));
+        this.cpuByThreadSource.sort(this.compare(detail.key, detail.sort, 'string'));
       }
     }
 

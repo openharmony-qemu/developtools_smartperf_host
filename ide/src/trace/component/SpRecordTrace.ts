@@ -58,7 +58,11 @@ import {
   createMonitorPlugin,
   createNativePluginConfig,
   createSessionRequest,
-  createSystemConfig, createSdkConfig, createHiSystemEventPluginConfig, createArkTsConfig, createHiLogConfig,
+  createSystemConfig,
+  createSdkConfig,
+  createHiSystemEventPluginConfig,
+  createArkTsConfig,
+  createHiLogConfig,
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 
@@ -329,20 +333,23 @@ export class SpRecordTrace extends BaseElement {
     if (parentElement) {
       parentElement.style.overflow = 'hidden';
     }
+    if (!this.shadowRoot || !this.sp){
+      return;
+    }
     this.initConfigPage();
-    this.hintEl = this.shadowRoot?.querySelector('#hint') as HTMLSpanElement;
-    this.deviceSelect = this.shadowRoot?.querySelector('#device-select') as HTMLSelectElement;
-    this.deviceVersion = this.shadowRoot?.querySelector('#device-version') as HTMLSelectElement;
-    this.devicePrompt = this.shadowRoot?.querySelector('.prompt') as HTMLSpanElement;
-    this.disconnectButton = this.shadowRoot?.querySelector<LitButton>('.disconnect');
-    this.recordButton = this.shadowRoot?.querySelector('.record') as LitButton;
-    this.recordButtonText = this.shadowRoot?.querySelector('.record_text') as HTMLSpanElement;
-    this.cancelButton = this.shadowRoot?.querySelector('.cancel') as LitButton;
+    this.hintEl = this.shadowRoot.querySelector('#hint') as HTMLSpanElement;
+    this.deviceSelect = this.shadowRoot.querySelector('#device-select') as HTMLSelectElement;
+    this.deviceVersion = this.shadowRoot.querySelector('#device-version') as HTMLSelectElement;
+    this.devicePrompt = this.shadowRoot.querySelector('.prompt') as HTMLSpanElement;
+    this.disconnectButton = this.shadowRoot.querySelector<LitButton>('.disconnect');
+    this.recordButton = this.shadowRoot.querySelector('.record') as LitButton;
+    this.recordButtonText = this.shadowRoot.querySelector('.record_text') as HTMLSpanElement;
+    this.cancelButton = this.shadowRoot.querySelector('.cancel') as LitButton;
     this.sp = document.querySelector('sp-application') as SpApplication;
-    this.progressEL = this.sp?.shadowRoot?.querySelector('.progress') as LitProgressBar;
-    this.litSearch = this.sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
-    this.menuGroup = this.shadowRoot?.querySelector('#menu-group') as LitMainMenuGroup;
-    this.addButton = this.shadowRoot?.querySelector<LitButton>('.add');
+    this.progressEL = this.sp.shadowRoot?.querySelector('.progress') as LitProgressBar;
+    this.litSearch = this.sp.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
+    this.menuGroup = this.shadowRoot.querySelector('#menu-group') as LitMainMenuGroup;
+    this.addButton = this.shadowRoot.querySelector<LitButton>('.add');
     if (this.record_template) {
       this.buildTemplateTraceItem();
     } else {
@@ -350,14 +357,14 @@ export class SpRecordTrace extends BaseElement {
     }
     this.initMenuItems();
     this.appendDeviceVersion();
-    if (this.deviceSelect?.options && this.deviceSelect?.options.length > 0) {
+    if (this.deviceSelect.options && this.deviceSelect.options.length > 0) {
       this.disconnectButton!.hidden = false;
-      this.recordButton!.hidden = false;
-      this.devicePrompt!.innerText = '';
+      this.recordButton.hidden = false;
+      this.devicePrompt.innerText = '';
     } else {
       this.disconnectButton!.hidden = true;
-      this.recordButton!.hidden = true;
-      this.devicePrompt!.innerText = 'Device not connected';
+      this.recordButton.hidden = true;
+      this.devicePrompt.innerText = 'Device not connected';
     }
   }
 
@@ -598,9 +605,12 @@ export class SpRecordTrace extends BaseElement {
     SpRecordTrace.supportVersions.forEach((supportVersion) => {
       let option = document.createElement('option');
       option.className = 'select';
+      option.selected = supportVersion === '4.0+';
       option.textContent = `OpenHarmony-${supportVersion}`;
       option.setAttribute('device-version', supportVersion);
       this.deviceVersion!.append(option);
+      SpRecordTrace.selectVersion = '4.0+';
+      this.nativeMemoryHideBySelectVersion();
     });
   }
 
@@ -741,8 +751,7 @@ export class SpRecordTrace extends BaseElement {
     let recordModeSwitch = recordTrace.probesConfig?.shadowRoot?.querySelector('lit-switch') as LitSwitch;
     let checkDesBoxDis = recordTrace.probesConfig?.shadowRoot?.querySelectorAll('check-des-box');
     let litCheckBoxDis = recordTrace.probesConfig?.shadowRoot?.querySelectorAll('lit-check-box');
-    recordTrace.ftraceSlider = recordTrace.probesConfig?.shadowRoot?.
-      querySelector<LitSlider>('#ftrace-buff-size-slider');
+    recordTrace.ftraceSlider = recordTrace.probesConfig?.shadowRoot?.querySelector<LitSlider>('#ftrace-buff-size-slider');
     startNativeSwitch.addEventListener('change', (event: any): void => {
       let detail = event.detail;
       if (detail!.checked) {

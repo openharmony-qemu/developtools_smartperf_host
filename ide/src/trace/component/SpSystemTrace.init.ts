@@ -30,6 +30,9 @@ import {threadPool} from "../database/SqlLite";
 import {JankStruct} from "../database/ui-worker/ProcedureWorkerJank";
 import {CpuStruct} from "../database/ui-worker/cpu/ProcedureWorkerCPU";
 import {PairPoint} from "../database/ui-worker/ProcedureWorkerCommon";
+import { TraceSheet } from './trace/base/TraceSheet';
+import { TimerShaftElement } from './trace/TimerShaftElement';
+import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
 
 function rightButtonOnClick(sp: SpSystemTrace,rightStar: HTMLElementAlias) {
@@ -595,23 +598,26 @@ function smartEventSubscribe(sp: SpSystemTrace) {
     });
     window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => sp.currentCollectGroup = group);
 }
-export function SpSystemTraceInitElement(sp:SpSystemTrace){
+export function spSystemTraceInitElement(sp:SpSystemTrace){
     window.subscribe(window.SmartEvent.UI.LoadFinishFrame, () => sp.drawAllLines());
-    sp.traceSheetEL = sp.shadowRoot?.querySelector('.trace-sheet');
-    let rightButton: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot
+    sp.traceSheetEL = sp.shadowRoot?.querySelector<TraceSheet>('.trace-sheet');
+    if (!sp || !sp.shadowRoot || !sp.traceSheetEL){
+        return;
+    }
+    let rightButton: HTMLElement | null | undefined = sp.traceSheetEL.shadowRoot
       ?.querySelector('#current-selection > tabpane-current-selection')
       ?.shadowRoot?.querySelector('#rightButton');
-    let rightStar: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot
+    let rightStar: HTMLElement | null | undefined =sp.traceSheetEL.shadowRoot
       ?.querySelector('#current-selection > tabpane-current-selection')
       ?.shadowRoot?.querySelector('#right-star');
-    sp.tipEL = sp.shadowRoot?.querySelector<HTMLDivElement>('.tip');
-    sp.rowsPaneEL = sp.shadowRoot?.querySelector<HTMLDivElement>('.rows-pane');
+    sp.tipEL = sp.shadowRoot.querySelector<HTMLDivElement>('.tip');
+    sp.rowsPaneEL = sp.shadowRoot.querySelector<HTMLDivElement>('.rows-pane');
     sp.rowsEL = sp.rowsPaneEL;
-    sp.spacerEL = sp.shadowRoot?.querySelector<HTMLDivElement>('.spacer');
-    sp.timerShaftEL = sp.shadowRoot?.querySelector('.timer-shaft');
-    sp.favoriteChartListEL = sp.shadowRoot?.querySelector('#favorite-chart-list');
-    sp.tabCpuFreq = sp.traceSheetEL?.shadowRoot?.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
-    sp.tabCpuState = sp.traceSheetEL?.shadowRoot?.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
+    sp.spacerEL = sp.shadowRoot.querySelector<HTMLDivElement>('.spacer');
+    sp.timerShaftEL = sp.shadowRoot.querySelector<TimerShaftElement>('.timer-shaft');
+    sp.favoriteChartListEL = sp.shadowRoot.querySelector<SpChartList>('#favorite-chart-list');
+    sp.tabCpuFreq = sp.traceSheetEL.shadowRoot?.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
+    sp.tabCpuState = sp.traceSheetEL.shadowRoot?.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
     sp.rangeSelect = new RangeSelect(sp);
     rightButton?.addEventListener('click', rightButtonOnClick(sp,rightStar));
     rightStar?.addEventListener('click', rightStarOnClick(sp));
@@ -636,7 +642,7 @@ export function SpSystemTraceInitElement(sp:SpSystemTrace){
     observerHandler(sp);
     window.addEventListener('keydown', windowKeyDownHandler(sp));
     sp.chartManager = new SpChartManager(sp);
-    sp.canvasPanel = sp.shadowRoot!.querySelector<HTMLCanvasElement>('#canvas-panel')!;
+    sp.canvasPanel = sp.shadowRoot.querySelector<HTMLCanvasElement>('#canvas-panel')!;
     sp.canvasPanelCtx = sp.canvasPanel.getContext('2d');
     sp.canvasFavoritePanelCtx = sp.favoriteChartListEL!.context();
     sp.canvasPanelConfig();
@@ -660,11 +666,11 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any) {
     sp.timerShaftEL?.drawTriangle(findEntry.startTime || 0, 'inverted');
 }
 
-export function SpSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number){
+export function spSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number){
     if (structs.length == 0) {
         return 0;
     }
-    let findIndex = SpSystemTraceShowStructFindIndex(sp,previous,currentIndex,structs,retargetIndex);
+    let findIndex = spSystemTraceShowStructFindIndex(sp,previous,currentIndex,structs,retargetIndex);
     let findEntry: any;
     if (findIndex >= 0) {
         findEntry = structs[findIndex];
@@ -691,7 +697,7 @@ export function SpSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, curr
     moveRangeToCenterAndHighlight(sp, findEntry);
     return findIndex;
 }
-function SpSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
+function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
     let findIndex = -1;
     if (previous) {
         if (retargetIndex) {
@@ -795,7 +801,7 @@ function findEntryTypeSdk(sp: SpSystemTrace, findEntry: any) {
     sp.closeAllExpandRows(findEntry.rowParentId);
     sp.scrollToProcess(`${findEntry.rowId}`, `${findEntry.rowParentId}`, findEntry.rowType, true);
 }
-async function SpSystemTraceInitBuffer(sp:SpSystemTrace,param:{buf?:ArrayBuffer;Url?:string},wasmConfigUri:string,progress:Function) {
+async function spSystemTraceInitBuffer(sp:SpSystemTrace,param:{buf?:ArrayBuffer;Url?:string},wasmConfigUri:string,progress:Function) {
     if (param.buf) {
         let configJson = '';
         try {
@@ -814,7 +820,7 @@ async function SpSystemTraceInitBuffer(sp:SpSystemTrace,param:{buf?:ArrayBuffer;
         return null;
     }
 }
-async function SpSystemTraceInitUrl(sp:SpSystemTrace,param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
+async function spSystemTraceInitUrl(sp:SpSystemTrace,param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
     if (param.url) {
         let { status, msg } = await threadPool.initServer(param.url, progress);
         if (!status) {
@@ -826,14 +832,14 @@ async function SpSystemTraceInitUrl(sp:SpSystemTrace,param: { buf?: ArrayBuffer;
         return null;
     }
 }
-export async function SpSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
+export async function spSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
     progress('Load database', 6);
     sp.rowsPaneEL!.scroll({top: 0, left: 0});
-    let rsBuf = await SpSystemTraceInitBuffer(sp,param,wasmConfigUri,progress);
+    let rsBuf = await spSystemTraceInitBuffer(sp,param,wasmConfigUri,progress);
     if (rsBuf) {
         return rsBuf;
     }
-    let rsUrl = await SpSystemTraceInitUrl(sp,param,wasmConfigUri,progress);
+    let rsUrl = await spSystemTraceInitUrl(sp,param,wasmConfigUri,progress);
     if (rsUrl) {
         return rsUrl;
     }
@@ -954,6 +960,6 @@ const eventMap = {
     'hiperf-thread': 'HiPerf Thread',
     'js-memory': 'Js Memory',
 }
-export function SpSystemTraceInitPointToEvent(sp: SpSystemTrace) {
+export function spSystemTraceInitPointToEvent(sp: SpSystemTrace) {
     sp.eventMap = eventMap;
 }
