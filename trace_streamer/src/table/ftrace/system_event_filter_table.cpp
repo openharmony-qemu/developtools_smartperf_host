@@ -53,17 +53,17 @@ void SystemEventFilterTable::FilterByConstraint(FilterConstraints& eventfc,
     }
 }
 
-bool SystemEventFilterTable::CanFilterSorted(const char op, size_t& sysRowCnt) const
+bool SystemEventFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            sysRowCnt = sysRowCnt / log2(sysRowCnt);
+            rowCount = rowCount / log2(rowCount);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            sysRowCnt = (sysRowCnt >> 1);
+            rowCount = (rowCount >> 1);
             break;
         default:
             return false;
@@ -93,9 +93,9 @@ int32_t SystemEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqli
         return SQLITE_OK;
     }
 
-    auto& systemEventFilterCs = fc.GetConstraints();
-    for (size_t i = 0; i < systemEventFilterCs.size(); i++) {
-        const auto& c = systemEventFilterCs[i];
+    auto& cs = fc.GetConstraints();
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterSorted(c.col, c.op, argv[i]);
@@ -105,12 +105,12 @@ int32_t SystemEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqli
         }
     }
 
-    auto sysEventFilterOrderbys = fc.GetOrderBys();
-    for (auto i = sysEventFilterOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(sysEventFilterOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(sysEventFilterOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

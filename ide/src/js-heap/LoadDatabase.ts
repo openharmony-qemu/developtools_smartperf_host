@@ -16,15 +16,17 @@ import { HeapDataInterface, ParseListener } from './HeapDataInterface';
 import { AllocationFunction, FileType } from './model/UiStruct';
 import { getTimeForLog } from './utils/Utils';
 import { HeapNode, FileStruct } from './model/DatabaseStruct';
-import { info } from '../log/Log';
 import {
-  queryHeapEdge,
   queryHeapFile,
   queryHeapInfo,
   queryHeapNode,
-  queryHeapSample, queryHeapString
-} from "../trace/database/sql/SqlLite.sql";
-import {queryHeapFunction, queryHeapTraceNode} from "../trace/database/sql/Func.sql";
+  queryHeapEdge,
+  queryHeapFunction,
+  queryHeapTraceNode,
+  queryHeapSample,
+  queryHeapString,
+} from '../trace/database/SqlLite';
+import { info } from '../log/Log';
 
 export class LoadDatabase {
   private static loadDB: LoadDatabase;

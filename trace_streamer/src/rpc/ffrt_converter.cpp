@@ -31,8 +31,9 @@ bool FfrtConverter::RecoverTraceAndGenerateNewFile(const std::string& ffrtFileNa
     CheckTraceMarker(lines);
     TypeFfrtPid result = ClassifyLogsForFfrtWorker(lines);
     ConvertFfrtThreadToFfrtTask(lines, result);
-    for (const std::string& lineergodic : lines) {
-        outFile << lineergodic << std::endl;
+    SupplementFfrtBlockAndWakeInfo(lines);
+    for (auto line : lines) {
+        outFile << line << std::endl;
     }
     return true;
 }
@@ -99,16 +100,16 @@ std::string FfrtConverter::MakeBeginFakeLog(const std::string& mark,
                                             const std::string& threadName,
                                             const int prio)
 {
-    auto beginTimeStamp = ExtractTimeStr(mark);
+    auto timestamp = ExtractTimeStr(mark);
     auto cpuId = ExtractCpuId(mark);
-    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
+    std::unique_ptr<char[]> result(new char[MAX_LEN]);
     auto taskId = GetTaskId(pid, gid);
     (void)sprintf_s(
         result.get(), MAX_LEN,
         "\n  %s-%d    (%7d) [%s] ....   %s: sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=S ==> "
         "next_comm=%s next_pid=%s next_prio=%d\n",
-        threadName.c_str(), tid, pid, cpuId.c_str(), beginTimeStamp.c_str(), threadName.c_str(), tid, prio,
-        label.c_str(), taskId.c_str(), prio);
+        threadName.c_str(), tid, pid, cpuId.c_str(), timestamp.c_str(), threadName.c_str(), tid, prio, label.c_str(),
+        taskId.c_str(), prio);
     return mark + result.get();
 }
 
@@ -120,18 +121,23 @@ std::string FfrtConverter::MakeEndFakeLog(const std::string& mark,
                                           const std::string& threadName,
                                           const int prio)
 {
-    auto endTimeStamp = ExtractTimeStr(mark);
+    auto timestamp = ExtractTimeStr(mark);
     auto cpuId = ExtractCpuId(mark);
-    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
+    std::unique_ptr<char[]> result(new char[MAX_LEN]);
     auto taskId = GetTaskId(pid, gid);
     (void)sprintf_s(
         result.get(), MAX_LEN,
         "  %s-%s    (%7d) [%s] ....   %s: sched_switch: prev_comm=%s prev_pid=%s prev_prio=%d prev_state=S ==> "
         "next_comm=%s next_pid=%s next_prio=%d\n",
-        label.c_str(), taskId.c_str(), pid, cpuId.c_str(), endTimeStamp.c_str(), label.c_str(), taskId.c_str(), prio,
+        label.c_str(), taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), label.c_str(), taskId.c_str(), prio,
         threadName.c_str(), tid, prio);
     std::string fakeLog = result.get();
     memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+    if (mark.find("|B|") != std::string::npos || mark.find("|H:B ") != std::string::npos) {
+        (void)sprintf_s(result.get(), MAX_LEN, "  %s-%s    (%7d) [%s] ....   %s: %sE|%d\n", label.c_str(),
+                        taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(), pid);
+        fakeLog = result.get() + fakeLog;
+    }
     return fakeLog;
 }
 
@@ -197,7 +203,7 @@ std::string FfrtConverter::ReplaceSchedWakeLog(std::string& fakeLog,
 
 std::string FfrtConverter::ReplaceSchedBlockLog(std::string& fakeLog, const int pid, const long long gid)
 {
-    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
+    std::unique_ptr<char[]> result(new char[MAX_LEN]);
     auto taskId = GetTaskId(pid, gid);
     (void)sprintf_s(result.get(), MAX_LEN, "pid=%s ", taskId.c_str());
     size_t pidPos = fakeLog.find("pid");
@@ -362,166 +368,12 @@ FfrtConverter::TypeFfrtPid FfrtConverter::ClassifyLogsForFfrtWorker(vector<std::
         FindFfrtProcessAndClassifyLogs(results[line], line, traceMap, ffrtPidMap);
     }
     for (auto& [pid, tids] : ffrtPidMap) {
-        for (const auto& pair : tids) {
+        for (auto& pair : tids) {
             auto tid = pair.first;
             ffrtPidMap[pid][tid].line = traceMap[tid];
         }
     }
     return ffrtPidMap;
-}
-void FfrtConverter::UpdatePrio(int& prio, const std::string& mark, const int tid)
-{
-    if (mark.find("sched_switch:") == std::string::npos) {
-        return;
-    }
-    if (mark.find("prev_pid=" + std::to_string(tid) + " ") != std::string::npos) {
-        static std::string beginPprio = "prev_prio=";
-        auto beginPos = mark.find(beginPprio);
-        beginPos = beginPos + beginPprio.length();
-        auto endPos = mark.find_first_of(" ", beginPos);
-        prio = stoi(mark.substr(beginPos, endPos - beginPos));
-    } else if (mark.find("next_pid=" + std::to_string(tid)) != std::string::npos) {
-        static std::string beginNprio = "next_prio=";
-        auto beginPos = mark.find(beginNprio);
-        beginPos = beginPos + beginNprio.length();
-        prio = stoi(mark.substr(beginPos));
-    }
-}
-std::string FfrtConverter::GetLabel(const string& mark)
-{
-    std::string label;
-    if (mark.find("|H:FFRT") != std::string::npos) {
-        if (mark.find("H:FFRT::") != std::string::npos) {
-            auto beginPos = mark.rfind("[");
-            auto endPos = mark.rfind("]");
-            auto label = mark.substr(beginPos + 1, endPos - beginPos - 1);
-        } else {
-            static std::string indexHFfrt = "|H:FFRT";
-            auto beginPos = mark.find(indexHFfrt);
-            beginPos = beginPos + indexHFfrt.length();
-            auto endPos = mark.find_first_of("|", beginPos);
-            label = mark.substr(beginPos, endPos - beginPos);
-        }
-    } else {
-        if (mark.find("|FFRT::") != std::string::npos) {
-            auto beginPos = mark.rfind("[");
-            auto endPos = mark.rfind("]");
-            auto label = mark.substr(beginPos + 1, endPos - beginPos - 1);
-        } else {
-            static std::string indexFfrt = "|FFRT";
-            auto beginPos = mark.find(indexFfrt);
-            beginPos = beginPos + indexFfrt.length();
-            auto endPos = mark.find_first_of("|", beginPos);
-            label = mark.substr(beginPos, endPos - beginPos);
-        }
-    }
-    return label;
-}
-std::string FfrtConverter::getNewMissLog(std::string& missLog,
-                                         const std::string& mark,
-                                         const int pid,
-                                         const int tid,
-                                         std::string threadName)
-{
-    auto timestamp = ExtractTimeStr(mark);
-    auto cpuId = ExtractCpuId(mark);
-    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
-    (void)sprintf_s(result.get(), MAX_LEN, "  %s-%d    (%7d) [%s] ....   %s: %sE|%d\n", threadName.c_str(), tid, pid,
-                    cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(), pid);
-    missLog = missLog + result.get();
-    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
-    return missLog;
-}
-
-void FfrtConverter::DeleteRedundance(const std::string& mark,
-                                     std::string& log,
-                                     bool switchInFakeLog,
-                                     bool switchOutFakeLog,
-                                     const int pid,
-                                     const std::string& label,
-                                     long long gid,
-                                     const int tid,
-                                     const std::string& threadName,
-                                     const int prio)
-{
-    static const std::regex CoPattern = std::regex(R"( F\|(\d+)\|Co\|(\d+))");
-    static const std::regex HCoPattern = std::regex(R"( F\|(\d+)\|H:Co\s(\d+))");
-    if (std::regex_search(mark, CoPattern) || std::regex_search(mark, HCoPattern)) {
-        log.clear();
-        if (switchInFakeLog) {
-            switchInFakeLog = false;
-            return;
-        } else {
-            switchOutFakeLog = true;
-            return;
-        }
-    }
-    if (switchInFakeLog && (mark.find(tracingMarkerKey_ + "B") != std::string::npos)) {
-        log.clear();
-        return;
-    }
-    if (switchOutFakeLog && (mark.find(tracingMarkerKey_ + "E") != std::string::npos)) {
-        log.clear();
-        return;
-    }
-    static const std::regex EndPattern = std::regex(R"( F\|(\d+)\|[BF]\|(\d+))");
-    static const std::regex HEndPattern = std::regex(R"( F\|(\d+)\|H:[BF]\s(\d+))");
-    if (std::regex_search(mark, EndPattern) || std::regex_search(mark, HEndPattern)) {
-        log = MakeEndFakeLog(mark, pid, label, gid, tid, threadName, prio);
-        gid = WAKE_EVENT_DEFAULT_VALUE;
-        switchOutFakeLog = false;
-        return;
-    }
-    auto fakeLog = ConvertWorkerLogToTask(mark, pid, label, gid, tid);
-    log = fakeLog;
-    return;
-}
-void FfrtConverter::ConvertFfrtThreadToFfrtTaskByLine(
-    int pid,
-    int tid,
-    int& prio,
-    std::vector<std::string>& results,
-    ffrtContent& content,
-    std::unordered_map<int, std::unordered_map<int, std::string>>& taskLabels)
-{
-    auto& threadName = content.name;
-    auto switchInFakeLog = false;
-    auto switchOutFakeLog = false;
-    auto gid = WAKE_EVENT_DEFAULT_VALUE;
-    for (auto& line : content.line) {
-        auto mark = results[line];
-        UpdatePrio(prio, mark, tid);
-        if (mark.find("FFRT::[") != std::string::npos) {
-            std::string missLog;
-            auto label = GetLabel(mark);
-            if (label.find("executor_task") != std::string::npos || label.find("ex_task") != std::string::npos) {
-                continue;
-            }
-            if (gid != WAKE_EVENT_DEFAULT_VALUE) {
-                missLog = MakeEndFakeLog(mark, pid, taskLabels[pid][gid], gid, tid, threadName, prio);
-                missLog = getNewMissLog(missLog, mark, pid, tid, threadName);
-            }
-            auto beginPos = mark.rfind("|");
-            if (beginPos != std::string::npos && IsDigit(mark.substr(beginPos + 1))) {
-                gid = stoll(mark.substr(beginPos + 1));
-            } else {
-                continue;
-            }
-            if (taskLabels[pid].find(gid) == taskLabels[pid].end()) {
-                taskLabels[pid][gid] = label;
-            }
-            results[line] = MakeBeginFakeLog(mark, pid, taskLabels[pid][gid], gid, tid, threadName, prio);
-            if (!missLog.empty()) {
-                results[line] = missLog + results[line];
-            }
-            switchInFakeLog = true;
-            continue;
-        }
-        if (gid != WAKE_EVENT_DEFAULT_VALUE) {
-            DeleteRedundance(mark, results[line], switchInFakeLog, switchOutFakeLog, pid, taskLabels[pid][gid], gid,
-                             tid, threadName, prio);
-        }
-    }
 }
 void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string>& results, FfrtConverter::TypeFfrtPid& ffrtPidsMap)
 {
@@ -530,7 +382,252 @@ void FfrtConverter::ConvertFfrtThreadToFfrtTask(vector<std::string>& results, Ff
     for (auto& [pid, tids] : ffrtPidsMap) {
         taskLabels[pid] = {};
         for (auto& [tid, info] : ffrtPidsMap[pid]) {
-            ConvertFfrtThreadToFfrtTaskByLine(pid, tid, prio, results, info, taskLabels);
+            auto& threadName = info.name;
+            auto switchInFakeLog = false;
+            auto switchOutFakeLog = false;
+            auto ffbkMarkRemove = false;
+            auto gid = WAKE_EVENT_DEFAULT_VALUE;
+            for (auto& line : info.line) {
+                auto mark = results[line];
+                if (mark.find("sched_switch:") != std::string::npos) {
+                    if (mark.find("prev_pid=" + std::to_string(tid) + " ") != std::string::npos) {
+                        static std::string beginPprio = "prev_prio=";
+                        auto beginPos = mark.find(beginPprio);
+                        beginPos = beginPos + beginPprio.length();
+                        auto endPos = mark.find_first_of(" ", beginPos);
+                        prio = stoi(mark.substr(beginPos, endPos - beginPos));
+                    } else if (mark.find("next_pid=" + std::to_string(tid)) != std::string::npos) {
+                        static std::string beginNprio = "next_prio=";
+                        auto beginPos = mark.find(beginNprio);
+                        beginPos = beginPos + beginNprio.length();
+                        prio = stoi(mark.substr(beginPos));
+                    }
+                }
+                if (mark.find("FFRT::[") != std::string::npos) {
+                    std::string missLog;
+                    auto beginPos = mark.rfind("[");
+                    auto endPos = mark.rfind("]");
+                    auto label = mark.substr(beginPos + 1, endPos - beginPos - 1);
+                    if (gid != WAKE_EVENT_DEFAULT_VALUE) {
+                        missLog = MakeEndFakeLog(mark, pid, taskLabels[pid][gid], gid, tid, threadName, prio);
+                        auto timestamp = ExtractTimeStr(mark);
+                        auto cpuId = ExtractCpuId(mark);
+                        std::unique_ptr<char[]> result(new char[MAX_LEN]);
+                        (void)sprintf_s(result.get(), MAX_LEN, "  %s-%d    (%7d) [%s] ....   %s: %sE|%d\n",
+                                        threadName.c_str(), tid, pid, cpuId.c_str(), timestamp.c_str(),
+                                        tracingMarkerKey_.c_str(), pid);
+                        missLog = missLog + result.get();
+                        memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+                    }
+                    beginPos = mark.rfind("|");
+                    if (beginPos != std::string::npos && IsDigit(mark.substr(beginPos + 1))) {
+                        gid = stoll(mark.substr(beginPos + 1));
+                    } else {
+                        continue;
+                    }
+                    if (taskLabels[pid].find(gid) == taskLabels[pid].end()) {
+                        taskLabels[pid][gid] = label;
+                    }
+                    results[line] = MakeBeginFakeLog(mark, pid, taskLabels[pid][gid], gid, tid, threadName, prio);
+                    if (!missLog.empty()) {
+                        results[line] = missLog + results[line];
+                    }
+                    switchInFakeLog = true;
+                    continue;
+                }
+                if (gid != WAKE_EVENT_DEFAULT_VALUE) {
+                    static const std::regex CoPattern = std::regex(R"( F\|(\d+)\|Co\|(\d+))");
+                    static const std::regex HCoPattern = std::regex(R"( F\|(\d+)\|H:Co\s(\d+))");
+                    if (std::regex_search(mark, CoPattern) || std::regex_search(mark, HCoPattern)) {
+                        results[line].clear();
+                        if (switchInFakeLog) {
+                            switchInFakeLog = false;
+                            continue;
+                        } else {
+                            switchOutFakeLog = true;
+                            continue;
+                        }
+                    }
+                    if (switchInFakeLog && (mark.find(tracingMarkerKey_ + "B") != std::string::npos)) {
+                        results[line].clear();
+                        continue;
+                    }
+                    if (switchOutFakeLog && (mark.find(tracingMarkerKey_ + "E") != std::string::npos)) {
+                        results[line].clear();
+                        continue;
+                    }
+                    static const std::regex EndPattern = std::regex(R"( F\|(\d+)\|[BF]\|(\d+))");
+                    static const std::regex HEndPattern = std::regex(R"( F\|(\d+)\|H:[BF]\s(\d+))");
+                    if (std::regex_search(mark, EndPattern) || std::regex_search(mark, HEndPattern)) {
+                        results[line] = MakeEndFakeLog(mark, pid, taskLabels[pid][gid], gid, tid, threadName, prio);
+                        gid = WAKE_EVENT_DEFAULT_VALUE;
+                        switchOutFakeLog = false;
+                        continue;
+                    }
+                    auto fakeLog = ConvertWorkerLogToTask(mark, pid, taskLabels[pid][gid], gid, tid);
+                    const std::string chdStr = "[chd]";
+                    const std::string datStr = "[dat]";
+                    const std::string fdStr = "[fd]";
+                    const std::string mtxStr = "[mtx]";
+                    const std::string slpStr = "[slp]";
+                    const std::string yldStr = "[yld]";
+                    const std::string cndStr = "[cnd]";
+                    const std::string cntStr = "[cnt]";
+                    if (fakeLog.find("FFBK[") != std::string::npos) {
+                        if (fakeLog.find("[dep]") != std::string::npos) {
+                            fakeLog = "";
+                        } else if (fakeLog.find(chdStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(chdStr);
+                            fakeLog = fakeLog.replace(beginPos, chdStr.length(), "[wait_child]");
+                        } else if (fakeLog.find(datStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(datStr);
+                            fakeLog = fakeLog.replace(beginPos, datStr.length(), "[wait_data]");
+                        } else if (fakeLog.find(fdStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(fdStr);
+                            fakeLog = fakeLog.replace(beginPos, fdStr.length(), "[wait_fd]");
+                        } else if (fakeLog.find(mtxStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(mtxStr);
+                            fakeLog = fakeLog.replace(beginPos, mtxStr.length(), "[mutex]");
+                        } else if (fakeLog.find(slpStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(slpStr);
+                            fakeLog = fakeLog.replace(beginPos, slpStr.length(), "[sleep]");
+                        } else if (fakeLog.find(yldStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(yldStr);
+                            fakeLog = fakeLog.replace(beginPos, yldStr.length(), "[yield]");
+                        } else if (fakeLog.find(cndStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(cndStr);
+                            fakeLog = fakeLog.replace(beginPos, cndStr.length(), "[cond_wait]");
+                        } else if (fakeLog.find(cntStr) != std::string::npos) {
+                            auto beginPos = fakeLog.find(cntStr);
+                            fakeLog = fakeLog.replace(beginPos, cntStr.length(), "[cond_timedwait]");
+                        }
+                        ffbkMarkRemove = true;
+                    }
+                    if (ffbkMarkRemove && mark.find(tracingMarkerKey_ + "E") != std::string::npos) {
+                        results[line].clear();
+                        ffbkMarkRemove = false;
+                        continue;
+                    }
+                    results[line] = fakeLog;
+                    continue;
+                }
+            }
+        }
+    }
+    return;
+}
+void FfrtConverter::SupplementFfrtBlockAndWakeInfo(vector<std::string>& results)
+{
+    std::unordered_map<int, std::unordered_map<int, WakeEvent>> taskWak;
+    std::string readyEndLog;
+    std::unique_ptr<char[]> result = std::make_unique<char[]>(MAX_LEN);
+    for (int line = 0; line < results.size(); line++) {
+        auto log = results[line];
+        if (log.find("FFBK[") != std::string::npos) {
+            auto pid = ExtractProcessId(log);
+            auto beginPos = log.rfind("|");
+            auto gid = stoll(log.substr(beginPos + 1));
+            if (taskWak.find(pid) == taskWak.end()) {
+                taskWak[pid] = {};
+            }
+            if (taskWak[pid].find(gid) == taskWak[pid].end()) {
+                taskWak[pid][gid] = {};
+            }
+            readyEndLog = "";
+            if (taskWak[pid][gid].state == "ready") {
+                auto timestamp = ExtractTimeStr(log);
+                auto cpuId = ExtractCpuId(log);
+                auto taskId = GetTaskId(pid, gid);
+                (void)sprintf_s(result.get(), MAX_LEN, "  <...>-%s    (%7d) [%s] ....   %s: %sE|%d\n", taskId.c_str(),
+                                pid, cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(), pid);
+                readyEndLog = result.get();
+                memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+            }
+            taskWak[pid][gid].state = "block";
+            auto endPos = results[line].rfind('|');
+            results[line] = results[line].substr(0, endPos);
+            if (!readyEndLog.empty()) {
+                results[line] = readyEndLog + results[line];
+            }
+        } else if (log.find("FFWK|") != std::string::npos) {
+            auto pid = ExtractProcessId(log);
+            auto beginPos = log.rfind('|');
+            auto gid = stoll(log.substr(beginPos + 1));
+            if (taskWak.find(pid) != taskWak.end() && taskWak[pid].find(gid) != taskWak[pid].end()) {
+                auto timestamp = ExtractTimeStr(log);
+                auto cpuId = ExtractCpuId(log);
+                std::string readyBeginLog;
+                auto taskId = GetTaskId(pid, gid);
+                if (log.find("H:FFWK") != std::string::npos) {
+                    (void)sprintf_s(result.get(), MAX_LEN, "  <...>-%s    (%7d) [%s] ....   %s: %sB|%d|H:FFREADY\n",
+                                    taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(),
+                                    pid);
+
+                    readyBeginLog = result.get();
+                    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+                } else {
+                    (void)sprintf_s(result.get(), MAX_LEN, "  <...>-%s    (%7d) [%s] ....   %s: %sB|%d|FFREADY\n",
+                                    taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(),
+                                    pid);
+                    readyBeginLog = result.get();
+                    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+                }
+                results[line] = readyBeginLog + results[line];
+                if (taskWak[pid][gid].state == "ready") {
+                    results[taskWak[pid][gid].prevWakLine] = results[taskWak[pid][gid].prevWakLine].substr(
+                        results[taskWak[pid][gid].prevWakLine].find("FFREADY") + STR_LEN);
+                }
+                taskWak[pid][gid].state = "ready";
+                taskWak[pid][gid].prevWakLine = line;
+                taskWak[pid][gid].prevWakeLog = log;
+            }
+        } else if (log.find("FFRT::[") != std::string::npos) {
+            auto pid = ExtractProcessId(log);
+            long long gid;
+            auto beginPos = log.rfind('|');
+            auto endPos = log.find_first_of('\n', beginPos + 1);
+            if (beginPos != std::string::npos && endPos != std::string::npos &&
+                IsDigit(log.substr(beginPos + 1, endPos - beginPos - 1))) {
+                gid = stoll(log.substr(beginPos + 1, endPos - beginPos - 1));
+            } else {
+                continue;
+            }
+            if (taskWak.find(pid) != taskWak.end() && taskWak[pid].find(gid) != taskWak[pid].end()) {
+                if (taskWak[pid][gid].state == "ready") {
+                    auto timestamp = ExtractTimeStr(log);
+                    auto cpuId = ExtractCpuId(log);
+                    auto endPos = log.rfind('\n');
+                    auto beginPos = log.find_last_of('\n', endPos - 1);
+                    auto switchLog = log.substr(beginPos + 1, endPos);
+                    beginPos = switchLog.find("next_comm=");
+                    endPos = switchLog.find("next_pid");
+                    auto taskComm = switchLog.substr(beginPos + 10, endPos - beginPos - 11);
+                    beginPos = switchLog.find("next_pid=");
+                    endPos = switchLog.find(" next_prio=");
+                    auto taskPid = stoll(switchLog.substr(beginPos + 9, endPos - beginPos - 9));
+                    auto taskPrio = stoi(switchLog.substr(endPos + 11));
+                    auto cpuIdWake = ExtractCpuId(switchLog);
+                    beginPos = taskWak[pid][gid].prevWakeLog.find(tracingMarkerKey_);
+                    (void)sprintf_s(result.get(), MAX_LEN, "sched_waking: comm=%s pid=%lld prio=%d target_cpu=%s\n",
+                                    taskComm.c_str(), taskPid, taskPrio, cpuIdWake.c_str());
+                    auto wakingLog = taskWak[pid][gid].prevWakeLog.substr(0, beginPos) + result.get();
+                    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+                    (void)sprintf_s(result.get(), MAX_LEN, "sched_wakeup: comm=%s pid=%lld prio=%d target_cpu=%s",
+                                    taskComm.c_str(), taskPid, taskPrio, cpuIdWake.c_str());
+                    auto wakeupLog = taskWak[pid][gid].prevWakeLog.substr(0, beginPos) + result.get();
+                    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+                    auto taskId = GetTaskId(pid, gid);
+                    results[taskWak[pid][gid].prevWakLine] =
+                        results[taskWak[pid][gid].prevWakLine] + "\n" + wakingLog + wakeupLog;
+                    (void)sprintf_s(result.get(), MAX_LEN, "  <...>-%s    (%7d) [%s] ....   %s: %sE|%d\n",
+                                    taskId.c_str(), pid, cpuId.c_str(), timestamp.c_str(), tracingMarkerKey_.c_str(),
+                                    pid);
+                    readyEndLog = result.get();
+                    memset_s(result.get(), MAX_LEN, 0, MAX_LEN);
+                    results[line] = readyEndLog + results[line];
+                    taskWak[pid][gid].state = "none";
+                }
+            }
         }
     }
     return;

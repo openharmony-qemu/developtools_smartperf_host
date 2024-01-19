@@ -84,17 +84,17 @@ void SchedSliceTable::FilterByConstraint(FilterConstraints& schedfc,
     }
 }
 
-bool SchedSliceTable::CanFilterSorted(const char op, size_t& schedRowCnt) const
+bool SchedSliceTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            schedRowCnt = schedRowCnt / log2(schedRowCnt);
+            rowCount = rowCount / log2(rowCount);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            schedRowCnt = (schedRowCnt >> 1);
+            rowCount = (rowCount >> 1);
             break;
         default:
             return false;
@@ -124,11 +124,11 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
-    auto schedSliceTabCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(schedSliceTabCs, sId);
-    for (size_t i = 0; i < schedSliceTabCs.size(); i++) {
-        const auto& c = schedSliceTabCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -156,13 +156,13 @@ int32_t SchedSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         }
     }
 
-    auto schedSliceOrderbys = fc.GetOrderBys();
-    for (auto i = schedSliceOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(schedSliceOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
             case Index::TS:
-                indexMap_->SortBy(schedSliceOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;
@@ -185,7 +185,7 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TimeStampData()[CurrentRow()]));
             break;
         case Index::DUR:
-            SetTypeColumnInt64(schedSliceObj_.DursData()[CurrentRow()], INVALID_UINT64);
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.DursData()[CurrentRow()]));
             break;
         case Index::TS_END:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TsEndData()[CurrentRow()]));

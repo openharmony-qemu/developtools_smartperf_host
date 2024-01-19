@@ -262,21 +262,21 @@ class MerageBeanDataSplit {
 
   findSearchNode(data: MerageBean[], search: string, parentSearch: boolean): void {
     search = search.toLocaleLowerCase();
-    data.forEach((item) => {
-      if ((item.symbolName && item.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
-        item.searchShow = true;
-        item.isSearch = item.symbolName != undefined && item.symbolName.toLocaleLowerCase().includes(search);
-        let parentNode = item.parent;
+    data.forEach((node) => {
+      if ((node.symbolName && node.symbolName.toLocaleLowerCase().includes(search)) || parentSearch) {
+        node.searchShow = true;
+        node.isSearch = node.symbolName != undefined && node.symbolName.toLocaleLowerCase().includes(search);
+        let parentNode = node.parent;
         while (parentNode && !parentNode.searchShow) {
           parentNode.searchShow = true;
           parentNode = parentNode.parent;
         }
       } else {
-        item.searchShow = false;
-        item.isSearch = false;
+        node.searchShow = false;
+        node.isSearch = false;
       }
-      if (item.children.length > 0) {
-        this.findSearchNode(item.children, search, item.searchShow);
+      if (node.children.length > 0) {
+        this.findSearchNode(node.children, search, node.searchShow);
       }
     });
   }
@@ -425,11 +425,11 @@ export let getByteWithUnit = (bytes: number): string => {
   let gb = ((1 << 10) << 10) << 10; // 1 gb
   let res = '';
   if (currentBytes > gb) {
-    res += (currentBytes / gb).toFixed(2) + ' Gb';
+    res += (currentBytes / gb).toFixed(2) + ' GB';
   } else if (currentBytes > mb) {
-    res += (currentBytes / mb).toFixed(2) + ' Mb';
+    res += (currentBytes / mb).toFixed(2) + ' MB';
   } else if (currentBytes > kb1) {
-    res += (currentBytes / kb1).toFixed(2) + ' Kb';
+    res += (currentBytes / kb1).toFixed(2) + ' KB';
   } else {
     res += Math.round(currentBytes) + ' byte';
   }

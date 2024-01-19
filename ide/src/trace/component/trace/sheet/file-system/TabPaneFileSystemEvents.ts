@@ -22,7 +22,6 @@ import { procedurePool } from '../../../../database/Procedure';
 import { FileSysEvent } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import '../TabPaneFilter';
-import { TabPaneFileSystemEventsHtml } from './TabPaneFileSystemEvents.html';
 
 @element('tabpane-filesystem-event')
 export class TabPaneFileSystemEvents extends BaseElement {
@@ -49,16 +48,12 @@ export class TabPaneFileSystemEvents extends BaseElement {
       return;
     }
     this.currentSelection = fsSysEventSelection;
-    if (this.fsSysEventTbl) {
-      // @ts-ignore
-      this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 31 + 'px';
-    }
-    if (this.fsSysEventTblData) {
-      // @ts-ignore
-      this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 31 + 'px';
-    }
+    // @ts-ignore
+    this.fsSysEventTbl?.shadowRoot.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 20 - 31 + 'px';
+    // @ts-ignore
+    this.fsSysEventTblData?.shadowRoot.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 20 - 31 + 'px';
     this.filterEventType = '0';
     this.filterProcess = '0';
     this.queryData(fsSysEventSelection);
@@ -222,18 +217,14 @@ export class TabPaneFileSystemEvents extends BaseElement {
     super.connectedCallback();
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        if (this.fsSysEventTbl) {
-          // @ts-ignore
-          this.fsSysEventTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 33 + 'px';
-          this.fsSysEventTbl.reMeauseHeight();
-        }
-        if (this.fsSysEventTblData) {
-          // @ts-ignore
-          this.fsSysEventTblData.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 33 + 'px';
-          this.fsSysEventTblData.reMeauseHeight();
-        }
+        // @ts-ignore
+        this.fsSysEventTbl?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 33 + 'px';
+        this.fsSysEventTbl?.reMeauseHeight();
+        // @ts-ignore
+        this.fsSysEventTblData?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 33 + 'px';
+        this.fsSysEventTblData?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -246,19 +237,55 @@ export class TabPaneFileSystemEvents extends BaseElement {
       let arr = Array.from(this.fsSysEventFilterSource);
       arr.sort((fsEventA, fsEventB): number => {
         if (key == 'startTsStr') {
-          return (type === 1) ? (fsEventA.startTs - fsEventB.startTs) : (fsEventB.startTs - fsEventA.startTs);
+          if (type == 1) {
+            return fsEventA.startTs - fsEventB.startTs;
+          } else {
+            return fsEventB.startTs - fsEventA.startTs;
+          }
         } else if (key == 'durStr') {
-          return (type === 1) ? (fsEventA.dur - fsEventB.dur) : (fsEventB.dur - fsEventA.dur);
+          if (type == 1) {
+            return fsEventA.dur - fsEventB.dur;
+          } else {
+            return fsEventB.dur - fsEventA.dur;
+          }
         } else if (key == 'process') {
-          return this.sortProcessCase(fsEventA, fsEventB, type);
+          if (fsEventA.process > fsEventB.process) {
+            return type === 2 ? 1 : -1;
+          } else if (fsEventA.process == fsEventB.process) {
+            return 0;
+          } else {
+            return type === 2 ? -1 : 1;
+          }
         } else if (key == 'thread') {
-          return this.sortThreadCase(fsEventA, fsEventB, type);
+          if (fsEventA.thread > fsEventB.thread) {
+            return type === 2 ? 1 : -1;
+          } else if (fsEventA.thread == fsEventB.thread) {
+            return 0;
+          } else {
+            return type === 2 ? -1 : 1;
+          }
         } else if (key == 'typeStr') {
-          return this.sortTypeCase(fsEventA, fsEventB, type);
+          if (fsEventA.typeStr > fsEventB.typeStr) {
+            return type === 2 ? 1 : -1;
+          } else if (fsEventA.typeStr == fsEventB.typeStr) {
+            return 0;
+          } else {
+            return type === 2 ? -1 : 1;
+          }
         } else if (key == 'fd') {
-          return (type === 1) ? ((fsEventA.fd || 0) - (fsEventB.fd || 0)) : ((fsEventB.fd || 0) - (fsEventA.fd || 0));
+          if (type == 1) {
+            return (fsEventA.fd || 0) - (fsEventB.fd || 0);
+          } else {
+            return (fsEventB.fd || 0) - (fsEventA.fd || 0);
+          }
         } else if (key == 'path') {
-          return this.sortPathCase(fsEventA, fsEventB, type);
+          if (fsEventA.path > fsEventB.path) {
+            return type === 2 ? 1 : -1;
+          } else if (fsEventA.path == fsEventB.path) {
+            return 0;
+          } else {
+            return type === 2 ? -1 : 1;
+          }
         } else {
           return 0;
         }
@@ -267,47 +294,86 @@ export class TabPaneFileSystemEvents extends BaseElement {
     }
   }
 
-  private sortPathCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
-    if (fsEventA.path > fsEventB.path) {
-      return type === 2 ? 1 : -1;
-    } else if (fsEventA.path == fsEventB.path) {
-      return 0;
-    } else {
-      return type === 2 ? -1 : 1;
-    }
-  }
-
-  private sortTypeCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
-    if (fsEventA.typeStr > fsEventB.typeStr) {
-      return type === 2 ? 1 : -1;
-    } else if (fsEventA.typeStr == fsEventB.typeStr) {
-      return 0;
-    } else {
-      return type === 2 ? -1 : 1;
-    }
-  }
-
-  private sortThreadCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
-    if (fsEventA.thread > fsEventB.thread) {
-      return type === 2 ? 1 : -1;
-    } else if (fsEventA.thread == fsEventB.thread) {
-      return 0;
-    } else {
-      return type === 2 ? -1 : 1;
-    }
-  }
-
-  private sortProcessCase(fsEventA: FileSysEvent, fsEventB: FileSysEvent, type: number): number {
-    if (fsEventA.process > fsEventB.process) {
-      return type === 2 ? 1 : -1;
-    } else if (fsEventA.process == fsEventB.process) {
-      return 0;
-    } else {
-      return type === 2 ? -1 : 1;
-    }
-  }
-
   initHtml(): string {
-    return TabPaneFileSystemEventsHtml;
+    return `
+    <style>
+        :host{
+            padding: 10px 10px 0 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .fs-event-loading{
+            bottom: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width:100%;
+            background:transparent;
+            z-index: 999999;
+        }
+        .fs-event-progress{
+            bottom: 33px;
+            position: absolute;
+            height: 1px;
+            z-index: 99;
+            left: 0;
+            right: 0;
+        }
+        #fs-event-filter {
+            border: solid rgb(216,216,216) 1px;
+            float: left;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        </style>
+        <div class="fs-event-content" style="display: flex;flex-direction: column">
+            <div style="display: flex;flex-direction: row;">
+                <lit-slicer style="width:100%">
+                    <div style="width: 65%">
+                        <lit-table id="tbl-filesystem-event" style="height: auto">
+                            <lit-table-column class="fs-event-column" width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="240px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="240px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="120px" title="Type" data-index="typeStr" key="typeStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="120px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="File Path" data-index="path" key="path" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="First Argument" data-index="firstArg" key="firstArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Second Argument" data-index="secondArg" key="secondArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Third Argument" data-index="thirdArg" key="thirdArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Fourth Argument" data-index="fourthArg" key="fourthArg" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Return" data-index="returnValue" key="returnValue" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="160px" title="Error" data-index="error" key="error" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-event-column" width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
+                                <template>
+                                    <div>
+                                        <span>{{backtrace[0]}}</span>
+                                        <span v-if="backtrace.length > 1">⬅</span>
+                                        <span v-if="backtrace.length > 1"style="color: #565656"> {{backtrace[1]}}</span>
+                                    </div>
+                                </template>
+                            </lit-table-column>
+                        </lit-table>
+                    </div>
+                    <lit-slicer-track class="fs-evnet-slicer-tracker"></lit-slicer-track>
+                    <lit-table id="tbr-filesystem-event" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                        <lit-table-column class="fs-event-column" width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                            <template>
+                                <div v-if=" type == -1 ">Thread:</div>
+                                <img src="img/library.png" size="20" v-if=" type == 1 ">
+                                <img src="img/function.png" size="20" v-if=" type == 0 ">
+                            </template>
+                        </lit-table-column>
+                        <lit-table-column class="fs-event-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
+                        </lit-table-column>
+                    </lit-table>
+                </lit-slicer>
+            </div>
+            <lit-progress-bar class="progress fs-event-progress"></lit-progress-bar>
+            <tab-pane-filter id="fs-event-filter" first second></tab-pane-filter>
+            <div class="loading fs-event-loading"></div>
+        </div>
+`;
   }
 }

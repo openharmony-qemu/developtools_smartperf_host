@@ -18,27 +18,25 @@ import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { queryProcessPurgeableSelectionTab } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import { queryProcessPurgeableSelectionTab } from '../../../../database/sql/ProcessThread.sql';
-
 @element('tabpane-purgeable-total-comparison-vm')
 export class TabPanePurgTotalComparisonVM extends BaseElement {
-  private purgeableTotalTables: LitTable | null | undefined;
+  private purgeableTotalTable: LitTable | null | undefined;
   private purgeableTotalSource: Array<unknown> = [];
   private filterEl: TabPaneJsMemoryFilter | undefined | null;
   private selectEl: LitSelect | undefined | null;
 
   public initElements(): void {
-    this.purgeableTotalTables = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-total');
+    this.purgeableTotalTable = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-total');
     this.filterEl = this.shadowRoot!.querySelector<TabPaneJsMemoryFilter>('#filter');
     this.selectEl = this.filterEl?.shadowRoot?.querySelector<LitSelect>('lit-select');
   }
-
   public totalData(data: SelectionParam | any, dataList: any): void {
     //@ts-ignore
-    this.purgeableTotalTables?.shadowRoot?.querySelector('.table')?.style?.height = `${
+    this.purgeableTotalTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
       this.parentElement!.clientHeight - 45
     }px`;
     this.purgeableTotalSource = [];
@@ -50,9 +48,8 @@ export class TabPanePurgTotalComparisonVM extends BaseElement {
     }
     fileArr = fileArr.sort();
     this.initSelect(data.startNs, fileArr);
-    this.updateComparisonsData(data.startNs, fileArr[0].startNs);
+    this.updateComparisonData(data.startNs, fileArr[0].startNs);
   }
-
   private initSelect(fileStartNs: number, purgeTotalComList: Array<any>): void {
     let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
@@ -71,27 +68,25 @@ export class TabPanePurgTotalComparisonVM extends BaseElement {
       a.addEventListener('onSelected', (e: any) => {
         for (let f of purgeTotalComList) {
           if (input.value === f.name) {
-            that.updateComparisonsData(fileStartNs, f.startNs);
+            that.updateComparisonData(fileStartNs, f.startNs);
           }
         }
         e.stopPropagation();
       });
     });
   }
-
-  private async updateComparisonsData(baseTime: number, targetTime: number): Promise<void> {
+  private async updateComparisonData(baseTime: number, targetTime: number): Promise<void> {
     this.purgeableTotalSource = [];
     let tableData = await this.queryTotalVMData(baseTime, targetTime);
     this.purgeableTotalSource.push(tableData);
     if (this.purgeableTotalSource.length > 0) {
-      this.purgeableTotalTables!.recycleDataSource = this.purgeableTotalSource;
+      this.purgeableTotalTable!.recycleDataSource = this.purgeableTotalSource;
     } else {
-      this.purgeableTotalTables!.recycleDataSource = [];
+      this.purgeableTotalTable!.recycleDataSource = [];
     }
   }
-
   private async queryTotalVMData(baseTime: number, targetTime: number): Promise<any> {
-    let deltas = {
+    let delta = {
       purgSumDelta: '0Bytes',
       shmPurgDelta: '0Bytes',
     };
@@ -110,28 +105,27 @@ export class TabPanePurgTotalComparisonVM extends BaseElement {
         let compareData = compare(targetArr, baseArr);
         for (let data of compareData) {
           if (data.key === 'TotalPurg') {
-            deltas.purgSumDelta = Utils.getBinaryByteWithUnit(data.value);
+            delta.purgSumDelta = Utils.getBinaryByteWithUnit(data.value);
           } else if (data.key === 'ShmPurg') {
-            deltas.shmPurgDelta = Utils.getBinaryByteWithUnit(data.value);
+            delta.shmPurgDelta = Utils.getBinaryByteWithUnit(data.value);
           }
         }
       });
     });
-    return deltas;
+    return delta;
   }
 
   public connectedCallback(): void {
     super.connectedCallback();
-    resizeObserverFromMemory(this.parentElement!, this.purgeableTotalTables!, this.filterEl!);
+    resizeObserverFromMemory(this.parentElement!, this.purgeableTotalTable!, this.filterEl!);
   }
-
   public initHtml(): string {
     return `
     <style>
         :host{
             display: flex;
-            padding: 10px 10px;
             flex-direction: column;
+            padding: 10px 10px;
         }
     </style>
     <lit-table id="tb-purgeable-total" style="height: auto">

@@ -146,8 +146,6 @@ TSSqlValue SqliteValueToTSSqlValue(sqlite3_value* value)
             sqlValue.bytesValue = sqlite3_value_blob(value);
             sqlValue.bytesCount = static_cast<size_t>(sqlite3_value_bytes(value));
             break;
-        default:
-            TS_LOGE("type is not in scope");
     }
     return sqlValue;
 }
@@ -238,7 +236,7 @@ void BuildJson(sqlite3_context* ctx, int32_t argc, sqlite3_value** argv)
         return;
     }
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
-    (void)memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
+    memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 
@@ -312,7 +310,7 @@ void RepeatedFieldFinal(sqlite3_context* ctx)
     }
 
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
-    (void)memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
+    memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 
@@ -334,7 +332,7 @@ void RepeatedJsonFinal(sqlite3_context* ctx)
     }
 
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
-    (void)memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
+    memcpy_s(data.get(), raw.size(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int32_t>(raw.size()), free);
 }
 void ts_create_extend_function(sqlite3* db)

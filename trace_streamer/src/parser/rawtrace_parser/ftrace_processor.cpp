@@ -61,9 +61,9 @@ bool ReadInfo(uint8_t* startPtr[], uint8_t* endPtr, void* outData, size_t outSiz
 namespace SysTuning {
 namespace TraceStreamer {
 FtraceProcessor::FtraceProcessor()
-    : fixedCharArrayRegex_(std::regex(R"(char \w+\[\d+\])")),
-      flexDataLocArrayRegex_(std::regex(R"(__data_loc [a-zA-Z_0-9 ]+\[\] \w+)"))
 {
+    fixedCharArrayRegex_ = std::regex(R"(char \w+\[\d+\])");
+    flexDataLocArrayRegex_ = std::regex(R"(__data_loc [a-zA-Z_0-9 ]+\[\] \w+)");
 }
 
 FtraceProcessor::~FtraceProcessor()
@@ -97,7 +97,7 @@ bool FtraceProcessor::HandleHeaderPageFormat(const std::string& formatInfo)
     TS_CHECK_TRUE(HandleEventFormat(formatInfo, format), false, "handle events/header_page failed!");
 
     bool commitExist = false;
-    for (const auto& curField : format.fields) {
+    for (auto& curField : format.fields) {
         if (curField.name == "timestamp") {
             pageHeaderFormat_.timestamp = curField;
         } else if (curField.name == "commit") {
@@ -650,7 +650,8 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
     uint64_t timeStampBase = rmqData->timeStamp;
     RmqEntry* event;
     HmTraceHeader* header;
-
+    unsigned int evtSize;
+    unsigned int eventId;
     EventFormat format = {};
 
     cpuMsg.set_cpu(rmqData->coreId);
@@ -660,13 +661,13 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
     auto endPtr = rmqData->data + rmqData->length;
     while (curPtr < endPtr) {
         event = (struct RmqEntry*)curPtr;
-        auto evtSize = event->size;
+        evtSize = event->size;
         if (evtSize == 0U) {
             break;
         }
 
         header = reinterpret_cast<struct HmTraceHeader*>(event->data);
-        auto eventId = header->commonType;
+        eventId = header->commonType;
         if (!GetEventFormatById(eventId, format)) {
             curPtr += RmqEntryTotalSize(evtSize);
             TS_LOGD("mark.debug. evtId = %u evtSize = %u", eventId, evtSize);

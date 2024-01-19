@@ -15,11 +15,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { queryVmTrackerShmSizeData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import {queryVmTrackerShmSizeData} from "../../../../database/sql/Memory.sql";
-import { TabPaneVmTrackerShmHtml } from './TabPaneVmTrackerShm.html';
 
 @element('tabpane-vmtracker-shm')
 export class TabPaneVmTrackerShm extends BaseElement {
@@ -131,6 +130,54 @@ export class TabPaneVmTrackerShm extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPaneVmTrackerShmHtml;
+    return `
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px 0 10px;
+            height: calc(100% - 10px - 31px);
+        }
+        tab-pane-filter {
+            border: solid rgb(216,216,216) 1px;
+            float: left;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        selector{
+            display: none;
+        }
+        .show{
+            display: flex;
+            flex: 1;
+        }
+        .progress{
+            bottom: 33px;
+            position: absolute;
+            height: 1px;
+            left: 0;
+            right: 0;
+        }
+        .loading{
+            bottom: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width:100%;
+            background:transparent;
+            z-index: 999999;
+        }
+        </style>
+         <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+                        <lit-table id="tb-shm" style="height: auto">
+                            <lit-table-column width="1fr" title="AvgSize" data-index="avgSizeStr" key="avgSizeStr" align="flex-start"  order>
+                            </lit-table-column>
+                            <lit-table-column width="1fr" title="MinSize" data-index="minSizeStr" key="minSizeStr" align="flex-start" order>
+                            </lit-table-column>
+                            <lit-table-column width="1fr" title="MaxSize" data-index="maxSizeStr" key="maxSizeStr" align="flex-start"  order>
+                            </lit-table-column>
+                        </lit-table>
+        `;
   }
 }

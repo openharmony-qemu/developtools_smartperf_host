@@ -47,8 +47,6 @@ template("wasm_lib") {
     "-s",
     "USE_ZLIB=1",
     "-lworkerfs.js",  # For FS.filesystems.WORKERFS
-    "-s",
-    "ASSERTIONS=1",
   ]
   if (wasm_use_thread) {
     _target_ldflags += [

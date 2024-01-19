@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { EBPFChartStruct } from '../ui-worker/ProcedureWorkerEBPF';
@@ -34,6 +34,8 @@ export function fileSystemSender(
     threadPool.submitProto(
       QueryEnum.FileSystemData,
       {
+        type: type,
+        scale: scale,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -41,8 +43,6 @@ export function fileSystemSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
-        type: type,
-        scale: scale,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
@@ -50,7 +50,6 @@ export function fileSystemSender(
     );
   });
 }
-
 export function diskIoSender(
   all: boolean,
   ipid: number,
@@ -71,6 +70,10 @@ export function diskIoSender(
     threadPool.submitProto(
       QueryEnum.DiskIoData,
       {
+        all: all,
+        ipid: ipid,
+        typeArr: typeArr,
+        scale: scale,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -78,10 +81,6 @@ export function diskIoSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
-        all: all,
-        ipid: ipid,
-        typeArr: typeArr,
-        scale: scale,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
@@ -103,6 +102,7 @@ export function fileSysVMSender(scale: number, row: TraceRow<EBPFChartStruct>): 
     threadPool.submitProto(
       QueryEnum.EBPFVm,
       {
+        scale: scale,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -110,7 +110,6 @@ export function fileSysVMSender(scale: number, row: TraceRow<EBPFChartStruct>): 
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
-        scale: scale,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

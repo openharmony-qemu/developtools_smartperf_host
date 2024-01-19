@@ -26,12 +26,75 @@ FtraceEventProcessor& FtraceEventProcessor::GetInstance()
 FtraceEventProcessor::FtraceEventProcessor()
 {
     eventNameToFunctions_ = {
+        {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
+         std::bind(&FtraceEventProcessor::IpiEntry, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
+         std::bind(&FtraceEventProcessor::IpiExit, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
+         std::bind(&FtraceEventProcessor::IrqHandlerEntry, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
+         std::bind(&FtraceEventProcessor::IrqHandlerExit, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
+         std::bind(&FtraceEventProcessor::SoftirqRaise, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
+         std::bind(&FtraceEventProcessor::SoftirqEntry, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
+         std::bind(&FtraceEventProcessor::SoftirqExit, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SUSPEND_RESUME),
+         std::bind(&FtraceEventProcessor::SuspendResume, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
+         std::bind(&FtraceEventProcessor::WorkqueueExecuteStart, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
+         std::bind(&FtraceEventProcessor::WorkqueueExecuteEnd, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
+         std::bind(&FtraceEventProcessor::CpuIdle, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
+         std::bind(&FtraceEventProcessor::CpuFrequency, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
+         std::bind(&FtraceEventProcessor::CpuFrequencyLimits, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_PRINT),
+         std::bind(&FtraceEventProcessor::TracingMarkWriteOrPrintFormat, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
+         std::bind(&FtraceEventProcessor::TracingMarkWriteOrPrintFormat, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
          std::bind(&FtraceEventProcessor::TaskRename, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
          std::bind(&FtraceEventProcessor::TaskNewtask, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
+         std::bind(&FtraceEventProcessor::BinderTransaction, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
+         std::bind(&FtraceEventProcessor::BinderTransactionReceived, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
+         std::bind(&FtraceEventProcessor::BinderTransactionAllocBuf, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCK),
+         std::bind(&FtraceEventProcessor::BinderTransactionAllocLock, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCKED),
+         std::bind(&FtraceEventProcessor::BinderTransactionAllocLocked, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK),
+         std::bind(&FtraceEventProcessor::BinderTransactionAllocUnlock, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)},
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
          std::bind(&FtraceEventProcessor::SchedSwitch, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
@@ -50,141 +113,31 @@ FtraceEventProcessor::FtraceEventProcessor()
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
          std::bind(&FtraceEventProcessor::SchedProcessExit, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
-         std::bind(&FtraceEventProcessor::IpiEntry, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
-         std::bind(&FtraceEventProcessor::IpiExit, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_FREE),
          std::bind(&FtraceEventProcessor::SchedProcessFree, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SUSPEND_RESUME),
-         std::bind(&FtraceEventProcessor::SuspendResume, this, std::placeholders::_1, std::placeholders::_2,
+        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
+         std::bind(&FtraceEventProcessor::ClockSetRate, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
+         std::bind(&FtraceEventProcessor::ClockEnable, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
+         std::bind(&FtraceEventProcessor::ClockDisable, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
+         std::bind(&FtraceEventProcessor::RegulatorSetVoltage, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
+         std::bind(&FtraceEventProcessor::RegulatorSetVoltageComplete, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
+         std::bind(&FtraceEventProcessor::RegulatorDisable, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3, std::placeholders::_4)},
+        {config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
+         std::bind(&FtraceEventProcessor::RegulatorDisableComplete, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
     };
-    InterruptEventInitialization();
-    ClockEventInitialization();
-    CpuEventInitialization();
-    LockEventInitialization();
-    BinderEventInitialization();
-    StackEventsInitialization();
-    VoltageEventInitialization();
-}
-
-void FtraceEventProcessor::InterruptEventInitialization()
-{
-    // In order for the constructor to not exceed 50 lines, it can only be placed here
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
-                                  std::bind(&FtraceEventProcessor::TracingMarkWriteOrPrintFormat, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
-                                  std::bind(&FtraceEventProcessor::IrqHandlerEntry, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
-                                  std::bind(&FtraceEventProcessor::IrqHandlerExit, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
-                                  std::bind(&FtraceEventProcessor::SoftirqRaise, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
-                                  std::bind(&FtraceEventProcessor::SoftirqEntry, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
-                                  std::bind(&FtraceEventProcessor::SoftirqExit, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-}
-void FtraceEventProcessor::ClockEventInitialization()
-{
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
-                                  std::bind(&FtraceEventProcessor::ClockSetRate, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
-                                  std::bind(&FtraceEventProcessor::ClockEnable, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
-                                  std::bind(&FtraceEventProcessor::ClockDisable, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-}
-void FtraceEventProcessor::CpuEventInitialization()
-{
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
-                                  std::bind(&FtraceEventProcessor::CpuIdle, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
-                                  std::bind(&FtraceEventProcessor::CpuFrequency, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
-                                  std::bind(&FtraceEventProcessor::CpuFrequencyLimits, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-}
-void FtraceEventProcessor::LockEventInitialization()
-{
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCK),
-                                  std::bind(&FtraceEventProcessor::BinderTransactionAllocLock, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCKED),
-                                  std::bind(&FtraceEventProcessor::BinderTransactionAllocLocked, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK),
-                                  std::bind(&FtraceEventProcessor::BinderTransactionAllocUnlock, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-}
-void FtraceEventProcessor::BinderEventInitialization()
-{
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
-                                  std::bind(&FtraceEventProcessor::BinderTransaction, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
-                                  std::bind(&FtraceEventProcessor::BinderTransactionReceived, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
-                                  std::bind(&FtraceEventProcessor::BinderTransactionAllocBuf, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-}
-void FtraceEventProcessor::StackEventsInitialization()
-{
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_PRINT),
-                                  std::bind(&FtraceEventProcessor::TracingMarkWriteOrPrintFormat, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
-                                  std::bind(&FtraceEventProcessor::WorkqueueExecuteStart, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
-                                  std::bind(&FtraceEventProcessor::WorkqueueExecuteEnd, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-}
-void FtraceEventProcessor::VoltageEventInitialization()
-{
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
-                                  std::bind(&FtraceEventProcessor::RegulatorSetVoltage, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
-                                  std::bind(&FtraceEventProcessor::RegulatorSetVoltageComplete, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
-                                  std::bind(&FtraceEventProcessor::RegulatorDisable, this, std::placeholders::_1,
-                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
-                                  std::bind(&FtraceEventProcessor::RegulatorDisableComplete, this,
-                                            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-                                            std::placeholders::_4));
 }
 
 FtraceEventProcessor::~FtraceEventProcessor()

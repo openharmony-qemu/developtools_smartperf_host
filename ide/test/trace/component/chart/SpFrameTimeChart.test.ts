@@ -208,6 +208,7 @@ describe('SpFrameTimeChart Test', () => {
       },
       TraceRow.skeleton()
     );
+    // expect(spFrameTimeChart.flagConfig?.AnimationAnalysis).toEqual('Enabled');
   });
   it('TabPaneFramesTest03', function () {
     expect(spFrameTimeChart.frameNoExpandTimeOut()).toBeTruthy();

@@ -15,11 +15,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { RedrawTreeForm, type LitTable } from '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
+import { queryGpuDataByTs } from '../../../../database/SqlLite';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
 import { log } from '../../../../../log/Log';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
-import {queryGpuDataByTs} from "../../../../database/sql/Gpu.sql";
 interface GpuTreeItem {
   name: string;
   id: number;
@@ -69,7 +69,9 @@ export class TabPaneGpuClickSelect extends BaseElement {
     });
   }
   protected createTreeData(result: any): Array<any> {
-    let gpuDataObj = result.reduce((group: any,
+    let gpuDataObj = result.reduce(
+      (
+        group: any,
         item: { categoryId: number; size: number; windowNameId: number; moduleId: number; windowId: any }
       ) => {
         let categoryItem: GpuTreeItem = {
@@ -102,19 +104,23 @@ export class TabPaneGpuClickSelect extends BaseElement {
             id: item.windowNameId,
             size: item.size,
             sizeStr: Utils.getBinaryByteWithUnit(item.size),
-            children: [{
+            children: [
+              {
                 name: SpSystemTrace.DATA_DICT.get(item.moduleId),
                 id: item.moduleId,
                 size: item.size,
                 sizeStr: Utils.getBinaryByteWithUnit(item.size),
                 children: [categoryItem],
-            }],
+              },
+            ],
           };
         }
         return group;
-      },{}
+      },
+      {}
     );
-    return Object.values(gpuDataObj) as GpuTreeItem[];
+    let items = Object.values(gpuDataObj) as GpuTreeItem[];
+    return items;
   }
   initElements(): void {
     this.gpuTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu');

@@ -17,10 +17,9 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
+import { querySysPurgeableTab, queryProcessPurgeableTab } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import { querySysPurgeableTab } from '../../../../database/sql/Ability.sql';
-import { queryProcessPurgeableTab } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-purg-total')
 export class TabPanePurgTotal extends BaseElement {
@@ -30,14 +29,11 @@ export class TabPanePurgTotal extends BaseElement {
   private purgTotalTimeRange: HTMLLabelElement | undefined | null;
   private sortKey = 'avgSize';
   private sortType = 2;
-
   set data(selection: SelectionParam) {
-    if (this.purgeableTotalTable) {
-      //@ts-ignore
-      this.purgeableTotalTable.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 45
-      }px`;
-    }
+    //@ts-ignore
+    this.purgeableTotalTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     this.init();
     this.purgTotalTimeRange!.textContent =
       'Selected range: ' + ((selection.rightNs - selection.leftNs) / 1000000.0).toFixed(5) + ' ms';
@@ -52,7 +48,26 @@ export class TabPanePurgTotal extends BaseElement {
         (MemoryConfig.getInstance().interval * 1000000) / 5
       ).then((purgeTotalResults) => {
         this.purgeableTotalTable!.loading = false;
-        this.getPurgeableTotalSource(purgeTotalResults);
+        if (purgeTotalResults.length > 0) {
+          for (let i = 0; i < purgeTotalResults.length; i++) {
+            this.purgeableTotalSource.push(
+              this.toTabStruct(
+                purgeTotalResults[i].name,
+                purgeTotalResults[i].maxSize,
+                purgeTotalResults[i].minSize,
+                purgeTotalResults[i].avgSize
+              )
+            );
+          }
+          this.sortByColumn({ key: this.sortKey, sort: this.sortType });
+          let total = this.totalData(this.purgeableTotalSource);
+          this.purgeableTotalSource.unshift(total);
+          this.purgeableTotalTable!.recycleDataSource = this.purgeableTotalSource;
+          this.purgeableTotalSource.shift();
+        } else {
+          this.purgeableTotalSource = [];
+          this.purgeableTotalTable!.recycleDataSource = [];
+        }
       });
     } else if (selection.purgeableTotalVM.length > 0) {
       this.purgeableTotalSource = [];
@@ -63,26 +78,22 @@ export class TabPanePurgTotal extends BaseElement {
         MemoryConfig.getInstance().iPid
       ).then((results) => {
         this.purgeableTotalTable!.loading = false;
-        this.getPurgeableTotalSource(results);
+        if (results.length > 0) {
+          for (let i = 0; i < results.length; i++) {
+            this.purgeableTotalSource.push(
+              this.toTabStruct(results[i].name, results[i].maxSize, results[i].minSize, results[i].avgSize)
+            );
+          }
+          this.sortByColumn({ key: this.sortKey, sort: this.sortType });
+          let total = this.totalData(this.purgeableTotalSource);
+          this.purgeableTotalSource.unshift(total);
+          this.purgeableTotalTable!.recycleDataSource = this.purgeableTotalSource;
+          this.purgeableTotalSource.shift();
+        } else {
+          this.purgeableTotalSource = [];
+          this.purgeableTotalTable!.recycleDataSource = [];
+        }
       });
-    }
-  }
-
-  getPurgeableTotalSource(results: any): void {
-    if (results.length > 0) {
-      for (let i = 0; i < results.length; i++) {
-        this.purgeableTotalSource.push(
-          this.toTabStruct(results[i].name, results[i].maxSize, results[i].minSize, results[i].avgSize)
-        );
-      }
-      this.sortByColumn({key: this.sortKey, sort: this.sortType});
-      let total = this.totalData(this.purgeableTotalSource);
-      this.purgeableTotalSource.unshift(total);
-      this.purgeableTotalTable!.recycleDataSource = this.purgeableTotalSource;
-      this.purgeableTotalSource.shift();
-    } else {
-      this.purgeableTotalSource = [];
-      this.purgeableTotalTable!.recycleDataSource = [];
     }
   }
 
@@ -152,7 +163,6 @@ export class TabPanePurgTotal extends BaseElement {
         }
       };
     }
-
     if (detail.key === 'type') {
       this.purgeableTotalSource.sort(compare(detail.key, detail.sort, 'string'));
     } else {

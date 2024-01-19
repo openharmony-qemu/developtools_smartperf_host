@@ -28,7 +28,6 @@ import './TableNoData';
 import { TableNoData } from './TableNoData';
 import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { SpSchedulingAnalysis } from './SpSchedulingAnalysis';
-import { Top20ThreadCpuUsageHtml } from './Top20ThreadCpuUsage.html';
 
 @element('top20-thread-cpu-usage')
 export class Top20ThreadCpuUsage extends BaseElement {
@@ -123,10 +122,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
       this.cpuSetting!.style.display = 'inline';
       this.cpuSetting?.init();
     });
-    this.tabListener();
-  }
 
-  private tabListener(): void {
     for (let key of this.map!.keys()) {
       let tab = this.map!.get(key)!.table;
       let chart = this.map!.get(key)!.chart;
@@ -183,7 +179,6 @@ export class Top20ThreadCpuUsage extends BaseElement {
         }
       };
     }
-
     let type = 'number';
 
     if (detail.key === 'bigTimeStr') {
@@ -247,7 +242,7 @@ export class Top20ThreadCpuUsage extends BaseElement {
     }
   }
 
-  queryData(): void {
+  queryData() {
     this.progress!.loading = true;
     this.queryLogicWorker(`scheduling-Thread CpuUsage`, `query Thread Cpu Usage Analysis Time:`, (res) => {
       this.nodata!.noData = res.keys().length === 0;
@@ -282,58 +277,39 @@ export class Top20ThreadCpuUsage extends BaseElement {
           }
           return data;
         });
-        this.setChartConfig(obj, key, source);
-        this.assignmentData(key, source, obj);
-      }
-      this.progress!.loading = false;
-    });
-  }
-
-  private assignmentData(key: string, source: any[], obj: { chart: LitChartColumn; table: LitTable }): void {
-    if (key == 'total') {
-      this.data = source;
-    } else if (key == 'small') {
-      this.dataSmall = source;
-    } else if (key == 'mid') {
-      this.dataMid = source;
-    } else if (key == 'big') {
-      this.dataBig = source;
-    }
-    if (this.sort[key].key != '') {
-      this.sortByColumn(this.sort[key], obj.table, source);
-    } else {
-      obj.table.recycleDataSource = source;
-    }
-  }
-
-  private setChartConfig(obj: { chart: LitChartColumn; table: LitTable }, key: string, source: any[]): void {
-    obj.chart.config = {
-      data: this.getArrayDataBySize(key, source),
-      appendPadding: 10,
-      xField: 'tid',
-      yField: 'total',
-      seriesField: key === 'total' ? 'size' : '',
-      color: (a) => {
-        if (a.size === 'big core') {
-          return '#2f72f8';
-        } else if (a.size === 'middle core') {
-          return '#ffab67';
-        } else if (a.size === 'small core') {
-          return '#a285d2';
-        } else {
-          return '#0a59f7';
-        }
-      },
-      hoverHandler: (no) => {
-        this.setHover(source, no, obj);
-      },
-      tip: (a) => {
-        if (a && a[0]) {
-          let tip = '';
-          let total = 0;
-          for (let obj of a) {
-            total += obj.obj.total;
-            tip = `${tip}
+        obj.chart.config = {
+          data: this.getArrayDataBySize(key, source),
+          appendPadding: 10,
+          xField: 'tid',
+          yField: 'total',
+          seriesField: key === 'total' ? 'size' : '',
+          color: (a) => {
+            if (a.size === 'big core') {
+              return '#2f72f8';
+            } else if (a.size === 'middle core') {
+              return '#ffab67';
+            } else if (a.size === 'small core') {
+              return '#a285d2';
+            } else {
+              return '#0a59f7';
+            }
+          },
+          hoverHandler: (no) => {
+            let data = source.find((it) => it.no === no);
+            if (data) {
+              data.isHover = true;
+              obj.table!.setCurrentHover(data);
+            } else {
+              obj.table!.mouseOut();
+            }
+          },
+          tip: (a) => {
+            if (a && a[0]) {
+              let tip = '';
+              let total = 0;
+              for (let obj of a) {
+                total += obj.obj.total;
+                tip = `${tip}
                                 <div style="display:flex;flex-direction: row;align-items: center;">
                                     <div style="width: 10px;height: 5px;background-color: ${
                                       obj.color
@@ -341,29 +317,36 @@ export class Top20ThreadCpuUsage extends BaseElement {
                                     <div>${obj.type || key}:${obj.obj.timeStr}</div>
                                 </div>
                             `;
-          }
-          tip = `<div>
+              }
+              tip = `<div>
                                         <div>tid:${a[0].obj.tid}</div>
                                         ${tip}
                                         ${a.length > 1 ? `<div>total:${getProbablyTime(total)}</div>` : ''}
                                     </div>`;
-          return tip;
-        } else {
-          return '';
+              return tip;
+            } else {
+              return '';
+            }
+          },
+          label: null,
+        };
+        if (key == 'total') {
+          this.data = source;
+        } else if (key == 'small') {
+          this.dataSmall = source;
+        } else if (key == 'mid') {
+          this.dataMid = source;
+        } else if (key == 'big') {
+          this.dataBig = source;
         }
-      },
-      label: null,
-    };
-  }
-
-  private setHover(source: any[], no: number, obj: { chart: LitChartColumn; table: LitTable }): void {
-    let data = source.find((it) => it.no === no);
-    if (data) {
-      data.isHover = true;
-      obj.table!.setCurrentHover(data);
-    } else {
-      obj.table!.mouseOut();
-    }
+        if (this.sort[key].key != '') {
+          this.sortByColumn(this.sort[key], obj.table, source);
+        } else {
+          obj.table.recycleDataSource = source;
+        }
+      }
+      this.progress!.loading = false;
+    });
   }
 
   getArrayDataBySize(type: string, arr: Array<any>) {
@@ -447,6 +430,120 @@ export class Top20ThreadCpuUsage extends BaseElement {
   }
 
   initHtml(): string {
-    return Top20ThreadCpuUsageHtml;
+    return `
+        <style>
+        .content_grid{
+            display: grid;
+            padding: 15px;
+            grid-column-gap: 15px;
+            grid-row-gap: 15px;
+            grid-template-columns: 1fr 1fr;
+            background-color: var(--dark-background5,#F6F6F6);
+        }
+        .chart_div{
+            display: flex;
+            flex-direction: column;
+            background-color: var(--dark-background,#FFFFFF);
+            align-items: center;
+            height: 370px;
+            padding-left: 5px;
+            padding-right: 5px;
+            border-radius: 5px
+        }
+        :host {
+            width: 100%;
+            height: 100%;
+            background: var(--dark-background5,#F6F6F6);
+        }
+        .tb_cpu_usage{
+             overflow: auto;
+             background-color: var(--dark-background,#FFFFFF);
+             border-radius: 5px;
+             border: solid 1px var(--dark-border1,#e0e0e0);
+             display: flex;
+        }
+        .root{
+            overflow-y: auto;height: 80vh;background-color: var(--dark-background5,#F6F6F6)
+        }
+        .bg{
+            background-color: var(--dark-background5,#F6F6F6);
+            padding-left: 10px;
+        }
+        .labels{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            font-size: 9pt;
+            padding-right: 15px;
+        }
+        
+        </style>
+        
+        <lit-progress-bar id="loading" style="height: 1px;width: 100%"></lit-progress-bar>
+        <table-no-data id="nodata" contentHeight="500px">
+        <div class="root">
+            <div class="bg" style="display: flex;flex-direction: row;">
+                <div id="setting" style="height: 45px;display: flex;flex-direction: row;align-items: center;cursor: pointer">
+                    CPU Setting
+                    <span style="width: 10px"></span>
+                    <lit-icon name="setting" size="20"></lit-icon>
+                </div>
+            </div>
+            <check-cpu-setting id="cpu_setting" style="display: none"></check-cpu-setting>
+            <div class="content_grid" id="total">
+                <div class="chart_div">
+                    <div style="line-height: 40px;height: 40px;width: 100%;text-align: center;">Top20线程大中小核占用率</div>
+                    <lit-chart-column id="chart_total" style="width:100%;height:300px"></lit-chart-column>
+                    <div style="height: 30px;width: 100%;display: flex;flex-direction: row;align-items: center;justify-content: center">
+                        <div class="labels"><div style="width: 20px;height: 10px;background-color: #2f72f8;margin-right: 5px"></div>big</div>
+                        <div class="labels"><div style="width: 20px;height: 10px;background-color: #ffab67;margin-right: 5px"></div>mid</div>
+                        <div class="labels"><div style="width: 20px;height: 10px;background-color: #a285d2;margin-right: 5px"></div>small</div>
+                    </div>
+                </div>
+                <div class="tb_cpu_usage" >
+                    <lit-table id="tb-thread-usage" hideDownload style="height: 360px;margin: 5px 15px"></lit-table>
+                </div>
+            </div>
+            <div class="content_grid" id="small">
+                <div class="chart_div">
+                    <div style="line-height: 40px;height: 40px;width: 100%;text-align: center;">Top20线程小核占用率</div>
+                    <lit-chart-column id="chart_2" style="width:100%;height:300px"></lit-chart-column>
+                    <div style="height: 30px;width: 100%;display: flex;flex-direction: row;align-items: center;justify-content: center">
+                        <div class="labels"><div style="width: 20px;height: 10px;background-color: #0a59f7;margin-right: 5px"></div>small</div>
+                    </div>
+                </div>
+                <div  class="tb_cpu_usage">
+                    <lit-table id="tb-thread-small" hideDownload style="height: 360px;margin: 5px 15px "></lit-table>
+                </div>
+            </div>
+            <div class="content_grid" id="mid">
+                <div class="chart_div">
+                    <div style="line-height: 40px;height: 40px;width: 100%;text-align: center;">Top20线程中核占用率</div>
+                    <lit-chart-column id="chart_3" style="width:100%;height:300px"></lit-chart-column>
+                    <div style="height: 30px;width: 100%;display: flex;flex-direction: row;align-items: center;justify-content: center">
+                        <div class="labels"><div style="width: 20px;height: 10px;background-color: #0a59f7;margin-right: 5px"></div>mid</div>
+                    </div>
+                </div>
+                <div  class="tb_cpu_usage">
+                    <lit-table id="tb-thread-mid" hideDownload style="height: 360px;margin: 5px 15px"></lit-table>
+                </div>
+            </div>
+            <div class="content_grid" id="big">
+                <div class="chart_div">
+                    <div style="line-height: 40px;height: 40px;width: 100%;text-align: center;">Top20线程大核占用率</div>
+                    <lit-chart-column id="chart_4" style="width:100%;height:300px"></lit-chart-column>
+                    <div style="height: 30px;width: 100%;display: flex;flex-direction: row;align-items: center;justify-content: center">
+                        <div class="labels"><div style="width: 20px;height: 10px;background-color: #0a59f7;margin-right: 5px"></div>big</div>
+                    </div>
+                </div>
+                <div class="tb_cpu_usage">
+                    <lit-table id="tb-thread-big" hideDownload style="height: 360px;margin: 5px 15px"></lit-table>
+                </div>
+            </div>
+        </div>
+        </table-no-data>
+        
+        `;
   }
 }

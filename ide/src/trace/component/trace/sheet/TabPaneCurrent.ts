@@ -19,7 +19,6 @@ import { MarkStruct } from '../../../bean/MarkStruct';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { SlicesTime, StType } from '../timer-shaft/SportRuler';
 import { getTimeString } from './TabPaneCurrentSelection';
-import { TabPaneCurrentHtml } from './TabPaneCurrent.html';
 
 @element('tabpane-current')
 export class TabPaneCurrent extends BaseElement {
@@ -62,11 +61,6 @@ export class TabPaneCurrent extends BaseElement {
       });
     });
     this.panelTable = this.shadowRoot!.querySelector<LitTable>('.notes-editor-panel');
-    this.rowClickListener();
-    this.mouseOutListener();
-  }
-
-  private rowClickListener(): void {
     this.panelTable!.addEventListener('row-click', (evt: any) => {
       if (evt.detail.data.startTime === undefined) {
         return;
@@ -86,9 +80,6 @@ export class TabPaneCurrent extends BaseElement {
         this.systemTrace?.timerShaftEL!.sportRuler!.draw();
       });
     });
-  }
-
-  private mouseOutListener(): void {
     // 当鼠标移出panel时重新加载备注信息
     this.systemTrace?.shadowRoot?.querySelector('trace-sheet')?.addEventListener(
       'mouseout',
@@ -103,7 +94,7 @@ export class TabPaneCurrent extends BaseElement {
         }
         event.stopPropagation();
       },
-      {capture: true}
+      { capture: true }
     );
   }
 
@@ -185,15 +176,54 @@ export class TabPaneCurrent extends BaseElement {
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
     tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
-    this.trClickEvent(tr);
-    this.panelTableClick(tr);
+    tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
+      this.systemTrace!.slicesList = [];
+      let slicesTimeList = [...this.slicesTimeList];
+      for (let i = 0; i < slicesTimeList.length; i++) {
+        slicesTimeList[i].hidden = true;
+        document.dispatchEvent(new CustomEvent('slices-change', { detail: slicesTimeList[i] }));
+      }
+      this.slicesTimeList = [];
+      return;
+    });
+
+    // 更新备注信息
+    this.panelTable!.addEventListener('click', (event: any) => {
+      if (this.slicesTimeList.length === 0) {
+        return;
+      }
+      for (let i = 1; i < tr.length; i++) {
+        let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
+        if (
+          this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+          this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
+        ) {
+          this.slicesTimeList[i - 1].text = inputValue;
+          document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
+          //   旗子颜色改变时，重绘泳道图
+          this.systemTrace?.refreshCanvas(true);
+        }
+      }
+    });
 
     //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicesTimeList数组的第一个对应……，所以i从1开始，在this.slicesTimeList数组中取值时用i-1
     for (let i = 1; i < tr.length; i++) {
       // 修改颜色
       tr[i].querySelector<HTMLInputElement>('#color-input')!.value = this.slicesTimeList[i - 1].color;
       //  点击色块修改颜色
-      this.trChangeEvent(tr, i);
+      tr[i].querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: any) => {
+        if (
+          this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+          this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
+        ) {
+          this.systemTrace!.slicesList = this.slicesTimeList || [];
+          this.slicesTimeList[i - 1].color = event?.target.value;
+          document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
+          //   卡尺颜色改变时，重绘泳道图
+          this.systemTrace?.refreshCanvas(true);
+        }
+        event.stopPropagation();
+      });
 
       // 修改备注
       tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
@@ -232,90 +262,34 @@ export class TabPaneCurrent extends BaseElement {
         }
         event.stopPropagation();
       });
-      this.trFocusEvent(tr, i);
-      this.removeButtonClickEvent(tr, i);
-    }
-  }
 
-  private trChangeEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
-    tr[i].querySelector<HTMLInputElement>('#color-input')?.addEventListener('change', (event: any) => {
-      if (
-        this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
-        this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
-      ) {
-        this.systemTrace!.slicesList = this.slicesTimeList || [];
-        this.slicesTimeList[i - 1].color = event?.target.value;
-        document.dispatchEvent(new CustomEvent('slices-change', {detail: this.slicesTimeList[i - 1]}));
-        //   卡尺颜色改变时，重绘泳道图
-        this.systemTrace?.refreshCanvas(true);
-      }
-      event.stopPropagation();
-    });
-  }
-
-  private trFocusEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
-    tr[i].querySelector('#text-input')?.addEventListener('focus', (event: any) => {
-      (window as any).flagInputFocus = true;
-      window.publish(window.SmartEvent.UI.KeyboardEnable, {
-        enable: false,
+      tr[i].querySelector('#text-input')?.addEventListener('focus', (event: any) => {
+        (window as any).flagInputFocus = true;
+        window.publish(window.SmartEvent.UI.KeyboardEnable, {
+          enable: false,
+        });
+        let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+        //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
+        for (let i = 1; i < tr.length; i++) {
+          tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
+        }
       });
-      let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
-      //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1
-      for (let i = 1; i < tr.length; i++) {
-        tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
-      }
-    });
-  }
 
-  private trClickEvent(tr: NodeListOf<HTMLDivElement>): void {
-    tr[0].querySelector('.removeAll')!.addEventListener('click', (evt: any) => {
-      this.systemTrace!.slicesList = [];
-      let slicesTimeList = [...this.slicesTimeList];
-      for (let i = 0; i < slicesTimeList.length; i++) {
-        slicesTimeList[i].hidden = true;
-        document.dispatchEvent(new CustomEvent('slices-change', {detail: slicesTimeList[i]}));
-      }
-      this.slicesTimeList = [];
-      return;
-    });
-  }
-
-  private removeButtonClickEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
-    // 点击remove按钮移除
-    tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
-      if (
-        this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
-        this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
-      ) {
-        this.slicesTimeList[i - 1].hidden = true;
-        this.systemTrace!.slicesList = this.slicesTimeList || [];
-        document.dispatchEvent(new CustomEvent('slices-change', {detail: this.slicesTimeList[i - 1]}));
-        //   移除时更新表格内容
-        this.setTableData();
-      }
-      event.stopPropagation();
-    });
-  }
-
-  private panelTableClick(tr: NodeListOf<HTMLDivElement>): void {
-    // 更新备注信息
-    this.panelTable!.addEventListener('click', (event: any) => {
-      if (this.slicesTimeList.length === 0) {
-        return;
-      }
-      for (let i = 1; i < tr.length; i++) {
-        let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
+      // 点击remove按钮移除
+      tr[i]!.querySelector('.remove')?.addEventListener('click', (event: any) => {
         if (
           this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
           this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
         ) {
-          this.slicesTimeList[i - 1].text = inputValue;
-          document.dispatchEvent(new CustomEvent('slices-change', {detail: this.slicesTimeList[i - 1]}));
-          //   旗子颜色改变时，重绘泳道图
-          this.systemTrace?.refreshCanvas(true);
+          this.slicesTimeList[i - 1].hidden = true;
+          this.systemTrace!.slicesList = this.slicesTimeList || [];
+          document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
+          //   移除时更新表格内容
+          this.setTableData();
         }
-      }
-    });
+        event.stopPropagation();
+      });
+    }
   }
 
   /**
@@ -329,6 +303,56 @@ export class TabPaneCurrent extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPaneCurrentHtml;
+    return `
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <lit-table class="notes-editor-panel" style="height: auto">
+            <lit-table-column width="15%" data-index="startTimeStr" key="startTimeStr" align="flex-start" title="StartTime">
+            </lit-table-column>
+            <lit-table-column width="15%" data-index="endTimeStr" key="endTimeStr" align="flex-start" title="EndTime">
+            </lit-table-column>
+            <lit-table-column width="10%" data-index="color" key="color" align="flex-start" title="Color">
+                <template>
+                    <div style='width:50px; height: 21px; position: relative;overflow: hidden;'>
+                        <input type="color" id="color-input" style='
+                            background: var(--dark-background5,#FFFFFF);
+                            padding: 0px;
+                            border: none;
+                            width: 60px;
+                            height: 31px;
+                            position: absolute;
+                            top: -5px;
+                            left: -5px;'/>
+                    </div>
+                </template>
+            </lit-table-column>
+            <lit-table-column width="40%" data-index="text" key="text" align="flex-start" title="Remarks">
+              <template>
+                  <input type="text" id="text-input"  style="width: 100%; border: none" /> 
+              </template>
+            </lit-table-column>
+            <lit-table-column width="10%" data-index="operate" key="operate" align="flex-start" title="Operate">
+                <template>
+                    <button class="remove" style='
+                        background: var(--dark-border1,#262f3c);
+                        color: white;
+                        border-radius: 10px;
+                        font-size: 10px;
+                        height: 21px;
+                        line-height: 21px;
+                        min-width: 7em;
+                        border: none;
+                        cursor: pointer;
+                        outline: inherit;
+                    '>Remove</button>
+                </template>
+            </lit-table-column>
+        </lit-table>
+        `;
   }
 }

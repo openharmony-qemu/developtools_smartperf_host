@@ -15,12 +15,12 @@
 
 import { DbPool } from './SqlLite';
 class ConvertThread {
+  busy: boolean = false;
   isCancelled: boolean = false;
   id: number = -1;
   taskMap: any = {};
   name: string | undefined;
   worker?: Worker;
-  busy: boolean = false;
   constructor(worker: Worker) {
     this.worker = worker;
   }
@@ -99,19 +99,19 @@ class ConvertPool {
     }
   };
 
-  clearCache = () => {
-    for (let i = 0; i < this.works.length; i++) {
-      let thread = this.works[i];
-      thread.getConvertData(() => {});
-    }
-  };
-
   close = () => {
     for (let i = 0; i < this.works.length; i++) {
       let thread = this.works[i];
       thread.worker!.terminate();
     }
     this.works.length = 0;
+  };
+
+  clearCache = () => {
+    for (let i = 0; i < this.works.length; i++) {
+      let thread = this.works[i];
+      thread.getConvertData(() => {});
+    }
   };
 
   // @ts-ignore

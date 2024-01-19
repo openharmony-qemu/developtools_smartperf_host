@@ -44,9 +44,9 @@ CpuUsageInfoTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* ta
 
 CpuUsageInfoTable::Cursor::~Cursor() {}
 
-int32_t CpuUsageInfoTable::Cursor::Column(int32_t cpuUsageInfoColumn) const
+int32_t CpuUsageInfoTable::Cursor::Column(int32_t column) const
 {
-    switch (static_cast<Index>(cpuUsageInfoColumn)) {
+    switch (static_cast<Index>(column)) {
         case Index::TS: {
             sqlite3_result_int64(context_, static_cast<int64_t>(cpuUsageInfoObj_.TimeStampData()[CurrentRow()]));
             break;
@@ -72,7 +72,7 @@ int32_t CpuUsageInfoTable::Cursor::Column(int32_t cpuUsageInfoColumn) const
             break;
         }
         default:
-            TS_LOGF("Unregistered cpuUsageInfoColumn : %d", cpuUsageInfoColumn);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

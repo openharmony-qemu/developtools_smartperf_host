@@ -111,15 +111,6 @@ static inline std::string Sqlite3ColumnText(sqlite3_stmt* stmt, uint8_t curCol)
 
 SqllitePreparCacheData::SqllitePreparCacheData()
 {
-    FillSphQueryFuncMapPartOne();
-    FillSphQueryFuncMapPartTow();
-    FillSphQueryFuncMapPartThree();
-    FillSphQueryFuncMapPartFour();
-    FillSphQueryFuncMapPartFive();
-}
-
-void SqllitePreparCacheData::FillSphQueryFuncMapPartOne()
-{
     sphQueryFuncMap_ = {
         {static_cast<uint32_t>(SphQueryType::CPU_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendCpuDataProto, this, std::placeholders::_1, std::placeholders::_2,
@@ -148,191 +139,175 @@ void SqllitePreparCacheData::FillSphQueryFuncMapPartOne()
         {static_cast<uint32_t>(SphQueryType::PROCESS_STARTUP_DATA),
          std::bind(&SqllitePreparCacheData::FillAndSendProcessStartupDataProto, this, std::placeholders::_1,
                    std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::PROCESS_SO_INIT_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessSoInitDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HI_SYS_EVENT_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiSysEventDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::LOG_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendLogDataProto, this, std::placeholders::_1, std::placeholders::_2,
+                   std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VIRTUAL_MEM_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendVirtualMemDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ENERGY_SYSTEM_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ENERGY_STATE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ENERGY_ANOMAL_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FRAME_EXPECTED_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendFrameDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FRAME_ACTUAL_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendFrameDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FRAME_ANIMATION_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendFrameAnimationDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FRAME_DYNAMIC_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendFrameDynamicDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FRAME_SPACING_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendFrameSpacingDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::PROCESS_EXPECTED_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::PROCESS_ACTUAL_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::PROCESS_DELIVER_INPUT_EVENT_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessInputEventDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::THREAD_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessThreadDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FUNC_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendProcessFuncDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ENERGY_POWER_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FILE_SYSTEM_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::DISK_IO_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::FILE_SYS_VM),
+         std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_SMAPS_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_DMA_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_MEMORY_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_RESOURCE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_TATAL_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_WINDOW_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_SHM_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_PURGEABLE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_MEMORY_USED_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_ABILITY_USER_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_ABILITY_SYSTEM_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_ABILITY_MONITOR_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_READ_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_WRITTEN_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_READ_OPS_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_WRITTEN_OPS_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_IN_TRACE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_BUTES_OUT_TRACE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_PACKET_IN_TRACE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_PACKETS_OUT_TRACE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_PURGEABLE_DAT),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_GPU_MEMMORY_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::ABILITY_DMA_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HEAP_TIME_LINE_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHeapFilesDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HEAP_SNAPSHOT_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHeapFilesDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::CPU_PROFILER_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendCpuProfilerDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_CPU_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_PROCESS_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_THREAD_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_THREAD_DATA),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_CALL_CHART),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::HIPERF_CALL_STACK),
+         std::bind(&SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::NATIVE_MEMORY_CHART_CACHE_NORMAL),
+         std::bind(&SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
+        {static_cast<uint32_t>(SphQueryType::NATIVE_MEMORY_CHART_CACHE_STATISTIC),
+         std::bind(&SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto, this, std::placeholders::_1,
+                   std::placeholders::_2, std::placeholders::_3)},
     };
-}
-
-void SqllitePreparCacheData::FillSphQueryFuncMapPartTow()
-{
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::PROCESS_SO_INIT_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendProcessSoInitDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HI_SYS_EVENT_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiSysEventDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::LOG_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendLogDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VIRTUAL_MEM_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendVirtualMemDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ENERGY_SYSTEM_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ENERGY_STATE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ENERGY_ANOMAL_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FRAME_EXPECTED_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendFrameDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FRAME_ACTUAL_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendFrameDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FRAME_ANIMATION_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendFrameAnimationDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FRAME_DYNAMIC_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendFrameDynamicDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FRAME_SPACING_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendFrameSpacingDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::PROCESS_EXPECTED_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendProcessJanksFramesDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::PROCESS_ACTUAL_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendProcessJanksActualDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::PROCESS_DELIVER_INPUT_EVENT_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendProcessInputEventDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-}
-
-void SqllitePreparCacheData::FillSphQueryFuncMapPartThree()
-{
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::THREAD_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendProcessThreadDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FUNC_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendProcessFuncDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ENERGY_POWER_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEnergyDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FILE_SYSTEM_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::DISK_IO_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::FILE_SYS_VM),
-                             std::bind(&SqllitePreparCacheData::FillAndSendEbpfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_SMAPS_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_DMA_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_MEMORY_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_RESOURCE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_TATAL_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_WINDOW_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_SHM_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::VM_TRACKER_GPU_PURGEABLE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-}
-
-void SqllitePreparCacheData::FillSphQueryFuncMapPartFour()
-{
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_MEMORY_USED_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::CPU_ABILITY_USER_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::CPU_ABILITY_SYSTEM_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::CPU_ABILITY_MONITOR_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendCpuAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_READ_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_WRITTEN_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_READ_OPS_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_WRITTEN_OPS_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_BYTES_IN_TRACE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_BUTES_OUT_TRACE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_PACKET_IN_TRACE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_PACKETS_OUT_TRACE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendAbilityDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_PURGEABLE_DAT),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_GPU_MEMMORY_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-}
-
-void SqllitePreparCacheData::FillSphQueryFuncMapPartFive()
-{
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::ABILITY_DMA_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendTrackerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HEAP_TIME_LINE_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHeapFilesDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HEAP_SNAPSHOT_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHeapFilesDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::CPU_PROFILER_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendCpuProfilerDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HIPERF_CPU_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HIPERF_PROCESS_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HIPERF_THREAD_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HIPERF_THREAD_DATA),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiperfDataProto, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HIPERF_CALL_CHART),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiperfCallChartDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::HIPERF_CALL_STACK),
-                             std::bind(&SqllitePreparCacheData::FillAndSendHiperfCallStackDataProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::NATIVE_MEMORY_CHART_CACHE_NORMAL),
-                             std::bind(&SqllitePreparCacheData::FillAndSendNativeMemoryNormalProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    sphQueryFuncMap_.emplace(static_cast<uint32_t>(SphQueryType::NATIVE_MEMORY_CHART_CACHE_STATISTIC),
-                             std::bind(&SqllitePreparCacheData::FillAndSendNativeMemoryStatisticProto, this,
-                                       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 template <typename T>

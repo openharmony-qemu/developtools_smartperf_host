@@ -76,11 +76,11 @@ int32_t PerfFilesTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         return SQLITE_OK;
     }
 
-    auto perfFilesTabCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(perfFilesTabCs, sId);
-    for (size_t i = 0; i < perfFilesTabCs.size(); i++) {
-        const auto& c = perfFilesTabCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -93,12 +93,12 @@ int32_t PerfFilesTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         }
     }
 
-    auto perfFilesTabOrderbys = fc.GetOrderBys();
-    for (auto i = perfFilesTabOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(perfFilesTabOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(perfFilesTabOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

@@ -105,6 +105,7 @@ void ProtoReaderGenerator::ParserDependencies()
 
     for (const Descriptor* descriptor : vDescriptor_) {
         for (int32_t i = 0; i < descriptor->field_count(); ++i) {
+
             if (descriptor->field(i)->type() == FieldDescriptor::TYPE_MESSAGE) {
                 if (!publicImports_.count(descriptor->field(i)->message_type()->file())) {
                     referencedMessages_.insert(descriptor->field(i)->message_type());
@@ -212,6 +213,7 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
         const FieldDescriptor* field = descriptor->field(i);
         maxFieldID = std::max(maxFieldID, field->number());
     }
+
     std::string className = GetDescriptorClass(descriptor) + "_Reader";
     codePrinter_->Print(
         "class $name$ : public "
@@ -219,6 +221,7 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
         "name", className, "maxDataAreaID", std::to_string(maxFieldID));
     codePrinter_->Print(" public:\n");
     maxFieldID = 1 + maxFieldID;
+
     WriteEnum(descriptor);
     codePrinter_->Indent();
     codePrinter_->Print(
@@ -234,29 +237,7 @@ void ProtoReaderGenerator::WriteDecoder(const Descriptor* descriptor)
         "explicit $name$(const BytesView& raw) : "
         "TypedProtoReader(raw.data_, raw.size_) {}\n",
         "name", className);
-    WriteFunc(descriptor, maxFieldID);
-    codePrinter_->Outdent();
-    codePrinter_->Print("};\n\n");
-}
 
-void ProtoReaderGenerator::WriteEnum(const Descriptor* descriptor)
-{
-    if (descriptor->field_count()) {
-        codePrinter_->Print("enum : int32_t {\n");
-        codePrinter_->Indent();
-
-        for (int32_t i = 0; i < descriptor->field_count(); ++i) {
-            const FieldDescriptor* field = descriptor->field(i);
-            codePrinter_->Print("$name$ = $id$,\n", "name", GetFieldNumberConstant(field), "id",
-                                std::to_string(field->number()));
-        }
-        codePrinter_->Outdent();
-        codePrinter_->Print("};\n");
-    }
-}
-
-void ProtoReaderGenerator::WriteFunc(const Descriptor* descriptor, const int32_t maxFieldID)
-{
     for (int32_t i = 0; i < descriptor->field_count(); ++i) {
         const FieldDescriptor* field = descriptor->field(i);
         if (field->number() > maxFieldID) {
@@ -297,6 +278,24 @@ void ProtoReaderGenerator::WriteFunc(const Descriptor* descriptor, const int32_t
                                 field->lowercase_name(), "id", std::to_string(field->number()), "type", type, "toFunc",
                                 toFunc);
         }
+    }
+    codePrinter_->Outdent();
+    codePrinter_->Print("};\n\n");
+}
+
+void ProtoReaderGenerator::WriteEnum(const Descriptor* descriptor)
+{
+    if (descriptor->field_count()) {
+        codePrinter_->Print("enum : int32_t {\n");
+        codePrinter_->Indent();
+
+        for (int32_t i = 0; i < descriptor->field_count(); ++i) {
+            const FieldDescriptor* field = descriptor->field(i);
+            codePrinter_->Print("$name$ = $id$,\n", "name", GetFieldNumberConstant(field), "id",
+                                std::to_string(field->number()));
+        }
+        codePrinter_->Outdent();
+        codePrinter_->Print("};\n");
     }
 }
 

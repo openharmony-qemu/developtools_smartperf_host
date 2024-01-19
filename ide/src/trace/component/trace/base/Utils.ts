@@ -15,7 +15,7 @@
 
 import { SelectionParam } from '../../../bean/BoxSelection';
 import { procedurePool } from '../../../database/Procedure';
-import {queryNativeHookResponseTypes} from "../../../database/sql/NativeHook.sql";
+import { queryNativeHookResponseTypes } from '../../../database/SqlLite';
 
 export class Utils {
   private static statusMap: Map<string, string> = new Map<string, string>();
@@ -90,15 +90,15 @@ export class Utils {
     );
   }
 
-  public static transferPTSTitle(ptsValue: any) {
-    if (ptsValue.startsWith('S-')) {
-      return Utils.getEndState(ptsValue.replace('S-', ''));
-    } else if (ptsValue.startsWith('P-')) {
-      let pid = ptsValue.replace('P-', '');
+  public static transferPTSTitle(value: any) {
+    if (value.startsWith('S-')) {
+      return Utils.getEndState(value.replace('S-', ''));
+    } else if (value.startsWith('P-')) {
+      let pid = value.replace('P-', '');
       let process = Utils.PROCESS_MAP.get(parseInt(pid)) || 'Process';
       return `${process} [${pid}]`;
-    } else if (ptsValue.startsWith('T-')) {
-      let tid = ptsValue.replace('T-', '');
+    } else if (value.startsWith('T-')) {
+      let tid = value.replace('T-', '');
       let thread = Utils.THREAD_MAP.get(parseInt(tid)) || 'Thread';
       return `${thread} [${tid}]`;
     } else {
@@ -250,11 +250,11 @@ export class Utils {
     let gb1 = ((1 << 10) << 10) << 10; // 1 gb
     let res = '';
     if (currentByte > gb1) {
-      res += (currentByte / gb1).toFixed(2) + ' Gb';
+      res += (currentByte / gb1).toFixed(2) + ' GB';
     } else if (currentByte > mb1) {
-      res += (currentByte / mb1).toFixed(2) + ' Mb';
+      res += (currentByte / mb1).toFixed(2) + ' MB';
     } else if (currentByte > kb1) {
-      res += (currentByte / kb1).toFixed(2) + ' Kb';
+      res += (currentByte / kb1).toFixed(2) + ' KB';
     } else {
       res += Math.round(currentByte) + ' byte';
     }

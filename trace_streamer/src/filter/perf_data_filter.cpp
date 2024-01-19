@@ -64,7 +64,7 @@ void PerfDataFilter::Finish()
     auto filePath = traceDataCache_->GetPerfFilesData()->FilePaths();
     auto sambols = traceDataCache_->GetPerfFilesData()->Symbols();
     uint64_t flag = 1;
-    flag = ~(flag << FLAG_SHIFT_LEFT);
+    flag = ~(flag << 63);
     for (auto i = 0; i < size; i++) {
         if (fileIds[i] == INVALID_UINT64) {
             auto nameIndex = traceDataCache_->GetDataIndex("@0x" + base::number(ips[i], base::INTEGER_RADIX_TYPE_HEX));

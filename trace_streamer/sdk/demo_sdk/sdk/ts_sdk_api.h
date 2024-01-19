@@ -14,7 +14,7 @@
  */
 #ifndef TS_SDK_API_H
 #define TS_SDK_API_H
-#include "rpc/demo_rpc_server.h"
+#include "rpc/rpc_server.h"
 
 #include <string>
 namespace SysTuning {
@@ -29,7 +29,7 @@ int32_t SDK_AppendCounterObject(int32_t counterId, const char* columnName);
 int32_t SDK_AppendCounter(int32_t counterId, uint64_t ts, int32_t value);
 int32_t SDK_AppendSliceObject(int32_t sliceId, const char* columnName);
 int32_t SDK_AppendSlice(int32_t sliceId, uint64_t ts, uint64_t endTs, int32_t value);
-void SetRpcServer(DemoRpcServer* rpcServer);
+void SetRpcServer(RpcServer* rpcServer);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

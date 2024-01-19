@@ -14,11 +14,11 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
+import { getFps } from '../../database/SqlLite';
 import { TraceRow } from '../trace/base/TraceRow';
 import { info } from '../../../log/Log';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { FpsRender, FpsStruct } from '../../database/ui-worker/ProcedureWorkerFPS';
-import {getFps} from "../../database/sql/SqlLite.sql";
 
 export class SpFpsChart {
   private trace: SpSystemTrace;

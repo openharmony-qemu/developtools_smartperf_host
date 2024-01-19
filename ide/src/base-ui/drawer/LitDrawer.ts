@@ -15,209 +15,6 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-let contentPadding = '';
-let contentWidth = '';
-let css = `
-<style>
-      :host{
-          display: flex;
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          z-index: 2001;
-          pointer-events: none;
-       }
-       :host([mask]) .bg{
-          position:absolute;
-          top: 0;
-          right: 0;
-          left: 0;
-          bottom: 0;
-          width: 100%;
-          height: 100%;
-          background-color: #00000055;
-       }
-       :host(:not([mask])) .bg{
-          display: none;
-       }
-       
-       
-       .title{
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px 20px;
-          border-bottom: var(--dark-border1,#f0f0f0) 1px solid;
-          font-size: 18px;
-          font-weight: bold;
-          color: var(--dark-color1,#262626);
-       }
-       slot{
-          padding: ${contentPadding};
-          display: block;
-       }
-       :host([visible]) .bg{
-          transition: all .3s;
-          opacity: 1;
-          visibility: visible;
-       }
-       :host(:not([visible])) .bg{
-          transition: all .3s;
-          opacity: 0;
-          visibility: hidden;
-       }
-       /*
-          right（默认）
-       */
-       :host(:not([placement])) .drawer,
-       :host([placement='right']) .drawer{
-          width: ${contentWidth};
-          box-sizing: border-box;
-          position: absolute;
-          display: flex;
-          flex-direction: column;
-          right: 0px;
-          top: 0px;
-          bottom: 0px;
-          height: 100%;
-          overflow: auto;
-          background-color: var(--dark-background,#FFFFFF);
-          -webkit-transform: translateZ(0);
-          -moz-transform: translateZ(0);
-          -ms-transform: translateZ(0);
-          -o-transform: translateZ(0);
-          transform: translateZ(0);
-          transform: translateX(100%);
-          transition: transform .3s;
-       }
-       :host(:not([placement])[visible]) .drawer,
-       :host([placement='right'][visible]) .drawer{
-          transform: translateX(0%);
-          box-shadow: 0px 0 20px 0px #00000055;
-       }
-       :host(:not([visible]):not([placement])) .drawer,
-       :host(:not([visible])[placement='right']) .drawer{
-          transform: translateX(100%);
-       }
-       /*
-          左边
-       */
-       :host([placement='left']) .drawer{
-          width: ${contentWidth};
-          box-sizing: border-box;
-          position: absolute;
-          display: flex;
-          flex-direction: column;
-          left: 0px;
-          top: 0px;
-          bottom: 0px;
-          right: auto;
-          height: 100%;
-          background-color: var(--dark-background,#FFFFFF);
-          webkit-transform: translate3d(0,0,0);
-          -moz-transform: translate3d(0,0,0);
-          -ms-transform: translate3d(0,0,0);
-          -o-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
-          transform: translate(0%,0%);
-       }
-       :host([placement='left']) .drawer{
-          transition: transform .3s;
-       }
-       :host([placement='left'][visible]) .drawer{
-          box-shadow: 0px 0 60px 0px #00000055;
-          transform: translate(0%,0%);
-       }
-       :host(:not([visible])[placement='left']) .drawer{
-          transform: translate(-100%,0%);
-       }
-       
-       /*
-          top
-       */
-       :host([placement='top']) .drawer{
-          box-sizing: border-box;
-          position: absolute;
-          display: flex;
-          flex-direction: column;
-          left: 0px;
-          top: 0px;
-          right: 0px;
-          width: 100%;
-          background-color: var(--dark-background,#FFFFFF);
-          webkit-transform: translate3d(0,0,0);
-          -moz-transform: translate3d(0,0,0);
-          -ms-transform: translate3d(0,0,0);
-          -o-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
-       }
-       :host([placement='top']) .drawer{
-          transform: translateY(-100%);
-          transition: transform .3s;
-       }
-       :host([placement='top'][visible]) .drawer{
-          box-shadow: 0px 0 60px 0px #00000055;
-          transform: translateY(0%);
-       }
-       :host(:not([visible])[placement='top']) .drawer{
-          transform: translateY(-100%);
-       }
-       
-       /*
-          bottom
-       */
-       :host([placement='bottom']) .drawer{
-          box-sizing: border-box;
-          position: absolute;
-          display: flex;
-          flex-direction: column;
-          left: 0px;
-          bottom: 0px;
-          right: 0px;
-          top: auto;
-          width: 100%;
-          background-color: var(--dark-background,#FFFFFF);
-          webkit-transform: translate3d(0,0,0);
-          -moz-transform: translate3d(0,0,0);
-          -ms-transform: translate3d(0,0,0);
-          -o-transform: translate3d(0,0,0);
-          transform: translate3d(0,0,0);
-          transform: translate(0%,0%);
-          transition: transform .3s;
-       }
-       :host([placement='bottom'][visible]) .drawer{
-          box-shadow: 0px 0 60px 0px #00000055;
-          transform: translate(0%,0%);
-       }
-       :host(:not([visible])[placement='bottom']) .drawer{
-          transform: translate(0%,100%);
-       }
-       
-       :host([closeable]) .close-icon{
-          display: flex;
-          color: #8c8c8c;
-          padding: 5px;
-       }
-       :host([closeable]) .close-icon:hover{
-          color: #414141;
-       }
-       :host(:not([closeable])) .close-icon{
-          display: none;
-       }
-      </style>
-`;
-
-const initHtmlStyle = (padding: string, width: string) => {
-  contentPadding = padding;
-  contentWidth = width;
-  return css;
-};
-
 @element('lit-drawer')
 export class LitDrawer extends BaseElement {
   static get observedAttributes() {
@@ -226,7 +23,198 @@ export class LitDrawer extends BaseElement {
 
   initHtml(): string {
     return `
-        ${initHtmlStyle(this.contentPadding, this.contentWidth)}
+        <style>
+        :host{
+            display: flex;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 2001;
+            pointer-events: none;
+         }
+         :host([mask]) .bg{
+            position:absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #00000055;
+         }
+         :host(:not([mask])) .bg{
+            display: none;
+         }
+         
+         
+         .title{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: var(--dark-border1,#f0f0f0) 1px solid;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark-color1,#262626);
+         }
+         slot{
+            padding: ${this.contentPadding};
+            display: block;
+         }
+         :host([visible]) .bg{
+            transition: all .3s;
+            opacity: 1;
+            visibility: visible;
+         }
+         :host(:not([visible])) .bg{
+            transition: all .3s;
+            opacity: 0;
+            visibility: hidden;
+         }
+         /*
+            right（默认）
+         */
+         :host(:not([placement])) .drawer,
+         :host([placement='right']) .drawer{
+            width: ${this.contentWidth};
+            box-sizing: border-box;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            right: 0px;
+            top: 0px;
+            bottom: 0px;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--dark-background,#FFFFFF);
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            -o-transform: translateZ(0);
+            transform: translateZ(0);
+            transform: translateX(100%);
+            transition: transform .3s;
+         }
+         :host(:not([placement])[visible]) .drawer,
+         :host([placement='right'][visible]) .drawer{
+            transform: translateX(0%);
+            box-shadow: 0px 0 20px 0px #00000055;
+         }
+         :host(:not([visible]):not([placement])) .drawer,
+         :host(:not([visible])[placement='right']) .drawer{
+            transform: translateX(100%);
+         }
+         /*
+            左边
+         */
+         :host([placement='left']) .drawer{
+            width: ${this.contentWidth};
+            box-sizing: border-box;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            left: 0px;
+            top: 0px;
+            bottom: 0px;
+            right: auto;
+            height: 100%;
+            background-color: var(--dark-background,#FFFFFF);
+            webkit-transform: translate3d(0,0,0);
+            -moz-transform: translate3d(0,0,0);
+            -ms-transform: translate3d(0,0,0);
+            -o-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+            transform: translate(0%,0%);
+         }
+         :host([placement='left']) .drawer{
+            transition: transform .3s;
+         }
+         :host([placement='left'][visible]) .drawer{
+            box-shadow: 0px 0 60px 0px #00000055;
+            transform: translate(0%,0%);
+         }
+         :host(:not([visible])[placement='left']) .drawer{
+            transform: translate(-100%,0%);
+         }
+         
+         /*
+            top
+         */
+         :host([placement='top']) .drawer{
+            box-sizing: border-box;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            left: 0px;
+            top: 0px;
+            right: 0px;
+            width: 100%;
+            background-color: var(--dark-background,#FFFFFF);
+            webkit-transform: translate3d(0,0,0);
+            -moz-transform: translate3d(0,0,0);
+            -ms-transform: translate3d(0,0,0);
+            -o-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+         }
+         :host([placement='top']) .drawer{
+            transform: translateY(-100%);
+            transition: transform .3s;
+         }
+         :host([placement='top'][visible]) .drawer{
+            box-shadow: 0px 0 60px 0px #00000055;
+            transform: translateY(0%);
+         }
+         :host(:not([visible])[placement='top']) .drawer{
+            transform: translateY(-100%);
+         }
+         
+         /*
+            bottom
+         */
+         :host([placement='bottom']) .drawer{
+            box-sizing: border-box;
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            top: auto;
+            width: 100%;
+            background-color: var(--dark-background,#FFFFFF);
+            webkit-transform: translate3d(0,0,0);
+            -moz-transform: translate3d(0,0,0);
+            -ms-transform: translate3d(0,0,0);
+            -o-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+            transform: translate(0%,0%);
+            transition: transform .3s;
+         }
+         :host([placement='bottom'][visible]) .drawer{
+            box-shadow: 0px 0 60px 0px #00000055;
+            transform: translate(0%,0%);
+         }
+         :host(:not([visible])[placement='bottom']) .drawer{
+            transform: translate(0%,100%);
+         }
+         
+         :host([closeable]) .close-icon{
+            display: flex;
+            color: #8c8c8c;
+            padding: 5px;
+         }
+         :host([closeable]) .close-icon:hover{
+            color: #414141;
+         }
+         :host(:not([closeable])) .close-icon{
+            display: none;
+         }
+        </style>
         <div class="bg"></div>
         <div class="drawer">
             <div class="title">

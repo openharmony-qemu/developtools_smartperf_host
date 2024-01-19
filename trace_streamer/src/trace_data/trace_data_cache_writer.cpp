@@ -144,9 +144,24 @@ CpuMeasureFilter* TraceDataCacheWriter::GetCpuMeasuresData()
     return &cpuMeasureData_;
 }
 
+ThreadMeasureFilter* TraceDataCacheWriter::GetThreadMeasureFilterData()
+{
+    return &threadMeasureFilterData_;
+}
+
+ThreadMeasureFilter* TraceDataCacheWriter::GetThreadFilterData()
+{
+    return &threadFilterData_;
+}
+
 Instants* TraceDataCacheWriter::GetInstantsData()
 {
     return &instantsData_;
+}
+
+ProcessMeasureFilter* TraceDataCacheWriter::GetProcessFilterData()
+{
+    return &processFilterData_;
 }
 
 ProcessMeasureFilter* TraceDataCacheWriter::GetProcessMeasureFilterData()
@@ -271,6 +286,20 @@ PagedMemorySampleData* TraceDataCacheWriter::GetPagedMemorySampleData()
 {
     return &pagedMemorySampleData_;
 }
+#if WITH_EBPF_HELP
+EbpfProcessMaps* TraceDataCacheWriter::GetEbpfProcessMaps()
+{
+    return &ebpfProcessMaps_;
+}
+EbpfElf* TraceDataCacheWriter::GetEbpfElf()
+{
+    return &ebpfElf_;
+}
+EbpfElfSymbol* TraceDataCacheWriter::GetEbpfElfSymbol()
+{
+    return &ebpfElfSymbol_;
+}
+#endif
 HiSysEventSubkeys* TraceDataCacheWriter::GetHiSysEventSubkeysData()
 {
     return &sysEventNameIds_;
@@ -377,9 +406,9 @@ AppStartup* TraceDataCacheWriter::GetAppStartupData()
 {
     return &appStartupData_;
 }
-SoStaticInitalization* TraceDataCacheWriter::GetSoStaticInitalizationData()
+SoStaticInitalization* TraceDataCacheWriter::GetStaticInitalizationData()
 {
-    return &soStaticInitalizationData_;
+    return &staticInitalizationData_;
 }
 Animation* TraceDataCacheWriter::GetAnimation()
 {
@@ -421,25 +450,54 @@ RSImageDumpInfo* TraceDataCacheWriter::GetRSImageDumpInfo()
 {
     return &rsImageDumpInfo_;
 }
-void TraceDataCacheWriter::ClearMeasure()
+void TraceDataCacheWriter::Clear()
 {
+    rawData_.Clear();
+    threadStateData_.Clear();
+    instantsData_.Clear();
+
     filterData_.Clear();
-    measureData_.Clear();
-    cpuMeasureData_.Clear();
+    processMeasureFilterData_.Clear();
     clockEventFilterData_.Clear();
     clkEventFilterData_.Clear();
-    processMeasureFilterData_.Clear();
-}
-void TraceDataCacheWriter::ClearHiperf()
-{
+    processFilterData_.Clear();
+    threadMeasureFilterData_.Clear();
+    threadFilterData_.Clear();
+    dataDict_.Clear();
+
+    schedSliceData_.Clear();
+    callstackData_.Clear();
+    irqData_.Clear();
+    hilogData_.Clear();
+    nativeHookData_.Clear();
+    nativeHookFrameData_.Clear();
+    hidumpData_.Clear();
+
+    internalProcessesData_.clear();
+    internalThreadsData_.clear();
+
+    measureData_.Clear();
+    cpuMeasureData_.Clear();
+
+    metaData_.Clear();
+    symbolsData_.Clear();
+    sysCallData_.Clear();
+    argSet_.Clear();
+    dataType_.Clear();
+    sysEvent_.Clear();
+    networkData_.Clear();
+    networkDetailData_.Clear();
     perfSample_.Clear();
     perfCallChain_.Clear();
     perfThread_.Clear();
     perfFiles_.Clear();
     perfReport_.Clear();
-}
-void TraceDataCacheWriter::ClearArkTs()
-{
+    cpuUsageData_.Clear();
+    diskIOData_.Clear();
+    liveProcessDetailData_.Clear();
+    fileSamplingTableData_.Clear();
+    ebpfCallStackData_.Clear();
+    pagedMemorySampleData_.Clear();
     jsHeapFilesData_.Clear();
     jsHeapEdgesData_.Clear();
     jsHeapInfoData_.Clear();
@@ -452,69 +510,23 @@ void TraceDataCacheWriter::ClearArkTs()
     jsCpuProfilerNodeData_.Clear();
     jsCpuProfilerSampleData_.Clear();
     jsConfigData_.Clear();
-}
-void TraceDataCacheWriter::ClearNativeMemory()
-{
-    nativeHookData_.Clear();
-    nativeHookFrameData_.Clear();
-}
-void TraceDataCacheWriter::ClearBase()
-{
-    internalProcessesData_.clear();
-    internalThreadsData_.clear();
-    metaData_.Clear();
-    symbolsData_.Clear();
-    argSet_.Clear();
-    dataType_.Clear();
-    dataDict_.Clear();
-}
-void TraceDataCacheWriter::ClearEbpf()
-{
-    fileSamplingTableData_.Clear();
-    ebpfCallStackData_.Clear();
-    pagedMemorySampleData_.Clear();
-    bioLatencySampleData_.Clear();
-}
-void TraceDataCacheWriter::ClearTemplate()
-{
-    // task pool business
-    taskPoolInfo_.Clear();
-    // app start up business
     appStartupData_.Clear();
-    soStaticInitalizationData_.Clear();
-    // animation business
+    staticInitalizationData_.Clear();
     animation_.Clear();
     deviceInfo_.Clear();
     dynamicFrame_.Clear();
-}
-void TraceDataCacheWriter::Clear()
-{
-    ClearBase();
-    ClearMeasure();
-    ClearHiperf();
-    ClearArkTs();
-    ClearNativeMemory();
-    ClearEbpf();
-    ClearTemplate();
-    rawData_.Clear();
-    threadStateData_.Clear();
-    instantsData_.Clear();
-    schedSliceData_.Clear();
-    callstackData_.Clear();
-    irqData_.Clear();
-    hilogData_.Clear();
-    hidumpData_.Clear();
-    sysCallData_.Clear();
-    sysEvent_.Clear();
-    networkData_.Clear();
-    networkDetailData_.Clear();
-    cpuUsageData_.Clear();
-    diskIOData_.Clear();
-    liveProcessDetailData_.Clear();
+
+#if WITH_EBPF_HELP
+    ebpfProcessMaps_.Clear();
+    ebpfElf_.Clear();
+    ebpfElfSymbol_.Clear();
+#endif
     sysEventNameIds_.Clear();
     sysEventMeasureData_.Clear();
     deviceStateData_.Clear();
     smapsData_.Clear();
+    bioLatencySampleData_.Clear();
+    taskPoolInfo_.Clear();
     ashMemData_.Clear();
     dmaMemData_.Clear();
     gpuProcessMemData_.Clear();

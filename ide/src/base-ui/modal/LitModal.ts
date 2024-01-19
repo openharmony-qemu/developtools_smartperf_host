@@ -15,115 +15,6 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-let width = '';
-let css = `
-<style>
-      :host{ 
-          display: flex;
-          position: absolute;
-          left: 0;
-          right: 0;
-          top: 0;
-          bottom: 0px;
-          z-index: 1000;
-          overflow: auto;
-          transition: all 0.3s;
-      }
-      :host([visible]){
-          background-color: #00000066;
-          transition: all .3s;
-          opacity: 1;
-          visibility: visible;
-      }
-      :host(:not([visible])){
-          pointer-events: none;
-          transition: all .3s;
-          opacity: 0;
-          visibility: hidden;
-      }
-     
-      .modal{
-          width: ${width};
-          position: absolute;
-          display: flex;
-          flex-direction: column;
-          overflow: auto;
-          background-color: #fff;
-          top: 100px;
-          left: 50%;
-          right: auto;
-          transform-origin: left top;
-          pointer-events: all;
-          border-radius: 2px;
-      }
-      :host(:not([visible])) .modal{
-          transition: transform .3s , opacity .3s,visibility .3s;
-          opacity: 0;
-          transform:scale(0.1) translate(-50%,50%) translateZ(0) skew(0deg);
-          visibility: hidden;
-       }
-       :host([visible]) .modal{
-          transition: transform .3s , opacity .3s ,visibility .3s;
-          opacity: 1;
-          transform: scale(1) translate(-50%,0%) translateZ(0) skew(0deg);
-          visibility: visible;
-          box-shadow: 0 0 20px #00000055;
-       }
-      .header{
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 15px 20px;
-          font-size: 17px;
-          font-weight: bold;
-      }
-      :host([moveable]) .header label{
-          pointer-events: none;
-      }
-      :host([moveable]) .header:hover{
-          background-color: #8c8c8c11;
-      }
-      :host([moveable]) .header{
-          /*cursor: move;*/
-      }
-      .close-icon{
-          color:#8c8c8c;
-          cursor: pointer;
-      }
-      .close-icon:hover{
-          color: #414141;
-      }
-      .footer{
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          padding: 8px 8px;
-      }
-      .footer lit-button{
-          min-width: 70px;
-          margin-right: 10px;
-          cursor: pointer;
-      }
-      :host([line=false]){
-          padding: 10px 20px;
-          flex:1;
-      }
-      :host([line=true]) .body,
-      :host(:not([line])) .body{
-          border-top: 1px solid #f0f0f0;
-          border-bottom: 1px solid #f0f0f0;
-          padding: 10px 20px;
-          flex:1;
-      }
-     
-      </style>
-`
-
-const initHtmlStyle = (wid: string) => {
-  width = wid;
-  return css;
-}
-
 @element('lit-modal')
 export class LitModal extends BaseElement {
   private headerTitleElement: HTMLElement | null | undefined;
@@ -232,7 +123,106 @@ export class LitModal extends BaseElement {
 
   initHtml(): string {
     return `
-        ${initHtmlStyle(this.width)}
+        <style>
+        :host{ 
+            display: flex;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0px;
+            z-index: 1000;
+            overflow: auto;
+            transition: all 0.3s;
+        }
+        :host([visible]){
+            background-color: #00000066;
+            transition: all .3s;
+            opacity: 1;
+            visibility: visible;
+        }
+        :host(:not([visible])){
+            pointer-events: none;
+            transition: all .3s;
+            opacity: 0;
+            visibility: hidden;
+        }
+       
+        .modal{
+            width: ${this.width};
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            background-color: #fff;
+            top: 100px;
+            left: 50%;
+            right: auto;
+            transform-origin: left top;
+            pointer-events: all;
+            border-radius: 2px;
+        }
+        :host(:not([visible])) .modal{
+            transition: transform .3s , opacity .3s,visibility .3s;
+            opacity: 0;
+            transform:scale(0.1) translate(-50%,50%) translateZ(0) skew(0deg);
+            visibility: hidden;
+         }
+         :host([visible]) .modal{
+            transition: transform .3s , opacity .3s ,visibility .3s;
+            opacity: 1;
+            transform: scale(1) translate(-50%,0%) translateZ(0) skew(0deg);
+            visibility: visible;
+            box-shadow: 0 0 20px #00000055;
+         }
+        .header{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            font-size: 17px;
+            font-weight: bold;
+        }
+        :host([moveable]) .header label{
+            pointer-events: none;
+        }
+        :host([moveable]) .header:hover{
+            background-color: #8c8c8c11;
+        }
+        :host([moveable]) .header{
+            /*cursor: move;*/
+        }
+        .close-icon{
+            color:#8c8c8c;
+            cursor: pointer;
+        }
+        .close-icon:hover{
+            color: #414141;
+        }
+        .footer{
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 8px 8px;
+        }
+        .footer lit-button{
+            min-width: 70px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        :host([line=false]){
+            padding: 10px 20px;
+            flex:1;
+        }
+        :host([line=true]) .body,
+        :host(:not([line])) .body{
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 10px 20px;
+            flex:1;
+        }
+       
+        </style>
         <div class="modal" title="">
             <div class="header">
                 <label id="modal-title"></label>
@@ -255,6 +245,7 @@ export class LitModal extends BaseElement {
   initElements(): void {
     this.headerTitleElement = this.shadowRoot!.querySelector<HTMLDivElement>('#modal-title');
     this.headerTitleElement!.textContent = this.title;
+
     this.headerElement = this.shadowRoot!.querySelector<HTMLDivElement>('.header');
     this.closeElement = this.shadowRoot!.querySelector<HTMLDivElement>('.close-icon');
     this.cancelElement = this.shadowRoot!.querySelector<HTMLDivElement>('#cancel');
@@ -264,9 +255,21 @@ export class LitModal extends BaseElement {
     this.shadowRoot!.querySelector<HTMLDivElement>('.modal')!.onclick = (e) => {
       e.stopPropagation();
     };
-    this.setClick();
+    this.onclick = (ev) => {
+      ev.stopPropagation();
+      if (!this.resizeable) {
+        this.visible = false;
+      }
+    };
+    this.cancelElement!.onclick = (ev) => {
+      this.dispatchEvent(new CustomEvent('onCancel', ev));
+    };
+    this.okElement!.onclick = (ev) => {
+      this.dispatchEvent(new CustomEvent('onOk', ev));
+    };
     if (this.moveable || this.resizeable) {
       if (this.resizeable) {
+        //move
         let resizeWidth = 8;
         this.resizing = false;
         let srcResizeClientX = 0,
@@ -281,270 +284,248 @@ export class LitModal extends BaseElement {
         this.onmousemoveFunc = (e: any) => {
           e.stopPropagation();
           srcResizeRect = this.modalElement!.getBoundingClientRect();
-          direction = this.onmousemoveFuncRule(direction,e,srcResizeRect,resizeWidth);
-          this.resizingFunc(direction,e,srcResizeClientX,srcResizeClientY,srcResizeHeight,srcResizeWidth,srcResizeLeft,srcResizeTop);
+          if (
+            e.clientX > srcResizeRect.left - resizeWidth &&
+            e.clientX < srcResizeRect.left + resizeWidth &&
+            e.clientY > srcResizeRect.top - resizeWidth &&
+            e.clientY < srcResizeRect.top + resizeWidth
+          ) {
+            //left top
+            this.style.cursor = 'nwse-resize';
+            if (!this.resizing) direction = 'left-top';
+          } else if (
+            e.clientX > srcResizeRect.right - resizeWidth &&
+            e.clientX < srcResizeRect.right + resizeWidth &&
+            e.clientY > srcResizeRect.top - resizeWidth &&
+            e.clientY < srcResizeRect.top + resizeWidth
+          ) {
+            //right top
+            this.style.cursor = 'nesw-resize';
+            if (!this.resizing) direction = 'right-top';
+          } else if (
+            e.clientX > srcResizeRect.left - resizeWidth &&
+            e.clientX < srcResizeRect.left + resizeWidth &&
+            e.clientY > srcResizeRect.bottom - resizeWidth &&
+            e.clientY < srcResizeRect.bottom + resizeWidth
+          ) {
+            //left bottom
+            this.style.cursor = 'nesw-resize';
+            if (!this.resizing) direction = 'left-bottom';
+          } else if (
+            e.clientX > srcResizeRect.right - resizeWidth &&
+            e.clientX < srcResizeRect.right + resizeWidth &&
+            e.clientY > srcResizeRect.bottom - resizeWidth &&
+            e.clientY < srcResizeRect.bottom + resizeWidth
+          ) {
+            //right bottom
+            this.style.cursor = 'nwse-resize';
+            if (!this.resizing) direction = 'right-bottom';
+          } else if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
+            //left
+            this.style.cursor = 'ew-resize';
+            if (!this.resizing) direction = 'left';
+          } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
+            //right
+            this.style.cursor = 'ew-resize';
+            if (!this.resizing) direction = 'right';
+          } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
+            //top
+            this.style.cursor = 'ns-resize';
+            if (!this.resizing) direction = 'top';
+          } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
+            //bottom
+            this.style.cursor = 'ns-resize';
+            if (!this.resizing) direction = 'bottom';
+          } else {
+            this.style.cursor = '';
+            if (!this.resizing) direction = '';
+          }
+          if (this.resizing) {
+            let offsetResizeY = e.clientY - srcResizeClientY;
+            let offsetResizeX = e.clientX - srcResizeClientX;
+            if (direction === 'bottom') {
+              this.modalElement!.style.height = srcResizeHeight + offsetResizeY + 'px';
+            } else if (direction === 'top') {
+              this.modalElement!.style.top = srcResizeTop + offsetResizeY + 'px';
+              this.modalElement!.style.height = srcResizeHeight - offsetResizeY + 'px';
+            } else if (direction === 'right') {
+              this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
+              this.modalElement!.style.width = srcResizeWidth + offsetResizeX + 'px';
+            } else if (direction === 'left') {
+              this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
+              this.modalElement!.style.width = srcResizeWidth - offsetResizeX + 'px';
+            } else if (direction === 'left-top') {
+              this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
+              this.modalElement!.style.width = srcResizeWidth - offsetResizeX + 'px';
+              this.modalElement!.style.top = srcResizeTop + offsetResizeY + 'px';
+              this.modalElement!.style.height = srcResizeHeight - offsetResizeY + 'px';
+            } else if (direction === 'right-top') {
+              this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
+              this.modalElement!.style.width = srcResizeWidth + offsetResizeX + 'px';
+              this.modalElement!.style.top = srcResizeTop + offsetResizeY + 'px';
+              this.modalElement!.style.height = srcResizeHeight - offsetResizeY + 'px';
+            } else if (direction === 'left-bottom') {
+              this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
+              this.modalElement!.style.width = srcResizeWidth - offsetResizeX + 'px';
+              this.modalElement!.style.height = srcResizeHeight + offsetResizeY + 'px';
+            } else if (direction === 'right-bottom') {
+              this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
+              this.modalElement!.style.width = srcResizeWidth + offsetResizeX + 'px';
+              this.modalElement!.style.height = srcResizeHeight + offsetResizeY + 'px';
+            }
+          }
         };
-        this.setOnmousedownFunc(resizeWidth);
+        this.onmousedownFunc = (e: any) => {
+          srcResizeRect = this.modalElement!.getBoundingClientRect();
+          srcResizeClientX = e.clientX;
+          srcResizeClientY = e.clientY;
+          srcResizeHeight = srcResizeRect.height;
+          srcResizeWidth = srcResizeRect.width;
+          srcResizeRight = srcResizeRect.right;
+          srcResizeLeft = srcResizeRect.left;
+          srcResizeTop = srcResizeRect.top;
+          if (
+            e.clientX > srcResizeRect.left - resizeWidth &&
+            e.clientX < srcResizeRect.left + resizeWidth &&
+            e.clientY > srcResizeRect.top - resizeWidth &&
+            e.clientY < srcResizeRect.top + resizeWidth
+          ) {
+            //left top
+            this.resizing = true;
+          } else if (
+            e.clientX > srcResizeRect.right - resizeWidth &&
+            e.clientX < srcResizeRect.right + resizeWidth &&
+            e.clientY > srcResizeRect.top - resizeWidth &&
+            e.clientY < srcResizeRect.top + resizeWidth
+          ) {
+            //right top
+            this.resizing = true;
+          } else if (
+            e.clientX > srcResizeRect.left - resizeWidth &&
+            e.clientX < srcResizeRect.left + resizeWidth &&
+            e.clientY > srcResizeRect.bottom - resizeWidth &&
+            e.clientY < srcResizeRect.bottom + resizeWidth
+          ) {
+            //left bottom
+            this.resizing = true;
+          } else if (
+            e.clientX > srcResizeRect.right - resizeWidth &&
+            e.clientX < srcResizeRect.right + resizeWidth &&
+            e.clientY > srcResizeRect.bottom - resizeWidth &&
+            e.clientY < srcResizeRect.bottom + resizeWidth
+          ) {
+            //right bottom
+            this.resizing = true;
+          } else if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
+            //left
+            this.resizing = true;
+          } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
+            //right
+            this.resizing = true;
+          } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
+            //top
+            this.resizing = true;
+          } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
+            //bottom
+            this.resizing = true;
+          } else {
+            this.resizing = false;
+          }
+          if (this.resizing) document.body.style.userSelect = 'none';
+        };
         this.onmouseupFunc = (e: any) => {
           this.resizing = false;
         };
       }
-      this.buildFunc();
+
+      if (this.moveable) {
+        this.down = false;
+        let srcClientX = 0;
+        let srcClientY = 0;
+        let srcLeft = 0;
+        let srcTop = 0;
+        let srcRight = 0;
+        let srcBottom = 0;
+        let clientRect;
+        let rootRect: any;
+
+        this.onmousedownMoveFunc = (e: any) => {
+          if (this.resizing) return;
+          srcClientX = e.clientX;
+          srcClientY = e.clientY;
+          rootRect = this.getBoundingClientRect();
+          clientRect = this.modalElement!.getBoundingClientRect();
+          srcLeft = clientRect.left;
+          srcRight = clientRect.right;
+          srcTop = clientRect.top;
+          srcBottom = clientRect.bottom;
+          if (
+            e.clientX > srcLeft + 10 &&
+            e.clientX < srcRight - 10 &&
+            e.clientY > srcTop + 10 &&
+            e.clientY < srcTop + this.headerElement!.scrollHeight
+          ) {
+            this.down = true;
+          } else {
+            this.down = false;
+          }
+          if (this.down) document.body.style.userSelect = 'none';
+          this.onmousemoveMoveFunc = (ev: any) => {
+            if (this.down) {
+              let offsetY = e.clientY - srcClientY;
+              let offsetX = e.clientX - srcClientX;
+              if (e.clientX > srcLeft + 10 && e.clientX < srcRight - 10 && e.clientY > srcTop + 10) {
+                this.headerElement!.style.cursor = 'move';
+                clientRect = this.modalElement!.getBoundingClientRect();
+                //下面 rootRect.height 改成 this.scrollHeight 解决modal 过长会出现滚动条的情况
+                if (
+                  ev.clientY - srcClientY + srcTop > 0 &&
+                  ev.clientY - srcClientY + srcTop < this.scrollHeight - clientRect.height
+                ) {
+                  this.modalElement!.style.top = ev.clientY - srcClientY + srcTop + 'px';
+                } else {
+                  if (ev.clientY - srcClientY + srcTop <= 0) {
+                    this.modalElement!.style.top = '0px';
+                  } else {
+                    //下面 rootRect.height 改成 this.scrollHeight 解决modal 过长会出现滚动条的情况
+                    this.modalElement!.style.top = this.scrollHeight - clientRect.height + 'px';
+                  }
+                }
+                //ev.clientX-srcClientX 鼠标移动像素
+                if (
+                  ev.clientX - srcClientX + srcLeft > 0 &&
+                  ev.clientX - srcClientX + srcLeft < rootRect.width - clientRect.width
+                ) {
+                  this.modalElement!.style.left = ev.clientX - srcClientX + srcLeft + clientRect.width / 2 + 'px';
+                } else {
+                  if (ev.clientX - srcClientX + srcLeft <= 0) {
+                    this.modalElement!.style.left = clientRect.width / 2 + 'px';
+                  } else {
+                    this.modalElement!.style.left = rootRect.width - clientRect.width + clientRect.width / 2 + 'px';
+                  }
+                }
+              }
+            }
+          };
+          this.onmouseleaveMoveFunc = this.onmouseupMoveFunc = (e: any) => {
+            this.down = false;
+            this.headerElement!.style.cursor = '';
+          };
+        };
+      }
+      this.onmousemove = (e) => {
+        if (this.onmousemoveFunc) this.onmousemoveFunc(e);
+        if (this.onmousemoveMoveFunc) this.onmousemoveMoveFunc(e);
+      };
+      this.onmousedown = (e) => {
+        if (this.onmousedownFunc) this.onmousedownFunc(e);
+        if (this.onmousedownMoveFunc) this.onmousedownMoveFunc(e);
+      };
       this.onmouseleave = this.onmouseup = (e) => {
         if (this.onmouseleaveMoveFunc) this.onmouseleaveMoveFunc(e);
         if (this.onmouseupFunc) this.onmouseupFunc(e);
         document.body.style.userSelect = '';
       };
-    }
-  }
-
-  setClick():void{
-    this.onclick = (ev) => {
-      ev.stopPropagation();
-      if (!this.resizeable) {
-        this.visible = false;
-      }
-    };
-    this.cancelElement!.onclick = (ev) => {
-      this.dispatchEvent(new CustomEvent('onCancel', ev));
-    };
-    this.okElement!.onclick = (ev) => {
-      this.dispatchEvent(new CustomEvent('onOk', ev));
-    };
-  }
-
-  buildFunc():void{
-    if (this.moveable) {
-      this.down = false;
-      let srcClientX = 0;
-      let srcClientY = 0;
-      let srcLeft = 0;
-      let srcTop = 0;
-      let srcRight = 0;
-      let srcBottom = 0;
-      let clientRect;
-      let rootRect: any;
-      this.onmousedownMoveFunc = (e: any) => {
-        if (this.resizing) return;
-        srcClientX = e.clientX;
-        srcClientY = e.clientY;
-        rootRect = this.getBoundingClientRect();
-        clientRect = this.modalElement!.getBoundingClientRect();
-        srcLeft = clientRect.left;
-        srcRight = clientRect.right;
-        srcTop = clientRect.top;
-        srcBottom = clientRect.bottom;
-        if (
-          e.clientX > srcLeft + 10 &&
-          e.clientX < srcRight - 10 &&
-          e.clientY > srcTop + 10 &&
-          e.clientY < srcTop + this.headerElement!.scrollHeight
-        ) {
-          this.down = true;
-        } else {
-          this.down = false;
-        }
-        if (this.down) document.body.style.userSelect = 'none';
-        this.setOnmousemoveMoveFunc(e, srcClientX, srcClientY, srcLeft, srcTop, srcRight, srcBottom, clientRect, rootRect);
-        this.onmouseleaveMoveFunc = this.onmouseupMoveFunc = (e: any) => {
-          this.down = false;
-          this.headerElement!.style.cursor = '';
-        };
-      };
-    }
-    this.onmousemove = (e) => {
-      if (this.onmousemoveFunc) this.onmousemoveFunc(e);
-      if (this.onmousemoveMoveFunc) this.onmousemoveMoveFunc(e);
-    };
-    this.onmousedown = (e) => {
-      if (this.onmousedownFunc) this.onmousedownFunc(e);
-      if (this.onmousedownMoveFunc) this.onmousedownMoveFunc(e);
-    };
-  }
-
-  setOnmousemoveMoveFunc(e:any,srcClientX:number,srcClientY:number,srcLeft:number,srcTop:number,srcRight:number,srcBottom:number,clientRect:any,rootRect:any):void{
-    this.onmousemoveMoveFunc = (ev: any) => {
-      if (this.down) {
-        let offsetY = e.clientY - srcClientY;
-        let offsetX = e.clientX - srcClientX;
-        if (e.clientX > srcLeft + 10 && e.clientX < srcRight - 10 && e.clientY > srcTop + 10) {
-          this.headerElement!.style.cursor = 'move';
-          clientRect = this.modalElement!.getBoundingClientRect();
-          //下面 rootRect.height 改成 this.scrollHeight 解决modal 过长会出现滚动条的情况
-          if (
-            ev.clientY - srcClientY + srcTop > 0 &&
-            ev.clientY - srcClientY + srcTop < this.scrollHeight - clientRect.height
-          ) {
-            this.modalElement!.style.top = ev.clientY - srcClientY + srcTop + 'px';
-          } else {
-            if (ev.clientY - srcClientY + srcTop <= 0) {
-              this.modalElement!.style.top = '0px';
-            } else {
-              //下面 rootRect.height 改成 this.scrollHeight 解决modal 过长会出现滚动条的情况
-              this.modalElement!.style.top = this.scrollHeight - clientRect.height + 'px';
-            }
-          }
-          //ev.clientX-srcClientX 鼠标移动像素
-          if (
-            ev.clientX - srcClientX + srcLeft > 0 &&
-            ev.clientX - srcClientX + srcLeft < rootRect.width - clientRect.width
-          ) {
-            this.modalElement!.style.left = ev.clientX - srcClientX + srcLeft + clientRect.width / 2 + 'px';
-          } else {
-            if (ev.clientX - srcClientX + srcLeft <= 0) {
-              this.modalElement!.style.left = clientRect.width / 2 + 'px';
-            } else {
-              this.modalElement!.style.left = rootRect.width - clientRect.width + clientRect.width / 2 + 'px';
-            }
-          }
-        }
-      }
-    };
-  }
-
-  onmousemoveFuncRule(direction:string,e:any,srcResizeRect:any,resizeWidth:number):string{
-    if (
-      e.clientX > srcResizeRect.left - resizeWidth &&
-      e.clientX < srcResizeRect.left + resizeWidth &&
-      e.clientY > srcResizeRect.top - resizeWidth &&
-      e.clientY < srcResizeRect.top + resizeWidth
-    ) {
-      this.style.cursor = 'nwse-resize';
-      if (!this.resizing) return 'left-top';
-    } else if (
-      e.clientX > srcResizeRect.right - resizeWidth &&
-      e.clientX < srcResizeRect.right + resizeWidth &&
-      e.clientY > srcResizeRect.top - resizeWidth &&
-      e.clientY < srcResizeRect.top + resizeWidth
-    ) {
-      this.style.cursor = 'nesw-resize';
-      if (!this.resizing) return 'right-top';
-    } else if (
-      e.clientX > srcResizeRect.left - resizeWidth &&
-      e.clientX < srcResizeRect.left + resizeWidth &&
-      e.clientY > srcResizeRect.bottom - resizeWidth &&
-      e.clientY < srcResizeRect.bottom + resizeWidth
-    ) {
-      this.style.cursor = 'nesw-resize';
-      if (!this.resizing) return 'left-bottom';
-    } else {
-      return this.funcRuleIf(direction,e,srcResizeRect,resizeWidth);
-    }
-    return ''
-  }
-
-  funcRuleIf(direction:string,e:any,srcResizeRect:any,resizeWidth:number):string{
-    if (
-      e.clientX > srcResizeRect.right - resizeWidth &&
-      e.clientX < srcResizeRect.right + resizeWidth &&
-      e.clientY > srcResizeRect.bottom - resizeWidth &&
-      e.clientY < srcResizeRect.bottom + resizeWidth
-    ) {
-      this.style.cursor = 'nwse-resize';
-      if (!this.resizing) return 'right-bottom';
-    } else if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
-      this.style.cursor = 'ew-resize';
-      if (!this.resizing) return 'left';
-    } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
-      this.style.cursor = 'ew-resize';
-      if (!this.resizing) return 'right';
-    } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
-      this.style.cursor = 'ns-resize';
-      if (!this.resizing) return 'top';
-    } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
-      this.style.cursor = 'ns-resize';
-      if (!this.resizing) return 'bottom';
-    } else {
-      this.style.cursor = '';
-      if (!this.resizing) return '';
-    }
-    return '';
-  }
-
-  resizingFunc(direction:string,e:any,srcResizeClientX:number,srcResizeClientY:number,srcResizeHeight:number,srcResizeWidth:number,srcResizeLeft:number,srcResizeTop:number):void{
-    if (this.resizing) {
-      let offsetResizeY = e.clientY - srcResizeClientY;
-      let offsetResizeX = e.clientX - srcResizeClientX;
-      if (direction === 'bottom') {
-        this.modalElement!.style.height = srcResizeHeight + offsetResizeY + 'px';
-      } else if (direction === 'top') {
-        this.modalElement!.style.top = srcResizeTop + offsetResizeY + 'px';
-        this.modalElement!.style.height = srcResizeHeight - offsetResizeY + 'px';
-      } else if (direction === 'right') {
-        this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
-        this.modalElement!.style.width = srcResizeWidth + offsetResizeX + 'px';
-      } else if (direction === 'left') {
-        this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
-        this.modalElement!.style.width = srcResizeWidth - offsetResizeX + 'px';
-      } else if (direction === 'left-top') {
-        this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
-        this.modalElement!.style.width = srcResizeWidth - offsetResizeX + 'px';
-        this.modalElement!.style.top = srcResizeTop + offsetResizeY + 'px';
-        this.modalElement!.style.height = srcResizeHeight - offsetResizeY + 'px';
-      } else if (direction === 'right-top') {
-        this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
-        this.modalElement!.style.width = srcResizeWidth + offsetResizeX + 'px';
-        this.modalElement!.style.top = srcResizeTop + offsetResizeY + 'px';
-        this.modalElement!.style.height = srcResizeHeight - offsetResizeY + 'px';
-      } else if (direction === 'left-bottom') {
-        this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
-        this.modalElement!.style.width = srcResizeWidth - offsetResizeX + 'px';
-        this.modalElement!.style.height = srcResizeHeight + offsetResizeY + 'px';
-      } else if (direction === 'right-bottom') {
-        this.modalElement!.style.left = srcResizeLeft + srcResizeWidth / 2 + offsetResizeX / 2 + 'px';
-        this.modalElement!.style.width = srcResizeWidth + offsetResizeX + 'px';
-        this.modalElement!.style.height = srcResizeHeight + offsetResizeY + 'px';
-      }
-    }
-  }
-
-  setOnmousedownFunc(resizeWidth: number): void {
-    this.onmousedownFunc = (e: any) => {
-      const srcResizeRect = this.modalElement!.getBoundingClientRect();
-      const { clientX, clientY } = e;
-      const { left, right, top, bottom, width, height } = srcResizeRect;
-      const resizeRange = resizeWidth * 2;
-  
-      const isWithinRange = (coord: number, target: number, range: number) =>
-        coord > target - range && coord < target + range;
-  
-      const isWithinCornerRange = (cornerX: number, cornerY: number) =>
-        isWithinRange(clientX, cornerX, resizeRange) &&
-        isWithinRange(clientY, cornerY, resizeRange);
-  
-      const isWithinTopLeft = isWithinCornerRange(left, top);
-      const isWithinTopRight = isWithinCornerRange(right, top);
-      const isWithinBottomLeft = isWithinCornerRange(left, bottom);
-      const isWithinBottomRight = isWithinCornerRange(right, bottom);
-  
-      if (
-        isWithinTopLeft ||
-        isWithinTopRight ||
-        isWithinBottomLeft ||
-        isWithinBottomRight
-      ) {
-        this.resizing = true;
-      } else {
-        this.resizeIf(e, srcResizeRect, resizeWidth);
-      }
-  
-      if (this.resizing) {
-        document.body.style.userSelect = 'none';
-      }
-    };
-  }
-
-  resizeIf(e:any,srcResizeRect:any,resizeWidth:number){
-    if (e.clientX > srcResizeRect.left - resizeWidth && e.clientX < srcResizeRect.left + resizeWidth) {
-      this.resizing = true;
-    } else if (e.clientX < srcResizeRect.right + resizeWidth && e.clientX > srcResizeRect.right - resizeWidth) {
-      this.resizing = true;
-    } else if (e.clientY > srcResizeRect.top - resizeWidth && e.clientY < srcResizeRect.top + resizeWidth) {
-      this.resizing = true;
-    } else if (e.clientY < srcResizeRect.bottom + resizeWidth && e.clientY > srcResizeRect.bottom - resizeWidth) {
-      this.resizing = true;
-    } else {
-      this.resizing = false;
     }
   }
 

@@ -28,6 +28,11 @@ BytraceHilogParser::~BytraceHilogParser() = default;
 
 bool BytraceHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t& timeStamp) const
 {
+    const uint64_t MS_TO_NS = 1e6;
+    const uint64_t US_TO_NS = 1e3;
+    const uint32_t TM_YEAR_FROM = 1900;
+    const uint32_t MS_FORMAT_LEN = 3;
+    const uint32_t US_FORMAT_LEN = 6;
     uint64_t sec;
     uint64_t nsec;
     std::string usecStr;
@@ -51,7 +56,8 @@ bool BytraceHilogParser::HilogTimeStrToTimestamp(std::string& timeStr, uint64_t&
         if (optionalYear.has_value()) {
             timeInfo.tm_year = optionalYear.value() - TM_YEAR_FROM;
         } else {
-            auto tmNow = time(nullptr);
+            time_t tmNow;
+            tmNow = time(nullptr);
             tm* ptmNow = localtime(&tmNow);
             timeInfo.tm_year = ptmNow->tm_year;
         }

@@ -47,15 +47,19 @@ PagedMemorySampleTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBas
 }
 
 PagedMemorySampleTable::Cursor::~Cursor() {}
-int32_t PagedMemorySampleTable::Cursor::Column(int32_t pagedMemorySampleColumn) const
+int32_t PagedMemorySampleTable::Cursor::Column(int32_t column) const
 {
-    switch (static_cast<Index>(pagedMemorySampleColumn)) {
+    switch (static_cast<Index>(column)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(PagedMemorySampleDataObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
-            SetTypeColumn(PagedMemorySampleDataObj_.CallChainIds()[CurrentRow()], INVALID_UINT32,
-                          INVALID_CALL_CHAIN_ID);
+            if (PagedMemorySampleDataObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(PagedMemorySampleDataObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case Index::TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(PagedMemorySampleDataObj_.Types()[CurrentRow()]));
@@ -76,15 +80,21 @@ int32_t PagedMemorySampleTable::Cursor::Column(int32_t pagedMemorySampleColumn) 
             sqlite3_result_int64(context_, static_cast<int64_t>(PagedMemorySampleDataObj_.Durs()[CurrentRow()]));
             break;
         case Index::SIZE: {
-            SetTypeColumnInt64(PagedMemorySampleDataObj_.Sizes()[CurrentRow()], MAX_SIZE_T);
+            if (PagedMemorySampleDataObj_.Sizes()[CurrentRow()] != MAX_SIZE_T) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(PagedMemorySampleDataObj_.Sizes()[CurrentRow()]));
+            }
             break;
         }
         case Index::ADDR: {
-            SetTypeColumnText(PagedMemorySampleDataObj_.Addr()[CurrentRow()], INVALID_UINT64);
+            if (PagedMemorySampleDataObj_.Addr()[CurrentRow()] != INVALID_UINT64) {
+                auto firstArgIndex = PagedMemorySampleDataObj_.Addr()[CurrentRow()];
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(firstArgIndex).c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
+            }
             break;
         }
         default:
-            TS_LOGF("Unregistered pagedMemorySampleColumn : %d", pagedMemorySampleColumn);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

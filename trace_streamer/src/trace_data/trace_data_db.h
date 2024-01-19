@@ -74,10 +74,6 @@ public:
 private:
     void ExecuteSql(const std::string_view& sql);
     void SendDatabase(ResultCallBack resultCallBack);
-    void ParseCommandLine(std::string& option, std::string line, std::vector<std::string>& values);
-    void PrintSearchResult(std::string line, bool printResult);
-    int32_t HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
-    int32_t HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
     static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
     static void SqliteFinalize(sqlite3_stmt* ptr);
 

@@ -96,7 +96,11 @@ export class Rect {
     let maxY = this.y + this.height >= rectObj.y + rectObj.height ? this.y + this.height : rectObj.y + rectObj.height;
     let minX = this.x <= rectObj.x ? this.x : rectObj.x;
     let minY = this.y <= rectObj.y ? this.y : rectObj.y;
-    return maxX - minX <= rectObj.width + this.width && maxY - minY <= this.height + rectObj.height;
+    if (maxX - minX <= rectObj.width + this.width && maxY - minY <= this.height + rectObj.height) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 

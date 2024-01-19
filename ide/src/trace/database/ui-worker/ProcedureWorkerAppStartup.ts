@@ -16,11 +16,10 @@
 import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class AppStartupRender {
   renderMainThread(
-    appStartReq: {
+    req: {
       useCache: boolean;
       appStartupContext: CanvasRenderingContext2D;
       type: string;
@@ -28,8 +27,8 @@ export class AppStartupRender {
     appStartUpRow: TraceRow<AppStartupStruct>
   ): void {
     let list = appStartUpRow.dataList;
-    let appStartUpfilter = appStartUpRow.dataListCache;
-    dataFilterHandler(list, appStartUpfilter, {
+    let filter = appStartUpRow.dataListCache;
+    dataFilterHandler(list, filter, {
       startKey: 'startTs',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -37,13 +36,13 @@ export class AppStartupRender {
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: appStartUpRow.frame,
       paddingTop: 5,
-      useCache: appStartReq.useCache || !(TraceRow.range?.refresh ?? false),
+      useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    appStartReq.appStartupContext.globalAlpha = 0.6;
+    req.appStartupContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
-    for (let re of appStartUpfilter) {
-      AppStartupStruct.draw(appStartReq.appStartupContext, re);
+    for (let re of filter) {
+      AppStartupStruct.draw(req.appStartupContext, re);
       if (appStartUpRow.isHover) {
         if (
           re.frame &&
@@ -62,18 +61,7 @@ export class AppStartupRender {
 }
 
 const padding = 3;
-export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,scrollToFuncHandler:any) {
-  return new Promise((resolve,reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
-      AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
-      sp.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
-      sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
-    }else{
-      resolve(null);
-    }
-  });
-}
+
 export class AppStartupStruct extends BaseStruct {
   static hoverStartupStruct: AppStartupStruct | undefined;
   static selectStartupStruct: AppStartupStruct | undefined;
@@ -87,15 +75,15 @@ export class AppStartupStruct extends BaseStruct {
     'First Frame - APP Phase',
     'First Frame - Render Phase',
   ];
-  startTs: number | undefined;
-  startName: number | undefined;
   dur: number | undefined;
   value: string | undefined;
+  startTs: number | undefined;
   pid: number | undefined;
   process: string | undefined;
-  tid: number | undefined;
   itid: number | undefined;
   endItid: number | undefined;
+  tid: number | undefined;
+  startName: number | undefined;
   stepName: string | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: AppStartupStruct): void {

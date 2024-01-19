@@ -14,12 +14,11 @@
  */
 
 importScripts('trace_streamer_builtin.js');
-import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
-import { QueryEnum, TraficEnum } from './data-trafic/utils/QueryEnum';
+import { execProtoForWorker } from './data-trafic/ExecProtoForWorker';
+import { QueryEnum, TraficEnum } from './data-trafic/QueryEnum';
 import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
-
 let Module: any = null;
 let enc = new TextEncoder();
 let dec = new TextDecoder();
@@ -207,7 +206,7 @@ async function obligateFileBufferSpace(size: number): Promise<void> {
         let splitB = keyB.split('/');
         let timeA = splitA[splitA.length - 1].split('-')[0];
         let timeB = splitB[splitB.length - 1].split('-')[0];
-        return parseInt(timeA) - parseInt(timeB);
+        return  parseInt(timeA) - parseInt(timeB)
       } else {
         return 0;
       }
@@ -307,7 +306,48 @@ self.onmessage = async (e: MessageEvent) => {
           let model = thirdWasmMap.get(componentID);
           if (!model && config.componentId === componentID) {
             importScripts(config.wasmJsName);
-            setThirdWasmMap(config, heapPtr, size, componentID);
+            let thirdMode = initThirdWASM(config.wasmName);
+            let configPluginName = config.pluginName;
+            let pluginNameUintArray = enc.encode(configPluginName);
+            let pluginNameBuffer = thirdMode._InitPluginName(pluginNameUintArray.length);
+            thirdMode.HEAPU8.set(pluginNameUintArray, pluginNameBuffer);
+            thirdMode._TraceStreamerGetPluginNameEx(configPluginName.length);
+            let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
+              if (isConfig == 1) {
+                let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+                thirdJsonResult.set(componentID, {
+                  jsonConfig: dec.decode(out),
+                  disPlayName: config.disPlayName,
+                  pluginName: config.pluginName,
+                });
+              } else {
+                let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+                bufferSlice.push(out);
+                if (isEnd == 1) {
+                  arr = merged();
+                  bufferSlice.length = 0;
+                }
+              }
+            };
+            let fn = thirdMode.addFunction(thirdQueryDataCallBack, 'viiii');
+            let thirdreqBufferAddr = thirdMode._Init(fn, REQ_BUF_SIZE);
+            let updateTraceTimeCallBack = (heapPtr: number, size: number) => {
+              let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+              Module.HEAPU8.set(out, reqBufferAddr);
+              Module._UpdateTraceTime(out.length);
+            };
+            let traceRangeFn = thirdMode.addFunction(updateTraceTimeCallBack, 'vii');
+            let mm = thirdMode._InitTraceRange(traceRangeFn, 1024);
+            thirdMode._TraceStreamer_In_JsonConfig();
+            thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
+            thirdMode._ParserData(headUnitArray!.length, 100);
+            let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+            thirdMode.HEAPU8.set(out, thirdreqBufferAddr);
+            thirdMode._ParserData(out.length, componentID);
+            thirdWasmMap.set(componentID, {
+              model: thirdMode,
+              bufferAddr: thirdreqBufferAddr,
+            });
           } else {
             let mm = model.model;
             let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
@@ -318,54 +358,6 @@ self.onmessage = async (e: MessageEvent) => {
       };
       let fn1 = Module.addFunction(sendDataCallback, 'viii');
       let reqBufferAddr1 = Module._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
-    }
-    function initTraceRange(thirdMode: any): any {
-      let updateTraceTimeCallBack = (heapPtr: number, size: number) => {
-        let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
-        Module.HEAPU8.set(out, reqBufferAddr);
-        Module._UpdateTraceTime(out.length);
-      };
-      let traceRangeFn = thirdMode.addFunction(updateTraceTimeCallBack, 'vii');
-      let mm = thirdMode._InitTraceRange(traceRangeFn, 1024);
-      return mm;
-    }
-    function setThirdWasmMap(config: any, heapPtr: number, size: number, componentID: number) {
-      let thirdMode = initThirdWASM(config.wasmName);
-      let configPluginName = config.pluginName;
-      let pluginNameUintArray = enc.encode(configPluginName);
-      let pluginNameBuffer = thirdMode._InitPluginName(pluginNameUintArray.length);
-      thirdMode.HEAPU8.set(pluginNameUintArray, pluginNameBuffer);
-      thirdMode._TraceStreamerGetPluginNameEx(configPluginName.length);
-      let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
-        if (isConfig == 1) {
-          let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
-          thirdJsonResult.set(componentID, {
-            jsonConfig: dec.decode(out),
-            disPlayName: config.disPlayName,
-            pluginName: config.pluginName,
-          });
-        } else {
-          let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
-          bufferSlice.push(out);
-          if (isEnd == 1) {
-            arr = merged();
-            bufferSlice.length = 0;
-          }
-        }
-      };
-      let fn = thirdMode.addFunction(thirdQueryDataCallBack, 'viiii');
-      let thirdreqBufferAddr = thirdMode._Init(fn, REQ_BUF_SIZE);
-      let mm = initTraceRange(thirdMode);
-      thirdMode._TraceStreamer_In_JsonConfig();
-      thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
-      thirdMode._ParserData(headUnitArray!.length, 100);
-      let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
-      thirdMode.HEAPU8.set(out, thirdreqBufferAddr);
-      thirdMode._ParserData(out.length, componentID);
-      thirdWasmMap.set(componentID, {
-        model: thirdMode,
-        bufferAddr: thirdreqBufferAddr,
-      });
     }
     let wrSize = 0;
     let r2 = -1;
@@ -840,53 +832,7 @@ function indexedDataToBufferData(sourceData: any): Uint8Array {
   return resultUintArray;
 }
 
-async function splitFileAndSaveArkTs(
-  maxSize: number,
-  currentChunkOffset: number,
-  currentChunk: Uint8Array,
-  fileType: string,
-  pageNum: number,
-  saveStartOffset: number,
-  saveIndex: number,
-  timStamp: number,
-  db: IDBDatabase
-) {
-  for (let arkTsAllDataIndex = 0; arkTsAllDataIndex < arkTsData.length; arkTsAllDataIndex++) {
-    let currentArkTsData = arkTsData[arkTsAllDataIndex];
-    let freeSize = maxSize - currentChunkOffset;
-    if (currentArkTsData.length > freeSize) {
-      let freeSaveData = currentArkTsData.slice(0, freeSize);
-      currentChunk.set(freeSaveData, currentChunkOffset);
-      let arg2 = setArg(currentChunk, fileType, pageNum, saveStartOffset, saveIndex, maxSize, timStamp);
-      await addDataToIndexeddb(db, arg2);
-      saveStartOffset += maxSize;
-      saveIndex++;
-      let remnantData = currentArkTsData.slice(freeSize);
-      let remnantDataLength: number = Math.ceil(remnantData.length / maxSize);
-      for (let newSliceIndex = 0; newSliceIndex < remnantDataLength; newSliceIndex++) {
-        let newSliceSize = newSliceIndex * maxSize;
-        let number = Math.min(newSliceSize + maxSize, remnantData.length);
-        let saveArray = remnantData.slice(newSliceSize, number);
-        if (newSliceIndex === remnantDataLength - 1 && number - newSliceSize < maxSize) {
-          currentChunk = new Uint8Array(maxSize);
-          currentChunkOffset = 0;
-          currentChunk.set(saveArray, currentChunkOffset);
-          currentChunkOffset += saveArray.length;
-        } else {
-          let arg2 = setArg(saveArray, fileType, pageNum, saveStartOffset, saveIndex, maxSize, timStamp);
-          await addDataToIndexeddb(db, arg2);
-          saveStartOffset += maxSize;
-          saveIndex++;
-        }
-      }
-    } else {
-      currentChunk.set(currentArkTsData, currentChunkOffset);
-      currentChunkOffset += currentArkTsData.length;
-    }
-  }
-}
-
-const splitFileAndSave = async (
+async function splitFileAndSave(
   timStamp: number,
   fileType: string,
   startIndex: number,
@@ -896,7 +842,7 @@ const splitFileAndSave = async (
   pageNum: number,
   maxSize: number,
   splitReqBufferAddr?: any
-): Promise<void> => {
+) {
   let queryStartIndex = startIndex;
   let queryEndIndex = startIndex;
   let saveIndex = 0;
@@ -912,7 +858,12 @@ const splitFileAndSave = async (
     const transaction = db.transaction(STORE_NAME, 'readonly');
     const store = transaction.objectStore(STORE_NAME);
     const index = store.index('QueryCompleteFile');
-    let range = getRange(timStamp, fileType, queryStartIndex, queryEndIndex);
+    let range = IDBKeyRange.bound(
+      [timStamp, fileType, 0, queryStartIndex],
+      [timStamp, fileType, 0, queryEndIndex],
+      false,
+      false
+    );
     const getRequest = index.openCursor(range);
     let res = await queryDataFromIndexeddb(getRequest);
     queryStartIndex = queryEndIndex + 1;
@@ -932,17 +883,55 @@ const splitFileAndSave = async (
           Module._TraceStreamerLongTraceSplitFileEx(sliceLen, 0, pageNum);
         }
         if (arkTsDataSize > 0 && fileType === 'arkts') {
-          splitFileAndSaveArkTs(
-            maxSize,
-            currentChunkOffset,
-            currentChunk,
-            fileType,
-            pageNum,
-            saveStartOffset,
-            saveIndex,
-            timStamp,
-            db
-          );
+          for (let arkTsAllDataIndex = 0; arkTsAllDataIndex < arkTsData.length; arkTsAllDataIndex++) {
+            let currentArkTsData = arkTsData[arkTsAllDataIndex];
+            let freeSize = maxSize - currentChunkOffset;
+            if (currentArkTsData.length > freeSize) {
+              let freeSaveData = currentArkTsData.slice(0, freeSize);
+              currentChunk.set(freeSaveData, currentChunkOffset);
+              await addDataToIndexeddb(db, {
+                buf: currentChunk,
+                id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
+                fileType: `${fileType}_new`,
+                pageNum: pageNum,
+                startOffset: saveStartOffset,
+                endOffset: saveStartOffset + maxSize,
+                index: saveIndex,
+                timStamp: timStamp,
+              });
+              saveStartOffset += maxSize;
+              saveIndex++;
+              let remnantData = currentArkTsData.slice(freeSize);
+              let remnantDataLength: number = Math.ceil(remnantData.length / maxSize);
+              for (let newSliceIndex = 0; newSliceIndex < remnantDataLength; newSliceIndex++) {
+                let newSliceSize = newSliceIndex * maxSize;
+                let number = Math.min(newSliceSize + maxSize, remnantData.length);
+                let saveArray = remnantData.slice(newSliceSize, number);
+                if (newSliceIndex === remnantDataLength - 1 && number - newSliceSize < maxSize) {
+                  currentChunk = new Uint8Array(maxSize);
+                  currentChunkOffset = 0;
+                  currentChunk.set(saveArray, currentChunkOffset);
+                  currentChunkOffset += saveArray.length;
+                } else {
+                  await addDataToIndexeddb(db, {
+                    buf: saveArray,
+                    id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
+                    fileType: `${fileType}_new`,
+                    pageNum: pageNum,
+                    startOffset: saveStartOffset,
+                    endOffset: saveStartOffset + maxSize,
+                    index: saveIndex,
+                    timStamp: timStamp,
+                  });
+                  saveStartOffset += maxSize;
+                  saveIndex++;
+                }
+              }
+            } else {
+              currentChunk.set(currentArkTsData, currentChunkOffset);
+              currentChunkOffset += currentArkTsData.length;
+            }
+          }
         }
       }
     }
@@ -951,40 +940,19 @@ const splitFileAndSave = async (
     let remnantArray = new Uint8Array(currentChunkOffset);
     let remnantChunk = currentChunk.slice(0, currentChunkOffset);
     remnantArray.set(remnantChunk, 0);
-    let arg2 = setArg(remnantArray, fileType, pageNum, saveStartOffset, saveIndex, maxSize, timStamp);
-    await addDataToIndexeddb(db, arg2);
+    await addDataToIndexeddb(db, {
+      buf: remnantArray,
+      id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
+      fileType: `${fileType}_new`,
+      pageNum: pageNum,
+      startOffset: saveStartOffset,
+      endOffset: saveStartOffset + maxSize,
+      index: saveIndex,
+      timStamp: timStamp,
+    });
     arkTsDataSize = 0;
     arkTsData.length = 0;
   }
-};
-
-function setArg(
-  remnantArray: Uint8Array,
-  fileType: string,
-  pageNum: number,
-  saveStartOffset: number,
-  saveIndex: number,
-  maxSize: number,
-  timStamp: number
-): any {
-  return {
-    buf: remnantArray,
-    id: `${fileType}_new_${timStamp}_${pageNum}_${saveIndex}`,
-    fileType: `${fileType}_new`,
-    pageNum: pageNum,
-    startOffset: saveStartOffset,
-    endOffset: saveStartOffset + maxSize,
-    index: saveIndex,
-    timStamp: timStamp,
-  };
-}
-function getRange(timStamp: number, fileType: string, queryStartIndex: number, queryEndIndex: number) {
-  return IDBKeyRange.bound(
-    [timStamp, fileType, 0, queryStartIndex],
-    [timStamp, fileType, 0, queryEndIndex],
-    false,
-    false
-  );
 }
 
 enum DataTypeEnum {
@@ -1072,7 +1040,37 @@ function cutFileByRange(e: MessageEvent) {
   let cutRightTs = e.data.rightTs;
   let uint8Array = new Uint8Array(e.data.buffer);
   let resultBuffer: Array<any> = [];
-  let cutFileCallBack = cutFileCallBackFunc(resultBuffer, uint8Array, e);
+  let cutFileCallBack = (heapPtr: number, size: number, fileType: number, isEnd: number) => {
+    let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+    if (FileTypeEnum.data === fileType) {
+      resultBuffer.push(out);
+    } else if (FileTypeEnum.json === fileType) {
+      let cutBuffer = cutFileBufferByOffSet(out, uint8Array);
+      resultBuffer.push(cutBuffer);
+    }
+    if (isEnd) {
+      const cutResultFileLength = resultBuffer.reduce((total, obj) => total + obj.length, 0);
+      let cutBuffer = new Uint8Array(cutResultFileLength);
+      let offset = 0;
+      resultBuffer.forEach((item) => {
+        cutBuffer.set(item, offset);
+        offset += item.length;
+      });
+      resultBuffer.length = 0;
+      self.postMessage(
+        {
+          id: e.data.id,
+          action: e.data.action,
+          cutStatus: true,
+          msg: 'split success',
+          buffer: e.data.buffer,
+          cutBuffer: cutBuffer.buffer,
+        },
+        // @ts-ignore
+        [e.data.buffer, cutBuffer.buffer]
+      );
+    }
+  };
   splitReqBufferAddr = Module._InitializeSplitFile(Module.addFunction(cutFileCallBack, 'viiii'), REQ_BUF_SIZE);
   let cutTimeRange = `${cutLeftTs};${cutRightTs};`;
   let cutTimeRangeBuffer = enc.encode(cutTimeRange);
@@ -1106,41 +1104,9 @@ function cutFileByRange(e: MessageEvent) {
     }
   }
 }
-function cutFileCallBackFunc(resultBuffer: Array<any>, uint8Array: Uint8Array, e: MessageEvent): Function {
-  return (heapPtr: number, size: number, fileType: number, isEnd: number) => {
-    let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
-    if (FileTypeEnum.data === fileType) {
-      resultBuffer.push(out);
-    } else if (FileTypeEnum.json === fileType) {
-      let cutBuffer = cutFileBufferByOffSet(out, uint8Array);
-      resultBuffer.push(cutBuffer);
-    }
-    if (isEnd) {
-      const cutResultFileLength = resultBuffer.reduce((total, obj) => total + obj.length, 0);
-      let cutBuffer = new Uint8Array(cutResultFileLength);
-      let offset = 0;
-      resultBuffer.forEach((item) => {
-        cutBuffer.set(item, offset);
-        offset += item.length;
-      });
-      resultBuffer.length = 0;
-      self.postMessage(
-        {
-          id: e.data.id,
-          action: e.data.action,
-          cutStatus: true,
-          msg: 'split success',
-          buffer: e.data.buffer,
-          cutBuffer: cutBuffer.buffer,
-        },
-        // @ts-ignore
-        [e.data.buffer, cutBuffer.buffer]
-      );
-    }
-  };
-}
 
 function createView(sql: string) {
+  // console.log("createView:",sql);
   let array = enc.encode(sql);
   Module.HEAPU8.set(array, reqBufferAddr);
   let res = Module._TraceStreamerSqlOperateEx(array.length);
@@ -1163,6 +1129,7 @@ function query(name: string, sql: string, params: any): void {
     });
   }
   start = new Date().getTime();
+  // console.log(sql);
   let sqlUintArray = enc.encode(sql);
   Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
   Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
@@ -1178,6 +1145,7 @@ function querySdk(name: string, sql: string, sdkParams: any, action: string) {
       }
     });
   }
+  // console.log(name,sql);
   let sqlUintArray = enc.encode(sql);
   let commentId = action.substring(action.lastIndexOf('-') + 1);
   let key = Number(commentId);

@@ -59,7 +59,6 @@ public:
     void WriteEnumDescriptor(const EnumDescriptor* enumeration);
     void WriteDecoder(const Descriptor* descriptor);
     void WriteEnum(const Descriptor* descriptor);
-    void WriteFunc(const Descriptor* descriptor, const int32_t maxFieldID);
     void WriteEnd();
     const std::string& GetError() const
     {
@@ -81,7 +80,7 @@ private:
         }
     }
     template <class T>
-    const std::string GetDescriptorClass(const T* descriptor)
+    std::string GetDescriptorClass(const T* descriptor)
     {
         std::string name = GetDescriptorName(descriptor);
         size_t pos = name.find(".");

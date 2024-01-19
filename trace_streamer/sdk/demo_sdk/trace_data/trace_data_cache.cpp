@@ -23,12 +23,12 @@ namespace SysTuning {
 namespace TraceStreamer {
 TraceDataCache::TraceDataCache()
 {
-    DemoInitDB();
+    InitDB();
 }
 
 TraceDataCache::~TraceDataCache() {}
 
-void TraceDataCache::DemoInitDB()
+void TraceDataCache::InitDB()
 {
     if (dbInited) {
         return;

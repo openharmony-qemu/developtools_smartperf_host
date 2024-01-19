@@ -59,38 +59,38 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
 }
 void TraceStreamerSelector::EnableMetaTable(bool enabled)
 {
-    traceDataCache_->DemoEnableMetaTable(enabled);
+    traceDataCache_->EnableMetaTable(enabled);
 }
 
 void TraceStreamerSelector::SetCleanMode(bool cleanMode) {}
 int32_t TraceStreamerSelector::ExportDatabase(const std::string& outputName) const
 {
-    return traceDataCache_->DemoExportDatabase(outputName);
+    return traceDataCache_->ExportDatabase(outputName);
 }
 void TraceStreamerSelector::Clear()
 {
-    traceDataCache_->DemoPrepare();
+    traceDataCache_->Prepare();
     traceDataCache_->Clear();
 }
 int32_t TraceStreamerSelector::SearchData()
 {
-    return traceDataCache_->DemoSearchData();
+    return traceDataCache_->SearchData();
 }
 int32_t TraceStreamerSelector::OperateDatabase(const std::string& sql)
 {
-    return traceDataCache_->DemoOperateDatabase(sql);
+    return traceDataCache_->OperateDatabase(sql);
 }
-int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, DemoTraceDataDB::ResultCallBack resultCallBack)
+int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack)
 {
-    return traceDataCache_->DemoSearchDatabase(sql, resultCallBack);
+    return traceDataCache_->SearchDatabase(sql, resultCallBack);
 }
 int32_t TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int32_t outLen)
 {
-    return traceDataCache_->DemoSearchDatabase(sql, out, outLen);
+    return traceDataCache_->SearchDatabase(sql, out, outLen);
 }
 void TraceStreamerSelector::SetCancel(bool cancel)
 {
-    traceDataCache_->DemoSetCancel(cancel);
+    traceDataCache_->SetCancel(cancel);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

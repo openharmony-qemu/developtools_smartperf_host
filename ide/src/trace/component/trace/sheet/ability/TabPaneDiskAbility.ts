@@ -16,12 +16,12 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabDiskAbilityData } from '../../../../database/SqlLite';
 import { SystemDiskIOSummary } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import { getTabDiskAbilityData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-disk-ability')
 export class TabPaneDiskAbility extends BaseElement {
@@ -30,11 +30,9 @@ export class TabPaneDiskAbility extends BaseElement {
   private queryDiskResult: Array<SystemDiskIOSummary> = [];
   private search: HTMLInputElement | undefined | null;
 
-  set data(diskAbilityValue: SelectionParam) {
-    if (this.diskAbilityTbl) {
-      // @ts-ignore
-      this.diskAbilityTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
-    }
+  set data(diskAbilityValue: SelectionParam | any) {
+    // @ts-ignore
+    this.diskAbilityTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 45 + 'px';
     this.queryDataByDB(diskAbilityValue);
   }
 
@@ -46,12 +44,12 @@ export class TabPaneDiskAbility extends BaseElement {
     });
   }
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.diskAbilityTbl!);
   }
 
-  filterData(): void {
+  filterData() {
     if (this.queryDiskResult.length > 0) {
       let filterDisk = this.queryDiskResult.filter((item) => {
         let array = this.toDiskAbilityArray(item);
@@ -68,7 +66,7 @@ export class TabPaneDiskAbility extends BaseElement {
     }
   }
 
-  toDiskAbilityArray(systemDiskIOSummary: SystemDiskIOSummary): string[] {
+  toDiskAbilityArray(systemDiskIOSummary: SystemDiskIOSummary): any[] {
     let array: Array<string> = [];
     array.push(systemDiskIOSummary.startTimeStr);
     array.push(systemDiskIOSummary.durationStr);
@@ -82,10 +80,10 @@ export class TabPaneDiskAbility extends BaseElement {
     return array;
   }
 
-  queryDataByDB(val: SelectionParam): void {
+  queryDataByDB(val: SelectionParam | any) {
     getTabDiskAbilityData(val.leftNs, val.rightNs).then((result) => {
       log('getTabDiskAbilityData result size : ' + result.length);
-      if (result.length !== null && result.length > 0) {
+      if (result.length != null && result.length > 0) {
         for (const systemDiskIOSummary of result) {
           if (systemDiskIOSummary.startTime <= 0) {
             systemDiskIOSummary.startTimeStr = '0:000.000.000';
@@ -126,93 +124,115 @@ export class TabPaneDiskAbility extends BaseElement {
         }
         </style>
         <lit-table id="tb-disk-ability" class="disk-ability-table">
-            <lit-table-column order width="1fr"
-            title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start">
+            <lit-table-column order width="1fr" title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start">
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
+            <lit-table-column order width="1fr" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Data Read" data-index="dataReadStr" key="dataReadStr" align="flex-start" >
+            <lit-table-column order width="1fr" title="Data Read" data-index="dataReadStr" key="dataReadStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Data Read/sec" data-index="dataReadSecStr" key="dataReadSecStr" align="flex-start">
+            <lit-table-column order width="1fr" title="Data Read/sec" data-index="dataReadSecStr" key="dataReadSecStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Data Write" data-index="dataWriteStr" key="dataWriteStr" align="flex-start" >
+            <lit-table-column order width="1fr" title="Data Write" data-index="dataWriteStr" key="dataWriteStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Data Write/sec" data-index="dataWriteSecStr" key="dataWriteSecStr" align="flex-start">
+            <lit-table-column order width="1fr" title="Data Write/sec" data-index="dataWriteSecStr" key="dataWriteSecStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Reads In" data-index="readsIn" key="readsInStr" align="flex-startStr" >
+            <lit-table-column order width="1fr" title="Reads In" data-index="readsIn" key="readsInStr" align="flex-startStr" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Reads In/sec" data-index="readsInSecStr" key="readsInSecStr" align="flex-start" >
+            <lit-table-column order width="1fr" title="Reads In/sec" data-index="readsInSecStr" key="readsInSecStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Write Out" data-index="writeOutStr" key="writeOutStr" align="flex-start" >
+            <lit-table-column order width="1fr" title="Write Out" data-index="writeOutStr" key="writeOutStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column order width="1fr"
-            title="Write Out/sec" data-index="writeOutSecStr" key="writeOutSecStr" align="flex-start" >
+            <lit-table-column order width="1fr" title="Write Out/sec" data-index="writeOutSecStr" key="writeOutSecStr" align="flex-start" >
             </lit-table-column>
         </lit-table>
         `;
   }
 
-  getPropertyByType = (property: string, type: string) => (data: SystemDiskIOSummary): number | string => {
-    let typeMap = {
-      // @ts-ignore
-      number: parseFloat(data[property]),
-      durationStr: data.duration,
-      dataReadStr: data.dataRead,
-      dataReadSecStr: data.dataReadSec,
-      dataWriteStr: data.dataWrite,
-      dataWriteSecStr: data.dataWriteSec,
-      readsInStr: data.readsIn,
-      readsInSecStr: data.readsInSec,
-      writeOutStr: data.writeOut,
-      writeOutSecStr: data.writeOutSec
-    };
+  sortByColumn(detail: any) {
     // @ts-ignore
-    return typeMap[type] || data[property];
-  };
+    function compare(property, sort, type) {
+      return function (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) {
+        if (type === 'number') {
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(diskAbilityRightData[property]) - parseFloat(diskAbilityLeftData[property])
+            : // @ts-ignore
+              parseFloat(diskAbilityLeftData[property]) - parseFloat(diskAbilityRightData[property]);
+        } else if (type === 'durationStr') {
+          return sort === 2
+            ? diskAbilityRightData.duration - diskAbilityLeftData.duration
+            : diskAbilityLeftData.duration - diskAbilityRightData.duration;
+        } else if (type === 'dataReadStr') {
+          return sort === 2
+            ? diskAbilityRightData.dataRead - diskAbilityLeftData.dataRead
+            : diskAbilityLeftData.dataRead - diskAbilityRightData.dataRead;
+        } else if (type === 'dataReadSecStr') {
+          return sort === 2
+            ? diskAbilityRightData.dataReadSec - diskAbilityLeftData.dataReadSec
+            : diskAbilityLeftData.dataReadSec - diskAbilityRightData.dataReadSec;
+        } else if (type === 'dataWriteStr') {
+          return sort === 2
+            ? diskAbilityRightData.dataWrite - diskAbilityLeftData.dataWrite
+            : diskAbilityLeftData.dataWrite - diskAbilityRightData.dataWrite;
+        } else if (type === 'dataWriteSecStr') {
+          return sort === 2
+            ? diskAbilityRightData.dataWriteSec - diskAbilityLeftData.dataWriteSec
+            : diskAbilityLeftData.dataWriteSec - diskAbilityRightData.dataWriteSec;
+        } else if (type === 'readsInStr') {
+          return sort === 2
+            ? diskAbilityRightData.readsIn - diskAbilityLeftData.readsIn
+            : diskAbilityLeftData.readsIn - diskAbilityRightData.readsIn;
+        } else if (type === 'readsInSecStr') {
+          return sort === 2
+            ? diskAbilityRightData.readsInSec - diskAbilityLeftData.readsInSec
+            : diskAbilityLeftData.readsInSec - diskAbilityRightData.readsInSec;
+        } else if (type === 'writeOutStr') {
+          return sort === 2
+            ? diskAbilityRightData.writeOut - diskAbilityLeftData.writeOut
+            : diskAbilityLeftData.writeOut - diskAbilityRightData.writeOut;
+        } else if (type === 'writeOutSecStr') {
+          return sort === 2
+            ? diskAbilityRightData.writeOutSec - diskAbilityLeftData.writeOutSec
+            : diskAbilityLeftData.writeOutSec - diskAbilityRightData.writeOutSec;
+        } else {
+          // @ts-ignore
+          if (diskAbilityRightData[property] > diskAbilityLeftData[property]) {
+            return sort === 2 ? 1 : -1;
+          } else {
+            // @ts-ignore
+            if (diskAbilityRightData[property] == diskAbilityLeftData[property]) {
+              return 0;
+            } else {
+              return sort === 2 ? -1 : 1;
+            }
+          }
+        }
+      };
+    }
 
-  compareFunction = (sort: number, getProperty: (data: SystemDiskIOSummary) => number | string) =>
-    (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary): number => {
-      let leftValue = getProperty(diskAbilityLeftData);
-      let rightValue = getProperty(diskAbilityRightData);
-      let result = 0;
-      if (leftValue > rightValue) {
-        result = sort === 2 ? -1 : 1;
-      } else if (leftValue < rightValue) {
-        result = sort === 2 ? 1 : -1;
-      }
-      return result;
-    };
-
-  compareDisk(property: string, sort: number, type: string):
-    (diskAbilityLeftData: SystemDiskIOSummary, diskAbilityRightData: SystemDiskIOSummary) => number {
-    let getProperty = this.getPropertyByType(property, type);
-    return this.compareFunction(sort, getProperty);
-  }
-
-  sortByColumn(detail: any): void {
-    let typeMapping = {
-      startTime: 'string',
-      durationStr: 'durationStr',
-      dataReadStr: 'dataReadStr',
-      dataReadSecStr: 'dataReadSecStr',
-      dataWriteStr: 'dataWriteStr',
-      dataWriteSecStr: 'dataWriteSecStr',
-      readsInStr: 'readsInStr',
-      readsInSecStr: 'readsInSecStr',
-      writeOutStr: 'writeOutStr',
-      writeOutSecStr: 'writeOutSecStr'
-    };
-    // @ts-ignore
-    let type = typeMapping[detail.key] || 'number';
-    this.diskAbilitySource.sort(this.compareDisk(detail.key, detail.sort, type));
+    if (detail.key === 'startTime') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'string'));
+    } else if (detail.key === 'durationStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'durationStr'));
+    } else if (detail.key === 'dataReadStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataReadStr'));
+    } else if (detail.key === 'dataReadSecStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataReadSecStr'));
+    } else if (detail.key === 'dataWriteStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataWriteStr'));
+    } else if (detail.key === 'dataWriteSecStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'dataWriteSecStr'));
+    } else if (detail.key === 'readsInStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'readsInStr'));
+    } else if (detail.key === 'readsInSecStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'readsInSecStr'));
+    } else if (detail.key === 'writeOutStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'writeOutStr'));
+    } else if (detail.key === 'writeOutSecStr') {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'writeOutSecStr'));
+    } else {
+      this.diskAbilitySource.sort(compare(detail.key, detail.sort, 'number'));
+    }
     this.diskAbilityTbl!.recycleDataSource = this.diskAbilitySource;
   }
 }

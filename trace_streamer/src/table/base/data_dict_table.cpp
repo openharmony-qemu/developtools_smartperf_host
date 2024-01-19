@@ -73,9 +73,9 @@ int32_t DataDictTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         return SQLITE_OK;
     }
 
-    auto& dataDictTabCs = fc.GetConstraints();
-    for (size_t i = 0; i < dataDictTabCs.size(); i++) {
-        const auto& c = dataDictTabCs[i];
+    auto& cs = fc.GetConstraints();
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -85,12 +85,12 @@ int32_t DataDictTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         }
     }
 
-    auto dataDictTabOrderbys = fc.GetOrderBys();
-    for (auto i = dataDictTabOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(dataDictTabOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(dataDictTabOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

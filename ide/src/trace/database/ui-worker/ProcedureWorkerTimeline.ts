@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { ns2s, Rect, Render } from './ProcedureWorkerCommon';
+import { ns2s, Rect, Render, RequestMessage } from './ProcedureWorkerCommon';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { CpuStruct } from './cpu/ProcedureWorkerCPU';
+import { CpuStruct } from './ProcedureWorkerCPU';
 
 //绘制时间轴
 let timeRuler: TimeRuler | undefined;
@@ -27,11 +27,47 @@ let offsetLeft: number = 0;
 
 export class TimelineRender extends Render {
   renderMainThread(req: any, row: TraceRow<any>) {}
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
+    timeline(
+      req.canvas,
+      req.context,
+      req.startNS,
+      req.endNS,
+      req.totalNS,
+      req.frame,
+      req.params.keyPressCode,
+      req.params.keyUpCode,
+      req.params.mouseDown,
+      req.params.mouseUp,
+      req.params.mouseMove,
+      req.params.mouseOut,
+      req.params.offsetLeft,
+      req.params.offsetTop,
+      (a: any) => {
+        //@ts-ignore
+        self.postMessage({
+          id: 'timeline',
+          type: 'timeline-range-changed',
+          results: a,
+        });
+      }
+    );
+    // @ts-ignore
+    self.postMessage({
+      id: req.id,
+      type: req.type,
+      results: null,
+    });
+  }
 }
 
 export function timeline(
+  // @ts-ignore
   canvas: OffscreenCanvas,
+  // @ts-ignore
   ctx: OffscreenCanvasRenderingContext2D,
+  startNS: number,
+  endNS: number,
   totalNS: number,
   frame: Rect,
   keyPressCode: any,
@@ -74,34 +110,25 @@ export function timeline(
       }
     );
   }
+
   rangeRuler.frame.width = frame.width;
   sportRuler.frame.width = frame.width;
   timeRuler.frame.width = frame.width;
-  timelineMouseEvent(keyPressCode, keyUpCode, mouseDown, mouseUp, mouseMove, mouseOut);
-}
-function timelineMouseEvent(
-  keyPressCode: any,
-  keyUpCode: any,
-  mouseDown: any,
-  mouseUp: any,
-  mouseMove: any,
-  mouseOut: any
-) {
   if (keyPressCode) {
-    rangeRuler!.keyPress(keyPressCode);
+    rangeRuler.keyPress(keyPressCode);
   } else if (keyUpCode) {
-    rangeRuler!.keyUp(keyUpCode);
+    rangeRuler.keyUp(keyUpCode);
   } else if (mouseDown) {
-    rangeRuler!.mouseDown(mouseDown);
+    rangeRuler.mouseDown(mouseDown);
   } else if (mouseUp) {
-    rangeRuler!.mouseUp(mouseUp);
+    rangeRuler.mouseUp(mouseUp);
   } else if (mouseMove) {
-    rangeRuler!.mouseMove(mouseMove);
+    rangeRuler.mouseMove(mouseMove);
   } else if (mouseOut) {
-    rangeRuler!.mouseOut(mouseOut);
+    rangeRuler.mouseOut(mouseOut);
   } else {
-    timeRuler!.draw();
-    rangeRuler!.draw();
+    timeRuler.draw();
+    rangeRuler.draw();
   }
 }
 
@@ -442,33 +469,6 @@ export class RangeRuler extends Graph {
     }
   }
 
-  scaleSetting(): void {
-    let l20 = (this.range.endNS - this.range.startNS) / 20;
-    let min = 0;
-    let max = 0;
-    let weight = 0;
-    for (let index = 0; index < this.scales.length; index++) {
-      if (this.scales[index] > l20) {
-        if (index > 0) {
-          min = this.scales[index - 1];
-        } else {
-          min = 0;
-        }
-        max = this.scales[index];
-        weight = ((l20 - min) * 1.0) / (max - min);
-        if (weight > 0.243) {
-          this.scale = max;
-        } else {
-          this.scale = min;
-        }
-        break;
-      }
-    }
-    if (this.scale == 0) {
-      this.scale = this.scales[0];
-    }
-  }
-
   draw(discardNotify: boolean = false): void {
     this.c.clearRect(this.frame.x - markPadding, this.frame.y, this.frame.width + markPadding * 2, this.frame.height);
     this.c.beginPath();
@@ -485,7 +485,30 @@ export class RangeRuler extends Graph {
       this.range.endX = this.rangeRect.x + this.rangeRect.width;
       this.range.startNS = (this.range.startX * this.range.totalNS) / (this.frame.width || 0);
       this.range.endNS = (this.range.endX * this.range.totalNS) / (this.frame.width || 0);
-      this.scaleSetting();
+      let l20 = (this.range.endNS - this.range.startNS) / 20;
+      let min = 0;
+      let max = 0;
+      let weight = 0;
+      for (let index = 0; index < this.scales.length; index++) {
+        if (this.scales[index] > l20) {
+          if (index > 0) {
+            min = this.scales[index - 1];
+          } else {
+            min = 0;
+          }
+          max = this.scales[index];
+          weight = ((l20 - min) * 1.0) / (max - min);
+          if (weight > 0.243) {
+            this.scale = max;
+          } else {
+            this.scale = min;
+          }
+          break;
+        }
+      }
+      if (this.scale == 0) {
+        this.scale = this.scales[0];
+      }
       let tmpNs = 0;
       let timeLineYu = this.range.startNS % this.scale;
       let timeLineRealW = (this.scale * this.frame.width) / (this.range.endNS - this.range.startNS);
@@ -566,48 +589,11 @@ export class RangeRuler extends Graph {
     }
   }
 
-  movingRange(maxX: number, x: number): void {
-    let result = x - this.mouseDownOffsetX;
-    let mA = result + this.markAX;
-    let mB = result + this.markBX;
-    if (mA >= 0 && mA <= maxX) {
-      this.markA.frame.x = mA;
-    } else if (mA < 0) {
-      this.markA.frame.x = 0;
-    } else {
-      this.markA.frame.x = maxX;
-    }
-    this.markA.inspectionFrame.x = this.markA.frame.x - markPadding;
-    if (mB >= 0 && mB <= maxX) {
-      this.markB.frame.x = mB;
-    } else if (mB < 0) {
-      this.markB.frame.x = 0;
-    } else {
-      this.markB.frame.x = maxX;
-    }
-    this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
-    requestAnimationFrame(() => this.draw());
-  }
-
   mouseUp(ev: MouseEvent) {
     this.isMouseDown = false;
     this.isMovingRange = false;
     this.isNewRange = false;
     this.movingMark = null;
-  }
-
-  movingNewRange(maxX: number, x: number): void {
-    this.markA.frame.x = this.mouseDownOffsetX;
-    this.markA.inspectionFrame.x = this.mouseDownOffsetX - markPadding;
-    if (x >= 0 && x <= maxX) {
-      this.markB.frame.x = x;
-    } else if (x < 0) {
-      this.markB.frame.x = 0;
-    } else {
-      this.markB.frame.x = maxX;
-    }
-    this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
-    requestAnimationFrame(() => this.draw());
   }
 
   mouseMove(ev: MouseEvent) {
@@ -641,9 +627,38 @@ export class RangeRuler extends Graph {
       requestAnimationFrame(() => this.draw());
     }
     if (this.isMovingRange && this.isMouseDown) {
-      this.movingRange(maxX, x);
+      let result = x - this.mouseDownOffsetX;
+      let mA = result + this.markAX;
+      let mB = result + this.markBX;
+      if (mA >= 0 && mA <= maxX) {
+        this.markA.frame.x = mA;
+      } else if (mA < 0) {
+        this.markA.frame.x = 0;
+      } else {
+        this.markA.frame.x = maxX;
+      }
+      this.markA.inspectionFrame.x = this.markA.frame.x - markPadding;
+      if (mB >= 0 && mB <= maxX) {
+        this.markB.frame.x = mB;
+      } else if (mB < 0) {
+        this.markB.frame.x = 0;
+      } else {
+        this.markB.frame.x = maxX;
+      }
+      this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
+      requestAnimationFrame(() => this.draw());
     } else if (this.isNewRange) {
-      this.movingNewRange(maxX, x);
+      this.markA.frame.x = this.mouseDownOffsetX;
+      this.markA.inspectionFrame.x = this.mouseDownOffsetX - markPadding;
+      if (x >= 0 && x <= maxX) {
+        this.markB.frame.x = x;
+      } else if (x < 0) {
+        this.markB.frame.x = 0;
+      } else {
+        this.markB.frame.x = maxX;
+      }
+      this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
+      requestAnimationFrame(() => this.draw());
     }
   }
 
@@ -664,52 +679,7 @@ export class RangeRuler extends Graph {
     this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
   }
 
-  keyPressInW(): void {
-    let animW = () => {
-      if (this.scale === 50) return;
-      this.range.startNS += (this.centerXPercentage * this.currentDuration * 2 * this.scale) / this.p;
-      this.range.endNS -= ((1 - this.centerXPercentage) * this.currentDuration * 2 * this.scale) / this.p;
-      this.fillX();
-      this.draw();
-      this.pressFrameId = requestAnimationFrame(animW);
-    };
-    this.pressFrameId = requestAnimationFrame(animW);
-  }
-  keyPressInS(): void {
-    let animS = () => {
-      if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) return;
-      this.range.startNS -= (this.centerXPercentage * this.currentDuration * 2 * this.scale) / this.p;
-      this.range.endNS += ((1 - this.centerXPercentage) * this.currentDuration * 2 * this.scale) / this.p;
-      this.fillX();
-      this.draw();
-      this.pressFrameId = requestAnimationFrame(animS);
-    };
-    this.pressFrameId = requestAnimationFrame(animS);
-  }
-  keyPressInA(): void {
-    let animA = () => {
-      if (this.range.startNS == 0) return;
-      let s = (this.scale / this.p) * this.currentDuration;
-      this.range.startNS -= s;
-      this.range.endNS -= s;
-      this.fillX();
-      this.draw();
-      this.pressFrameId = requestAnimationFrame(animA);
-    };
-    this.pressFrameId = requestAnimationFrame(animA);
-  }
-  keyPressInD(): void {
-    let animD = () => {
-      if (this.range.endNS >= this.range.totalNS) return;
-      this.range.startNS += (this.scale / this.p) * this.currentDuration;
-      this.range.endNS += (this.scale / this.p) * this.currentDuration;
-      this.fillX();
-      this.draw();
-      this.pressFrameId = requestAnimationFrame(animD);
-    };
-    this.pressFrameId = requestAnimationFrame(animD);
-  }
-  keyPress(ev: KeyboardEvent): void {
+  keyPress(ev: KeyboardEvent) {
     if (this.animaStartTime === undefined) {
       this.animaStartTime = new Date().getTime();
     }
@@ -721,79 +691,54 @@ export class RangeRuler extends Graph {
     this.isPress = true;
     switch (ev.key.toLocaleLowerCase()) {
       case 'w':
-        this.keyPressInW();
+        let animW = () => {
+          if (this.scale === 50) return;
+          this.range.startNS += (this.centerXPercentage * this.currentDuration * 2 * this.scale) / this.p;
+          this.range.endNS -= ((1 - this.centerXPercentage) * this.currentDuration * 2 * this.scale) / this.p;
+          this.fillX();
+          this.draw();
+          this.pressFrameId = requestAnimationFrame(animW);
+        };
+        this.pressFrameId = requestAnimationFrame(animW);
         break;
       case 's':
-        this.keyPressInS();
+        let animS = () => {
+          if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) return;
+          this.range.startNS -= (this.centerXPercentage * this.currentDuration * 2 * this.scale) / this.p;
+          this.range.endNS += ((1 - this.centerXPercentage) * this.currentDuration * 2 * this.scale) / this.p;
+          this.fillX();
+          this.draw();
+          this.pressFrameId = requestAnimationFrame(animS);
+        };
+        this.pressFrameId = requestAnimationFrame(animS);
         break;
       case 'a':
-        this.keyPressInA();
+        let animA = () => {
+          if (this.range.startNS == 0) return;
+          let s = (this.scale / this.p) * this.currentDuration;
+          this.range.startNS -= s;
+          this.range.endNS -= s;
+          this.fillX();
+          this.draw();
+          this.pressFrameId = requestAnimationFrame(animA);
+        };
+        this.pressFrameId = requestAnimationFrame(animA);
         break;
       case 'd':
-        this.keyPressInD();
+        let animD = () => {
+          if (this.range.endNS >= this.range.totalNS) return;
+          this.range.startNS += (this.scale / this.p) * this.currentDuration;
+          this.range.endNS += (this.scale / this.p) * this.currentDuration;
+          this.fillX();
+          this.draw();
+          this.pressFrameId = requestAnimationFrame(animD);
+        };
+        this.pressFrameId = requestAnimationFrame(animD);
         break;
     }
   }
-  keyUpInW(startTime: number): void {
-    let animW = () => {
-      if (this.scale === 50) return;
-      let dur = new Date().getTime() - startTime;
-      this.range.startNS += (this.centerXPercentage * 100 * this.scale) / this.p;
-      this.range.endNS -= ((1 - this.centerXPercentage) * 100 * this.scale) / this.p;
-      this.fillX();
-      this.draw();
-      if (dur < 300) {
-        requestAnimationFrame(animW);
-      }
-    };
-    requestAnimationFrame(animW);
-  }
-  keyUpInS(startTime: number): void {
-    let animS = () => {
-      if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) return;
-      let dur = new Date().getTime() - startTime;
-      this.range.startNS -= (this.centerXPercentage * 100 * this.scale) / this.p;
-      this.range.endNS += ((1 - this.centerXPercentage) * 100 * this.scale) / this.p;
-      this.fillX();
-      this.draw();
-      if (dur < 300) {
-        requestAnimationFrame(animS);
-      }
-    };
-    requestAnimationFrame(animS);
-  }
-  keyUpInA(startTime: number): void {
-    let animA = () => {
-      if (this.range.startNS <= 0) return;
-      let dur = new Date().getTime() - startTime;
-      let s = (this.scale * 80) / this.p;
-      this.range.startNS -= s;
-      this.range.endNS -= s;
-      this.fillX();
-      this.draw();
-      if (dur < 300) {
-        requestAnimationFrame(animA);
-      }
-    };
-    animA();
-  }
-  keyUpInD(startTime: number): void {
-    let animD = () => {
-      if (this.range.endNS >= this.range.totalNS) return;
-      let dur = new Date().getTime() - startTime;
-      let s = (this.scale * 80) / this.p;
-      this.range.startNS += s;
-      this.range.endNS += s;
-      this.fillX();
-      this.draw();
-      if (dur < 300) {
-        requestAnimationFrame(animD);
-      }
-    };
-    animD();
-  }
 
-  keyUp(ev: KeyboardEvent): void {
+  keyUp(ev: KeyboardEvent) {
     this.animaStartTime = undefined;
     this.isPress = false;
     if (this.pressFrameId != -1) {
@@ -802,16 +747,62 @@ export class RangeRuler extends Graph {
     let startTime = new Date().getTime();
     switch (ev.key) {
       case 'w':
-        this.keyUpInW.call(this, startTime);
+        let animW = () => {
+          if (this.scale === 50) return;
+          let dur = new Date().getTime() - startTime;
+          this.range.startNS += (this.centerXPercentage * 100 * this.scale) / this.p;
+          this.range.endNS -= ((1 - this.centerXPercentage) * 100 * this.scale) / this.p;
+          this.fillX();
+          this.draw();
+          if (dur < 300) {
+            requestAnimationFrame(animW);
+          }
+        };
+        requestAnimationFrame(animW);
         break;
       case 's':
-        this.keyUpInS.call(this, startTime);
+        let animS = () => {
+          if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) return;
+          let dur = new Date().getTime() - startTime;
+          this.range.startNS -= (this.centerXPercentage * 100 * this.scale) / this.p;
+          this.range.endNS += ((1 - this.centerXPercentage) * 100 * this.scale) / this.p;
+          this.fillX();
+          this.draw();
+          if (dur < 300) {
+            requestAnimationFrame(animS);
+          }
+        };
+        requestAnimationFrame(animS);
         break;
       case 'a':
-        this.keyUpInA.call(this, startTime);
+        let animA = () => {
+          if (this.range.startNS <= 0) return;
+          let dur = new Date().getTime() - startTime;
+          let s = (this.scale * 80) / this.p;
+          this.range.startNS -= s;
+          this.range.endNS -= s;
+          this.fillX();
+          this.draw();
+          if (dur < 300) {
+            requestAnimationFrame(animA);
+          }
+        };
+        animA();
         break;
       case 'd':
-        this.keyUpInD.call(this, startTime);
+        let animD = () => {
+          if (this.range.endNS >= this.range.totalNS) return;
+          let dur = new Date().getTime() - startTime;
+          let s = (this.scale * 80) / this.p;
+          this.range.startNS += s;
+          this.range.endNS += s;
+          this.fillX();
+          this.draw();
+          if (dur < 300) {
+            requestAnimationFrame(animD);
+          }
+        };
+        animD();
         break;
     }
   }

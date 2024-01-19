@@ -26,8 +26,6 @@ import { showButtonMenu } from '../SheetUtils';
 import { CallTreeLevelStruct } from '../../../../bean/EbpfStruct';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
-import { NUM_3, NUM_4 } from '../../../../bean/NumBean';
-import { TabPaneCallTreeHtml } from './TabPaneCallTree.html';
 
 const InvertOptionIndex: number = 0;
 const hideEventOptionIndex: number = 2;
@@ -41,7 +39,7 @@ export class TabPaneCallTree extends BaseElement {
   private callTreeTbr: LitTable | null | undefined;
   private callTreeProgressEL: LitProgressBar | null | undefined;
   private callTreeRightSource: Array<MerageBean> = [];
-  private callTreeFilter: TabPaneFilter | null | undefined;
+  private callTreeFilter: any;
   private callTreeDataSource: any[] = [];
   private callTreeSortKey: string = 'weight';
   private callTreeSortType: number = 0;
@@ -64,14 +62,14 @@ export class TabPaneCallTree extends BaseElement {
   private _currentCallTreeLevel: number = 0;
   private _rowClickData: any = undefined;
   private callTreeLevel: CallTreeLevelStruct | undefined | null;
-  private callTreeHeadLine: LitHeadLine | null | undefined;
+  private headLine: LitHeadLine | null | undefined;
 
   set pieTitle(value: string) {
     this._pieTitle = value;
     if (this._pieTitle.length > 0) {
-      this.callTreeHeadLine!.isShow = true;
-      this.callTreeHeadLine!.titleTxt = this._pieTitle;
-      this.callTreeHeadLine!.closeCallback = (): void => {
+      this.headLine!.isShow = true;
+      this.headLine!.titleTxt = this._pieTitle;
+      this.headLine!.closeCallback = () => {
         this.restore();
       };
     }
@@ -123,7 +121,7 @@ export class TabPaneCallTree extends BaseElement {
     if (this._rowClickData && this.currentRowClickData !== undefined && this.currentSelection?.isRowClick) {
       this.getCallTreeDataByPieLevel();
     } else {
-      this.callTreeHeadLine!.isShow = false;
+      this.headLine!.isShow = false;
       this.getCallTreeData(callTreeSelection, this.initWidth);
     }
   }
@@ -148,7 +146,7 @@ export class TabPaneCallTree extends BaseElement {
         this.frameChart!.data = this.callTreeDataSource;
         this.currentCallTreeDataSource = this.callTreeDataSource;
         this.switchFlameChart();
-        this.callTreeFilter!.icon = 'block';
+        this.callTreeFilter.icon = 'block';
       }
     );
   }
@@ -171,17 +169,13 @@ export class TabPaneCallTree extends BaseElement {
       funcArgs: [this.currentSelection, this.callTreeLevel],
     });
 
-    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentCallTreeLevel === NUM_3) {
+    if (this._rowClickData && this._rowClickData.libId !== undefined && this._currentCallTreeLevel === 3) {
       this.callTreeLevel.libName = this._rowClickData.tableName;
       args.push({
         funcName: 'showLibLevelData',
         funcArgs: [this.callTreeLevel.libId, this.callTreeLevel.libName],
       });
-    } else if (
-      this._rowClickData &&
-      this._rowClickData.symbolId !== undefined &&
-      this._currentCallTreeLevel === NUM_4
-    ) {
+    } else if (this._rowClickData && this._rowClickData.symbolId !== undefined && this._currentCallTreeLevel === 4) {
       this.callTreeLevel.symbolName = this._rowClickData.tableName;
       args.push({
         funcName: 'showFunLevelData',
@@ -199,14 +193,14 @@ export class TabPaneCallTree extends BaseElement {
       this.frameChart!.data = this.callTreeDataSource;
       this.currentCallTreeDataSource = this.callTreeDataSource;
       this.switchFlameChart();
-      this.callTreeFilter!.icon = 'block';
+      this.callTreeFilter.icon = 'block';
     });
   }
 
   private restore(): void {
     this.searchValue = '';
     this.callTreeFilter!.filterValue = '';
-    this.callTreeHeadLine!.isShow = false;
+    this.headLine!.isShow = false;
     this._rowClickData = undefined;
     this.getCallTreeData(this.currentSelection, this.initWidth);
   }
@@ -322,25 +316,21 @@ export class TabPaneCallTree extends BaseElement {
           this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.frameChart?.calculateChartData();
         }
-        if (this.callTreeTbl) {
-          // @ts-ignore
-          this.callTreeTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 35 + 'px';
-          this.callTreeTbl.reMeauseHeight();
-        }
-        if (this.callTreeTbr) {
-          // @ts-ignore
-          this.callTreeTbr.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 45 - 21 + 'px';
-          this.callTreeTbr.reMeauseHeight();
-        }
+        // @ts-ignore
+        this.callTreeTbl?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 35 + 'px';
+        this.callTreeTbl?.reMeauseHeight();
+        // @ts-ignore
+        this.callTreeTbr?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 45 - 21 + 'px';
+        this.callTreeTbr?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
 
   initElements(): void {
-    this.callTreeHeadLine = this.shadowRoot?.querySelector<LitHeadLine>('.titleBox');
+    this.headLine = this.shadowRoot?.querySelector<LitHeadLine>('.titleBox');
     this.callTreeTbl = this.shadowRoot?.querySelector<LitTable>('#tb-calltree');
     this.callTreeProgressEL = this.shadowRoot?.querySelector('.call-tree-progress') as LitProgressBar;
     this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
@@ -351,173 +341,137 @@ export class TabPaneCallTree extends BaseElement {
     this.addEventListener('contextmenu', (event) => {
       event.preventDefault(); // 阻止默认的上下文菜单弹框
     });
-    this.rowClickEvent();
-    let boundFilterFunc = this.filterFunc.bind(this);
-    this.callTreeFilter!.getDataLibrary(boundFilterFunc);
-    this.callTreeFilter!.getDataMining(boundFilterFunc);
-    this.handleCallTreeData();
-    this.handleConstraintsData();
-    this.handleFilterData();
-    this.callTreeColumnClick();
-  }
-
-  private filterFunc(data: any): void {
-    let callTreeFuncArgs: any[] = [];
-    if (data.type === 'check') {
-      this.handleCheckType(data, callTreeFuncArgs);
-    } else if (data.type === 'select') {
-      this.handleSelectType(callTreeFuncArgs, data);
-    } else if (data.type === 'button') {
-      if (data.item === 'symbol') {
-        if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
-          return;
-        }
-        if (this.callTreeSelectedData !== undefined) {
-          this.handleSymbolCase(data, callTreeFuncArgs);
-        } else {
-          return;
-        }
-      } else if (data.item === 'library') {
-        if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
-          return;
-        }
-        if (this.callTreeSelectedData !== undefined && this.callTreeSelectedData.libName !== '') {
-          this.handleLibraryCase(data, callTreeFuncArgs);
-        } else {
-          return;
-        }
-      } else if (data.item === 'restore') {
-        this.handleRestoreCase(data, callTreeFuncArgs);
-      }
-    }
-    this.performDataProcessing(callTreeFuncArgs);
-  }
-
-  private handleLibraryCase(data: any, callTreeFuncArgs: any[]): void {
-    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.libName }, data.item);
-    callTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [this.callTreeSelectedData.libName, false, false],
-    });
-  }
-
-  private handleSymbolCase(data: any, callTreeFuncArgs: any[]): void {
-    this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbolName }, data.item);
-    callTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [this.callTreeSelectedData.symbolName, false, true],
-    });
-  }
-
-  private callTreeColumnClick(): void {
-    this.callTreeTbl!.addEventListener('column-click', (evt: Event): void => {
+    this.callTreeTbl!.addEventListener('row-click', (evt: any) => {
       // @ts-ignore
-      this.callTreeSortKey = evt.detail.key;
+      let data = evt.detail.data as MerageBean;
+      document.dispatchEvent(
+        new CustomEvent('number_calibration', {
+          detail: { time: data.tsArray, durations: data.durArray },
+        })
+      );
+      this.setRightTableData(data);
+      data.isSelected = true;
+      this.callTreeSelectedData = data;
+      this.callTreeTbr?.clearAllSelection(data);
+      this.callTreeTbr?.setCurrentSelection(data);
       // @ts-ignore
-      this.callTreeSortType = evt.detail.sort;
-      // @ts-ignore
-      this.setLTableData(this.callTreeDataSource);
-      this.frameChart!.data = this.callTreeDataSource;
-    });
-  }
-
-  private performDataProcessing(callTreeFuncArgs: any[]): void {
-    this.getDataByWorker(callTreeFuncArgs, (result: any[]) => {
-      this.setLTableData(result);
-      this.frameChart!.data = this.callTreeDataSource;
-      if (this.isChartShow) this.frameChart?.calculateChartData();
-      this.callTreeTbl!.move1px();
-      if (this.callTreeSelectedData) {
-        this.callTreeSelectedData.isSelected = false;
-        this.callTreeTbl?.clearAllSelection(this.callTreeSelectedData);
-        this.callTreeTbr!.recycleDataSource = [];
-        this.callTreeSelectedData = undefined;
+      if ((evt.detail as any).callBack) {
+        // @ts-ignore
+        (evt.detail as any).callBack(true);
       }
     });
-  }
-
-  private handleRestoreCase(data: any, callTreeFuncArgs: any[]): void {
-    if (data.remove !== undefined && data.remove.length > 0) {
-      let list = data.remove.map((item: any) => {
-        return item.name;
-      });
-      callTreeFuncArgs.push({
-        funcName: 'resotreAllNode',
-        funcArgs: [list],
-      });
-      callTreeFuncArgs.push({
-        funcName: 'resetAllNode',
-        funcArgs: [],
-      });
-      list.forEach((symbolName: string) => {
-        callTreeFuncArgs.push({
-          funcName: 'clearSplitMapData',
-          funcArgs: [symbolName],
-        });
-      });
-    }
-  }
-
-  private handleFilterData(): void {
-    this.callTreeFilter!.getFilterData((callTreeFilterData: FilterData) => {
-      if (this.searchValue !== this.callTreeFilter!.filterValue) {
-        this.searchValue = this.callTreeFilter!.filterValue;
-        let callTreeArgs = [
-          {
-            funcName: 'setSearchValue',
-            funcArgs: [this.searchValue],
-          },
-          {
+    this.callTreeTbr = this.shadowRoot?.querySelector<LitTable>('#tb-list');
+    this.callTreeTbr!.addEventListener('row-click', (evt: any): void => {
+      // @ts-ignore
+      let data = evt.detail.data as MerageBean;
+      this.callTreeTbl?.clearAllSelection(data);
+      (data as any).isSelected = true;
+      this.callTreeTbl!.scrollToData(data);
+      // @ts-ignore
+      if ((evt.detail as any).callBack) {
+        // @ts-ignore
+        (evt.detail as any).callBack(true);
+      }
+    });
+    let filterFunc = (data: any): void => {
+      let callTreeFuncArgs: any[] = [];
+      if (data.type === 'check') {
+        if (data.item.checked) {
+          callTreeFuncArgs.push({
+            funcName: 'splitTree',
+            funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
+          });
+        } else {
+          callTreeFuncArgs.push({
+            funcName: 'resotreAllNode',
+            funcArgs: [[data.item.name]],
+          });
+          callTreeFuncArgs.push({
             funcName: 'resetAllNode',
             funcArgs: [],
-          },
-        ];
-        this.getDataByWorker(callTreeArgs, (result: any[]): void => {
-          this.callTreeTbl!.isSearch = true;
-          this.callTreeTbl!.setStatus(result, true);
-          this.setLTableData(result);
-          this.frameChart!.data = this.callTreeDataSource;
-          this.switchFlameChart(callTreeFilterData);
-        });
-      } else {
-        this.callTreeTbl!.setStatus(this.callTreeDataSource, true);
-        this.setLTableData(this.callTreeDataSource);
-        this.switchFlameChart(callTreeFilterData);
-      }
-    });
-  }
-
-  private handleConstraintsData(): void {
-    this.callTreeFilter!.getCallTreeConstraintsData((data: any) => {
-      let callTreeConstraintsArgs: any[] = [
-        {
+          });
+          callTreeFuncArgs.push({
+            funcName: 'clearSplitMapData',
+            funcArgs: [data.item.name],
+          });
+        }
+      } else if (data.type === 'select') {
+        callTreeFuncArgs.push({
           funcName: 'resotreAllNode',
-          funcArgs: [[this.callTreeNumRuleName]],
-        },
-        {
-          funcName: 'clearSplitMapData',
-          funcArgs: [this.callTreeNumRuleName],
-        },
-      ];
-      if (data.checked) {
-        callTreeConstraintsArgs.push({
-          funcName: 'hideNumMaxAndMin',
-          funcArgs: [parseInt(data.min), data.max],
+          funcArgs: [[data.item.name]],
         });
+        callTreeFuncArgs.push({
+          funcName: 'clearSplitMapData',
+          funcArgs: [data.item.name],
+        });
+        callTreeFuncArgs.push({
+          funcName: 'splitTree',
+          funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
+        });
+      } else if (data.type === 'button') {
+        if (data.item === 'symbol') {
+          if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
+            return;
+          }
+          if (this.callTreeSelectedData !== undefined) {
+            this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.symbolName }, data.item);
+            callTreeFuncArgs.push({
+              funcName: 'splitTree',
+              funcArgs: [this.callTreeSelectedData.symbolName, false, true],
+            });
+          } else {
+            return;
+          }
+        } else if (data.item === 'library') {
+          if (this.callTreeSelectedData && !this.callTreeSelectedData.canCharge) {
+            return;
+          }
+          if (this.callTreeSelectedData !== undefined && this.callTreeSelectedData.libName !== '') {
+            this.callTreeFilter!.addDataMining({ name: this.callTreeSelectedData.libName }, data.item);
+            callTreeFuncArgs.push({
+              funcName: 'splitTree',
+              funcArgs: [this.callTreeSelectedData.libName, false, false],
+            });
+          } else {
+            return;
+          }
+        } else if (data.item === 'restore') {
+          if (data.remove !== undefined && data.remove.length > 0) {
+            let list = data.remove.map((item: any) => {
+              return item.name;
+            });
+            callTreeFuncArgs.push({
+              funcName: 'resotreAllNode',
+              funcArgs: [list],
+            });
+            callTreeFuncArgs.push({
+              funcName: 'resetAllNode',
+              funcArgs: [],
+            });
+            list.forEach((symbolName: string) => {
+              callTreeFuncArgs.push({
+                funcName: 'clearSplitMapData',
+                funcArgs: [symbolName],
+              });
+            });
+          }
+        }
       }
-      callTreeConstraintsArgs.push({
-        funcName: 'resetAllNode',
-        funcArgs: [],
-      });
-      this.getDataByWorker(callTreeConstraintsArgs, (result: any[]) => {
+      this.getDataByWorker(callTreeFuncArgs, (result: any[]) => {
         this.setLTableData(result);
         this.frameChart!.data = this.callTreeDataSource;
         if (this.isChartShow) this.frameChart?.calculateChartData();
+        this.callTreeTbl!.move1px();
+        if (this.callTreeSelectedData) {
+          this.callTreeSelectedData.isSelected = false;
+          this.callTreeTbl?.clearAllSelection(this.callTreeSelectedData);
+          this.callTreeTbr!.recycleDataSource = [];
+          this.callTreeSelectedData = undefined;
+        }
       });
-    });
-  }
-
-  private handleCallTreeData(): void {
+    };
+    this.callTreeFilter!.getDataLibrary(filterFunc);
+    this.callTreeFilter!.getDataMining(filterFunc);
     this.callTreeFilter!.getCallTreeData((data: any) => {
       if ([InvertOptionIndex, hideThreadOptionIndex, hideEventOptionIndex].includes(data.value)) {
         this.refreshAllNode({
@@ -552,83 +506,71 @@ export class TabPaneCallTree extends BaseElement {
         this.getDataByWorker(callTreeArgs, (result: any[]) => {
           this.setLTableData(result);
           this.frameChart!.data = this.callTreeDataSource;
-          if (this.isChartShow) {
-            this.frameChart?.calculateChartData();
-          }
+          if (this.isChartShow) this.frameChart?.calculateChartData();
         });
       }
     });
-  }
-
-  private handleSelectType(callTreeFuncArgs: any[], data: any): void {
-    callTreeFuncArgs.push({
-      funcName: 'resotreAllNode',
-      funcArgs: [[data.item.name]],
-    });
-    callTreeFuncArgs.push({
-      funcName: 'clearSplitMapData',
-      funcArgs: [data.item.name],
-    });
-    callTreeFuncArgs.push({
-      funcName: 'splitTree',
-      funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
-    });
-  }
-
-  private handleCheckType(data: any, callTreeFuncArgs: any[]): void {
-    if (data.item.checked) {
-      callTreeFuncArgs.push({
-        funcName: 'splitTree',
-        funcArgs: [data.item.name, data.item.select === '0', data.item.type === 'symbol'],
-      });
-    } else {
-      callTreeFuncArgs.push({
-        funcName: 'resotreAllNode',
-        funcArgs: [[data.item.name]],
-      });
-      callTreeFuncArgs.push({
+    this.callTreeFilter!.getCallTreeConstraintsData((data: any) => {
+      let callTreeConstraintsArgs: any[] = [
+        {
+          funcName: 'resotreAllNode',
+          funcArgs: [[this.callTreeNumRuleName]],
+        },
+        {
+          funcName: 'clearSplitMapData',
+          funcArgs: [this.callTreeNumRuleName],
+        },
+      ];
+      if (data.checked) {
+        callTreeConstraintsArgs.push({
+          funcName: 'hideNumMaxAndMin',
+          funcArgs: [parseInt(data.min), data.max],
+        });
+      }
+      callTreeConstraintsArgs.push({
         funcName: 'resetAllNode',
         funcArgs: [],
       });
-      callTreeFuncArgs.push({
-        funcName: 'clearSplitMapData',
-        funcArgs: [data.item.name],
+      this.getDataByWorker(callTreeConstraintsArgs, (result: any[]) => {
+        this.setLTableData(result);
+        this.frameChart!.data = this.callTreeDataSource;
+        if (this.isChartShow) this.frameChart?.calculateChartData();
       });
-    }
-  }
-
-  private rowClickEvent(): void {
-    this.callTreeTbl!.addEventListener('row-click', (evt: any) => {
-      // @ts-ignore
-      let data = evt.detail.data as MerageBean;
-      document.dispatchEvent(
-        new CustomEvent('number_calibration', {
-          detail: { time: data.tsArray, durations: data.durArray },
-        })
-      );
-      this.setRightTableData(data);
-      data.isSelected = true;
-      this.callTreeSelectedData = data;
-      this.callTreeTbr?.clearAllSelection(data);
-      this.callTreeTbr?.setCurrentSelection(data);
-      // @ts-ignore
-      if ((evt.detail as any).callBack) {
-        // @ts-ignore
-        (evt.detail as any).callBack(true);
+    });
+    this.callTreeFilter!.getFilterData((callTreeFilterData: FilterData) => {
+      if (this.searchValue !== this.callTreeFilter!.filterValue) {
+        this.searchValue = this.callTreeFilter!.filterValue;
+        let callTreeArgs = [
+          {
+            funcName: 'setSearchValue',
+            funcArgs: [this.searchValue],
+          },
+          {
+            funcName: 'resetAllNode',
+            funcArgs: [],
+          },
+        ];
+        this.getDataByWorker(callTreeArgs, (result: any[]): void => {
+          this.callTreeTbl!.isSearch = true;
+          this.callTreeTbl!.setStatus(result, true);
+          this.setLTableData(result);
+          this.frameChart!.data = this.callTreeDataSource;
+          this.switchFlameChart(callTreeFilterData);
+        });
+      } else {
+        this.callTreeTbl!.setStatus(this.callTreeDataSource, true);
+        this.setLTableData(this.callTreeDataSource);
+        this.switchFlameChart(callTreeFilterData);
       }
     });
-    this.callTreeTbr = this.shadowRoot?.querySelector<LitTable>('#tb-list');
-    this.callTreeTbr!.addEventListener('row-click', (evt: any): void => {
+    this.callTreeTbl!.addEventListener('column-click', (evt: Event): void => {
       // @ts-ignore
-      let data = evt.detail.data as MerageBean;
-      this.callTreeTbl?.clearAllSelection(data);
-      (data as any).isSelected = true;
-      this.callTreeTbl!.scrollToData(data);
+      this.callTreeSortKey = evt.detail.key;
       // @ts-ignore
-      if ((evt.detail as any).callBack) {
-        // @ts-ignore
-        (evt.detail as any).callBack(true);
-      }
+      this.callTreeSortType = evt.detail.sort;
+      // @ts-ignore
+      this.setLTableData(this.callTreeDataSource);
+      this.frameChart!.data = this.callTreeDataSource;
     });
   }
 
@@ -660,12 +602,24 @@ export class TabPaneCallTree extends BaseElement {
     let isHideEvent: boolean = filterData.callTree[2];
     let isHideThread: boolean = filterData.callTree[3];
     let list = filterData.dataMining.concat(filterData.dataLibrary);
-    callTreeArgs.push({ funcName: 'hideThread', funcArgs: [isHideThread] });
-    callTreeArgs.push({ funcName: 'hideEvent', funcArgs: [isHideEvent] });
-    callTreeArgs.push({ funcName: 'getCallChainsBySampleIds', funcArgs: [isTopDown, this.queryFuncName] });
+    callTreeArgs.push({
+      funcName: 'hideThread',
+      funcArgs: [isHideThread],
+    });
+    callTreeArgs.push({
+      funcName: 'hideEvent',
+      funcArgs: [isHideEvent],
+    });
+    callTreeArgs.push({
+      funcName: 'getCallChainsBySampleIds',
+      funcArgs: [isTopDown, this.queryFuncName],
+    });
     this.callTreeTbr!.recycleDataSource = [];
     if (isHideSystemLibrary) {
-      callTreeArgs.push({ funcName: 'hideSystemLibrary', funcArgs: [true] });
+      callTreeArgs.push({
+        funcName: 'hideSystemLibrary',
+        funcArgs: [true],
+      });
     }
     if (filterData.callTreeConstraints.checked) {
       callTreeArgs.push({
@@ -673,7 +627,10 @@ export class TabPaneCallTree extends BaseElement {
         funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
-    callTreeArgs.push({ funcName: 'splitAllProcess', funcArgs: [list] });
+    callTreeArgs.push({
+      funcName: 'splitAllProcess',
+      funcArgs: [list],
+    });
     callTreeArgs.push({
       funcName: 'resetAllNode',
       funcArgs: [],
@@ -748,6 +705,77 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPaneCallTreeHtml;
+    return `
+        <style>
+        .call-tree-filter {
+            border: solid rgb(216,216,216) 1px;
+            float: left;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .call-tree-progress{
+            bottom: 33px;
+            position: absolute;
+            height: 1px;
+            left: 0;
+            right: 0;
+        }
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px 0 10px;
+        }
+        selector{
+            display: none;
+        }
+        .call-tree-loading{
+            bottom: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width:100%;
+            background:transparent;
+            z-index: 999999;
+        }
+         .show{
+            display: flex;
+            flex: 1;
+        }
+    </style>
+    <div class="call-tree-content" style="display: flex;flex-direction: column">
+    <lit-headline class="titleBox"></lit-headline>
+    <selector id='show_table' class="show">
+        <lit-slicer style="width:100%">
+        <div id="left_table" style="width: 65%">
+            <lit-table id="tb-calltree" style="height: auto" tree>
+                <lit-table-column class="call-tree-column" width="70%" title="Call Stack" data-index="symbolName" key="symbolName"  align="flex-start" retract></lit-table-column>
+                <lit-table-column class="call-tree-column" width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>
+                <lit-table-column class="call-tree-column" width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
+                <lit-table-column class="call-tree-column" width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>
+            </lit-table>
+        </div>
+        <lit-slicer-track ></lit-slicer-track>
+        <lit-table id="tb-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+            <span slot="head">Heaviest Stack Trace</span>
+            <lit-table-column class="call-tree-column" width="30px" title="" data-index="type" key="type"  align="flex-start" >
+                <template>
+                    <img src="img/library.png" size="20" v-if=" type == 1 ">
+                    <img src="img/function.png" size="20" v-if=" type == 0 ">
+                </template>
+            </lit-table-column>
+            <lit-table-column class="call-tree-column" width="60px" title="" data-index="count" key="count"  align="flex-start"></lit-table-column>
+            <lit-table-column class="call-tree-column" width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
+        </lit-table>
+        </div>
+        </lit-slicer>
+     </selector>
+     <tab-pane-filter id="filter" class="call-tree-filter" input inputLeftText icon tree fileSystem></tab-pane-filter>
+     <lit-progress-bar class="progress call-tree-progress"></lit-progress-bar>
+    <selector id='show_chart' class="call-tree-selector" >
+        <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
+    </selector>
+    <div class="loading call-tree-loading"></div>
+    </div>`;
   }
 }

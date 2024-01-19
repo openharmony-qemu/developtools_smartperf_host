@@ -76,9 +76,9 @@ int32_t ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
         return SQLITE_OK;
     }
 
-    auto& argsTabCs = fc.GetConstraints();
-    for (size_t i = 0; i < argsTabCs.size(); i++) {
-        const auto& c = argsTabCs[i];
+    auto& cs = fc.GetConstraints();
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -88,12 +88,12 @@ int32_t ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
         }
     }
 
-    auto argsTabOrderbys = fc.GetOrderBys();
-    for (auto i = argsTabOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(argsTabOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(argsTabOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

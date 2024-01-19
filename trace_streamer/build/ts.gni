@@ -26,11 +26,13 @@ if (is_independent_compile) {
   COMMON_LIBRARY = "//third_party/commonlibrary"
 } else {
   PERF_DIR = "//developtools"
+  with_ebpf_help_table = false
   clang_x64_folder = "clang_x64"
   is_test = false
   is_protoc = false
   is_spb = false
   is_sdkdemo = false
+  is_dubai_sdk = false
   is_sdkdemo_test = false
   use_wasm = false
   enable_ts_utest = false

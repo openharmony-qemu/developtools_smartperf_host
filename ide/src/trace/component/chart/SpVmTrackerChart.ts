@@ -14,11 +14,22 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
+import {
+  querySmapsExits,
+  queryGpuTotalType,
+  queryGpuWindowType,
+  queryisExistsGpuMemoryData,
+  queryisExistsGpuData,
+  queryisExistsGpuResourceData,
+  queryisExistsShmData,
+  queryisExistsDmaData,
+  queryisExistsPurgeableData,
+} from '../../database/SqlLite';
 import { TraceRow } from '../trace/base/TraceRow';
 import { type BaseStruct } from '../../bean/BaseStruct';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { Utils } from '../trace/base/Utils';
-import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { info } from '../../../log/Log';
 import { type SnapshotRender, SnapshotStruct } from '../../database/ui-worker/ProcedureWorkerSnapshot';
 import { type TreeItemData } from '../../../base-ui/tree/LitTree';
@@ -36,19 +47,6 @@ import {
   shmDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { resetVmTracker } from '../../database/data-trafic/VmTrackerDataReceiver';
-import {querySmapsExits} from "../../database/sql/Smaps.sql";
-import {
-  queryisExistsGpuMemoryData,
-  queryisExistsPurgeableData,
-  queryisExistsShmData
-} from "../../database/sql/Memory.sql";
-import {queryisExistsDmaData} from "../../database/sql/Dma.sql";
-import {
-  queryGpuTotalType,
-  queryGpuWindowType,
-  queryisExistsGpuData,
-  queryisExistsGpuResourceData
-} from "../../database/sql/Gpu.sql";
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;

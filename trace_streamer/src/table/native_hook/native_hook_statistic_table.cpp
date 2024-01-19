@@ -96,11 +96,11 @@ int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sq
         return SQLITE_OK;
     }
 
-    auto nativeHookStatisticCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(nativeHookStatisticCs, sId);
-    for (size_t i = 0; i < nativeHookStatisticCs.size(); i++) {
-        const auto& c = nativeHookStatisticCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -114,12 +114,12 @@ int32_t NativeHookStatisticTable::Cursor::Filter(const FilterConstraints& fc, sq
         }
     }
 
-    auto nativeHookStatisticOrderbys = fc.GetOrderBys();
-    for (auto i = nativeHookStatisticOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(nativeHookStatisticOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(nativeHookStatisticOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;
@@ -136,39 +136,66 @@ int32_t NativeHookStatisticTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(nativeHookStatisticInfoObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
-            SetTypeColumn(nativeHookStatisticInfoObj_.CallChainIds()[CurrentRow()], INVALID_UINT32,
-                          INVALID_CALL_CHAIN_ID);
+            if (nativeHookStatisticInfoObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookStatisticInfoObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case Index::IPID:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.Ipids()[CurrentRow()], INVALID_UINT32);
+            if (nativeHookStatisticInfoObj_.Ipids()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookStatisticInfoObj_.Ipids()[CurrentRow()]));
+            }
             break;
         case Index::TS:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
+            if (nativeHookStatisticInfoObj_.TimeStampData()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookStatisticInfoObj_.TimeStampData()[CurrentRow()]));
+            }
             break;
         case Index::MEMORY_TYPE:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.MemoryTypes()[CurrentRow()], INVALID_UINT64);
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(nativeHookStatisticInfoObj_.MemoryTypes()[CurrentRow()]));
             break;
         case Index::MEMORY_SUB_TYPE:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.MemorySubTypes()[CurrentRow()], INVALID_UINT64);
+            if (nativeHookStatisticInfoObj_.MemorySubTypes()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookStatisticInfoObj_.MemorySubTypes()[CurrentRow()]));
+            }
             break;
         case Index::APPLY_COUNT:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.ApplyCounts()[CurrentRow()], INVALID_UINT64);
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(nativeHookStatisticInfoObj_.ApplyCounts()[CurrentRow()]));
             break;
         case Index::RELEASE_COUNT:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.ReleaseCounts()[CurrentRow()], INVALID_UINT64);
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(nativeHookStatisticInfoObj_.ReleaseCounts()[CurrentRow()]));
             break;
-        case Index::APPLY_SIZE:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.ApplySizes()[CurrentRow()], INVALID_UINT64);
+        case Index::APPLY_SIZE: {
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(nativeHookStatisticInfoObj_.ApplySizes()[CurrentRow()]));
             break;
-        case Index::RELEASE_SIZE:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.ReleaseSizes()[CurrentRow()], INVALID_UINT64);
+        }
+        case Index::RELEASE_SIZE: {
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(nativeHookStatisticInfoObj_.ReleaseSizes()[CurrentRow()]));
             break;
-        case Index::LAST_LIB_ID:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.LastCallerPathIndexs()[CurrentRow()], INVALID_DATAINDEX);
+        }
+        case Index::LAST_LIB_ID: {
+            if (nativeHookStatisticInfoObj_.LastCallerPathIndexs()[CurrentRow()] != INVALID_DATAINDEX) {
+                sqlite3_result_int64(
+                    context_, static_cast<int64_t>(nativeHookStatisticInfoObj_.LastCallerPathIndexs()[CurrentRow()]));
+            }
             break;
-        case Index::LAST_SYMBOL_ID:
-            SetTypeColumnInt64(nativeHookStatisticInfoObj_.LastSymbolIndexs()[CurrentRow()], INVALID_DATAINDEX);
+        }
+        case Index::LAST_SYMBOL_ID: {
+            if (nativeHookStatisticInfoObj_.LastSymbolIndexs()[CurrentRow()] != INVALID_DATAINDEX) {
+                sqlite3_result_int64(
+                    context_, static_cast<int64_t>(nativeHookStatisticInfoObj_.LastSymbolIndexs()[CurrentRow()]));
+            }
             break;
+        }
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;

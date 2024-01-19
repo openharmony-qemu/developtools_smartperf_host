@@ -40,9 +40,9 @@ HidumpTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 HidumpTable::Cursor::~Cursor() {}
 
-int32_t HidumpTable::Cursor::Column(int32_t hidumpColumn) const
+int32_t HidumpTable::Cursor::Column(int32_t column) const
 {
-    switch (static_cast<Index>(hidumpColumn)) {
+    switch (static_cast<Index>(column)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
@@ -54,7 +54,7 @@ int32_t HidumpTable::Cursor::Column(int32_t hidumpColumn) const
             break;
         }
         default:
-            TS_LOGF("Unregistered hidumpColumn : %d", hidumpColumn);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

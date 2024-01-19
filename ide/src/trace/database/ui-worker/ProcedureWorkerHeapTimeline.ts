@@ -45,31 +45,28 @@ export class HeapTimelineRender {
     let heapTimelineFind = false;
     for (let re of filter) {
       HeapTimelineStruct.draw(req.context, re);
-      this.setHoverStruct(row, re, heapTimelineFind);
+      if (row.isHover) {
+        if (re.size === 0) {
+          if (
+            re.frame &&
+            row.hoverX >= re.frame.x &&
+            row.hoverX <= re.frame.x &&
+            row.hoverY >= re.frame.y &&
+            row.hoverY <= re.frame.y + re.frame.height
+          ) {
+            HeapTimelineStruct.hoverHeapTimelineStruct = re;
+            heapTimelineFind = true;
+          }
+        } else {
+          if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+            HeapTimelineStruct.hoverHeapTimelineStruct = re;
+            heapTimelineFind = true;
+          }
+        }
+      }
     }
     if (!heapTimelineFind && row.isHover) {
       HeapTimelineStruct.hoverHeapTimelineStruct = undefined;
-    }
-  }
-  setHoverStruct(row: TraceRow<HeapTimelineStruct>, re: HeapTimelineStruct, heapTimelineFind: boolean) {
-    if (row.isHover) {
-      if (re.size === 0) {
-        if (
-          re.frame &&
-          row.hoverX >= re.frame.x &&
-          row.hoverX <= re.frame.x &&
-          row.hoverY >= re.frame.y &&
-          row.hoverY <= re.frame.y + re.frame.height
-        ) {
-          HeapTimelineStruct.hoverHeapTimelineStruct = re;
-          heapTimelineFind = true;
-        }
-      } else {
-        if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
-          HeapTimelineStruct.hoverHeapTimelineStruct = re;
-          heapTimelineFind = true;
-        }
-      }
     }
   }
 }

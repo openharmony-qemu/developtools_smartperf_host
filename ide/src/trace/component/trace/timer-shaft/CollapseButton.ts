@@ -19,7 +19,7 @@ import '../../../../base-ui/icon/LitIcon';
 
 @element('collapse-button')
 export default class CollapseButton extends BaseElement {
-  static get observedAttributes(): string[] {
+  static get observedAttributes() {
     return [
       'expand', //展开
     ];
@@ -33,12 +33,12 @@ export default class CollapseButton extends BaseElement {
     }
   }
 
-  get expand(): boolean {
+  get expand() {
     return this.hasAttribute('expand');
   }
 
   initElements(): void {
-    this.onclick = (): void => {
+    this.onclick = (e) => {
       this.expand = !this.expand;
       window.publish(window.SmartEvent.UI.CollapseAllLane, this.expand);
     };

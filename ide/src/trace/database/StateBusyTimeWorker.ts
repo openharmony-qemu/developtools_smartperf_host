@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,29 +20,30 @@ function getBusyTime(
   leftStartNs: number,
   rightEndNs: number
 ) {
-  if (initFreqResult.length == 0) { return };
-  if (initStateResult.length == 0) { return };
+  if (initFreqResult.length == 0) return;
+  if (initStateResult.length == 0) return;
   //处理被框选的freq的第一个数据
   let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
   if (includeData !== 0) {
     initFreqResult = initFreqResult.slice(
-      includeData === -1 ? initFreqResult.length - 1 : includeData - 1,
+      includeData == -1 ? initFreqResult.length - 1 : includeData - 1,
       initFreqResult.length
     );
   }
-  let startNS = includeData === 0 ? initFreqResult[0].ts : leftStartNs;
+  let startNS = includeData == 0 ? initFreqResult[0].ts : leftStartNs;
+  if (initFreqResult[0].ts < leftStartNs && includeData !== 0) initFreqResult[0].ts - leftStartNs;
   //处理对应的state泳道被框选的第一个数据
   let includeStateData = initStateResult.findIndex((a) => a.ts >= startNS);
   if (includeStateData !== 0) {
     initStateResult = initStateResult.slice(
-      includeStateData === -1 ? initStateResult.length - 1 : includeStateData - 1,
+      includeStateData == -1 ? initStateResult.length - 1 : includeStateData - 1,
       initStateResult.length
     );
   }
   if (initStateResult[0].ts < startNS && includeStateData !== 0 && includeStateData !== -1)
     initStateResult[0].ts = startNS;
   //处理被框选的freq最后一个数据
-  if (initFreqResult[initFreqResult.length - 1].ts !== rightEndNs) {
+  if (initFreqResult[initFreqResult.length - 1].ts != rightEndNs) {
     initFreqResult.push({
       ts: rightEndNs,
       value: initFreqResult[initFreqResult.length - 1].value,
@@ -50,16 +51,12 @@ function getBusyTime(
     });
   }
   //处理被框选的freq最后一个数据
-  if (initStateResult[initStateResult.length - 1].ts !== rightEndNs) {
+  if (initStateResult[initStateResult.length - 1].ts != rightEndNs) {
     initStateResult.push({
       ts: rightEndNs,
       value: initStateResult[initStateResult.length - 1].value,
     });
   }
-  handleBusyTimeLogic(initFreqResult, initStateResult, sampleMap, startNS);
-}
-
-function handleBusyTimeLogic(initFreqResult: Array<any>, initStateResult: Array<any>, sampleMap: Map<any, any>, startNS: number) {
   let freqIndex = 1;
   let stateIndex = 1;
   let beginNs = startNS;

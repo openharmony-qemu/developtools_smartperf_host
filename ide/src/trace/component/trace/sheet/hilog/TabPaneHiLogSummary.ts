@@ -19,8 +19,6 @@ import { LogStruct } from '../../../../database/ui-worker/ProcedureWorkerLog';
 import { ColorUtils } from '../../base/ColorUtils';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { LitIcon } from '../../../../../base-ui/icon/LitIcon';
-import { TabPaneHiLogSummaryHtml } from './TabPaneHiLogSummary.html';
-import { NUM_30, NUM_40 } from '../../../../bean/NumBean';
 
 @element('tab-hi-log-summary')
 export class TabPaneHiLogSummary extends BaseElement {
@@ -77,7 +75,84 @@ export class TabPaneHiLogSummary extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPaneHiLogSummaryHtml;
+    return `<style>
+        :host{
+          padding: 10px 10px;
+          display: flex;
+          flex-direction: column;
+        }
+        .tab-summary-head {
+          display: grid;
+          grid-template-columns: 79% 15%;
+          height: 30px;
+          line-height: 30px;
+          align-items: center;
+          background-color: white;
+        }
+        .tree-row-tr {
+          display: flex;
+          height: 30px;
+          line-height: 30px;
+          align-items: center;
+          background-color: white;
+          width: 100%;
+        }
+        .tree-row-tr:hover {
+          background-color: #DEEDFF;
+        }
+        .tree-row-tr:nth-last-child(1):hover {
+          background-color: white;
+        }
+        .head-label, .head-count {
+          white-space: nowrap;
+          overflow: hidden;
+        }
+        .head-label, .head-count {
+          font-weight: bold;
+        }
+        .row-name-td {
+          white-space: nowrap;
+          overflow-y: hidden;
+          display: inline-block;
+          margin-right: 15px;
+          height: 30px;
+        }
+        tr {
+          height: 30px;
+        }
+        .row-name-td::-webkit-scrollbar {
+          display: none;
+        }
+        .log-tree-table {
+          display: grid;
+          overflow: hidden;
+          grid-template-rows: repeat(auto-fit, 30px);
+          position: sticky;
+          top: 0;
+        }
+        .log-tree-table:hover{
+          overflow-x: auto;
+        }
+        </style>
+        <div class="tab-summary-head">
+          <div style="justify-content: flex-start; display: flex">
+            <div class="expansion-div" style="display: grid;">
+              <lit-icon class="expansion-up-icon" name="up"></lit-icon>
+              <lit-icon class="expansion-down-icon" name="down"></lit-icon>
+            </div>
+            <label class="head-label" style="cursor: pointer;">Level</label>
+            <label class="head-label" style="cursor: pointer;">/Process</label>
+            <label class="head-label" style="cursor: pointer;">/Tag</label>
+            <label class="head-label" style="cursor: pointer;">/Message</label>
+          </div>
+          <label class="head-count">Count</label> 
+        </div>
+        <div id="tab-summary" style="overflow: auto;display: grid; grid-template-columns: 80% 15%;"></div>
+        <lit-table id="tb-hilog-summary" style="display: none" tree>
+          <lit-table-column title="Level/Process/Tag/Message" data-index="logName" key="logName"></lit-table-column>
+          <lit-table-column title="Count" data-index="count" key="count"></lit-table-column>
+        </lit-table>
+        `;
   }
 
   connectedCallback(): void {
@@ -191,7 +266,7 @@ export class TabPaneHiLogSummary extends BaseElement {
   private refreshRowNodeTable(useCacheRefresh: boolean = false): void {
     this.logSummaryTable!.innerHTML = '';
     if (this.logSummaryTable && this.parentElement) {
-      this.logSummaryTable.style.height = `${this.parentElement!.clientHeight - NUM_30}px`;
+      this.logSummaryTable.style.height = `${this.parentElement!.clientHeight - 30}px`;
     }
     if (!useCacheRefresh) {
       this.logTreeNodes = this.buildTreeTblNodes(this.systemLogSource);
@@ -206,7 +281,7 @@ export class TabPaneHiLogSummary extends BaseElement {
     tableTreeEl.className = 'log-tree-table';
     let tableCountEl: HTMLDivElement = document.createElement('div');
     if (this.parentElement) {
-      tableTreeEl.style.height = `${this.parentElement!.clientHeight - NUM_40}px`;
+      tableTreeEl.style.height = `${this.parentElement!.clientHeight - 40}px`;
     }
     this.createRowNodeTableEL(this.logTreeNodes, tableTreeEl, tableCountEl, '');
     let emptyTr = document.createElement('tr');
@@ -222,7 +297,7 @@ export class TabPaneHiLogSummary extends BaseElement {
 
   private buildTreeTblNodes(logTreeNodes: LogStruct[]): LogTreeNode[] {
     let id = 0;
-    let root: LogTreeNode = {id: id, depth: 0, children: [], logName: 'All', count: 0};
+    let root: LogTreeNode = { id: id, depth: 0, children: [], logName: 'All', count: 0 };
     logTreeNodes.forEach((item) => {
       id++;
       let levelNode = root.children.find((node) => node.logName === item.level);
@@ -230,7 +305,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         levelNode.count++;
       } else {
         id++;
-        levelNode = {id: id, depth: 0, children: [], logName: item.level, count: 1};
+        levelNode = { id: id, depth: 0, children: [], logName: item.level, count: 1 };
         root.children.push(levelNode);
       }
       let processNode = levelNode.children.find((node) => node.logName === item.processName);
@@ -238,7 +313,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         processNode.count++;
       } else {
         id++;
-        processNode = {id: id, depth: 1, children: [], logName: item.processName, count: 1};
+        processNode = { id: id, depth: 1, children: [], logName: item.processName, count: 1 };
         levelNode.children.push(processNode);
       }
       let tagNode = processNode.children.find((node) => node.logName === item.tag);
@@ -246,7 +321,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         tagNode.count++;
       } else {
         id++;
-        tagNode = {id: id, depth: 2, children: [], logName: item.tag, count: 1};
+        tagNode = { id: id, depth: 2, children: [], logName: item.tag, count: 1 };
         processNode.children.push(tagNode);
       }
       let messageNode = tagNode.children.find((node) => node.logName === item.context);
@@ -254,7 +329,7 @@ export class TabPaneHiLogSummary extends BaseElement {
         messageNode.count++;
       } else {
         id++;
-        tagNode.children.push({id: id, depth: 3, children: [], logName: item.context, count: 1});
+        tagNode.children.push({ id: id, depth: 3, children: [], logName: item.context, count: 1 });
       }
       root.count++;
     });

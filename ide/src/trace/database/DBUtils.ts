@@ -52,7 +52,7 @@ export function initIndexedDB(): Promise<IDBDatabase> {
  * @param db
  */
 export function deleteExpireData(db: IDBDatabase): void {
-  if (db?.objectStoreNames.contains('trace_file')) {
+  if (db && db.objectStoreNames.contains('trace_file')) {
     let objectStore = db.transaction(['trace_file'], 'readwrite').objectStore('trace_file');
     let request = objectStore.getAll();
     request.onsuccess = function (event): void {
@@ -78,7 +78,7 @@ export function deleteExpireData(db: IDBDatabase): void {
  * @param buffer 二进制数据
  */
 export function cacheTraceFileBuffer(db: IDBDatabase, oldFileId: string, fileId: string, buffer: ArrayBuffer): void {
-  if (db?.objectStoreNames.contains('trace_file')) {
+  if (db && db.objectStoreNames.contains('trace_file')) {
     let objectStore = db.transaction(['trace_file'], 'readwrite').objectStore('trace_file');
     let request = objectStore.index('file_id').getAll(oldFileId);
     request.onsuccess = function (event): void {
@@ -128,7 +128,7 @@ export function getTraceFileBuffer(fileId: string): Promise<ArrayBuffer | null> 
       resolve(new Uint8Array(0).buffer);
     } else {
       initIndexedDB().then((db) => {
-        if (db?.objectStoreNames.contains('trace_file')) {
+        if (db && db.objectStoreNames.contains('trace_file')) {
           let request = db
             .transaction(['trace_file'], 'readwrite')
             .objectStore('trace_file')

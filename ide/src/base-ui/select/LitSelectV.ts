@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../BaseElement';
 import { LitSelectOption } from './LitSelectOption';
-import {selectHtmlStr, selectVHtmlStr} from './LitSelectHtml';
+import { selectHtmlStr } from './LitSelectHtml';
 
 @element('lit-select-v')
 export class LitSelectV extends BaseElement {
@@ -194,10 +194,7 @@ export class LitSelectV extends BaseElement {
         }
       });
     });
-    this.setEvent();
-  }
 
-  setEvent():void{
     this.onmouseout = this.onblur = (ev) => {
       this.focused = false;
     };
@@ -211,7 +208,63 @@ export class LitSelectV extends BaseElement {
 
   initHtml() {
     return `
-        ${selectVHtmlStr}
+        <style> 
+        ${selectHtmlStr()}
+        .body{
+            max-height: 286px;
+            box-shadow: 0 5px 15px 0px #00000033;
+            border-radius: 10px;
+        }
+        input{
+            width: 100%;
+        }
+        #search-input {
+          outline: none;
+          border: none;
+        }
+        .body-select {
+           margin-top: 3px;
+           background-color: var(--dark-background4,#fff);
+           width: 100%;
+           border-bottom: none;
+        }
+        .body-opt{
+            width: 100%;
+            max-height: 256px;
+            border-top: none;
+            overflow: auto;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            background-color: var(--dark-background4,#fff);
+        }
+        .loading{
+            display: none;
+        }
+        input::-webkit-input-placeholder {
+                color: var(--dark-color,#aab2bd);
+        }
+        #search-input{
+           margin-left: 15px;
+        }
+        .icon{
+            display: flex;
+        }
+        /*Define the height, width and background of the scroll bar*/
+        ::-webkit-scrollbar
+        {
+          width: 8px;
+          border-radius: 10px;
+          background-color: var(--dark-background3,#FFFFFF);
+        }
+
+        /*define slider*/
+        ::-webkit-scrollbar-thumb
+        {
+          border-radius: 6px;
+          background-color: var(--dark-background7,rgba(0,0,0,0.1));
+        }
+        
+        </style>
         <div class="root noSelect" tabindex="0" hidefocus="true">
             <input id="select-input" placeholder="${this.placeholder}" tabindex="0" readonly="readonly">
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>

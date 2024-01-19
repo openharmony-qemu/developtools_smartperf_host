@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from './utils/QueryEnum';
-import { filterDataByGroup } from "./utils/DataFilter";
-import {clockList} from "./utils/AllMemoryCache";
+import { TraficEnum } from './QueryEnum';
+import { filterDataByGroup } from "./DataFilter";
+import {clockList} from "./AllMemoryCache";
 
 export const chartClockDataSql = (args: any): string => {
   if (args.sqlType === 'clockFrequency') {

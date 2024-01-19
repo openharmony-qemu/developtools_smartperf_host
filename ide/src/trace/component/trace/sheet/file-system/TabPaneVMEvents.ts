@@ -21,8 +21,7 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 import { procedurePool } from '../../../../database/Procedure';
 import { VirtualMemoryEvent, VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
-import {getTabVirtualMemoryType} from '../../../../database/sql/Memory.sql';
-import { TabPaneVMEventsHtml } from './TabPaneVMEvents.html';
+import { getTabVirtualMemoryType } from '../../../../database/SqlLite';
 
 @element('tabpane-virtualmemory-event')
 export class TabPaneVirtualMemoryEvents extends BaseElement {
@@ -47,34 +46,26 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
     this.initFilterTypes(vmEventSelection!).then(() => {
       this.queryData(vmEventSelection!);
     });
-    if (this.vmEventTbl) {
-      // @ts-ignore
-      this.vmEventTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
-      this.vmEventTbl.recycleDataSource = [];
-    }
-    if (this.vmEventTblData) {
-      // @ts-ignore
-      this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 31 + 'px';
-      this.vmEventTblData.recycleDataSource = [];
-    }
+    // @ts-ignore
+    this.vmEventTbl?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 20 - 31 + 'px';
+    // @ts-ignore
+    this.vmEventTblData?.shadowRoot.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 20 - 31 + 'px';
+    this.vmEventTbl!.recycleDataSource = [];
+    this.vmEventTblData!.recycleDataSource = [];
   }
 
   connectedCallback() {
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        if (this.vmEventTbl) {
-          // @ts-ignore
-          this.vmEventTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 33 + 'px';
-          this.vmEventTbl.reMeauseHeight();
-        }
-       if (this.vmEventTblData) {
-         // @ts-ignore
-         this.vmEventTblData.shadowRoot.querySelector('.table').style.height =
-           this.parentElement!.clientHeight - 10 - 33 + 'px';
-         this.vmEventTblData.reMeauseHeight();
-       }
+        // @ts-ignore
+        this.vmEventTbl?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 33 + 'px';
+        this.vmEventTbl?.reMeauseHeight();
+        // @ts-ignore
+        this.vmEventTblData?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 33 + 'px';
+        this.vmEventTblData?.reMeauseHeight();
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -282,6 +273,69 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPaneVMEventsHtml;
+    return `
+    <style>
+        .vm-event-loading{
+            bottom: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width:100%;
+            background:transparent;
+            z-index: 999999;
+        }
+        :host{
+            padding: 10px 10px 0 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .vm-event-progress{
+            bottom: 33px;
+            position: absolute;
+            height: 1px;
+            z-index: 99;
+            left: 0;
+            right: 0;
+        }
+        #vm-event-filter {
+            border: solid rgb(216,216,216) 1px;
+            float: left;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        </style>
+        <div class="vm-event-content" style="display: flex;flex-direction: column">
+            <div style="display: flex;flex-direction: row;">
+                <lit-slicer style="width:100%">
+                    <div style="width: 65%">
+                        <lit-table id="vm-event-tbl" style="height: auto">
+                            <lit-table-column class="vm-event-column" width="1fr" title="Start Time" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Operation" data-index="operation" key="operation" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Adress" data-index="address" key="address" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="vm-event-column" width="1fr" title="Size" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
+                        </lit-table>
+                    </div>
+                    <lit-slicer-track ></lit-slicer-track>
+                    <lit-table id="vm-event-tbr" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                        <lit-table-column class="vm-event-column" width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                            <template>
+                                <div v-if=" type == -1 ">Thread:</div>
+                                <img src="img/library.png" size="20" v-if=" type == 1 ">
+                                <img src="img/function.png" size="20" v-if=" type == 0 ">
+                            </template>
+                        </lit-table-column>
+                        <lit-table-column class="vm-event-column" width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
+                        </lit-table-column>
+                    </lit-table>
+                </lit-slicer>
+            </div>
+            <lit-progress-bar class="progress vm-event-progress"></lit-progress-bar>
+            <tab-pane-filter id="vm-event-filter" first></tab-pane-filter>
+            <div class="loading vm-event-loading"></div>
+        </div>
+`;
   }
 }

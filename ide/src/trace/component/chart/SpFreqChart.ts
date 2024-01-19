@@ -14,25 +14,25 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
-import { info } from '../../../log/Log';
-import { TraceRow } from '../trace/base/TraceRow';
-import { ColorUtils } from '../trace/base/ColorUtils';
-import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
-import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWorkerFreq';
-import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCpuState';
-import { FolderSupplier, FolderThreadHandler } from './SpChartManager';
-import { Utils } from '../trace/base/Utils';
-import { cpuFreqDataSender } from '../../database/data-trafic/cpu/CpuFreqDataSender';
-import { cpuStateSender } from '../../database/data-trafic/cpu/CpuStateSender';
-import { cpuFreqLimitSender } from '../../database/data-trafic/cpu/CpuFreqLimitDataSender';
 import {
   getCpuLimitFreqId,
   getCpuLimitFreqMax,
   queryCpuFreq,
   queryCpuMaxFreq,
-  queryCpuStateFilter
-} from "../../database/sql/Cpu.sql";
+  queryCpuStateFilter,
+} from '../../database/SqlLite';
+import { info } from '../../../log/Log';
+import { TraceRow } from '../trace/base/TraceRow';
+import { ColorUtils } from '../trace/base/ColorUtils';
+import { CpuFreqLimitRender, CpuFreqLimitsStruct } from '../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { CpuFreqStruct, FreqRender } from '../../database/ui-worker/ProcedureWorkerFreq';
+import { CpuStateRender, CpuStateStruct } from '../../database/ui-worker/ProcedureWorkerCpuState';
+import { FolderSupplier, FolderThreadHandler } from './SpChartManager';
+import { Utils } from '../trace/base/Utils';
+import { cpuFreqDataSender } from '../../database/data-trafic/CpuFreqDataSender';
+import { cpuStateSender } from '../../database/data-trafic/CpuStateSender';
+import { cpuFreqLimitSender } from '../../database/data-trafic/CpuFreqLimitDataSender';
 export class SpFreqChart {
   private trace: SpSystemTrace;
   private folderRow: TraceRow<any> | undefined;

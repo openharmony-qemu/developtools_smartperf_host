@@ -16,12 +16,12 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { queryGpuDataTab } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import {queryGpuDataTab} from "../../../../database/sql/Gpu.sql";
 
 interface GL {
   startTs: number;

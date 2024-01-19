@@ -19,7 +19,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { JankFramesStruct } from '../../../../bean/JankFramesStruct';
 import { JanksStruct } from '../../../../bean/JanksStruct';
 import { resizeObserver } from '../SheetUtils';
-import {querySelectRangeData} from "../../../../database/sql/Janks.sql";
+import { querySelectRangeData } from '../../../../database/SqlLite';
 
 @element('tabpane-frames')
 export class TabPaneFrames extends BaseElement {
@@ -64,38 +64,28 @@ export class TabPaneFrames extends BaseElement {
           }
         });
         tablelist.push(sumRes);
-        tablelist = this.setFrameDataDur(appJank, rsJank, noJank, tablelist);
+        if (appJank.occurrences > 0) {
+          appJank.maxDurationStr = appJank.maxDuration + '';
+          appJank.minDurationStr = appJank.minDuration + '';
+          appJank.meanDurationStr = appJank.meanDuration + '';
+          tablelist.push(appJank);
+        }
+        if (rsJank.occurrences > 0) {
+          rsJank.maxDurationStr = rsJank.maxDuration + '';
+          rsJank.minDurationStr = rsJank.minDuration + '';
+          rsJank.meanDurationStr = rsJank.meanDuration + '';
+          tablelist.push(rsJank);
+        }
+        if (noJank.occurrences > 0) {
+          noJank.maxDurationStr = noJank.maxDuration + '';
+          noJank.minDurationStr = noJank.minDuration + '';
+          noJank.meanDurationStr = noJank.meanDuration + '';
+          tablelist.push(noJank);
+        }
         this.framesSource = tablelist;
         this.framesTbl!.recycleDataSource = tablelist;
       });
     }
-  }
-
-  private setFrameDataDur(
-    appFrame: JankFramesStruct,
-    rsFrame: JankFramesStruct,
-    noFrame: JankFramesStruct,
-    tableList: JankFramesStruct[]
-  ): JankFramesStruct[] {
-    if (appFrame.occurrences > 0) {
-      appFrame.maxDurationStr = appFrame.maxDuration + '';
-      appFrame.minDurationStr = appFrame.minDuration + '';
-      appFrame.meanDurationStr = appFrame.meanDuration + '';
-      tableList.push(appFrame);
-    }
-    if (rsFrame.occurrences > 0) {
-      rsFrame.maxDurationStr = rsFrame.maxDuration + '';
-      rsFrame.minDurationStr = rsFrame.minDuration + '';
-      rsFrame.meanDurationStr = rsFrame.meanDuration + '';
-      tableList.push(rsFrame);
-    }
-    if (noFrame.occurrences > 0) {
-      noFrame.maxDurationStr = noFrame.maxDuration + '';
-      noFrame.minDurationStr = noFrame.minDuration + '';
-      noFrame.meanDurationStr = noFrame.meanDuration + '';
-      tableList.push(noFrame);
-    }
-    return tableList;
   }
 
   private frameTimelineJankDataHandle(

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from './utils/QueryEnum';
+import { TraficEnum } from './QueryEnum';
 
 interface NativeMemoryCacheType {
   maxSize: number;
@@ -113,43 +113,39 @@ function mergeNormalChartData(ne: any, filterLevel: number, finish: boolean, key
       dataList: [item],
     });
   } else {
-    mergeData(item, ne, filterLevel, finish, key);
-  }
-}
-
-function mergeData(item: any, ne: any, filterLevel: number, finish: boolean, key: string): void {
-  let data = dataCache.normalCache.get(key);
-  if (data) {
-    let last = data.dataList[data.dataList.length - 1];
-    last.dur = item.startTime! - last.startTime!;
-    if (last.dur > filterLevel || finish) {
-      if (ne.eventType === 0 || ne.eventType === 1) {
-        item.density = last.density! + tempDensity + 1;
-        item.heapSize = last.heapSize! + tempSize + ne.heapSize;
+    let data = dataCache.normalCache.get(key);
+    if (data) {
+      let last = data.dataList[data.dataList.length - 1];
+      last.dur = item.startTime! - last.startTime!;
+      if (last.dur > filterLevel || finish) {
+        if (ne.eventType === 0 || ne.eventType === 1) {
+          item.density = last.density! + tempDensity + 1;
+          item.heapSize = last.heapSize! + tempSize + ne.heapSize;
+        } else {
+          item.density = last.density! + tempDensity - 1;
+          item.heapSize = last.heapSize! + tempSize - ne.heapSize;
+        }
+        tempDensity = 0;
+        tempSize = 0;
+        data.maxDensity = Math.max(item.density, data.maxDensity);
+        data.minDensity = Math.min(item.density, data.minDensity);
+        data.maxSize = Math.max(item.heapSize, data.maxSize);
+        data.minSize = Math.min(item.heapSize, data.minSize);
+        data.dataList.push(item);
       } else {
-        item.density = last.density! + tempDensity - 1;
-        item.heapSize = last.heapSize! + tempSize - ne.heapSize;
-      }
-      tempDensity = 0;
-      tempSize = 0;
-      data.maxDensity = Math.max(item.density, data.maxDensity);
-      data.minDensity = Math.min(item.density, data.minDensity);
-      data.maxSize = Math.max(item.heapSize, data.maxSize);
-      data.minSize = Math.min(item.heapSize, data.minSize);
-      data.dataList.push(item);
-    } else {
-      if (ne.eventType === 0 || ne.eventType === 1) {
-        tempDensity += 1;
-        tempSize += ne.heapSize;
-      } else {
-        tempDensity -= 1;
-        tempSize -= ne.heapSize;
+        if (ne.eventType === 0 || ne.eventType === 1) {
+          tempDensity += 1;
+          tempSize += ne.heapSize;
+        } else {
+          tempDensity -= 1;
+          tempSize -= ne.heapSize;
+        }
       }
     }
   }
 }
 
-function statisticChartHandler(arr: Array<any>, key: string, totalNS: number): void {
+function statisticChartHandler(arr: Array<any>, key: string, totalNS: number) {
   let callGroupMap: Map<number, any[]> = new Map<number, any[]>();
   let obj: any = {};
   for (let hook of arr) {
@@ -186,11 +182,6 @@ function statisticChartHandler(arr: Array<any>, key: string, totalNS: number): v
       obj[hook.startTs] = data;
     }
   }
-  let cache = setStatisticsCacheMapValue(obj, totalNS);
-  dataCache.statisticsCache.set(key, cache);
-}
-
-function setStatisticsCacheMapValue(obj: any, totalNS: number): any {
   let source = Object.values(obj) as {
     startTime: number;
     heapSize: number;
@@ -217,22 +208,22 @@ function setStatisticsCacheMapValue(obj: any, totalNS: number): any {
     cache.minSize = Math.min(cache.minSize, source[i].heapSize);
     cache.minDensity = Math.min(cache.minDensity, source[i].density);
   }
-  return cache;
+  dataCache.statisticsCache.set(key, cache);
 }
 
 function cacheNativeMemoryChartData(model: string, totalNS: number, processes: number[], data: Array<any>): void {
-  processes.forEach(ipid => {
-    let processData = data.filter(ne => ne.ipid === ipid);
+  processes.forEach((ipid) => {
+    let processData = data.filter((ne) => ne.ipid === ipid);
     if (model === 'native_hook') {
       //正常模式
       normalChartDataHandler(processData, `${ipid}-0`, totalNS);
       normalChartDataHandler(
-        processData.filter(ne => ne.eventType === 0 || ne.eventType === 2),
+        processData.filter((ne) => ne.eventType === 0 || ne.eventType === 2),
         `${ipid}-1`,
         totalNS
       );
       normalChartDataHandler(
-        processData.filter(ne => ne.eventType === 1 || ne.eventType === 3),
+        processData.filter((ne) => ne.eventType === 1 || ne.eventType === 3),
         `${ipid}-2`,
         totalNS
       );
@@ -240,12 +231,12 @@ function cacheNativeMemoryChartData(model: string, totalNS: number, processes: n
       //统计模式
       statisticChartHandler(processData, `${ipid}-0`, totalNS);
       statisticChartHandler(
-        processData.filter(ne => ne.type === 0),
+        processData.filter((ne) => ne.type === 0),
         `${ipid}-1`,
         totalNS
       );
       statisticChartHandler(
-        processData.filter(ne => ne.type > 0),
+        processData.filter((ne) => ne.type > 0),
         `${ipid}-2`,
         totalNS
       );
@@ -285,14 +276,14 @@ export function nativeMemoryDataHandler(data: any, proc: Function): void {
       nativeMemoryChartDataCacheSql(data.params.model, data.params.recordStartNS, data.params.recordEndNS)
     );
     if (data.params.trafic === TraficEnum.ProtoBuffer) {
-      res = res.map((item) => {
+      res = res.map(item => {
         if (data.params.model === 'native_hook') {
           return {
             startTime: item.nativeMemoryNormal.startTime || 0,
             heapSize: item.nativeMemoryNormal.heapSize || 0,
             eventType: item.nativeMemoryNormal.eventType || 0,
             ipid: item.nativeMemoryNormal.ipid || 0,
-          };
+          }
         } else {
           return {
             callchainId: item.nativeMemoryStatistic.callchainId || 0,
@@ -303,7 +294,7 @@ export function nativeMemoryDataHandler(data: any, proc: Function): void {
             releaseSize: item.nativeMemoryStatistic.releaseSize || 0,
             ipid: item.nativeMemoryStatistic.ipid || 0,
             type: item.nativeMemoryStatistic.type || 0,
-          };
+          }
         }
       });
     }
@@ -377,14 +368,29 @@ export function filterNativeMemoryChartData(
   drawType: number,
   frame: any,
   key: string
-): NativeMemoryDataSource {
-  let dataSource = new NativeMemoryDataSource();
+): {
+  startTime: Array<number>;
+  dur: Array<number>;
+  heapSize: Array<number>;
+  density: Array<number>;
+} {
+  let dataSource: {
+    startTime: Array<number>;
+    dur: Array<number>;
+    heapSize: Array<number>;
+    density: Array<number>;
+  } = {
+    startTime: [],
+    dur: [],
+    heapSize: [],
+    density: [],
+  };
   let cache = model === 'native_hook' ? dataCache.normalCache.get(key) : dataCache.statisticsCache.get(key);
   if (cache !== undefined) {
     let data: any = {};
     cache!.dataList.reduce((pre, current, index) => {
       if (current.dur > 0 && current.startTime + current.dur >= startNS && current.startTime <= endNS) {
-        if (dur2Width(current.startTime, current.dur, startNS, endNS || totalNS, frame) >= 1) {
+        if (dur2Width(current.startTime, current.dur, startNS, (endNS || totalNS), frame) >= 1) {
           //计算绘制宽度 大于 1px，则加入绘制列表
           dataSource.startTime.push(current.startTime);
           dataSource.dur.push(current.dur);
@@ -412,48 +418,31 @@ export function filterNativeMemoryChartData(
       }
       return pre;
     }, data);
-    setDataSource(data, dataSource, cache);
+    Reflect.ownKeys(data).map((kv: string | symbol): void => {
+      let index = data[kv as string] as number;
+      dataSource.startTime.push(cache!.dataList[index].startTime);
+      dataSource.dur.push(cache!.dataList[index].dur);
+      dataSource.density.push(cache!.dataList[index].density);
+      dataSource.heapSize.push(cache!.dataList[index].heapSize);
+    });
   }
   return dataSource;
-}
-
-function setDataSource(data: any, dataSource: NativeMemoryDataSource, cache: any) {
-  Reflect.ownKeys(data).map((kv: string | symbol): void => {
-    let index = data[kv as string] as number;
-    dataSource.startTime.push(cache!.dataList[index].startTime);
-    dataSource.dur.push(cache!.dataList[index].dur);
-    dataSource.density.push(cache!.dataList[index].density);
-    dataSource.heapSize.push(cache!.dataList[index].heapSize);
-  });
 }
 
 function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any): number {
   if (endNS === 0) {
     endNS = duration;
   }
-  let xSizeNM: number = ((ns - startNS) * rect.width) / (endNS - startNS);
-  if (xSizeNM < 0) {
-    xSizeNM = 0;
-  } else if (xSizeNM > rect.width) {
-    xSizeNM = rect.width;
+  let xSize: number = ((ns - startNS) * rect.width) / (endNS - startNS);
+  if (xSize < 0) {
+    xSize = 0;
+  } else if (xSize > rect.width) {
+    xSize = rect.width;
   }
-  return xSizeNM;
+  return xSize;
 }
 
 function dur2Width(startTime: number, dur: number, startNS: number, endNS: number, rect: any): number {
-  let realDur = startTime + dur - Math.max(startTime, startNS);
+  let realDur = startTime + dur - Math.max(startTime, startNS)
   return Math.trunc((realDur * rect.width) / (endNS - startNS));
-}
-
-class NativeMemoryDataSource {
-  startTime: Array<number>;
-  dur: Array<number>;
-  heapSize: Array<number>;
-  density: Array<number>;
-  constructor() {
-    this.startTime = [];
-    this.dur = [];
-    this.heapSize = [];
-    this.density = [];
-  }
 }

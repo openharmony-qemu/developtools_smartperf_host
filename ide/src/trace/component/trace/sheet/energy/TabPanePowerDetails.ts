@@ -16,13 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPowerDetailsData } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { PowerDetailsEnergy } from '../../../../bean/EnergyStruct';
 import { SpHiSysEnergyChart } from '../../../chart/SpHiSysEnergyChart';
 import { resizeObserver } from '../SheetUtils';
-import { getTabPowerDetailsData } from '../../../../database/sql/ProcessThread.sql';
-import { TabPanePowerDetailsHTML } from './TabPanePowerDetails.html';
-import { NUM_100, NUM_3 } from '../../../../bean/NumBean';
 
 @element('tabpane-power-details')
 export class TabPanePowerDetails extends BaseElement {
@@ -30,91 +28,13 @@ export class TabPanePowerDetails extends BaseElement {
   private sourcePowerDetails: Array<any> = [];
   private itemType: any;
 
-  set data(valPowerDetails: SelectionParam) {
+  set data(valPowerDetails: SelectionParam | any) {
     this.queryDataByDB(valPowerDetails);
   }
 
-  connectedCallback(): void {
+  connectedCallback() {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.tblPowerDetails!);
-  }
-
-  getTimeTypeValue(): string[] {
-    return [
-      'foreground_duration',
-      'background_duration',
-      'screen_on_duration',
-      'screen_off_duration',
-      'foreground_count',
-      'background_count',
-      'screen_on_count',
-      'screen_off_count',
-      'duration',
-      'energy',
-      'usage',
-      'camera_id',
-    ];
-  }
-
-  getDurationTypeValue(): string[] {
-    return [
-      'background_time',
-      'screen_on_time',
-      'screen_off_time',
-      'load',
-      'uid',
-      'usage',
-      'charge',
-      'foreground_count',
-      'background_count',
-      'screen_on_count',
-      'screen_off_count',
-      'energy',
-      'duration',
-    ];
-  }
-
-  getEnergyTypeValue(): string[] {
-    return [
-      'background_time',
-      'screen_on_time',
-      'screen_off_time',
-      'load',
-      'charge',
-      'foreground_count',
-      'background_count',
-      'screen_on_count',
-      'screen_off_count',
-      'camera_id',
-      'uid',
-      'foreground_duration',
-      'foreground_energy',
-      'background_duration',
-      'background_energy',
-      'screen_on_duration',
-      'screen_on_energy',
-      'screen_off_duration',
-      'screen_off_energy',
-    ];
-  }
-
-  getCountTypeValue(): string[] {
-    return [
-      'background_time',
-      'screen_on_time',
-      'screen_off_time',
-      'load',
-      'energy',
-      'usage',
-      'foreground_duration',
-      'background_duration',
-      'screen_on_duration',
-      'screen_off_duration',
-      'camera_id',
-      'uid',
-      'duration',
-      'charge',
-    ];
   }
 
   initElements(): void {
@@ -125,44 +45,76 @@ export class TabPanePowerDetails extends BaseElement {
     });
     this.sourcePowerDetails = [];
     this.itemType = {
-      time_type: [],
-      duration_type: [],
-      energy_type: [],
-      count_type: []
+      time_type: [
+        'foreground_duration',
+        'background_duration',
+        'screen_on_duration',
+        'screen_off_duration',
+        'foreground_count',
+        'background_count',
+        'screen_on_count',
+        'screen_off_count',
+        'duration',
+        'energy',
+        'usage',
+        'camera_id',
+      ],
+      duration_type: [
+        'background_time',
+        'screen_on_time',
+        'screen_off_time',
+        'load',
+        'uid',
+        'usage',
+        'charge',
+        'foreground_count',
+        'background_count',
+        'screen_on_count',
+        'screen_off_count',
+        'energy',
+        'duration',
+      ],
+      energy_type: [
+        'background_time',
+        'screen_on_time',
+        'screen_off_time',
+        'load',
+        'charge',
+        'foreground_count',
+        'background_count',
+        'screen_on_count',
+        'screen_off_count',
+        'camera_id',
+        'uid',
+        'foreground_duration',
+        'foreground_energy',
+        'background_duration',
+        'background_energy',
+        'screen_on_duration',
+        'screen_on_energy',
+        'screen_off_duration',
+        'screen_off_energy',
+      ],
+      count_type: [
+        'background_time',
+        'screen_on_time',
+        'screen_off_time',
+        'load',
+        'energy',
+        'usage',
+        'foreground_duration',
+        'background_duration',
+        'screen_on_duration',
+        'screen_off_duration',
+        'camera_id',
+        'uid',
+        'duration',
+        'charge',
+      ],
     };
-    this.itemType.time_type = this.getTimeTypeValue();
-    this.itemType.duration_type = this.getDurationTypeValue();
-    this.itemType.energy_type = this.getEnergyTypeValue();
-    this.itemType.count_type = this.getCountTypeValue();
   }
 
-  getPowerData() {
-    return {
-      POWER_IDE_CPU: new PowerDetailsEnergy('CPU'),
-      POWER_IDE_LOCATION: new PowerDetailsEnergy('LOCATION'),
-      POWER_IDE_GPU: new PowerDetailsEnergy('GPU'),
-      POWER_IDE_DISPLAY: new PowerDetailsEnergy('DISPLAY'),
-      POWER_IDE_CAMERA: new PowerDetailsEnergy('CAMERA'),
-      POWER_IDE_BLUETOOTH: new PowerDetailsEnergy('BLUETOOTH'),
-      POWER_IDE_FLASHLIGHT: new PowerDetailsEnergy('FLASHLIGHT'),
-      POWER_IDE_AUDIO: new PowerDetailsEnergy('AUDIO'),
-      POWER_IDE_WIFISCAN: new PowerDetailsEnergy('WIFISCAN'),
-    };
-  }
-
-  getTotalEnergy(powerData: any) {
-    return powerData.POWER_IDE_CPU.getTotalEnergy(false) +
-      powerData.POWER_IDE_LOCATION.getTotalEnergy(false) +
-      powerData.POWER_IDE_GPU.getTotalEnergy(true) +
-      powerData.POWER_IDE_DISPLAY.getTotalEnergy(true) +
-      powerData.POWER_IDE_CAMERA.getTotalEnergy(false) +
-      powerData.POWER_IDE_BLUETOOTH.getTotalEnergy(false) +
-      powerData.POWER_IDE_FLASHLIGHT.getTotalEnergy(false) +
-      powerData.POWER_IDE_AUDIO.getTotalEnergy(false) +
-      powerData.POWER_IDE_WIFISCAN.getTotalEnergy(false);
-  }
-
-  queryDataByDB(val: SelectionParam | any): void {
+  queryDataByDB(val: SelectionParam | any) {
     getTabPowerDetailsData(val.leftNs - val.leftNs, val.rightNs).then((items) => {
       log('getTabPowerDetailsData size :' + items.length);
       let detailsData: Array<any> = [];
@@ -171,24 +123,49 @@ export class TabPanePowerDetails extends BaseElement {
       set.add('LOAD');
       set.add('CHARGE');
       set.add('CAMERA_ID');
-      let powerData: any = this.getPowerData();
+
+      let powerData: any = {
+        POWER_IDE_CPU: new PowerDetailsEnergy('CPU'),
+        POWER_IDE_LOCATION: new PowerDetailsEnergy('LOCATION'),
+        POWER_IDE_GPU: new PowerDetailsEnergy('GPU'),
+        POWER_IDE_DISPLAY: new PowerDetailsEnergy('DISPLAY'),
+        POWER_IDE_CAMERA: new PowerDetailsEnergy('CAMERA'),
+        POWER_IDE_BLUETOOTH: new PowerDetailsEnergy('BLUETOOTH'),
+        POWER_IDE_FLASHLIGHT: new PowerDetailsEnergy('FLASHLIGHT'),
+        POWER_IDE_AUDIO: new PowerDetailsEnergy('AUDIO'),
+        POWER_IDE_WIFISCAN: new PowerDetailsEnergy('WIFISCAN'),
+      };
       let tsMax = 0;
       let currentAppIndex = -1;
       items.forEach((item) => {
         let powerDatum: any = powerData[item.eventName];
         if (item.appKey.toLocaleLowerCase() === 'appname') {
-          powerDatum.appName = SpHiSysEnergyChart.app_name;
+          powerDatum['appName'] = SpHiSysEnergyChart.app_name;
           currentAppIndex = item.eventValue.split(',').indexOf(SpHiSysEnergyChart.app_name!);
           tsMax = 0;
-        } else if (currentAppIndex > -1 && (set.has(item.appKey) ? item.startNS >= tsMax : true)) {
+        } else if (currentAppIndex > -1) {
           if (set.has(item.appKey)) {
-            powerDatum[item.appKey.toLocaleLowerCase()] = item.startNS >= tsMax ? (tsMax = item.startNS , item.eventValue) : powerDatum[item.appKey.toLocaleLowerCase()];
+            if (item.startNS >= tsMax) {
+              powerDatum[item.appKey.toLocaleLowerCase()] = item.eventValue;
+              tsMax = item.startNS;
+            }
           } else {
-            powerDatum[item.appKey.toLocaleLowerCase()] = (powerDatum[item.appKey.toLocaleLowerCase()] || 0) + parseInt(item.eventValue.split(',')[currentAppIndex]);
+            powerDatum[item.appKey.toLocaleLowerCase()] += parseInt(item.eventValue.split(',')[currentAppIndex]);
           }
         }
       });
-      let totalEnergy = this.getTotalEnergy(powerData);
+
+      let totalEnergy =
+        powerData['POWER_IDE_CPU'].getTotalEnergy(false) +
+        powerData['POWER_IDE_LOCATION'].getTotalEnergy(false) +
+        powerData['POWER_IDE_GPU'].getTotalEnergy(true) +
+        powerData['POWER_IDE_DISPLAY'].getTotalEnergy(true) +
+        powerData['POWER_IDE_CAMERA'].getTotalEnergy(false) +
+        powerData['POWER_IDE_BLUETOOTH'].getTotalEnergy(false) +
+        powerData['POWER_IDE_FLASHLIGHT'].getTotalEnergy(false) +
+        powerData['POWER_IDE_AUDIO'].getTotalEnergy(false) +
+        powerData['POWER_IDE_WIFISCAN'].getTotalEnergy(false);
+
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_CPU', false, 'time_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_LOCATION', false, 'duration_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_GPU', true, 'energy_type'));
@@ -198,6 +175,7 @@ export class TabPanePowerDetails extends BaseElement {
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_FLASHLIGHT', false, 'duration_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_AUDIO', false, 'duration_type'));
       detailsData.push(this.setEnergyItems(powerData, totalEnergy, 'POWER_IDE_WIFISCAN', false, 'count_type'));
+
       if (detailsData.length > 0) {
         this.sourcePowerDetails = detailsData;
         this.tblPowerDetails!.recycleDataSource = detailsData;
@@ -205,7 +183,12 @@ export class TabPanePowerDetails extends BaseElement {
         this.sourcePowerDetails = [];
         this.tblPowerDetails!.recycleDataSource = [];
       }
-      this.updateTableStyles();
+      this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
+        td.style.fontSize = '14px';
+        td.style.fontWeight = '400';
+        td.style.opacity = '0.9';
+        td.style.lineHeight = '16px';
+      });
     });
     let th = this.tblPowerDetails?.shadowRoot?.querySelector<HTMLDivElement>('.th');
     if (th) {
@@ -213,21 +196,12 @@ export class TabPanePowerDetails extends BaseElement {
     }
   }
 
-  updateTableStyles() {
-    this.tblPowerDetails?.shadowRoot?.querySelectorAll<HTMLDivElement>('.td').forEach((td) => {
-      td.style.fontSize = '14px';
-      td.style.fontWeight = '400';
-      td.style.opacity = '0.9';
-      td.style.lineHeight = '16px';
-    });
-  }
-
   setEnergyItems(powerData: any, totalEnergy: number, energyName: string, isSimpleEnergy: boolean, type: any): any {
-    let ratio = (powerData[energyName].getTotalEnergy(isSimpleEnergy) * NUM_100) / totalEnergy;
-    if (totalEnergy === 0) {
+    let ratio = (powerData[energyName].getTotalEnergy(isSimpleEnergy) * 100) / totalEnergy;
+    if (totalEnergy == 0) {
       powerData[energyName].energyConsumptionRatio = '0.000 %';
     } else {
-      powerData[energyName].energyConsumptionRatio = ratio.toFixed(NUM_3) + ' %';
+      powerData[energyName].energyConsumptionRatio = ratio.toFixed(3) + ' %';
     }
     return this.getEnergyStyle(powerData, energyName, type);
   }
@@ -237,13 +211,13 @@ export class TabPanePowerDetails extends BaseElement {
       powerData[energyName][item] = '-';
     });
     if (type === 'energy_type') {
-      if (energyName === 'POWER_IDE_GPU') {
+      if (energyName == 'POWER_IDE_GPU') {
         powerData[energyName]['duration'] = '-';
       } else {
         powerData[energyName]['usage'] = '-';
       }
     } else if (type === 'duration_type') {
-      if (energyName !== 'POWER_IDE_CAMERA') {
+      if (energyName != 'POWER_IDE_CAMERA') {
         powerData[energyName]['camera_id'] = '-';
       }
     }
@@ -251,30 +225,93 @@ export class TabPanePowerDetails extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPanePowerDetailsHTML;
+    return `
+        <style>
+        .power-details-table{
+            height: auto;
+        }
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <lit-table id="tb-power-details-energy" class="power-details-table">
+            <lit-table-column order width="100px" title="" data-index="event" key="event" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="60px" title="UID" data-index="uid" key="uid" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="80px" title="Charge" data-index="charge" key="charge" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="200px" title="Foreground Duration(ms)" data-index="foreground_duration" key="foreground_duration" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="200px" title="Foreground Energy(mAs)" data-index="foreground_energy" key="foreground_energy" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="200px" title="Background Duration(ms)" data-index="background_duration" key="background_duration" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="200px" title="Background Energy(mAs)" data-index="background_energy" key="background_energy" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="190px" title="Screen On Duration(ms)" data-index="screen_on_duration" key="screen_on_duration" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="180px" title="Screen On Energy(mAs)" data-index="screen_on_energy" key="screen_on_energy" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="190px" title="Screen Off Duration(ms)" data-index="screen_off_duration" key="screen_off_duration" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="190px" title="Screen Off Energy(mAs)" data-index="screen_off_energy" key="screen_off_energy" align="flex-start" >
+            </lit-table-column>
+             <lit-table-column order width="150px" title="Foreground Count" data-index="foreground_count" key="foreground_count" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="150px" title="Background Count" data-index="background_count" key="background_count" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="150px" title="Screen On Count" data-index="screen_on_count" key="screen_on_count" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="150px" title="Screen Off Count" data-index="screen_off_count" key="screen_off_count" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="170px" title="Background Time(ms)" data-index="background_time" key="background_time" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="160px" title="Screen On Time(ms)" data-index="screen_on_time" key="screen_on_time" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="160px" title="Screen Off Time(ms)" data-index="screen_off_time" key="screen_off_time" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="110px" title="Energy(mAs)" data-index="energy" key="energy" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="80px" title="Load(%)" data-index="load" key="load" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="100px" title="Usage(ms)" data-index="usage" key="usage" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="120px" title="Duration(ms)" data-index="duration" key="duration" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="100px" title="Camera Id" data-index="camera_id" key="camera_id" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="80px" title="Count" data-index="count" key="count" align="flex-start" >
+            </lit-table-column>
+            <lit-table-column order width="140px" title="Energy Percent(%)" data-index="energyConsumptionRatio" key="energyConsumptionRatio" align="flex-start" >
+            </lit-table-column>
+        </lit-table>
+        `;
   }
 
-  sortByColumn(detail: any): void {
+  sortByColumn(detail: any) {
     // @ts-ignore
     function compare(property, sort, type) {
       return function (aPowerDetails: PowerDetailsEnergy, bPowerDetails: PowerDetailsEnergy) {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]) -
-            // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property])
+              parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]) -
+                // @ts-ignore
+                parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property])
             : // @ts-ignore
-            parseFloat(aPowerDetails[property] === '-' ? 0 : aPowerDetails[property]) -
-            // @ts-ignore
-            parseFloat(bPowerDetails[property] === '-' ? 0 : bPowerDetails[property]);
+              parseFloat(aPowerDetails[property] == '-' ? 0 : aPowerDetails[property]) -
+                // @ts-ignore
+                parseFloat(bPowerDetails[property] == '-' ? 0 : bPowerDetails[property]);
         } else {
           // @ts-ignore
           if (bPowerDetails[property] > aPowerDetails[property]) {
             return sort === 2 ? 1 : -1;
           } else {
             // @ts-ignore
-            if (bPowerDetails[property] === aPowerDetails[property]) {
+            if (bPowerDetails[property] == aPowerDetails[property]) {
               return 0;
             } else {
               return sort === 2 ? -1 : 1;

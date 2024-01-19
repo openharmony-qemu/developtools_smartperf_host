@@ -15,7 +15,11 @@
 
 import {
   BaseStruct,
+  drawFlagLine,
+  drawLines,
+  drawLoading,
   drawLoadingFrame,
+  drawSelection,
   isFrameContainPoint,
   ns2x,
   Render,
@@ -37,63 +41,179 @@ export class EnergySystemRender extends Render {
     system(
       systemList,
       systemFilter,
-      TraceRow.range!.startNS || 0,
-      TraceRow.range!.endNS || 0,
-      TraceRow.range!.totalNS || 0,
+      TraceRow.range!.startNS,
+      TraceRow.range!.endNS,
+      TraceRow.range!.totalNS,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
     drawLoadingFrame(req.context, row.dataListCache, row);
-    drawProcedureWorkerEnergy(req, systemFilter, row);
-  }
-}
+    req.context.beginPath();
+    let find = false;
+    let energySystemData: any = {};
+    for (let i = 0; i < systemFilter.length; i++) {
+      let energySysStruct = systemFilter[i];
 
-function drawProcedureWorkerEnergy(req: any, systemFilter: Array<any>, row: TraceRow<EnergySystemStruct>) {
-  req.context.beginPath();
-  let find = false;
-  let energySystemData: any = {};
-  for (let i = 0; i < systemFilter.length; i++) {
-    let energySysStruct = systemFilter[i];
-    EnergySystemStruct.draw(req.context, energySysStruct);
-    if (row.isHover && energySysStruct.frame && isFrameContainPoint(energySysStruct.frame, row.hoverX, row.hoverY)) {
-      EnergySystemStruct.hoverEnergySystemStruct = energySysStruct;
-      if (energySysStruct.type === 0) {
-        if (energySysStruct.count !== undefined) {
-          energySystemData.workScheduler = energySysStruct.count;
-        } else {
-          energySystemData.workScheduler = '0';
+      EnergySystemStruct.draw(req.context, energySysStruct);
+      if (row.isHover && energySysStruct.frame && isFrameContainPoint(energySysStruct.frame, row.hoverX, row.hoverY)) {
+        EnergySystemStruct.hoverEnergySystemStruct = energySysStruct;
+        if (energySysStruct.type === 0) {
+          if (energySysStruct.count !== undefined) {
+            energySystemData.workScheduler = energySysStruct.count;
+          } else {
+            energySystemData.workScheduler = '0';
+          }
         }
-      }
-      if (energySysStruct.type === 1) {
-        if (energySysStruct.count !== undefined) {
-          energySystemData.power = energySysStruct.count + '';
-        } else {
-          energySystemData.power = '0';
+        if (energySysStruct.type === 1) {
+          if (energySysStruct.count !== undefined) {
+            energySystemData.power = energySysStruct.count + '';
+          } else {
+            energySystemData.power = '0';
+          }
         }
-      }
-      if (energySysStruct.type === 2) {
-        if (energySysStruct.count !== undefined) {
-          energySystemData.location = energySysStruct.count + '';
-        } else {
-          energySystemData.location = '0';
+
+        if (energySysStruct.type === 2) {
+          if (energySysStruct.count !== undefined) {
+            energySystemData.location = energySysStruct.count + '';
+          } else {
+            energySystemData.location = '0';
+          }
         }
+        find = true;
       }
-      find = true;
     }
+    if (!find && row.isHover) EnergySystemStruct.hoverEnergySystemStruct = undefined;
+    if (EnergySystemStruct.hoverEnergySystemStruct) {
+      EnergySystemStruct.hoverEnergySystemStruct!.workScheduler =
+        energySystemData.workScheduler === undefined ? '0' : energySystemData.workScheduler;
+      EnergySystemStruct.hoverEnergySystemStruct!.power =
+        energySystemData.power === undefined ? '0' : energySystemData.power;
+      EnergySystemStruct.hoverEnergySystemStruct!.location =
+        energySystemData.location === undefined ? '0' : energySystemData.location;
+    }
+    let spApplication = document.getElementsByTagName('sp-application')[0];
+    let isDark = spApplication.hasAttribute('dark');
+    drawLegend(req, isDark);
+    req.context.closePath();
   }
-  if (!find && row.isHover) EnergySystemStruct.hoverEnergySystemStruct = undefined;
-  if (EnergySystemStruct.hoverEnergySystemStruct) {
-    EnergySystemStruct.hoverEnergySystemStruct!.workScheduler =
-      energySystemData.workScheduler === undefined ? '0' : energySystemData.workScheduler;
-    EnergySystemStruct.hoverEnergySystemStruct!.power =
-      energySystemData.power === undefined ? '0' : energySystemData.power;
-    EnergySystemStruct.hoverEnergySystemStruct!.location =
-      energySystemData.location === undefined ? '0' : energySystemData.location;
+
+  render(energySysRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
+    if (energySysRequest.lazyRefresh) {
+      system(
+        list,
+        filter,
+        energySysRequest.startNS,
+        energySysRequest.endNS,
+        energySysRequest.totalNS,
+        energySysRequest.frame,
+        energySysRequest.useCache || !energySysRequest.range.refresh
+      );
+    } else {
+      if (!energySysRequest.useCache) {
+        system(
+          list,
+          filter,
+          energySysRequest.startNS,
+          energySysRequest.endNS,
+          energySysRequest.totalNS,
+          energySysRequest.frame,
+          false
+        );
+      }
+    }
+    if (energySysRequest.canvas) {
+      energySysRequest.context.clearRect(0, 0, energySysRequest.canvas.width, energySysRequest.canvas.height);
+      let energySystemArr = filter;
+      if (
+        energySystemArr.length > 0 &&
+        !energySysRequest.range.refresh &&
+        !energySysRequest.useCache &&
+        energySysRequest.lazyRefresh
+      ) {
+        drawLoading(
+          energySysRequest.context,
+          energySysRequest.startNS,
+          energySysRequest.endNS,
+          energySysRequest.totalNS,
+          energySysRequest.frame,
+          energySystemArr[0].startNS,
+          energySystemArr[energySystemArr.length - 1].startNS + energySystemArr[energySystemArr.length - 1].dur
+        );
+      }
+      drawLines(
+        energySysRequest.context,
+        energySysRequest.xs,
+        energySysRequest.frame.height,
+        energySysRequest.lineColor
+      );
+      energySysRequest.context.beginPath();
+      EnergySystemStruct.hoverEnergySystemStruct = undefined;
+      if (energySysRequest.isHover) {
+        let a: any = {};
+        for (let filterElement of filter) {
+          if (
+            filterElement.frame &&
+            energySysRequest.hoverX >= filterElement.frame.x &&
+            energySysRequest.hoverX <= filterElement.frame.x + filterElement.frame.width
+          ) {
+            EnergySystemStruct.hoverEnergySystemStruct = filterElement;
+            if (filterElement.type === 0) {
+              if (filterElement.count !== undefined) {
+                a.workScheduler = filterElement.count;
+              } else {
+                a.workScheduler = '0';
+              }
+            }
+            if (filterElement.type === 1) {
+              if (filterElement.count !== undefined) {
+                a.power = filterElement.count + '';
+              } else {
+                a.power = '0';
+              }
+            }
+
+            if (filterElement.type === 2) {
+              if (filterElement.count !== undefined) {
+                a.location = filterElement.count + '';
+              } else {
+                a.location = '0';
+              }
+            }
+          }
+        }
+        if (EnergySystemStruct.hoverEnergySystemStruct) {
+          EnergySystemStruct.hoverEnergySystemStruct!.workScheduler =
+            a.workScheduler == undefined ? '0' : a.workScheduler;
+          EnergySystemStruct.hoverEnergySystemStruct!.power = a.power == undefined ? '0' : a.power;
+          EnergySystemStruct.hoverEnergySystemStruct!.location = a.location == undefined ? '0' : a.location;
+        }
+      }
+      EnergySystemStruct.selectEnergySystemStruct = energySysRequest.params.selectEnergySystemStruct;
+      for (let re of filter) {
+        EnergySystemStruct.draw(energySysRequest.context, re);
+      }
+      drawLegend(energySysRequest);
+      drawSelection(energySysRequest.context, energySysRequest.params);
+      energySysRequest.context.closePath();
+      drawFlagLine(
+        energySysRequest.context,
+        energySysRequest.flagMoveInfo,
+        energySysRequest.flagSelectedInfo,
+        energySysRequest.startNS,
+        energySysRequest.endNS,
+        energySysRequest.totalNS,
+        energySysRequest.frame,
+        energySysRequest.slicesTime
+      );
+    }
+    // @ts-ignore
+    self.postMessage({
+      id: energySysRequest.id,
+      type: energySysRequest.type,
+      results: energySysRequest.canvas ? undefined : filter,
+      hover: EnergySystemStruct.hoverEnergySystemStruct,
+    });
   }
-  let spApplication = document.getElementsByTagName('sp-application')[0];
-  let isDark = spApplication.hasAttribute('dark');
-  drawLegend(req, isDark);
-  req.context.closePath();
 }
 
 export function drawLegend(req: RequestMessage | any, isDark?: boolean) {
@@ -133,10 +253,7 @@ export function systemData(data: Array<any>, startNS: number, endNS: number, tot
     if (systemItem.count == 0) {
       systemItem.dur = 0;
     }
-    if (
-      (systemItem.startNs || 0) + (systemItem.dur || 0) > (startNS || 0) &&
-      (systemItem.startNs || 0) < (endNS || 0)
-    ) {
+    if ((systemItem.startNs || 0) + (systemItem.dur || 0) > (startNS || 0) && (systemItem.startNs || 0) < (endNS || 0)) {
       EnergySystemStruct.setSystemFrame(systemItem, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
     }
   }
@@ -155,7 +272,7 @@ export function system(
     let lockData: any = [];
     let locationData: any = [];
     let workData: any = [];
-    res.forEach((item) => {
+    res.forEach(item => {
       if (item.dataType === 1) {
         lockData.push(item);
       } else if (item.dataType === 2) {
@@ -176,16 +293,6 @@ export function system(
     return;
   }
   res.length = 0;
-  setEnergySystemFilter(systemList, res, startNS, endNS, totalNS, frame);
-}
-function setEnergySystemFilter(
-  systemList: Array<any>,
-  res: Array<any>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any
-) {
   if (systemList) {
     for (let i = 0; i < 3; i++) {
       let arr = systemList[i];
@@ -193,15 +300,15 @@ function setEnergySystemFilter(
         for (let index = 0; index < arr.length; index++) {
           let item = arr[index];
           if (index === arr.length - 1) {
-            item.dur = endNS - (item.startNs || 0);
+            item.dur = (endNS || 0) - (item.startNs || 0);
           } else {
             item.dur = (arr[index + 1].startNs || 0) - (item.startNs || 0);
           }
           if (item.count == 0) {
             item.dur = 0;
           }
-          if ((item.startNs || 0) + (item.dur || 0) > startNS && (item.startNs || 0) < endNS) {
-            EnergySystemStruct.setSystemFrame(item, 10, startNS, endNS, totalNS, frame);
+          if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
+            EnergySystemStruct.setSystemFrame(item, 10, startNS || 0, endNS || 0, totalNS || 0, frame);
             res.push(item);
           }
         }

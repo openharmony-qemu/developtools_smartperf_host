@@ -84,7 +84,7 @@ public:
     using ResultCallBack = std::function<void(const std::string /* json result */, int32_t)>;
     void ParserJson(const std::string& metrics, std::string& result);
     void PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback);
-    const auto GetMetricsMap()
+    auto GetMetricsMap()
     {
         return initMetricsMap_;
     }
@@ -100,13 +100,6 @@ private:
     void InitSysCallStrategy(const std::string& result);
     std::string JsonFormat(std::string json);
     std::string GetLevelSpace(int level);
-    void UpdataRepeateValueByTraceMem(std::string& repeateValue, std::string& metricsName);
-    void UpdataRepeateValueByTopTen(std::string& repeateValue, std::string& metricsName);
-    void UpdataRepeateValueByMemUnagg(std::string& repeateValue, std::string& metricsName);
-    void UpdataRepeateValueByTaskNames(std::string& repeateValue, std::string& metricsName);
-    void UpdataRepeateValueByStats(std::string& repeateValue, std::string& metricsName);
-    void UpdataRepeateValueByMetadata(std::string& repeateValue, std::string& metricsName);
-    void UpdataRepeateValueBySysCalls(std::string& repeateValue, std::string& metricsName);
     std::vector<ProcessMetricsItems> memStrategy_ = {};
     std::vector<ProcessValuesItem> memAggStrategy_ = {};
     std::vector<TaskProcessItem> taskNameStrategy_ = {};

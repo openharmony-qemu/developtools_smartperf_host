@@ -24,7 +24,6 @@ import {
   Rect,
   Render,
 } from './ProcedureWorkerCommon';
-import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class FrameAnimationRender extends Render {
   renderMainThread(
@@ -51,7 +50,7 @@ export class FrameAnimationRender extends Render {
     let find: boolean = false;
     for (let index: number = 0; index < frameAnimationFilter.length; index++) {
       let currentAnimationStruct: FrameAnimationStruct = frameAnimationFilter[index];
-      FrameAnimationStruct.draw(req.context, currentAnimationStruct, row);
+      FrameAnimationStruct.draw(req.context, index, currentAnimationStruct, row);
       if (
         row.isHover &&
         currentAnimationStruct.frame &&
@@ -106,18 +105,7 @@ export class FrameAnimationRender extends Render {
     }
   }
 }
-export function FrameAnimationStructOnClick(clickRowType: string, sp: SpSystemTrace) {
-  return new Promise((resolve,reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION && FrameAnimationStruct.hoverFrameAnimationStruct) {
-      FrameAnimationStruct.selectFrameAnimationStruct = FrameAnimationStruct.hoverFrameAnimationStruct;
-      sp.traceSheetEL?.displayFrameAnimationData(FrameAnimationStruct.selectFrameAnimationStruct);
-      sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
-    }else{
-      resolve(null);
-    }
-  });
-}
+
 export class FrameAnimationStruct extends BaseStruct {
   static hoverFrameAnimationStruct: FrameAnimationStruct | undefined;
   static selectFrameAnimationStruct: FrameAnimationStruct | undefined;
@@ -164,19 +152,24 @@ export class FrameAnimationStruct extends BaseStruct {
 
   static draw(
     ctx: CanvasRenderingContext2D,
+    index: number,
     frameAnimationNode: FrameAnimationStruct,
     row: TraceRow<FrameAnimationStruct>
   ): void {
     let tsFixed: number = 6;
     let isHover: boolean = row.isHover;
-    let frame = frameAnimationNode.frame;
-    if (frame) {
+    if (frameAnimationNode.frame) {
       let nsToMillisecond = 1000_000;
       ctx.globalAlpha = 1.0;
       ctx.lineWidth = 1;
       ctx.lineJoin = 'round';
       ctx.fillStyle = ColorUtils.ANIMATION_COLOR[6];
-      ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
+      ctx.fillRect(
+        frameAnimationNode.frame.x,
+        frameAnimationNode.frame.y,
+        frameAnimationNode.frame.width,
+        frameAnimationNode.frame.height
+      );
       ctx.fillStyle = ColorUtils.ANIMATION_COLOR[3];
       ctx.textBaseline = 'middle';
       ctx.font = '8px sans-serif';
@@ -184,7 +177,7 @@ export class FrameAnimationStruct extends BaseStruct {
         ctx,
         `${frameAnimationNode.status} (${(frameAnimationNode.dur / nsToMillisecond).toFixed(tsFixed)} ms)`,
         textPadding,
-        frame,
+        frameAnimationNode.frame,
         frameAnimationNode
       );
       ctx.lineWidth = 2;
@@ -194,11 +187,20 @@ export class FrameAnimationStruct extends BaseStruct {
       ) {
         ctx.globalAlpha = 0.8;
         ctx.strokeStyle = ColorUtils.ANIMATION_COLOR[3];
-
-        ctx.strokeRect(frame.x + padding, frame.y, frame.width - padding, frame.height);
+        ctx.strokeRect(
+          frameAnimationNode.frame.x + padding,
+          frameAnimationNode.frame.y,
+          frameAnimationNode.frame.width - padding,
+          frameAnimationNode.frame.height
+        );
       } else {
         ctx.strokeStyle = ColorUtils.ANIMATION_COLOR[2];
-        ctx.strokeRect(frame.x + padding, frame.y, frame.width - padding, frame.height);
+        ctx.strokeRect(
+          frameAnimationNode.frame.x + padding,
+          frameAnimationNode.frame.y,
+          frameAnimationNode.frame.width - padding,
+          frameAnimationNode.frame.height
+        );
       }
     }
   }

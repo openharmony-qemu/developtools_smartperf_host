@@ -19,7 +19,7 @@
 #include <string>
 #include "double_map.h"
 #include "ebpf_data_reader.h"
-#include "ebpf_data_structure.h"
+#include "ebpf_stdtype.h"
 #include "event_parser_base.h"
 #include "string_help.h"
 #include "string_to_numerical.h"
@@ -43,8 +43,6 @@ protected:
     DataIndex GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* elfHeaderAddr, uint64_t symVaddr);
     EbpfSymbolInfo GetEbpfSymbolInfo(uint32_t pid, uint64_t ip);
     EbpfSymbolInfo GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip);
-    template <typename StartToMapsAddr>
-    void GetSymbolSave(EbpfSymbolInfo& ebpfSymbolInfo, StartToMapsAddr& startToMapsAddr, uint32_t pid, uint64_t ip);
     void UpdateFilePathIndexToPidAndIpMap(DataIndex filePathIndex, uint32_t pid, uint64_t ip);
     DataIndex ConvertToHexTextIndex(uint64_t number);
     template <class T>

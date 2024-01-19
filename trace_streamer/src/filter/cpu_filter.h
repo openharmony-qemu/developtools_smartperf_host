@@ -61,24 +61,12 @@ public:
     void Clear();
 
 private:
-    struct BinderTransactionInfo {
-        uint32_t iTidFrom;
-        uint32_t iTidTo;
-        uint64_t schedSliceRow;
-        uint64_t threadStateRow;
-    };
     void CheckWakeupEvent(uint32_t internalTid);
     uint64_t RemberInternalTidInStateTable(uint32_t uid, uint64_t row, uint64_t state = TASK_INVALID);
     uint64_t RowOfInternalTidInStateTable(uint32_t uid) const;
     void ClearInternalTidInStateTable(uint32_t uid);
     uint64_t StateOfInternalTidInStateTable(uint32_t uid) const;
     void TransactionClear(uint32_t iTidFrom, uint32_t transactionId);
-    void ProcNextPidSwitchEvent(uint64_t ts, uint64_t cpu, uint32_t prevPid, uint32_t nextPid, DataIndex nextInfo);
-    void ProcPrevPidSwitchEvent(uint64_t ts,
-                                uint64_t cpu,
-                                uint32_t prevPid,
-                                uint64_t prevState,
-                                BinderTransactionInfo& btInfo);
     std::map<uint64_t, uint64_t> cpuToRowThreadState_ = {};
     typedef struct {
         uint32_t iTid;
@@ -99,6 +87,12 @@ private:
     const DataIndex delay_ = traceDataCache_->GetDataIndex("delay");
     std::map<uint64_t, uint64_t> toRunnableTid_ = {};
 
+    struct BinderTransactionInfo {
+        uint32_t iTidFrom;
+        uint32_t iTidTo;
+        uint64_t schedSliceRow;
+        uint64_t threadStateRow;
+    };
     std::unordered_map<uint32_t, uint32_t> iTidToTransaction_;
     std::unordered_map<uint32_t, BinderTransactionInfo> transactionIdToInfo_;
 };

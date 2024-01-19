@@ -71,16 +71,6 @@ export function filterLogData(
     return;
   }
   logFilter.length = 0;
-  setLogFilter(logList, logFilter, startNS, endNS, totalNS, frame);
-}
-function setLogFilter(
-  logList: Array<LogStruct>,
-  logFilter: Array<LogStruct>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: any
-) {
   if (logList) {
     let allTypeDataMap: Map<number, Array<LogStruct>> = new Map();
     for (let index: number = 0; index < logList.length; index++) {

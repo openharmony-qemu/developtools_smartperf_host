@@ -16,7 +16,7 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import '../TabPaneFilter';
-import { TabPaneFilter } from '../TabPaneFilter';
+import { type FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../chart/FrameChart';
 import '../../../../../base-ui/slicer/lit-slicer';
@@ -28,6 +28,7 @@ import { findSearchNode } from '../../../../database/ui-worker/ProcedureWorkerCo
 
 @element('tabpane-perf-bottom-up')
 export class TabpanePerfBottomUp extends BaseElement {
+  private treeTable: HTMLDivElement | undefined | null;
   private bottomUpTable: LitTable | null | undefined;
   private stackTable: LitTable | null | undefined;
   private sortKey = '';
@@ -37,16 +38,16 @@ export class TabpanePerfBottomUp extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private searchValue: string = '';
   private currentSelection: SelectionParam | undefined;
-
   public initElements(): void {
     this.bottomUpTable = this.shadowRoot?.querySelector('#callTreeTable') as LitTable;
     this.stackTable = this.shadowRoot?.querySelector('#stackTable') as LitTable;
+    this.treeTable = this.bottomUpTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.bottomUpFilter = this.shadowRoot?.querySelector('#filter') as TabPaneFilter;
     this.bottomUpTable!.addEventListener('row-click', (evt) => this.bottomUpTableRowClickHandler(evt));
     this.stackTable!.addEventListener('row-click', (evt) => this.stackTableRowClick(evt));
     this.bottomUpTable!.addEventListener('column-click', (evt) => this.bottomUpTableColumnClickHandler(evt));
-    this.bottomUpFilter!.getFilterData(() => {
+    this.bottomUpFilter!.getFilterData((data: FilterData) => {
       if (this.searchValue !== this.bottomUpFilter!.filterValue) {
         this.searchValue = this.bottomUpFilter!.filterValue;
         findSearchNode(this.bottomUpSource, this.searchValue, false);
@@ -79,16 +80,18 @@ export class TabpanePerfBottomUp extends BaseElement {
   }
 
   set data(data: SelectionParam) {
-    if (data == this.currentSelection) {
-      return;
+    if (data instanceof SelectionParam) {
+      if (data == this.currentSelection) {
+        return;
+      }
+      this.currentSelection = data;
+      this.sortKey = '';
+      this.sortType = 0;
+      this.bottomUpFilter!.filterValue = '';
+      this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
+        this.setBottomUpTableData(results);
+      });
     }
-    this.currentSelection = data;
-    this.sortKey = '';
-    this.sortType = 0;
-    this.bottomUpFilter!.filterValue = '';
-    this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
-      this.setBottomUpTableData(results);
-    });
   }
 
   private setBottomUpTableData(results: Array<PerfBottomUpStruct>): void {
@@ -146,7 +149,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     const bottomUpData = evt.detail.data as PerfBottomUpStruct;
     document.dispatchEvent(
       new CustomEvent('number_calibration', {
-        detail: {time: bottomUpData.tsArray},
+        detail: { time: bottomUpData.tsArray },
       })
     );
     callStack!.push(bottomUpData);
@@ -174,7 +177,6 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.sortType = evt.detail.sort;
     this.setBottomUpTableData(this.bottomUpSource);
   }
-
   private stackTableRowClick(evt: Event): void {
     //@ts-ignore
     const data = evt.detail.data as PerfBottomUpStruct;
@@ -208,11 +210,9 @@ export class TabpanePerfBottomUp extends BaseElement {
 
   private sortTree(arr: Array<PerfBottomUpStruct>): Array<PerfBottomUpStruct> {
     const defaultSortType = 0;
-
     function defaultSort(callTreeLeftData: PerfBottomUpStruct, callTreeRightData: PerfBottomUpStruct): number {
       return callTreeRightData.totalTime - callTreeLeftData.totalTime;
     }
-
     const CallTreeSortArr = arr.sort((callTreeLeftData, callTreeRightData) => {
       if (this.sortKey === 'selfTime' || this.sortKey === 'selfTimePercent') {
         if (this.sortType === defaultSortType) {
@@ -269,7 +269,6 @@ export class TabpanePerfBottomUp extends BaseElement {
     </style>
     `;
   }
-
   public initHtml(): string {
     return `
     ${this.initHtmlStyle()}
@@ -288,10 +287,8 @@ export class TabpanePerfBottomUp extends BaseElement {
                 align="flex-start"  order></lit-table-column>
                 <lit-table-column width="1fr" title="%" data-index="totalTimePercent" key="totalTimePercent" 
                  align="flex-start"  order></lit-table-column>
-                <lit-table-column width="1fr" title="Event Count" data-index="eventCount" key="eventCount"  
-                align="flex-start"  order></lit-table-column>
-                <lit-table-column width="1fr" title="%" data-index="eventPercent" key="eventPercent"  
-                align="flex-start"  order></lit-table-column>
+                <lit-table-column width="1fr" title="Event Count" data-index="eventCount" key="eventCount"  align="flex-start"  order></lit-table-column>
+                <lit-table-column width="1fr" title="%" data-index="eventPercent" key="eventPercent"  align="flex-start"  order></lit-table-column>
             </lit-table>
         </div>
         <lit-slicer-track ></lit-slicer-track>

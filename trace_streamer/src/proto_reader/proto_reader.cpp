@@ -223,7 +223,7 @@ void ProtoReaderBase::ParseAllDataAreas()
 void ProtoReaderBase::MoveToLargerHeapStorage()
 {
     uint32_t largerVolume = volume_ << 1;
-    std::unique_ptr<DataArea[]> largerVolumeStorage = std::make_unique<DataArea[]>(largerVolume);
+    std::unique_ptr<DataArea[]> largerVolumeStorage(new DataArea[largerVolume]);
     (void)memcpy_s(&largerVolumeStorage[0], sizeof(DataArea) * largerVolume, dataAreas_, sizeof(DataArea) * size_);
     lagerHeapStorage_ = std::move(largerVolumeStorage);
     dataAreas_ = &lagerHeapStorage_[0];

@@ -100,7 +100,7 @@ describe('SpAllocations Test', () => {
   });
   it('SpAllocations test13', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.statistics_interval).toEqual(10);
+    expect(spAllocations.statistics_interval).toEqual(0);
   });
   it('SpAllocations test14', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;

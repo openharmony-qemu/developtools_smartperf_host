@@ -16,12 +16,12 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabPaneVirtualMemoryStatisticsData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { TabPaneFilter } from '../TabPaneFilter';
 import '../TabPaneFilter';
 import { VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
-import {getTabPaneVirtualMemoryStatisticsData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-virtual-memory-statistics')
 export class TabPaneVirtualMemoryStatistics extends BaseElement {
@@ -121,7 +121,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     });
   }
 
-  sortStatus(result: Array<any>, firstLevel: string, secondLevel: string): void {
+  sortStatus(result: Array<any>, firstLevel: string, secondLevel: string) {
     let vmMemoryStatFatherMap = new Map<any, any>();
     let vmMemoryStatChildMap = new Map<any, any>();
     let vmMemoryStatAllNode: any = {
@@ -134,8 +134,41 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       children: [],
     };
     result.forEach((item, idx) => {
-      this.processChildMap(vmMemoryStatChildMap, item, firstLevel, secondLevel);
-      this.processFatherMap(vmMemoryStatFatherMap, item, firstLevel);
+      if (vmMemoryStatChildMap.has(item[firstLevel] + '_' + item[secondLevel])) {
+        let vmMemoryStatChildObj = vmMemoryStatChildMap.get(item[firstLevel] + '_' + item[secondLevel]);
+        vmMemoryStatChildObj.count += item.count;
+        vmMemoryStatChildObj.allDuration += item.allDuration;
+        vmMemoryStatChildObj.minDuration =
+          vmMemoryStatChildObj.minDuration <= item.minDuration ? vmMemoryStatChildObj.minDuration : item.minDuration;
+        vmMemoryStatChildObj.maxDuration =
+          vmMemoryStatChildObj.maxDuration >= item.maxDuration ? vmMemoryStatChildObj.maxDuration : item.maxDuration;
+        vmMemoryStatChildObj.children.push(
+          this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null)
+        );
+      } else {
+        vmMemoryStatChildMap.set(item[firstLevel] + '_' + item[secondLevel], {
+          ...item,
+          children: [
+            this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null),
+          ],
+        });
+      }
+
+      if (vmMemoryStatFatherMap.has(item[firstLevel])) {
+        let vmMemoryStatFatherObj = vmMemoryStatFatherMap.get(item[firstLevel]);
+        vmMemoryStatFatherObj.count += item.count;
+        vmMemoryStatFatherObj.allDuration += item.allDuration;
+        vmMemoryStatFatherObj.minDuration =
+          vmMemoryStatFatherObj.minDuration <= item.minDuration ? vmMemoryStatFatherObj.minDuration : item.minDuration;
+        vmMemoryStatFatherObj.maxDuration =
+          vmMemoryStatFatherObj.maxDuration >= item.maxDuration ? vmMemoryStatFatherObj.maxDuration : item.maxDuration;
+        vmMemoryStatFatherObj.children.push(this.getInitData(item));
+      } else {
+        vmMemoryStatFatherMap.set(item[firstLevel], {
+          ...item,
+          children: [this.getInitData(item)],
+        });
+      }
       if (idx == 0) {
         vmMemoryStatAllNode.minDuration = item.minDuration;
       } else {
@@ -147,20 +180,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       vmMemoryStatAllNode.maxDuration =
         vmMemoryStatAllNode.maxDuration >= item.maxDuration ? vmMemoryStatAllNode.maxDuration : item.maxDuration;
     });
-    this.handleFatherMap(vmMemoryStatFatherMap, firstLevel, vmMemoryStatChildMap, vmMemoryStatAllNode);
 
-    vmMemoryStatAllNode.avgDuration = vmMemoryStatAllNode.allDuration / vmMemoryStatAllNode.count;
-    vmMemoryStatAllNode = this.getInitData(vmMemoryStatAllNode);
-    vmMemoryStatAllNode.title = 'All';
-    vmMemoryStatAllNode.path = { type: null, tid: null, pid: null, value: 'All' };
-    this.vmStatisticsSource = result.length > 0 ? [vmMemoryStatAllNode] : [];
-    let newSource = JSON.parse(JSON.stringify(this.vmStatisticsSource));
-    if (this.vmStatisticsSortType != 0 && result.length > 0)
-      this.sortVmStatisticsTable(newSource[0], this.vmStatisticsSortKey);
-    this.vmStatisticsTbl!.recycleDataSource = newSource;
-  }
-
-  private handleFatherMap(vmMemoryStatFatherMap: Map<any, any>, firstLevel: string, vmMemoryStatChildMap: Map<any, any>, vmMemoryStatAllNode: any): void {
     for (let ks of vmMemoryStatFatherMap.keys()) {
       let sp = vmMemoryStatFatherMap.get(ks);
       sp!.children = [];
@@ -173,86 +193,48 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       vmMemoryStatNode.path = { type: null, tid: null, pid: null, value: vmMemoryStatNode.title };
       vmMemoryStatNode.path[firstLevel == 'type' ? 'type' : 'pid'] =
         vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
-      this.handleChildMap(vmMemoryStatChildMap, ks, firstLevel, vmMemoryStatNode, sp);
+      for (let kst of vmMemoryStatChildMap.keys()) {
+        if (kst.startsWith(ks + '_')) {
+          let spt = vmMemoryStatChildMap.get(kst);
+          let data = this.getInitData(
+            spt!,
+            firstLevel == 'type' ? 'pname' : 'tname',
+            firstLevel == 'type' ? 'pid' : 'tid'
+          );
+          data.path = {
+            type: null,
+            tid: null,
+            pid: null,
+            value: 'All-' + vmMemoryStatNode.title + '-' + data.title,
+          };
+          data.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
+          data.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
+          data.children.forEach((e: any) => {
+            e.path = {
+              type: null,
+              tid: null,
+              pid: null,
+              value: 'All-' + vmMemoryStatNode.title + '-' + data.title + '-' + e.title,
+            };
+            e.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
+            e.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
+            e.path[firstLevel == 'type' ? 'tid' : 'type'] = e[firstLevel == 'type' ? 'tid' : 'type'];
+          });
+          sp!.children.push(data);
+        }
+      }
       vmMemoryStatAllNode.children.push(vmMemoryStatNode);
     }
-  }
 
-  private handleChildMap(vmMemoryStatChildMap: Map<any, any>, ks: any, firstLevel: string, vmMemoryStatNode: any, sp: any): void {
-    for (let kst of vmMemoryStatChildMap.keys()) {
-      if (kst.startsWith(ks + '_')) {
-        let spt = vmMemoryStatChildMap.get(kst);
-        let data = this.getInitData(
-          spt!,
-          firstLevel == 'type' ? 'pname' : 'tname',
-          firstLevel == 'type' ? 'pid' : 'tid'
-        );
-        this.handledata(data, vmMemoryStatNode, firstLevel);
-        sp!.children.push(data);
-      }
-    }
-  }
-
-  private handledata(data: any, vmMemoryStatNode: any, firstLevel: string): void {
-    data.path = {
-      type: null,
-      tid: null,
-      pid: null,
-      value: 'All-' + vmMemoryStatNode.title + '-' + data.title,
-    };
-    data.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
-    data.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
-    data.children.forEach((e: any) => {
-      e.path = {
-        type: null,
-        tid: null,
-        pid: null,
-        value: 'All-' + vmMemoryStatNode.title + '-' + data.title + '-' + e.title,
-      };
-      e.path[firstLevel == 'type' ? 'type' : 'pid'] = vmMemoryStatNode[firstLevel == 'type' ? 'type' : 'pid'];
-      e.path[firstLevel == 'type' ? 'pid' : 'tid'] = data[firstLevel == 'type' ? 'pid' : 'tid'];
-      e.path[firstLevel == 'type' ? 'tid' : 'type'] = e[firstLevel == 'type' ? 'tid' : 'type'];
-    });
-  }
-
-  private processFatherMap(vmMemoryStatFatherMap: Map<any, any>, item: any, firstLevel: string): void {
-    if (vmMemoryStatFatherMap.has(item[firstLevel])) {
-      let vmMemoryStatFatherObj = vmMemoryStatFatherMap.get(item[firstLevel]);
-      vmMemoryStatFatherObj.count += item.count;
-      vmMemoryStatFatherObj.allDuration += item.allDuration;
-      vmMemoryStatFatherObj.minDuration =
-        vmMemoryStatFatherObj.minDuration <= item.minDuration ? vmMemoryStatFatherObj.minDuration : item.minDuration;
-      vmMemoryStatFatherObj.maxDuration =
-        vmMemoryStatFatherObj.maxDuration >= item.maxDuration ? vmMemoryStatFatherObj.maxDuration : item.maxDuration;
-      vmMemoryStatFatherObj.children.push(this.getInitData(item));
-    } else {
-      vmMemoryStatFatherMap.set(item[firstLevel], {
-        ...item,
-        children: [this.getInitData(item)],
-      });
-    }
-  }
-
-  private processChildMap(vmMemoryStatChildMap: Map<any, any>, item: any, firstLevel: string, secondLevel: string): void {
-    if (vmMemoryStatChildMap.has(item[firstLevel] + '_' + item[secondLevel])) {
-      let vmMemoryStatChildObj = vmMemoryStatChildMap.get(item[firstLevel] + '_' + item[secondLevel]);
-      vmMemoryStatChildObj.count += item.count;
-      vmMemoryStatChildObj.allDuration += item.allDuration;
-      vmMemoryStatChildObj.minDuration =
-        vmMemoryStatChildObj.minDuration <= item.minDuration ? vmMemoryStatChildObj.minDuration : item.minDuration;
-      vmMemoryStatChildObj.maxDuration =
-        vmMemoryStatChildObj.maxDuration >= item.maxDuration ? vmMemoryStatChildObj.maxDuration : item.maxDuration;
-      vmMemoryStatChildObj.children.push(
-        this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null)
-      );
-    } else {
-      vmMemoryStatChildMap.set(item[firstLevel] + '_' + item[secondLevel], {
-        ...item,
-        children: [
-          this.getInitData(item, firstLevel == 'type' ? 'tname' : 'type', firstLevel == 'type' ? 'tid' : null),
-        ],
-      });
-    }
+    vmMemoryStatAllNode.avgDuration = vmMemoryStatAllNode.allDuration / vmMemoryStatAllNode.count;
+    vmMemoryStatAllNode = this.getInitData(vmMemoryStatAllNode);
+    vmMemoryStatAllNode.title = 'All';
+    vmMemoryStatAllNode.path = { type: null, tid: null, pid: null, value: 'All' };
+    this.vmStatisticsSource = result.length > 0 ? [vmMemoryStatAllNode] : [];
+    let newSource = JSON.parse(JSON.stringify(this.vmStatisticsSource));
+    if (this.vmStatisticsSortType != 0 && result.length > 0)
+      this.sortVmStatisticsTable(newSource[0], this.vmStatisticsSortKey);
+    this.vmStatisticsTbl!.recycleDataSource = newSource;
   }
 
   sortVmStatisticsTable(allNode: any, key: string) {

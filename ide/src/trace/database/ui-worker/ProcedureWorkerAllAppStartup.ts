@@ -16,7 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import {querySingleAppStartupsName} from "../sql/ProcessThread.sql";
+import { querySingleAppStartupsName } from '../SqlLite';
 
 export class AllAppStartupRender {
   renderMainThread(
@@ -61,12 +61,19 @@ export class AllAppStartupRender {
   }
 }
 
+const padding = 3;
 
 export class AllAppStartupStruct extends BaseStruct {
   static hoverStartupStruct: AllAppStartupStruct | undefined;
   static selectStartupStruct: AllAppStartupStruct | undefined;
   dur: number | undefined;
+  value: string | undefined;
   startTs: number | undefined;
+  pid: number | undefined;
+  process: string | undefined;
+  itid: number | undefined;
+  endItid: number | undefined;
+  tid: number | undefined;
   startName: number | undefined;
   stepName: string | undefined;
 
@@ -95,4 +102,8 @@ export class AllAppStartupStruct extends BaseStruct {
     }
   }
 
+  static async getStartupName(pid: number): Promise<any> {
+    let singleAppName = await querySingleAppStartupsName(pid);
+    return singleAppName[0].name;
+  }
 }

@@ -358,29 +358,25 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
     } else {
         internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     }
-    TS_CHECK_TRUE_RET(binderStackMap_.find(internalTid) != binderStackMap_.end(), SIZE_MAX);
+    if (binderStackMap_.find(internalTid) == binderStackMap_.end()) {
+        return SIZE_MAX;
+    }
     auto& stackInfo = binderStackMap_[internalTid];
     SlicesStack& stack = stackInfo.sliceStack;
     CloseUnMatchedSlice(timeStamp, stack, internalTid);
     if (stack.empty()) {
-        callEventDisMatchCount_++;
+        callEventDisMatchCount++;
         return SIZE_MAX;
     }
     auto stackIdx = MatchingIncompleteSliceIndex(stack, category, name);
-    TS_CHECK_TRUE(stackIdx >= 0, SIZE_MAX, "MatchingIncompleteSliceIndex failed");
+    if (stackIdx < 0) {
+        TS_LOGE("MatchingIncompleteSliceIndex failed");
+        return SIZE_MAX;
+    }
     auto lastRow = stack[stackIdx].index;
     auto slices = traceDataCache_->GetInternalSlicesData();
     slices->SetDuration(lastRow, timeStamp);
 
-    HandleAsyncEventAndOther(args, slices, lastRow, stackInfo);
-    if (stackIdx == stack.size() - 1) {
-        stack.pop_back();
-    }
-    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
-    return lastRow;
-}
-void SliceFilter::HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo)
-{
     auto argSize = sliceRowToArgsSetId_.count(lastRow);
     size_t argSetId = 0;
     if (args.valuesMap_.size()) {
@@ -405,6 +401,11 @@ void SliceFilter::HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint
             streamFilters_->argsFilter_->AppendArgs(args, argSetId);
         }
     }
+    if (stackIdx == stack.size() - 1) {
+        stack.pop_back();
+    }
+    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
+    return lastRow;
 }
 size_t SliceFilter::EndBinder(uint64_t timeStamp, uint32_t pid, DataIndex category, DataIndex name, ArgsSet args)
 {
@@ -437,13 +438,13 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       uint64_t cookie,
                                       DataIndex nameIndex)
 {
-    Unused(pid);
+    UNUSED(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
 
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId != INVALID_UINT64) {
-        asyncEventDisMatchCount_++;
+        asyncEventDisMatchCount++;
         return INVALID_UINT64;
     }
     asyncEventSize_++;
@@ -465,17 +466,17 @@ uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
                                        uint64_t cookie,
                                        DataIndex nameIndex)
 {
-    Unused(pid);
+    UNUSED(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId == INVALID_UINT64) { // if failed
-        asyncEventDisMatchCount_++;
+        asyncEventDisMatchCount++;
         return INVALID_UINT64;
     }
     if (asyncEventFilterMap_.find(lastFilterId) == asyncEventFilterMap_.end()) {
         TS_LOGE("logic error");
-        asyncEventDisMatchCount_++;
+        asyncEventDisMatchCount++;
         return INVALID_UINT64;
     }
     // update timeStamp

@@ -79,11 +79,11 @@ int32_t PerfCallChainTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         return SQLITE_OK;
     }
 
-    auto perfCallChainCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(perfCallChainCs, sId);
-    for (size_t i = 0; i < perfCallChainCs.size(); i++) {
-        const auto& c = perfCallChainCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -105,12 +105,12 @@ int32_t PerfCallChainTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         }
     }
 
-    auto perfCallChainOrderbys = fc.GetOrderBys();
-    for (auto i = perfCallChainOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(perfCallChainOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(perfCallChainOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

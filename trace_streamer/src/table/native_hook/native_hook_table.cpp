@@ -102,11 +102,11 @@ int32_t NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
-    auto nativeHookCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(nativeHookCs, sId);
-    for (size_t i = 0; i < nativeHookCs.size(); i++) {
-        const auto& c = nativeHookCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -127,12 +127,12 @@ int32_t NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         }
     }
 
-    auto nativeHookOrderbys = fc.GetOrderBys();
-    for (auto i = nativeHookOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(nativeHookOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(nativeHookOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;
@@ -149,7 +149,11 @@ int32_t NativeHookTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(nativeHookObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
-            SetTypeColumn(nativeHookObj_.CallChainIds()[CurrentRow()], INVALID_UINT32, INVALID_CALL_CHAIN_ID);
+            if (nativeHookObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case Index::IPID:
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.Ipids()[CurrentRow()]));
@@ -158,12 +162,16 @@ int32_t NativeHookTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.InternalTidsData()[CurrentRow()]));
             break;
         case Index::EVENT_TYPE: {
-            SetTypeColumnTextNotEmpty(nativeHookObj_.EventTypes()[CurrentRow()].empty(),
-                                      nativeHookObj_.EventTypes()[CurrentRow()].c_str());
+            if (!nativeHookObj_.EventTypes()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, nativeHookObj_.EventTypes()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
+            }
             break;
         }
         case Index::SUB_TYPE_ID: {
-            SetTypeColumnInt64(nativeHookObj_.SubTypes()[CurrentRow()], INVALID_UINT64);
+            if (nativeHookObj_.SubTypes()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.SubTypes()[CurrentRow()]));
+            }
             break;
         }
         case Index::START_TS:
@@ -174,15 +182,6 @@ int32_t NativeHookTable::Cursor::Column(int32_t column) const
                 sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.EndTimeStamps()[CurrentRow()]));
             }
             break;
-        default:
-            HandleTypeColumns(column);
-    }
-    return SQLITE_OK;
-}
-
-void NativeHookTable::Cursor::HandleTypeColumns(int32_t column) const
-{
-    switch (static_cast<Index>(column)) {
         case Index::DURATION:
             if (static_cast<int64_t>(nativeHookObj_.Durations()[CurrentRow()]) != 0) {
                 sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.Durations()[CurrentRow()]));
@@ -205,18 +204,25 @@ void NativeHookTable::Cursor::HandleTypeColumns(int32_t column) const
             break;
         }
         case Index::LAST_LIB_ID: {
-            SetTypeColumnInt64(nativeHookObj_.LastCallerPathIndexs()[CurrentRow()], INVALID_DATAINDEX);
+            if (nativeHookObj_.LastCallerPathIndexs()[CurrentRow()] != INVALID_DATAINDEX) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookObj_.LastCallerPathIndexs()[CurrentRow()]));
+            }
             break;
         }
         case Index::LAST_SYMBOL_ID: {
-            SetTypeColumnInt64(nativeHookObj_.LastSymbolIndexs()[CurrentRow()], INVALID_DATAINDEX);
+            if (nativeHookObj_.LastSymbolIndexs()[CurrentRow()] != INVALID_DATAINDEX) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.LastSymbolIndexs()[CurrentRow()]));
+            }
             break;
         }
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
+    return SQLITE_OK;
 }
+
 void NativeHookTable::GetOrbyes(FilterConstraints& hookfc, EstimatedIndexInfo& hookei)
 {
     auto hookorderbys = hookfc.GetOrderBys();

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { LogStruct } from '../ui-worker/ProcedureWorkerLog';
@@ -34,6 +34,7 @@ export function LogDataSender(row: TraceRow<LogStruct>): Promise<LogStruct[]> {
     threadPool.submitProto(
       QueryEnum.HilogData,
       {
+        oneDayTime: window.recordEndNS - ONE_DAY_NS,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -41,7 +42,6 @@ export function LogDataSender(row: TraceRow<LogStruct>): Promise<LogStruct[]> {
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
-        oneDayTime: window.recordEndNS - ONE_DAY_NS,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

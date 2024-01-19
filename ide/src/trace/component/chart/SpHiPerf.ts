@@ -15,43 +15,42 @@
 
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
+import {
+  queryHiPerfCpuData,
+  queryHiPerfCpuMergeData,
+  queryHiPerfCpuMergeData2,
+  queryHiPerfProcessData,
+  queryHiPerfThreadData,
+  queryPerfEventType,
+  queryPerfCmdline,
+  queryPerfThread,
+} from '../../database/SqlLite';
 import { Utils } from '../trace/base/Utils';
 import { PerfThread } from '../../bean/PerfProfile';
-import { HiPerfCpuStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
-import {
-  HiPerfCallChartRender,
-  HiPerfCallChartStruct,
-} from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
-import {  HiPerfThreadStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
-import {
-  HiPerfProcessStruct,
-} from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
+import { HiperfCpuRender, HiPerfCpuStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCPU';
+import { HiPerfCallChartRender, HiPerfCallChartStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfCallChart';
+import { HiperfThreadRender, HiPerfThreadStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfThread';
+import { HiperfProcessRender, HiPerfProcessStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfProcess';
 import { info } from '../../../log/Log';
-import { HiPerfEventStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
+import { HiPerfEventStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfEvent';
 import { perfDataQuery } from './PerfDataQuery';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
-import { type HiPerfReportStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfReport';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type HiPerfReportStruct } from '../../database/ui-worker/ProcedureWorkerHiPerfReport';
 import { SpChartManager } from './SpChartManager';
 import { procedurePool } from '../../database/Procedure';
 import { HiPerfChartFrame } from '../../bean/PerfStruct';
-import { HiperfCpuRender2 } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
-import { hiperfCpuDataSender } from '../../database/data-trafic/hiperf/HiperfCpuDataSender';
-import { hiperfProcessDataSender } from '../../database/data-trafic/hiperf/HiperfProcessDataSender';
-import { HiperfProcessRender2 } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
-import { hiperfThreadDataSender } from '../../database/data-trafic/hiperf/HiperfThreadDataSender';
-import { HiperfThreadRender2 } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
+import { HiperfCpuRender2 } from '../../database/ui-worker/ProcedureWorkerHiPerfCPU2';
+import { hiperfCpuDataSender } from '../../database/data-trafic/HiperfCpuDataSender';
+import { hiperfProcessDataSender } from '../../database/data-trafic/HiperfProcessDataSender';
+import { HiperfProcessRender2 } from '../../database/ui-worker/ProcedureWorkerHiPerfProcess2';
+import { hiperfThreadDataSender } from '../../database/data-trafic/HiperfThreadDataSender';
+import { HiperfThreadRender2 } from '../../database/ui-worker/ProcedureWorkerHiPerfThread2';
 import {
   hiperfCallChartDataCacheSender,
   hiperfCallChartDataSender,
   hiperfCallStackCacheSender,
-} from '../../database/data-trafic/hiperf/HiperfCallChartSender';
-import {
-  queryHiPerfCpuMergeData2,
-  queryPerfCmdline,
-  queryPerfEventType,
-  queryPerfThread,
-} from '../../database/sql/Perf.sql';
+} from '../../database/data-trafic/HiperfCallChartSender';
 
 export interface ResultData {
   existA: boolean | null | undefined;

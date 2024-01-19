@@ -18,7 +18,6 @@ import { LitCheckBox } from '../../../base-ui/checkbox/LitCheckBox';
 import '../../../base-ui/checkbox/LitCheckBox';
 import { SpSchedulingAnalysis } from './SpSchedulingAnalysis';
 import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
-import { CheckCpuSettingHtml } from './CheckCpuSetting.html';
 
 export class CpuSetting {
   cpu: number = 0;
@@ -151,6 +150,63 @@ export class CheckCpuSetting extends BaseElement {
   }
 
   initHtml(): string {
-    return CheckCpuSettingHtml;
+    return `
+        <style>
+        :host {
+            width: 100%;
+            height: 100%;
+        }
+        .cpu_setting_div{
+            overflow: auto ;
+            border-radius: 5px;
+            border: solid 1px var(--dark-border1,#e0e0e0);
+            display: grid;
+            margin: 10px;
+            padding-right: 10px;
+            padding-left: 10px;
+            grid-template-columns: auto auto auto auto;
+        }
+        .setting_line{
+            height: 35px;
+            line-height: 35px;
+        }
+        .title_div{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            height: 50px;
+            padding-left: 15px;
+            padding-right: 15px;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--dark-border1,#e0e0e0);
+        }
+        .upload_bt{
+            height: 35px;
+            color: #ffffff;
+            cursor: pointer;
+            background-color: #0A59F7;
+            border-radius: 5px;
+            padding-left: 15px;
+            padding-right: 15px;
+            line-height: 35px;
+            text-align: center;
+        }
+        .bg{
+            display: flex;
+            flex-direction: column;
+            margin: 10px;
+            background-color: var(--dark-background,#FFFFFF);
+        }
+        </style>
+        <div class="bg" >
+            <div class="title_div">
+                <div>CPU 大小核分类</div>
+                <div id="set_upload" class="upload_bt">Upload</div>
+            </div>
+            <div class="cpu_setting_div" id="tb_cpu_setting" >
+            </div>
+        </div>
+        
+        `;
   }
 }

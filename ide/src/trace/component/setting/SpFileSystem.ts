@@ -20,10 +20,12 @@ import '../../../base-ui/select/LitSelectV';
 import '../../../base-ui/select/LitSelect';
 
 import '../../../base-ui/switch/lit-switch';
+import { LitSelect } from '../../../base-ui/select/LitSelect';
 import { SpRecordTrace } from '../SpRecordTrace';
 import { Cmd } from '../../../command/Cmd';
+import { CmdConstant } from '../../../command/CmdConstant';
+import { HdcDeviceManager } from '../../../hdc/HdcDeviceManager';
 import { SpApplication } from '../../SpApplication';
-import { SpFIleSystemHtml } from './SpFIleSystem.html';
 
 @element('sp-file-system')
 export class SpFileSystem extends BaseElement {
@@ -125,7 +127,7 @@ export class SpFileSystem extends BaseElement {
     this.switchChange();
     this.processInput = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v');
     this.maximum = this.shadowRoot?.querySelector<HTMLInputElement>('#maxUnwindLevel');
-    this.maximum?.addEventListener('keyup', () => {
+    this.maximum?.addEventListener('keyup', (eve: Event) => {
       this.maximum!.value = this.maximum!.value.replace(/\D/g, '');
       if (this.maximum!.value !== '') {
         let mun = parseInt(this.maximum!.value);
@@ -135,7 +137,7 @@ export class SpFileSystem extends BaseElement {
       }
     });
     this.selectProcess = this.processInput!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.selectProcess!.addEventListener('mousedown', () => {
+    this.selectProcess!.addEventListener('mousedown', (ev) => {
       if (SpRecordTrace.serialNumber === '') {
         this.processInput!.dataSource([], '');
       } else {
@@ -154,17 +156,29 @@ export class SpFileSystem extends BaseElement {
     let fileSystemSwitch = this.shadowRoot?.querySelector<LitSwitch>('#fileSystem');
     fileSystemSwitch!.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
       let detail = event.detail;
-      this.startFileSystem = detail!.checked;
+      if (detail!.checked) {
+        this.startFileSystem = true;
+      } else {
+        this.startFileSystem = false;
+      }
     });
     let pageFaultSwitch = this.shadowRoot?.querySelector<LitSwitch>('#pageFault');
     pageFaultSwitch!.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
       let detail = event.detail;
-      this.startVirtualMemory = detail!.checked;
+      if (detail!.checked) {
+        this.startVirtualMemory = true;
+      } else {
+        this.startVirtualMemory = false;
+      }
     });
     let bioLatencySwitch = this.shadowRoot?.querySelector<LitSwitch>('#bioLatency');
     bioLatencySwitch!.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
       let detail = event.detail;
-      this.startIo = detail!.checked;
+      if (detail!.checked) {
+        this.startIo = true;
+      } else {
+        this.startIo = false;
+      }
     });
   }
 
@@ -206,7 +220,128 @@ export class SpFileSystem extends BaseElement {
   }
 
   initHtml(): string {
-    return SpFIleSystemHtml;
+    return `
+        <style>
+        .root {
+            font-size:16px;
+            margin-bottom: 30px;
+            padding-top: 30px;
+            padding-left: 54px;
+            margin-right: 30px;
+        }
+        :host{
+            display: inline-block;
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
+             width: 100%;
+            height: 100%;
+        }
+        .file-system-config-div {
+           display: flex;
+           flex-direction: column;
+           width: 80%;
+           margin-top: 5vh;
+           margin-bottom: 5vh;
+           gap: 25px;
+        }
+        
+        .file-system-title {
+          line-height: 40px;
+          font-weight: 700;
+          margin-right: 10px;
+          opacity: 0.9;
+          font-family: Helvetica-Bold;
+          font-size: 18px;
+          text-align: center;
+        }
+
+        input {
+           border-radius: 16px;
+           text-indent:2%;
+           height: 25px;
+           outline:none;
+        }
+        
+        .file-system-select {
+          border-radius: 15px;
+        }
+
+        .file-system-des {
+          line-height: 35px;
+          font-weight: 400;
+          opacity: 0.6;
+          font-family: Helvetica;
+          font-size: 14px;
+          text-align: center;
+        }
+
+        lit-switch {
+          height: 38px;
+          margin-top: 10px;
+          display:inline;
+          float: right;
+        }
+        
+        .fileSystem-input {
+            color: var(--dark-color1,#212121);
+            text-align: left;
+            line-height: 20px;
+            font-weight: 400;
+            border: 1px solid var(--dark-background5,#ccc);
+            font-family: Helvetica;
+            font-size: 14px;
+        }
+
+        :host(:not([startSamp])) .fileSystem-input {
+            color: #999999;
+        }
+        
+         :host([startSamp]) .fileSystem-input {
+            background: var(--dark-background5,#FFFFFF);
+        }
+        
+        input::-webkit-input-placeholder{
+            color:var(--bark-prompt,#999999);
+        }
+        </style>
+        <div class="root">
+          <div class="file-system-title" id="traceMode" style="text-align:left;">
+            <span style='color: red'>Long trace mode! If current data Trace is too large, it may not open!</span>
+          </div>
+          <div class="file-system-config-div">
+            <div>
+               <span class="file-system-title">Start FileSystem Record</span>
+               <lit-switch id="fileSystem"></lit-switch>
+            </div>
+          </div>
+          <div class="file-system-config-div">
+            <div>
+               <span class="file-system-title">Start Page Fault Record</span>
+               <lit-switch id="pageFault"></lit-switch>
+            </div>
+          </div>
+          <div class="file-system-config-div">
+            <div>
+               <span class="file-system-title">Start BIO Latency Record</span>
+               <lit-switch id="bioLatency"></lit-switch>
+            </div>
+          </div>
+          <div class="file-system-config-div">
+             <div>
+                 <span class="file-system-title">Process</span>
+                 <span class="file-system-des">Record process</span>
+              </div>
+            <lit-select-v default-value="" rounded="" class="file-system-select config" mode="multiple" canInsert="" 
+            rounded placement = "bottom" title="Process"></lit-select-v>
+          </div>
+          <div class="file-system-config-div">
+             <div>
+                 <span class="file-system-title">Max Unwind Level</span>
+              </div>
+            <input class="fileSystem-input config" title="Max Unwind Level" id="maxUnwindLevel" value="10"/>
+          </div>
+        </div>
+        `;
   }
 }
 

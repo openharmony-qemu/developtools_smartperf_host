@@ -11,12 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from './utils/QueryEnum';
+import { TraficEnum } from './QueryEnum';
 
 let maxSize: number = 0;
 export const fileSystemDataGroupBy10MSProtoSql = (args: any): string => {
   return `SELECT
-        startNs, endNs, max( count ) AS size,
+        startNs,
+        endNs,
+        max( count ) AS size,
         ( startNS / ( ( ${args.endNS} - ${args.startNS} ) / ${args.width} ) ) AS px
         FROM
         (
@@ -84,7 +86,10 @@ export const diskIoDataProtoSql = (args: any): string => {
         order by A.start_ts;`;
 };
 export const eBPFVmDataGroupBy10MSProtoSql = (args: any): string => {
-  return `SELECT startNs, endNs, max( count ) AS size,
+  return `SELECT
+        startNs,
+        endNs,
+        max( count ) AS size,
         ( startNS / ( ( ${args.endNS} - ${args.startNS} ) / ${args.width} ) ) AS px
         FROM
         (

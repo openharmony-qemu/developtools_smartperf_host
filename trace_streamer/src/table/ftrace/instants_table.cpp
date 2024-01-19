@@ -69,17 +69,17 @@ void InstantsTable::FilterByConstraint(FilterConstraints& instantsfc,
     }
 }
 
-bool InstantsTable::CanFilterSorted(const char op, size_t& instantsRowCnt) const
+bool InstantsTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            instantsRowCnt = instantsRowCnt / log2(instantsRowCnt);
+            rowCount = rowCount / log2(rowCount);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            instantsRowCnt = (instantsRowCnt >> 1);
+            rowCount = (rowCount >> 1);
             break;
         default:
             return false;
@@ -118,11 +118,11 @@ int32_t InstantsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
     if (rowCount_ <= 0) {
         return SQLITE_OK;
     }
-    auto instantsTabCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(instantsTabCs, sId);
-    for (size_t i = 0; i < instantsTabCs.size(); i++) {
-        const auto& c = instantsTabCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
                 FilterTS(c.op, argv[i], InstantsObj_.TimeStampData());

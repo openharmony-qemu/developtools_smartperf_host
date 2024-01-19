@@ -21,6 +21,7 @@
 #include "memory_plugin_result.pbreader.h"
 #include "process_filter.h"
 #include "stat_filter.h"
+#include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 
 namespace SysTuning {
@@ -134,37 +135,6 @@ void HtraceMemParser::Parse(HtraceDataSegment& seg, uint64_t timeStamp, BuiltinC
         ParseRSImageDumpInfo(&memData, newTimeStamp);
     }
 }
-
-void HtraceMemParser::SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader& processMemoryInfo,
-                                          uint64_t timeStamp,
-                                          uint32_t ipid,
-                                          uint32_t hasValue) const
-{
-    // processMemoryInfo Special data addition
-    if (processMemoryInfo.has_purg_sum_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_PURG_SUM), timeStamp, processMemoryInfo.purg_sum_kb());
-    }
-    if (processMemoryInfo.has_purg_pin_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_PURG_PIN), timeStamp, processMemoryInfo.purg_pin_kb());
-    }
-    if (processMemoryInfo.has_gl_pss_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_GL_PSS), timeStamp, processMemoryInfo.gl_pss_kb());
-    }
-    if (processMemoryInfo.has_graph_pss_kb()) {
-        hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
-            ipid, memNameDictMap_.at(MEM_GRAPH_PSS), timeStamp, processMemoryInfo.graph_pss_kb());
-    }
-    if (hasValue) {
-        streamFilters_->processFilter_->AddProcessMemory(ipid);
-    }
-    if (processMemoryInfo.has_smapinfo()) {
-        ParseSmapsInfoEasy(&processMemoryInfo, timeStamp, ipid);
-    }
-}
-
 void HtraceMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_processesinfo()) {
@@ -193,53 +163,57 @@ void HtraceMemParser::ParseProcessInfo(const ProtoReader::MemoryData_Reader* tra
             ipid, memNameDictMap_.at(MEM_VM_HWM), timeStamp, processMemoryInfo.vm_hwm_kb());
         hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
             ipid, memNameDictMap_.at(MEM_OOM_SCORE_ADJ), timeStamp, processMemoryInfo.oom_score_adj());
-
-        SpecialDataAddition(processMemoryInfo, timeStamp, ipid, hasValue);
+        if (processMemoryInfo.has_purg_sum_kb()) {
+            hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
+                ipid, memNameDictMap_.at(MEM_PURG_SUM), timeStamp, processMemoryInfo.purg_sum_kb());
+        }
+        if (processMemoryInfo.has_purg_pin_kb()) {
+            hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
+                ipid, memNameDictMap_.at(MEM_PURG_PIN), timeStamp, processMemoryInfo.purg_pin_kb());
+        }
+        if (processMemoryInfo.has_gl_pss_kb()) {
+            hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
+                ipid, memNameDictMap_.at(MEM_GL_PSS), timeStamp, processMemoryInfo.gl_pss_kb());
+        }
+        if (processMemoryInfo.has_graph_pss_kb()) {
+            hasValue += streamFilters_->processMeasureFilter_->AppendNewMeasureData(
+                ipid, memNameDictMap_.at(MEM_GRAPH_PSS), timeStamp, processMemoryInfo.graph_pss_kb());
+        }
+        if (hasValue) {
+            streamFilters_->processFilter_->AddProcessMemory(ipid);
+        }
+        if (processMemoryInfo.has_smapinfo()) {
+            ParseSmapsInfoEasy(&processMemoryInfo, timeStamp, ipid);
+        }
     }
 }
-uint32_t HtraceMemParser::ParseSmapsPathTypeByPrefix(bool hasX, const std::string& path, const bool hasAppName) const
+
+uint32_t HtraceMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& smapsInfo,
+                                                const std::string& path,
+                                                const bool hasAppNmae) const
 {
+    bool hasX = smapsInfo.permission().ToStdString().find("x") != std::string::npos;
     if (EndWith(path, ".so")) {
         if (hasX) {
-            if (StartWith(path, "/data/app/") || hasAppName) {
+            if (StartWith(path, "/data/app/") || hasAppNmae) {
                 return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_APP);
             } else {
                 return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS);
             }
         } else {
-            if (StartWith(path, "[anon:.bss]/data/app/") || StartWith(path, "/data/app/") || hasAppName) {
+            if (StartWith(path, "[anon:.bss]/data/app/") || StartWith(path, "/data/app/") || hasAppNmae) {
                 return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP);
             } else {
                 return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
             }
         }
     }
-    return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID);
-}
-uint32_t HtraceMemParser::ParseSmapsPathTypeBySuffix(bool hasX, const std::string& path, const bool hasAppName) const
-{
     if ((EndWith(path, ".jar")) || (EndWith(path, ".apk")) || (EndWith(path, ".vdex")) || (EndWith(path, ".odex")) ||
         (EndWith(path, ".oat")) || (path.find("dex") != std::string::npos)) {
-        return hasX ? (hasAppName ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_APP)
+        return hasX ? (hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_APP)
                                   : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS))
-                    : (hasAppName ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP)
+                    : (hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP)
                                   : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS));
-    }
-    return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID);
-}
-
-uint32_t HtraceMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& smapsInfo,
-                                                const std::string& path,
-                                                const bool hasAppName) const
-{
-    bool hasX = smapsInfo.permission().ToStdString().find("x") != std::string::npos;
-    auto type = ParseSmapsPathTypeByPrefix(hasX, path, hasAppName);
-    if (type != static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID)) {
-        return type;
-    }
-    type = ParseSmapsPathTypeBySuffix(hasX, path, hasAppName);
-    if (type != static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID)) {
-        return type;
     }
     if (hasX && path.find("/bin/") != std::string::npos) {
         return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_CODE_SYS);
@@ -248,7 +222,7 @@ uint32_t HtraceMemParser::ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& s
         return static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
     }
     if (path.find("[bss]") != std::string::npos) {
-        return hasAppName ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP)
+        return hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_APP)
                           : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_DATA_SYS);
     }
     if ((path.find("[anon]") != std::string::npos) || (path.find("[anon:") != std::string::npos)) {
@@ -283,12 +257,12 @@ uint32_t HtraceMemParser::ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& sma
             return iter.second;
         }
     }
-    bool hasAppName = path.find("com.huawei.wx") != std::string::npos;
-    uint32_t detailRet = (smapsInfo, path, hasAppName);
+    bool hasAppNmae = path.find("com.huawei.wx") != std::string::npos;
+    uint32_t detailRet = ParseSmapsBlockDetail(smapsInfo, path, hasAppNmae);
     if (detailRet != static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_INVALID)) {
         return detailRet;
     }
-    return hasAppName ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_OTHER_APP)
+    return hasAppNmae ? static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_OTHER_APP)
                       : static_cast<uint32_t>(SmapsMemType::SMAPS_MEM_TYPE_OTHER_SYS);
 }
 
@@ -360,33 +334,731 @@ void HtraceMemParser::ParseMemInfo(const ProtoReader::MemoryData_Reader* tracePa
     streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
     for (auto i = tracePacket->meminfo(); i; ++i) {
         ProtoReader::SysMeminfo_Reader sysMeminfo(i->ToBytes());
-        if (sysMeminfo.key() >= ProtoReader::PMEM_UNSPECIFIED && sysMeminfo.key() <= ProtoReader::PMEM_PINED_PURG) {
-            streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(sysMemNameDictMap_.at(sysMeminfo.key()),
-                                                                            timeStamp, sysMeminfo.value());
-        } else {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_DATA_INVALID);
+        switch (sysMeminfo.key()) {
+            case ProtoReader::PMEM_UNSPECIFIED:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_UNSPECIFIED), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_MEM_TOTAL:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_MEM_TOTAL), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_MEM_FREE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_MEM_FREE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_MEM_AVAILABLE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_MEM_AVAILABLE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_BUFFERS:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_BUFFERS), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_CACHED:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_CACHED), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SWAP_CACHED:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SWAP_CACHED), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_ACTIVE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_ACTIVE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_INACTIVE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_INACTIVE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_ACTIVE_ANON:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_ACTIVE_ANON), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_INACTIVE_ANON:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_INACTIVE_ANON), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_ACTIVE_FILE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_ACTIVE_FILE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_INACTIVE_FILE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_INACTIVE_FILE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_UNEVICTABLE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_UNEVICTABLE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_MLOCKED:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_MLOCKED), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SWAP_TOTAL:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SWAP_TOTAL), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SWAP_FREE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SWAP_FREE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_DIRTY:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_DIRTY), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_WRITEBACK:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_WRITEBACK), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_ANON_PAGES:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_ANON_PAGES), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_MAPPED:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_MAPPED), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SHMEM:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SHMEM), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SLAB:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SLAB), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SLAB_RECLAIMABLE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SLAB_RECLAIMABLE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_SLAB_UNRECLAIMABLE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_SLAB_UNRECLAIMABLE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_KERNEL_STACK:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_KERNEL_STACK), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_PAGE_TABLES:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_PAGE_TABLES), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_COMMIT_LIMIT:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_COMMIT_LIMIT), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_COMMITED_AS:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_COMMITED_AS), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_VMALLOC_TOTAL:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_VMALLOC_TOTAL), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_VMALLOC_USED:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_VMALLOC_USED), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_VMALLOC_CHUNK:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_VMALLOC_CHUNK), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_CMA_TOTAL:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_CMA_TOTAL), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_CMA_FREE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_CMA_FREE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_KERNEL_RECLAIMABLE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_KERNEL_RECLAIMABLE), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_ACTIVE_PURG:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_ACTIVE_PURG), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_INACTIVE_PURG:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_INACTIVE_PURG), timeStamp, sysMeminfo.value());
+                break;
+            case ProtoReader::PMEM_PINED_PURG:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(ProtoReader::PMEM_PINED_PURG), timeStamp, sysMeminfo.value());
+                break;
+            // case SysMeminfoType_INT_MIN_SENTINEL_DO_NOT_USE_:
+            // case SysMeminfoType_INT_MAX_SENTINEL_DO_NOT_USE_:
+            default:
+                streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_MEMORY, STAT_EVENT_DATA_INVALID);
+                break;
         }
     }
     streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(zramIndex_, timeStamp, zram_);
     streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(gpuLimitSizeIndex_, timeStamp, gpuLimit_);
     streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(gpuUsedSizeIndex_, timeStamp, gpuUsed_);
 }
-
 void HtraceMemParser::ParseVMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_RECEIVED);
     for (auto i = tracePacket->vmeminfo(); i; ++i) {
         ProtoReader::SysVMeminfo_Reader sysVMeminfo(i->ToBytes());
-        if (sysVMeminfo.key() >= ProtoReader::VMEMINFO_UNSPECIFIED &&
-            sysVMeminfo.key() <= ProtoReader::VMEMINFO_WORKINGSET_RESTORE) {
-            streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(sysVMemNameDictMap_.at(sysVMeminfo.key()),
-                                                                             timeStamp, sysVMeminfo.value());
-        } else {
+        switch (sysVMeminfo.key()) {
+            case ProtoReader::VMEMINFO_UNSPECIFIED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNSPECIFIED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_FREE_PAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_FREE_PAGES), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ALLOC_BATCH:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ALLOC_BATCH), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_INACTIVE_ANON:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_INACTIVE_ANON), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ACTIVE_ANON:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ACTIVE_ANON), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_INACTIVE_FILE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_INACTIVE_FILE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ACTIVE_FILE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ACTIVE_FILE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_UNEVICTABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_UNEVICTABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_MLOCK:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_MLOCK), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ANON_PAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ANON_PAGES), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_MAPPED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_MAPPED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_FILE_PAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_FILE_PAGES), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_DIRTY:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_DIRTY), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_WRITEBACK:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_WRITEBACK), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SLAB_RECLAIMABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SLAB_RECLAIMABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SLAB_UNRECLAIMABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SLAB_UNRECLAIMABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_PAGE_TABLE_PAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_PAGE_TABLE_PAGES), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_KERNEL_STACK:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_KERNEL_STACK), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_OVERHEAD:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_OVERHEAD), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_UNSTABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_UNSTABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_BOUNCE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_BOUNCE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_VMSCAN_WRITE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_VMSCAN_WRITE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_VMSCAN_IMMEDIATE_RECLAIM:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_VMSCAN_IMMEDIATE_RECLAIM), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_WRITEBACK_TEMP:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_WRITEBACK_TEMP), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ISOLATED_ANON:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ISOLATED_ANON), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ISOLATED_FILE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ISOLATED_FILE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SHMEM:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SHMEM), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_DIRTIED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_DIRTIED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_WRITTEN:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_WRITTEN), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_PAGES_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_PAGES_SCANNED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_WORKINGSET_REFAULT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_WORKINGSET_REFAULT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_WORKINGSET_ACTIVATE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_WORKINGSET_ACTIVATE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_WORKINGSET_NODERECLAIM:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_WORKINGSET_NODERECLAIM), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ANON_TRANSPARENT_HUGEPAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ANON_TRANSPARENT_HUGEPAGES), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_FREE_CMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_FREE_CMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SWAPCACHE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SWAPCACHE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_DIRTY_THRESHOLD:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_DIRTY_THRESHOLD), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGPGIN:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGPGIN), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGPGOUT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGPGOUT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGPGOUTCLEAN:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGPGOUTCLEAN), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PSWPIN:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PSWPIN), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PSWPOUT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PSWPOUT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGALLOC_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGALLOC_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGALLOC_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGALLOC_NORMAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGALLOC_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGALLOC_MOVABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGFREE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGFREE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGACTIVATE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGACTIVATE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGDEACTIVATE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGDEACTIVATE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGFAULT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGFAULT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGMAJFAULT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGMAJFAULT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGREFILL_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGREFILL_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGREFILL_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGREFILL_NORMAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGREFILL_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGREFILL_MOVABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_KSWAPD_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_KSWAPD_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_KSWAPD_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_KSWAPD_NORMAL), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_KSWAPD_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_KSWAPD_MOVABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_DIRECT_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_DIRECT_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_DIRECT_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_DIRECT_NORMAL), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_DIRECT_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_DIRECT_MOVABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_KSWAPD_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_KSWAPD_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_KSWAPD_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_KSWAPD_NORMAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_KSWAPD_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_KSWAPD_MOVABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_DIRECT_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_DIRECT_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_DIRECT_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_DIRECT_NORMAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_DIRECT_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_DIRECT_MOVABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_DIRECT_THROTTLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_DIRECT_THROTTLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGINODESTEAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGINODESTEAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_SLABS_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_SLABS_SCANNED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_KSWAPD_INODESTEAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_KSWAPD_INODESTEAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_KSWAPD_HIGH_WMARK_HIT_QUICKLY:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_KSWAPD_HIGH_WMARK_HIT_QUICKLY), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PAGEOUTRUN:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PAGEOUTRUN), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_ALLOCSTALL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_ALLOCSTALL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGROTATED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGROTATED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_DROP_PAGECACHE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_DROP_PAGECACHE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_DROP_SLAB:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_DROP_SLAB), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGMIGRATE_SUCCESS:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGMIGRATE_SUCCESS), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGMIGRATE_FAIL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGMIGRATE_FAIL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_MIGRATE_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_MIGRATE_SCANNED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_FREE_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_FREE_SCANNED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_ISOLATED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_ISOLATED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_STALL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_STALL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_FAIL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_FAIL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_SUCCESS:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_SUCCESS), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_DAEMON_WAKE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_DAEMON_WAKE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_CULLED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_CULLED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_SCANNED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_RESCUED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_RESCUED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_MLOCKED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_MLOCKED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_CLEARED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_CLEARED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_UNEVICTABLE_PGS_STRANDED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_UNEVICTABLE_PGS_STRANDED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZSPAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZSPAGES), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ION_HEAP:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ION_HEAP), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_GPU_HEAP:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_GPU_HEAP), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_ALLOCSTALL_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_ALLOCSTALL_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_ALLOCSTALL_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_ALLOCSTALL_MOVABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_ALLOCSTALL_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_ALLOCSTALL_NORMAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_DAEMON_FREE_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_DAEMON_FREE_SCANNED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_FASTRPC:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_FASTRPC), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_INDIRECTLY_RECLAIMABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_INDIRECTLY_RECLAIMABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ION_HEAP_POOL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ION_HEAP_POOL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_KERNEL_MISC_RECLAIMABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_KERNEL_MISC_RECLAIMABLE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SHADOW_CALL_STACK_BYTES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SHADOW_CALL_STACK_BYTES), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SHMEM_HUGEPAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SHMEM_HUGEPAGES), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_SHMEM_PMDMAPPED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_SHMEM_PMDMAPPED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_UNRECLAIMABLE_PAGES:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_UNRECLAIMABLE_PAGES), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZONE_ACTIVE_ANON:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZONE_ACTIVE_ANON), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZONE_ACTIVE_FILE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZONE_ACTIVE_FILE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZONE_INACTIVE_ANON:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZONE_INACTIVE_ANON), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZONE_INACTIVE_FILE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZONE_INACTIVE_FILE), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZONE_UNEVICTABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZONE_UNEVICTABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_NR_ZONE_WRITE_PENDING:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_NR_ZONE_WRITE_PENDING), timeStamp,
+                    sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_OOM_KILL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_OOM_KILL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGLAZYFREE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGLAZYFREE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGLAZYFREED:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGLAZYFREED), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGREFILL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGREFILL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_DIRECT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_DIRECT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSCAN_KSWAPD:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSCAN_KSWAPD), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSKIP_DMA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSKIP_DMA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSKIP_MOVABLE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSKIP_MOVABLE), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSKIP_NORMAL:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSKIP_NORMAL), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_DIRECT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_DIRECT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_PGSTEAL_KSWAPD:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_PGSTEAL_KSWAPD), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_SWAP_RA:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_SWAP_RA), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_SWAP_RA_HIT:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_SWAP_RA_HIT), timeStamp, sysVMeminfo.value());
+                break;
+            case ProtoReader::VMEMINFO_WORKINGSET_RESTORE:
+                streamFilters_->sysEventVMemMeasureFilter_->AppendNewMeasureData(
+                    sysVMemNameDictMap_.at(ProtoReader::VMEMINFO_WORKINGSET_RESTORE), timeStamp, sysVMeminfo.value());
+                break;
+            // case SysVMeminfoType_INT_MIN_SENTINEL_DO_NOT_USE_:
             // case SysVMeminfoType_INT_MAX_SENTINEL_DO_NOT_USE_:
-            streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_DATA_INVALID);
+            default:
+                streamFilters_->statFilter_->IncreaseStat(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_DATA_INVALID);
         }
     }
 }
+
 void HtraceMemParser::ParseAshmemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const
 {
     if (tracePacket->has_ashmeminfo()) {

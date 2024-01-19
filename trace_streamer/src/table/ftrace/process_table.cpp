@@ -122,11 +122,11 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         return SQLITE_OK;
     }
 
-    auto processTableCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(processTableCs, sId);
-    for (size_t i = 0; i < processTableCs.size(); i++) {
-        const auto& c = processTableCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
             case Index::IPID:
@@ -140,13 +140,13 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         }
     }
 
-    auto processTableOrderbys = fc.GetOrderBys();
-    for (auto i = processTableOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(processTableOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
             case Index::IPID:
-                indexMap_->SortBy(processTableOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;
@@ -208,56 +208,50 @@ void ProcessTable::Cursor::FilterPid(unsigned char op, uint64_t value)
         indexMap_->CovertToIndexMap();
         remove = true;
     }
+    const auto& processQueue = dataCache_->GetConstProcessData();
+    auto size = processQueue.size();
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            HandleIndexConstraintEQ(remove, value);
+            if (remove) {
+                for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
+                    if (processQueue[*i].pid_ != value) {
+                        i = indexMap_->rowIndex_.erase(i);
+                    } else {
+                        i++;
+                    }
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (processQueue[i].pid_ == value) {
+                        indexMap_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMap_->FixSize();
             break;
         case SQLITE_INDEX_CONSTRAINT_NE:
-            HandleIndexConstraintNQ(remove, value);
+            if (remove) {
+                for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
+                    if (processQueue[*i].pid_ == value) {
+                        i = indexMap_->rowIndex_.erase(i);
+                    } else {
+                        i++;
+                    }
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (processQueue[i].pid_ != value) {
+                        indexMap_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMap_->FixSize();
             break;
         case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
             break;
         default:
             break;
     } // end of switch (op)
-}
-void ProcessTable::Cursor::HandleIndexConstraintEQ(bool remove, uint64_t value)
-{
-    if (remove) {
-        for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
-            if (dataCache_->GetConstProcessData()[*i].pid_ != value) {
-                i = indexMap_->rowIndex_.erase(i);
-            } else {
-                i++;
-            }
-        }
-    } else {
-        for (auto i = 0; i < dataCache_->GetConstProcessData().size(); i++) {
-            if (dataCache_->GetConstProcessData()[i].pid_ == value) {
-                indexMap_->rowIndex_.push_back(i);
-            }
-        }
-    }
-    indexMap_->FixSize();
-}
-void ProcessTable::Cursor::HandleIndexConstraintNQ(bool remove, uint64_t value)
-{
-    if (remove) {
-        for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
-            if (dataCache_->GetConstProcessData()[*i].pid_ == value) {
-                i = indexMap_->rowIndex_.erase(i);
-            } else {
-                i++;
-            }
-        }
-    } else {
-        for (auto i = 0; i < dataCache_->GetConstProcessData().size(); i++) {
-            if (dataCache_->GetConstProcessData()[i].pid_ != value) {
-                indexMap_->rowIndex_.push_back(i);
-            }
-        }
-    }
-    indexMap_->FixSize();
 }
 void ProcessTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_value* argv)
 {
@@ -273,24 +267,24 @@ void ProcessTable::Cursor::FilterIndex(int32_t col, unsigned char op, sqlite3_va
 }
 void ProcessTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
 {
-    auto procArgv = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->Intersect(procArgv, procArgv + 1);
+            indexMap_->Intersect(v, v + 1);
             break;
         case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMap_->Intersect(procArgv, rowCount_);
+            indexMap_->Intersect(v, rowCount_);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
-            procArgv++;
-            indexMap_->Intersect(procArgv, rowCount_);
+            v++;
+            indexMap_->Intersect(v, rowCount_);
             break;
         case SQLITE_INDEX_CONSTRAINT_LE:
-            procArgv++;
-            indexMap_->Intersect(0, procArgv);
+            v++;
+            indexMap_->Intersect(0, v);
             break;
         case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMap_->Intersect(0, procArgv);
+            indexMap_->Intersect(0, v);
             break;
         default:
             // can't filter, all rows

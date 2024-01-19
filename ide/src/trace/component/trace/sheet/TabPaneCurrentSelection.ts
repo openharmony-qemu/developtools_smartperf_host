@@ -18,10 +18,25 @@ import { type LitTable } from '../../../../base-ui/table/lit-table';
 import '../../../../base-ui/table/lit-table-column';
 import { AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
+import {
+  queryBinderArgsByArgset,
+  queryBinderByArgsId,
+  queryBinderBySliceId,
+  queryFlowsData,
+  queryGpuDur,
+  queryPrecedingData,
+  queryRunnableTimeByRunning,
+  queryThreadByItid,
+  queryThreadNearData,
+  queryThreadStateArgs,
+  queryThreadWakeUp,
+  queryThreadWakeUpFrom,
+  queryWakeupListPriority,
+} from '../../../database/SqlLite';
 import { type WakeupBean } from '../../../bean/WakeupBean';
 import { SpApplication } from '../../../SpApplication';
 import { TraceRow } from '../base/TraceRow';
-import { CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
 import { ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread';
 import { FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
@@ -35,33 +50,12 @@ import { SpSystemTrace } from '../../SpSystemTrace';
 import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup';
 import { SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
 import { type SelectionParam } from '../../../bean/BoxSelection';
-import {
-  type FrameAnimationStruct
-} from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
-import {
-  queryBinderByArgsId,
-  queryBinderBySliceId,
-  queryFlowsData,
-  queryPrecedingData,
-  queryThreadByItid
-} from '../../../database/sql/SqlLite.sql';
-import {
-  queryBinderArgsByArgset,
-  queryRunnableTimeByRunning,
-  queryThreadNearData,
-  queryThreadStateArgs,
-  queryThreadWakeUp,
-  queryThreadWakeUpFrom
-} from '../../../database/sql/ProcessThread.sql';
-import { queryGpuDur } from '../../../database/sql/Gpu.sql';
-import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
-import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
+import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
 
 export function getTimeString(ns: number): string {
-
   if (ns === 0) {
     return '0';
   }
@@ -73,7 +67,6 @@ export function getTimeString(ns: number): string {
   let microsecond1 = 1_000; // 1 microsecond
   let res = '';
   if (currentTimeNs >= hour1) {
-
     res += Math.floor(currentTimeNs / hour1) + 'h ';
     currentTimeNs = currentTimeNs - Math.floor(currentTimeNs / hour1) * hour1;
   }
@@ -131,84 +124,6 @@ export class TabPaneCurrentSelection extends BaseElement {
       leftTitle.innerText = 'Slice Details';
     }
     let list: any[] = [];
-    this.updateUI(data, list);
-    Promise.all([this.queryThreadStateDArgs(data.argSetID), this.queryCPUWakeUpFromData(data)]).then((resArr) => {
-      let args = resArr[0];
-      let bean = resArr[1];
-      if (callback) {
-        callback(bean);
-      }
-      if (args.length > 0) {
-        args.forEach((arg) => {
-          list.push({name: arg.keyName, value: arg.strValue});
-        });
-      }
-      this.currentSelectionTbl!.dataSource = list;
-      let rightArea: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#table-right');
-      let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-      let rightButton: HTMLElement | null | undefined = this?.shadowRoot
-      ?.querySelector('#rightButton')
-      ?.shadowRoot?.querySelector('#custom-button');
-      let rightStar: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-star');
-      this.threadClickEvent(scrollCallback, data);
-      let canvas = this.initCanvas();
-      if (bean !== null) {
-        this.selectWakeupBean = {
-          process: `${this.transferString(data.processName || 'Process')}(${data.processId})`,
-          thread: `${this.transferString(data.name || 'Thread')}(${data.tid})`,
-          cpu: data.cpu,
-          dur: data.dur,
-          priority: data.priority,
-          isSelected: false,
-        };
-
-        this.weakUpBean = bean;
-        this.updateRightTitleUI(rightArea!, rightTitle!, rightButton!, rightStar!);
-        this.drawRight(canvas, bean);
-      } else {
-        this.handleNullBeanUI(rightArea!, rightTitle!, rightButton!, rightStar!);
-      }
-    });
-  }
-
-  private threadClickEvent(scrollCallback: ((data: CpuStruct) => void) | undefined, data: CpuStruct): void {
-    let threadClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#thread-id');
-    threadClick?.addEventListener('click', () => {
-      //cpu点击
-      if (scrollCallback) {
-        data.state = 'Running';
-        scrollCallback(data);
-      }
-    });
-  }
-
-  private updateRightTitleUI(rightArea: HTMLElement, rightTitle: HTMLElement, rightButton: HTMLElement,
-                             rightStar: HTMLElement) {
-    if (rightArea !== null && rightArea) {
-      rightArea.style.visibility = 'visible';
-    }
-    if (rightTitle !== null && rightTitle) {
-      rightTitle.style.visibility = 'visible';
-      rightButton!.style.visibility = 'visible';
-      rightStar!.style.visibility = 'hidden';
-      SpSystemTrace.btnTimer = null;
-    }
-  }
-
-  private handleNullBeanUI(rightArea: HTMLElement, rightTitle: HTMLElement, rightButton: HTMLElement,
-                           rightStar: HTMLElement) {
-    this.weakUpBean = null;
-    if (rightArea !== null && rightArea) {
-      rightArea.style.visibility = 'hidden';
-    }
-    if (rightTitle !== null && rightTitle) {
-      rightTitle.style.visibility = 'hidden';
-      rightButton!.style.visibility = 'hidden';
-      rightStar!.style.visibility = 'hidden';
-    }
-  }
-
-  private updateUI(data: CpuStruct, list: any[]) {
     let process = this.transferString(data.processName || 'Process');
     let processId = data.processId || data.tid;
     let state = '';
@@ -240,14 +155,77 @@ export class TabPaneCurrentSelection extends BaseElement {
 </div>`,
       });
     }
-    list.push({name: 'StartTime(Relative)', value: getTimeString(data.startTime || 0),});
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startTime || 0),
+    });
     list.push({
       name: 'StartTime(Absolute)',
       value: ((data.startTime || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Duration', value: getTimeString(data.dur || 0)});
-    list.push({name: 'Prio', value: data.priority || 0});
-    list.push({name: 'End State', value: state});
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    list.push({ name: 'Prio', value: data.priority || 0 });
+    list.push({ name: 'End State', value: state });
+    Promise.all([this.queryThreadStateDArgs(data.argSetID), this.queryCPUWakeUpFromData(data)]).then((resArr) => {
+      let args = resArr[0];
+      let bean = resArr[1];
+      if (callback) {
+        callback(bean);
+      }
+      if (args.length > 0) {
+        args.forEach((arg) => {
+          list.push({ name: arg.keyName, value: arg.strValue });
+        });
+      }
+      this.currentSelectionTbl!.dataSource = list;
+      let rightArea: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#table-right');
+      let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
+      let rightButton: HTMLElement | null | undefined = this?.shadowRoot
+        ?.querySelector('#rightButton')
+        ?.shadowRoot?.querySelector('#custom-button');
+      let rightStar: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-star');
+      let threadClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#thread-id');
+      threadClick?.addEventListener('click', () => {
+        //cpu点击
+        if (scrollCallback) {
+          data.state = 'Running';
+          scrollCallback(data);
+        }
+      });
+      let canvas = this.initCanvas();
+      if (bean !== null) {
+        this.selectWakeupBean = {
+          process: `${this.transferString(data.processName || 'Process')}(${data.processId})`,
+          thread: `${this.transferString(data.name || 'Thread')}(${data.tid})`,
+          cpu: data.cpu,
+          dur: data.dur,
+          priority: data.priority,
+          isSelected: false,
+        };
+
+        this.weakUpBean = bean;
+        if (rightArea !== null && rightArea) {
+          rightArea.style.visibility = 'visible';
+        }
+        if (rightTitle !== null && rightTitle) {
+          rightTitle.style.visibility = 'visible';
+          rightButton!.style.visibility = 'visible';
+          rightStar!.style.visibility = 'hidden';
+          SpSystemTrace.btnTimer = null;
+        }
+        this.drawRight(canvas, bean);
+      } else {
+        this.weakUpBean = null;
+        if (rightArea !== null && rightArea) {
+          rightArea.style.visibility = 'hidden';
+        }
+        if (rightTitle !== null && rightTitle) {
+          rightTitle.style.visibility = 'hidden';
+          rightButton!.style.visibility = 'hidden';
+          rightStar!.style.visibility = 'hidden';
+        }
+      }
+    });
   }
 
   setFunctionData(data: FuncStruct, scrollCallback: Function): void {
@@ -260,15 +238,89 @@ export class TabPaneCurrentSelection extends BaseElement {
     if (data.argsetid !== undefined && data.argsetid !== null && data.argsetid >= 0) {
       this.setTableHeight('700px');
       if (isAsyncBinder) {
-        this.handleAsyncBinder(data, list, name, scrollCallback);
+        Promise.all([
+          queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
+          queryBinderArgsByArgset(data.argsetid),
+        ]).then((result) => {
+          let asyncBinderRes = result[0];
+          let argsBinderRes = result[1];
+          let asyncBinderStract: any;
+          if (asyncBinderRes.length > 0) {
+            asyncBinderRes[0].type = TraceRow.ROW_TYPE_FUNC;
+            asyncBinderStract = asyncBinderRes[0];
+          }
+          if (argsBinderRes.length > 0) {
+            argsBinderRes.forEach((item) => {
+              list.push({
+                name: item.keyName,
+                value: item.strValue,
+              });
+            });
+          }
+          if (asyncBinderStract !== undefined) {
+            list.unshift({
+              name: 'Name',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${name || 'binder'}</div>
+<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`,
+            });
+          } else {
+            list.unshift({ name: 'Name', value: name });
+          }
+          this.addTabPanelContent(list, data);
+          this.currentSelectionTbl!.dataSource = list;
+          let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
+          funcClick?.addEventListener('click', () => {
+            scrollCallback(asyncBinderStract);
+          });
+        });
       } else if (isBinder) {
-        this.handleBinder(data, list, name, scrollCallback);
+        queryBinderArgsByArgset(data.argsetid).then((argset) => {
+          let binderSliceId = -1;
+          argset.forEach((item) => {
+            if (item.keyName === 'destination slice id') {
+              binderSliceId = Number(item.strValue);
+              list.unshift({
+                name: 'Name',
+                value: `<div style="white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${name || 'binder'}</div>
+<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`,
+              });
+            }
+            list.push({ name: item.keyName, value: item.strValue });
+          });
+          if (binderSliceId === -1) {
+            list.unshift({ name: 'Name', value: name });
+          }
+          this.addTabPanelContent(list, data);
+          this.currentSelectionTbl!.dataSource = list;
+          let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
+          funcClick?.addEventListener('click', () => {
+            if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
+              queryBinderBySliceId(binderSliceId).then((result: any[]) => {
+                if (result.length > 0) {
+                  result[0].type = TraceRow.ROW_TYPE_FUNC;
+                  scrollCallback(result[0]);
+                }
+              });
+            }
+          });
+        });
       } else {
-        this.handleNonBinder(data, list, name);
+        queryBinderArgsByArgset(data.argsetid).then((argset) => {
+          list.push({ name: 'Name', value: name });
+          argset.forEach((item) => {
+            list.push({ name: item.keyName, value: item.strValue });
+          });
+          this.addTabPanelContent(list, data);
+          this.currentSelectionTbl!.dataSource = list;
+        });
       }
     } else {
       this.setTableHeight('auto');
-      list.push({name: 'Name', value: name});
+      list.push({ name: 'Name', value: name });
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
@@ -281,95 +333,9 @@ export class TabPaneCurrentSelection extends BaseElement {
         name: 'Duration',
         value: getTimeString(data.dur || 0),
       });
-      list.push({name: 'depth', value: data.depth});
+      list.push({ name: 'depth', value: data.depth });
       this.currentSelectionTbl!.dataSource = list;
     }
-  }
-
-  private handleNonBinder(data: FuncStruct, list: any[], name: string): void {
-    queryBinderArgsByArgset(data.argsetid!).then((argset) => {
-      list.push({name: 'Name', value: name});
-      argset.forEach((item) => {
-        list.push({name: item.keyName, value: item.strValue});
-      });
-      this.addTabPanelContent(list, data);
-      this.currentSelectionTbl!.dataSource = list;
-    });
-  }
-
-  private handleBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function): void {
-    queryBinderArgsByArgset(data.argsetid!).then((argset) => {
-      let binderSliceId = -1;
-      argset.forEach((item) => {
-        if (item.keyName === 'destination slice id') {
-          binderSliceId = Number(item.strValue);
-          list.unshift({
-            name: 'Name',
-            value: `<div style="white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${name || 'binder'}</div>
-<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
-</div>`,
-          });
-        }
-        list.push({name: item.keyName, value: item.strValue});
-      });
-      if (binderSliceId === -1) {
-        list.unshift({name: 'Name', value: name});
-      }
-      this.addTabPanelContent(list, data);
-      this.currentSelectionTbl!.dataSource = list;
-      let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
-      funcClick?.addEventListener('click', () => {
-        if (!Number.isNaN(binderSliceId) && binderSliceId !== -1) {
-          queryBinderBySliceId(binderSliceId).then((result: any[]) => {
-            if (result.length > 0) {
-              result[0].type = TraceRow.ROW_TYPE_FUNC;
-              scrollCallback(result[0]);
-            }
-          });
-        }
-      });
-    });
-  }
-
-  private handleAsyncBinder(data: FuncStruct, list: any[], name: string, scrollCallback: Function): void {
-    Promise.all([
-      queryBinderByArgsId(data.argsetid!, data.startTs!, !data.funName!.endsWith('rcv')),
-      queryBinderArgsByArgset(data.argsetid!),
-    ]).then((result) => {
-      let asyncBinderRes = result[0];
-      let argsBinderRes = result[1];
-      let asyncBinderStract: any;
-      if (asyncBinderRes.length > 0) {
-        asyncBinderRes[0].type = TraceRow.ROW_TYPE_FUNC;
-        asyncBinderStract = asyncBinderRes[0];
-      }
-      if (argsBinderRes.length > 0) {
-        argsBinderRes.forEach((item) => {
-          list.push({
-            name: item.keyName,
-            value: item.strValue,
-          });
-        });
-      }
-      if (asyncBinderStract !== undefined) {
-        list.unshift({
-          name: 'Name',
-          value: `<div style="white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${name || 'binder'}</div>
-<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
-</div>`,
-        });
-      } else {
-        list.unshift({name: 'Name', value: name});
-      }
-      this.addTabPanelContent(list, data);
-      this.currentSelectionTbl!.dataSource = list;
-      let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
-      funcClick?.addEventListener('click', () => {
-        scrollCallback(asyncBinderStract);
-      });
-    });
   }
 
   private addTabPanelContent(contentList: any[], data: FuncStruct): void {
@@ -385,9 +351,9 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'Duration',
       value: getTimeString(data.dur || 0),
     });
-    contentList.push({name: 'depth', value: data.depth});
+    contentList.push({ name: 'depth', value: data.depth });
     if (data.argsetid && data.argsetid > -1) {
-      contentList.push({name: 'arg_set_id', value: data.argsetid});
+      contentList.push({ name: 'arg_set_id', value: data.argsetid });
     }
   }
 
@@ -403,8 +369,8 @@ export class TabPaneCurrentSelection extends BaseElement {
   private setTitleAndButtonStyle(): void {
     let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
     let rightButton: HTMLElement | null | undefined = this?.shadowRoot
-    ?.querySelector('#rightButton')
-    ?.shadowRoot?.querySelector('#custom-button');
+      ?.querySelector('#rightButton')
+      ?.shadowRoot?.querySelector('#custom-button');
     let rightStar: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#right-star');
     if (rightTitle) {
       rightTitle.style.visibility = 'hidden';
@@ -430,7 +396,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'Value',
       value: ColorUtils.formatNumberComma(data.value || 0),
     });
-    list.push({name: 'Duration', value: getTimeString(data.dur || 0)});
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     this.currentSelectionTbl!.dataSource = list;
   }
 
@@ -451,8 +417,8 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'StartTime(Absolute)',
       value: ((data.startTime || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Value', value: data.value});
-    list.push({name: 'Delta', value: data.delta});
+    list.push({ name: 'Value', value: data.value });
+    list.push({ name: 'Delta', value: data.delta });
     list.push({
       name: 'Duration',
       value: getTimeString(data.duration || 0),
@@ -477,12 +443,12 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'StartTime(Absolute)',
       value: ((data.startNS || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Name', value: data.name});
-    list.push({name: 'Duration', value: getTimeString(data.dur || 0)});
+    list.push({ name: 'Name', value: data.name });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     queryBinderArgsByArgset(data.argSetId || 0).then((argsBinderRes) => {
       if (argsBinderRes.length > 0) {
         argsBinderRes.forEach((item) => {
-          list.push({name: item.keyName, value: item.strValue});
+          list.push({ name: item.keyName, value: item.strValue });
         });
       }
       this.currentSelectionTbl!.dataSource = list;
@@ -505,189 +471,6 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
     let list: any[] = [];
     let jankJumperList = new Array<ThreadTreeNode>();
-    this.prepareThreadInfo(list, data);
-    let cpu = new CpuStruct();
-    cpu.id = data.id;
-    cpu.startTime = data.startTime;
-    this.queryThreadDetails(data, list, jankJumperList, callback, scrollWakeUp, scrollCallback);
-  }
-
-  private sortByNearData(nearData: any[], data: ThreadStruct, list: any[]): any[] {
-    let preData: any = undefined;
-    let nextData: any = undefined;
-    nearData.sort((near1, near2) => near1.startTime - near2.startTime).forEach((near) => {
-      if (near.itid === data.id) {
-        if (near.startTime < data.startTime!) {
-          preData = near;
-          list.push({
-            name: 'Previous State',
-            value: `<div style="white-space: nowrap;display: flex;align-items: center">
-              <div style="white-space:pre-wrap">${Utils.getEndState(near.state)}</div>
-              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
-              </div>`,
-          });
-        } else {
-          nextData = near;
-          list.push({
-            name: 'Next State',
-            value: `<div style="white-space: nowrap;display: flex;align-items: center">
-              <div style="white-space:pre-wrap">${Utils.getEndState(near.state)}</div>
-              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
-              </div>`,
-          });
-        }
-      }
-    });
-    return [preData, nextData];
-  }
-
-  private setWakeupData(fromBean: WakeupBean | undefined, wakeUps: WakeupBean[], list: any[]): void {
-    if (fromBean !== null && fromBean !== undefined && fromBean.pid !== 0 && fromBean.tid !== 0) {
-      list.push({
-        name: 'wakeup from tid',
-        value: `<div style="white-space: nowrap;display: flex;align-items: center">
-            <div style="white-space:pre-wrap">${fromBean.tid}</div>
-            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-from"  
-            class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
-            </div>`,
-      });
-    }
-    if (wakeUps !== null) {
-      wakeUps.map((e) => {
-        list.push({
-          name: 'wakeup tid',
-          value: `<div style="white-space: nowrap;display: flex;align-items: center">
-            <div style="white-space:pre-wrap">${e.tid}</div>
-            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${e.tid}" 
-            class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
-            </div>`,
-        });
-      });
-    }
-  }
-
-  private queryThreadDetails(
-    data: ThreadStruct,
-    list: any[],
-    jankJumperList: ThreadTreeNode[],
-    callback: ((data: Array<any>) => void) | undefined,
-    scrollWakeUp: (d: any) => (void | undefined),
-    scrollCallback: ((d: any) => void) | undefined
-  ): void {
-    Promise.all([
-      this.queryThreadWakeUpFromData(data.id!, data.startTime!, data.dur!),
-      this.queryThreadWakeUpData(data.id!, data.startTime!, data.dur!),
-      this.queryThreadStateDArgs(data.argSetID),
-      queryThreadNearData(data.id!, data.startTime!),
-    ]).then((result) => {
-      let fromBean = result[0];
-      let wakeUps = result[1];
-      let args = result[2];
-      let [preData, nextData] = this.sortByNearData(result[3], data, list);
-      this.setWakeupData(fromBean, wakeUps, list);
-      let timeLineNode = new ThreadTreeNode(data.tid!, data.pid!, data.startTime!);
-      jankJumperList.push(timeLineNode);
-      if (args.length > 0) {
-        args.forEach((arg) => {
-          list.push({name: arg.keyName, value: arg.strValue});
-        });
-      }
-      this.currentSelectionTbl!.dataSource = list;
-      if (callback) {
-        callback(jankJumperList);
-      }
-      this.stateClickHandler(preData, nextData, data, scrollWakeUp, scrollCallback);
-      this.wakeupClickHandler(wakeUps, fromBean, scrollWakeUp);
-    });
-  }
-
-  private wakeupClickHandler(
-    wakeUps: WakeupBean[],
-    fromBean: WakeupBean | undefined,
-    scrollWakeUp: (d: any) => (void | undefined)
-  ): void {
-    this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-from')?.addEventListener('click', () => {
-      //点击跳转，唤醒和被唤醒的 线程
-      if (fromBean && scrollWakeUp) {
-        scrollWakeUp({
-          processId: fromBean.pid,
-          tid: fromBean.tid,
-          startTime: fromBean.ts,
-          dur: fromBean.dur,
-          cpu: fromBean.cpu,
-          id: fromBean.itid,
-          state: 'Running',
-          argSetID: fromBean.argSetID,
-        });
-      }
-    });
-    if (wakeUps) {
-      wakeUps.map((up) => {
-        this.currentSelectionTbl?.shadowRoot?.querySelector(`#wakeup-${up.tid}`)?.addEventListener('click', () => {
-          //点击跳转，唤醒和被唤醒的 线程
-          if (up && scrollWakeUp !== undefined) {
-            scrollWakeUp({
-              processId: up.pid,
-              tid: up.tid,
-              startTime: up.ts,
-              dur: up.dur,
-              cpu: up.cpu,
-              id: up.itid,
-              state: up.state,
-              argSetID: up.argSetID,
-            });
-          }
-        });
-      });
-    }
-  }
-
-  private stateClickHandler(
-    preData: any,
-    nextData: any,
-    data: ThreadStruct,
-    scrollWakeUp: (d: any) => (void | undefined),
-    scrollCallback: ((d: any) => void) | undefined
-  ): void {
-    this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
-      if (nextData && scrollWakeUp !== undefined) {
-        scrollWakeUp({
-          processId: nextData.pid,
-          tid: nextData.tid,
-          startTime: nextData.startTime,
-          dur: nextData.dur,
-          cpu: nextData.cpu,
-          id: nextData.itid,
-          state: nextData.state,
-          argSetID: nextData.argSetID,
-        });
-      }
-    });
-
-    this.currentSelectionTbl?.shadowRoot?.querySelector('#previous-state-click')?.addEventListener('click', () => {
-      if (preData && scrollWakeUp !== undefined) {
-        scrollWakeUp({
-          processId: preData.pid,
-          tid: preData.tid,
-          startTime: preData.startTime,
-          dur: preData.dur,
-          cpu: preData.cpu,
-          id: preData.itid,
-          state: preData.state,
-          argSetID: preData.argSetID,
-        });
-      }
-    });
-
-    this.currentSelectionTbl?.shadowRoot?.querySelector('#state-click')?.addEventListener('click', () => {
-      //线程点击
-      if (scrollCallback) {
-        scrollCallback(data);
-      }
-    });
-  }
-
-  private prepareThreadInfo(list: any[], data: ThreadStruct): void {
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTime || 0),
@@ -696,7 +479,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'StartTime(Absolute)',
       value: ((data.startTime || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Duration', value: getTimeString(data.dur || 0)});
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     let state;
     if (data.state) {
       state = Utils.getEndState(data.state);
@@ -715,11 +498,11 @@ export class TabPaneCurrentSelection extends BaseElement {
             </div>`,
       });
     } else {
-      list.push({name: 'State', value: `${state}`});
+      list.push({ name: 'State', value: `${state}` });
     }
     let slice = Utils.SCHED_SLICE_MAP.get(`${data.id}-${data.startTime}`);
     if (slice) {
-      list.push({name: 'Prio', value: `${slice.priority}`});
+      list.push({ name: 'Prio', value: `${slice.priority}` });
     }
     let processName = Utils.PROCESS_MAP.get(data.pid!);
     if (
@@ -734,6 +517,144 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'Process',
       value: this.transferString(processName ?? '') + ' [' + data.pid + '] ',
     });
+    let cpu = new CpuStruct();
+    cpu.id = data.id;
+    cpu.startTime = data.startTime;
+    Promise.all([
+      this.queryThreadWakeUpFromData(data.id!, data.startTime!, data.dur!),
+      this.queryThreadWakeUpData(data.id!, data.startTime!, data.dur!),
+      this.queryThreadStateDArgs(data.argSetID),
+      queryThreadNearData(data.id!, data.startTime!),
+    ]).then((result) => {
+      let fromBean = result[0];
+      let wakeUps = result[1];
+      let args = result[2];
+      let nearData = result[3];
+      let preData: any = undefined;
+      let nextData: any = undefined;
+      nearData.sort((near1, near2) => near1.startTime - near2.startTime).forEach((near) => {
+        if (near.itid === data.id) {
+          if (near.startTime < data.startTime!) {
+            preData = near;
+            list.push({
+              name: 'Previous State',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+              <div style="white-space:pre-wrap">${Utils.getEndState(near.state)}</div>
+              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="previous-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+              </div>`,
+            });
+          } else {
+            nextData = near;
+            list.push({
+              name: 'Next State',
+              value: `<div style="white-space: nowrap;display: flex;align-items: center">
+              <div style="white-space:pre-wrap">${Utils.getEndState(near.state)}</div>
+              <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="next-state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+              </div>`,
+            });
+          }
+        }
+      });
+      if (fromBean !== null && fromBean !== undefined && fromBean.pid !== 0 && fromBean.tid !== 0) {
+        list.push({
+          name: 'wakeup from tid',
+          value: `<div style="white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap">${fromBean.tid}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-from"  class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
+            </div>`,
+        });
+      }
+      if (wakeUps !== null) {
+        wakeUps.map((e) => {
+          list.push({
+            name: 'wakeup tid',
+            value: `<div style="white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap">${e.tid}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${e.tid}" class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+            </div>`,
+          });
+        });
+      }
+      let timeLineNode = new ThreadTreeNode(data.tid!, data.pid!, data.startTime!);
+      jankJumperList.push(timeLineNode);
+      if (args.length > 0) {
+        args.forEach((arg) => {
+          list.push({ name: arg.keyName, value: arg.strValue });
+        });
+      }
+      this.currentSelectionTbl!.dataSource = list;
+      if (callback) {
+        callback(jankJumperList);
+      }
+      this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
+        if (nextData && scrollWakeUp !== undefined) {
+          scrollWakeUp({
+            processId: nextData.pid,
+            tid: nextData.tid,
+            startTime: nextData.startTime,
+            dur: nextData.dur,
+            cpu: nextData.cpu,
+            id: nextData.itid,
+            state: nextData.state,
+            argSetID: nextData.argSetID,
+          });
+        }
+      });
+      this.currentSelectionTbl?.shadowRoot?.querySelector('#previous-state-click')?.addEventListener('click', () => {
+        if (preData && scrollWakeUp !== undefined) {
+          scrollWakeUp({
+            processId: preData.pid,
+            tid: preData.tid,
+            startTime: preData.startTime,
+            dur: preData.dur,
+            cpu: preData.cpu,
+            id: preData.itid,
+            state: preData.state,
+            argSetID: preData.argSetID,
+          });
+        }
+      });
+      this.currentSelectionTbl?.shadowRoot?.querySelector('#state-click')?.addEventListener('click', () => {
+        //线程点击
+        if (scrollCallback) {
+          scrollCallback(data);
+        }
+      });
+      this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-from')?.addEventListener('click', () => {
+        //点击跳转，唤醒和被唤醒的 线程
+        if (fromBean && scrollWakeUp) {
+          scrollWakeUp({
+            processId: fromBean.pid,
+            tid: fromBean.tid,
+            startTime: fromBean.ts,
+            dur: fromBean.dur,
+            cpu: fromBean.cpu,
+            id: fromBean.itid,
+            state: 'Running',
+            argSetID: fromBean.argSetID,
+          });
+        }
+      });
+      if (wakeUps) {
+        wakeUps.map((up) => {
+          this.currentSelectionTbl?.shadowRoot?.querySelector(`#wakeup-${up.tid}`)?.addEventListener('click', () => {
+            //点击跳转，唤醒和被唤醒的 线程
+            if (up && scrollWakeUp !== undefined) {
+              scrollWakeUp({
+                processId: up.pid,
+                tid: up.tid,
+                startTime: up.ts,
+                dur: up.dur,
+                cpu: up.cpu,
+                id: up.itid,
+                state: up.state,
+                argSetID: up.argSetID,
+              });
+            }
+          });
+        });
+      }
+    });
   }
 
   setJankData(
@@ -747,206 +668,174 @@ export class TabPaneCurrentSelection extends BaseElement {
     let list: any[] = [];
     this.setJankCommonMessage(list, data);
     if (data.type == '0') {
-      this.handleTypeJank(data, list, scrollCallback, callback);
-    } else {
-      this.currentSelectionTbl!.dataSource = list;
-    }
-  }
-
-  private handleTypeJank(data: JankStruct, list: any[], scrollCallback: ((d: any) => void) | undefined,
-                         callback: ((data: Array<any>) => void) | undefined): void {
-    this.setJankType(data, list);
-    let jankJumperList = new Array<JankTreeNode>();
-    if (data.frame_type === 'render_service') {
-      queryGpuDur(data.id!).then((it) => {
-        if (it.length > 0) {
-          list.push({name: 'Gpu Duration', value: getTimeString(it[0].gpu_dur)});
+      this.setJankType(data, list);
+      let jankJumperList = new Array<JankTreeNode>();
+      if (data.frame_type === 'render_service') {
+        queryGpuDur(data.id!).then((it) => {
+          if (it.length > 0) {
+            list.push({ name: 'Gpu Duration', value: getTimeString(it[0].gpu_dur) });
+          }
+        });
+        if (data.src_slice) {
+          queryFlowsData(data.src_slice!.split(',')).then((it) => {
+            if (it.length > 0) {
+              list.push({
+                name: 'FrameTimeLine flows',
+                value: '',
+              });
+              it.forEach((a: any) => {
+                let appNode = new JankTreeNode(a.name, a.pid, 'app');
+                appNode.children.push(new JankTreeNode(a.name, a.pid, 'frameTime'));
+                jankJumperList.push(appNode);
+                list.push({
+                  name: 'Slice',
+                  value:
+                    a.cmdline +
+                    ' [' +
+                    a.name +
+                    ']' +
+                    `<lit-icon  class="jank_cla" style="display: inline-flex;cursor: pointer;transform: scaleX(-1);margin-left: 5px" id="actual frameTime" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
+                });
+              });
+              list.push({
+                name: 'Following flows',
+                value: '',
+              });
+              it.forEach((a: any) => {
+                list.push({
+                  name: 'Slice',
+                  value:
+                    a.cmdline +
+                    ' [' +
+                    a.name +
+                    ']' +
+                    `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}"  pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
+                });
+              });
+              this.currentSelectionTbl!.dataSource = list;
+              this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
+            }
+          });
+        } else {
+          this.currentSelectionTbl!.dataSource = list;
         }
-      });
-      this.handleRenderServiceJank(data, list, jankJumperList, scrollCallback, callback);
-    } else if (data.frame_type === 'app') {
-      this.handleAppJank(list, data, jankJumperList, scrollCallback, callback);
-    } else if (data.frame_type === 'frameTime') {
-      this.handleFrameTimeJank(data, list, jankJumperList, scrollCallback, callback);
-    }
-  }
-
-  private handleFrameTimeJank(data: JankStruct, list: any[], jankJumperList: JankTreeNode[],
-                              scrollCallback: ((d: any) => void) | undefined, callback: ((data: Array<any>) => void) | undefined): void {
-    queryGpuDur(data.id!).then((it) => {
-      if (it.length > 0) {
+      } else if (data.frame_type === 'app') {
         list.push({
-          name: 'Gpu Duration',
-          value: getTimeString(it[0].gpu_dur),
+          name: 'FrameTimeLine flows',
+          value: '',
+        });
+        list.push({
+          name: 'Slice',
+          value:
+            data.cmdline +
+            ' [' +
+            data.name +
+            ']' +
+            `<lit-icon  class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="actual frameTime"  slice_name="${data.name}"  pid="${data.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
+        });
+        let timeLineNode = new JankTreeNode(data.name!, data.pid!, 'frameTime');
+        jankJumperList.push(timeLineNode);
+        if (data.dst_slice) {
+          queryPrecedingData(data.dst_slice).then((it) => {
+            if (it.length > 0) {
+              list.push({
+                name: 'Preceding flows',
+                value: '',
+              });
+              it.forEach((a: any) => {
+                let rsNode = new JankTreeNode(a.name, a.pid, 'render_service');
+                jankJumperList.push(rsNode);
+                list.push({
+                  name: 'Slice',
+                  value:
+                    a.cmdline +
+                    ' [' +
+                    a.name +
+                    ']' +
+                    `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
+                });
+              });
+              this.currentSelectionTbl!.dataSource = list;
+              this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
+            }
+          });
+        } else {
+          this.currentSelectionTbl!.dataSource = list;
+          this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
+        }
+      } else if (data.frame_type === 'frameTime') {
+        queryGpuDur(data.id!).then((it) => {
+          if (it.length > 0) {
+            list.push({
+              name: 'Gpu Duration',
+              value: getTimeString(it[0].gpu_dur),
+            });
+          }
+          if (data.name) {
+            list.push({
+              name: 'App Frame',
+              value: '',
+            });
+            list.push({
+              name: 'Process',
+              value: data.cmdline + ' ' + data.pid,
+            });
+            list.push({
+              name: 'StartTime(Relative)',
+              value: getTimeString(data.ts || 0),
+            });
+            list.push({
+              name: 'StartTime(Absolute)',
+              value: ((data.ts || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+            });
+            list.push({
+              name: 'end time',
+              value: getTimeString(data!.ts! + data.dur! || 0),
+            });
+          }
+          if (data.rs_name) {
+            list.push({
+              name: 'RenderService Frame',
+              value: '',
+            });
+            list.push({
+              name: 'Process',
+              value: 'render_service ' + data.rs_pid,
+            });
+            list.push({
+              name: 'StartTime(Relative)',
+              value: getTimeString(data.rs_ts || 0),
+            });
+            list.push({
+              name: 'StartTime(Absolute)',
+              value: ((data.rs_ts || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+            });
+            list.push({
+              name: 'end time',
+              value: getTimeString(data.rs_ts! + data.rs_dur! || 0),
+            });
+          }
+          list.push({
+            name: 'Following',
+            value: '',
+          });
+          list.push({
+            name: 'Slice',
+            value:
+              data.cmdline +
+              ' [' +
+              data.name +
+              ']' +
+              `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${data.type}-${data.pid}" slice_name="${data.name}"  pid="${data.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
+          });
+          let appNode = new JankTreeNode(data.name!, data.pid!, 'app');
+          let rsNode = new JankTreeNode(data.rs_vsync!, data.rs_pid!, 'render_service');
+          appNode.children.push(rsNode);
+          jankJumperList.push(appNode);
+          this.currentSelectionTbl!.dataSource = list;
+          this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
         });
       }
-      this.addAppFrameDetails(data, list);
-      this.addRenderServiceFrameDetails(data, list);
-      this.addFollowingDetails(list, data);
-      let appNode = new JankTreeNode(data.name!, data.pid!, 'app');
-      let rsNode = new JankTreeNode(data.rs_vsync!, data.rs_pid!, 'render_service');
-      appNode.children.push(rsNode);
-      jankJumperList.push(appNode);
-      this.currentSelectionTbl!.dataSource = list;
-      this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
-    });
-  }
-
-  private addRenderServiceFrameDetails(data: JankStruct, list: any[]): void {
-    if (data.rs_name) {
-      list.push({
-        name: 'RenderService Frame',
-        value: '',
-      });
-      list.push({
-        name: 'Process',
-        value: 'render_service ' + data.rs_pid,
-      });
-      list.push({
-        name: 'StartTime(Relative)',
-        value: getTimeString(data.rs_ts || 0),
-      });
-      list.push({
-        name: 'StartTime(Absolute)',
-        value: ((data.rs_ts || 0) + (window as any).recordStartNS) / 1000000000 + 's',
-      });
-      list.push({
-        name: 'end time',
-        value: getTimeString(data.rs_ts! + data.rs_dur! || 0),
-      });
-    }
-  }
-
-  private addFollowingDetails(list: any[], data: JankStruct): void {
-    list.push({
-      name: 'Following',
-      value: '',
-    });
-    list.push({
-      name: 'Slice',
-      value:
-        data.cmdline +
-        ' [' +
-        data.name +
-        ']' +
-        `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${data.type}-${data.pid}" slice_name="${data.name}"  pid="${data.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
-    });
-  }
-
-  private addAppFrameDetails(data: JankStruct, list: any[]): void {
-    if (data.name) {
-      list.push({
-        name: 'App Frame',
-        value: '',
-      });
-      list.push({
-        name: 'Process',
-        value: data.cmdline + ' ' + data.pid,
-      });
-      list.push({
-        name: 'StartTime(Relative)',
-        value: getTimeString(data.ts || 0),
-      });
-      list.push({
-        name: 'StartTime(Absolute)',
-        value: ((data.ts || 0) + (window as any).recordStartNS) / 1000000000 + 's',
-      });
-      list.push({
-        name: 'end time',
-        value: getTimeString(data!.ts! + data.dur! || 0),
-      });
-    }
-  }
-
-  private handleAppJank(list: any[], data: JankStruct, jankJumperList: JankTreeNode[],
-                        scrollCallback: ((d: any) => void) | undefined, callback: ((data: Array<any>) => void) | undefined): void {
-    list.push({
-      name: 'FrameTimeLine flows',
-      value: '',
-    });
-    list.push({
-      name: 'Slice',
-      value:
-        data.cmdline +
-        ' [' +
-        data.name +
-        ']' +
-        `<lit-icon  class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="actual frameTime"  slice_name="${data.name}"  pid="${data.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
-    });
-    let timeLineNode = new JankTreeNode(data.name!, data.pid!, 'frameTime');
-    jankJumperList.push(timeLineNode);
-    if (data.dst_slice) {
-      queryPrecedingData(data.dst_slice).then((it) => {
-        if (it.length > 0) {
-          list.push({
-            name: 'Preceding flows',
-            value: '',
-          });
-          it.forEach((a: any) => {
-            let rsNode = new JankTreeNode(a.name, a.pid, 'render_service');
-            jankJumperList.push(rsNode);
-            list.push({
-              name: 'Slice',
-              value:
-                a.cmdline +
-                ' [' +
-                a.name +
-                ']' +
-                `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
-            });
-          });
-          this.currentSelectionTbl!.dataSource = list;
-          this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
-        }
-      });
-    } else {
-      this.currentSelectionTbl!.dataSource = list;
-      this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
-    }
-  }
-
-  private handleRenderServiceJank(data: JankStruct, list: any[], jankJumperList: JankTreeNode[],
-                                  scrollCallback: ((d: any) => void) | undefined, callback: ((data: Array<any>) => void) | undefined): void {
-    if (data.src_slice) {
-      queryFlowsData(data.src_slice!.split(',')).then((it) => {
-        if (it.length > 0) {
-          list.push({
-            name: 'FrameTimeLine flows',
-            value: '',
-          });
-          it.forEach((a: any) => {
-            let appNode = new JankTreeNode(a.name, a.pid, 'app');
-            appNode.children.push(new JankTreeNode(a.name, a.pid, 'frameTime'));
-            jankJumperList.push(appNode);
-            list.push({
-              name: 'Slice',
-              value:
-                a.cmdline +
-                ' [' +
-                a.name +
-                ']' +
-                `<lit-icon  class="jank_cla" style="display: inline-flex;cursor: pointer;transform: scaleX(-1);margin-left: 5px" id="actual frameTime" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
-            });
-          });
-          list.push({
-            name: 'Following flows',
-            value: '',
-          });
-          it.forEach((a: any) => {
-            list.push({
-              name: 'Slice',
-              value:
-                a.cmdline +
-                ' [' +
-                a.name +
-                ']' +
-                `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}"  pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`,
-            });
-          });
-          this.currentSelectionTbl!.dataSource = list;
-          this.addJankScrollCallBackEvent(scrollCallback, callback, jankJumperList);
-        }
-      });
     } else {
       this.currentSelectionTbl!.dataSource = list;
     }
@@ -964,7 +853,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       allStartUpLeftTitle.innerText = 'Details';
     }
     let list: any[] = [];
-    list.push({name: 'Name', value: data.stepName!});
+    list.push({ name: 'Name', value: data.stepName! });
     list.push({
       name: 'StartTime(Relative)',
       value: getTimeString(data.startTs || 0),
@@ -991,9 +880,20 @@ export class TabPaneCurrentSelection extends BaseElement {
   setStartupData(data: AppStartupStruct, scrollCallback: Function): void {
     this.setTableHeight('550px');
     this.initCanvas();
-    this.setStartUpStyle();
+    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
+      ?.querySelector('#rightButton')
+      ?.shadowRoot?.querySelector('#custom-button');
+    let startUpRightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
+    if (startUpRightTitle) {
+      startUpRightTitle.style.visibility = 'hidden';
+      rightButton!.style.visibility = 'hidden';
+    }
+    let startUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
+    if (startUpLeftTitle) {
+      startUpLeftTitle.innerText = 'Details';
+    }
     let list: any[] = [];
-    list.push({name: 'Name', value: AppStartupStruct.getStartupName(data.startName)});
+    list.push({ name: 'Name', value: AppStartupStruct.getStartupName(data.startName) });
     list.push({
       name: 'StartTime(Relative)',
       value: `
@@ -1028,27 +928,8 @@ export class TabPaneCurrentSelection extends BaseElement {
         value: 'Unknown Time',
       });
     }
-    list.push({name: 'Duration', value: getTimeString(data.dur || 0)});
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     this.currentSelectionTbl!.dataSource = list;
-    this.attachScrollHandlers(data, scrollCallback);
-  }
-
-  private setStartUpStyle() {
-    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
-    ?.querySelector('#rightButton')
-    ?.shadowRoot?.querySelector('#custom-button');
-    let startUpRightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-    if (startUpRightTitle) {
-      startUpRightTitle.style.visibility = 'hidden';
-      rightButton!.style.visibility = 'hidden';
-    }
-    let startUpLeftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
-    if (startUpLeftTitle) {
-      startUpLeftTitle.innerText = 'Details';
-    }
-  }
-
-  private attachScrollHandlers(data: AppStartupStruct, scrollCallback: Function): void {
     let startIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#start-jump');
     let endIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#end-jump');
     let scrollClick = (type: number): void => {
@@ -1059,13 +940,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         useEnd ? recordNs + data.startTs! + data.dur! : recordNs + data.startTs!
       ).then((result) => {
         if (result.length > 0) {
-          let pt: {
-            pid: number;
-            tid: number;
-            dur: number;
-            name: string;
-            depth: number
-          } = result[0];
+          let pt: { pid: number; tid: number; dur: number; name: string; depth: number } = result[0];
           scrollCallback({
             pid: pt.pid,
             tid: pt.tid,
@@ -1090,9 +965,20 @@ export class TabPaneCurrentSelection extends BaseElement {
   setStaticInitData(data: SoStruct, scrollCallback: Function): void {
     this.setTableHeight('550px');
     this.initCanvas();
-    this.setStaticInitStyle();
+    let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
+    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
+      ?.querySelector('#rightButton')
+      ?.shadowRoot?.querySelector('#custom-button');
+    if (rightTitle) {
+      rightTitle.style.visibility = 'hidden';
+      rightButton!.style.visibility = 'hidden';
+    }
+    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
+    if (leftTitle) {
+      leftTitle.innerText = 'Details';
+    }
     let list: any[] = [];
-    list.push({name: 'Name', value: data.soName});
+    list.push({ name: 'Name', value: data.soName });
     list.push({
       name: 'StartTime(Relative)',
       value: `<div style="white-space: nowrap;display: flex;align-items: center">
@@ -1104,40 +990,15 @@ export class TabPaneCurrentSelection extends BaseElement {
       name: 'StartTime(Absolute)',
       value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Duration', value: getTimeString(data.dur || 0)});
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     this.currentSelectionTbl!.dataSource = list;
-    this.startIconClickEvent(data, scrollCallback);
-  }
-
-  private setStaticInitStyle(): void {
-    let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#rightTitle');
-    let rightButton: HTMLElement | null | undefined = this?.shadowRoot
-    ?.querySelector('#rightButton')
-    ?.shadowRoot?.querySelector('#custom-button');
-    if (rightTitle) {
-      rightTitle.style.visibility = 'hidden';
-      rightButton!.style.visibility = 'hidden';
-    }
-    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
-    if (leftTitle) {
-      leftTitle.innerText = 'Details';
-    }
-  }
-
-  private startIconClickEvent(data: SoStruct, scrollCallback: Function): void {
     let startIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#start-jump');
     if (startIcon) {
       startIcon.addEventListener('click', () => {
         let recordNs: number = (window as any).recordStartNS;
         queryThreadByItid(data.itid!, recordNs + data.startTs!).then((result) => {
           if (result.length > 0) {
-            let pt: {
-              pid: number;
-              tid: number;
-              dur: number;
-              name: string;
-              depth: number
-            } = result[0];
+            let pt: { pid: number; tid: number; dur: number; name: string; depth: number } = result[0];
             scrollCallback({
               pid: pt.pid,
               tid: pt.tid,
@@ -1159,30 +1020,27 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.tabCurrentSelectionInit('Animation Details');
     let list = [];
     let dataTs: number = data.startTs < 0 ? 0 : data.startTs;
-    list.push({name: 'Name', value: data.name});
-    list.push({name: 'Start time(Relative)', value: `${Utils.getTimeString(dataTs)}`});
+    list.push({ name: 'Name', value: data.name });
+    list.push({ name: 'Start time(Relative)', value: `${Utils.getTimeString(dataTs)}` });
     list.push({
       name: 'Start time(Absolute)',
       value: ((dataTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({
-      name: 'End time(Relative)',
-      value: `${Utils.getTimeString(dataTs + (data.dur || 0))}`
-    });
+    list.push({ name: 'End time(Relative)', value: `${Utils.getTimeString(dataTs + (data.dur || 0))}` });
     list.push({
       name: 'End time(Absolute)',
       value: (dataTs + (data.dur || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}`});
+    list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
       let frameFpsMessage = data.frameInfo?.split(':');
       if (frameFpsMessage) {
         if (frameFpsMessage[1] !== '0') {
-          list.push({name: 'FPS', value: `${frameFpsMessage[1]}`});
+          list.push({ name: 'FPS', value: `${frameFpsMessage[1]}` });
         } else {
           let fixedNumber: number = 2;
           let fpsValue: number = Number(frameFpsMessage[0]) / (data.dur / 1000_000_000);
-          list.push({name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}`});
+          list.push({ name: 'FPS', value: `${fpsValue.toFixed(fixedNumber) || 0}` });
         }
       }
     }
@@ -1192,29 +1050,29 @@ export class TabPaneCurrentSelection extends BaseElement {
   private setJankType(data: JankStruct, list: any[]): void {
     if (data.jank_tag === 1) {
       if (data.frame_type === 'render_service') {
-        list.push({name: 'Jank Type', value: 'RenderService Deadline Missed'});
+        list.push({ name: 'Jank Type', value: 'RenderService Deadline Missed' });
       } else if (data.frame_type === 'app') {
-        list.push({name: 'Jank Type', value: 'APP Deadline Missed'});
+        list.push({ name: 'Jank Type', value: 'APP Deadline Missed' });
       } else if (data.frame_type === 'frameTime') {
-        list.push({name: 'Jank Type', value: 'Deadline Missed'});
+        list.push({ name: 'Jank Type', value: 'Deadline Missed' });
       }
     } else if (data.jank_tag === 3) {
-      list.push({name: 'Jank Type', value: 'Deadline Missed'});
+      list.push({ name: 'Jank Type', value: 'Deadline Missed' });
     } else {
-      list.push({name: 'Jank Type', value: 'NONE'});
+      list.push({ name: 'Jank Type', value: 'NONE' });
     }
   }
 
   private setJankCommonMessage(list: any[], data: JankStruct): void {
-    list.push({name: 'Name', value: data.name});
-    list.push({name: 'StartTime(Relative)', value: getTimeString(data.ts || 0)});
+    list.push({ name: 'Name', value: data.name });
+    list.push({ name: 'StartTime(Relative)', value: getTimeString(data.ts || 0) });
     list.push({
       name: 'StartTime(Absolute)',
       value: ((data.ts || 0) + (window as any).recordStartNS) / 1000000000 + 's',
     });
-    list.push({name: 'Duration', value: data.dur ? getTimeString(data.dur) : ' '});
+    list.push({ name: 'Duration', value: data.dur ? getTimeString(data.dur) : ' ' });
     if (data.frame_type !== 'frameTime') {
-      list.push({name: 'Process', value: data.cmdline + ' ' + data.pid});
+      list.push({ name: 'Process', value: data.cmdline + ' ' + data.pid });
     }
   }
 
@@ -1355,7 +1213,17 @@ export class TabPaneCurrentSelection extends BaseElement {
     let context = cavs.getContext('2d');
     if (context !== null) {
       //绘制竖线
-      this.drawVerticalLine(context);
+      if (document.querySelector<SpApplication>('sp-application')!.dark) {
+        context.strokeStyle = '#ffffff';
+        context.fillStyle = '#ffffff';
+      } else {
+        context.strokeStyle = '#000000';
+        context.fillStyle = '#000000';
+      }
+      context.lineWidth = 2;
+      context.moveTo(10, 15);
+      context.lineTo(10, 125);
+      context.stroke();
       //绘制菱形
       context.lineWidth = 1;
       context.beginPath();
@@ -1400,20 +1268,6 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
   }
 
-  private drawVerticalLine(context: CanvasRenderingContext2D): void {
-    if (document.querySelector<SpApplication>('sp-application')!.dark) {
-      context.strokeStyle = '#ffffff';
-      context.fillStyle = '#ffffff';
-    } else {
-      context.strokeStyle = '#000000';
-      context.fillStyle = '#000000';
-    }
-    context.lineWidth = 2;
-    context.moveTo(10, 15);
-    context.lineTo(10, 125);
-    context.stroke();
-  }
-
   transferString(str: string): string {
     let s = '';
     if (str.length === 0) {
@@ -1431,8 +1285,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
     this.wakeupListTbl = this.shadowRoot?.querySelector<LitTable>('#wakeupListTbl');
     this.scrollView = this.shadowRoot?.querySelector<HTMLDivElement>('#scroll_view');
-    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {
-    });
+    this.currentSelectionTbl?.addEventListener('column-click', (ev: any) => {});
     window.subscribe(window.SmartEvent.UI.WakeupList, (data: Array<WakeupBean>) => this.showWakeupListTableData(data));
   }
 
@@ -1480,19 +1333,15 @@ export class TabPaneCurrentSelection extends BaseElement {
           maxPriorityDuration = Math.max(it.dur || 0, maxPriorityDuration);
         }
       });
-      this.updateTableSettings(maxPriority, maxPriorityDuration, maxDuration);
+      this.wakeupListTbl!.getItemTextColor = (data: any) => {
+        if ((data.priority === maxPriority && data.dur === maxPriorityDuration) || data.dur === maxDuration) {
+          return '#f44336';
+        } else {
+          return '#262626';
+        }
+      };
       this.wakeupListTbl!.recycleDataSource = resource;
     });
-  }
-
-  private updateTableSettings(maxPriority: number, maxPriorityDuration: number, maxDuration: number) {
-    this.wakeupListTbl!.getItemTextColor = (data: any) => {
-      if ((data.priority === maxPriority && data.dur === maxPriorityDuration) || data.dur === maxDuration) {
-        return '#f44336';
-      } else {
-        return '#262626';
-      }
-    };
   }
 
   addTableObserver(): void {
@@ -1505,7 +1354,104 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   initHtml(): string {
-    return TabPaneCurrentSelectionHtml;
+    return `
+        <style>
+            .table-title{
+                top: 0;
+                background: var(--dark-background,#ffffff);
+                position: sticky;
+                width: 100%;
+                display: flex;
+            }
+            .table-title > h2{
+                font-size: 16px;
+                font-weight: 400;
+                visibility: visible;
+                width: 50%;
+                padding: 0 10px;
+            }
+            #rightTitle{
+                width: 50%;
+                display: flex;
+                justify-content: space-between;
+                padding: 0 10px;
+                font-size: 16px;
+                font-weight: 400;
+                visibility: visible;
+            }
+            #rightTitle > h2{
+                font-size: 16px;
+                font-weight: 400;
+            }           
+            #rightButton{
+                padding-top:12px;
+            }
+            .right{
+                display: flex;
+            }
+            #right-star{
+                padding-top: 10px;
+                visibility: hidden;
+            }
+            .scroll-area{
+                display: flex;
+                flex-direction: row;
+                flex: 1;
+            }
+            .table-left{
+                width: 50%;
+                height: auto;
+                padding: 0 10px;
+            }
+            .table-right{
+                width: 50%;
+                display: flex;
+                height: 650px;
+                flex-direction: column;
+            }
+        </style>
+        <div id="scroll_view" style="display: flex;flex-direction: column;width: 100%;height: 100%;overflow: auto">
+            <div style="width: 100%;height: auto;position: relative">
+                <div class="table-title">
+                    <h2 id="leftTitle"></h2>
+                    <div id="rightTitle" >
+                        <h2 id="rightText">Scheduling Latency</h2>
+                        <div class="right">
+                        <lit-button id="rightButton"  height="32px" width="164px" color="black" font_size="14px" border="1px solid black" 
+                        >GetWakeupList</lit-button>
+                        <lit-icon id="right-star" class="collect" name="star-fill" size="30"></lit-icon>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="scroll-area">
+                <lit-table id="selectionTbl" class="table-left" no-head hideDownload noRecycle>
+                        <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
+                            <template><div>{{name}}</div></template>
+                        </lit-table-column>
+                        <lit-table-column title="value" data-index="value" key="value" align="flex-start" >
+                            <template><div style="display: flex;">{{value}}</div></template>
+                        </lit-table-column>
+                </lit-table>
+                <div class="table-right">
+                    <canvas id="rightDraw" style="width: 100%;height: 200px;"></canvas>
+                    <lit-table id="wakeupListTbl" style="height: 300px;display: none;overflow: auto" hideDownload>
+                        <lit-table-column title="Process" data-index="process" key="process" align="flex-start"  width="180px">
+                        </lit-table-column>
+                        <lit-table-column title="Thread" data-index="thread" key="thread" align="flex-start"  width="180px">
+                        </lit-table-column>
+                        <lit-table-column title="CPU" data-index="cpu" key="cpu" align="flex-start"  width="60px">
+                        </lit-table-column>
+                        <lit-table-column title="Duration(ns)" data-index="dur" key="dur" align="flex-start"  width="120px">
+                        </lit-table-column>
+                        <lit-table-column title="Priority" data-index="priority" key="priority" align="flex-start"  width="80px">
+                        </lit-table-column>
+                    </lit-table>
+                </div>
+            </div>
+        </div>
+        </div>
+        `;
   }
 }
 
@@ -1528,7 +1474,6 @@ export class ThreadTreeNode {
   tid: number = 0;
   pid: number = -1;
   startTime: number = 1;
-
   constructor(tid: number, pid: number, startTime: number) {
     this.tid = tid;
     this.pid = pid;

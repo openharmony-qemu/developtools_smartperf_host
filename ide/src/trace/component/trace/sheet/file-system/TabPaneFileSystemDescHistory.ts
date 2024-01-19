@@ -21,7 +21,6 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { FileSysEvent } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { procedurePool } from '../../../../database/Procedure';
-import { TabPaneFileSystemDescHistoryHtml } from './TabPaneFileSystemDescHistory.html';
 
 @element('tabpane-filesystem-desc-history')
 export class TabPaneFileSystemDescHistory extends BaseElement {
@@ -48,18 +47,14 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
       return;
     }
     this.currentSelection = fsDescHistorySelection;
-    if (this.fsDescHistoryTbl) {
-      // @ts-ignore
-      this.fsDescHistoryTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 31 + 'px';
-      this.fsDescHistoryTbl.recycleDataSource = [];
-    }
-    if (this.fsDescHistoryTblData) {
-      // @ts-ignore
-      this.fsDescHistoryTblData.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 20 - 31 + 'px';
-      this.fsDescHistoryTblData.recycleDataSource = [];
-    }
+    // @ts-ignore
+    this.fsDescHistoryTbl?.shadowRoot.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 20 - 31 + 'px';
+    // @ts-ignore
+    this.fsDescHistoryTblData?.shadowRoot.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 20 - 31 + 'px';
+    this.fsDescHistoryTbl!.recycleDataSource = [];
+    this.fsDescHistoryTblData!.recycleDataSource = [];
     if (fsDescHistorySelection) {
       this.fsDescHistoryLoadingList.push(1);
       this.fsDescHistoryProgressEL!.loading = true;
@@ -189,39 +184,59 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     super.connectedCallback();
     new ResizeObserver((entries) => {
       if (this.parentElement?.clientHeight != 0) {
-        if (this.fsDescHistoryTbl) {
-          // @ts-ignore
-          this.fsDescHistoryTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 31 + 'px';
-          this.fsDescHistoryTbl.reMeauseHeight();
-        }
-        if (this.fsDescHistoryTblData) {
-          // @ts-ignore
-          this.fsDescHistoryTblData.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 31 + 'px';
-          this.fsDescHistoryTblData.reMeauseHeight();
-        }
+        // @ts-ignore
+        this.fsDescHistoryTbl?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 31 + 'px';
+        this.fsDescHistoryTbl?.reMeauseHeight();
+        // @ts-ignore
+        this.fsDescHistoryTblData?.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 10 - 31 + 'px';
+        this.fsDescHistoryTblData?.reMeauseHeight();
         this.fsDescHistoryLoadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
   }
 
-  sortFsDescHistoryTable(key: string, type: number): void {
+  sortFsDescHistoryTable(key: string, type: number) {
     if (type == 0) {
       this.fsDescHistoryTbl!.recycleDataSource = this.fsDescHistoryFilterSource;
     } else {
       let arr = Array.from(this.fsDescHistoryFilterSource);
       arr.sort((fsHistoryA, fsHistoryB): number => {
         if (key == 'startTsStr') {
-          return this.compareStartTs(fsHistoryA, fsHistoryB, type);
+          if (type == 1) {
+            return fsHistoryA.startTs - fsHistoryB.startTs;
+          } else {
+            return fsHistoryB.startTs - fsHistoryA.startTs;
+          }
         } else if (key == 'durStr') {
-          return this.compareDur(fsHistoryA, fsHistoryB, type);
+          if (type == 1) {
+            return fsHistoryA.dur - fsHistoryB.dur;
+          } else {
+            return fsHistoryB.dur - fsHistoryA.dur;
+          }
         } else if (key == 'process') {
-          return this.compareProcess(fsHistoryA, fsHistoryB, type);
+          if (fsHistoryA.process > fsHistoryB.process) {
+            return type === 2 ? 1 : -1;
+          } else if (fsHistoryA.process == fsHistoryB.process) {
+            return 0;
+          } else {
+            return type === 2 ? -1 : 1;
+          }
         } else if (key == 'typeStr') {
-          return this.compareTypeStr(fsHistoryA, fsHistoryB, type);
+          if (fsHistoryA.typeStr > fsHistoryB.typeStr) {
+            return type === 2 ? 1 : -1;
+          } else if (fsHistoryA.typeStr == fsHistoryB.typeStr) {
+            return 0;
+          } else {
+            return type === 2 ? -1 : 1;
+          }
         } else if (key == 'fd') {
-          return this.compareFd(fsHistoryA, fsHistoryB, type);
+          if (type == 1) {
+            return fsHistoryA.fd - fsHistoryB.fd;
+          } else {
+            return fsHistoryB.fd - fsHistoryA.fd;
+          }
         } else {
           return 0;
         }
@@ -230,51 +245,79 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     }
   }
 
-  compareStartTs(fsHistoryA: any, fsHistoryB: any, type: number): number {
-    if (type == 1) {
-      return fsHistoryA.startTs - fsHistoryB.startTs;
-    } else {
-      return fsHistoryB.startTs - fsHistoryA.startTs;
-    }
-  }
-
-  compareDur(fsHistoryA: any, fsHistoryB: any, type: number): number {
-    if (type == 1) {
-      return fsHistoryA.dur - fsHistoryB.dur;
-    } else {
-      return fsHistoryB.dur - fsHistoryA.dur;
-    }
-  }
-
-  compareProcess(fsHistoryA: any, fsHistoryB: any, type: number): number {
-    if (fsHistoryA.process > fsHistoryB.process) {
-      return type === 2 ? 1 : -1;
-    } else if (fsHistoryA.process == fsHistoryB.process) {
-      return 0;
-    } else {
-      return type === 2 ? -1 : 1;
-    }
-  }
-
-  compareTypeStr(fsHistoryA: any, fsHistoryB: any, type: number): number {
-    if (fsHistoryA.typeStr > fsHistoryB.typeStr) {
-      return type === 2 ? 1 : -1;
-    } else if (fsHistoryA.typeStr == fsHistoryB.typeStr) {
-      return 0;
-    } else {
-      return type === 2 ? -1 : 1;
-    }
-  }
-
-  compareFd(fsHistoryA: any, fsHistoryB: any, type: number): number {
-    if (type == 1) {
-      return fsHistoryA.fd - fsHistoryB.fd;
-    } else {
-      return fsHistoryB.fd - fsHistoryA.fd;
-    }
-  }
-
   initHtml(): string {
-    return TabPaneFileSystemDescHistoryHtml;
+    return `
+    <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px 0 10px;
+        }
+        .filesystem-desc-history-loading{
+            bottom: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width:100%;
+            background:transparent;
+            z-index: 999999;
+        }
+        .filesystem-desc-history-progress{
+            bottom: 33px;
+            position: absolute;
+            height: 1px;
+            z-index: 99;
+            left: 0;
+            right: 0;
+        }
+        tab-pane-filter {
+            border: solid rgb(216,216,216) 1px;
+            float: left;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        </style>
+        <div class="fs-history-content" style="display: flex;flex-direction: column">
+            <div style="display: flex;flex-direction: row">
+                <lit-slicer style="width:100%">
+                    <div style="width: 65%">
+                        <lit-table id="tbl-file-system-desc-history" style="height: auto">
+                            <lit-table-column class="fs-history-column" width="200px" title="Start" data-index="startTsStr" key="startTsStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-history-column"width="160px" title="Duration" data-index="durStr" key="durStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-history-column"width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-history-column"width="120px" title="Type" data-index="typeStr" key="typeStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-history-column"width="160px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
+                            <lit-table-column class="fs-history-column"width="300px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
+                            <lit-table-column class="fs-history-column"width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
+                                <template>
+                                    <div>
+                                        <span class="fs-desc-backtrace-data-span">{{backtrace[0]}}</span>
+                                        <span v-if="backtrace.length > 1">⬅</span>
+                                        <span v-if="backtrace.length > 1" style="color: #565656"> {{backtrace[1]}}</span>
+                                    </div>
+                                </template>
+                            </lit-table-column>
+                        </lit-table>
+                    </div>
+                    <lit-slicer-track class="fs-desc-history-tracker"></lit-slicer-track>
+                    <lit-table id="tbr-file-system-desc-history" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)" hideDownload>
+                        <lit-table-column class="fs-history-column"width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                            <template>
+                                <div v-if=" type == -1 ">Thread:</div>
+                                <img src="img/library.png" size="20" v-if=" type == 1 ">
+                                <img src="img/function.png" size="20" v-if=" type == 0 ">
+                            </template>
+                        </lit-table-column>
+                        <lit-table-column class="fs-history-column"width="1fr" title="" data-index="symbol" key="symbol"  align="flex-start">
+                        </lit-table-column>
+                    </lit-table>
+                </lit-slicer>
+            </div>
+            <lit-progress-bar class="filesystem-desc-history-progress"></lit-progress-bar>
+            <tab-pane-filter id="filesystem-desc-history-filter" first second></tab-pane-filter>
+            <div class="filesystem-desc-history-loading"></div>
+        </div>
+`;
   }
 }

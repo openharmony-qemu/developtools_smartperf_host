@@ -29,66 +29,56 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
 
   public handle(msg: any): void {
     this.currentEventId = msg.id;
+
     if (msg && msg.type) {
       switch (msg.type) {
         case 'jsCpuProfiler-call-chain':
-          this.jsCpuProfilerCallChain(msg);
+          if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
+            this.dataCache.jsCallChain = convertJSON(msg.params.list) || [];
+            this.createCallChain();
+          }
           break;
         case 'jsCpuProfiler-call-tree':
-          this.jsCpuProfilerCallTree(msg);
+          this.tabDataId = 0;
+          self.postMessage({
+            id: msg.id,
+            action: msg.action,
+            results: this.combineTopDownData(msg.params, null),
+          });
           break;
         case 'jsCpuProfiler-bottom-up':
-          this.jsCpuProfilerBottomUp(msg);
+          this.tabDataId = 0;
+          self.postMessage({
+            id: msg.id,
+            action: msg.action,
+            results: this.combineBottomUpData(msg.params),
+          });
           break;
         case 'jsCpuProfiler-statistics':
-          this.jsCpuProfilerStatistics(msg);
+          if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
+            this.initCallChain();
+          }
+          if (msg.params.data) {
+            this.chartData = msg.params.data;
+            this.leftNs = msg.params.leftNs;
+            this.rightNs = msg.params.rightNs;
+          }
+          if (msg.params.list) {
+            this.samples = convertJSON(msg.params.list) || [];
+            this.setChartDataType();
+            self.postMessage({
+              id: msg.id,
+              action: msg.action,
+              results: this.calStatistic(this.chartData, this.leftNs, this.rightNs),
+            });
+          } else {
+            this.queryChartData();
+          }
           break;
       }
     }
   }
-  private jsCpuProfilerCallChain(msg: any): void {
-    if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
-      this.dataCache.jsCallChain = convertJSON(msg.params.list) || [];
-      this.createCallChain();
-    }
-  }
-  private jsCpuProfilerCallTree(msg: any): void {
-    this.tabDataId = 0;
-    self.postMessage({
-      id: msg.id,
-      action: msg.action,
-      results: this.combineTopDownData(msg.params, null),
-    });
-  }
-  private jsCpuProfilerBottomUp(msg: any): void {
-    this.tabDataId = 0;
-    self.postMessage({
-      id: msg.id,
-      action: msg.action,
-      results: this.combineBottomUpData(msg.params),
-    });
-  }
-  private jsCpuProfilerStatistics(msg: any): void {
-    if (!this.dataCache.jsCallChain || this.dataCache.jsCallChain.length === 0) {
-      this.initCallChain();
-    }
-    if (msg.params.data) {
-      this.chartData = msg.params.data;
-      this.leftNs = msg.params.leftNs;
-      this.rightNs = msg.params.rightNs;
-    }
-    if (msg.params.list) {
-      this.samples = convertJSON(msg.params.list) || [];
-      this.setChartDataType();
-      self.postMessage({
-        id: msg.id,
-        action: msg.action,
-        results: this.calStatistic(this.chartData, this.leftNs, this.rightNs),
-      });
-    } else {
-      this.queryChartData();
-    }
-  }
+
   public clearAll(): void {
     this.dataCache.clearAll();
     this.samples.length = 0;
@@ -220,6 +210,7 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
   ): Array<JsCpuProfilerTabStruct> {
     const sameSymbolMap = new Map<string, JsCpuProfilerTabStruct>();
     const currentLevelData = new Array<JsCpuProfilerTabStruct>();
+
     const chartArray = combineSample || parent?.chartFrameChildren;
     if (!chartArray) {
       return [];
@@ -250,11 +241,13 @@ export class ProcedureLogicWorkerJsCpuProfiler extends LogicHandler {
       }
       tabCallFrame.chartFrameChildren?.push(...chartFrame.children);
     }
+
     // 非同级深度优先，便于设置children，同时保证下一级函数depth跟parent都相同
     for (const data of currentLevelData) {
       this.combineTopDownData(null, data);
       data.chartFrameChildren = [];
     }
+
     if (combineSample) {
       // 第一层为返回给Tab页的数据
       return currentLevelData;

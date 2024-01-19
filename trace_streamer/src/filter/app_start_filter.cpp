@@ -271,14 +271,14 @@ void APPStartupFilter::ParserSoInitalization()
             auto it = mMaxTimeAndDepthWithPid.find(pid);
             if (it == mMaxTimeAndDepthWithPid.end()) {
                 mMaxTimeAndDepthWithPid.insert(std::make_pair(pid, std::map<uint64_t, uint32_t>{{endTime, 0}}));
-                traceDataCache_->GetSoStaticInitalizationData()->AppendNewData(pid, tid, callId, startTime, endTime,
-                                                                               sliceData.NamesData()[i], depth);
+                traceDataCache_->GetStaticInitalizationData()->AppendNewData(pid, tid, callId, startTime, endTime,
+                                                                             sliceData.NamesData()[i], depth);
                 continue;
             } else {
                 CalcDepthByTimeStamp(it, depth, endTime, startTime);
-                traceDataCache_->GetSoStaticInitalizationData()->AppendNewData(
-                    threadData[callId].internalPid_, threadData[callId].tid_, callId, startTime, endTime,
-                    sliceData.NamesData()[i], depth);
+                traceDataCache_->GetStaticInitalizationData()->AppendNewData(threadData[callId].internalPid_,
+                                                                             threadData[callId].tid_, callId, startTime,
+                                                                             endTime, sliceData.NamesData()[i], depth);
             }
         }
     }

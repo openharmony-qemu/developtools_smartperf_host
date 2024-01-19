@@ -15,9 +15,62 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle = `
-    <style>
-        :host{
+@element('lit-check-box')
+export class LitCheckBox extends BaseElement {
+  private checkbox: HTMLInputElement | undefined;
+
+  static get observedAttributes() {
+    return ['checked', 'value', 'disabled'];
+  }
+
+  get disabled() {
+    return this.getAttribute('disabled') !== null;
+  }
+
+  set disabled(value) {
+    if (value === null || value === false) {
+      this.removeAttribute('disabled');
+    } else {
+      this.setAttribute('disabled', '');
+    }
+  }
+
+  get indeterminate() {
+    return this.checkbox!.indeterminate;
+  }
+
+  set indeterminate(value) {
+    if (value === null || value === false) {
+      this.checkbox!.indeterminate = false;
+    } else {
+      this.checkbox!.indeterminate = true;
+    }
+  }
+
+  get checked() {
+    return this.getAttribute('checked') !== null;
+  }
+
+  set checked(boxCheck: boolean) {
+    if (boxCheck === null || !boxCheck) {
+      this.removeAttribute('checked');
+    } else {
+      this.setAttribute('checked', '');
+    }
+  }
+
+  get value() {
+    return this.getAttribute('value') || '';
+  }
+
+  set value(value: string) {
+    this.setAttribute('value', value);
+  }
+
+  initHtml(): string {
+    return `
+        <style>
+        :host{ 
             display:flex;
             opacity: 0.86;
             font-family: Helvetica;
@@ -57,7 +110,7 @@ const initHtmlStyle = `
             transform:scale(0);
             border-radius: 0.15em;
         }
-        .chekebox{
+        .chekebox{ 
             background:var(--dark-background,#FFFFFF);
         }
         .chekebox::after{
@@ -89,63 +142,6 @@ const initHtmlStyle = `
           pointer-events: none;
         }
         </style>
-    `;
-
-@element('lit-check-box')
-export class LitCheckBox extends BaseElement {
-  private checkbox: HTMLInputElement | undefined;
-
-  static get observedAttributes() {
-    return ['checked', 'value', 'disabled'];
-  }
-
-  set disabled(value) {
-    if (value === null || value === false) {
-      this.removeAttribute('disabled');
-    } else {
-      this.setAttribute('disabled', '');
-    }
-  }
-
-  get indeterminate() {
-    return this.checkbox!.indeterminate;
-  }
-
-  set indeterminate(value) {
-    if (value === null || value === false) {
-      this.checkbox!.indeterminate = false;
-    } else {
-      this.checkbox!.indeterminate = true;
-    }
-  }
-
-  get disabled() {
-    return this.getAttribute('disabled') !== null;
-  }
-
-  get checked() {
-    return this.getAttribute('checked') !== null;
-  }
-
-  set checked(boxCheck: boolean) {
-    if (boxCheck === null || !boxCheck) {
-      this.removeAttribute('checked');
-    } else {
-      this.setAttribute('checked', '');
-    }
-  }
-
-  get value() {
-    return this.getAttribute('value') || '';
-  }
-
-  set value(value: string) {
-    this.setAttribute('value', value);
-  }
-
-  initHtml(): string {
-    return `
-        ${initHtmlStyle}
         <input type="checkbox" id="checkbox">
         <label for="checkbox">
           <span class="chekebox">

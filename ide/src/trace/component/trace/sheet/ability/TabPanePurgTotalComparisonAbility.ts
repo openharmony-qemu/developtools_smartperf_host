@@ -17,11 +17,10 @@ import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
+import { querySysPurgeableSelectionTab } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
-import { querySysPurgeableSelectionTab } from '../../../../database/sql/Ability.sql';
-
 @element('tabpane-purgeable-total-comparison-ability')
 export class TabPanePurgTotalComparisonAbility extends BaseElement {
   private purgeableTotalTable: LitTable | null | undefined;
@@ -34,14 +33,11 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     this.filterEl = this.shadowRoot!.querySelector<TabPaneJsMemoryFilter>('#filter');
     this.selectEl = this.filterEl?.shadowRoot?.querySelector<LitSelect>('lit-select');
   }
-
   public totalData(purgeTotalComParam: SelectionParam | any, dataList: any): void {
-    if (this.purgeableTotalTable) {
-      //@ts-ignore
-      this.purgeableTotalTable.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 45
-      }px`;
-    }
+    //@ts-ignore
+    this.purgeableTotalTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
     this.purgeableTotalSource = [];
     let fileArr: any[] = [];
     for (let file of dataList) {
@@ -53,7 +49,6 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     this.initSelect(purgeTotalComParam.startNs, fileArr);
     this.updateComparisonData(purgeTotalComParam.startNs, fileArr[0].startNs);
   }
-
   private initSelect(fileStartNs: number, purgeTotalComFileArr: Array<any>): void {
     let that = this;
     let input = this.selectEl!.shadowRoot?.querySelector('input') as HTMLInputElement;
@@ -77,7 +72,6 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
       });
     });
   }
-
   private async updateComparisonData(baseTime: number, targetTime: number): Promise<void> {
     this.purgeableTotalSource = [];
     let tableData = await this.queryTableData(baseTime, targetTime);
@@ -88,7 +82,6 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
       this.purgeableTotalTable!.recycleDataSource = [];
     }
   }
-
   private async queryTableData(baseTime: number, targetTime: number): Promise<any> {
     let delta = {
       purgActiveDelta: '0Bytes',
@@ -126,7 +119,6 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
     super.connectedCallback();
     resizeObserverFromMemory(this.parentElement!, this.purgeableTotalTable!, this.filterEl!);
   }
-
   public initHtml(): string {
     return `
     <style>

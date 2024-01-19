@@ -195,7 +195,8 @@ std::string SpanJoin::CaclSpan::GetSqlQuery()
     for (int32_t i = 0; i < desc_->cols.size(); i++) {
         columnNames.push_back(desc_->cols.at(i).name_);
     }
-    auto str = GetMergeColumns(columnNames);
+    std::string str;
+    str = GetMergeColumns(columnNames);
     std::string sql = "SELECT " + str + " FROM " + desc_->name + " ORDER BY " + desc_->partition + ", " + "ts;";
     return sql;
 }

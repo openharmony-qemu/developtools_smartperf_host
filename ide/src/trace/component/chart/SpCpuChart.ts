@@ -14,16 +14,22 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
+import {
+  queryCpuCount,
+  queryCpuData,
+  queryCpuDataCount,
+  queryCpuMax,
+  queryCpuSchedSlice,
+} from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
 import { procedurePool } from '../../database/Procedure';
-import { CpuRender, CpuStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { CpuRender, CpuStruct } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { Utils } from '../trace/base/Utils';
 import { cpuDataSender } from '../../database/data-trafic/CpuDataSender';
-import { TraficEnum } from '../../database/data-trafic/utils/QueryEnum';
-import {cpuList} from "../../database/data-trafic/utils/AllMemoryCache";
-import {queryCpuCount, queryCpuDataCount, queryCpuMax, queryCpuSchedSlice} from "../../database/sql/Cpu.sql";
+import { TraficEnum } from '../../database/data-trafic/QueryEnum';
+import {cpuList} from "../../database/data-trafic/AllMemoryCache";
 
 export class SpCpuChart {
   private trace: SpSystemTrace;

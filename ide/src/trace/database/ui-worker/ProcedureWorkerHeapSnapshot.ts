@@ -16,8 +16,6 @@
 import { BaseStruct, Rect, Render, drawLoadingFrame, isFrameContainPoint } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
-
-import {SpSystemTrace} from "../../component/SpSystemTrace";
 export class HeapSnapshotRender extends Render {
   renderMainThread(
     req: {
@@ -64,25 +62,6 @@ export function HeapSnapshot(
   }
 }
 const padding = 3;
-export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, snapshotClickHandler: any) {
-  return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT && HeapSnapshotStruct.hoverSnapshotStruct) {
-      let snapshotRow = sp.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(
-        `trace-row[row-id='heapsnapshot']`
-      );
-      HeapSnapshotStruct.selectSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct;
-      sp.traceSheetEL?.displaySnapshotData(
-        HeapSnapshotStruct.selectSnapshotStruct!,
-        snapshotRow!.dataListCache,
-        snapshotClickHandler
-      );
-      reject();
-    }else{
-      resolve(null);
-    }
-  });
-
-}
 export class HeapSnapshotStruct extends BaseStruct {
   startTs: number = 0;
   endTs: number = 0;
@@ -145,34 +124,34 @@ export class HeapSnapshotStruct extends BaseStruct {
     str: string,
     textPadding: number,
     frame: Rect,
-    HeapSnapshotdata: HeapSnapshotStruct,
+    data: HeapSnapshotStruct,
     location: number
-  ): void {
-    if (HeapSnapshotdata.textWidth === undefined) {
-      HeapSnapshotdata.textWidth = ctx.measureText(str).width;
+  ) {
+    if (data.textWidth === undefined) {
+      data.textWidth = ctx.measureText(str).width;
     }
-    let textWidth = Math.round(HeapSnapshotdata.textWidth / str.length);
-    let maxTextWidth = frame.width - textPadding * 2;
-    if (HeapSnapshotdata.textWidth < maxTextWidth) {
-      let x = Math.floor(frame.width / 2 - HeapSnapshotdata.textWidth / 2 + frame.x + textPadding);
-      ctx.fillText(str, x, Math.floor(frame.y + frame.height / location + textPadding), maxTextWidth);
+    let textWidth = Math.round(data.textWidth / str.length);
+    let fillTextWidth = frame.width - textPadding * 2;
+    if (data.textWidth < fillTextWidth) {
+      let x = Math.floor(frame.width / 2 - data.textWidth / 2 + frame.x + textPadding);
+      ctx.fillText(str, x, Math.floor(frame.y + frame.height / location + textPadding), fillTextWidth);
     } else {
-      if (maxTextWidth >= textWidth) {
-        let characterNum = maxTextWidth / textWidth;
+      if (fillTextWidth >= textWidth) {
+        let characterNum = fillTextWidth / textWidth;
         let x = frame.x + textPadding;
         if (characterNum < 2) {
           ctx.fillText(
             str.substring(0, 1),
             x,
             Math.floor(frame.y + frame.height / location + textPadding),
-            maxTextWidth
+            fillTextWidth
           );
         } else {
           ctx.fillText(
             str.substring(0, characterNum - 1) + '...',
             x,
             Math.floor(frame.y + frame.height / location + textPadding),
-            maxTextWidth
+            fillTextWidth
           );
         }
       }

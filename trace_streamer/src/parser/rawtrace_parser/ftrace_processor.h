@@ -37,11 +37,11 @@ public:
 
     bool SetupEvent(const std::string& desc);
 
-    bool HandlePage(FtraceCpuDetailMsg& cpuMsg,
+    bool HandlePage(FtraceCpuDetailMsg& cpuDetailMsg,
                     CpuDetailParser& cpuDetailParser,
                     uint8_t page[],
                     size_t size = FTRACE_PAGE_SIZE);
-    bool HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParser& cpuDetailParser, uint8_t*& data);
+    bool HmParsePageData(FtraceCpuDetailMsg& cpuDetailMsg, CpuDetailParser& cpuDetailParser, uint8_t*& data);
 
     bool HandleTgids(const std::string& tgids);
     bool HandleCmdlines(const std::string& cmdlines);
@@ -64,7 +64,7 @@ public:
     bool HandleTimeExtend(const FtraceEventHeader& eventHeader);
     bool HandleTimeStamp(const FtraceEventHeader& eventHeader);
     bool HandleDataRecord(const FtraceEventHeader& eventHeader,
-                          FtraceCpuDetailMsg& cpuMsg,
+                          FtraceCpuDetailMsg& cpuDetailMsg,
                           CpuDetailParser& cpuDetailParser);
 
     bool HandleFtraceEvent(FtraceEvent& ftraceEvent, uint8_t data[], size_t dataSize, const EventFormat& format);

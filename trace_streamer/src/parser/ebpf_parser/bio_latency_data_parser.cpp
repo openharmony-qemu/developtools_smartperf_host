@@ -29,28 +29,6 @@ BioLatencyDataParser::~BioLatencyDataParser()
     TS_LOGI("EBPF Bio data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(timeParser_->GetPluginStartTime()),
             static_cast<unsigned long long>(timeParser_->GetPluginEndTime()));
 }
-
-const uint64_t* BioLatencyDataParser::IPAndCallIdProcessing(const BIOFixedHeader* bioFixedHeadrAddr,
-                                                            bool& callIdExistFlag)
-{
-    // Process user state IP addresses and establish mapping relationships with their corresponding callId values
-    auto userIpsAddr = reinterpret_cast<const uint64_t*>(bioFixedHeadrAddr + 1);
-    if (bioFixedHeadrAddr->nips) {
-        std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr), bioFixedHeadrAddr->nips * SINGLE_IP_SIZE);
-        auto ipsHashValue = hashFun_(ipsToStr);
-        auto value = pidAndipsToCallId_.Find(bioFixedHeadrAddr->pid, ipsHashValue);
-        if (value != INVALID_UINT64) {
-            callIdExistFlag = true;
-            currentCallId_ = value;
-        } else {
-            pidAndipsToCallId_.Insert(bioFixedHeadrAddr->pid, ipsHashValue, callChainId_);
-            currentCallId_ = callChainId_++;
-        }
-    } else {
-        currentCallId_ = INVALID_UINT64;
-    }
-    return userIpsAddr;
-}
 void BioLatencyDataParser::ParseBioLatencyEvent()
 {
     if (!reader_->GetBIOSampleMap().size()) {
@@ -61,8 +39,21 @@ void BioLatencyDataParser::ParseBioLatencyEvent()
         auto bioFixedHeadrAddr = mapItor->second;
         bool callIdExistFlag = false;
 
-        // Process user state IP addresses and establish mapping relationships with their corresponding callId values
-        auto userIpsAddr = IPAndCallIdProcessing(bioFixedHeadrAddr, callIdExistFlag);
+        auto userIpsAddr = reinterpret_cast<const uint64_t*>(bioFixedHeadrAddr + 1);
+        if (bioFixedHeadrAddr->nips) {
+            std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr), bioFixedHeadrAddr->nips * SINGLE_IP_SIZE);
+            auto ipsHashValue = hashFun_(ipsToStr);
+            auto value = pidAndipsToCallId_.Find(bioFixedHeadrAddr->pid, ipsHashValue);
+            if (value != INVALID_UINT64) {
+                callIdExistFlag = true;
+                currentCallId_ = value;
+            } else {
+                pidAndipsToCallId_.Insert(bioFixedHeadrAddr->pid, ipsHashValue, callChainId_);
+                currentCallId_ = callChainId_++;
+            }
+        } else {
+            currentCallId_ = INVALID_UINT64;
+        }
 
         uint32_t type = bioFixedHeadrAddr->type;
         // Init process name data

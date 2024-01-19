@@ -67,7 +67,7 @@ export const getFunDataByTid = (tid: number, ipid: number): Promise<Array<FuncSt
 from thread A,trace_range D
 left join callstack C on A.id = C.callid
 where startTs not null and c.cookie is null and tid = $tid and A.ipid = $ipid`,
-    { $tid: tid, $ipid: ipid }
+    {$tid: tid, $ipid: ipid}
   );
 export const getMaxDepthByTid = (): Promise<Array<any>> =>
   query(
@@ -114,21 +114,18 @@ export const querySearchFuncData = (
           not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
     `
   );
-export const querySearchRowFuncData = (
+export const queryFuncRowData = (
   funcName: string,
   tIds: number,
   leftNS: number,
   rightNS: number
 ): Promise<Array<SearchFuncBean>> =>
   query(
-    'querySearchRowFuncData',
+    'queryFuncRowData',
     `
           select 
             c.name as funName,
-            c.ts - r.start_ts as startTime,
-            t.tid,
-            t.name as threadName,
-            'func' as type 
+            c.ts - r.start_ts as startTime
           from 
             callstack c 
           left join 
@@ -148,8 +145,44 @@ export const querySearchRowFuncData = (
           and
             not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
       `,
+    {$search: funcName}
+  );
+
+export const fuzzyQueryFuncRowData = (
+  funcName: string,
+  tIds: number,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
+  query(
+    'fuzzyQueryFuncRowData',
+    `
+          select 
+            c.name as funName,
+            c.ts - r.start_ts as startTime,
+            c.ts - r.start_ts + c.dur as endTime
+          from 
+            callstack c 
+          left join 
+            thread t 
+          on 
+            c.callid = t.id 
+          left join 
+            process p 
+          on 
+            t.ipid = p.id
+          left join 
+            trace_range r
+          where 
+            c.name like '%${funcName}%' 
+          and 
+            t.tid = ${tIds} 
+          and
+            not ((endTime < ${leftNS}) or (endTime > ${rightNS}));
+      `,
     { $search: funcName }
   );
+
 export const getTabSlicesAsyncFunc = (
   asyncNames: Array<string>,
   asyncPid: Array<number>,
@@ -180,14 +213,14 @@ export const getTabSlicesAsyncFunc = (
     and
       P.pid in (${asyncPid.join(',')})
     and
-      c.name in (${asyncNames.map((it) => "'" + it + "'").join(',')})
+      c.name in (${asyncNames.map((it) => '\'' + it + '\'').join(',')})
     and
       not ((C.ts - D.start_ts + C.dur < $leftNS) or (C.ts - D.start_ts > $rightNS))
     group by
       c.name
     order by
       wallDuration desc;`,
-    { $leftNS: leftNS, $rightNS: rightNS }
+    {$leftNS: leftNS, $rightNS: rightNS}
   );
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>
   query(
@@ -208,7 +241,7 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
    left join trace_range r 
    where c.name like '%${search}%' and startTime > 0;
     `,
-    { $search: search }
+    {$search: search}
   );
 
 export const querySceneSearchFunc = (search: string, processList: Array<string>): Promise<Array<SearchFuncBean>> =>
@@ -230,7 +263,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
    left join trace_range r
    where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
     `,
-    { $search: search }
+    {$search: search}
   );
 export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFunctionInfo>> =>
   query(
@@ -288,7 +321,7 @@ export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number):
                 from thread A,trace_range D
                                   left join callstack C on A.id = C.callid
                 where startTs not null and c.cookie is null and tid = $tid and c.id in (${ids.join(',')})`;
-  return query('queryTaskPoolOtherRelationData', sqlStr, { $ids: ids, $tid: tid });
+  return query('queryTaskPoolOtherRelationData', sqlStr, {$ids: ids, $tid: tid});
 };
 
 export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number>): Promise<Array<FuncStruct>> => {

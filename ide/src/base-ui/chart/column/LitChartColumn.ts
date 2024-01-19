@@ -193,102 +193,62 @@ export class LitChartColumn extends BaseElement {
     return this.litChartColumnCfg?.data || [];
   }
 
-  dataSort():void{
-    if (!this.litChartColumnCfg!.notSort) {
-      this.litChartColumnCfg?.data.sort(
-        (a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]
-      );
-    }
-  }
-
-  haveSeriesField():void{
-    let maxValue = Math.max(...this.litChartColumnCfg!.data.map((it) => it[this.litChartColumnCfg!.yField]));
-    maxValue = Math.ceil(maxValue * 0.1) * 10;
-    let partWidth = (this.clientWidth - this.offset!.x!) / this.litChartColumnCfg!.data.length;
-    let partHeight = this.clientHeight - this.offset!.y!;
-    let gap = partHeight / 5;
-    let valGap = maxValue / 5;
-    for (let i = 0; i <= 5; i++) {
-      this.rowLines.push({
-        y: gap * i,
-        label:
-          this.litChartColumnCfg!.removeUnit === true
-            ? `${maxValue - valGap * i}`
-            : `${getProbablyTime(maxValue - valGap * i)}`,
-      });
-    }
-    this.dataSort();
-    this.litChartColumnCfg?.data.forEach((litChartColumnItem, litChartColumnIndex, array) => {
-      this.data.push({
-        color: this.litChartColumnCfg!.color(litChartColumnItem),
-        obj: litChartColumnItem,
-        root: true,
-        xLabel: litChartColumnItem[this.litChartColumnCfg!.xField],
-        yLabel: litChartColumnItem[this.litChartColumnCfg!.yField],
-        bgFrame: {
-          x: this.offset!.x! + partWidth * litChartColumnIndex,
-          y: 0,
-          w: partWidth,
-          h: partHeight,
-        },
-        centerX: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 2,
-        centerY:
-          partHeight -
-          (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
-          (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
-        frame: {
-          x: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 6,
-          y: partHeight - (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
-          w: partWidth - partWidth / 3,
-          h: (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
-        },
-        height: 0,
-        heightStep: Math.ceil((litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
-        process: true,
-      });
-    });
-  }
-
-  noSeriesField(itemEl:any,y:number,initH:number,maxValue:number,partWidth:number,partHeight:number,reduceGroupIndex:number):void{
-    this.data.push({
-      color: this.litChartColumnCfg!.color(itemEl),
-      obj: itemEl,
-      root: y === 0,
-      type: itemEl[this.litChartColumnCfg!.seriesField],
-      xLabel: itemEl[this.litChartColumnCfg!.xField],
-      yLabel: itemEl[this.litChartColumnCfg!.yField],
-      bgFrame: {
-        x: this.offset!.x! + partWidth * reduceGroupIndex,
-        y: 0,
-        w: partWidth,
-        h: partHeight,
-      },
-      centerX: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 2,
-      centerY:
-        partHeight -
-        initH -
-        (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
-        (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
-      frame: {
-        x: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 6,
-        y: partHeight - (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue - initH,
-        w: partWidth - partWidth / 3,
-        h: (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
-      },
-      height: 0,
-      heightStep: Math.ceil((itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
-      process: true,
-    });
-  }
-
   measure() {
     if (!this.litChartColumnCfg) return;
     this.data = [];
     this.rowLines = [];
     if (!this.litChartColumnCfg.seriesField) {
-      this.haveSeriesField();
+      let maxValue = Math.max(...this.litChartColumnCfg.data.map((it) => it[this.litChartColumnCfg!.yField]));
+      maxValue = Math.ceil(maxValue * 0.1) * 10;
+      let partWidth = (this.clientWidth - this.offset!.x!) / this.litChartColumnCfg.data.length;
+      let partHeight = this.clientHeight - this.offset!.y!;
+      let gap = partHeight / 5;
+      let valGap = maxValue / 5;
+      for (let i = 0; i <= 5; i++) {
+        this.rowLines.push({
+          y: gap * i,
+          label:
+            this.litChartColumnCfg.removeUnit === true
+              ? `${maxValue - valGap * i}`
+              : `${getProbablyTime(maxValue - valGap * i)}`,
+        });
+      }
+      if (!this.litChartColumnCfg.notSort) {
+        this.litChartColumnCfg?.data.sort(
+          (a, b) => b[this.litChartColumnCfg!.yField] - a[this.litChartColumnCfg!.yField]
+        );
+      }
+      this.litChartColumnCfg?.data.forEach((litChartColumnItem, litChartColumnIndex, array) => {
+        this.data.push({
+          color: this.litChartColumnCfg!.color(litChartColumnItem),
+          obj: litChartColumnItem,
+          root: true,
+          xLabel: litChartColumnItem[this.litChartColumnCfg!.xField],
+          yLabel: litChartColumnItem[this.litChartColumnCfg!.yField],
+          bgFrame: {
+            x: this.offset!.x! + partWidth * litChartColumnIndex,
+            y: 0,
+            w: partWidth,
+            h: partHeight,
+          },
+          centerX: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 2,
+          centerY:
+            partHeight -
+            (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
+            (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
+          frame: {
+            x: this.offset!.x! + partWidth * litChartColumnIndex + partWidth / 6,
+            y: partHeight - (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
+            w: partWidth - partWidth / 3,
+            h: (litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
+          },
+          height: 0,
+          heightStep: Math.ceil((litChartColumnItem[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
+          process: true,
+        });
+      });
     } else {
-      let reduceGroup = this.litChartColumnCfg!.data.reduce((pre, current, index, arr) => {
+      let reduceGroup = this.litChartColumnCfg.data.reduce((pre, current, index, arr) => {
         (pre[current[this.litChartColumnCfg!.xField]] = pre[current[this.litChartColumnCfg!.xField]] || []).push(
           current
         );
@@ -318,7 +278,35 @@ export class LitChartColumn extends BaseElement {
           let elements = reduceGroup[reduceGroupKey];
           let initH = 0;
           elements.forEach((itemEl: any, y: number) => {
-            this.noSeriesField(itemEl,y,initH,maxValue,partWidth,partHeight,reduceGroupIndex);
+            this.data.push({
+              color: this.litChartColumnCfg!.color(itemEl),
+              obj: itemEl,
+              root: y == 0,
+              type: itemEl[this.litChartColumnCfg!.seriesField],
+              xLabel: itemEl[this.litChartColumnCfg!.xField],
+              yLabel: itemEl[this.litChartColumnCfg!.yField],
+              bgFrame: {
+                x: this.offset!.x! + partWidth * reduceGroupIndex,
+                y: 0,
+                w: partWidth,
+                h: partHeight,
+              },
+              centerX: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 2,
+              centerY:
+                partHeight -
+                initH -
+                (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue +
+                (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 2,
+              frame: {
+                x: this.offset!.x! + partWidth * reduceGroupIndex + partWidth / 6,
+                y: partHeight - (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue - initH,
+                w: partWidth - partWidth / 3,
+                h: (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue,
+              },
+              height: 0,
+              heightStep: Math.ceil((itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue / 60),
+              process: true,
+            });
             initH += (itemEl[this.litChartColumnCfg!.yField] * partHeight) / maxValue;
           });
         });

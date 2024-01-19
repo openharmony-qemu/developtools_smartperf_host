@@ -24,13 +24,13 @@ import { type WakeupBean } from '../../../bean/WakeupBean';
 import { type LitIcon } from '../../../../base-ui/icon/LitIcon';
 import { tabConfig } from './TraceSheetConfig';
 import { type TabPaneBoxChild } from '../sheet/cpu/TabPaneBoxChild';
-import { type CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { type CpuStruct } from '../../../database/ui-worker/ProcedureWorkerCPU';
 import { CpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerFreq';
-import { CpuFreqLimitsStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitsStruct } from '../../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
 import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread';
 import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
-import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
+import { CpuStateStruct } from '../../../database/ui-worker/ProcedureWorkerCpuState';
 import { type ClockStruct } from '../../../database/ui-worker/ProcedureWorkerClock';
 import { type IrqStruct } from '../../../database/ui-worker/ProcedureWorkerIrq';
 import { type JankStruct } from '../../../database/ui-worker/ProcedureWorkerJank';
@@ -92,12 +92,6 @@ export class TraceSheet extends BaseElement {
   private importDiv: HTMLDivElement | undefined | null;
   private exportBt: LitIcon | undefined | null;
   private nav: HTMLDivElement | undefined | null;
-  private tabs: HTMLDivElement | undefined | null;
-  private navRoot: HTMLDivElement | null | undefined;
-  private search: HTMLDivElement | undefined | null;
-  private timerShaft: HTMLDivElement | undefined | null;
-  private spacer: HTMLDivElement | undefined | null;
-  private rowsPaneEL: HTMLDivElement | undefined | null;
   private selection: SelectionParam | undefined | null;
   private currentPaneID: string = 'current-selection';
   private fragment: DocumentFragment | undefined;
@@ -165,19 +159,39 @@ export class TraceSheet extends BaseElement {
       this.updateRangeSelect(selectIPid);
       this.lastSelectIPid = selectIPid;
     };
+
     this.buildTabs(this.litTabs);
     this.litTabs!.onTabClick = (e: any): void => this.loadTabPaneData(e.detail.key);
-    this.tableCloseHandler();
-    this.rowClickEvent();
-  }
-  private rowClickEvent(): void {
+    this.litTabs!.addEventListener('close-handler', () => {
+      Reflect.ownKeys(tabConfig)
+        .reverse()
+        .forEach((id) => {
+          let element = tabConfig[id];
+          let pane = this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`);
+          if (element.require) {
+            pane!.hidden = !element.require(this.selection);
+          } else {
+            pane!.hidden = true;
+          }
+        });
+      this.litTabs?.activeByKey(`${this.getPaneByID(this.currentPaneID).key}`);
+    });
     this.getComponentByID<any>('box-spt')?.addEventListener('row-click', this.rowClickHandler.bind(this));
     this.getComponentByID<any>('box-pts')?.addEventListener('row-click', this.rowClickHandler.bind(this));
     this.getComponentByID<any>('box-perf-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
-      this.perfAnalysisListener(evt);
+      // @ts-ignore
+      if (evt.detail.button === 2) {
+        let pane = this.getPaneByID('box-perf-profile');
+        this.litTabs!.activeByKey(pane.key);
+      }
     });
     this.getComponentByID<any>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
-      this.nativeAnalysisListener(e);
+      //@ts-ignore
+      if (e.detail.button === 2) {
+        let pane = this.getPaneByID('box-native-calltree');
+        pane.hidden = false;
+        this.litTabs!.activeByKey(pane.key);
+      }
     });
     this.getComponentByID<any>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
       // @ts-ignore
@@ -207,132 +221,149 @@ export class TraceSheet extends BaseElement {
       }
     );
     this.getComponentByID<any>('box-native-statstics')?.addEventListener('row-click', (e: any) => {
-      this.nativeStatsticsListener(e);
+      if (e.detail.button === 0) {
+        this.selection!.statisticsSelectData = e.detail;
+        let pane = this.getPaneByID('box-native-memory');
+        this.litTabs?.activeByKey(pane.key);
+        (pane.children.item(0) as any)!.fromStastics(this.selection);
+      }
     });
     this.getComponentByID<any>('box-virtual-memory-statistics')?.addEventListener('row-click', (e: any) => {
-      this.virtualMemoryListener(e);
+      if (e.detail.button === 0) {
+        this.selection!.fileSystemVMData = { path: e.detail.path };
+        let pane = this.getPaneByID('box-vm-events');
+        this.litTabs?.activeByKey(pane.key);
+        if (e.detail.path) {
+          (pane.children.item(0) as any)!.fromStastics(this.selection);
+        }
+      }
     });
     this.getComponentByID<any>('box-io-tier-statistics')?.addEventListener('row-click', (e: any) => {
-      this.ioTierListener(e);
+      if (e.detail.button === 0) {
+        this.selection!.fileSystemIoData = { path: e.detail.path };
+        let pane = this.getPaneByID('box-io-events');
+        this.litTabs?.activeByKey(pane.key);
+        if (e.detail.path) {
+          (pane.children.item(0) as any)!.fromStastics(this.selection);
+        }
+      }
     });
     this.getComponentByID<any>('box-file-system-statistics')?.addEventListener('row-click', (e: any) => {
-      this.fileSystemListener(e);
-    });
-  }
-
-  private perfAnalysisListener(evt: MouseEvent): void {
-    // @ts-ignore
-    if (evt.detail.button === 2) {
-      let pane = this.getPaneByID('box-perf-profile');
-      this.litTabs!.activeByKey(pane.key);
-    }
-  }
-
-  private nativeAnalysisListener(e: MouseEvent):void {
-    //@ts-ignore
-    if (e.detail.button === 2) {
-      let pane = this.getPaneByID('box-native-calltree');
-      pane.hidden = false;
-      this.litTabs!.activeByKey(pane.key);
-    }
-  }
-
-  private nativeStatsticsListener(e: any): void {
-    if (e.detail.button === 0) {
-      this.selection!.statisticsSelectData = e.detail;
-      let pane = this.getPaneByID('box-native-memory');
-      this.litTabs?.activeByKey(pane.key);
-      (pane.children.item(0) as any)!.fromStastics(this.selection);
-    }
-  }
-
-  private virtualMemoryListener(e: any): void {
-    if (e.detail.button === 0) {
-      this.selection!.fileSystemVMData = {path: e.detail.path};
-      let pane = this.getPaneByID('box-vm-events');
-      this.litTabs?.activeByKey(pane.key);
-      if (e.detail.path) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
+      if (e.detail.button === 0) {
+        this.selection!.fileSystemFsData = e.detail.data;
+        let pane = this.getPaneByID('box-file-system-event');
+        this.litTabs?.activeByKey(pane.key);
+        if (e.detail.data) {
+          (pane.children.item(0) as any)!.fromStastics(this.selection);
+        }
       }
-    }
-  }
-
-  private ioTierListener(e: any):void {
-    if (e.detail.button === 0) {
-      this.selection!.fileSystemIoData = {path: e.detail.path};
-      let pane = this.getPaneByID('box-io-events');
-      this.litTabs?.activeByKey(pane.key);
-      if (e.detail.path) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
-      }
-    }
-  }
-
-  private fileSystemListener(e: any): void {
-    if (e.detail.button === 0) {
-      this.selection!.fileSystemFsData = e.detail.data;
-      let pane = this.getPaneByID('box-file-system-event');
-      this.litTabs?.activeByKey(pane.key);
-      if (e.detail.data) {
-        (pane.children.item(0) as any)!.fromStastics(this.selection);
-      }
-    }
-  }
-
-  private tableCloseHandler(): void {
-    this.litTabs!.addEventListener('close-handler', () => {
-      Reflect.ownKeys(tabConfig)
-        .reverse()
-        .forEach((id) => {
-          let element = tabConfig[id];
-          let pane = this.shadowRoot!.querySelector<LitTabpane>(`#${id as string}`);
-          if (element.require) {
-            pane!.hidden = !element.require(this.selection);
-          } else {
-            pane!.hidden = true;
-          }
-        });
-      this.litTabs?.activeByKey(`${this.getPaneByID(this.currentPaneID).key}`);
     });
   }
 
   connectedCallback(): void {
     this.nav = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.tab-nav-vessel');
-    this.tabs = this.shadowRoot?.querySelector('#tabs');
-    this.navRoot = this.shadowRoot?.querySelector('#tabs')?.shadowRoot?.querySelector('.nav-root');
-    this.search = document.querySelector('body > sp-application')
+    let tabs: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#tabs');
+    let navRoot: HTMLDivElement | null | undefined = this.shadowRoot
+      ?.querySelector('#tabs')
+      ?.shadowRoot?.querySelector('.nav-root');
+    let search: HTMLDivElement | undefined | null = document
+      .querySelector('body > sp-application')
       ?.shadowRoot?.querySelector('div > div.search-vessel');
-    this.timerShaft = this.parentElement?.querySelector('.timer-shaft');
-    this.spacer = this.parentElement?.querySelector('.spacer');
-    this.rowsPaneEL = this.parentElement?.querySelector('.rows-pane');
-    let tabsOpenUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#max-btn');
-    let tabsPackUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#min-btn');
+    let timerShaft: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.timer-shaft');
+    let spacer: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.spacer');
+    let rowsPaneEL: HTMLDivElement | undefined | null = this.parentElement?.querySelector('.rows-pane');
+
     let borderTop: number = 1;
     let initialHeight = { tabs: `calc(30vh + 39px)`, node: '30vh' };
-    this.initNavElements(tabsPackUp!, borderTop, initialHeight);
+    this.nav!.onmousedown = (event): void => {
+      (window as any).isSheetMove = true;
+      let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
+        this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
+      let preY = event.pageY;
+      let preHeight = tabs!.offsetHeight;
+      document.onmousemove = function (event): void {
+        let moveY: number = preHeight - (event.pageY - preY);
+        litTabpane!.forEach((node: HTMLDivElement) => {
+          if (spacer!.offsetHeight > rowsPaneEL!.offsetHeight) {
+            tabs!.style.height = moveY + 'px';
+            node!.style.height = moveY - navRoot!.offsetHeight + 'px';
+            tabsPackUp!.name = 'down';
+          } else if (
+            navRoot!.offsetHeight <= moveY &&
+            search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight <=
+              window.innerHeight - moveY
+          ) {
+            tabs!.style.height = moveY + 'px';
+            node!.style.height = moveY - navRoot!.offsetHeight + 'px';
+            tabsPackUp!.name = 'down';
+          } else if (navRoot!.offsetHeight >= moveY) {
+            tabs!.style.height = navRoot!.offsetHeight + 'px';
+            node!.style.height = '0px';
+            tabsPackUp!.name = 'up';
+          } else if (
+            search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight >=
+            window.innerHeight - moveY
+          ) {
+            tabs!.style.height =
+              window.innerHeight -
+              search!.offsetHeight -
+              timerShaft!.offsetHeight -
+              borderTop -
+              spacer!.offsetHeight +
+              'px';
+            node!.style.height =
+              window.innerHeight -
+              search!.offsetHeight -
+              timerShaft!.offsetHeight -
+              navRoot!.offsetHeight -
+              borderTop -
+              spacer!.offsetHeight +
+              'px';
+            tabsPackUp!.name = 'down';
+          }
+        });
+      };
+      document.onmouseup = function (): void {
+        setTimeout(() => {
+          (window as any).isSheetMove = false;
+        }, 100);
+        litTabpane!.forEach((node: HTMLDivElement): void => {
+          if (node!.style.height !== '0px' && tabs!.style.height !== '') {
+            initialHeight.node = node!.style.height;
+            initialHeight.tabs = tabs!.style.height;
+          }
+        });
+        this.onmousemove = null;
+        this.onmouseup = null;
+      };
+    };
+    let tabsOpenUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#max-btn');
+    let tabsPackUp: LitIcon | undefined | null = this.shadowRoot?.querySelector<LitIcon>('#min-btn');
+    let importFileBt: HTMLInputElement | undefined | null =
+      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop + 'px';
+      tabs!.style.height = window.innerHeight - search!.offsetHeight - timerShaft!.offsetHeight - borderTop + 'px';
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
         node!.style.height =
           window.innerHeight -
-          this.search!.offsetHeight -
-          this.timerShaft!.offsetHeight -
-          this.navRoot!.offsetHeight -
+          search!.offsetHeight -
+          timerShaft!.offsetHeight -
+          navRoot!.offsetHeight -
           borderTop +
           'px';
         initialHeight.node = node!.style.height;
       });
-      initialHeight.tabs = this.tabs!.style.height;
+      initialHeight.tabs = tabs!.style.height;
       tabsPackUp!.name = 'down';
     };
     tabsPackUp!.onclick = (): void => {
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       if (tabsPackUp!.name == 'down') {
-        this.tabs!.style.height = this.navRoot!.offsetHeight + 'px';
+        tabs!.style.height = navRoot!.offsetHeight + 'px';
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
         tabsPackUp!.title = 'Reset Tab';
@@ -340,88 +371,10 @@ export class TraceSheet extends BaseElement {
       } else {
         tabsPackUp!.name = 'down';
         tabsPackUp!.title = 'Minimize Tab';
-        this.tabs!.style.height = initialHeight.tabs;
+        tabs!.style.height = initialHeight.tabs;
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = initialHeight.node));
       }
     };
-    this.importClickEvent();
-    this.exportClickEvent();
-  }
-
-  private initNavElements(tabsPackUp: LitIcon, borderTop: number, initialHeight: { node: string; tabs: string }): void {
-    let that = this;
-    this.nav!.onmousedown = (event): void => {
-      (window as any).isSheetMove = true;
-      let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
-        this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
-      this.navMouseMove(event, litTabpane!, that, tabsPackUp, borderTop);
-      document.onmouseup = function (): void {
-        setTimeout(() => {
-          (window as any).isSheetMove = false;
-        }, 100);
-        litTabpane!.forEach((node: HTMLDivElement): void => {
-          if (node!.style.height !== '0px' && that.tabs!.style.height !== '') {
-            initialHeight.node = node!.style.height;
-            initialHeight.tabs = that.tabs!.style.height;
-          }
-        });
-        this.onmousemove = null;
-        this.onmouseup = null;
-      };
-    };
-  }
-
-  private navMouseMove(event: MouseEvent, litTabpane: NodeListOf<HTMLDivElement>,
-    that: this, tabsPackUp: LitIcon, borderTop: number): void {
-    let preY = event.pageY;
-    let preHeight = this.tabs!.offsetHeight;
-    document.onmousemove = function (event): void {
-      let moveY: number = preHeight - (event.pageY - preY);
-      litTabpane!.forEach((node: HTMLDivElement) => {
-        if (that.spacer!.offsetHeight > that.rowsPaneEL!.offsetHeight) {
-          that.tabs!.style.height = moveY + 'px';
-          node!.style.height = moveY - that.navRoot!.offsetHeight + 'px';
-          tabsPackUp!.name = 'down';
-        } else if (
-          that.navRoot!.offsetHeight <= moveY &&
-          that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-          window.innerHeight - moveY
-        ) {
-          that.tabs!.style.height = moveY + 'px';
-          node!.style.height = moveY - that.navRoot!.offsetHeight + 'px';
-          tabsPackUp!.name = 'down';
-        } else if (that.navRoot!.offsetHeight >= moveY) {
-          that.tabs!.style.height = that.navRoot!.offsetHeight + 'px';
-          node!.style.height = '0px';
-          tabsPackUp!.name = 'up';
-        } else if (
-          that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight >=
-          window.innerHeight - moveY
-        ) {
-          that.tabs!.style.height =
-            window.innerHeight -
-            that.search!.offsetHeight -
-            that.timerShaft!.offsetHeight -
-            borderTop -
-            that.spacer!.offsetHeight +
-            'px';
-          node!.style.height =
-            window.innerHeight -
-            that.search!.offsetHeight -
-            that.timerShaft!.offsetHeight -
-            that.navRoot!.offsetHeight -
-            borderTop -
-            that.spacer!.offsetHeight +
-            'px';
-          tabsPackUp!.name = 'down';
-        }
-      });
-    };
-  }
-
-  private importClickEvent(): void {
-    let importFileBt: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     importFileBt!.addEventListener('change', (event): void => {
       let files = importFileBt?.files;
       if (files) {
@@ -454,9 +407,6 @@ export class TraceSheet extends BaseElement {
       importFileBt!.files = null;
       importFileBt!.value = '';
     });
-  }
-
-  private exportClickEvent(): void {
     this.exportBt!.onclick = (): void => {
       let currentTab = this.getTabpaneByKey(this.litTabs?.activekey!);
       if (currentTab) {

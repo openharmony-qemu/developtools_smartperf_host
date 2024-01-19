@@ -21,7 +21,7 @@
 #include <clock_filter.h>
 #include "file.h"
 #include "htrace_plugin_time_parser.h"
-#include "table/demo_table_base.h"
+#include "table/table_base.h"
 #include "trace_streamer/trace_streamer_selector.h"
 
 namespace SysTuning {
@@ -34,7 +34,7 @@ class SDKDataParser : public HtracePluginTimeParser {
 public:
     using TraceRangeCallbackFunction = std::function<void(const std::string)>;
     using QueryResultCallbackFunction = std::function<void(const std::string /* result */, int32_t, int32_t)>;
-    explicit SDKDataParser(TraceDataCache* dataCache);
+    SDKDataParser(TraceDataCache* dataCache);
     ~SDKDataParser(){};
 
     // third_party

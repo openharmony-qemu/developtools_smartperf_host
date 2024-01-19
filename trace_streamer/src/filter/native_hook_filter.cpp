@@ -267,11 +267,12 @@ void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::By
     }
 }
 
-void NativeHookFilter::SetFreeEventCallChainId(uint32_t& callChainId,
-                                               uint32_t ipid,
-                                               uint32_t itid,
-                                               const ProtoReader::FreeEvent_Reader& freeEventReader)
+void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView)
 {
+    ProtoReader::FreeEvent_Reader freeEventReader(bytesView);
+    uint32_t callChainId = INVALID_UINT32;
+    auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(freeEventReader.tid(), freeEventReader.pid());
+    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
     uint64_t ipidWithStackIdIndex = INVALID_UINT64;
     uint64_t ipidWithThreadNameIdIndex = INVALID_UINT64;
     if (isSingleProcData_) {
@@ -299,14 +300,6 @@ void NativeHookFilter::SetFreeEventCallChainId(uint32_t& callChainId,
     if (freeEventReader.thread_name_id() != 0) {
         UpdateMap(itidToThreadNameId_, itid, ipidWithThreadNameIdIndex);
     }
-}
-void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView)
-{
-    ProtoReader::FreeEvent_Reader freeEventReader(bytesView);
-    uint32_t callChainId = INVALID_UINT32;
-    auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(freeEventReader.tid(), freeEventReader.pid());
-    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
-    SetFreeEventCallChainId(callChainId, ipid, itid, freeEventReader);
     int64_t freeHeapSize = 0;
     // Find a matching malloc event, and if the matching fails, do not write to the database
     uint64_t row = INVALID_UINT64;
@@ -332,11 +325,13 @@ void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::Byt
         CompressStackAndFrames(row, freeEventReader.frame_info());
     }
 }
-void NativeHookFilter::SetMmapEventCallChainId(uint32_t& callChainId,
-                                               uint32_t ipid,
-                                               uint32_t itid,
-                                               const ProtoReader::MmapEvent_Reader& mMapEventReader)
+
+void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView)
 {
+    ProtoReader::MmapEvent_Reader mMapEventReader(bytesView);
+    uint32_t callChainId = INVALID_UINT32;
+    auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(mMapEventReader.tid(), mMapEventReader.pid());
+    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
     uint64_t ipidWithStackIdIndex = INVALID_UINT64;
     uint64_t ipidWithThreadNameIdIndex = INVALID_UINT64;
     if (isSingleProcData_) {
@@ -365,14 +360,6 @@ void NativeHookFilter::SetMmapEventCallChainId(uint32_t& callChainId,
     if (mMapEventReader.thread_name_id() != 0) {
         UpdateMap(itidToThreadNameId_, itid, ipidWithThreadNameIdIndex);
     }
-}
-void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView)
-{
-    ProtoReader::MmapEvent_Reader mMapEventReader(bytesView);
-    uint32_t callChainId = INVALID_UINT32;
-    auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(mMapEventReader.tid(), mMapEventReader.pid());
-    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
-    SetMmapEventCallChainId(callChainId, ipid, itid, mMapEventReader);
     // Gets the index of the mmap event's label in the data dictionary
     DataIndex subType = INVALID_UINT64;
     auto mMapAddr = mMapEventReader.addr();
@@ -397,11 +384,13 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
         CompressStackAndFrames(row, mMapEventReader.frame_info());
     }
 }
-void NativeHookFilter::SetMunmapEventCallChainId(uint32_t& callChainId,
-                                                 uint32_t ipid,
-                                                 uint32_t itid,
-                                                 const ProtoReader::MunmapEvent_Reader& mUnmapEventReader)
+void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView)
 {
+    ProtoReader::MunmapEvent_Reader mUnmapEventReader(bytesView);
+    uint32_t callChainId = INVALID_UINT32;
+    auto itid =
+        streamFilters_->processFilter_->GetOrCreateThreadWithPid(mUnmapEventReader.tid(), mUnmapEventReader.pid());
+    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
     uint64_t ipidWithStackIdIndex = INVALID_UINT64;
     uint64_t ipidWithThreadNameIdIndex = INVALID_UINT64;
     if (isSingleProcData_) {
@@ -429,15 +418,6 @@ void NativeHookFilter::SetMunmapEventCallChainId(uint32_t& callChainId,
     if (mUnmapEventReader.thread_name_id() != 0) {
         UpdateMap(itidToThreadNameId_, itid, ipidWithThreadNameIdIndex);
     }
-}
-void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView)
-{
-    ProtoReader::MunmapEvent_Reader mUnmapEventReader(bytesView);
-    uint32_t callChainId = INVALID_UINT32;
-    auto itid =
-        streamFilters_->processFilter_->GetOrCreateThreadWithPid(mUnmapEventReader.tid(), mUnmapEventReader.pid());
-    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
-    SetMunmapEventCallChainId(callChainId, ipid, itid, mUnmapEventReader);
     // Query for MMAP events that match the current data. If there are no matching MMAP events, the current data is not
     // written to the database.
     uint64_t row = INVALID_UINT64;
@@ -606,17 +586,17 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     return std::make_tuple(start, end);
 }
 
-void NativeHookFilter::FillOfflineSymbolizationFrames(
+inline void NativeHookFilter::FillOfflineSymbolizationFrames(
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
 {
     auto curCacheIpid = mapItor->second->back();
     stackIdToCallChainIdMap_.insert(std::make_pair(mapItor->first, ++callChainId_));
     auto framesInfo = OfflineSymbolization(mapItor->second);
     uint16_t depth = 0;
+    uint64_t filePathIndex = INVALID_UINT64;
     if (isSingleProcData_) {
         curCacheIpid = SINGLE_PROC_IPID;
     }
-    uint64_t filePathIndex;
     for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
         // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
         auto frameInfo = itor->get();
@@ -735,10 +715,24 @@ void NativeHookFilter::UpdateSymbolTablePtrAndStValueToSymAddrMap(
         }
     }
 }
-void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
-                                       uint32_t filePathId,
-                                       std::shared_ptr<ProtoReader::SymbolTable_Reader> reader)
+// Only called in offline symbolization mode.
+void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
 {
+    segs_.emplace_back(nativeHookMetaData->seg_);
+    const ProtoReader::BytesView& symbolTableByteView = nativeHookMetaData->reader_->symbol_tab();
+    if (traceDataCache_->isSplitFile_) {
+        auto hookData = commHookData_.datas->add_events();
+        SymbolTable* symbolTable = hookData->mutable_symbol_tab();
+        symbolTable->ParseFromArray(symbolTableByteView.Data(), symbolTableByteView.Size());
+        commHookData_.size += symbolTableByteView.Size();
+        return;
+    }
+    auto reader = std::make_shared<ProtoReader::SymbolTable_Reader>(symbolTableByteView);
+    auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(reader->pid(), "");
+    if (isSingleProcData_) {
+        ipid = SINGLE_PROC_IPID;
+    }
+    auto filePathId = reader->file_path_id();
     auto symbolTablePtr = ipidTofilePathIdToSymbolTableMap_.Find(ipid, filePathId);
     if (symbolTablePtr != nullptr) { // SymbolTable already exists.
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
@@ -779,30 +773,9 @@ void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
     } else {
         ipidTofilePathIdToSymbolTableMap_.Insert(ipid, filePathId, reader);
     }
-}
-// Only called in offline symbolization mode.
-void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData)
-{
-    segs_.emplace_back(nativeHookMetaData->seg_);
-    const ProtoReader::BytesView& symbolTableByteView = nativeHookMetaData->reader_->symbol_tab();
-    if (traceDataCache_->isSplitFile_) {
-        auto hookData = commHookData_.datas->add_events();
-        SymbolTable* symbolTable = hookData->mutable_symbol_tab();
-        symbolTable->ParseFromArray(symbolTableByteView.Data(), symbolTableByteView.Size());
-        commHookData_.size += symbolTableByteView.Size();
-        return;
-    }
-    auto reader = std::make_shared<ProtoReader::SymbolTable_Reader>(symbolTableByteView);
-    auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(reader->pid(), "");
-    if (isSingleProcData_) {
-        ipid = SINGLE_PROC_IPID;
-    }
-    ProcSymbolTable(ipid, reader->file_path_id(), reader);
+
     auto symEntrySize = reader->sym_entry_size();
     auto symTable = reader->sym_table();
-    if (symEntrySize == 0) {
-        return;
-    }
     auto size = symTable.Size() / symEntrySize;
     if (symEntrySize == ELF32_SYM) {
         UpdateSymbolTablePtrAndStValueToSymAddrMap(reinterpret_cast<const Elf32_Sym*>(symTable.Data()), size, reader);

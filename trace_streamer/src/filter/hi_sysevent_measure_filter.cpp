@@ -94,49 +94,45 @@ bool HiSysEventMeasureFilter::FilterAllHiSysEvent(const json& jMessage, uint64_t
     }
     return true;
 }
-void HiSysEventMeasureFilter::FillJsMessage(const json& jMessage, JsonMessage& jsMessage)
+bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool& haveSplitSeg)
 {
+    JsonMessage jsMassage;
     for (auto item = jMessage.begin(); item != jMessage.end(); item++) {
         if (item.key() == "domain_") {
             std::string domainName = item.value();
-            jsMessage.domainId = traceDataCache_->GetDataIndex(domainName.c_str());
+            jsMassage.domainId = traceDataCache_->GetDataIndex(domainName.c_str());
         } else if (item.key() == "name_") {
             std::string eventName = item.value();
-            jsMessage.eventNameId = traceDataCache_->GetDataIndex(eventName.c_str());
+            jsMassage.eventNameId = traceDataCache_->GetDataIndex(eventName.c_str());
         } else if (item.key() == "type_") {
-            jsMessage.type = item.value();
+            jsMassage.type = item.value();
         } else if (item.key() == "time_") {
-            jsMessage.timeStamp = item.value();
-            jsMessage.timeStamp *= MSEC_TO_NS;
+            jsMassage.timeStamp = item.value();
+            jsMassage.timeStamp *= MSEC_TO_NS;
         } else if (item.key() == "tz_") {
-            jsMessage.timeZone = item.value();
+            jsMassage.timeZone = item.value();
         } else if (item.key() == "pid_") {
-            jsMessage.pid = item.value();
+            jsMassage.pid = item.value();
         } else if (item.key() == "tid_") {
-            jsMessage.tid = item.value();
+            jsMassage.tid = item.value();
         } else if (item.key() == "uid_") {
-            jsMessage.uid = item.value();
+            jsMassage.uid = item.value();
         } else if (item.key() == "id_") {
-            jsMessage.eventId = item.value();
+            jsMassage.eventId = item.value();
         } else if (item.key() == "info_") {
-            jsMessage.info = item.value();
+            jsMassage.info = item.value();
         } else if (item.key() == "tag_") {
-            jsMessage.tag = item.value();
+            jsMassage.tag = item.value();
         } else if (item.key() == "level_") {
-            jsMessage.level = item.value();
+            jsMassage.level = item.value();
         } else if (item.key() == "seq_") {
-            jsMessage.seq = item.value();
+            jsMassage.seq = item.value();
         } else {
-            jsMessage.content[item.key()] = item.value();
+            jsMassage.content[item.key()] = item.value();
         }
     }
-}
-bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool& haveSplitSeg)
-{
-    JsonMessage jsMessage;
-    FillJsMessage(jMessage, jsMessage);
-    auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, jsMessage.timeStamp);
-    UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, jsMessage.timeStamp, newTimeStamp);
+    auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, jsMassage.timeStamp);
+    UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, jsMassage.timeStamp, newTimeStamp);
     if (traceDataCache_->isSplitFile_) {
         if (newTimeStamp >= traceDataCache_->SplitFileMinTime() &&
             newTimeStamp <= traceDataCache_->SplitFileMaxTime()) {
@@ -144,15 +140,11 @@ bool HiSysEventMeasureFilter::SaveAllHiSysEvent(json jMessage, bool& haveSplitSe
         }
         return false;
     }
-    UpdataAllHiSysEvent(jsMessage, newTimeStamp);
-    return true;
-}
-void HiSysEventMeasureFilter::UpdataAllHiSysEvent(const JsonMessage& jsMessage, uint64_t newTimeStamp)
-{
     traceDataCache_->GetHiSysEventAllEventData()->AppendHiSysEventData(
-        jsMessage.domainId, jsMessage.eventNameId, newTimeStamp, jsMessage.type, jsMessage.timeZone, jsMessage.pid,
-        jsMessage.tid, jsMessage.uid, jsMessage.level, jsMessage.tag, jsMessage.eventId, jsMessage.seq, jsMessage.info,
-        jsMessage.content.dump());
+        jsMassage.domainId, jsMassage.eventNameId, newTimeStamp, jsMassage.type, jsMassage.timeZone, jsMassage.pid,
+        jsMassage.tid, jsMassage.uid, jsMassage.level, jsMassage.tag, jsMassage.eventId, jsMassage.seq, jsMassage.info,
+        jsMassage.content.dump());
+    return true;
 }
 bool HiSysEventMeasureFilter::JGetData(const json& jMessage,
                                        JsonData& jData,

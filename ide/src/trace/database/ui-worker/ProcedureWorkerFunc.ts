@@ -27,7 +27,6 @@ import {
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
 import { FlagsConfig } from '../../component/SpFlags';
-import {TabPaneTaskFrames} from "../../component/trace/sheet/task/TabPaneTaskFrames";
 export class FuncRender extends Render {
   renderMainThread(
     req: {
@@ -58,6 +57,7 @@ export class FuncRender extends Render {
         if (re.dur == 0 || re.dur == null || re.dur == undefined) {
           if (
             re.frame &&
+            re.itid &&
             row.hoverX >= re.frame.x - 5 &&
             row.hoverX <= re.frame.x + 5 &&
             row.hoverY >= re.frame.y &&
@@ -67,7 +67,7 @@ export class FuncRender extends Render {
             funcFind = true;
           }
         } else {
-          if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+          if (re.frame && re.itid && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
             FuncStruct.hoverFuncStruct = re;
             funcFind = true;
           }
@@ -124,33 +124,7 @@ export function func(
     });
   }
 }
-export function FuncStructOnClick(clickRowType: string, sp:any,row:TraceRow<any>|undefined, scrollToFuncHandler: any) {
-  return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FUNC && FuncStruct.hoverFuncStruct) {
-      TabPaneTaskFrames.TaskArray = [];
-      sp.removeLinkLinesByBusinessType('task');
-      FuncStruct.selectFuncStruct = FuncStruct.hoverFuncStruct;
-      let hoverFuncStruct = FuncStruct.hoverFuncStruct;
-      sp.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
-      FuncStruct.selectFuncStruct = hoverFuncStruct;
-      let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
-      let showTabArray: Array<string> = ['current-selection'];
-      if (flagConfig!.TaskPool === 'Enabled') {
-        if (FuncStruct.selectFuncStruct?.funName) {
-          if (FuncStruct.selectFuncStruct.funName.indexOf('H:Task ') >= 0) {
-            showTabArray.push('box-task-frames');
-            sp.drawTaskPollLine(row);
-          }
-        }
-      }
-      sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
-      sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
-    } else {
-      resolve(null);
-    }
-  });
-}
+
 export class FuncStruct extends BaseFuncStruct {
   static hoverFuncStruct: FuncStruct | undefined;
   static selectFuncStruct: FuncStruct | undefined;

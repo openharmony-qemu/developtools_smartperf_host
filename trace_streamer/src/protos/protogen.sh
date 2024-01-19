@@ -109,6 +109,7 @@ do
    mkdir -p $cppout
    $out/$protoc --proto_path=$sph_data_dir:$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$js_memory_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir:$test_data_dir --cpp_out=$cppout ${proto_array[$i]}
    echo "----$out/$protoc --proto_path=$sph_data_dir:$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$js_memory_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir:$test_data_dir --plugin=protoc-gen-plugin=$out/$protoreader_plugin --plugin_out=wrapper_namespace=ProtoReader:$cppout ${proto_array[$i]}---"
+  #  $out/$protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$js_memory_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir:$test_data_dir --plugin=protoc-gen-plugin=$out/$protoreader_plugin --plugin_out=wrapper_namespace=ProtoReader:$cppout ${proto_array[$i]}
    $out/$protoc --proto_path=$sph_data_dir:$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$js_memory_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir:$test_data_dir --plugin=protoc-gen-plugin=$out/$protoreader_plugin --plugin_out=wrapper_namespace=ProtoReader:$cppout ${proto_array[$i]}
 done
 echo "generate proto based files over"

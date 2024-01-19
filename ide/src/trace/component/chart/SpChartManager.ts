@@ -18,6 +18,15 @@ import { SpHiPerf } from './SpHiPerf';
 import { SpCpuChart } from './SpCpuChart';
 import { SpFreqChart } from './SpFreqChart';
 import { SpFpsChart } from './SpFpsChart';
+import {
+  getCpuUtilizationRate,
+  queryAppStartupProcessIds,
+  queryDataDICT,
+  queryMemoryConfig,
+  queryTaskPoolCallStack,
+  queryThreadAndProcessName,
+  queryTotalTime,
+} from '../../database/SqlLite';
 import { info, log } from '../../../log/Log';
 import { SpNativeMemoryChart } from './SpNativeMemoryChart';
 import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
@@ -31,7 +40,7 @@ import { VmTrackerChart } from './SpVmTrackerChart';
 import { SpClockChart } from './SpClockChart';
 import { SpIrqChart } from './SpIrqChart';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
 import { TraceRow } from '../trace/base/TraceRow';
 import { SpFrameTimeChart } from './SpFrameTimeChart';
 import { Utils } from '../trace/base/Utils';
@@ -42,14 +51,7 @@ import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
 import {procedurePool} from "../../database/Procedure";
-import {
-  queryAppStartupProcessIds,
-  queryDataDICT,
-  queryThreadAndProcessName
-} from "../../database/sql/ProcessThread.sql";
-import {queryTaskPoolCallStack, queryTotalTime} from "../../database/sql/SqlLite.sql";
-import {getCpuUtilizationRate} from "../../database/sql/Cpu.sql";
-import {queryMemoryConfig} from "../../database/sql/Memory.sql";
+import { SpLtpoChart } from './SpLTPO';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -70,6 +72,7 @@ export class SpChartManager {
   private clockChart: SpClockChart;
   private irqChart: SpIrqChart;
   private spAllAppStartupsChart!: SpAllAppStartupsChart;
+  private SpLtpoChart!: SpLtpoChart;
   frameTimeChart: SpFrameTimeChart;
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
@@ -96,6 +99,7 @@ export class SpChartManager {
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
+    this.SpLtpoChart = new SpLtpoChart(trace);
   }
 
   async init(progress: Function) {
@@ -176,9 +180,10 @@ export class SpChartManager {
     progress('ark ts', 90);
     await this.arkTsChart.initFolder();
     info('initData ark ts initialized');
+    await this.spAllAppStartupsChart.init();
+    await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
     info('initData frameTimeLine initialized');
-    await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();

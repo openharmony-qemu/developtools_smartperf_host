@@ -17,7 +17,7 @@ import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { CpuFreqStruct } from '../../database/ui-worker/ProcedureWorkerFreq';
-import { queryAppStartupProcessIds, queryProcessStartup, querySingleAppStartupsName } from '../../database/sql/ProcessThread.sql';
+import { queryAppStartupProcessIds, queryProcessStartup, querySingleAppStartupsName } from '../../database/SqlLite';
 import { FlagsConfig } from '../SpFlags';
 import { AllAppStartupStruct, AllAppStartupRender } from '../../database/ui-worker/ProcedureWorkerAllAppStartup';
 
@@ -61,6 +61,7 @@ export class SpAllAppStartupsChart {
     row.folder = false;
     row.style.height = '40px';
     row.name = `All App Startups`;
+    row.addTemplateTypes('AppStartup');
     row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
     row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
     row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
@@ -91,7 +92,13 @@ export class SpAllAppStartupsChart {
         }
         sendRes.push({
           dur: singleDur,
+          value: undefined,
           startTs: minStartTs,
+          pid: SpAllAppStartupsChart.allAppStartupsAva[i],
+          process: undefined,
+          itid: undefined,
+          endItid: undefined,
+          tid: SpAllAppStartupsChart.allAppStartupsAva[i],
           startName: undefined,
           stepName: SpAllAppStartupsChart.AllAppStartupsNameArr[i],
           translateY: undefined,

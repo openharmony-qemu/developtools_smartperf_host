@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { FrameAnimationStruct } from '../ui-worker/ProcedureWorkerFrameAnimation';
@@ -73,7 +73,7 @@ function animationBufferHandler(res: any, len: number): any[] {
 }
 
 export function frameDynamicSender(row: TraceRow<FrameDynamicStruct>): Promise<FrameDynamicStruct[]> {
-  let transferDynamicDataType: number = TraficEnum.ProtoBuffer;
+  let transferDynamicDataType: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (transferDynamicDataType === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
@@ -134,7 +134,7 @@ export function frameSpacingSender(
     physicalHeight: number,
     row: TraceRow<FrameSpacingStruct>
 ): Promise<FrameSpacingStruct[]> {
-  let transferSpacingDataType: number = TraficEnum.ProtoBuffer;
+  let transferSpacingDataType: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (transferSpacingDataType === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
@@ -196,7 +196,7 @@ function spacingBufferHandler(res: any, len: number): any[] {
       currentFrameWidth: currentFrameWidth[index],
       currentFrameHeight: currentFrameHeight[index],
       currentTs: currentTs[index],
-      frameSpacingResult: frameSpacingResult[index],
+      frameSpacingResult: frameSpacingResult[index].toFixed(1),
       preTs: preTs[index],
       preFrameWidth: preFrameWidth[index],
       preFrameHeight: preFrameHeight[index],

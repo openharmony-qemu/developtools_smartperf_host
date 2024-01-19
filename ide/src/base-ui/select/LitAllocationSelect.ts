@@ -15,98 +15,6 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-let listHeight = '';
-let css = `
-<style>
-      :host{
-          display: inline-flex;
-          overflow: visible;
-          cursor: pointer;
-          position: relative;
-          border-radius: 16px;
-          outline: none;
-          user-select:none;
-          width: 75%;
-          -webkit-user-select:none ;
-          -moz-user-select:none;
-      }
-      :host(:not([border])),
-      :host([border='true']){
-          border: 1px solid var(--bark-prompt,#dcdcdc);
-      }
-      .multipleSelect{
-          display: flex;
-          width: 100%;
-          z-index: 98;
-          position: relative;
-          padding: 3px 6px;
-          font-size: 1rem;
-          transition: all .3s;
-          outline: none;
-          user-select:none;
-          align-items: center;
-          justify-content: space-between;
-          -webkit-user-select:none ;
-          -moz-user-select:none;
-      }
-      input{
-          display: inline-flex;
-          width:100%;
-          z-index: 8999;
-          color: var(--dark-color2,rgba(0,0,0,0.9));
-          background-color: transparent;
-          border: 0;
-          user-select:none;
-          outline: none;
-          cursor: pointer;
-          -webkit-user-select:none ;
-          -moz-user-select:none;
-      }
-       .body{
-          max-height: ${listHeight};
-          width: 100%;
-          display: block;
-          overflow: auto;
-          position: absolute;
-          bottom: 100%;
-          padding-top: 5px;
-          margin-top: 2px;
-          transition: all 0.2s;
-          flex-direction: column;
-          transform-origin: bottom center;
-          box-shadow: 0 5px 15px 0px #00000033;
-          background-color: var(--dark-background4,#fff);
-          border-radius: 2px;
-          opacity: 0;
-          z-index: 99;
-          visibility: hidden;
-      }
-      :host([placement="bottom"]) .body{
-          bottom:unset;
-          top: 100%;
-          transition: none;
-          transform: none;
-      }
-      .body-bottom{
-          top: 100%;
-          transform-origin: top center;
-          bottom: auto;
-      }
-      .multipleRoot input::-webkit-input-placeholder {
-          color: var(--dark-color,#aab2bd);
-      }
-      :host([disabled]) {
-         pointer-events: none;
-         cursor: not-allowed;
-         background-color: var(--dark-background1,#f5f5f5);
-      }
-      </style>
-`;
-const initHtmlStyle = (height: string): string => {
-  listHeight = height;
-  return css;
-};
-
 @element('lit-allocation-select')
 export class LitAllocationSelect extends BaseElement {
   private selectAllocationInputEl: HTMLInputElement | null | undefined;
@@ -211,7 +119,90 @@ export class LitAllocationSelect extends BaseElement {
 
   initHtml() {
     return `
-        ${initHtmlStyle(this.listHeight)}
+        <style>
+        :host{
+            display: inline-flex;
+            overflow: visible;
+            cursor: pointer;
+            position: relative;
+            border-radius: 16px;
+            outline: none;
+            user-select:none;
+            width: 75%;
+            -webkit-user-select:none ;
+            -moz-user-select:none;
+        }
+        :host(:not([border])),
+        :host([border='true']){
+            border: 1px solid var(--bark-prompt,#dcdcdc);
+        }
+        .multipleSelect{
+            display: flex;
+            width: 100%;
+            z-index: 98;
+            position: relative;
+            padding: 3px 6px;
+            font-size: 1rem;
+            transition: all .3s;
+            outline: none;
+            user-select:none;
+            align-items: center;
+            justify-content: space-between;
+            -webkit-user-select:none ;
+            -moz-user-select:none;
+        }
+        input{
+            display: inline-flex;
+            width:100%;
+            z-index: 8999;
+            color: var(--dark-color2,rgba(0,0,0,0.9));
+            background-color: transparent;
+            border: 0;
+            user-select:none;
+            outline: none;
+            cursor: pointer;
+            -webkit-user-select:none ;
+            -moz-user-select:none;
+        }
+         .body{
+            max-height: ${this.listHeight};
+            width: 100%;
+            display: block;
+            overflow: auto;
+            position: absolute;
+            bottom: 100%;
+            padding-top: 5px;
+            margin-top: 2px;
+            transition: all 0.2s;
+            flex-direction: column;
+            transform-origin: bottom center;
+            box-shadow: 0 5px 15px 0px #00000033;
+            background-color: var(--dark-background4,#fff);
+            border-radius: 2px;
+            opacity: 0;
+            z-index: 99;
+            visibility: hidden;
+        }
+        :host([placement="bottom"]) .body{
+            bottom:unset;
+            top: 100%;
+            transition: none;
+            transform: none;
+        }
+        .body-bottom{
+            top: 100%;
+            transform-origin: top center;
+            bottom: auto;
+        }
+        .multipleRoot input::-webkit-input-placeholder {
+            color: var(--dark-color,#aab2bd);
+        }
+        :host([disabled]) {
+           pointer-events: none;
+           cursor: not-allowed;
+           background-color: var(--dark-background1,#f5f5f5);
+        }
+        </style>
         <div class="multipleSelect" tabindex="0">
             <div class="multipleRoot" id="select" style="width:100%">
             <input id="singleInput" placeholder="${this.placeholder}"/>

@@ -29,13 +29,11 @@ import { SpApplication } from '../../SpApplication';
 import { LitSearch } from '../trace/search/Search';
 import { Cmd } from '../../../command/Cmd';
 import { CmdConstant } from '../../../command/CmdConstant';
-import { SpRecordPerfHtml } from './SpRecordPerf.html';
 
 @element('sp-record-perf')
 export class SpRecordPerf extends BaseElement {
   private addOptionButton: HTMLButtonElement | undefined | null;
   private processSelect: LitSelectV | undefined | null;
-  private processInput: HTMLInputElement | undefined | null;
   private cpuSelect: LitSelectV | undefined | null;
   private eventSelect: LitSelectV | undefined | null;
 
@@ -43,12 +41,7 @@ export class SpRecordPerf extends BaseElement {
   private recordProcessInput: HTMLInputElement | undefined | null;
   private offCPUSwitch: LitSwitch | undefined | null;
   private callSelect: LitSelect | undefined | null;
-  private sp: SpApplication | undefined;
-  private recordPerfSearch: LitSearch | undefined;
-  private inputCpu: HTMLInputElement | undefined;
-  private inputEvent: HTMLInputElement | undefined;
-  private cpuData: Array<string> = [];
-  private eventData: Array<string> = [];
+  private perfConfigList: Array<any> = [];
 
   get show(): boolean {
     return this.hasAttribute('show');
@@ -93,140 +86,100 @@ export class SpRecordPerf extends BaseElement {
       clockType: 'monotonic',
     };
     recordPerfConfigVal!.forEach((value) => {
-      perfConfig = this.getPerfConfigData(value, perfConfig);
+      switch (value.title) {
+        case 'Process':
+          let processSelect = value as LitSelectV;
+          if (processSelect.all) {
+            perfConfig.process = 'ALL';
+            break;
+          }
+          if (processSelect.value.length > 0) {
+            let result = processSelect.value.match(/\((.+?)\)/g);
+            if (result) {
+              perfConfig.process = result.toString().replaceAll('(', '').replaceAll(')', '');
+            } else {
+              perfConfig.process = processSelect.value;
+            }
+          }
+          break;
+        case 'CPU':
+          let selectV = value as LitSelectV;
+          if (selectV.value.length > 0) {
+            perfConfig.cpu = selectV.value;
+          }
+          break;
+        case 'Event List':
+          let selectList = value as LitSelectV;
+          if (selectList.value.length > 0) {
+            perfConfig.eventList = selectList.value.replace(/\s/g, ',');
+          }
+          break;
+        case 'CPU Percent':
+          let selectSlider = value as LitSlider;
+          let parEle = value.parentElement;
+          if (parEle!.hasAttribute('percent')) {
+            let percent = parEle!.getAttribute('percent');
+            perfConfig.cpuPercent = Number(percent);
+          }
+          break;
+        case 'Frequency':
+          let input = value as HTMLInputElement;
+          if (input.value != '') {
+            perfConfig.frequency = Number(input.value);
+          }
+          break;
+        case 'Period':
+          let periodInput = value as HTMLInputElement;
+          if (periodInput.value != '') {
+            perfConfig.period = Number(periodInput.value);
+          }
+          break;
+        case 'Off CPU':
+          let cpuImage = value as LitSwitch;
+          perfConfig.isOffCpu = cpuImage.checked;
+          break;
+        case 'No Inherit':
+          let InheritImage = value as LitSwitch;
+          perfConfig.noInherit = InheritImage.checked;
+          break;
+        case 'Call Stack':
+          let callStack = value as LitSelect;
+          if (callStack.value != '') {
+            perfConfig.callStack = callStack.value;
+          }
+          break;
+        case 'Branch':
+          let branch = value as LitSelect;
+          if (branch.value != '') {
+            perfConfig.branch = branch.value;
+          }
+          break;
+        case 'Mmap Pages':
+          let pages = value as LitSlider;
+          let parent = value.parentElement;
+          if (parent!.hasAttribute('percent')) {
+            let pagesPercent = parent!.getAttribute('percent');
+            perfConfig.mmap = Math.pow(2, Number(pagesPercent));
+          }
+          break;
+        case 'Clock Type':
+          let clock = value as LitSelect;
+          if (clock.value != '') {
+            perfConfig.clockType = clock.value;
+          }
+          break;
+      }
     });
     info('perfConfig  is : ', perfConfig);
     return perfConfig;
   }
 
-  private getPerfConfigData(value: HTMLElement, perfConfig: PerfConfig): PerfConfig {
-    switch (value.title) {
-      case 'Process':
-        let processSelect = value as LitSelectV;
-        if (processSelect.all) {
-          perfConfig.process = 'ALL';
-          break;
-        }
-        perfConfig = this.perfConfigByProcess(processSelect, perfConfig);
-        break;
-      case 'CPU':
-        perfConfig = this.perfConfigByCPU(perfConfig, value as LitSelectV);
-        break;
-      case 'Event List':
-        perfConfig = this.perfConfigByEventList(perfConfig, value as LitSelectV);
-        break;
-      case 'CPU Percent':
-        perfConfig = this.perfConfigCpuPercent(perfConfig, value.parentElement!);
-        break;
-      case 'Frequency':
-        perfConfig = this.perfConfigByFrequency(perfConfig, value as HTMLInputElement);
-        break;
-      case 'Period':
-        perfConfig = this.perfConfigByPeriod(perfConfig, value as HTMLInputElement);
-        break;
-      case 'Off CPU':
-        perfConfig.isOffCpu = (value as LitSwitch).checked;
-        break;
-      case 'No Inherit':
-        perfConfig.noInherit = (value as LitSwitch).checked;
-        break;
-      case 'Call Stack':
-        perfConfig = this.perfConfigByCallStack(perfConfig, value as LitSelect);
-        break;
-      case 'Branch':
-        perfConfig = this.perfConfigByBranch(perfConfig, value as LitSelect);
-        break;
-      case 'Mmap Pages':
-        perfConfig = this.perfConfigByMmapPages(perfConfig, value.parentElement!);
-        break;
-      case 'Clock Type':
-        perfConfig = this.perfConfigByClockType(perfConfig, value as LitSelect);
-        break;
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByProcess(processSelect: LitSelectV, perfConfig: PerfConfig): PerfConfig {
-    if (processSelect.value.length > 0) {
-      let result = processSelect.value.match(/\((.+?)\)/g);
-      if (result) {
-        perfConfig.process = result.toString().replaceAll('(', '').replaceAll(')', '');
-      } else {
-        perfConfig.process = processSelect.value;
-      }
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByCPU(perfConfig: PerfConfig, selectValue: LitSelectV): PerfConfig {
-    if (selectValue.value.length > 0) {
-      perfConfig.cpu = selectValue.value;
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByEventList(perfConfig: PerfConfig, selectValue: LitSelectV): PerfConfig {
-    if (selectValue.value.length > 0) {
-      perfConfig.eventList = selectValue.value.replace(/\s/g, ',');
-    }
-    return perfConfig;
-  }
-
-  private perfConfigCpuPercent(perfConfig: PerfConfig, parEle: HTMLElement): PerfConfig {
-    if (parEle!.hasAttribute('percent')) {
-      let percent = parEle!.getAttribute('percent');
-      perfConfig.cpuPercent = Number(percent);
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByFrequency(perfConfig: PerfConfig, elValue: HTMLInputElement): PerfConfig {
-    if (elValue.value !== '') {
-      perfConfig.frequency = Number(elValue.value);
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByPeriod(perfConfig: PerfConfig, elValue: HTMLInputElement): PerfConfig {
-    if (elValue.value !== '') {
-      perfConfig.period = Number(elValue.value);
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByCallStack(perfConfig: PerfConfig, callStack: LitSelect): PerfConfig {
-    if (callStack.value !== '') {
-      perfConfig.callStack = callStack.value;
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByBranch(perfConfig: PerfConfig, branch: LitSelect): PerfConfig {
-    if (branch.value !== '') {
-      perfConfig.branch = branch.value;
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByMmapPages(perfConfig: PerfConfig, parent: HTMLElement): PerfConfig {
-    if (parent!.hasAttribute('percent')) {
-      let pagesPercent = parent!.getAttribute('percent');
-      perfConfig.mmap = Math.pow(2, Number(pagesPercent));
-    }
-    return perfConfig;
-  }
-
-  private perfConfigByClockType(perfConfig: PerfConfig, clock: LitSelect): PerfConfig {
-    if (clock.value !== '') {
-      perfConfig.clockType = clock.value;
-    }
-    return perfConfig;
-  }
-
-  private initRecordPerfConfig(): void {
+  initElements(): void {
+    let that = this;
+    this.initConfigList();
     let recordPerfConfigList = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
     this.addOptionButton = this.shadowRoot?.querySelector<HTMLButtonElement>('#addOptions');
-    perfConfigList.forEach((config) => {
+    this.perfConfigList.forEach((config) => {
       let recordPerfDiv = document.createElement('div');
       if (config.hidden) {
         recordPerfDiv.className = 'record-perf-config-div hidden';
@@ -245,174 +198,263 @@ export class SpRecordPerf extends BaseElement {
       recordPerfHeadDiv.appendChild(recordPerfDes);
       switch (config.type) {
         case 'select-multiple':
-          this.configTypeBySelectMultiple(config, recordPerfDiv);
+          let html = '';
+          let placeholder = config.selectArray[0];
+          if (config.title == 'Event List') {
+            placeholder = 'NONE';
+          }
+          html += `<lit-select-v default-value="" rounded="" class="record-perf-select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
+          config.selectArray.forEach((value: string) => {
+            html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
+          });
+          html += `</lit-select-v>`;
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + html;
           break;
         case 'lit-slider':
-          this.configTypeByLitSlider(config, recordPerfDiv);
+          let silder = `<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" class="silderclass config" title="${config.title}"></lit-slider>
+                              <input readonly class="sliderInput" type="text" value = '    ${config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
+                               </div>`;
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + silder;
+          let litSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
+          litSlider!.percent = config.litSliderStyle.defaultValue;
+          let sliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
+          let bufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
+          litSlider!.addEventListener('input', (evt) => {
+            bufferInput.value = sliderBody!.getAttribute('percent') + config.litSliderStyle.resultUnit;
+          });
+          litSlider!.sliderStyle = config.litSliderStyle;
           break;
         case 'Mmap-lit-slider':
-          this.configTypeByMmapLitSlider(config, recordPerfDiv);
+          let defaultValue = Math.pow(2, config.litSliderStyle.defaultValue);
+          let mapsilder = `<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" class="silderclass config" title="${config.title}"></lit-slider>
+                              <input readonly class="sliderInput" type="text" value = '    ${defaultValue} ${config.litSliderStyle.resultUnit}' >
+                               </div>`;
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + mapsilder;
+          let maplitSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
+          maplitSlider!.percent = config.litSliderStyle.defaultValue;
+          let mapsliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
+          let mapbufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
+          maplitSlider!.addEventListener('input', (evt) => {
+            let percnet = mapsliderBody!.getAttribute('percent');
+            if (percnet != null) {
+              mapbufferInput.value = Math.pow(2, Number(percnet)) + config.litSliderStyle.resultUnit;
+            }
+          });
+          maplitSlider!.sliderStyle = config.litSliderStyle;
           break;
         case 'input':
-          this.configTypeByInput(config, recordPerfDiv);
+          let recordPerfInput = document.createElement('input');
+          recordPerfInput.className = 'record-perf-input config';
+          recordPerfInput.textContent = config.value;
+          recordPerfInput.value = config.value;
+          recordPerfInput.title = config.title;
+          recordPerfInput.oninput = (ev) => {
+            recordPerfInput.value = recordPerfInput.value.replace(/\D/g, '');
+          };
+          recordPerfDiv.appendChild(recordPerfInput);
           break;
         case 'select':
-          this.configTypeBySelect(config, recordPerfDiv);
+          let recordPerfSelect = '';
+          recordPerfSelect += `<lit-select rounded="" default-value="" class="record-perf-select config" placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
+          config.selectArray.forEach((value: string) => {
+            recordPerfSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
+          });
+          recordPerfSelect += `</lit-select>`;
+          recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + recordPerfSelect;
           break;
         case 'switch':
-          this.configTypeBySwitch(config, recordPerfHeadDiv);
+          let recordPerfSwitch = document.createElement('lit-switch') as LitSwitch;
+          recordPerfSwitch.className = 'config';
+          recordPerfSwitch.title = config.title;
+          if (config.value) {
+            recordPerfSwitch.checked = true;
+          } else {
+            recordPerfSwitch.checked = false;
+          }
+          if (config.title == 'Start Hiperf Sampling') {
+            recordPerfSwitch.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
+              let detail = event.detail;
+              if (detail!.checked) {
+                this.startSamp = true;
+                this.unDisable();
+                this.dispatchEvent(new CustomEvent('addProbe', {}));
+              } else {
+                this.startSamp = false;
+                this.addOptionButton!.style.display = 'unset';
+                this.disable();
+                this.show = false;
+              }
+            });
+          }
+          recordPerfHeadDiv.appendChild(recordPerfSwitch);
           break;
         default:
           break;
       }
       recordPerfConfigList!.appendChild(recordPerfDiv);
     });
-  }
-
-  processSelectMousedownHandler = (): void => {
-    if (SpRecordTrace.serialNumber === '') {
-      this.processSelect!.dataSource([], 'ALL-Process');
-    } else {
-      if (this.sp!.search) {
-        this.sp!.search = false;
-        this.recordPerfSearch!.clear();
-      }
-      Cmd.getProcess().then(
-        (processList) => {
-          this.processSelect?.dataSource(processList, 'ALL-Process');
-        },
-        () => {
-          this.sp!.search = true;
-          this.recordPerfSearch!.clear();
-          this.recordPerfSearch!.setPercent('please kill other hdc-server !', -2);
-        }
-      );
-    }
-  };
-
-  cpuSelectMouseDownHandler = (): void => {
-    if (SpRecordTrace.serialNumber === '') {
-      this.cpuSelect!.dataSource([], 'ALL-CPU');
-    }
-  };
-
-  cpuSelectMouseUpHandler = (): void => {
-    if (SpRecordTrace.serialNumber === '') {
-      this.cpuSelect?.dataSource([], '');
-    } else {
-      if (this.sp!.search) {
-        this.sp!.search = false;
-        this.recordPerfSearch!.clear();
-      }
-      if (SpRecordTrace.isVscode) {
-        let cmd = Cmd.formatString(CmdConstant.CMD_GET_CPU_COUNT_DEVICES, [SpRecordTrace.serialNumber]);
-        Cmd.execHdcCmd(cmd, (res: string) => {
-          this.cpuData = [];
-          let cpuCount = res!.trim();
-          let cpus = Number(cpuCount);
-          for (let index = 0; index < cpus; index++) {
-            this.cpuData.push(String(index));
-          }
-          this.cpuSelect?.dataSource(this.cpuData, 'ALL-CPU');
-        });
-      } else {
-        HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
-          this.cpuData = [];
-          if (conn) {
-            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_CPU_COUNT, false).then((res) => {
-              let cpuCount = res!.trim();
-              let cpus = Number(cpuCount);
-              for (let index = 0; index < cpus; index++) {
-                this.cpuData.push(String(index));
-              }
-              this.cpuSelect?.dataSource(this.cpuData, 'ALL-CPU');
-            });
-          } else {
-            this.recordPerfSearch!.clear();
-            this.sp!.search = true;
-            this.recordPerfSearch!.setPercent('please kill other hdc-server !', -2);
-          }
-        });
-      }
-    }
-  };
-
-  eventSelectMousedownHandler = (): void => {
-    if (SpRecordTrace.serialNumber === '') {
-      this.eventSelect!.dataSource([], '');
-    }
-  };
-
-  eventSelectClickHandler = (): void => {
-    let that = this;
-    if (SpRecordTrace.serialNumber === '') {
-      this.eventSelect?.dataSource(eventSelect,'');
-    } else {
-      if (this.sp!.search) {
-        this.sp!.search = false;
-        this.recordPerfSearch!.clear();
-      }
-      if (SpRecordTrace.isVscode) {
-        let cmd = Cmd.formatString(CmdConstant.CMD_GET_HIPERF_EVENTS_DEVICES, [SpRecordTrace.serialNumber]);
-        Cmd.execHdcCmd(cmd, (res: string) => {
-          let eventMap = that.parseEvent(res);
-          let eventList = that.getSoftHardWareEvents(eventMap);
-          if (eventList) {
-            for (let eventListElement of eventList) {
-              this.eventData.push(eventListElement.trim());
-            }
-          }
-          this.eventSelect!.dataSource(this.eventData, '');
-        });
-      } else {
-        HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
-          this.eventData = [];
-          if (conn) {
-            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_HIPERF_EVENTS, false).then((res) => {
-              if (res) {
-                let eventMap = that.parseEvent(res);
-                let eventList = that.getSoftHardWareEvents(eventMap);
-                if (eventList) {
-                  for (let eventListElement of eventList) {
-                    this.eventData.push(eventListElement.trim());
-                  }
-                }
-                this.eventSelect!.dataSource(this.eventData, '');
-              }
-            });
-          } else {
-            this.sp!.search = true;
-            this.recordPerfSearch!.clear();
-            this.recordPerfSearch!.setPercent('please kill other hdc-server !', -2);
-          }
-        });
-      }
-    }
-  };
-
-  initElements(): void {
-    this.cpuData = [];
-    this.eventData = [];
-    this.initRecordPerfConfig();
-    this.sp = document.querySelector('sp-application') as SpApplication;
-    this.recordPerfSearch = this.sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
-    this.processSelect = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v[title=\'Process\']');
+    let sp = document.querySelector('sp-application') as SpApplication;
+    let recordPerfSearch = sp?.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
+    this.processSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
     this.recordProcessInput = this.processSelect?.shadowRoot?.querySelector<HTMLInputElement>('input');
-    this.processInput = this.processSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.cpuSelect = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v[title=\'CPU\']');
-    this.inputCpu = this.cpuSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.eventSelect = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v[title=\'Event List\']');
-    this.inputEvent = this.eventSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
-    this.frequencySetInput = this.shadowRoot?.querySelector<HTMLInputElement>('input[title=\'Frequency\']');
+    let querySelector = this.processSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    querySelector.addEventListener('mousedown', (ev) => {
+      if (SpRecordTrace.serialNumber === '') {
+        this.processSelect!.dataSource([], 'ALL-Process');
+      } else {
+        if (sp.search) {
+          sp.search = false;
+          recordPerfSearch.clear();
+        }
+        Cmd.getProcess().then(
+          (processList) => {
+            this.processSelect?.dataSource(processList, 'ALL-Process');
+          },
+          (rejected) => {
+            sp.search = true;
+            recordPerfSearch.clear();
+            recordPerfSearch.setPercent('please kill other hdc-server !', -2);
+          }
+        );
+      }
+    });
+
+    this.cpuSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='CPU']");
+    let inputCpu = this.cpuSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let cpuData: Array<string> = [];
+    inputCpu.addEventListener('mousedown', (ev) => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.cpuSelect!.dataSource([], 'ALL-CPU');
+      }
+    });
+    inputCpu!.addEventListener('mouseup', () => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.cpuSelect?.dataSource([], '');
+      } else {
+        if (sp.search) {
+          sp.search = false;
+          recordPerfSearch.clear();
+        }
+        if (SpRecordTrace.isVscode) {
+          let cmd = Cmd.formatString(CmdConstant.CMD_GET_CPU_COUNT_DEVICES, [SpRecordTrace.serialNumber]);
+          Cmd.execHdcCmd(cmd, (res: string) => {
+            cpuData = [];
+            let cpuCount = res!.trim();
+            let cpus = Number(cpuCount);
+            for (let index = 0; index < cpus; index++) {
+              cpuData.push(String(index));
+            }
+            this.cpuSelect?.dataSource(cpuData, 'ALL-CPU');
+          });
+        } else {
+          HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
+            cpuData = [];
+            if (conn) {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_CPU_COUNT, false).then((res) => {
+                let cpuCount = res!.trim();
+                let cpus = Number(cpuCount);
+                for (let index = 0; index < cpus; index++) {
+                  cpuData.push(String(index));
+                }
+                this.cpuSelect?.dataSource(cpuData, 'ALL-CPU');
+              });
+            } else {
+              recordPerfSearch.clear();
+              sp.search = true;
+              recordPerfSearch.setPercent('please kill other hdc-server !', -2);
+            }
+          });
+        }
+      }
+    });
+    this.eventSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Event List']");
+    let inputEvent = this.eventSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let eventData: Array<string> = [];
+    inputEvent.addEventListener('mousedown', (ev) => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.eventSelect!.dataSource([], '');
+      }
+    });
+    inputEvent!.addEventListener('click', () => {
+      if (SpRecordTrace.serialNumber == '') {
+        this.eventSelect?.dataSource(
+          [
+            'hw-cpu-cycles',
+            'hw-instructions',
+            'hw-cache-references',
+            'hw-cache-misses',
+            'hw-branch-instructions',
+            'hw-branch-misses',
+            'hw-bus-cycles',
+            'hw-stalled-cycles-backend',
+            'hw-stalled-cycles-frontend',
+            'sw-cpu-clock',
+            'sw-task-clock',
+            'sw-page-faults',
+            'sw-context-switches',
+            'sw-cpu-migrations',
+            'sw-page-faults-min',
+            'sw-page-faults-maj',
+            'sw-alignment-faults',
+            'sw-emulation-faults',
+            'sw-dummy',
+            'sw-bpf-output',
+          ],
+          ''
+        );
+      } else {
+        if (sp.search) {
+          sp.search = false;
+          recordPerfSearch.clear();
+        }
+        if (SpRecordTrace.isVscode) {
+          let cmd = Cmd.formatString(CmdConstant.CMD_GET_HIPERF_EVENTS_DEVICES, [SpRecordTrace.serialNumber]);
+          Cmd.execHdcCmd(cmd, (res: string) => {
+            let eventMap = that.parseEvent(res);
+            let eventList = that.getSoftHardWareEvents(eventMap);
+            if (eventList) {
+              for (let eventListElement of eventList) {
+                eventData.push(eventListElement.trim());
+              }
+            }
+            this.eventSelect!.dataSource(eventData, '');
+          });
+        } else {
+          HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
+            eventData = [];
+            if (conn) {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_HIPERF_EVENTS, false).then((res) => {
+                if (res) {
+                  let eventMap = that.parseEvent(res);
+                  let eventList = that.getSoftHardWareEvents(eventMap);
+                  if (eventList) {
+                    for (let eventListElement of eventList) {
+                      eventData.push(eventListElement.trim());
+                    }
+                  }
+                  this.eventSelect!.dataSource(eventData, '');
+                }
+              });
+            } else {
+              sp.search = true;
+              recordPerfSearch.clear();
+              recordPerfSearch.setPercent('please kill other hdc-server !', -2);
+            }
+          });
+        }
+      }
+    });
+
+    this.frequencySetInput = this.shadowRoot?.querySelector<HTMLInputElement>("input[title='Frequency']");
     this.frequencySetInput!.onkeydown = (ev): void => {
       // @ts-ignore
       if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
         ev.preventDefault();
       }
     };
-    this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>('lit-switch[title=\'Off CPU\']');
-    this.callSelect = this.shadowRoot?.querySelector<LitSelect>('lit-select[title=\'Call Stack\']');
-    this.addOptionButton!.addEventListener('click', () => {
+    this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>("lit-switch[title='Off CPU']");
+    this.callSelect = this.shadowRoot?.querySelector<LitSelect>("lit-select[title='Call Stack']");
+    this.addOptionButton!.addEventListener('click', (event) => {
       if (!this.startSamp) {
         return;
       }
@@ -422,105 +464,7 @@ export class SpRecordPerf extends BaseElement {
     this.disable();
   }
 
-  private configTypeBySwitch(config: any, recordPerfHeadDiv: HTMLDivElement): void {
-    let recordPerfSwitch = document.createElement('lit-switch') as LitSwitch;
-    recordPerfSwitch.className = 'config';
-    recordPerfSwitch.title = config.title;
-    recordPerfSwitch.checked = !!config.value;
-    if (config.title === 'Start Hiperf Sampling') {
-      recordPerfSwitch.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
-        let detail = event.detail;
-        if (detail!.checked) {
-          this.startSamp = true;
-          this.unDisable();
-          this.dispatchEvent(new CustomEvent('addProbe', {}));
-        } else {
-          this.startSamp = false;
-          this.addOptionButton!.style.display = 'unset';
-          this.disable();
-          this.show = false;
-        }
-      });
-    }
-    recordPerfHeadDiv.appendChild(recordPerfSwitch);
-  }
-
-  private configTypeBySelect(config: any, recordPerfDiv: HTMLDivElement): void {
-    let recordPerfSelect = '';
-    recordPerfSelect += `<lit-select rounded="" default-value="" class="record-perf-select config" 
-placement="bottom" title="${config.title}"  placeholder="${config.selectArray[0]}">`;
-    config.selectArray.forEach((value: string) => {
-      recordPerfSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
-    });
-    recordPerfSelect += '</lit-select>';
-    recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + recordPerfSelect;
-  }
-
-  private configTypeByInput(config: any, recordPerfDiv: HTMLDivElement): void {
-    let recordPerfInput = document.createElement('input');
-    recordPerfInput.className = 'record-perf-input config';
-    recordPerfInput.textContent = config.value;
-    recordPerfInput.value = config.value;
-    recordPerfInput.title = config.title;
-    recordPerfInput.oninput = (): void => {
-      recordPerfInput.value = recordPerfInput.value.replace(/\D/g, '');
-    };
-    recordPerfDiv.appendChild(recordPerfInput);
-  }
-
-  private configTypeByMmapLitSlider(config: any, recordPerfDiv: HTMLDivElement): void {
-    let defaultValue = Math.pow(2, config.litSliderStyle.defaultValue);
-    let mapsilder = `
-<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
-class="silderclass config" title="${config.title}"></lit-slider><input readonly class="sliderInput" 
-type="text" value = '    ${defaultValue} ${config.litSliderStyle.resultUnit}' ></div>`;
-    recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + mapsilder;
-    let maplitSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
-    maplitSlider!.percent = config.litSliderStyle.defaultValue;
-    let mapsliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
-    let mapbufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
-    maplitSlider!.addEventListener('input', () => {
-      let percnet = mapsliderBody!.getAttribute('percent');
-      if (percnet !== null) {
-        mapbufferInput.value = Math.pow(2, Number(percnet)) + config.litSliderStyle.resultUnit;
-      }
-    });
-    maplitSlider!.sliderStyle = config.litSliderStyle;
-  }
-
-  private configTypeByLitSlider(config: any, recordPerfDiv: HTMLDivElement): void{
-    let sliderEl = `
-<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
-class="silderclass config" title="${config.title}"></lit-slider><input readonly class="sliderInput" 
-type="text" value = '    ${config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
-</div>`;
-    recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + sliderEl;
-    let litSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
-    litSlider!.percent = config.litSliderStyle.defaultValue;
-    let sliderBody = recordPerfDiv.querySelector<HTMLDivElement>('.sliderBody');
-    let bufferInput = recordPerfDiv?.querySelector('.sliderInput') as HTMLInputElement;
-    litSlider!.addEventListener('input', () => {
-      bufferInput.value = sliderBody!.getAttribute('percent') + config.litSliderStyle.resultUnit;
-    });
-    litSlider!.sliderStyle = config.litSliderStyle;
-  }
-
-  private configTypeBySelectMultiple(config: any, recordPerfDiv: HTMLDivElement): void {
-    let html = '';
-    let placeholder = config.selectArray[0];
-    if (config.title === 'Event List') {
-      placeholder = 'NONE';
-    }
-    html += `<lit-select-v default-value="" rounded="" class="record-perf-select config" 
-mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`;
-    config.selectArray.forEach((value: string) => {
-      html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
-    });
-    html += '</lit-select-v>';
-    recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + html;
-  }
-
-  getSoftHardWareEvents(eventListResult: Map<string, string[]>): string[] {
+  getSoftHardWareEvents(eventListResult: Map<string, string[]>) {
     let shEvents = [];
     let hardwareEvents = eventListResult.get('hardware');
     if (hardwareEvents) {
@@ -546,23 +490,22 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
       if (line.startsWith('Supported')) {
         let startSign: string = 'for';
         type = line.substring(line.indexOf(startSign) + startSign.length, line.lastIndexOf(':')).trim();
-        events = [];
+        events = new Array();
         eventMap.set(type, events);
-      } else if (line.indexOf('not support') !== -1 || line.trim().length === 0 ||
-        line.indexOf('Text file busy') !== -1) {
+      } else if (line.indexOf('not support') != -1 || line.trim().length == 0 || line.indexOf('Text file busy') != -1) {
         // do not need deal with it
       } else {
         let event: string = line.split(' ')[0];
         let ventMap = eventMap.get(type);
-        if (ventMap !== null) {
-          ventMap!.push(event);
+        if (ventMap != null) {
+          ventMap.push(event);
         }
       }
     }
     return eventMap;
   }
 
-  private unDisable(): void {
+  private unDisable() {
     if (this.processSelect) {
       this.processSelect.removeAttribute('disabled');
     }
@@ -580,7 +523,7 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
     }
   }
 
-  private disable(): void {
+  private disable() {
     if (this.processSelect) {
       this.processSelect.setAttribute('disabled', '');
     }
@@ -598,6 +541,118 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
     }
   }
 
+  initConfigList(): void {
+    this.perfConfigList = [
+      {
+        title: 'Start Hiperf Sampling',
+        des: '',
+        hidden: false,
+        type: 'switch',
+        value: false,
+      },
+      {
+        type: 'select-multiple',
+        title: 'Process',
+        des: 'Record process',
+        hidden: false,
+        selectArray: [''],
+      },
+      {
+        title: 'CPU',
+        des: 'Record assign cpu num such as 0,1,2',
+        hidden: true,
+        type: 'select-multiple',
+        selectArray: [''],
+      },
+      {
+        title: 'Event List',
+        des: 'Event type Default is cpu cycles',
+        hidden: true,
+        type: 'select-multiple',
+        selectArray: [''],
+      },
+      {
+        title: 'CPU Percent',
+        des: 'Set the max percent of cpu time used for recording',
+        hidden: true,
+        type: 'lit-slider',
+        litSliderStyle: {
+          minRange: 0,
+          maxRange: 100,
+          defaultValue: '100',
+          resultUnit: '%',
+          stepSize: 1,
+          lineColor: 'var(--dark-color3,#a88888)',
+          buttonColor: '#a88888',
+        },
+      },
+      {
+        title: 'Frequency',
+        des: 'Set event sampling frequency',
+        hidden: false,
+        type: 'input',
+        value: '1000',
+      },
+      {
+        title: 'Period',
+        des: 'Set event sampling period for trace point events2',
+        hidden: true,
+        type: 'input',
+        value: '1',
+      },
+      {
+        title: 'Off CPU',
+        des: 'Trace when threads are scheduled off cpu',
+        hidden: false,
+        type: 'switch',
+        value: true,
+      },
+      {
+        title: 'No Inherit',
+        des: "Don't trace child processes",
+        hidden: true,
+        type: 'switch',
+        value: false,
+      },
+      {
+        title: 'Call Stack',
+        des: 'Setup and enable call stack recording',
+        hidden: false,
+        type: 'select',
+        selectArray: ['dwarf', 'fp', 'none'],
+      },
+      {
+        title: 'Branch',
+        des: 'Taken branch stack sampling',
+        hidden: true,
+        type: 'select',
+        selectArray: ['none', 'any', 'any_call', 'any_ret', 'ind_call', 'call', 'user', 'kernel'],
+      },
+      {
+        title: 'Mmap Pages',
+        des: 'Used to receiving record data from kernel',
+        hidden: true,
+        type: 'Mmap-lit-slider',
+        litSliderStyle: {
+          minRange: 1,
+          maxRange: 10,
+          defaultValue: '8',
+          resultUnit: 'MB',
+          stepSize: 1,
+          lineColor: 'var(--dark-color3,#46B1E3)',
+          buttonColor: '#999999',
+        },
+      },
+      {
+        title: 'Clock Type',
+        des: 'Set the clock id to use for the various time fields in the perf_event_type records',
+        hidden: true,
+        type: 'select',
+        selectArray: ['monotonic', 'realtime', 'monotonic_raw', 'boottime', 'perf'],
+      },
+    ];
+  }
+
   connectedCallback(): void {
     let traceMode = this.shadowRoot!.querySelector('#traceMode') as HTMLDivElement;
     let isLongTrace = SpApplication.isLongTrace;
@@ -606,24 +661,160 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
     } else {
       traceMode!.style.display = 'none';
     }
-    this.processInput?.addEventListener('mousedown', this.processSelectMousedownHandler);
-    this.inputCpu?.addEventListener('mousedown', this.cpuSelectMouseDownHandler);
-    this.inputCpu?.addEventListener('mouseup', this.cpuSelectMouseUpHandler);
-    this.inputEvent?.addEventListener('mousedown', this.eventSelectMousedownHandler);
-    this.inputEvent?.addEventListener('click', this.eventSelectClickHandler);
-  }
-
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this.processInput?.removeEventListener('mousedown', this.processSelectMousedownHandler);
-    this.inputCpu?.removeEventListener('mousedown', this.cpuSelectMouseDownHandler);
-    this.inputCpu?.removeEventListener('mouseup', this.cpuSelectMouseUpHandler);
-    this.inputEvent?.removeEventListener('mousedown', this.eventSelectMousedownHandler);
-    this.inputEvent?.removeEventListener('click', this.eventSelectClickHandler);
   }
 
   initHtml(): string {
-    return SpRecordPerfHtml;
+    return `
+        <style>
+       input {
+           height: 25px;
+           border-radius: 16px;
+           outline:none;
+           text-indent:2%
+        }
+        
+        input::-webkit-input-placeholder{
+            color:var(--bark-prompt,#999999);
+        }
+        
+         :host([startSamp]) .record-perf-input {
+            background: var(--dark-background5,#FFFFFF);
+        }
+        
+        :host(:not([startSamp])) .record-perf-input {
+            color: #999999;
+        }
+        
+        :host{
+            width: 100%;
+            display: inline-block;
+            height: 100%;
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
+        }
+
+        .record-perf-config-div {
+           display: flex;
+           flex-direction: column;
+           gap: 15px;
+           width: 80%;
+        }
+        
+        .root {
+            padding-top: 30px;
+            margin-right: 30px;
+            padding-left: 54px;
+            font-size:16px;
+            margin-bottom: 30px;
+        }
+
+        :host([show]) .record-perf-config-div {
+           display: flex;
+           flex-direction: column;
+           margin-bottom: 1vh;
+        }
+
+        :host(:not([show])) .record-perf-config-div {
+           margin-top: 5vh;
+           margin-bottom: 5vh;
+           gap: 25px;
+        }
+
+        :host(:not([show])) .hidden {
+           display: none;
+        }
+
+        #addOptions {
+           border-radius: 15px;
+           border-color:rgb(0,0,0,0.1);
+           width: 150px;
+           height: 40px;
+           font-family: Helvetica;
+           font-size: 1em;
+           color: #FFFFFF;
+           text-align: center;
+           line-height: 20px;
+           font-weight: 400;
+           margin-right: 20%;
+           float: right;
+        }
+        
+        :host(:not([startSamp])) #addOptions {
+           background: #999999;
+        }
+        :host([startSamp]) #addOptions {
+           background: #3391FF;
+        }
+
+        .record-perf-title {
+          opacity: 0.9;
+          font-family: Helvetica-Bold;
+          margin-right: 10px;
+          font-size: 18px;
+          text-align: center;
+          line-height: 40px;
+          font-weight: 700;
+        }
+
+        .record-perf-des {
+          opacity: 0.6;
+          font-family: Helvetica;
+          line-height: 35px;
+          font-size: 14px;
+          text-align: center;
+          font-weight: 400;
+        }
+
+        .record-perf-select {
+          border-radius: 15px;
+        }
+
+        lit-switch {
+          height: 38px;
+          margin-top: 10px;
+          display:inline;
+          float: right;
+        }
+     
+        .record-perf-input {
+            line-height: 20px;
+            font-weight: 400;
+            border: 1px solid var(--dark-background5,#ccc);
+            font-family: Helvetica;
+            font-size: 14px;
+            color: var(--dark-color1,#212121);
+            text-align: left;
+        }
+
+        .sliderBody{
+            width: 100%;
+            height: min-content;
+            display: grid;
+            grid-template-columns: 1fr min-content;
+        }
+
+        .sliderInput {
+            margin: 0 0 0 0;
+            height: 40px;
+            background-color: var(--dark-background5,#F2F2F2);
+            -webkit-appearance:none;
+            outline:0;
+            font-size:14px;
+            border-radius:20px;
+            border:1px solid var(--dark-border,#c8cccf);
+            color:var(--dark-color,#6a6f77);
+            text-align: center;
+        }
+        </style>
+        <div class="root">
+            <div class="record-perf-title" id="traceMode" style="text-align:left;">
+            <span style='color: red'>Long trace mode! If current data Trace is too large, it may not open!</span>
+          </div>
+          <div class="configList record-perf-config">
+          </div>
+          <button id ="addOptions">Advance Options</button>
+        </div>
+        `;
   }
 }
 
@@ -641,136 +832,3 @@ export interface PerfConfig {
   mmap: number;
   clockType: string;
 }
-
-const eventSelect = [
-  'hw-cpu-cycles',
-  'hw-instructions',
-  'hw-cache-references',
-  'hw-cache-misses',
-  'hw-branch-instructions',
-  'hw-branch-misses',
-  'hw-bus-cycles',
-  'hw-stalled-cycles-backend',
-  'hw-stalled-cycles-frontend',
-  'sw-cpu-clock',
-  'sw-task-clock',
-  'sw-page-faults',
-  'sw-context-switches',
-  'sw-cpu-migrations',
-  'sw-page-faults-min',
-  'sw-page-faults-maj',
-  'sw-alignment-faults',
-  'sw-emulation-faults',
-  'sw-dummy',
-  'sw-bpf-output',
-];
-
-const perfConfigList = [
-  {
-    title: 'Start Hiperf Sampling',
-    des: '',
-    hidden: false,
-    type: 'switch',
-    value: false,
-  },
-  {
-    type: 'select-multiple',
-    title: 'Process',
-    des: 'Record process',
-    hidden: false,
-    selectArray: [''],
-  },
-  {
-    title: 'CPU',
-    des: 'Record assign cpu num such as 0,1,2',
-    hidden: true,
-    type: 'select-multiple',
-    selectArray: [''],
-  },
-  {
-    title: 'Event List',
-    des: 'Event type Default is cpu cycles',
-    hidden: true,
-    type: 'select-multiple',
-    selectArray: [''],
-  },
-  {
-    title: 'CPU Percent',
-    des: 'Set the max percent of cpu time used for recording',
-    hidden: true,
-    type: 'lit-slider',
-    litSliderStyle: {
-      minRange: 0,
-      maxRange: 100,
-      defaultValue: '100',
-      resultUnit: '%',
-      stepSize: 1,
-      lineColor: 'var(--dark-color3,#a88888)',
-      buttonColor: '#a88888',
-    },
-  },
-  {
-    title: 'Frequency',
-    des: 'Set event sampling frequency',
-    hidden: false,
-    type: 'input',
-    value: '1000',
-  },
-  {
-    title: 'Period',
-    des: 'Set event sampling period for trace point events2',
-    hidden: true,
-    type: 'input',
-    value: '1',
-  },
-  {
-    title: 'Off CPU',
-    des: 'Trace when threads are scheduled off cpu',
-    hidden: false,
-    type: 'switch',
-    value: true,
-  },
-  {
-    title: 'No Inherit',
-    des: 'Don\'t trace child processes',
-    hidden: true,
-    type: 'switch',
-    value: false,
-  },
-  {
-    title: 'Call Stack',
-    des: 'Setup and enable call stack recording',
-    hidden: false,
-    type: 'select',
-    selectArray: ['dwarf', 'fp', 'none'],
-  },
-  {
-    title: 'Branch',
-    des: 'Taken branch stack sampling',
-    hidden: true,
-    type: 'select',
-    selectArray: ['none', 'any', 'any_call', 'any_ret', 'ind_call', 'call', 'user', 'kernel'],
-  },
-  {
-    title: 'Mmap Pages',
-    des: 'Used to receiving record data from kernel',
-    hidden: true,
-    type: 'Mmap-lit-slider',
-    litSliderStyle: {
-      minRange: 1,
-      maxRange: 10,
-      defaultValue: '8',
-      resultUnit: 'MB',
-      stepSize: 1,
-      lineColor: 'var(--dark-color3,#46B1E3)',
-      buttonColor: '#999999',
-    },
-  },
-  {
-    title: 'Clock Type',
-    des: 'Set the clock id to use for the various time fields in the perf_event_type records',
-    hidden: true,
-    type: 'select',
-    selectArray: ['monotonic', 'realtime', 'monotonic_raw', 'boottime', 'perf'],
-  },
-];

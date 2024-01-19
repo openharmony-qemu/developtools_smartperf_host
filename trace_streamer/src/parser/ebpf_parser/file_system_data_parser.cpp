@@ -30,74 +30,6 @@ FileSystemDataParser::~FileSystemDataParser()
             static_cast<unsigned long long>(timeParser_->GetPluginStartTime()),
             static_cast<unsigned long long>(timeParser_->GetPluginEndTime()));
 }
-
-void FileSystemDataParser::IpAndCallidFind(const FsFixedHeader* fsFixedHeadrAddr,
-                                           bool& callIdExistFlag,
-                                           const uint64_t* userIpsAddr)
-{
-    if (fsFixedHeadrAddr->nrUserIPs) {
-        std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr), fsFixedHeadrAddr->nrUserIPs * SINGLE_IP_SIZE);
-        auto ipsHashValue = hashFun_(ipsToStr);
-        auto value = pidAndipsToCallId_.Find(fsFixedHeadrAddr->pid, ipsHashValue);
-        if (value != INVALID_UINT64) {
-            callIdExistFlag = true;
-            currentCallId_ = value;
-        } else {
-            pidAndipsToCallId_.Insert(fsFixedHeadrAddr->pid, ipsHashValue, callChainId_);
-            currentCallId_ = callChainId_++;
-        }
-    } else {
-        currentCallId_ = INVALID_UINT64;
-    }
-}
-
-uint64_t FileSystemDataParser::StartEndTime(const FsFixedHeader* fsFixedHeadrAddr,
-                                            uint64_t newStartTs,
-                                            uint64_t newEndTs,
-                                            DataIndex& returnValue,
-                                            DataIndex& errorCode)
-{
-    // When the data is invalid, calling the sub function under condition (newStartTs > newEndTs) ends the judgment
-    timeParser_->UpdatePluginTimeRange(clockId_, fsFixedHeadrAddr->startTime, newStartTs);
-    timeParser_->UpdatePluginTimeRange(clockId_, fsFixedHeadrAddr->endTime, newEndTs);
-    if (newStartTs > newEndTs) {
-        TS_LOGE("startTs = %" PRIu64 ", endTs = %" PRIu64 ", newStartTs = %" PRIu64 ", newEndTs = %" PRIu64 "",
-                fsFixedHeadrAddr->startTime, fsFixedHeadrAddr->endTime, newStartTs, newEndTs);
-        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_FILE_SYSTEM, STAT_EVENT_DATA_INVALID);
-        // When the data is invalid, the maximum value returned is uint64_t(numeric_limits<uint64_t>::max());
-        return std::numeric_limits<uint64_t>::max();
-    }
-    uint64_t duration = newEndTs - newStartTs;
-    if (fsFixedHeadrAddr->ret < 0) {
-        returnValue = ConvertToHexTextIndex(0);
-        errorCode = ConvertToHexTextIndex(-fsFixedHeadrAddr->ret);
-    } else {
-        returnValue = ConvertToHexTextIndex(fsFixedHeadrAddr->ret);
-    }
-    return duration;
-}
-
-template <typename TracerEventToStrIndexMap>
-size_t FileSystemDataParser::FileWriteOperation(TracerEventToStrIndexMap& tracerEventToStrIndexMap,
-                                                const FsFixedHeader* fsFixedHeadrAddr,
-                                                uint32_t itid,
-                                                uint64_t& filePathId,
-                                                uint16_t type)
-{
-    filePathId =
-        tracerEventToStrIndexMap.Find(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
-    if (filePathId != INVALID_UINT64) {
-        tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
-    }
-
-    // get read or writ size
-    size_t size = MAX_SIZE_T;
-    if ((type == READ || type == WRITE) && fsFixedHeadrAddr->ret >= 0) {
-        size = fsFixedHeadrAddr->ret;
-    }
-    return size;
-}
-
 void FileSystemDataParser::ParseFileSystemEvent()
 {
     if (!reader_->GetFileSystemEventMap().size()) {
@@ -109,15 +41,31 @@ void FileSystemDataParser::ParseFileSystemEvent()
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_FILE_SYSTEM, STAT_EVENT_RECEIVED);
         auto fsFixedHeadrAddr = mapItor->second;
         bool callIdExistFlag = false;
+
         auto userIpsAddr = reinterpret_cast<const uint64_t*>(fsFixedHeadrAddr + 1);
-        // Find the corresponding callId for the number of user IP addresses
-        IpAndCallidFind(fsFixedHeadrAddr, callIdExistFlag, userIpsAddr);
+        if (fsFixedHeadrAddr->nrUserIPs) {
+            std::string ipsToStr(reinterpret_cast<const char*>(userIpsAddr),
+                                 fsFixedHeadrAddr->nrUserIPs * SINGLE_IP_SIZE);
+            auto ipsHashValue = hashFun_(ipsToStr);
+            auto value = pidAndipsToCallId_.Find(fsFixedHeadrAddr->pid, ipsHashValue);
+            if (value != INVALID_UINT64) {
+                callIdExistFlag = true;
+                currentCallId_ = value;
+            } else {
+                pidAndipsToCallId_.Insert(fsFixedHeadrAddr->pid, ipsHashValue, callChainId_);
+                currentCallId_ = callChainId_++;
+            }
+        } else {
+            currentCallId_ = INVALID_UINT64;
+        }
+
         uint16_t type = INVALID_UINT16;
         auto tmp = fucSubToSummaryType.find(fsFixedHeadrAddr->type);
         if (tmp == fucSubToSummaryType.end()) {
             return;
         }
         type = fucSubToSummaryType.at(fsFixedHeadrAddr->type);
+
         // Init process name data
         auto processName = const_cast<char*>(fsFixedHeadrAddr->processName);
         processName[MAX_PROCESS_NAME_SZIE - 1] = '\0';
@@ -126,24 +74,47 @@ void FileSystemDataParser::ParseFileSystemEvent()
         uint32_t itid =
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(fsFixedHeadrAddr->tid, fsFixedHeadrAddr->pid);
         auto newStartTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(clockId_, fsFixedHeadrAddr->startTime);
+        timeParser_->UpdatePluginTimeRange(clockId_, fsFixedHeadrAddr->startTime, newStartTs);
         auto newEndTs = streamFilters_->clockFilter_->ToPrimaryTraceTime(clockId_, fsFixedHeadrAddr->endTime);
-        DataIndex returnValue = INVALID_UINT64;
-        DataIndex errorCode = INVALID_UINT64;
-        //(newStartTs > newEndTs), When the data is invalid, the maximum value returned is uint64_t(size_t size
-        //=numeric_limits<uint64_t>::max());
-        uint64_t duration = StartEndTime(fsFixedHeadrAddr, newStartTs, newEndTs, returnValue, errorCode);
+        timeParser_->UpdatePluginTimeRange(clockId_, fsFixedHeadrAddr->endTime, newEndTs);
         if (newStartTs > newEndTs) {
+            TS_LOGE("startTs = %" PRIu64 ", endTs = %" PRIu64 ", newStartTs = %" PRIu64 ", newEndTs = %" PRIu64 "",
+                    fsFixedHeadrAddr->startTime, fsFixedHeadrAddr->endTime, newStartTs, newEndTs);
+            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF_FILE_SYSTEM, STAT_EVENT_DATA_INVALID);
             return;
         }
+        uint64_t duration = newEndTs - newStartTs;
+        DataIndex returnValue = INVALID_UINT64;
+        DataIndex errorCode = INVALID_UINT64;
+        if (fsFixedHeadrAddr->ret < 0) {
+            returnValue = ConvertToHexTextIndex(0);
+            errorCode = ConvertToHexTextIndex(-fsFixedHeadrAddr->ret);
+        } else {
+            returnValue = ConvertToHexTextIndex(fsFixedHeadrAddr->ret);
+        }
+
         int32_t i = 0;
         auto firstArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i++]);
         auto secondArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i++]);
         auto thirdArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i++]);
         auto fourthArgument = ConvertToHexTextIndex(fsFixedHeadrAddr->args[i]);
+
         // get file descriptor
-        uint64_t filePathId = INVALID_UINT64;
         auto fd = GetFileDescriptor(fsFixedHeadrAddr, type);
-        size_t size = FileWriteOperation(tracerEventToStrIndexMap, fsFixedHeadrAddr, itid, filePathId, type);
+        // get file path
+        uint64_t filePathId = INVALID_UINT64;
+        filePathId =
+            tracerEventToStrIndexMap.Find(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
+        if (filePathId != INVALID_UINT64) {
+            tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
+        }
+
+        // get read or writ size
+        size_t size = MAX_SIZE_T;
+        if ((type == READ || type == WRITE) && fsFixedHeadrAddr->ret >= 0) {
+            size = fsFixedHeadrAddr->ret;
+        }
+
         traceDataCache_->GetFileSystemSample()->AppendNewData(
             currentCallId_, type, ipid, itid, newStartTs, newEndTs, duration, returnValue, errorCode, size, fd,
             filePathId, firstArgument, secondArgument, thirdArgument, fourthArgument);

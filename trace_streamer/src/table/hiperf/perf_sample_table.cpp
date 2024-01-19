@@ -90,11 +90,11 @@ int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
-    auto perfSampleCs = fc.GetConstraints();
+    auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(perfSampleCs, sId);
-    for (size_t i = 0; i < perfSampleCs.size(); i++) {
-        const auto& c = perfSampleCs[i];
+    SwapIndexFront(cs, sId);
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -117,12 +117,12 @@ int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
                 break;
         }
     }
-    auto perfSampleOrderbys = fc.GetOrderBys();
-    for (auto i = perfSampleOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(perfSampleOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(perfSampleOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

@@ -19,7 +19,6 @@ export class LongTraceDBUtils {
   public static instance: LongTraceDBUtils | undefined;
   dbVersion: number = 1;
   dbName: string = 'sp';
-  fileType: string = 'trace';
   tableName: string = 'longTable';
   indexedDBHelp: IndexedDBHelp = new IndexedDBHelp();
 
@@ -41,22 +40,5 @@ export class LongTraceDBUtils {
         ],
       },
     ]);
-  }
-
-  getByRange(range: IDBKeyRange): Promise<any> {
-    return this.indexedDBHelp.get(this.tableName, range, 'QueryFileByPage');
-  }
-
-  addLongTableData(data: ArrayBuffer, fileType: string, timStamp: number, pageNumber: number, index: number, offset: number, sliceLen: number): Promise<any> {
-    return this.indexedDBHelp.add(this.tableName, {
-      buf: data,
-      id: `${fileType}_${timStamp}_${pageNumber}_${index}`,
-      fileType: fileType,
-      pageNum: pageNumber,
-      startOffset: offset,
-      endOffset: offset + sliceLen,
-      index: index,
-      timStamp: timStamp,
-    })
   }
 }

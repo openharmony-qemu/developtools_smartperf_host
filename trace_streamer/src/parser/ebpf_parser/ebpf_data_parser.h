@@ -17,7 +17,7 @@
 #include "bio_latency_data_parser.h"
 #include "ebpf_data_reader.h"
 #include "ebpf_splitter.h"
-#include "ebpf_data_structure.h"
+#include "ebpf_stdtype.h"
 #include "file_system_data_parser.h"
 #include "paged_memory_data_parser.h"
 #include "trace_data/trace_data_cache.h"
@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    bool Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
+    bool Init(const std::deque<uint8_t> dequeBuffer, uint64_t size);
     std::unique_ptr<EbpfDataReader> ebpfDataReader_;
     uint64_t ebpfAllEventStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ebpfAllEventEndTime_ = 0;

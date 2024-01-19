@@ -25,7 +25,6 @@ import { TraceSheet } from './base/TraceSheet';
 import { SelectionParam } from '../../bean/BoxSelection';
 import { type SpSystemTrace, CurrentSlicesTime } from '../SpSystemTrace';
 import './timer-shaft/CollapseButton';
-import { TimerShaftElementHtml } from './TimerShaftElement.html';
 //随机生成十六位进制颜色
 export function randomRgbColor() {
   let r = Math.floor(Math.random() * 255);
@@ -250,19 +249,9 @@ export class TimerShaftElement extends BaseElement {
       this.timeOffsetEL.textContent = ns2UnitS(this._startNS, this._rangeRuler.getScale());
     const width = this.canvas?.clientWidth || 0;
     const height = this.canvas?.clientHeight || 0;
-    this.setTimeRuler(width);
-    this.setSportRuler(width, height);
-    this.setRangeRuler(width);
-  }
-
-  private setTimeRuler(width: number): void {
     if (!this.timeRuler) {
       this.timeRuler = new TimeRuler(this, new Rect(0, 0, width, 20), this._totalNS);
     }
-    this.timeRuler.frame.width = width;
-  }
-
-  private setSportRuler(width: number, height: number): void {
     if (!this._sportRuler) {
       this._sportRuler = new SportRuler(
         this,
@@ -278,10 +267,6 @@ export class TimerShaftElement extends BaseElement {
         }
       );
     }
-    this._sportRuler.frame.width = width;
-  }
-
-  private setRangeRuler(width: number): void {
     if (!this._rangeRuler) {
       this._rangeRuler = new RangeRuler(
         this,
@@ -316,6 +301,8 @@ export class TimerShaftElement extends BaseElement {
       );
     }
     this._rangeRuler.frame.width = width;
+    this._sportRuler.frame.width = width;
+    this.timeRuler.frame.width = width;
   }
 
   setRangeNS(startNS: number, endNS: number): void {
@@ -495,6 +482,106 @@ export class TimerShaftElement extends BaseElement {
   }
 
   initHtml(): string {
-    return TimerShaftElementHtml;
+    return `
+        <style>
+        :host{
+            box-sizing: border-box;
+            display: flex;
+            width: 100%;
+            height: 148px;
+            border-bottom: 1px solid var(--dark-background,#dadada);
+            border-top: 1px solid var(--dark-background,#dadada);
+        }
+        *{
+            box-sizing: border-box;
+            user-select: none;
+        }
+        .root{
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-rows: 100%;
+            grid-template-columns: 248px 1fr;
+            background: var(--dark-background4,#FFFFFF);
+        }
+        .total{
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr;
+            background-color: transparent;
+        }
+        .panel{
+            color: var(--dark-border,#dadada);
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            background-color: var(--dark-background4,#ffffff);
+        }
+        .time-div{
+            box-sizing: border-box;
+            width: 100%;
+            border-top: 1px solid var(--dark-background,#dadada);
+            height: 100%;display: flex;justify-content: space-between;
+            background-color: var(--dark-background1,white);
+            color: var(--dark-color1,#212121);
+            font-size: 0.7rem;
+            border-right: 1px solid var(--dark-background,#999);
+            padding: 2px 6px;
+            display: flex;
+            justify-content: space-between;
+            user-select: none;
+            position: relative;
+        }
+        .time-total::after{
+            content: " +";
+        }
+        .time-collect{
+            position:absolute;
+            right:5px;
+            bottom:5px;
+            color: #5291FF;
+            display: none;
+        }
+        .time-collect[close] > .time-collect-arrow{
+            transform: rotateZ(-180deg);
+        }
+        .collect_group{
+            position:absolute;
+            right:25px;
+            bottom:5px;
+            display: flex;
+            flex-direction: row;
+        }
+        .collect_div{
+            display: flex;
+            align-items: center;
+        }
+
+        </style>
+        <div class="root">
+            <div class="total">
+                <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6)"></div>
+                <div class="time-div">
+                    <span class="time-total">10</span>
+                    <span class="time-offset">0</span>
+                    <div class="time-collect">
+                        <lit-icon class="time-collect-arrow" name="caret-down" size="17"></lit-icon>
+                    </div>
+                    <div class="collect_group">
+                        <div class="collect_div">
+                            <input id="collect1" type="radio" style="cursor: pointer" checked name="collect_group" value="1"/>
+                            <label>G1</label>
+                        </div>
+                        <div class="collect_div">
+                            <input type="radio" style="cursor: pointer" name="collect_group" value="2"/>
+                            <label>G2</label>
+                        </div>
+                    </div>
+                    <collapse-button expand>123</collapse-button>
+                </div>
+            </div>
+            <canvas class="panel"></canvas>
+        </div>
+        `;
   }
 }

@@ -19,7 +19,7 @@
 #include <map>
 #include <string_view>
 #include <unordered_map>
-#include "double_map.h"
+
 #include "filter_base.h"
 #include "string_help.h"
 #include "trace_data_cache.h"

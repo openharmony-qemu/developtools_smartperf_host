@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { getTabProcessHistoryData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { ProcessHistory } from '../../../../bean/AbilityMonitor';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
-import { getTabProcessHistoryData } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-history-processes')
 export class TabPaneHistoryProcesses extends BaseElement {
@@ -30,11 +30,9 @@ export class TabPaneHistoryProcesses extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(historyProcessValue: SelectionParam | any) {
-    if (this.historyProcessTbl) {
-      // @ts-ignore
-      this.historyProcessTbl.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 45 + 'px';
-    }
+    // @ts-ignore
+    this.historyProcessTbl?.shadowRoot.querySelector('.table').style.height =
+      this.parentElement!.clientHeight - 45 + 'px';
     this.queryDataByDB(historyProcessValue);
   }
 
@@ -162,48 +160,68 @@ export class TabPaneHistoryProcesses extends BaseElement {
         `;
   }
 
-  compare(property: string, sort: number, type: string) {
-    let compareValues = (left: number, right: number) => {
-      if (sort === 2) {
-        return right - left;
-      } else {
-        return left - right;
-      }
-    };
-
-    return function (historyProcessLeftData: ProcessHistory, historyProcessRightData: ProcessHistory) {
-      if (type === 'number') {
-        // @ts-ignore
-        return compareValues(parseFloat(historyProcessLeftData[property]), parseFloat(historyProcessRightData[property]));
-      } else if (type === 'cpuTime' || type === 'lastSeen' || type === 'firstSeen') {
-        // @ts-ignore
-        return compareValues(historyProcessLeftData[type + 'Number'], historyProcessRightData[type + 'Number']);
-      } else if (type === 'alive') {
-        // @ts-ignore
-        let leftValue = historyProcessLeftData[property] === 'Yes' ? 1 : 0;
-        // @ts-ignore
-        let rightValue = historyProcessRightData[property] === 'Yes' ? 1 : 0;
-        return compareValues(leftValue, rightValue);
-      } else {
-        // @ts-ignore
-        return compareValues(historyProcessLeftData[property], historyProcessRightData[property]);
-      }
-    };
-  }
-
   sortByColumn(detail: any) {
-    let type;
-    if (detail.key === 'startTime' || detail.key === 'processName') {
-      type = 'string';
-    } else if (detail.key == 'cpuTime') {
-      type = 'cpuTime';
-    } else if (detail.key === 'alive') {
-      type = 'alive';
-    } else {
-      type = 'number';
+    // @ts-ignore
+    function compare(property, sort, type) {
+      return function (historyProcessLeftData: ProcessHistory, historyProcessRightData: ProcessHistory) {
+        if (type === 'number') {
+          return sort === 2
+            ? // @ts-ignore
+              parseFloat(historyProcessRightData[property]) - parseFloat(historyProcessLeftData[property])
+            : // @ts-ignore
+              parseFloat(historyProcessLeftData[property]) - parseFloat(historyProcessRightData[property]);
+        } else if (type === 'cpuTime') {
+          return sort === 2
+            ? historyProcessRightData.cpuTimeNumber - historyProcessLeftData.cpuTimeNumber
+            : historyProcessLeftData.cpuTimeNumber - historyProcessRightData.cpuTimeNumber;
+        } else if (type === 'lastSeen') {
+          return sort === 2
+            ? historyProcessRightData.lastSeenNumber - historyProcessLeftData.lastSeenNumber
+            : historyProcessLeftData.lastSeenNumber - historyProcessRightData.lastSeenNumber;
+        } else if (type === 'firstSeen') {
+          return sort === 2
+            ? historyProcessRightData.firstSeenNumber - historyProcessLeftData.firstSeenNumber
+            : historyProcessLeftData.firstSeenNumber - historyProcessRightData.firstSeenNumber;
+        } else if (type === 'alive') {
+          let aaaa = 0;
+          let bbbb = 0;
+          // @ts-ignore
+          if (historyProcessRightData[property] == 'Yes') {
+            bbbb = 1;
+          }
+          // @ts-ignore
+          if (historyProcessLeftData[property] == 'Yes') {
+            aaaa = 1;
+          }
+          if (aaaa - bbbb == 0) {
+            return 0;
+          }
+          return aaaa - bbbb ? -1 : 1;
+        } else {
+          // @ts-ignore
+          if (historyProcessRightData[property] > historyProcessLeftData[property]) {
+            return sort === 2 ? 1 : -1;
+          } else {
+            // @ts-ignore
+            if (historyProcessRightData[property] == historyProcessLeftData[property]) {
+              return 0;
+            } else {
+              return sort === 2 ? -1 : 1;
+            }
+          }
+        }
+      };
     }
-    let compareFunction = this.compare(detail.key, detail.sort, type);
-    this.historyProcessSource.sort(compareFunction);
+
+    if (detail.key === 'startTime' || detail.key === 'processName') {
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'string'));
+    } else if (detail.key == 'cpuTime') {
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'cpuTime'));
+    } else if (detail.key === 'alive') {
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'alive'));
+    } else {
+      this.historyProcessSource.sort(compare(detail.key, detail.sort, 'number'));
+    }
     this.historyProcessTbl!.recycleDataSource = this.historyProcessSource;
   }
 }

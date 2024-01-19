@@ -51,9 +51,9 @@ int32_t DataTypeTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         return SQLITE_OK;
     }
 
-    auto& dataTypeTabCs = fc.GetConstraints();
-    for (size_t i = 0; i < dataTypeTabCs.size(); i++) {
-        const auto& c = dataTypeTabCs[i];
+    auto& cs = fc.GetConstraints();
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -63,12 +63,12 @@ int32_t DataTypeTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         }
     }
 
-    auto dataTypeTabOrderbys = fc.GetOrderBys();
-    for (auto i = dataTypeTabOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(dataTypeTabOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(dataTypeTabOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;

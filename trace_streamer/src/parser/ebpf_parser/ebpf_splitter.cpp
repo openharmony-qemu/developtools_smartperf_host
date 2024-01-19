@@ -55,6 +55,7 @@ bool EbpfSplitter::SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer)
 
 bool EbpfSplitter::AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer)
 {
+
     if (!splitEbpfHeader_) {
         HtraceSplitResult ebpfHtraceHead = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
                                             .buffer = {.address = reinterpret_cast<uint8_t*>(&profilerHeader_),
@@ -82,13 +83,6 @@ bool EbpfSplitter::AddAndSplitEbpfData(std::deque<uint8_t>& dequeBuffer)
     }
     return false;
 }
-void EbpfSplitter::AppendSplitOriginSegResult(uint32_t segLen)
-{
-    HtraceSplitResult publicDataOffset{.type = (int32_t)SplitDataDataType::SPLIT_FILE_JSON,
-                                       .originSeg = {.offset = offsetOfEbpfDataInFile_ + splittedLen_, .size = segLen}};
-    usefulDataLen_ += segLen;
-    ebpfSplitResult_.emplace_back(publicDataOffset);
-}
 void EbpfSplitter::SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer)
 {
     while (profilerHeader_.data.length - sizeof(ProfilerTraceFileHeader) - splittedLen_ > EBPF_TITLE_SIZE &&
@@ -104,20 +98,53 @@ void EbpfSplitter::SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer)
             case ITEM_SYMBOL_INFO:
             case ITEM_EVENT_STR:
             case ITEM_EVENT_KENEL_SYMBOL_INFO: {
-                AppendSplitOriginSegResult(segLen);
-            } break;
+                HtraceSplitResult publicDataOffset = {
+                    .type = (int32_t)SplitDataDataType::SPLIT_FILE_JSON,
+                    .originSeg = {.offset = offsetOfEbpfDataInFile_ + splittedLen_, .size = segLen}};
+                ebpfSplitResult_.emplace_back(publicDataOffset);
+                usefulDataLen_ += segLen;
+                break;
+            }
             case ITEM_EVENT_FS: {
                 FsFixedHeader fsFixedHeader;
-                AppendSplitResultWithFixedHeader(segLen, dequeBuffer, fsFixedHeader);
-            } break;
+                std::copy_n(dequeBuffer.begin() + EBPF_TITLE_SIZE, sizeof(FsFixedHeader),
+                            reinterpret_cast<char*>(&fsFixedHeader));
+                if (fsFixedHeader.endTime <= splitFileMaxTs_ && fsFixedHeader.startTime >= splitFileMinTs_) {
+                    HtraceSplitResult fsDataOffset = {
+                        .type = (int32_t)SplitDataDataType::SPLIT_FILE_JSON,
+                        .originSeg = {.offset = offsetOfEbpfDataInFile_ + splittedLen_, .size = segLen}};
+                    ebpfSplitResult_.emplace_back(fsDataOffset);
+                    usefulDataLen_ += segLen;
+                }
+                break;
+            }
             case ITEM_EVENT_VM: {
                 PagedMemoryFixedHeader pagedMemoryFixedHeader;
-                AppendSplitResultWithFixedHeader(segLen, dequeBuffer, pagedMemoryFixedHeader);
-            } break;
+                std::copy_n(dequeBuffer.begin() + EBPF_TITLE_SIZE, sizeof(pagedMemoryFixedHeader),
+                            reinterpret_cast<char*>(&pagedMemoryFixedHeader));
+                if (pagedMemoryFixedHeader.endTime <= splitFileMaxTs_ &&
+                    pagedMemoryFixedHeader.startTime >= splitFileMinTs_) {
+                    HtraceSplitResult pagedMemoryOffset = {
+                        .type = (int32_t)SplitDataDataType::SPLIT_FILE_JSON,
+                        .originSeg = {.offset = offsetOfEbpfDataInFile_ + splittedLen_, .size = segLen}};
+                    ebpfSplitResult_.emplace_back(pagedMemoryOffset);
+                    usefulDataLen_ += segLen;
+                }
+                break;
+            }
             case ITEM_EVENT_BIO: {
                 BIOFixedHeader bioFixedHeader;
-                AppendSplitResultWithFixedHeader(segLen, dequeBuffer, bioFixedHeader);
-            } break;
+                std::copy_n(dequeBuffer.begin() + EBPF_TITLE_SIZE, sizeof(bioFixedHeader),
+                            reinterpret_cast<char*>(&bioFixedHeader));
+                if (bioFixedHeader.endTime <= splitFileMaxTs_ && bioFixedHeader.startTime >= splitFileMinTs_) {
+                    HtraceSplitResult bioDataOffset = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_JSON,
+                                                       .originSeg = {.offset = offsetOfEbpfDataInFile_ + splittedLen_,
+                                                                     .size = dataTitle.length + EBPF_TITLE_SIZE}};
+                    ebpfSplitResult_.emplace_back(bioDataOffset);
+                    usefulDataLen_ += segLen;
+                }
+                break;
+            }
             default:
                 TS_LOGI("Do not support EBPF type: %d, length: %d", dataTitle.type, dataTitle.length);
         }

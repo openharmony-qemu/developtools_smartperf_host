@@ -211,9 +211,13 @@ void AnimationFilter::UpdateDynamicFrameInfo()
 {
     std::smatch matcheLine;
     std::regex framePixPattern(R"((\d+),\s*(\d+),\s*(\d+),\s*(\d+)\)\s+Alpha:\s+-*(\d+\.\d+))");
+    uint64_t curStackRow;
+    uint64_t curFrameRow;
     for (const auto& it : callStackRowMap_) {
+        curStackRow = it.first;
+        curFrameRow = it.second;
         // update dynamicFrame pix, eg:H:RSUniRender::Process:[xxx] (0, 0, 1344, 2772) Alpha: 1.00
-        auto nameDataIndex = callStackSlice_->NamesData()[it.first];
+        auto nameDataIndex = callStackSlice_->NamesData()[curStackRow];
         const std::string& curStackName = traceDataCache_->GetDataFromDict(nameDataIndex);
         const std::string& funcArgs = curStackName.substr(frameBeginCmd_.size());
         if (!std::regex_search(funcArgs, matcheLine, framePixPattern)) {
@@ -221,9 +225,9 @@ void AnimationFilter::UpdateDynamicFrameInfo()
             continue;
         }
         dynamicFrame_->UpdatePosition(
-            it.second, matcheLine,
+            curFrameRow, matcheLine,
             traceDataCache_->GetDataIndex((matcheLine[DYNAMICFRAME_MATCH_LAST].str()))); // alpha
-        UpdateDynamicEndTime(it.second, it.first);
+        UpdateDynamicEndTime(curFrameRow, curStackRow);
     }
     TS_LOGI("UpdateDynamicFrame (%zu) endTime and pos finish", callStackRowMap_.size());
     // this can only be cleared by the UpdateDynamicFrameInfo function

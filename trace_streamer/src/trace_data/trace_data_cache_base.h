@@ -23,23 +23,8 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "activity_monitor_stdtype.h"
-#include "animation_stdtype.h"
-#include "app_startup_stdtype.h"
-#include "arkts_stdtype.h"
-#include "base_stdtype.h"
-#include "callstack_stdtype.h"
-#include "common_stdtype.h"
-#include "ebpf_stdtype.h"
-#include "hilog_stdtype.h"
-#include "hiperf_stdtype.h"
-#include "hisysevent_stdtype.h"
-#include "measure_stdtype.h"
-#include "native_memory_stdtype.h"
-#include "render_service_stdtype.h"
-#include "sched_stdtype.h"
-#include "syscall_stdtype.h"
-#include "task_pool_stdtype.h"
+#include "trace_stdtype.h"
+#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -118,6 +103,9 @@ public:
     ProcessMeasureFilter processMeasureFilterData_;
     ClockEventData clockEventFilterData_;
     ClkEventData clkEventFilterData_;
+    ProcessMeasureFilter processFilterData_;
+    ThreadMeasureFilter threadMeasureFilterData_;
+    ThreadMeasureFilter threadFilterData_;
     DataDict dataDict_;
 
     SchedSlice schedSliceData_;
@@ -157,6 +145,11 @@ public:
     FileSystemSample fileSamplingTableData_;
     EbpfCallStackData ebpfCallStackData_;
     PagedMemorySampleData pagedMemorySampleData_;
+#if WITH_EBPF_HELP
+    EbpfProcessMaps ebpfProcessMaps_;
+    EbpfElf ebpfElf_;
+    EbpfElfSymbol ebpfElfSymbol_;
+#endif
     HiSysEventSubkeys sysEventNameIds_;
     HiSysEventMeasureData sysEventMeasureData_;
     HiSysEventDeviceStateData deviceStateData_;
@@ -183,7 +176,7 @@ public:
     JsCpuProfilerSample jsCpuProfilerSampleData_;
     JsConfig jsConfigData_;
     AppStartup appStartupData_;
-    SoStaticInitalization soStaticInitalizationData_;
+    SoStaticInitalization staticInitalizationData_;
     Animation animation_;
     DeviceInfo deviceInfo_;
     DynamicFrame dynamicFrame_;

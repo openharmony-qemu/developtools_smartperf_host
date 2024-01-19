@@ -72,17 +72,17 @@ void ThreadStateTable::FilterByConstraint(FilterConstraints& statefc,
     }
 }
 
-bool ThreadStateTable::CanFilterSorted(const char op, size_t& threadRowCnt) const
+bool ThreadStateTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            threadRowCnt = threadRowCnt / log2(threadRowCnt);
+            rowCount = rowCount / log2(rowCount);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            threadRowCnt = (threadRowCnt >> 1);
+            rowCount = (rowCount >> 1);
             break;
         default:
             return false;
@@ -113,29 +113,6 @@ int32_t ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
     if (indexMap_->HasData()) {
         indexMapBack = std::make_unique<IndexMap>(0, rowCount_).get();
     }
-    HandleIndex(fc, argv, indexMapBack);
-    if (indexMap_->HasData()) {
-        indexMap_->Merge(indexMapBack);
-    }
-
-    auto ThreadStateOrderbys = fc.GetOrderBys();
-    for (auto i = ThreadStateOrderbys.size(); i > 0;) {
-        i--;
-        switch (static_cast<Index>(ThreadStateOrderbys[i].iColumn)) {
-            case Index::ID:
-            case Index::TS:
-                indexMap_->SortBy(ThreadStateOrderbys[i].desc);
-                break;
-            default:
-                break;
-        }
-    }
-
-    return SQLITE_OK;
-}
-
-void ThreadStateTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_value** argv, IndexMap* indexMapBack)
-{
     auto cs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
     SwapIndexFront(cs, sId);
@@ -182,6 +159,24 @@ void ThreadStateTable::Cursor::HandleIndex(const FilterConstraints& fc, sqlite3_
                 break;
         }
     }
+    if (indexMap_->HasData()) {
+        indexMap_->Merge(indexMapBack);
+    }
+
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
+        i--;
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
+            case Index::ID:
+            case Index::TS:
+                indexMap_->SortBy(orderbys[i].desc);
+                break;
+            default:
+                break;
+        }
+    }
+
+    return SQLITE_OK;
 }
 
 int32_t ThreadStateTable::Cursor::Column(int32_t col) const
@@ -197,7 +192,7 @@ int32_t ThreadStateTable::Cursor::Column(int32_t col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.TimeStamsData()[CurrentRow()]));
             break;
         case Index::DUR:
-            SetTypeColumnInt64(threadStateObj_.DursData()[CurrentRow()], INVALID_UINT64);
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]));
             break;
         case Index::CPU:
             if (threadStateObj_.CpusData()[CurrentRow()] != INVALID_CPU) {

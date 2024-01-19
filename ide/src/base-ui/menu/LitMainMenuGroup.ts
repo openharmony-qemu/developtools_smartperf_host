@@ -15,8 +15,74 @@
 
 import { BaseElement, element } from '../BaseElement';
 
-const initHtmlStyle:string = `
-    <style>
+@element('lit-main-menu-group')
+export class LitMainMenuGroup extends BaseElement {
+  protected _collapsed: boolean | undefined;
+  private groupNameEl: HTMLElement | null | undefined;
+  private groupDescEl: HTMLElement | null | undefined;
+  private group: HTMLElement | null | undefined;
+  private iconEl: HTMLElement | null | undefined;
+
+  static get observedAttributes() {
+    return ['title', 'describe', 'collapsed', 'nocollapse', 'radius', 'second', 'icon'];
+  }
+
+  get second() {
+    return this.hasAttribute('second');
+  }
+
+  set second(value: boolean) {
+    if (value) {
+      this.setAttribute('second', '');
+    } else {
+      this.removeAttribute('second');
+    }
+  }
+
+  get collapsed(): boolean {
+    return this.hasAttribute('collapsed');
+  }
+
+  set collapsed(value: boolean) {
+    if (value) {
+      this.setAttribute('collapsed', '');
+    } else {
+      this.removeAttribute('collapsed');
+    }
+  }
+
+  get nocollapsed() {
+    return this.hasAttribute('nocollapsed');
+  }
+
+  set nocollapsed(value: boolean) {
+    if (value) {
+      this.setAttribute('nocollapsed', '');
+    } else {
+      this.removeAttribute('nocollapsed');
+    }
+  }
+
+  get radius() {
+    return this.hasAttribute('radius');
+  }
+
+  initElements(): void {
+    this.groupNameEl = this.shadowRoot?.querySelector('.group-title');
+    this.groupDescEl = this.shadowRoot?.querySelector('.group-describe');
+    this.iconEl = this.shadowRoot?.querySelector('.icon');
+    this.group = this.shadowRoot?.querySelector('#group');
+    this.group!.addEventListener('click', (e) => {
+      if (this.nocollapsed) {
+        return;
+      }
+      this.collapsed = !this.collapsed;
+    });
+  }
+
+  initHtml(): string {
+    return `
+        <style>
         :host(:not([collapsed])){ 
             width: 248px;
             display: flex;
@@ -90,76 +156,6 @@ const initHtmlStyle:string = `
           transform: rotateZ(-90deg);
         }
         </style>
-    `;
-
-@element('lit-main-menu-group')
-export class LitMainMenuGroup extends BaseElement {
-  protected _collapsed: boolean | undefined;
-  private groupNameEl: HTMLElement | null | undefined;
-  private groupDescEl: HTMLElement | null | undefined;
-  private group: HTMLElement | null | undefined;
-  private iconEl: HTMLElement | null | undefined;
-
-  static get observedAttributes() {
-    return ['title', 'describe', 'collapsed', 'nocollapse', 'radius', 'second', 'icon'];
-  }
-
-  get second() {
-    return this.hasAttribute('second');
-  }
-
-  set second(value: boolean) {
-    if (value) {
-      this.setAttribute('second', '');
-    } else {
-      this.removeAttribute('second');
-    }
-  }
-
-  get collapsed(): boolean {
-    return this.hasAttribute('collapsed');
-  }
-
-  set collapsed(value: boolean) {
-    if (value) {
-      this.setAttribute('collapsed', '');
-    } else {
-      this.removeAttribute('collapsed');
-    }
-  }
-
-  get nocollapsed() {
-    return this.hasAttribute('nocollapsed');
-  }
-
-  set nocollapsed(value: boolean) {
-    if (value) {
-      this.setAttribute('nocollapsed', '');
-    } else {
-      this.removeAttribute('nocollapsed');
-    }
-  }
-
-  get radius() {
-    return this.hasAttribute('radius');
-  }
-
-  initElements(): void {
-    this.groupNameEl = this.shadowRoot?.querySelector('.group-title');
-    this.groupDescEl = this.shadowRoot?.querySelector('.group-describe');
-    this.iconEl = this.shadowRoot?.querySelector('.icon');
-    this.group = this.shadowRoot?.querySelector('#group');
-    this.group!.addEventListener('click', (e) => {
-      if (this.nocollapsed) {
-        return;
-      }
-      this.collapsed = !this.collapsed;
-    });
-  }
-
-  initHtml(): string {
-    return `
-        ${initHtmlStyle}
         <div id="group">
         <div class="group-name">
           <lit-icon class="icon" name="user" size="20"></lit-icon>

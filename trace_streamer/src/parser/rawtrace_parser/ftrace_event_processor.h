@@ -76,14 +76,6 @@ private:
     bool RegulatorDisable(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format);
     bool RegulatorDisableComplete(FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format);
 
-    void InterruptEventInitialization();
-    void ClockEventInitialization();
-    void CpuEventInitialization();
-    void LockEventInitialization();
-    void BinderEventInitialization();
-    void StackEventsInitialization();
-    void VoltageEventInitialization();
-
 private:
     FtraceEventProcessor();
     ~FtraceEventProcessor();

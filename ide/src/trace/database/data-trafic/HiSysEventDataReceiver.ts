@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TraficEnum } from './utils/QueryEnum';
+import { TraficEnum } from './QueryEnum';
 
 export const chartHiSysEventDataSql = (args: any): string => {
   return `
@@ -56,12 +56,12 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
   let depth = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
   res.forEach((it, index) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiSysEventData);
-    uid[index] = it.uid;
     id[index] = it.id;
     ts[index] = it.ts;
     pid[index] = it.pid;
     tid[index] = it.tid;
     seq[index] = it.seq;
+    uid[index] = it.uid;
     dur[index] = it.dur;
     depth[index] = it.depth;
   });
@@ -71,11 +71,11 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-            uid: uid.buffer,
             id: id.buffer,
             ts: ts.buffer,
             pid: pid.buffer,
             tid: tid.buffer,
+            uid: uid.buffer,
             seq: seq.buffer,
             dur: dur.buffer,
             depth: depth.buffer,

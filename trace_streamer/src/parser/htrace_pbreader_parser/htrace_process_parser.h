@@ -60,13 +60,13 @@ public:
         int32_t pssInfo;
     };
     struct CpuInfo {
-        CpuInfo(double cpuUsage, int32_t threadSum, uint64_t cpuTimeMs)
-            : cpuUsage(cpuUsage), threadSum(threadSum), cpuTimeMs(cpuTimeMs)
+        CpuInfo(double cpuUsage, int32_t threadSum, uint64_t cpu_time_ms)
+            : cpuUsage(cpuUsage), threadSum(threadSum), cpu_time_ms_(cpu_time_ms)
         {
         }
         double cpuUsage;
         int32_t threadSum;
-        uint64_t cpuTimeMs;
+        uint64_t cpu_time_ms_;
     };
     struct ProcessInfo {
         ProcessInfo(int32_t pid, const std::string& name, int32_t ppid, int32_t uid)

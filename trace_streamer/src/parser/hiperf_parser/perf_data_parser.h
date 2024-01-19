@@ -53,7 +53,7 @@ class PerfDataParser : public EventParserBase, public HtracePluginTimeParser {
 public:
     PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~PerfDataParser();
-    uint64_t InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuffer,
+    uint64_t InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer,
                                  uint64_t size,
                                  uint64_t offset,
                                  bool isSplitFile,
@@ -103,18 +103,8 @@ private:
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
     void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
     uint32_t UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample>& sample);
-    SplitPerfState DataLengthProcessing(const std::deque<uint8_t>& dequeBuffer,
-                                        perf_event_header& dataHeader,
-                                        uint64_t size,
-                                        uint64_t& processedLen,
-                                        bool& invalid);
     bool PerfSplitCallBack(std::unique_ptr<PerfEventRecord> record);
     uint64_t SplitPerfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size, uint64_t offset, bool isFinish);
-
-    uint64_t DataProcessingLength(const std::deque<uint8_t>& dequeBuffer,
-                                  uint64_t size,
-                                  uint64_t offset,
-                                  bool isFinish);
     bool SplitPerfStarting(const std::deque<uint8_t>& dequeBuffer,
                            uint64_t size,
                            uint64_t& processedLen,

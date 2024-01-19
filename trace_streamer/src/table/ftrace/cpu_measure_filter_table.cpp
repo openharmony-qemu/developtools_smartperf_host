@@ -58,17 +58,17 @@ void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& cpufc,
     }
 }
 
-bool CpuMeasureFilterTable::CanFilterSorted(const char op, size_t& cpuRowCount) const
+bool CpuMeasureFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            cpuRowCount = cpuRowCount / log2(cpuRowCount);
+            rowCount = rowCount / log2(rowCount);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            cpuRowCount = (cpuRowCount >> 1);
+            rowCount = (rowCount >> 1);
             break;
         default:
             return false;
@@ -98,9 +98,9 @@ int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto& cpuMeasureFilterCs = fc.GetConstraints();
-    for (size_t i = 0; i < cpuMeasureFilterCs.size(); i++) {
-        const auto& c = cpuMeasureFilterCs[i];
+    auto& cs = fc.GetConstraints();
+    for (size_t i = 0; i < cs.size(); i++) {
+        const auto& c = cs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterSorted(c.col, c.op, argv[i]);
@@ -113,12 +113,12 @@ int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         }
     }
 
-    auto cpuMeasureFilterTabOrderbys = fc.GetOrderBys();
-    for (auto i = cpuMeasureFilterTabOrderbys.size(); i > 0;) {
+    auto orderbys = fc.GetOrderBys();
+    for (auto i = orderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(cpuMeasureFilterTabOrderbys[i].iColumn)) {
+        switch (static_cast<Index>(orderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(cpuMeasureFilterTabOrderbys[i].desc);
+                indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
                 break;
@@ -153,20 +153,20 @@ int32_t CpuMeasureFilterTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char option, sqlite3_value* argv)
+void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, sqlite3_value* argv)
 {
-    auto valType = sqlite3_value_type(argv);
-    if (valType != SQLITE_INTEGER) {
-        // other valType consider it NULL, filter out nothing
+    auto type = sqlite3_value_type(argv);
+    if (type != SQLITE_INTEGER) {
+        // other type consider it NULL, filter out nothing
         indexMap_->Intersect(0, 0);
         return;
     }
 
-    switch (static_cast<Index>(columns)) {
+    switch (static_cast<Index>(col)) {
         case Index::ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
             auto getValue = [](const uint32_t& row) { return row; };
-            switch (option) {
+            switch (op) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
                     indexMap_->IntersectabcEqual(cpuMeasureObj_.IdsData(), v, getValue);
                     break;
@@ -184,7 +184,7 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char 
                 }
                 default:
                     break;
-            } // end of switch (option)
+            } // end of switch (op)
         }     // end of case TS
         default:
             // can't filter, all rows

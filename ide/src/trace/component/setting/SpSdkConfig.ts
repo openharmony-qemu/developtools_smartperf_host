@@ -21,7 +21,6 @@ import '../../../base-ui/switch/lit-switch';
 import LitSwitch, { LitSwitchChangeEvent } from '../../../base-ui/switch/lit-switch';
 import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { LitAllocationSelect } from '../../../base-ui/select/LitAllocationSelect';
-import { SpSdkConfigHtml } from './SpSdkConfig.html';
 
 @element('sp-sdk-config')
 export class SpSdkConfig extends BaseElement {
@@ -33,7 +32,7 @@ export class SpSdkConfig extends BaseElement {
   private pluginName: string = '';
   private sampleInterval: number = 5000;
 
-  static get observedAttributes(): string[] {
+  static get observedAttributes() {
     return ['configName', 'value', 'type'];
   }
 
@@ -62,7 +61,7 @@ export class SpSdkConfig extends BaseElement {
   }
 
   set configName(configName: string) {
-    if (configName !== '') {
+    if (configName != '') {
       this.setAttribute('configName', configName);
     } else {
       this.removeAttribute('configName');
@@ -78,7 +77,7 @@ export class SpSdkConfig extends BaseElement {
   }
 
   set type(type: string) {
-    if (type !== '') {
+    if (type != '') {
       this.setAttribute('type', type);
     } else {
       this.removeAttribute('type');
@@ -88,7 +87,7 @@ export class SpSdkConfig extends BaseElement {
   private wasmMap: Map<string, any> = new Map<string, any>();
   private wasmList: Array<string> = [];
 
-  private changGpu(gpuName: string): void {
+  private changGpu(gpuName: string) {
     let config = this.wasmMap.get(gpuName);
     this.pluginName = config?.pluginName;
     this.sampleInterval = config?.sampleInterval;
@@ -99,7 +98,7 @@ export class SpSdkConfig extends BaseElement {
       WasmName: config.wasmName,
     };
     this.worker!.postMessage(pam);
-    this.worker!.onmessage = (event: MessageEvent): void => {
+    this.worker!.onmessage = (event: MessageEvent) => {
       let results = event.data.results;
       this.sdkConfigList = results.settingConfig;
       this.initConfig();
@@ -141,7 +140,7 @@ export class SpSdkConfig extends BaseElement {
     return gpuConfig;
   }
 
-  private initSdkWasm(): void {
+  initElements(): void {
     try {
       let spApplication = document.querySelector<HTMLElement>('sp-application');
       let wasmJsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
@@ -163,8 +162,8 @@ export class SpSdkConfig extends BaseElement {
             });
           }
         })
-        ['catch'](() => {});
-      if (this.worker === null) {
+        .catch((err) => {});
+      if (this.worker == null) {
         // @ts-ignore
         if (window.useWb) {
           return;
@@ -172,10 +171,6 @@ export class SpSdkConfig extends BaseElement {
         this.worker = new Worker(new URL('../../database/ConfigWorker', import.meta.url));
       }
     } catch (e) {}
-  }
-
-  initElements(): void {
-    this.initSdkWasm();
     this.customConfig = this.shadowRoot?.querySelector<HTMLDivElement>('.configList');
     let switchButton = this.shadowRoot?.querySelector('.config_switch') as LitSwitch;
     switchButton.addEventListener('change', (event: CustomEventInit<LitSwitchChangeEvent>) => {
@@ -196,7 +191,7 @@ export class SpSdkConfig extends BaseElement {
         this.selectConfig!.processData = this.wasmList;
         this.selectConfig!.initData();
       });
-      inputDiv.addEventListener('valuable', () => {
+      inputDiv.addEventListener('valuable', (ev) => {
         this.changGpu(input!.value);
       });
     }
@@ -205,83 +200,13 @@ export class SpSdkConfig extends BaseElement {
     this.isAbleShowConfig(true);
   }
 
-
-  private sdkConfigByBooleanType(key: string, sdkConfigSwitch: LitSwitch, sdkConfigHeadDiv: HTMLDivElement): void {
-    sdkConfigSwitch.className = 'switch1 config';
-    sdkConfigSwitch.setAttribute('configName', key);
-    sdkConfigSwitch.setAttribute('type', this.sdkConfigList.configuration[key].type);
-    if (this.sdkConfigList.configuration[key]['default'] == 'true') {
-      sdkConfigSwitch.setAttribute('checked', '');
-      sdkConfigSwitch.setAttribute('value', 'true');
-    } else {
-      sdkConfigSwitch.removeAttribute('checked');
-      sdkConfigSwitch.setAttribute('value', 'false');
-    }
-    sdkConfigHeadDiv.appendChild(sdkConfigSwitch);
-    this.list!.push(sdkConfigSwitch);
-  }
-
-  private sdkConfigByIntegerType(key: string, sdkConfigDiv: HTMLDivElement, sdkConfigTitle: HTMLSpanElement): void {
-    let input = document.createElement('input');
-    input.className = 'sdk-config-input config';
-    if (this.sdkConfigList.configuration[key]['default']) {
-      input.value = this.sdkConfigList.configuration[key]['default'];
-    }
-    input.setAttribute('configName', key);
-    input.setAttribute('type', this.sdkConfigList.configuration[key].type);
-    input.oninput = (): void => {
-      input.value = this.checkIntegerInput(input.value);
-      sdkConfigTitle.setAttribute('value', input.value);
-    };
-    sdkConfigDiv.appendChild(input);
-    this.list!.push(input);
-  }
-
-  private sdkConfigByNumberType(key: string, sdkConfigDiv: HTMLDivElement): void {
-    let numberInput = document.createElement('input');
-    numberInput.className = 'sdk-config-input config';
-    if (this.sdkConfigList.configuration[key]['default']) {
-      numberInput.value = this.sdkConfigList.configuration[key]['default'];
-    }
-    numberInput.setAttribute('configName', key);
-    numberInput.setAttribute('type', 'num');
-    numberInput.oninput = (): void => {
-      numberInput.value = this.checkFloatInput(numberInput.value);
-    };
-    sdkConfigDiv.appendChild(numberInput);
-    this.list!.push(numberInput);
-  }
-
-  private sdkConfigByStringType(key: string, sdkConfigDiv: HTMLDivElement): void {
-    let html = '';
-    if (this.sdkConfigList.configuration[key]['enum']) {
-      let placeholder = '';
-      if (this.sdkConfigList.configuration[key]['default']) {
-        placeholder = this.sdkConfigList.configuration[key]['default'];
-      }
-      html += `<lit-select-v id="${key}" type="${this.sdkConfigList.configuration[key].type}" 
-default-value="" rounded="" class="sdk-config-select config" mode="multiple" canInsert="" 
-rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"></lit-select-v>`;
-      sdkConfigDiv.innerHTML = sdkConfigDiv.innerHTML + html;
-    } else {
-      let inputElement = document.createElement('input');
-      inputElement.className = 'sdk-config-input config';
-      if (this.sdkConfigList.configuration[key]['default']) {
-        inputElement.value = this.sdkConfigList.configuration[key]['default'];
-      }
-      inputElement.setAttribute('configName', key);
-      inputElement.setAttribute('type', this.sdkConfigList.configuration[key].type);
-      sdkConfigDiv.appendChild(inputElement);
-      this.list!.push(inputElement);
-    }
-  }
-
-  initConfig(): void {
+  initConfig() {
     this.customConfig!.innerHTML = '';
     this.list = [];
     this.list.push(this.selectConfig!);
     let sdkConfigSwitch = document.createElement('lit-switch') as LitSwitch;
     for (let key in this.sdkConfigList.configuration) {
+      let html = '';
       let sdkConfigDiv = document.createElement('div');
       sdkConfigDiv.className = 'sdk-config-div';
       let sdkConfigHeadDiv = document.createElement('div');
@@ -296,24 +221,77 @@ rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"><
       sdkConfigHeadDiv.appendChild(sdkConfigDes);
       switch (this.sdkConfigList.configuration[key].type) {
         case 'string':
-          this.sdkConfigByStringType(key, sdkConfigDiv);
+          if (this.sdkConfigList.configuration[key].enum) {
+            let placeholder = '';
+            if (this.sdkConfigList.configuration[key].default) {
+              placeholder = this.sdkConfigList.configuration[key].default;
+            }
+            html += `<lit-select-v id="${key}" type="${this.sdkConfigList.configuration[key].type}" default-value="" rounded="" class="sdk-config-select config" mode="multiple" canInsert="" rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"></lit-select-v>`;
+            sdkConfigDiv.innerHTML = sdkConfigDiv.innerHTML + html;
+          } else {
+            let inputElement = document.createElement('input');
+            inputElement.className = 'sdk-config-input config';
+            if (this.sdkConfigList.configuration[key].default) {
+              inputElement.value = this.sdkConfigList.configuration[key].default;
+            }
+            inputElement.setAttribute('configName', key);
+            inputElement.setAttribute('type', this.sdkConfigList.configuration[key].type);
+            sdkConfigDiv.appendChild(inputElement);
+            this.list.push(inputElement);
+          }
           break;
         case 'number':
-          this.sdkConfigByNumberType(key, sdkConfigDiv);
+          let numberInput = document.createElement('input');
+          numberInput.className = 'sdk-config-input config';
+          if (this.sdkConfigList.configuration[key].default) {
+            numberInput.value = this.sdkConfigList.configuration[key].default;
+          }
+          numberInput.setAttribute('configName', key);
+          numberInput.setAttribute('type', 'num');
+          numberInput.oninput = (ev) => {
+            let inputValue = this.checkFloatInput(numberInput.value);
+            numberInput.value = inputValue;
+          };
+          sdkConfigDiv.appendChild(numberInput);
+          this.list.push(numberInput);
           break;
         case 'integer':
-          this.sdkConfigByIntegerType(key, sdkConfigDiv, sdkConfigTitle);
+          let input = document.createElement('input');
+          input.className = 'sdk-config-input config';
+          if (this.sdkConfigList.configuration[key].default) {
+            input.value = this.sdkConfigList.configuration[key].default;
+          }
+          input.setAttribute('configName', key);
+          input.setAttribute('type', this.sdkConfigList.configuration[key].type);
+          input.oninput = (ev) => {
+            let inputValue = this.checkIntegerInput(input.value);
+            input.value = inputValue;
+            sdkConfigTitle.setAttribute('value', input.value);
+          };
+          sdkConfigDiv.appendChild(input);
+          this.list.push(input);
           break;
         case 'boolean':
-          this.sdkConfigByBooleanType(key, sdkConfigSwitch, sdkConfigHeadDiv);
+          sdkConfigSwitch.className = 'switch1 config';
+          sdkConfigSwitch.setAttribute('configName', key);
+          sdkConfigSwitch.setAttribute('type', this.sdkConfigList.configuration[key].type);
+          if (this.sdkConfigList.configuration[key].default == 'true') {
+            sdkConfigSwitch.setAttribute('checked', '');
+            sdkConfigSwitch.setAttribute('value', 'true');
+          } else {
+            sdkConfigSwitch.removeAttribute('checked');
+            sdkConfigSwitch.setAttribute('value', 'false');
+          }
+          sdkConfigHeadDiv.appendChild(sdkConfigSwitch);
+          this.list.push(sdkConfigSwitch);
           break;
       }
       this.customConfig!.appendChild(sdkConfigDiv);
-      if (this.sdkConfigList.configuration[key]['enum']) {
+      if (this.sdkConfigList.configuration[key].enum) {
         let select = this.shadowRoot!.querySelector<LitSelectV>(`#${key}`);
         select!.setAttribute('type', 'enum');
-        select!.setAttribute('value', this.sdkConfigList.configuration[key]['default']);
-        select!.dataSource(this.sdkConfigList.configuration[key]['enum'], '');
+        select!.setAttribute('value', this.sdkConfigList.configuration[key].default);
+        select!.dataSource(this.sdkConfigList.configuration[key].enum, '');
         this.list.push(select!);
         select!.addEventListener('click', () => {
           select!.setAttribute('value', select!.value);
@@ -321,7 +299,11 @@ rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"><
       }
     }
     sdkConfigSwitch.addEventListener('change', () => {
-      sdkConfigSwitch.setAttribute('value', `${sdkConfigSwitch.hasAttribute('checked')}`);
+      if (sdkConfigSwitch.hasAttribute('checked')) {
+        sdkConfigSwitch.setAttribute('value', 'true');
+      } else {
+        sdkConfigSwitch.setAttribute('value', 'false');
+      }
     });
   }
 
@@ -342,7 +324,7 @@ rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"><
     return inputValue.replace(/\.{2,}|-(0){2,}|(-)0+(\d+)/g, '.');
   }
 
-  isAbleShowConfig(isAbleShow: boolean): void {
+  isAbleShowConfig(isAbleShow: boolean) {
     if (this.list!) {
       if (isAbleShow) {
         this.list!.forEach((item) => {
@@ -357,6 +339,114 @@ rounded placement = "bottom" configName ="${key}" placeholder="${placeholder}"><
   }
 
   initHtml(): string {
-    return SpSdkConfigHtml;
+    return `
+        <style>
+        .sdk-config-div {
+           flex-direction: column;
+           width: 80%;
+           display: flex;
+           gap: 15px;
+        }
+        :host{
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
+        }
+        .root {
+            font-size:16px;
+            padding-left: 54px;
+            margin-right: 30px;
+            padding-top: 30px;
+            margin-bottom: 30px;
+        }
+        :host([show]) .sdk-config-div {
+           display: flex;
+           flex-direction: column;
+           margin-bottom: 1vh;
+        }
+
+        :host(:not([show])) .sdk-config-div {
+           margin-top: 5vh;
+           margin-bottom: 5vh;
+           gap: 25px;
+        }
+        
+        :host(:not([show])) .hidden {
+           display: none;
+        }
+
+        .sdk-config-title {
+          opacity: 0.9;
+          line-height: 40px;
+          font-family: Helvetica-Bold;
+          font-size: 18px;
+          text-align: center;
+          font-weight: 700;
+          margin-right: 10px;
+        }
+
+        .sdk-config-des {
+          opacity: 0.6;
+          font-family: Helvetica;
+          font-size: 14px;
+          text-align: center;
+          line-height: 35px;
+          font-weight: 400;
+        }
+
+        .sdk-config-select {
+          border-radius: 15px;
+        }
+
+        input {
+           height: 25px;
+           outline:none;
+           border-radius: 16px;
+           text-indent:2%
+        }
+        input::-webkit-input-placeholder{
+            color:var(--bark-prompt,#999999);
+        }
+        lit-switch {
+          display:inline;
+          float: right;
+          height: 38px;
+          margin-top: 10px;
+        }
+        .sdk-config-input {
+            border: 1px solid var(--dark-background5,#ccc);
+            font-family: Helvetica;
+            font-size: 14px;
+            color: var(--dark-color1,#212121);
+            text-align: left;
+            line-height: 20px;
+            font-weight: 400;
+        }
+        
+        :host([startSamp]) .sdk-config-input {
+            background: var(--dark-background5,#FFFFFF);
+        }
+        
+        :host(:not([startSamp])) .sdk-config-input {
+            color: var(--dark-color1,#212121);
+        }
+       
+        </style>
+        <div class="root">
+            <div class="sdk-config-div">
+                <div>
+                    <span class="sdk-config-title">Start Custom Config</span>
+                    <lit-switch class="config_switch" ></lit-switch>
+                </div>
+            </div>
+            <div class="sdk-config-div" id="select_config">
+                <lit-allocation-select show-search class="processSelect" rounded default-value="" id="pid" placement="bottom" style="width:100%"></lit-allocation-select>
+            </div>
+            <div class="configList">
+            </div>
+        </div>
+        `;
   }
 }

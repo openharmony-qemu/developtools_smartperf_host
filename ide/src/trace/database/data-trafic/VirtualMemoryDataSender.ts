@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { VirtualMemoryStruct } from '../ui-worker/ProcedureWorkerVirtualMemory';
@@ -33,6 +33,7 @@ export function virtualMemoryDataSender(
     threadPool.submitProto(
       QueryEnum.VirtualMemoryData,
       {
+        filterId: filterId,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -40,7 +41,6 @@ export function virtualMemoryDataSender(
         t: Date.now(),
         width: width,
         trafic: trafic,
-        filterId: filterId,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {
@@ -51,10 +51,10 @@ export function virtualMemoryDataSender(
 }
 
 function arrayBufferHandler(buffers: any, len: number) {
+  let outArr: VirtualMemoryStruct[] = [];
   let filterID = new Uint8Array(buffers.filterID);
   let value = new Int32Array(buffers.value);
   let startTime = new Float64Array(buffers.startTime);
-  let outArr: VirtualMemoryStruct[] = [];
   for (let i = 0; i < len; i++) {
     outArr.push({
       filterID: filterID[i],

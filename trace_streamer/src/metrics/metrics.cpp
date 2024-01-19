@@ -188,25 +188,69 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback)
     std::string repeateValue = "";
     switch (metricsIndex) {
         case METRICS_TRACE_MEM:
-            UpdataRepeateValueByTraceMem(repeateValue, metricsName);
+            metricsName = TRACE_MEM;
+            for (auto item : memStrategy_) {
+                repeateValue += PROCESS_METRICES + PROCESS_NAME + "\"" + item.processName + "\"," + OVERALL_COUNTERS +
+                                ANON_RSS + MIN + std::to_string(item.overallCounters.min) + "," + MAX +
+                                std::to_string(item.overallCounters.max) + "," + AVG +
+                                std::to_string(item.overallCounters.avg) + "}}},";
+            }
             break;
         case METRICS_TRACE_MEM_TOP_TEN:
-            UpdataRepeateValueByTopTen(repeateValue, metricsName);
+            metricsName = TRACE_MEM_TOP_TEN;
+            for (auto item : memStrategy_) {
+                repeateValue += PROCESS_METRICES + PROCESS_NAME + "\"" + item.processName + "\"," + OVERALL_COUNTERS +
+                                ANON_RSS + MIN + std::to_string(item.overallCounters.min) + "," + MAX +
+                                std::to_string(item.overallCounters.max) + "," + AVG +
+                                std::to_string(item.overallCounters.avg) + "}}},";
+            }
             break;
         case METRICS_TRACE_MEM_UNAGG:
-            UpdataRepeateValueByMemUnagg(repeateValue, metricsName);
+            metricsName = TRACE_MEM_UNAGG;
+            for (auto item : memAggStrategy_) {
+                repeateValue +=
+                    PROCESS_VALUES + PROCESS_NAME + "\"" + item.processName + "\"," + ANON_RSS + TS +
+                    std::to_string(item.anonRss.ts) + "," + OOM_SCORE + std::to_string(item.anonRss.oomScore) + "," +
+                    VALUE + std::to_string(item.anonRss.value) + "}," + FILE_RSS + TS +
+                    std::to_string(item.fileRss.ts) + "," + OOM_SCORE + std::to_string(item.fileRss.oomScore) + "," +
+                    VALUE + std::to_string(item.fileRss.value) + "}," + SWAP + TS + std::to_string(item.swap.ts) + "," +
+                    OOM_SCORE + std::to_string(item.swap.oomScore) + "," + VALUE + std::to_string(item.swap.value) +
+                    "}},";
+            }
             break;
         case METRICS_TRACE_TASK_NAMES:
-            UpdataRepeateValueByTaskNames(repeateValue, metricsName);
+            metricsName = TRACE_TASK_NAMES;
+            for (auto item : taskNameStrategy_) {
+                repeateValue +=
+                    PROCESS + PID + std::to_string(item.pid) + "," + PROCESS_NAME + "\"" + item.processName + "\",";
+                for (auto threadItem : item.threadName) {
+                    repeateValue += THREAD_NAME + "\"" + threadItem + "\",";
+                }
+                repeateValue.pop_back();
+                repeateValue += "},";
+            }
             break;
         case METRICS_TRACE_STATS:
-            UpdataRepeateValueByStats(repeateValue, metricsName);
+            metricsName = TRACE_STATS;
+            for (auto item : statStrategy_) {
+                repeateValue += STAT + NAME + "\"" + item.name + "\"," + COUNT + std::to_string(item.count) + "," +
+                                SOURCE + "\"" + item.source + "\"," + SEVERITY + "\"" + item.severity + "\"" + "},";
+            }
             break;
         case METRICS_TRACE_METADATA:
-            UpdataRepeateValueByMetadata(repeateValue, metricsName);
+            metricsName = TRACE_METADATA;
+            for (auto item : metaDataStrategy_) {
+                repeateValue +=
+                    TRACE_METADATA + ":{" + NAME + "\"" + item.name + "\"," + VALUE + "\"" + item.value + "\"" + "},";
+            }
             break;
         case METRICS_SYS_CALLS:
-            UpdataRepeateValueBySysCalls(repeateValue, metricsName);
+            metricsName = SYS_CALLS;
+            for (auto item : sysCallStrategy_) {
+                repeateValue += FUNCTION + FUNCTION_NAME + "\"" + item.functionName + "\"," + DUR_MAX +
+                                std::to_string(item.durMax) + "," + DUR_MIN + std::to_string(item.durMin) + "," +
+                                DUR_AVG + std::to_string(item.durAvg) + "},";
+            }
             break;
         default:
             break;
@@ -224,76 +268,6 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback)
     callback(str, SEND_FINISH);
 #endif
     return;
-}
-void Metrics::UpdataRepeateValueByTraceMem(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = TRACE_MEM;
-    for (auto item : memStrategy_) {
-        repeateValue += PROCESS_METRICES + PROCESS_NAME + "\"" + item.processName + "\"," + OVERALL_COUNTERS +
-                        ANON_RSS + MIN + std::to_string(item.overallCounters.min) + "," + MAX +
-                        std::to_string(item.overallCounters.max) + "," + AVG +
-                        std::to_string(item.overallCounters.avg) + "}}},";
-    }
-}
-void Metrics::UpdataRepeateValueByTopTen(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = TRACE_MEM_TOP_TEN;
-    for (auto item : memStrategy_) {
-        repeateValue += PROCESS_METRICES + PROCESS_NAME + "\"" + item.processName + "\"," + OVERALL_COUNTERS +
-                        ANON_RSS + MIN + std::to_string(item.overallCounters.min) + "," + MAX +
-                        std::to_string(item.overallCounters.max) + "," + AVG +
-                        std::to_string(item.overallCounters.avg) + "}}},";
-    }
-}
-void Metrics::UpdataRepeateValueByMemUnagg(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = TRACE_MEM_UNAGG;
-    for (auto item : memAggStrategy_) {
-        repeateValue += PROCESS_VALUES + PROCESS_NAME + "\"" + item.processName + "\"," + ANON_RSS + TS +
-                        std::to_string(item.anonRss.ts) + "," + OOM_SCORE + std::to_string(item.anonRss.oomScore) +
-                        "," + VALUE + std::to_string(item.anonRss.value) + "}," + FILE_RSS + TS +
-                        std::to_string(item.fileRss.ts) + "," + OOM_SCORE + std::to_string(item.fileRss.oomScore) +
-                        "," + VALUE + std::to_string(item.fileRss.value) + "}," + SWAP + TS +
-                        std::to_string(item.swap.ts) + "," + OOM_SCORE + std::to_string(item.swap.oomScore) + "," +
-                        VALUE + std::to_string(item.swap.value) + "}},";
-    }
-}
-void Metrics::UpdataRepeateValueByTaskNames(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = TRACE_TASK_NAMES;
-    for (auto item : taskNameStrategy_) {
-        repeateValue += PROCESS + PID + std::to_string(item.pid) + "," + PROCESS_NAME + "\"" + item.processName + "\",";
-        for (auto threadItem : item.threadName) {
-            repeateValue += THREAD_NAME + "\"" + threadItem + "\",";
-        }
-        repeateValue.pop_back();
-        repeateValue += "},";
-    }
-}
-void Metrics::UpdataRepeateValueByStats(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = TRACE_STATS;
-    for (auto item : statStrategy_) {
-        repeateValue += STAT + NAME + "\"" + item.name + "\"," + COUNT + std::to_string(item.count) + "," + SOURCE +
-                        "\"" + item.source + "\"," + SEVERITY + "\"" + item.severity + "\"" + "},";
-    }
-}
-void Metrics::UpdataRepeateValueByMetadata(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = TRACE_METADATA;
-    for (auto item : metaDataStrategy_) {
-        repeateValue +=
-            TRACE_METADATA + ":{" + NAME + "\"" + item.name + "\"," + VALUE + "\"" + item.value + "\"" + "},";
-    }
-}
-void Metrics::UpdataRepeateValueBySysCalls(std::string& repeateValue, std::string& metricsName)
-{
-    metricsName = SYS_CALLS;
-    for (auto item : sysCallStrategy_) {
-        repeateValue += FUNCTION + FUNCTION_NAME + "\"" + item.functionName + "\"," + DUR_MAX +
-                        std::to_string(item.durMax) + "," + DUR_MIN + std::to_string(item.durMin) + "," + DUR_AVG +
-                        std::to_string(item.durAvg) + "},";
-    }
 }
 std::string Metrics::GetLevelSpace(int level)
 {

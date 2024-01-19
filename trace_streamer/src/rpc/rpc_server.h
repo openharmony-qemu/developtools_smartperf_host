@@ -64,7 +64,7 @@ public:
                             uint32_t pageNum,
                             SplitFileCallBack splitFileCallBack);
     bool GetTimeSnap(std::string dataString);
-    const bool GetFfrtConvertStatus()
+    bool GetFfrtConvertStatus()
     {
         return ffrtConvertEnabled_;
     };
@@ -73,21 +73,17 @@ public:
     bool SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool ReadAndParseData(const std::string& filePath);
     bool SendConvertedFfrtFile(const std::string& fileName, ResultCallBack resultCallBack);
-    void CreateFilePath(const std::string& filePath);
-    bool WriteToFile(const std::string& fileName, const uint8_t* data, size_t len);
-    bool ClearPathFile(string& symbolsPath, int32_t finish, ParseELFFileCallBack& parseELFFile);
-    bool DownloadELFCallback(const std::string& fileName,
-                             size_t totalLen,
-                             const uint8_t* data,
-                             size_t len,
-                             int32_t finish,
-                             ParseELFFileCallBack parseELFFile);
+    int32_t DownloadELFCallback(const std::string& fileName,
+                                size_t totalLen,
+                                const uint8_t* data,
+                                size_t len,
+                                int32_t finish,
+                                ParseELFFileCallBack parseELFFile);
 #endif
     std::map<int32_t, std::string> g_thirdPartyConfig;
 
 private:
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
-    void ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack);
     bool SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 
 private:

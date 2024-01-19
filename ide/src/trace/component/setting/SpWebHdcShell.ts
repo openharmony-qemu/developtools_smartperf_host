@@ -85,11 +85,11 @@ export class SpWebHdcShell extends BaseElement {
         this.hdcShellFocus();
       }
     });
-    window.subscribe(window.SmartEvent.UI.DeviceDisConnect, () => {
+    window.subscribe(window.SmartEvent.UI.DeviceDisConnect, (deviceName: string) => {
       this.clear();
     });
     let that = this;
-    this.shellCanvas!.addEventListener('blur', function () {
+    this.shellCanvas!.addEventListener('blur', function (event) {
       if (that.intervalId) {
         window.clearInterval(that.intervalId);
       }
@@ -315,51 +315,6 @@ export class SpWebHdcShell extends BaseElement {
 
   private finalArr: Array<string> = [];
 
-  private drawShellPage(resultStrArr: string[]): void {
-    let maxWidth = this.shellCanvas!.width;
-    let foundationWidth = Math.ceil(this.shellCanvasCtx!.measureText(' ').width);
-    for (let index = 0; index < resultStrArr.length - 1; index++) {
-      let shellStr = resultStrArr[index];
-      let strWidth = this.shellCanvasCtx!.measureText(shellStr).width;
-      if (strWidth > maxWidth) {
-        let lines = this.singleLineToMultiLine(shellStr, foundationWidth, maxWidth - SpWebHdcShell.LEFT_OFFSET);
-        this.finalArr.push(...lines);
-      } else {
-        this.finalArr.push(shellStr);
-      }
-    }
-    if (this.finalArr.length > SpWebHdcShell.MAX_DISPLAY_ROWS) {
-      this.finalArr.splice(0, this.finalArr.length - SpWebHdcShell.MAX_DISPLAY_ROWS + 1);
-    }
-    this.shellCanvasCtx!.fillStyle = '#fff';
-    this.shellCanvasCtx!.font = '16px serif';
-    this.textY = SpWebHdcShell.TOP_OFFSET;
-    this.finalArr.push(this.cursorRow);
-    for (let index: number = 0; index < this.finalArr.length; index++) {
-      let shellStr: string = this.finalArr[index];
-      this.textY = SpWebHdcShell.TOP_OFFSET + index * 16;
-      this.shellCanvasCtx!.fillText(shellStr, SpWebHdcShell.LEFT_OFFSET, this.textY);
-    }
-  }
-
-  private drawCursorStyle(): void {
-    if (this.intervalId) {
-      window.clearInterval(this.intervalId);
-    }
-    let needClear = false;
-    this.intervalId = window.setInterval(() => {
-      if (needClear) {
-        needClear = false;
-        this.shellCanvasCtx!.fillStyle = '#000';
-        this.shellCanvasCtx!.fillRect(this.shellStrLength, this.textY, 12, 3);
-      } else {
-        needClear = true;
-        this.shellCanvasCtx!.fillStyle = '#fff';
-        this.shellCanvasCtx!.fillRect(this.shellStrLength, this.textY, 12, 3);
-      }
-    }, 500);
-  }
-
   refreshShellPage(scroller: boolean): void {
     try {
       if (this.resultStr.length === 0 && this.cursorRow.length === 0) {
@@ -374,16 +329,56 @@ export class SpWebHdcShell extends BaseElement {
       }
       this.finalArr = [];
       if (this.shellCanvas!.width > 0) {
-        this.drawShellPage(resultStrArr);
+        let maxWidth = this.shellCanvas!.width;
+        let foundationWidth = Math.ceil(this.shellCanvasCtx!.measureText(' ').width);
+        for (let i = 0; i < resultStrArr.length - 1; i++) {
+          let shellStr = resultStrArr[i];
+          let strWidth = this.shellCanvasCtx!.measureText(shellStr).width;
+          if (strWidth > maxWidth) {
+            let lines = this.singleLineToMultiLine(shellStr, foundationWidth, maxWidth - SpWebHdcShell.LEFT_OFFSET);
+            this.finalArr.push(...lines);
+          } else {
+            this.finalArr.push(shellStr);
+          }
+        }
+        if (this.finalArr.length > SpWebHdcShell.MAX_DISPLAY_ROWS) {
+          this.finalArr.splice(0, this.finalArr.length - SpWebHdcShell.MAX_DISPLAY_ROWS + 1);
+        }
+        let unitWidth: number = this.shellCanvasCtx!.measureText(' ').width;
+        this.shellCanvasCtx!.fillStyle = '#fff';
+        this.shellCanvasCtx!.font = '16px serif';
+        this.textY = SpWebHdcShell.TOP_OFFSET;
+        this.finalArr.push(this.cursorRow);
+        for (let index: number = 0; index < this.finalArr.length; index++) {
+          let shellStr: string = this.finalArr[index];
+          this.textY = SpWebHdcShell.TOP_OFFSET + index * 16;
+          this.shellCanvasCtx!.fillText(shellStr, SpWebHdcShell.LEFT_OFFSET, this.textY);
+        }
         this.shellStrLength =
           this.shellCanvasCtx!.measureText(this.cursorRow.slice(0, this.cursorIndex)).width + SpWebHdcShell.LEFT_OFFSET;
         // 记录前一次滚动条的位置
         this.prevTextY = this.shellDiv!.scrollTop + this.shellDiv!.clientHeight - 3;
-        if (scroller && this.textY > this.shellDiv!.clientHeight && this.textY > this.prevTextY) {
-          this.shellDiv!.scrollTop = this.textY - this.shellDiv!.clientHeight + 3;
-          this.currentScreenRemain = this.shellDiv!.scrollTop;
+        if (scroller) {
+          if (this.textY > this.shellDiv!.clientHeight && this.textY > this.prevTextY) {
+            this.shellDiv!.scrollTop = this.textY - this.shellDiv!.clientHeight + 3;
+            this.currentScreenRemain = this.shellDiv!.scrollTop;
+          }
         }
-        this.drawCursorStyle();
+        if (this.intervalId) {
+          window.clearInterval(this.intervalId);
+        }
+        let needClear = false;
+        this.intervalId = window.setInterval(() => {
+          if (needClear) {
+            needClear = false;
+            this.shellCanvasCtx!.fillStyle = '#000';
+            this.shellCanvasCtx!.fillRect(this.shellStrLength, this.textY, 12, 3);
+          } else {
+            needClear = true;
+            this.shellCanvasCtx!.fillStyle = '#fff';
+            this.shellCanvasCtx!.fillRect(this.shellStrLength, this.textY, 12, 3);
+          }
+        }, 500);
       }
     } catch (e) {}
   }
@@ -476,7 +471,22 @@ export class SpWebHdcShell extends BaseElement {
         }
         const arrayA = new Uint8Array(resData);
         if (arrayA[0] === 13 && arrayA[1] !== 10 && arrayA[1] !== 13) {
-          this.hdcRecvEnterAndBracket(arrayA, result);
+          const index = this.resultStr.lastIndexOf('\n');
+          const resultStrLength = this.resultStr.length;
+          if (index > -1 && resultStrLength > index) {
+            this.resultStr =
+              this.resultStr.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
+          } else {
+            if (this.resultStr.split('\n').length === 1) {
+              const index = this.cursorRow.lastIndexOf('\n');
+              this.cursorRow =
+                this.cursorRow.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
+              this.resultStr = this.cursorRow;
+            } else {
+              this.resultStr += result.getDataToString();
+            }
+          }
+          this.realTimeResult = '';
         } else if (this.isStartWidthArrayBuffer(arrayA, this.startRealTimeFlag)) {
           let lastIndex = this.getLastRestorationIndex(arrayA, this.endRealTimeFlag);
           this.realTimeResult = this.removeTextAndColorSequenceStr(
@@ -493,55 +503,32 @@ export class SpWebHdcShell extends BaseElement {
             this.resultStr += this.realTimeResult;
             this.startRealTime = false;
           }
-          this.hdcRecvRealMessage(result);
+          if (this.startRealTime) {
+            if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
+              this.realTimeResult += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
+            } else {
+              this.realTimeResult += result.getDataToString();
+            }
+            this.realTimeResult = this.removeTextAndColorSequenceStr(this.realTimeResult!);
+          } else {
+            this.realTimeResult = '';
+            if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
+              // 获取所有内容，不包括最后一行数据
+              this.resultStr = this.resultStr.substring(
+                0,
+                this.resultStr.lastIndexOf('\r\n') + SpWebHdcShell.LINE_BREAK_LENGTH
+              );
+              // 多行情况不能直接拼接返回数据
+              this.resultStr += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
+            } else {
+              this.resultStr += result.getDataToString();
+            }
+          }
         }
       }
       this.resultStr = this.removeTextAndColorSequenceStr(this.resultStr);
       this.refreshCurrentRow();
       this.refreshShellPage(true);
-    }
-  }
-
-  private hdcRecvEnterAndBracket(arrayA: Uint8Array, result: DataMessage): void {
-    const index = this.resultStr.lastIndexOf('\n');
-    const resultStrLength = this.resultStr.length;
-    if (index > -1 && resultStrLength > index) {
-      this.resultStr =
-        this.resultStr.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
-    } else {
-      if (this.resultStr.split('\n').length === 1) {
-        const index = this.cursorRow.lastIndexOf('\n');
-        this.cursorRow =
-          this.cursorRow.substring(0, index + 1) + this.textDecoder.decode(arrayA.slice(1, arrayA.length));
-        this.resultStr = this.cursorRow;
-      } else {
-        this.resultStr += result.getDataToString();
-      }
-    }
-    this.realTimeResult = '';
-  }
-
-  private hdcRecvRealMessage(result: DataMessage): void {
-    if (this.startRealTime) {
-      if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
-        this.realTimeResult += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
-      } else {
-        this.realTimeResult += result.getDataToString();
-      }
-      this.realTimeResult = this.removeTextAndColorSequenceStr(this.realTimeResult!);
-    } else {
-      this.realTimeResult = '';
-      if (result.getDataToString().includes(SpWebHdcShell.MULTI_LINE_FLAG)) {
-        // 获取所有内容，不包括最后一行数据
-        this.resultStr = this.resultStr.substring(
-          0,
-          this.resultStr.lastIndexOf('\r\n') + SpWebHdcShell.LINE_BREAK_LENGTH
-        );
-        // 多行情况不能直接拼接返回数据
-        this.resultStr += result.getDataToString().substring(result.getDataToString().indexOf('\r'));
-      } else {
-        this.resultStr += result.getDataToString();
-      }
     }
   }
 

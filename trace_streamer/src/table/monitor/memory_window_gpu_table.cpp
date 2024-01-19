@@ -59,9 +59,9 @@ MemoryWindowGpuTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase*
 
 MemoryWindowGpuTable::Cursor::~Cursor() {}
 
-int32_t MemoryWindowGpuTable::Cursor::Column(int32_t memWinGpuColumn) const
+int32_t MemoryWindowGpuTable::Cursor::Column(int32_t column) const
 {
-    switch (static_cast<Index>(memWinGpuColumn)) {
+    switch (static_cast<Index>(column)) {
         case Index::ID:
             sqlite3_result_int64(context_, GpuWindowMemDataObj_.IdsData()[CurrentRow()]);
             break;
@@ -95,7 +95,7 @@ int32_t MemoryWindowGpuTable::Cursor::Column(int32_t memWinGpuColumn) const
             }
             break;
         default:
-            TS_LOGF("Unregistered memWinGpuColumn : %d", memWinGpuColumn);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

@@ -16,8 +16,18 @@
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import './trace/TimerShaftElement';
 import './trace/base/TraceRow';
-import { threadPool } from '../database/SqlLite';
-import { TraceRow } from './trace/base/TraceRow';
+import {
+  queryBySelectAllocationOrReturn,
+  queryBySelectExecute,
+  queryEbpfSamplesCount,
+  querySceneSearchFunc,
+  querySearchFunc,
+  threadPool,
+  queryCpuKeyPathData,
+  queryTaskPoolRelationData,
+  queryTaskPoolOtherRelationData,
+} from '../database/SqlLite';
+import { RangeSelectStruct, TraceRow } from './trace/base/TraceRow';
 import { TimerShaftElement } from './trace/TimerShaftElement';
 import './trace/base/TraceSheet';
 import { TraceSheet } from './trace/base/TraceSheet';
@@ -29,7 +39,7 @@ import { Flag } from './trace/timer-shaft/Flag';
 import { SlicesTime, SportRuler } from './trace/timer-shaft/SportRuler';
 import { SpHiPerf } from './chart/SpHiPerf';
 import { SearchSdkBean } from '../bean/SearchFuncBean';
-import { info } from '../../log/Log';
+import { error, info } from '../../log/Log';
 import {
   drawFlagLineSegment,
   drawLines,
@@ -44,18 +54,18 @@ import {
   Rect,
 } from '../database/ui-worker/ProcedureWorkerCommon';
 import { SpChartManager } from './chart/SpChartManager';
-import { CpuStruct, WakeupBean } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
+import { CpuStruct, WakeupBean } from '../database/ui-worker/ProcedureWorkerCPU';
 import { ProcessStruct } from '../database/ui-worker/ProcedureWorkerProcess';
 import { CpuFreqStruct } from '../database/ui-worker/ProcedureWorkerFreq';
-import { CpuFreqLimitsStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitsStruct } from '../database/ui-worker/ProcedureWorkerCpuFreqLimits';
 import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread';
-import { FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
-import { CpuStateStruct } from '../database/ui-worker/cpu/ProcedureWorkerCpuState';
-import { HiPerfCpuStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
-import { HiPerfProcessStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
-import { HiPerfThreadStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
-import { HiPerfEventStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
-import { HiPerfReportStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfReport';
+import { func, FuncStruct } from '../database/ui-worker/ProcedureWorkerFunc';
+import { CpuStateStruct } from '../database/ui-worker/ProcedureWorkerCpuState';
+import { HiPerfCpuStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCPU';
+import { HiPerfProcessStruct } from '../database/ui-worker/ProcedureWorkerHiPerfProcess';
+import { HiPerfThreadStruct } from '../database/ui-worker/ProcedureWorkerHiPerfThread';
+import { HiPerfEventStruct } from '../database/ui-worker/ProcedureWorkerHiPerfEvent';
+import { HiPerfReportStruct } from '../database/ui-worker/ProcedureWorkerHiPerfReport';
 import { FpsStruct } from '../database/ui-worker/ProcedureWorkerFPS';
 import { CpuAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerCpuAbility';
 import { DiskAbilityMonitorStruct } from '../database/ui-worker/ProcedureWorkerDiskIoAbility';
@@ -64,6 +74,7 @@ import { NetworkAbilityMonitorStruct } from '../database/ui-worker/ProcedureWork
 import { ClockStruct } from '../database/ui-worker/ProcedureWorkerClock';
 import { Utils } from './trace/base/Utils';
 import { IrqStruct } from '../database/ui-worker/ProcedureWorkerIrq';
+import { JanksStruct } from '../bean/JanksStruct';
 import { JankStruct } from '../database/ui-worker/ProcedureWorkerJank';
 import { TabPaneCurrent } from './trace/sheet/TabPaneCurrent';
 import { HeapStruct } from '../database/ui-worker/ProcedureWorkerHeap';
@@ -78,48 +89,31 @@ import './trace/SpChartList';
 import { AppStartupStruct } from '../database/ui-worker/ProcedureWorkerAppStartup';
 import { AllAppStartupStruct } from '../database/ui-worker/ProcedureWorkerAllAppStartup';
 import { SoStruct } from '../database/ui-worker/ProcedureWorkerSoInit';
+import { TabPaneTaskFrames } from './trace/sheet/task/TabPaneTaskFrames';
+import { FlagsConfig } from './SpFlags';
 import { FrameDynamicStruct } from '../database/ui-worker/ProcedureWorkerFrameDynamic';
 import { FrameAnimationStruct } from '../database/ui-worker/ProcedureWorkerFrameAnimation';
 import { FrameSpacingStruct } from '../database/ui-worker/ProcedureWorkerFrameSpacing';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
+import { TabPaneSummary } from './trace/sheet/ark-ts/TabPaneSummary';
+import { JsCpuProfilerChartFrame } from '../bean/JsStruct';
 import { FileInfo } from '../../js-heap/model/UiStruct';
 import { SnapshotStruct } from '../database/ui-worker/ProcedureWorkerSnapshot';
+import { setSelectState, intersectData, isExistPidInArray } from './Utils';
 import { LogStruct } from '../database/ui-worker/ProcedureWorkerLog';
 import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample';
 import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample';
+import { LitSearch } from './trace/search/Search';
 import { TabPaneFlag } from './trace/timer-shaft/TabPaneFlag';
 import { LitTabpane } from '../../base-ui/tabs/lit-tabpane';
-import { HiPerfCallChartStruct } from '../database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
+import { HiPerfCallChartStruct } from '../database/ui-worker/ProcedureWorkerHiPerfCallChart';
 import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommon';
 import { searchCpuDataSender } from '../database/data-trafic/CpuDataSender';
-import { resetVSync } from './chart/VSync';
-import { QueryEnum } from '../database/data-trafic/utils/QueryEnum';
-import { SpSystemTraceHtml } from './SpSystemTrace.html';
-import { querySceneSearchFunc, querySearchFunc } from '../database/sql/Func.sql';
-import { queryCpuKeyPathData } from '../database/sql/Cpu.sql';
+import { type SpKeyboard } from '../component/SpKeyboard';
+import { enableVSync, resetVSync } from './chart/VSync';
+import {QueryEnum} from "../database/data-trafic/QueryEnum";
 import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
-import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime';
-import {
-  spSystemTraceInit,
-  spSystemTraceInitElement,
-  spSystemTraceInitPointToEvent,
-  spSystemTraceShowStruct,
-} from './SpSystemTrace.init';
-import {
-  spSystemTraceDrawJankLine,
-  spSystemTraceDrawTaskPollLine,
-  spSystemTraceDrawThreadLine,
-} from './SpSystemTrace.line';
-import spSystemTraceOnClickHandler, {
-  spSystemTraceDocumentOnClick,
-  spSystemTraceDocumentOnKeyDown,
-  SpSystemTraceDocumentOnKeyPress,
-  spSystemTraceDocumentOnKeyUp,
-  spSystemTraceDocumentOnMouseDown,
-  spSystemTraceDocumentOnMouseMove,
-  spSystemTraceDocumentOnMouseOut,
-  spSystemTraceDocumentOnMouseUp,
-} from './SpSystemTrace.event';
+import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime'
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -129,10 +123,6 @@ export class CurrentSlicesTime {
   startTime: number | undefined;
   endTime: number | undefined;
 }
-
-type HTMLDivElementAlias = HTMLDivElement | undefined | null;
-type FlagAlias = Flag | undefined | null;
-type SlicesTimeAlias = SlicesTime | undefined | null;
 
 @element('sp-system-trace')
 export class SpSystemTrace extends BaseElement {
@@ -154,11 +144,11 @@ export class SpSystemTrace extends BaseElement {
   times: Set<number> = new Set<number>();
   currentSlicesTime: CurrentSlicesTime = new CurrentSlicesTime();
   intersectionObserver: IntersectionObserver | undefined;
-  tipEL: HTMLDivElementAlias;
-  rowsEL: HTMLDivElementAlias;
-  rowsPaneEL: HTMLDivElementAlias;
+  tipEL: HTMLDivElement | undefined | null;
+  rowsEL: HTMLDivElement | undefined | null;
+  rowsPaneEL: HTMLDivElement | undefined | null;
   stateRowsId: Array<object> = [];
-  spacerEL: HTMLDivElementAlias;
+  spacerEL: HTMLDivElement | undefined | null;
   visibleRows: Array<TraceRow<any>> = [];
   invisibleRows: Array<TraceRow<any>> = [];
   collectRows: Array<TraceRow<any>> = [];
@@ -177,15 +167,15 @@ export class SpSystemTrace extends BaseElement {
   });
   static btnTimer: any = null;
   isMousePointInSheet = false;
-  hoverFlag: FlagAlias;
-  selectFlag: FlagAlias;
-  slicestime: SlicesTimeAlias;
+  hoverFlag: Flag | undefined | null = undefined;
+  selectFlag: Flag | undefined | null;
+  slicestime: SlicesTime | undefined | null = null;
   public timerShaftEL: TimerShaftElement | null | undefined;
-  public traceSheetEL: TraceSheet | undefined | null;
+  private traceSheetEL: TraceSheet | undefined | null;
   public rangeSelect!: RangeSelect;
   chartManager: SpChartManager | undefined | null;
-  loadTraceCompleted: boolean = false;
-  rangeTraceRow: Array<TraceRow<any>> | undefined = [];
+  private loadTraceCompleted: boolean = false;
+  private rangeTraceRow: Array<TraceRow<any>> | undefined = [];
   canvasFavoritePanelCtx: CanvasRenderingContext2D | null | undefined;
   canvasPanel: HTMLCanvasElement | null | undefined; //绘制取消收藏后泳道图
   canvasPanelCtx: CanvasRenderingContext2D | undefined | null;
@@ -193,17 +183,17 @@ export class SpSystemTrace extends BaseElement {
   public currentClickRow: HTMLDivElement | undefined | null;
   private litTabs: LitTabs | undefined | null;
   eventMap: any = {};
-  isSelectClick: boolean = false;
-  selectionParam: SelectionParam | undefined;
-  snapshotFiles: FileInfo | null | undefined;
-  tabCpuFreq: TabPaneFrequencySample | undefined | null;
-  tabCpuState: TabPaneCounterSample | undefined | null;
-  collapseAll: boolean = false;
-  currentCollectGroup: string = '1';
+  private isSelectClick: boolean = false;
+  private selectionParam: SelectionParam | undefined;
+  private snapshotFiles: FileInfo | null | undefined;
+  private tabCpuFreq: TabPaneFrequencySample | undefined | null;
+  private tabCpuState: TabPaneCounterSample | undefined | null;
+  private collapseAll: boolean = false;
+  private currentCollectGroup: string = '1';
   private _list: Array<SlicesTime> = [];
-  expandRowList: Array<TraceRow<any>> = [];
-  _slicesList: Array<SlicesTime> = [];
-  _flagList: Array<any> = [];
+  private expandRowList: Array<TraceRow<any>> = [];
+  private _slicesList: Array<SlicesTime> = [];
+  private _flagList: Array<any> = [];
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -234,7 +224,6 @@ export class SpSystemTrace extends BaseElement {
       }
     };
   }
-
   // 防抖处理
   debounce(fn: Function, ms: number, ev?: any): Function {
     let timerId: undefined | number;
@@ -279,7 +268,7 @@ export class SpSystemTrace extends BaseElement {
 
   removeLinkLinesByBusinessType(...businessTypes: string[]): void {
     this.linkNodes = this.linkNodes.filter((pointPair) => {
-      return businessTypes.indexOf(pointPair[0].business) <= -1;
+      return !(businessTypes.indexOf(pointPair[0].business) > -1);
     });
   }
 
@@ -302,11 +291,1169 @@ export class SpSystemTrace extends BaseElement {
   }
 
   initElements(): void {
-    spSystemTraceInitElement(this);
+    window.subscribe(window.SmartEvent.UI.LoadFinishFrame, () => this.drawAllLines());
+    this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet');
+    let rightButton: HTMLElement | null | undefined = this.traceSheetEL?.shadowRoot
+      ?.querySelector('#current-selection > tabpane-current-selection')
+      ?.shadowRoot?.querySelector('#rightButton');
+    let rightStar: HTMLElement | null | undefined = this.traceSheetEL?.shadowRoot
+      ?.querySelector('#current-selection > tabpane-current-selection')
+      ?.shadowRoot?.querySelector('#right-star');
+    this.tipEL = this.shadowRoot?.querySelector<HTMLDivElement>('.tip');
+    this.rowsPaneEL = this.shadowRoot?.querySelector<HTMLDivElement>('.rows-pane');
+    this.rowsEL = this.rowsPaneEL;
+    this.spacerEL = this.shadowRoot?.querySelector<HTMLDivElement>('.spacer');
+    this.timerShaftEL = this.shadowRoot?.querySelector('.timer-shaft');
+    this.favoriteChartListEL = this.shadowRoot?.querySelector('#favorite-chart-list');
+    this.tabCpuFreq = this.traceSheetEL?.shadowRoot?.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
+    this.tabCpuState = this.traceSheetEL?.shadowRoot?.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
+    this.rangeSelect = new RangeSelect(this);
+    rightButton?.addEventListener('click', (event: any) => {
+      if (SpSystemTrace.btnTimer) {
+        return;
+      }
+      // 唤醒树有值则不再重复添加
+      const startIndex = CpuStruct.selectCpuStruct!.displayProcess?.indexOf('[');
+      if (SpSystemTrace.wakeupList.length === 0) {
+        SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
+        this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
+        CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
+        CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
+        CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
+        CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+        CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
+        sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
+      } else {
+        this.wakeupListNull();
+        SpSystemTrace.wakeupList.unshift(CpuStruct.wakeupBean!);
+        this.queryCPUWakeUpList(CpuStruct.wakeupBean!);
+        CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
+        CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
+        CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
+        CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+        CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
+        sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
+      }
+      setTimeout(() => {
+        requestAnimationFrame(() => this.refreshCanvas(false));
+      }, 300);
+      rightStar!.style.visibility = 'visible';
+      rightStar!.style.cursor = 'pointer';
+      SpSystemTrace.btnTimer = setTimeout(() => {
+        SpSystemTrace.btnTimer = null; // 2.清空节流阀，方便下次开启定时器
+      }, 2000);
+    });
+    rightStar?.addEventListener('click', () => {
+      let wakeupLists = [];
+      wakeupLists.push(CpuStruct.selectCpuStruct?.cpu);
+      for (let i = 0; i < SpSystemTrace.wakeupList.length; i++) {
+        wakeupLists.push(SpSystemTrace.wakeupList[i].cpu);
+      }
+      let wakeupCpuLists = Array.from(new Set(wakeupLists)).sort();
+      for (let i = 0; i < wakeupCpuLists.length; i++) {
+        let cpuFavoriteRow: any = this.shadowRoot?.querySelector<TraceRow<any>>(
+          `trace-row[row-type='cpu-data'][row-id='${wakeupCpuLists[i]}']`
+        );
+        if (cpuFavoriteRow === null || cpuFavoriteRow === undefined) {
+          continue;
+        }
+        cpuFavoriteRow!.setAttribute('collect-type', '');
+        let replaceRow = document.createElement('div');
+        replaceRow.setAttribute('row-id', cpuFavoriteRow.rowId + '-' + cpuFavoriteRow.rowType);
+        replaceRow.setAttribute('type', 'replaceRow');
+        replaceRow.setAttribute('row-parent-id', cpuFavoriteRow.rowParentId);
+        replaceRow.style.display = 'none';
+        cpuFavoriteRow.rowHidden = !cpuFavoriteRow.hasAttribute('scene');
+        if (this.rowsEL!.contains(cpuFavoriteRow)) {
+          this.rowsEL!.replaceChild(replaceRow, cpuFavoriteRow);
+        }
+        cpuFavoriteRow.tampName = cpuFavoriteRow.name;
+        this.favoriteChartListEL!.insertRow(cpuFavoriteRow, this.currentCollectGroup, true);
+        this.collectRows.push(cpuFavoriteRow);
+        this.timerShaftEL?.displayCollect(this.collectRows.length !== 0);
+        this.currentClickRow = null;
+        cpuFavoriteRow.setAttribute('draggable', 'true');
+        cpuFavoriteRow.addEventListener('dragstart', () => {
+          this.currentClickRow = cpuFavoriteRow;
+        });
+        cpuFavoriteRow.addEventListener('dragover', (ev: any) => {
+          ev.preventDefault();
+          ev.dataTransfer.dropEffect = 'move';
+        });
+        cpuFavoriteRow.addEventListener('drop', (ev: any) => {
+          if (
+            this.favoriteChartListEL != null &&
+            this.currentClickRow != null &&
+            this.currentClickRow !== cpuFavoriteRow
+          ) {
+            let rect = cpuFavoriteRow.getBoundingClientRect();
+            if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {
+              //向上移动
+              this.favoriteChartListEL.insertRowBefore(this.currentClickRow, cpuFavoriteRow);
+            } else if (ev.clientY <= rect.bottom && ev.clientY > rect.top + rect.height / 2) {
+              //向下移动
+              this.favoriteChartListEL.insertRowBefore(this.currentClickRow, cpuFavoriteRow.nextSibling);
+            }
+            this.refreshFavoriteCanvas();
+          }
+        });
+        cpuFavoriteRow.addEventListener('dragend', () => {
+          this.linkNodes.forEach((itln) => {
+            if (itln[0].rowEL.collect) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+            } else {
+              itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+            }
+            if (itln[1].rowEL.collect) {
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+            } else {
+              itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+            }
+            itln[0].y = itln[0].rowEL.translateY + itln[0].offsetY;
+            itln[1].y = itln[1].rowEL.translateY + itln[1].offsetY;
+          });
+          this.currentClickRow = null;
+        });
+      }
+      this.refreshFavoriteCanvas();
+      this.refreshCanvas(true);
+    });
+    document?.addEventListener('triangle-flag', (event: any) => {
+      let temporaryTime = this.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
+      if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
+    });
+
+    document?.addEventListener('number_calibration', (event: any) => {
+      this.timerShaftEL!.sportRuler!.times = event.detail.time;
+      this.timerShaftEL!.sportRuler!.counts = event.detail.counts;
+      this.timerShaftEL!.sportRuler!.durations = event.detail.durations;
+      this.timerShaftEL!.sportRuler?.draw();
+    });
+
+    document?.addEventListener('flag-change', (event: any) => {
+      this.timerShaftEL?.modifyFlagList(event.detail);
+      if (event.detail.hidden) {
+        this.selectFlag = undefined;
+        if (this._flagList.length <= 0) {
+          if (TraceRow.rangeSelectObject) {
+            let showTab = this.getShowTab();
+            showTab = showTab.filter((it) => it !== 'box-flag');
+            this.traceSheetEL?.displayTab(...showTab);
+          } else {
+            this.traceSheetEL?.setAttribute('mode', 'hidden');
+          }
+        }
+        this.refreshCanvas(true);
+      }
+    });
+    document?.addEventListener('slices-change', (event: any) => {
+      this.timerShaftEL?.modifySlicesList(event.detail);
+      if (event.detail.hidden) {
+        this.slicestime = null;
+        if (this._slicesList.length <= 0) {
+          if (TraceRow.rangeSelectObject) {
+            let showTab = this.getShowTab();
+            showTab = showTab.filter((it) => it !== 'tabpane-current');
+            this.traceSheetEL?.displayTab(...showTab);
+          } else {
+            this.traceSheetEL?.setAttribute('mode', 'hidden');
+          }
+        }
+        this.refreshCanvas(true);
+      }
+    });
+    if (this.timerShaftEL?.collecBtn) {
+      this.timerShaftEL.collecBtn.onclick = () => {
+        if (this.timerShaftEL!.collecBtn!.hasAttribute('close')) {
+          this.timerShaftEL!.collecBtn!.removeAttribute('close');
+          this.favoriteChartListEL?.showCollectArea();
+        } else {
+          this.timerShaftEL!.collecBtn!.setAttribute('close', '');
+          this.favoriteChartListEL?.hideCollectArea();
+        }
+      };
+    }
+    document?.addEventListener('collect', (event: any) => {
+      let currentRow = event.detail.row;
+      if (currentRow.collect) {
+        if (
+          !this.collectRows.find((find) => {
+            return find === currentRow;
+          })
+        ) {
+          this.collectRows.push(currentRow);
+        }
+        let replaceRow = document.createElement('div');
+        replaceRow.setAttribute('row-id', currentRow.rowId + '-' + currentRow.rowType);
+        replaceRow.setAttribute('type', 'replaceRow');
+        replaceRow.setAttribute('row-parent-id', currentRow.rowParentId);
+        replaceRow.style.display = 'none';
+        if (!currentRow.hasAttribute('scene')) {
+          currentRow.setAttribute('row-hidden', '');
+        } else {
+          currentRow.removeAttribute('row-hidden');
+        }
+        // 添加收藏时，在线程名前面追加父亲ID
+        let rowParentId = currentRow.rowParentId;
+        currentRow.tampName = currentRow.name;
+        if (rowParentId) {
+          let parentRows = this.shadowRoot?.querySelectorAll<TraceRow<any>>(`trace-row[row-id='${rowParentId}']`);
+          parentRows?.forEach((parentRow) => {
+            if (
+              parentRow?.name &&
+              parentRow?.name != currentRow.name &&
+              !parentRow.rowType!.startsWith('cpu') &&
+              !parentRow.rowType!.startsWith('thread') &&
+              !parentRow.rowType!.startsWith('func') &&
+              !currentRow.name.includes(parentRow.name)
+            ) {
+              currentRow.name += '(' + parentRow.name + ')';
+            }
+          });
+        }
+        if (!currentRow.hasParentRowEl) {
+          this.rowsEL!.replaceChild(replaceRow, currentRow);
+        }
+        this.favoriteChartListEL?.insertRow(currentRow, this.currentCollectGroup, event.detail.type !== 'auto-collect');
+      } else {
+        this.favoriteChartListEL?.deleteRow(currentRow, event.detail.type !== 'auto-collect');
+        if (event.detail.type !== 'auto-collect') {
+          let rowIndex = this.collectRows.indexOf(currentRow);
+          if (rowIndex !== -1) {
+            this.collectRows.splice(rowIndex, 1);
+          }
+        }
+        let row = currentRow;
+        let allowExpansionRow = [];
+        while (row.hasParentRowEl) {
+          let parent = row.parentRowEl;
+          allowExpansionRow.push(parent);
+          row = parent;
+        }
+        for (let index: number = allowExpansionRow.length - 1; index >= 0; index--) {
+          if (allowExpansionRow[index]?.hasAttribute('scene')) {
+            if (allowExpansionRow[index]!.expansion) {
+              allowExpansionRow[index].updateChildRowStatus();
+            } else {
+              allowExpansionRow[index].expansion = true;
+            }
+          }
+        }
+        allowExpansionRow.length = 0;
+        let replaceRow = this.rowsEL!.querySelector<HTMLCanvasElement>(
+          `div[row-id='${currentRow.rowId}-${currentRow.rowType}']`
+        );
+        // 取消收藏时，删除父亲ID
+        currentRow.name = currentRow.tampName;
+        if (replaceRow != null) {
+          this.rowsEL!.replaceChild(currentRow, replaceRow);
+          currentRow.style.boxShadow = `0 10px 10px #00000000`;
+        }
+      }
+      this.timerShaftEL?.displayCollect(this.collectRows.length !== 0);
+      this.refreshFavoriteCanvas();
+      this.refreshCanvas(true);
+      this.linkNodes.forEach((itln) => {
+        if (itln[0].rowEL === currentRow) {
+          if (itln[0].rowEL.collect) {
+            itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+          } else {
+            itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+          }
+          itln[0].y = itln[0].rowEL.translateY + itln[0].offsetY;
+        } else if (itln[1].rowEL === currentRow) {
+          if (itln[1].rowEL.collect) {
+            itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+          } else {
+            itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+          }
+          itln[1].y = itln[1].rowEL.translateY + itln[1].offsetY;
+        }
+      });
+      // 收藏夹元素拖动排序功能
+      this.currentClickRow = null;
+      currentRow.setAttribute('draggable', 'true');
+      currentRow.addEventListener('dragstart', () => {
+        this.currentClickRow = currentRow;
+      });
+      currentRow.addEventListener('dragover', (ev: any) => {
+        ev.preventDefault();
+        ev.dataTransfer.dropEffect = 'move';
+      });
+      currentRow.addEventListener('drop', (ev: any) => {
+        if (this.favoriteChartListEL !== null && this.currentClickRow !== null && this.currentClickRow !== currentRow) {
+          let rect = currentRow.getBoundingClientRect();
+          if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {
+            //向上移动
+            this.favoriteChartListEL!.insertRowBefore(this.currentClickRow!, currentRow);
+          } else if (ev.clientY <= rect.bottom && ev.clientY > rect.top + rect.height / 2) {
+            //向下移动
+            this.favoriteChartListEL!.insertRowBefore(this.currentClickRow!, currentRow.nextSibling);
+          }
+          this.refreshFavoriteCanvas();
+        }
+      });
+      currentRow.addEventListener('dragend', () => {
+        this.linkNodes.forEach((itln) => {
+          if (itln[0].rowEL.collect) {
+            itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+          } else {
+            itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+          }
+          if (itln[1].rowEL.collect) {
+            itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+          } else {
+            itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+          }
+          itln[0].y = itln[0].rowEL.translateY + itln[0].offsetY;
+          itln[1].y = itln[1].rowEL.translateY + itln[1].offsetY;
+        });
+        this.currentClickRow = null;
+      });
+    });
+    SpSystemTrace.scrollViewWidth = this.getScrollWidth();
+    this.rangeSelect.selectHandler = (rows, refreshCheckBox): void => {
+      rows.forEach((item) => {
+        this.setAttribute('clickRow', item.rowType!);
+        this.setAttribute('rowName', item.name);
+        this.setAttribute('rowId', item.rowId!);
+      });
+      if (rows.length == 0) {
+        const allRows = [
+          ...this.shadowRoot!.querySelectorAll<TraceRow<any>>('trace-row'),
+          ...this.favoriteChartListEL!.getAllCollectRows(),
+        ];
+        for (const row of allRows) {
+          row.checkType = '-1';
+          if (row.folder) {
+            row.childrenList.forEach((item) => {
+              row.checkType = '-1';
+            });
+          }
+        }
+        this.refreshCanvas(true);
+        if (!SportRuler.isMouseInSportRuler) {
+          this.traceSheetEL?.setAttribute('mode', 'hidden');
+        }
+        return;
+      }
+      if (refreshCheckBox) {
+        if (rows.length > 0) {
+          this.queryAllTraceRow().forEach((row) => {
+            row.checkType = '0';
+            if (row.folder) {
+              row.childrenList.forEach((ite) => {
+                ite.checkType = '0';
+              });
+            }
+          });
+          rows.forEach((it) => {
+            it.checkType = '2';
+          });
+        } else {
+          this.queryAllTraceRow().forEach((row) => {
+            row.checkType = '-1';
+            if (row.folder) {
+              row.childrenList.forEach((it) => {
+                it.checkType = '-1';
+              });
+            }
+          });
+          return;
+        }
+      }
+      if (!this.isSelectClick) {
+        this.rangeTraceRow = [];
+      }
+      let selection = new SelectionParam();
+      selection.cpuStateRowsId = this.stateRowsId;
+      selection.leftNs = TraceRow.rangeSelectObject?.startNS || 0;
+      selection.rightNs = TraceRow.rangeSelectObject?.endNS || 0;
+      selection.recordStartNs = (window as any).recordStartNS;
+      rows.forEach((it) => {
+        if (it.rowType == TraceRow.ROW_TYPE_CPU) {
+          selection.cpus.push(parseInt(it.rowId!));
+          info('load CPU traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_CPU_STATE) {
+          let filterId = parseInt(it.rowId!);
+          if (selection.cpuStateFilterIds.indexOf(filterId) == -1) {
+            selection.cpuStateFilterIds.push(filterId);
+          }
+        } else if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ) {
+          let filterId = parseInt(it.rowId!);
+          let filterName = it.name!;
+          if (selection.cpuFreqFilterIds.indexOf(filterId) == -1) {
+            selection.cpuFreqFilterIds.push(filterId);
+          }
+          if (selection.cpuFreqFilterNames.indexOf(filterName) == -1) {
+            selection.cpuFreqFilterNames.push(filterName);
+          }
+        } else if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ_LIMIT) {
+          selection.cpuFreqLimit.push({
+            maxFilterId: it.getAttribute('maxFilterId'),
+            minFilterId: it.getAttribute('minFilterId'),
+            cpu: it.getAttribute('cpu'),
+          });
+          // selection.cpuFreqLimitDatas.push(it.dataList!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_PROCESS) {
+          this.pushPidToSelection(selection, it.rowId!);
+          if (it.getAttribute('hasStartup') === 'true') {
+            selection.startup = true;
+          }
+          if (it.getAttribute('hasStaticInit') === 'true') {
+            selection.staticInit = true;
+          }
+          let processChildRows: Array<TraceRow<any>> = [
+            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+          ];
+          if (!it.expansion) {
+            processChildRows = [...it.childrenList];
+          }
+          processChildRows.forEach((th) => {
+            th.rangeSelect = true;
+            th.checkType = '2';
+            if (th.rowType == TraceRow.ROW_TYPE_THREAD) {
+              selection.threadIds.push(parseInt(th.rowId!));
+            } else if (th.rowType == TraceRow.ROW_TYPE_FUNC) {
+              if (th.asyncFuncName) {
+                selection.funAsync.push({
+                  name: th.asyncFuncName,
+                  pid: th.asyncFuncNamePID || 0,
+                });
+              } else {
+                selection.funTids.push(parseInt(th.rowId!));
+              }
+            } else if (th.rowType == TraceRow.ROW_TYPE_MEM) {
+              selection.processTrackIds.push(parseInt(th.rowId!));
+            }
+          });
+          info('load process traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_NATIVE_MEMORY) {
+          let memoryRows: Array<TraceRow<any>> = [
+            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+          ];
+          if (!it.expansion) {
+            memoryRows = [...it.childrenList];
+          }
+          const rowKey = it.rowId!.split(' ');
+          const process = {
+            ipid: Number(rowKey[rowKey.length - 1]),
+            pid: Number(rowKey[rowKey.length - 2]),
+          };
+          if (!isExistPidInArray(selection.nativeMemoryAllProcess, process.pid)) {
+            selection.nativeMemoryAllProcess.push(process);
+          }
+          if (selection.nativeMemoryCurrentIPid === -1) {
+            selection.nativeMemoryCurrentIPid = process.ipid;
+          }
+          memoryRows.forEach((th) => {
+            th.rangeSelect = true;
+            th.checkType = '2';
+            if (th.getAttribute('heap-type') === 'native_hook_statistic') {
+              selection.nativeMemoryStatistic.push(th.rowId!);
+            } else {
+              selection.nativeMemory.push(th.rowId!);
+            }
+          });
+          info('load nativeMemory traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_STATIC_INIT) {
+          selection.staticInit = true;
+          this.pushPidToSelection(selection, it.rowParentId!);
+          info('load thread traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_APP_STARTUP) {
+          selection.startup = true;
+          this.pushPidToSelection(selection, it.rowParentId!);
+          info('load thread traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_THREAD) {
+          this.pushPidToSelection(selection, it.rowParentId!);
+          selection.threadIds.push(parseInt(it.rowId!));
+          info('load thread traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_FUNC) {
+          TabPaneTaskFrames.TaskArray = [];
+          this.pushPidToSelection(selection, it.rowParentId!);
+          if (it.asyncFuncName) {
+            selection.funAsync.push({
+              name: it.asyncFuncName,
+              pid: it.asyncFuncNamePID || 0,
+            });
+          } else {
+            selection.funTids.push(parseInt(it.rowId!));
+          }
+
+          let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
+            Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
+              Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+            filterFunc.funName!.indexOf('H:Task ') >= 0;
+          let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
+            taskData!.tid = parseInt(it.rowId!);
+            return isIntersect(taskData, TraceRow.rangeSelectObject!);
+          });
+          if (taskData.length > 0) {
+            selection.taskFramesData.push(...taskData);
+          }
+          info('load func traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_MEM || it.rowType == TraceRow.ROW_TYPE_VIRTUAL_MEMORY) {
+          if (it.rowType == TraceRow.ROW_TYPE_MEM) {
+            selection.processTrackIds.push(parseInt(it.rowId!));
+          } else {
+            selection.virtualTrackIds.push(parseInt(it.rowId!));
+          }
+          info('load memory traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_FPS) {
+          selection.hasFps = true;
+          info('load FPS traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_HEAP) {
+          const key = it.rowParentId!.split(' ');
+          const process = {
+            ipid: Number(key[key.length - 1]),
+            pid: Number(key[key.length - 2]),
+          };
+
+          if (!isExistPidInArray(selection.nativeMemoryAllProcess, process.pid)) {
+            selection.nativeMemoryAllProcess.push(process);
+          }
+          if (selection.nativeMemoryCurrentIPid === -1) {
+            selection.nativeMemoryCurrentIPid = process.ipid;
+          }
+          if (selection.nativeMemoryAllProcess)
+            if (it.getAttribute('heap-type') === 'native_hook_statistic') {
+              selection.nativeMemoryStatistic.push(it.rowId!);
+            } else {
+              selection.nativeMemory.push(it.rowId!);
+            }
+          info('load nativeMemory traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_MONITOR) {
+          let abilityChildRows: Array<TraceRow<any>> = [
+            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+          ];
+          if (!it.expansion) {
+            abilityChildRows = [...it.childrenList];
+          }
+          abilityChildRows.forEach((th) => {
+            th.rangeSelect = true;
+            th.checkType = '2';
+            if (th.rowType == TraceRow.ROW_TYPE_CPU_ABILITY) {
+              selection.cpuAbilityIds.push(th.rowId!);
+            } else if (th.rowType == TraceRow.ROW_TYPE_MEMORY_ABILITY) {
+              selection.memoryAbilityIds.push(th.rowId!);
+            } else if (th.rowType == TraceRow.ROW_TYPE_DISK_ABILITY) {
+              selection.diskAbilityIds.push(th.rowId!);
+            } else if (th.rowType == TraceRow.ROW_TYPE_NETWORK_ABILITY) {
+              selection.networkAbilityIds.push(th.rowId!);
+            } else if (th.rowType == TraceRow.ROW_TYPE_DMA_ABILITY) {
+              selection.dmaAbilityData.push(...intersectData(th)!);
+            } else if (th.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
+              selection.gpuMemoryAbilityData.push(...intersectData(th)!);
+            } else if (th.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY) {
+              selection.purgeableTotalAbility.push(...intersectData(th));
+            } else if (th.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
+              selection.purgeablePinAbility.push(...intersectData(th));
+            }
+          });
+        } else if (it.rowType == TraceRow.ROW_TYPE_CPU_ABILITY) {
+          selection.cpuAbilityIds.push(it.rowId!);
+          info('load CPU Ability traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_MEMORY_ABILITY) {
+          selection.memoryAbilityIds.push(it.rowId!);
+          info('load Memory Ability traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_DISK_ABILITY) {
+          selection.diskAbilityIds.push(it.rowId!);
+          info('load DiskIo Ability traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_NETWORK_ABILITY) {
+          selection.networkAbilityIds.push(it.rowId!);
+          info('load Network Ability traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_DMA_ABILITY) {
+          selection.dmaAbilityData.push(...intersectData(it)!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY) {
+          selection.gpuMemoryAbilityData.push(...intersectData(it)!);
+        } else if (it.rowType?.startsWith(TraceRow.ROW_TYPE_SDK)) {
+          if (it.rowType == TraceRow.ROW_TYPE_SDK) {
+            let sdkRows: Array<TraceRow<any>> = [
+              ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+            ];
+            if (!it.expansion) {
+              sdkRows = [...it.childrenList];
+            }
+            sdkRows.forEach((th) => {
+              th.rangeSelect = true;
+              th.checkType = '2';
+            });
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_SDK_COUNTER) {
+            selection.sdkCounterIds.push(it.rowId!);
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_SDK_SLICE) {
+            selection.sdkSliceIds.push(it.rowId!);
+          }
+        } else if (it.rowType?.startsWith('hiperf')) {
+          if (it.rowType == TraceRow.ROW_TYPE_HIPERF_EVENT || it.rowType == TraceRow.ROW_TYPE_HIPERF_REPORT) {
+            return;
+          }
+          selection.perfEventTypeId = it.drawType === -2 ? undefined : it.drawType;
+          selection.perfSampleIds.push(1);
+          if (it.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
+            let setting = it.getRowSettingKeys();
+            if (setting && setting.length > 0) {
+              //type 0:cpu,1:process,2:thread
+              let key: string = setting[0];
+              let id = Number(key.split('-')[0]);
+              if (key.includes('p')) {
+                selection.perfProcess.push(id);
+              } else if (key.includes('t')) {
+                selection.perfThread.push(id);
+              } else {
+                selection.perfCpus.push(id);
+              }
+            }
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_HIPERF_PROCESS) {
+            let hiperfProcessRows: Array<TraceRow<any>> = [
+              ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+            ];
+            if (!it.expansion) {
+              hiperfProcessRows = [...it.childrenList];
+            }
+            hiperfProcessRows.forEach((th) => {
+              th.rangeSelect = true;
+              th.checkType = '2';
+            });
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_HIPERF || it.rowId == 'HiPerf-cpu-merge') {
+            selection.perfAll = true;
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_HIPERF_CPU) {
+            selection.perfCpus.push(it.index);
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_HIPERF_PROCESS) {
+            selection.perfProcess.push(parseInt(it.rowId!.split('-')[0]));
+          }
+          if (it.rowType == TraceRow.ROW_TYPE_HIPERF_THREAD) {
+            selection.perfThread.push(parseInt(it.rowId!.split('-')[0]));
+          }
+        } else if (it.rowType == TraceRow.ROW_TYPE_FILE_SYSTEM) {
+          if (it.rowId == 'FileSystemLogicalWrite') {
+            if (selection.fileSystemType.length == 0) {
+              selection.fileSystemType = [0, 1, 3];
+            } else {
+              if (selection.fileSystemType.indexOf(3) == -1) {
+                selection.fileSystemType.push(3);
+              }
+            }
+          } else if (it.rowId == 'FileSystemLogicalRead') {
+            if (selection.fileSystemType.length == 0) {
+              selection.fileSystemType = [0, 1, 2];
+            } else {
+              if (selection.fileSystemType.indexOf(2) == -1) {
+                selection.fileSystemType.push(2);
+              }
+            }
+          } else if (it.rowId == 'FileSystemVirtualMemory') {
+            selection.fileSysVirtualMemory = true;
+          } else if (it.rowId == 'FileSystemDiskIOLatency') {
+            selection.diskIOLatency = true;
+          } else {
+            if (!selection.diskIOLatency) {
+              let arr = it.rowId!.split('-').reverse();
+              let ipid = parseInt(arr[0]);
+              if (selection.diskIOipids.indexOf(ipid) == -1) {
+                selection.diskIOipids.push(ipid);
+              }
+              if (arr[1] == 'read') {
+                selection.diskIOReadIds.indexOf(ipid) == -1 ? selection.diskIOReadIds.push(ipid) : '';
+              } else if (arr[1] == 'write') {
+                selection.diskIOWriteIds.indexOf(ipid) == -1 ? selection.diskIOWriteIds.push(ipid) : '';
+              }
+            }
+          }
+        } else if (it.rowType == TraceRow.ROW_TYPE_POWER_ENERGY) {
+          selection.powerEnergy.push(it.rowId!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_SYSTEM_ENERGY) {
+          selection.systemEnergy.push(it.rowId!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_ANOMALY_ENERGY) {
+          selection.anomalyEnergy.push(it.rowId!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_SYSTEM_ENERGY) {
+          info('load anomaly Energy traceRow id is : ', it.rowId);
+        } else if (it.rowType == TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+          selection.smapsType.push(...intersectData(it)!);
+          let sMapsChildRows: Array<TraceRow<any>> = [
+            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+          ];
+          if (!it.expansion) {
+            sMapsChildRows = [...it.childrenList];
+          }
+          sMapsChildRows.forEach((item) => {
+            item.rangeSelect = true;
+            if (item.rowType == TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+              selection.smapsType.push(...intersectData(item)!);
+            }
+          });
+        } else if (it.rowType == TraceRow.ROW_TYPE_VMTRACKER_SHM) {
+          selection.vmtrackershm.push(...intersectData(it)!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_CLOCK) {
+          selection.clockMapData.set(it.rowId || '', it.getCacheData);
+        } else if (it.rowType == TraceRow.ROW_TYPE_IRQ) {
+          if (it.getAttribute('cat') === 'irq') {
+            selection.irqCallIds.push(parseInt(it.getAttribute('callId') || '-1'));
+          } else {
+            selection.softIrqCallIds.push(parseInt(it.getAttribute('callId') || '-1'));
+          }
+        } else if (it.rowType === TraceRow.ROW_TYPE_VM_TRACKER) {
+          let vMTrackerChildRows: Array<TraceRow<any>> = [
+            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+          ];
+          if (!it.expansion) {
+            vMTrackerChildRows = [...it.childrenList];
+          }
+          vMTrackerChildRows.forEach((th) => {
+            th.rangeSelect = true;
+            if (th.rowType === TraceRow.ROW_TYPE_DMA_VMTRACKER) {
+              selection.dmaVmTrackerData.push(...intersectData(th)!);
+            } else if (th.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU) {
+              let vMTrackerGpuChildRows: Array<TraceRow<any>> = [
+                ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${th.rowId}']`),
+              ];
+              if (!th.expansion) {
+                vMTrackerGpuChildRows = [...th.childrenList];
+              }
+              vMTrackerGpuChildRows.forEach((item) => {
+                item.rangeSelect = true;
+                if (item.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
+                  selection.gpuMemoryTrackerData.push(...intersectData(item)!);
+                } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
+                  selection.gpu.gl =
+                    item.dataListCache.filter(
+                      (it) =>
+                        (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                        (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                    ).length > 0;
+                } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+                  selection.gpu.graph =
+                    item.dataListCache.filter(
+                      (it) =>
+                        (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                        (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                    ).length > 0;
+                } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
+                  selection.gpu.gpuTotal =
+                    item.dataListCache.filter(
+                      (it) =>
+                        (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                        (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                    ).length > 0;
+                } else if (item.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
+                  selection.gpu.gpuWindow =
+                    item.dataListCache.filter(
+                      (it) =>
+                        (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                        (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                    ).length > 0;
+                }
+              });
+            } else if (th.rowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
+              selection.purgeableTotalVM.push(...intersectData(th));
+            } else if (th.rowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
+              selection.purgeablePinVM.push(...intersectData(th));
+            } else if (th.rowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+              let sMapsChildRows: Array<TraceRow<any>> = [
+                ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${th.rowId}']`),
+              ];
+              if (!th.expansion) {
+                sMapsChildRows = [...th.childrenList];
+              }
+              sMapsChildRows.forEach((item) => {
+                item.rangeSelect = true;
+                if (item.rowType == TraceRow.ROW_TYPE_VM_TRACKER_SMAPS) {
+                  selection.smapsType.push(...intersectData(item)!);
+                }
+              });
+            } else if (th.rowType == TraceRow.ROW_TYPE_VMTRACKER_SHM) {
+              selection.vmtrackershm.push(...intersectData(th)!);
+            }
+          });
+        } else if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU) {
+          let vMTrackerGpuChildRows: Array<TraceRow<any>> = [
+            ...this.shadowRoot!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${it.rowId}']`),
+          ];
+          if (!it.expansion) {
+            vMTrackerGpuChildRows = [...it.childrenList];
+          }
+          vMTrackerGpuChildRows.forEach((th) => {
+            th.rangeSelect = true;
+            if (th.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
+              selection.gpuMemoryTrackerData.push(...intersectData(th)!);
+            } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
+              selection.gpu.gl =
+                th.dataListCache.filter(
+                  (it) =>
+                    (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                    (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                ).length > 0;
+            } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+              selection.gpu.graph =
+                th.dataListCache.filter(
+                  (it) =>
+                    (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                    (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                ).length > 0;
+            } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
+              selection.gpu.gpuTotal =
+                th.dataListCache.filter(
+                  (it) =>
+                    (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                    (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                ).length > 0;
+            } else if (th.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
+              selection.gpu.gpuWindow =
+                th.dataListCache.filter(
+                  (it) =>
+                    (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                    (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+                ).length > 0;
+            }
+          });
+        } else if (it.rowType == TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER) {
+          selection.gpuMemoryTrackerData.push(...intersectData(it)!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_DMA_VMTRACKER) {
+          selection.dmaVmTrackerData.push(...intersectData(it)!);
+        } else if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL) {
+          selection.gpu.gl =
+            it.dataListCache.filter(
+              (it) =>
+                (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+            ).length > 0;
+        } else if (it.rowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH) {
+          selection.gpu.graph =
+            it.dataListCache.filter(
+              (it) =>
+                (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+            ).length > 0;
+        } else if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL) {
+          selection.gpu.gpuTotal =
+            it.dataListCache.filter(
+              (it) =>
+                (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+            ).length > 0;
+        } else if (it.rowType == TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW) {
+          selection.gpu.gpuWindow =
+            it.dataListCache.filter(
+              (it) =>
+                (it.startNs >= selection.leftNs && it.startNs <= selection.rightNs) ||
+                (it.endNs >= selection.leftNs && it.endNs <= selection.rightNs)
+            ).length > 0;
+        } else if (it.rowType == TraceRow.ROW_TYPE_JANK) {
+          let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
+            Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
+              Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+            filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
+          if (it.name == 'Actual Timeline') {
+            if (it.rowParentId === 'frameTime') {
+              it.dataListCache.forEach((jankData: any) => {
+                if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
+                  selection.jankFramesData.push(jankData);
+                }
+              });
+            } else {
+              selection.jankFramesData.push(it.rowParentId);
+            }
+          } else if (it.folder) {
+            selection.jankFramesData = [];
+            it.childrenList.forEach((child) => {
+              if (child.rowType == TraceRow.ROW_TYPE_JANK && child.name == 'Actual Timeline') {
+                if (it.rowParentId === 'frameTime') {
+                  it.dataListCache.forEach((jankData: any) => {
+                    if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
+                      selection.jankFramesData.push(jankData);
+                    }
+                  });
+                } else {
+                  selection.jankFramesData.push(child.rowParentId);
+                }
+              }
+            });
+          }
+        } else if (it.rowType == TraceRow.ROW_TYPE_HEAP_TIMELINE) {
+          let endNS = TraceRow.rangeSelectObject?.endNS ? TraceRow.rangeSelectObject?.endNS : TraceRow.range?.endNS;
+          let startNS = TraceRow.rangeSelectObject?.startNS
+            ? TraceRow.rangeSelectObject?.startNS
+            : TraceRow.range?.startNS;
+          let minNodeId, maxNodeId;
+          if (!it.dataListCache || it.dataListCache.length === 0) {
+            return;
+          }
+          for (let sample of it.dataListCache) {
+            if (sample.timestamp * 1000 <= startNS!) {
+              minNodeId = sample.lastAssignedId;
+            }
+            // 个别文件的sample的最大timestamp小于时间的框选结束时间，不能给maxNodeId赋值
+            // 所以加上此条件：sample.timestamp === it.dataListCache[it.dataListCache.length -1].timestamp
+            if (
+              sample.timestamp * 1000 >= endNS! ||
+              sample.timestamp === it.dataListCache[it.dataListCache.length - 1].timestamp
+            ) {
+              if (maxNodeId === undefined) {
+                maxNodeId = sample.lastAssignedId;
+              }
+            }
+          }
+
+          // If the start time range of the selected box is greater than the end time of the sampled data
+          if (startNS! >= it.dataListCache[it.dataListCache.length - 1].timestamp * 1000) {
+            minNodeId = it.dataListCache[it.dataListCache.length - 1].lastAssignedId;
+          }
+          // If you select the box from the beginning
+          if (startNS! <= TraceRow.range?.startNS!) {
+            minNodeId = HeapDataInterface.getInstance().getMinNodeId(this.snapshotFiles!.id);
+          }
+          //If you select the box from the ending
+          if (
+            endNS! >= TraceRow.range?.endNS! ||
+            endNS! >= it.dataListCache[it.dataListCache.length - 1].timestampUs * 1000
+          ) {
+            maxNodeId = HeapDataInterface.getInstance().getMaxNodeId(this.snapshotFiles!.id);
+          }
+          let summary = (this.traceSheetEL?.shadowRoot?.querySelector('#tabs') as LitTabs)
+            ?.querySelector('#box-heap-summary')
+            ?.querySelector('tabpane-summary') as TabPaneSummary;
+          summary.initSummaryData(this.snapshotFiles!, minNodeId, maxNodeId);
+          selection.jsMemory.push(1);
+        } else if (it.rowType == TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
+          let isIntersect = (a: JsCpuProfilerStruct, b: RangeSelectStruct) =>
+            Math.max(a.startTime! + a.totalTime!, b!.endNS || 0) - Math.min(a.startTime!, b!.startNS || 0) <
+            a.totalTime! + (b!.endNS || 0) - (b!.startNS || 0);
+          let frameSelectData = it.dataListCache.filter((frameSelectData: any) => {
+            return isIntersect(frameSelectData, TraceRow.rangeSelectObject!);
+          });
+          let copyFrameSelectData = JSON.parse(JSON.stringify(frameSelectData));
+          let frameSelectDataIdArr: Array<number> = [];
+          for (let data of copyFrameSelectData) {
+            frameSelectDataIdArr.push(data.id);
+          }
+          let jsCpuProfilerData = copyFrameSelectData.filter((item: any) => {
+            if (item.depth === 0) {
+              setSelectState(item, frameSelectDataIdArr);
+              item.isSelect = true;
+              return item;
+            }
+          });
+          selection.jsCpuProfilerData = jsCpuProfilerData;
+        } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
+          let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
+            Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
+              Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+            animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
+          let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {
+            return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
+          });
+          selection.frameAnimation.push(...frameAnimationList);
+        } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
+          let appName = it.getAttribute('model-name');
+          let isSelect = (dynamicStruct: FrameDynamicStruct, b: RangeSelectStruct) =>
+            dynamicStruct.ts >= b.startNS! && dynamicStruct.ts <= b.endNS!;
+          let frameDynamicList = it.dataListCache.filter(
+            (frameAnimationBean: FrameDynamicStruct) =>
+              isSelect(frameAnimationBean, TraceRow.rangeSelectObject!) &&
+              frameAnimationBean.groupId !== -1 &&
+              frameAnimationBean.appName === appName
+          );
+          selection.frameDynamic.push(...frameDynamicList);
+        } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_SPACING) {
+          let appName = it.getAttribute('model-name');
+          let isSelect = (a: FrameSpacingStruct, b: RangeSelectStruct) =>
+            a.currentTs >= b.startNS! && a.currentTs <= b.endNS!;
+          let frameDatas = it.dataListCache.filter((frameData: FrameSpacingStruct) => {
+            return (
+              isSelect(frameData, TraceRow.rangeSelectObject!) &&
+              frameData.groupId !== -1 &&
+              frameData.frameSpacingResult !== -1 &&
+              frameData.nameId === appName
+            );
+          });
+          selection.frameSpacing.push(...frameDatas);
+        } else if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY) {
+          selection.purgeableTotalAbility.push(...intersectData(it));
+        } else if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY) {
+          selection.purgeablePinAbility.push(...intersectData(it));
+        } else if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM) {
+          selection.purgeableTotalVM.push(...intersectData(it));
+        } else if (it.rowType == TraceRow.ROW_TYPE_PURGEABLE_PIN_VM) {
+          selection.purgeablePinVM.push(...intersectData(it));
+        } else if (it.rowType === TraceRow.ROW_TYPE_LOGS) {
+          selection.hiLogs.push(it.rowId!);
+        } else if (it.rowType === TraceRow.ROW_TYPE_HI_SYSEVENT) {
+          selection.hiSysEvents.push(it.rowId!);
+        }
+        if (this.rangeTraceRow!.length !== rows.length) {
+          let event = this.createPointEvent(it);
+          SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            action: 'trace_row',
+            event: event,
+          });
+        }
+      });
+      this.rangeTraceRow = rows;
+      this.isSelectClick = false;
+      if (selection.diskIOipids.length > 0 && !selection.diskIOLatency) {
+        selection.promiseList.push(
+          queryEbpfSamplesCount(
+            TraceRow.rangeSelectObject?.startNS || 0,
+            TraceRow.rangeSelectObject?.endNS || 0,
+            selection.diskIOipids
+          ).then((res) => {
+            if (res.length > 0) {
+              selection.fsCount = res[0].fsCount;
+              selection.vmCount = res[0].vmCount;
+            }
+            return new Promise((resolve) => resolve(1));
+          })
+        );
+      }
+      this.selectStructNull();
+      this.timerShaftEL?.removeTriangle('inverted');
+      if (selection.promiseList.length > 0) {
+        Promise.all(selection.promiseList).then(() => {
+          selection.promiseList = [];
+          this.traceSheetEL?.rangeSelect(selection);
+        });
+      } else {
+        this.traceSheetEL?.rangeSelect(selection);
+      }
+      this.timerShaftEL!.selectionList.push(selection); // 保持选中对象，为后面的再次选中该框选区域做准备。
+      this.selectionParam = selection;
+    };
+    // @ts-ignore
+    new ResizeObserver((entries) => {
+      TraceRow.FRAME_WIDTH = this.clientWidth - 249 - this.getScrollWidth();
+      requestAnimationFrame(() => {
+        this.timerShaftEL?.updateWidth(this.clientWidth - 1 - this.getScrollWidth());
+        this.shadowRoot!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+          it.updateWidth(this.clientWidth);
+        });
+      });
+    }).observe(this);
+
+    new ResizeObserver((entries) => {
+      this.canvasPanelConfig();
+      if (this.traceSheetEL!.getAttribute('mode') == 'hidden') {
+        this.timerShaftEL?.removeTriangle('triangle');
+      }
+      this.refreshFavoriteCanvas();
+      this.refreshCanvas(true);
+    }).observe(this.rowsPaneEL!);
+    new MutationObserver((mutations, observer) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes') {
+          if (this.style.visibility === 'visible') {
+            if (TraceRow.rangeSelectObject && SpSystemTrace.sliceRangeMark) {
+              this.timerShaftEL?.setSlicesMark(
+                TraceRow.rangeSelectObject.startNS || 0,
+                TraceRow.rangeSelectObject.endNS || 0,
+                false
+              );
+              SpSystemTrace.sliceRangeMark = undefined;
+              window.publish(window.SmartEvent.UI.RefreshCanvas, {});
+            }
+          }
+        }
+      }
+    }).observe(this, {
+      attributes: true,
+      childList: false,
+      subtree: false,
+    });
+
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((it) => {
+          let tr = it.target as TraceRow<any>;
+          tr.intersectionRatio = it.intersectionRatio;
+          if (!it.isIntersecting) {
+            tr.sleeping = true;
+            this.invisibleRows.indexOf(tr) == -1 && this.invisibleRows.push(tr);
+            this.visibleRows = this.visibleRows.filter((it) => !it.sleeping);
+          } else {
+            tr.sleeping = false;
+            this.visibleRows.indexOf(tr) == -1 && this.visibleRows.push(tr);
+            this.invisibleRows = this.invisibleRows.filter((it) => it.sleeping);
+          }
+          this.visibleRows
+            .filter((vr) => vr.expansion)
+            .forEach((vr) => {
+              vr.sticky = this.visibleRows.some((vro) => vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0);
+            });
+          this.visibleRows
+            .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion)
+            .forEach((vr) => (vr.parentRowEl!.sticky = true));
+          if (this.handler) {
+            clearTimeout(this.handler);
+          }
+          this.handler = setTimeout(() => this.refreshCanvas(false), 100);
+        });
+      },
+      { threshold: [0, 0.01, 0.99, 1] }
+    );
+    window.addEventListener('keydown', (ev) => {
+      if (ev.key.toLocaleLowerCase() === 'escape') {
+        this.queryAllTraceRow().forEach((it) => {
+          it.checkType = '-1';
+        });
+        TraceRow.rangeSelectObject = undefined;
+        this.rangeSelect.rangeTraceRow = [];
+        this.selectStructNull();
+        this.timerShaftEL?.setSlicesMark();
+        this.traceSheetEL?.setAttribute('mode', 'hidden');
+        this.removeLinkLinesByBusinessType('janks', 'task');
+      }
+    });
+    this.chartManager = new SpChartManager(this);
+    this.canvasPanel = this.shadowRoot!.querySelector<HTMLCanvasElement>('#canvas-panel')!;
+    this.canvasPanelCtx = this.canvasPanel.getContext('2d');
+    this.canvasFavoritePanelCtx = this.favoriteChartListEL!.context();
+    this.canvasPanelConfig();
+    window.subscribe(window.SmartEvent.UI.SliceMark, (data) => {
+      this.sliceMarkEventHandler(data);
+    });
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
+    window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => {
+      this.refreshCanvas(false);
+    });
+    window.subscribe(window.SmartEvent.UI.KeyboardEnable, (tr) => {
+      this.keyboardEnable = tr.enable;
+      if (!this.keyboardEnable) {
+        this.stopWASD();
+      }
+    });
+    window.subscribe(window.SmartEvent.UI.CollapseAllLane, (collapse: boolean) => {
+      if (!collapse) {
+        // 一键折叠之前，记录当前打开的泳道图
+        this.expandRowList =
+          Array.from(this.rowsEL!.querySelectorAll<TraceRow<any>>(`trace-row[folder][expansion]`)) || [];
+      }
+      this.collapseAll = true;
+      this.setAttribute('disable', '');
+      this.expandRowList!.forEach((it) => (it.expansion = collapse));
+      this.collapseAll = false;
+      this.removeAttribute('disable');
+      this.refreshCanvas(true);
+    });
+    window.subscribe(window.SmartEvent.UI.MouseEventEnable, (tr) => {
+      this.mouseEventEnable = tr.mouseEnable;
+      if (this.mouseEventEnable) {
+        this.removeAttribute('disable');
+      } else {
+        this.setAttribute('disable', '');
+      }
+    });
+    window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => {
+      this.currentCollectGroup = group;
+    });
   }
 
   // 清除上一次点击调用栈产生的三角旗子
-  clearTriangle(flagList: Array<Flag>): void {
+  private clearTriangle(flagList: Array<Flag>): void {
     this.timerShaftEL!.sportRuler!.times = [];
     for (let i = 0; i < flagList.length; i++) {
       if (flagList[i].type === 'triangle') {
@@ -327,7 +1474,7 @@ export class SpSystemTrace extends BaseElement {
     return this.favoriteChartListEL!.getCollectRows(condition);
   }
 
-  createPointEvent(it: TraceRow<any>) {
+  private createPointEvent(it: TraceRow<any>) {
     let event = this.eventMap[`${it.rowType}`];
     if (event) {
       return event;
@@ -340,7 +1487,18 @@ export class SpSystemTrace extends BaseElement {
           event = 'HiPerf';
         }
       } else if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
-        event = this.handleFileSystemType(it, event);
+        if (it.rowId === 'FileSystemLogicalWrite') {
+          event = 'FileSystem Logical Write';
+        } else if (it.rowId === 'FileSystemLogicalRead') {
+          event = 'FileSystem Logical Read';
+        } else if (it.rowId === 'FileSystemVirtualMemory') {
+          event = 'Page Fault Trace';
+        } else if (it.rowId!.startsWith('FileSystemDiskIOLatency')) {
+          event = 'Disk I/O Latency';
+          if (it.rowId!.startsWith('FileSystemDiskIOLatency-')) {
+            event = 'Bio Process';
+          }
+        }
       } else if (it.rowType === TraceRow.ROW_TYPE_STATE_ENERGY) {
         event = it.name;
       } else if (it.rowType === TraceRow.ROW_TYPE_VM_TRACKER) {
@@ -365,22 +1523,6 @@ export class SpSystemTrace extends BaseElement {
       }
       return event;
     }
-  }
-
-  private handleFileSystemType(it: TraceRow<any>, event: any) {
-    if (it.rowId === 'FileSystemLogicalWrite') {
-      event = 'FileSystem Logical Write';
-    } else if (it.rowId === 'FileSystemLogicalRead') {
-      event = 'FileSystem Logical Read';
-    } else if (it.rowId === 'FileSystemVirtualMemory') {
-      event = 'Page Fault Trace';
-    } else if (it.rowId!.startsWith('FileSystemDiskIOLatency')) {
-      event = 'Disk I/O Latency';
-      if (it.rowId!.startsWith('FileSystemDiskIOLatency-')) {
-        event = 'Bio Process';
-      }
-    }
-    return event;
   }
 
   refreshFavoriteCanvas(): void {
@@ -429,7 +1571,7 @@ export class SpSystemTrace extends BaseElement {
     return showTab;
   }
 
-  timerShaftELFlagClickHandler = (flag: FlagAlias) => {
+  timerShaftELFlagClickHandler = (flag: Flag | undefined | null) => {
     if (flag) {
       setTimeout(() => {
         if (TraceRow.rangeSelectObject) {
@@ -442,13 +1584,13 @@ export class SpSystemTrace extends BaseElement {
     }
   };
 
-  timerShaftELFlagChange = (hoverFlag: FlagAlias, selectFlag: FlagAlias) => {
+  timerShaftELFlagChange = (hoverFlag: Flag | undefined | null, selectFlag: Flag | undefined | null) => {
     this.hoverFlag = hoverFlag;
     this.selectFlag = selectFlag;
     this.refreshCanvas(true, 'flagChange');
   };
 
-  timerShaftELRangeClick = (sliceTime: SlicesTimeAlias): void => {
+  timerShaftELRangeClick = (sliceTime: SlicesTime | undefined | null): void => {
     if (sliceTime) {
       setTimeout(() => {
         if (TraceRow.rangeSelectObject) {
@@ -463,6 +1605,7 @@ export class SpSystemTrace extends BaseElement {
 
   timerShaftELRangeChange = (e: any): void => {
     TraceRow.range = e;
+    // window.queryFromWasm = true;
     if (TraceRow.rangeSelectObject) {
       TraceRow.rangeSelectObject!.startX = Math.floor(
         ns2x(
@@ -491,6 +1634,7 @@ export class SpSystemTrace extends BaseElement {
     this.invisibleRows.forEach((it) => (it.needRefresh = true));
     this.visibleRows.forEach((it) => (it.needRefresh = true));
     this.refreshCanvas(false, 'rangeChange');
+    // window.queryFromWasm = false;
   };
   tim: number = -1;
   top: number = 0;
@@ -564,8 +1708,21 @@ export class SpSystemTrace extends BaseElement {
     });
     this.drawAllLines();
   }
-
-  drawWakeUpLine(): void {
+  drawAllLines(): void {
+    // draw flag line segment for canvas
+    drawFlagLineSegment(
+      this.canvasPanelCtx,
+      this.hoverFlag,
+      this.selectFlag,
+      {
+        x: 0,
+        y: 0,
+        width: this.timerShaftEL?.canvas?.clientWidth,
+        height: this.canvasPanel?.clientHeight,
+      },
+      this.timerShaftEL!
+    );
+    this.favoriteChartListEL?.drawFlagLineSegment(this.hoverFlag, this.selectFlag, this.timerShaftEL!);
     //draw wakeup for main canvas
     drawWakeUp(
       this.canvasPanelCtx,
@@ -601,24 +1758,6 @@ export class SpSystemTrace extends BaseElement {
       );
       this.favoriteChartListEL?.drawWakeUpList(SpSystemTrace.wakeupList[i + 1]);
     }
-  }
-
-  drawAllLines(): void {
-    // draw flag line segment for canvas
-    drawFlagLineSegment(
-      this.canvasPanelCtx,
-      this.hoverFlag,
-      this.selectFlag,
-      {
-        x: 0,
-        y: 0,
-        width: this.timerShaftEL?.canvas?.clientWidth,
-        height: this.canvasPanel?.clientHeight,
-      },
-      this.timerShaftEL!
-    );
-    this.favoriteChartListEL?.drawFlagLineSegment(this.hoverFlag, this.selectFlag, this.timerShaftEL!);
-    this.drawWakeUpLine();
     //draw system logs line segment for canvas
     drawLogsLineSegment(
       this.canvasPanelCtx,
@@ -672,7 +1811,56 @@ export class SpSystemTrace extends BaseElement {
     drawLogsLineSegment(context, this.traceSheetEL?.systemLogFlag, row.frame, this.timerShaftEL!);
   }
 
-  documentOnMouseDown = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseDown(this, ev);
+  documentOnMouseDown = (ev: MouseEvent): void => {
+    if (!this.loadTraceCompleted || !this.mouseEventEnable) {
+      return;
+    }
+    if (this.isWASDKeyPress()) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      return;
+    }
+    if (ev.button === 0) {
+      this.isMouseLeftDown = true;
+      if (ev.ctrlKey) {
+        ev.preventDefault();
+        this.style.cursor = 'move';
+        this.mouseCurrentPosition = ev.clientX;
+        return;
+      }
+    }
+
+    TraceRow.isUserInteraction = true;
+    if (this.isMouseInSheet(ev)) {
+      return;
+    }
+    this.observerScrollHeightEnable = false;
+    if (ev.offsetX > this.timerShaftEL!.canvas!.offsetLeft) {
+      let x = ev.offsetX - this.timerShaftEL!.canvas!.offsetLeft;
+      let y = ev.offsetY;
+      this.timerShaftEL?.documentOnMouseDown(ev);
+      if (
+        !(
+          this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
+          x > (TraceRow.rangeSelectObject?.startX || 0) &&
+          x < (TraceRow.rangeSelectObject?.endX || 0)
+        )
+      ) {
+        this.rangeSelect.mouseDown(ev);
+        this.rangeSelect.drag = true;
+      }
+      //  如果鼠标摁下事件发生在traceRow范围或时间轴(sportRuler除外)范围内,清除上次点击调用栈产生的所有的三角旗子
+      // ev.offsetY:鼠标在SpSystemTrace元素的y轴偏移量
+      if (
+        ev.offsetY > this.timerShaftEL!.clientHeight ||
+        ev.offsetY < this.timerShaftEL!.clientHeight - this.timerShaftEL!.sportRuler!.frame.height
+      ) {
+        this.clearTriangle(this.timerShaftEL!.sportRuler!.flagList);
+      }
+    } else {
+      this.rangeSelect.drag = false;
+    }
+  };
 
   onContextMenuHandler = (e: Event): void => {
     setTimeout(() => {
@@ -685,7 +1873,58 @@ export class SpSystemTrace extends BaseElement {
     }, 100);
   };
 
-  documentOnMouseUp = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseUp(this, ev);
+  documentOnMouseUp = (ev: MouseEvent): void => {
+    if ((window as any).collectResize) {
+      return;
+    }
+    if (!this.loadTraceCompleted || !this.mouseEventEnable) {
+      return;
+    }
+    if (this.isWASDKeyPress()) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      return;
+    }
+    this.isMouseLeftDown = false;
+    if (ev.ctrlKey) {
+      ev.preventDefault();
+      this.offsetMouse = 0;
+      this.mouseCurrentPosition = 0;
+      this.style.cursor = 'default';
+      return;
+    }
+    TraceRow.isUserInteraction = false;
+    this.rangeSelect.isMouseDown = false;
+    if ((window as any).isSheetMove) {
+      return;
+    }
+    if (this.isMouseInSheet(ev)) {
+      return;
+    }
+    if (ev.offsetX > this.timerShaftEL!.canvas!.offsetLeft) {
+      let x = ev.offsetX - this.timerShaftEL!.canvas!.offsetLeft;
+      let y = ev.offsetY;
+      if (
+        this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
+        x > (TraceRow.rangeSelectObject?.startX || 0) &&
+        x < (TraceRow.rangeSelectObject?.endX || 0)
+      ) {
+        let findSlicestime = this.timerShaftEL!.sportRuler?.findSlicesTime(x, y); // 查找帽子
+        if (!findSlicestime) {
+          // 如果没有找到帽子，则绘制一个旗子
+          let time = Math.round(
+            (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
+              TraceRow.range?.startNS!
+          );
+          this.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
+        }
+      }
+    }
+    if (!SportRuler.isMouseInSportRuler) {
+      this.rangeSelect.mouseUp(ev);
+    }
+    this.timerShaftEL?.documentOnMouseUp(ev);
+  };
 
   cancelDrag(): void {
     this.rangeSelect.drag = false;
@@ -698,9 +1937,22 @@ export class SpSystemTrace extends BaseElement {
     };
   }
 
-  documentOnMouseOut = (ev: MouseEvent) => spSystemTraceDocumentOnMouseOut(this, ev);
+  documentOnMouseOut = (ev: MouseEvent) => {
+    if (!this.loadTraceCompleted) {
+      return;
+    }
+    TraceRow.isUserInteraction = false;
+    this.isMouseLeftDown = false;
+    if (this.isMouseInSheet(ev)) {
+      return;
+    }
+    if (ev.offsetX > this.timerShaftEL!.canvas!.offsetLeft) {
+      this.rangeSelect.mouseOut(ev);
+      this.timerShaftEL?.documentOnMouseOut(ev);
+    }
+  };
 
-  keyPressMap: Map<string, boolean> = new Map([
+  private keyPressMap: Map<string, boolean> = new Map([
     ['w', false],
     ['s', false],
     ['a', false],
@@ -708,9 +1960,53 @@ export class SpSystemTrace extends BaseElement {
     ['f', false],
   ]);
 
-  documentOnKeyDown = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyDown(this, ev);
+  documentOnKeyDown = (ev: KeyboardEvent): void => {
+    document.removeEventListener('keyup', this.documentOnKeyUp);
+    this.debounce(this.continueSearch, 250, ev)();
+    document.addEventListener('keyup', this.documentOnKeyUp);
+  };
 
-  documentOnKeyPress = (ev: KeyboardEvent): void => SpSystemTraceDocumentOnKeyPress(this, ev);
+  documentOnKeyPress = (ev: KeyboardEvent): void => {
+    if (!this.loadTraceCompleted) {
+      return;
+    }
+    let keyPress = ev.key.toLocaleLowerCase();
+    TraceRow.isUserInteraction = true;
+    if (this.isMousePointInSheet) {
+      return;
+    }
+    this.observerScrollHeightEnable = false;
+    if (this.keyboardEnable) {
+      if (keyPress === 'm') {
+        this.slicestime = this.setSLiceMark(ev.shiftKey);
+        if (this.slicestime) {
+          if (TraceRow.rangeSelectObject) {
+            let showTab = this.getShowTab();
+            this.traceSheetEL
+              ?.displayTab<TabPaneCurrent>('tabpane-current', ...showTab)
+              .setCurrentSlicesTime(this.slicestime);
+          } else {
+            this.traceSheetEL?.displayTab<TabPaneCurrent>('tabpane-current').setCurrentSlicesTime(this.slicestime);
+          }
+        }
+      }
+      if (keyPress === 'f') {
+        // 设置当前的slicesTime
+        this.setCurrentSlicesTime();
+      }
+      let keyPressWASD = keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd';
+      if (keyPressWASD) {
+        this.keyPressMap.set(keyPress, true);
+        this.hoverFlag = null;
+      }
+      this.timerShaftEL!.documentOnKeyPress(ev, this.currentSlicesTime);
+      if (keyPress === 'f') {
+        this.verticalScrollToRow();
+      }
+    } else {
+      this.stopWASD();
+    }
+  };
 
   verticalScrollToRow(): void {
     if (this.currentRow) {
@@ -758,32 +2054,71 @@ export class SpSystemTrace extends BaseElement {
     }
   }
 
-  public setSLiceMark = (shiftKey: boolean): SlicesTime | null | undefined => {
-    const selectedStruct: any =
-      CpuStruct.selectCpuStruct ||
-      ThreadStruct.selectThreadStruct ||
-      FuncStruct.selectFuncStruct ||
-      IrqStruct.selectIrqStruct ||
-      TraceRow.rangeSelectObject ||
-      JankStruct.selectJankStruct ||
-      AppStartupStruct.selectStartupStruct ||
-      SoStruct.selectSoStruct ||
-      AllAppStartupStruct.selectStartupStruct ||
-      FrameAnimationStruct.selectFrameAnimationStruct ||
-      JsCpuProfilerStruct.selectJsCpuProfilerStruct;
-    this.calculateSlicesTime(selectedStruct, shiftKey);
-
-    return this.slicestime;
-  };
-
-  private calculateSlicesTime(selectedStruct: any, shiftKey: boolean): void {
-    if (selectedStruct) {
-      const startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || 0;
-      const dur = selectedStruct.dur || selectedStruct.totalTime || selectedStruct.endNS || 0;
-      this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
+  setSLiceMark(shiftKey: boolean): SlicesTime | null | undefined {
+    if (CpuStruct.selectCpuStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        CpuStruct.selectCpuStruct.startTime || 0,
+        (CpuStruct.selectCpuStruct.startTime || 0) + (CpuStruct.selectCpuStruct.dur || 0),
+        shiftKey
+      );
+    } else if (ThreadStruct.selectThreadStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        ThreadStruct.selectThreadStruct.startTime || 0,
+        (ThreadStruct.selectThreadStruct.startTime || 0) + (ThreadStruct.selectThreadStruct.dur || 0),
+        shiftKey
+      );
+    } else if (FuncStruct.selectFuncStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        FuncStruct.selectFuncStruct.startTs || 0,
+        (FuncStruct.selectFuncStruct.startTs || 0) + (FuncStruct.selectFuncStruct.dur || 0),
+        shiftKey
+      );
+    } else if (IrqStruct.selectIrqStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        IrqStruct.selectIrqStruct.startNS || 0,
+        (IrqStruct.selectIrqStruct.startNS || 0) + (IrqStruct.selectIrqStruct.dur || 0),
+        shiftKey
+      );
+    } else if (TraceRow.rangeSelectObject) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        TraceRow.rangeSelectObject.startNS || 0,
+        TraceRow.rangeSelectObject.endNS || 0,
+        shiftKey
+      );
+    } else if (JankStruct.selectJankStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        JankStruct.selectJankStruct.ts || 0,
+        (JankStruct.selectJankStruct.ts || 0) + (JankStruct.selectJankStruct.dur || 0),
+        shiftKey
+      );
+    } else if (AppStartupStruct.selectStartupStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        AppStartupStruct.selectStartupStruct.startTs || 0,
+        (AppStartupStruct.selectStartupStruct.startTs || 0) + (AppStartupStruct.selectStartupStruct.dur || 0),
+        shiftKey
+      );
+    } else if (SoStruct.selectSoStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        SoStruct.selectSoStruct.startTs || 0,
+        (SoStruct.selectSoStruct.startTs || 0) + (SoStruct.selectSoStruct.dur || 0),
+        shiftKey
+      );
+    } else if (FrameAnimationStruct.selectFrameAnimationStruct) {
+      this.timerShaftEL?.setSlicesMark(
+        FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
+        (FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0) +
+          (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
+      );
+    } else if (JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
+      this.timerShaftEL?.setSlicesMark(
+        JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0,
+        (JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0) +
+          (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
+      );
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
     }
+    return this.slicestime;
   }
 
   stopWASD = (): void => {
@@ -798,7 +2133,7 @@ export class SpSystemTrace extends BaseElement {
   };
 
   // 一直按着回车键的时候执行搜索功能
-  continueSearch = (ev: KeyboardEvent) => {
+  private continueSearch = (ev: KeyboardEvent) => {
     if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
@@ -818,7 +2153,60 @@ export class SpSystemTrace extends BaseElement {
     }
   };
 
-  documentOnKeyUp = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyUp(this, ev);
+  documentOnKeyUp = (ev: KeyboardEvent): void => {
+    if (this.times.size > 0) {
+      for (let timerId of this.times) {
+        clearTimeout(timerId);
+      }
+    }
+    if (ev.key.toLocaleLowerCase() === '?') {
+      document
+        .querySelector('body > sp-application')!
+        .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
+    }
+    if (!this.loadTraceCompleted) return;
+    this.keyboardEnable && enableVSync(false, ev, () => this.refreshCanvas(true));
+    let keyPress = ev.key.toLocaleLowerCase();
+    if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
+      this.keyPressMap.set(keyPress, false);
+    }
+    TraceRow.isUserInteraction = false;
+    this.observerScrollHeightEnable = false;
+    this.keyboardEnable && this.timerShaftEL!.documentOnKeyUp(ev);
+    if (ev.code === 'Enter') {
+      document.removeEventListener('keydown', this.documentOnKeyDown);
+      if (ev.shiftKey) {
+        this.dispatchEvent(
+          new CustomEvent('trace-previous-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      } else {
+        this.dispatchEvent(
+          new CustomEvent('trace-next-data', {
+            detail: {},
+            composed: false,
+          })
+        );
+      }
+      document.addEventListener('keydown', this.documentOnKeyDown);
+    }
+
+    if (ev.ctrlKey) {
+      if (keyPress === '[' && this._slicesList.length > 1) {
+        this.MarkJump(this._slicesList, 'slice', 'previous');
+      } else if (keyPress === ',' && this._flagList.length > 1) {
+        this.MarkJump(this._flagList, 'flag', 'previous');
+      } else if (keyPress === ']' && this._slicesList.length > 1) {
+        this.MarkJump(this._slicesList, 'slice', 'next');
+      } else if (keyPress === '.' && this._flagList.length > 1) {
+        this.MarkJump(this._flagList, 'flag', 'next');
+      } else {
+        return;
+      }
+    }
+  };
 
   /**
    * 根据传入的参数实现卡尺和旗子的快捷跳转
@@ -905,7 +2293,7 @@ export class SpSystemTrace extends BaseElement {
    * @param currentRow 当前点击checkbox的row
    */
   setParentCheckStatus(currentRow: TraceRow<any>): void {
-    if (currentRow.parentRowEl?.folder && currentRow.parentRowEl?.childrenList) {
+    if (currentRow.parentRowEl && currentRow.parentRowEl.folder && currentRow.parentRowEl.childrenList) {
       const parent = currentRow.parentRowEl;
       const childrenList = parent.childrenList;
       const selectList = [];
@@ -975,7 +2363,83 @@ export class SpSystemTrace extends BaseElement {
     this.rangeSelect.selectHandler?.(this.rangeSelect.rangeTraceRow, false);
   };
   inFavoriteArea: boolean | undefined;
-  documentOnMouseMove = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseMove(this, ev);
+  documentOnMouseMove = (ev: MouseEvent): void => {
+    if (!this.loadTraceCompleted || (window as any).flagInputFocus || !this.mouseEventEnable) {
+      return;
+    }
+    if ((window as any).collectResize) {
+      this.style.cursor = 'row-resize';
+      this.cancelDrag();
+      return;
+    }
+    if (this.isWASDKeyPress()) {
+      this.hoverFlag = null;
+      ev.preventDefault();
+      return;
+    }
+    if (ev.ctrlKey && ev.button === 0 && this.isMouseLeftDown) {
+      this.translateByMouseMove(ev);
+    }
+    this.inFavoriteArea = this.favoriteChartListEL?.containPoint(ev);
+    if ((window as any).isSheetMove || this.isMouseInSheet(ev)) {
+      this.hoverStructNull();
+      this.tipEL!.style.display = 'none';
+      return;
+    }
+    let isMouseInTimeShaft = this.timerShaftEL?.containPoint(ev);
+    if (isMouseInTimeShaft) {
+      this.tipEL!.style.display = 'none';
+      this.hoverStructNull();
+    }
+    let rows = this.visibleRows;
+    if (this.timerShaftEL?.isScaling()) {
+      return;
+    }
+    this.timerShaftEL?.documentOnMouseMove(ev, this);
+    if (isMouseInTimeShaft) {
+      return;
+    }
+    this.rangeSelect.mouseMove(rows, ev);
+    if (this.rangeSelect.rangeTraceRow!.length > 0) {
+      this.tabCpuFreq!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
+      this.tabCpuState!.rangeTraceRow = this.rangeSelect.rangeTraceRow;
+    }
+    let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+    if (this.rangeSelect.isMouseDown && search?.isClearValue) {
+      this.refreshCanvas(true);
+      if (TraceRow.rangeSelectObject) {
+        if (search && search.searchValue !== '') {
+          search.clear();
+          search.valueChangeHandler?.('');
+        }
+      }
+    } else {
+      if (!this.rowsPaneEL!.containPoint(ev, { left: 248 })) {
+        this.hoverStructNull();
+      }
+      rows
+        .filter((it) => it.focusContain(ev, this.inFavoriteArea!) && it.collect === this.inFavoriteArea)
+        .filter((it) => {
+          if (it.collect) {
+            return true;
+          } else {
+            return (
+              it.getBoundingClientRect().bottom + it.getBoundingClientRect().height >
+              this.favoriteChartListEL!.getBoundingClientRect().bottom
+            );
+          }
+        })
+        .forEach((tr) => {
+          this.hoverStructNull();
+          if (this.currentRowType != tr.rowType) {
+            this.currentRowType = tr.rowType || '';
+          }
+          tr.findHoverStruct?.();
+          tr.focusHandler?.(ev);
+        });
+      requestAnimationFrame(() => this.refreshCanvas(true));
+    }
+  };
 
   hoverStructNull() {
     CpuStruct.hoverCpuStruct = undefined;
@@ -1008,10 +2472,9 @@ export class SpSystemTrace extends BaseElement {
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
     this.tipEL!.style.display = 'none';
-    return this;
   }
 
-  selectStructNull() {
+  selectStructNull(): void {
     CpuStruct.selectCpuStruct = undefined;
     CpuStruct.wakeupBean = null;
     CpuFreqStruct.selectCpuFreqStruct = undefined;
@@ -1033,10 +2496,8 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.selectJsCpuProfilerStruct = undefined;
     SnapshotStruct.selectSnapshotStruct = undefined;
     HiPerfCallChartStruct.selectStruct = undefined;
-    AllAppStartupStruct.selectStartupStruct = undefined;
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
-    return this;
   }
 
   isWASDKeyPress() {
@@ -1045,7 +2506,55 @@ export class SpSystemTrace extends BaseElement {
     );
   }
 
-  documentOnClick = (ev: MouseEvent) => spSystemTraceDocumentOnClick(this, ev);
+  documentOnClick = (ev: MouseEvent) => {
+    if (!this.loadTraceCompleted) {
+      return;
+    }
+    if (this.isWASDKeyPress()) {
+      this.hoverFlag = null;
+      ev.preventDefault();
+      ev.stopPropagation();
+      return;
+    }
+    if ((window as any).isSheetMove) {
+      return;
+    }
+    if (this.isMouseInSheet(ev)) {
+      return;
+    }
+    if ((window as any).isPackUpTable) {
+      (window as any).isPackUpTable = false;
+      return;
+    }
+    let x = ev.offsetX - this.timerShaftEL!.canvas!.offsetLeft;
+    let y = ev.offsetY;
+    if (this.timerShaftEL?.getRangeRuler()?.frame.contains(x, y)) {
+      this.clickEmptyArea();
+      return;
+    }
+    if (this.rangeSelect.isDrag()) {
+      return;
+    }
+    if (
+      this.timerShaftEL!.sportRuler!.frame.contains(x, y) &&
+      x > (TraceRow.rangeSelectObject?.startX || 0) &&
+      x < (TraceRow.rangeSelectObject?.endX || 0)
+    ) {
+    } else {
+      let inFavoriteArea = this.favoriteChartListEL?.containPoint(ev);
+      let rows = this.visibleRows.filter((it) => it.focusContain(ev, inFavoriteArea!) && it.collect === inFavoriteArea);
+      if (JankStruct.delJankLineFlag) {
+        this.removeLinkLinesByBusinessType('janks');
+      }
+      if (rows && rows[0] && this.traceRowClickJudgmentConditions.get(rows[0]!.rowType!)?.()) {
+        this.onClickHandler(rows[0]!.rowType!, rows[0]);
+        this.documentOnMouseMove(ev);
+      } else {
+        this.clickEmptyArea();
+      }
+    }
+    ev.preventDefault();
+  };
 
   clickEmptyArea() {
     this.queryAllTraceRow().forEach((it) => {
@@ -1069,7 +2578,7 @@ export class SpSystemTrace extends BaseElement {
   }
 
   //泳道图点击判定条件
-  traceRowClickJudgmentConditions: Map<string, () => boolean> = new Map<string, () => boolean>([
+  private traceRowClickJudgmentConditions: Map<string, () => boolean> = new Map<string, () => boolean>([
     [TraceRow.ROW_TYPE_CPU, (): boolean => CpuStruct.hoverCpuStruct !== null && CpuStruct.hoverCpuStruct !== undefined],
     [
       TraceRow.ROW_TYPE_THREAD,
@@ -1104,8 +2613,7 @@ export class SpSystemTrace extends BaseElement {
     ],
     [
       TraceRow.ROW_TYPE_ALL_APPSTARTUPS,
-      (): boolean =>
-        AllAppStartupStruct.hoverStartupStruct !== null && AllAppStartupStruct.hoverStartupStruct !== undefined,
+      () => AllAppStartupStruct.hoverStartupStruct !== null && AllAppStartupStruct.hoverStartupStruct !== undefined,
     ],
     [TraceRow.ROW_TYPE_STATIC_INIT, () => SoStruct.hoverSoStruct !== null && SoStruct.hoverSoStruct !== undefined],
     [TraceRow.ROW_TYPE_JANK, () => JankStruct.hoverJankStruct !== null && JankStruct.hoverJankStruct !== undefined],
@@ -1193,7 +2701,572 @@ export class SpSystemTrace extends BaseElement {
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {
-    spSystemTraceOnClickHandler(this, clickRowType, row);
+    if (row) {
+      this.currentRow = row;
+      this.setAttribute('clickRow', clickRowType);
+      this.setAttribute('rowName', row.name!);
+      this.setAttribute('rowId', row.rowId!);
+    }
+    if (!this.loadTraceCompleted) return;
+    this.queryAllTraceRow().forEach((it) => (it.rangeSelect = false));
+    this.selectStructNull();
+    // 判断点击的线程是否在唤醒树内
+    let timeoutJudge = setTimeout(() => {
+      if (SpSystemTrace.wakeupList.length && CpuStruct.selectCpuStruct) {
+        let checkHandlerKey: boolean = true;
+        let saveSelectCpuStruct: any = JSON.parse(sessionStorage.getItem('saveselectcpustruct')!);
+        for (const item of SpSystemTrace.wakeupList) {
+          if (item.ts === CpuStruct.selectCpuStruct.startTime && item.dur === CpuStruct.selectCpuStruct.dur) {
+            checkHandlerKey = false;
+            if (SpSystemTrace.wakeupList[0].schedulingDesc) {
+              SpSystemTrace.wakeupList.unshift(saveSelectCpuStruct);
+            }
+            this.refreshCanvas(true);
+            break;
+          } else if (
+            saveSelectCpuStruct.startTime === CpuStruct.selectCpuStruct.startTime &&
+            saveSelectCpuStruct.dur === CpuStruct.selectCpuStruct.dur
+          ) {
+            // 如果点击的是第一层，保持唤醒树不变
+            checkHandlerKey = false;
+            this.refreshCanvas(true);
+            break;
+          }
+        }
+        // 点击线程在唤醒树内
+        if (!checkHandlerKey) {
+          // 查询获取tab表格数据
+          window.publish(window.SmartEvent.UI.WakeupList, SpSystemTrace.wakeupList);
+        } else {
+          // 不在唤醒树内，清空数组
+          this.wakeupListNull();
+          this.refreshCanvas(true);
+        }
+      } else {
+        this.wakeupListNull();
+        this.refreshCanvas(true);
+      }
+      clearTimeout(timeoutJudge);
+    }, 10);
+    let threadClickHandler: any;
+    let cpuClickHandler: any;
+    let jankClickHandler: any;
+    let snapshotClickHandler: any;
+    let scrollToFuncHandler: any;
+    threadClickHandler = (d: ThreadStruct) => {
+      this.observerScrollHeightEnable = false;
+      this.scrollToProcess(`${d.cpu}`, '', 'cpu-data', true);
+      let cpuRow = this.queryAllTraceRow<TraceRow<CpuStruct>>(
+        `trace-row[row-id='${d.cpu}'][row-type='cpu-data']`,
+        (row) => row.rowId === `${d.cpu}` && row.rowType === 'cpu-data'
+      )[0];
+      this.currentRow = cpuRow;
+      cpuRow.fixedList = [
+        {
+          startTime: d.startTime,
+          dur: d.dur,
+          tid: d.tid,
+          id: d.id,
+          processId: d.pid,
+          cpu: d.cpu,
+          argSetID: d.argSetID,
+        },
+      ];
+      let findEntry = cpuRow!.fixedList[0];
+      this.rechargeCpuData(
+        findEntry,
+        cpuRow.dataListCache.find((it) => it.startTime > findEntry.startTime)
+      );
+      if (
+        findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||
+        findEntry!.startTime! > TraceRow.range!.endNS
+      ) {
+        this.timerShaftEL?.setRangeNS(
+          findEntry!.startTime! - findEntry!.dur! * 2,
+          findEntry!.startTime! + findEntry!.dur! + findEntry!.dur! * 2
+        );
+      }
+      this.hoverStructNull();
+      this.selectStructNull();
+      this.wakeupListNull();
+      CpuStruct.hoverCpuStruct = findEntry;
+      CpuStruct.selectCpuStruct = findEntry;
+      this.timerShaftEL?.drawTriangle(findEntry!.startTime || 0, 'inverted');
+      this.traceSheetEL?.displayCpuData(
+        CpuStruct.selectCpuStruct!,
+        (wakeUpBean) => {
+          this.removeLinkLinesByBusinessType('thread');
+          CpuStruct.wakeupBean = wakeUpBean;
+          this.refreshCanvas(true);
+        },
+        cpuClickHandler
+      );
+    };
+    cpuClickHandler = (d: CpuStruct) => {
+      let traceRow = this.shadowRoot?.querySelector<TraceRow<any>>(
+        `trace-row[row-id='${d.processId}'][row-type='process']`
+      );
+      if (traceRow) {
+        traceRow.expansion = true;
+      }
+      this.observerScrollHeightEnable = true;
+      let threadRow = this.queryAllTraceRow<TraceRow<ThreadStruct>>(
+        `trace-row[row-id='${d.tid}'][row-type='thread']`,
+        (row) => row.rowId === `${d.tid}` && row.rowType === 'thread'
+      )[0];
+      this.currentRow = threadRow;
+      let task = () => {
+        if (threadRow) {
+          let findEntry = threadRow!.fixedList[0];
+          if (
+            findEntry!.startTime! + findEntry!.dur! < TraceRow.range!.startNS ||
+            findEntry!.startTime! > TraceRow.range!.endNS
+          ) {
+            this.timerShaftEL?.setRangeNS(
+              findEntry!.startTime! - findEntry!.dur! * 2,
+              findEntry!.startTime! + findEntry!.dur! + findEntry!.dur! * 2
+            );
+          }
+          this.hoverStructNull();
+          this.selectStructNull();
+          this.wakeupListNull();
+          ThreadStruct.hoverThreadStruct = findEntry;
+          ThreadStruct.selectThreadStruct = findEntry;
+          this.timerShaftEL?.drawTriangle(findEntry!.startTime || 0, 'inverted');
+          this.traceSheetEL?.displayThreadData(
+            ThreadStruct.selectThreadStruct!,
+            threadClickHandler,
+            cpuClickHandler,
+            (datas) => {
+              this.removeLinkLinesByBusinessType('thread');
+              datas.forEach((data) => {
+                let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
+                  `trace-row[row-id='${data.pid}'][folder]`
+                );
+                //this.drawThreadLine(endParentRow, ThreadStruct.selectThreadStruct, data);
+              });
+            }
+          );
+          this.scrollToProcess(`${d.tid}`, `${d.processId}`, 'thread', true);
+        }
+      };
+      if (threadRow) {
+        threadRow.fixedList = [
+          {
+            startTime: d.startTime,
+            dur: d.dur,
+            cpu: d.cpu,
+            id: d.id,
+            tid: d.tid,
+            state: d.state,
+            pid: d.processId,
+            argSetID: d.argSetID,
+          },
+        ];
+
+        if (threadRow!.isComplete) {
+          task();
+        } else {
+          this.scrollToProcess(`${d.tid}`, `${d.processId}`, 'process', false);
+          this.scrollToProcess(`${d.tid}`, `${d.processId}`, 'thread', true);
+          threadRow!.onComplete = task;
+        }
+      }
+    };
+
+    jankClickHandler = (d: any) => {
+      this.observerScrollHeightEnable = true;
+      let jankRowParent: any;
+      if (d.rowId === 'actual frameTime') {
+        jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>("trace-row[row-id='frameTime']");
+      } else {
+        jankRowParent = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(`trace-row[row-id='${d.pid}']`);
+      }
+      jankRowParent!.expansion = true;
+      let jankRow: any;
+      jankRowParent.childrenList.forEach((item: TraceRow<JankStruct>) => {
+        if (item.rowId === `${d.rowId}` && item.rowType === 'janks') {
+          jankRow = item;
+        }
+      });
+      let task = () => {
+        if (jankRow) {
+          JankStruct.selectJankStructList.length = 0;
+          let findJankEntry = jankRow!.dataListCache!.find((dat: any) => dat.name == d.name && dat.pid == d.pid);
+          if (findJankEntry) {
+            if (
+              findJankEntry!.ts! + findJankEntry!.dur! < TraceRow.range!.startNS ||
+              findJankEntry!.ts! > TraceRow.range!.endNS
+            ) {
+              this.timerShaftEL?.setRangeNS(
+                findJankEntry!.ts! - findJankEntry!.dur! * 2,
+                findJankEntry!.ts! + findJankEntry!.dur! + findJankEntry!.dur! * 2
+              );
+            }
+            this.hoverStructNull();
+            this.selectStructNull();
+            this.wakeupListNull();
+            JankStruct.hoverJankStruct = findJankEntry;
+            JankStruct.selectJankStruct = findJankEntry;
+            this.timerShaftEL?.drawTriangle(findJankEntry!.ts || 0, 'inverted');
+            this.traceSheetEL?.displayJankData(
+              JankStruct.selectJankStruct!,
+              (datas) => {
+                this.removeLinkLinesByBusinessType('janks');
+                // 绘制跟自己关联的线
+                datas.forEach((data) => {
+                  let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
+                    `trace-row[row-id='${data.pid}'][folder]`
+                  );
+                  this.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
+                });
+              },
+              jankClickHandler
+            );
+          }
+          this.scrollToProcess(jankRow.rowId!, jankRow.rowParentId!, jankRow.rowType!, true);
+        }
+      };
+      task();
+    };
+
+    scrollToFuncHandler = (funcStract: any) => {
+      this.observerScrollHeightEnable = true;
+      this.moveRangeToCenter(funcStract.startTs!, funcStract.dur!);
+      this.scrollToActFunc(funcStract, false);
+    };
+
+    snapshotClickHandler = (d: HeapSnapshotStruct) => {
+      this.observerScrollHeightEnable = true;
+      let snapshotRow = this.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(
+        `trace-row[row-id='heapsnapshot']`
+      );
+      let task = () => {
+        if (snapshotRow) {
+          let findEntry = snapshotRow!.dataListCache!.find((dat) => dat.startTs === d.startTs);
+          this.hoverStructNull();
+          this.selectStructNull();
+          this.wakeupListNull();
+          HeapSnapshotStruct.hoverSnapshotStruct = findEntry;
+          HeapSnapshotStruct.selectSnapshotStruct = findEntry;
+        }
+      };
+      if (snapshotRow) {
+        if (snapshotRow!.isComplete) {
+          task();
+        } else {
+          snapshotRow!.onComplete = task;
+        }
+      }
+    };
+    if (clickRowType === TraceRow.ROW_TYPE_CPU && CpuStruct.hoverCpuStruct) {
+      CpuStruct.selectCpuStruct = CpuStruct.hoverCpuStruct;
+      this.timerShaftEL?.drawTriangle(CpuStruct.selectCpuStruct!.startTime || 0, 'inverted');
+      this.traceSheetEL?.displayCpuData(
+        CpuStruct.selectCpuStruct,
+        (wakeUpBean) => {
+          CpuStruct.wakeupBean = wakeUpBean;
+          this.refreshCanvas(false);
+        },
+        cpuClickHandler
+      );
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
+      this.removeLinkLinesByBusinessType('thread');
+      ThreadStruct.selectThreadStruct = ThreadStruct.hoverThreadStruct;
+      this.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
+      this.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_FUNC && FuncStruct.hoverFuncStruct) {
+      TabPaneTaskFrames.TaskArray = [];
+      this.removeLinkLinesByBusinessType('task');
+      FuncStruct.selectFuncStruct = FuncStruct.hoverFuncStruct;
+      let hoverFuncStruct = FuncStruct.hoverFuncStruct;
+      this.timerShaftEL?.drawTriangle(FuncStruct.selectFuncStruct!.startTs || 0, 'inverted');
+      FuncStruct.selectFuncStruct = hoverFuncStruct;
+      let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
+      let showTabArray: Array<string> = ['current-selection'];
+      if (flagConfig!.TaskPool === 'Enabled') {
+        if (FuncStruct.selectFuncStruct !== undefined && FuncStruct.selectFuncStruct.funName !== undefined) {
+          if (FuncStruct.selectFuncStruct.funName.indexOf('H:Task ') >= 0) {
+            showTabArray.push('box-task-frames');
+            this.drawTaskPollLine(row);
+          }
+        }
+      }
+      this.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ && CpuFreqStruct.hoverCpuFreqStruct) {
+      CpuFreqStruct.selectCpuFreqStruct = CpuFreqStruct.hoverCpuFreqStruct;
+      this.traceSheetEL?.displayFreqData();
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_CPU_STATE && CpuStateStruct.hoverStateStruct) {
+      CpuStateStruct.selectStateStruct = CpuStateStruct.hoverStateStruct;
+      this.traceSheetEL?.displayCpuStateData();
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMIT && CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct) {
+      CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
+      this.traceSheetEL?.displayFreqLimitData();
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_CLOCK && ClockStruct.hoverClockStruct) {
+      ClockStruct.selectClockStruct = ClockStruct.hoverClockStruct;
+      this.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuDumpTotalRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='Skia Gpu Dump Total']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayGpuSelectedData(
+        'total',
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuDumpTotalRow!.dataListCache
+      );
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuDumpWindowRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='Skia Gpu Dump Window']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayGpuSelectedData(
+        'window',
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuDumpWindowRow!.dataListCache
+      );
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_IRQ && IrqStruct.hoverIrqStruct) {
+      IrqStruct.selectIrqStruct = IrqStruct.hoverIrqStruct;
+      this.traceSheetEL?.displayIrqData(IrqStruct.selectIrqStruct);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (
+      clickRowType === TraceRow.ROW_TYPE_HEAP &&
+      row &&
+      row.getAttribute('heap-type') === 'native_hook_statistic' &&
+      HeapStruct.hoverHeapStruct
+    ) {
+      HeapStruct.selectHeapStruct = HeapStruct.hoverHeapStruct;
+      const key = row.rowParentId!.split(' ');
+      let ipid = 1;
+      if (key.length > 0) {
+        ipid = Number(key[key.length - 1]);
+      }
+      this.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!, ipid);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
+      JankStruct.selectJankStructList.length = 0;
+      this.removeLinkLinesByBusinessType('janks');
+      JankStruct.selectJankStruct = JankStruct.hoverJankStruct;
+      this.timerShaftEL?.drawTriangle(JankStruct.selectJankStruct!.ts || 0, 'inverted');
+      this.traceSheetEL?.displayJankData(
+        JankStruct.selectJankStruct,
+        (datas) => {
+          datas.forEach((data) => {
+            let endParentRow;
+            if (data.frame_type == 'frameTime') {
+              endParentRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+                `trace-row[row-id='frameTime'][row-type='janks']`
+              );
+            } else {
+              endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${data.pid}'][folder]`);
+            }
+            this.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
+          });
+        },
+        jankClickHandler
+      );
+    } else if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT && HeapSnapshotStruct.hoverSnapshotStruct) {
+      let snapshotRow = this.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(
+        `trace-row[row-id='heapsnapshot']`
+      );
+      HeapSnapshotStruct.selectSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displaySnapshotData(
+        HeapSnapshotStruct.selectSnapshotStruct!,
+        snapshotRow!.dataListCache,
+        snapshotClickHandler
+      );
+    } else if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
+      JsCpuProfilerStruct.selectJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
+      let selectStruct = JsCpuProfilerStruct.selectJsCpuProfilerStruct;
+      let dataArr: Array<JsCpuProfilerChartFrame> = [];
+      let parentIdArr: Array<number> = [];
+      let that = this;
+      getTopJsCpuProfilerStruct(selectStruct.parentId);
+
+      function getTopJsCpuProfilerStruct(parentId: number) {
+        if (parentId === -1 && selectStruct.parentId === -1) {
+          // 点击的函数是第一层，直接设置其children的isSelect为true，不用重新算totalTime
+          let data = that.chartManager!.arkTsChart.chartFrameMap.get(selectStruct!.id);
+          if (data && dataArr.length === 0) {
+            let copyData = JSON.parse(JSON.stringify(data));
+            setSelectChildrenState(copyData);
+            dataArr.push(copyData);
+          }
+        } else {
+          let parent = that.chartManager!.arkTsChart.chartFrameMap.get(parentId);
+          if (parent) {
+            parentIdArr.push(parent.id);
+            getTopJsCpuProfilerStruct(parent.parentId!);
+            if (parent.parentId === -1 && dataArr.length === 0) {
+              let data = that.chartManager!.arkTsChart.chartFrameMap.get(parent.id);
+              let copyParent = JSON.parse(JSON.stringify(data));
+              copyParent.totalTime = selectStruct.totalTime;
+              copyParent.selfTime = 0;
+              // depth为0的isSelect改为true
+              copyParent.isSelect = true;
+              if (copyParent.children.length > 0) {
+                getSelectStruct(copyParent);
+              }
+              dataArr.push(copyParent);
+            }
+          }
+        }
+      }
+
+      function getSelectStruct(data: JsCpuProfilerChartFrame) {
+        for (let child of data.children) {
+          if (child === null) {
+            continue;
+          }
+          if (child.id === selectStruct!.id) {
+            // 将点击的函数的children的isSelect改为true
+            setSelectChildrenState(child);
+          } else {
+            getSelectStruct(child);
+          }
+          if (parentIdArr.includes(child.id)) {
+            child.isSelect = true;
+            child.totalTime = selectStruct.totalTime;
+            child.selfTime = 0;
+          }
+        }
+      }
+
+      function setSelectChildrenState(data: JsCpuProfilerChartFrame) {
+        data.isSelect = true;
+        if (data.children.length > 0) {
+          for (let child of data.children) {
+            if (child === null) {
+              continue;
+            }
+            setSelectChildrenState(child);
+          }
+        }
+      }
+
+      that.traceSheetEL?.displayJsProfilerData(dataArr);
+    } else if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
+      AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
+      this.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {
+      AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
+      this.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct!, scrollToFuncHandler);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_STATIC_INIT && SoStruct.hoverSoStruct) {
+      SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
+      this.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct, scrollToFuncHandler);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION && FrameAnimationStruct.hoverFrameAnimationStruct) {
+      FrameAnimationStruct.selectFrameAnimationStruct = FrameAnimationStruct.hoverFrameAnimationStruct;
+      this.traceSheetEL?.displayFrameAnimationData(FrameAnimationStruct.selectFrameAnimationStruct);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC && FrameDynamicStruct.hoverFrameDynamicStruct) {
+      FrameDynamicStruct.selectFrameDynamicStruct = FrameDynamicStruct.hoverFrameDynamicStruct;
+      this.traceSheetEL?.displayFrameDynamicData(row!, FrameDynamicStruct.selectFrameDynamicStruct);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING && FrameSpacingStruct.hoverFrameSpacingStruct) {
+      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct;
+      this.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
+      this.timerShaftEL?.modifyFlagList(undefined);
+    } else if (clickRowType === TraceRow.ROW_TYPE_VM_TRACKER_SMAPS && SnapshotStruct.hoverSnapshotStruct) {
+      let smapsRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Dirty']`);
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displaySmapsData(SnapshotStruct.selectSnapshotStruct!, smapsRow!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_VMTRACKER_SHM && SnapshotStruct.hoverSnapshotStruct) {
+      let shmRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='SHM']`);
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayShmData(SnapshotStruct.selectSnapshotStruct!, shmRow!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let totalAbilityRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='System Purgeable Total']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayPurgTotalAbilityData(
+        SnapshotStruct.hoverSnapshotStruct,
+        totalAbilityRow!.dataListCache
+      );
+    } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let pinAbilityRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='System Purgeable Pin']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayPurgPinAbilityData(SnapshotStruct.hoverSnapshotStruct, pinAbilityRow!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM && SnapshotStruct.hoverSnapshotStruct) {
+      let totalVMRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Purgeable Total']`);
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayPurgTotalVMData(SnapshotStruct.hoverSnapshotStruct, totalVMRow!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_PURGEABLE_PIN_VM && SnapshotStruct.hoverSnapshotStruct) {
+      let pinVMRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(`trace-row[row-id='Purgeable Pin']`);
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayPurgPinVMData(SnapshotStruct.hoverSnapshotStruct, pinVMRow!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_DMA_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let dmaAbilityRow = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='abilityMonitorDma']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayDmaAbility(SnapshotStruct.selectSnapshotStruct.startNs, dmaAbilityRow!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_DMA_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
+      let dmaVmTracker = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-type='dma-vmTracker']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayDmaVmTracker(SnapshotStruct.selectSnapshotStruct.startNs, dmaVmTracker!.dataListCache);
+    } else if (clickRowType === TraceRow.ROW_TYPE_GPU_MEMORY_ABILITY && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuMemoryAbilityMonitor = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='abilityMonitorGpuMemory']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayGpuMemoryAbility(
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuMemoryAbilityMonitor!.dataListCache
+      );
+    } else if (clickRowType === TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
+      let gpuMemoryVmTracker = this.shadowRoot?.querySelector<TraceRow<SnapshotStruct>>(
+        `trace-row[row-id='Skia Gpu Memory']`
+      );
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayGpuMemoryVmTracker(
+        SnapshotStruct.selectSnapshotStruct.startNs,
+        gpuMemoryVmTracker!.dataListCache
+      );
+    } else if (clickRowType === TraceRow.ROW_TYPE_GPU_RESOURCE_VMTRACKER && SnapshotStruct.hoverSnapshotStruct) {
+      SnapshotStruct.selectSnapshotStruct = SnapshotStruct.hoverSnapshotStruct;
+      this.traceSheetEL?.displayGpuResourceVmTracker(SnapshotStruct.selectSnapshotStruct.startNs);
+    } else {
+      if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
+        this.removeLinkLinesByBusinessType('janks');
+      }
+      this.observerScrollHeightEnable = false;
+      this.selectFlag = null;
+      this.timerShaftEL?.removeTriangle('inverted');
+      if (!SportRuler.isMouseInSportRuler) {
+        this.traceSheetEL?.setAttribute('mode', 'hidden');
+        this.refreshCanvas(true);
+      }
+    }
+    if (!JankStruct.selectJankStruct) {
+      this.removeLinkLinesByBusinessType('janks');
+    }
+    if (!ThreadStruct.selectThreadStruct) {
+      this.removeLinkLinesByBusinessType('thread');
+    }
+    if (row) {
+      let pointEvent = this.createPointEvent(row);
+      SpStatisticsHttpUtil.addOrdinaryVisitAction({
+        action: 'trace_row',
+        event: pointEvent,
+      });
+    }
   }
 
   makePoint(
@@ -1219,68 +3292,553 @@ export class SpSystemTrace extends BaseElement {
   }
 
   drawTaskPollLine(row?: TraceRow<any>) {
-    spSystemTraceDrawTaskPollLine(this, row);
+    let executeID = TabPaneTaskFrames.getExecuteId(FuncStruct.selectFuncStruct!.funName!);
+    TabPaneTaskFrames.TaskArray.push(FuncStruct.selectFuncStruct!);
+    if (!row) {
+      return;
+    }
+    if (FuncStruct.selectFuncStruct!.funName!.indexOf('H:Task Perform:') >= 0) {
+      TabPaneTaskFrames.IsShowConcurrency = true;
+      queryBySelectExecute(executeID, FuncStruct.selectFuncStruct!.itid!).then((res) => {
+        if (res.length === 1) {
+          let allocationRowId = res[0].tid;
+          let selectRow = this.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
+            `trace-row[row-id='${allocationRowId}'][row-type=\'func\']`
+          );
+          if (!selectRow) {
+            let collectList = this.favoriteChartListEL!.getAllCollectRows();
+            for (let index = 0; index < collectList.length; index++) {
+              let selectCollectRow = collectList[index];
+              if (selectCollectRow.rowId === allocationRowId.toString() && selectCollectRow.rowType === 'func') {
+                selectRow = selectCollectRow;
+                break;
+              }
+            }
+          }
+          let idList: number[] = [];
+          if (res[0].allocation_task_row) {
+            idList.push(res[0].allocation_task_row);
+          }
+          if (res[0].return_task_row) {
+            idList.push(res[0].return_task_row);
+          }
+          queryTaskPoolOtherRelationData(idList, allocationRowId).then((relationDataList) => {
+            selectRow!.fixedList = relationDataList;
+            selectRow!.fixedList.forEach((value) => {
+              TabPaneTaskFrames.TaskArray.push(value);
+              // allocation to execute
+              if (value.id === res[0].allocation_task_row) {
+                this.addPointPair(
+                  this.makePoint(
+                    value.startTs!,
+                    0,
+                    selectRow?.translateY!,
+                    selectRow,
+                    (value.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    true
+                  ),
+                  this.makePoint(
+                    FuncStruct.selectFuncStruct!.startTs!,
+                    0,
+                    row?.translateY!,
+                    row,
+                    (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    true
+                  )
+                );
+              } else {
+                this.addPointPair(
+                  this.makePoint(
+                    FuncStruct.selectFuncStruct!.startTs!,
+                    FuncStruct.selectFuncStruct!.dur!,
+                    row?.translateY!,
+                    row,
+                    (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    false
+                  ),
+                  this.makePoint(
+                    value.startTs!,
+                    value.dur!,
+                    selectRow?.translateY!,
+                    selectRow,
+                    (value.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    false
+                  )
+                );
+              }
+            });
+            this.refreshCanvas(true);
+          });
+        }
+      });
+    } else {
+      TabPaneTaskFrames.IsShowConcurrency = false;
+      queryBySelectAllocationOrReturn(executeID, FuncStruct.selectFuncStruct!.itid!).then((res) => {
+        if (FuncStruct.selectFuncStruct!.funName!.indexOf('H:Task Allocation:') >= 0 && res.length > 0) {
+          let executeRow = this.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
+            `trace-row[row-id='${res[0].tid}'][row-type='func']`
+          );
+          if (!executeRow) {
+            return;
+          }
+          let idList: number[] = [];
+          let tidList: number[] = [];
+          if (res[0].execute_task_row) {
+            idList.push(res[0].execute_task_row);
+            tidList.push(Number(res[0].tid));
+          }
+          if (res[0].return_task_row) {
+            idList.push(res[0].return_task_row);
+            tidList.push(Number(row.rowId));
+          }
+          queryTaskPoolRelationData(idList, tidList).then((relationDataList) => {
+            let executeStruct = relationDataList.filter((item) => item.id === res[0].execute_task_row)[0];
+            relationDataList.forEach((value) => {
+              TabPaneTaskFrames.TaskArray.push(value);
+              if (value.id === res[0].execute_task_row) {
+                this.addPointPair(
+                  this.makePoint(
+                    FuncStruct.selectFuncStruct!.startTs!,
+                    0,
+                    row?.translateY!,
+                    row,
+                    (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    true
+                  ),
+                  this.makePoint(
+                    value.startTs!,
+                    0,
+                    executeRow?.translateY!,
+                    executeRow,
+                    (value.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    true
+                  )
+                );
+              } else {
+                this.addPointPair(
+                  this.makePoint(
+                    executeStruct.startTs!,
+                    executeStruct.dur!,
+                    executeRow?.translateY!,
+                    executeRow,
+                    (executeStruct.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    false
+                  ),
+                  this.makePoint(
+                    value.startTs!,
+                    value.dur!,
+                    row?.translateY!,
+                    row,
+                    (value.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    false
+                  )
+                );
+              }
+            });
+          });
+        } else if (FuncStruct.selectFuncStruct!.funName!.indexOf('H:Task PerformTask End:') >= 0) {
+          let executeRow = this.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
+            `trace-row[row-id='${res[0].tid}'][row-type='func']`
+          );
+          TabPaneTaskFrames.TaskArray.push(FuncStruct.selectFuncStruct!);
+          let idList: number[] = [];
+          let tidList: number[] = [];
+          if (res[0].execute_task_row) {
+            idList.push(res[0].execute_task_row);
+            tidList.push(Number(res[0].tid));
+          }
+          if (res[0].allocation_task_row) {
+            idList.push(res[0].allocation_task_row);
+            tidList.push(Number(row.rowId));
+          }
+          queryTaskPoolRelationData(idList, tidList).then((relationDataList) => {
+            let executeStruct = relationDataList.filter((item) => item.id === res[0].execute_task_row)[0];
+            relationDataList.forEach((value) => {
+              TabPaneTaskFrames.TaskArray.push(value);
+              if (value.id === res[0].execute_task_row) {
+                this.addPointPair(
+                  this.makePoint(
+                    FuncStruct.selectFuncStruct!.startTs!,
+                    FuncStruct.selectFuncStruct!.dur!,
+                    row?.translateY!,
+                    row,
+                    (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    false
+                  ),
+                  this.makePoint(
+                    value.startTs!,
+                    value.dur!,
+                    executeRow?.translateY!,
+                    executeRow,
+                    (value.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    false
+                  )
+                );
+              } else {
+                this.addPointPair(
+                  this.makePoint(
+                    executeStruct.startTs!,
+                    0,
+                    executeRow?.translateY!,
+                    executeRow,
+                    (executeStruct.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    true
+                  ),
+                  this.makePoint(
+                    value.startTs!,
+                    0,
+                    row?.translateY!,
+                    row,
+                    (value.depth! + 0.5) * 20,
+                    'task',
+                    LineType.bezierCurve,
+                    true
+                  )
+                );
+              }
+            });
+            this.refreshCanvas(true);
+          });
+        }
+      });
+    }
   }
   drawJankLine(endParentRow: any, selectJankStruct: JankStruct, data: any) {
-    spSystemTraceDrawJankLine(this, endParentRow, selectJankStruct, data);
+    let collectList = this.favoriteChartListEL!.getAllCollectRows();
+    let startRow: any;
+    if (selectJankStruct == undefined || selectJankStruct == null) {
+      return;
+    }
+    let selectRowId = 'actual frameTime';
+    if (selectJankStruct.frame_type == 'frameTime') {
+      startRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+        `trace-row[row-id='${selectRowId}'][row-type='janks']`
+      );
+    } else {
+      selectRowId = selectJankStruct?.type + '-' + selectJankStruct?.pid;
+      startRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+        `trace-row[row-id='${selectRowId}'][row-type='janks']`
+      );
+    }
+    if (!startRow) {
+      for (let index = 0; index < collectList.length; index++) {
+        let collectChart = collectList[index];
+        if (collectChart.rowId === selectRowId && collectChart.rowType === 'janks') {
+          startRow = collectChart;
+          break;
+        }
+      }
+    }
+
+    function collectionHasJank(jankRow: any): boolean {
+      for (let item of collectList!) {
+        if (item.rowId === jankRow.rowId && item.rowType === jankRow.rowType) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (endParentRow) {
+      endParentRow.expansion = true;
+      //终点的父泳道过滤出选中的Struct
+      let endRowStruct: any;
+      //泳道展开的情况，查找endRowStruct
+      if (data.frame_type == 'frameTime') {
+        endRowStruct = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+          "trace-row[row-id='actual frameTime'][row-type='janks']"
+        );
+      } else {
+        endRowStruct = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+          `trace-row[row-id='${`${data.type}-${data.pid}`}'][row-type='janks']`
+        );
+      }
+      //泳道未展开的情况，查找endRowStruct
+      if (!endRowStruct) {
+        if (data.frame_type == 'frameTime') {
+          endParentRow.childrenList.forEach((item: TraceRow<JankStruct>) => {
+            if (item.rowId === 'actual frameTime' && item.rowType === 'janks') {
+              endRowStruct = item;
+            }
+          });
+          //frameTime未展开
+          if (!endRowStruct) {
+            endParentRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+              "trace-row[row-id='frameTime'][folder]"
+            );
+            endParentRow?.childrenList?.forEach((item: TraceRow<JankStruct>) => {
+              if (item.rowId === 'actual frameTime' && item.rowType === 'janks') {
+                endRowStruct = item;
+              }
+            });
+          }
+        } else {
+          endParentRow.childrenList.forEach((item: TraceRow<JankStruct>) => {
+            if (item.name.startsWith('Actual Timeline') && item.rowType === 'janks') {
+              endRowStruct = item;
+            }
+          });
+        }
+      }
+      let addPointLink = () => {
+        let findJankEntry = endRowStruct!.dataListCache!.find(
+          (dat: any) => dat.name == data.name && dat.pid == data.pid
+        );
+        //连线规则：frametimeline的头----app的头，app的尾----renderservice的头
+        let tts: number = 0;
+        if (findJankEntry) {
+          if (selectJankStruct.frame_type == 'app') {
+            tts =
+              findJankEntry.frame_type == 'frameTime'
+                ? selectJankStruct.ts!
+                : selectJankStruct.ts! + selectJankStruct.dur!;
+            let startParentRow: any;
+            // startRow为子泳道，子泳道不存在，使用父泳道
+            if (startRow) {
+              startParentRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+                `trace-row[row-id='${startRow.rowParentId}'][folder]`
+              );
+            } else {
+              startRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+                `trace-row[row-id='${selectJankStruct?.pid}'][folder]`
+              );
+            }
+            let endY = endRowStruct!.translateY! + 20 * (findJankEntry!.depth! + 0.5);
+            let endRowEl = endRowStruct;
+            let endOffSetY = 20 * (findJankEntry!.depth! + 0.5);
+            let expansionFlag = collectionHasJank(endRowStruct);
+            if (!endParentRow.expansion && expansionFlag) {
+              endY = endParentRow!.translateY! + 10 * (findJankEntry!.depth! + 0.5);
+              endRowEl = endParentRow;
+              endOffSetY = 10 * (findJankEntry!.depth! + 0.5);
+            }
+            let startY = startRow!.translateY! + 20 * (selectJankStruct!.depth! + 0.5);
+            let startRowEl = startRow;
+            let startOffSetY = 20 * (selectJankStruct!.depth! + 0.5);
+            expansionFlag = collectionHasJank(startRow);
+            if (startParentRow && !startParentRow.expansion && expansionFlag) {
+              startY = startParentRow!.translateY! + 10 * (selectJankStruct!.depth! + 0.5);
+              startRowEl = startParentRow;
+              startOffSetY = 10 * (selectJankStruct!.depth! + 0.5);
+            }
+            this.addPointPair(
+              {
+                x: ns2xByTimeShaft(tts, this.timerShaftEL!),
+                y: startY,
+                offsetY: startOffSetY,
+                ns: tts,
+                rowEL: startRowEl!,
+                isRight: selectJankStruct.ts == tts,
+                business: 'janks',
+              },
+              {
+                x: ns2xByTimeShaft(findJankEntry.ts!, this.timerShaftEL!),
+                y: endY,
+                offsetY: endOffSetY,
+                ns: findJankEntry.ts!,
+                rowEL: endRowEl,
+                isRight: true,
+                business: 'janks',
+              }
+            );
+          }
+          if (findJankEntry.frame_type == 'app') {
+            tts =
+              selectJankStruct.frame_type == 'frameTime' ? findJankEntry.ts : findJankEntry.ts! + findJankEntry.dur!;
+            let endY = endRowStruct!.translateY! + 20 * (findJankEntry!.depth! + 0.5);
+            let endRowEl = endRowStruct;
+            let endOffSetY = 20 * (findJankEntry!.depth! + 0.5);
+            let expansionFlag = collectionHasJank(endRowStruct);
+            if (!endParentRow.expansion && expansionFlag) {
+              endY = endParentRow!.translateY! + 10 * (findJankEntry!.depth! + 0.5);
+              endRowEl = endParentRow;
+              endOffSetY = 10 * (findJankEntry!.depth! + 0.5);
+            }
+            let startY = startRow!.translateY! + 20 * (selectJankStruct!.depth! + 0.5);
+            let startRowEl = startRow;
+            expansionFlag = collectionHasJank(startRow);
+            let startOffsetY = 20 * (selectJankStruct!.depth! + 0.5);
+            let startParentRow = this.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+              `trace-row[row-id='${startRow.rowParentId}'][folder]`
+            );
+            if (startParentRow && !startParentRow.expansion && expansionFlag) {
+              startY = startParentRow!.translateY! + 10 * (selectJankStruct!.depth! + 0.5);
+              startRowEl = startParentRow;
+              startOffsetY = 10 * (selectJankStruct!.depth! + 0.5);
+            }
+            this.addPointPair(
+              {
+                x: ns2xByTimeShaft(selectJankStruct.ts!, this.timerShaftEL!),
+                y: startY,
+                offsetY: startOffsetY,
+                ns: selectJankStruct.ts!,
+                rowEL: startRowEl!,
+                isRight: true,
+                business: 'janks',
+              },
+              {
+                x: ns2xByTimeShaft(tts, this.timerShaftEL!),
+                y: endY,
+                offsetY: endOffSetY,
+                ns: tts,
+                rowEL: endRowEl!,
+                isRight: selectJankStruct.ts == tts,
+                business: 'janks',
+              }
+            );
+          }
+          if (data.children.length >= 1) {
+            let endP;
+            if (data.children[0].frame_type == 'frameTime') {
+              endP = this.shadowRoot?.querySelector<TraceRow<any>>("trace-row[row-id='frameTime']");
+            } else {
+              endP = this.shadowRoot?.querySelector<TraceRow<any>>(
+                `trace-row[row-id='${data.children[0].pid}'][folder]`
+              );
+            }
+            this.drawJankLine(endP, findJankEntry, data.children[0]);
+          }
+        }
+      };
+      if (endRowStruct) {
+        if (endRowStruct.isComplete) {
+          addPointLink();
+        } else {
+          endRowStruct.supplierFrame!().then((res: any) => {
+            endRowStruct.dataListCache = res;
+            endRowStruct.loadingFrame = false;
+            addPointLink();
+          });
+        }
+      }
+    }
   }
 
   drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct | undefined, data: any) {
-    spSystemTraceDrawThreadLine(this, endParentRow, selectThreadStruct, data);
-  }
-
-  getStartRow(selectRowId: number | undefined, collectList: any[]): any {
-    let startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+    let collectList = this.favoriteChartListEL!.getCollectRows();
+    let startRow: any;
+    if (selectThreadStruct == undefined || selectThreadStruct == null) {
+      return;
+    }
+    let selectRowId = selectThreadStruct?.tid;
+    startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${selectRowId}'][row-type='thread']`
     );
     if (!startRow) {
-      for (let collectChart of collectList) {
+      for (let index = 0; index < collectList.length; index++) {
+        let collectChart = collectList[index];
         if (collectChart.rowId === selectRowId?.toString() && collectChart.rowType === 'thread') {
           startRow = collectChart;
           break;
         }
       }
     }
-    return startRow;
-  }
-
-  calculateStartY(startRow: any, selectThreadStruct: ThreadStruct): [number, any, number] {
-    let startY = startRow!.translateY!;
-    let startRowEl = startRow;
-    let startOffSetY = 20 * 0.5;
-    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-      `trace-row[row-id='${startRow.rowParentId}'][folder]`
-    );
-    const expansionFlag = this.collectionHasThread(startRow);
-    if (startParentRow && !startParentRow.expansion && expansionFlag) {
-      startY = startParentRow.translateY!;
-      startRowEl = startParentRow;
-      startOffSetY = 10 * 0.5;
+    function collectionHasThread(threadRow: any): boolean {
+      for (let item of collectList!) {
+        if (item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
+          return false;
+        }
+      }
+      return true;
     }
-    return [startY, startRowEl, startOffSetY];
-  }
 
-  calculateEndY(endParentRow: any, endRowStruct: any): [number, any, number] {
-    let endY = endRowStruct.translateY!;
-    let endRowEl = endRowStruct;
-    let endOffSetY = 20 * 0.5;
-    const expansionFlag = this.collectionHasThread(endRowStruct);
-    if (!endParentRow.expansion && expansionFlag) {
-      endY = endParentRow.translateY!;
-      endRowEl = endParentRow;
-      endOffSetY = 10 * 0.5;
-    }
-    return [endY, endRowEl, endOffSetY];
-  }
-
-  collectionHasThread(threadRow: any): boolean {
-    const collectList = this.favoriteChartListEL!.getCollectRows();
-    for (let item of collectList!) {
-      if (item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
-        return false;
+    if (endParentRow) {
+      //终点的父泳道过滤出选中的Struct
+      let endRowStruct: any;
+      //泳道展开的情况，查找endRowStruct
+      endRowStruct = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+        `trace-row[row-id='${data.tid}'][row-type='thread']`
+      );
+      //泳道未展开的情况，查找endRowStruct
+      if (!endRowStruct) {
+        endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
+          return item.rowId === `${data.tid}` && item.rowType === 'thread';
+        });
+      }
+      if (endRowStruct) {
+        let findJankEntry = endRowStruct!.dataListCache!.find(
+          (dat: any) => dat.startTime == data.startTime && dat.dur! > 0
+        );
+        //连线规则
+        let ts: number = 0;
+        if (findJankEntry) {
+          ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
+          let startParentRow: any;
+          // startRow为子泳道，子泳道不存在，使用父泳道
+          if (startRow) {
+            startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+              `trace-row[row-id='${startRow.rowParentId}'][folder]`
+            );
+          } else {
+            startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+              `trace-row[row-id='${selectThreadStruct?.pid}'][folder]`
+            );
+          }
+          let endY = endRowStruct!.translateY!;
+          let endRowEl = endRowStruct;
+          let endOffSetY = 20 * 0.5;
+          let expansionFlag = collectionHasThread(endRowStruct);
+          if (!endParentRow.expansion && expansionFlag) {
+            endY = endParentRow!.translateY!;
+            endRowEl = endParentRow;
+            endOffSetY = 10 * 0.5;
+          }
+          let startY = startRow!.translateY!;
+          let startRowEl = startRow;
+          let startOffSetY = 20 * 0.5;
+          expansionFlag = collectionHasThread(startRow);
+          if (startParentRow && !startParentRow.expansion && expansionFlag) {
+            startY = startParentRow!.translateY!;
+            startRowEl = startParentRow;
+            startOffSetY = 10 * 0.5;
+          }
+          this.addPointPair(
+            this.makePoint(
+              ns2xByTimeShaft(ts, this.timerShaftEL!),
+              ts,
+              startY,
+              startRowEl!,
+              startOffSetY,
+              'thread',
+              LineType.StraightLine,
+              selectThreadStruct.startTime == ts
+            ),
+            this.makePoint(
+              ns2xByTimeShaft(findJankEntry.startTime!, this.timerShaftEL!),
+              findJankEntry.startTime!,
+              endY,
+              endRowEl,
+              endOffSetY,
+              'thread',
+              LineType.StraightLine,
+              true
+            )
+          );
+          this.refreshCanvas(true);
+        }
       }
     }
-    return true;
   }
 
   translateByMouseMove(ev: MouseEvent): void {
@@ -1298,7 +3856,8 @@ export class SpSystemTrace extends BaseElement {
     rangeRuler.translate(offset);
   }
 
-  private eventListener(): void {
+  connectedCallback() {
+    this.initPointToEvent();
     /**
      * 监听时间轴区间变化
      */
@@ -1328,10 +3887,13 @@ export class SpSystemTrace extends BaseElement {
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
     document.addEventListener('contextmenu', this.onContextMenuHandler);
-    this.wheelListener();
-  }
 
-  private wheelListener() {
+    /**
+     * 泳道图中添加ctrl+鼠标滚轮事件，对泳道图进行放大缩小。
+     * 鼠标滚轮事件转化为键盘事件，keyPress和keyUp两个事件需要配合使用，
+     * 否则泳道图会一直放大或一直缩小。
+     * setTimeout()函数中的时间参数可以控制鼠标滚轮的频率。
+     */
     document.addEventListener(
       'wheel',
       (e) => {
@@ -1366,17 +3928,7 @@ export class SpSystemTrace extends BaseElement {
       },
       { passive: false }
     );
-  }
 
-  connectedCallback(): void {
-    this.initPointToEvent();
-    this.eventListener();
-    /**
-     * 泳道图中添加ctrl+鼠标滚轮事件，对泳道图进行放大缩小。
-     * 鼠标滚轮事件转化为键盘事件，keyPress和keyUp两个事件需要配合使用，
-     * 否则泳道图会一直放大或一直缩小。
-     * setTimeout()函数中的时间参数可以控制鼠标滚轮的频率。
-     */
     SpApplication.skinChange2 = (val: boolean) => {
       this.timerShaftEL?.render();
     };
@@ -1615,7 +4167,11 @@ export class SpSystemTrace extends BaseElement {
           item.rowHidden = true;
         }
       } else {
-        item.rowHidden = item.name.toLowerCase().indexOf(query.toLowerCase()) < 0;
+        if (item.name.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          item.rowHidden = false;
+        } else {
+          item.rowHidden = true;
+        }
       }
     });
     this.visibleRows.forEach((it) => (it.rowHidden = false && it.draw(true)));
@@ -1697,29 +4253,153 @@ export class SpSystemTrace extends BaseElement {
   }
 
   showStruct(previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number) {
-    return spSystemTraceShowStruct(this, previous, currentIndex, structs, retargetIndex);
-  }
-
-  private toTargetDepth = (entry: any, funcRowID: number, funcStract: any) => {
-    if (entry) {
+    if (structs.length == 0) {
+      return 0;
+    }
+    let findIndex = -1;
+    if (previous) {
+      if (retargetIndex) {
+        findIndex = retargetIndex - 1;
+      } else {
+        for (let i = structs.length - 1; i >= 0; i--) {
+          let it = structs[i];
+          if (
+            i < currentIndex
+          ) {
+            findIndex = i;
+            break;
+          }
+        }
+      }
+    } else {
+      if (currentIndex == -1) {
+        findIndex = 0;
+      } else {
+        findIndex = structs.findIndex((it, idx) => {
+          return (
+              idx > currentIndex
+          );
+        });
+      }
+    }
+    let findEntry: any;
+    if (findIndex >= 0) {
+      findEntry = structs[findIndex];
+    } else {
+      if (previous) {
+        for (let i = structs.length - 1; i >= 0; i--) {
+          let it = structs[i];
+          if (it.startTime! + it.dur! < TraceRow.range!.startNS) {
+            findIndex = i;
+            break;
+          }
+        }
+        if (findIndex == -1) {
+          findIndex = structs.length - 1;
+        }
+      } else {
+        findIndex = structs.findIndex((it) => it.startTime! > TraceRow.range!.endNS);
+        if (findIndex == -1) {
+          findIndex = 0;
+        }
+      }
+      findEntry = structs[findIndex];
+    }
+    this.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
+    this.queryAllTraceRow().forEach((item) => {
+      item.highlight = false;
+    });
+    if (findEntry.type == 'cpu') {
+      CpuStruct.selectCpuStruct = findEntry;
+      CpuStruct.hoverCpuStruct = CpuStruct.selectCpuStruct;
+      this.queryAllTraceRow(`trace-row[row-type='cpu-data']`, (row) => row.rowType === 'cpu-data').forEach((item) => {
+        if (item.rowId === `${findEntry.cpu}`) {
+          this.rechargeCpuData(
+            findEntry,
+            item.dataListCache.find((it) => it.startTime > findEntry.startTime)
+          );
+          item.fixedList = [findEntry];
+        }
+        item.highlight = item.rowId == `${findEntry.cpu}`;
+        item.draw(true);
+      });
+      this.scrollToProcess(`${findEntry.cpu}`, '', 'cpu-data', true);
+      this.onClickHandler(TraceRow.ROW_TYPE_CPU);
+    } else if (findEntry.type == 'func') {
+      this.observerScrollHeightEnable = true;
+      this.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
+      this.scrollToActFunc(
+        {
+          startTs: findEntry.startTime,
+          dur: findEntry.dur,
+          tid: findEntry.tid,
+          pid: findEntry.pid,
+          depth: findEntry.depth,
+          argsetid: findEntry.argsetid,
+          funName: findEntry.funName,
+          cookie: findEntry.cookie,
+        },
+        true
+      );
+    } else if (findEntry.type == 'thread||process') {
+      let threadProcessRow = this.rowsEL?.querySelectorAll<TraceRow<ThreadStruct>>('trace-row')[0];
+      if (threadProcessRow) {
+        let filterRow = threadProcessRow.childrenList.filter(
+          (row) => row.rowId === findEntry.rowId && row.rowId === findEntry.rowType
+        )[0];
+        filterRow!.highlight = true;
+        this.closeAllExpandRows(findEntry.rowParentId);
+        this.scrollToProcess(`${findEntry.rowId}`, `${findEntry.rowParentId}`, findEntry.rowType, true);
+        let completeEntry = () => {
+          this.hoverStructNull();
+          this.selectStructNull();
+          this.wakeupListNull();
+          this.scrollToProcess(`${findEntry.rowId}`, `${findEntry.rowParentId}`, findEntry.rowType, true);
+        };
+        if (filterRow!.isComplete) {
+          completeEntry();
+        } else {
+          filterRow!.onComplete = completeEntry;
+        }
+      }
+    } else if (findEntry.type == 'sdk') {
+      let parentRow = this.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-type='sdk'][folder]`);
+      if (parentRow) {
+        let sdkRow = parentRow.childrenList.filter(
+          (child) => child.rowId === findEntry.rowId && child.rowType === findEntry.rowType
+        )[0];
+        sdkRow!.highlight = true;
+      }
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-      FuncStruct.hoverFuncStruct = entry;
-      FuncStruct.selectFuncStruct = entry;
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
-      this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+      this.onClickHandler(findEntry.rowType!);
+      this.closeAllExpandRows(findEntry.rowParentId);
+      this.scrollToProcess(`${findEntry.rowId}`, `${findEntry.rowParentId}`, findEntry.rowType, true);
     }
-  };
+    this.timerShaftEL?.drawTriangle(findEntry.startTime || 0, 'inverted');
+    return findIndex;
+  }
 
-  scrollToActFunc(funcStract: any, highlight: boolean): void {
-    if (!Utils.isBinder(funcStract)) {
+  scrollToActFunc(funcStract: any, highlight: boolean) {
+    if (Utils.isBinder(funcStract)) {
+    } else {
       if (funcStract.dur === -1 || funcStract.dur === null || funcStract.dur === undefined) {
         funcStract.dur = (TraceRow.range?.totalNS || 0) - (funcStract.startTs || 0);
         funcStract.flag = 'Did not end';
       }
     }
-
+    const toTargetDepth = (entry: any) => {
+      if (entry) {
+        this.hoverStructNull();
+        this.selectStructNull();
+        this.wakeupListNull();
+        FuncStruct.hoverFuncStruct = entry;
+        FuncStruct.selectFuncStruct = entry;
+        this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
+        this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+      }
+    };
     let funcRowID = funcStract.cookie == null ? funcStract.tid : `${funcStract.funName}-${funcStract.pid}`;
     let targetRow = this.favoriteChartListEL?.getCollectRow((row) => {
       return row.rowId === funcRowID && row.rowType === 'func';
@@ -1728,7 +4408,7 @@ export class SpSystemTrace extends BaseElement {
       targetRow.fixedList[0] = funcStract;
       targetRow.highlight = highlight;
       //如果目标泳道图在收藏上面，则跳转至收藏
-      this.toTargetDepth(funcStract, funcRowID, funcStract);
+      toTargetDepth(funcStract);
       return;
     }
     let parentRow = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${funcStract.pid}'][folder]`);
@@ -1752,7 +4432,7 @@ export class SpSystemTrace extends BaseElement {
       row.expansion = true;
     }
     const completeEntry = () => {
-      this.toTargetDepth(filterRow.fixedList[0], funcRowID, funcStract);
+      toTargetDepth(filterRow.fixedList[0]);
     };
     if (filterRow!.isComplete) {
       completeEntry();
@@ -1787,7 +4467,7 @@ export class SpSystemTrace extends BaseElement {
     this.refreshCanvas(true);
   }
 
-  rechargeCpuData(it: CpuStruct, next: CpuStruct | undefined): void {
+  private rechargeCpuData(it: CpuStruct, next: CpuStruct | undefined): void {
     let p = Utils.PROCESS_MAP.get(it.processId!);
     let t = Utils.THREAD_MAP.get(it.tid!);
     let slice = Utils.SCHED_SLICE_MAP.get(`${it.id}-${it.startTime}`);
@@ -1800,12 +4480,12 @@ export class SpSystemTrace extends BaseElement {
     it.name = t;
     it.type = 'thread';
     if (next) {
-      if (it.startTime! + it.dur! > next!.startTime! || it.dur == -1 || it.dur === null || it.dur === undefined) {
+      if (it.startTime! + it.dur! > next!.startTime! || it.dur === -1 || it.dur === null || it.dur === undefined) {
         it.dur = next!.startTime! - it.startTime!;
         it.nofinish = true;
       }
     } else {
-      if (it.dur == -1 || it.dur === null || it.dur === undefined) {
+      if (it.dur === -1 || it.dur === null || it.dur === undefined) {
         it.dur = TraceRow.range!.endNS - it.startTime!;
         it.nofinish = true;
       }
@@ -1842,9 +4522,9 @@ export class SpSystemTrace extends BaseElement {
     this.hoverStructNull();
     this.wakeupListNull();
     this.traceSheetEL?.setAttribute('mode', 'hidden');
-    progress?.('rest timershaft', 8);
+    progress && progress('rest timershaft', 8);
     this.timerShaftEL?.reset();
-    progress?.('clear cache', 10);
+    progress && progress('clear cache', 10);
     HeapDataInterface.getInstance().clearData();
     procedurePool.clearCache();
     Utils.clearData();
@@ -1859,10 +4539,121 @@ export class SpSystemTrace extends BaseElement {
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {
-    return spSystemTraceInit(this, param, wasmConfigUri, progress);
+    progress('Load database', 6);
+    this.rowsPaneEL!.scroll({
+      top: 0,
+      left: 0,
+    });
+    if (param.buf) {
+      let configJson = '';
+      try {
+        configJson = await fetch(wasmConfigUri).then((res) => res.text());
+      } catch (e) {
+        error('getWasmConfigFailed', e);
+      }
+      let parseConfig = FlagsConfig.getSpTraceStreamParseConfig();
+      let { status, msg, sdkConfigMap } = await threadPool.initSqlite(param.buf, parseConfig, configJson, progress);
+      if (!status) {
+        return { status: false, msg: msg };
+      }
+      SpSystemTrace.SDK_CONFIG_MAP = sdkConfigMap == undefined ? undefined : sdkConfigMap;
+    }
+    if (param.url) {
+      let { status, msg } = await threadPool.initServer(param.url, progress);
+      if (!status) {
+        return { status: false, msg: msg };
+      }
+    }
+    await this.chartManager?.init(progress);
+    let rowId: string = '';
+    this.rowsEL?.querySelectorAll<TraceRow<any>>('trace-row').forEach((it: any) => {
+      if (it.name.includes('Ark Ts')) {
+        rowId = it.rowId;
+      }
+      if (it.folder) it.addEventListener('expansion-change', this.extracted(it));
+    });
+    progress('completed', 100);
+    info('All TraceRow Data initialized');
+    this.loadTraceCompleted = true;
+    this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+      if (rowId !== '' && (it.rowId?.includes(rowId) || it.name.includes(rowId))) {
+        it.addTemplateTypes('Ark Ts');
+        for (let child of it.childrenList) {
+          child.addTemplateTypes('Ark Ts');
+        }
+      }
+      if (it.folder) {
+        let offsetYTimeOut: any = undefined;
+        it.addEventListener('expansion-change', (event: any) => {
+          let max = [...this.rowsPaneEL!.querySelectorAll('trace-row')].reduce(
+            (pre, cur) => pre + cur.clientHeight!,
+            0
+          );
+          let offset = this.rowsPaneEL!.scrollHeight - max;
+          this.rowsPaneEL!.scrollTop = this.rowsPaneEL!.scrollTop - offset;
+          JankStruct.delJankLineFlag = false;
+          if (offsetYTimeOut) {
+            clearTimeout(offsetYTimeOut);
+          }
+          if (event.detail.expansion) {
+            offsetYTimeOut = setTimeout(() => {
+              this.linkNodes.forEach((linkNode) => {
+                JankStruct.selectJankStructList?.forEach((selectStruct: any) => {
+                  if (event.detail.rowId == selectStruct.pid) {
+                    JankStruct.selectJankStruct = selectStruct;
+                    JankStruct.hoverJankStruct = selectStruct;
+                  }
+                });
+                if (linkNode[0].rowEL.collect) {
+                  linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+                } else {
+                  linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+                }
+                linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
+                if (linkNode[1].rowEL.collect) {
+                  linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+                } else {
+                  linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+                }
+                linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+              });
+            }, 300);
+          } else {
+            if (JankStruct!.selectJankStruct) {
+              JankStruct.selectJankStructList?.push(<JankStruct>JankStruct!.selectJankStruct);
+            }
+            offsetYTimeOut = setTimeout(() => {
+              this.linkNodes?.forEach((linkNode) => {
+                if (linkNode[0].rowEL.collect) {
+                  linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
+                } else {
+                  linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+                }
+                linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
+                if (linkNode[1].rowEL.collect) {
+                  linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
+                } else {
+                  linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+                }
+                linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+              });
+            }, 300);
+          }
+          let refreshTimeOut = setTimeout(() => {
+            this.refreshCanvas(true);
+            clearTimeout(refreshTimeOut);
+          }, 360);
+        });
+      }
+      if (this.loadTraceCompleted) {
+        this.traceSheetEL?.displaySystemLogsData();
+      }
+      this.intersectionObserver?.observe(it);
+    });
+    return { status: true, msg: 'success' };
   };
 
-  extracted(it: TraceRow<any>) {
+  private extracted(it: TraceRow<any>) {
     return () => {
       if (it.hasAttribute('expansion')) {
         it.childrenList.forEach((child) => {
@@ -1936,16 +4727,145 @@ export class SpSystemTrace extends BaseElement {
     });
   }
 
-  wakeupListNull() {
+  wakeupListNull(): void {
     SpSystemTrace.wakeupList = [];
-    return this;
   }
 
   initPointToEvent(): void {
-    spSystemTraceInitPointToEvent(this);
+    this.eventMap = {
+      'cpu-data': 'Cpu',
+      'cpu-state': 'Cpu State',
+      'cpu-freq': 'Cpu Frequency',
+      'cpu-limit-freq': 'Cpu Freq Limit',
+      process: 'Process',
+      'native-memory': 'Native Memory',
+      thread: 'Thread',
+      func: 'Func',
+      mem: 'Memory',
+      'virtual-memory-cell': 'Virtual Memory',
+      'virtual-memory-group': 'Virtual Memory',
+      fps: 'FPS',
+      'ability-monitor': 'Ability Monitor',
+      'cpu-ability': 'Cpu Ability',
+      'memory-ability': 'Memory Ability',
+      'disk-ability': 'DiskIO Ability',
+      'network-ability': 'Network Ability',
+      sdk: 'Sdk',
+      'sdk-counter': 'SDK Counter',
+      'sdk-slice': 'Sdk Slice',
+      energy: 'Energy',
+      'power-energy': 'Power Event',
+      'system-energy': 'System Event',
+      'anomaly-energy': 'Anomaly Event',
+      'clock-group': 'Clocks',
+      clock: 'clock',
+      'irq-group': 'Irqs',
+      irq: 'irq',
+      hiperf: 'HiPerf (All)',
+      'hiperf-event': 'HiPerf Event',
+      'hiperf-report': 'HiPerf Report',
+      'hiperf-process': 'HiPerf Process',
+      'hiperf-thread': 'HiPerf Thread',
+      'js-memory': 'Js Memory',
+    };
   }
 
   initHtml(): string {
-    return SpSystemTraceHtml;
+    return `<!--suppress CssUnresolvedCustomProperty -->
+    <style>
+    :host{
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    .timer-shaft{
+        width: 100%;
+        z-index: 2;
+    }
+    
+     .rows-pane{
+        overflow: overlay;
+        overflow-anchor: none;
+        flex: 1;
+        max-height: calc(100vh - 147px - 48px);
+    }
+    .rows{
+        color: #fff;
+        display: flex;
+        box-sizing: border-box;
+        flex-direction: column;
+        overflow-y: auto;
+        flex: 1;
+        width: 100%;
+        background: var(--dark-background4,#ffffff);
+    }
+    :host([disable]) .vessel{
+        pointer-events: none;
+    }
+    .vessel{
+        width: 100%;
+        box-sizing: border-box;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position:relative;
+    }
+    .panel-canvas{
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        z-index: 0;
+    }
+    
+    .panel-canvas-favorite{
+        width: 100% ;
+        display: block;
+        position: absolute;
+        height: 0;
+        top: 0;
+        right: 0;
+        box-sizing: border-box;
+        z-index: 100;
+    }
+    .trace-sheet{
+        cursor: default;
+    }
+    .tip{
+        z-index: 1001;
+        position: absolute;
+        top: 0;
+        left: 0;
+        /*height: 100%;*/
+        background-color: white;
+        border: 1px solid #f9f9f9;
+        width: auto;
+        font-size: 8px;
+        color: #50809e;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 2px 10px;
+        box-sizing: border-box;
+        display: none;
+        user-select: none;
+    }
+
+    </style>
+    <div class="vessel">
+        <timer-shaft-element class="timer-shaft" style="position: relative;top: 0"></timer-shaft-element>
+        <sp-chart-list id="favorite-chart-list"></sp-chart-list>
+        <div class="rows-pane" style="position: relative;flex-direction: column;overflow-x: hidden;">
+            <canvas id="canvas-panel" class="panel-canvas" ondragstart="return false"></canvas>
+            <div class="spacer" ondragstart="return false"></div>
+            <div class="rows" ondragstart="return false"></div>
+        </div>
+        <div id="tip" class="tip"></div>
+        <trace-sheet class="trace-sheet" mode="hidden" ondragstart="return false"></trace-sheet>
+    </div>
+        `;
   }
 }
