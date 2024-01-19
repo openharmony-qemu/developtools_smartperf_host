@@ -188,6 +188,21 @@ export class SpLtpoChart {
     }
     return sendDataArr;
   }
+  //六舍七入
+  specialValue(num: number) {
+    if (num < 0) {
+      return 0;
+    } else {
+      let tempNum = Number(num.toString().split('.')[1].charAt(0));
+      if (tempNum > 6) {
+        return Math.ceil(num);
+      } else {
+        return Math.floor(num);
+      }
+    }
+
+  }
+
   async initFolder() {
     SpLtpoChart.presentArr = [];
     let row: TraceRow<LtpoStruct> = TraceRow.skeleton<LtpoStruct>();
@@ -205,7 +220,8 @@ export class SpLtpoChart {
         SpLtpoChart.sendLTPODataArr = this.sendDataHandle(SpLtpoChart.presentArr, SpLtpoChart.ltpoDataArr);
         for (let i = 0; i < SpLtpoChart.sendLTPODataArr.length; i++) {
           let tmpDur = SpLtpoChart.sendLTPODataArr[i].dur! / 1000000;
-          SpLtpoChart.sendLTPODataArr[i].value = (Math.round(tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1)) < 1 ? 0 : Math.round(tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1);
+          let mathValue = tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1;
+          SpLtpoChart.sendLTPODataArr[i].value = this.specialValue(mathValue);
         }
         return SpLtpoChart.sendLTPODataArr;
 
@@ -256,10 +272,9 @@ export class SpLtpoChart {
         for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
           let tmpVale = Number((Math.ceil(((SpLtpoChart.sendHitchDataArr[i].dur! / 1000000) - (1000 / SpLtpoChart.sendHitchDataArr[i].fps!)) * 10)) / 10);
           let tmpDur = SpLtpoChart.sendLTPODataArr[i].dur! / 1000000;
+          let mathValue = tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1;
           SpLtpoChart.sendHitchDataArr[i].value = tmpVale! < 0 ? 0 : tmpVale;
-          SpLtpoChart.sendHitchDataArr[i].name = String((Math.round(tmpDur *
-            Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1)) < 1 ? 0 :
-            Math.round(tmpDur * Number(SpLtpoChart.sendLTPODataArr[i].fps) / 1000 - 1));
+          SpLtpoChart.sendHitchDataArr[i].name = this.specialValue(mathValue).toString();
         }
         return SpLtpoChart.sendHitchDataArr;
       })
