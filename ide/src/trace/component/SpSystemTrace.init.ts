@@ -598,6 +598,29 @@ function smartEventSubscribe(sp: SpSystemTrace) {
     });
     window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => sp.currentCollectGroup = group);
 }
+
+export function documentInitEvent(sp:SpSystemTrace) : void{
+    if (!document) {
+        return
+    }
+    document.addEventListener('triangle-flag', triangleFlagHandler(sp));
+    document.addEventListener('number_calibration', numberCalibrationHandler(sp));
+    document.addEventListener('flag-change', flagChangeHandler(sp));
+    document.addEventListener('slices-change', slicesChangeHandler(sp));
+    if (sp.timerShaftEL?.collecBtn) {
+        sp.timerShaftEL.collecBtn.onclick = () => {
+            if (sp.timerShaftEL!.collecBtn!.hasAttribute('close')) {
+                sp.timerShaftEL!.collecBtn!.removeAttribute('close');
+                sp.favoriteChartListEL?.showCollectArea();
+            } else {
+                sp.timerShaftEL!.collecBtn!.setAttribute('close', '');
+                sp.favoriteChartListEL?.hideCollectArea();
+            }
+        };
+    }
+    document.addEventListener('collect', collectHandler(sp));
+}
+
 export function spSystemTraceInitElement(sp:SpSystemTrace){
     window.subscribe(window.SmartEvent.UI.LoadFinishFrame, () => sp.drawAllLines());
     sp.traceSheetEL = sp.shadowRoot?.querySelector<TraceSheet>('.trace-sheet');
@@ -616,27 +639,15 @@ export function spSystemTraceInitElement(sp:SpSystemTrace){
     sp.spacerEL = sp.shadowRoot.querySelector<HTMLDivElement>('.spacer');
     sp.timerShaftEL = sp.shadowRoot.querySelector<TimerShaftElement>('.timer-shaft');
     sp.favoriteChartListEL = sp.shadowRoot.querySelector<SpChartList>('#favorite-chart-list');
-    sp.tabCpuFreq = sp.traceSheetEL.shadowRoot?.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
-    sp.tabCpuState = sp.traceSheetEL.shadowRoot?.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
+    if (!sp.traceSheetEL.shadowRoot){
+        return;
+    }
+    sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
+    sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
     sp.rangeSelect = new RangeSelect(sp);
     rightButton?.addEventListener('click', rightButtonOnClick(sp,rightStar));
     rightStar?.addEventListener('click', rightStarOnClick(sp));
-    document?.addEventListener('triangle-flag', triangleFlagHandler(sp));
-    document?.addEventListener('number_calibration', numberCalibrationHandler(sp));
-    document?.addEventListener('flag-change', flagChangeHandler(sp));
-    document?.addEventListener('slices-change', slicesChangeHandler(sp));
-    if (sp.timerShaftEL?.collecBtn) {
-        sp.timerShaftEL.collecBtn.onclick = () => {
-            if (sp.timerShaftEL!.collecBtn!.hasAttribute('close')) {
-                sp.timerShaftEL!.collecBtn!.removeAttribute('close');
-                sp.favoriteChartListEL?.showCollectArea();
-            } else {
-                sp.timerShaftEL!.collecBtn!.setAttribute('close', '');
-                sp.favoriteChartListEL?.hideCollectArea();
-            }
-        };
-    }
-    document?.addEventListener('collect', collectHandler(sp));
+    documentInitEvent(sp);
     SpSystemTrace.scrollViewWidth = sp.getScrollWidth();
     selectHandler(sp);
     observerHandler(sp);
@@ -706,9 +717,7 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean,
             for (let i = structs.length - 1; i >= 0; i--) {
                 let it = structs[i];
                 if (
-                  i < currentIndex &&
-                  it.startTime! >= TraceRow.range!.startNS &&
-                  it.startTime! + it.dur! <= TraceRow.range!.endNS
+                  i < currentIndex
                 ) {
                     findIndex = i;
                     break;
@@ -721,9 +730,7 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean,
         } else {
             findIndex = structs.findIndex((it, idx) => {
                 return (
-                  idx > currentIndex &&
-                  it.startTime! >= TraceRow.range!.startNS &&
-                  it.startTime! + it.dur! <= TraceRow.range!.endNS
+                  idx > currentIndex
                 );
             });
         }
