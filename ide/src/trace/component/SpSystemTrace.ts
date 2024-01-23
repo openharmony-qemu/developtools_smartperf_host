@@ -2103,6 +2103,12 @@ export class SpSystemTrace extends BaseElement {
         (SoStruct.selectSoStruct.startTs || 0) + (SoStruct.selectSoStruct.dur || 0),
         shiftKey
       );
+    } else if (AllAppStartupStruct.selectStartupStruct) {
+      this.slicestime = this.timerShaftEL?.setSlicesMark(
+        AllAppStartupStruct.selectStartupStruct.startTs || 0,
+        (AllAppStartupStruct.selectStartupStruct.startTs || 0) + (AllAppStartupStruct.selectStartupStruct.dur || 0),
+        shiftKey
+      );
     } else if (FrameAnimationStruct.selectFrameAnimationStruct) {
       this.timerShaftEL?.setSlicesMark(
         FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
@@ -2496,6 +2502,7 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.selectJsCpuProfilerStruct = undefined;
     SnapshotStruct.selectSnapshotStruct = undefined;
     HiPerfCallChartStruct.selectStruct = undefined;
+    AllAppStartupStruct.selectStartupStruct = undefined;
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
   }

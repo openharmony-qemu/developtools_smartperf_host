@@ -29,11 +29,9 @@ export class SpKeyboard extends BaseElement {
     let shadow_box = this.shadowRoot?.querySelector('.shadow-box')!;
     closeWindow!.addEventListener('click', () => {
       keyboardDiv.style.visibility = 'hidden';
-      welcomeDiv.style.visibility = 'visible';
     });
     shadow_box!.addEventListener('click', () => {
       keyboardDiv.style.visibility = 'hidden';
-      welcomeDiv.style.visibility = 'visible';
     });
   }
   initHtml(): string {
