@@ -154,6 +154,10 @@ export class TabPaneSlices extends BaseElement {
         indexEL!.textContent = '1';
       });
     });
+    this.shadowRoot?.querySelector('#filterName')?.addEventListener('input', (e) => {
+      // @ts-ignore
+      this.findName(e.target.value);
+    });
   }
 
   connectedCallback() {
@@ -173,7 +177,10 @@ export class TabPaneSlices extends BaseElement {
             flex-direction: column;
         }
         </style>
-        <label id="time-range" class="slice-label" style="width: 100%;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <div style="display:flex">
+        <input id="filterName" type="text" style="width:25%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
+        <label id="time-range" class="slice-label" style="width: 75%;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        </div>
         <lit-table id="tb-slices" style="height: auto">
             <lit-table-column class="slices-column" title="Name" width="500px" data-index="name" key="name"  align="flex-start" order>
             </lit-table-column>
@@ -223,5 +230,30 @@ export class TabPaneSlices extends BaseElement {
       this.slicesSource.sort(compare(slicesDetail.key, slicesDetail.sort, 'number'));
     }
     this.slicesTbl!.recycleDataSource = this.slicesSource;
+  }
+
+  findName(str: string): void {
+    // 有一个问题就是，是否要在筛选之后的表格上方显示总数据
+    let searchData: Array<SelectionData> = [];
+    let sumWallDuration: number = 0;
+    let sumOccurrences: number = 0;
+    if(str === ''){
+      this.slicesTbl!.recycleDataSource = this.slicesSource;
+    } else {
+      this.slicesSource.forEach(item => {
+        if (item.name.toLowerCase().indexOf(str.toLowerCase()) !== -1) {
+          searchData.push(item);
+          sumWallDuration += item.wallDuration;
+          sumOccurrences += item.occurrences;
+        }
+      });
+      let count: SelectionData = new SelectionData();
+      count.process = '';
+      count.name = '';
+      count.wallDuration = Number(sumWallDuration.toFixed(3));
+      count.occurrences = sumOccurrences;
+      searchData.unshift(count);
+      this.slicesTbl!.recycleDataSource = searchData;
+    }
   }
 }
