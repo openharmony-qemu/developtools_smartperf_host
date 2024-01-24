@@ -28,7 +28,7 @@ Trace 解析能力增强主要是提高 Trace 的解析能力。
 
 ##### 配置完成后, 查看【用户配置路径】是否是配置的路径
 
-    edge浏览器:   edge://version/
+    edge浏览器: edge://version/
     chrome浏览器: chrome://version/
 
 #### 超大 trace 抓取配置说明

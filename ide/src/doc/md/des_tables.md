@@ -270,7 +270,7 @@ log 表记录日志信息。可以根据 seq 字段的连续性，来判断是�
 
 frame_slice: 记录 RS(RenderService)和应用的帧渲染。  
 gpu_slice: 记录 RS 的帧对应的 gpu 渲染时长。  
-frame_maps:记录应用到 RS 的帧的映射关系。  
+frame_maps: 记录应用到 RS 的帧的映射关系。  
 ![GitHub Logo](../../figures/traceStreamer/frames.jpg)
 
 ### 查询示例
@@ -290,10 +290,10 @@ js_heap_files：记录 js 内存数据的文件名和文件索引
 
 ![1683163158954](image/des_tables/js_heap_files.png)
 
-js_heap_nodes:记录 js 内存类对象数据
-js_heap_edges:记录 js 内存类对象的成员数据
-js_heap_trace_node:记录 timeline 的调用栈信息
-js_heap_sample:记录 timeline 的时间轴信息
+js_heap_nodes: 记录 js 内存类对象数据
+js_heap_edges: 记录 js 内存类对象的成员数据
+js_heap_trace_node: 记录 timeline 的调用栈信息
+js_heap_sample: 记录 timeline 的时间轴信息
 ![1683163373206](image/des_tables/js_heap_nodes.png)
 
 ## TraceStreamer 输出数据库表格详细介绍
@@ -765,13 +765,13 @@ js_heap_sample:记录 timeline 的时间轴信息
 
 #### 相关字段描述
 
-- pid:目标进程 ID。
-- type:JS 数据类型，取值与枚举 HeapType 对应，0 表示 JS 内存数据为 snapshot 类型，1 表示 JS 内存数据为 timeline 类型，-1 表示没有 JS 内存数据。
-- interval:当 type=0 时生效，单位是秒，表示一次 snapshot 事件和下一次 snapshot 事件之间的间隔。
-- capture_numeric_value:当 type=0 时生效，表示是否同时抓取 numeric。
-- track_allocation:当 type=1 时生效，表示是否抓取 allocations。
-- enable_cpu_profiler:表示是否存在 cpuprofiler 的数据。
-- cpu_profiler_interval:表示 cpuprofiler 数据的采集间隔。
+- pid: 目标进程 ID。
+- type: JS 数据类型，取值与枚举 HeapType 对应，0 表示 JS 内存数据为 snapshot 类型，1 表示 JS 内存数据为 timeline 类型，-1 表示没有 JS 内存数据。
+- interval: 当 type=0 时生效，单位是秒，表示一次 snapshot 事件和下一次 snapshot 事件之间的间隔。
+- capture_numeric_value: 当 type=0 时生效，表示是否同时抓取 numeric。
+- track_allocation: 当 type=1 时生效，表示是否抓取 allocations。
+- enable_cpu_profiler: 表示是否存在 cpuprofiler 的数据。
+- cpu_profiler_interval: 表示 cpuprofiler 数据的采集间隔。
 
 ### js_cpu_profiler_node 表
 
@@ -796,14 +796,14 @@ js_heap_sample:记录 timeline 的时间轴信息
 #### 相关字段描述
 
 - function_id: 函数的 ID 号。
-- function_index:函数名称在 data_dict 中的索引号。
-- script_id:关联到的类对象所在文件的绝对路径 ID。
-- url_index:关联到的类对象所在文件的绝对路径名称在 data_dict 中的索引号。
-- line_number:类对象所在文件的行号。
-- column_number:类对象所在文件的列号。
-- hit_count:采样次数。
-- children:子节点的 id 号。
-- parent_id:父节点的 id 号。
+- function_index: 函数名称在 data_dict 中的索引号。
+- script_id: 关联到的类对象所在文件的绝对路径 ID。
+- url_index: 关联到的类对象所在文件的绝对路径名称在 data_dict 中的索引号。
+- line_number: 类对象所在文件的行号。
+- column_number: 类对象所在文件的列号。
+- hit_count: 采样次数。
+- children: 子节点的 id 号。
+- parent_id: 父节点的 id 号。
 
 ### js_cpu_profiler_sample 表
 
@@ -824,10 +824,10 @@ js_heap_sample:记录 timeline 的时间轴信息
 #### 相关字段描述
 
 - id: ts 内部 ID 号。
-- function_id:函数的 ID 号。
-- start_time:数据上报的起始时间。
-- end_time:数据上报的终止时间。
-- dur:数据上报的间隔时间。
+- function_id: 函数的 ID 号。
+- start_time: 数据上报的起始时间。
+- end_time: 数据上报的终止时间。
+- dur: 数据上报的间隔时间。
 
 ### js_heap_edges 表
 

@@ -111,7 +111,7 @@ import { InitAnalysis } from '../database/logic-worker/ProcedureLogicWorkerCommo
 import { searchCpuDataSender } from '../database/data-trafic/CpuDataSender';
 import { type SpKeyboard } from '../component/SpKeyboard';
 import { enableVSync, resetVSync } from './chart/VSync';
-import {QueryEnum} from "../database/data-trafic/QueryEnum";
+import { QueryEnum } from "../database/data-trafic/QueryEnum";
 import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
 import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime'
 
@@ -194,6 +194,8 @@ export class SpSystemTrace extends BaseElement {
   private expandRowList: Array<TraceRow<any>> = [];
   private _slicesList: Array<SlicesTime> = [];
   private _flagList: Array<any> = [];
+  private currentStartTime: number = 0;
+  private retargetIndex: number = 0;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -782,8 +784,8 @@ export class SpSystemTrace extends BaseElement {
 
           let isIntersect = (filterFunc: FuncStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterFunc.startTs! + filterFunc.dur!, rangeData!.endNS || 0) -
-              Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
-              filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
+            Math.min(filterFunc.startTs!, rangeData!.startNS || 0) <
+            filterFunc.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0) &&
             filterFunc.funName!.indexOf('H:Task ') >= 0;
           let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
             taskData!.tid = parseInt(it.rowId!);
@@ -1147,7 +1149,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_JANK) {
           let isIntersect = (filterJank: JanksStruct, rangeData: RangeSelectStruct) =>
             Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
-              Math.min(filterJank.ts!, rangeData!.startNS || 0) <
+            Math.min(filterJank.ts!, rangeData!.startNS || 0) <
             filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
           if (it.name == 'Actual Timeline') {
             if (it.rowParentId === 'frameTime') {
@@ -1243,7 +1245,7 @@ export class SpSystemTrace extends BaseElement {
         } else if (it.rowType == TraceRow.ROW_TYPE_FRAME_ANIMATION) {
           let isIntersect = (animationStruct: FrameAnimationStruct, selectStruct: RangeSelectStruct) =>
             Math.max(animationStruct.startTs! + animationStruct.dur!, selectStruct!.endNS || 0) -
-              Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
+            Math.min(animationStruct.startTs!, selectStruct!.startNS || 0) <
             animationStruct.dur! + (selectStruct!.endNS || 0) - (selectStruct!.startNS || 0);
           let frameAnimationList = it.dataListCache.filter((frameAnimationBean: FrameAnimationStruct) => {
             return isIntersect(frameAnimationBean, TraceRow.rangeSelectObject!);
@@ -1914,7 +1916,7 @@ export class SpSystemTrace extends BaseElement {
           // 如果没有找到帽子，则绘制一个旗子
           let time = Math.round(
             (x * (TraceRow.range?.endNS! - TraceRow.range?.startNS!)) / this.timerShaftEL!.canvas!.offsetWidth +
-              TraceRow.range?.startNS!
+            TraceRow.range?.startNS!
           );
           this.timerShaftEL!.sportRuler!.drawTriangle(time, 'squre');
         }
@@ -2113,13 +2115,13 @@ export class SpSystemTrace extends BaseElement {
       this.timerShaftEL?.setSlicesMark(
         FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0,
         (FrameAnimationStruct.selectFrameAnimationStruct.startTs || 0) +
-          (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
+        (FrameAnimationStruct.selectFrameAnimationStruct.dur || 0)
       );
     } else if (JsCpuProfilerStruct.selectJsCpuProfilerStruct) {
       this.timerShaftEL?.setSlicesMark(
         JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0,
         (JsCpuProfilerStruct.selectJsCpuProfilerStruct.startTime || 0) +
-          (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
+        (JsCpuProfilerStruct.selectJsCpuProfilerStruct.totalTime || 0)
       );
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
@@ -4263,15 +4265,21 @@ export class SpSystemTrace extends BaseElement {
     if (structs.length == 0) {
       return 0;
     }
+    if (this.currentStartTime === 0 && !retargetIndex) {
+      this.currentStartTime = TraceRow.range!.startNS;
+    }
     let findIndex = -1;
     if (previous) {
       if (retargetIndex) {
         findIndex = retargetIndex - 1;
+        this.retargetIndex = findIndex;
       } else {
         for (let i = structs.length - 1; i >= 0; i--) {
           let it = structs[i];
           if (
-            i < currentIndex
+            i < currentIndex &&
+            it.startTime! >= TraceRow.range!.startNS &&
+            it.startTime! + it.dur! <= TraceRow.range!.endNS
           ) {
             findIndex = i;
             break;
@@ -4279,15 +4287,21 @@ export class SpSystemTrace extends BaseElement {
         }
       }
     } else {
-      if (currentIndex == -1) {
-        findIndex = 0;
-      } else {
-        findIndex = structs.findIndex((it, idx) => {
-          return (
-              idx > currentIndex
-          );
-        });
+      if (this.currentStartTime > TraceRow.range!.startNS) {
+        this.currentStartTime = TraceRow.range!.startNS;
+        currentIndex = -1;
       }
+      if (this.currentStartTime !== 0 && this.currentStartTime < TraceRow.range!.startNS) {
+        this.currentStartTime = 0;
+        this.retargetIndex = 0;
+      }
+      findIndex = structs.findIndex((it, idx) => {
+        return (
+          idx > currentIndex &&
+          it.startTime! >= TraceRow.range!.startNS &&
+          it.startTime! + it.dur! <= TraceRow.range!.endNS
+        );
+      });
     }
     let findEntry: any;
     if (findIndex >= 0) {
@@ -4312,7 +4326,9 @@ export class SpSystemTrace extends BaseElement {
       }
       findEntry = structs[findIndex];
     }
-    this.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
+    if (findEntry.startTime > TraceRow.range!.endNS || (findEntry.startTime + findEntry.dur) < TraceRow.range!.startNS) {
+      this.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
+    }
     this.queryAllTraceRow().forEach((item) => {
       item.highlight = false;
     });
@@ -4334,7 +4350,6 @@ export class SpSystemTrace extends BaseElement {
       this.onClickHandler(TraceRow.ROW_TYPE_CPU);
     } else if (findEntry.type == 'func') {
       this.observerScrollHeightEnable = true;
-      this.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
       this.scrollToActFunc(
         {
           startTs: findEntry.startTime,
@@ -4388,6 +4403,20 @@ export class SpSystemTrace extends BaseElement {
     return findIndex;
   }
 
+  moveRangeToLeft(startTime: number, dur: number) {
+    let startNS = this.timerShaftEL?.getRange()?.startNS || 0;
+    let endNS = this.timerShaftEL?.getRange()?.endNS || 0;
+    let harfDur = Math.trunc((endNS - startNS) - dur / 2);
+    let leftNs = startTime - harfDur;
+    let rightNs = startTime + dur + harfDur;
+    if (startTime - harfDur < 0) {
+      leftNs = 0;
+      rightNs += harfDur - startTime;
+    }
+    this.timerShaftEL?.setRangeNS(leftNs, rightNs);
+    TraceRow.range!.refresh = true;
+    this.refreshCanvas(true);
+  }
   scrollToActFunc(funcStract: any, highlight: boolean) {
     if (Utils.isBinder(funcStract)) {
     } else {

@@ -986,6 +986,24 @@ Thread：线程名。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
+Type：操作类型。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+File Descriptor：fd。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+File Path：文件路径。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
 First Argument：系统调用的第一个参数。
 </pre
           >
@@ -1128,7 +1146,7 @@ Hide System so：隐藏系统库文件。
       <h3 class="mume-header fontColor">FileSystem支持过滤调用栈调用次数的展示风格</h3>
 
       <p class="fontColor">
-        点击FileSystem Calltree的Tab页底部的Sample Counter
+        点击FileSystem Calltree的Tab页底部的Sample Count
         Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。<br />
         <img src="../figures/FileSystem/FileSystemsamplecounter.jpg" alt="GitHub Logo" />
       </p>
@@ -1172,9 +1190,9 @@ Hide System so：隐藏系统库文件。
       <p class="fontColor">
         点击FileSystem Calltre左下角的柱状图的图标，会切换到火焰图页面。<br />
         <img src="../figures/FileSystem/FileSystemflame.jpg" alt="GitHub Logo" /><br />
-        进入到火焰图页面，火焰图的展示跟Callinfo的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。<br />
+        进入到火焰图页面，火焰图的展示跟 Filesystem Calltree 的tab页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和Duration时长。<br />
         <img src="../figures/FileSystem/FileSystemflameshow.jpg" alt="GitHub Logo" /><br />
-        鼠标左键火焰图，会进入下一级界面，右键回到上一级。<br />
+        鼠标点击火焰图，会进入下一级界面，点击上级则返回上一级界面。<br />
         <img src="../figures/FileSystem/FileSystemflamelevel.jpg" alt="GitHub Logo" />
       </p>
     </div>
