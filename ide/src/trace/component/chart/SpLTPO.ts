@@ -130,21 +130,7 @@ export class SpLtpoChart {
   sendDataHandle(presentArr: LtpoStruct[], ltpoDataArr: LtpoStruct[]): Array<LtpoStruct> {
     let sendDataArr: LtpoStruct[] = [];
     //当有present缺失时：
-    let presentIndex = 0;
-    let fpsIndex = 0;
-    while(presentIndex < presentArr.length) {//遍历present，把ltpoDataArr中不包含present中presentFance的item舍弃掉
-      if(Number(presentArr[presentIndex].presentId) < Number(ltpoDataArr[fpsIndex].fanceId)){
-        presentArr.splice(presentIndex,1);
-      }else if(Number(presentArr[presentIndex].presentId) > Number(ltpoDataArr[fpsIndex].fanceId)) {
-        ltpoDataArr.splice(fpsIndex,1);
-      }else{
-        if(presentIndex === presentArr.length-1 && fpsIndex < ltpoDataArr.length-1){//此时present已经遍历到最后一项，如果ltpoDataArr还没有遍历到最后一项，就把后面的舍弃掉
-          ltpoDataArr.splice(fpsIndex);
-        }
-        presentIndex++;
-        fpsIndex++;
-      }
-    };
+    this.deleteUselessFence(presentArr, ltpoDataArr);
     if (presentArr!.length && presentArr!.length === ltpoDataArr!.length) {
       for (let i = 0; i < presentArr!.length; i++) {
         ltpoDataArr[i].startTs = Number(presentArr[i].startTime) - (window as any).recordStartNS;
@@ -188,6 +174,24 @@ export class SpLtpoChart {
     }
     return sendDataArr;
   }
+  deleteUselessFence(presentArr: LtpoStruct[], ltpoDataArr: LtpoStruct[]) {
+    //当有present缺失时：
+    let presentIndex = 0;
+    let fpsIndex = 0;
+    while (presentIndex < presentArr.length) {//遍历present，把ltpoDataArr中不包含present中presentFance的item舍弃掉
+      if (Number(presentArr[presentIndex].presentId) < Number(ltpoDataArr[fpsIndex].fanceId)) {
+        presentArr.splice(presentIndex, 1);
+      } else if (Number(presentArr[presentIndex].presentId) > Number(ltpoDataArr[fpsIndex].fanceId)) {
+        ltpoDataArr.splice(fpsIndex, 1);
+      } else {
+        if (presentIndex === presentArr.length - 1 && fpsIndex < ltpoDataArr.length - 1) {//此时present已经遍历到最后一项，如果ltpoDataArr还没有遍历到最后一项，就把后面的舍弃掉
+          ltpoDataArr.splice(fpsIndex);
+        }
+        presentIndex++;
+        fpsIndex++;
+      }
+    };
+  }
   //六舍七入
   specialValue(num: number) {
     if (num < 0) {
@@ -224,15 +228,10 @@ export class SpLtpoChart {
           SpLtpoChart.sendLTPODataArr[i].value = this.specialValue(mathValue);
         }
         return SpLtpoChart.sendLTPODataArr;
-
       })
     }
-    row.focusHandler = (ev) => {
-      SpLtpoChart.trace?.displayTip(
-        row!,
-        LtpoStruct.hoverLtpoStruct,
-        `<span>${(LtpoStruct.hoverLtpoStruct?.value!)}</span>`
-      )
+    row.focusHandler = () => {
+      SpLtpoChart.trace?.displayTip(row!, LtpoStruct.hoverLtpoStruct, `<span>${(LtpoStruct.hoverLtpoStruct?.value!)}</span>`)
     };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
@@ -247,9 +246,7 @@ export class SpLtpoChart {
           appStartupContext: context,
           useCache: useCache,
           type: `ltpo-present ${row.rowId}`,
-        },
-        row
-      );
+        }, row);
       row.canvasRestore(context);
     };
     SpLtpoChart.trace.rowsEL?.appendChild(row);
@@ -257,14 +254,7 @@ export class SpLtpoChart {
   async initHitchTime() {
     SpLtpoChart.presentArr = [];
     let row: TraceRow<HitchTimeStruct> = TraceRow.skeleton<HitchTimeStruct>();
-    row.rowId = SpLtpoChart.fanceNameList!.length ? `hitch-time ${SpLtpoChart.fanceNameList[0].fanceId}` : '';
-    row.rowParentId = '';
-    row.rowType = TraceRow.ROW_TYPE_HITCH_TIME;
-    row.folder = false;
-    row.style.height = '40px';
-    row.name = `Hitch Time`;
-    row.favoriteChangeHandler = SpLtpoChart.trace.favoriteChangeHandler;
-    row.selectChangeHandler = SpLtpoChart.trace.selectChangeHandler;
+    this.takeStaticArg(row);
     row.supplierFrame = () => {
       return lostFrameSender(SpLtpoChart.threadName, SpLtpoChart.funName, row).then((res) => {
         SpLtpoChart.presentArr = res
@@ -279,12 +269,8 @@ export class SpLtpoChart {
         return SpLtpoChart.sendHitchDataArr;
       })
     }
-    row.focusHandler = (ev) => {
-      SpLtpoChart.trace?.displayTip(
-        row!,
-        HitchTimeStruct.hoverHitchTimeStruct,
-        `<span>${(HitchTimeStruct.hoverHitchTimeStruct?.value!)}</span>`
-      )
+    row.focusHandler = () => {
+      SpLtpoChart.trace?.displayTip(row!, HitchTimeStruct.hoverHitchTimeStruct, `<span>${(HitchTimeStruct.hoverHitchTimeStruct?.value!)}</span>`)
     };
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
@@ -299,11 +285,19 @@ export class SpLtpoChart {
           appStartupContext: context,
           useCache: useCache,
           type: `hitch ${row.rowId}`,
-        },
-        row
-      );
+        }, row);
       row.canvasRestore(context);
     };
     SpLtpoChart.trace.rowsEL?.appendChild(row);
+  }
+  takeStaticArg(row: TraceRow<HitchTimeStruct>){
+    row.rowId = SpLtpoChart.fanceNameList!.length ? `hitch-time ${SpLtpoChart.fanceNameList[0].fanceId}` : '';
+    row.rowParentId = '';
+    row.rowType = TraceRow.ROW_TYPE_HITCH_TIME;
+    row.folder = false;
+    row.style.height = '40px';
+    row.name = `Hitch Time`;
+    row.favoriteChangeHandler = SpLtpoChart.trace.favoriteChangeHandler;
+    row.selectChangeHandler = SpLtpoChart.trace.selectChangeHandler;
   }
 }

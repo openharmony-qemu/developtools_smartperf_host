@@ -55,7 +55,6 @@ import './component/trace/base/CustomThemeColor';
 import { CustomThemeColor, Theme } from './component/trace/base/CustomThemeColor';
 import { convertPool } from './database/Convert';
 import { LongTraceDBUtils } from './database/LongTraceDBUtils';
-import { type SpKeyboard } from './component/SpKeyboard';
 import './component/SpKeyboard';
 import { parseKeyPathJson } from './component/Utils';
 import { Utils } from './component/trace/base/Utils';
@@ -238,6 +237,7 @@ export class SpApplication extends BaseElement {
             color: #FFFFFF;
         }
         .root{
+            position: relative;
             display: grid;
             grid-template-rows: min-content 1fr;
             grid-template-columns: min-content 1fr;
@@ -552,20 +552,20 @@ export class SpApplication extends BaseElement {
             <div id="app-content" class="content">
                 <sp-welcome style="visibility:visible;top:0px;left:0px;position:absolute;z-index: 100" id="sp-welcome">
                 </sp-welcome>
-                <sp-system-trace style="visibility:visible;" id="sp-system-trace">
+                <sp-system-trace style="visibility:hidden;position: relative;z-index: 101;" id="sp-system-trace">
                 </sp-system-trace>
                 <sp-record-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
                 </sp-record-trace>
                 <sp-record-trace record_template='' style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-template">
                 </sp-record-trace>
                 <sp-scheduling-analysis style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-scheduling-analysis"></sp-scheduling-analysis>
-                <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 97" id="sp-metrics">
+                <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 105" id="sp-metrics">
                 </sp-metrics>
-                <sp-query-sql style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 98" id="sp-query-sql">
+                <sp-query-sql style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 106" id="sp-query-sql">
                 </sp-query-sql>
-                <sp-info-and-stats style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 99" id="sp-info-and-stats">
+                <sp-info-and-stats style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 107" id="sp-info-and-stats">
                 </sp-info-and-stats>
-                <sp-convert-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 99" id="sp-convert-trace">
+                <sp-convert-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 107" id="sp-convert-trace">
                 </sp-convert-trace>
                 <sp-help style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
                 </sp-help>
@@ -591,7 +591,7 @@ export class SpApplication extends BaseElement {
     let spInfoAndStats = this.shadowRoot!.querySelector<SpInfoAndStats>('#sp-info-and-stats') as SpInfoAndStats; // new SpInfoAndStats();
     let spSystemTrace = this.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.spHelp = this.shadowRoot!.querySelector<SpHelp>('#sp-help');
-    let SpKeyboard = this.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard') as SpKeyboard;
+    let SpKeyboard = this.shadowRoot!.querySelector<HTMLDivElement>('#sp-keyboard');
     let spFlags = this.shadowRoot!.querySelector<SpFlags>('#sp-flags') as SpFlags;
     let spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-trace');
     let spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-template');
@@ -629,6 +629,9 @@ export class SpApplication extends BaseElement {
       spFlags,
       SpKeyboard,
     ];
+    let keyboardDiv = document
+      .querySelector('body > sp-application')!
+      .shadowRoot!.querySelector<HTMLDivElement>('#sp-keyboard')!;
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'visible') {
         validateFileCacheLost();
@@ -1455,8 +1458,7 @@ export class SpApplication extends BaseElement {
                         event: 'Keyboard Shortcuts',
                         action: 'Keyboard Shortcuts',
                       });
-                      that.search = false;
-                      showContent(SpKeyboard);
+                      keyboardDiv.style.visibility = 'visible';
                     },
                   },
                 ],
@@ -1919,9 +1921,8 @@ export class SpApplication extends BaseElement {
           {
             title: 'Keyboard Shortcuts',
             icon: 'smart-help',
-            clickHandler: function (item: MenuItem) {
-              that.search = false;
-              showContent(SpKeyboard);
+            clickHandler: function () {
+              keyboardDiv.style.visibility = 'visible';
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
                 event: 'Keyboard Shortcuts',
                 action: 'Keyboard Shortcuts',
