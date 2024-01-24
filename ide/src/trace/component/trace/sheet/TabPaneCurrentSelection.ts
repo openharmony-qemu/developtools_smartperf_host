@@ -102,6 +102,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private scrollView: HTMLDivElement | null | undefined;
   // @ts-ignore
   private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
+  private wakeUp: string = '';
 
   set data(currentSelectionValue: any) {
     if (
@@ -459,7 +460,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((d: any) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
-    callback: ((data: Array<any>) => void) | undefined = undefined
+    callback?: ((data: Array<any>,str:string) => void)
   ): void {
     //线程信息
     this.setTableHeight('550px');
@@ -575,17 +576,12 @@ export class TabPaneCurrentSelection extends BaseElement {
           });
         });
       }
-      let timeLineNode = new ThreadTreeNode(data.tid!, data.pid!, data.startTime!);
-      jankJumperList.push(timeLineNode);
       if (args.length > 0) {
         args.forEach((arg) => {
           list.push({ name: arg.keyName, value: arg.strValue });
         });
       }
       this.currentSelectionTbl!.dataSource = list;
-      if (callback) {
-        callback(jankJumperList);
-      }
       this.currentSelectionTbl?.shadowRoot?.querySelector('#next-state-click')?.addEventListener('click', () => {
         if (nextData && scrollWakeUp !== undefined) {
           scrollWakeUp({
@@ -620,6 +616,12 @@ export class TabPaneCurrentSelection extends BaseElement {
           scrollCallback(data);
         }
       });
+      let timeLineNode = new ThreadTreeNode(data.tid!, data.pid!, data.startTime!);
+      jankJumperList.push(timeLineNode);
+      if (callback) {
+        callback(jankJumperList, this.wakeUp);
+        this.wakeUp = '';
+      }
       this.currentSelectionTbl?.shadowRoot?.querySelector('#wakeup-from')?.addEventListener('click', () => {
         //点击跳转，唤醒和被唤醒的 线程
         if (fromBean && scrollWakeUp) {
@@ -634,6 +636,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             argSetID: fromBean.argSetID,
           });
         }
+        this.wakeUp = 'wakeup tid';
       });
       if (wakeUps) {
         wakeUps.map((up) => {
@@ -651,6 +654,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                 argSetID: up.argSetID,
               });
             }
+            this.wakeUp = 'wakeup tid';
           });
         });
       }

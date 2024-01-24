@@ -593,17 +593,22 @@ export class SpProcessChart {
                 }
                 linkProcessItem[1].y = linkProcessItem[1].rowEL!.translateY + linkProcessItem[1].offsetY;
                 if (linkProcessItem[0].rowEL.rowParentId == e.detail.rowId) {
-                  linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
-                  linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
-                  linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
-                  linkProcessItem[0].rowEL = processRow!;
+                  if (!linkProcessItem[0].rowEL.collect) {
+                    linkProcessItem[0].x = ns2xByTimeShaft(linkProcessItem[0].ns, this.trace.timerShaftEL!);
+                    linkProcessItem[0].y = processRow!.translateY! + linkProcessItem[0].offsetY / 2;
+                    linkProcessItem[0].offsetY = linkProcessItem[0].offsetY / 2;
+                    linkProcessItem[0].rowEL = processRow!;
+                  }
                 }
                 if (linkProcessItem[1].rowEL.rowParentId == e.detail.rowId) {
-                  linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
-                  linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
-                  linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
-                  linkProcessItem[1].rowEL = processRow!;
+                  if (!linkProcessItem[1].rowEL.collect) {
+                    linkProcessItem[1].x = ns2xByTimeShaft(linkProcessItem[1].ns, this.trace.timerShaftEL!);
+                    linkProcessItem[1].y = processRow!.translateY! + linkProcessItem[1].offsetY / 2;
+                    linkProcessItem[1].offsetY = linkProcessItem[1].offsetY / 2;
+                    linkProcessItem[1].rowEL = processRow!;
+                  }
                 }
+                JankStruct.selectJankStructList = [];
               });
             }, 300);
           }
@@ -854,7 +859,7 @@ export class SpProcessChart {
             while (
               depthArray[currentDepth] !== undefined &&
               isIntersect(depthArray[currentDepth], asyncFunctions[index])
-              ) {
+            ) {
               currentDepth++;
             }
             asyncFunctions[index].depth = currentDepth;
@@ -909,7 +914,7 @@ export class SpProcessChart {
 
   addStartUpRow(processRow: TraceRow<ProcessStruct>): TraceRow<AppStartupStruct> {
     processRow.setAttribute('hasStartup', 'true');
-    let startupRow : TraceRow<AppStartupStruct> = TraceRow.skeleton<AppStartupStruct>();
+    let startupRow: TraceRow<AppStartupStruct> = TraceRow.skeleton<AppStartupStruct>();
     startupRow.rowId = `app-start-${processRow.rowId}`;
     startupRow.rowType = TraceRow.ROW_TYPE_APP_STARTUP;
     startupRow.rowParentId = `${processRow.rowId}`;

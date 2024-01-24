@@ -1418,7 +1418,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.SliceMark, (data) => {
       this.sliceMarkEventHandler(data);
     });
-    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
     window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => {
       this.refreshCanvas(false);
     });
@@ -2836,6 +2836,7 @@ export class SpSystemTrace extends BaseElement {
               findEntry!.startTime! + findEntry!.dur! + findEntry!.dur! * 2
             );
           }
+          ThreadStruct.firstselectThreadStruct = ThreadStruct.selectThreadStruct;
           this.hoverStructNull();
           this.selectStructNull();
           this.wakeupListNull();
@@ -2846,14 +2847,17 @@ export class SpSystemTrace extends BaseElement {
             ThreadStruct.selectThreadStruct!,
             threadClickHandler,
             cpuClickHandler,
-            (datas) => {
+            (datas, str) => {
               this.removeLinkLinesByBusinessType('thread');
-              datas.forEach((data) => {
-                let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
-                  `trace-row[row-id='${data.pid}'][folder]`
-                );
-                //this.drawThreadLine(endParentRow, ThreadStruct.selectThreadStruct, data);
-              });
+              if (str == 'wakeup tid') {
+                datas.forEach((data) => {
+                  let endParentRow = this.shadowRoot?.querySelector<TraceRow<any>>(
+                    `trace-row[row-id='${data.pid}'][folder]`
+                  );
+                  this.drawThreadLine(endParentRow, ThreadStruct.firstselectThreadStruct, data);
+                });
+              }
+              this.refreshCanvas(true);
             }
           );
           this.scrollToProcess(`${d.tid}`, `${d.processId}`, 'thread', true);
@@ -3746,33 +3750,14 @@ export class SpSystemTrace extends BaseElement {
 
   drawThreadLine(endParentRow: any, selectThreadStruct: ThreadStruct | undefined, data: any) {
     let collectList = this.favoriteChartListEL!.getCollectRows();
-    let startRow: any;
     if (selectThreadStruct == undefined || selectThreadStruct == null) {
       return;
     }
     let selectRowId = selectThreadStruct?.tid;
-    startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-      `trace-row[row-id='${selectRowId}'][row-type='thread']`
-    );
-    if (!startRow) {
-      for (let index = 0; index < collectList.length; index++) {
-        let collectChart = collectList[index];
-        if (collectChart.rowId === selectRowId?.toString() && collectChart.rowType === 'thread') {
-          startRow = collectChart;
-          break;
-        }
-      }
-    }
-    function collectionHasThread(threadRow: any): boolean {
-      for (let item of collectList!) {
-        if (item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
-          return false;
-        }
-      }
-      return true;
-    }
+    let startRow = this.getStartRow(selectRowId, collectList);
 
     if (endParentRow) {
+      endParentRow.expansion = true;
       //终点的父泳道过滤出选中的Struct
       let endRowStruct: any;
       //泳道展开的情况，查找endRowStruct
@@ -3785,43 +3770,13 @@ export class SpSystemTrace extends BaseElement {
           return item.rowId === `${data.tid}` && item.rowType === 'thread';
         });
       }
-      if (endRowStruct) {
-        let findJankEntry = endRowStruct!.dataListCache!.find(
-          (dat: any) => dat.startTime == data.startTime && dat.dur! > 0
-        );
-        //连线规则
+      let addPointLink = () => {
+        let findJankEntry = endRowStruct!.fixedList[0];
         let ts: number = 0;
         if (findJankEntry) {
           ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
-          let startParentRow: any;
-          // startRow为子泳道，子泳道不存在，使用父泳道
-          if (startRow) {
-            startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-              `trace-row[row-id='${startRow.rowParentId}'][folder]`
-            );
-          } else {
-            startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-              `trace-row[row-id='${selectThreadStruct?.pid}'][folder]`
-            );
-          }
-          let endY = endRowStruct!.translateY!;
-          let endRowEl = endRowStruct;
-          let endOffSetY = 20 * 0.5;
-          let expansionFlag = collectionHasThread(endRowStruct);
-          if (!endParentRow.expansion && expansionFlag) {
-            endY = endParentRow!.translateY!;
-            endRowEl = endParentRow;
-            endOffSetY = 10 * 0.5;
-          }
-          let startY = startRow!.translateY!;
-          let startRowEl = startRow;
-          let startOffSetY = 20 * 0.5;
-          expansionFlag = collectionHasThread(startRow);
-          if (startParentRow && !startParentRow.expansion && expansionFlag) {
-            startY = startParentRow!.translateY!;
-            startRowEl = startParentRow;
-            startOffSetY = 10 * 0.5;
-          }
+          const [startY, startRowEl, startOffSetY] = this.calculateStartY(startRow, selectThreadStruct);
+          const [endY, endRowEl, endOffSetY] = this.calculateEndY(endParentRow, endRowStruct);
           this.addPointPair(
             this.makePoint(
               ns2xByTimeShaft(ts, this.timerShaftEL!),
@@ -3830,7 +3785,7 @@ export class SpSystemTrace extends BaseElement {
               startRowEl!,
               startOffSetY,
               'thread',
-              LineType.StraightLine,
+              LineType.straightLine,
               selectThreadStruct.startTime == ts
             ),
             this.makePoint(
@@ -3840,14 +3795,72 @@ export class SpSystemTrace extends BaseElement {
               endRowEl,
               endOffSetY,
               'thread',
-              LineType.StraightLine,
+              LineType.straightLine,
               true
             )
           );
-          this.refreshCanvas(true);
+        }
+      }
+      if (endRowStruct) {
+        if (endRowStruct.isComplete) {
+          addPointLink();
         }
       }
     }
+  }
+
+  getStartRow(selectRowId: number | undefined, collectList: any[]): any {
+    let startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      `trace-row[row-id='${selectRowId}'][row-type='thread']`
+    );
+    if (!startRow) {
+      for (let collectChart of collectList) {
+        if (collectChart.rowId === selectRowId?.toString() && collectChart.rowType === 'thread') {
+          startRow = collectChart;
+          break;
+        }
+      }
+    }
+    return startRow;
+  }
+
+  calculateStartY(startRow: any, selectThreadStruct: ThreadStruct): [number, any, number] {
+    let startY = startRow!.translateY!;
+    let startRowEl = startRow;
+    let startOffSetY = 20 * 0.5;
+    const startParentRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      `trace-row[row-id='${startRow.rowParentId}'][folder]`
+    );;
+    const expansionFlag = this.collectionHasThread(startRow);
+    if (startParentRow && !startParentRow.expansion && expansionFlag) {
+      startY = startParentRow.translateY!;
+      startRowEl = startParentRow;
+      startOffSetY = 10 * 0.5;
+    }
+    return [startY, startRowEl, startOffSetY];
+  }
+
+  calculateEndY(endParentRow: any, endRowStruct: any): [number, any, number] {
+    let endY = endRowStruct.translateY!;
+    let endRowEl = endRowStruct;
+    let endOffSetY = 20 * 0.5;
+    const expansionFlag = this.collectionHasThread(endRowStruct);
+    if (!endParentRow.expansion && expansionFlag) {
+      endY = endParentRow.translateY!;
+      endRowEl = endParentRow;
+      endOffSetY = 10 * 0.5;
+    }
+    return [endY, endRowEl, endOffSetY];
+  }
+
+  collectionHasThread(threadRow: any): boolean {
+    const collectList = this.favoriteChartListEL!.getCollectRows();
+    for (let item of collectList!) {
+      if (item.rowId === threadRow.rowId && item.rowType === threadRow.rowType) {
+        return false;
+      }
+    }
+    return true;
   }
 
   translateByMouseMove(ev: MouseEvent): void {
@@ -4565,9 +4578,9 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();

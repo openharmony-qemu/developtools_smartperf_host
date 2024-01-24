@@ -73,6 +73,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
+  static firstselectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
   argSetID: number | undefined;
   translateY: number | undefined;
