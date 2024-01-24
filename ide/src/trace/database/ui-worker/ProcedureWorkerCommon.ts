@@ -493,7 +493,7 @@ export class Point {
 export enum LineType {
   brokenLine,
   bezierCurve,
-  StraightLine,
+  straightLine,
 }
 
 export class PairPoint {
@@ -803,7 +803,12 @@ function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any
     TraceRow.range?.totalNS ?? 0,
     selectParams.frame
   )) - textWidth / TEXT_WIDTH_HALF; //根据帧率范围的中间值计算文本的起始x坐标
-  const textY = selectParams.frame.y + 10;
+  let textY = selectParams.frame.y + 10;
+  if (selectParams.hitchTimeData?.length) {
+    textY = selectParams.frame.y + 10;
+  } else {
+    textY = selectParams.frame.y + 28;
+  }
   return [textX, textY];
 }
 
@@ -1012,7 +1017,7 @@ export function drawLinkLines(
       case LineType.bezierCurve:
         drawBezierCurve([newFirstNode, newSecondNode], maxWidth, context, percentage);
         break;
-      case LineType.StraightLine:
+      case LineType.straightLine:
         drawStraightLine([newFirstNode, newSecondNode], maxWidth, context);
         break;
       default:
