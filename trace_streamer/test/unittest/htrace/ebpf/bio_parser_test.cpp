@@ -54,7 +54,7 @@ public:
     {
         ebpfHeader_.header.clock = EBPF_CLOCK_BOOTTIME;
         ebpfHeader_.header.cmdLineLen = COMMAND_LINE.length();
-        strcpy(ebpfHeader_.cmdline, COMMAND_LINE.c_str());
+        strcpy_s(ebpfHeader_.cmdline, EBPF_COMMAND_MAX_SIZE, COMMAND_LINE.c_str());
         ebpfTypeAndLength_.type = ITEM_EVENT_BIO;
         ebpfTypeAndLength_.length = length;
         bioFixedHeader_.pid = 32;
