@@ -340,7 +340,6 @@ bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer
 
     if (needRecord) {
         uint64_t currentDataOffset = perfDataOffset_ + processedLength_ + processedLen;
-        // auto it = splitResult_.rbegin();
         if (splitResult_.rbegin() != splitResult_.rend() &&
             (splitResult_.rbegin()->originSeg.offset + splitResult_.rbegin()->originSeg.size == currentDataOffset)) {
             splitResult_.rbegin()->originSeg.size += dataHeader.size;
