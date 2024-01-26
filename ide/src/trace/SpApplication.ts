@@ -776,8 +776,7 @@ export class SpApplication extends BaseElement {
             title: 'Keyboard Shortcuts',
             icon: 'smart-help',
             clickHandler: (item: MenuItem): void => {
-              this.search = false;
-              this.showContent(this.spKeyboard!);
+              document.querySelector('body > sp-application')!.shadowRoot!.querySelector<HTMLDivElement>('#sp-keyboard')!.style.visibility = 'visible';
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
                 event: 'Keyboard Shortcuts',
                 action: 'Keyboard Shortcuts',
@@ -963,12 +962,11 @@ export class SpApplication extends BaseElement {
           title: 'Keyboard Shortcuts',
           icon: 'smart-help',
           clickHandler: function (item: MenuItem): void {
+            document.querySelector('body > sp-application')!.shadowRoot!.querySelector<HTMLDivElement>('#sp-keyboard')!.style.visibility = 'visible';
             SpStatisticsHttpUtil.addOrdinaryVisitAction({
               event: 'Keyboard Shortcuts',
               action: 'Keyboard Shortcuts',
             });
-            that.search = false;
-            that.showContent(that.spKeyboard!);
           },
         },
       ],

@@ -72,7 +72,7 @@ export class TabPaneThreadUsage extends BaseElement {
         let leftStartNs = threadUsageParam.leftNs + threadUsageParam.recordStartNs;
         // 结束的时间rightEndNs
         let rightEndNs = threadUsageParam.rightNs + threadUsageParam.recordStartNs;
-        let sum = judgement(result, leftStartNs, rightEndNs);
+        let sum = rightEndNs - leftStartNs;
         this.range!.textContent = `Selected range: ${(sum / 1000000.0).toFixed(5)} ms`;
       }
     );
@@ -99,10 +99,6 @@ export class TabPaneThreadUsage extends BaseElement {
           if (map.has(resultEl.tid)) {
             map.get(resultEl.tid)[`cpu${resultEl.cpu}`] = resultEl.wallDuration || 0;
             map.get(resultEl.tid)[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);
-            map.get(resultEl.tid)[`cpu${resultEl.cpu}Ratio`] = (
-              (100.0 * (resultEl.wallDuration || 0)) /
-              (totalDurtion)
-            ).toFixed(2);
             map.get(resultEl.tid).wallDuration =
               map.get(resultEl.tid).wallDuration + (resultEl.wallDuration || 0);
             map.get(resultEl.tid).wallDurationTimeStr = getProbablyTime(map.get(resultEl.tid).wallDuration);
@@ -124,14 +120,15 @@ export class TabPaneThreadUsage extends BaseElement {
             }
             threadStatesStruct[`cpu${resultEl.cpu}`] = resultEl.wallDuration || 0;
             threadStatesStruct[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);
-            threadStatesStruct[`cpu${resultEl.cpu}Ratio`] = (
-              (100.0 * (resultEl.wallDuration || 0)) /
-              (totalDurtion)
-            ).toFixed(2);
             map.set(resultEl.tid, threadStatesStruct);
           }
         }
       }
+      map.forEach((val) => {
+        for (let i = 0; i < this.cpuCount; i++){
+          val[`cpu${i}Ratio`] = (100.0 *val[`cpu${i}`]/val.wallDuration).toFixed(2);
+        }
+      })
       this.threadUsageSource = Array.from(map.values());
       this.threadUsageTbl!.recycleDataSource = this.threadUsageSource;
     } else {
