@@ -12,7 +12,7 @@
 // limitations under the License.
 
 import { type LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO'
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 

@@ -26,7 +26,7 @@ import {
   Render,
   RequestMessage,
 } from './ProcedureWorkerCommon';
-import { CpuStruct } from './ProcedureWorkerCPU';
+import { CpuStruct } from './cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class ProcessRender extends Render {
@@ -36,9 +36,9 @@ export class ProcessRender extends Render {
     proc(
       list,
       filter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.startNS || 0,
+      TraceRow.range!.endNS || 0,
+      TraceRow.range!.totalNS || 0,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -54,69 +54,6 @@ export class ProcessRender extends Render {
     req.context.fill(path);
     req.context.closePath();
   }
-
-  render(processReq: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (processReq.lazyRefresh) {
-      proc(
-        list,
-        filter,
-        processReq.startNS,
-        processReq.endNS,
-        processReq.totalNS,
-        processReq.frame,
-        processReq.useCache || !processReq.range.refresh
-      );
-    } else {
-      if (!processReq.useCache) {
-        proc(list, filter, processReq.startNS, processReq.endNS, processReq.totalNS, processReq.frame, false);
-      }
-    }
-    if (processReq.canvas) {
-      processReq.context.clearRect(0, 0, processReq.frame.width, processReq.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !processReq.range.refresh && !processReq.useCache && processReq.lazyRefresh) {
-        drawLoading(
-          processReq.context,
-          processReq.startNS,
-          processReq.endNS,
-          processReq.totalNS,
-          processReq.frame,
-          arr[0].startTime,
-          arr[arr.length - 1].startTime + arr[arr.length - 1].dur
-        );
-      }
-      processReq.context.beginPath();
-      CpuStruct.cpuCount = processReq.params.cpuCount;
-      drawLines(processReq.context, processReq.xs, processReq.frame.height, processReq.lineColor);
-      let path = new Path2D();
-      let miniHeight: number = 0;
-      miniHeight = Math.round((processReq.frame.height - CpuStruct.cpuCount * 2) / CpuStruct.cpuCount);
-      processReq.context.fillStyle = ColorUtils.colorForTid(processReq.params.pid || 0);
-      for (let re of filter) {
-        ProcessStruct.draw(processReq.context, path, re, miniHeight);
-      }
-      processReq.context.fill(path);
-      drawSelection(processReq.context, processReq.params);
-      processReq.context.closePath();
-      drawFlagLine(
-        processReq.context,
-        processReq.flagMoveInfo,
-        processReq.flagSelectedInfo,
-        processReq.startNS,
-        processReq.endNS,
-        processReq.totalNS,
-        processReq.frame,
-        processReq.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: processReq.id,
-      type: processReq.type,
-      results: processReq.canvas ? undefined : filter,
-      hover: undefined,
-    });
-  }
 }
 export function proc(
   processList: Array<any>,
@@ -128,21 +65,22 @@ export function proc(
   use: boolean
 ) {
   if (use && res.length > 0) {
-    res.forEach((it) => ProcessStruct.setProcessFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame));
+    res.forEach((it) => ProcessStruct.setProcessFrame(it, 5, startNS, endNS, totalNS, frame));
     return;
   }
   res.length = 0;
   if (processList) {
     for (let i = 0, len = processList.length; i < len; i++) {
       let it = processList[i];
-      if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
-        ProcessStruct.setProcessFrame(processList[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
+        ProcessStruct.setProcessFrame(processList[i], 5, startNS, endNS, totalNS, frame);
         if (
-          i > 0 &&
-          (processList[i - 1].frame?.x || 0) == (processList[i].frame?.x || 0) &&
-          (processList[i - 1].frame?.width || 0) == (processList[i].frame?.width || 0)
+          !(
+            i > 0 &&
+            (processList[i - 1].frame.x || 0) == (processList[i].frame.x || 0) &&
+            (processList[i - 1].frame.width || 0) == (processList[i].frame.width || 0)
+          )
         ) {
-        } else {
           res.push(processList[i]);
         }
       }

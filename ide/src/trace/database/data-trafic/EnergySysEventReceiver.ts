@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import { TraficEnum } from './QueryEnum';
+import { TraficEnum } from './utils/QueryEnum';
 
 export const systemDataSql = (args: any): string => {
   return `SELECT S.id,
                  S.ts - ${args.recordStartNS} AS startNs,
                  D.data                       AS eventName,
-                 '1'                          AS appKey,
+                 (case when D.data == 'POWER_RUNNINGLOCK' then 1 when D.data == 'GNSS_STATE' then 2 else 0 end) AS appKey,
                  contents                     AS eventValue
           FROM hisys_all_event AS S
                    LEFT JOIN data_dict AS D ON S.event_name_id = D.id
                    LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
-          WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
+          WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
 };
 
 export const chartEnergyAnomalyDataSql = (args: any): string => {
@@ -139,17 +139,7 @@ export function hiSysEnergyStateReceiver(data: any, proc: Function): void {
 }
 
 function systemBufferHandler(data: any, res: any[], transfer: boolean) {
-  let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
-  let startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs);
-  let count = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.count);
-  let type = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.type);
-  let token = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.token);
-  let dataType = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.dataType);
-  let systemList: any = [];
-  let lockCount = 0;
-  let tokedIds: Array<string> = [];
-  let locationIndex = -1;
-  let locationCount = 0;
+  let hiSysEnergy = new HiSysEnergy(data, res, transfer);
   let systemDataList: any = [];
   let workCountMap: Map<string, number> = new Map<string, number>();
   let nameIdMap: Map<string, Array<any>> = new Map<string, []>();
@@ -158,52 +148,10 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
     let parseData = JSON.parse(it.eventValue);
     it.eventValue = parseData;
     let beanData: any = {};
-    if (it.eventName === 'POWER_RUNNINGLOCK') {
-      beanData.dataType = 1;
-      if (it.eventValue['TAG'].endsWith('_ADD')) {
-        beanData.startNs = it.startNs;
-        lockCount++;
-        beanData.id = it.id;
-        beanData.count = lockCount;
-        beanData.token = it.eventValue['MESSAGE'].split('=')[1];
-        beanData.type = 1;
-        tokedIds.push(beanData.token);
-        systemDataList.push(beanData);
-      } else {
-        beanData.id = it.id;
-        beanData.startNs = it.startNs;
-        let toked = it.eventValue['MESSAGE'].split('=')[1];
-        let number = tokedIds.indexOf(toked);
-        if (number > -1) {
-          lockCount--;
-          beanData.count = lockCount;
-          beanData.token = it.eventValue['MESSAGE'].split('=')[1];
-          beanData.type = 1;
-          systemDataList.push(beanData);
-          delete tokedIds[number];
-        }
-      }
-    } else if (it.eventName === 'GNSS_STATE') {
-      beanData.dataType = 2;
-      if (it.eventValue['STATE'] === 'stop') {
-        if (locationIndex == -1) {
-          beanData.startNs = 0;
-          beanData.count = 1;
-        } else {
-          beanData.startNs = it.startNs;
-          locationCount--;
-          beanData.count = locationCount;
-        }
-        beanData.state = 'stop';
-      } else {
-        beanData.startNs = it.startNs;
-        locationCount++;
-        beanData.count = locationCount;
-        beanData.state = 'start';
-      }
-      locationIndex = 0;
-      beanData.type = 2;
-      systemDataList.push(beanData);
+    if (it.appKey === '1') {
+      eventNameWithPowerRunninglock(beanData, it, systemDataList);
+    } else if (it.appKey === '2') {
+      eventNameWithGnssState(beanData, it, systemDataList);
     } else {
       beanData.dataType = 3;
       if (it.eventValue['NAME']) {
@@ -213,68 +161,168 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
         beanData.workId = it['WORKID'];
       }
       if (it.eventName === 'WORK_START') {
-        let nameIdList = nameIdMap.get(beanData.appName);
-        let workCount = 0;
-        if (nameIdList == undefined) {
-          workCount = 1;
-          nameIdMap.set(beanData.appName, [beanData.workId]);
-        } else {
-          nameIdList.push(beanData.workId);
-          workCount = nameIdList.length;
-        }
-        let count = workCountMap.get(beanData.appName);
-        if (count == undefined) {
-          workCountMap.set(beanData.appName, 1);
-        } else {
-          workCountMap.set(beanData.appName, count + 1);
-        }
-        beanData.startNs = it.startNs;
-        beanData.count = workCount;
-        beanData.type = 0;
-        systemDataList.push(beanData);
+        eventNameWithWorkStart(nameIdMap, beanData, workCountMap, it, systemDataList);
       } else if (it.eventName === 'WORK_STOP') {
-        let nameIdList: any = nameIdMap.get(beanData.appName);
-        let index = nameIdList.indexOf(beanData.workId);
-        if (nameIdList != undefined && index > -1) {
-          delete nameIdList[index];
-          let workCount = workCountMap.get(beanData.appName);
-          if (workCount != undefined) {
-            workCount = workCount - 1;
-            workCountMap.set(beanData.appName, workCount);
-            beanData.startNs = it.startNs;
-            beanData.count = workCount;
-            beanData.type = 0;
-            systemDataList.push(beanData);
-          }
-        }
+        eventNameWithWorkStop(nameIdMap, beanData, workCountMap, it, systemDataList);
       }
     }
-    id[index] = beanData.id;
-    startNs[index] = beanData.startNs;
-    count[index] = beanData.count;
-    type[index] = beanData.type;
-    token[index] = beanData.token;
-    dataType[index] = beanData.dataType;
+    hiSysEnergy.id[index] = beanData.id;
+    hiSysEnergy.startNs[index] = beanData.startNs;
+    hiSysEnergy.count[index] = beanData.count;
+    hiSysEnergy.type[index] = beanData.dataType;
+    hiSysEnergy.token[index] = beanData.token;
+    hiSysEnergy.dataType[index] = beanData.dataType;
   });
+  postMessage(data, transfer, hiSysEnergy, res.length);
+}
+function eventNameWithPowerRunninglock(beanData: any, it: any, systemDataList: Array<any>): void {
+  let lockCount = 0;
+  let tokedIds: Array<string> = [];
+  beanData.dataType = 1;
+  if (it.eventValue['TAG'].endsWith('_ADD')) {
+    beanData.startNs = it.startNs;
+    lockCount++;
+    beanData.id = it.id;
+    beanData.count = lockCount;
+    beanData.token = it.eventValue['MESSAGE'].split('=')[1];
+    beanData.type = 1;
+    tokedIds.push(beanData.token);
+    systemDataList.push(beanData);
+  } else {
+    beanData.id = it.id;
+    beanData.startNs = it.startNs;
+    let toked = it.eventValue['MESSAGE'].split('=')[1];
+    let number = tokedIds.indexOf(toked);
+    if (number > -1) {
+      lockCount--;
+      beanData.count = lockCount;
+      beanData.token = it.eventValue['MESSAGE'].split('=')[1];
+      beanData.type = 1;
+      systemDataList.push(beanData);
+      delete tokedIds[number];
+    }
+  }
+}
+function eventNameWithGnssState(beanData: any, it: any, systemDataList: Array<any>): void {
+  let locationIndex = -1;
+  let locationCount = 0;
+  beanData.dataType = 2;
+  if (it.eventValue['STATE'] === 'stop') {
+    if (locationIndex == -1) {
+      beanData.startNs = 0;
+      beanData.count = 1;
+    } else {
+      beanData.startNs = it.startNs;
+      locationCount--;
+      beanData.count = locationCount;
+    }
+    beanData.state = 'stop';
+  } else {
+    beanData.startNs = it.startNs;
+    locationCount++;
+    beanData.count = locationCount;
+    beanData.state = 'start';
+  }
+  locationIndex = 0;
+  beanData.type = 2;
+  systemDataList.push(beanData);
+}
+function eventNameWithWorkStart(
+  nameIdMap: Map<string, Array<any>>,
+  beanData: any,
+  workCountMap: Map<string, number>,
+  it: any,
+  systemDataList: Array<any>
+): void {
+  let nameIdList = nameIdMap.get(beanData.appName);
+  let workCount = 0;
+  if (nameIdList == undefined) {
+    workCount = 1;
+    nameIdMap.set(beanData.appName, [beanData.workId]);
+  } else {
+    nameIdList.push(beanData.workId);
+    workCount = nameIdList.length;
+  }
+  let count = workCountMap.get(beanData.appName);
+  if (count == undefined) {
+    workCountMap.set(beanData.appName, 1);
+  } else {
+    workCountMap.set(beanData.appName, count + 1);
+  }
+  beanData.startNs = it.startNs;
+  beanData.count = workCount;
+  beanData.type = 0;
+  systemDataList.push(beanData);
+}
+function eventNameWithWorkStop(
+  nameIdMap: Map<string, Array<any>>,
+  beanData: any,
+  workCountMap: Map<string, number>,
+  it: any,
+  systemDataList: Array<any>
+): void {
+  let nameIdList: any = nameIdMap.get(beanData.appName);
+  let index = nameIdList.indexOf(beanData.workId);
+  if (nameIdList != undefined && index > -1) {
+    delete nameIdList[index];
+    let workCount = workCountMap.get(beanData.appName);
+    if (workCount != undefined) {
+      workCount = workCount - 1;
+      workCountMap.set(beanData.appName, workCount);
+      beanData.startNs = it.startNs;
+      beanData.count = workCount;
+      beanData.type = 0;
+      systemDataList.push(beanData);
+    }
+  }
+}
+function postMessage(data: any, transfer: boolean, hiSysEnergy: HiSysEnergy, len: number): void {
   (self as unknown as Worker).postMessage(
     {
       id: data.id,
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-            count: count.buffer,
-            type: type.buffer,
-            token: token.buffer,
-            dataType: dataType.buffer,
+            id: hiSysEnergy.id.buffer,
+            startNs: hiSysEnergy.startNs.buffer,
+            count: hiSysEnergy.count.buffer,
+            type: hiSysEnergy.type.buffer,
+            token: hiSysEnergy.token.buffer,
+            dataType: hiSysEnergy.dataType.buffer,
           }
         : {},
-      len: res.length,
+      len: len,
       transfer: transfer,
     },
-    transfer ? [id.buffer, startNs.buffer, count.buffer, type.buffer, token.buffer, dataType.buffer] : []
+    transfer
+      ? [
+          hiSysEnergy.id.buffer,
+          hiSysEnergy.startNs.buffer,
+          hiSysEnergy.count.buffer,
+          hiSysEnergy.type.buffer,
+          hiSysEnergy.token.buffer,
+          hiSysEnergy.dataType.buffer,
+        ]
+      : []
   );
+}
+
+class HiSysEnergy {
+  id: Uint16Array;
+  startNs: Float64Array;
+  count: Uint32Array;
+  type: Uint32Array;
+  token: Float64Array;
+  dataType: Uint16Array;
+
+  constructor(data: any, res: any[], transfer: boolean) {
+    this.id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
+    this.startNs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNs);
+    this.count = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.count);
+    this.type = new Uint32Array(transfer ? res.length : data.params.sharedArrayBuffers.type);
+    this.token = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.token);
+    this.dataType = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.dataType);
+  }
 }
 
 function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
@@ -291,9 +339,9 @@ function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -316,9 +364,9 @@ function powerBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -352,10 +400,10 @@ function stateBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-          id: id.buffer,
-          startNs: startNs.buffer,
-          eventValue: eventValue.buffer,
-        }
+            id: id.buffer,
+            startNs: startNs.buffer,
+            eventValue: eventValue.buffer,
+          }
         : {},
       len: res.length,
       transfer: transfer,
@@ -363,4 +411,3 @@ function stateBufferHandler(data: any, res: any[], transfer: boolean) {
     transfer ? [id.buffer, startNs.buffer, eventValue.buffer] : []
   );
 }
-

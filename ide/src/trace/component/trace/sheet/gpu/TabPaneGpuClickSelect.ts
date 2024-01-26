@@ -15,11 +15,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { RedrawTreeForm, type LitTable } from '../../../../../base-ui/table/lit-table';
 import { resizeObserver } from '../SheetUtils';
-import { queryGpuDataByTs } from '../../../../database/SqlLite';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
 import { log } from '../../../../../log/Log';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
+import { queryGpuDataByTs } from '../../../../database/sql/Gpu.sql';
 interface GpuTreeItem {
   name: string;
   id: number;
@@ -74,12 +74,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
         group: any,
         item: { categoryId: number; size: number; windowNameId: number; moduleId: number; windowId: any }
       ) => {
-        let categoryItem: GpuTreeItem = {
-          name: SpSystemTrace.DATA_DICT.get(item.categoryId) || 'null',
-          id: item.categoryId,
-          size: item.size,
-          sizeStr: Utils.getBinaryByteWithUnit(item.size),
-        };
+        let categoryItem: GpuTreeItem = this.setGpuTreeItem(item);
         if (group[`${item.windowNameId}(${item.windowId})`]) {
           let windowGroup = group[`${item.windowNameId}(${item.windowId})`] as GpuTreeItem;
           windowGroup.size += item.size;
@@ -119,8 +114,16 @@ export class TabPaneGpuClickSelect extends BaseElement {
       },
       {}
     );
-    let items = Object.values(gpuDataObj) as GpuTreeItem[];
-    return items;
+    return Object.values(gpuDataObj) as GpuTreeItem[];
+  }
+
+  private setGpuTreeItem(item: any): GpuTreeItem {
+    return {
+      name: SpSystemTrace.DATA_DICT.get(item.categoryId) || 'null',
+      id: item.categoryId,
+      size: item.size,
+      sizeStr: Utils.getBinaryByteWithUnit(item.size),
+    };
   }
   initElements(): void {
     this.gpuTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu');
@@ -143,12 +146,7 @@ export class TabPaneGpuClickSelect extends BaseElement {
             table!.setStatus(data, false);
             table!.recycleDs = table!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Module') && i === 1) {
-            for (let item of data) {
-              item.status = true;
-              if (item.children != undefined && item.children.length > 0) {
-                table!.setStatus(item.children, false);
-              }
-            }
+            table!.setStatus(data, false, 0, 1);
             table!.recycleDs = table!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if ((label.includes('Category') && i === 2) || (label.includes('Category') && i === 1)) {
             table!.setStatus(data, true);

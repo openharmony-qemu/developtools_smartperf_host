@@ -13,16 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
-
 import { ProcessStruct } from '../../../src/trace/bean/ProcessStruct';
-
-jest.mock('../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-
+jest.mock('../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => ({
+  CpuStruct: {
+    cpuCount: 1,
+  },
+}));
 describe('ProcessStruct Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 2;

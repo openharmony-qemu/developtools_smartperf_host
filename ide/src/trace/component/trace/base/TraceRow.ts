@@ -27,10 +27,14 @@ import '../../../../base-ui/tree/LitTree';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { info } from '../../../../log/Log';
 import { ColorUtils } from './ColorUtils';
-import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
+import {
+  drawSelectionRange,
+  isFrameContainPoint
+} from '../../../database/ui-worker/ProcedureWorkerCommon';
 import { TraceRowConfig } from './TraceRowConfig';
 import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
+import { TraceRowHtml } from './TraceRow.html';
 
 export class RangeSelectStruct {
   startX: number | undefined;
@@ -189,7 +193,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public loadingFrame: boolean = false; //实时查询,正在查询中
   public needRefresh: boolean = true;
   _frameRateList: Array<number> | undefined; //存储平均帧率数据
-  _hitchTimeData: Array<number> | undefined; //存储hitch time
+  _hitchTimeData: Array<number> | undefined;//存储hitch time
   public folderIcon: LitIcon | null | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
@@ -216,7 +220,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   ) {
     super();
     this.args = args;
-    this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
+    this.attachShadow({mode: 'open'}).innerHTML = this.initHtml();
     this.initElements();
   }
 
@@ -279,9 +283,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   set funcExpand(b: boolean) {
     this.setAttribute('func-expand', b ? 'true' : 'false');
   }
+
   get sticky(): boolean {
     return this.hasAttribute('sticky');
   }
+
   set sticky(fixed: boolean) {
     if (fixed) {
       this.setAttribute('sticky', '');
@@ -289,6 +295,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.removeAttribute('sticky');
     }
   }
+
   get hasParentRowEl(): boolean {
     return this.parentRowEl !== undefined;
   }
@@ -401,14 +408,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   set rowParentId(val) {
     this.setAttribute('row-parent-id', val || '');
-  }
-
-  get namePrefix(): string | undefined | null {
-    return this.getAttribute('name-prefix');
-  }
-
-  set namePrefix(val) {
-    this.setAttribute('name-prefix', val || '');
   }
 
   set rowHidden(val: boolean) {
@@ -544,22 +543,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   };
 
-  getHoverStruct(
-    strict: boolean = true,
-    offset: boolean = false,
-    maxKey: string | undefined = undefined
-  ): T | undefined {
+  getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey: string | undefined = undefined): T | undefined {
     if (this.isHover) {
       if (maxKey) {
-        let arr = this.dataListCache
-          .filter((re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset))
-          .sort((targetA, targetB) => (targetB as any)[maxKey] - (targetA as any)[maxKey]);
+        let arr = this.dataListCache.filter(
+          (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
+        ).sort((targetA, targetB) => (targetB as any)[maxKey] - (targetA as any)[maxKey]);
         return arr[0];
       } else {
         return this.dataListCache.find(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         );
       }
+
     }
   }
 
@@ -623,56 +619,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       } else {
         parentEl!.insertBefore(newEl, targetEl.nextSibling);
       }
-    }
-  }
-
-  sortRenderServiceData(
-    child: TraceRow<BaseStruct>,
-    targetRow: TraceRow<BaseStruct>,
-    threadRowArr: Array<TraceRow<BaseStruct>>,
-    flag: boolean
-  ) {
-    if (child.rowType === 'thread') {
-      threadRowArr.push(child);
-    } else {
-      let index: number = threadRowArr.indexOf(targetRow);
-      if (index !== -1) {
-        threadRowArr.splice(index + 1, 0, child);
-      } else {
-        threadRowArr.push(child);
-      }
-    }
-    if (flag) {
-      let order: string[] = [
-        'VSyncGenerator',
-        'VSync-rs',
-        'VSync-app',
-        'render_service',
-        'Acquire Fence',
-        'RSHardwareThrea',
-        'Present Fence',
-      ];
-      let filterOrderArr: Array<TraceRow<BaseStruct>> = [];
-      let filterNotOrderArr: Array<TraceRow<BaseStruct>> = [];
-      for (let i = 0; i < threadRowArr.length; i++) {
-        const element: TraceRow<any> = threadRowArr[i];
-        let renderFlag: boolean =
-          element.name.startsWith('render_service') && element.rowId === element.rowParentId ? true : false;
-        if (renderFlag) {
-          filterOrderArr.push(element);
-        } else if (order.includes(element.namePrefix!) && !element.name.startsWith('render_service')) {
-          filterOrderArr.push(element);
-        } else if (!order.includes(element.namePrefix!) || !renderFlag) {
-          filterNotOrderArr.push(element);
-        }
-      }
-      filterOrderArr.sort((star, next) => {
-        return order.indexOf(star.namePrefix!) - order.indexOf(next.namePrefix!);
-      });
-      let combinedArr = [...filterOrderArr, ...filterNotOrderArr];
-      combinedArr.forEach((item) => {
-        this.addChildTraceRow(item);
-      });
     }
   }
 
@@ -796,23 +742,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       }
     }
-    this.checkBoxEL!.onchange = (ev: any) => {
-      info('checkBoxEL onchange ');
-      if (!ev.target.checked) {
-        info('checkBoxEL target not checked');
-        this.rangeSelect = false;
-        this.checkType = '0';
-      } else {
-        this.rangeSelect = true;
-        this.checkType = '2';
-      }
-      this.setCheckBox(ev.target.checked);
-      ev.stopPropagation();
-    };
-    // 防止事件冒泡触发两次describeEl的点击事件
-    this.checkBoxEL!.onclick = (ev: any) => {
-      ev.stopPropagation();
-    };
+    this.checkBoxEvent();
     this.describeEl?.addEventListener('click', () => {
       if (this.folder) {
         this.expansion = !this.expansion;
@@ -835,6 +765,26 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       };
     }
     this.checkType = '-1';
+  }
+
+  private checkBoxEvent(): void {
+    this.checkBoxEL!.onchange = (ev: any) => {
+      info('checkBoxEL onchange ');
+      if (!ev.target.checked) {
+        info('checkBoxEL target not checked');
+        this.rangeSelect = false;
+        this.checkType = '0';
+      } else {
+        this.rangeSelect = true;
+        this.checkType = '2';
+      }
+      this.setCheckBox(ev.target.checked);
+      ev.stopPropagation();
+    };
+    // 防止事件冒泡触发两次describeEl的点击事件
+    this.checkBoxEL!.onclick = (ev: any) => {
+      ev.stopPropagation();
+    };
   }
 
   addRowCheckFilePop(): void {
@@ -949,7 +899,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   initCanvas(list: Array<HTMLCanvasElement>): void {
     let timerShaftEL = document!
-      .querySelector('body > sp-application')!
+    .querySelector('body > sp-application')!
       .shadowRoot!.querySelector('#sp-system-trace')!
       .shadowRoot!.querySelector('div > timer-shaft-element');
     let timerShaftCanvas = timerShaftEL!.shadowRoot!.querySelector<HTMLCanvasElement>('canvas');
@@ -1034,6 +984,32 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.drawLine(ev.currentTarget, '');
       return undefined;
     };
+    this.describeElEvent();
+    this.collectEL!.onclick = (e) => {
+      if (this.isComplete) {
+        this.collect = !this.collect;
+        if (this.collect) {
+          this.describeEl!.draggable = false;
+        } else {
+          this.describeEl!.draggable = false;
+        }
+        document.dispatchEvent(
+          new CustomEvent('collect', {
+            detail: {
+              type: e.type,
+              row: this,
+            },
+          })
+        );
+        this.favoriteChangeHandler?.(this);
+      }
+    };
+    if (!this.args['skeleton']) {
+      this.initCanvas(this.canvas);
+    }
+  }
+
+  private describeElEvent(): void {
     this.describeEl!.ondragend = (ev: any) => {
       rowDragElement = null;
       ev.target.classList.remove('drag');
@@ -1076,28 +1052,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
       });
     };
-    this.collectEL!.onclick = (e) => {
-      if (this.isComplete) {
-        this.collect = !this.collect;
-        if (this.collect) {
-          this.describeEl!.draggable = false;
-        } else {
-          this.describeEl!.draggable = false;
-        }
-        document.dispatchEvent(
-          new CustomEvent('collect', {
-            detail: {
-              type: e.type,
-              row: this,
-            },
-          })
-        );
-        this.favoriteChangeHandler?.(this);
-      }
-    };
-    if (!this.args['skeleton']) {
-      this.initCanvas(this.canvas);
-    }
   }
 
   rowDragstart(ev: any) {
@@ -1154,6 +1108,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   loadingPin1: number = 0;
   loadingPin2: number = 0;
   static currentActiveRows: Array<string> = [];
+
   drawFrame(): void {
     if (!this.hasAttribute('row-hidden')) {
       if (!this.loadingFrame || window.isLastFrame || !this.isComplete) {
@@ -1172,7 +1127,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             this.dataListCache.push(...this.fixedList);
             this.isComplete = true;
             this.loadingFrame = false;
-            let idx = TraceRow.currentActiveRows.findIndex((it) => it === `${this.rowType}-${this.rowId}`);
+            let idx = TraceRow.currentActiveRows.findIndex(it => it === `${this.rowType}-${this.rowId}`);
             if (idx != -1) {
               TraceRow.currentActiveRows.splice(idx, 1);
             }
@@ -1191,6 +1146,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.onThreadHandler?.(true, null);
     }
   }
+
   draw(useCache: boolean = false) {
     this.dpr = window.devicePixelRatio || 1;
     if (this.sleeping) {
@@ -1404,265 +1360,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        *{
-            box-sizing: border-box;
-        }
-        :host(:not([row-hidden])){
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: min-content;
-        }
-        :host([row-hidden]){
-            width: 100%;
-            display: none;
-        }
-        .root{
-            height: 100%;
-            width: 100%;
-            display: grid;
-            grid-template-rows: 100%;
-            grid-template-columns: 248px 1fr;
-            border-bottom: 1px solid var(--dark-border1,#dadada);
-            border-right: 1px solid var(--dark-border1,#ffffff);
-            box-sizing: border-box;
-        }
-        .root .drag{
-            background-color: var(--dark-background1,#eee);
-            box-shadow: 0 4px 12px -4px #999 inset;
-        }
-        .root .line-top{
-            box-shadow: 0 4px 2px -1px #4d7ab3 inset; 
-            transition: all 0.2s;
-        }
-        .root .line-bottom{
-            box-shadow: 0 -4px 2px -1px #4d7ab3 inset; 
-            transition: all 0.2s;
-        }
-        .describe{
-            box-sizing: border-box;
-            border-right: 1px solid var(--dark-border1,#c9d0da);
-            background-color: var(--dark-background5,#ffffff);
-            align-items: center;
-            position: relative;
-        }
-        .panel{
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-            background-color: transparent;
-            display: block;
-        }
-        .panel-vessel{
-            width: 100%;
-            position: relative;
-            pointer-events: none;
-        }
-        .name{
-            color: var(--dark-color1,#4b5766);
-            margin-left: 10px;
-            font-size: .9rem;
-            font-weight: normal;
-            flex: 1;
-            max-height: 100%;
-            text-align: left;
-            overflow: hidden;
-            user-select: none;
-            text-overflow: ellipsis;
-            white-space:nowrap;
-            max-width: 190px;
-        }
-        :host([highlight]) .name{
-            color: #4b5766;
-        }
-        .icon{
-            color: var(--dark-color1,#151515);
-            margin-left: 10px;
-        }
-        .describe:hover {
-            cursor: pointer;
-        }
-        :host([folder]) .describe:hover > .icon{
-            color:#ecb93f;
-            margin-left: 10px;
-        }
-        :host([folder]){
-            /*background-color: var(--dark-background1,#f5fafb);*/
-        }
-        :host(:not([folder])){
-            /*background-color: var(--dark-background,#FFFFFF);*/
-        }
-        :host(:not([folder]):not([children])) {
-        }
-        :host(:not([folder]):not([children])) .icon{
-            display: none;
-        }
-        :host(:not([folder])[children]) .icon{
-            display: none;
-            color:#fff
-        }
-
-        :host(:not([folder])[children]) .name{
-        }
-        :host([sticky]) {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-        :host([expansion]) {
-            background-color: var(--bark-expansion,#0C65D1);
-        }
-        :host([expansion]) .name,:host([expansion]) .icon{
-            color: #fff;
-        }
-        :host([expansion]) .describe{
-            border-right: 0px;
-            background-color: var(--bark-expansion,#0C65D1);
-        }
-        :host([expansion]:not(sleeping)) .panel-vessel{
-            display: none;
-        }
-        :host([expansion]) .children{
-            flex-direction: column;
-            width: 100%;
-        }
-        :host([expansion]) .icon{
-            transform: rotateZ(0deg);
-        }
-        :host(:not([expansion])) .children{
-            display: none;
-            flex-direction: column;
-            width: 100%;
-        }
-        :host(:not([expansion])) .icon{
-            transform: rotateZ(-90deg);
-        }
-        :host([sleeping]) .describe{
-            display: none;
-        }
-        :host([sleeping]) .panel-vessel{
-            display: none;
-        }
-        :host([sleeping]) .children{
-            display: none;
-        }
-        :host(:not([sleeping])) .describe{
-            display: flex;;
-        }
-        :host(:not([sleeping])) .panel-vessel{
-            display: block;
-        }
-        :host(:not([sleeping])) .children{
-            display: flex;
-        }
-        :host([folder]) .lit-check-box{
-            display: none;
-        }
-        :host(:not([check-type])) .lit-check-box{
-            display: none;
-        }
-        :host([collect-type][row-setting='enable']:not([row-type='hiperf-callchart'])) .setting{
-            position:fixed;
-            z-index:0;
-            left: 473px;
-        }
-        :host([collect-type][row-setting='enable'][row-type='hiperf-callchart'][func-expand='false']) .setting{
-            position:fixed;
-            z-index:0;
-            left: 473px;
-        }
-        :host(:not([collect-type])) {
-            /*position:static;*/
-        }
-        :host([collect-type][collect-group='1']) .collect{
-            display: block;
-            color: #5291FF;
-        }
-        :host([collect-type][collect-group='2']) .collect{
-            display: block;
-            color: #f56940;
-        }
-        :host(:not([collect-type])) .collect{
-            display: none;
-            color: var(--dark-icon,#666666);
-        }
-        .collect{
-            margin-right: 5px;
-        }
-        :host(:not([folder])) .describe:hover .collect{
-            display: block;
-        }
-        .popover{
-            color: var(--dark-color1,#4b5766);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            margin-right: 5px;
-        }
-        .setting{
-            position:absolute;
-            left: 225px;
-        }
-        .radio{
-            margin-right: 10px;
-        }
-        #setting{
-            color: var(--dark-color1,#606060);
-        }
-        :host([expansion]) #setting{
-            color: #FFFFFF;
-        }
-        :host([highlight]) .flash{
-            background-color: #ffe263;
-        }
-         #listprocess::-webkit-scrollbar{
-         width: 6px;
-        }
-        /*定义滑块 内阴影+圆角*/
-        #listprocess::-webkit-scrollbar-thumb
-        {
-          border-radius: 6px;
-          background-color: var(--dark-background7,#e7c9c9);
-        }
-        /*func expand css*/
-        :host([row-type="func"]) .name{
-            cursor: pointer;
-        }
-        :host([func-expand='false']) .name{
-            color: #00a3f5;
-        }
-        .lit-check-box{
-          margin-right: 15px;
-        }
-        :host([row-setting='enable'][check-type]) .lit-check-box{
-            margin-right: 25px;
-        }
-        :host([row-setting='enable'][check-type='-1']) .collect{
-            margin-right: 20px;
-        }
-        :host([row-setting='enable']) #rowSetting{
-            display: flex;
-        } 
-        :host([row-setting='enable']:not([check-type='-1'])) .collect{
-            margin-right: 5px;
-        }
-        :host([row-setting='checkFile']) #rowCheckFile{
-          display:flex;
-        }
-        :host([row-setting='checkFile']) #myfolder{
-          color:#4b5766;
-        }
-        </style>
-        <div class="root">
-            <div class="describe flash" style="position: inherit">
-                <label class="name"></label>
-                <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
-                <lit-check-box class="lit-check-box"></lit-check-box>
-            </div>
-        </div>
-        `;
+    return TraceRowHtml;
   }
 }

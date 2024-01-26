@@ -31,7 +31,7 @@ export class TimeRuler extends Graph {
     this.stepNS = this.totalNS / 10;
   }
 
-  draw() {
+  draw(): void {
     this.stepSmall = this.frame.width / 100;
     this.step = this.frame.width / 10;
     this.stepNS = this.totalNS / 10;
@@ -43,10 +43,12 @@ export class TimeRuler extends Graph {
       let x = Math.floor(index * this.step) + this.frame.x;
       this.context2D.moveTo(x, 0);
       this.context2D.lineTo(x, this.frame.height);
-      if (index == 10) break;
-      for (let inner_index = 1; inner_index < 10; inner_index++) {
-        this.context2D.moveTo(x + Math.floor(inner_index * this.stepSmall), 0);
-        this.context2D.lineTo(x + Math.floor(inner_index * this.stepSmall), this.frame.height / 4);
+      if (index === 10) {
+        break;
+      }
+      for (let innerIndex = 1; innerIndex < 10; innerIndex++) {
+        this.context2D.moveTo(x + Math.floor(innerIndex * this.stepSmall), 0);
+        this.context2D.lineTo(x + Math.floor(innerIndex * this.stepSmall), this.frame.height / 4);
       }
       this.context2D.fillStyle = '#999';
       this.context2D.fillText(`${ns2s(index * this.stepNS)}`, x + 5, this.frame.height - 1);

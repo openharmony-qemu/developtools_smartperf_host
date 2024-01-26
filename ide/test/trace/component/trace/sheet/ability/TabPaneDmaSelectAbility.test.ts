@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 import { TabPaneDmaSelectAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneDmaSelectAbility';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const dmaSqlite = require('../../../../../../src/trace/database/sql/Dma.sql');
+jest.mock('../../../../../../src/trace/database/sql/Dma.sql');
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
     return {};
 });
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
@@ -35,7 +38,7 @@ window.ResizeObserver = window.ResizeObserver ||
 
 describe('TabPaneDmaSelectAbility Test', () => {
     let tabPaneDmaSelectAbility = new TabPaneDmaSelectAbility();
-    let getTabDmaSelectionData = sqlite.getTabDmaAbilityClickData;
+    let getTabDmaSelectionData = dmaSqlite.getTabDmaAbilityClickData;
     let dmaSelectionData = [
         {
             startNs: 0,

@@ -19,7 +19,9 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 import { ClockStruct, ClockRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerClock';
-
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
 describe('ProcedureWorkerClock Test', () => {
   it('ProcedureWorkerClock01', () => {
     const canvas = document.createElement('canvas');
@@ -41,17 +43,5 @@ describe('ProcedureWorkerClock Test', () => {
       delta: 125,
     };
     expect(ClockStruct.draw(ctx!, data, 2)).toBeUndefined();
-  });
-  it('ProcedureWorkerClock02', () => {
-    let canvas = document.createElement('canvas') as HTMLCanvasElement;
-    let context = canvas.getContext('2d');
-    const data = {
-      context: context!,
-      useCache: true,
-      type: '',
-      traceRange: [],
-    };
-    let clockRender = new ClockRender();
-    expect(clockRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

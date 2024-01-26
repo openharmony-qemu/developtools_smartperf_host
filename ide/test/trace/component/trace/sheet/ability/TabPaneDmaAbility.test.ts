@@ -25,11 +25,11 @@ window.ResizeObserver = window.ResizeObserver ||
         observe: jest.fn(),
         unobserve: jest.fn(),
     }));
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const dmaSqlite = require('../../../../../../src/trace/database/sql/Dma.sql');
+jest.mock('../../../../../../src/trace/database/sql/Dma.sql');
 describe('TabPaneDmaAbility Test', () => {
     let tabPaneDmaAbility = new TabPaneDmaAbility();
-    let getTabDmaAbilityData = sqlit.getTabDmaAbilityData;
+    let getTabDmaAbilityData = dmaSqlite.getTabDmaAbilityData;
     getTabDmaAbilityData.mockResolvedValue([
         {
             avgSize: 1111211,

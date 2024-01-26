@@ -17,8 +17,9 @@ import { SpChartManager } from '../../../../src/trace/component/chart/SpChartMan
 import { SpCpuChart } from '../../../../src/trace/component/chart/SpCpuChart';
 import { HeapNode } from '../../../../src/js-heap/model/DatabaseStruct';
 
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlit = require('../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../src/trace/database/sql/Cpu.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -30,12 +31,13 @@ window.ResizeObserver =
 
 jest.mock('../../../../src/js-heap/utils/Utils', () => {
   return {
-    HeapNodeToConstructorItem: (node: HeapNode) => {},
+    HeapNodeToConstructorItem: (node: HeapNode) => {
+    },
   };
 });
 describe('SpCpuChart Test', () => {
   let MockqueryCpuMax = sqlit.queryCpuMax;
-  MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
+  MockqueryCpuMax.mockResolvedValue([{cpu: 1}]);
 
   let mockCpuSlice = sqlit.queryCpuSchedSlice;
   mockCpuSlice.mockResolvedValue([]);

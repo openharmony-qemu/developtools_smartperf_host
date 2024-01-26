@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HiSysEventStruct } from '../ui-worker/ProcedureWorkerHiSysEvent';
@@ -37,12 +37,12 @@ export function hiSysEventDataSender(row: TraceRow<HiSysEventStruct>): Promise<H
     threadPool.submitProto(
       QueryEnum.HiSysEventData,
       {
+        width: width,
+        trafic: trafic,
         startNS: TraceRow.range?.startNS || 0,
         endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
-        trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {

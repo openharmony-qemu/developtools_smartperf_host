@@ -26,6 +26,7 @@ import '../../../base-ui/progress-bar/LitProgressBar';
 import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
 import './TableNoData';
 import { TableNoData } from './TableNoData';
+import { TabCpuDetailsFrequencyHtml } from './TabCpuDetailsFrequency.html';
 
 @element('tab-cpu-details-frequency')
 export class TabCpuDetailsFrequency extends BaseElement {
@@ -92,44 +93,7 @@ export class TabCpuDetailsFrequency extends BaseElement {
       this.cpuDetailsFrequencyData = getDataNo(this.cpuDetailsFrequencyData);
       this.tableNoData!.noData = this.cpuDetailsFrequencyData.length == 0;
       this.noData(this.cpuDetailsFrequencyData.length == 0);
-      this.cpuDetailsFrequencyPie!.config = {
-        appendPadding: 0,
-        data: this.cpuDetailsFrequencyData,
-        angleField: 'sum',
-        colorField: 'value',
-        radius: 1,
-        label: {
-          type: 'outer',
-        },
-        tip: (freObj) => {
-          return `<div>
-                                <div>frequency:${freObj.obj.value}</div> 
-                                <div>min:${freObj.obj.min}</div>
-                                <div>max:${freObj.obj.max}</div>
-                                <div>average:${freObj.obj.avg}</div>
-                                <div>duration:${freObj.obj.sumTimeStr}</div>
-                                <div>ratio:${freObj.obj.ratio}%</div>
-                            </div>
-                                `;
-        },
-        hoverHandler: (cpuDetailsFreqData) => {
-          if (cpuDetailsFreqData) {
-            this.cpuDetailsFrequencyUsageTbl!.setCurrentHover(cpuDetailsFreqData);
-          } else {
-            this.cpuDetailsFrequencyUsageTbl!.mouseOut();
-          }
-        },
-        angleClick: (it) => {
-          this.tabCpuDetailsThreads!.setShow = true;
-          this.shadowRoot!.querySelector<HTMLDivElement>('.d-box')!.style.display = 'none';
-          this.tabCpuDetailsThreads!.init(cpu, it);
-        },
-        interactions: [
-          {
-            type: 'element-active',
-          },
-        ],
-      };
+      this.setFrequencyPieConfig(cpu);
       if (this.cpuDetailsFrequencySortColumn != '') {
         this.sortByColumn({
           key: this.cpuDetailsFrequencySortColumn,
@@ -140,6 +104,47 @@ export class TabCpuDetailsFrequency extends BaseElement {
       }
       this.cpuDetailsFrequencyUsageTbl?.reMeauseHeight();
     });
+  }
+
+  private setFrequencyPieConfig(cpu: number): void {
+    this.cpuDetailsFrequencyPie!.config = {
+      appendPadding: 0,
+      data: this.cpuDetailsFrequencyData,
+      angleField: 'sum',
+      colorField: 'value',
+      radius: 1,
+      label: {
+        type: 'outer',
+      },
+      tip: (freObj) => {
+        return `<div>
+                                <div>frequency:${freObj.obj.value}</div> 
+                                <div>min:${freObj.obj.min}</div>
+                                <div>max:${freObj.obj.max}</div>
+                                <div>average:${freObj.obj.avg}</div>
+                                <div>duration:${freObj.obj.sumTimeStr}</div>
+                                <div>ratio:${freObj.obj.ratio}%</div>
+                            </div>
+                                `;
+      },
+      hoverHandler: (cpuDetailsFreqData) => {
+        if (cpuDetailsFreqData) {
+          this.cpuDetailsFrequencyUsageTbl!.setCurrentHover(cpuDetailsFreqData);
+        } else {
+          this.cpuDetailsFrequencyUsageTbl!.mouseOut();
+        }
+      },
+      angleClick: (it) => {
+        this.tabCpuDetailsThreads!.setShow = true;
+        this.shadowRoot!.querySelector<HTMLDivElement>('.d-box')!.style.display = 'none';
+        this.tabCpuDetailsThreads!.init(cpu, it);
+      },
+      interactions: [
+        {
+          type: 'element-active',
+        },
+      ],
+    };
   }
 
   noData(value: boolean) {
@@ -220,60 +225,6 @@ export class TabCpuDetailsFrequency extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        #loading{
-            height: 1px;
-            width: 100%
-        }
-        :host {
-            width: 100%;
-            height: 100%;
-            background-color: var(--dark-background,#FFFFFF);
-        }
-        .d-box{
-            display: flex;
-            margin: 20px;
-            height: calc(100vh - 165px);
-        }
-        .fre-chart-box{
-            width: 40%;
-        }
-        #fre-tb-cpu-usage{
-            height: 100%;
-        }
-        .table-box{
-            width: 60%;
-            max-height: calc(100vh - 165px);
-            padding: 10px;
-            border: solid 1px var(--dark-border1,#e0e0e0);
-            border-radius: 5px;
-        }
-        #chart-pie{
-            height: 360px;
-        }
-        </style>
-        <lit-progress-bar id="loading"></lit-progress-bar>
-        <div class="d-box">
-            <div class="fre-chart-box">
-                <div style="text-align: center">Statistics By Duration</div>
-                <lit-chart-pie  id="chart-pie"></lit-chart-pie>
-            </div>
-            <div class="table-box">
-                <table-no-data id="table-no-data">
-                    <lit-table id="fre-tb-cpu-usage" hideDownload>
-                        <lit-table-column width="100px" title="No" data-index="index" key="index" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="150px" title="frequency" data-index="value" key="value" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="100px" title="min" data-index="min" key="min" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="100px" title="max" data-index="max" key="max" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="100px" title="average" data-index="avg" key="avg" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="100px" title="duration" data-index="sumTimeStr" key="sumTimeStr" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="100px" title="%" data-index="ratio" key="ratio" align="flex-start" order></lit-table-column>
-                    </lit-table>
-                </table-no-data>
-            </div>
-        </div>
-        <tab-cpu-details-threads id="tab-cpu-details-threads"></tab-cpu-details-threads>
-        `;
+    return TabCpuDetailsFrequencyHtml;
   }
 }

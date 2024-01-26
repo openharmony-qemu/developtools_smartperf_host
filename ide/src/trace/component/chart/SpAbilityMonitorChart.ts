@@ -14,20 +14,10 @@
  */
 
 import { SpSystemTrace } from '../SpSystemTrace';
-import {
-  queryAbilityExits,
-  queryCPuAbilityMaxData,
-  queryDiskIoMaxData,
-  queryDmaAbilityData,
-  queryGpuMemoryAbilityData,
-  queryMemoryMaxData,
-  queryNetWorkMaxData,
-  queryPurgeableSysData,
-} from '../../database/SqlLite';
 import { info } from '../../../log/Log';
 import { TraceRow } from '../trace/base/TraceRow';
 import { Utils } from '../trace/base/Utils';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { type ProcessStruct } from '../../database/ui-worker/ProcedureWorkerProcess';
 import { CpuAbilityMonitorStruct, CpuAbilityRender } from '../../database/ui-worker/ProcedureWorkerCpuAbility';
 import { MemoryAbilityMonitorStruct, MemoryAbilityRender } from '../../database/ui-worker/ProcedureWorkerMemoryAbility';
@@ -50,6 +40,9 @@ import {
   abilityPurgeableDataSender,
 } from '../../database/data-trafic/VmTrackerDataSender';
 import { MemoryConfig } from '../../bean/MemoryConfig';
+import {queryMemoryMaxData} from "../../database/sql/Memory.sql";
+import {queryDiskIoMaxData, queryNetWorkMaxData} from "../../database/sql/SqlLite.sql";
+import {queryAbilityExits, queryCPuAbilityMaxData, queryPurgeableSysData} from "../../database/sql/Ability.sql";
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;
   constructor(trace: SpSystemTrace) {
@@ -174,50 +167,18 @@ export class SpAbilityMonitorChart {
       hasTotal = true;
     }
     let cpuNameList: Array<string> = ['Total', 'User', 'System'];
-    let traceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
-    traceRow.rowParentId = `abilityMonitor`;
-    traceRow.rowHidden = !processRow.expansion;
-    traceRow.rowId = cpuNameList[0];
-    traceRow.rowType = TraceRow.ROW_TYPE_CPU_ABILITY;
-    traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    traceRow.style.height = '40px';
-    traceRow.style.width = `100%`;
-    traceRow.setAttribute('children', '');
-    traceRow.name = `CPU ${cpuNameList[0]} Load`;
-    traceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
-      cpuAbilityUserDataSender(traceRow, 'CpuAbilityMonitorData').then((res): CpuAbilityMonitorStruct[] => {
-        this.computeDur(res);
-        return res;
-      });
-    traceRow.focusHandler = (ev): void => {
-      let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
-      this.trace?.displayTip(traceRow, CpuAbilityMonitorStruct.hoverCpuAbilityStruct, `<span>${monitorCpuTip}</span>`);
-    };
-    traceRow.findHoverStruct = (): void => {
-      CpuAbilityMonitorStruct.hoverCpuAbilityStruct = traceRow.getHoverStruct();
-    };
-    traceRow.onThreadHandler = (useCache): void => {
-      let context: CanvasRenderingContext2D;
-      if (traceRow.currentContext) {
-        context = traceRow.currentContext;
-      } else {
-        context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
-      }
-      traceRow.canvasSave(context);
-      (renders['monitorCpu'] as CpuAbilityRender).renderMainThread(
-        {
-          context: context,
-          useCache: useCache,
-          type: `monitorCpu0`,
-          maxCpuUtilization: 100,
-          maxCpuUtilizationName: hasTotal ? '100%' : '0%',
-        },
-        traceRow
-      );
-      traceRow.canvasRestore(context, this.trace);
-    };
-    processRow.addChildTraceRow(traceRow);
+    this.initTotalMonitorTraceRow(processRow, cpuNameList, hasTotal);
+    this.initUserMonitorTraceRow(processRow, cpuNameList, hasUserLoad);
+    this.initSysMonitorTraceRow(processRow, cpuNameList, hasSystemLoad);
+    let durTime = new Date().getTime() - time;
+    info('The time to load the Ability Cpu is: ', durTime);
+  };
+
+  private initUserMonitorTraceRow(
+    processRow: TraceRow<ProcessStruct>,
+    cpuNameList: Array<string>,
+    hasUserLoad: boolean
+  ): void {
     let userTraceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
     userTraceRow.rowParentId = `abilityMonitor`;
     userTraceRow.rowHidden = !processRow.expansion;
@@ -266,6 +227,64 @@ export class SpAbilityMonitorChart {
       userTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(userTraceRow);
+  }
+
+  private initTotalMonitorTraceRow(
+    processRow: TraceRow<ProcessStruct>,
+    cpuNameList: Array<string>,
+    hasTotal: boolean
+  ): void {
+    let traceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
+    traceRow.rowParentId = `abilityMonitor`;
+    traceRow.rowHidden = !processRow.expansion;
+    traceRow.rowId = cpuNameList[0];
+    traceRow.rowType = TraceRow.ROW_TYPE_CPU_ABILITY;
+    traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+    traceRow.style.height = '40px';
+    traceRow.style.width = `100%`;
+    traceRow.setAttribute('children', '');
+    traceRow.name = `CPU ${cpuNameList[0]} Load`;
+    traceRow.supplierFrame = (): Promise<CpuAbilityMonitorStruct[]> =>
+      cpuAbilityUserDataSender(traceRow, 'CpuAbilityMonitorData').then((res): CpuAbilityMonitorStruct[] => {
+        this.computeDur(res);
+        return res;
+      });
+    traceRow.focusHandler = (ev): void => {
+      let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
+      this.trace?.displayTip(traceRow, CpuAbilityMonitorStruct.hoverCpuAbilityStruct, `<span>${monitorCpuTip}</span>`);
+    };
+    traceRow.findHoverStruct = (): void => {
+      CpuAbilityMonitorStruct.hoverCpuAbilityStruct = traceRow.getHoverStruct();
+    };
+    traceRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (traceRow.currentContext) {
+        context = traceRow.currentContext;
+      } else {
+        context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      traceRow.canvasSave(context);
+      (renders['monitorCpu'] as CpuAbilityRender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: `monitorCpu0`,
+          maxCpuUtilization: 100,
+          maxCpuUtilizationName: hasTotal ? '100%' : '0%',
+        },
+        traceRow
+      );
+      traceRow.canvasRestore(context, this.trace);
+    };
+    processRow.addChildTraceRow(traceRow);
+  }
+
+  private initSysMonitorTraceRow(
+    processRow: TraceRow<ProcessStruct>,
+    cpuNameList: Array<string>,
+    hasSystemLoad: boolean
+  ): void {
     let sysTraceRow = TraceRow.skeleton<CpuAbilityMonitorStruct>();
     sysTraceRow.rowParentId = `abilityMonitor`;
     sysTraceRow.rowHidden = !processRow.expansion;
@@ -282,13 +301,9 @@ export class SpAbilityMonitorChart {
         this.computeDur(res);
         return res;
       });
-    sysTraceRow.focusHandler = (ev): void => {
-      let monitorCpuTip = (CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%';
-      this.trace?.displayTip(
-        sysTraceRow,
-        CpuAbilityMonitorStruct.hoverCpuAbilityStruct,
-        `<span>${monitorCpuTip}</span>`
-      );
+    sysTraceRow.focusHandler = (): void => {
+      this.trace?.displayTip(sysTraceRow, CpuAbilityMonitorStruct.hoverCpuAbilityStruct,
+        `<span>${(CpuAbilityMonitorStruct.hoverCpuAbilityStruct?.value || 0).toFixed(2) + '%'}</span>`);
     };
     sysTraceRow.findHoverStruct = (): void => {
       CpuAbilityMonitorStruct.hoverCpuAbilityStruct = sysTraceRow.getHoverStruct();
@@ -314,9 +329,7 @@ export class SpAbilityMonitorChart {
       sysTraceRow.canvasRestore(context, this.trace);
     };
     processRow.addChildTraceRow(sysTraceRow);
-    let durTime = new Date().getTime() - time;
-    info('The time to load the Ability Cpu is: ', durTime);
-  };
+  }
 
   private initMemoryAbility = async (processRow: TraceRow<ProcessStruct>): Promise<void> => {
     let time = new Date().getTime();

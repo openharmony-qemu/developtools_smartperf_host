@@ -18,25 +18,25 @@ import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import { queryProcessPurgeableSelectionTab } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { CompareStruct, compare, resizeObserverFromMemory } from '../SheetUtils';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import {queryProcessPurgeableSelectionTab} from "../../../../database/sql/ProcessThread.sql";
 @element('tabpane-purgeable-pin-comparison-vm')
 export class TabPanePurgPinComparisonVM extends BaseElement {
-  private purgeablePinTable: LitTable | null | undefined;
+  private purgeablePinTables: LitTable | null | undefined;
   private purgeablePinSource: Array<unknown> = [];
   private filterEl: TabPaneJsMemoryFilter | undefined | null;
   private selectEl: LitSelect | undefined | null;
 
   public initElements(): void {
-    this.purgeablePinTable = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-pin');
+    this.purgeablePinTables = this.shadowRoot?.querySelector<LitTable>('#tb-purgeable-pin');
     this.filterEl = this.shadowRoot!.querySelector<TabPaneJsMemoryFilter>('#filter');
     this.selectEl = this.filterEl?.shadowRoot?.querySelector<LitSelect>('lit-select');
   }
   public totalData(data: SelectionParam | any, dataList: any): void {
     //@ts-ignore
-    this.purgeablePinTable?.shadowRoot?.querySelector('.table')?.style?.height = `${
+    this.purgeablePinTables?.shadowRoot?.querySelector('.table')?.style?.height = `${
       this.parentElement!.clientHeight - 45
     }px`;
     this.purgeablePinSource = [];
@@ -80,9 +80,9 @@ export class TabPanePurgPinComparisonVM extends BaseElement {
     let tableData = await this.queryPinVMData(baseTime, targetTime);
     this.purgeablePinSource.push(tableData);
     if (this.purgeablePinSource.length > 0) {
-      this.purgeablePinTable!.recycleDataSource = this.purgeablePinSource;
+      this.purgeablePinTables!.recycleDataSource = this.purgeablePinSource;
     } else {
-      this.purgeablePinTable!.recycleDataSource = [];
+      this.purgeablePinTables!.recycleDataSource = [];
     }
   }
   private async queryPinVMData(baseTime: number, targetTime: number): Promise<any> {
@@ -117,15 +117,15 @@ export class TabPanePurgPinComparisonVM extends BaseElement {
 
   public connectedCallback(): void {
     super.connectedCallback();
-    resizeObserverFromMemory(this.parentElement!, this.purgeablePinTable!, this.filterEl!);
+    resizeObserverFromMemory(this.parentElement!, this.purgeablePinTables!, this.filterEl!);
   }
   public initHtml(): string {
     return `
     <style>
         :host{
             display: flex;
-            flex-direction: column;
             padding: 10px 10px;
+            flex-direction: column;
         }
     </style>
     <lit-table id="tb-purgeable-pin" style="height: auto">

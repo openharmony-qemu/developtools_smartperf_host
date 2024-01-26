@@ -13,18 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  BaseStruct,
-  drawLines,
-  drawLoading,
-  drawFlagLine,
-  drawSelection,
-  isFrameContainPoint,
-  drawLoadingFrame,
-  ns2x,
-  Render,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, isFrameContainPoint, drawLoadingFrame, ns2x, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EnergyStateRender extends Render {
@@ -43,9 +32,9 @@ export class EnergyStateRender extends Render {
     state(
       stateList,
       stateFilter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
+      TraceRow.range!.startNS || 0,
+      TraceRow.range!.endNS || 0,
+      TraceRow.range!.totalNS || 0,
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
@@ -73,119 +62,6 @@ export class EnergyStateRender extends Render {
     }
     req.context.closePath();
   }
-
-  render(energyStateRequest: RequestMessage, stateList: Array<any>, filter: Array<any>) {
-    if (energyStateRequest.lazyRefresh) {
-      state(
-        stateList,
-        filter,
-        energyStateRequest.startNS,
-        energyStateRequest.endNS,
-        energyStateRequest.totalNS,
-        energyStateRequest.frame,
-        energyStateRequest.useCache || !energyStateRequest.range.refresh
-      );
-    } else {
-      if (!energyStateRequest.useCache) {
-        state(
-          stateList,
-          filter,
-          energyStateRequest.startNS,
-          energyStateRequest.endNS,
-          energyStateRequest.totalNS,
-          energyStateRequest.frame,
-          false
-        );
-      }
-    }
-    if (energyStateRequest.canvas) {
-      energyStateRequest.context.clearRect(0, 0, energyStateRequest.canvas.width, energyStateRequest.canvas.height);
-      let energyStateArr = filter;
-      if (
-        energyStateArr.length > 0 &&
-        !energyStateRequest.range.refresh &&
-        !energyStateRequest.useCache &&
-        energyStateRequest.lazyRefresh
-      ) {
-        drawLoading(
-          energyStateRequest.context,
-          energyStateRequest.startNS,
-          energyStateRequest.endNS,
-          energyStateRequest.totalNS,
-          energyStateRequest.frame,
-          energyStateArr[0].startNS,
-          energyStateArr[energyStateArr.length - 1].startNS + energyStateArr[energyStateArr.length - 1].dur
-        );
-      }
-      drawLines(
-        energyStateRequest.context,
-        energyStateRequest.xs,
-        energyStateRequest.frame.height,
-        energyStateRequest.lineColor
-      );
-      energyStateRequest.context.beginPath();
-      EnergyStateStruct.maxState = energyStateRequest.params.maxState;
-      EnergyStateStruct.maxStateName = energyStateRequest.params.maxStateName;
-      drawLines(
-        energyStateRequest.context,
-        energyStateRequest.xs,
-        energyStateRequest.frame.height,
-        energyStateRequest.lineColor
-      );
-      EnergyStateStruct.hoverEnergyStateStruct = undefined;
-      if (energyStateRequest.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            energyStateRequest.hoverX >= re.frame.x &&
-            energyStateRequest.hoverX <= re.frame.x + re.frame.width &&
-            energyStateRequest.hoverY >= re.frame.y &&
-            energyStateRequest.hoverY <= re.frame.y + re.frame.height
-          ) {
-            EnergyStateStruct.hoverEnergyStateStruct = re;
-            break;
-          }
-        }
-      }
-      EnergyStateStruct.selectEnergyStateStruct = energyStateRequest.params.selectEnergyStateStruct;
-      for (let re of filter) {
-        EnergyStateStruct.draw(energyStateRequest.context, re, 0, '');
-      }
-      drawSelection(energyStateRequest.context, energyStateRequest.params);
-      energyStateRequest.context.closePath();
-      if (
-        EnergyStateStruct.maxStateName != 'enable' &&
-        EnergyStateStruct.maxStateName != 'disable' &&
-        EnergyStateStruct.maxStateName != '-1'
-      ) {
-        let s = EnergyStateStruct.maxStateName;
-        let textMetrics = energyStateRequest.context.measureText(s);
-        energyStateRequest.context.globalAlpha = 1.0;
-        energyStateRequest.context.fillStyle = '#f0f0f0';
-        energyStateRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
-        energyStateRequest.context.fillStyle = '#333';
-        energyStateRequest.context.textBaseline = 'middle';
-        energyStateRequest.context.fillText(s, 4, 5 + 9);
-      }
-      drawFlagLine(
-        energyStateRequest.context,
-        energyStateRequest.flagMoveInfo,
-        energyStateRequest.flagSelectedInfo,
-        energyStateRequest.startNS,
-        energyStateRequest.endNS,
-        energyStateRequest.totalNS,
-        energyStateRequest.frame,
-        energyStateRequest.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: energyStateRequest.id,
-      type: energyStateRequest.type,
-      results: energyStateRequest.canvas ? undefined : filter,
-      hover: EnergyStateStruct.hoverEnergyStateStruct,
-    });
-  }
 }
 
 export function state(
@@ -201,33 +77,43 @@ export function state(
     for (let i = 0; i < res.length; i++) {
       let stateItem = res[i];
       if (i === res.length - 1) {
-        stateItem.dur = (endNS || 0) - (stateItem.startNs || 0);
+        stateItem.dur = endNS - (stateItem.startNs || 0);
       } else {
         stateItem.dur = (res[i + 1].startNs || 0) - (stateItem.startNs || 0);
       }
-      if ((stateItem.startNs || 0) + (stateItem.dur || 0) > (startNS || 0) && (stateItem.startNs || 0) < (endNS || 0)) {
-        EnergyStateStruct.setStateFrame(res[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      if ((stateItem.startNs || 0) + (stateItem.dur || 0) > startNS && (stateItem.startNs || 0) < endNS) {
+        EnergyStateStruct.setStateFrame(res[i], 5, startNS, endNS, totalNS, frame);
       }
     }
     return;
   }
   res.length = 0;
+  stateFilter(stateList, startNS, endNS, totalNS, frame, res);
+}
+function stateFilter(
+  stateList: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any,
+  res: Array<any>
+): void {
   if (stateList) {
     for (let index = 0; index < stateList.length; index++) {
       let item = stateList[index];
-      if (index === stateList.length - 1) {
-        item.dur = (endNS || 0) - (item.startNs || 0);
-      } else {
-        item.dur = (stateList[index + 1].startNs || 0) - (item.startNs || 0);
-      }
-      if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
-        EnergyStateStruct.setStateFrame(stateList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      item.dur =
+        index === stateList.length - 1
+          ? endNS - (item.startNs || 0)
+          : (stateList[index + 1].startNs || 0) - (item.startNs || 0);
+      if ((item.startNs || 0) + (item.dur || 0) > startNS && (item.startNs || 0) < endNS) {
+        EnergyStateStruct.setStateFrame(stateList[index], 5, startNS, endNS, totalNS, frame);
         if (
-          index > 0 &&
-          (stateList[index - 1].frame?.x || 0) == (stateList[index].frame?.x || 0) &&
-          (stateList[index - 1].frame?.width || 0) == (stateList[index].frame?.width || 0)
+          !(
+            index > 0 &&
+            (stateList[index - 1].frame?.x || 0) == (stateList[index].frame?.x || 0) &&
+            (stateList[index - 1].frame?.width || 0) == (stateList[index].frame?.width || 0)
+          )
         ) {
-        } else {
           res.push(item);
         }
       }

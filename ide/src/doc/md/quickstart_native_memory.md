@@ -17,7 +17,7 @@ Native Memory 是查看内存的分配和释放等情况。
 - Use Record Accurately：不过滤数据，上报全量的。
 - Use Offline Symbolization：离线符号化。
 - Use Record Statistics：统计数据上报时间间隔设置。
-- Use Startup Mode: 抓取应用启动阶段的内存(默认是关闭，需要抓取应用启阶段内存可开启)。
+- Use Startup Mode :抓取应用启动阶段的内存(默认是关闭，需要抓取应用启阶段内存可开启)。
 
 再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_nativememory.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
 ![GitHub Logo](../../figures/NativeMemory/nativememoryset.jpg)
@@ -141,10 +141,9 @@ Call Info 的 Tab 页，主要显示了调用树详细类型。
 
 ### 搜索框支持表达式输入
 
-调用栈默认会显示火焰图，新增搜索框表达式输入。表达式作用范围为 nativehook 的统计与非统计模式。其中处理的为 Responsible Library 与 Responsible Caller，其中 Responsible Library 和Responsible Caller 表示从下往上非 libc++ musl 的第一条调用栈的 lib 跟 symbol，如下图所示，由于最后一条 [ operator new(unsigned long) ] libc++.so 为 libc++.so 的函数，故跳过，所以该条调用栈的 Responsible Library 为 libhilog.so，Responsible Caller 为 OHOS::HiviewDFX::GetDomainLevel(unsigned int) 。
+调用栈默认显示火焰图，新增搜索框表达式输入。表达式作用范围为 nativehook 统计与非统计模式。其中处理的均为 Responsible Library 与 Responsible Caller，其中 Responsible Library，Responsible Caller 表示从下往上非 libc++ musl 的第一条调用栈的 lib 跟 symbol，如下图所示，由于最后一条 [ operator new(unsigned long) ] libc++.so 为 libc++.so 的函数，固跳过，所以该条调用栈的 Responsible Library 为 libhilog.so，Responsible Caller 为 OHOS::HiviewDFX::GetDomainLevel(unsigned int) 。
 ![GitHub Logo](../../figures/NativeMemory/framecaller.jpg)
-
-表达式说明: 在 InputFilter 输入框可以进行搜索过滤和表达式过滤，其中表达式必须以@开头，英文括号包起所需要过滤的内容，每个括号必须包括 （Responsible Library，Responsible Caller）匹配全量以\*表示，否则认为该输入为搜索过滤。
+表达式说明:在 InputFilter 输入框可以进行搜索过滤和表达式过滤，其中表达式必须以@开头，英文括号包起所需要过滤的内容，每个括号必须包括 （Responsible Library，Responsible Caller）匹配全量以\*表示，否则认为该输入为搜索过滤。
 
 | 表达式                                        | 含义                                                                                                                                                           |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

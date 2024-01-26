@@ -17,11 +17,11 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../StackBar';
-import { getTabThreadStatesDetail } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { StackBar } from '../../../StackBar';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
+import { getTabThreadStatesDetail } from '../../../../database/sql/ProcessThread.sql';
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {
@@ -38,15 +38,15 @@ export class TabPaneThreadStates extends BaseElement {
     this.currentSelectionParam = threadStatesParam;
     //@ts-ignore
     this.threadStatesTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      this.parentElement!.clientHeight - 45 + 'px';
+      `${this.parentElement!.clientHeight - 45  }px`;
     // // @ts-ignore
     this.range!.textContent =
-      'Selected range: ' + ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
+      `Selected range: ${  ((threadStatesParam.rightNs - threadStatesParam.leftNs) / 1000000.0).toFixed(5)  } ms`;
     this.threadStatesTbl!.loading = true;
     this.initThreadStates(threadStatesParam);
   }
 
-  async initThreadStates(threadStatesParam: SelectionParam | any) {
+  async initThreadStates(threadStatesParam: SelectionParam | any): Promise<void> {
     let leftStartNs = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     let rightEndNs = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
 
@@ -58,7 +58,7 @@ export class TabPaneThreadStates extends BaseElement {
 
     let targetListTemp = this.updateThreadStates(threadStatesDetail, leftStartNs, rightEndNs);
 
-    let compare = function (threadState1: SelectionData, threadState2: SelectionData) {
+    let compare = (threadState1: SelectionData, threadState2: SelectionData): number => {
       let wallDuration1 = threadState1.wallDuration;
       let wallDuration2 = threadState2.wallDuration;
       if (wallDuration1 < wallDuration2) {
@@ -73,41 +73,37 @@ export class TabPaneThreadStates extends BaseElement {
     this.addSumLine(threadStatesParam, targetListTemp);
   }
 
-  updateThreadStates(
-    threadStatesDetail: Array<any>,
-    leftStartNs: number,
-    rightEndNs: number
-  ): Array<SelectionData> {
+  updateThreadStates(threadStatDetail: Array<any>, leftNs: number, rightNs: number): Array<SelectionData> {
     let targetListTemp: any[] = [];
-    if (threadStatesDetail.length > 0) {
+    if (threadStatDetail.length > 0) {
       let durExceptionDataMap: Map<string, any> = new Map<string, any>();
       let source: Map<string, any> = new Map<string, any>();
-      let target = threadStatesDetail.reduce((map, current) => {
+      let target = threadStatDetail.reduce((map, current) => {
         let mapKey = `${current.pid}-${current.tid}`;
         let key = `${current.state}-${mapKey}`;
         if (durExceptionDataMap.has(mapKey)) {
           // 如果某线程中间有dur 为 -1的数据，则重新计算dur值，并给统计的值加上重新计算的dur
           let pre = durExceptionDataMap.get(mapKey);
           pre.dur = current.ts - pre.ts;
-          if (pre.ts < leftStartNs && pre.dur > 0) {
-            pre.dur = pre.dur - (leftStartNs - pre.ts);
+          if (pre.ts < leftNs && pre.dur > 0) {
+            pre.dur = pre.dur - (leftNs - pre.ts);
           }
-          if (pre.ts + pre.dur > rightEndNs && pre.dur > 0) {
-            pre.dur = pre.dur - (pre.ts + pre.dur - rightEndNs);
+          if (pre.ts + pre.dur > rightNs && pre.dur > 0) {
+            pre.dur = pre.dur - (pre.ts + pre.dur - rightNs);
           }
           map.get(`${pre.state}-${mapKey}`).wallDuration += pre.dur;
-          durExceptionDataMap.delete(mapKey);
+          durExceptionDataMap['delete'](mapKey);
         }
-        if (current.dur === -1) {
+        if (current.dur === null || current.dur === undefined || current.dur === -1) {
           //如果出现dur 为-1的数据，dur先以0计算,在后续循环中碰到相同线程数据，则补上dur的值
           current.dur = 0;
           durExceptionDataMap.set(mapKey, current);
         } else {
-          if (current.ts < leftStartNs && current.dur > 0) {
-            current.dur = current.dur - (leftStartNs - current.ts);
+          if (current.ts < leftNs && current.dur > 0) {
+            current.dur = current.dur - (leftNs - current.ts);
           }
-          if (current.ts + current.dur > rightEndNs && current.dur > 0) {
-            current.dur = current.dur - (current.ts + current.dur - rightEndNs);
+          if (current.ts + current.dur > rightNs && current.dur > 0) {
+            current.dur = current.dur - (current.ts + current.dur - rightNs);
           }
         }
         if (map.has(key)) {
@@ -125,33 +121,44 @@ export class TabPaneThreadStates extends BaseElement {
         }
         return map;
       }, source);
-      // 通过上面循环之后，durExceptionDataMap 中的值即为 该线程 在框选时间内最后一条数据且dur 为-1，需要根据框选的时间把dur计算出来加上，
-      let arr = Array.from(durExceptionDataMap.values());
-      for (let item of arr) {
-        let key = `${item.state}-${item.pid}-${item.tid}`;
-        if (target.has(key)) {
-          target.get(key).wallDuration += (rightEndNs - Math.max(item.ts, leftStartNs));
-        } else {
-          target.set(key, {
-            pid: item.pid,
-            tid: item.tid,
-            state: item.state,
-            wallDuration: rightEndNs - Math.max(item.ts, leftStartNs),
-            avgDuration: 0,
-            occurrences: 1
-          });
-        }
-      }
-      durExceptionDataMap.clear();
-      targetListTemp = Array.from(target.values());
+      targetListTemp = this.updateThreadStatesExtend(durExceptionDataMap, target, leftNs, rightNs, targetListTemp);
     }
+    return targetListTemp;
+  }
+
+  private updateThreadStatesExtend(
+    durExceptionDataMap: Map<string, any>,
+    target: any,
+    leftNs: number,
+    rightNs: number,
+    targetListTemp: any[]
+  ): any[] {
+    // 通过上面循环之后，durExceptionDataMap 中的值即为 该线程 在框选时间内最后一条数据且dur 为-1，需要根据框选的时间把dur计算出来加上，
+    let arr = Array.from(durExceptionDataMap.values());
+    for (let item of arr) {
+      let key = `${item.state}-${item.pid}-${item.tid}`;
+      if (target.has(key)) {
+        target.get(key).wallDuration += (rightNs - Math.max(item.ts, leftNs));
+      } else {
+        target.set(key, {
+          pid: item.pid,
+          tid: item.tid,
+          state: item.state,
+          wallDuration: rightNs - Math.max(item.ts, leftNs),
+          avgDuration: 0,
+          occurrences: 1
+        });
+      }
+    }
+    durExceptionDataMap.clear();
+    targetListTemp = Array.from(target.values());
     return targetListTemp;
   }
 
   addSumLine(threadStatesParam: SelectionParam | any, targetListTemp: Array<any>): void {
     log(targetListTemp);
 
-    if (targetListTemp != null && targetListTemp.length > 0) {
+    if (targetListTemp !== null && targetListTemp.length > 0) {
       log('getTabThreadStates result size : ' + targetListTemp.length);
       let sumWall = 0.0;
       let sumOcc = 0;
@@ -201,7 +208,7 @@ export class TabPaneThreadStates extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
     resizeObserver(this.parentElement!, this.threadStatesTbl!);
   }
@@ -219,35 +226,45 @@ export class TabPaneThreadStates extends BaseElement {
             padding: 10px 10px;
         }
         </style>
-        <div class="tread-states-table" style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px;justify-content: space-between">
+        <div class="tread-states-table" style="display: flex;height: 20px;align-items: center;
+        flex-direction: row;margin-bottom: 5px;justify-content: space-between">
             <stack-bar id="thread-states-stack-bar" style="width: calc(100vw - 520px)"></stack-bar>
-            <label id="thread-states-time-range"  style="width: 250px;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
+            <label id="thread-states-time-range"  style="width: 250px;text-align: end;
+            font-size: 10pt;">Selected range:0.0 ms</label>
         </div>
         <lit-table id="tb-thread-states" style="height: auto;overflow-x: auto;width: 100%">
-            <lit-table-column class="tread-states-column" width="240px" title="Process" data-index="process" key="process"  align="flex-start" order>
+            <lit-table-column class="tread-states-column" width="240px" title="Process" 
+            data-index="process" key="process"  align="flex-start" order>
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="120px" title="PID" data-index="pid" key="pid"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="PID" 
+            data-index="pid" key="pid"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="240px" title="Thread" data-index="thread" key="thread"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="240px" title="Thread" 
+            data-index="thread" key="thread"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="120px" title="TID" data-index="tid" key="tid"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="TID" 
+            data-index="tid" key="tid"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="240px" title="State" data-index="state" key="state"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="240px" title="State" 
+            data-index="state" key="state"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="120px" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="Wall duration(ms)" 
+            data-index="wallDuration" key="wallDuration"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="120px" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="Avg Wall duration(ms)" 
+            data-index="avgDuration" key="avgDuration"  align="flex-start" order >
             </lit-table-column>
-            <lit-table-column class="tread-states-column" width="120px" title="Occurrences" data-index="occurrences" key="occurrences"  align="flex-start" order >
+            <lit-table-column class="tread-states-column" width="120px" title="Occurrences" 
+            data-index="occurrences" key="occurrences"  align="flex-start" order >
             </lit-table-column>
         </lit-table>
         `;
   }
 
-  sortByColumn(treadStatesDetail: any) {
+  sortByColumn(treadStatesDetail: any): void {
     function compare(property: any, treadStatesSort: any, type: any) {
       return function (threadStatesLeftData: SelectionData | any, threadStatesRightData: SelectionData | any) {
-        if (threadStatesLeftData.process == ' ' || threadStatesRightData.process == ' ') {
+        if (threadStatesLeftData.process === ' ' || threadStatesRightData.process === ' ') {
           return 0;
         }
         if (type === 'number') {

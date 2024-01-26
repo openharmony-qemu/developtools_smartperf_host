@@ -32,8 +32,10 @@ export class TabPaneSPT extends BaseElement {
       return;
     }
     this.selectionParam = sptValue;
-    // @ts-ignore
-    this.sptTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    if (this.sptTbl) {
+      // @ts-ignore
+      this.sptTbl.shadowRoot.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.range!.textContent =
       'Selected range: ' + parseFloat(((sptValue.rightNs - sptValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     this.getDataBySPT(sptValue.leftNs, sptValue.rightNs, sptValue.cpus);
@@ -75,12 +77,7 @@ export class TabPaneSPT extends BaseElement {
             this.sptTbl!.setStatus(data, false);
             this.sptTbl!.recycleDs = this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Process') && i === 1) {
-            for (let item of data) {
-              item.status = true;
-              if (item.children != undefined && item.children.length > 0) {
-                this.sptTbl!.setStatus(item.children, false);
-              }
-            }
+            this.sptTbl!.setStatus(data, false, 0, 1);
             this.sptTbl!.recycleDs = this.sptTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Thread') && i === 2) {
             this.sptTbl!.setStatus(data, true);
@@ -95,9 +92,9 @@ export class TabPaneSPT extends BaseElement {
     return `
         <style>
         :host{
+            padding: 10px 10px;
             display: flex;
             flex-direction: column;
-            padding: 10px 10px;
         }
         </style>
         <label id="spt-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>

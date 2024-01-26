@@ -24,7 +24,9 @@ import {
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { AnimationRanges } from '../../../../src/trace/bean/FrameComponentBean';
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('FrameDynamic Test', () => {
   let frameDynamicRender = new FrameDynamicRender();
   let rect = new Rect(341, 2, 10, 10);

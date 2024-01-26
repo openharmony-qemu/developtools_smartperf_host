@@ -27,6 +27,7 @@ import { initSort } from '../SheetUtils';
 import { TabpaneNMCalltree } from './TabPaneNMCallTree';
 import { FilterByAnalysis } from '../../../../bean/NativeHook';
 import { InitAnalysis } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
+import { TabPaneNMStatisticAnalysisHtml } from './TabPaneNMStatisticAnalysis.html';
 
 const TYPE_ALLOC_STRING = 'AllocEvent';
 const TYPE_MAP_STRING = 'MmapEvent';
@@ -151,14 +152,19 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       Utils.getInstance().setCurrentSelectIPid(statisticAnalysisParam.nativeMemoryCurrentIPid);
       Utils.getInstance().initResponseTypeList(statisticAnalysisParam);
     }
-    // @ts-ignore
-    this.tableType?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 30 + 'px';
-    // @ts-ignore
-    this.soUsageTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 30 + 'px';
-    // @ts-ignore
-    this.functionUsageTbl?.shadowRoot?.querySelector('.table').style.height = `${
-      this.parentElement!.clientHeight - 30
-    }px`;
+    if (this.tableType) {
+      // @ts-ignore
+      this.tableType.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 30 + 'px';
+    }
+    if (this.soUsageTbl) {
+      // @ts-ignore
+      this.soUsageTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 30 + 'px';
+    }
+    if (this.functionUsageTbl) {
+      // @ts-ignore
+      this.functionUsageTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 30
+      }px`;
+    }
     this.clearData();
     this.currentSelection = statisticAnalysisParam;
     this.reset(this.tableType!, false);
@@ -174,28 +180,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.getNMEventTypeSize(statisticAnalysisParam);
   }
 
-  initElements(): void {
-    this.range = this.shadowRoot?.querySelector('#time-range');
-    this.nmPieChart = this.shadowRoot!.querySelector<LitChartPie>('#nm-chart-pie');
-    this.nmTableBox = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-table-box');
-    this.tableType = this.shadowRoot!.querySelector<LitTable>('#tb-eventtype-usage');
-    this.threadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-usage');
-    this.soUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
-    this.functionUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
-    this.nmBack = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-go-back');
-    this.tabName = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-subheading');
-    this.progressEL = this.shadowRoot?.querySelector('.nm-progress') as LitProgressBar;
-    this.getBack();
-    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
-    this.filterEl = this.shadowRoot?.querySelector('#filter');
-    this.filterEl!.setOptionsList(['Hide Thread']);
-    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
-    this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
+  initNmTableArray(): void {
     this.nmTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
-    this.hideThreadCheckBox?.addEventListener('change', (evt) => {
-      this.reset(this.tableType!, false);
-      this.getNMTypeSize(this.currentSelection, this.processData);
-    });
     for (let nmTable of this.nmTableArray) {
       nmTable!.addEventListener('contextmenu', function (event) {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
@@ -221,20 +207,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         this.nmPieChart?.hideTip();
       });
     }
-    this.tableType!.addEventListener('row-click', (evt) => {
-      // @ts-ignore
-      let button = evt.detail.button;
-      // @ts-ignore
-      let data = evt.detail.data;
-      if (button === 0) {
-        if (data.tableName !== '' && data.existSize !== 0) {
-          this.nativeProcessLevelClickEvent(data);
-        }
-      } else if (button === 2) {
-        const typeName = data.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : data.typeName;
-        this.clickRight(evt, typeName);
-      }
-    });
     this.threadUsageTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
       let button = evt.detail.button;
@@ -247,6 +219,23 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       } else if (button === 2) {
         let title = `${this.titleEl!.textContent}/${data.tName}`;
         this.clickRight(evt, title);
+      }
+    });
+  }
+
+  initTable(): void {
+    this.tableType!.addEventListener('row-click', (evt) => {
+      // @ts-ignore
+      let button = evt.detail.button;
+      // @ts-ignore
+      let data = evt.detail.data;
+      if (button === 0) {
+        if (data.tableName !== '' && data.existSize !== 0) {
+          this.nativeProcessLevelClickEvent(data);
+        }
+      } else if (button === 2) {
+        const typeName = data.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : data.typeName;
+        this.clickRight(evt, typeName);
       }
     });
     this.soUsageTbl!.addEventListener('row-click', (evt) => {
@@ -263,6 +252,31 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         this.clickRight(evt, title);
       }
     });
+  }
+
+  initElements(): void {
+    this.range = this.shadowRoot?.querySelector('#time-range');
+    this.nmPieChart = this.shadowRoot!.querySelector<LitChartPie>('#nm-chart-pie');
+    this.nmTableBox = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-table-box');
+    this.tableType = this.shadowRoot!.querySelector<LitTable>('#tb-eventtype-usage');
+    this.threadUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-thread-usage');
+    this.soUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
+    this.functionUsageTbl = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
+    this.nmBack = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-go-back');
+    this.tabName = this.shadowRoot!.querySelector<HTMLDivElement>('.nm-subheading');
+    this.progressEL = this.shadowRoot?.querySelector('.nm-progress') as LitProgressBar;
+    this.getBack();
+    this.titleEl = this.shadowRoot!.querySelector<HTMLDivElement>('.title');
+    this.filterEl = this.shadowRoot?.querySelector('#filter');
+    this.filterEl!.setOptionsList(['Hide Thread']);
+    let popover = this.filterEl!.shadowRoot!.querySelector('#check-popover');
+    this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
+    this.hideThreadCheckBox?.addEventListener('change', () => {
+      this.reset(this.tableType!, false);
+      this.getNMTypeSize(this.currentSelection, this.processData);
+    });
+    this.initNmTableArray();
+    this.initTable();
     this.functionUsageTbl?.addEventListener('row-click', (evt) => {
       // @ts-ignore
       let title = `${this.titleEl!.textContent}/${evt.detail.data.symbolName}`;
@@ -509,6 +523,24 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.threadUsageTbl?.reMeauseHeight();
   }
 
+  private getLibraryTipValue(libraryTipValue: any): string {
+    return `<div>
+                    <div>Library:${libraryTipValue.obj.libName}</div>
+                    <div>Existing:${libraryTipValue.obj.existSizeFormat} 
+                    (${libraryTipValue.obj.existSizePercent}%)</div>
+                    <div># Existing:${libraryTipValue.obj.existCount} 
+                    (${libraryTipValue.obj.existCountPercent}%)</div>
+                    <div>Total Bytes:${libraryTipValue.obj.applySizeFormat} 
+                    (${libraryTipValue.obj.applySizePercent}%)</div>
+                    <div># Total:${libraryTipValue.obj.applyCount} 
+                    (${libraryTipValue.obj.applyCountPercent}%)</div>
+                    <div>Transient:${libraryTipValue.obj.releaseSizeFormat} 
+                    (${libraryTipValue.obj.releaseSizePercent}%)</div>
+                    <div># Transient:${libraryTipValue.obj.releaseCount} 
+                    (${libraryTipValue.obj.releaseCountPercent}%)</div>
+                </div>`;
+  }
+
   private libraryPieChart(item?: any): void {
     this.nmPieChart!.config = {
       appendPadding: 0,
@@ -520,15 +552,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         type: 'outer',
       },
       tip: (libraryTipValue): string => {
-        return `<div>
-                    <div>Library:${libraryTipValue.obj.libName}</div>
-                    <div>Existing:${libraryTipValue.obj.existSizeFormat} (${libraryTipValue.obj.existSizePercent}%)</div>
-                    <div># Existing:${libraryTipValue.obj.existCount} (${libraryTipValue.obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${libraryTipValue.obj.applySizeFormat} (${libraryTipValue.obj.applySizePercent}%)</div>
-                    <div># Total:${libraryTipValue.obj.applyCount} (${libraryTipValue.obj.applyCountPercent}%)</div>
-                    <div>Transient:${libraryTipValue.obj.releaseSizeFormat} (${libraryTipValue.obj.releaseSizePercent}%)</div>
-                    <div># Transient:${libraryTipValue.obj.releaseCount} (${libraryTipValue.obj.releaseCountPercent}%)</div>
-                </div>`;
+        return this.getLibraryTipValue(libraryTipValue);
       },
       angleClick: (it): void => {
         // @ts-ignore
@@ -578,12 +602,18 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       tip: (functionTipValue): string => {
         return `<div>
                     <div>Function:${functionTipValue.obj.symbolName}</div>
-                    <div>Existing:${functionTipValue.obj.existSizeFormat} (${functionTipValue.obj.existSizePercent}%)</div>
-                    <div># Existing:${functionTipValue.obj.existCount} (${functionTipValue.obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${functionTipValue.obj.applySizeFormat} (${functionTipValue.obj.applySizePercent}%)</div>
-                    <div># Total:${functionTipValue.obj.applyCount} (${functionTipValue.obj.applyCountPercent}%)</div>
-                    <div>Transient:${functionTipValue.obj.releaseSizeFormat} (${functionTipValue.obj.releaseSizePercent}%)</div>
-                    <div># Transient:${functionTipValue.obj.releaseCount} (${functionTipValue.obj.releaseCountPercent}%)</div>
+                    <div>Existing:${functionTipValue.obj.existSizeFormat} 
+                    (${functionTipValue.obj.existSizePercent}%)</div>
+                    <div># Existing:${functionTipValue.obj.existCount} 
+                    (${functionTipValue.obj.existCountPercent}%)</div>
+                    <div>Total Bytes:${functionTipValue.obj.applySizeFormat} 
+                    (${functionTipValue.obj.applySizePercent}%)</div>
+                    <div># Total:${functionTipValue.obj.applyCount} 
+                    (${functionTipValue.obj.applyCountPercent}%)</div>
+                    <div>Transient:${functionTipValue.obj.releaseSizeFormat} 
+                    (${functionTipValue.obj.releaseSizePercent}%)</div>
+                    <div># Transient:${functionTipValue.obj.releaseCount} 
+                    (${functionTipValue.obj.releaseCountPercent}%)</div>
                 </div>`;
       },
       hoverHandler: (data): void => {
@@ -673,12 +703,12 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       for (let type of val.nativeMemory) {
         if (type === 'All Heap & Anonymous VM') {
           typeFilter = [];
-          typeFilter.push(...["'AllocEvent'", "'FreeEvent'", "'MmapEvent'", "'MunmapEvent'"]);
+          typeFilter.push(...['\'AllocEvent\'', '\'FreeEvent\'', '\'MmapEvent\'', '\'MunmapEvent\'']);
           break;
         } else if (type === 'All Heap') {
-          typeFilter.push(...["'AllocEvent'", "'FreeEvent'"]);
+          typeFilter.push(...['\'AllocEvent\'', '\'FreeEvent\'']);
         } else {
-          typeFilter.push(...["'MmapEvent'", "'MunmapEvent'"]);
+          typeFilter.push(...['\'MmapEvent\'', '\'MunmapEvent\'']);
         }
       }
       this.getDataFromWorker(val, typeFilter);
@@ -740,32 +770,10 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     let types = this.getTypes(item);
     let typeName = item.typeName;
     this.resetCurrentLevelData(item);
-
     for (let itemData of this.processData) {
       // @ts-ignore
-      if (typeName === TYPE_ALLOC_STRING) {
-        // @ts-ignore
-        if (!types.includes(itemData.type)) {
-          continue;
-        }
-      } else if (typeName === TYPE_MAP_STRING) {
-        if (!itemData.subType) {
-          // @ts-ignore
-          if (!types.includes(itemData.type)) {
-            continue;
-          }
-        } else {
-          continue;
-        }
-      } else {
-        if (itemData.subType) {
-          // @ts-ignore
-          if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
-            continue;
-          }
-        } else {
-          continue;
-        }
+      if (this.shouldSkipItem(typeName, types, itemData)) {
+        continue;
       }
       if (threadMap.has(itemData.tid)) {
         threadMap.get(itemData.tid)?.push(itemData);
@@ -799,6 +807,37 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.threadPieChart();
   }
 
+  private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: any): boolean {
+    if (typeName === TYPE_ALLOC_STRING) {
+      // @ts-ignore
+      return !types.includes(itemData.type);
+    } else if (typeName === TYPE_MAP_STRING) {
+      if (this.isStatistic) {
+        if (itemData.subType) {
+          // @ts-ignore
+          return !types.includes(itemData.subType) || !types.includes(itemData.type);
+        } else {
+          return true;
+        }
+      } else {
+        if (!itemData.subType) {
+          // @ts-ignore
+          return !types.includes(itemData.type);
+        } else {
+          return true;
+        }
+      }
+    } else {
+      if (itemData.subType) {
+        // @ts-ignore
+        return !types.includes(itemData.subType) || !types.includes(itemData.type);
+      } else {
+        return true;
+      }
+    }
+  }
+
+
   private getNMLibSize(item: any): void {
     this.progressEL!.loading = true;
     let typeId = item.typeId;
@@ -810,46 +849,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.soData = [];
     if (!this.processData) return;
     for (let itemData of this.processData) {
-      if (typeName === TYPE_ALLOC_STRING) {
-        // @ts-ignore
-        if (!types.includes(itemData.type)) {
-          continue;
-        }
-      } else if (typeName === TYPE_MAP_STRING) {
-        if (this.isStatistic) {
-          if (itemData.subType) {
-            // @ts-ignore
-            if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        } else {
-          if (!itemData.subType) {
-            // @ts-ignore
-            if (!types.includes(itemData.type)) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        }
-      } else {
-        if (itemData.subType) {
-          // @ts-ignore
-          if (!types.includes(itemData.subType) || !types.includes(itemData.type)) {
-            continue;
-          }
-        } else {
-          continue;
-        }
+      if (this.shouldSkipItem(typeName, types, itemData)) {
+        continue;
       }
       if (tid !== undefined && tid !== itemData.tid) {
         continue;
       }
       let libId = itemData.libId;
-
       if (libMap.has(libId)) {
         libMap.get(libId)?.push(itemData);
       } else {
@@ -877,11 +883,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       analysis.tableName = analysis.libName;
       this.soData.push(analysis);
     });
-    this.soData.sort((a, b) => b.existSize - a.existSize);
-    this.libStatisticsData = this.totalData(this.libStatisticsData);
-    this.currentLevel = 2;
+    this.baseSort(this.soData);
     this.libraryPieChart(item);
-    this.progressEL!.loading = false;
   }
 
   private getNMFunctionSize(item: any): void {
@@ -898,40 +901,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       return;
     }
     for (let data of this.processData) {
-      if (typeName === TYPE_ALLOC_STRING) {
-        // @ts-ignore
-        if (!types.includes(data.type) || data.libId !== libId) {
-          continue;
-        }
-      } else if (typeName === TYPE_MAP_STRING) {
-        if (this.isStatistic) {
-          if (data.subType) {
-            // @ts-ignore
-            if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        } else {
-          if (!data.subType) {
-            // @ts-ignore
-            if (!types.includes(data.type) || data.libId !== libId) {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        }
-      } else {
-        if (data.subType) {
-          // @ts-ignore
-          if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-            continue;
-          }
-        } else {
-          continue;
-        }
+      if (this.shouldSkipItem(typeName, types, data)) {
+        continue;
       }
       if (tid !== undefined && tid !== data.tid) {
         continue;
@@ -944,7 +915,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         symbolMap.set(data.symbolId, dataArray);
       }
     }
-
     this.functionData = [];
     symbolMap.forEach((symbolItems, symbolId) => {
       let symbolPath = SpSystemTrace.DATA_DICT.get(symbolId)?.split('/');
@@ -963,12 +933,25 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       analysis.tableName = analysis.symbolName;
       this.functionData.push(analysis);
     });
-    this.functionData.sort((a, b) => b.existSize - a.existSize);
-    // @ts-ignore
-    this.functionStatisticsData = this.totalData(this.functionStatisticsData);
-    this.currentLevel = 3;
-    this.progressEL!.loading = false;
+    this.baseSort(this.functionData);
     this.functionPieChart();
+  }
+
+  private baseSort(data: Array<AnalysisObj>): void {
+    if (data === this.functionData) {
+      this.functionData.sort((a, b) => b.existSize - a.existSize);
+      // @ts-ignore
+      this.functionStatisticsData = this.totalData(this.functionStatisticsData);
+      this.currentLevel = 3;
+      this.progressEL!.loading = false;
+    }
+    ;
+    if (data === this.soData) {
+      this.soData.sort((a, b) => b.existSize - a.existSize);
+      this.libStatisticsData = this.totalData(this.libStatisticsData);
+      this.currentLevel = 2;
+      this.progressEL!.loading = false;
+    }
   }
 
   private getPieChartData(res: any[]): unknown[] {
@@ -1195,7 +1178,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     return total;
   }
 
-  private sortByColumn(): void {
+  private getNmCurrentTable(): LitTable | null | undefined {
     let nmCurrentTable: LitTable | null | undefined;
     switch (this.currentLevel) {
       case 0:
@@ -1211,127 +1194,154 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         nmCurrentTable = this.functionUsageTbl;
         break;
     }
+    return nmCurrentTable;
+  }
+
+  private getSortedColumnZeroArr(data: any[]): any[] {
+    let sortColumnZeroArr = [...data];
+    switch (this.currentLevel) {
+      case 0:
+        sortColumnZeroArr.unshift(this.typeStatisticsData);
+        break;
+      case 1:
+        sortColumnZeroArr.unshift(this.threadStatisticsData);
+        break;
+      case 2:
+        sortColumnZeroArr.unshift(this.libStatisticsData);
+        break;
+      case 3:
+        sortColumnZeroArr.unshift(this.functionStatisticsData);
+        break;
+    }
+    return sortColumnZeroArr;
+  }
+
+  private updateSortColumnArr(sortColumnArr: any[]): any[] {
+    switch (this.currentLevel) {
+      case 0:
+        sortColumnArr.unshift(this.typeStatisticsData);
+        break;
+      case 1:
+        sortColumnArr.unshift(this.threadStatisticsData);
+        break;
+      case 2:
+        sortColumnArr.unshift(this.libStatisticsData);
+        break;
+      case 3:
+        sortColumnArr.unshift(this.functionStatisticsData);
+        break;
+    }
+    return sortColumnArr;
+  }
+
+
+  private caseTableName(statisticAnalysisLeftData: { tableName: number; }, statisticAnalysisRightData: { tableName: number; }): number {
+    if (this.nmSortType === 1) {
+      if (statisticAnalysisLeftData.tableName > statisticAnalysisRightData.tableName) {
+        return 1;
+      } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
+        return 0;
+      } else {
+        return -1;
+      }
+    } else {
+      if (statisticAnalysisRightData.tableName > statisticAnalysisLeftData.tableName) {
+        return 1;
+      } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
+        return 0;
+      } else {
+        return -1;
+      }
+    }
+  }
+
+  private sortDataByExistSize(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize
+        : statisticAnalysisRightData.existSize - statisticAnalysisLeftData.existSize;
+    });
+  }
+
+  private sortDataByExistCount(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount
+        : statisticAnalysisRightData.existCount - statisticAnalysisLeftData.existCount;
+    });
+  }
+
+  private sortDataByReleaseSize(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize
+        : statisticAnalysisRightData.releaseSize - statisticAnalysisLeftData.releaseSize;
+    });
+  }
+
+  private sortDataByReleaseCount(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount
+        : statisticAnalysisRightData.releaseCount - statisticAnalysisLeftData.releaseCount;
+    });
+  }
+
+  private sortDataByApplySize(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize
+        : statisticAnalysisRightData.applySize - statisticAnalysisLeftData.applySize;
+    });
+  }
+
+  private sortDataByApplyCount(sortType: number, sortColumnArr: Array<any>): any[] {
+    return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
+      return sortType === 1
+        ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount
+        : statisticAnalysisRightData.applyCount - statisticAnalysisLeftData.applyCount;
+    });
+  }
+
+  private sortByColumn(): void {
+    let nmCurrentTable = this.getNmCurrentTable();
     if (!nmCurrentTable) {
       return;
     }
     if (this.nmSortType === 0) {
-      let sortColumnZeroArr = [...this.currentLevelData];
-      switch (this.currentLevel) {
-        case 0:
-          sortColumnZeroArr.unshift(this.typeStatisticsData);
-          break;
-        case 1:
-          sortColumnZeroArr.unshift(this.threadStatisticsData);
-          break;
-        case 2:
-          sortColumnZeroArr.unshift(this.libStatisticsData);
-          break;
-        case 3:
-          sortColumnZeroArr.unshift(this.functionStatisticsData);
-          break;
-      }
-      nmCurrentTable!.recycleDataSource = sortColumnZeroArr;
+      nmCurrentTable!.recycleDataSource = this.getSortedColumnZeroArr(this.currentLevelData);
     } else {
       let sortColumnArr = [...this.currentLevelData];
       switch (this.nmSortColumn) {
         case 'tableName':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              if (this.nmSortType === 1) {
-                if (statisticAnalysisLeftData.tableName > statisticAnalysisRightData.tableName) {
-                  return 1;
-                } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
-                  return 0;
-                } else {
-                  return -1;
-                }
-              } else {
-                if (statisticAnalysisRightData.tableName > statisticAnalysisLeftData.tableName) {
-                  return 1;
-                } else if (statisticAnalysisLeftData.tableName === statisticAnalysisRightData.tableName) {
-                  return 0;
-                } else {
-                  return -1;
-                }
-              }
-            }
-          );
+          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(this.caseTableName);
           break;
         case 'existSizeFormat':
         case 'existSizePercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize
-                : statisticAnalysisRightData.existSize - statisticAnalysisLeftData.existSize;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByExistSize(this.nmSortType, sortColumnArr);
           break;
         case 'existCount':
         case 'existCountPercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount
-                : statisticAnalysisRightData.existCount - statisticAnalysisLeftData.existCount;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByExistCount(this.nmSortType, sortColumnArr);
           break;
         case 'releaseSizeFormat':
         case 'releaseSizePercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize
-                : statisticAnalysisRightData.releaseSize - statisticAnalysisLeftData.releaseSize;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByReleaseSize(this.nmSortType, sortColumnArr);
           break;
         case 'releaseCount':
         case 'releaseCountPercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount
-                : statisticAnalysisRightData.releaseCount - statisticAnalysisLeftData.releaseCount;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByReleaseCount(this.nmSortType, sortColumnArr);
           break;
         case 'applySizeFormat':
         case 'applySizePercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize
-                : statisticAnalysisRightData.applySize - statisticAnalysisLeftData.applySize;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByApplySize(this.nmSortType, sortColumnArr);
           break;
         case 'applyCount':
         case 'applyCountPercent':
-          nmCurrentTable!.recycleDataSource = sortColumnArr.sort(
-            (statisticAnalysisLeftData, statisticAnalysisRightData) => {
-              return this.nmSortType === 1
-                ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount
-                : statisticAnalysisRightData.applyCount - statisticAnalysisLeftData.applyCount;
-            }
-          );
+          nmCurrentTable!.recycleDataSource = this.sortDataByApplyCount(this.nmSortType, sortColumnArr);
           break;
       }
-      switch (this.currentLevel) {
-        case 0:
-          sortColumnArr.unshift(this.typeStatisticsData);
-          break;
-        case 1:
-          sortColumnArr.unshift(this.threadStatisticsData);
-          break;
-        case 2:
-          sortColumnArr.unshift(this.libStatisticsData);
-          break;
-        case 3:
-          sortColumnArr.unshift(this.functionStatisticsData);
-          break;
-      }
+      sortColumnArr = this.updateSortColumnArr(sortColumnArr);
       nmCurrentTable!.recycleDataSource = sortColumnArr;
     }
   }
@@ -1340,15 +1350,21 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     new ResizeObserver(() => {
       // @ts-ignore
       if (this.parentElement?.clientHeight != 0) {
-        // @ts-ignore
-        this.tableType?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
+        if (this.tableType) {
+          // @ts-ignore
+          this.tableType.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
+        }
         this.tableType?.reMeauseHeight();
-        // @ts-ignore
-        this.soUsageTbl?.shadowRoot?.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
+        if (this.soUsageTbl) {
+          // @ts-ignore
+          this.soUsageTbl.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 40 + 'px';
+        }
+        if (this.functionUsageTbl) {
+          // @ts-ignore
+          this.functionUsageTbl.shadowRoot.querySelector('.table').style.height =
+            this.parentElement!.clientHeight - 40 + 'px';
+        }
         this.soUsageTbl?.reMeauseHeight();
-        // @ts-ignore
-        this.functionUsageTbl?.shadowRoot?.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 40 + 'px';
         this.functionUsageTbl?.reMeauseHeight();
         if ((this.parentElement!.clientHeight >= 0 && this.parentElement!.clientHeight <= 31) || this.isStatistic) {
           this.filterEl!.style.display = 'none';
@@ -1362,138 +1378,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        :host {
-            flex-direction: column;
-            display: flex;
-        }
-        #nm-chart-pie{
-            height: 300px;
-            margin-bottom: 31px;
-        }
-        .nm-table-box{
-            width: 60%;
-            border-left: solid 1px var(--dark-border1,#e0e0e0);
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 31px;
-        }
-        .nm-go-back{
-            display:flex;
-            align-items: center;
-            cursor: pointer;
-            margin-left: 20px;
-            visibility: hidden;
-        }
-        .nm-back-box{
-            background-color: var(--bark-expansion,#0C65D1);
-            border-radius: 5px;
-            color: #fff;
-            display: flex;
-            margin-right: 10px;
-            width: 40px;
-            height: 20px;
-            justify-content: center;
-            align-items: center;
-        }
-        .nm-subheading{
-            font-weight: bold;
-            text-align: center;
-        }
-        .nm-progress{
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-        lit-table{
-            min-height: 380px;
-        }
-        #filter{
-            position: absolute;
-            bottom: 0px;
-        }
-        </style>
-        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-        <div style="display: flex;flex-direction: row;"class="d-box">
-            <lit-progress-bar class="nm-progress"></lit-progress-bar>
-            <div id="left_table" style="width: 40%; height:auto;">
-                <div style="display: flex; margin-bottom: 10px">
-                    <div class="nm-go-back">
-                        <div class="nm-back-box">
-                            <lit-icon name="arrowleft"></lit-icon>
-                        </div>
-                    </div>
-                    <div class="title"></div>
-                </div>
-                <div class="nm-subheading"></div>
-                <lit-chart-pie  id="nm-chart-pie"></lit-chart-pie>
-            </div>
-            <div class="nm-table-box" style="height:auto;">
-                <lit-table id="tb-eventtype-usage">
-                    <lit-table-column width="250px" class="event-class" title="Memory Type" data-index="tableName" key="tableName" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="event-class" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-thread-usage" style="display: none;" hideDownload>
-                    <lit-table-column width="250px" class="thread-class" title="Thread" data-index="tableName" key="tableName" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="thread-class" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start" order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-so-usage" style="display: none;" hideDownload>
-                    <lit-table-column width="250px" class="so-class" title="Library" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="so-class" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
-                </lit-table>
-                <lit-table id="tb-function-usage" style="display: none;" hideDownload>
-                    <lit-table-column width="250px" class="function-class" title="Function" data-index="tableName" key="tableName" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="Existing" data-index="existSizeFormat" key="existSizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="%" data-index="existSizePercent" key="existSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="# Existing" data-index="existCount" key="existCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="%" data-index="existCountPercent" key="existCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="Total Bytes" data-index="applySizeFormat" key="applySizeFormat" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="%" data-index="applySizePercent" key="applySizePercent" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="# Total" data-index="applyCount" key="applyCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="%" data-index="applyCountPercent" key="applyCountPercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="Transient" data-index="releaseSizeFormat" key="releaseSizeFormat" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="%" data-index="releaseSizePercent" key="releaseSizePercent" align="flex-start"order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="# Transient" data-index="releaseCount" key="releaseCount" align="flex-start" order></lit-table-column>
-                    <lit-table-column width="100px" class="function-class" title="%" data-index="releaseCountPercent" key="releaseCountPercent" align="flex-start"order></lit-table-column>
-                </lit-table>
-            </div>
-        </div>
-        <tab-pane-filter id="filter" options></tab-pane-filter>
-`;
+    return TabPaneNMStatisticAnalysisHtml;
   }
 }

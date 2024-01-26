@@ -19,27 +19,27 @@ import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { GpuMemoryComparison } from '../../../../bean/AbilityMonitor';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import { getTabGpuMemoryVmTrackerComparisonData } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
 import { compare, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import {getTabGpuMemoryVmTrackerComparisonData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-gpu-memory-vmtracker-comparison')
 export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
-  private gpuMemoryClickTable: LitTable | null | undefined;
+  private gpuMemoryClickTables: LitTable | null | undefined;
   private comparisonSelect: TabPaneJsMemoryFilter | null | undefined;
   private selectEl: LitSelect | null | undefined;
   private selfData = new Array<GpuMemoryComparison>();
   private comparisonSource: Array<GpuMemoryComparison> = [];
 
   initElements(): void {
-    this.gpuMemoryClickTable = this.shadowRoot?.querySelector<LitTable>('#gpuMemoryClickTable');
+    this.gpuMemoryClickTables = this.shadowRoot?.querySelector<LitTable>('#gpuMemoryClickTables');
     this.comparisonSelect = this.shadowRoot?.querySelector('#filter') as TabPaneJsMemoryFilter;
     this.selectEl = this.comparisonSelect?.shadowRoot?.querySelector<LitSelect>('lit-select');
-    this.gpuMemoryClickTable!.addEventListener('column-click', (e) => {
+    this.gpuMemoryClickTables!.addEventListener('column-click', (e) => {
       // @ts-ignore
       this.sortGpuMemoryByColumn(e.detail.key, e.detail.sort);
     });
@@ -47,7 +47,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    resizeObserverFromMemory(this.parentElement!, this.gpuMemoryClickTable!, this.comparisonSelect!);
+    resizeObserverFromMemory(this.parentElement!, this.gpuMemoryClickTables!, this.comparisonSelect!);
   }
 
   async queryDataByDB(startNs: number): Promise<GpuMemoryComparison[]> {
@@ -79,7 +79,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
       }
     }
     this.selectStamps(dataArray);
-    this.getComparisonData(dataArray[0].startNs);
+    this.getComparisonsData(dataArray[0].startNs);
   }
 
   selectStamps(dataList: Array<SnapshotStruct>): void {
@@ -100,7 +100,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
       option.addEventListener('onSelected', async (e) => {
         for (let f of dataList) {
           if (input.value === f.name) {
-            this.getComparisonData(f.startNs);
+            this.getComparisonsData(f.startNs);
           }
         }
         e.stopPropagation();
@@ -108,7 +108,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
     });
   }
 
-  async getComparisonData(targetStartNs: number): Promise<void> {
+  async getComparisonsData(targetStartNs: number): Promise<void> {
     let comparisonData: GpuMemoryComparison[] = [];
     let comparison: GpuMemoryComparison[] = [];
     let data = await this.queryDataByDB(targetStartNs);
@@ -120,19 +120,19 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
       item.sizes = Utils.getBinaryByteWithUnit(item.value);
     }
     this.comparisonSource = comparisonData;
-    this.gpuMemoryClickTable!.recycleDataSource = comparisonData;
+    this.gpuMemoryClickTables!.recycleDataSource = comparisonData;
   }
 
   sortGpuMemoryByColumn(column: string, sort: number): void {
     switch (sort) {
       case 0:
-        this.gpuMemoryClickTable!.recycleDataSource = this.comparisonSource;
+        this.gpuMemoryClickTables!.recycleDataSource = this.comparisonSource;
         break;
       default:
         let array = [...this.comparisonSource];
         switch (column) {
           case 'thread':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort(
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort(
               (gpuMComparisonLeftData, gpuMComparisonRightData) => {
                 return sort === 1
                   ? `${gpuMComparisonLeftData.thread}`.localeCompare(`${gpuMComparisonRightData.thread}`)
@@ -141,14 +141,14 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
             );
             break;
           case 'gpuName':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMCompVmLeftData, gpuMCompVmRightData) => {
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort((gpuMCompVmLeftData, gpuMCompVmRightData) => {
               return sort === 1
                 ? `${gpuMCompVmLeftData.gpuName}`.localeCompare(`${gpuMCompVmRightData.gpuName}`)
                 : `${gpuMCompVmRightData.gpuName}`.localeCompare(`${gpuMCompVmLeftData.gpuName}`);
             });
             break;
           case 'sizeDelta':
-            this.gpuMemoryClickTable!.recycleDataSource = array.sort((gpuMCompVmLeftData, gpuMCompVmRightData) => {
+            this.gpuMemoryClickTables!.recycleDataSource = array.sort((gpuMCompVmLeftData, gpuMCompVmRightData) => {
               return sort === 1
                 ? gpuMCompVmLeftData.value - gpuMCompVmRightData.value
                 : gpuMCompVmRightData.value - gpuMCompVmLeftData.value;
@@ -162,7 +162,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
   initHtml(): string {
     return `
 <style>
-.gpuMemoryClickTable{
+.gpuMemoryClickTables{
     height: auto;
 }
 :host{
@@ -171,7 +171,7 @@ export class TabPaneGpuMemoryVmTrackerComparison extends BaseElement {
     padding: 10px 10px;
 }
 </style>
-<lit-table id="gpuMemoryClickTable" class="gpuMemoryClickTable">
+<lit-table id="gpuMemoryClickTables" class="gpuMemoryClickTables">
     <lit-table-column order title="GpuName" data-index="gpuName" key="gpuName" align="flex-start" width="1fr" >
     </lit-table-column>
     <lit-table-column order title="Thread(pid)" data-index="thread" key="thread" align="flex-start" width="1fr" >

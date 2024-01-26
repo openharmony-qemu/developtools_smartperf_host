@@ -51,32 +51,7 @@ export class JSONToCSV {
       row = '';
       // 如果存在自定义key值
       if (columns.key.length) {
-        columns.key.map(function (m: any, idx: number) {
-          let strItem: any = '';
-          if (obj.exportFormatter && obj.exportFormatter.has(m)) {
-            strItem = obj.exportFormatter.get(m)?.(n) || n[m];
-          } else if (obj.formatter && obj.formatter.has(m)) {
-            strItem = obj.formatter.get(m)?.(n[m]) || n[m];
-          } else {
-            strItem = n[m];
-          }
-          if (typeof strItem == 'undefined') {
-            strItem = '';
-          } else if (typeof strItem == 'object') {
-            strItem = JSON.stringify(strItem);
-            strItem = strItem.replaceAll('"', '');
-          }
-          if (idx === 0 && typeof n['depthCSV'] !== 'undefined') {
-            row +=
-              '"' +
-              that.treeDepth(n['depthCSV']) +
-              (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
-              '",';
-          } else {
-            row +=
-              '"' + (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) + '",';
-          }
-        });
+        row = that.getCsvStr(columns,obj,n,row);
       } else {
         for (key in n) {
           row +=
@@ -90,6 +65,37 @@ export class JSONToCSV {
       return;
     }
     this.saveCsvFile(fileName, csv);
+  }
+
+  static getCsvStr(columns: any,obj: any,n: any,row: string){
+    let that = this;
+    columns.key.map(function (m: any, idx: number) {
+      let strItem: any = '';
+      if (obj.exportFormatter && obj.exportFormatter.has(m)) {
+        strItem = obj.exportFormatter.get(m)?.(n) || n[m];
+      } else if (obj.formatter && obj.formatter.has(m)) {
+        strItem = obj.formatter.get(m)?.(n[m]) || n[m];
+      } else {
+        strItem = n[m];
+      }
+      if (typeof strItem == 'undefined') {
+        strItem = '';
+      } else if (typeof strItem == 'object') {
+        strItem = JSON.stringify(strItem);
+        strItem = strItem.replaceAll('"', '');
+      }
+      if (idx === 0 && typeof n['depthCSV'] !== 'undefined') {
+        row +=
+          '"' +
+          that.treeDepth(n['depthCSV']) +
+          (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) +
+          '",';
+      } else {
+        row +=
+          '"' + (typeof columns.formatter === 'function' ? columns.formatter(m, n[m]) || n[m] : strItem) + '",';
+      }
+    });
+    return row;
   }
 
   static saveCsvFile(fileName: any, csvData: any): void {

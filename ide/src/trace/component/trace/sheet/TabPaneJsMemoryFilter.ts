@@ -14,68 +14,16 @@
  */
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import '../../../../base-ui/icon/LitIcon';
-import { LitIcon } from '../../../../base-ui/icon/LitIcon';
 import '../../../../base-ui/popover/LitPopoverV';
-import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
-import { LitSelect } from '../../../../base-ui/select/LitSelect';
 import '../../../../base-ui/select/LitSelect';
-import { LitSelectOption } from '../../../../base-ui/select/LitSelectOption';
+import { TabPaneJsMemoryFilterHtml } from './TabPaneJsMemoryFilter.html';
+
 @element('tab-pane-js-memory-filter')
 export class TabPaneJsMemoryFilter extends BaseElement {
-  initElements(): void {}
+  initElements(): void {
+  }
+
   initHtml(): string {
-    return `
-        <style>
-        :host{
-            height: 30px;
-            background: var(--dark-background4,#F2F2F2);
-            border-top: 1px solid var(--dark-border1,#c9d0da);display: flex;align-items: center;z-index: 2;
-            margin-left: -10px;
-            width: calc(100% + 20px);
-            position: fixed;
-            bottom: 0px;
-        }
-        #js-memory-filter-input{
-            background: var(--dark-background4,#FFFFFF);
-            border: 1px solid var(--dark-border,rgba(0,0,0,0.60));
-            color: var(--dark-color2,#000000);
-            border-radius: 8px;
-            margin-left: 10px;
-            width: 200px;
-        }
-        #js-memory-filter-input:focus{
-            outline: none;
-            box-shadow: 1px 1px 1px var(--dark-color,#bebebe);
-        }
-        #js-memory-filter-input::-webkit-input-placeholder {
-            color: var(--dark-color,#aab2bd);
-        }
-        .describe{
-            margin-left: 10px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            min-width: 50px;
-        }
-        :host(:not([first])) #comparison-select{
-            display: none;
-        }
-        :host(:not([input])) .filter-wrap{
-            display: none;
-        }
-        #comparison-select{
-            width:150px;
-            margin-left: 10px;
-        }
-        </style>
-        <div class='filter-wrap'>
-            <span class="describe left-text spacing">Class Filter</span>
-            <input id="js-memory-filter-input" class="spacing" placeholder="Class filter" value=""/>
-        </div>
-        <div class='select-wrap'>
-            <lit-select id='comparison-select' title='Select View'></lit-select>
-        </div>
-        `;
+    return TabPaneJsMemoryFilterHtml;
   }
 }

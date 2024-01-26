@@ -16,7 +16,6 @@
 import { EventCenter } from '../../../../../src/trace/component/trace/base/EventCenter';
 import { TimeRuler } from '../../../../../src/trace/component/trace/timer-shaft/TimeRuler';
 import { TimerShaftElement } from '../../../../../src/trace/component/trace/TimerShaftElement';
-
 declare global {
   interface Window {
     SmartEvent: {
@@ -38,6 +37,10 @@ declare global {
 jest.mock('../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });

@@ -18,7 +18,7 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { LogRender, LogStruct } from '../../database/ui-worker/ProcedureWorkerLog';
 import { LogDataSender } from '../../database/data-trafic/LogDataSender';
-import {queryLogData} from "../../database/SqlLite";
+import {queryLogData} from "../../database/sql/SqlLite.sql";
 
 export class SpLogChart {
   private trace: SpSystemTrace;

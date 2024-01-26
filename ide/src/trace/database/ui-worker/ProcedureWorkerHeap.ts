@@ -13,15 +13,10 @@
  * limitations under the License.
  */
 
-import {
-  Rect,
-  Render,
-  isFrameContainPoint,
-  ns2x,
-  drawLoadingFrame,
-} from './ProcedureWorkerCommon';
+import { Rect, Render, isFrameContainPoint, ns2x, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 export class NativeMemoryRender extends Render {
   renderMainThread(req: any, row: TraceRow<any>) {}
 }
@@ -46,33 +41,50 @@ export class HeapRender {
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
     drawLoadingFrame(req.context, heapFilter, row);
-    // 多条数据,最后一条数据在结束点也需要绘制
-    if (heapFilter.length >= 2 && heapFilter[heapFilter.length - 1].dur === 0) {
-      if (heapFilter[heapFilter.length - 2].frame && heapFilter[heapFilter.length - 1].frame) {
-        heapFilter[heapFilter.length - 2].frame!.width = heapFilter[heapFilter.length - 2].frame!.width - 1;
-        heapFilter[heapFilter.length - 1].frame!.width = 1;
-        heapFilter[heapFilter.length - 1].frame!.x -= 1;
-      }
-    }
-    // 只有一条数据并且数据在结束点
-    if (heapFilter.length === 1 && row.frame.width === heapFilter[0].frame?.x) {
-      heapFilter[0].frame!.x -= 1;
-    }
-    req.context.beginPath();
-    let find = false;
-    for (let re of heapFilter) {
-      if (row.isHover && re.frame && !find && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
-        HeapStruct.hoverHeapStruct = re;
-        find = true;
-      }
-    }
-    for (let re of heapFilter) {
-      HeapStruct.drawHeap(req.context, re, row.drawType);
-    }
-    if (!find && row.isHover) HeapStruct.hoverHeapStruct = undefined;
-    req.context.closePath();
+    setRenderHeapFrame(heapFilter, row);
+    drawHeap(req, heapFilter, row);
   }
 }
+
+function setRenderHeapFrame(heapFilter: HeapStruct[], row: TraceRow<HeapStruct>): void {
+  // 多条数据,最后一条数据在结束点也需要绘制
+  if (heapFilter.length >= 2 && heapFilter[heapFilter.length - 1].dur === 0) {
+    if (heapFilter[heapFilter.length - 2].frame && heapFilter[heapFilter.length - 1].frame) {
+      heapFilter[heapFilter.length - 2].frame!.width = heapFilter[heapFilter.length - 2].frame!.width - 1;
+      heapFilter[heapFilter.length - 1].frame!.width = 1;
+      heapFilter[heapFilter.length - 1].frame!.x -= 1;
+    }
+  }
+  // 只有一条数据并且数据在结束点
+  if (heapFilter.length === 1 && row.frame.width === heapFilter[0].frame?.x) {
+    heapFilter[0].frame!.x -= 1;
+  }
+}
+
+function drawHeap(
+  req: {
+    context: CanvasRenderingContext2D;
+    useCache: boolean;
+    type: string;
+  },
+  heapFilter: HeapStruct[],
+  row: TraceRow<HeapStruct>
+) {
+  req.context.beginPath();
+  let find = false;
+  for (let re of heapFilter) {
+    if (row.isHover && re.frame && !find && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+      HeapStruct.hoverHeapStruct = re;
+      find = true;
+    }
+  }
+  for (let re of heapFilter) {
+    HeapStruct.drawHeap(req.context, re, row.drawType);
+  }
+  if (!find && row.isHover) HeapStruct.hoverHeapStruct = undefined;
+  req.context.closePath();
+}
+
 export function heap(
   heapList: Array<any>,
   res: Array<any>,
@@ -83,21 +95,14 @@ export function heap(
   use: boolean
 ) {
   if (use && res.length > 0) {
-    for (let i = 0; i < res.length; i++) {
-      let it = res[i];
-      if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) <= (endNS || 0)) {
-        HeapStruct.setFrame(res[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-      } else {
-        res[i].frame = null;
-      }
-    }
+    setHeapFrameIfUse(res, startNS, endNS, totalNS, frame);
     return;
   }
   res.length = 0;
   for (let i = 0, len = heapList.length; i < len; i++) {
     let it = heapList[i];
-    if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) <= (endNS || 0)) {
-      HeapStruct.setFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+    if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) <= endNS) {
+      HeapStruct.setFrame(it, 5, startNS, endNS, totalNS, frame);
       if (i > 0) {
         let last = heapList[i - 1];
         if (last.frame?.x != it.frame.x || last.frame.width != it.frame.width) {
@@ -110,6 +115,39 @@ export function heap(
   }
 }
 
+function setHeapFrameIfUse(res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
+  for (let i = 0; i < res.length; i++) {
+    let it = res[i];
+    if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) <= endNS) {
+      HeapStruct.setFrame(res[i], 5, startNS, endNS, totalNS, frame);
+    } else {
+      res[i].frame = null;
+    }
+  }
+}
+
+export function HeapStructOnClick(clickRowType: string, sp: SpSystemTrace, row: undefined | TraceRow<any>) {
+  return new Promise((resolve,reject) => {
+    if (
+      clickRowType === TraceRow.ROW_TYPE_HEAP &&
+      row &&
+      row.getAttribute('heap-type') === 'native_hook_statistic' &&
+      HeapStruct.hoverHeapStruct
+    ) {
+      HeapStruct.selectHeapStruct = HeapStruct.hoverHeapStruct;
+      const key = row.rowParentId!.split(' ');
+      let ipid = 1;
+      if (key.length > 0) {
+        ipid = Number(key[key.length - 1]);
+      }
+      sp.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!, ipid);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class HeapStruct extends BaseHeapStruct {
   static hoverHeapStruct: HeapStruct | undefined;
   static selectHeapStruct: HeapStruct | undefined;

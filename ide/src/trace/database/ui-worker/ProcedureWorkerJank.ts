@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-import { JanksStruct } from '../../bean/JanksStruct';
-import { ColorUtils } from '../../component/trace/base/ColorUtils';
-import { TraceRow } from '../../component/trace/base/TraceRow';
+import {JanksStruct} from '../../bean/JanksStruct';
+import {ColorUtils} from '../../component/trace/base/ColorUtils';
+import {TraceRow} from '../../component/trace/base/TraceRow';
 import {
+  drawLoadingFrame,
+  drawString,
   isFrameContainPoint,
   ns2x,
   Render,
   RequestMessage,
-  drawString,
-  drawLoadingFrame,
 } from './ProcedureWorkerCommon';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class JankRender extends Render {
   renderMainThread(
@@ -75,7 +76,8 @@ export class JankRender extends Render {
     req.context.closePath();
   }
 
-  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {}
+  render(req: RequestMessage, list: Array<any>, filter: Array<any>): void {
+  }
 }
 
 export function jank(
@@ -114,6 +116,39 @@ export function jank(
       jankFilter.push(arr[0]);
     });
   }
+}
+
+export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,jankClickHandler: any) {
+  return new Promise((resolve, reject) => {
+    JankStruct.hoverJankStruct = JankStruct.hoverJankStruct || row.getHoverStruct();
+    if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
+      JankStruct.selectJankStructList.length = 0;
+      sp.removeLinkLinesByBusinessType('janks');
+      JankStruct.selectJankStruct = JankStruct.hoverJankStruct;
+      sp.timerShaftEL?.drawTriangle(JankStruct.selectJankStruct!.ts || 0, 'inverted');
+      sp.traceSheetEL?.displayJankData(
+        JankStruct.selectJankStruct,
+        (datas) => {
+          datas.forEach((data) => {
+            let endParentRow;
+            if (data.frame_type == 'frameTime') {
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<JankStruct>>(
+                `trace-row[row-id='frameTime'][row-type='janks']`
+              );
+            } else {
+              endParentRow = sp.shadowRoot?.querySelector<TraceRow<any>>(`trace-row[row-id='${data.pid}'][folder]`);
+            }
+            sp.drawJankLine(endParentRow, JankStruct.selectJankStruct!, data);
+          });
+        },
+        jankClickHandler
+      );
+      reject(new Error());
+    } else {
+      resolve(null);
+    }
+  });
+
 }
 
 export class JankStruct extends JanksStruct {
@@ -219,6 +254,7 @@ export class JankStruct extends JanksStruct {
       }
     }
   }
+
   private static drawActualFrame(ctx: CanvasRenderingContext2D, data: JankStruct, miniHeight: number): void {
     ctx.fillStyle = ColorUtils.JANK_COLOR[0];
     if (data.jank_tag === 1) {
@@ -230,6 +266,7 @@ export class JankStruct extends JanksStruct {
       ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
     }
   }
+
   static isSelected(data: JankStruct): boolean {
     return (
       JankStruct.selectJankStruct != undefined &&

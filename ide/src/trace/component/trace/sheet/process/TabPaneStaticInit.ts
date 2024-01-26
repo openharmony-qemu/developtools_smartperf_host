@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabStaticInit } from '../../../../database/SqlLite';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { resizeObserver } from '../SheetUtils';
 import { SoStruct } from '../../../../database/ui-worker/ProcedureWorkerSoInit';
+import { getTabStaticInit } from '../../../../database/sql/ProcessThread.sql';
 
 interface SoTreeItem {
   name: string;
@@ -38,28 +38,19 @@ export class TabPaneStaticInit extends BaseElement {
   private currentSelectionParam: SelectionParam | undefined;
 
   set data(staticinitParam: SelectionParam | any) {
-    if (this.currentSelectionParam === staticinitParam) {
-      return;
-    }
-    this.currentSelectionParam = staticinitParam;
-    //@ts-ignore
-    this.staticinitTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      this.parentElement!.clientHeight - 45 + 'px';
-    this.range!.textContent =
-      'Selected range: ' + ((staticinitParam.rightNs - staticinitParam.leftNs) / 1000000.0).toFixed(5) + ' ms';
-    this.staticinitTbl!.loading = true;
+    this.initStaticTblStyle(staticinitParam);
     getTabStaticInit(staticinitParam.processIds, staticinitParam.leftNs, staticinitParam.rightNs).then(
       (result: SoStruct[]) => {
         this.staticinitTbl!.loading = false;
-        if (result != null && result.length > 0) {
-          log('getTabStaticInit  result size : ' + result.length);
+        if (result !== null && result.length > 0) {
+          log(`getTabStaticInit  result size : ${  result.length}`);
           let map: Map<number, SoTreeItem> = new Map<number, SoTreeItem>();
           result.forEach((item) => {
             let so: SoTreeItem = {
               name: (item.soName || '[NULL]').replace('dlopen: ', ''),
               dur: item.dur || 0,
               durStr: getProbablyTime(item.dur || 0),
-              ratio: `0%`,
+              ratio: '0%',
               children: [],
             };
             if (map.has(item.pid!)) {
@@ -73,7 +64,7 @@ export class TabPaneStaticInit extends BaseElement {
                 name: item.process || `Process ${item.pid}`,
                 dur: item.dur || 0,
                 durStr: '',
-                ratio: `100%`,
+                ratio: '100%',
                 children: [so],
               });
             }
@@ -82,7 +73,7 @@ export class TabPaneStaticInit extends BaseElement {
           soArr.forEach((it) => {
             it.durStr = getProbablyTime(it.dur);
             it.children!.forEach((child) => {
-              child.ratio = ((child.dur * 100) / it.dur).toFixed(2) + '%';
+              child.ratio = `${((child.dur * 100) / it.dur).toFixed(2)  }%`;
             });
           });
           this.staticinitSource = soArr;
@@ -93,6 +84,19 @@ export class TabPaneStaticInit extends BaseElement {
         }
       }
     );
+  }
+
+  private initStaticTblStyle(staticParam: SelectionParam | any): void {
+    if (this.currentSelectionParam === staticParam) {
+      return;
+    }
+    this.currentSelectionParam = staticParam;
+    //@ts-ignore
+    this.staticinitTbl?.shadowRoot?.querySelector('.table')?.style?.height =
+      `${this.parentElement!.clientHeight - 45  }px`;
+    this.range!.textContent =
+      `Selected range: ${  ((staticParam.rightNs - staticParam.leftNs) / 1000000.0).toFixed(5)  } ms`;
+    this.staticinitTbl!.loading = true;
   }
 
   initElements(): void {
@@ -121,15 +125,19 @@ export class TabPaneStaticInit extends BaseElement {
             padding: 10px 10px;
         }
         </style>
-        <div class="staticinit-table" style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
+        <div class="staticinit-table" style="display: flex;height: 20px;align-items: center;
+        flex-direction: row;margin-bottom: 5px">
             <div style="flex: 1"></div>
-            <label id="staticinit-time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
+            <label id="staticinit-time-range"  style="width: auto;text-align: end;font-size: 10pt;">
+            Selected range:0.0 ms</label>
         </div>
         <div style="overflow: auto">
             <lit-table id="tb-staticinit" style="height: auto" tree>
-                <lit-table-column width="700px" title="Process / Lib"  data-index="name" key="name"  align="flex-start" order>
+                <lit-table-column width="700px" title="Process / Lib"  data-index="name" 
+                key="name"  align="flex-start" order>
                 </lit-table-column>
-                <lit-table-column width="200px" title="Duration" data-index="durStr" key="durStr"  align="flex-start" order >
+                <lit-table-column width="200px" title="Duration" data-index="durStr" 
+                key="durStr"  align="flex-start" order >
                 </lit-table-column>
             </lit-table>
         </div>

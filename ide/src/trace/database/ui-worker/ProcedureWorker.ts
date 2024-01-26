@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CpuRender, EmptyRender } from './ProcedureWorkerCPU';
+import { CpuRender, EmptyRender } from './cpu/ProcedureWorkerCPU';
 import { RequestMessage } from './ProcedureWorkerCommon';
 import { FreqRender } from './ProcedureWorkerFreq';
 import { ProcessRender } from './ProcedureWorkerProcess';
@@ -26,22 +26,19 @@ import { CpuAbilityRender } from './ProcedureWorkerCpuAbility';
 import { MemoryAbilityRender } from './ProcedureWorkerMemoryAbility';
 import { DiskIoAbilityRender } from './ProcedureWorkerDiskIoAbility';
 import { NetworkAbilityRender } from './ProcedureWorkerNetworkAbility';
-import { HiperfCpuRender } from './ProcedureWorkerHiPerfCPU';
-import { HiperfProcessRender } from './ProcedureWorkerHiPerfProcess';
-import { HiperfThreadRender } from './ProcedureWorkerHiPerfThread';
-import { HiperfEventRender } from './ProcedureWorkerHiPerfEvent';
-import { HiperfReportRender } from './ProcedureWorkerHiPerfReport';
+import { HiperfEventRender } from './hiperf/ProcedureWorkerHiPerfEvent';
+import { HiperfReportRender } from './hiperf/ProcedureWorkerHiPerfReport';
 import { VirtualMemoryRender } from './ProcedureWorkerVirtualMemory';
 import { EBPFRender } from './ProcedureWorkerEBPF';
 import { info } from '../../../log/Log';
 import { SdkSliceRender } from './ProduceWorkerSdkSlice';
 import { SdkCounterRender } from './ProduceWorkerSdkCounter';
-import { CpuStateRender } from './ProcedureWorkerCpuState';
+import { CpuStateRender } from './cpu/ProcedureWorkerCpuState';
 import { EnergyAnomalyRender } from './ProcedureWorkerEnergyAnomaly';
 import { EnergySystemRender } from './ProcedureWorkerEnergySystem';
 import { EnergyPowerRender } from './ProcedureWorkerEnergyPower';
 import { EnergyStateRender } from './ProcedureWorkerEnergyState';
-import { CpuFreqLimitRender } from './ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitRender } from './cpu/ProcedureWorkerCpuFreqLimits';
 import { ClockRender } from './ProcedureWorkerClock';
 import { IrqRender } from './ProcedureWorkerIrq';
 import { JankRender } from './ProcedureWorkerJank';
@@ -56,11 +53,11 @@ import { FrameSpacingRender } from './ProcedureWorkerFrameSpacing';
 import { JsCpuProfilerRender } from './ProcedureWorkerCpuProfiler';
 import { SnapshotRender } from './ProcedureWorkerSnapshot';
 import { LogRender } from './ProcedureWorkerLog';
-import { HiPerfCallChartRender } from './ProcedureWorkerHiPerfCallChart';
+import { HiPerfCallChartRender } from './hiperf/ProcedureWorkerHiPerfCallChart';
 import { HiSysEventRender } from './ProcedureWorkerHiSysEvent';
-import { HiperfCpuRender2 } from './ProcedureWorkerHiPerfCPU2';
-import { HiperfProcessRender2 } from './ProcedureWorkerHiPerfProcess2';
-import { HiperfThreadRender2 } from './ProcedureWorkerHiPerfThread2';
+import { HiperfCpuRender2 } from './hiperf/ProcedureWorkerHiPerfCPU2';
+import { HiperfProcessRender2 } from './hiperf/ProcedureWorkerHiPerfProcess2';
+import { HiperfThreadRender2 } from './hiperf/ProcedureWorkerHiPerfThread2';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
 import { hitchTimeRender } from './ProcedureWorkerHitchTime';
@@ -97,12 +94,9 @@ export let renders: any = {
   native: new NativeMemoryRender(),
   'HiPerf-Group': new EmptyRender(),
   monitorGroup: new EmptyRender(),
-  'HiPerf-Cpu': new HiperfCpuRender(),
   'HiPerf-Cpu-2': new HiperfCpuRender2(),
   'HiPerf-callchart': new HiPerfCallChartRender(),
-  'HiPerf-Process': new HiperfProcessRender(),
   'HiPerf-Process-2': new HiperfProcessRender2(),
-  'HiPerf-Thread': new HiperfThreadRender(),
   'HiPerf-Thread-2': new HiperfThreadRender2(),
   'HiPerf-Report-Event': new HiperfEventRender(),
   'HiPerf-Report-Fold': new HiperfReportRender(),
@@ -131,7 +125,7 @@ export let renders: any = {
 
 function match(type: string, req: RequestMessage): void {
   Reflect.ownKeys(renders).filter((it) => {
-    if (type.startsWith(it as string)) {
+    if (type && type.startsWith(it as string)) {
       if (dataList[type]) {
         req.lazyRefresh = dataList[type].length > 20000;
       }
@@ -164,7 +158,27 @@ let convertJSON = (arr: any): any => {
     return arr;
   }
 };
-self.onmessage = function (e: any): void {
+
+self.onmessage = (e: any): void => {
+  clear(e);
+  if (e.data.params && e.data.params.list) {
+    dataList[e.data.type] = convertJSON(e.data.params.list);
+    if (e.data.params.offscreen) {
+      canvasList[e.data.type] = e.data.params.offscreen;
+      contextList[e.data.type] = e.data.params.offscreen!.getContext('2d');
+      contextList[e.data.type].scale(e.data.params.dpr, e.data.params.dpr);
+    }
+  }
+  if (!dataFilter[e.data.type]) {
+    dataFilter[e.data.type] = [];
+  }
+  let req = new RequestMessage();
+  setReq(req, e);
+
+  match(req.type!, req);
+};
+
+function clear(e: any) {
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
     dataList2 = {};
@@ -179,18 +193,9 @@ self.onmessage = function (e: any): void {
     });
     return;
   }
-  if (e.data.params && e.data.params.list) {
-    dataList[e.data.type] = convertJSON(e.data.params.list);
-    if (e.data.params.offscreen) {
-      canvasList[e.data.type] = e.data.params.offscreen;
-      contextList[e.data.type] = e.data.params.offscreen!.getContext('2d');
-      contextList[e.data.type].scale(e.data.params.dpr, e.data.params.dpr);
-    }
-  }
-  if (!dataFilter[e.data.type]) {
-    dataFilter[e.data.type] = [];
-  }
-  let req = new RequestMessage();
+}
+
+function setReq(req: RequestMessage, e: any) {
   req.canvas = canvasList[e.data.type];
   req.context = contextList[e.data.type];
   req.type = e.data.type as string;
@@ -220,7 +225,6 @@ self.onmessage = function (e: any): void {
     req.wakeupBean = e.data.params.wakeupBean;
     req.intervalPerf = e.data.params.intervalPerf;
   }
-
   req.id = e.data.id;
   if (!req.frame) {
     info(req.frame);
@@ -233,6 +237,7 @@ self.onmessage = function (e: any): void {
       req.context.scale(e.data.params.dpr, e.data.params.dpr);
     }
   }
-  match(req.type, req);
+}
+
+self.onmessageerror = function (e: any): void {
 };
-self.onmessageerror = function (e: any): void {};

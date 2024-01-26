@@ -15,13 +15,9 @@
 
 import {
   BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
   ns2x,
   Render,
   RequestMessage,
-  drawSelection,
   isFrameContainPoint,
   drawLoadingFrame,
 } from './ProcedureWorkerCommon';
@@ -73,110 +69,6 @@ export class EnergyPowerRender extends Render {
     let isDark = spApplication.hasAttribute('dark');
     drawLegend(powerReq, isDark);
   }
-
-  render(energyPowerRequest: RequestMessage, list: Array<any>, filter: Array<any>) {
-    if (energyPowerRequest.lazyRefresh) {
-      power(
-        list,
-        filter,
-        energyPowerRequest.startNS,
-        energyPowerRequest.endNS,
-        energyPowerRequest.totalNS,
-        energyPowerRequest.frame,
-        energyPowerRequest.useCache || !energyPowerRequest.range.refresh,
-        energyPowerRequest.params.maxPowerName
-      );
-    } else {
-      if (!energyPowerRequest.useCache) {
-        power(
-          list,
-          filter,
-          energyPowerRequest.startNS,
-          energyPowerRequest.endNS,
-          energyPowerRequest.totalNS,
-          energyPowerRequest.frame,
-          false,
-          energyPowerRequest.params.maxPowerName
-        );
-      }
-    }
-    if (energyPowerRequest.canvas) {
-      energyPowerRequest.context.clearRect(0, 0, energyPowerRequest.canvas.width, EnergyPowerStruct.rowHeight);
-      let arr = filter;
-      if (
-        arr.length > 0 &&
-        !energyPowerRequest.range.refresh &&
-        !energyPowerRequest.useCache &&
-        energyPowerRequest.lazyRefresh
-      ) {
-        drawLoading(
-          energyPowerRequest.context,
-          energyPowerRequest.startNS,
-          energyPowerRequest.endNS,
-          energyPowerRequest.totalNS,
-          energyPowerRequest.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
-        );
-      }
-      drawLines(
-        energyPowerRequest.context,
-        energyPowerRequest.xs,
-        energyPowerRequest.frame.height,
-        energyPowerRequest.lineColor
-      );
-      energyPowerRequest.context.beginPath();
-      EnergyPowerStruct.hoverEnergyPowerStruct = undefined;
-      if (energyPowerRequest.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            energyPowerRequest.hoverX >= re.frame.x &&
-            energyPowerRequest.hoverX <= re.frame.x + re.frame.width &&
-            energyPowerRequest.hoverY >= re.frame.y &&
-            energyPowerRequest.hoverY <= re.frame.y + re.frame.height
-          ) {
-            EnergyPowerStruct.hoverEnergyPowerStruct = re;
-            break;
-          }
-        }
-      }
-      EnergyPowerStruct.selectEnergyPowerStruct = energyPowerRequest.params.selectEnergyPowerStruct;
-      for (let index = 0; index < filter.length; index++) {}
-      energyPowerRequest.context.stroke();
-      drawSelection(energyPowerRequest.context, energyPowerRequest.params);
-      energyPowerRequest.context.closePath();
-      if (EnergyPowerStruct.maxPower != 0) {
-        let s = EnergyPowerStruct.maxPower + 'mAs';
-        let textMetrics = energyPowerRequest.context.measureText(s);
-        energyPowerRequest.context.globalAlpha = 1.0;
-        energyPowerRequest.context.fillStyle = '#f0f0f0';
-        energyPowerRequest.context.fillRect(0, 5, textMetrics.width + 8, 18);
-        energyPowerRequest.context.globalAlpha = 1;
-        energyPowerRequest.context.fillStyle = '#333';
-        energyPowerRequest.context.textBaseline = 'middle';
-        energyPowerRequest.context.fillText(s, 4, 5 + 9);
-      }
-      drawLegend(energyPowerRequest);
-      drawFlagLine(
-        energyPowerRequest.context,
-        energyPowerRequest.flagMoveInfo,
-        energyPowerRequest.flagSelectedInfo,
-        energyPowerRequest.startNS,
-        energyPowerRequest.endNS,
-        energyPowerRequest.totalNS,
-        energyPowerRequest.frame,
-        energyPowerRequest.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: energyPowerRequest.id,
-      type: energyPowerRequest.type,
-      results: energyPowerRequest.canvas ? undefined : filter,
-      hover: EnergyPowerStruct.hoverEnergyPowerStruct,
-    });
-  }
 }
 
 export function drawLegend(req: any, isDark?: boolean) {
@@ -215,7 +107,7 @@ export function power(
   frame: any,
   use: boolean,
   appName: string
-) {
+): void {
   EnergyPowerStruct.maxPower = 0;
   list.length = 0;
   let firstData = [];
@@ -223,51 +115,64 @@ export function power(
     for (let index = 0; index < res.length; index++) {
       let item = res[index];
       let obj = item[appName];
-      if (obj != undefined) {
-        if (obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
-          firstData.push(obj);
-        }
+      if (obj != undefined && obj.ts + 1000000000 > (startNS || 0) && (obj.ts || 0) < (endNS || 0)) {
+        firstData.push(obj);
       }
     }
     let array = firstData.sort((a, b) => a.ts - b.ts);
-    array.forEach((item) => {
-      if (list.length > 0) {
-        if (item.ts + 500000000 >= list[list.length - 1].ts && item.ts - 500000000 <= list[list.length - 1].ts) {
-          list[list.length - 1].cpu = item.cpu === 0 ? list[list.length - 1].cpu : item.cpu;
-          list[list.length - 1].location = item.location === 0 ? list[list.length - 1].location : item.location;
-          list[list.length - 1].gpu = item.gpu === 0 ? list[list.length - 1].gpu : item.gpu;
-          list[list.length - 1].display = item.display === 0 ? list[list.length - 1].display : item.display;
-          list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
-          list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
-          list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
-          list[list.length - 1].audio = item.audio === 0 ? list[list.length - 1].audio : item.audio;
-          list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
-        } else {
-          list.push(item);
-        }
-      } else {
-        list.push(item);
-      }
-    });
-    array.forEach((item) => {
-      if (list.indexOf(item) >= 0) {
-        EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-        let max =
-          (item.cpu || 0) +
-          (item.location || 0) +
-          (item.gpu || 0) +
-          (item.display || 0) +
-          (item.camera || 0) +
-          (item.bluetooth || 0) +
-          (item.flashlight || 0) +
-          (item.audio || 0) +
-          (item.wifiscan || 0);
-        if (max > EnergyPowerStruct.maxPower) {
-          EnergyPowerStruct.maxPower = max;
-        }
-      }
-    });
+    setFirstDataArray(array, list);
+    computeMaxPower(array, list, startNS, endNS, totalNS, frame);
   }
+}
+
+function setFirstDataArray(array: any[], list: Array<any>): void {
+  array.forEach((item) => {
+    if (
+      list.length > 0 &&
+      item.ts + 500000000 >= list[list.length - 1].ts &&
+      item.ts - 500000000 <= list[list.length - 1].ts
+    ) {
+      list[list.length - 1].cpu = item.cpu === 0 ? list[list.length - 1].cpu : item.cpu;
+      list[list.length - 1].location = item.location === 0 ? list[list.length - 1].location : item.location;
+      list[list.length - 1].gpu = item.gpu === 0 ? list[list.length - 1].gpu : item.gpu;
+      list[list.length - 1].display = item.display === 0 ? list[list.length - 1].display : item.display;
+      list[list.length - 1].camera = item.camera === 0 ? list[list.length - 1].camera : item.camera;
+      list[list.length - 1].bluetooth = item.bluetooth === 0 ? list[list.length - 1].bluetooth : item.bluetooth;
+      list[list.length - 1].flashlight = item.flashlight === 0 ? list[list.length - 1].flashlight : item.flashlight;
+      list[list.length - 1].audio = item.audio === 0 ? list[list.length - 1].audio : item.audio;
+      list[list.length - 1].wifiscan = item.wifiscan === 0 ? list[list.length - 1].wifiscan : item.wifiscan;
+    } else {
+      list.push(item);
+    }
+  });
+}
+
+function computeMaxPower(
+  array: Array<any>,
+  list: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any
+): void {
+  array.forEach((item) => {
+    if (list.indexOf(item) >= 0) {
+      EnergyPowerStruct.setPowerFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+      let max =
+        (item.cpu || 0) +
+        (item.location || 0) +
+        (item.gpu || 0) +
+        (item.display || 0) +
+        (item.camera || 0) +
+        (item.bluetooth || 0) +
+        (item.flashlight || 0) +
+        (item.audio || 0) +
+        (item.wifiscan || 0);
+      if (max > EnergyPowerStruct.maxPower) {
+        EnergyPowerStruct.maxPower = max;
+      }
+    }
+  });
 }
 
 export class EnergyPowerStruct extends BaseStruct {
@@ -298,84 +203,40 @@ export class EnergyPowerStruct extends BaseStruct {
 
   static draw(req: any, index: number, data: EnergyPowerStruct, row: TraceRow<EnergyPowerStruct>) {
     if (data.frame) {
-      let width = data.frame.width || 0;
       req!.context.globalAlpha = 1.0;
       req!.context.lineWidth = 1;
       this.currentTextWidth = 0;
       let cpuHeight = this.drawHistogram(req, data, -1, data.cpu!, 'CPU', row.frame);
       let locationHeight = this.drawHistogram(req, data, cpuHeight, data.location!, 'LOCATION', row.frame);
       let gpuHeight = this.drawHistogram(req, data, cpuHeight - locationHeight, data.gpu!, 'GPU', row.frame);
-      let displayHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight,
-        data.display!,
-        'DISPLAY',
-        row.frame
-      );
-      let cameraHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight,
-        data.camera!,
-        'CAMERA',
-        row.frame
-      );
-      let bluetoothHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight,
-        data.bluetooth!,
-        'BLUETOOTH',
-        row.frame
-      );
-      let flashlightHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight,
-        data.flashlight!,
-        'FLASHLIGHT',
-        row.frame
-      );
-      let audioHeight = this.drawHistogram(
-        req,
-        data,
-        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight - flashlightHeight,
-        data.audio!,
-        'AUDIO',
-        row.frame
-      );
-      let wifiHeight = this.drawHistogram(
-        req,
-        data,
+      let dHight = cpuHeight - locationHeight - gpuHeight;
+      let displayHeight = this.drawHistogram(req, data, dHight, data.display!, 'DISPLAY', row.frame);
+      let cHight = cpuHeight - locationHeight - gpuHeight - displayHeight;
+      let cameraHeight = this.drawHistogram(req, data, cHight, data.camera!, 'CAMERA', row.frame);
+      let bHeight = cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight;
+      let bluetoothHeight = this.drawHistogram(req, data, bHeight, data.bluetooth!, 'BLUETOOTH', row.frame);
+      let fHeight = cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight;
+      let flashlightHeight = this.drawHistogram(req, data, fHeight, data.flashlight!, 'FLASHLIGHT', row.frame);
+      let aHeight =
+        cpuHeight - locationHeight - gpuHeight - displayHeight - cameraHeight - bluetoothHeight - flashlightHeight;
+      let audioHeight = this.drawHistogram(req, data, aHeight, data.audio!, 'AUDIO', row.frame);
+      let wHeight =
         cpuHeight -
-          locationHeight -
-          gpuHeight -
-          displayHeight -
-          cameraHeight -
-          bluetoothHeight -
-          flashlightHeight -
-          audioHeight,
-        data.wifiscan!,
-        'WIFISCAN',
-        row.frame
-      );
+        locationHeight -
+        gpuHeight -
+        displayHeight -
+        cameraHeight -
+        bluetoothHeight -
+        flashlightHeight -
+        audioHeight;
+      let wifiHeight = this.drawHistogram(req, data, wHeight, data.wifiscan!, 'WIFISCAN', row.frame);
       let maxPointY = this.drawPolyline(req, index, data, row.frame, wifiHeight);
+      let startNS = TraceRow.range!.startNS;
+      let endNS = TraceRow.range!.endNS;
+      let totalNS = TraceRow.range!.totalNS;
       if (data.ts === EnergyPowerStruct.hoverEnergyPowerStruct?.ts) {
-        let endPointX = ns2x(
-          (data.ts || 0) + 500000000,
-          TraceRow.range!.startNS,
-          TraceRow.range!.endNS,
-          TraceRow.range!.totalNS,
-          row.frame
-        );
-        let startPointX = ns2x(
-          (data.ts || 0) - 500000000,
-          TraceRow.range!.startNS,
-          TraceRow.range!.endNS,
-          TraceRow.range!.totalNS,
-          row.frame
-        );
+        let endPointX = ns2x((data.ts || 0) + 500000000, startNS, endNS, totalNS, row.frame);
+        let startPointX = ns2x((data.ts || 0) - 500000000, startNS, endNS, totalNS, row.frame);
         let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
         req.context.globalAlpha = 1;
         req!.context.lineWidth = 2;

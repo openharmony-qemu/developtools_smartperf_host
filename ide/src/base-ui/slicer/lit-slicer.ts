@@ -158,27 +158,31 @@ export class LitSlicerTrack extends HTMLElement {
         };
       };
     } else {
-      this.line!.className = 'rootV';
-      let previousElementSibling = this.previousElementSibling as HTMLElement;
-      let preY: number, preHeight: number;
-      this.line!.onmousedown = (e) => {
-        this.draging = true;
-        preY = e.pageY;
-        preHeight = previousElementSibling?.clientHeight;
-        previousElementSibling!.style!.height = preHeight + 'px';
-        document.onmousemove = (e1) => {
-          if (this.draging) {
-            previousElementSibling.style.height = preHeight + e1.pageY - preY + 'px';
-          }
-        };
-        document.onmouseleave = (e2) => {
-          this.draging = false;
-        };
-        document.onmouseup = (e3) => {
-          this.draging = false;
-        };
-      };
+      this.isDirection();
     }
+  }
+
+  isDirection(){
+    this.line!.className = 'rootV';
+    let previousElementSibling = this.previousElementSibling as HTMLElement;
+    let preY: number, preHeight: number;
+    this.line!.onmousedown = (e) => {
+      this.draging = true;
+      preY = e.pageY;
+      preHeight = previousElementSibling?.clientHeight;
+      previousElementSibling!.style!.height = preHeight + 'px';
+      document.onmousemove = (e1) => {
+        if (this.draging) {
+          previousElementSibling.style.height = preHeight + e1.pageY - preY + 'px';
+        }
+      };
+      document.onmouseleave = (e2) => {
+        this.draging = false;
+      };
+      document.onmouseup = (e3) => {
+        this.draging = false;
+      };
+    };
   }
 
   //当 custom element从文档DOM中删除时，被调用。

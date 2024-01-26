@@ -12,25 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// @ts-ignore
+import '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
 import { TabPaneNMSampleList } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
-jest.mock('../../../../../../src/base-ui/table/lit-table.js', () => {
-  return {
-    recycleDataSource: () => {},
-  };
-});
-// @ts-ignore
-import { NativeHookSampleQueryInfo, NativeHookSamplerInfo } from '../../../../../../src/trace/bean/NativeHook';
-// @ts-ignore
-import { NativeMemory } from '../../../../../../src/trace/bean/NativeHook';
-// @ts-ignore
+import { NativeHookSamplerInfo, NativeMemory } from '../../../../../../src/trace/bean/NativeHook';
+import { NativeHookSampleQueryInfo } from '../../../../../../src/trace/bean/NativeHook';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/NativeHook.sql');
+jest.mock('../../../../../../src/trace/database/sql/NativeHook.sql');
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -39,8 +37,8 @@ window.ResizeObserver = window.ResizeObserver ||
     observe: jest.fn(),
   }));
 describe('TabPaneNMSampleList Test', () => {
-  document.body.innerHTML = '<tabpane-native-sample id="ddt"></tabpane-native-sample>';
-  let tabPaneNMSampleList = document.querySelector<TabPaneNMSampleList>('#ddt');
+  let tabPaneNMSampleList = new TabPaneNMSampleList();
+  tabPaneNMSampleList.sampleTbl = new LitTable();
   TabPaneNMSampleList.samplerInfoSource = [
     {
       current: '',
@@ -59,7 +57,6 @@ describe('TabPaneNMSampleList Test', () => {
     },
   ];
   TabPaneNMSampleList.filterSelect = '0';
-
   tabPaneNMSampleList.currentSelection = jest.fn(() => true);
   let dat = {
     cpus: [],
@@ -258,6 +255,10 @@ describe('TabPaneNMSampleList Test', () => {
       },
     ];
     TabPaneNMSampleList.filterSelect = '0';
+    TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+      return [];
+    });
+    TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
@@ -282,6 +283,10 @@ describe('TabPaneNMSampleList Test', () => {
       },
     ];
     TabPaneNMSampleList.filterSelect = '1';
+    TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+      return [];
+    });
+    TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
@@ -306,6 +311,10 @@ describe('TabPaneNMSampleList Test', () => {
       },
     ];
     TabPaneNMSampleList.filterSelect = '1';
+    TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+      return [];
+    });
+    TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
@@ -330,6 +339,10 @@ describe('TabPaneNMSampleList Test', () => {
       },
     ];
     TabPaneNMSampleList.filterSelect = '2';
+    TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+      return [];
+    });
+    TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 
@@ -354,6 +367,10 @@ describe('TabPaneNMSampleList Test', () => {
       },
     ];
     TabPaneNMSampleList.filterSelect = '2';
+    TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+      return [];
+    });
+    TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
   });
 });

@@ -13,20 +13,8 @@
  * limitations under the License.
  */
 
-import {
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawWakeUp,
-  Render,
-  RequestMessage,
-  BaseStruct,
-  isFrameContainPoint,
-  ns2x,
-  drawSelection,
-} from './ProcedureWorkerCommon';
+import { Render, BaseStruct, isFrameContainPoint, ns2x } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { CounterStruct } from './ProduceWorkerSdkCounter';
 
 export class SdkSliceRender extends Render {
   renderMainThread(
@@ -67,99 +55,6 @@ export class SdkSliceRender extends Render {
     req.context.closePath();
   }
 
-  render(sdkSliceRequest: RequestMessage, sdkList: Array<any>, filter: Array<any>): void {
-    if (sdkSliceRequest.lazyRefresh) {
-      this.sdkSlice(
-        sdkList,
-        filter,
-        sdkSliceRequest.startNS,
-        sdkSliceRequest.endNS,
-        sdkSliceRequest.totalNS,
-        sdkSliceRequest.frame,
-        sdkSliceRequest.useCache || !sdkSliceRequest.range.refresh
-      );
-    } else {
-      if (!sdkSliceRequest.useCache) {
-        this.sdkSlice(
-          sdkList,
-          filter,
-          sdkSliceRequest.startNS,
-          sdkSliceRequest.endNS,
-          sdkSliceRequest.totalNS,
-          sdkSliceRequest.frame,
-          false
-        );
-      }
-    }
-    if (sdkSliceRequest.canvas) {
-      sdkSliceRequest.context.clearRect(0, 0, sdkSliceRequest.canvas.width, sdkSliceRequest.canvas.height);
-      let sdkSliceArr = filter;
-      if (
-        sdkSliceArr.length > 0 &&
-        !sdkSliceRequest.range.refresh &&
-        !sdkSliceRequest.useCache &&
-        sdkSliceRequest.lazyRefresh
-      ) {
-        drawLoading(
-          sdkSliceRequest.context,
-          sdkSliceRequest.startNS,
-          sdkSliceRequest.endNS,
-          sdkSliceRequest.totalNS,
-          sdkSliceRequest.frame,
-          sdkSliceArr[0].startNS,
-          sdkSliceArr[sdkSliceArr.length - 1].startNS + sdkSliceArr[sdkSliceArr.length - 1].dur
-        );
-      }
-      sdkSliceRequest.context.beginPath();
-      SdkSliceStruct.maxSdkSlice = sdkSliceRequest.params.maxSdkSlice;
-      SdkSliceStruct.maxSdkSliceName = sdkSliceRequest.params.maxSdkSliceName;
-      drawLines(sdkSliceRequest.context, sdkSliceRequest.xs, sdkSliceRequest.frame.height, sdkSliceRequest.lineColor);
-      SdkSliceStruct.hoverSdkSliceStruct = undefined;
-      if (sdkSliceRequest.isHover) {
-        for (let re of filter) {
-          if (
-            re.frame &&
-            sdkSliceRequest.hoverX >= re.frame.x &&
-            sdkSliceRequest.hoverX <= re.frame.x + re.frame.width &&
-            sdkSliceRequest.hoverY >= re.frame.y &&
-            sdkSliceRequest.hoverY <= re.frame.y + re.frame.height
-          ) {
-            SdkSliceStruct.hoverSdkSliceStruct = re;
-            break;
-          }
-        }
-      }
-      SdkSliceStruct.selectSdkSliceStruct = sdkSliceRequest.params.selectSdkSliceStruct;
-      for (let re of filter) {
-        SdkSliceStruct.draw(sdkSliceRequest.context, re);
-      }
-      drawSelection(sdkSliceRequest.context, sdkSliceRequest.params);
-      sdkSliceRequest.context.closePath();
-      sdkSliceRequest.context.globalAlpha = 0.8;
-      sdkSliceRequest.context.fillStyle = '#f0f0f0';
-      sdkSliceRequest.context.globalAlpha = 1;
-      sdkSliceRequest.context.fillStyle = '#333';
-      sdkSliceRequest.context.textBaseline = 'middle';
-      drawFlagLine(
-        sdkSliceRequest.context,
-        sdkSliceRequest.flagMoveInfo,
-        sdkSliceRequest.flagSelectedInfo,
-        sdkSliceRequest.startNS,
-        sdkSliceRequest.endNS,
-        sdkSliceRequest.totalNS,
-        sdkSliceRequest.frame,
-        sdkSliceRequest.slicesTime
-      );
-    }
-    // @ts-ignore
-    self.postMessage({
-      id: sdkSliceRequest.id,
-      type: sdkSliceRequest.type,
-      results: sdkSliceRequest.canvas ? undefined : filter,
-      hover: SdkSliceStruct.hoverSdkSliceStruct,
-    });
-  }
-
   sdkSlice(
     sdkList: Array<any>,
     sdkSliceFilters: Array<any>,
@@ -172,8 +67,8 @@ export class SdkSliceRender extends Render {
     if (use && sdkSliceFilters.length > 0) {
       for (let index = 0; index < sdkSliceFilters.length; index++) {
         let item = sdkSliceFilters[index];
-        if ((item.end_ts || 0) > (startNS || 0) && (item.start_ts || 0) < (endNS || 0)) {
-          SdkSliceStruct.setSdkSliceFrame(sdkSliceFilters[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+        if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
+          SdkSliceStruct.setSdkSliceFrame(sdkSliceFilters[index], 5, startNS, endNS, totalNS, frame);
         } else {
           sdkSliceFilters[index].frame = null;
         }
@@ -182,22 +77,33 @@ export class SdkSliceRender extends Render {
     }
     sdkSliceFilters.length = 0;
     if (sdkList) {
-      for (let index = 0; index < sdkList.length; index++) {
-        let item = sdkList[index];
-        if (item.start_ts >= startNS && item.end_ts == 0) {
-          item.end_ts = endNS;
-        }
-        if ((item.end_ts || 0) > (startNS || 0) && (item.start_ts || 0) < (endNS || 0)) {
-          SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame);
-          if (
-            index > 0 &&
-            (sdkList[index - 1].frame?.x || 0) == (sdkList[index].frame?.x || 0) &&
-            (sdkList[index - 1].frame?.width || 0) == (sdkList[index].frame?.width || 0)
-          ) {
-          } else {
-            sdkSliceFilters.push(item);
-          }
-        }
+      setSdkSliceFilter(sdkList, sdkSliceFilters, startNS, endNS, totalNS, frame);
+    }
+  }
+}
+function setSdkSliceFilter(
+  sdkList: Array<any>,
+  sdkSliceFilters: Array<any>,
+  startNS: number,
+  endNS: number,
+  totalNS: number,
+  frame: any
+) {
+  for (let index = 0; index < sdkList.length; index++) {
+    let item = sdkList[index];
+    if (item.start_ts >= startNS && item.end_ts === 0) {
+      item.end_ts = endNS;
+    }
+    if ((item.end_ts || 0) > startNS && (item.start_ts || 0) < endNS) {
+      SdkSliceStruct.setSdkSliceFrame(sdkList[index], 5, startNS, endNS, totalNS, frame);
+      if (
+        !(
+          index > 0 &&
+          (sdkList[index - 1].frame?.x || 0) === (sdkList[index].frame?.x || 0) &&
+          (sdkList[index - 1].frame?.width || 0) === (sdkList[index].frame?.width || 0)
+        )
+      ) {
+        sdkSliceFilters.push(item);
       }
     }
   }

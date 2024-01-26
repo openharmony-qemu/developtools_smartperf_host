@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { SnapshotStruct } from '../ui-worker/ProcedureWorkerSnapshot';
@@ -31,7 +31,6 @@ export function sMapsDataSender(rowName: string, row: TraceRow<SnapshotStruct>):
     threadPool.submitProto(
       QueryEnum.VmTrackerSmapsData,
       {
-        name: rowName,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -39,6 +38,7 @@ export function sMapsDataSender(rowName: string, row: TraceRow<SnapshotStruct>):
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        name: rowName,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -49,7 +49,7 @@ export function sMapsDataSender(rowName: string, row: TraceRow<SnapshotStruct>):
 
 export function dmaDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let dmaWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -60,13 +60,13 @@ export function dmaDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Prom
     threadPool.submitProto(
       QueryEnum.VmTrackerDmaData,
       {
-        ipid: ipid,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: dmaWidth,
         trafic: trafic,
+        ipid: ipid,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {
@@ -78,7 +78,7 @@ export function dmaDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Prom
 
 export function gpuMemoryDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let gpuMemWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -89,13 +89,13 @@ export function gpuMemoryDataSender(ipid: number, row: TraceRow<SnapshotStruct>)
     threadPool.submitProto(
       QueryEnum.VmTrackerGpuMemoryData,
       {
-        ipid: ipid,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: gpuMemWidth,
         trafic: trafic,
+        ipid: ipid,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {
@@ -106,7 +106,7 @@ export function gpuMemoryDataSender(ipid: number, row: TraceRow<SnapshotStruct>)
 }
 export function gpuResourceDataSender(scratchId: number, row: TraceRow<SnapshotStruct>): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let gpuResWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -117,14 +117,14 @@ export function gpuResourceDataSender(scratchId: number, row: TraceRow<SnapshotS
     threadPool.submitProto(
       QueryEnum.VmTrackerGpuResourceData,
       {
-        scratchId: scratchId,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: gpuResWidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        scratchId: scratchId,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -135,7 +135,7 @@ export function gpuResourceDataSender(scratchId: number, row: TraceRow<SnapshotS
 
 export function gpuGpuDataSender(ipid: number, name: string, row: TraceRow<SnapshotStruct>): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let gpuWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -146,15 +146,15 @@ export function gpuGpuDataSender(ipid: number, name: string, row: TraceRow<Snaps
     threadPool.submitProto(
       QueryEnum.VmTrackerGpuData,
       {
-        ipid: ipid,
-        name: name,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: gpuWidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        ipid: ipid,
+        name: name,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -165,7 +165,7 @@ export function gpuGpuDataSender(ipid: number, name: string, row: TraceRow<Snaps
 
 export function gpuTotalDataSender(moduleId: number | null, row: TraceRow<SnapshotStruct>): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let gpuTotalwidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -176,14 +176,14 @@ export function gpuTotalDataSender(moduleId: number | null, row: TraceRow<Snapsh
     threadPool.submitProto(
       QueryEnum.VmTrackerGpuTotalData,
       {
-        moduleId: moduleId,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: gpuTotalwidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        moduleId: moduleId,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -198,7 +198,7 @@ export function gpuWindowDataSender(
   row: TraceRow<SnapshotStruct>
 ): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let gpuWindowWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -209,15 +209,15 @@ export function gpuWindowDataSender(
     threadPool.submitProto(
       QueryEnum.VmTrackerGpuWindowData,
       {
-        windowId: windowId,
-        moduleId: moduleId,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: gpuWindowWidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        windowId: windowId,
+        moduleId: moduleId,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -239,7 +239,6 @@ export function shmDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Prom
     threadPool.submitProto(
       QueryEnum.VmTrackerShmData,
       {
-        ipid: ipid,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -247,6 +246,7 @@ export function shmDataSender(ipid: number, row: TraceRow<SnapshotStruct>): Prom
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        ipid: ipid,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -261,7 +261,7 @@ export function purgeableDataSender(
   isPin?: boolean
 ): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let purgeWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startNs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -278,7 +278,7 @@ export function purgeableDataSender(
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: purgeWidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
@@ -306,8 +306,6 @@ export function abilityPurgeableDataSender(
     threadPool.submitProto(
       QueryEnum.AbilityPurgeableData,
       {
-        dur: dur,
-        isPin: isPin,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -315,6 +313,8 @@ export function abilityPurgeableDataSender(
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        dur: dur,
+        isPin: isPin,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -338,8 +338,6 @@ export function abilityDmaDataSender(row: TraceRow<SnapshotStruct>, dur: number)
     threadPool.submitProto(
       QueryEnum.AbilityDmaData,
       {
-        dma: 'dma',
-        dur: dur,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
@@ -347,6 +345,8 @@ export function abilityDmaDataSender(row: TraceRow<SnapshotStruct>, dur: number)
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        dma: 'dma',
+        dur: dur,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));
@@ -357,7 +357,7 @@ export function abilityDmaDataSender(row: TraceRow<SnapshotStruct>, dur: number)
 
 export function abilityGpuMemoryDataSender(row: TraceRow<SnapshotStruct>, dur: number): Promise<SnapshotStruct[]> {
   let trafic: number = TraficEnum.ProtoBuffer;
-  let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let abilityGpuWidth = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       value: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -368,14 +368,14 @@ export function abilityGpuMemoryDataSender(row: TraceRow<SnapshotStruct>, dur: n
     threadPool.submitProto(
       QueryEnum.AbilityGpuMemoryData,
       {
-        dur: dur,
         startNs: TraceRow.range?.startNS || 0,
         endNs: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
-        width: width,
+        width: abilityGpuWidth,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
+        dur: dur,
       },
       (res: any, len: number, transfer: boolean) => {
         resolve(arrayBufferHandler(res, len));

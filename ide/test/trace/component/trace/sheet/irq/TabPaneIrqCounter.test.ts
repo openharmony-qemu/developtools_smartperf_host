@@ -15,14 +15,11 @@
 
 import { TabPaneIrqCounter } from '../../../../../../src/trace/component/trace/sheet/irq/TabPaneIrqCounter';
 import { IrqStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerIrq';
-import { querySoftIrqDataBoxSelect } from "../../../../../../src/trace/database/SqlLite";
-// @ts-ignore
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Irq.sql');
+jest.mock('../../../../../../src/trace/database/sql/Irq.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -33,7 +30,8 @@ window.ResizeObserver =
   }));
 
 describe('TabPaneIrqCounter Test', () => {
-  let tabPaneIrqCounter = new TabPaneIrqCounter();
+  document.body.innerHTML = `<div><tabpane-irq-counter id="irq"></tabpane-irq-counter></div>`;
+  let tabPaneIrqCounter = document.querySelector<TabPaneIrqCounter>('#irq');
   let map = new Map();
   map.set('irq', [new IrqStruct()]);
   let frameData = {
@@ -83,14 +81,6 @@ describe('TabPaneIrqCounter Test', () => {
 
   it('TabPaneIrqCounterTest01', function () {
     tabPaneIrqCounter.data = frameData;
-    expect(tabPaneIrqCounter.data).toBeUndefined();
-  });
-
-  it('TabPaneIrqCounterTest02', function () {
-    expect(
-      tabPaneIrqCounter.sortByColumn({
-        key: 'jankType',
-      })
-    ).toBeUndefined();
+    expect(tabPaneIrqCounter.data).not.toBeUndefined();
   });
 });

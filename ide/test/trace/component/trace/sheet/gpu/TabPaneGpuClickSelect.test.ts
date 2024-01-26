@@ -20,8 +20,8 @@ jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () =
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Gpu.sql');
+jest.mock('../../../../../../src/trace/database/sql/Gpu.sql');
 jest.mock('../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuClickSelectComparison', () => {
   return {};
 });

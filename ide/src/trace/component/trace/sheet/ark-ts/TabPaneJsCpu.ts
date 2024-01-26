@@ -20,8 +20,9 @@ import { type JsCpuProfilerChartFrame, JsCpuProfilerTabStruct } from '../../../.
 import { procedurePool } from '../../../../database/Procedure';
 import { findSearchNode, ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import { type FilterData, TabPaneFilter } from '../TabPaneFilter';
+import { TabPaneFilter } from '../TabPaneFilter';
 import '../TabPaneFilter';
+import { TabPaneJsCpuHtml } from './TabPaneJsCpu.html';
 
 export class TabPaneJsCpuCallTree extends BaseElement {
   protected TYPE_TOP_DOWN = 0;
@@ -51,7 +52,7 @@ export class TabPaneJsCpuCallTree extends BaseElement {
         return;
       }
       this.currentSelection = data;
-      let chartData = [];
+      let chartData;
       chartData = data.jsCpuProfilerData;
       this.totalNs = chartData.reduce((acc, struct) => acc + struct.totalTime, 0);
       if (data.rightNs && data.leftNs) {
@@ -86,9 +87,9 @@ export class TabPaneJsCpuCallTree extends BaseElement {
   }
 
   private setCallTreeTableData(results: Array<JsCpuProfilerTabStruct>): void {
-    this.clearTab();
+    this.stackTable!.recycleDataSource = [];
     const callTreeMap = new Map<number, JsCpuProfilerTabStruct>();
-    const setTabData = (data: Array<JsCpuProfilerTabStruct>) => {
+    const setTabData = (data: Array<JsCpuProfilerTabStruct>): void => {
       data.forEach((item) => {
         if (item.children && item.children.length > 0) {
           item.children.forEach((it) => {
@@ -101,11 +102,11 @@ export class TabPaneJsCpuCallTree extends BaseElement {
           if (item.scriptName === 'unknown') {
             item.symbolName = item.name;
           } else {
-            item.symbolName = item.name + ` ${item.scriptName}`;
+            item.symbolName = `${item.name} ${item.scriptName}`;
           }
         }
-        item.totalTimePercent = ((item.totalTime / this.totalNs) * 100).toFixed(1) + '%';
-        item.selfTimePercent = ((item.selfTime / this.totalNs) * 100).toFixed(1) + '%';
+        item.totalTimePercent = `${((item.totalTime / this.totalNs) * 100).toFixed(1)}%`;
+        item.selfTimePercent = `${((item.selfTime / this.totalNs) * 100).toFixed(1)}%`;
         item.selfTimeStr = ns2s(item.selfTime);
         item.totalTimeStr = ns2s(item.totalTime);
         item.parent = callTreeMap.get(item.parentId!);
@@ -117,53 +118,53 @@ export class TabPaneJsCpuCallTree extends BaseElement {
     this.callTreeTable!.recycleDataSource = this.callTreeSource;
   }
 
+  private callTreeRowClickHandler(evt: Event): void {
+    const heaviestStack: JsCpuProfilerTabStruct[] = [];
+    const getHeaviestChildren = (children: Array<JsCpuProfilerTabStruct>): void => {
+      if (children.length === 0) {
+        return;
+      }
+      const heaviestChild = children.reduce(
+        (max, struct): JsCpuProfilerTabStruct =>
+          Math.max(max.totalTime, struct.totalTime) === max.totalTime ? max : struct
+      );
+      heaviestStack?.push(heaviestChild);
+      getHeaviestChildren(heaviestChild.children);
+    };
+    const getParent = (list: JsCpuProfilerTabStruct): void => {
+      if (list.parent) {
+        heaviestStack.push(list.parent!);
+        getParent(list.parent!);
+      }
+    };
+    //@ts-ignore
+    const data = evt.detail.data as JsCpuProfilerTabStruct;
+    heaviestStack!.push(data);
+    if (data.parent) {
+      heaviestStack.push(data.parent!);
+      getParent(data.parent!);
+    }
+    heaviestStack.reverse();
+    getHeaviestChildren(data.children);
+    this.stackTable!.recycleDataSource = heaviestStack;
+    data.isSelected = true;
+    this.stackTable?.clearAllSelection(data);
+    this.stackTable?.setCurrentSelection(data);
+    // @ts-ignore
+    if (evt.detail.callBack) {
+      // @ts-ignore
+      evt.detail.callBack(true);
+    }
+  }
+
   public initElements(): void {
     this.callTreeTable = this.shadowRoot?.querySelector('#callTreeTable') as LitTable;
     this.stackTable = this.shadowRoot?.querySelector('#stackTable') as LitTable;
     this.treeTable = this.callTreeTable!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.profilerFilter = this.shadowRoot?.querySelector('#filter') as TabPaneFilter;
     this.callTreeTable!.addEventListener('row-click', (evt): void => {
-      const heaviestStack = new Array<JsCpuProfilerTabStruct>();
-
-      const getHeaviestChildren = (children: Array<JsCpuProfilerTabStruct>): void => {
-        if (children.length === 0) {
-          return;
-        }
-        const heaviestChild = children.reduce(
-          (max, struct): JsCpuProfilerTabStruct =>
-            Math.max(max.totalTime, struct.totalTime) === max.totalTime ? max : struct
-        );
-        heaviestStack?.push(heaviestChild);
-        getHeaviestChildren(heaviestChild.children);
-      };
-
-      const getParent = (list: JsCpuProfilerTabStruct): void => {
-        if (list.parent) {
-          heaviestStack.push(list.parent!);
-          getParent(list.parent!);
-        }
-      };
-
-      //@ts-ignore
-      const data = evt.detail.data as JsCpuProfilerTabStruct;
-      heaviestStack!.push(data);
-      if (data.parent) {
-        heaviestStack.push(data.parent!);
-        getParent(data.parent!);
-      }
-      heaviestStack.reverse();
-      getHeaviestChildren(data.children);
-      this.stackTable!.recycleDataSource = heaviestStack;
-      data.isSelected = true;
-      this.stackTable?.clearAllSelection(data);
-      this.stackTable?.setCurrentSelection(data);
-      // @ts-ignore
-      if (evt.detail.callBack) {
-        // @ts-ignore
-        evt.detail.callBack(true);
-      }
+      this.callTreeRowClickHandler(evt);
     });
-
     this.stackTable!.addEventListener('row-click', (evt) => {
       //@ts-ignore
       const data = evt.detail.data as JsCpuProfilerTabStruct;
@@ -183,7 +184,7 @@ export class TabPaneJsCpuCallTree extends BaseElement {
       this.sortType = evt.detail.sort;
       this.setCallTreeTableData(this.callTreeSource);
     });
-    this.profilerFilter!.getFilterData((data: FilterData): void => {
+    this.profilerFilter!.getFilterData((): void => {
       if (this.searchValue !== this.profilerFilter!.filterValue) {
         this.searchValue = this.profilerFilter!.filterValue;
         findSearchNode(this.callTreeSource, this.searchValue, false);
@@ -197,18 +198,21 @@ export class TabPaneJsCpuCallTree extends BaseElement {
     super.connectedCallback();
     new ResizeObserver(() => {
       // @ts-ignore
-      this.callTreeTable?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 32 + 'px';
+      this.callTreeTable?.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 32
+      }px`;
       this.callTreeTable?.reMeauseHeight();
       // @ts-ignore
-      this.stackTable?.shadowRoot.querySelector('.table').style.height =
-        this.parentElement!.clientHeight - 32 - 22 + 'px';
+      this.stackTable?.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 32 - 22
+      }px`;
       this.stackTable?.reMeauseHeight();
     }).observe(this.parentElement!);
   }
 
   private sortTree(arr: Array<JsCpuProfilerTabStruct>): Array<JsCpuProfilerTabStruct> {
     const that = this;
-    function defaultSort(callTreeLeftData: JsCpuProfilerTabStruct, callTreeRightData: JsCpuProfilerTabStruct) {
+    function defaultSort(callTreeLeftData: JsCpuProfilerTabStruct, callTreeRightData: JsCpuProfilerTabStruct): number {
       if (that.currentType === that.TYPE_TOP_DOWN) {
         return callTreeRightData.totalTime - callTreeLeftData.totalTime;
       } else {
@@ -228,9 +232,9 @@ export class TabPaneJsCpuCallTree extends BaseElement {
         if (this.sortType === 0) {
           return defaultSort(callTreeLeftData, callTreeRightData);
         } else if (this.sortType === 1) {
-          return (callTreeLeftData.symbolName + '').localeCompare(callTreeRightData.symbolName + '');
+          return `${callTreeLeftData.symbolName}`.localeCompare(`${callTreeRightData.symbolName}`);
         } else {
-          return (callTreeRightData.symbolName + '').localeCompare(callTreeLeftData.symbolName + '');
+          return `${callTreeRightData.symbolName}`.localeCompare(`${callTreeLeftData.symbolName}`);
         }
       } else {
         if (this.sortType === 0) {
@@ -255,53 +259,6 @@ export class TabPaneJsCpuCallTree extends BaseElement {
   }
 
   public initHtml(): string {
-    return `
-        <style>
-        :host{
-            display: flex;
-            flex-direction: column;
-            padding: 0px 10px 0 10px;
-        }
-        .show{
-            display: flex;
-            flex: 1;
-        }
-        .progress{
-            bottom: 33px;
-            position: absolute;
-            height: 1px;
-            left: 0;
-            right: 0;
-        }
-    </style>
-    <div class="perf-profile-content">
-    <selector id='show_table' class="show">
-        <lit-slicer style="width:100%">
-        <div id="left_table" style="width: 65%">
-            <lit-table id="callTreeTable" style="height: 100%" tree>
-                <lit-table-column width="60%" title="Symbol" data-index="symbolName" key="symbolName"  align="flex-start" order retract></lit-table-column>
-                <lit-table-column width="1fr" title="SelfTime" data-index="selfTimeStr" key="selfTimeStr" align="flex-start"  order></lit-table-column>
-                <lit-table-column width="1fr" title="%" data-index="selfTimePercent" key="selfTimePercent"  align="flex-start"  order></lit-table-column>
-                <lit-table-column width="1fr" title="TotalTime" data-index="totalTimeStr" key="totalTimeStr"  align="flex-start"  order></lit-table-column>
-                <lit-table-column width="1fr" title="%" data-index="totalTimePercent" key="totalTimePercent"  align="flex-start"  order></lit-table-column>
-            </lit-table>
-        </div>
-        <lit-slicer-track ></lit-slicer-track>
-        <div class="right" style="flex: 1;display: flex; flex-direction: row;">
-            <div style="flex: 1;display: block;">
-              <span slot="head" style="height: 22px">Heaviest Stack</span>
-              <lit-table id="stackTable" style="height: auto;">
-                  <lit-table-column width="50%" title="Symbol" data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
-                  <lit-table-column width="1fr" title="TotalTime" data-index="totalTimeStr" key="totalTimeStr"  align="flex-start" ></lit-table-column>
-                  <lit-table-column width="1fr" title="%" data-index="totalTimePercent" key="totalTimePercent"  align="flex-start"></lit-table-column>
-              </lit-table>
-          </div>
-        </div>
-        </lit-slicer>
-     </selector>
-     <tab-pane-filter id="filter" input inputLeftText ></tab-pane-filter>
-     <lit-progress-bar class="progress perf-profile-progress"></lit-progress-bar>
-    </div>
-        `;
+    return TabPaneJsCpuHtml;
   }
 }

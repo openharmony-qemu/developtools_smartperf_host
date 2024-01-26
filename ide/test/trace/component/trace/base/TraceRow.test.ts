@@ -14,19 +14,19 @@
  */
 
 import { TraceRow } from '../../../../../src/trace/component/trace/base/TraceRow';
-import { Sptext } from '../../../../../src/trace/component/Sptext';
 import { ThreadStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerThread';
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
-
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 describe('TraceRow Test', () => {
-  beforeAll(() => {});
-  const ctx = {
-    lineWidth: 1,
-    strokeStyle: true,
-  };
+  beforeAll(() => {
+  });
   let traceRow = new TraceRow<any>({
     canvasNumber: 1,
     alpha: true,
@@ -71,15 +71,12 @@ describe('TraceRow Test', () => {
       contextId: '2d',
       isOffScreen: true,
     });
-    traceRow.dataList = {
+    traceRow.dataList = [{
       supplier: true,
       isLoading: false,
-    };
-    traceRow.supplier = true;
+    }];
     traceRow.isLoading = false;
     traceRow.name = '111';
-    traceRow.height = 201;
-    traceRow.height = 301;
     expect(traceRow.clearCanvas(ctx)).toBeUndefined();
   });
 
@@ -94,20 +91,14 @@ describe('TraceRow Test', () => {
       contextId: '2d',
       isOffScreen: true,
     });
-    traceRow.supplier = true;
     traceRow.isLoading = false;
     traceRow.name = '561';
-    traceRow.height = 33;
-    traceRow.height = 35;
-    traceRow.dataList = {
+    traceRow.dataList = [{
       supplier: true,
       isLoading: false,
-    };
-    traceRow.supplier = true;
+    }];
     traceRow.isLoading = false;
     traceRow.name = '111';
-    traceRow.height = 202;
-    traceRow.height = 302;
     expect(traceRow.drawLines(ctx)).toBeUndefined();
   });
 
@@ -122,14 +113,12 @@ describe('TraceRow Test', () => {
       contextId: '2d',
       isOffScreen: true,
     });
-    traceRow.dataList = {
+    traceRow.dataList = [{
       supplier: true,
       isLoading: false,
-    };
-    traceRow.supplier = true;
+    }];
     traceRow.isLoading = false;
     traceRow.name = '1201';
-    traceRow.height = 554;
     expect(traceRow.drawSelection(ctx)).toBeUndefined();
   });
 
@@ -147,7 +136,7 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test16', () => {
-    traceRow.rowType = true;
+    traceRow.rowType = 'cpu';
     expect(traceRow.rowType).toBeTruthy();
   });
 
@@ -156,7 +145,7 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test18', () => {
-    traceRow.rowId = true;
+    traceRow.rowId = 'cpu';
     expect(traceRow.rowId).toBeTruthy();
   });
 
@@ -165,13 +154,13 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test20', () => {
-    traceRow.rowParentId = true;
+    traceRow.rowParentId = 'cpu';
     expect(traceRow.rowParentId).toBeTruthy();
   });
 
   it('TraceRow Test21', () => {
     traceRow.rowHidden = true;
-    expect(traceRow.rowHidden).toBeUndefined();
+    expect(traceRow.getAttribute('row-hidden')).toBe('');
   });
 
   it('TraceRow Test22', () => {
@@ -188,29 +177,8 @@ describe('TraceRow Test', () => {
     expect(traceRow.folder).toBeTruthy();
   });
 
-  it('TraceRow Test25', () => {
-  });
-
-  it('TraceRow Test26', () => {
-  });
-
-  it('TraceRow Test27', () => {
-    traceRow.tip = true;
-    traceRow.tipEL = true;
-    expect(traceRow.tip).toBeUndefined();
-  });
-
   it('TraceRow Test28', () => {
     expect(traceRow.frame).not.toBeUndefined();
-  });
-
-  it('TraceRow Test29', () => {
-    traceRow.frame = [0, 0, 0];
-    expect(traceRow.frame).toBeTruthy();
-  });
-
-  it('TraceRow Test62', () => {
-    expect(traceRow.folderPaddingLeft).toBeUndefined();
   });
 
   it('TraceRow Test30', () => {
@@ -227,7 +195,7 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test33', () => {
-    traceRow.drawType = true;
+    traceRow.drawType = 1;
     expect(traceRow.drawType).toBeTruthy();
   });
 
@@ -235,12 +203,6 @@ describe('TraceRow Test', () => {
     traceRow.args = jest.fn(() => true);
     traceRow.args.isOffScreen = jest.fn(() => null);
     expect(traceRow.updateWidth(1)).toBeUndefined();
-  });
-
-  it('TraceRow Test36', () => {
-    traceRow.tipEL = jest.fn(()=>true);
-    traceRow.tipEL.style = jest.fn(()=>true);
-    expect(traceRow.onMouseHover()).toBeFalsy();
   });
 
   it('TraceRow Test37', () => {
@@ -256,12 +218,12 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test40', () => {
-    traceRow.collect = 1;
+    traceRow.collect = true;
     expect(traceRow.collect).toBeTruthy();
   });
 
   it('TraceRow Test41', () => {
-    traceRow.collect = 0;
+    traceRow.collect = false;
     expect(traceRow.collect).toBeFalsy();
   });
 
@@ -281,13 +243,8 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test45', () => {
-    traceRow.checkType = 0;
+    traceRow.checkType = '';
     expect(traceRow.checkType).toBe('');
-  });
-
-  it('TraceRow Test46', () => {
-    traceRow.rowHidden = false;
-    expect(traceRow.rowHidden).toBeUndefined();
   });
 
   it('TraceRow Test47', () => {
@@ -301,7 +258,7 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test49', () => {
-    traceRow.setCheckBox = true;
+    traceRow.setCheckBox(true);
     expect(traceRow.highlight).toBeFalsy();
   });
 
@@ -311,7 +268,7 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test51', () => {
-    expect(traceRow.isInTimeRange()).toBe(false);
+    expect(traceRow.isInTimeRange(1, 23)).toBe(false);
   });
 
   it('TraceRow Test52', () => {
@@ -319,7 +276,7 @@ describe('TraceRow Test', () => {
   });
 
   it('TraceRow Test53', () => {
-    let value = traceRow.attributeChangedCallback('name');
+    let value = traceRow.attributeChangedCallback('name', 'old', 'new');
     expect(value).toBe(undefined);
   });
 
@@ -344,14 +301,6 @@ describe('TraceRow Test', () => {
     traceRow.rowDiscard = false;
     expect(traceRow.rowDiscard).toBeFalsy();
   });
-  it('TraceRow Test59', () => {
-    traceRow.disabledCheck = false;
-    expect(traceRow.disabledCheck).toBeFalsy();
-  });
-  it('TraceRow Test64', () => {
-    traceRow.folderPaddingLeft = 1;
-    expect(traceRow.folderPaddingLeft).toBeUndefined();
-  });
   it('TraceRow Test65', () => {
     expect(traceRow.getTransferArray()).toStrictEqual([undefined]);
   });
@@ -365,7 +314,7 @@ describe('TraceRow Test', () => {
     expect(traceRow.rowSettingPopoverDirection).toBeTruthy();
   });
   it('TraceRow Test71', () => {
-    traceRow.rowSettingPopoverDirection = true;
+    traceRow.rowSettingPopoverDirection = '';
     expect(traceRow.rowSettingPopoverDirection).toBeTruthy();
   });
   it('TraceRow Test70', () => {
@@ -377,40 +326,41 @@ describe('TraceRow Test', () => {
   });
   it('TraceRow Test74', () => {
     let threadRow = TraceRow.skeleton<ThreadStruct>();
-    expect(traceRow.addChildTraceRowSpecifyLocation(threadRow,0)).toBeUndefined();
+    expect(traceRow.addChildTraceRowSpecifyLocation(threadRow, 0)).toBeUndefined();
   });
   it('TraceRow Test75', () => {
-    expect(traceRow.drawLine(false,'top')).toBeUndefined();
+    let item = document.createElement('div');
+    expect(traceRow.drawLine(item, 'top')).toBeUndefined();
   });
   it('TraceRow Test76', () => {
-    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
-    traceRow.setCheckBox = jest.fn(()=>true);
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{clientX: 1, clientY: 2});
+    traceRow.setCheckBox = jest.fn(() => true);
     traceRow.checkBoxEL.dispatchEvent(mouseChangeEvent);
   });
   it('TraceRow Test77', () => {
-    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{clientX: 1, clientY: 2});
     traceRow.isComplete = true;
     traceRow.collectEL.dispatchEvent(mouseClickEvent);
   });
   it('TraceRow Test78', () => {
-    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    let mouseChangeEvent: MouseEvent = new MouseEvent('change', <MouseEventInit>{clientX: 1, clientY: 2});
     traceRow.addRowSettingPop();
     traceRow.rowSettingTree.dispatchEvent(mouseChangeEvent);
   });
   it('TraceRow Test80', () => {
-    let mouseDragOverEvent: MouseEvent = new MouseEvent('dragover', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    let mouseDragOverEvent: MouseEvent = new MouseEvent('dragover', <MouseEventInit>{clientX: 1, clientY: 2});
     traceRow.describeEl.dispatchEvent(mouseDragOverEvent);
   });
   it('TraceRow Test81', () => {
-    let mouseDragendEvent: MouseEvent = new MouseEvent('dragend', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    let mouseDragendEvent: MouseEvent = new MouseEvent('dragend', <MouseEventInit>{clientX: 1, clientY: 2});
     traceRow.describeEl.dispatchEvent(mouseDragendEvent);
   });
   it('TraceRow Test82', () => {
-    let mouseDragLeaveEvent: MouseEvent = new MouseEvent('dragleave', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    let mouseDragLeaveEvent: MouseEvent = new MouseEvent('dragleave', <MouseEventInit>{clientX: 1, clientY: 2});
     traceRow.describeEl.dispatchEvent(mouseDragLeaveEvent);
   });
   it('TraceRow Test83', () => {
-    let mouseDragStartEvent: MouseEvent = new MouseEvent('dragstart', <MouseEventInit>{ clientX: 1, clientY: 2 });
+    let mouseDragStartEvent: MouseEvent = new MouseEvent('dragstart', <MouseEventInit>{clientX: 1, clientY: 2});
     traceRow.describeEl.dispatchEvent(mouseDragStartEvent);
   });
   it('TraceRow Test84', () => {

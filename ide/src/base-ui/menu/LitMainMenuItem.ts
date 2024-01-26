@@ -15,6 +15,74 @@
 
 import { BaseElement, element } from '../BaseElement';
 
+const initHtmlStyle:string = `
+    <style>
+            :host{
+                user-select: none;
+                display: flex;
+                font-family: Helvetica;
+                font-size: 14px;
+                color: #000;
+                text-align: left;
+                line-height: 20px;
+                font-weight: 400
+                background-color: #FFFFFF;
+                transition: background-color .3s;
+            }
+            :host(:not([disabled]):hover){
+                display: flex;
+                background-color: var(--dark-background8,#6C9BFA);
+                color: #FFFFFF;
+                cursor: pointer;
+            }
+            :host([disabled]:hover){
+                display: flex;
+                /*background-color:#3391FF;*/
+                /*color: #FFFFFF;*/
+                cursor:not-allowed;
+            }
+            :host([disabled]) .root{
+                cursor:not-allowed;
+                display: flex;
+                align-items: center;
+                padding: 10px 24px;
+                width: 100%;
+            }
+            :host(:not([disabled])) .root{
+                cursor:pointer;
+                display: flex;
+                align-items: center;
+                padding: 10px 24px;
+                width: 100%;
+            }
+            .name{
+                padding-left: 10px;
+                cursor: pointer;
+                overflow-wrap: anywhere;
+            }
+            .icon{
+                pointer-events: none;
+            }
+            :host(:not([file])) .name{
+                pointer-events: none;
+            }
+            :host(:not([file])) .root{
+                pointer-events: none;
+            }
+            :host([file]) .name{
+                pointer-events: none;
+            }
+            :host([file]) .icon{
+                pointer-events: none;
+            }
+            
+            :host([back]) {
+                background-color: var(--dark-background8,#6C9BFA);
+            } 
+            
+        </style>
+    `;
+
 @element('lit-main-menu-item')
 export class LitMainMenuItem extends BaseElement {
   private titleEl: HTMLElement | null | undefined;
@@ -115,71 +183,7 @@ export class LitMainMenuItem extends BaseElement {
 
   initHtml(): string {
     return `
-        <style>
-            :host{
-                user-select: none;
-                display: flex;
-                font-family: Helvetica;
-                font-size: 14px;
-                color: #000;
-                text-align: left;
-                line-height: 20px;
-                font-weight: 400
-                background-color: #FFFFFF;
-                transition: background-color .3s;
-            }
-            :host(:not([disabled]):hover){
-                display: flex;
-                background-color: var(--dark-background8,#6C9BFA);
-                color: #FFFFFF;
-                cursor: pointer;
-            }
-            :host([disabled]:hover){
-                display: flex;
-                /*background-color:#3391FF;*/
-                /*color: #FFFFFF;*/
-                cursor:not-allowed;
-            }
-            :host([disabled]) .root{
-                cursor:not-allowed;
-                display: flex;
-                align-items: center;
-                padding: 10px 24px;
-                width: 100%;
-            }
-            :host(:not([disabled])) .root{
-                cursor:pointer;
-                display: flex;
-                align-items: center;
-                padding: 10px 24px;
-                width: 100%;
-            }
-            .name{
-                padding-left: 10px;
-                cursor: pointer;
-                overflow-wrap: anywhere;
-            }
-            .icon{
-                pointer-events: none;
-            }
-            :host(:not([file])) .name{
-                pointer-events: none;
-            }
-            :host(:not([file])) .root{
-                pointer-events: none;
-            }
-            :host([file]) .name{
-                pointer-events: none;
-            }
-            :host([file]) .icon{
-                pointer-events: none;
-            }
-            
-            :host([back]) {
-                background-color: var(--dark-background8,#6C9BFA);
-            } 
-            
-        </style>
+        ${initHtmlStyle}
         <input id="file" class="file" type="file" style="display:none;pointer-events: none" />
         <label class="root" for="file">
             <lit-icon class="icon" name="user" size="20"></lit-icon>

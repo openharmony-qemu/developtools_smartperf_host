@@ -24,7 +24,9 @@ import {
   HeapRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerHeap';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe(' Test', () => {
   it('HeapTest01', () => {
     let heapDataList = new Array();

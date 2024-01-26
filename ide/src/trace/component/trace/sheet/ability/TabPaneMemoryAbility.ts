@@ -16,11 +16,12 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabMemoryAbilityData, queryStartTime } from '../../../../database/SqlLite';
 import { SystemMemorySummary } from '../../../../bean/AbilityMonitor';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
+import { queryStartTime } from '../../../../database/sql/SqlLite.sql';
+import { getTabMemoryAbilityData } from '../../../../database/sql/Ability.sql';
 
 @element('tabpane-memory-ability')
 export class TabPaneMemoryAbility extends BaseElement {
@@ -30,9 +31,11 @@ export class TabPaneMemoryAbility extends BaseElement {
   private search: HTMLInputElement | undefined | null;
 
   set data(memoryAbilityValue: SelectionParam | any) {
-    // @ts-ignore
-    this.memoryAbilityTbl?.shadowRoot?.querySelector('.table').style.height =
-      this.parentElement!.clientHeight - 45 + 'px';
+    if (this.memoryAbilityTbl) {
+      // @ts-ignore
+      this.memoryAbilityTbl.shadowRoot?.querySelector('.table').style.height =
+        this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.queryDataByDB(memoryAbilityValue);
   }
 
@@ -76,6 +79,32 @@ export class TabPaneMemoryAbility extends BaseElement {
     return array;
   }
 
+  getMemoryKeys() {
+    return {
+      'sys.mem.total': 'memoryTotal',
+      'sys.mem.free': 'memFree',
+      'sys.mem.buffers': 'buffers',
+      'sys.mem.cached': 'cached',
+      'sys.mem.shmem': 'shmem',
+      'sys.mem.slab': 'slab',
+      'sys.mem.swap.total': 'swapTotal',
+      'sys.mem.swap.free': 'swapFree',
+      'sys.mem.mapped': 'mapped',
+      'sys.mem.vmalloc.used': 'vmallocUsed',
+      'sys.mem.page.tables': 'pageTables',
+      'sys.mem.kernel.stack': 'kernelStack',
+      'sys.mem.active': 'active',
+      'sys.mem.inactive': 'inactive',
+      'sys.mem.unevictable': 'unevictable',
+      'sys.mem.vmalloc.total': 'vmallocTotal',
+      'sys.mem.slab.unreclaimable': 'sUnreclaim',
+      'sys.mem.cma.total': 'cmaTotal',
+      'sys.mem.cma.free': 'cmaFree',
+      'sys.mem.kernel.reclaimable': 'kReclaimable',
+      'sys.mem.zram': 'zram'
+    };
+  }
+
   queryDataByDB(val: SelectionParam | any) {
     queryStartTime().then((res) => {
       let startTime = res[0].start_ts;
@@ -87,91 +116,25 @@ export class TabPaneMemoryAbility extends BaseElement {
           let lastTime = 0;
           for (const item of items) {
             let systemMemorySummary = new SystemMemorySummary();
-            if (item.startTime - startTime <= 0) {
-              systemMemorySummary.startTimeStr = '0:000.000.000';
-            } else {
-              systemMemorySummary.startTimeStr = Utils.getTimeStampHMS(item.startTime - startTime);
-            }
-            if (lastTime !== 0) {
-              systemMemorySummary.durationNumber = item.startTime - lastTime;
-              systemMemorySummary.durationStr = Utils.getDurString(systemMemorySummary.durationNumber);
-            } else {
-              systemMemorySummary.durationNumber = 0;
-              systemMemorySummary.durationStr = '-';
-            }
+            systemMemorySummary.startTimeStr = (item.startTime - startTime <= 0) ? '0:000.000.000'
+              : Utils.getTimeStampHMS(item.startTime - startTime);
+            systemMemorySummary.durationNumber = (lastTime !== 0) ? item.startTime - lastTime : 0;
+            systemMemorySummary.durationStr = (lastTime !== 0) ? Utils.getDurString(systemMemorySummary.durationNumber) : '-';
             lastTime = item.startTime;
             let memorys = item.value.split(',');
             let names = item.name.split(',');
             if (memorys.length != names.length) {
               continue;
             }
+            let memoryKeys: { [key: string]: string } = this.getMemoryKeys();
             for (let i = 0; i < names.length; i++) {
-              switch (names[i]) {
-                case 'sys.mem.total':
-                  systemMemorySummary.memoryTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.free':
-                  systemMemorySummary.memFree = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.buffers':
-                  systemMemorySummary.buffers = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.cached':
-                  systemMemorySummary.cached = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.shmem':
-                  systemMemorySummary.shmem = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.slab':
-                  systemMemorySummary.slab = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.swap.total':
-                  systemMemorySummary.swapTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.swap.free':
-                  systemMemorySummary.swapFree = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.mapped':
-                  systemMemorySummary.mapped = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.vmalloc.used':
-                  systemMemorySummary.vmallocUsed = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.page.tables':
-                  systemMemorySummary.pageTables = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.kernel.stack':
-                  systemMemorySummary.kernelStack = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.active':
-                  systemMemorySummary.active = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.inactive':
-                  systemMemorySummary.inactive = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.unevictable':
-                  systemMemorySummary.unevictable = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.vmalloc.total':
-                  systemMemorySummary.vmallocTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.slab.unreclaimable':
-                  systemMemorySummary.sUnreclaim = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.cma.total':
-                  systemMemorySummary.cmaTotal = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.cma.free':
-                  systemMemorySummary.cmaFree = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.kernel.reclaimable':
-                  systemMemorySummary.kReclaimable = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
-                case 'sys.mem.zram':
-                  systemMemorySummary.zram = Utils.getBinaryKBWithUnit(Number(memorys[i]));
-                  break;
+              let key = memoryKeys[names[i]];
+              if (key) {
+                // @ts-ignore
+                systemMemorySummary[key] = Utils.getBinaryKBWithUnit(Number(memorys[i]));
               }
             }
+            ;
             this.memoryAbilitySource.push(systemMemorySummary);
           }
           this.memoryAbilityTbl!.recycleDataSource = this.memoryAbilitySource;
@@ -236,9 +199,9 @@ export class TabPaneMemoryAbility extends BaseElement {
         if (type === 'number') {
           return sort === 2
             ? // @ts-ignore
-              parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property])
+            parseFloat(memoryAbilityRightData[property]) - parseFloat(memoryAbilityLeftData[property])
             : // @ts-ignore
-              parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
+            parseFloat(memoryAbilityLeftData[property]) - parseFloat(memoryAbilityRightData[property]);
         } else if (type === 'durationStr') {
           return sort === 2
             ? memoryAbilityRightData.durationNumber - memoryAbilityLeftData.durationNumber

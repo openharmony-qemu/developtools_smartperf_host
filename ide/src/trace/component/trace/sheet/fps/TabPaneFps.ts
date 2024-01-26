@@ -16,10 +16,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabFps } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { log } from '../../../../../log/Log';
 import { resizeObserver } from '../SheetUtils';
+import {getTabFps} from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-fps')
 export class TabPaneFps extends BaseElement {

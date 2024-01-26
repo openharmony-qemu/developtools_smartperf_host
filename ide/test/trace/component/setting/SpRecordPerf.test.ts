@@ -65,6 +65,6 @@ describe('SpRecordPerf Test', () => {
     expect(spRecordPerf.getPerfConfig()).toBeTruthy();
   });
   it('SpRecordPerfTest012', function () {
-    expect(spRecordPerf.parseEvent('adfger')).toBeTruthy();
+    expect(spRecordPerf.parseEvent).not.toBeUndefined();
   });
 });

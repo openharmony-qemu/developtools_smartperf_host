@@ -14,12 +14,23 @@
  */
 import { TabPaneJsCpuStatistics } from '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneJsCpuStatistics';
 import '../../../../../../src/trace/component/trace/sheet/ark-ts/TabPaneJsCpuStatistics';
-import { JsCpuProfilerStatisticsStruct } from '../../../../../../src/trace/bean/JsStruct';
-
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+import crypto from 'crypto';
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
     return {}
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+    return {}
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+    return {};
+});
+Object.defineProperty(global.self, 'crypto', {
+    value: {
+        getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),
+    },
 });
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
     return {

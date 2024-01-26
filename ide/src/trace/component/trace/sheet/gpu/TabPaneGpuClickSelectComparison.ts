@@ -16,13 +16,13 @@ import { element } from '../../../../../base-ui/BaseElement';
 import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
-import { queryGpuDataByTs } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { VmTrackerChart } from '../../../chart/SpVmTrackerChart';
 import { compare, CompareStruct, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { TabPaneGpuClickSelect } from './TabPaneGpuClickSelect';
+import { queryGpuDataByTs } from '../../../../database/sql/Gpu.sql';
 interface GpuTreeItem {
   name: string;
   id: number;

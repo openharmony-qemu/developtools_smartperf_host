@@ -25,6 +25,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { type AnimationRanges } from '../../bean/FrameComponentBean';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class FrameDynamicRender extends Render {
   renderMainThread(
@@ -92,8 +93,8 @@ export class FrameDynamicRender extends Render {
   }
 
   private frameDynamic(
-    frameDynamicList: FrameDynamicStruct[],
-    frameDynamicFilter: FrameDynamicStruct[],
+    dynamicList: FrameDynamicStruct[],
+    dynamicFilter: FrameDynamicStruct[],
     row: TraceRow<FrameDynamicStruct>,
     animationRanges: AnimationRanges[],
     use: boolean
@@ -103,11 +104,11 @@ export class FrameDynamicRender extends Render {
     let totalNS: number = TraceRow.range!.totalNS;
     let frame: Rect = row.frame;
     let modelName: string | undefined | null = row.getAttribute('model-name');
-    if ((use || !TraceRow.range!.refresh) && frameDynamicFilter.length > 0) {
-      frameDynamicList.length = 0;
+    if ((use || !TraceRow.range!.refresh) && dynamicFilter.length > 0) {
+      dynamicList.length = 0;
       let groupIdList: number[] = [];
-      for (let dataIndex: number = 0; dataIndex < frameDynamicFilter.length; dataIndex++) {
-        let currentDynamic: FrameDynamicStruct = frameDynamicFilter[dataIndex];
+      for (let dataIndex: number = 0; dataIndex < dynamicFilter.length; dataIndex++) {
+        let currentDynamic: FrameDynamicStruct = dynamicFilter[dataIndex];
         if (currentDynamic.appName === modelName) {
           currentDynamic.groupId = invalidGroupId;
           for (let rangeIndex = 0; rangeIndex < animationRanges.length; rangeIndex++) {
@@ -119,46 +120,22 @@ export class FrameDynamicRender extends Render {
           }
           if (
             currentDynamic.ts < startNS &&
-            dataIndex + unitIndex < frameDynamicFilter.length &&
-            frameDynamicFilter[dataIndex + unitIndex].ts >= startNS &&
+            dataIndex + unitIndex < dynamicFilter.length &&
+            dynamicFilter[dataIndex + unitIndex].ts >= startNS &&
             currentDynamic.groupId !== invalidGroupId
           ) {
-            this.refreshFilterDynamicFrame(
-              frameDynamicList,
-              currentDynamic,
-              row.frame,
-              startNS,
-              endNS,
-              totalNS,
-              groupIdList
-            );
+            this.refreshFilterDynamicFrame(dynamicList, currentDynamic, frame, startNS, endNS, totalNS, groupIdList);
           }
           if (currentDynamic.ts >= startNS && currentDynamic.ts <= endNS && currentDynamic.groupId !== invalidGroupId) {
-            this.refreshFilterDynamicFrame(
-              frameDynamicList,
-              currentDynamic,
-              row.frame,
-              startNS,
-              endNS,
-              totalNS,
-              groupIdList
-            );
+            this.refreshFilterDynamicFrame(dynamicList, currentDynamic, frame, startNS, endNS, totalNS, groupIdList);
           }
           if (currentDynamic.ts >= endNS && currentDynamic.groupId !== invalidGroupId) {
-            this.refreshFilterDynamicFrame(
-              frameDynamicList,
-              currentDynamic,
-              row.frame,
-              startNS,
-              endNS,
-              totalNS,
-              groupIdList
-            );
+            this.refreshFilterDynamicFrame(dynamicList, currentDynamic, frame, startNS, endNS, totalNS, groupIdList);
             break;
           }
         }
       }
-      this.setSimpleGroupId(groupIdList, frameDynamicList);
+      this.setSimpleGroupId(groupIdList, dynamicList);
     }
   }
 
@@ -308,7 +285,20 @@ export class FrameDynamicRender extends Render {
     FrameDynamicStruct.setFrameDynamic(currentFrameDynamic, startNS, endNS, totalNS, frame);
   }
 }
-
+export function FrameDynamicStructOnClick(clickRowType: string, sp: SpSystemTrace, row: undefined | TraceRow<any>) {
+  return new Promise((resolve,reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
+      FrameDynamicStruct.selectFrameDynamicStruct = FrameDynamicStruct.hoverFrameDynamicStruct || row?.getHoverStruct();
+      if (FrameDynamicStruct.selectFrameDynamicStruct) {
+        sp.traceSheetEL?.displayFrameDynamicData(row!, FrameDynamicStruct.selectFrameDynamicStruct);
+        sp.timerShaftEL?.modifyFlagList(undefined);
+      }
+      reject(new Error());
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class FrameDynamicStruct extends BaseStruct {
   static hoverFrameDynamicStruct: FrameDynamicStruct | undefined;
   static selectFrameDynamicStruct: FrameDynamicStruct | undefined;

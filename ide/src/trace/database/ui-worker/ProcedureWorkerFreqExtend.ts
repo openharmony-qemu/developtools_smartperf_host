@@ -26,9 +26,9 @@ export class FreqExtendRender extends Render {
     },
     row: TraceRow<CpuFreqExtendStruct>
   ) {
-    let freqList = row.dataList;
-    let freqFilter = row.dataListCache;
-    dataFilterHandler(freqList, freqFilter, {
+    let freqExtendList = row.dataList;
+    let freqExtendFilter = row.dataListCache;
+    dataFilterHandler(freqExtendList, freqExtendFilter, {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -44,7 +44,7 @@ export class FreqExtendRender extends Render {
       CpuFreqExtendStruct.isTabHover = false;
     }
     freqReq.context.beginPath();
-    for (let re of freqFilter) {
+    for (let re of freqExtendFilter) {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         CpuFreqExtendStruct.hoverCpuFreqStruct = re;
       }
@@ -68,21 +68,22 @@ export class CpuFreqExtendStruct extends BaseStruct {
   dur: number | undefined; //自补充，数据库没有返回
   cycle: number | undefined;
   type: string | undefined;
-  count:number = 0;
+  count: number = 0;
 
   static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct) {
     if (data.frame) {
       let width = data.frame.width || 0;
       let index = data.cpu || 0;
       index += 2;
-      let color = ColorUtils.colorForTid(index)
+      let color = ColorUtils.colorForTid(index);
       freqContext.fillStyle = color;
       freqContext.strokeStyle = color;
-      if (data === CpuFreqExtendStruct.hoverCpuFreqStruct
-        || data === CpuFreqExtendStruct.selectCpuFreqStruct
-        || data === CpuFreqExtendStruct.selectCpuFreqStruct
-        || (data.cycle === CpuFreqExtendStruct.cycle
-          && CpuFreqExtendStruct.cycle !== -1)) {
+      if (
+        data === CpuFreqExtendStruct.hoverCpuFreqStruct ||
+        data === CpuFreqExtendStruct.selectCpuFreqStruct ||
+        data === CpuFreqExtendStruct.selectCpuFreqStruct ||
+        (data.cycle === CpuFreqExtendStruct.cycle && CpuFreqExtendStruct.cycle !== -1)
+      ) {
         freqContext.fillStyle = '#ff0000';
         freqContext.strokeStyle = '#ff0000';
         freqContext.lineWidth = 3;
@@ -104,7 +105,9 @@ export class CpuFreqExtendStruct extends BaseStruct {
       } else {
         freqContext.globalAlpha = 0.6;
         freqContext.lineWidth = 1;
-        let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / CpuFreqExtendStruct.maxValue);
+        let drawHeight: number = Math.floor(
+          ((data.value || 0) * (data.frame.height || 0)) / CpuFreqExtendStruct.maxValue
+        );
         if (drawHeight < 1) {
           drawHeight = 1;
         }

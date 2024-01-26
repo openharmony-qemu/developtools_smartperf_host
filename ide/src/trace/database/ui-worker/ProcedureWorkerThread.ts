@@ -26,6 +26,7 @@ import {
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { Utils } from '../../component/trace/base/Utils';
 import { ThreadStruct as BaseThreadStruct } from '../../bean/ThreadStruct';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 export class ThreadRender extends Render {
   renderMainThread(
     threadReq: {
@@ -64,7 +65,20 @@ export class ThreadRender extends Render {
 }
 
 const padding = 3;
-
+export function ThreadStructOnClick(clickRowType:string,sp:SpSystemTrace,threadClickHandler:any,cpuClickHandler:any){
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
+      sp.removeLinkLinesByBusinessType('thread');
+      ThreadStruct.selectThreadStruct = ThreadStruct.hoverThreadStruct;
+      sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
+      sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class ThreadStruct extends BaseThreadStruct {
   static otherColor = '#673ab7';
   static uninterruptibleSleepColor = '#f19d38';
@@ -73,7 +87,6 @@ export class ThreadStruct extends BaseThreadStruct {
   static sColor = '#FBFBFB';
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
-  static firstselectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
   argSetID: number | undefined;
   translateY: number | undefined;

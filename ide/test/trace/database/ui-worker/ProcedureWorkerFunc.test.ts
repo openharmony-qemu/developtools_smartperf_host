@@ -20,7 +20,9 @@ jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
 import { func, FuncStruct, FuncRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFunc';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import { markAsUntransferable } from 'worker_threads';
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe(' ProcedureWorkerFuncTest', () => {
   it('FuncTest01', () => {
     let funcDataList = new Array();

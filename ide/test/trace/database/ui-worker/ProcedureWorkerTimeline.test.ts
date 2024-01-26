@@ -16,7 +16,9 @@
 jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
 import {
   RangeRuler,
   SportRuler,
@@ -24,7 +26,9 @@ import {
   TimelineRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerTimeline';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
-
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {}; });
 
@@ -42,7 +46,8 @@ describe(' ProcedureWorkerTimelineTest', () => {
     });
     dataList.push({ startTime: 1, dur: 111 });
     let rect = new Rect(0, 10, 10, 10);
-    timeline(timelineCanvas, ctx, 1, 100254, 100254, rect, null, null, null, null, null, null, 0, 0, (e: any) => {});
+    let keyboardEvent: KeyboardEvent = new KeyboardEvent('w', <KeyboardEventInit>{ ctrlKey: true, keyCode: 13 });
+    timeline(timelineCanvas, ctx, 1, 100254, keyboardEvent, rect, null, null, null, null, null, null, 0, 0, (e: any) => {});
   });
 
     it('SportRulerTest01', () => {

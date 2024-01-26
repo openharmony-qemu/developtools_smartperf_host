@@ -18,19 +18,19 @@ import { type LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { LitSelectOption } from '../../../../../base-ui/select/LitSelectOption';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { DmaComparison } from '../../../../bean/AbilityMonitor';
-import { getTabDmaAbilityComparisonData } from '../../../../database/SqlLite';
 import { type SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { Utils } from '../../base/Utils';
 import { compare, resizeObserverFromMemory } from '../SheetUtils';
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
+import { getTabDmaAbilityComparisonData } from '../../../../database/sql/Dma.sql';
 
 @element('tabpane-dma-ability-comparison')
 export class TabPaneDmaAbilityComparison extends BaseElement {
   private damClickTable: LitTable | null | undefined;
   private comparisonSelect: TabPaneJsMemoryFilter | null | undefined;
   private selectEl: LitSelect | null | undefined;
-  private selfData: Array<DmaComparison> = [];
+  private selfDatas: Array<DmaComparison> = [];
   private comparisonSource: Array<DmaComparison> = [];
 
   initElements(): void {
@@ -64,11 +64,11 @@ export class TabPaneDmaAbilityComparison extends BaseElement {
   }
 
   async comparisonDataByDB(startNs: number, dataList: Array<SnapshotStruct>): Promise<void> {
-    this.selfData = [];
-    const selfData = await this.queryDataByDB(startNs);
+    this.selfDatas = [];
+    const selfDatas = await this.queryDataByDB(startNs);
     const dataArray = [];
-    for (const item of selfData) {
-      this.selfData.push(new DmaComparison(item.process, item.value));
+    for (const item of selfDatas) {
+      this.selfDatas.push(new DmaComparison(item.process, item.value));
     }
     for (let item of dataList) {
       if (item.startNs !== startNs) {
@@ -111,7 +111,7 @@ export class TabPaneDmaAbilityComparison extends BaseElement {
     for (const item of data) {
       comparison.push(new DmaComparison(item.process, item.value));
     }
-    comparisonData = compare(this.selfData, comparison);
+    comparisonData = compare(this.selfDatas, comparison);
     for (const item of comparisonData) {
       item.sizes = Utils.getBinaryByteWithUnit(item.value);
     }

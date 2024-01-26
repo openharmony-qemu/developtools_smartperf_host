@@ -24,6 +24,7 @@ import {
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class IrqRender extends Render {
   renderMainThread(
@@ -69,6 +70,18 @@ export class IrqRender extends Render {
 }
 
 const padding = 3;
+export function IrqStructOnClick(clickRowType: string,sp:SpSystemTrace) {
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_IRQ && IrqStruct.hoverIrqStruct) {
+      IrqStruct.selectIrqStruct = IrqStruct.hoverIrqStruct;
+      sp.traceSheetEL?.displayIrqData(IrqStruct.selectIrqStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    }else{
+      resolve(null);
+    }
+  });
+}
 export class IrqStruct extends BaseStruct {
   static maxValue: number = 0;
   static maxName: string = '';

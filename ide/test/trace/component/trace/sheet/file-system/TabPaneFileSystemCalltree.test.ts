@@ -16,8 +16,6 @@
 import '../../../../../../src/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree';
 import { TabpaneFilesystemCalltree } from '../../../../../../src/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree';
 import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
-import { FrameChart } from '../../../../../../src/trace/component/chart/FrameChart';
-import { NativeHookStatisticsTableData } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU';
 
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
@@ -25,7 +23,7 @@ jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () =
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {
     cpuCount: 1,
     CpuRender: Object,

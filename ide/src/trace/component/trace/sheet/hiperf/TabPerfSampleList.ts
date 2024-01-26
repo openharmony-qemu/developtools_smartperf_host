@@ -17,18 +17,16 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { perfDataQuery } from '../../../chart/PerfDataQuery';
+import { PerfFile, PerfSample, PerfThread } from '../../../../bean/PerfProfile';
+import { Utils } from '../../base/Utils';
+import { log } from '../../../../../log/Log';
+import '../../../../../base-ui/slicer/lit-slicer';
+import { SpSystemTrace } from '../../../SpSystemTrace';
 import {
   queryPerfProcess,
   queryPerfSampleCallChain,
-  queryPerfSampleListByTimeRange,
-} from '../../../../database/SqlLite';
-import { PerfFile, PerfSample, PerfStack, PerfThread } from '../../../../bean/PerfProfile';
-import { Utils } from '../../base/Utils';
-import { SpApplication } from '../../../../SpApplication';
-import { log } from '../../../../../log/Log';
-import '../../../../../base-ui/slicer/lit-slicer';
-import { Cmd } from '../../../../../command/Cmd';
-import { SpSystemTrace } from '../../../SpSystemTrace';
+  queryPerfSampleListByTimeRange
+} from '../../../../database/sql/Perf.sql';
 
 @element('tabpane-perf-sample')
 export class TabPanePerfSample extends BaseElement {
@@ -43,10 +41,10 @@ export class TabPanePerfSample extends BaseElement {
     this.perfSampleTbl!.style.visibility = 'visible';
     // @ts-ignore
     this.perfSampleTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      this.parentElement!.clientHeight - 40 + 'px';
+      `${this.parentElement!.clientHeight - 40  }px`;
     this.perfSampleTbl!.recycleDataSource = [];
     // @ts-ignore
-    this.tblData?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 25 + 'px';
+    this.tblData?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 25  }px`;
     this.tblData!.recycleDataSource = [];
     if (perfSampleSelection) {
       Promise.all([
@@ -61,46 +59,50 @@ export class TabPanePerfSample extends BaseElement {
         ),
       ]).then((results) => {
         let processes = results[0] as Array<PerfThread>;
-        log('queryPerfProcess size : ' + processes.length);
+        log(`queryPerfProcess size : ${  processes.length}`);
         let samples = results[1] as Array<PerfSample>;
-        log('queryPerfSampleListByTimeRange size : ' + samples.length);
+        log(`queryPerfSampleListByTimeRange size : ${  samples.length}`);
         this.processMap.clear();
         for (let process of processes) {
           this.processMap.set(process.pid, process);
         }
-        for (let sample of samples) {
-          let process = this.processMap.get(sample.pid);
-          sample.processName =
-            process == null || process == undefined
-              ? `Process(${sample.pid})`
-              : `${process!.processName || 'Process'}(${sample.pid})`;
-          sample.threadName =
-            sample.threadName == null || sample.threadName == undefined
-              ? `Thread(${sample.tid})`
-              : `${sample.threadName}(${sample.tid})`;
-          sample.coreName = `CPU ${sample.core}`;
-          sample.timeString = Utils.getTimeString(sample.time);
-          sample.backtrace = [];
-          let call = perfDataQuery.callChainMap.get(sample.sampleId);
-          if (call == undefined || call == null) {
-            sample.depth = 0;
-            sample.backtrace.push('No Effective Call Stack');
-          } else {
-            sample.depth = call.depth;
-            if (typeof call.name === 'number') {
-              call.name = SpSystemTrace.DATA_DICT.get(call.name) || '';
-            }
-            sample.backtrace.push(call.name);
-            sample.backtrace.push(`(${sample.depth} other frames)`);
-          }
-        }
-        this.perfSampleSource = samples;
-        this.sortPerfSampleTable(this.sortKey, this.sortType);
+        this.initPerfSampleData(samples);
       });
     }
   }
 
-  setRightTableData(sample: PerfSample) {
+  private initPerfSampleData(samples: PerfSample[]): void{
+    for (let sample of samples) {
+      let process = this.processMap.get(sample.pid);
+      sample.processName =
+        process === null || process === undefined ?
+          `Process(${sample.pid})` :
+          `${process!.processName || 'Process'}(${sample.pid})`;
+      sample.threadName =
+        sample.threadName === null || sample.threadName === undefined ?
+          `Thread(${sample.tid})` :
+          `${sample.threadName}(${sample.tid})`;
+      sample.coreName = `CPU ${sample.core}`;
+      sample.timeString = Utils.getTimeString(sample.time);
+      sample.backtrace = [];
+      let call = perfDataQuery.callChainMap.get(sample.sampleId);
+      if (call === undefined || call === null) {
+        sample.depth = 0;
+        sample.backtrace.push('No Effective Call Stack');
+      } else {
+        sample.depth = call.depth;
+        if (typeof call.name === 'number') {
+          call.name = SpSystemTrace.DATA_DICT.get(call.name) || '';
+        }
+        sample.backtrace.push(call.name);
+        sample.backtrace.push(`(${sample.depth} other frames)`);
+      }
+    }
+    this.perfSampleSource = samples;
+    this.sortPerfSampleTable(this.sortKey, this.sortType);
+  }
+
+  setRightTableData(sample: PerfSample): void {
     queryPerfSampleCallChain(sample.sampleId).then((result) => {
       for (let stack of result) {
         if (typeof stack.symbol === 'number') {
@@ -132,35 +134,35 @@ export class TabPanePerfSample extends BaseElement {
     });
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     super.connectedCallback();
-    new ResizeObserver((entries) => {
-      if (this.parentElement?.clientHeight != 0) {
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight !== 0) {
         // @ts-ignore
         this.perfSampleTbl?.shadowRoot.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 40 + 'px';
+          `${this.parentElement!.clientHeight - 40  }px`;
         // @ts-ignore
-        this.tblData?.shadowRoot.querySelector('.table').style.height = this.parentElement.clientHeight - 25 + 'px';
+        this.tblData?.shadowRoot.querySelector('.table').style.height = `${this.parentElement.clientHeight - 25  }px`;
         this.perfSampleTbl?.reMeauseHeight();
         this.tblData?.reMeauseHeight();
       }
     }).observe(this.parentElement!);
   }
 
-  sortPerfSampleTable(key: string, type: number) {
+  sortPerfSampleTable(key: string, type: number): void {
     this.perfSampleSource.sort((perfSampleA, perfSampleB): number => {
-      if (key == 'timeString') {
-        if (type == 0) {
+      if (key === 'timeString') {
+        if (type === 0) {
           return perfSampleA.time - perfSampleB.time;
-        } else if (type == 1) {
+        } else if (type === 1) {
           return perfSampleA.time - perfSampleB.time;
         } else {
           return perfSampleB.time - perfSampleA.time;
         }
       } else {
-        if (type == 0) {
+        if (type === 0) {
           return perfSampleA.core - perfSampleB.core;
-        } else if (type == 1) {
+        } else if (type === 1) {
           return perfSampleA.core - perfSampleB.core;
         } else {
           return perfSampleB.core - perfSampleA.core;
@@ -183,24 +185,31 @@ export class TabPanePerfSample extends BaseElement {
     <div id="left_table" style="width: 65%">
         <tab-native-data-modal style="display:none;"/></tab-native-data-modal>
         <lit-table id="tb-perf-sample" style="height: auto">
-            <lit-table-column class="perf-sample-column" order width="1fr" title="Sample Time" data-index="timeString" key="timeString" align="flex-start" ></lit-table-column>
-            <lit-table-column class="perf-sample-column" order width="70px" title="Core" data-index="coreName" key="coreName" align="flex-start" ></lit-table-column>
-            <lit-table-column class="perf-sample-column" width="1fr" title="Process" data-index="processName" key="processName" align="flex-start" ></lit-table-column>
-            <lit-table-column class="perf-sample-column" width="1fr" title="Thread" data-index="threadName" key="threadName" align="flex-start" ></lit-table-column>
-            <lit-table-column class="perf-sample-column" width="1fr" title="State" data-index="state" key="state" align="flex-start" ></lit-table-column>
-            <lit-table-column class="perf-sample-column" width="1fr" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
+            <lit-table-column class="perf-sample-column" order width="1fr" title="Sample Time" 
+            data-index="timeString" key="timeString" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" order width="70px" title="Core" 
+            data-index="coreName" key="coreName" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="Process" 
+            data-index="processName" key="processName" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="Thread" 
+            data-index="threadName" key="threadName" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="State" 
+            data-index="state" key="state" align="flex-start" ></lit-table-column>
+            <lit-table-column class="perf-sample-column" width="1fr" title="Backtrace" 
+            data-index="backtrace" key="backtrace" align="flex-start" >
                 <template>
                     <div>
                         <span class="title-span">{{backtrace[0]}}</span>
                         <span v-if="backtrace.length > 1">⬅</span>
-                        <span v-if="backtrace.length > 1"style="color: #565656"> {{backtrace[1]}}</span>
+                        <span v-if="backtrace.length > 1" style="color: #565656"> {{backtrace[1]}}</span>
                     </div>
                 </template>
             </lit-table-column>
         </lit-table>
     </div>
     <lit-slicer-track ></lit-slicer-track>
-    <lit-table id="tb-stack-data" hideDownload no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
+    <lit-table id="tb-stack-data" hideDownload no-head 
+    style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
         <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
             <template>
                 <img src="img/library.png" size="20" v-if=" type == 1 ">

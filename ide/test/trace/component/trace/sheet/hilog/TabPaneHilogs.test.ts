@@ -17,7 +17,6 @@ import { TabPaneHiLogs } from '../../../../../../src/trace/component/trace/sheet
 import { TraceSheet } from '../../../../../../src/trace/component/trace/base/TraceSheet';
 import '../../../../../../src/base-ui/table/LitPageTable'
 import { TraceRow } from '../../../../../../src/trace/component/trace/base/TraceRow';
-import { queryLogAllData } from "../../../../../../src/trace/database/SqlLite";
 
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
@@ -36,8 +35,13 @@ window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverM
 jest.mock('../../../../../../src/trace/component/trace/base/TraceSheet', () => {
   return {};
 });
-
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {
     cpuCount: 1,
     CpuRender: Object,
@@ -45,8 +49,8 @@ jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', (
   };
 });
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -167,7 +171,5 @@ describe('TabPaneHilogs Test', (): void => {
     sheetEl!.systemLogFlag = undefined;
     hiLogsTab.initTabSheetEl(htmlElement, sheetEl);
     hiLogsTab.data = logsData;
-    // hiLogsTab.refreshTable();
-    // expect(hiLogsTab.isFilterLog(logsData)).toBeFalsy();
   });
 });

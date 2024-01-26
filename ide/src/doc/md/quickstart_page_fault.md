@@ -50,7 +50,7 @@ Page Fault Statistics 的 Tab 页如图：
 -     Max Duration：最大时长。
   点击下方的 Statistics by Thread，可以切换到按照 Thread 为基点显示数据。
   ![GitHub Logo](../../figures/EBPF/ebpf_bythread.jpg)
-  Page Fault CallTree 的 Tab 页如图：
+  Page Fault Calltree 的 Tab 页如图：
   ![GitHub Logo](../../figures/EBPF/VMCalltree.jpg)
 -     Call Stack：为经过符号解析后的Callstack，并且给出动态链接库或者进程名的信息。
 -     Local：为该调用方法自身占用的CPU时间。
@@ -66,7 +66,7 @@ Page Fault Statistics 的 Tab 页如图：
 
 ### 页内存支持多种 Options 展示风格
 
-点击 Page Fault CallTree 的 Tab 页底部的 Options，会有两个 CheckBox 复选框。
+点击 Page Fault Calltree 的 Tab 页底部的 Options，会有两个 CheckBox 复选框。
 ![GitHub Logo](../../figures/EBPF/vmOptions.jpg)
 
 -     Invert：反向输出调用树。
@@ -74,7 +74,7 @@ Page Fault Statistics 的 Tab 页如图：
 
 ### 页内存支持过滤调用栈调用次数的展示风格
 
-点击 Page Fault CallTree 的 Tab 页底部的 Sample Count Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
+点击 Page Fault Calltree 的 Tab 页底部的 Sample Counter Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
 ![GitHub Logo](../../figures/EBPF/vmcounter.jpg)
 
 ### 页内存功能的调用栈 Group 展示-数据分析支持剪裁功能
@@ -97,12 +97,12 @@ Page Fault Statistics 的 Tab 页如图：
 
 ### 页内存的事件类型的过滤
 
-通过选择类型事件进行过滤。
+通过选择可以过滤是 File Backed In 类型，还是 Copy On Write 类型事件。
 ![GitHub Logo](../../figures/EBPF/VMfilter.jpg)
 
 ### 页内存的火焰图功能
 
-点击 Page Fault CallTree 左下角的柱状图的图标，会切换到火焰图页面。
+点击 Page Fault Calltree 左下角的柱状图的图标，会切换到火焰图页面。
 ![GitHub Logo](../../figures/EBPF/vmflame.jpg)
 进入到火焰图页面，火焰图的展示跟 Callinfo 的 tab 页的调用栈显示一致，鼠标放到色块上，悬浮框可以显示调用栈名称和 Duration 时长。
 ![GitHub Logo](../../figures/EBPF/vmflameshow.jpg)

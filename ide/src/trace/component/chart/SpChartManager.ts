@@ -18,15 +18,6 @@ import { SpHiPerf } from './SpHiPerf';
 import { SpCpuChart } from './SpCpuChart';
 import { SpFreqChart } from './SpFreqChart';
 import { SpFpsChart } from './SpFpsChart';
-import {
-  getCpuUtilizationRate,
-  queryAppStartupProcessIds,
-  queryDataDICT,
-  queryMemoryConfig,
-  queryTaskPoolCallStack,
-  queryThreadAndProcessName,
-  queryTotalTime,
-} from '../../database/SqlLite';
 import { info, log } from '../../../log/Log';
 import { SpNativeMemoryChart } from './SpNativeMemoryChart';
 import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
@@ -40,7 +31,7 @@ import { VmTrackerChart } from './SpVmTrackerChart';
 import { SpClockChart } from './SpClockChart';
 import { SpIrqChart } from './SpIrqChart';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { TraceRow } from '../trace/base/TraceRow';
 import { SpFrameTimeChart } from './SpFrameTimeChart';
 import { Utils } from '../trace/base/Utils';
@@ -50,7 +41,15 @@ import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
-import {procedurePool} from "../../database/Procedure";
+import { procedurePool } from '../../database/Procedure';
+import {
+  queryAppStartupProcessIds,
+  queryDataDICT,
+  queryThreadAndProcessName
+} from '../../database/sql/ProcessThread.sql';
+import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLite.sql';
+import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
+import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
 
 export class SpChartManager {
@@ -251,11 +250,11 @@ export class SpChartManager {
   };
 
   async cacheDataDictToWorker(): Promise<void> {
-    return  new Promise((resolve) => {
+    return new Promise((resolve) => {
       procedurePool.submitWithName(
         'logic0',
         'cache-data-dict',
-        { dataDict: SpSystemTrace.DATA_DICT },
+        {dataDict: SpSystemTrace.DATA_DICT},
         undefined,
         (res: any) => {
           resolve();

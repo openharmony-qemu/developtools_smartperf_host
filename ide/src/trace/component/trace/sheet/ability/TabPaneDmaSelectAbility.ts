@@ -16,10 +16,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { type Dma } from '../../../../bean/AbilityMonitor';
-import { getTabDmaAbilityClickData } from '../../../../database/SqlLite';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
+import { getTabDmaAbilityClickData } from '../../../../database/sql/Dma.sql';
 
 @element('tabpane-dma-selection-ability')
 export class TabPaneDmaSelectAbility extends BaseElement {
@@ -37,19 +37,6 @@ export class TabPaneDmaSelectAbility extends BaseElement {
     });
   }
 
-  connectedCallback(): void {
-    super.connectedCallback();
-    new ResizeObserver(() => {
-      if (this.parentElement?.clientHeight !== 0) {
-        // @ts-ignore
-        this.damClickTable?.shadowRoot?.querySelector('.table').style.height =
-          this.parentElement!.clientHeight - 18 + 'px';
-        this.parentElement!.style.overflow = 'hidden';
-        this.damClickTable?.reMeauseHeight();
-      }
-    }).observe(this.parentElement!);
-  }
-
   private init(): void {
     const thTable = this.tableThead!.querySelector('.th');
     const dmaSelectTblNodes = thTable!.querySelectorAll('div');
@@ -61,6 +48,19 @@ export class TabPaneDmaSelectAbility extends BaseElement {
         });
       });
     }
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    new ResizeObserver(() => {
+      if (this.parentElement?.clientHeight !== 0 && this.damClickTable) {
+        // @ts-ignore
+        this.damClickTable.shadowRoot.querySelector('.table').style.height =
+          this.parentElement!.clientHeight - 18 + 'px';
+        this.parentElement!.style.overflow = 'hidden';
+        this.damClickTable?.reMeauseHeight();
+      }
+    }).observe(this.parentElement!);
   }
 
   queryDmaClickDataByDB(startNs: number): void {
@@ -110,8 +110,8 @@ export class TabPaneDmaSelectAbility extends BaseElement {
 }
 :host{
     display: flex;
-    flex-direction: column;
     padding: 10px 10px;
+    flex-direction: column;
 }
 </style>
 <lit-table id="damClickTable" class="damClickTable">
@@ -140,84 +140,44 @@ export class TabPaneDmaSelectAbility extends BaseElement {
   }
 
   sortDmaByColumn(column: string, sort: number): void {
+    const sortFunction = function (leftData: any, rightData: any, sortType: number, property: string): number {
+      if (sortType === 1) {
+        return typeof leftData[property] === 'string'
+          ? `${leftData[property]}`.localeCompare(`${rightData[property]}`)
+          : leftData[property] - rightData[property];
+      } else {
+        return typeof rightData[property] === 'string'
+          ? `${rightData[property]}`.localeCompare(`${leftData[property]}`)
+          : rightData[property] - leftData[property];
+      }
+    };
+
     switch (sort) {
       case 0:
         this.damClickTable!.recycleDataSource = this.dmaClickSource;
         break;
       default:
-        let array = [...this.dmaClickSource];
-        switch (column) {
-          case 'process':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? `${dmaAbilityLeftData.process}`.localeCompare(`${dmaAbilityRightData.process}`)
-                : `${dmaAbilityRightData.process}`.localeCompare(`${dmaAbilityLeftData.process}`);
-            });
-            break;
-          case 'startNs':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? dmaAbilityLeftData.startNs - dmaAbilityRightData.startNs
-                : dmaAbilityRightData.startNs - dmaAbilityLeftData.startNs;
-            });
-            break;
-          case 'expTaskComm':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? `${dmaAbilityLeftData.expTaskComm}`.localeCompare(`${dmaAbilityRightData.expTaskComm}`)
-                : `${dmaAbilityRightData.expTaskComm}`.localeCompare(`${dmaAbilityLeftData.expTaskComm}`);
-            });
-            break;
-          case 'fd':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? dmaAbilityLeftData.fd - dmaAbilityRightData.fd
-                : dmaAbilityRightData.fd - dmaAbilityLeftData.fd;
-            });
-            break;
-          case 'size':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? dmaAbilityLeftData.size - dmaAbilityRightData.size
-                : dmaAbilityRightData.size - dmaAbilityLeftData.size;
-            });
-            break;
-          case 'ino':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? dmaAbilityLeftData.ino - dmaAbilityRightData.ino
-                : dmaAbilityRightData.ino - dmaAbilityLeftData.ino;
-            });
-            break;
-          case 'expPid':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? dmaAbilityLeftData.expPid - dmaAbilityRightData.expPid
-                : dmaAbilityRightData.expPid - dmaAbilityLeftData.expPid;
-            });
-            break;
-          case 'flag':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? dmaAbilityLeftData.flag - dmaAbilityRightData.flag
-                : dmaAbilityRightData.flag - dmaAbilityLeftData.flag;
-            });
-            break;
-          case 'bufName':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? `${dmaAbilityLeftData.bufName}`.localeCompare(`${dmaAbilityRightData.bufName}`)
-                : `${dmaAbilityRightData.bufName}`.localeCompare(`${dmaAbilityLeftData.bufName}`);
-            });
-            break;
-          case 'expName':
-            this.damClickTable!.recycleDataSource = array.sort((dmaAbilityLeftData, dmaAbilityRightData) => {
-              return sort === 1
-                ? `${dmaAbilityLeftData.expName}`.localeCompare(`${dmaAbilityRightData.expName}`)
-                : `${dmaAbilityRightData.expName}`.localeCompare(`${dmaAbilityLeftData.expName}`);
-            });
-            break;
-        }
+        this.sortByColumn(column, sort, sortFunction);
+        break;
+    }
+  }
+
+  sortByColumn(column: string, sort: number, sortFunction: Function): void {
+    let array = [...this.dmaClickSource];
+    switch (column) {
+      case 'process':
+      case 'expTaskComm':
+      case 'bufName':
+      case 'expName':
+        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) => sortFunction(leftData, rightData, sort, column));
+        break;
+      case 'startNs':
+      case 'fd':
+      case 'size':
+      case 'ino':
+      case 'expPid':
+      case 'flag':
+        this.damClickTable!.recycleDataSource = array.sort((leftData, rightData) => sortFunction(leftData, rightData, sort, column));
         break;
     }
   }

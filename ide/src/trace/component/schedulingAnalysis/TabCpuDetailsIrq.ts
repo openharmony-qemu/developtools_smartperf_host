@@ -24,6 +24,7 @@ import { LitProgressBar } from '../../../base-ui/progress-bar/LitProgressBar';
 import { getDataNo } from './utils/Utils';
 import './TableNoData';
 import { TableNoData } from './TableNoData';
+import { TabCpuDetailsIrqHtml } from './TabCpuDetailsIrq.html';
 
 @element('tab-cpu-details-irq')
 export class TabCpuDetailsIrq extends BaseElement {
@@ -87,40 +88,7 @@ export class TabCpuDetailsIrq extends BaseElement {
       this.cpuDetailsLrqData = getDataNo(this.cpuDetailsLrqData);
       this.tableNoData!.noData = this.cpuDetailsLrqData.length == 0;
       this.noData(this.cpuDetailsLrqData.length == 0);
-      this.cpuDetailsLrqPie!.config = {
-        appendPadding: 0,
-        data: this.cpuDetailsLrqData,
-        angleField: 'sum',
-        colorField: 'value',
-        radius: 1,
-        label: {
-          type: 'outer',
-        },
-        tip: (irqObj) => {
-          return `<div>
-                                <div>block:${irqObj.obj.block}</div> 
-                                <div>name:${irqObj.obj.value}</div>
-                                <div>min:${irqObj.obj.min}</div>
-                                <div>max:${irqObj.obj.max}</div>
-                                <div>average:${irqObj.obj.avg}</div>
-                                <div>duration:${irqObj.obj.sumTimeStr}</div>
-                                <div>ratio:${irqObj.obj.ratio}%</div>
-                            </div>
-                                `;
-        },
-        hoverHandler: (data) => {
-          if (data) {
-            this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
-          } else {
-            this.cpuDetailsLrqUsageTbl!.mouseOut();
-          }
-        },
-        interactions: [
-          {
-            type: 'element-active',
-          },
-        ],
-      };
+      this.setLrqPieConfig();
       if (this.cpuDetailsLrqSortColumn != '') {
         this.sortByColumn({
           key: this.cpuDetailsLrqSortColumn,
@@ -131,6 +99,43 @@ export class TabCpuDetailsIrq extends BaseElement {
       }
       this.cpuDetailsLrqUsageTbl?.reMeauseHeight();
     });
+  }
+
+  private setLrqPieConfig(): void {
+    this.cpuDetailsLrqPie!.config = {
+      appendPadding: 0,
+      data: this.cpuDetailsLrqData,
+      angleField: 'sum',
+      colorField: 'value',
+      radius: 1,
+      label: {
+        type: 'outer',
+      },
+      tip: (irqObj) => {
+        return `<div>
+                                <div>block:${irqObj.obj.block}</div> 
+                                <div>name:${irqObj.obj.value}</div>
+                                <div>min:${irqObj.obj.min}</div>
+                                <div>max:${irqObj.obj.max}</div>
+                                <div>average:${irqObj.obj.avg}</div>
+                                <div>duration:${irqObj.obj.sumTimeStr}</div>
+                                <div>ratio:${irqObj.obj.ratio}%</div>
+                            </div>
+                                `;
+      },
+      hoverHandler: (data) => {
+        if (data) {
+          this.cpuDetailsLrqUsageTbl!.setCurrentHover(data);
+        } else {
+          this.cpuDetailsLrqUsageTbl!.mouseOut();
+        }
+      },
+      interactions: [
+        {
+          type: 'element-active',
+        },
+      ],
+    };
   }
 
   noData(value: boolean) {
@@ -201,57 +206,6 @@ export class TabCpuDetailsIrq extends BaseElement {
   }
 
   initHtml(): string {
-    return `
-        <style>
-        .irq-box{
-            display: flex;
-            margin: 20px;
-            height: calc(100vh - 165px);
-        }
-        .irq-chart-box{
-            width: 40%;
-        }
-        #tb-cpu-irq{
-            height: 100%;
-        }
-        .table-box{
-            border: solid 1px var(--dark-border1,#e0e0e0);
-            border-radius: 5px;
-            width: 60%;
-            max-height: calc(100vh - 165px);
-            padding: 10px;
-        }
-        :host {
-            width: 100%;
-            height: 100%;
-            background-color: var(--dark-background,#FFFFFF);
-        }
-        #chart-pie{
-            height: 360px;
-        }
-        </style>
-        <lit-progress-bar id="loading" style="height: 1px;width: 100%"></lit-progress-bar>
-        <div class="irq-box">
-            <div class="irq-chart-box">
-                <div style="text-align: center">Statistics By Duration</div>
-                <lit-chart-pie  id="chart-pie"></lit-chart-pie>
-            </div>
-            <div class="table-box">
-                <table-no-data id="table-no-data">
-                    <lit-table id="tb-cpu-irq" hideDownload>
-                        <lit-table-column width="100px" title="No" data-index="index" key="index" align="flex-start" order></lit-table-column>
-                        <lit-table-column width="150px" title="block" data-index="block" key="block" align="flex-start" order></lit-table-column>
-                        <!--<lit-table-column width="100px" title="id" data-index="id" key="id" align="flex-start" order></lit-table-column>-->
-                        <lit-table-column title="name" data-index="value" key="value" align="flex-start" order width="150px"></lit-table-column>
-                        <lit-table-column title="min" data-index="min" key="min" align="flex-start" order width="100px"></lit-table-column>
-                        <lit-table-column title="max" data-index="max" key="max" align="flex-start" order width="100px"></lit-table-column>
-                        <lit-table-column title="average" data-index="avg" key="avg" align="flex-start" order width="100px"></lit-table-column>
-                        <lit-table-column title="duration" data-index="sumTimeStr" key="sumTimeStr" align="flex-start" order width="100px"></lit-table-column>
-                        <lit-table-column title="%" data-index="ratio" key="ratio" align="flex-start" order width="100px"></lit-table-column>
-                    </lit-table>
-                </table-no-data>
-            </div>
-        </div>
-        `;
+    return TabCpuDetailsIrqHtml;
   }
 }

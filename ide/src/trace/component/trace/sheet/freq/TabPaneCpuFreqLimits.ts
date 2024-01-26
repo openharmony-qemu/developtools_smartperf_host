@@ -18,9 +18,9 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { ColorUtils } from '../../base/ColorUtils';
-import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { CpuFreqLimitsStruct } from '../../../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { resizeObserver } from '../SheetUtils';
-import { getCpuLimitFreqBoxSelect } from '../../../../database/SqlLite';
+import { getCpuLimitFreqBoxSelect } from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-freq-limits')
 export class TabPaneCpuFreqLimits extends BaseElement {
@@ -102,45 +102,61 @@ export class TabPaneCpuFreqLimits extends BaseElement {
     this.sortCpuFreqLimitTable(this.cpuFreqLimitSortKey, this.cpuFreqLimitSortType);
   }
 
-  sortCpuFreqLimitTable(key: string, type: number) {
+  sortCpuFreqLimitTable(key: string, type: number): void {
     if (type == 0) {
       this.cpuFreqLimitsTbl!.recycleDataSource = this.cpuFreqLimitSource;
     } else {
       let cpuFreqLimitsArr = Array.from(this.cpuFreqLimitSource);
       cpuFreqLimitsArr.sort((cpuFreqLimitA, cpuFreqLimitB): number => {
         if (key == 'timeStr') {
-          if (type == 1) {
-            return cpuFreqLimitA.time - cpuFreqLimitB.time;
-          } else {
-            return cpuFreqLimitB.time - cpuFreqLimitA.time;
-          }
+          return this.compareTime(cpuFreqLimitA, cpuFreqLimitB, type);
         } else if (key == 'valueStr') {
-          if (type == 1) {
-            return cpuFreqLimitA.value - cpuFreqLimitB.value;
-          } else {
-            return cpuFreqLimitB.value - cpuFreqLimitA.value;
-          }
+          return this.compareValue(cpuFreqLimitA, cpuFreqLimitB, type);
         } else if (key == 'cpu') {
-          if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
-            return type === 2 ? -1 : 1;
-          } else if (cpuFreqLimitA.cpu == cpuFreqLimitB.cpu) {
-            return 0;
-          } else {
-            return type === 2 ? 1 : -1;
-          }
+          return this.compareCpu(cpuFreqLimitA, cpuFreqLimitB, type);
         } else if (key == 'type') {
-          if (cpuFreqLimitA.type > cpuFreqLimitB.type) {
-            return type === 2 ? 1 : -1;
-          } else if (cpuFreqLimitA.type == cpuFreqLimitB.type) {
-            return 0;
-          } else {
-            return type === 2 ? -1 : 1;
-          }
+          return this.compareType(cpuFreqLimitA, cpuFreqLimitB, type);
         } else {
           return 0;
         }
       });
       this.cpuFreqLimitsTbl!.recycleDataSource = cpuFreqLimitsArr;
+    }
+  }
+
+  compareTime(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+    if (type == 1) {
+      return cpuFreqLimitA.time - cpuFreqLimitB.time;
+    } else {
+      return cpuFreqLimitB.time - cpuFreqLimitA.time;
+    }
+  }
+
+  compareValue(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+    if (type == 1) {
+      return cpuFreqLimitA.value - cpuFreqLimitB.value;
+    } else {
+      return cpuFreqLimitB.value - cpuFreqLimitA.value;
+    }
+  }
+
+  compareCpu(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+    if (cpuFreqLimitA.cpu > cpuFreqLimitB.cpu) {
+      return type === 2 ? -1 : 1;
+    } else if (cpuFreqLimitA.cpu == cpuFreqLimitB.cpu) {
+      return 0;
+    } else {
+      return type === 2 ? 1 : -1;
+    }
+  }
+
+  compareType(cpuFreqLimitA: any, cpuFreqLimitB: any, type: number): number {
+    if (cpuFreqLimitA.type > cpuFreqLimitB.type) {
+      return type === 2 ? 1 : -1;
+    } else if (cpuFreqLimitA.type == cpuFreqLimitB.type) {
+      return 0;
+    } else {
+      return type === 2 ? -1 : 1;
     }
   }
 

@@ -18,12 +18,12 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { SmapsType } from '../../../../bean/SmapsStruct';
-import { querySmapsRecordTabData } from '../../../../database/SqlLite';
 import { getByteWithUnit } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { SnapshotStruct } from '../../../../database/ui-worker/ProcedureWorkerSnapshot';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
+import {querySmapsRecordTabData} from "../../../../database/sql/Smaps.sql";
 @element('tabpane-smaps-record')
 export class TabPaneSmapsRecord extends BaseElement {
   private smapsRecordTable: LitTable | undefined | null;

@@ -147,7 +147,7 @@ export class SportRuler extends Graph {
     this.draw();
   }
 
-  modifySicesTimeList(slicestime: SlicesTime | null | undefined) {
+  modifySicesTimeList(slicestime: SlicesTime | null | undefined): void {
     if (slicestime) {
       let i = this.slicesTimeList.findIndex((it) => it.id == slicestime.id);
       if (slicestime.hidden) {
@@ -165,7 +165,35 @@ export class SportRuler extends Graph {
     }
     this.draw();
   }
+
   draw(): void {
+    this.draBasicsRuler();
+    //绘制旗子
+    this.flagList.forEach((flagObj: Flag, b) => {
+      if (flagObj.time >= this.range.startNS && flagObj.time <= this.range.endNS) {
+        flagObj.x = Math.round(
+          (this.rulerW * (flagObj.time - this.range.startNS)) / (this.range.endNS - this.range.startNS)
+        );
+        this.drawFlag(flagObj.x, flagObj.color, flagObj.selected, flagObj.text, flagObj.type);
+      }
+    });
+    !this.hoverFlag.hidden && this.drawFlag(this.hoverFlag.x, this.hoverFlag.color, true, this.hoverFlag.text);
+    //If region selection is enabled, the serial number draws a line on the axis to show the length of the box selection
+    if (this.isRangeSelect) {
+      this.drawRangeSelect();
+    }
+    if (this.invertedTriangleTime != null && typeof this.invertedTriangleTime != undefined) {
+      this.drawInvertedTriangle(
+        this.invertedTriangleTime,
+        document.querySelector<SpApplication>('sp-application')!.dark ? '#FFFFFF' : '#000000'
+      );
+    }
+    this.slicesTimeList.forEach((slicesTime) => {
+      this.drawSlicesMarks(slicesTime);
+    });
+  }
+
+  draBasicsRuler(): void{
     this.rulerW = this.canvas!.offsetWidth;
     this.context2D.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height + 1);
     this.context2D.beginPath();
@@ -195,159 +223,153 @@ export class SportRuler extends Graph {
     });
     this.context2D.stroke();
     this.context2D.closePath();
-    //绘制旗子
-    this.flagList.forEach((flagObj: Flag, b) => {
-      if (flagObj.time >= this.range.startNS && flagObj.time <= this.range.endNS) {
-        flagObj.x = Math.round(
-          (this.rulerW * (flagObj.time - this.range.startNS)) / (this.range.endNS - this.range.startNS)
-        );
-        this.drawFlag(flagObj.x, flagObj.color, flagObj.selected, flagObj.text, flagObj.type);
-      }
-    });
-    !this.hoverFlag.hidden && this.drawFlag(this.hoverFlag.x, this.hoverFlag.color, true, this.hoverFlag.text);
-    //If region selection is enabled, the serial number draws a line on the axis to show the length of the box selection
-    if (this.isRangeSelect) {
-      let range = TraceRow.rangeSelectObject;
-      this.context2D.beginPath();
-      if (document.querySelector<SpApplication>('sp-application')!.dark) {
-        this.context2D.strokeStyle = '#FFF';
-        this.context2D.fillStyle = '#FFF';
-      } else {
-        this.context2D.strokeStyle = '#000';
-        this.context2D.fillStyle = '#000';
-      }
-      let start_X = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
-      let endX = ns2x(range?.endNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
-      let lineWidth = endX - start_X;
-      let txt = ns2s((range?.endNS || 0) - (range?.startNS || 0));
-      this.context2D.moveTo(start_X, this.frame.y + 22);
-      this.context2D.lineTo(endX, this.frame.y + 22);
-      this.context2D.moveTo(start_X, this.frame.y + 22 - 5);
-      this.context2D.lineTo(start_X, this.frame.y + 22 + 5);
-      this.context2D.moveTo(endX, this.frame.y + 22 - 5);
-      this.context2D.lineTo(endX, this.frame.y + 22 + 5);
-      let textWidth = this.context2D.measureText(txt).width;
-      if (lineWidth > textWidth) {
-        this.context2D.fillText(`${txt}`, start_X + (lineWidth - textWidth) / 2, this.frame.y + 20);
-      } else {
-        if (endX + textWidth >= this.frame.width) {
-          this.context2D.fillText(`${txt}`, start_X - 5 - textWidth, this.frame.y + 20);
-        } else {
-          this.context2D.fillText(`${txt}`, endX + 5, this.frame.y + 20);
-        }
-      }
-      if (this.timeArray.length > 0 && TraceRow.rangeSelectObject) {
-        // 页面可视框选区域的宽度
-        let rangeSelectWidth = TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!;
-        // 每段宽度必须大于总数的宽度
-        // 10,2+8,2是线的宽度，8是留的空隙，不然很不好看
-        // 分section段
-        let section = Math.floor(
-          rangeSelectWidth / (this.context2D.measureText(String(this.timeArray.length)).width + 10)
-        );
-        // 最多画二十段
-        section < 20 ? (section = section) : (section = 20);
-        // 最少一段
-        section < 1 ? (section = 1) : (section = section);
-        // 框选泳道图并放大左右移动后，框选的部分区域会移出可视区域,
-        // TraceRow.rangeSelectObject的开始结束时间仍然是框选时的时间，要和this.range进行比较取可视框选范围的时间
-        let startNS;
-        let endNS;
-        TraceRow.rangeSelectObject!.startNS! > this.range.startNS
-          ? (startNS = TraceRow.rangeSelectObject!.startNS!)
-          : (startNS = this.range.startNS);
-        TraceRow.rangeSelectObject!.endNS! > this.range.endNS
-          ? (endNS = this.range.endNS)
-          : (endNS = TraceRow.rangeSelectObject!.endNS!);
-        // 每一格的时间
-        let sectionTime = (endNS - startNS) / section;
-        let countArr = new Uint32Array(section);
-        let count: number = 0; //某段时间的调用栈数量
-        const useIndex: number[] = [];
-        const isEbpf = this.durArray && this.durArray.length > 0;
-        for (let i = 1; i <= section; i++) {
-          count = 0;
-          for (let j = 0; j < this.timeArray.length; j++) {
-            if (isEbpf && useIndex.includes(j)) {
-              continue;
-            }
-            const itemTime = this.timeArray[j];
-            let inRange = false;
-            // ebpf需要考虑dur
-            if (this.durArray && this.durArray.length > 0) {
-              const dur = this.durArray[j];
-              if (itemTime === this.range.endNS) {
-                // 如果时间点刚好和时间轴结束时间一样会导致该时间点没有计数,所以此情况需要的判断条件要多个等号
-                inRange =
-                  itemTime >= startNS + sectionTime * (i - 1) &&
-                  itemTime <= startNS + sectionTime * i &&
-                  itemTime >= this.range.startNS &&
-                  itemTime <= this.range.endNS;
-              } else {
-                // 判断时间点是否在某时间段内时，一般情况下和左边界相同算在该时间段，和右边界相同算在下一段，
-                inRange =
-                  itemTime + dur >= startNS + sectionTime * (i - 1) &&
-                  itemTime < startNS + sectionTime * i &&
-                  itemTime + dur >= this.range.startNS &&
-                  itemTime < this.range.endNS;
-              }
-            } else {
-              if (itemTime === this.range.endNS) {
-                inRange =
-                  itemTime >= startNS + sectionTime * (i - 1) &&
-                  itemTime <= startNS + sectionTime * i &&
-                  itemTime >= this.range.startNS &&
-                  itemTime <= this.range.endNS;
-              } else {
-                inRange =
-                  itemTime >= startNS + sectionTime * (i - 1) &&
-                  itemTime < startNS + sectionTime * i &&
-                  itemTime >= this.range.startNS &&
-                  itemTime < this.range.endNS;
-              }
-            }
-            // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
-            if (inRange) {
-              // nm统计模式则统计每个时间的count
-              if (this.countArray && this.countArray[j] > 0) {
-                count += this.countArray[j];
-              } else {
-                count++;
-              }
-              useIndex.push(j);
-              countArr[i - 1] = count;
-            } else {
-              // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
-              continue;
-            }
-          }
-          let x = TraceRow.rangeSelectObject!.startX! + (rangeSelectWidth / section) * i;
-          if (i !== section) {
-            this.context2D.moveTo(x, this.frame.y + 22);
-            this.context2D.lineTo(x, this.frame.y + 22 + 5);
-          }
-          // 每一格的数量的数字宽度
-          let countTextWidth = this.context2D.measureText(String(countArr[i - 1])).width;
-          // 文本的开始位置 = 框选的开始位置 + 格数 + (一格的宽度 - 文本的宽度) / 2
-          let textY =
-            TraceRow.rangeSelectObject!.startX! +
-            (rangeSelectWidth / section) * (i - 1) +
-            (rangeSelectWidth / section - countTextWidth) / 2;
-          this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 12);
-        }
-      }
-      this.context2D.stroke();
-      this.context2D.closePath();
+  }
+
+  private initRangeSelect() {
+    let range = TraceRow.rangeSelectObject;
+    this.context2D.beginPath();
+    if (document.querySelector<SpApplication>('sp-application')!.dark) {
+      this.context2D.strokeStyle = '#FFF';
+      this.context2D.fillStyle = '#FFF';
+    } else {
+      this.context2D.strokeStyle = '#000';
+      this.context2D.fillStyle = '#000';
     }
-    if (this.invertedTriangleTime != null && typeof this.invertedTriangleTime != undefined) {
-      this.drawInvertedTriangle(
-        this.invertedTriangleTime,
-        document.querySelector<SpApplication>('sp-application')!.dark ? '#FFFFFF' : '#000000'
+    let start_X = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
+    let endX = ns2x(range?.endNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
+    let lineWidth = endX - start_X;
+    let txt = ns2s((range?.endNS || 0) - (range?.startNS || 0));
+    this.context2D.moveTo(start_X, this.frame.y + 22);
+    this.context2D.lineTo(endX, this.frame.y + 22);
+    this.context2D.moveTo(start_X, this.frame.y + 22 - 5);
+    this.context2D.lineTo(start_X, this.frame.y + 22 + 5);
+    this.context2D.moveTo(endX, this.frame.y + 22 - 5);
+    this.context2D.lineTo(endX, this.frame.y + 22 + 5);
+    let textWidth = this.context2D.measureText(txt).width;
+    if (lineWidth > textWidth) {
+      this.context2D.fillText(`${txt}`, start_X + (lineWidth - textWidth) / 2, this.frame.y + 20);
+    } else {
+      if (endX + textWidth >= this.frame.width) {
+        this.context2D.fillText(`${txt}`, start_X - 5 - textWidth, this.frame.y + 20);
+      } else {
+        this.context2D.fillText(`${txt}`, endX + 5, this.frame.y + 20);
+      }
+    }
+  }
+
+  drawRangeSelect(): void{
+    this.initRangeSelect();
+    if (this.timeArray.length > 0 && TraceRow.rangeSelectObject) {
+      // 页面可视框选区域的宽度
+      let rangeSelectWidth = TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!;
+      // 每段宽度必须大于总数的宽度
+      // 10,2+8,2是线的宽度，8是留的空隙，不然很不好看
+      // 分section段
+      let section = Math.floor(
+        rangeSelectWidth / (this.context2D.measureText(String(this.timeArray.length)).width + 10)
       );
+      // 最多画二十段
+      section < 20 ? (section = section) : (section = 20);
+      // 最少一段
+      section < 1 ? (section = 1) : (section = section);
+      // 框选泳道图并放大左右移动后，框选的部分区域会移出可视区域,
+      // TraceRow.rangeSelectObject的开始结束时间仍然是框选时的时间，要和this.range进行比较取可视框选范围的时间
+      let startNS;
+      let endNS;
+      TraceRow.rangeSelectObject!.startNS! > this.range.startNS
+        ? (startNS = TraceRow.rangeSelectObject!.startNS!)
+        : (startNS = this.range.startNS);
+      TraceRow.rangeSelectObject!.endNS! > this.range.endNS
+        ? (endNS = this.range.endNS)
+        : (endNS = TraceRow.rangeSelectObject!.endNS!);
+      // 每一格的时间
+      let sectionTime = (endNS - startNS) / section;
+      let countArr = new Uint32Array(section);
+      let count: number = 0; //某段时间的调用栈数量
+      const useIndex: number[] = [];
+      const isEbpf = this.durArray && this.durArray.length > 0;
+      for (let i = 1; i <= section; i++) {
+        count = 0;
+        for (let j = 0; j < this.timeArray.length; j++) {
+          if (isEbpf && useIndex.includes(j)) {
+            continue;
+          }
+          let inRange = this.freshInRange(j, startNS, sectionTime, i);
+          // 如果该时间小于第一个分割点的时间，计数加1，从而算出一段时间的时间数量
+          if (inRange) {
+            // nm统计模式则统计每个时间的count
+            if (this.countArray && this.countArray[j] > 0) {
+              count += this.countArray[j];
+            } else {
+              count++;
+            }
+            useIndex.push(j);
+            countArr[i - 1] = count;
+          } else {
+            // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
+            continue;
+          }
+        }
+        this.drawRangeSelectFillText(rangeSelectWidth, section, i, countArr);
+      }
     }
-    this.slicesTimeList.forEach((slicesTime) => {
-      this.drawSlicesMarks(slicesTime);
-    });
+    this.context2D.stroke();
+    this.context2D.closePath();
+  }
+
+  private drawRangeSelectFillText(rangeSelectWidth: number, section: number, i: number, countArr: Uint32Array){
+    let x = TraceRow.rangeSelectObject!.startX! + (rangeSelectWidth / section) * i;
+    if (i !== section) {
+      this.context2D.moveTo(x, this.frame.y + 22);
+      this.context2D.lineTo(x, this.frame.y + 22 + 5);
+    }
+    // 每一格的数量的数字宽度
+    let countTextWidth = this.context2D.measureText(String(countArr[i - 1])).width;
+    // 文本的开始位置 = 框选的开始位置 + 格数 + (一格的宽度 - 文本的宽度) / 2
+    let textY =
+      TraceRow.rangeSelectObject!.startX! +
+      (rangeSelectWidth / section) * (i - 1) +
+      (rangeSelectWidth / section - countTextWidth) / 2;
+    this.context2D.fillText(String(countArr[i - 1]), textY, this.frame.y + 22 + 12);
+  }
+
+  private freshInRange(j: number, startNS: number, sectionTime: number, i: number): boolean {
+    let inRange = false;
+    const itemTime = this.timeArray[j];
+    // ebpf需要考虑dur
+    if (this.durArray && this.durArray.length > 0) {
+      const dur = this.durArray[j];
+      if (itemTime === this.range.endNS) {
+        // 如果时间点刚好和时间轴结束时间一样会导致该时间点没有计数,所以此情况需要的判断条件要多个等号
+        inRange =
+          itemTime >= startNS + sectionTime * (i - 1) &&
+          itemTime <= startNS + sectionTime * i &&
+          itemTime >= this.range.startNS &&
+          itemTime <= this.range.endNS;
+      } else {
+        // 判断时间点是否在某时间段内时，一般情况下和左边界相同算在该时间段，和右边界相同算在下一段，
+        inRange =
+          itemTime + dur >= startNS + sectionTime * (i - 1) &&
+          itemTime < startNS + sectionTime * i &&
+          itemTime + dur >= this.range.startNS &&
+          itemTime < this.range.endNS;
+      }
+    } else {
+      if (itemTime === this.range.endNS) {
+        inRange =
+          itemTime >= startNS + sectionTime * (i - 1) &&
+          itemTime <= startNS + sectionTime * i &&
+          itemTime >= this.range.startNS &&
+          itemTime <= this.range.endNS;
+      } else {
+        inRange =
+          itemTime >= startNS + sectionTime * (i - 1) &&
+          itemTime < startNS + sectionTime * i &&
+          itemTime >= this.range.startNS &&
+          itemTime < this.range.endNS;
+      }
+    }
+    return inRange;
   }
 
   drawTriangle(time: number, type: string) {
@@ -424,9 +446,7 @@ export class SportRuler extends Graph {
     }
   }
 
-  setSlicesMark(
-    startTime: number | null = null,
-    endTime: number | null = null,
+  setSlicesMark( startTime: number | null = null, endTime: number | null = null,
     shiftKey: boolean | null = null
   ): SlicesTime | null {
     let findSlicesTime = this.slicesTimeList.find((it) => it.startTime === startTime && it.endTime === endTime);
@@ -444,8 +464,7 @@ export class SportRuler extends Graph {
           (this.rulerW * (startTime - this.range.startNS)) / (this.range.endNS - this.range.startNS)
         );
         let endX = Math.round((this.rulerW * (endTime - this.range.startNS)) / (this.range.endNS - this.range.startNS));
-        let color = randomRgbColor() || '#ff0000';
-        this.slicesTime.color = color;
+        this.slicesTime.color = randomRgbColor() || '#ff0000';
         let text = '';
         newSlicestime = new SlicesTime(
           this.slicesTime.startTime || 0,
@@ -454,13 +473,12 @@ export class SportRuler extends Graph {
           this.range.endNS,
           startX,
           endX,
-          color,
+          this.slicesTime.color,
           text,
           true
         );
         if (!shiftKey) {
           this.clearTempSlicesTime(); // 清除临时对象
-
           // 如果没有按下shift键，则把当前slicestime对象的类型设为临时类型。
           newSlicestime.type = StType.TEMP;
         }
@@ -502,6 +520,57 @@ export class SportRuler extends Graph {
     this.hoverFlag.hidden = false;
   }
 
+  private drawSlicesTimeText(slicesTime: SlicesTime, startX: number, endX: number): number[] {
+    this.context2D.beginPath();
+    this.context2D.strokeStyle = slicesTime.color;
+    this.context2D.fillStyle = slicesTime.color;
+    this.range.slicesTime.color = slicesTime.color; //紫色
+    this.context2D.moveTo(startX + TRIWIDTH, 132);
+    this.context2D.lineTo(startX, 142);
+    this.context2D.lineTo(startX, 132);
+    this.context2D.lineTo(startX + TRIWIDTH, 132);
+
+    this.context2D.lineTo(endX - TRIWIDTH, 132);
+    this.context2D.lineTo(endX, 132);
+    this.context2D.lineTo(endX, 142);
+    this.context2D.lineTo(endX - TRIWIDTH, 132);
+    this.context2D.closePath();
+    slicesTime.selected && this.context2D.fill();
+    this.context2D.stroke();
+    this.context2D.beginPath();
+    if (document.querySelector<SpApplication>('sp-application')!.dark) {
+      this.context2D.strokeStyle = '#FFF';
+      this.context2D.fillStyle = '#FFF';
+    } else {
+      this.context2D.strokeStyle = '#000';
+      this.context2D.fillStyle = '#000';
+    }
+    let lineWidth = endX - startX;
+    let txt = ns2s((slicesTime.endTime || 0) - (slicesTime.startTime || 0));
+    this.context2D.moveTo(startX, this.frame.y + 22);
+    this.context2D.lineTo(endX, this.frame.y + 22);
+    this.context2D.moveTo(startX, this.frame.y + 22 - 5);
+    this.context2D.lineTo(startX, this.frame.y + 22 + 5);
+    this.context2D.moveTo(endX, this.frame.y + 22 - 5);
+    this.context2D.lineTo(endX, this.frame.y + 22 + 5);
+    let txtWidth = this.context2D.measureText(txt).width;
+    this.context2D.fillStyle = '#FFF'; //为了解决文字重叠问题。在时间刻度的文字下面绘制一个小方块
+    this.context2D.fillRect(startX + (lineWidth - txtWidth) / 2, this.frame.y + 10, txtWidth + 2, 10);
+    this.context2D.fillStyle = 'black';
+    if (lineWidth > txtWidth) {
+      this.context2D.fillText(`${txt}`, startX + (lineWidth - txtWidth) / 2, this.frame.y + 20);
+    } else {
+      if (endX + txtWidth >= this.frame.width) {
+        this.context2D.fillText(`${txt}`, startX - 5 - txtWidth, this.frame.y + 20);
+      } else {
+        this.context2D.fillText(`${txt}`, endX + 5, this.frame.y + 20);
+      }
+    }
+    this.context2D.stroke();
+    this.context2D.closePath();
+    return [lineWidth, txtWidth];
+  }
+
   drawSlicesMarks(slicesTime: SlicesTime) {
     if (
       slicesTime.startTime != null &&
@@ -518,57 +587,7 @@ export class SportRuler extends Graph {
       // 放大、缩小、左右移动之后重置小三角的x轴坐标
       slicesTime.startX = startX;
       slicesTime.endX = endX;
-
-      this.context2D.beginPath();
-      this.context2D.strokeStyle = slicesTime.color;
-      this.context2D.fillStyle = slicesTime.color;
-      this.range.slicesTime.color = slicesTime.color; //紫色
-
-      this.context2D.moveTo(startX + TRIWIDTH, 132);
-      this.context2D.lineTo(startX, 142);
-      this.context2D.lineTo(startX, 132);
-      this.context2D.lineTo(startX + TRIWIDTH, 132);
-
-      this.context2D.lineTo(endX - TRIWIDTH, 132);
-      this.context2D.lineTo(endX, 132);
-      this.context2D.lineTo(endX, 142);
-      this.context2D.lineTo(endX - TRIWIDTH, 132);
-      this.context2D.closePath();
-      slicesTime.selected && this.context2D.fill();
-      this.context2D.stroke();
-
-      this.context2D.beginPath();
-      if (document.querySelector<SpApplication>('sp-application')!.dark) {
-        this.context2D.strokeStyle = '#FFF';
-        this.context2D.fillStyle = '#FFF';
-      } else {
-        this.context2D.strokeStyle = '#000';
-        this.context2D.fillStyle = '#000';
-      }
-      let lineWidth = endX - startX;
-      let txt = ns2s((slicesTime.endTime || 0) - (slicesTime.startTime || 0));
-      this.context2D.moveTo(startX, this.frame.y + 22);
-      this.context2D.lineTo(endX, this.frame.y + 22);
-      this.context2D.moveTo(startX, this.frame.y + 22 - 5);
-      this.context2D.lineTo(startX, this.frame.y + 22 + 5);
-      this.context2D.moveTo(endX, this.frame.y + 22 - 5);
-      this.context2D.lineTo(endX, this.frame.y + 22 + 5);
-      let txtWidth = this.context2D.measureText(txt).width;
-      this.context2D.fillStyle = '#FFF'; //为了解决文字重叠问题。在时间刻度的文字下面绘制一个小方块
-      this.context2D.fillRect(startX + (lineWidth - txtWidth) / 2, this.frame.y + 10, txtWidth + 2, 10);
-      this.context2D.fillStyle = 'black';
-      if (lineWidth > txtWidth) {
-        this.context2D.fillText(`${txt}`, startX + (lineWidth - txtWidth) / 2, this.frame.y + 20);
-      } else {
-        if (endX + txtWidth >= this.frame.width) {
-          this.context2D.fillText(`${txt}`, startX - 5 - txtWidth, this.frame.y + 20);
-        } else {
-          this.context2D.fillText(`${txt}`, endX + 5, this.frame.y + 20);
-        }
-      }
-      this.context2D.stroke();
-      this.context2D.closePath();
-
+      let [lineWidth, txtWidth] = this.drawSlicesTimeText(slicesTime, startX, endX);
       // 画框选的备注文字---begin-----------------
       let text = slicesTime.text;
       if (text) {

@@ -15,7 +15,6 @@
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { type SelectionParam } from '../../../../bean/BoxSelection';
-import { queryGpuDataByRange } from '../../../../database/SqlLite';
 import { type LitTable } from '../../../../../base-ui/table/lit-table';
 import { log } from '../../../../../log/Log';
 import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
@@ -23,6 +22,7 @@ import { resizeObserver } from '../SheetUtils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
+import {queryGpuDataByRange} from "../../../../database/sql/Gpu.sql";
 
 interface GpuTotal {
   startTs: number;

@@ -16,10 +16,10 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection';
-import { getTabBoxChildData } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { SPTChild } from '../../../../bean/StateProcessThread';
 import { resizeObserver } from '../SheetUtils';
+import {getTabBoxChildData} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {
@@ -28,8 +28,10 @@ export class TabPaneBoxChild extends BaseElement {
   private boxChildSource: Array<SPTChild> = [];
 
   set data(boxChildValue: BoxJumpParam) {
-    // @ts-ignore
-    this.boxChildTbl?.shadowRoot?.querySelector('.table')?.style?.height = this.parentElement!.clientHeight - 45 + 'px';
+    if (this.boxChildTbl) {
+      // @ts-ignore
+      this.boxChildTbl.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+    }
     this.boxChildRange!.textContent =
       'Selected range: ' + parseFloat(((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';
     this.boxChildTbl!.recycleDataSource = [];
@@ -67,12 +69,16 @@ export class TabPaneBoxChild extends BaseElement {
           e.note = '-';
         });
         this.boxChildSource = result;
-        // @ts-ignore
-        this.boxChildTbl?.recycleDataSource = result;
+        if (this.boxChildTbl) {
+          // @ts-ignore
+          this.boxChildTbl.recycleDataSource = result;
+        }
       } else {
         this.boxChildSource = [];
-        // @ts-ignore
-        this.boxChildTbl?.recycleDataSource = [];
+        if (this.boxChildTbl) {
+          // @ts-ignore
+          this.boxChildTbl.recycleDataSource = [];
+        }
       }
     });
   }

@@ -69,24 +69,25 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
   }
 
-  mouseUp(mouseEventUp: MouseEvent): void {
-    this.endPageX = mouseEventUp.pageX;
-    this.endPageY = mouseEventUp.pageY;
+  mouseUp(mouseEventUp?: MouseEvent): void {
+    if (mouseEventUp) {
+      this.endPageX = mouseEventUp.pageX;
+      this.endPageY = mouseEventUp.pageY;
+    }
     if (this.drag) {
       if (this.selectHandler) {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }
-      // 查询render_service数据
+      //查询render_service数据
       if (this.rangeTraceRow?.length) {
+        // 如果框选的第一行和最后一行的父节点名称都以render_service开头
         if (
-          // 如果框选的第一行和最后一行的父节点名称都以render_service开头
           this.rangeTraceRow[0]!.parentRowEl?.getAttribute('name')?.startsWith('render_service') &&
           this.rangeTraceRow[this.rangeTraceRow.length - 1].parentRowEl?.getAttribute('name')?.startsWith('render_service')
         ) {
           this.handleFrameRateData(this.rangeTraceRow!, 'render_service', 'H:RSMainThread::DoComposition');
           this.handleFrameRateData(this.rangeTraceRow!, 'RSHardwareThrea', 'H:Repaint');
           this.handleFrameRateData(this.rangeTraceRow!, 'Present Fence', 'H:Waiting for Present Fence');
-          this.trace?.refreshCanvas(true);
         }
       }
     }
@@ -190,80 +191,30 @@ export class RangeSelect {
     this.endPageX = ev.pageX;
     this.endPageY = ev.pageY;
     if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {
-      info('isTouchMark');
-      let x1 =
-        ((TraceRow.rangeSelectObject!.startNS! - TraceRow.range!.startNS) *
-          (this.timerShaftEL?.canvas?.clientWidth || 0)) /
-        (TraceRow.range!.endNS - TraceRow.range!.startNS);
-      let x2 =
-        ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
-          (this.timerShaftEL?.canvas?.clientWidth || 0)) /
-        (TraceRow.range!.endNS - TraceRow.range!.startNS);
-      this.mark = {startMark: x1, endMark: x2};
-      let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;
-      if (mouseX > x1 - 5 && mouseX < x1 + 5) {
-        this.isHover = true;
-        document.body.style.cursor = 'ew-resize';
-        this.movingMark = x1 < x2 ? 'markA' : 'markB';
-      } else if (mouseX > x2 - 5 && mouseX < x2 + 5) {
-        this.isHover = true;
-        document.body.style.cursor = 'ew-resize';
-        this.movingMark = x2 < x1 ? 'markA' : 'markB';
-      } else {
-        this.isHover = false;
-        document.body.style.cursor = 'default';
-      }
+      this.handleTouchMark(ev);
     } else {
       document.body.style.cursor = 'default';
     }
     if (this.isHover && this.isMouseDown) {
-      let rangeSelect: RangeSelectStruct | undefined;
-      this.rangeTraceRow = rows.filter((it) => {
-        if (it.rangeSelect) {
-          if (!rangeSelect) {
-            rangeSelect = new RangeSelectStruct();
-            let mouseX = ev.pageX - this.rowsEL!.getBoundingClientRect().left - 248;
-            mouseX = mouseX < 0 ? 0 : mouseX;
-            let markA = this.movingMark == 'markA' ? mouseX : this.mark.startMark;
-            let markB = this.movingMark == 'markB' ? mouseX : this.mark.endMark;
-            let startX = markA < markB ? markA : markB;
-            let endX = markB < markA ? markA : markB;
-            rangeSelect.startX = startX;
-            rangeSelect.endX = endX;
-            rangeSelect.startNS = RangeSelect.SetNS(it, startX);
-            rangeSelect.endNS = RangeSelect.SetNS(it, endX);
-            if (rangeSelect.startNS <= TraceRow.range!.startNS) {
-              rangeSelect.startNS = TraceRow.range!.startNS;
-            }
-            if (rangeSelect.endNS >= TraceRow.range!.endNS) {
-              rangeSelect.endNS = TraceRow.range!.endNS;
-            }
-            if (startX < 0) {
-              rangeSelect.startNS = TraceRow.rangeSelectObject!.startNS!;
-            }
-            if (endX > it.frame.width) {
-              rangeSelect.endNS = TraceRow.rangeSelectObject!.endNS!;
-            }
-          }
-          TraceRow.rangeSelectObject = rangeSelect;
-          return true;
-        }
-      });
-      this.timerShaftEL!.sportRuler!.isRangeSelect = (this.rangeTraceRow?.length || 0) > 0;
-      this.timerShaftEL!.sportRuler!.draw();
+      this.handleRangeSelectAndDraw(rows, ev);
       return;
     }
     if (!this.isMouseDown) {
-      this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.isNotEmpty() ?? false;
-      this.timerShaftEL!.sportRuler!.draw();
+      this.handleDrawForNotMouseDown();
       return;
     }
+    this.handleRangeSelect(rows);
+    this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow!.length > 0;
+    this.timerShaftEL!.sportRuler!.draw();
+  }
+
+  private handleRangeSelect(rows: Array<TraceRow<any>>): void {
     let rangeSelect: RangeSelectStruct | undefined;
     let favoriteRect = this.trace?.favoriteChartListEL?.getBoundingClientRect();
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
     this.rangeTraceRow = rows.filter((it) => {
       let domRect = it.getBoundingClientRect();
-      let itRect = {x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height};
+      let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
       if (itRect.y < favoriteLimit && !it.collect) {
         let offset = favoriteLimit - itRect.y;
         itRect.y = itRect.y + offset;
@@ -309,8 +260,74 @@ export class RangeSelect {
         }
       }
     }
-    this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.length > 0;
+  }
+
+  private handleDrawForNotMouseDown(): void {
+    this.timerShaftEL!.sportRuler!.isRangeSelect = this.rangeTraceRow?.isNotEmpty() ?? false;
     this.timerShaftEL!.sportRuler!.draw();
+  }
+
+  private handleRangeSelectAndDraw(rows: Array<TraceRow<any>>, ev: MouseEvent): void {
+    let rangeSelect: RangeSelectStruct | undefined;
+    this.rangeTraceRow = rows.filter((it) => {
+      if (it.rangeSelect) {
+        if (!rangeSelect) {
+          rangeSelect = new RangeSelectStruct();
+          let mouseX = ev.pageX - this.rowsEL!.getBoundingClientRect().left - 248;
+          mouseX = mouseX < 0 ? 0 : mouseX;
+          let markA = this.movingMark == 'markA' ? mouseX : this.mark.startMark;
+          let markB = this.movingMark == 'markB' ? mouseX : this.mark.endMark;
+          let startX = markA < markB ? markA : markB;
+          let endX = markB < markA ? markA : markB;
+          rangeSelect.startX = startX;
+          rangeSelect.endX = endX;
+          rangeSelect.startNS = RangeSelect.SetNS(it, startX);
+          rangeSelect.endNS = RangeSelect.SetNS(it, endX);
+          if (rangeSelect.startNS <= TraceRow.range!.startNS) {
+            rangeSelect.startNS = TraceRow.range!.startNS;
+          }
+          if (rangeSelect.endNS >= TraceRow.range!.endNS) {
+            rangeSelect.endNS = TraceRow.range!.endNS;
+          }
+          if (startX < 0) {
+            rangeSelect.startNS = TraceRow.rangeSelectObject!.startNS!;
+          }
+          if (endX > it.frame.width) {
+            rangeSelect.endNS = TraceRow.rangeSelectObject!.endNS!;
+          }
+        }
+        TraceRow.rangeSelectObject = rangeSelect;
+        return true;
+      }
+    });
+    this.timerShaftEL!.sportRuler!.isRangeSelect = (this.rangeTraceRow?.length || 0) > 0;
+    this.timerShaftEL!.sportRuler!.draw();
+  }
+
+  private handleTouchMark(ev: MouseEvent): void {
+    info('isTouchMark');
+    let x1 =
+      ((TraceRow.rangeSelectObject!.startNS! - TraceRow.range!.startNS) *
+        (this.timerShaftEL?.canvas?.clientWidth || 0)) /
+      (TraceRow.range!.endNS - TraceRow.range!.startNS);
+    let x2 =
+      ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
+        (this.timerShaftEL?.canvas?.clientWidth || 0)) /
+      (TraceRow.range!.endNS - TraceRow.range!.startNS);
+    this.mark = { startMark: x1, endMark: x2 };
+    let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;
+    if (mouseX > x1 - 5 && mouseX < x1 + 5) {
+      this.isHover = true;
+      document.body.style.cursor = 'ew-resize';
+      this.movingMark = x1 < x2 ? 'markA' : 'markB';
+    } else if (mouseX > x2 - 5 && mouseX < x2 + 5) {
+      this.isHover = true;
+      document.body.style.cursor = 'ew-resize';
+      this.movingMark = x2 < x1 ? 'markA' : 'markB';
+    } else {
+      this.isHover = false;
+      document.body.style.cursor = 'default';
+    }
   }
 
   static SetNS(row: TraceRow<any>, num: number): number {

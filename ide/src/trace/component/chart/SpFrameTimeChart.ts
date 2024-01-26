@@ -17,15 +17,6 @@ import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { JankRender, JankStruct } from '../../database/ui-worker/ProcedureWorkerJank';
 import { SpSystemTrace } from '../SpSystemTrace';
-import {
-  queryAllProcessNames,
-  queryAnimationIdAndNameData,
-  queryAnimationTimeRangeData,
-  queryDynamicIdAndNameData,
-  queryFrameApp,
-  queryFrameTimeData,
-  queryPhysicalData,
-} from '../../database/SqlLite';
 import { JanksStruct } from '../../bean/JanksStruct';
 import { ns2xByTimeShaft, type PairPoint } from '../../database/ui-worker/ProcedureWorkerCommon';
 import { FrameDynamicRender, FrameDynamicStruct } from '../../database/ui-worker/ProcedureWorkerFrameDynamic';
@@ -34,11 +25,19 @@ import { type BaseStruct } from '../../bean/BaseStruct';
 import { FrameSpacingRender, FrameSpacingStruct } from '../../database/ui-worker/ProcedureWorkerFrameSpacing';
 import { FlagsConfig, type Params } from '../SpFlags';
 import { type AnimationRanges, type DeviceStruct } from '../../bean/FrameComponentBean';
-import { type EmptyRender } from '../../database/ui-worker/ProcedureWorkerCPU';
+import { type EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { TreeItemData } from '../../../base-ui/tree/LitTree';
-import { QueryEnum } from '../../database/data-trafic/QueryEnum';
+import { QueryEnum } from '../../database/data-trafic/utils/QueryEnum';
 import { frameAnimationSender, frameDynamicSender, frameSpacingSender } from '../../database/data-trafic/FrameDynamicEffectSender';
 import { frameJanksSender } from '../../database/data-trafic/FrameJanksSender';
+import {
+  queryAnimationIdAndNameData,
+  queryAnimationTimeRangeData,
+  queryDynamicIdAndNameData,
+  queryFrameApp,
+  queryFrameTimeData, queryPhysicalData
+} from "../../database/sql/SqlLite.sql";
+import {queryAllProcessNames} from "../../database/sql/ProcessThread.sql";
 
 export class SpFrameTimeChart {
   private trace: SpSystemTrace;
@@ -227,29 +226,25 @@ export class SpFrameTimeChart {
   async initAnimatedScenesChart(
     processRow: TraceRow<BaseStruct>,
     process: { pid: number | null; processName: string | null },
-    firstRow: TraceRow<BaseStruct>,
-    secondRow: TraceRow<BaseStruct>
+    firstRow: TraceRow<BaseStruct>
   ): Promise<void> {
     this.flagConfig = FlagsConfig.getFlagsConfig('AnimationAnalysis');
     let appNameMap: Map<number, string> = new Map();
     if (this.flagConfig?.AnimationAnalysis === 'Enabled') {
       if (process.processName?.startsWith('render_service')) {
+        let targetRowList = processRow.childrenList.filter(
+          (childRow) => childRow.rowType === 'thread' && childRow.name.startsWith('render_service')
+        );
         let nameArr: { name: string }[] = await queryFrameApp();
         if (nameArr && nameArr.length > 0) {
           let currentName = nameArr[0].name;
           let frameChart = await this.initFrameChart(processRow, nameArr);
-          if (secondRow !== null) {
-            processRow.addChildTraceRowAfter(frameChart, secondRow);
-          } else if (firstRow !== null) {
-            processRow.addChildTraceRowAfter(frameChart, firstRow)
-          } else {
-            processRow.addChildTraceRowSpecifyLocation(frameChart, 0)
-          }
+          processRow.addChildTraceRowAfter(frameChart, targetRowList[0]);
           let appNameList = await queryDynamicIdAndNameData();
           appNameList.forEach((item) => {
             appNameMap.set(item.id, item.appName);
           });
-          let animationRanges = await this.initAnimationChart(processRow, firstRow, secondRow);
+          let animationRanges = await this.initAnimationChart(processRow, firstRow);
           await this.initDynamicCurveChart(appNameMap, frameChart, currentName, animationRanges);
           await this.initFrameSpacing(appNameMap, nameArr, frameChart, currentName, animationRanges);
         }
@@ -301,8 +296,7 @@ export class SpFrameTimeChart {
 
   async initAnimationChart(
     processRow: TraceRow<BaseStruct>,
-    firstRow: TraceRow<BaseStruct>,
-    secondRow: TraceRow<BaseStruct>
+    firstRow: TraceRow<BaseStruct>
   ): Promise<AnimationRanges[]> {
     let animationRanges: AnimationRanges[] = [];
     let frameAnimationRow = TraceRow.skeleton<FrameAnimationStruct>();
@@ -372,13 +366,7 @@ export class SpFrameTimeChart {
       );
       frameAnimationRow!.canvasRestore(context, this.trace);
     };
-    if (firstRow !== null) {
-      processRow.addChildTraceRowBefore(frameAnimationRow, firstRow);
-    } else if (secondRow !== null) {
-      processRow.addChildTraceRowBefore(frameAnimationRow, secondRow)
-    } else {
-      processRow.addChildTraceRowSpecifyLocation(frameAnimationRow, 0)
-    }
+    processRow.addChildTraceRowBefore(frameAnimationRow, firstRow);
     return animationRanges;
   }
 

@@ -16,7 +16,7 @@
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { threadPool } from '../SqlLite';
 import { JsCpuProfilerStruct } from '../ui-worker/ProcedureWorkerCpuProfiler';
-import { CHART_OFFSET_LEFT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 
 export function cpuProfilerDataSender(row: TraceRow<JsCpuProfilerStruct>) {
   let trafic: number = TraficEnum.ProtoBuffer;

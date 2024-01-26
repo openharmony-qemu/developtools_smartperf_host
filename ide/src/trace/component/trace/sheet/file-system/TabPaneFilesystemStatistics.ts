@@ -14,11 +14,11 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
-import { LitTable } from '../../../../../base-ui/table/lit-table';
+import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabPaneFilesystemStatistics } from '../../../../database/SqlLite';
 import { Utils } from '../../base/Utils';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
+import { getTabPaneFilesystemStatistics } from '../../../../database/sql/SqlLite.sql';
 
 @element('tabpane-file-statistics')
 export class TabPaneFileStatistics extends BaseElement {
@@ -54,11 +54,9 @@ export class TabPaneFileStatistics extends BaseElement {
       this.fileStatisticsSortKey = evt.detail.key;
       // @ts-ignore
       this.fileStatisticsSortType = evt.detail.sort;
-
-      let newSource = JSON.parse(JSON.stringify(this.fileStatisticsSource));
-      if (this.fileStatisticsSortType != 0 && newSource.length > 0)
-        this.sortTable(newSource[0], this.fileStatisticsSortKey);
-      this.fileStatisticsTbl!.recycleDataSource = newSource;
+      if (this.fileStatisticsSortType != 0 && this.fileStatisticsSource.length > 0)
+        this.sortTable(this.fileStatisticsSource[0], this.fileStatisticsSortKey);
+      this.fileStatisticsTbl!.recycleDataSource = this.fileStatisticsSource;
     });
   }
 
@@ -90,7 +88,7 @@ export class TabPaneFileStatistics extends BaseElement {
     };
   }
 
-  queryDataByDB(val: SelectionParam | any) {
+  queryDataByDB(val: SelectionParam | any): void {
     this.fileStatisticsLoadingList.push(1);
     this.fileStatisticsProgressEL!.loading = true;
     this.fileStatisticsLoadingPage.style.visibility = 'visible';
@@ -117,48 +115,7 @@ export class TabPaneFileStatistics extends BaseElement {
         avgDuration: '',
         children: [],
       };
-      result.forEach((item, idx) => {
-        if (fileStatisticsFatherMap.has(item.type)) {
-          let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);
-          fileStatisticsObj.count += item.count;
-          fileStatisticsObj.logicalReads += item.logicalReads;
-          fileStatisticsObj.logicalWrites += item.logicalWrites;
-          fileStatisticsObj.otherFile += item.otherFile;
-          fileStatisticsObj.allDuration += item.allDuration;
-          fileStatisticsObj.minDuration =
-            fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration;
-          fileStatisticsObj.maxDuration =
-            fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration;
-          fileStatisticsObj.children.push(this.getInitData(item));
-        } else {
-          fileStatisticsFatherMap.set(item.type, {
-            type: item.type,
-            count: item.count,
-            logicalReads: item.logicalReads,
-            logicalWrites: item.logicalWrites,
-            otherFile: item.otherFile,
-            allDuration: item.allDuration,
-            minDuration: item.minDuration,
-            maxDuration: item.maxDuration,
-            children: [this.getInitData(item)],
-          });
-        }
-        if (idx == 0) {
-          fileStatisticsAllNode.minDuration = item.minDuration;
-        } else {
-          fileStatisticsAllNode.minDuration =
-            fileStatisticsAllNode.minDuration <= item.minDuration
-              ? fileStatisticsAllNode.minDuration
-              : item.minDuration;
-        }
-        fileStatisticsAllNode.count += item.count;
-        fileStatisticsAllNode.logicalReads += item.logicalReads;
-        fileStatisticsAllNode.logicalWrites += item.logicalWrites;
-        fileStatisticsAllNode.otherFile += item.otherFile;
-        fileStatisticsAllNode.allDuration += item.allDuration;
-        fileStatisticsAllNode.maxDuration =
-          fileStatisticsAllNode.maxDuration >= item.maxDuration ? fileStatisticsAllNode.maxDuration : item.maxDuration;
-      });
+      this.handleResult(result, fileStatisticsFatherMap, fileStatisticsAllNode);
       fileStatisticsFatherMap.forEach((item) => {
         item.avgDuration = item.allDuration / item.count;
         let node = this.getInitData(item);
@@ -173,10 +130,76 @@ export class TabPaneFileStatistics extends BaseElement {
       fileStatisticsAllNode = this.getInitData(fileStatisticsAllNode);
       fileStatisticsAllNode.title = 'All';
       this.fileStatisticsSource = result.length > 0 ? [fileStatisticsAllNode] : [];
-      let newSource = JSON.parse(JSON.stringify(this.fileStatisticsSource));
       if (this.fileStatisticsSortType != 0 && result.length > 0)
-        this.sortTable(newSource[0], this.fileStatisticsSortKey);
-      this.fileStatisticsTbl!.recycleDataSource = newSource;
+        this.sortTable(this.fileStatisticsSource[0], this.fileStatisticsSortKey);
+      this.theadClick(this.fileStatisticsSource);
+      this.fileStatisticsTbl!.recycleDataSource = this.fileStatisticsSource;
+    });
+  }
+  private theadClick(res: Array<any>): void {
+    let labels = this.fileStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
+    if (labels) {
+      for (let i = 0; i < labels.length; i++) {
+        let label = labels[i].innerHTML;
+        labels[i].addEventListener('click', (e) => {
+          if (label.includes('Syscall') && i === 0) {
+            this.fileStatisticsTbl!.setStatus(res, false, 0, 1);
+            this.fileStatisticsTbl!.recycleDs = this.fileStatisticsTbl!.meauseTreeRowElement(
+              res,
+              RedrawTreeForm.Retract
+            );
+          } else if (label.includes('Process') && i === 1) {
+            this.fileStatisticsTbl!.setStatus(res, true);
+            this.fileStatisticsTbl!.recycleDs = this.fileStatisticsTbl!.meauseTreeRowElement(
+              res,
+              RedrawTreeForm.Retract
+            );
+          }
+        });
+      }
+    }
+  }
+
+  private handleResult(result: Array<any>, fileStatisticsFatherMap: Map<any, any>, fileStatisticsAllNode: any): void {
+    result.forEach((item, idx) => {
+      if (fileStatisticsFatherMap.has(item.type)) {
+        let fileStatisticsObj = fileStatisticsFatherMap.get(item.type);
+        fileStatisticsObj.count += item.count;
+        fileStatisticsObj.logicalReads += item.logicalReads;
+        fileStatisticsObj.logicalWrites += item.logicalWrites;
+        fileStatisticsObj.otherFile += item.otherFile;
+        fileStatisticsObj.allDuration += item.allDuration;
+        fileStatisticsObj.minDuration =
+          fileStatisticsObj.minDuration <= item.minDuration ? fileStatisticsObj.minDuration : item.minDuration;
+        fileStatisticsObj.maxDuration =
+          fileStatisticsObj.maxDuration >= item.maxDuration ? fileStatisticsObj.maxDuration : item.maxDuration;
+        fileStatisticsObj.children.push(this.getInitData(item));
+      } else {
+        fileStatisticsFatherMap.set(item.type, {
+          type: item.type,
+          count: item.count,
+          logicalReads: item.logicalReads,
+          logicalWrites: item.logicalWrites,
+          otherFile: item.otherFile,
+          allDuration: item.allDuration,
+          minDuration: item.minDuration,
+          maxDuration: item.maxDuration,
+          children: [this.getInitData(item)],
+        });
+      }
+      if (idx == 0) {
+        fileStatisticsAllNode.minDuration = item.minDuration;
+      } else {
+        fileStatisticsAllNode.minDuration =
+          fileStatisticsAllNode.minDuration <= item.minDuration ? fileStatisticsAllNode.minDuration : item.minDuration;
+      }
+      fileStatisticsAllNode.count += item.count;
+      fileStatisticsAllNode.logicalReads += item.logicalReads;
+      fileStatisticsAllNode.logicalWrites += item.logicalWrites;
+      fileStatisticsAllNode.otherFile += item.otherFile;
+      fileStatisticsAllNode.allDuration += item.allDuration;
+      fileStatisticsAllNode.maxDuration =
+        fileStatisticsAllNode.maxDuration >= item.maxDuration ? fileStatisticsAllNode.maxDuration : item.maxDuration;
     });
   }
 

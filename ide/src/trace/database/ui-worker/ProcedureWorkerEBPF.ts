@@ -50,116 +50,54 @@ export class EBPFRender extends PerfRender {
       req.useCache || (TraceRow.range?.refresh ?? false)
     );
     drawLoadingFrame(req.context, filter, eBPFtemRow);
-    req.context.beginPath();
-    let find = false;
-    let hoverRect: EBPFChartStruct | undefined = undefined;
-    for (let re of filter) {
-      re.group10Ms = groupBy10MS;
-      if (
-        eBPFtemRow.isHover &&
-        re.frame &&
-        eBPFtemRow.hoverX >= re.frame.x &&
-        eBPFtemRow.hoverX <= re.frame.x + re.frame.width
-      ) {
-        if (hoverRect == undefined || re.size! > hoverRect.size!) {
-          hoverRect = re;
-          find = true;
-        }
-      }
-      if (re.frame && re.frame!.x > eBPFtemRow.hoverX + 3) {
-        break;
-      }
-    }
-    if (hoverRect) {
-      EBPFChartStruct.hoverEBPFStruct = hoverRect;
-    }
-
-    for (let re of filter) {
-      EBPFChartStruct.draw(req.context, re, req.chartColor);
-    }
-    if (!find && eBPFtemRow.isHover) {
-      EBPFChartStruct.hoverEBPFStruct = undefined;
-    }
-    req.context.closePath();
+    drawEBPF(req, filter, groupBy10MS, eBPFtemRow);
   }
 
-  render(eBPFRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {
-    let groupBy10MS = eBPFRequest.scale > 20_000_000;
-    let isDiskIO: boolean = eBPFRequest.type!.includes('disk-io');
-    if (isDiskIO) {
-      groupBy10MS = true;
+  render(eBPFRequest: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>): void {}
+}
+
+function drawEBPF(
+  req: {
+    context: CanvasRenderingContext2D;
+    useCache: boolean;
+    type: string;
+    chartColor: string;
+  },
+  filter: any[],
+  groupBy10MS: boolean,
+  eBPFtemRow: TraceRow<EBPFChartStruct>
+) {
+  req.context.beginPath();
+  let find = false;
+  let hoverRect: EBPFChartStruct | undefined = undefined;
+  for (let re of filter) {
+    re.group10Ms = groupBy10MS;
+    if (
+      eBPFtemRow.isHover &&
+      re.frame &&
+      eBPFtemRow.hoverX >= re.frame.x &&
+      eBPFtemRow.hoverX <= re.frame.x + re.frame.width
+    ) {
+      if (hoverRect == undefined || re.size! > hoverRect.size!) {
+        hoverRect = re;
+        find = true;
+      }
     }
-    if (eBPFRequest.lazyRefresh || !eBPFRequest.useCache) {
-      let use = false;
-      if (eBPFRequest.lazyRefresh) {
-        use = eBPFRequest.useCache || !eBPFRequest.range.refresh;
-      }
-      eBPFChart(
-        filter,
-        eBPFRequest.startNS,
-        eBPFRequest.endNS,
-        eBPFRequest.totalNS,
-        eBPFRequest.frame,
-        groupBy10MS,
-        isDiskIO,
-        use
-      );
+    if (re.frame && re.frame!.x > eBPFtemRow.hoverX + 3) {
+      break;
     }
-    let hoverStruct: EBPFChartStruct | undefined;
-    if (eBPFRequest.canvas) {
-      eBPFRequest.context.clearRect(0, 0, eBPFRequest.frame.width, eBPFRequest.frame.height);
-      let arr = filter;
-      if (arr.length > 0 && !eBPFRequest.range.refresh && !eBPFRequest.useCache && eBPFRequest.lazyRefresh) {
-        drawLoading(
-          eBPFRequest.context,
-          eBPFRequest.startNS,
-          eBPFRequest.endNS,
-          eBPFRequest.totalNS,
-          eBPFRequest.frame,
-          arr[0].startNS,
-          arr[arr.length - 1].startNS + arr[arr.length - 1].dur
-        );
-      }
-      drawLines(eBPFRequest.context, eBPFRequest.xs, eBPFRequest.frame.height, eBPFRequest.lineColor);
-      eBPFRequest.context.stroke();
-      eBPFRequest.context.beginPath();
-      if (eBPFRequest.isHover) {
-        let offset = groupBy10MS ? 0 : 3;
-        for (let re of filter) {
-          if (
-            re.frame &&
-            eBPFRequest.hoverX >= re.frame.x - offset &&
-            eBPFRequest.hoverX <= re.frame.x + re.frame.width + offset
-          ) {
-            hoverStruct = re;
-            break;
-          }
-        }
-      }
-      for (let re of filter) {
-        EBPFChartStruct.draw(eBPFRequest.context, re, eBPFRequest.chartColor);
-      }
-      drawSelection(eBPFRequest.context, eBPFRequest.params);
-      eBPFRequest.context.closePath();
-      drawFlagLine(
-        eBPFRequest.context,
-        eBPFRequest.flagMoveInfo,
-        eBPFRequest.flagSelectedInfo,
-        eBPFRequest.startNS,
-        eBPFRequest.endNS,
-        eBPFRequest.totalNS,
-        eBPFRequest.frame,
-        eBPFRequest.slicesTime
-      );
-    }
-    let msg = {
-      id: eBPFRequest.id,
-      type: eBPFRequest.type,
-      results: eBPFRequest.canvas ? undefined : filter,
-      hover: hoverStruct,
-    };
-    self.postMessage(msg);
   }
+  if (hoverRect) {
+    EBPFChartStruct.hoverEBPFStruct = hoverRect;
+  }
+
+  for (let re of filter) {
+    EBPFChartStruct.draw(req.context, re, req.chartColor);
+  }
+  if (!find && eBPFtemRow.isHover) {
+    EBPFChartStruct.hoverEBPFStruct = undefined;
+  }
+  req.context.closePath();
 }
 
 export function eBPFChart(
@@ -173,55 +111,66 @@ export function eBPFChart(
   use: boolean
 ): void {
   if (use && eBPFFilters.length > 0 && groupBy10MS) {
-    let pns = (endNS - startNS) / frame.width;
-    let y = frame.y;
-    for (let i = 0; i < eBPFFilters.length; i++) {
-      let it = eBPFFilters[i];
-      if ((it.startNS || 0) + (it.size || 0) > startNS && (it.startNS || 0) < endNS) {
-        if (!it.frame) {
-          it.frame = {};
-          it.frame.y = y;
-        }
-        it.frame.height = it.height;
-        EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, true);
-      } else {
-        it.frame = null;
-      }
-    }
+    setFrameGroupBy10MS(eBPFFilters, startNS, endNS, frame);
     return;
   }
   if (!groupBy10MS && eBPFFilters[0] && eBPFFilters[0].dur && eBPFFilters[0].endNS) {
-    let list: Array<any> = [];
-    let pns = (endNS - startNS) / frame.width;
-    let y = frame.y;
-    let filter: any[] = [];
-    for (let index = 0; index < eBPFFilters.length; index++) {
-      if (
-        eBPFFilters[index].endNS > startNS &&
-        (eBPFFilters[index].startNS || 0) < endNS &&
-        eBPFFilters[index].dur > 0
-      ) {
-        if (index >= 1 && eBPFFilters[index - 1].endNS === eBPFFilters[index].startNS) {
-          continue;
-        } else {
-          eBPFFilters[index].size = 0;
-          filter.push(eBPFFilters[index]);
-        }
-      }
-    }
-    eBPFFilters.length = 0;
-    list = isDiskIO
-      ? EBPFChartStruct.computeHeightNoGroupLatency(filter, totalNS)
-      : EBPFChartStruct.computeHeightNoGroup(filter, totalNS);
-    list.map((it) => {
+    setFrameByArr(eBPFFilters, startNS, endNS, frame, totalNS, isDiskIO);
+  }
+}
+
+function setFrameGroupBy10MS(eBPFFilters: Array<any>, startNS: number, endNS: number, frame: Rect) {
+  let pns = (endNS - startNS) / frame.width;
+  let y = frame.y;
+  for (let i = 0; i < eBPFFilters.length; i++) {
+    let it = eBPFFilters[i];
+    if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
       if (!it.frame) {
         it.frame = {};
         it.frame.y = y;
       }
-      EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
-      eBPFFilters.push(it);
-    });
+      it.frame.height = it.height;
+      EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, true);
+    } else {
+      it.frame = null;
+    }
   }
+}
+
+function setFrameByArr(
+  eBPFFilters: Array<any>,
+  startNS: number,
+  endNS: number,
+  frame: Rect,
+  totalNS: number,
+  isDiskIO: boolean
+) {
+  let list: Array<any> = [];
+  let pns = (endNS - startNS) / frame.width;
+  let y = frame.y;
+  let filter: any[] = [];
+  for (let index = 0; index < eBPFFilters.length; index++) {
+    if (eBPFFilters[index].endNS > startNS && (eBPFFilters[index].startNS || 0) < endNS && eBPFFilters[index].dur > 0) {
+      if (index >= 1 && eBPFFilters[index - 1].endNS === eBPFFilters[index].startNS) {
+        continue;
+      } else {
+        eBPFFilters[index].size = 0;
+        filter.push(eBPFFilters[index]);
+      }
+    }
+  }
+  eBPFFilters.length = 0;
+  list = isDiskIO
+    ? EBPFChartStruct.computeHeightNoGroupLatency(filter, totalNS)
+    : EBPFChartStruct.computeHeightNoGroup(filter, totalNS);
+  list.map((it) => {
+    if (!it.frame) {
+      it.frame = {};
+      it.frame.y = y;
+    }
+    EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
+    eBPFFilters.push(it);
+  });
 }
 
 export class EBPFChartStruct extends BaseStruct {

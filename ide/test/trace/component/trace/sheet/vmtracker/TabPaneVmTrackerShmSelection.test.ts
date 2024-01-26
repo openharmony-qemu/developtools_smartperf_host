@@ -20,13 +20,16 @@ jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../../../src/trace/database/sql/Memory.sql');
 
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
   return {};
 });
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {

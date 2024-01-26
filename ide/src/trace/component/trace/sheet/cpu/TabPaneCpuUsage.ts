@@ -16,9 +16,9 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { getTabCpuFreq, getTabCpuUsage } from '../../../../database/SqlLite';
 import { CpuUsage, Freq } from '../../../../bean/CpuUsage';
 import { resizeObserver } from '../SheetUtils';
+import {getTabCpuFreq, getTabCpuUsage} from "../../../../database/sql/Cpu.sql";
 
 @element('tabpane-cpu-usage')
 export class TabPaneCpuUsage extends BaseElement {
@@ -57,35 +57,39 @@ export class TabPaneCpuUsage extends BaseElement {
           usage.usage = 1;
         }
         usage.usageStr = (usage.usage * 100.0).toFixed(2) + '%';
-        let arr = [];
-        if (freqMap.has(usage.cpu)) {
-          let freqList = freqMap.get(usage.cpu);
-          let list = [];
-          for (let i = 0; i < freqList!.length; i++) {
-            let freq = freqList![i];
-            if (i == freqList!.length - 1) {
-              freq.dur = cpuUsageValue.rightNs - freq.startNs;
-            } else {
-              freq.dur = freqList![i + 1].startNs - freq.startNs;
-            }
-            if (freq.startNs + freq.dur > cpuUsageValue.leftNs) {
-              list.push(freq);
-            }
-          }
-          if (list.length > 0) {
-            if (list[0].startNs < cpuUsageValue.leftNs) {
-              list[0].dur = list[0].startNs + list[0].dur - cpuUsageValue.leftNs;
-              list[0].startNs = cpuUsageValue.leftNs;
-            }
-          }
-          arr = this.sortFreq(list);
-          this.getFreqTop3(usage, arr[0], arr[1], arr[2], range);
-        }
+        this.handleUsage(freqMap, usage, cpuUsageValue, range);
         data.push(usage);
       }
       this.cpuUsageTbl!.recycleDataSource = data;
       this.orderByOldList = [...data];
     });
+  }
+
+  private handleUsage(freqMap: Map<number, Array<Freq>>, usage: CpuUsage, cpuUsageValue: any, range: number): void {
+    let arr = [];
+    if (freqMap.has(usage.cpu)) {
+      let freqList = freqMap.get(usage.cpu);
+      let list = [];
+      for (let i = 0; i < freqList!.length; i++) {
+        let freq = freqList![i];
+        if (i == freqList!.length - 1) {
+          freq.dur = cpuUsageValue.rightNs - freq.startNs;
+        } else {
+          freq.dur = freqList![i + 1].startNs - freq.startNs;
+        }
+        if (freq.startNs + freq.dur > cpuUsageValue.leftNs) {
+          list.push(freq);
+        }
+      }
+      if (list.length > 0) {
+        if (list[0].startNs < cpuUsageValue.leftNs) {
+          list[0].dur = list[0].startNs + list[0].dur - cpuUsageValue.leftNs;
+          list[0].startNs = cpuUsageValue.leftNs;
+        }
+      }
+      arr = this.sortFreq(list);
+      this.getFreqTop3(usage, arr[0], arr[1], arr[2], range);
+    }
   }
 
   initElements(): void {
@@ -189,15 +193,15 @@ export class TabPaneCpuUsage extends BaseElement {
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Usage" data-index="usageStr" key="usageStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top1(M)" data-index="top1" key="top1" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top1(K)" data-index="top1" key="top1" align="flex-start" >
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Top1 percent(%)" data-index="top1PercentStr" key="top1PercentStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top2(M)" data-index="top2" key="top2" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top2(K)" data-index="top2" key="top2" align="flex-start" >
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Top2 percent(%)" data-index="top2PercentStr" key="top2PercentStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top3(M)" data-index="top3" key="top3" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top3(K)" data-index="top3" key="top3" align="flex-start" >
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Top3 percent(%)" data-index="top3PercentStr" key="top3PercentStr" align="flex-start" >
             </lit-table-column>

@@ -22,8 +22,8 @@ import { type JsCpuProfilerChartFrame, JsCpuProfilerStatisticsStruct } from '../
 import { procedurePool } from '../../../../database/Procedure';
 import { type SampleType } from '../../../../database/logic-worker/ProcedureLogicWorkerJsCpuProfiler';
 import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import { SpSystemTrace } from '../../../SpSystemTrace';
 import { resizeObserver } from '../SheetUtils';
+import { TabPaneJsCpuStatisticsHtml } from './TabPaneJsCpuStatistics.html';
 
 @element('tabpane-js-cpu-statistics')
 export class TabPaneJsCpuStatistics extends BaseElement {
@@ -71,7 +71,7 @@ export class TabPaneJsCpuStatistics extends BaseElement {
   }
 
   private getDataByWorker(data: SelectionParam | Array<JsCpuProfilerChartFrame>, handler: Function): void {
-    let params = undefined;
+    let params;
     if (data instanceof SelectionParam) {
       params = {
         data: data.jsCpuProfilerData,
@@ -151,8 +151,7 @@ export class TabPaneJsCpuStatistics extends BaseElement {
     for (let item of source) {
       totalTime += item.time;
     }
-    let totalData = this.toStatisticsStruct('', totalTime, totalTime);
-    return totalData;
+    return this.toStatisticsStruct('', totalTime, totalTime);
   }
 
   private clearData(): void {
@@ -177,13 +176,12 @@ export class TabPaneJsCpuStatistics extends BaseElement {
     time: number,
     percentage: number
   ): JsCpuProfilerStatisticsStruct {
-    const statisticsStruct = new JsCpuProfilerStatisticsStruct(
+    return new JsCpuProfilerStatisticsStruct(
       type,
       time,
       ns2s(time),
       ((time / percentage || 0) * 100).toFixed(1)
     );
-    return statisticsStruct;
   }
 
   private sortByColumn(detail: any): void {
@@ -241,53 +239,6 @@ export class TabPaneJsCpuStatistics extends BaseElement {
   }
 
   public initHtml(): string {
-    return `
-    <style>
-    :host{
-        height: 100%;
-        background-color: var(--dark-background,#FFFFFF);
-        display: flex;
-        flex-direction: column;
-    }
-    .d-box{
-        display: flex;
-        margin: 20px;
-        height: calc(100vh - 165px);
-    }
-    .chart-box{
-        width: 40%;
-    }
-    .table-box{
-        width: 60%;
-        max-height: calc(100vh - 165px);
-        border-left: solid 1px var(--dark-border1,#e0e0e0);
-        border-radius: 5px;
-        padding: 10px;
-    }
-    #chart-pie{
-        height: 360px;
-    }
-    .js-cpu-statistics-tbl {
-        height: auto
-    }
-    .statistics-column{
-        min-width: 130px;
-    }
-    </style>
-    <lit-progress-bar id="loading" style="height: 1px;width: 100%"></lit-progress-bar>
-    <div class="d-box">
-        <div class="chart-box">
-            <div style="text-align: center">Statistics By Total</div>
-            <lit-chart-pie id="chart-pie"></lit-chart-pie>
-        </div>
-        <div class="table-box">
-            <lit-table id="statistics-table" class="js-cpu-statistics-tbl">
-                <lit-table-column class="statistics-column" width="1fr" title="Type" data-index="type" key="type"  align="flex-start" order></lit-table-column>
-                <lit-table-column class="statistics-column" width="1fr" title="Total" data-index="timeStr" key="timeStr"  align="flex-start" order></lit-table-column>
-                <lit-table-column class="statistics-column" width="1fr" title="%" data-index="percentage" key="percentage"  align="flex-start" order></lit-table-column>
-            </lit-table>
-        </div>
-    </div>
-    `;
+    return TabPaneJsCpuStatisticsHtml;
   }
 }

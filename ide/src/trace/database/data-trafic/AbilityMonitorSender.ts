@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './QueryEnum';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { DiskAbilityMonitorStruct } from '../ui-worker/ProcedureWorkerDiskIoAbility';
@@ -26,6 +26,7 @@ export function cpuAbilityUserDataSender(
 ): Promise<CpuAbilityMonitorStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
+  let QueryEnumber: number = -1;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       value: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
@@ -33,7 +34,6 @@ export function cpuAbilityUserDataSender(
       dur: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
   }
-  let QueryEnumber: number = -1;
   if (type === 'CpuAbilityUserData') {
     QueryEnumber = QueryEnum.CpuAbilityUserData;
   } else if (type === 'CpuAbilitySystemData') {
@@ -45,12 +45,12 @@ export function cpuAbilityUserDataSender(
     threadPool.submitProto(
       QueryEnumber,
       {
-        startNS: TraceRow.range?.startNS || 0,
-        endNS: TraceRow.range?.endNS || 0,
-        recordStartNS: window.recordStartNS,
-        recordEndNS: window.recordEndNS,
         width: width,
         trafic: trafic,
+        recordStartNS: window.recordStartNS,
+        recordEndNS: window.recordEndNS,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: any, len: number, transfer: boolean) => {
@@ -118,10 +118,10 @@ export function abilityBytesReadDataSender(
     threadPool.submitProto(
       QueryEnumber,
       {
-        startNS: TraceRow.range?.startNS || 0,
-        endNS: TraceRow.range?.endNS || 0,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
+        startNS: TraceRow.range?.startNS || 0,
+        endNS: TraceRow.range?.endNS || 0,
         width: width,
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,

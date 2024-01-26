@@ -24,8 +24,8 @@ import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import '../../../../../../src/base-ui/table/lit-table';
 import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
 Object.defineProperty(global.self, 'crypto', {
   value: {
     getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),

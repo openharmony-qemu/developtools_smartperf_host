@@ -20,8 +20,8 @@ jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
 });
 import { TabPanePurgPinComparisonAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgPinComparisonAbility';
 import '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgPinComparisonAbility';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

@@ -11,8 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-import { TraficEnum } from './QueryEnum';
+import {TraficEnum} from './utils/QueryEnum';
 
 export const queryPresentInfo = (args: any): string => {
   return `SELECT ts,dur,name FROM callstack WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${args.threadName}'))

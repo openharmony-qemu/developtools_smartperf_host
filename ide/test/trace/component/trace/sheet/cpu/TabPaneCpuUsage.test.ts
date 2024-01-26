@@ -14,8 +14,8 @@
  */
 
 import { TabPaneCpuUsage } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneCpuUsage';
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../../../src/trace/database/sql/Cpu.sql');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
