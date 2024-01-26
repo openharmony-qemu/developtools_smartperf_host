@@ -10,7 +10,7 @@ HiPerf 工具是对系统性能数据进行采样记录，并将采样数据保�
 配置项说明：
 
 -     Start Hiperf Sampling：配置项的总开关。
--     Process：离线模式下配置的是整个系统的。
+-     Process：离线模式下配置的是整个系统的进程。
 -     Frequency：配置抓取的频率。
 -     Call Stack：配置抓取的堆栈类型。
 -     Advance Options：更多的抓取配置项。
@@ -18,7 +18,7 @@ HiPerf 工具是对系统性能数据进行采样记录，并将采样数据保�
   ![GitHub Logo](../../figures/perf/perfset.jpg)
   点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
   ![GitHub Logo](../../figures/perf/perfcommand.jpg)
-  输入 hdc_shell，进入设备，执行命令。
+  输入 hdc shell，进入设备，执行命令。
   ![GitHub Logo](../../figures/perf/perfexcutecommand.jpg)
   执行完成后，进入指定目录查看，在/data/local/tmp 下就会生成 trace 文件。
   ![GitHub Logo](../../figures/perf/perffile.jpg)
@@ -45,13 +45,14 @@ Perf 泳道图上浅色表示无效调用栈的采样点，抓取时由于设备
 
 ### HiPerf 泳道图的框选功能
 
-可以对 CPU 使用量区，线程和进程区数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有两个 tab 页。
+可以对 CPU 使用量的线程和进程区数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个 tab 页。
 Perf Profile 的 Tab 页如图：
 ![GitHub Logo](../../figures/perf/PerfProfile.jpg)
 
 -     Call Stack：为经过符号解析后的Callstack，并且给出动态链接库或者进程名的信息。
 -     Local：为该调用方法自身占用的CPU时间。
--     Weight：调用方法的执行次数和占比。
+-     Sample Count：采样数量。
+-     Event Count：事件数量。
   Sample List 的 Tab 页如图：
   ![GitHub Logo](../../figures/perf/Samplelist.jpg)
 -     Sample Time：采样的时间戳信息。
@@ -63,15 +64,17 @@ Perf Profile 的 Tab 页如图：
 
 ### HiPerf 支持多种 Options 展示风格
 
-点击 Perf Profile 的 Tab 页底部的 Options，会有两个 CheckBox 复选框。
+点击 Perf Profile 的 Tab 页底部的 Options，会有四个 CheckBox 复选框。
 ![GitHub Logo](../../figures/perf/Options.jpg)
 
 -     Invert：反向输出调用树。
 -     Hide System so：隐藏系统库文件。
+-     Hide Thread：隐藏线程。
+-     Hide Thread State：隐藏线程状态。
 
 ### HiPerf 支持过滤调用栈调用次数的展示风格
 
-点击 Perf Profile 的 Tab 页底部的 Sample Counter Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
+点击 Perf Profile 的 Tab 页底部的 Sample Count Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。
 ![GitHub Logo](../../figures/perf/samplecounter.jpg)
 
 ### HiPerf 功能的调用栈 Group 展示-数据分析支持剪裁功能

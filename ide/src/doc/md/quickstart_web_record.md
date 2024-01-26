@@ -5,10 +5,11 @@
 ## 界面配置说明
 
 ![GitHub Logo](../../figures/hdc/hdc.jpg)
+
 说明：
 
-- Record:trace 抓取按钮。
-- Add HDC Device:连接设备。
+- Record: trace 抓取按钮。
+- Add HDC Device: 连接设备。
 
 ## trace 文件的在线抓取
 
@@ -18,13 +19,13 @@
 ![GitHub Logo](../../figures/hdc/Schedulingdetails.jpg)
 抓取项说明：
 
-- Scheduling details:线程切换事件，暂停恢复方法，线程唤醒事件，进程退出和销毁处理，新建线程处理方法，线程重命名处理方法。
-- CPU Frequency and idle states:CPU 频率信息和 CPU 空闲状态。
-- Advanced ftrace config:线程切换事件，暂停恢复方法，线程唤醒事件，进程退出和销毁处理，新建线程处理方法，线程重命名处理方法，IRQ 事件，时钟频率处理方法，Binder 事件，线程调用堆栈开始和结束的处理。
-- AbilityMonitor:进程的 CPU，内存，磁盘，网络使用情况。
-- Kernel meminfo:内核内存。
-- Virtual memory stats:系统虚拟内存。
-- Hitrace categories:Bytrace 的抓取项，各解释项说明如下图：
+- Scheduling details: 线程切换事件，暂停恢复方法，线程唤醒事件，进程退出和销毁处理，新建线程处理方法，线程重命名处理方法。
+- CPU Frequency and idle states: CPU 频率信息和 CPU 空闲状态。
+- Advanced ftrace config: 线程切换事件，暂停恢复方法，线程唤醒事件，进程退出和销毁处理，新建线程处理方法，线程重命名处理方法，IRQ 事件，时钟频率处理方法，Binder 事件，线程调用堆栈开始和结束的处理。
+- AbilityMonitor: 进程的 CPU，内存，磁盘，网络使用情况。
+- Kernel meminfo: 内核内存。
+- Virtual memory stats: 系统虚拟内存。
+- Hitrace categories: Bytrace 的抓取项，各解释项说明如下图：
   ![GitHub Logo](../../figures/hdc/bytacedescription.jpg)
 
 再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_example.htrace，拖动滚动条设置 buffer size 大小是 64M，抓取时长是 50s。
