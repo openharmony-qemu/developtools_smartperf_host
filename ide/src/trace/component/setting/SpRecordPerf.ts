@@ -130,8 +130,7 @@ export class SpRecordPerf extends BaseElement {
         perfConfig.isOffCpu = (value as LitSwitch).checked;
         break;
       case 'Kernel Chain':
-        let kernelImage = value as LitSwitch;
-        perfConfig.isKernelChain = kernelImage.checked;
+        perfConfig.isKernelChain = (value as LitSwitch).checked;
         break;
       case 'No Inherit':
         perfConfig.noInherit = (value as LitSwitch).checked;
