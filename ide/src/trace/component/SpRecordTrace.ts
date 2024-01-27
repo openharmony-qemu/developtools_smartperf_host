@@ -157,40 +157,53 @@ export class SpRecordTrace extends BaseElement {
     return clearFlag;
   }
 
-  private refreshDeviceList(): void {
+  private async refreshDeviceList(): Promise<void> {
     if (this.vs) {
       this.refreshDeviceListByVs();
     } else {
       this.deviceSelect!.innerHTML = '';
       // @ts-ignore
-      HdcDeviceManager.getDevices().then((devs: USBDevice[]) => {
+      HdcDeviceManager.getDevices().then(async (devs: USBDevice[]) => {
         if (devs.length === 0) {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
         }
+        let optionNum = 0;
         for (let len = 0; len < devs.length; len++) {
           let dev = devs[len];
           let option = document.createElement('option');
           option.className = 'select';
           if (typeof dev.serialNumber === 'string') {
-            option.value = dev.serialNumber;
+            let res = await HdcDeviceManager.connect(dev.serialNumber);
+            if (res) {
+              optionNum++;
+              option.value = dev.serialNumber;
+              option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
+              this.deviceSelect!.appendChild(option);
+            }
+            if (len === 0) {
+              option.selected = true;
+              this.recordButton!.hidden = false;
+              this.disconnectButton!.hidden = false;
+              this.devicePrompt!.innerText = '';
+              SpRecordTrace.serialNumber = option.value;
+              this.refreshDeviceVersion(option);
+            }
           }
-          option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
-          this.deviceSelect!.appendChild(option);
-          if (len === 0) {
-            option.selected = true;
-            this.recordButton!.hidden = false;
-            this.disconnectButton!.hidden = false;
-            this.devicePrompt!.innerText = '';
-            SpRecordTrace.serialNumber = option.value;
-            this.refreshDeviceVersion(option);
-          }
+        };
+        if(!optionNum){
+          this.deviceSelect!.style!.border = '2px solid red';
+          setTimeout(() => {
+            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+          },3000);
+          this.recordButton!.hidden = true;
+          this.disconnectButton!.hidden = true;
+          this.devicePrompt!.innerText = 'Device not connected';
         }
       });
     }
   }
-
   private refreshDeviceVersion(option: HTMLOptionElement): void {
     HdcDeviceManager.connect(option.value).then((result) => {
       if (result) {
@@ -220,7 +233,6 @@ export class SpRecordTrace extends BaseElement {
       }
     });
   }
-
   private refreshDeviceListByVs(): void {
     Cmd.execHdcCmd(CmdConstant.CMD_HDC_DEVICES, (res: string) => {
       let devs: string[] = res.trim().replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
