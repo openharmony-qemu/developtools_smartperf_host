@@ -410,6 +410,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.setAttribute('row-parent-id', val || '');
   }
 
+  get namePrefix(): string | undefined | null {
+    return this.getAttribute('name-prefix');
+  }
+
+  set namePrefix(val) {
+    this.setAttribute('name-prefix', val || '');
+  }
+
   set rowHidden(val: boolean) {
     let height = 0;
     if (val) {
@@ -621,6 +629,40 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     }
   }
+
+  sortRenderServiceData(child: TraceRow<BaseStruct>, targetRow: TraceRow<BaseStruct>, threadRowArr: Array<TraceRow<BaseStruct>>, flag: boolean) {
+    if (child.rowType === 'thread') {
+      threadRowArr.push(child);
+    } else {
+      let index: number = threadRowArr.indexOf(targetRow);
+      if (index !== -1) {
+        threadRowArr.splice(index + 1, 0, child);
+      } else {
+        threadRowArr.push(child);
+      }
+    }
+    if (flag) {
+      let order: string[] = ['VSyncGenerator', 'VSync-rs', 'VSync-app', 'render_service', 'Acquire Fence', 'RSHardwareThrea', 'Present Fence'];
+      let filterOrderArr: Array<TraceRow<BaseStruct>> = [];
+      let filterNotOrderArr: Array<TraceRow<BaseStruct>> = [];
+      for (let i = 0; i < threadRowArr.length; i++) {
+        const element: TraceRow<any> = threadRowArr[i];
+        let renderFlag: boolean = element.name.startsWith('render_service') && element.rowId === element.rowParentId ? true : false;
+        if (renderFlag) {
+          filterOrderArr.push(element);
+        } else if (order.includes(element.namePrefix!) && !(element.name.startsWith('render_service'))) {
+          filterOrderArr.push(element);
+        } else if (!(order.includes(element.namePrefix!)) || !renderFlag) {
+          filterNotOrderArr.push(element);
+        }
+      }
+      filterOrderArr.sort((star, next) => {
+        return order.indexOf(star.namePrefix!) - order.indexOf(next.namePrefix!);
+      });
+      let combinedArr = [...filterOrderArr, ...filterNotOrderArr];
+      combinedArr.forEach((item) => { this.addChildTraceRow(item) })
+    }
+  }  
 
   set tip(value: string) {
     if (this.tipEL) {
