@@ -30,6 +30,7 @@ export class TabPaneSlices extends BaseElement {
   private slicesRange: HTMLLabelElement | null | undefined;
   private slicesSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
+  private flag: boolean = false;
 
   set data(slicesParam: SelectionParam | any) {
     if (this.currentSelectionParam === slicesParam) {
@@ -83,9 +84,9 @@ export class TabPaneSlices extends BaseElement {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
-    this.slicesTbl!.addEventListener('row-click', async (evt) => {
-      // @ts-ignore
-      let data = evt.detail.data;
+    // @ts-ignore
+    let testData;
+    this.slicesTbl!.addEventListener('contextmenu', async (evt) => {
       let spApplication = document.querySelector('body > sp-application') as SpAllocations;
       let spSystemTrace = spApplication?.shadowRoot?.querySelector(
         'div > div.content > sp-system-trace'
@@ -96,11 +97,13 @@ export class TabPaneSlices extends BaseElement {
         it.draw();
       });
       spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
-      await spSystemTrace!.searchFunction([], data.name).then((mixedResults) => {
+      // @ts-ignore
+      await spSystemTrace!.searchFunction([], testData.name).then((mixedResults) => {
         if (mixedResults && mixedResults.length === 0) {
           return;
         }
-        search.list = mixedResults.filter((item) => item.funName === data.name);
+        // @ts-ignore
+        search.list = mixedResults.filter((item) => item.funName === testData.name);
         const sliceRowList: Array<TraceRow<any>> = [];
         // 框选的slice泳道
         for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
@@ -118,8 +121,13 @@ export class TabPaneSlices extends BaseElement {
         if (sliceRowList.length === 0) {
           return;
         }
-        this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
+        // @ts-ignore
+        this.slicesTblFreshSearchSelect(search, sliceRowList, testData, spSystemTrace);
       });
+    });
+    this.slicesTbl!.addEventListener('row-click', async (evt) => {
+      // @ts-ignore
+      testData = evt.detail.data;  
     });
     this.shadowRoot?.querySelector('#filterName')?.addEventListener('input', (e) => {
       // @ts-ignore
