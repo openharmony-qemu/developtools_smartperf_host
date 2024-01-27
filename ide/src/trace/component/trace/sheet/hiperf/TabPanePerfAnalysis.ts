@@ -74,7 +74,7 @@ export class TabPanePerfAnalysis extends BaseElement {
       for (let table of this.tableArray) {
         initSort(table!, this.sortColumn, this.sortType);
       }
-    }
+    } 
     this.currentSelection = val;
     this.tabName!.textContent = '';
     this.hideProcessCheckBox!.checked = false;
@@ -86,7 +86,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     )} ms`;
     if (!this.callChainMap) {
       this.getCallChainDataFromWorker(val);
-    }
+    } 
   }
 
   private initPerfTableListener(): void {
@@ -219,10 +219,10 @@ export class TabPanePerfAnalysis extends BaseElement {
         if (table === showTable) {
           initSort(table!, this.sortColumn, this.sortType);
           table.style.display = 'grid';
-          table.setAttribute('hideDownload', '');
-        } else {
-          table!.style.display = 'none';
           table!.removeAttribute('hideDownload');
+        } else {
+          table!.style.display = 'none'; 
+          table.setAttribute('hideDownload', '');
         }
       }
     }
@@ -285,6 +285,7 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   private hideProcess(): void {
     this.reset(this.perfTableThread!, false);
+    this.showAssignLevel(this.perfTableThread!, this.perfTableProcess!, 1, this.perfTableThread!.recycleDataSource);
     this.processName = '';
     this.titleEl!.textContent = '';
     this.getHiperfThread(null, this.currentSelection);
@@ -292,6 +293,7 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   private hideThread(it?: any): void {
     this.reset(this.perfTableSo!, true);
+    this.showAssignLevel(this.perfTableSo!, this.perfTableProcess!, 1, this.soData);
     this.threadName = '';
     if (it) {
       this.getHiperfSo(it, this.currentSelection);
@@ -356,8 +358,10 @@ export class TabPanePerfAnalysis extends BaseElement {
   private perfProcessLevelClickEvent(it: any, val: SelectionParam): void {
     if (this.hideThreadCheckBox!.checked) {
       this.hideThread(it);
+      this.showAssignLevel(this.perfTableSo!, this.perfTableProcess!, 1, this.soData);
     } else {
       this.reset(this.perfTableThread!, true);
+      this.showAssignLevel(this.perfTableThread!, this.perfTableProcess!, 1, this.threadData);
       this.getHiperfThread(it, val);
     }
     // @ts-ignore
@@ -418,6 +422,7 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   private perfThreadLevelClickEvent(it: any, val: SelectionParam): void {
     this.reset(this.perfTableSo!, true);
+    this.showAssignLevel(this.perfTableSo!, this.perfTableThread!, 2, this.soData);
     this.getHiperfSo(it, val);
     let pName = this.processName;
     if (this.processName.length > 0 && it.tableName.length > 0) {
@@ -490,6 +495,7 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   private perfSoLevelClickEvent(it: any): void {
     this.reset(this.tableFunction!, true);
+    this.showAssignLevel(this.tableFunction!, this.perfTableSo!, 3, this.functionData);
     this.getHiperfFunction(it);
     let title = '';
     if (this.processName.length > 0) {

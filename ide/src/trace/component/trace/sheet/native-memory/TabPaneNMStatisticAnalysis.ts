@@ -165,9 +165,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       this.functionUsageTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 30
       }px`;
     }
-    this.clearData();
-    this.currentSelection = statisticAnalysisParam;
-    this.reset(this.tableType!, false);
+    this.reset(this.tableType!,false);
+    this.currentSelection = statisticAnalysisParam;    
     this.titleEl!.textContent = '';
     this.tabName!.textContent = '';
     this.range!.textContent = `Selected range: ${parseFloat(
@@ -178,6 +177,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       this.threadName = '';
     }
     this.getNMEventTypeSize(statisticAnalysisParam);
+    this.showAssignLevel(this.tableType!, this.functionUsageTbl!, 0, this.eventTypeData);
   }
 
   initNmTableArray(): void {
@@ -273,6 +273,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
     this.hideThreadCheckBox?.addEventListener('change', () => {
       this.reset(this.tableType!, false);
+      this.showAssignLevel(this.tableType!, this.functionUsageTbl!, 0, this.eventTypeData);
       this.getNMTypeSize(this.currentSelection, this.processData);
     });
     this.initNmTableArray();
@@ -365,11 +366,11 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       for (let table of this.nmTableArray) {
         if (table === showTable) {
           initSort(table, this.nmSortColumn, this.nmSortType);
-          table.style.display = 'grid';
-          table.setAttribute('hideDownload', '');
+          table.style.display = 'grid'; 
+          table!.removeAttribute('hideDownload');
         } else {
           table!.style.display = 'none';
-          table!.removeAttribute('hideDownload');
+          table.setAttribute('hideDownload', '');
         }
       }
     }
@@ -641,9 +642,11 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
   private nativeProcessLevelClickEvent(it: any): void {
     if (this.hideThreadCheckBox?.checked || this.isStatistic) {
       this.reset(this.soUsageTbl!, true);
+      this.showAssignLevel(this.soUsageTbl!, this.tableType!, 1, this.eventTypeData);
       this.getNMLibSize(it);
     } else {
       this.reset(this.threadUsageTbl!, true);
+      this.showAssignLevel(this.threadUsageTbl!, this.tableType!, 1, this.eventTypeData);
       this.getNMThreadSize(it);
     }
     const typeName = it.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : it.typeName;
@@ -655,6 +658,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   private nativeThreadLevelClickEvent(it: AnalysisObj): void {
     this.reset(this.soUsageTbl!, true);
+    this.showAssignLevel(this.soUsageTbl!, this.threadUsageTbl!, 2, this.eventTypeData);
     this.getNMLibSize(it);
     const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
 
@@ -670,6 +674,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   private nativeSoLevelClickEvent(it: any): void {
     this.reset(this.functionUsageTbl!, true);
+    this.showAssignLevel(this.functionUsageTbl!,this.soUsageTbl!, 3, this.eventTypeData);
     this.getNMFunctionSize(it);
     const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
     // @ts-ignore
