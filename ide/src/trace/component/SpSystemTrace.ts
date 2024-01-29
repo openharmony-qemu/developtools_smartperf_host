@@ -204,6 +204,8 @@ export class SpSystemTrace extends BaseElement {
   expandRowList: Array<TraceRow<any>> = [];
   _slicesList: Array<SlicesTime> = [];
   _flagList: Array<any> = [];
+  static currentStartTime: number = 0;
+  static retargetIndex: number = 0;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -1787,6 +1789,21 @@ export class SpSystemTrace extends BaseElement {
         row.expansion = false;
       }
     });
+  }
+
+  moveRangeToLeft(startTime: number, dur: number) {
+    let startNS = this.timerShaftEL?.getRange()?.startNS || 0;
+    let endNS = this.timerShaftEL?.getRange()?.endNS || 0;
+    let harfDur = Math.trunc((endNS - startNS) / 2 - dur / 2);
+    let leftNs = startTime;
+    let rightNs = startTime + dur + harfDur;
+    if (startTime - harfDur < 0) {
+      leftNs = 0;
+      rightNs += harfDur - startTime;
+    }
+    this.timerShaftEL?.setRangeNS(leftNs, rightNs);
+    TraceRow.range!.refresh = true;
+    this.refreshCanvas(true);
   }
 
   moveRangeToCenter(startTime: number, dur: number) {

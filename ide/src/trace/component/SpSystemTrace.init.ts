@@ -34,7 +34,6 @@ import { TraceSheet } from './trace/base/TraceSheet';
 import { TimerShaftElement } from './trace/TimerShaftElement';
 import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
-
 function rightButtonOnClick(sp: SpSystemTrace,rightStar: HTMLElementAlias) {
     Object.assign(sp, {
         ext(): string {
@@ -669,7 +668,9 @@ export function spSystemTraceInitElement(sp:SpSystemTrace){
 }
 
 function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any) {
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
+    if (findEntry.startTime > TraceRow.range!.endNS || (findEntry.startTime + findEntry.dur) < TraceRow.range!.startNS) {
+        sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
+    }
     sp.queryAllTraceRow().forEach((item) => {
         item.highlight = false;
     });
@@ -717,15 +718,21 @@ export function spSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, curr
     return findIndex;
 }
 function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
+    if (SpSystemTrace.currentStartTime === 0 && !retargetIndex) {
+        SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+    }
     let findIndex = -1;
     if (previous) {
         if (retargetIndex) {
             findIndex = retargetIndex - 1;
+            SpSystemTrace.retargetIndex = findIndex;
         } else {
             for (let i = structs.length - 1; i >= 0; i--) {
                 let it = structs[i];
                 if (
-                  i < currentIndex
+                    i < currentIndex &&
+                    it.startTime! >= TraceRow.range!.startNS &&
+                    it.startTime! + it.dur! <= TraceRow.range!.endNS
                 ) {
                     findIndex = i;
                     break;
@@ -733,15 +740,22 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean,
             }
         }
     } else {
-        if (currentIndex == -1) {
-            findIndex = 0;
-        } else {
-            findIndex = structs.findIndex((it, idx) => {
-                return (
-                  idx > currentIndex
-                );
-            });
+        if (SpSystemTrace.currentStartTime > TraceRow.range!.startNS) {
+            SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+            currentIndex = -1;
+          }
+        if (SpSystemTrace.currentStartTime !== 0 && SpSystemTrace.currentStartTime < TraceRow.range!.startNS) {
+            SpSystemTrace.currentStartTime = 0;
+            SpSystemTrace.retargetIndex = 0;
         }
+
+        findIndex = structs.findIndex((it, idx) => {
+            return (
+                idx > currentIndex &&
+                it.startTime! >= TraceRow.range!.startNS &&
+                it.startTime! + it.dur! <= TraceRow.range!.endNS
+            );
+        });
     }
     return findIndex;
 }
@@ -764,7 +778,6 @@ function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any) {
 }
 function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any) {
     sp.observerScrollHeightEnable = true;
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
     sp.scrollToActFunc(
       {
           startTs: findEntry.startTime,
