@@ -741,7 +741,7 @@ const perfConfigList = [
     des: 'Trace when threads are scheduled off cpu',
     hidden: false,
     type: 'switch',
-    value: true,
+    value: false,
   },
   {
     title: 'Kernel Chain',
