@@ -26,7 +26,7 @@ if [ "$#" -ge "7" ];then
     if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
         [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
         [ "$target" != "test" ] && [ "$target" != "spb" ] && [ "$target" != "fuzz" ] &&
-        [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "dubaisdk" ] && [ "$target" != "sdkdemotest" ];then
+        [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "sdkdemotest" ];then
         echo "failed"
         exit
     fi
@@ -61,7 +61,7 @@ if [ "$is_debug" != "false" ];then
     ext="_debug"
 fi
 
-if [ "$target" == "test" ] || [ "$target" == "fuzz" ] || [ "$target"="wasm" ] || [ "$target"="sdkdemo" ] || [ "$target"="sdkdemotest" ];then
+if [ "$target" == "test" ] || [ "$target" == "fuzz" ] || [ "$target" == "wasm" ] || [ "$target" == "sdkdemo" ] || [ "$target" == "sdkdemotest" ];then
     target_dir=$target
 else
     target_dir=$target_os
@@ -69,15 +69,19 @@ fi
 if [ "$target" == "trace_streamer" ] || [ "$target" == "trace" ] || [ "$target" == "spb" ] || [ "$target" == "protoc" ];then
     target_dir=$target_os
 fi
-echo "target_dir:" $target_dir
-echo "target:" $target
+echo "target_dir:" "$target_dir"
+echo "target:" "$target"
 
 out_dir=out/$target_dir$ext
-if [ "$is_clean" == "true"  ];then
-    prebuilts/$gn_path/$gn gen $out_dir --clean
-    prebuilts/$gn_path/$ninja -C $out_dir -t clean
+if [ "$is_clean" == "true" ];then
+    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --clean
+    prebuilts/"$gn_path"/"$ninja" -C "$out_dir" -t clean
 else
-    prebuilts/$gn_path/$gn gen $out_dir --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'
+    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'
     echo "begin to build ..."
-    prebuilts/$gn_path/$ninja -C $out_dir
+    prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
+fi
+
+if [ "$target_os" == "macx" ];then
+    ./mac_depend.sh
 fi

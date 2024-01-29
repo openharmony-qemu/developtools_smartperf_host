@@ -61,7 +61,7 @@ public:
     bool ReparseSymbolFilesAndResymbolization(std::string& symbolsPath, std::vector<std::string>& symbolsPaths);
     void WaitForParserEnd();
     void EnableFileSeparate(bool enabled);
-    void ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths);
+    void ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths);
     void TraceDataSegmentEnd(bool isSplitFile);
     void StoreTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, int32_t isFinish);
     const auto& GetTraceDataHtrace()
@@ -109,6 +109,10 @@ public:
         return ebpfDataParser_;
     }
     void WaitForParserSplitedHtraceEnd();
+    void EnableOnlyParseFtrace()
+    {
+        onlyParseFtrace_ = true;
+    }
 
 private:
     bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
@@ -118,7 +122,14 @@ private:
     void ParserData(HtraceDataSegment& dataSeg, bool isSplitFile);
 
 private:
-    void ParseMemory(ProtoReader::ProfilerPluginData_Reader* pluginDataZero, HtraceDataSegment& dataSeg);
+#if IS_WASM
+    bool ParseSDKData();
+#endif
+    void InitPluginNameIndex();
+    bool GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    bool ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
+    void ParseMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero, HtraceDataSegment& dataSeg);
+    void ParseMemoryConfig(HtraceDataSegment& dataSeg, const ProtoReader::ProfilerPluginData_Reader& pluginDataZero);
     void ParseHilog(HtraceDataSegment& dataSeg);
     void ParseFtrace(HtraceDataSegment& dataSeg);
     void ParseFPS(HtraceDataSegment& dataSeg);
@@ -128,14 +139,21 @@ private:
     void ParseProcess(HtraceDataSegment& dataSeg);
     void ParseHisysevent(HtraceDataSegment& dataSeg);
     void ParseHisyseventConfig(HtraceDataSegment& dataSeg);
-    void ParseJSMemory(HtraceDataSegment& dataSeg);
+    void ParseJSMemory(HtraceDataSegment& dataSeg, bool isSplitFile);
+    void ParseNativeHookConfig(HtraceDataSegment& dataSeg);
+    void ParseNativeHook(HtraceDataSegment& dataSeg, bool isSplitFile);
     void ParseJSMemoryConfig(HtraceDataSegment& dataSeg);
     void ParseThread();
     int32_t GetNextSegment();
     void FilterThread();
     bool CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
-
+    bool SpliteConfigData(const std::string& pluginName, const HtraceDataSegment& dataSeg);
     bool InitProfilerTraceFileHeader();
+    void ParseDataByPluginName(HtraceDataSegment& dataSeg,
+                               DataIndex pulginNameIndex,
+                               const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
+                               bool isSplitFile);
+    bool SpliteDataBySegment(DataIndex pluginNameIndex, HtraceDataSegment& dataSeg);
     ProfilerTraceFileHeader profilerTraceFileHeader_;
     uint32_t profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;
     uint64_t profilerDataLength_ = 0;
@@ -145,8 +163,8 @@ private:
     bool hasGotSegLength_ = false;
     bool hasGotHeader_ = false;
     uint32_t nextLength_ = 0;
-    const size_t packetSegLength = 4;
-    const size_t packetHeaderLength = 1024;
+    const size_t packetSegLength_ = 4;
+    const size_t packetHeaderLength_ = 1024;
     TraceDataCache* traceDataCache_;
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
     std::unique_ptr<HtraceSymbolsDetailParser> htraceSymbolsDetailParser_;
@@ -163,9 +181,9 @@ private:
     std::unique_ptr<HtraceJSMemoryParser> jsMemoryParser_;
     std::unique_ptr<PerfDataParser> perfDataParser_;
     std::unique_ptr<EbpfDataParser> ebpfDataParser_;
+    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     std::atomic<bool> filterThreadStarted_{false};
     const int32_t maxSegArraySize = 10000;
-    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     int32_t rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
@@ -199,6 +217,23 @@ private:
     uint32_t dataSourceType_ = INVALID_UINT32;
     std::string arkTsConfigData_ = "";
     std::string lenBuffer_ = "";
+    std::set<DataIndex> nativeHookPluginIndex_ = {};
+    std::set<DataIndex> ftracePluginIndex_ = {};
+    std::set<DataIndex> hilogPluginIndex_ = {};
+    DataIndex hisyseventPluginIndex_;
+    DataIndex nativeHookConfigIndex_;
+    DataIndex memPluginIndex_;
+    std::set<DataIndex> hidumpPluginIndex_ = {};
+    DataIndex cpuPluginIndex_;
+    DataIndex networkPluginIndex_;
+    DataIndex diskioPluginIndex_;
+    DataIndex processPluginIndex_;
+    DataIndex hisyseventPluginConfigIndex_;
+    DataIndex arktsPluginIndex_;
+    DataIndex arktsPluginConfigIndex_;
+    DataIndex memoryPluginConfigIndex_;
+    std::set<DataIndex> supportPluginNameIndex_ = {};
+    bool onlyParseFtrace_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

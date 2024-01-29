@@ -18,13 +18,13 @@
 #include "version.h"
 #include "sdk_data_parser.h"
 #include "sdk_plugin_data_parser.h"
-#include "table_base.h"
+#include "demo_table_base.h"
 #include "trace_stdtype.h"
 #include "ts_sdk_api.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-RpcServer g_wasmTraceStreamer;
+DemoRpcServer g_demoWasmTraceStreamer;
 
 extern "C" {
 using QueryResultCallbackFunction = void (*)(const char* data, uint32_t len, int32_t finish, int32_t isConfig);
@@ -48,9 +48,9 @@ void TraceRangeCallback(const std::string& jsonResult)
 }
 EMSCRIPTEN_KEEPALIVE uint8_t* Init(QueryResultCallbackFunction queryResultCallbackFunction, uint32_t reqBufferSize)
 {
-    SetRpcServer(&g_wasmTraceStreamer);
+    SetRpcServer(&g_demoWasmTraceStreamer);
     sdk_plugin_init_table_name();
-    g_wasmTraceStreamer.ts_->sdkDataParser_->CreateTableByJson();
+    g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->CreateTableByJson();
     g_reply = queryResultCallbackFunction;
     g_reqBuf = new uint8_t[reqBufferSize];
     g_reqBufferSize = reqBufferSize;
@@ -69,13 +69,13 @@ EMSCRIPTEN_KEEPALIVE uint8_t* InitPluginName(uint32_t reqBufferSize)
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_PluginName(const uint8_t* pluginName, int32_t len)
 {
     std::string pluginNameStr(reinterpret_cast<const char*>(pluginName), len);
-    g_wasmTraceStreamer.ts_->sdkDataParser_->GetPluginName(pluginNameStr);
+    g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->GetPluginName(pluginNameStr);
     return 0;
 }
 
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerGetPluginNameEx(int32_t pluginLen)
 {
-    return g_wasmTraceStreamer.WasmGetPluginNameWithCallback(g_PluginNameBuf, pluginLen);
+    return g_demoWasmTraceStreamer.DemoWasmGetPluginNameWithCallback(g_PluginNameBuf, pluginLen);
 }
 
 EMSCRIPTEN_KEEPALIVE uint8_t* InitTraceRange(TraceRangeCallbackFunction traceRangeCallbackFunction,
@@ -90,31 +90,31 @@ EMSCRIPTEN_KEEPALIVE uint8_t* InitTraceRange(TraceRangeCallbackFunction traceRan
 // The whole file is parsed, and the third party is notified by JS
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_ParseDataOver()
 {
-    MetaData* metaData = g_wasmTraceStreamer.ts_->GetMetaData();
+    MetaData* metaData = g_demoWasmTraceStreamer.demoTs_->GetMetaData();
     metaData->InitMetaData();
     metaData->SetParserToolVersion(SDK_VERSION);
     metaData->SetParserToolPublishDateTime(SDK_PUBLISHVERSION);
-    g_wasmTraceStreamer.ts_->sdkDataParser_->ParseDataOver(&TraceRangeCallback);
+    g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->ParseDataOver(&TraceRangeCallback);
     return 0;
 }
 
 // Get Json configuration interface
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamer_In_JsonConfig()
 {
-    g_wasmTraceStreamer.ts_->sdkDataParser_->GetJsonConfig(&QueryResultCallback);
+    g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->GetJsonConfig(&QueryResultCallback);
     return 0;
 }
 
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperate(const uint8_t* sql, int32_t sqlLen)
 {
-    if (g_wasmTraceStreamer.SqlOperate(sql, sqlLen, nullptr)) {
+    if (g_demoWasmTraceStreamer.DemoSqlOperate(sql, sqlLen, nullptr)) {
         return 0;
     }
     return -1;
 }
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperateEx(int32_t sqlLen)
 {
-    if (g_wasmTraceStreamer.SqlOperate(g_reqBuf, sqlLen, nullptr)) {
+    if (g_demoWasmTraceStreamer.DemoSqlOperate(g_reqBuf, sqlLen, nullptr)) {
         return 0;
     }
     return -1;
@@ -123,19 +123,19 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlOperateEx(int32_t sqlLen)
 // JS calls third-party parsing interface
 EMSCRIPTEN_KEEPALIVE int32_t ParserData(int32_t len, int32_t componentId)
 {
-    g_wasmTraceStreamer.ts_->sdkDataParser_->ParserData(g_reqBuf, len, componentId);
+    g_demoWasmTraceStreamer.demoTs_->sdkDataParser_->ParserData(g_reqBuf, len, componentId);
     return 0;
 }
 
 // return the length of result, -1 while failed
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQuery(const uint8_t* sql, int32_t sqlLen, uint8_t* out, int32_t outLen)
 {
-    return g_wasmTraceStreamer.WasmSqlQuery(sql, sqlLen, out, outLen);
+    return g_demoWasmTraceStreamer.DemoWasmSqlQuery(sql, sqlLen, out, outLen);
 }
 // return the length of result, -1 while failed
 EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerSqlQueryEx(int32_t sqlLen)
 {
-    return g_wasmTraceStreamer.WasmSqlQueryWithCallback(g_reqBuf, sqlLen, &QueryResultCallback);
+    return g_demoWasmTraceStreamer.DemoWasmSqlQueryWithCallback(g_reqBuf, sqlLen, &QueryResultCallback);
 }
 
 } // extern "C"

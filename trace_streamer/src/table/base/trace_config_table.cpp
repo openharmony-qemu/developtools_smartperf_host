@@ -42,9 +42,9 @@ TraceConfigTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tab
 
 TraceConfigTable::Cursor::~Cursor() {}
 
-int32_t TraceConfigTable::Cursor::Column(int32_t column) const
+int32_t TraceConfigTable::Cursor::Column(int32_t traceCfgColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(traceCfgColumn)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(CurrentRow()));
             break;
@@ -61,7 +61,7 @@ int32_t TraceConfigTable::Cursor::Column(int32_t column) const
                                 STR_DEFAULT_LEN, nullptr);
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered traceCfgColumn : %d", traceCfgColumn);
             break;
     }
     return SQLITE_OK;

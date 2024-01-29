@@ -327,7 +327,6 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
         } else {
             argSetId = streamFilters_->argsFilter_->NewArgs(args);
             sliceRowToArgsSetId_[index] = argSetId;
-            argsSetIdToSliceRow_[argSetId] = static_cast<uint32_t>(index);
             args.argSetId_ = argSetId;
             args.inserted_ = true;
         }
@@ -358,25 +357,29 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
     } else {
         internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, pid);
     }
-    if (binderStackMap_.find(internalTid) == binderStackMap_.end()) {
-        return SIZE_MAX;
-    }
+    TS_CHECK_TRUE_RET(binderStackMap_.find(internalTid) != binderStackMap_.end(), SIZE_MAX);
     auto& stackInfo = binderStackMap_[internalTid];
     SlicesStack& stack = stackInfo.sliceStack;
     CloseUnMatchedSlice(timeStamp, stack, internalTid);
     if (stack.empty()) {
-        callEventDisMatchCount++;
+        callEventDisMatchCount_++;
         return SIZE_MAX;
     }
     auto stackIdx = MatchingIncompleteSliceIndex(stack, category, name);
-    if (stackIdx < 0) {
-        TS_LOGE("MatchingIncompleteSliceIndex failed");
-        return SIZE_MAX;
-    }
+    TS_CHECK_TRUE(stackIdx >= 0, SIZE_MAX, "MatchingIncompleteSliceIndex failed");
     auto lastRow = stack[stackIdx].index;
     auto slices = traceDataCache_->GetInternalSlicesData();
     slices->SetDuration(lastRow, timeStamp);
 
+    HandleAsyncEventAndOther(args, slices, lastRow, stackInfo);
+    if (stackIdx == stack.size() - 1) {
+        stack.pop_back();
+    }
+    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
+    return lastRow;
+}
+void SliceFilter::HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo)
+{
     auto argSize = sliceRowToArgsSetId_.count(lastRow);
     size_t argSetId = 0;
     if (args.valuesMap_.size()) {
@@ -401,11 +404,6 @@ size_t SliceFilter::CompleteSlice(uint64_t timeStamp,
             streamFilters_->argsFilter_->AppendArgs(args, argSetId);
         }
     }
-    if (stackIdx == stack.size() - 1) {
-        stack.pop_back();
-    }
-    streamFilters_->processFilter_->AddThreadSliceNum(internalTid);
-    return lastRow;
 }
 size_t SliceFilter::EndBinder(uint64_t timeStamp, uint32_t pid, DataIndex category, DataIndex name, ArgsSet args)
 {
@@ -438,13 +436,13 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       uint64_t cookie,
                                       DataIndex nameIndex)
 {
-    UNUSED(pid);
+    Unused(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
 
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId != INVALID_UINT64) {
-        asyncEventDisMatchCount++;
+        asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     asyncEventSize_++;
@@ -466,17 +464,17 @@ uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
                                        uint64_t cookie,
                                        DataIndex nameIndex)
 {
-    UNUSED(pid);
+    Unused(pid);
     InternalPid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timeStamp, threadGroupId);
     auto lastFilterId = asyncEventMap_.Find(internalTid, cookie, nameIndex);
     auto slices = traceDataCache_->GetInternalSlicesData();
     if (lastFilterId == INVALID_UINT64) { // if failed
-        asyncEventDisMatchCount++;
+        asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     if (asyncEventFilterMap_.find(lastFilterId) == asyncEventFilterMap_.end()) {
         TS_LOGE("logic error");
-        asyncEventDisMatchCount++;
+        asyncEventDisMatchCount_++;
         return INVALID_UINT64;
     }
     // update timeStamp
@@ -495,6 +493,43 @@ size_t
     return CompleteSlice(timeStamp, pid, threadGroupId, category, name);
 }
 
+bool SliceFilter::UpdateIrqReadySize()
+{
+    CallStack* irqDatas = traceDataCache_->GetIrqData();
+    irqDatas->UpdateReadySize(irqDatas->Size());
+    uint64_t minIrqRowToBeUpdated = INVALID_UINT64;
+    for (const auto& [_, irqRecord] : irqEventMap_) {
+        if (minIrqRowToBeUpdated > irqRecord.row) {
+            minIrqRowToBeUpdated = irqRecord.row;
+        }
+    }
+    for (const auto& [_, softIrqRecord] : softIrqEventMap_) {
+        if (minIrqRowToBeUpdated > softIrqRecord.row) {
+            minIrqRowToBeUpdated = softIrqRecord.row;
+        }
+    }
+    for (const auto& [_, ipiRecord] : ipiEventMap_) {
+        if (minIrqRowToBeUpdated > ipiRecord.row) {
+            minIrqRowToBeUpdated = ipiRecord.row;
+        }
+    }
+    // the ready size isn't all
+    TS_CHECK_TRUE_RET(minIrqRowToBeUpdated != INVALID_UINT64, true);
+    irqDatas->UpdateReadySize(minIrqRowToBeUpdated);
+    TS_LOGI("minIrqRowToBeUpdated=%" PRIu64 ", size=%zu, ready.size=%zu\n", minIrqRowToBeUpdated, irqDatas->Size(),
+            irqDatas->readySize_);
+    for (auto& [_, irqRecord] : irqEventMap_) {
+        irqRecord.row -= irqDatas->readySize_;
+    }
+    for (auto& [_, ipiRecord] : ipiEventMap_) {
+        ipiRecord.row -= irqDatas->readySize_;
+    }
+    for (auto& [_, softIrqRecord] : softIrqEventMap_) {
+        softIrqRecord.row -= irqDatas->readySize_;
+    }
+    return true;
+}
+
 void SliceFilter::Clear()
 {
     asyncEventMap_.Clear();
@@ -505,8 +540,6 @@ void SliceFilter::Clear()
     sliceStackMap_.clear();
     depthHolder_.clear();
     sliceRowToArgsSetId_.clear();
-    argsSetIdToSliceRow_.clear();
-    argsSetIdToSliceRow_.clear();
     argsSet_.clear();
 }
 } // namespace TraceStreamer

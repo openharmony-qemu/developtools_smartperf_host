@@ -30,9 +30,21 @@ ohos_fuzztest("ts_htrace_fuzz_test") {
     "../../../src/include",
     "../../../src/parser/bytrace_parser",
     "../../../src/cfg",
+    "../../../src/metrics",
     "${THIRD_PARTY}/sqlite/include",
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/bounds_checking_function/include",
+    "${THIRD_PARTY}/json/single_include/nlohmann",
+  ]
+  include_dirs += [
+    "${TRACE_STDTYPE}",
+    "${TRACE_STDTYPE}/ftrace",
+    "${TRACE_STDTYPE}/ftrace/template",
+    "${TRACE_STDTYPE}/hilog",
+    "${TRACE_STDTYPE}/hiperf",
+    "${TRACE_STDTYPE}/hisysevent",
+    "${TRACE_STDTYPE}/htrace",
+    "${TRACE_STDTYPE}/measure",
   ]
   cflags = [
     "-g",

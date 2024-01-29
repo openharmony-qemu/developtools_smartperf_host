@@ -460,13 +460,9 @@ void HtraceJSMemoryParser::ParseSnapshotOrTimeLineEnd(const std::string& result,
                                                       uint64_t ts)
 {
     std::string fileName = "";
-    std::regex strEscapeInvalid("\\\\n");
-    std::regex strInvalid("\\\\\"");
-    auto strEscape = std::regex_replace(jsMemoryString_, strEscapeInvalid, "");
-    auto str = std::regex_replace(strEscape, strInvalid, "\"");
     if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_SNAPSHOT) {
         fileName = "Snapshot" + std::to_string(fileId_);
-        ParseSnapshot(tracePacket, profilerPluginData, str, ts);
+        ParseSnapshot(tracePacket, profilerPluginData, jsMemoryString_, ts);
     } else if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_TIMELINE) {
         if (result == snapshotEnd_) {
             ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
@@ -475,7 +471,7 @@ void HtraceJSMemoryParser::ParseSnapshotOrTimeLineEnd(const std::string& result,
             return;
         }
         fileName = "Timeline";
-        ParseTimeLine(profilerPluginData, str);
+        ParseTimeLine(profilerPluginData, jsMemoryString_);
     }
     ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
@@ -501,10 +497,7 @@ void HtraceJSMemoryParser::ParseJsCpuProfiler(const std::string& result,
     curTypeIsCpuProfile_ = true;
     auto jsCpuProfilerString =
         result.substr(jsCpuProfilerPos + PROFILE_POS, result.size() - jsCpuProfilerPos - PROFILE_POS - END_PROFILE_POS);
-    std::regex strEscapeInvalid("\\\\n");
-    std::regex strInvalid("\\\\\"");
-    auto strEscape = std::regex_replace(jsCpuProfilerString, strEscapeInvalid, "");
-    auto str = std::regex_replace(strEscape, strInvalid, "\"");
+
     ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
     if (enableFileSave_) {
@@ -514,11 +507,11 @@ void HtraceJSMemoryParser::ParseJsCpuProfiler(const std::string& result,
             exit(-1);
         }
         (void)ftruncate(fd, 0);
-        (void)write(fd, str.data(), str.size());
+        (void)write(fd, jsCpuProfilerString.data(), jsCpuProfilerString.size());
         close(fd);
         fd = 0;
     }
-    jsCpuProfilerParser_->ParseJsCpuProfiler(str, traceDataCache_->SplitFileMinTime(),
+    jsCpuProfilerParser_->ParseJsCpuProfiler(jsCpuProfilerString, traceDataCache_->SplitFileMinTime(),
                                              traceDataCache_->SplitFileMaxTime());
     if (traceDataCache_->isSplitFile_) {
         cpuProfilerSplitFileData_ = jsCpuProfilerParser_->GetUpdateJson().dump();
@@ -550,8 +543,10 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket,
             startTime_ = ts;
             isFirst_ = false;
         }
-        auto resultJson = result.substr(pos + CHUNK_POS, result.size() - pos - CHUNK_POS - END_POS);
-        jsMemoryString_ += resultJson;
+        auto jMessage = json::parse(result);
+        if (jMessage.contains("params") && jMessage["params"].contains("chunk")) {
+            jsMemoryString_ += jMessage["params"]["chunk"];          
+        }
         curTypeIsCpuProfile_ = false;
     } else {
         ParseJsCpuProfiler(result, profilerPluginData, ts);
@@ -789,6 +784,7 @@ void HtraceJSMemoryParser::ParseSnapshot(ProtoReader::BytesView& tracePacket,
         (void)write(jsFileId_, jsonString.data(), jsonString.size());
         close(jsFileId_);
         jsFileId_ = 0;
+        return;
     }
     json jMessage = json::parse(jsonString);
     ParserJSSnapInfo(fileId_, jMessage);

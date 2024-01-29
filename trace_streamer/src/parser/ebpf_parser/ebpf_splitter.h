@@ -21,7 +21,7 @@
 #include <elf.h>
 #endif
 #include <string>
-#include "ebpf_stdtype.h"
+#include "ebpf_data_structure.h"
 #include "event_parser_base.h"
 #include "process_filter.h"
 #include "quatra_map.h"
@@ -62,6 +62,15 @@ public:
 private:
     bool SplitEbpfHeader(std::deque<uint8_t>& dequeBuffer);
     void SplitEbpfBodyData(std::deque<uint8_t>& dequeBuffer);
+    void AppendSplitOriginSegResult(uint32_t segLen);
+    template <typename FixedHeader>
+    void AppendSplitResultWithFixedHeader(uint32_t segLen, std::deque<uint8_t>& dequeBuffer, FixedHeader& fixedHeader)
+    {
+        std::copy_n(dequeBuffer.begin() + EBPF_TITLE_SIZE, sizeof(FixedHeader), reinterpret_cast<char*>(&fixedHeader));
+        if (fixedHeader.endTime <= splitFileMaxTs_ && fixedHeader.startTime >= splitFileMinTs_) {
+            AppendSplitOriginSegResult(segLen);
+        }
+    }
     uint64_t splittedLen_ = 0;
     uint64_t usefulDataLen_ = 0;
     std::deque<uint8_t> ebpfBuffer_;

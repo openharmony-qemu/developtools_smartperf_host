@@ -59,9 +59,9 @@ DiskIOTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 
 DiskIOTable::Cursor::~Cursor() {}
 
-int32_t DiskIOTable::Cursor::Column(int32_t column) const
+int32_t DiskIOTable::Cursor::Column(int32_t diskIoColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(diskIoColumn)) {
         case Index::TS: {
             sqlite3_result_int64(context_, static_cast<int64_t>(diskIODataObj_.TimeStampData()[CurrentRow()]));
             break;
@@ -103,7 +103,7 @@ int32_t DiskIOTable::Cursor::Column(int32_t column) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered diskIoColumn : %d", diskIoColumn);
             break;
     }
     return SQLITE_OK;

@@ -71,7 +71,6 @@ config("default") {
   }
   if (target_os == "windows") {
     cflags += [ "-D target_cpu_x86_64" ]
-    libs += [ "z" ]
   } else if (is_linux || is_mac) {
     cflags += [
       "-Wa,--noexecstack",
@@ -89,7 +88,6 @@ config("default") {
         "-DHAVE_CONFIG_H",
         "-DCC_IS_CLANG",
       ]
-      libs += [ "z" ]
     }
     if (!use_wasm && !is_win && !is_mac && !is_test && !is_mingw) {
       cflags += [ "-D HAVE_LIBUNWIND" ]
@@ -139,9 +137,6 @@ config("default") {
   }
   if (is_linux) {
     cflags += [ "-D is_linux" ]
-  }
-  if (with_ebpf_help_table) {
-    cflags += [ "-D WITH_EBPF_HELP" ]
   }
 }
 

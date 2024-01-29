@@ -21,11 +21,10 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, TYPE, NAME, CPU };
+enum class Index : int32_t { ID = 0, NAME, CPU };
 CpuMeasureFilterTable::CpuMeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
     tablePriKey_.push_back("id");
@@ -58,17 +57,17 @@ void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& cpufc,
     }
 }
 
-bool CpuMeasureFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool CpuMeasureFilterTable::CanFilterSorted(const char op, size_t& cpuRowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            cpuRowCount = cpuRowCount / log2(cpuRowCount);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            rowCount = (rowCount >> 1);
+            cpuRowCount = (cpuRowCount >> 1);
             break;
         default:
             return false;
@@ -82,8 +81,8 @@ std::unique_ptr<TableBase::Cursor> CpuMeasureFilterTable::CreateCursor()
 }
 
 CpuMeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstCpuMeasureData().Size())),
-      cpuMeasureObj_(dataCache->GetConstCpuMeasureData())
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstCpuMeasuresData().Size())),
+      cpuMeasureObj_(dataCache->GetConstCpuMeasuresData())
 {
 }
 
@@ -98,9 +97,9 @@ int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& cpuMeasureFilterCs = fc.GetConstraints();
+    for (size_t i = 0; i < cpuMeasureFilterCs.size(); i++) {
+        const auto& c = cpuMeasureFilterCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterSorted(c.col, c.op, argv[i]);
@@ -113,12 +112,12 @@ int32_t CpuMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto cpuMeasureFilterTabOrderbys = fc.GetOrderBys();
+    for (auto i = cpuMeasureFilterTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(cpuMeasureFilterTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(cpuMeasureFilterTabOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -133,9 +132,6 @@ int32_t CpuMeasureFilterTable::Cursor::Column(int32_t column) const
     switch (static_cast<Index>(column)) {
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<int64_t>(cpuMeasureObj_.IdsData()[CurrentRow()]));
-            break;
-        case Index::TYPE:
-            sqlite3_result_text(context_, "cpu_measure_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case Index::NAME: {
             const std::string& str =
@@ -153,20 +149,20 @@ int32_t CpuMeasureFilterTable::Cursor::Column(int32_t column) const
     return SQLITE_OK;
 }
 
-void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, sqlite3_value* argv)
+void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t columns, unsigned char option, sqlite3_value* argv)
 {
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL, filter out nothing
+    auto valType = sqlite3_value_type(argv);
+    if (valType != SQLITE_INTEGER) {
+        // other valType consider it NULL, filter out nothing
         indexMap_->Intersect(0, 0);
         return;
     }
 
-    switch (static_cast<Index>(col)) {
+    switch (static_cast<Index>(columns)) {
         case Index::ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
             auto getValue = [](const uint32_t& row) { return row; };
-            switch (op) {
+            switch (option) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
                     indexMap_->IntersectabcEqual(cpuMeasureObj_.IdsData(), v, getValue);
                     break;
@@ -184,7 +180,7 @@ void CpuMeasureFilterTable::Cursor::FilterSorted(int32_t col, unsigned char op, 
                 }
                 default:
                     break;
-            } // end of switch (op)
+            } // end of switch (option)
         }     // end of case TS
         default:
             // can't filter, all rows

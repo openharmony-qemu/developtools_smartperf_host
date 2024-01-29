@@ -31,8 +31,9 @@ FilterFilter::~FilterFilter() = default;
 uint32_t FilterFilter::AddFilter(std::string type, std::string name, uint64_t arg)
 {
     auto filter = traceDataCache_->GetFilterData();
-    size_t id = filter->AppendNewFilterData(type, name, arg);
-    return static_cast<uint32_t>(id);
+    filter->AppendNewFilterData(type, name, arg);
+    // the filter id is the measure_filter table row
+    return static_cast<uint32_t>(filter->id_ - 1);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

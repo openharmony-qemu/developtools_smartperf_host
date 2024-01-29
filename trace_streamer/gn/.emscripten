@@ -23,7 +23,6 @@ if thisFile is None:
 rootDir = os.path.dirname(os.path.dirname(thisFile))
 emsdkPath = os.path.join(rootDir, 'prebuilts/emsdk/emsdk')
 nodePath = os.path.join(rootDir, 'prebuilts/emsdk/node/16.20.0_64bit')
-
 LLVM_ROOT = os.path.join(emsdkPath, 'bin')
 NODE_JS = os.path.join(nodePath, 'bin/node')
 EMSCRIPTEN_ROOT = os.path.join(emsdkPath, 'emscripten')

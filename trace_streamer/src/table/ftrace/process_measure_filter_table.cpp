@@ -19,11 +19,10 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, TYPE, NAME, INTERNAL_PID };
+enum class Index : int32_t { ID = 0, NAME, INTERNAL_PID };
 ProcessMeasureFilterTable::ProcessMeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
     tablePriKey_.push_back("id");
@@ -56,17 +55,17 @@ void ProcessMeasureFilterTable::FilterByConstraint(FilterConstraints& filterfc,
     }
 }
 
-bool ProcessMeasureFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool ProcessMeasureFilterTable::CanFilterSorted(const char op, size_t& procRowCnt) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            procRowCnt = procRowCnt / log2(procRowCnt);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
-            rowCount = (rowCount >> 1);
+            procRowCnt = (procRowCnt >> 1);
             break;
         default:
             return false;
@@ -95,9 +94,9 @@ int32_t ProcessMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, s
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& procMeasureFilterCs = fc.GetConstraints();
+    for (size_t i = 0; i < procMeasureFilterCs.size(); i++) {
+        const auto& c = procMeasureFilterCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
@@ -118,12 +117,12 @@ int32_t ProcessMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, s
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto procMeasureFilterOrderbys = fc.GetOrderBys();
+    for (auto i = procMeasureFilterOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(procMeasureFilterOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(procMeasureFilterOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -139,9 +138,6 @@ int32_t ProcessMeasureFilterTable::Cursor::Column(int32_t col) const
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
                                                dataCache_->GetConstProcessMeasureFilterData().IdsData()[CurrentRow()]));
-            break;
-        case Index::TYPE:
-            sqlite3_result_text(context_, "process_measure_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case Index::NAME: {
             size_t strId =
@@ -162,9 +158,9 @@ int32_t ProcessMeasureFilterTable::Cursor::Column(int32_t col) const
 }
 void ProcessMeasureFilterTable::GetOrbyes(FilterConstraints& filterfc, EstimatedIndexInfo& filterei)
 {
-    auto filterorderbys = filterfc.GetOrderBys();
-    for (auto i = 0; i < filterorderbys.size(); i++) {
-        switch (static_cast<Index>(filterorderbys[i].iColumn)) {
+    auto procMeasurefilterOrdbys = filterfc.GetOrderBys();
+    for (auto i = 0; i < procMeasurefilterOrdbys.size(); i++) {
+        switch (static_cast<Index>(procMeasurefilterOrdbys[i].iColumn)) {
             case Index::ID:
                 break;
             default: // other columns can be sorted by SQLite

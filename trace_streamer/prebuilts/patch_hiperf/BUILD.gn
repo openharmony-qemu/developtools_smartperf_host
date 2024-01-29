@@ -26,8 +26,8 @@ ohos_source_set("elf") {
     "include/nonlinux/linux",
     "include/nonlinux",
     "${THIRD_PARTY}/bounds_checking_function/include",
-    "${SRC}/../prebuilts/emsdk/node/16.20.0_64bit/include/node",
   ]
+  public_deps = [ "${THIRD_PARTY}/zlib:libz" ]
 }
 ohos_source_set("hiperf_src") {
   configs -= [ trace_cfg_path ]

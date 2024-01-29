@@ -58,8 +58,8 @@ std::unique_ptr<TableBase::Cursor> FrameMapsTable::CreateCursor()
 }
 
 FrameMapsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFameMapsData().Size())),
-      frameMapsObj_(dataCache->GetConstFameMapsData())
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstFrameMapsData().Size())),
+      frameMapsObj_(dataCache->GetConstFrameMapsData())
 {
 }
 
@@ -74,11 +74,11 @@ int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto frameMapsTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(frameMapsTabCs, sId);
+    for (size_t i = 0; i < frameMapsTabCs.size(); i++) {
+        const auto& c = frameMapsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -95,12 +95,12 @@ int32_t FrameMapsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto frameMapsTabOrderbys = fc.GetOrderBys();
+    for (auto i = frameMapsTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(frameMapsTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(frameMapsTabOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -114,7 +114,7 @@ int32_t FrameMapsTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
+            sqlite3_result_int64(context_, static_cast<int32_t>(frameMapsObj_.IdsData()[CurrentRow()]));
             break;
         case Index::SRC_ROW:
             sqlite3_result_int64(context_, static_cast<int64_t>(frameMapsObj_.SrcIndexs()[CurrentRow()]));

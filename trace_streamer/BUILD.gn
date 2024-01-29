@@ -26,8 +26,6 @@ group("trace_streamer") {
     ]
   } else if (is_sdkdemo) {
     deps = [ "sdk/demo_sdk:trace_streamer_sdk_builtin" ]
-  } else if (is_dubai_sdk) {
-    deps = [ "sdk/dubai_sdk:trace_streamer_dubai_builtin" ]
   } else if (is_sdkdemo_test) {
     deps = [ "sdk/test:sdkunittest" ]
   } else if (use_wasm) {

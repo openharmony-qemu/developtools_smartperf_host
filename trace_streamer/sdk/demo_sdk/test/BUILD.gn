@@ -40,7 +40,6 @@ if (target == "sdkdemotest") {
       "./",
       "../parser",
       "../cfg",
-      "${PREBUILTS}/emsdk/emsdk/emscripten/system/include",
       "${THIRD_PARTY}/sqlite/include",
       "${OHOS_PROTO_GEN}",
       "${OHOS_PROTO_GEN}/types/plugins/mock_data",

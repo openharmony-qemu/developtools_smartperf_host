@@ -41,6 +41,14 @@ if [ ! -f "protobuf/BUILD.gn" ];then
     fi
 fi
 
+if [ ! -f "zlib/BUILD.gn" ];then
+    rm -rf zlib
+    git clone --depth=1 git@gitee.com:openharmony/third_party_zlib.git
+    if [ -d "third_party_zlib" ];then
+        mv third_party_zlib zlib
+        $cp ../prebuilts/patch_zlib/zlibbuild.gn zlib/BUILD.gn
+    fi
+fi
 if [ ! -f "googletest/BUILD.gn" ];then
     rm -rf googletest
     git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git

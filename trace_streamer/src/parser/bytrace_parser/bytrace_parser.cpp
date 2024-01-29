@@ -27,8 +27,8 @@
 namespace SysTuning {
 namespace TraceStreamer {
 BytraceParser::BytraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters, TraceFileType fileType)
-    : fileType_(fileType),
-      ParserBase(filters),
+    : ParserBase(filters),
+      fileType_(fileType),
       traceDataCache_(dataCache),
       eventParser_(std::make_unique<BytraceEventParser>(dataCache, filters)),
       hilogParser_(std::make_unique<BytraceHilogParser>(dataCache, filters)),
@@ -67,6 +67,80 @@ bool BytraceParser::UpdateSplitPos()
     TS_LOGI("minSplitPos_=%d", minSplitPos_);
     return true;
 }
+
+template <typename Iterator>
+int32_t BytraceParser::WhileDetermine(Iterator& packagesLine,
+                                      Iterator& packagesBegin,
+                                      bool& isParsingOver_,
+                                      bool isFinish)
+{
+    // While loop break and continue
+    if (packagesLine == packagesBuffer_.end()) {
+        if (isFinish) {
+            isParsingOver_ = true;
+        } else {
+            return 1;
+        }
+    }
+    if (packagesLine == packagesBuffer_.begin()) {
+        packagesLine++;
+        curFileOffset_ += std::distance(packagesBegin, packagesLine);
+        packagesBegin = packagesLine;
+        return DETERMINE_CONTINUE;
+    }
+    return DETERMINE_RETURN;
+}
+
+int32_t BytraceParser::GotoDetermine(std::string& bufferLine, bool& haveSplitSeg)
+{
+    if (traceDataCache_->isSplitFile_) {
+        mTraceDataBytrace_.emplace_back(curFileOffset_, curDataSize_);
+    }
+    if (isFirstLine_) {
+        isFirstLine_ = false;
+        if (IsHtmlTrace(bufferLine)) {
+            isHtmlTrace_ = true;
+            return 1;
+        }
+    }
+    if (isHtmlTrace_) {
+        if (!isHtmlTraceContent_) {
+            if (IsHtmlTraceBegin(bufferLine)) {
+                isHtmlTraceContent_ = true;
+            }
+            return 1;
+        }
+        auto pos = bufferLine.find(script_.c_str());
+        if (pos != std::string::npos) {
+            isHtmlTraceContent_ = false;
+            bufferLine = bufferLine.substr(0, pos);
+            if (std::all_of(bufferLine.begin(), bufferLine.end(), isspace)) {
+                return 1;
+            }
+        }
+    }
+    if (IsTraceComment(bufferLine)) {
+        traceCommentLines_++;
+        mTraceDataBytrace_.clear();
+        return 1;
+    }
+    if (bufferLine.empty()) {
+        parsedTraceInvalidLines_++;
+        return 1;
+    }
+    if (fileType_ == TRACE_FILETYPE_HILOG) {
+        hilogParser_->ParseHilogDataItem(bufferLine, seq_, haveSplitSeg);
+    } else if (fileType_ == TRACE_FILETYPE_HI_SYSEVENT) {
+        hiSysEventParser_->ParseHiSysEventDataItem(bufferLine, seq_, haveSplitSeg);
+    } else if (isBytrace_) {
+        if (!traceBegan_) {
+            traceBegan_ = true;
+        }
+        ParseTraceDataItem(bufferLine);
+    }
+    return DETERMINE_RETURN;
+}
+
 void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish)
 {
     if (isParsingOver_) {
@@ -76,75 +150,23 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
     auto packagesBegin = packagesBuffer_.begin();
     while (true) {
         auto packagesLine = std::find(packagesBegin, packagesBuffer_.end(), '\n');
-        if (packagesLine == packagesBuffer_.end()) {
-            if (isFinish) {
-                isParsingOver_ = true;
-            } else {
-                break;
-            }
-        }
-        if (packagesLine == packagesBuffer_.begin()) {
-            packagesLine++;
-            curFileOffset_ += std::distance(packagesBegin, packagesLine);
-            packagesBegin = packagesLine;
+        int32_t determine = WhileDetermine(packagesLine, packagesBegin, isParsingOver_, isFinish);
+        if (1 == determine) {
+            break;
+        } else if (DETERMINE_CONTINUE == determine) {
             continue;
         }
         // Support parsing windows file format(ff=dos)
         auto extra = 0;
-        if (packagesLine != packagesBuffer_.end()) {
-            if (*(packagesLine - 1) == '\r') {
-                extra = 1;
-            }
+        if (packagesLine != packagesBuffer_.end() && *(packagesLine - 1) == '\r') {
+            extra = 1;
         }
         bool haveSplitSeg = false;
         std::string bufferLine(packagesBegin, packagesLine - extra);
         curDataSize_ = std::distance(packagesBegin, packagesLine) + 1;
-        if (traceDataCache_->isSplitFile_) {
-            mTraceDataBytrace_.emplace_back(curFileOffset_, curDataSize_);
-        }
-
-        if (isFirstLine_) {
-            isFirstLine_ = false;
-            if (IsHtmlTrace(bufferLine)) {
-                isHtmlTrace_ = true;
-                goto NEXT_LINE;
-            }
-        }
-        if (isHtmlTrace_) {
-            if (!isHtmlTraceContent_) {
-                if (IsHtmlTraceBegin(bufferLine)) {
-                    isHtmlTraceContent_ = true;
-                }
-                goto NEXT_LINE;
-            }
-            auto pos = bufferLine.find(script_.c_str());
-            if (pos != std::string::npos) {
-                isHtmlTraceContent_ = false;
-                bufferLine = bufferLine.substr(0, pos);
-                if (std::all_of(bufferLine.begin(), bufferLine.end(), isspace)) {
-                    goto NEXT_LINE;
-                }
-            }
-        }
-
-        if (IsTraceComment(bufferLine)) {
-            traceCommentLines_++;
-            mTraceDataBytrace_.clear();
+        int32_t op = GotoDetermine(bufferLine, haveSplitSeg);
+        if (1 == op) {
             goto NEXT_LINE;
-        }
-        if (bufferLine.empty()) {
-            parsedTraceInvalidLines_++;
-            goto NEXT_LINE;
-        }
-        if (fileType_ == TRACE_FILETYPE_HILOG) {
-            hilogParser_->ParseHilogDataItem(bufferLine, seq_, haveSplitSeg);
-        } else if (fileType_ == TRACE_FILETYPE_HI_SYSEVENT) {
-            hiSysEventParser_->ParseHiSysEventDataItem(bufferLine, seq_, haveSplitSeg);
-        } else if (isBytrace_) {
-            if (!traceBegan_) {
-                traceBegan_ = true;
-            }
-            ParseTraceDataItem(bufferLine);
         }
         if (haveSplitSeg) {
             UpdateSplitPos();
@@ -158,7 +180,6 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
         seq_++;
         continue;
     }
-
     if (isParsingOver_) {
         packagesBuffer_.clear();
     } else {

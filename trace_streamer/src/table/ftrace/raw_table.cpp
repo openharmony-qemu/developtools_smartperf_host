@@ -16,7 +16,7 @@
 #include "raw_table.h"
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, TYPE, TS, NAME, CPU, INTERNAL_TID };
+enum class Index : int32_t { ID = 0, TS, NAME, CPU, INTERNAL_TID };
 enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
 uint32_t GetNameIndex(const std::string& name)
 {
@@ -33,7 +33,6 @@ uint32_t GetNameIndex(const std::string& name)
 RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
@@ -88,11 +87,11 @@ int32_t RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto RawTableCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(RawTableCs, sId);
+    for (size_t i = 0; i < RawTableCs.size(); i++) {
+        const auto& c = RawTableCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -114,12 +113,12 @@ int32_t RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto rawTableOrderbys = fc.GetOrderBys();
+    for (auto i = rawTableOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(rawTableOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(rawTableOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -133,10 +132,7 @@ int32_t RawTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
-            break;
-        case Index::TYPE:
-            sqlite3_result_text(context_, "raw", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_int64(context_, static_cast<int32_t>(rawObj_.IdsData()[CurrentRow()]));
             break;
         case Index::TS:
             sqlite3_result_int64(context_, static_cast<int64_t>(rawObj_.TimeStampData()[CurrentRow()]));

@@ -20,19 +20,19 @@ namespace TraceStreamer {
 enum class Index : int32_t {
     ID = 0,
     TS,
-    DUR,
-    CALL_ID,
-    CAT,
+    DURS,
+    CALL_IDS,
+    CATS,
     IDENTIFY,
     NAME,
-    DEPTH,
-    COOKIE_ID,
+    DEPTHS,
+    COOKIES_ID,
     PARENT_ID,
     ARGSET,
-    CHAIN_ID,
-    SPAN_ID,
-    PARENT_SPAN_ID,
-    FLAG,
+    CHAIN_IDS,
+    SPAN_IDS,
+    PARENT_SPAN_IDS,
+    FLAGS,
     ARGS
 };
 CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(dataCache)
@@ -63,15 +63,15 @@ CallStackTable::~CallStackTable() {}
 void CallStackTable::FilterByConstraint(FilterConstraints& callfc,
                                         double& callfilterCost,
                                         size_t callrowCount,
-                                        uint32_t callcurrenti)
+                                        uint32_t callCurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
     // for loop
-    const auto& callc = callfc.GetConstraints()[callcurrenti];
+    const auto& callc = callfc.GetConstraints()[callCurrenti];
     switch (static_cast<Index>(callc.col)) {
         case Index::ID: {
             if (CanFilterId(callc.op, callrowCount)) {
-                callfc.UpdateConstraint(callcurrenti, true);
+                callfc.UpdateConstraint(callCurrenti, true);
                 callfilterCost += 1; // id can position by 1 step
             } else {
                 callfilterCost += callrowCount; // scan all rows
@@ -106,11 +106,11 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto callStackTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::TS)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(callStackTabCs, sId);
+    for (size_t i = 0; i < callStackTabCs.size(); i++) {
+        const auto& c = callStackTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -118,10 +118,10 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
             case Index::TS:
                 FilterTS(c.op, argv[i], slicesObj_.TimeStampData());
                 break;
-            case Index::CALL_ID:
+            case Index::CALL_IDS:
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), slicesObj_.CallIds());
                 break;
-            case Index::COOKIE_ID:
+            case Index::COOKIES_ID:
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), slicesObj_.Cookies());
                 break;
             default:
@@ -129,12 +129,12 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto callStackTableOrderbys = fc.GetOrderBys();
+    for (auto i = callStackTableOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(callStackTableOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(callStackTableOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -148,43 +148,41 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
 {
     switch (static_cast<Index>(col)) {
         case Index::ID:
-            sqlite3_result_int64(context_, CurrentRow());
+            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.IdsData()[CurrentRow()]));
             break;
         case Index::TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.TimeStampData()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.DursData()[CurrentRow()]));
+        case Index::DURS:
+            SetTypeColumnInt64(slicesObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::CALL_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.CallIds()[CurrentRow()]));
+        case Index::CALL_IDS:
+            SetTypeColumnInt64(slicesObj_.CallIds()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::CAT: {
-            if (slicesObj_.CatsData()[CurrentRow()] != INVALID_UINT64) {
-                auto catsDataIndex = static_cast<size_t>(slicesObj_.CatsData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(catsDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::CATS: {
+            SetTypeColumnText(slicesObj_.CatsData()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::IDENTIFY:
             sqlite3_result_int(context_, slicesObj_.IdentifysData()[CurrentRow()]);
             break;
         case Index::NAME: {
-            if (slicesObj_.NamesData()[CurrentRow()] != INVALID_UINT64) {
-                auto nameDataIndex = static_cast<size_t>(slicesObj_.NamesData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(nameDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.NamesData()[CurrentRow()], INVALID_UINT64);
             break;
+            default:
+                HandleTypeColumns(col);
         }
-        case Index::DEPTH:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Depths()[CurrentRow()]));
+    }
+    return SQLITE_OK;
+}
+void CallStackTable::Cursor::HandleTypeColumns(int32_t col) const
+{
+    switch (static_cast<Index>(col)) {
+        case Index::DEPTHS:
+            SetTypeColumnInt64(slicesObj_.Depths()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::COOKIE_ID:
-            if (slicesObj_.Cookies()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Cookies()[CurrentRow()]));
-            }
+        case Index::COOKIES_ID:
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {
@@ -193,41 +191,32 @@ int32_t CallStackTable::Cursor::Column(int32_t col) const
             break;
         }
         case Index::ARGSET:
-            if (slicesObj_.ArgSetIdsData()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.ArgSetIdsData()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
-        case Index::CHAIN_ID:
-            if (!slicesObj_.ChainIds()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+        case Index::CHAIN_IDS:
+            SetTypeColumnTextNotEmpty(slicesObj_.ChainIds()[CurrentRow()].empty(),
+                                      slicesObj_.ChainIds()[CurrentRow()].c_str());
             break;
-        case Index::SPAN_ID:
-            if (!slicesObj_.SpanIds()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+        case Index::SPAN_IDS:
+            SetTypeColumnTextNotEmpty(slicesObj_.SpanIds()[CurrentRow()].empty(),
+                                      slicesObj_.SpanIds()[CurrentRow()].c_str());
             break;
-        case Index::PARENT_SPAN_ID:
-            if (!slicesObj_.ParentSpanIds()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::PARENT_SPAN_IDS:
+            SetTypeColumnTextNotEmpty(slicesObj_.ParentSpanIds()[CurrentRow()].empty(),
+                                      slicesObj_.ParentSpanIds()[CurrentRow()].c_str());
             break;
-        case Index::FLAG:
-            if (!slicesObj_.Flags()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.Flags()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+        case Index::FLAGS:
+            SetTypeColumnTextNotEmpty(slicesObj_.Flags()[CurrentRow()].empty(),
+                                      slicesObj_.Flags()[CurrentRow()].c_str());
             break;
         case Index::ARGS:
-            if (!slicesObj_.ArgsData()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, slicesObj_.ArgsData()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
-            }
+            SetTypeColumnTextNotEmpty(slicesObj_.ArgsData()[CurrentRow()].empty(),
+                                      slicesObj_.ArgsData()[CurrentRow()].c_str());
             break;
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;
     }
-    return SQLITE_OK;
 }
 void CallStackTable::GetOrbyes(FilterConstraints& callfc, EstimatedIndexInfo& callei)
 {

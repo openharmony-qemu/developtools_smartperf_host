@@ -16,21 +16,21 @@
 #ifndef GPU_COUNTER_OBJECT_TABLE_H
 #define GPU_COUNTER_OBJECT_TABLE_H
 
-#include "table_base.h"
+#include "demo_table_base.h"
 #include "trace_data_cache.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-class GpuCounterObjectTable : public TableBase {
+class GpuCounterObjectTable : public DemoTableBase {
 public:
     explicit GpuCounterObjectTable(const TraceDataCache* dataCache);
     ~GpuCounterObjectTable() override;
-    std::unique_ptr<TableBase::Cursor> CreateCursor() override;
+    std::unique_ptr<DemoTableBase::Cursor> CreateCursor() override;
 
 private:
-    class Cursor : public TableBase::Cursor {
+    class Cursor : public DemoTableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
+        explicit Cursor(const TraceDataCache* dataCache, DemoTableBase* table);
         ~Cursor() override;
         int32_t Column(int32_t column) const override;
 

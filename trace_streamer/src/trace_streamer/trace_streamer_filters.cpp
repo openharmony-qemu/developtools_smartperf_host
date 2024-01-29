@@ -29,7 +29,6 @@
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
-#include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 #include "task_pool_filter.h"
 
@@ -43,18 +42,6 @@ void TraceStreamerFilters::FilterClear()
     sliceFilter_->Clear();
     cpuFilter_->Clear();
     irqFilter_->Clear();
-    cpuMeasureFilter_->Clear();
-    threadMeasureFilter_->Clear();
-    threadFilter_->Clear();
-    processMeasureFilter_->Clear();
-    processFilterFilter_->Clear();
-    clockEnableFilter_->Clear();
-    clockDisableFilter_->Clear();
-    clockRateFilter_->Clear();
-    clkRateFilter_->Clear();
-    clkEnableFilter_->Clear();
-    clkDisableFilter_->Clear();
-    binderFilter_->Clear();
     frameFilter_->Clear();
 }
 } // namespace TraceStreamer

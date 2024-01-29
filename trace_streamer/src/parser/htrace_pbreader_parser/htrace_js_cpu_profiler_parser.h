@@ -39,6 +39,11 @@ public:
 
 private:
     void ParseNodeData(const json& jMessage);
+    void DataProcessing(const json& jMessage,
+                        uint64_t& sampleEndTime,
+                        uint64_t& startTime,
+                        uint64_t& dur,
+                        uint32_t& sample);
     uint32_t ParseSampleData(const json& jMessage,
                              uint64_t& sampleEndTime,
                              uint64_t& startTime,

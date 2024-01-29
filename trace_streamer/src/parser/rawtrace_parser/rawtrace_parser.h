@@ -32,7 +32,7 @@ public:
     void WaitForParserEnd();
 
 private:
-    bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin);
+    bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesCurIter);
     void ParseTraceDataItem(const std::string& buffer) override;
     bool ParseCpuRawData(uint32_t cpuId, const std::string& buffer);
     bool HmParseCpuRawData(const std::string& buffer);
@@ -43,15 +43,15 @@ private:
     void UpdateTraceMinRange();
 
 private:
-    TraceDataCache* traceDataCache_;
-    bool hasGotHeader_ = false;
-    uint8_t fileType_;
-    uint8_t restCommDataCnt_ = 0;
-    uint32_t cpuCoreMax_ = 0;
-    std::unique_ptr<FtraceProcessor> ftraceProcessor_ = nullptr;
-    std::unique_ptr<KernelSymbolsProcessor> ksymsProcessor_ = nullptr;
     std::unique_ptr<FtraceCpuDetailMsg> cpuDetail_ = nullptr;
     std::unique_ptr<CpuDetailParser> cpuDetailParser_ = nullptr;
+    std::unique_ptr<FtraceProcessor> ftraceProcessor_ = nullptr;
+    std::unique_ptr<KernelSymbolsProcessor> ksymsProcessor_ = nullptr;
+    TraceDataCache* traceDataCache_;
+    bool hasGotHeader_ = false;
+    uint8_t fileType_ = 0;
+    uint8_t restCommDataCnt_ = 0;
+    uint32_t curCpuCoreNum_ = 0;
     const std::string eventEndCmd_ = "print fmt:";
 };
 } // namespace TraceStreamer

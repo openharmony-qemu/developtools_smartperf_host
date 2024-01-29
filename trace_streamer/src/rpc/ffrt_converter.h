@@ -65,20 +65,40 @@ private:
                                  std::unordered_map<int, std::vector<int>>& traceMap,
                                  FfrtConverter::TypeFfrtPid& ffrtPidsMap);
     int FindTid(string& log);
+    std::string GetLabel(const std::string& mark);
     void ConvertFfrtThreadToFfrtTask(vector<std::string>& results, TypeFfrtPid& ffrtPidsMap);
+    void ProcessMarkWithSchedSwitch(vector<std::string>& results,
+                                    const int& line,
+                                    const int& tid,
+                                    int& prio,
+                                    const std::string& mark);
+    bool ProcessMarkWithFFRT(vector<std::string>& results,
+                             const int& line,
+                             const std::string& threadName,
+                             int& prio,
+                             const int& tid,
+                             const int& pid,
+                             int32_t& gid,
+                             std::unordered_map<int, std::unordered_map<int, std::string>>& taskLabels,
+                             const std::string& mark);
+    bool DeleteRedundance(bool& switchInFakeLog,
+                          bool& switchOutFakeLog,
+                          const std::string& mark,
+                          const int& line,
+                          vector<std::string>& results);
     std::string MakeBeginFakeLog(const std::string& mark,
                                  const int pid,
                                  const std::string& label,
                                  const long long gid,
                                  const int tid,
-                                 const std::string& tname,
+                                 const std::string& threadName,
                                  const int prio);
     std::string MakeEndFakeLog(const std::string& mark,
                                const int pid,
                                const std::string& label,
                                const long long gid,
                                const int tid,
-                               const std::string& tname,
+                               const std::string& threadName,
                                const int prio);
     std::string ReplaceSchedSwitchLog(std::string& fakeLog,
                                       const std::string& mark,
@@ -97,7 +117,6 @@ private:
                                        const std::string& label,
                                        const long long gid,
                                        const int tid);
-    void SupplementFfrtBlockAndWakeInfo(vector<std::string>& results);
     std::string GetTaskId(int pid, long long gid);
     bool IsDigit(const std::string& str);
     void CheckTraceMarker(vector<std::string>& lines);
@@ -105,7 +124,7 @@ private:
 private:
     const std::regex indexPattern_ = std::regex(R"(\(.+\)\s+\[\d)");
     const std::regex matchPattern_ = std::regex(R"( \(.+\)\s+\[\d)");
-    const int scaleFactor_ = 10;
+    const int uint32MaxLength_ = 10;
     std::string tracingMarkerKey_ = "tracing_mark_write: ";
 };
 } // namespace TraceStreamer

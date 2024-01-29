@@ -21,7 +21,7 @@ template("wasm_lib") {
   print(invoker.name)
   assert(defined(invoker.name))
 
-  # If the name is trace_sreamer the target_name must be trace_sreamer_wasm.
+  # If the name is trace_streamer_builtin the target_name must be trace_streamer_builtin_wasm.
   assert(invoker.name + "_wasm" == target_name)
   _target_ldflags = [
     "-s",
@@ -47,6 +47,8 @@ template("wasm_lib") {
     "-s",
     "USE_ZLIB=1",
     "-lworkerfs.js",  # For FS.filesystems.WORKERFS
+    "-s",
+    "ASSERTIONS=1",
   ]
   if (wasm_use_thread) {
     _target_ldflags += [

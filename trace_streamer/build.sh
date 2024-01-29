@@ -13,13 +13,12 @@
 # limitations under the License.
 set -e
 PARAMS=$*
-echo $PARAMS
+echo "$PARAMS"
 echo "begin to check input"
 SOURCE="${BASH_SOURCE[0]}"
-cd $(dirname ${SOURCE})
+cd "$(dirname "${SOURCE}")"
 ./pare_third_party.sh
 target_os="linux"
-target_dir="linux"
 gn_path="linux"
 is_debug="false"
 is_clean="false"
@@ -34,24 +33,23 @@ case "$OSTYPE" in
   msys*)    gn_path="windows" target_os="windows" gn="gn.exe" ninja="ninja.exe"  ;;
   *)        echo "unknown: $OSTYPE" ;;
 esac
-usage="Usage: $basename $0 wasm/test/fuzz/protoc debug/release/clean"
 
 ./dl_tools.sh $gn_path
 
-if { [ "$1" == "dubaisdk" ] || [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; } && [ "$#" -ne 0 ];then
+if [ "$#" -ne 0 ] && { [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; };then
     TARGET_DIR=$1
     if [[ $PARAMS == *"debug"* ]]; then
         TARGET_DIR=$1"_debug"
     fi
-    if [ ! -f "out/$TARGET_DIR/protoc" ] && [ "$1" != "protoc" ];then
+    if [ ! -f "out/$TARGET_DIR/protoc" ];then
         ./build.sh protoc
-        mkdir -p out/$TARGET_DIR
-        cp out/$target_os/protoc out/$TARGET_DIR/protoc
+        mkdir -p out/"$TARGET_DIR"
+        cp out/$target_os/protoc out/"$TARGET_DIR"/protoc
     fi
-    if [ ! -f "out/$TARGET_DIR/protoreader_plugin" ] && [ "$1" != "spb" ] && [ -f "out/$TARGET_DIR/protoc" ];then
+    if [ ! -f "out/$TARGET_DIR/protoreader_plugin" ] && [ -f "out/$TARGET_DIR/protoc" ];then
         ./build.sh spb
-        mkdir -p out/$TARGET_DIR
-        cp out/$target_os/protoreader_plugin out/$TARGET_DIR/protoreader_plugin
+        mkdir -p out/"$TARGET_DIR"
+        cp out/$target_os/protoreader_plugin out/"$TARGET_DIR"/protoreader_plugin
     fi
 fi
 if [ $target_os == "windows" ];then
@@ -85,9 +83,6 @@ if [ "$#" -ne "0" ];then
     if [ "$1" == "sdkdemo" ];then
         target="sdkdemo"
     fi
-    if [ "$1" == "dubaisdk" ];then
-        target="dubaisdk"
-    fi
     if [ "$1" == "sdkdemotest" ];then
         target="sdkdemotest"
     fi
@@ -100,4 +95,4 @@ if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
     exit
 fi
-./build_operator.sh $is_debug $target $target_os $is_clean $gn_path $gn $ninja $target_operator
+./build_operator.sh $is_debug $target $target_os $is_clean $gn_path $gn $ninja "$target_operator"

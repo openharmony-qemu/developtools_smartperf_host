@@ -87,6 +87,24 @@ void HtraceJsCpuProfilerParser::ParseNodeData(const json& jMessage)
             id, functionNameKey, scriptId, urlKey, lineNumber, columnNumber, hitCount, children, parentId);
     }
 }
+
+void HtraceJsCpuProfilerParser::DataProcessing(const json& jMessage,
+                                               uint64_t& sampleEndTime,
+                                               uint64_t& startTime,
+                                               uint64_t& dur,
+                                               uint32_t& sample)
+{
+    dur = (sampleEndTime * TIME_SECOND_COVER) - (startTime * TIME_SECOND_COVER);
+    auto startNewTime = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, startTime * TIME_SECOND_COVER);
+    UpdatePluginTimeRange(TS_MONOTONIC, startNewTime, startNewTime);
+    auto endNewTime = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, sampleEndTime * TIME_SECOND_COVER);
+    UpdatePluginTimeRange(TS_MONOTONIC, endNewTime, endNewTime);
+    if (!traceDataCache_->isSplitFile_) {
+        (void)traceDataCache_->GetJsCpuProfilerSampleData()->AppendNewData(sample, startNewTime, endNewTime, dur);
+    }
+    startTime = sampleEndTime;
+}
+
 uint32_t HtraceJsCpuProfilerParser::ParseSampleData(const json& jMessage,
                                                     uint64_t& sampleEndTime,
                                                     uint64_t& startTime,
@@ -116,19 +134,10 @@ uint32_t HtraceJsCpuProfilerParser::ParseSampleData(const json& jMessage,
             continue;
         }
         if (sample != std::numeric_limits<uint32_t>::max() && sample != jMessage.at("samples")[i]) {
-            dur = (sampleEndTime * TIME_SECOND_COVER) - (startTime * TIME_SECOND_COVER);
-            auto startNewTime =
-                streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, startTime * TIME_SECOND_COVER);
-            UpdatePluginTimeRange(TS_MONOTONIC, startNewTime, startNewTime);
-            auto endNewTime =
-                streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, sampleEndTime * TIME_SECOND_COVER);
-            UpdatePluginTimeRange(TS_MONOTONIC, endNewTime, endNewTime);
-            if (!traceDataCache_->isSplitFile_) {
-                (void)traceDataCache_->GetJsCpuProfilerSampleData()->AppendNewData(sample, startNewTime, endNewTime,
-                                                                                   dur);
-            }
+            // Process sample data, calculate duration and update time range based on conditions, and attach parsed data
+            // to JsCpuProfiler sample data
+            DataProcessing(jMessage, sampleEndTime, startTime, dur, sample);
             sample = jMessage.at("samples")[i];
-            startTime = sampleEndTime;
         } else if (sample == std::numeric_limits<uint32_t>::max()) {
             sample = jMessage.at("samples")[0];
         }
@@ -143,6 +152,7 @@ uint32_t HtraceJsCpuProfilerParser::ParseSampleData(const json& jMessage,
     startTime_ = INVALID_UINT64;
     return sample;
 }
+
 void HtraceJsCpuProfilerParser::ParseJsCpuProfiler(std::string result, uint64_t startTimeSnap, uint64_t endTimeSnap)
 {
     if (result.empty()) {

@@ -24,6 +24,7 @@
 #include "symbols_file.h"
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr uint64_t IP_BIT_OPERATION = 0xFFFFFFFFFF;
 using namespace OHOS::Developtools::HiPerf;
 class NativeHookFrameInfo {
 public:
@@ -85,35 +86,50 @@ public:
     CommHookData& GetCommHookData();
     ProfilerPluginData* GetHookPluginData();
     void SerializeHookCommDataToString();
-    bool IsSingleProcData()
+    const bool IsSingleProcData()
     {
         return isSingleProcData_;
     }
 
 private:
+    void ProcSymbolTable(uint32_t ipid, uint32_t filePathId, std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
     void FilterNativeHookMainEvent(size_t num);
     void ParseStatisticEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
     template <class T1, class T2>
     void UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value);
     void ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
     void ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void SetFreeEventCallChainId(uint32_t& callChainId,
+                                 uint32_t ipid,
+                                 uint32_t itid,
+                                 const ProtoReader::FreeEvent_Reader& freeEventReader);
     void ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void SetMmapEventCallChainId(uint32_t& callChainId,
+                                 uint32_t ipid,
+                                 uint32_t itid,
+                                 const ProtoReader::MmapEvent_Reader& mMapEventReader);
     void ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView& bytesView);
+    void SetMunmapEventCallChainId(uint32_t& callChainId,
+                                   uint32_t ipid,
+                                   uint32_t itid,
+                                   const ProtoReader::MunmapEvent_Reader& mUnmapEventReader);
+
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
+    void UpdateSymbolIdsForCallChainIdLastCallStack(size_t index);
+    void UpdateSymbolIdsForFilePathIndexFailedInvalid(size_t index);
     void UpdateSymbolIdsForSymbolizationFailed();
     void ParseFramesInOfflineSymbolizationMode();
     void ParseFramesInCallStackCompressedMode();
     void ParseFramesWithOutCallStackCompressedMode();
     void ParseSymbolizedNativeHookFrame();
-    bool GetIpsWitchNeedResymbolization(uint64_t ipid, DataIndex filePathId, std::set<uint64_t>& ips);
     template <class T>
     void UpdateSymbolTablePtrAndStValueToSymAddrMap(T* firstSymbolAddr,
                                                     const int size,
                                                     std::shared_ptr<ProtoReader::SymbolTable_Reader> reader);
-    void FillOfflineSymbolizationFrames(std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator itor);
+    void FillOfflineSymbolizationFrames(std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor);
     void ReparseStacksWithAddrRange(uint64_t start, uint64_t end);
     void ReparseStacksWithDifferentMeans();
     void CompressStackAndFrames(uint64_t row, ProtoReader::RepeatedDataAreaIterator<ProtoReader::BytesView> frames);
@@ -129,6 +145,13 @@ private:
     void UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex);
 
 private:
+    // first key is addr, second key is size, value is set<row> in db
+    // mmap update anonymous memory tag always use the anonMmapData_ value
+    DoubleMap<uint64_t, uint32_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
+    std::unique_ptr<ProfilerPluginData> hookPluginData_ = nullptr;
+    DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
+    DoubleMap<uint32_t, uint32_t, uint64_t> ipidToFilePathIdToFileIndex_;
+    DoubleMap<uint32_t, uint32_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
     std::unordered_map<DataIndex, std::shared_ptr<std::set<size_t>>> filePathIndexToFrameTableRowMap_ = {};
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
     std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ =
@@ -136,14 +159,11 @@ private:
     std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> allStackIdToFramesMap_ = {};
     std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> stackIdToFramesMap_ = {};
     std::map<uint32_t, uint64_t> callChainIdToStackHashValueMap_ = {};
-    DoubleMap<uint32_t, uint32_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
     std::unordered_map<uint64_t, std::vector<uint64_t>> stackHashValueToFramesHashMap_ = {};
     std::unordered_map<uint64_t, std::unique_ptr<NativeHookFrameInfo>> frameHashToFrameInfoMap_ = {};
     std::unordered_map<uint64_t /* ipidWithThreadNameIdIndex */, uint64_t> threadNameIdToThreadNameIndex_ = {};
     std::unordered_map<uint32_t, std::tuple<uint64_t, uint64_t>> callIdToLastCallerPathIndex_ = {};
     std::unordered_map<uint64_t, std::string> functionNameIndexToVaddr_ = {};
-    DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
-    DoubleMap<uint32_t, uint32_t, uint64_t> ipidToFilePathIdToFileIndex_;
     std::unordered_map<uint64_t, uint32_t> stackHashValueToCallChainIdMap_ = {};
     std::unordered_map<uint32_t, uint64_t> itidToThreadNameId_ = {};
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
@@ -153,9 +173,6 @@ private:
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value
     std::unordered_map<uint64_t, uint64_t> addrToMmapTag_ = {};
-    // first key is addr, second key is size, value is set<row> in db
-    // mmap update anonymous memory tag always use the anonMmapData_ value
-    DoubleMap<uint64_t, uint32_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
     std::hash<std::string_view> hashFun_;
     bool isOfflineSymbolizationMode_ = false;
     bool isCallStackCompressedMode_ = false;
@@ -164,7 +181,6 @@ private:
     const size_t MAX_CACHE_SIZE = 200000;
     uint32_t callChainId_ = 0;
     CommHookData commHookData_;
-    std::unique_ptr<ProfilerPluginData> hookPluginData_ = nullptr;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

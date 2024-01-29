@@ -20,40 +20,40 @@ namespace TraceStreamer {
 enum class Index : int32_t {
     ID = 0,
     TS,
-    DUR,
-    CALL_ID,
+    DURS,
+    CALL_IDS,
     CAT,
     NAME,
     DEPTH,
     COOKIE_ID,
     PARENT_ID,
     ARGSET,
-    CHAIN_ID,
-    SPAN_ID,
-    PARENT_SPAN_ID,
+    CHAIN_IDS,
+    SPAN_IDS,
+    PARENT_SPAN_IDS,
     FLAG,
     ARGS
 };
 IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cat", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cookie", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("chainId", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("spanId", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("flag", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("args", "TEXT"));
-    tablePriKey_.push_back("callid");
-    tablePriKey_.push_back("ts");
-    tablePriKey_.push_back("depth");
+    tableColumn_.emplace_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("callid", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("cat", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("depth", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("cookie", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("chainId", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("spanId", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("flag", "TEXT"));
+    tableColumn_.emplace_back(TableBase::ColumnInfo("args", "TEXT"));
+    tablePriKey_.emplace_back("callid");
+    tablePriKey_.emplace_back("ts");
+    tablePriKey_.emplace_back("depth");
 }
 
 IrqTable::~IrqTable() {}
@@ -104,9 +104,9 @@ int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& irqCs = fc.GetConstraints();
+    for (size_t i = 0; i < irqCs.size(); i++) {
+        const auto& c = irqCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -116,12 +116,12 @@ int32_t IrqTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto irqTableOrderbys = fc.GetOrderBys();
+    for (auto i = irqTableOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(irqTableOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(irqTableOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -135,40 +135,38 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, CurrentRow());
+            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.IdsData()[CurrentRow()]));
             break;
         case Index::TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.TimeStampData()[CurrentRow()]));
+            SetTypeColumnInt64(slicesObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::DUR:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.DursData()[CurrentRow()]));
+        case Index::DURS:
+            SetTypeColumnInt64(slicesObj_.DursData()[CurrentRow()], INVALID_UINT64);
             break;
-        case Index::CALL_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.CallIds()[CurrentRow()]));
+        case Index::CALL_IDS:
+            SetTypeColumnInt64(slicesObj_.CallIds()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::CAT: {
-            if (slicesObj_.CatsData()[CurrentRow()] != INVALID_UINT64) {
-                auto catsDataIndex = static_cast<size_t>(slicesObj_.CatsData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(catsDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.CatsData()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::NAME: {
-            if (slicesObj_.NamesData()[CurrentRow()] != INVALID_UINT64) {
-                auto nameDataIndex = static_cast<size_t>(slicesObj_.NamesData()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(nameDataIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+            SetTypeColumnText(slicesObj_.NamesData()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::DEPTH:
             sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Depths()[CurrentRow()]));
             break;
+        default:
+            HandleTypeColumns(column);
+    }
+    return SQLITE_OK;
+}
+void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
         case Index::COOKIE_ID:
-            if (slicesObj_.Cookies()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.Cookies()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {
@@ -177,17 +175,15 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
             break;
         }
         case Index::ARGSET:
-            if (slicesObj_.ArgSetIdsData()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.ArgSetIdsData()[CurrentRow()]));
-            }
+            SetTypeColumnInt64(slicesObj_.ArgSetIdsData()[CurrentRow()], INVALID_UINT32);
             break;
-        case Index::CHAIN_ID:
+        case Index::CHAIN_IDS:
             sqlite3_result_text(context_, slicesObj_.ChainIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
-        case Index::SPAN_ID:
+        case Index::SPAN_IDS:
             sqlite3_result_text(context_, slicesObj_.SpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
-        case Index::PARENT_SPAN_ID:
+        case Index::PARENT_SPAN_IDS:
             sqlite3_result_text(context_, slicesObj_.ParentSpanIds()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         case Index::FLAG:
@@ -200,7 +196,6 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 void IrqTable::GetOrbyes(FilterConstraints& irqfc, EstimatedIndexInfo& irqei)
 {

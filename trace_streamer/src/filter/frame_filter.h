@@ -44,6 +44,14 @@ public:
     bool StartFrameQueue(uint64_t ts, uint32_t itid);
     bool EndFrameQueue(uint64_t ts, uint32_t itid);
     void Clear();
+    void UpdateReadySize()
+    {
+        UpdateFrameSliceReadySize();
+    }
+
+private:
+    bool UpdateFrameSliceReadySize();
+    void SetMinFrameSliceRow(uint64_t& minFrameSliceRowToBeUpdated);
 
 private:
     class FrameSlice {

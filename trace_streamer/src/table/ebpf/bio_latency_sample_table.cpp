@@ -21,8 +21,8 @@ enum class Index : int32_t {
     ID = 0,
     CALLCHAIN_ID,
     TYPE,
-    IPID,
-    ITID,
+    IPIDS,
+    ITIDS,
     START_TS,
     END_TS,
     LATENCY_DUR,
@@ -98,9 +98,9 @@ int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& bioLateSamTabCs = fc.GetConstraints();
+    for (size_t i = 0; i < bioLateSamTabCs.size(); i++) {
+        const auto& c = bioLateSamTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -110,12 +110,12 @@ int32_t BioLatencySampleTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto bioLatSampleTabOrderbys = fc.GetOrderBys();
+    for (auto i = bioLatSampleTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(bioLatSampleTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(bioLatSampleTabOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -132,77 +132,42 @@ int32_t BioLatencySampleTable::Cursor::Column(int32_t column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(bioLatencySampleObj_.IdsData()[CurrentRow()]));
             break;
         case Index::CALLCHAIN_ID:
-            if (bioLatencySampleObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.CallChainIds()[CurrentRow()]));
-            } else {
-                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
-            }
+            SetTypeColumn(bioLatencySampleObj_.CallChainIds()[CurrentRow()], INVALID_UINT32, INVALID_CALL_CHAIN_ID);
             break;
         case Index::TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Types()[CurrentRow()]));
             break;
-        case Index::IPID: {
-            if (bioLatencySampleObj_.Ipids()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Ipids()[CurrentRow()]));
-            }
+        case Index::IPIDS:
+            SetTypeColumnInt64(bioLatencySampleObj_.Ipids()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::ITID: {
-            if (bioLatencySampleObj_.Itids()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Itids()[CurrentRow()]));
-            }
+        case Index::ITIDS:
+            SetTypeColumnInt64(bioLatencySampleObj_.Itids()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::START_TS: {
-            if (bioLatencySampleObj_.StartTs()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.StartTs()[CurrentRow()]));
-            }
+        case Index::START_TS:
+            SetTypeColumnInt64(bioLatencySampleObj_.StartTs()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::END_TS: {
-            if (bioLatencySampleObj_.EndTs()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.EndTs()[CurrentRow()]));
-            }
+        case Index::END_TS:
+            SetTypeColumnInt64(bioLatencySampleObj_.EndTs()[CurrentRow()], INVALID_UINT64);
+
             break;
-        }
-        case Index::LATENCY_DUR: {
-            if (bioLatencySampleObj_.LatencyDurs()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.LatencyDurs()[CurrentRow()]));
-            }
+        case Index::LATENCY_DUR:
+            SetTypeColumnInt64(bioLatencySampleObj_.LatencyDurs()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::TIER: {
-            if (bioLatencySampleObj_.Tiers()[CurrentRow()] != INVALID_UINT32) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Tiers()[CurrentRow()]));
-            }
+        case Index::TIER:
+            SetTypeColumnInt64(bioLatencySampleObj_.Tiers()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::SIZE: {
-            if (bioLatencySampleObj_.Sizes()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Sizes()[CurrentRow()]));
-            }
+        case Index::SIZE:
+            SetTypeColumnInt64(bioLatencySampleObj_.Sizes()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::BLOCK_NUMBER: {
-            if (bioLatencySampleObj_.BlockNumbers()[CurrentRow()] != INVALID_UINT64) {
-                auto returnValueIndex0 = bioLatencySampleObj_.BlockNumbers()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(returnValueIndex0).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
-            }
+        case Index::BLOCK_NUMBER:
+            SetTypeColumnText(bioLatencySampleObj_.BlockNumbers()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::PATH: {
-            if (bioLatencySampleObj_.FilePathIds()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.FilePathIds()[CurrentRow()]));
-            }
+        case Index::PATH:
+            SetTypeColumnInt64(bioLatencySampleObj_.FilePathIds()[CurrentRow()], INVALID_UINT64);
             break;
-        }
-        case Index::DUR_PER_4K: {
-            if (bioLatencySampleObj_.DurPer4k()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.DurPer4k()[CurrentRow()]));
-            }
+        case Index::DUR_PER_4K:
+            SetTypeColumnInt64(bioLatencySampleObj_.DurPer4k()[CurrentRow()], INVALID_UINT64);
             break;
-        }
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;

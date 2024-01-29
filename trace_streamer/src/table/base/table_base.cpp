@@ -20,11 +20,6 @@
 
 #include "log.h"
 
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
-
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
@@ -53,9 +48,9 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
 
     auto createFn = [](sqlite3* xdb, void* pAux, int32_t argc, const char* const* argv, sqlite3_vtab** ppVTab,
                        char** pzErr) {
-        UNUSED(argc);
-        UNUSED(argv);
-        UNUSED(pzErr);
+        Unused(argc);
+        Unused(argv);
+        Unused(pzErr);
         auto xdesc = static_cast<const TableContext*>(pAux);
         auto table = xdesc->tmplate(xdesc->dataCache);
         table->name_ = xdesc->tableName;
@@ -88,6 +83,13 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
     module.xDisconnect = destroyFn;
     module.xDestroy = destroyFn;
 
+    SetModuleCallbacks(module, tableName);
+    sqlite3_create_module_v2(&db, tableName.c_str(), &module, context.release(),
+                             [](void* arg) { delete static_cast<TableContext*>(arg); });
+}
+
+void TableBase::SetModuleCallbacks(sqlite3_module& module, const std::string& tableName)
+{
     module.xOpen = [](sqlite3_vtab* pVTab, sqlite3_vtab_cursor** ppCursor) {
         TS_LOGD("xOpen: %s", static_cast<TableBase*>(pVTab)->name_.c_str());
         return static_cast<TableBase*>(pVTab)->Open(ppCursor);
@@ -116,7 +118,6 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
         }
         return c->Filter(c->table_->cacheConstraint_, argv);
     };
-
     module.xNext = [](sqlite3_vtab_cursor* vc) { return static_cast<TableBase::Cursor*>(vc)->Next(); };
     module.xEof = [](sqlite3_vtab_cursor* vc) { return static_cast<TableBase::Cursor*>(vc)->Eof(); };
     module.xColumn = [](sqlite3_vtab_cursor* vc, sqlite3_context* ctx, int32_t col) {
@@ -129,9 +130,6 @@ void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::str
             return static_cast<TableBase*>(pVTab)->Update(argc, argv, pRowid);
         };
     }
-
-    sqlite3_create_module_v2(&db, tableName.c_str(), &module, context.release(),
-                             [](void* arg) { delete static_cast<TableContext*>(arg); });
 }
 
 std::string TableBase::CreateTableSql() const

@@ -49,13 +49,52 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
       perfDataParser_(std::make_unique<PerfDataParser>(dataCache, filters)),
       ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters))
 {
+    InitPluginNameIndex();
     if (traceDataCache_->supportThread_) {
         dataSegArray_ = std::make_unique<HtraceDataSegment[]>(maxSegArraySize);
     } else {
         dataSegArray_ = std::make_unique<HtraceDataSegment[]>(1);
     }
 }
-void HtraceParser::ParserFileSO(std::string& directory, std::vector<std::string>& relativeFilePaths)
+void HtraceParser::InitPluginNameIndex()
+{
+    nativeHookPluginIndex_.insert(traceDataCache_->GetDataIndex("nativehook"));
+    nativeHookPluginIndex_.insert(traceDataCache_->GetDataIndex("hookdaemon"));
+    nativeHookConfigIndex_ = traceDataCache_->GetDataIndex("nativehook_config");
+    hisyseventPluginIndex_ = traceDataCache_->GetDataIndex("hisysevent-plugin");
+    hisyseventPluginConfigIndex_ = traceDataCache_->GetDataIndex("hisysevent-plugin_config");
+    memPluginIndex_ = traceDataCache_->GetDataIndex("memory-plugin");
+    memoryPluginConfigIndex_ = traceDataCache_->GetDataIndex("memory-plugin_config");
+    ftracePluginIndex_.insert(traceDataCache_->GetDataIndex("ftrace-plugin"));
+    ftracePluginIndex_.insert(traceDataCache_->GetDataIndex("/data/local/tmp/libftrace_plugin.z.so"));
+    hilogPluginIndex_.insert(traceDataCache_->GetDataIndex("hilog-plugin"));
+    hilogPluginIndex_.insert(traceDataCache_->GetDataIndex("/data/local/tmp/libhilogplugin.z.so"));
+    hidumpPluginIndex_.insert(traceDataCache_->GetDataIndex("hidump-plugin"));
+    hidumpPluginIndex_.insert(traceDataCache_->GetDataIndex("/data/local/tmp/libhidumpplugin.z.so"));
+    cpuPluginIndex_ = traceDataCache_->GetDataIndex("cpu-plugin");
+    networkPluginIndex_ = traceDataCache_->GetDataIndex("network-plugin");
+    diskioPluginIndex_ = traceDataCache_->GetDataIndex("diskio-plugin");
+    processPluginIndex_ = traceDataCache_->GetDataIndex("process-plugin");
+    arktsPluginIndex_ = traceDataCache_->GetDataIndex("arkts-plugin");
+    arktsPluginConfigIndex_ = traceDataCache_->GetDataIndex("arkts-plugin_config");
+    supportPluginNameIndex_.insert(nativeHookPluginIndex_.begin(), nativeHookPluginIndex_.end());
+    supportPluginNameIndex_.insert(nativeHookConfigIndex_);
+    supportPluginNameIndex_.insert(hisyseventPluginIndex_);
+    supportPluginNameIndex_.insert(hisyseventPluginConfigIndex_);
+    supportPluginNameIndex_.insert(memPluginIndex_);
+    supportPluginNameIndex_.insert(memoryPluginConfigIndex_);
+    supportPluginNameIndex_.insert(ftracePluginIndex_.begin(), ftracePluginIndex_.end());
+    supportPluginNameIndex_.insert(hilogPluginIndex_.begin(), hilogPluginIndex_.end());
+    supportPluginNameIndex_.insert(hidumpPluginIndex_.begin(), hidumpPluginIndex_.end());
+    supportPluginNameIndex_.insert(cpuPluginIndex_);
+    supportPluginNameIndex_.insert(networkPluginIndex_);
+    supportPluginNameIndex_.insert(diskioPluginIndex_);
+    supportPluginNameIndex_.insert(processPluginIndex_);
+    supportPluginNameIndex_.insert(arktsPluginIndex_);
+    supportPluginNameIndex_.insert(arktsPluginConfigIndex_);
+}
+
+void HtraceParser::ParserFileSO(std::string& directory, const std::vector<std::string>& relativeFilePaths)
 {
     for (const auto& filePath : relativeFilePaths) {
         auto absoluteFilePath = filePath.substr(directory.length());
@@ -221,7 +260,7 @@ void HtraceParser::FilterData(HtraceDataSegment& seg, bool isSplitFile)
         htraceMemParser_->ParseMemoryConfig(seg);
     }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
-        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
     if (traceDataCache_->supportThread_ && !traceDataCache_->isSplitFile_) {
         filterHead_ = (filterHead_ + 1) % maxSegArraySize;
@@ -256,107 +295,100 @@ void HtraceParser::FilterThread()
         FilterData(seg, false);
     }
 }
+
+bool HtraceParser::SpliteConfigData(const std::string& pluginName, const HtraceDataSegment& dataSeg)
+{
+    if (EndWith(pluginName, "arkts-plugin_config")) {
+        std::string dataString(dataSeg.seg->c_str(), dataSeg.seg->length());
+        arkTsConfigData_ = lenBuffer_ + dataString;
+        return true;
+    } else if (EndWith(pluginName, "config")) {
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
+        return true;
+    }
+    return false;
+}
+
+bool HtraceParser::SpliteDataBySegment(DataIndex pluginNameIndex, HtraceDataSegment& dataSeg)
+{
+    if (nativeHookPluginIndex_.count(pluginNameIndex) || ftracePluginIndex_.count(pluginNameIndex) ||
+        hilogPluginIndex_.count(pluginNameIndex) || hisyseventPluginIndex_ == pluginNameIndex) {
+        return false;
+    }
+    // need convert to Primary Time Plugin
+    if (pluginNameIndex == memPluginIndex_) {
+        dataSeg.timeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, dataSeg.timeStamp);
+        UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, dataSeg.timeStamp, dataSeg.timeStamp);
+    }
+    if (dataSeg.timeStamp >= traceDataCache_->SplitFileMinTime() &&
+        dataSeg.timeStamp <= traceDataCache_->SplitFileMaxTime()) {
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
+    }
+    if (pluginNameIndex == arktsPluginConfigIndex_ || pluginNameIndex == arktsPluginIndex_) {
+        return false;
+    }
+    return true;
+}
+void HtraceParser::ParseDataByPluginName(HtraceDataSegment& dataSeg,
+                                         DataIndex pulginNameIndex,
+                                         const ProtoReader::ProfilerPluginData_Reader& pluginDataZero,
+                                         bool isSplitFile)
+{
+    if (nativeHookPluginIndex_.count(pulginNameIndex)) {
+        ParseNativeHook(dataSeg, isSplitFile);
+    } else if (pulginNameIndex == nativeHookConfigIndex_) {
+        ParseNativeHookConfig(dataSeg);
+    } else if (ftracePluginIndex_.count(pulginNameIndex)) { // ok
+        ParseFtrace(dataSeg);
+    } else if (pulginNameIndex == memPluginIndex_) {
+        ParseMemory(pluginDataZero, dataSeg);
+    } else if (hilogPluginIndex_.count(pulginNameIndex)) {
+        ParseHilog(dataSeg);
+    } else if (hidumpPluginIndex_.count(pulginNameIndex)) {
+        ParseFPS(dataSeg);
+    } else if (pulginNameIndex == cpuPluginIndex_) {
+        ParseCpuUsage(dataSeg);
+    } else if (pulginNameIndex == networkPluginIndex_) {
+        ParseNetwork(dataSeg);
+    } else if (pulginNameIndex == diskioPluginIndex_) {
+        ParseDiskIO(dataSeg);
+    } else if (pulginNameIndex == processPluginIndex_) {
+        ParseProcess(dataSeg);
+    } else if (pulginNameIndex == hisyseventPluginIndex_) {
+        ParseHisysevent(dataSeg);
+    } else if (pulginNameIndex == hisyseventPluginConfigIndex_) {
+        ParseHisyseventConfig(dataSeg);
+    } else if (pulginNameIndex == arktsPluginIndex_) {
+        ParseJSMemory(dataSeg, isSplitFile);
+    } else if (pulginNameIndex == arktsPluginConfigIndex_) {
+        ParseJSMemoryConfig(dataSeg);
+    } else if (pulginNameIndex == memoryPluginConfigIndex_) {
+        ParseMemoryConfig(dataSeg, pluginDataZero);
+    }
+}
+
 void HtraceParser::ParserData(HtraceDataSegment& dataSeg, bool isSplitFile)
 {
     ProtoReader::ProfilerPluginData_Reader pluginDataZero(reinterpret_cast<const uint8_t*>(dataSeg.seg->c_str()),
                                                           dataSeg.seg->length());
-    std::string pluginName;
-    if (pluginDataZero.has_name()) {
-        pluginName = pluginDataZero.name().ToStdString();
-        if (isSplitFile && EndWith(pluginName, "arkts-plugin_config")) {
-            std::string dataString(dataSeg.seg->c_str(), dataSeg.seg->length());
-            arkTsConfigData_ = lenBuffer_ + dataString;
-            return;
-        } else if (isSplitFile && EndWith(pluginName, "config")) {
-            mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
-            return;
-        }
+    if (!pluginDataZero.has_name()) {
+        return;
+    }
+    auto pluginName = pluginDataZero.name().ToStdString();
+    auto pluginNameIndex = traceDataCache_->GetDataIndex(pluginName);
+    if (isSplitFile && SpliteConfigData(pluginName, dataSeg)) {
+        return;
     }
     if (pluginDataZero.has_tv_sec() && pluginDataZero.has_tv_nsec()) {
         dataSeg.timeStamp = pluginDataZero.tv_sec() * SEC_TO_NS + pluginDataZero.tv_nsec();
     }
-    bool isHookData = (pluginName == "nativehook" || pluginName == "hookdaemon");
-    bool isFtrace = (pluginDataZero.name().ToStdString() == "ftrace-plugin" ||
-                     pluginDataZero.name().ToStdString() == "/data/local/tmp/libftrace_plugin.z.so");
-    bool isHilog = (pluginName == "hilog-plugin" || pluginName == "/data/local/tmp/libhilogplugin.z.so");
-    bool isHisysevent = (pluginName == "hisysevent-plugin");
-    if (isSplitFile && !isHookData && !isHilog && !isFtrace && !isHisysevent) {
-        bool needToPrimaryTimePlugin = (pluginName == "memory-plugin");
-        if (needToPrimaryTimePlugin) {
-            dataSeg.timeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, dataSeg.timeStamp);
-            UpdatePluginTimeRange(TS_CLOCK_BOOTTIME, dataSeg.timeStamp, dataSeg.timeStamp);
-        }
-        if (dataSeg.timeStamp >= traceDataCache_->SplitFileMinTime() &&
-            dataSeg.timeStamp <= traceDataCache_->SplitFileMaxTime()) {
-            mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
-        }
-        if (!StartWith(pluginName, "arkts")) {
-            return;
-        }
+
+    if (isSplitFile && SpliteDataBySegment(pluginNameIndex, dataSeg)) {
+        return;
     }
-    if (isHookData) {
-        dataSourceTypeNativeHookClockid_ = TS_CLOCK_REALTIME;
-        dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK;
-        if (isSplitFile) {
-            dataSourceType_ = DATA_SOURCE_TYPE_NATIVEHOOK;
-        }
+    if (supportPluginNameIndex_.count(pluginNameIndex)) {
         dataSeg.protoData = pluginDataZero.data();
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
-    } else if (pluginName == "nativehook_config") {
-        dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG;
-        dataSeg.protoData = pluginDataZero.data();
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
-    } else if (isFtrace) { // ok
-        dataSeg.dataType = DATA_SOURCE_TYPE_TRACE;
-        dataSeg.protoData = pluginDataZero.data();
-        ParseFtrace(dataSeg);
-    } else if (pluginName == "memory-plugin") {
-        dataSeg.protoData = pluginDataZero.data();
-        dataSeg.dataType = DATA_SOURCE_TYPE_MEM;
-        ParseMemory(&pluginDataZero, dataSeg);
-    } else if (isHilog) {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseHilog(dataSeg);
-    } else if (pluginName == "hidump-plugin" || pluginName == "/data/local/tmp/libhidumpplugin.z.so") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseFPS(dataSeg);
-    } else if (pluginName == "cpu-plugin") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseCpuUsage(dataSeg);
-    } else if (pluginName == "network-plugin") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseNetwork(dataSeg);
-    } else if (pluginName == "diskio-plugin") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseDiskIO(dataSeg);
-    } else if (pluginName == "process-plugin") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseProcess(dataSeg);
-    } else if (isHisysevent) {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseHisysevent(dataSeg);
-    } else if (pluginName == "hisysevent-plugin_config") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseHisyseventConfig(dataSeg);
-    } else if (pluginName == "arkts-plugin") {
-        if (isSplitFile) {
-            dataSourceType_ = DATA_SOURCE_TYPE_JSMEMORY;
-            memcpy_s(&profilerPluginData_, sizeof(profilerPluginData_), dataSeg.seg->c_str(), dataSeg.seg->length());
-        }
-        dataSeg.protoData = pluginDataZero.data();
-        ParseJSMemory(dataSeg);
-    } else if (pluginName == "arkts-plugin_config") {
-        dataSeg.protoData = pluginDataZero.data();
-        ParseJSMemoryConfig(dataSeg);
-    } else if (pluginName == "memory-plugin_config") {
-        if (pluginDataZero.has_sample_interval()) {
-            uint32_t sampleInterval = pluginDataZero.sample_interval();
-            traceDataCache_->GetTraceConfigData()->AppendNewData("memory_config", "sample_interval",
-                                                                 std::to_string(sampleInterval));
-        }
-        dataSeg.dataType = DATA_SOURCE_TYPE_MEM_CONFIG;
-        dataSeg.protoData = pluginDataZero.data();
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
+        ParseDataByPluginName(dataSeg, pluginNameIndex, pluginDataZero, isSplitFile);
     } else {
 #if IS_WASM
         TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(pluginDataZero.data().data_),
@@ -388,10 +420,10 @@ void HtraceParser::ParseThread()
     }
 }
 
-void HtraceParser::ParseMemory(ProtoReader::ProfilerPluginData_Reader* pluginDataZero, HtraceDataSegment& dataSeg)
+void HtraceParser::ParseMemory(const ProtoReader::ProfilerPluginData_Reader& pluginDataZero, HtraceDataSegment& dataSeg)
 {
     BuiltinClocks clockId = TS_CLOCK_REALTIME;
-    auto clockIdTemp = pluginDataZero->clock_id();
+    auto clockIdTemp = pluginDataZero.clock_id();
     if (clockIdTemp == ProtoReader::ProfilerPluginData_ClockId_CLOCKID_REALTIME) {
         clockId = TS_CLOCK_REALTIME;
     }
@@ -406,9 +438,35 @@ void HtraceParser::ParseHilog(HtraceDataSegment& dataSeg)
     dataSourceTypeHilogClockid_ = TS_CLOCK_REALTIME;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
+void HtraceParser::ParseNativeHookConfig(HtraceDataSegment& dataSeg)
+{
+    dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+void HtraceParser::ParseNativeHook(HtraceDataSegment& dataSeg, bool isSplitFile)
+{
+    dataSourceTypeNativeHookClockid_ = TS_CLOCK_REALTIME;
+    dataSeg.dataType = DATA_SOURCE_TYPE_NATIVEHOOK;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+    if (isSplitFile) {
+        dataSourceType_ = DATA_SOURCE_TYPE_NATIVEHOOK;
+    }
+}
+void HtraceParser::ParseMemoryConfig(HtraceDataSegment& dataSeg,
+                                     const ProtoReader::ProfilerPluginData_Reader& pluginDataZero)
+{
+    if (pluginDataZero.has_sample_interval()) {
+        uint32_t sampleInterval = pluginDataZero.sample_interval();
+        traceDataCache_->GetTraceConfigData()->AppendNewData("memory_config", "sample_interval",
+                                                             std::to_string(sampleInterval));
+    }
+    dataSeg.dataType = DATA_SOURCE_TYPE_MEM_CONFIG;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
 
 void HtraceParser::ParseFtrace(HtraceDataSegment& dataSeg)
 {
+    dataSeg.dataType = DATA_SOURCE_TYPE_TRACE;
     ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
     if (tracePluginResult.has_ftrace_cpu_stats()) {
         auto cpuStats = *tracePluginResult.ftrace_cpu_stats();
@@ -449,7 +507,7 @@ void HtraceParser::ParseFtrace(HtraceDataSegment& dataSeg)
         dataSeg.status = TS_PARSE_STATUS_PARSED;
     }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
-        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength);
+        mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
     dataSeg.status = TS_PARSE_STATUS_INVALID;
 }
@@ -499,8 +557,12 @@ void HtraceParser::ParseHisyseventConfig(HtraceDataSegment& dataSeg)
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
 
-void HtraceParser::ParseJSMemory(HtraceDataSegment& dataSeg)
+void HtraceParser::ParseJSMemory(HtraceDataSegment& dataSeg, bool isSplitFile)
 {
+    if (isSplitFile) {
+        dataSourceType_ = DATA_SOURCE_TYPE_JSMEMORY;
+        memcpy_s(&profilerPluginData_, sizeof(profilerPluginData_), dataSeg.seg->c_str(), dataSeg.seg->length());
+    }
     dataSourceTypeJSMemoryClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_JSMEMORY;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
@@ -539,14 +601,14 @@ int32_t HtraceParser::GetNextSegment()
 }
 bool HtraceParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
-    auto standaloneDataLength = profilerDataLength_ - packetHeaderLength;
+    auto standaloneDataLength = profilerDataLength_ - packetHeaderLength_;
     if (traceDataCache_->isSplitFile_ && !parsedEbpfOver_) {
         if (!hasInitEbpfPublicData_) {
             // Record the offset of Hiperf's 1024-byte header relative to the entire file.
             ebpfDataParser_->SetEbpfDataOffset(processedDataLen_);
             ebpfDataParser_->SetSpliteTimeRange(traceDataCache_->SplitFileMinTime(),
                                                 traceDataCache_->SplitFileMaxTime());
-            parsedFileOffset_ += profilerDataLength_ - packetHeaderLength;
+            parsedFileOffset_ += profilerDataLength_ - packetHeaderLength_;
             hasInitEbpfPublicData_ = true;
         }
         parsedEbpfOver_ = ebpfDataParser_->AddAndSplitEbpfData(packagesBuffer_);
@@ -568,25 +630,67 @@ bool HtraceParser::CalcEbpfCutOffset(std::deque<uint8_t>::iterator& packagesBegi
     return false;
 }
 
-bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+bool HtraceParser::GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
     if (!hasGotHeader_) {
-        if (InitProfilerTraceFileHeader()) {
-            packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + packetHeaderLength);
-            processedDataLen_ += packetHeaderLength;
-            currentLength -= packetHeaderLength;
-            packagesBegin += packetHeaderLength;
-            parsedFileOffset_ += packetHeaderLength;
-            htraceCurentLength_ = profilerDataLength_;
-            htraceCurentLength_ -= packetHeaderLength;
-            hasGotHeader_ = true;
-            if (!currentLength) {
-                return false;
-            }
-        } else {
+        if (!InitProfilerTraceFileHeader()) {
+            return false;
+        }
+        packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + packetHeaderLength_);
+        processedDataLen_ += packetHeaderLength_;
+        currentLength -= packetHeaderLength_;
+        packagesBegin += packetHeaderLength_;
+        parsedFileOffset_ += packetHeaderLength_;
+        htraceCurentLength_ = profilerDataLength_ - packetHeaderLength_;
+        hasGotHeader_ = true;
+        if (!currentLength) {
             return false;
         }
     }
+    return true;
+}
+#if IS_WASM
+bool HtraceParser::ParseSDKData()
+{
+    if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_) {
+        auto thirdPartySize = profilerDataLength_ - packetHeaderLength_;
+        auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
+        std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
+        TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(buffer), thirdPartySize, standalonePluginName_);
+        return true;
+    }
+    return false;
+}
+#endif
+
+bool HtraceParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator& packagesBegin,
+                                                        size_t& currentLength)
+{
+    std::string bufferLine;
+    if (!hasGotSegLength_) {
+        if (currentLength < packetSegLength_) {
+            return false;
+        }
+        bufferLine.assign(packagesBegin, packagesBegin + packetSegLength_);
+        const uint32_t* len = reinterpret_cast<const uint32_t*>(bufferLine.data());
+        nextLength_ = *len;
+        lenBuffer_ = bufferLine;
+        htraceLength_ += nextLength_ + packetSegLength_;
+        hasGotSegLength_ = true;
+        currentLength -= packetSegLength_;
+        packagesBegin += packetSegLength_;
+        parsedFileOffset_ += packetSegLength_;
+        splitFileOffset_ = profilerDataLength_ - htraceCurentLength_;
+        htraceCurentLength_ -= packetSegLength_;
+    }
+    if (currentLength < nextLength_) {
+        return false;
+    }
+    return true;
+}
+bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
+{
+    TS_CHECK_TRUE_RET(GetHeaderAndUpdateLengthMark(packagesBegin, currentLength), false);
     if (profilerDataType_ == ProfilerTraceFileHeader::HIPERF_DATA) {
         return ParseHiperfData(packagesBegin, currentLength);
     }
@@ -595,38 +699,14 @@ bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesB
             return CalcEbpfCutOffset(packagesBegin, currentLength);
         } else {
 #if IS_WASM
-            if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength) {
-                auto thirdPartySize = profilerDataLength_ - packetHeaderLength;
-                auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
-                std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
-                TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(buffer), thirdPartySize,
-                                                standalonePluginName_);
-                return true;
-            }
+            TS_CHECK_TRUE_RET(ParseSDKData(), false); // 三方sdk逻辑待验证。
 #endif
         }
     }
+    std::string bufferLine;
     while (true) {
-        if (!hasGotSegLength_) {
-            if (currentLength < packetSegLength) {
-                break;
-            }
-            std::string bufferLine(packagesBegin, packagesBegin + packetSegLength);
-            const uint32_t* len = reinterpret_cast<const uint32_t*>(bufferLine.data());
-            nextLength_ = *len;
-            lenBuffer_ = bufferLine;
-            htraceLength_ += nextLength_ + packetSegLength;
-            hasGotSegLength_ = true;
-            currentLength -= packetSegLength;
-            packagesBegin += packetSegLength;
-            parsedFileOffset_ += packetSegLength;
-            splitFileOffset_ = profilerDataLength_ - htraceCurentLength_;
-            htraceCurentLength_ -= packetSegLength;
-        }
-        if (currentLength < nextLength_) {
-            break;
-        }
-        std::string bufferLine(packagesBegin, packagesBegin + nextLength_);
+        TS_CHECK_TRUE_RET(ParseSegLengthAndEnsureSegDataEnough(packagesBegin, currentLength), true);
+        bufferLine.assign(packagesBegin, packagesBegin + nextLength_);
         ParseTraceDataItem(bufferLine);
         hasGotSegLength_ = false;
         packagesBegin += nextLength_;
@@ -663,8 +743,8 @@ void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, s
 bool HtraceParser::ParseHiperfData(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
     if (!traceDataCache_->isSplitFile_) {
-        if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength) {
-            auto size = profilerDataLength_ - packetHeaderLength;
+        if (packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_) {
+            auto size = profilerDataLength_ - packetHeaderLength_;
             (void)perfDataParser_->InitPerfDataAndLoad(packagesBuffer_, size, processedDataLen_, false, true);
             currentLength -= size;
             packagesBegin += size;
@@ -674,11 +754,10 @@ bool HtraceParser::ParseHiperfData(std::deque<uint8_t>::iterator& packagesBegin,
         }
         return false;
     }
-
-    bool isFinish = perfProcessedLen_ + packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength;
+    bool isFinish = perfProcessedLen_ + packagesBuffer_.size() >= profilerDataLength_ - packetHeaderLength_;
     auto size = packagesBuffer_.size();
     if (isFinish) {
-        size = profilerDataLength_ - packetHeaderLength - perfProcessedLen_;
+        size = profilerDataLength_ - packetHeaderLength_ - perfProcessedLen_;
     }
     auto ret = perfDataParser_->InitPerfDataAndLoad(packagesBuffer_, size, processedDataLen_, true, isFinish);
     perfProcessedLen_ += ret;
@@ -713,29 +792,29 @@ void HtraceParser::TraceDataSegmentEnd(bool isSplitFile)
 
 bool HtraceParser::InitProfilerTraceFileHeader()
 {
-    if (packagesBuffer_.size() < packetHeaderLength) {
+    if (packagesBuffer_.size() < packetHeaderLength_) {
         TS_LOGI("buffer size less than profiler trace file header");
         return false;
     }
-    uint8_t buffer[packetHeaderLength];
-    (void)memset_s(buffer, packetHeaderLength, 0, packetHeaderLength);
+    uint8_t buffer[packetHeaderLength_];
+    (void)memset_s(buffer, sizeof(buffer), 0, sizeof(buffer));
     int32_t i = 0;
-    for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + packetHeaderLength; ++it, ++i) {
+    for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + packetHeaderLength_; ++it, ++i) {
         buffer[i] = *it;
     }
     ProfilerTraceFileHeader* pHeader = reinterpret_cast<ProfilerTraceFileHeader*>(buffer);
-    if (pHeader->data.length <= packetHeaderLength || pHeader->data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
+    if (pHeader->data.length <= packetHeaderLength_ || pHeader->data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
         TS_LOGE("Profiler Trace data is truncated or invalid magic! len = %" PRIu64 ", maigc = %" PRIx64 "",
                 pHeader->data.length, pHeader->data.magic);
         return false;
     }
     if (pHeader->data.dataType == ProfilerTraceFileHeader::HIPERF_DATA) {
-        perfDataParser_->RecordPerfProfilerHeader(buffer, packetHeaderLength);
+        perfDataParser_->RecordPerfProfilerHeader(buffer, packetHeaderLength_);
     } else if (pHeader->data.dataType == ProfilerTraceFileHeader::STANDALONE_DATA &&
                EBPF_PLUGIN_NAME.compare(pHeader->data.standalonePluginName) == 0) {
-        ebpfDataParser_->RecordEbpfProfilerHeader(buffer, packetHeaderLength);
+        ebpfDataParser_->RecordEbpfProfilerHeader(buffer, packetHeaderLength_);
     } else {
-        auto ret = memcpy_s(&profilerTraceFileHeader_, sizeof(profilerTraceFileHeader_), buffer, packetHeaderLength);
+        auto ret = memcpy_s(&profilerTraceFileHeader_, sizeof(profilerTraceFileHeader_), buffer, packetHeaderLength_);
         if (ret == -1 || profilerTraceFileHeader_.data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
             TS_LOGE("Get profiler trace file header failed! ret = %d, magic = %" PRIx64 "", ret,
                     profilerTraceFileHeader_.data.magic);
@@ -751,7 +830,7 @@ bool HtraceParser::InitProfilerTraceFileHeader()
             pHeader->data.length, pHeader->data.dataType, pHeader->data.boottime);
 #if IS_WASM
     const int32_t DATA_TYPE_CLOCK = 100;
-    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(buffer), packetHeaderLength, DATA_TYPE_CLOCK);
+    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(buffer), packetHeaderLength_, DATA_TYPE_CLOCK);
 #endif
     htraceClockDetailParser_->Parse(pHeader);
     return true;

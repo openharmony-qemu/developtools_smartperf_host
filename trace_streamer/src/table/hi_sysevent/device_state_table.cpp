@@ -121,6 +121,14 @@ int32_t DeviceStateTable::Cursor::Column(int32_t column) const
         case Index::SYSTEM:
             sqlite3_result_int(context_, deviceStateData_.System()[CurrentRow()]);
             break;
+        default:
+            HandleTypeColumns(column);
+    }
+    return SQLITE_OK;
+}
+void DeviceStateTable::Cursor::HandleTypeColumns(int32_t column) const
+{
+    switch (static_cast<Index>(column)) {
         case Index::ALARM:
             sqlite3_result_int(context_, deviceStateData_.Alarm()[CurrentRow()]);
             break;
@@ -152,7 +160,6 @@ int32_t DeviceStateTable::Cursor::Column(int32_t column) const
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
-    return SQLITE_OK;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

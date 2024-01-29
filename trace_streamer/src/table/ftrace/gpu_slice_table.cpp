@@ -74,11 +74,11 @@ int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto gpuSliceTabCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(gpuSliceTabCs, sId);
+    for (size_t i = 0; i < gpuSliceTabCs.size(); i++) {
+        const auto& c = gpuSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -94,12 +94,12 @@ int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto gpuSliceTabOrderbys = fc.GetOrderBys();
+    for (auto i = gpuSliceTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(gpuSliceTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(gpuSliceTabOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -113,7 +113,7 @@ int32_t GPUSliceTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
+            sqlite3_result_int64(context_, static_cast<int32_t>(gpuSliceObj_.IdsData()[CurrentRow()]));
             break;
         case Index::FRAME_ROW:
             sqlite3_result_int64(context_, static_cast<int32_t>(gpuSliceObj_.FrameRows()[CurrentRow()]));

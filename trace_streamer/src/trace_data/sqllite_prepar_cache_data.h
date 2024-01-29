@@ -15,7 +15,7 @@
 
 #ifndef SQLLITE_PREPAR_CACHE_DATA_H
 #define SQLLITE_PREPAR_CACHE_DATA_H
-
+#include <cstdint>
 #include <functional>
 #include <map>
 #include "sqlite3.h"
@@ -71,6 +71,11 @@ private:
     void FillAndSendNativeMemoryNormalProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
     void FillAndSendNativeMemoryStatisticProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
     void FillAndSendCpuAbilityDataProto(sqlite3_stmt* stmt, uint32_t type, TLVResultCallBack TLVResultCallBack);
+    void FillSphQueryFuncMapPartOne();
+    void FillSphQueryFuncMapPartTow();
+    void FillSphQueryFuncMapPartThree();
+    void FillSphQueryFuncMapPartFour();
+    void FillSphQueryFuncMapPartFive();
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

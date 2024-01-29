@@ -43,6 +43,16 @@ ohos_source_set("ebpf_parser_src") {
     "${THIRD_PARTY}/sqlite/include",
     "${THIRD_PARTY}/bounds_checking_function/include",
   ]
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+  ]
   if (is_mingw || is_mac) {
     include_dirs += [ "${THIRD_PARTY}/elfutils/libelf" ]
   }

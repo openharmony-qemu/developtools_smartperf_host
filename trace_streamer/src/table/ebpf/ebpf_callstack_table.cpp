@@ -40,7 +40,7 @@ EbpfCallStackTable::~EbpfCallStackTable() {}
 
 void EbpfCallStackTable::FilterByConstraint(FilterConstraints& callfc,
                                             double& callfilterCost,
-                                            size_t callrowCount,
+                                            size_t callRowCnt,
                                             uint32_t callcurrenti)
 {
     // To use the EstimateFilterCost function in the TableBase parent class function to calculate the i-value of each
@@ -48,16 +48,16 @@ void EbpfCallStackTable::FilterByConstraint(FilterConstraints& callfc,
     const auto& callc = callfc.GetConstraints()[callcurrenti];
     switch (static_cast<Index>(callc.col)) {
         case Index::ID: {
-            if (CanFilterId(callc.op, callrowCount)) {
+            if (CanFilterId(callc.op, callRowCnt)) {
                 callfc.UpdateConstraint(callcurrenti, true);
                 callfilterCost += 1; // id can position by 1 step
             } else {
-                callfilterCost += callrowCount; // scan all rows
+                callfilterCost += callRowCnt; // scan all rows
             }
             break;
         }
-        default:                            // other column
-            callfilterCost += callrowCount; // scan all rows
+        default:                          // other column
+            callfilterCost += callRowCnt; // scan all rows
             break;
     }
 }
@@ -84,9 +84,9 @@ int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& ebpfCallStackCs = fc.GetConstraints();
+    for (size_t i = 0; i < ebpfCallStackCs.size(); i++) {
+        const auto& c = ebpfCallStackCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -96,12 +96,12 @@ int32_t EbpfCallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto ebpfCallStackTabOrderbys = fc.GetOrderBys();
+    for (auto i = ebpfCallStackTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(ebpfCallStackTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(ebpfCallStackTabOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -149,15 +149,15 @@ int32_t EbpfCallStackTable::Cursor::Column(int32_t column) const
     }
     return SQLITE_OK;
 }
-void EbpfCallStackTable::GetOrbyes(FilterConstraints& callfc, EstimatedIndexInfo& callei)
+void EbpfCallStackTable::GetOrbyes(FilterConstraints& ebpfCallfc, EstimatedIndexInfo& ebpfCalleInfo)
 {
-    auto callorderbys = callfc.GetOrderBys();
-    for (auto i = 0; i < callorderbys.size(); i++) {
-        switch (static_cast<Index>(callorderbys[i].iColumn)) {
+    auto ebpfCallOrderbys = ebpfCallfc.GetOrderBys();
+    for (auto i = 0; i < ebpfCallOrderbys.size(); i++) {
+        switch (static_cast<Index>(ebpfCallOrderbys[i].iColumn)) {
             case Index::ID:
                 break;
-            default: // other columns can be sorted by SQLite
-                callei.isOrdered = false;
+            default: // other columns can be sorted by SQLitep
+                ebpfCalleInfo.isOrdered = false;
                 break;
         }
     }

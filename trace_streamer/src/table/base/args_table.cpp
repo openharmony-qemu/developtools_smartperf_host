@@ -76,9 +76,9 @@ int32_t ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
         return SQLITE_OK;
     }
 
-    auto& cs = fc.GetConstraints();
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    auto& argsTabCs = fc.GetConstraints();
+    for (size_t i = 0; i < argsTabCs.size(); i++) {
+        const auto& c = argsTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -88,12 +88,12 @@ int32_t ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** a
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto argsTabOrderbys = fc.GetOrderBys();
+    for (auto i = argsTabOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(argsTabOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(argsTabOrderbys[i].desc);
                 break;
             default:
                 break;
@@ -107,7 +107,7 @@ int32_t ArgsTable::Cursor::Column(int32_t col) const
 {
     switch (static_cast<Index>(col)) {
         case Index::ID:
-            sqlite3_result_int64(context_, CurrentRow()); // IdsData() will be optimized
+            sqlite3_result_int64(context_, static_cast<int64_t>(argSet_.IdsData()[CurrentRow()]));
             break;
         case Index::KEY:
             sqlite3_result_int64(context_, static_cast<int64_t>(argSet_.NamesData()[CurrentRow()]));

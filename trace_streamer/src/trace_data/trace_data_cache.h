@@ -48,23 +48,36 @@ public:
     int32_t ExportPerfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportHookReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    void ClearAllPrevCacheData();
-    void UpdateAllPrevSize();
-    void UpdateAllDatabaseStableSize();
+    void ClearAllExportedCacheData();
+    void UpdateAllReadySize();
 
 private:
     void InitDB();
-    void ExportPerfCallChaninText(uint32_t callChainId, std::string& buffLine);
-    void ExportHookCallChaninText(uint32_t callChainId, std::string& buffLine);
+    void ExportPerfCallChaninText(uint32_t callChainId, std::string& bufferLine);
+    void ExportHookCallChaninText(uint32_t callChainId, std::string& bufferLine);
     bool ExportHookDataReadableText(int32_t fd, std::string& bufferLine);
     bool ExportHookStatisticReadableText(int32_t fd, std::string& bufferLine);
-    using EbpfEventTypeMap = std::map<uint32_t /*type*/, std::string_view /*name*/>;
+    using EbpfEventTypeMap = std::map<uint32_t /* type */, std::string_view /* name */>;
     bool ExportEbpfFileSystemReadableText(int32_t fd,
                                           std::string& bufferLine,
                                           const EbpfEventTypeMap& ebpfEventTypeMap);
     bool ExportEbpfPagedMemReadableText(int32_t fd, std::string& bufferLine, const EbpfEventTypeMap& ebpfEventTypeMap);
     bool ExportEbpfBIOReadableText(int32_t fd, std::string& bufferLine, const EbpfEventTypeMap& ebpfEventTypeMap);
     void ExportEbpfCallChaninText(uint32_t callChainId, std::string& bufferLine);
+    void InitBaseDB();
+    void InitEbpfDB();
+    void InitNativeMemoryDB();
+    void InitArkTsDB();
+    void InitHiperfDB();
+    void InitMeasureDB();
+    void InitTemplateDB();
+    void InitRenderServiceDB();
+    void InitMemoryDB();
+    void InitHisysEventDB();
+    void ExportPerfSampleToFile(std::string& perfBufferLine,
+                                int32_t perfFd,
+                                const std::string& outputName,
+                                uint64_t row);
 
 private:
     bool dbInited_ = false;

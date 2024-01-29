@@ -1,0 +1,223 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef NATIVE_MEMORY_STDTYPE_H
+#define NATIVE_MEMORY_STDTYPE_H
+#include "base_stdtype.h"
+#include <unordered_map>
+
+namespace SysTuning {
+namespace TraceStdtype {
+class NativeHookSampleBase : public CacheBase {
+public:
+    void AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint32_t itid, uint64_t timeStamp);
+    void AppendNativeHookSampleBase(uint32_t callChainId, uint32_t ipid, uint64_t timeStamp);
+    const std::deque<uint32_t>& CallChainIds() const;
+    const std::deque<uint32_t>& Ipids() const;
+    const std::deque<uint64_t>& LastCallerPathIndexs() const;
+    const std::deque<uint64_t>& LastSymbolIndexs() const;
+    void UpdateLastCallerPathAndSymbolIndexs(
+        std::unordered_map<uint32_t, std::tuple<DataIndex, DataIndex>>& callIdToLasLibId);
+    void Clear() override
+    {
+        CacheBase::Clear();
+        callChainIds_.clear();
+        ipids_.clear();
+        lastCallerPathIndexs_.clear();
+        lastSymbolIndexs_.clear();
+    }
+
+public:
+    std::deque<uint32_t> callChainIds_ = {};
+    std::deque<uint32_t> ipids_ = {};
+    std::deque<DataIndex> lastCallerPathIndexs_ = {};
+    std::deque<DataIndex> lastSymbolIndexs_ = {};
+};
+class NativeHook : public NativeHookSampleBase {
+public:
+    size_t AppendNewNativeHookData(uint32_t callChainId,
+                                   uint32_t ipid,
+                                   uint32_t itid,
+                                   std::string eventType,
+                                   DataIndex subType,
+                                   uint64_t timeStamp,
+                                   uint64_t endTimeStamp,
+                                   uint64_t duration,
+                                   uint64_t addr,
+                                   int64_t memSize);
+    void UpdateCallChainId(size_t row, uint32_t callChainId);
+    void UpdateEndTimeStampAndDuration(size_t row, uint64_t endTimeStamp);
+    void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
+    void UpdateMemMapSubType(uint64_t row, uint64_t tagId);
+    const std::deque<std::string>& EventTypes() const;
+    const std::deque<DataIndex>& SubTypes() const;
+    const std::deque<uint64_t>& EndTimeStamps() const;
+    const std::deque<uint64_t>& Durations() const;
+    const std::deque<uint64_t>& Addrs() const;
+    const std::deque<int64_t>& MemSizes() const;
+    const std::deque<int64_t>& AllMemSizes() const;
+    const std::deque<uint64_t>& CurrentSizeDurs() const;
+    void Clear() override
+    {
+        NativeHookSampleBase::Clear();
+        eventTypes_.clear();
+        subTypes_.clear();
+        endTimeStamps_.clear();
+        durations_.clear();
+        addrs_.clear();
+        memSizes_.clear();
+        allMemSizes_.clear();
+        currentSizeDurs_.clear();
+    }
+    std::unordered_map<uint64_t, uint64_t>* GetAddrToAllocEventRow()
+    {
+        return &addrToAllocEventRow_;
+    }
+    std::unordered_map<uint64_t, uint64_t>* GetAddrToMmapEventRow()
+    {
+        return &addrToMmapEventRow_;
+    }
+    uint64_t& GetLastMallocEventRaw()
+    {
+        return lastMallocEventRaw_;
+    }
+    uint64_t& GetLastMmapEventRaw()
+    {
+        return lastMmapEventRaw_;
+    }
+
+private:
+    std::deque<std::string> eventTypes_ = {};
+    std::deque<DataIndex> subTypes_ = {};
+    std::deque<uint64_t> endTimeStamps_ = {};
+    std::deque<uint64_t> durations_ = {};
+    std::deque<uint64_t> addrs_ = {};
+    std::deque<int64_t> memSizes_ = {};
+    std::deque<int64_t> allMemSizes_ = {};
+    std::deque<uint64_t> currentSizeDurs_ = {};
+    int64_t countHeapSizes_ = 0;
+    int64_t countMmapSizes_ = 0;
+    const std::string ALLOC_EVET = "AllocEvent";
+    const std::string FREE_EVENT = "FreeEvent";
+    const std::string MMAP_EVENT = "MmapEvent";
+    const std::string MUNMAP_EVENT = "MunmapEvent";
+    std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
+    std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
+    uint64_t lastMallocEventRaw_ = INVALID_UINT64;
+    uint64_t lastMmapEventRaw_ = INVALID_UINT64;
+};
+
+class NativeHookFrame {
+public:
+    size_t AppendNewNativeHookFrame(uint32_t callChainId,
+                                    uint16_t depth,
+                                    uint64_t ip,
+                                    DataIndex symbolName,
+                                    DataIndex filePath,
+                                    uint64_t offset,
+                                    uint64_t symbolOffset);
+    size_t AppendNewNativeHookFrame(uint32_t callChainId,
+                                    uint16_t depth,
+                                    uint64_t ip,
+                                    DataIndex symbolName,
+                                    DataIndex filePath,
+                                    uint64_t offset,
+                                    uint64_t symbolOffset,
+                                    const std::string& vaddr);
+    void UpdateFrameInfo(size_t row,
+                         DataIndex symbolIndex,
+                         DataIndex filePathIndex,
+                         uint64_t offset,
+                         uint64_t symbolOffset);
+    void UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId);
+    void UpdateSymbolId();
+    void UpdateSymbolId(size_t index, DataIndex symbolId);
+    void UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFilePathName);
+    void UpdateVaddrs(std::deque<std::string>& vaddrs);
+    const std::deque<uint32_t>& CallChainIds() const;
+    const std::deque<uint16_t>& Depths() const;
+    const std::deque<uint64_t>& Ips() const;
+    const std::deque<DataIndex>& SymbolNames() const;
+    const std::deque<DataIndex>& FilePaths() const;
+    const std::deque<uint64_t>& Offsets() const;
+    const std::deque<uint64_t>& SymbolOffsets() const;
+    const std::deque<std::string>& Vaddrs() const;
+    size_t Size() const
+    {
+        return callChainIds_.size();
+    }
+    void Clear()
+    {
+        callChainIds_.clear();
+        depths_.clear();
+        ips_.clear();
+        symbolNames_.clear();
+        filePaths_.clear();
+        offsets_.clear();
+        symbolOffsets_.clear();
+        vaddrs_.clear();
+    }
+
+private:
+    std::deque<uint32_t> callChainIds_ = {};
+    std::deque<uint16_t> depths_ = {};
+    std::deque<uint64_t> ips_ = {};
+    std::deque<DataIndex> symbolNames_ = {};
+    std::deque<DataIndex> filePaths_ = {};
+    std::deque<uint64_t> offsets_ = {};
+    std::deque<uint64_t> symbolOffsets_ = {};
+    std::deque<std::string> vaddrs_ = {};
+    std::map<uint32_t, uint64_t> symbolIdToSymbolName_ = {};
+};
+
+class NativeHookStatistic : public NativeHookSampleBase {
+public:
+    size_t AppendNewNativeHookStatistic(uint32_t ipid,
+                                        uint64_t timeStamp,
+                                        uint32_t callChainId,
+                                        uint32_t memoryType,
+                                        DataIndex subMemType,
+                                        uint64_t applyCount,
+                                        uint64_t releaseCount,
+                                        uint64_t applySize,
+                                        uint64_t releaseSize);
+    const std::deque<uint32_t>& MemoryTypes() const;
+    const std::deque<DataIndex>& MemorySubTypes() const;
+    const std::deque<uint64_t>& ApplyCounts() const;
+    const std::deque<uint64_t>& ReleaseCounts() const;
+    const std::deque<uint64_t>& ApplySizes() const;
+    const std::deque<uint64_t>& ReleaseSizes() const;
+    void Clear() override
+    {
+        NativeHookSampleBase::Clear();
+        memoryTypes_.clear();
+        applyCounts_.clear();
+        releaseCounts_.clear();
+        applySizes_.clear();
+        releaseSizes_.clear();
+    }
+
+private:
+    std::deque<uint32_t> memoryTypes_ = {};
+    std::deque<DataIndex> memSubTypes_ = {};
+    std::deque<uint64_t> applyCounts_ = {};
+    std::deque<uint64_t> releaseCounts_ = {};
+    std::deque<uint64_t> applySizes_ = {};
+    std::deque<uint64_t> releaseSizes_ = {};
+};
+} // namespace TraceStdtype
+} // namespace SysTuning
+
+#endif // NATIVE_MEMORY_STDTYPE_H

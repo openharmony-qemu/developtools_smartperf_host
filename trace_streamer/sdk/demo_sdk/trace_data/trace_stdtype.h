@@ -35,38 +35,38 @@ namespace TraceStdtype {
 using namespace SysTuning::TraceStreamer;
 // the supported metadata
 enum MetaDataItem { METADATA_ITEM_PARSERTOOL_VERSION, METADATA_ITEM_PARSERTOOL_PUBLISH_DATETIME, METADATA_ITEM_MAX };
-class CacheBase {
+class DemoCacheBase {
 public:
     size_t Size() const
     {
-        return std::max(timeStamps_.size(), ids_.size());
+        return std::max(demoTimeStamps_.size(), demoIds_.size());
     }
     const std::deque<uint64_t>& IdsData() const
     {
-        return ids_;
+        return demoIds_;
     }
     const std::deque<uint64_t>& TimeStampData() const
     {
-        return timeStamps_;
+        return demoTimeStamps_;
     }
     const std::deque<InternalTid>& InternalTidsData() const
     {
-        return internalTids_;
+        return demoInternalTids_;
     }
     virtual void Clear()
     {
-        internalTids_.clear();
-        timeStamps_.clear();
-        ids_.clear();
+        demoInternalTids_.clear();
+        demoTimeStamps_.clear();
+        demoIds_.clear();
     }
 
 public:
-    std::deque<InternalTid> internalTids_ = {};
-    std::deque<uint64_t> timeStamps_ = {};
-    std::deque<uint64_t> ids_ = {};
+    std::deque<InternalTid> demoInternalTids_ = {};
+    std::deque<uint64_t> demoTimeStamps_ = {};
+    std::deque<uint64_t> demoIds_ = {};
 };
 
-class GpuCounterObject : public CacheBase {
+class GpuCounterObject : public DemoCacheBase {
 public:
     GpuCounterObject() = default;
     ~GpuCounterObject() = default;
@@ -78,7 +78,7 @@ private:
     std::deque<int32_t> counterId_ = {};
     std::deque<std::string> counterName_ = {};
 };
-class GpuCounter : public CacheBase {
+class GpuCounter : public DemoCacheBase {
 public:
     GpuCounter() = default;
     ~GpuCounter() = default;
@@ -93,7 +93,7 @@ private:
     std::deque<int32_t> value_ = {};
 };
 
-class SliceObject : public CacheBase {
+class SliceObject : public DemoCacheBase {
 public:
     SliceObject() = default;
     ~SliceObject() = default;
@@ -105,7 +105,7 @@ private:
     std::deque<int32_t> sliceId_ = {};
     std::deque<std::string> sliceName_ = {};
 };
-class SliceData : public CacheBase {
+class SliceData : public DemoCacheBase {
 public:
     SliceData() = default;
     ~SliceData() = default;
@@ -121,7 +121,7 @@ private:
     std::deque<uint64_t> endTs_ = {};
     std::deque<int32_t> value_ = {};
 };
-class MetaData : public CacheBase {
+class MetaData : public DemoCacheBase {
 public:
     MetaData() = default;
     ~MetaData() = default;

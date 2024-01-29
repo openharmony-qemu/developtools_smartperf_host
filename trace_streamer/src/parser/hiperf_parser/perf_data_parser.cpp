@@ -32,7 +32,7 @@ PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFil
 {
     SymbolsFile::onRecording_ = false;
 }
-uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer,
+uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t>& dequeBuffer,
                                              uint64_t size,
                                              uint64_t offset,
                                              bool isSplitFile,
@@ -50,20 +50,11 @@ uint64_t PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuff
     return size;
 }
 
-uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t>& dequeBuffer,
-                                       uint64_t size,
-                                       uint64_t offset,
-                                       bool isFinish)
+uint64_t PerfDataParser::DataProcessingLength(const std::deque<uint8_t>& dequeBuffer,
+                                              uint64_t size,
+                                              uint64_t offset,
+                                              bool isFinish)
 {
-    if (processedLength_ == 0) {
-        perfDataOffset_ = offset;
-        perfSplitError_ = false;
-    }
-
-    if (perfSplitError_) {
-        return size;
-    }
-
     using PerfSplitFunc = bool (PerfDataParser::*)(const std::deque<uint8_t>&, uint64_t, uint64_t&, bool&);
     std::vector<PerfSplitFunc> splitFunc = {&PerfDataParser::SplitPerfStarting,
                                             &PerfDataParser::SplitPerfParsingHead,
@@ -80,7 +71,6 @@ uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t>& dequeBuffer,
         SplitDataWithdraw();
         return size;
     }
-
     uint64_t processedLen = 0;
     bool ret = true;
     bool invalid = false;
@@ -113,6 +103,24 @@ uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t>& dequeBuffer,
     return processedLen;
 }
 
+uint64_t PerfDataParser::SplitPerfData(const std::deque<uint8_t>& dequeBuffer,
+                                       uint64_t size,
+                                       uint64_t offset,
+                                       bool isFinish)
+{
+    if (processedLength_ == 0) {
+        perfDataOffset_ = offset;
+        perfSplitError_ = false;
+    }
+
+    if (perfSplitError_) {
+        return size;
+    }
+
+    uint64_t datalength = DataProcessingLength(dequeBuffer, size, offset, isFinish);
+    return datalength;
+}
+
 bool PerfDataParser::SplitPerfStarting(const std::deque<uint8_t>& dequeBuffer,
                                        uint64_t size,
                                        uint64_t& processedLen,
@@ -139,7 +147,6 @@ bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer
         return false;
     }
 
-    uint64_t lengthRemain = size;
     std::copy_n(dequeBuffer.begin(), sizeof(perf_file_header), reinterpret_cast<char*>(&perfHeader_));
 
     if (memcmp(perfHeader_.magic, PERF_MAGIC, sizeof(perfHeader_.magic))) {
@@ -164,8 +171,6 @@ bool PerfDataParser::SplitPerfParsingHead(const std::deque<uint8_t>& dequeBuffer
         .type = (int32_t)SplitDataDataType::SPLIT_FILE_DATA,
         .buffer = {.address = reinterpret_cast<uint8_t*>(&perfHeader_), .size = sizeof(perf_file_header)}};
     splitResult_.emplace_back(perfHead);
-
-    lengthRemain -= sizeof(perf_file_header);
     processedLen += sizeof(perf_file_header);
     splitState_ = SplitPerfState::WAIT_FOR_ATTR;
     return true;
@@ -264,41 +269,54 @@ bool PerfDataParser::SplitPerfWaitForData(const std::deque<uint8_t>& dequeBuffer
     return true;
 }
 
-bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer,
-                                          uint64_t size,
-                                          uint64_t& processedLen,
-                                          bool& invalid)
+SplitPerfState PerfDataParser::DataLengthProcessing(const std::deque<uint8_t>& dequeBuffer,
+                                                    perf_event_header& dataHeader,
+                                                    uint64_t size,
+                                                    uint64_t& processedLen,
+                                                    bool& invalid)
 {
     uint64_t totalDataRemain = perfHeader_.data.offset + perfHeader_.data.size - processedLength_ - processedLen;
     if (totalDataRemain < sizeof(perf_event_header)) {
         processedLen += totalDataRemain;
         splitDataSize_ += totalDataRemain;
         splitState_ = SplitPerfState::PARSING_FEATURE_SECTION;
-        return true;
+        return SplitPerfState::PARSING_HEAD;
     }
 
     uint64_t LengthRemain = size - processedLen;
     if (LengthRemain < sizeof(perf_event_header)) {
-        return false;
+        return SplitPerfState::STARTING;
     }
-
-    perf_event_header dataHeader;
     std::copy_n(dequeBuffer.begin() + processedLen, sizeof(perf_event_header), reinterpret_cast<char*>(&dataHeader));
     if (dataHeader.size < sizeof(perf_event_header)) {
         TS_LOGE("invalid data size %u", dataHeader.size);
         invalid = true;
-        return false;
+        return SplitPerfState::STARTING;
     }
     if (LengthRemain < dataHeader.size) {
-        return false;
+        return SplitPerfState::STARTING;
     }
     if (totalDataRemain < sizeof(perf_event_header)) {
         processedLen += totalDataRemain;
         splitDataSize_ += totalDataRemain;
         splitState_ = SplitPerfState::PARSING_FEATURE_SECTION;
+        return SplitPerfState::PARSING_HEAD;
+    }
+    return SplitPerfState::WAIT_FOR_ATTR;
+}
+
+bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer,
+                                          uint64_t size,
+                                          uint64_t& processedLen,
+                                          bool& invalid)
+{
+    perf_event_header dataHeader;
+    auto ret = DataLengthProcessing(dequeBuffer, dataHeader, size, processedLen, invalid);
+    if (SplitPerfState::STARTING == ret) {
+        return false;
+    } else if (SplitPerfState::PARSING_HEAD == ret) {
         return true;
     }
-
     bool needRecord = true;
     if (splitDataEnd_) {
         needRecord = false;
@@ -322,9 +340,10 @@ bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer
 
     if (needRecord) {
         uint64_t currentDataOffset = perfDataOffset_ + processedLength_ + processedLen;
-        auto it = splitResult_.rbegin();
-        if (it != splitResult_.rend() && (it->originSeg.offset + it->originSeg.size == currentDataOffset)) {
-            it->originSeg.size += dataHeader.size;
+        // auto it = splitResult_.rbegin();
+        if (splitResult_.rbegin() != splitResult_.rend() &&
+            (splitResult_.rbegin()->originSeg.offset + splitResult_.rbegin()->originSeg.size == currentDataOffset)) {
+            splitResult_.rbegin()->originSeg.size += dataHeader.size;
         } else {
             HtraceSplitResult offsetData = {.type = (int32_t)SplitDataDataType::SPLIT_FILE_JSON,
                                             .originSeg = {.offset = currentDataOffset, .size = dataHeader.size}};
@@ -332,7 +351,6 @@ bool PerfDataParser::SplitPerfParsingData(const std::deque<uint8_t>& dequeBuffer
         }
         splitDataSize_ += dataHeader.size;
     }
-
     processedLen += dataHeader.size;
     return true;
 }

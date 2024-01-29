@@ -40,9 +40,9 @@ DeviceInfoTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* tabl
 
 DeviceInfoTable::Cursor::~Cursor() {}
 
-int32_t DeviceInfoTable::Cursor::Column(int32_t column) const
+int32_t DeviceInfoTable::Cursor::Column(int32_t devInfoColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(devInfoColumn)) {
         case Index::PHYSICAL_WIDTH:
             if (deviceInfoObj_.PhysicalWidth() != INVALID_UINT32) {
                 sqlite3_result_int(context_, static_cast<int32_t>(deviceInfoObj_.PhysicalWidth()));
@@ -59,7 +59,7 @@ int32_t DeviceInfoTable::Cursor::Column(int32_t column) const
             }
             break;
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered devInfoColumn : %d", devInfoColumn);
             break;
     }
     return SQLITE_OK;

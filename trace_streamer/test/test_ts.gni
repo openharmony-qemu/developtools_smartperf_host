@@ -14,6 +14,7 @@ OHOS_PROTO_DIR = ""
 kernel_version = "."
 THIRD_PARTY = "//third_party"
 PREBUILTS = "//prebuilts"
+TRACE_STDTYPE = "//src/trace_data/trace_stdtype"
 if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
   if (is_test) {
     enable_ts_utest = true

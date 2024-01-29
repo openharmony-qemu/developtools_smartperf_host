@@ -16,7 +16,7 @@
 #include <memory>
 #include <cinttypes>
 #include "log.h"
-#define ISINVALIDU32(value) (value == INVALID_UINT32)
+
 namespace SysTuning {
 namespace TraceStreamer {
 FrameFilter::FrameFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter)
@@ -84,7 +84,6 @@ bool FrameFilter::BeginRSTransactionData(uint64_t ts, uint32_t itid, uint32_t fr
         std::unordered_map<uint32_t /* frameNum */, std::shared_ptr<FrameSlice>> frameMap;
         dstRenderSlice_.emplace(std::make_pair(itid, std::move(frameMap)));
     }
-    // dstRenderSlice_.at(itid).insert(std::make_pair(franeNum, frame->second.begin()));
     dstRenderSlice_[itid][franeNum] = frame->second[0];
     return true;
 }
@@ -95,16 +94,10 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
                                          uint32_t sliceIndex)
 {
     auto frame = vsyncRenderSlice_.find(itid);
-    if (frame == vsyncRenderSlice_.end()) {
-        return false;
-    }
-    if (!frame->second.size()) {
-        return false;
-    }
+    TS_CHECK_TRUE_RET(frame != vsyncRenderSlice_.end(), false);
+    TS_CHECK_TRUE_RET(!frame->second.empty(), false);
     auto lastFrameSlice = frame->second.back();
-    if (lastFrameSlice->vsyncEnd_) {
-        return false;
-    }
+    TS_CHECK_TRUE_RET(!lastFrameSlice->vsyncEnd_, false);
     std::vector<uint64_t> fromSlices = {};
     std::vector<uint64_t> fromExpectedSlices = {};
     for (auto& it : frames) {
@@ -116,26 +109,23 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
         if (srcFrame == sourceFrameMap->second.end()) {
             continue;
         }
-        fromSlices.push_back(srcFrame->second.get()->frameSliceRow_);
-        fromExpectedSlices.push_back(srcFrame->second.get()->frameExpectedSliceRow_);
-        srcFrame->second.get()->dstFrameSliceId_ = lastFrameSlice->frameSliceRow_;
-        srcFrame->second.get()->dstExpectedFrameSliceId_ = lastFrameSlice->frameExpectedSliceRow_;
+        fromSlices.push_back(srcFrame->second->frameSliceRow_);
+        fromExpectedSlices.push_back(srcFrame->second->frameExpectedSliceRow_);
+        srcFrame->second->dstFrameSliceId_ = lastFrameSlice->frameSliceRow_;
+        srcFrame->second->dstExpectedFrameSliceId_ = lastFrameSlice->frameExpectedSliceRow_;
         TraceStdtype::FrameSlice* frameSlice = traceDataCache_->GetFrameSliceData();
-        (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second.get()->frameSliceRow_,
-                                                             srcFrame->second.get()->dstFrameSliceId_);
-        (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second.get()->frameExpectedSliceRow_,
-                                                             srcFrame->second.get()->dstExpectedFrameSliceId_);
-        frameSlice->SetDst(srcFrame->second.get()->frameSliceRow_, srcFrame->second.get()->dstFrameSliceId_);
-        frameSlice->SetDst(srcFrame->second.get()->frameExpectedSliceRow_,
-                           srcFrame->second.get()->dstExpectedFrameSliceId_);
-        if (srcFrame->second.get()->endTs_ != INVALID_UINT64) {
+        (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameSliceRow_,
+                                                             srcFrame->second->dstFrameSliceId_);
+        (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameExpectedSliceRow_,
+                                                             srcFrame->second->dstExpectedFrameSliceId_);
+        frameSlice->SetDst(srcFrame->second->frameSliceRow_, srcFrame->second->dstFrameSliceId_);
+        frameSlice->SetDst(srcFrame->second->frameExpectedSliceRow_, srcFrame->second->dstExpectedFrameSliceId_);
+        if (srcFrame->second->endTs_ != INVALID_UINT64) {
             // erase Source
             sourceFrameMap->second.erase(it.frameNum);
         }
     }
-    if (!fromSlices.size()) {
-        return false;
-    }
+    TS_CHECK_TRUE_RET(!fromSlices.empty(), false);
     lastFrameSlice->sourceSlice_ = fromSlices;
     lastFrameSlice->sourceExpectedSlice_ = fromExpectedSlices;
     traceDataCache_->GetFrameSliceData()->SetSrcs(lastFrameSlice->frameSliceRow_, fromSlices);
@@ -166,7 +156,7 @@ bool FrameFilter::EndVsyncEvent(uint64_t ts, uint32_t itid)
     } else { // for app
         traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(
             lastFrameSlice->frameSliceRow_, ts, lastFrameSlice->expectedDur_, lastFrameSlice->expectedEndTs_);
-        if (ISINVALIDU32(lastFrameSlice->frameNum_)) {
+        if (lastFrameSlice->frameNum_ == INVALID_UINT32) {
             // if app's frame num not received
             traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameSliceRow_);
             traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameExpectedSliceRow_);
@@ -207,7 +197,9 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
         return false;
     }
     auto firstFrameSlicePos = frame->second.begin();
-    (void)traceDataCache_->GetGPUSliceData()->AppendNew(firstFrameSlicePos->get()->frameSliceRow_,
+    TraceStdtype::FrameSlice* frameSlice = traceDataCache_->GetFrameSliceData();
+    (void)traceDataCache_->GetGPUSliceData()->AppendNew(frameSlice->diskTableSize_ +
+                                                            (*firstFrameSlicePos)->frameSliceRow_,
                                                         ts - firstFrameSlicePos->get()->frameQueueStartTs_);
     firstFrameSlicePos->get()->gpuEnd_ = true;
     if (firstFrameSlicePos->get()->vsyncEnd_) {
@@ -217,6 +209,55 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
                                                                 firstFrameSlicePos->get()->expectedEndTs_);
         // if vsync ended
         frame->second.erase(firstFrameSlicePos);
+    }
+    return true;
+}
+void FrameFilter::SetMinFrameSliceRow(uint64_t& minFrameSliceRowToBeUpdated)
+{
+    for (const auto& [_, frameSlices] : vsyncRenderSlice_) {
+        for (size_t idx = 0; idx < frameSlices.size(); idx++) {
+            if (minFrameSliceRowToBeUpdated > frameSlices[idx]->frameSliceRow_) {
+                minFrameSliceRowToBeUpdated = frameSlices[idx]->frameSliceRow_;
+            }
+            if (minFrameSliceRowToBeUpdated > frameSlices[idx]->frameExpectedSliceRow_) {
+                minFrameSliceRowToBeUpdated = frameSlices[idx]->frameExpectedSliceRow_;
+            }
+        }
+    }
+    for (const auto& pair : dstRenderSlice_) {
+        for (const auto& [_, frameSlice] : pair.second) {
+            if (minFrameSliceRowToBeUpdated > frameSlice->frameSliceRow_) {
+                minFrameSliceRowToBeUpdated = frameSlice->frameSliceRow_;
+            }
+            if (minFrameSliceRowToBeUpdated > frameSlice->frameExpectedSliceRow_) {
+                minFrameSliceRowToBeUpdated = frameSlice->frameExpectedSliceRow_;
+            }
+        }
+    }
+}
+bool FrameFilter::UpdateFrameSliceReadySize()
+{
+    traceDataCache_->GetFrameSliceData()->UpdateDepth();
+    auto frameSlice = traceDataCache_->GetFrameSliceData();
+    frameSlice->UpdateReadySize(frameSlice->Size());
+    uint64_t minFrameSliceRowToBeUpdated = INVALID_UINT64;
+    SetMinFrameSliceRow(minFrameSliceRowToBeUpdated);
+    // the ready size isn't all
+    TS_CHECK_TRUE_RET(minFrameSliceRowToBeUpdated != INVALID_UINT64, true);
+    frameSlice->UpdateReadySize(minFrameSliceRowToBeUpdated);
+    TS_LOGI("minFrameSliceRowToBeUpdated=%" PRIu64 ", size=%zu, ready.size=%zu\n", minFrameSliceRowToBeUpdated,
+            frameSlice->Size(), frameSlice->readySize_);
+    for (auto& [_, frameSlices] : vsyncRenderSlice_) {
+        for (size_t idx = 0; idx < frameSlices.size(); idx++) {
+            frameSlices[idx]->frameSliceRow_ -= minFrameSliceRowToBeUpdated;
+            frameSlices[idx]->frameExpectedSliceRow_ -= minFrameSliceRowToBeUpdated;
+        }
+    }
+    for (const auto& pair : dstRenderSlice_) {
+        for (const auto& [_, frameSlice] : pair.second) {
+            frameSlice->frameSliceRow_ -= minFrameSliceRowToBeUpdated;
+            frameSlice->frameExpectedSliceRow_ -= minFrameSliceRowToBeUpdated;
+        }
     }
     return true;
 }

@@ -14,6 +14,7 @@
  */
 #ifndef CPU_DETAIL_PARSER_H
 #define CPU_DETAIL_PARSER_H
+#include <queue>
 #include "print_event_parser.h"
 #include "trace_data_cache.h"
 #include "trace_plugin_result.pb.h"
@@ -21,6 +22,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr uint32_t CPU_CORE_MAX = 30;
 struct RawTraceEventInfo {
     uint8_t cpuId = INVALID_UINT8;
     uint32_t eventId = INVALID_UINT32;
@@ -30,11 +32,15 @@ class CpuDetailParser {
 public:
     CpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~CpuDetailParser() = default;
-    void EventAppend(std::unique_ptr<RawTraceEventInfo> event);
+    void EventAppend(std::shared_ptr<RawTraceEventInfo> event);
+    void ResizeStandAloneCpuEventList(uint32_t cpuNum);
     bool FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFinished = false);
+    void FinishCpuDetailParser();
     void Clear();
 
 private:
+    bool SortStandAloneCpuEventList(bool isFinished = false);
+    void UpdateCpuOverwrite(FtraceCpuDetailMsg& cpuDetail);
     void DealEvent(const RawTraceEventInfo& event);
     bool SchedSwitchEvent(const RawTraceEventInfo& event);
     bool SchedBlockReasonEvent(const RawTraceEventInfo& event);
@@ -73,16 +79,32 @@ private:
     bool RegulatorDisableEvent(const RawTraceEventInfo& event) const;
     bool RegulatorDisableCompleteEvent(const RawTraceEventInfo& event) const;
 
+    void InterruptEventInitialization();
+    void ClockEventInitialization();
+    void CpuEventInitialization();
+    void LockEventInitialization();
+    void BinderEventInitialization();
+    void StackEventsInitialization();
+    void VoltageEventInitialization();
+
+public:
+    uint32_t cpuCoreMax_ = CPU_CORE_MAX;
+
 private:
     using FuncCall = std::function<bool(const RawTraceEventInfo& event)>;
+    const TraceStreamerFilters* streamFilters_;
+    TraceDataCache* traceDataCache_;
+    PrintEventParser printEventParser_;
+
     uint32_t eventPid_ = INVALID_UINT32;
     uint32_t eventTid_ = INVALID_UINT32;
     uint64_t lastOverwrite_ = 0;
-    PrintEventParser printEventParser_;
-    std::deque<std::unique_ptr<RawTraceEventInfo>> rawTraceEventList_ = {};
+
+    uint64_t curRawTraceEventNum_ = 0;
+    std::deque<std::shared_ptr<RawTraceEventInfo>> rawTraceEventList_ = {};
+    std::vector<std::queue<std::shared_ptr<RawTraceEventInfo>>> standAloneCpuEventList_ = {};
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
+
     TraceStreamerConfig config_{};
     const BuiltinClocks clock_ = TS_CLOCK_BOOTTIME;
     const DataIndex schedWakeupIndex_ = traceDataCache_->GetDataIndex("sched_wakeup");

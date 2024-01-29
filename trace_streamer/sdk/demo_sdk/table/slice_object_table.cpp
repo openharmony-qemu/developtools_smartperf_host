@@ -19,42 +19,42 @@
 namespace SysTuning {
 namespace TraceStreamer {
 enum class Index : int32_t { SLICE_ID = 0, SLICE_NAME = 1 };
-SliceObjectTable::SliceObjectTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+SliceObjectTable::SliceObjectTable(const TraceDataCache* dataCache) : DemoTableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("slice_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("slice_name", "REAL"));
-    tablePriKey_.push_back("slice_id");
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("slice_id", "INTEGER"));
+    demoTableColumn_.push_back(DemoTableBase::ColumnInfo("slice_name", "REAL"));
+    demoTablePriKey_.push_back("slice_id");
 }
 
 SliceObjectTable::~SliceObjectTable() {}
 
-std::unique_ptr<TableBase::Cursor> SliceObjectTable::CreateCursor()
+std::unique_ptr<DemoTableBase::Cursor> SliceObjectTable::CreateCursor()
 {
-    return std::make_unique<Cursor>(dataCache_, this);
+    return std::make_unique<Cursor>(demoTraceDataCache_, this);
 }
 
-SliceObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSliceObjectData().Size())),
+SliceObjectTable::Cursor::Cursor(const TraceDataCache* dataCache, DemoTableBase* table)
+    : DemoTableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstSliceObjectData().Size())),
       sliceObjectDataObj_(dataCache->GetConstSliceObjectData())
 {
 }
 
 SliceObjectTable::Cursor::~Cursor() {}
 
-int32_t SliceObjectTable::Cursor::Column(int32_t column) const
+int32_t SliceObjectTable::Cursor::Column(int32_t SliceObjColumn) const
 {
-    switch (static_cast<Index>(column)) {
+    switch (static_cast<Index>(SliceObjColumn)) {
         case Index::SLICE_ID: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(sliceObjectDataObj_.SliceId()[CurrentRow()]));
+            sqlite3_result_int64(demoContext_, static_cast<int64_t>(sliceObjectDataObj_.SliceId()[CurrentRow()]));
             break;
         }
         case Index::SLICE_NAME: {
-            sqlite3_result_text(context_, sliceObjectDataObj_.SliceName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
+            sqlite3_result_text(demoContext_, sliceObjectDataObj_.SliceName()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
                                 nullptr);
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered SliceObjColumn : %d", SliceObjColumn);
             break;
     }
     return SQLITE_OK;

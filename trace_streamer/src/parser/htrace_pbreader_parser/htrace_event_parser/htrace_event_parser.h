@@ -58,10 +58,50 @@ private:
         DataIndex taskNameIndex_;
         std::string detail_;
     };
+
+    // Initialization
+    void InterruptEventInitialization();
+    void ClockEventInitialization();
+    void CpuEventInitialization();
+    void LockEventInitialization();
+    void BinderEventInitialization();
+    void StackEventsInitialization();
+
+    bool BytesViewEventInfo(ProtoReader::BytesView& bytesView,
+                            ProtoReader::BytesView bytesViewChange,
+                            EventInfo& eventInfo,
+                            const SupportedTraceEventType& enumerationClass);
+    bool ConstructEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                           EventInfo& eventInfo,
+                           ProtoReader::BytesView& bytesView);
+
+    bool InterruptEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                           EventInfo& eventInfo,
+                           ProtoReader::BytesView& bytesView);
+    bool ClockEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                       EventInfo& eventInfo,
+                       ProtoReader::BytesView& bytesView);
+    bool CpuEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                     EventInfo& eventInfo,
+                     ProtoReader::BytesView& bytesView);
+    bool LockEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                      EventInfo& eventInfo,
+                      ProtoReader::BytesView& bytesView);
+    bool BinderEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                        EventInfo& eventInfo,
+                        ProtoReader::BytesView& bytesView);
+    bool StackEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                       EventInfo& eventInfo,
+                       ProtoReader::BytesView& bytesView);
+
     bool SetEventType(const ProtoReader::FtraceEvent_Reader& event,
                       EventInfo& eventInfo,
                       ProtoReader::BytesView& bytesView);
     void ProtoReaderDealEvent(EventInfo* eventInfo);
+
+    void ParserCpuEvent(HtraceDataSegment& tracePacket,
+                        SysTuning::ProtoReader::FtraceCpuDetailMsg_Reader& msg,
+                        bool& haveSplitSeg);
     bool BinderTractionEvent(const EventInfo& event) const;
     bool BinderTractionReceivedEvent(const EventInfo& event) const;
     bool BinderTractionAllocBufEvent(const EventInfo& event) const;
@@ -100,8 +140,6 @@ private:
     bool SysEnterEvent(const EventInfo& event) const;
     bool SysExitEvent(const EventInfo& event) const;
     bool OomScoreAdjUpdate(const EventInfo& event) const;
-    bool SignalGenerateEvent(const EventInfo& event) const;
-    bool SignalDeleverEvent(const EventInfo& event) const;
     using FuncCall = std::function<bool(const EventInfo& event)>;
     std::map<uint32_t, FuncCall> eventToFunctionMap_ = {};
     std::unordered_set<uint32_t> tids_ = {};
@@ -114,8 +152,6 @@ private:
     std::atomic<uint64_t> ftraceOriginStartTime_{std::numeric_limits<uint64_t>::max()};
     std::atomic<uint64_t> ftraceOriginEndTime_{0};
     std::deque<std::unique_ptr<EventInfo>> htraceEventList_ = {};
-    const DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
-    const DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
     const DataIndex schedWakingName_ = traceDataCache_->GetDataIndex("sched_waking");
     const DataIndex schedWakeupNewName_ = traceDataCache_->GetDataIndex("sched_wakeup_new");

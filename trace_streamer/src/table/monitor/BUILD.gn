@@ -35,7 +35,8 @@ ohos_source_set("monitor_tables") {
     "smaps_table.cpp",
   ]
   include_dirs = [
-    "../base",
+    "include",
+    "../base/include",
     "${THIRD_PARTY}/sqlite/include",
     "${SRC}/base",
     "../../parser",
@@ -45,7 +46,16 @@ ohos_source_set("monitor_tables") {
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/bounds_checking_function/include",
   ]
-
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+  ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }

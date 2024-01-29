@@ -36,7 +36,6 @@
 #include "signal.pbreader.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
-#include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 #include "task.pbreader.h"
 #include "thread_state_flag.h"
@@ -56,56 +55,105 @@ HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStrea
       printEventParser_(traceDataCache_, streamFilters_)
 {
     eventToFunctionMap_ = {
-        {TRACE_EVENT_BINDER_TRANSACTION,
-         std::bind(&HtraceEventParser::BinderTractionEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_BINDER_TRANSACTION_RECEIVED,
-         std::bind(&HtraceEventParser::BinderTractionReceivedEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF,
-         std::bind(&HtraceEventParser::BinderTractionAllocBufEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_BINDER_TRANSACTION_LOCK,
-         std::bind(&HtraceEventParser::BinderTractionLockEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_BINDER_TRANSACTION_LOCKED,
-         std::bind(&HtraceEventParser::BinderTractionLockedEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_BINDER_TRANSACTION_UNLOCK,
-         std::bind(&HtraceEventParser::BinderTractionUnLockEvent, this, std::placeholders::_1)},
+        {TRACE_EVENT_TASK_RENAME, std::bind(&HtraceEventParser::TaskRenameEvent, this, std::placeholders::_1)},
+        {TRACE_EVENT_TASK_NEWTASK, std::bind(&HtraceEventParser::TaskNewtaskEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_SCHED_SWITCH, std::bind(&HtraceEventParser::SchedSwitchEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_SCHED_BLOCKED_REASON,
          std::bind(&HtraceEventParser::SchedBlockReasonEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_TASK_RENAME, std::bind(&HtraceEventParser::TaskRenameEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_TASK_NEWTASK, std::bind(&HtraceEventParser::TaskNewtaskEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_PRINT, std::bind(&HtraceEventParser::ParsePrintEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_SCHED_WAKEUP, std::bind(&HtraceEventParser::SchedWakeupEvent, this, std::placeholders::_1)},
+        {TRACE_EVENT_SCHED_WAKING, std::bind(&HtraceEventParser::SchedWakingEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_SCHED_WAKEUP_NEW, std::bind(&HtraceEventParser::SchedWakeupNewEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_PROCESS_EXIT, std::bind(&HtraceEventParser::ProcessExitEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_PROCESS_FREE, std::bind(&HtraceEventParser::ProcessFreeEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_SCHED_WAKING, std::bind(&HtraceEventParser::SchedWakingEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CPU_IDLE, std::bind(&HtraceEventParser::CpuIdleEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CPU_FREQUENCY, std::bind(&HtraceEventParser::CpuFrequencyEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CPU_FREQUENCY_LIMITS,
-         std::bind(&HtraceEventParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_SUSPEND_RESUME, std::bind(&HtraceEventParser::SuspendResumeEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_WORKQUEUE_EXECUTE_START,
-         std::bind(&HtraceEventParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_WORKQUEUE_EXECUTE_END,
-         std::bind(&HtraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CLOCK_SET_RATE, std::bind(&HtraceEventParser::ClockSetRateEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CLOCK_ENABLE, std::bind(&HtraceEventParser::ClockEnableEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CLOCK_DISABLE, std::bind(&HtraceEventParser::ClockDisableEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CLK_SET_RATE, std::bind(&HtraceEventParser::ClkSetRateEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CLK_ENABLE, std::bind(&HtraceEventParser::ClkEnableEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_CLK_DISABLE, std::bind(&HtraceEventParser::ClkDisableEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_IRQ_HANDLER_ENTRY,
-         std::bind(&HtraceEventParser::IrqHandlerEntryEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_IRQ_HANDLER_EXIT, std::bind(&HtraceEventParser::IrqHandlerExitEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_IPI_ENTRY, std::bind(&HtraceEventParser::IpiHandlerEntryEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_IPI_EXIT, std::bind(&HtraceEventParser::IpiHandlerExitEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_SOFTIRQ_ENTRY, std::bind(&HtraceEventParser::SoftIrqEntryEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_SOFTIRQ_RAISE, std::bind(&HtraceEventParser::SoftIrqRaiseEvent, this, std::placeholders::_1)},
-        {TRACE_EVENT_SOFTIRQ_EXIT, std::bind(&HtraceEventParser::SoftIrqExitEvent, this, std::placeholders::_1)},
+        {TRACE_EVENT_PROCESS_FREE, std::bind(&HtraceEventParser::ProcessFreeEvent, this, std::placeholders::_1)},
+        {TRACE_EVENT_SUSPEND_RESUME, std::bind(&HtraceEventParser::SuspendResumeEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_SYS_ENTRY, std::bind(&HtraceEventParser::SysEnterEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_SYS_EXIT, std::bind(&HtraceEventParser::SysExitEvent, this, std::placeholders::_1)},
         {TRACE_EVENT_OOM_SCORE_ADJ_UPDATE,
          std::bind(&HtraceEventParser::OomScoreAdjUpdate, this, std::placeholders::_1)}};
+    InterruptEventInitialization();
+    ClockEventInitialization();
+    CpuEventInitialization();
+    LockEventInitialization();
+    BinderEventInitialization();
+    StackEventsInitialization();
+}
+
+void HtraceEventParser::InterruptEventInitialization()
+{
+    // Interrupt and soft interrupt event initialization
+    eventToFunctionMap_.emplace(TRACE_EVENT_IRQ_HANDLER_ENTRY,
+                                std::bind(&HtraceEventParser::IrqHandlerEntryEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_IRQ_HANDLER_EXIT,
+                                std::bind(&HtraceEventParser::IrqHandlerExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_SOFTIRQ_RAISE,
+                                std::bind(&HtraceEventParser::SoftIrqRaiseEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_SOFTIRQ_ENTRY,
+                                std::bind(&HtraceEventParser::SoftIrqEntryEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_SOFTIRQ_EXIT,
+                                std::bind(&HtraceEventParser::SoftIrqExitEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::ClockEventInitialization()
+{
+    // Clock event initialization
+    eventToFunctionMap_.emplace(TRACE_EVENT_CLOCK_SET_RATE,
+                                std::bind(&HtraceEventParser::ClockSetRateEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CLOCK_ENABLE,
+                                std::bind(&HtraceEventParser::ClockEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CLOCK_DISABLE,
+                                std::bind(&HtraceEventParser::ClockDisableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CLK_SET_RATE,
+                                std::bind(&HtraceEventParser::ClkSetRateEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CLK_ENABLE,
+                                std::bind(&HtraceEventParser::ClkEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CLK_DISABLE,
+                                std::bind(&HtraceEventParser::ClkDisableEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::CpuEventInitialization()
+{
+    eventToFunctionMap_.emplace(TRACE_EVENT_CPU_IDLE,
+                                std::bind(&HtraceEventParser::CpuIdleEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CPU_FREQUENCY,
+                                std::bind(&HtraceEventParser::CpuFrequencyEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_CPU_FREQUENCY_LIMITS,
+                                std::bind(&HtraceEventParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::LockEventInitialization()
+{
+    // Initialize lock events
+    eventToFunctionMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_LOCK,
+                                std::bind(&HtraceEventParser::BinderTractionLockEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_LOCKED,
+                                std::bind(&HtraceEventParser::BinderTractionLockedEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK,
+                                std::bind(&HtraceEventParser::BinderTractionUnLockEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::BinderEventInitialization()
+{
+    // Binder event initialization
+    eventToFunctionMap_.emplace(TRACE_EVENT_BINDER_TRANSACTION,
+                                std::bind(&HtraceEventParser::BinderTractionEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(
+        TRACE_EVENT_BINDER_TRANSACTION_RECEIVED,
+        std::bind(&HtraceEventParser::BinderTractionReceivedEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(
+        TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF,
+        std::bind(&HtraceEventParser::BinderTractionAllocBufEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::StackEventsInitialization()
+{
+    eventToFunctionMap_.emplace(TRACE_EVENT_PRINT,
+                                std::bind(&HtraceEventParser::ParsePrintEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_START,
+                                std::bind(&HtraceEventParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_END,
+                                std::bind(&HtraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1));
 }
 
 HtraceEventParser::~HtraceEventParser()
@@ -116,6 +164,48 @@ HtraceEventParser::~HtraceEventParser()
             static_cast<unsigned long long>(ftraceEndTime_));
     TS_LOGI("ftrace origin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceOriginStartTime_),
             static_cast<unsigned long long>(ftraceOriginEndTime_));
+}
+
+void HtraceEventParser::ParserCpuEvent(HtraceDataSegment& tracePacket,
+                                       SysTuning::ProtoReader::FtraceCpuDetailMsg_Reader& msg,
+                                       bool& haveSplitSeg)
+{
+    // parser cpu event
+    for (auto eventItor = msg.event(); eventItor; eventItor++) {
+        ProtoReader::FtraceEvent_Reader ftraceEvent(eventItor->Data(), eventItor->Size());
+        std::unique_ptr<EventInfo> eventInfo = std::make_unique<EventInfo>();
+        ProtoReader::BytesView detaiBytesView;
+        if (!SetEventType(ftraceEvent, *eventInfo, detaiBytesView)) {
+            continue;
+        }
+        ftraceOriginStartTime_ = std::min(ftraceOriginStartTime_.load(), ftraceEvent.timestamp());
+        ftraceOriginEndTime_ = std::max(ftraceOriginEndTime_.load(), ftraceEvent.timestamp());
+        eventInfo->timeStamp_ =
+            streamFilters_->clockFilter_->ToPrimaryTraceTime(tracePacket.clockId, ftraceEvent.timestamp());
+        ftraceStartTime_ = std::min(ftraceStartTime_.load(), eventInfo->timeStamp_);
+        ftraceEndTime_ = std::max(ftraceEndTime_.load(), eventInfo->timeStamp_);
+        traceDataCache_->UpdateTraceTime(eventInfo->timeStamp_);
+        if (traceDataCache_->isSplitFile_) {
+            if (eventInfo->timeStamp_ >= traceDataCache_->SplitFileMinTime() &&
+                eventInfo->timeStamp_ <= traceDataCache_->SplitFileMaxTime()) {
+                haveSplitSeg = true;
+                return;
+            }
+            continue;
+        }
+        ProtoReader::FtraceEvent_CommonFileds_Reader commFileds(ftraceEvent.common_fields().data_,
+                                                                ftraceEvent.common_fields().size_);
+        eventInfo->pid_ = commFileds.pid();
+        eventInfo->tgid_ = ftraceEvent.tgid();
+        eventInfo->cpu_ = msg.cpu();
+        auto pos = (const char*)detaiBytesView.Data() - tracePacket.seg->data();
+        eventInfo->detail_ = std::move(tracePacket.seg->substr(pos, detaiBytesView.Size()));
+#ifdef SUPPORTTHREAD
+        std::lock_guard<std::mutex> muxLockGuard(mutex_);
+#endif
+        eventInfo->taskNameIndex_ = traceDataCache_->GetDataIndex(ftraceEvent.comm().ToStdString());
+        htraceEventList_.emplace_back(std::move(eventInfo));
+    }
 }
 
 void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket,
@@ -146,159 +236,198 @@ void HtraceEventParser::ParseDataItem(HtraceDataSegment& tracePacket,
             streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
         }
         // parser cpu event
-        for (auto eventItor = msg.event(); eventItor; eventItor++) {
-            ProtoReader::FtraceEvent_Reader ftraceEvent(eventItor->Data(), eventItor->Size());
-            std::unique_ptr<EventInfo> eventInfo = std::make_unique<EventInfo>();
-            ProtoReader::BytesView detaiBytesView;
-            if (!SetEventType(ftraceEvent, *eventInfo, detaiBytesView)) {
-                continue;
-            }
-            ftraceOriginStartTime_ = std::min(ftraceOriginStartTime_.load(), ftraceEvent.timestamp());
-            ftraceOriginEndTime_ = std::max(ftraceOriginEndTime_.load(), ftraceEvent.timestamp());
-            eventInfo->timeStamp_ =
-                streamFilters_->clockFilter_->ToPrimaryTraceTime(tracePacket.clockId, ftraceEvent.timestamp());
-            ftraceStartTime_ = std::min(ftraceStartTime_.load(), eventInfo->timeStamp_);
-            ftraceEndTime_ = std::max(ftraceEndTime_.load(), eventInfo->timeStamp_);
-            traceDataCache_->UpdateTraceTime(eventInfo->timeStamp_);
-            if (traceDataCache_->isSplitFile_) {
-                if (eventInfo->timeStamp_ >= traceDataCache_->SplitFileMinTime() &&
-                    eventInfo->timeStamp_ <= traceDataCache_->SplitFileMaxTime()) {
-                    haveSplitSeg = true;
-                    return;
-                }
-                continue;
-            }
-            ProtoReader::FtraceEvent_CommonFileds_Reader commFileds(ftraceEvent.common_fields().data_,
-                                                                    ftraceEvent.common_fields().size_);
-            eventInfo->pid_ = commFileds.pid();
-            eventInfo->tgid_ = ftraceEvent.tgid();
-            eventInfo->cpu_ = msg.cpu();
-            auto pos = (const char*)detaiBytesView.Data() - tracePacket.seg->data();
-            eventInfo->detail_ = std::move(tracePacket.seg->substr(pos, detaiBytesView.Size()));
-#ifdef SUPPORTTHREAD
-            std::lock_guard<std::mutex> muxLockGuard(mutex_);
-#endif
-            eventInfo->taskNameIndex_ = traceDataCache_->GetDataIndex(ftraceEvent.comm().ToStdString());
-            htraceEventList_.emplace_back(std::move(eventInfo));
-        }
+        ParserCpuEvent(tracePacket, msg, haveSplitSeg);
     }
 }
+
+bool HtraceEventParser::BytesViewEventInfo(ProtoReader::BytesView& bytesView,
+                                           ProtoReader::BytesView bytesViewChange,
+                                           EventInfo& eventInfo,
+                                           const SupportedTraceEventType& enumerationClass)
+{
+    bytesView = bytesViewChange;
+    eventInfo.eventType_ = enumerationClass;
+    return true;
+}
+
+bool HtraceEventParser::ConstructEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                          EventInfo& eventInfo,
+                                          ProtoReader::BytesView& bytesView)
+{
+    // Construct Set the corresponding byte view and event type based on the event type
+    bool judgment = false;
+    if (event.has_task_rename_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.task_rename_format(), eventInfo, TRACE_EVENT_TASK_RENAME);
+    } else if (event.has_task_newtask_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.task_newtask_format(), eventInfo, TRACE_EVENT_TASK_NEWTASK);
+    } else if (event.has_binder_alloc_lru_end_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.wakeup_format(), eventInfo, TRACE_EVENT_SCHED_SWITCH);
+    } else if (event.has_sched_switch_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sched_switch_format(), eventInfo, TRACE_EVENT_SCHED_SWITCH);
+    } else if (event.has_sched_blocked_reason_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sched_blocked_reason_format(), eventInfo,
+                                      TRACE_EVENT_SCHED_BLOCKED_REASON);
+    } else if (event.has_wakeup_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.wakeup_format(), eventInfo, TRACE_EVENT_SCHED_WAKEUP);
+    } else if (event.has_sched_wakeup_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sched_wakeup_format(), eventInfo, TRACE_EVENT_SCHED_WAKEUP);
+    } else if (event.has_sched_wakeup_new_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sched_wakeup_new_format(), eventInfo, TRACE_EVENT_SCHED_WAKEUP);
+    } else if (event.has_sched_waking_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sched_waking_format(), eventInfo, TRACE_EVENT_SCHED_WAKING);
+    } else if (event.has_sched_process_exit_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.sched_process_exit_format(), eventInfo, TRACE_EVENT_PROCESS_EXIT);
+    } else if (event.has_sched_process_free_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.sched_process_free_format(), eventInfo, TRACE_EVENT_PROCESS_FREE);
+    } else if (event.has_suspend_resume_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.suspend_resume_format(), eventInfo, TRACE_EVENT_SUSPEND_RESUME);
+    } else if (event.has_sys_enter_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sys_enter_format(), eventInfo, TRACE_EVENT_SYS_ENTRY);
+    } else if (event.has_sys_exit_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.sys_exit_format(), eventInfo, TRACE_EVENT_SYS_EXIT);
+    } else if (event.has_oom_score_adj_update_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.oom_score_adj_update_format(), eventInfo,
+                                      TRACE_EVENT_OOM_SCORE_ADJ_UPDATE);
+    }
+    return judgment;
+}
+
+bool HtraceEventParser::InterruptEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                          EventInfo& eventInfo,
+                                          ProtoReader::BytesView& bytesView)
+{
+    // Interrupt Set the corresponding byte view and event type based on the event type
+    bool judgment = false;
+    if (event.has_irq_handler_entry_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.irq_handler_entry_format(), eventInfo, TRACE_EVENT_IRQ_HANDLER_ENTRY);
+    } else if (event.has_irq_handler_exit_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.irq_handler_exit_format(), eventInfo, TRACE_EVENT_IRQ_HANDLER_EXIT);
+    } else if (event.has_softirq_exit_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.softirq_exit_format(), eventInfo, TRACE_EVENT_SOFTIRQ_EXIT);
+    } else if (event.has_softirq_entry_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.softirq_entry_format(), eventInfo, TRACE_EVENT_SOFTIRQ_ENTRY);
+    }
+
+    return judgment;
+}
+
+bool HtraceEventParser::ClockEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                      EventInfo& eventInfo,
+                                      ProtoReader::BytesView& bytesView)
+{
+    // Clock Set the corresponding byte view and event type based on the event type
+    bool judgment = false;
+    if (event.has_clock_set_rate_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.clock_set_rate_format(), eventInfo, TRACE_EVENT_CLOCK_SET_RATE);
+    } else if (event.has_clock_enable_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.clock_enable_format(), eventInfo, TRACE_EVENT_CLOCK_ENABLE);
+    } else if (event.has_clock_disable_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.clock_disable_format(), eventInfo, TRACE_EVENT_CLOCK_DISABLE);
+    } else if (event.has_clk_set_rate_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.clk_set_rate_format(), eventInfo, TRACE_EVENT_CLK_SET_RATE);
+    } else if (event.has_clk_enable_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.clk_enable_format(), eventInfo, TRACE_EVENT_CLK_ENABLE);
+    } else if (event.has_clk_disable_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.clk_disable_format(), eventInfo, TRACE_EVENT_CLK_DISABLE);
+    }
+
+    return judgment;
+}
+
+bool HtraceEventParser::CpuEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                    EventInfo& eventInfo,
+                                    ProtoReader::BytesView& bytesView)
+{
+    bool judgment = false;
+    if (event.has_cpu_idle_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.cpu_idle_format(), eventInfo, TRACE_EVENT_CPU_IDLE);
+    } else if (event.has_cpu_frequency_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.cpu_frequency_format(), eventInfo, TRACE_EVENT_CPU_FREQUENCY);
+    } else if (event.has_cpu_frequency_limits_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.cpu_frequency_limits_format(), eventInfo,
+                                      TRACE_EVENT_CPU_FREQUENCY_LIMITS);
+    }
+
+    return judgment;
+}
+
+bool HtraceEventParser::LockEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                     EventInfo& eventInfo,
+                                     ProtoReader::BytesView& bytesView)
+{
+    bool judgment = false;
+
+    if (event.has_binder_lock_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.binder_lock_format(), eventInfo, TRACE_EVENT_BINDER_TRANSACTION_LOCK);
+    } else if (event.has_binder_locked_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.binder_locked_format(), eventInfo,
+                                      TRACE_EVENT_BINDER_TRANSACTION_LOCKED);
+    } else if (event.has_binder_unlock_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.binder_unlock_format(), eventInfo,
+                                      TRACE_EVENT_BINDER_TRANSACTION_UNLOCK);
+    }
+
+    return judgment;
+}
+
+bool HtraceEventParser::BinderEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                       EventInfo& eventInfo,
+                                       ProtoReader::BytesView& bytesView)
+{
+    bool judgment = false;
+
+    if (event.has_binder_transaction_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.binder_transaction_format(), eventInfo, TRACE_EVENT_BINDER_TRANSACTION);
+    } else if (event.has_binder_transaction_received_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.binder_transaction_received_format(), eventInfo,
+                                      TRACE_EVENT_BINDER_TRANSACTION_RECEIVED);
+    } else if (event.has_binder_transaction_alloc_buf_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.binder_transaction_alloc_buf_format(), eventInfo,
+                                      TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF);
+    }
+
+    return judgment;
+}
+
+bool HtraceEventParser::StackEventSet(const ProtoReader::FtraceEvent_Reader& event,
+                                      EventInfo& eventInfo,
+                                      ProtoReader::BytesView& bytesView)
+{
+    bool judgment = false;
+
+    if (event.has_print_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.print_format(), eventInfo, TRACE_EVENT_PRINT);
+    } else if (event.has_workqueue_execute_start_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.workqueue_execute_start_format(), eventInfo,
+                                      TRACE_EVENT_WORKQUEUE_EXECUTE_START);
+    } else if (event.has_workqueue_execute_end_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.workqueue_execute_end_format(), eventInfo,
+                                      TRACE_EVENT_WORKQUEUE_EXECUTE_END);
+    }
+
+    return judgment;
+}
+
 bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader& event,
                                      EventInfo& eventInfo,
                                      ProtoReader::BytesView& bytesView)
 {
-    if (event.has_sched_switch_format()) {
-        bytesView = event.sched_switch_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_SWITCH;
-    } else if (event.has_wakeup_format()) {
-        bytesView = event.wakeup_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_WAKEUP;
-    } else if (event.has_binder_alloc_lru_end_format()) {
-        bytesView = event.wakeup_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_SWITCH;
-    } else if (event.has_task_rename_format()) {
-        bytesView = event.task_rename_format();
-        eventInfo.eventType_ = TRACE_EVENT_TASK_RENAME;
-    } else if (event.has_sched_blocked_reason_format()) {
-        bytesView = event.sched_blocked_reason_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_BLOCKED_REASON;
-    } else if (event.has_task_newtask_format()) {
-        bytesView = event.task_newtask_format();
-        eventInfo.eventType_ = TRACE_EVENT_TASK_NEWTASK;
-    } else if (event.has_sched_wakeup_format()) {
-        bytesView = event.sched_wakeup_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_WAKEUP;
-    } else if (event.has_sched_wakeup_new_format()) {
-        bytesView = event.sched_wakeup_new_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_WAKEUP;
-    } else if (event.has_sched_process_exit_format()) {
-        bytesView = event.sched_process_exit_format();
-        eventInfo.eventType_ = TRACE_EVENT_PROCESS_EXIT;
-    } else if (event.has_sched_process_free_format()) {
-        bytesView = event.sched_process_free_format();
-        eventInfo.eventType_ = TRACE_EVENT_PROCESS_FREE;
-    } else if (event.has_sched_waking_format()) {
-        bytesView = event.sched_waking_format();
-        eventInfo.eventType_ = TRACE_EVENT_SCHED_WAKING;
-    } else if (event.has_cpu_idle_format()) {
-        bytesView = event.cpu_idle_format();
-        eventInfo.eventType_ = TRACE_EVENT_CPU_IDLE;
-    } else if (event.has_cpu_frequency_format()) {
-        bytesView = event.cpu_frequency_format();
-        eventInfo.eventType_ = TRACE_EVENT_CPU_FREQUENCY;
-    } else if (event.has_cpu_frequency_limits_format()) {
-        bytesView = event.cpu_frequency_limits_format();
-        eventInfo.eventType_ = TRACE_EVENT_CPU_FREQUENCY_LIMITS;
-    } else if (event.has_print_format()) {
-        bytesView = event.print_format();
-        eventInfo.eventType_ = TRACE_EVENT_PRINT;
-    } else if (event.has_suspend_resume_format()) {
-        bytesView = event.suspend_resume_format();
-        eventInfo.eventType_ = TRACE_EVENT_SUSPEND_RESUME;
-    } else if (event.has_workqueue_execute_start_format()) {
-        bytesView = event.workqueue_execute_start_format();
-        eventInfo.eventType_ = TRACE_EVENT_WORKQUEUE_EXECUTE_START;
-    } else if (event.has_workqueue_execute_end_format()) {
-        bytesView = event.workqueue_execute_end_format();
-        eventInfo.eventType_ = TRACE_EVENT_WORKQUEUE_EXECUTE_END;
-    } else if (event.has_clock_disable_format()) {
-        bytesView = event.clock_disable_format();
-        eventInfo.eventType_ = TRACE_EVENT_CLOCK_DISABLE;
-    } else if (event.has_clock_enable_format()) {
-        bytesView = event.clock_enable_format();
-        eventInfo.eventType_ = TRACE_EVENT_CLOCK_ENABLE;
-    } else if (event.has_clock_set_rate_format()) {
-        bytesView = event.clock_set_rate_format();
-        eventInfo.eventType_ = TRACE_EVENT_CLOCK_SET_RATE;
-    } else if (event.has_clk_disable_format()) {
-        bytesView = event.clk_disable_format();
-        eventInfo.eventType_ = TRACE_EVENT_CLK_DISABLE;
-    } else if (event.has_clk_enable_format()) {
-        bytesView = event.clk_enable_format();
-        eventInfo.eventType_ = TRACE_EVENT_CLK_ENABLE;
-    } else if (event.has_clk_set_rate_format()) {
-        bytesView = event.clk_set_rate_format();
-        eventInfo.eventType_ = TRACE_EVENT_CLK_SET_RATE;
-    } else if (event.has_sys_enter_format()) {
-        bytesView = event.sys_enter_format();
-        eventInfo.eventType_ = TRACE_EVENT_SYS_ENTRY;
-    } else if (event.has_sys_exit_format()) {
-        bytesView = event.sys_exit_format();
-        eventInfo.eventType_ = TRACE_EVENT_SYS_EXIT;
-    } else if (event.has_binder_transaction_format()) {
-        bytesView = event.binder_transaction_format();
-        eventInfo.eventType_ = TRACE_EVENT_BINDER_TRANSACTION;
-    } else if (event.has_binder_transaction_received_format()) {
-        bytesView = event.binder_transaction_received_format();
-        eventInfo.eventType_ = TRACE_EVENT_BINDER_TRANSACTION_RECEIVED;
-    } else if (event.has_binder_transaction_alloc_buf_format()) {
-        bytesView = event.binder_transaction_alloc_buf_format();
-        eventInfo.eventType_ = TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF;
-    } else if (event.has_binder_lock_format()) {
-        bytesView = event.binder_lock_format();
-        eventInfo.eventType_ = TRACE_EVENT_BINDER_TRANSACTION_LOCK;
-    } else if (event.has_binder_unlock_format()) {
-        bytesView = event.binder_unlock_format();
-        eventInfo.eventType_ = TRACE_EVENT_BINDER_TRANSACTION_UNLOCK;
-    } else if (event.has_binder_locked_format()) {
-        bytesView = event.binder_locked_format();
-        eventInfo.eventType_ = TRACE_EVENT_BINDER_TRANSACTION_LOCKED;
-    } else if (event.has_irq_handler_entry_format()) {
-        bytesView = event.irq_handler_entry_format();
-        eventInfo.eventType_ = TRACE_EVENT_IRQ_HANDLER_ENTRY;
-    } else if (event.has_irq_handler_exit_format()) {
-        bytesView = event.irq_handler_exit_format();
-        eventInfo.eventType_ = TRACE_EVENT_IRQ_HANDLER_EXIT;
-    } else if (event.has_softirq_entry_format()) {
-        bytesView = event.softirq_entry_format();
-        eventInfo.eventType_ = TRACE_EVENT_SOFTIRQ_ENTRY;
-    } else if (event.has_softirq_exit_format()) {
-        bytesView = event.softirq_exit_format();
-        eventInfo.eventType_ = TRACE_EVENT_SOFTIRQ_EXIT;
-    } else if (event.has_oom_score_adj_update_format()) {
-        bytesView = event.oom_score_adj_update_format();
-        eventInfo.eventType_ = TRACE_EVENT_OOM_SCORE_ADJ_UPDATE;
-    } else if (event.has_signal_generate_format()) {
+    // If all conditions are false, execute the data in else
+    if (ConstructEventSet(event, eventInfo, bytesView) || InterruptEventSet(event, eventInfo, bytesView) ||
+        ClockEventSet(event, eventInfo, bytesView) || CpuEventSet(event, eventInfo, bytesView) ||
+        LockEventSet(event, eventInfo, bytesView) || BinderEventSet(event, eventInfo, bytesView) ||
+        StackEventSet(event, eventInfo, bytesView)) {
+        return true;
+    }
+
+    // Tracking event signal generation and transmission
+    if (event.has_signal_generate_format()) {
         bytesView = event.signal_generate_format();
         eventInfo.eventType_ = TRACE_EVENT_SIGNAL_GENERATE;
     } else if (event.has_signal_deliver_format()) {
@@ -308,6 +437,7 @@ bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader& even
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
         return false;
     }
+
     return true;
 }
 bool HtraceEventParser::BinderTractionAllocBufEvent(const EventInfo& event) const
@@ -425,7 +555,8 @@ bool HtraceEventParser::ProcessExitEvent(const EventInfo& event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PROCESS_EXIT, STAT_EVENT_RECEIVED);
     ProtoReader::SchedProcessExitFormat_Reader msg(event.detail_);
     uint32_t pidValue = msg.pid();
-    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under wasm
+    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under
+    // wasm
     auto iTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.timeStamp_, pidValue,
                                                                              msg.comm().ToStdString());
     if (streamFilters_->cpuFilter_->InsertProcessExitEvent(event.timeStamp_, event.cpu_, iTid)) {
@@ -440,7 +571,8 @@ bool HtraceEventParser::ProcessFreeEvent(const EventInfo& event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PROCESS_FREE, STAT_EVENT_RECEIVED);
     ProtoReader::SchedProcessFreeFormat_Reader msg(event.detail_);
     uint32_t pidValue = msg.pid();
-    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under wasm
+    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under
+    // wasm
     auto iTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.timeStamp_, pidValue,
                                                                              msg.comm().ToStdString());
     if (streamFilters_->cpuFilter_->InsertProcessFreeEvent(event.timeStamp_, iTid)) {
@@ -493,7 +625,7 @@ bool HtraceEventParser::SchedWakeupEvent(const EventInfo& event) const
     instants->AppendInstantEventData(event.timeStamp_, schedWakeupName_, internalTid, wakeupFromPid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(event.timeStamp_, internalTid);
     uint32_t targetCpu = msg.target_cpu();
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
     return true;
 }
 bool HtraceEventParser::SchedWakeupNewEvent(const EventInfo& event) const
@@ -507,7 +639,7 @@ bool HtraceEventParser::SchedWakeupNewEvent(const EventInfo& event) const
     instants->AppendInstantEventData(event.timeStamp_, schedWakeupNewName_, internalTid, wakeupFromPid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(event.timeStamp_, internalTid);
     uint32_t targetCpu = msg.target_cpu();
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_SCHED_WAKEUP, targetCpu, internalTid);
     return true;
 }
 bool HtraceEventParser::SchedWakingEvent(const EventInfo& event) const
@@ -521,7 +653,7 @@ bool HtraceEventParser::SchedWakingEvent(const EventInfo& event) const
     streamFilters_->cpuFilter_->InsertWakeupEvent(event.timeStamp_, internalTid, true);
     instants->AppendInstantEventData(event.timeStamp_, schedWakingName_, internalTid, wakeupFromPid);
     uint32_t targetCpu = msg.target_cpu();
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_SCHED_WAKING, targetCpu, wakeupFromPid);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_SCHED_WAKING, targetCpu, wakeupFromPid);
     return true;
 }
 bool HtraceEventParser::CpuIdleEvent(const EventInfo& event) const
@@ -545,7 +677,7 @@ bool HtraceEventParser::CpuIdleEvent(const EventInfo& event) const
                                                             config_.GetStateValue(newStateValue.value()));
 
     // Add cpu_idle event to raw_data_table
-    traceDataCache_->GetRawData()->AppendRawData(0, event.timeStamp_, RAW_CPU_IDLE, eventCpuValue.value(), 0);
+    traceDataCache_->GetRawData()->AppendRawData(event.timeStamp_, RAW_CPU_IDLE, eventCpuValue.value(), 0);
     return true;
 }
 bool HtraceEventParser::CpuFrequencyEvent(const EventInfo& event) const
@@ -590,9 +722,9 @@ bool HtraceEventParser::SuspendResumeEvent(const EventInfo& event) const
     int32_t val = msg.val();
     uint32_t start = msg.start();
     std::string action = msg.action().ToStdString();
-    UNUSED(val);
-    UNUSED(start);
-    UNUSED(action);
+    Unused(val);
+    Unused(start);
+    Unused(action);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SUSPEND_RESUME, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
@@ -600,7 +732,7 @@ bool HtraceEventParser::WorkqueueExecuteStartEvent(const EventInfo& event) const
 {
     ProtoReader::WorkqueueExecuteStartFormat_Reader msg(event.detail_);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_RECEIVED);
-    auto funcNameIndex = streamFilters_->symbolsFilter_->GetFunc(msg.function());
+    auto funcNameIndex = traceDataCache_->GetSymbolsData()->GetFunc(msg.function());
     size_t result = INVALID_UINT32;
     const auto& taskName = traceDataCache_->GetDataFromDict(event.taskNameIndex_);
     if (funcNameIndex == INVALID_UINT64) {
@@ -681,7 +813,8 @@ bool HtraceEventParser::IrqHandlerEntryEvent(const EventInfo& event) const
 {
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_ENTRY, STAT_EVENT_RECEIVED);
     ProtoReader::IrqHandlerEntryFormat_Reader msg(event.detail_);
-    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under wasm
+    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under
+    // wasm
     streamFilters_->irqFilter_->IrqHandlerEntry(event.timeStamp_, event.cpu_,
                                                 traceDataCache_->GetDataIndex(msg.name().ToStdString()));
     return true;
@@ -754,23 +887,6 @@ bool HtraceEventParser::OomScoreAdjUpdate(const EventInfo& event) const
     return true;
 }
 
-bool HtraceEventParser::SignalGenerateEvent(const EventInfo& event) const
-{
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_BIO_BACKMERGE, STAT_EVENT_RECEIVED);
-    ProtoReader::SignalGenerateFormat_Reader msg(event.detail_);
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.timeStamp_, msg.pid(),
-                                                                                           msg.comm().ToStdString());
-    streamFilters_->threadFilter_->AppendNewMeasureData(internalTid, signalGenerateId_, event.timeStamp_, msg.sig());
-    return true;
-}
-bool HtraceEventParser::SignalDeleverEvent(const EventInfo& event) const
-{
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_BIO_BACKMERGE, STAT_EVENT_RECEIVED);
-    ProtoReader::SignalDeliverFormat_Reader msg(event.detail_);
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp_, event.tgid_);
-    streamFilters_->threadFilter_->AppendNewMeasureData(internalTid, signalDeliverId_, event.timeStamp_, msg.sig());
-    return true;
-}
 void HtraceEventParser::FilterAllEventsReader()
 {
 #ifdef SUPPORTTHREAD
@@ -810,8 +926,8 @@ void HtraceEventParser::FilterAllEvents()
     while (htraceEventList_.size()) {
         int32_t size = std::min(MAX_BUFF_SIZE, htraceEventList_.size());
         auto endOfList = htraceEventList_.begin() + size;
-        for (auto eventItor = htraceEventList_.begin(); eventItor != endOfList; eventItor++) {
-            auto event = eventItor->get();
+        for (auto eventIter = htraceEventList_.begin(); eventIter != endOfList; ++eventIter) {
+            auto event = eventIter->get();
             if (event->tgid_ != INVALID_INT32) {
                 if (!pids_.count(event->tgid_)) {
                     pids_.insert(event->tgid_);
@@ -819,7 +935,7 @@ void HtraceEventParser::FilterAllEvents()
                 streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->tgid_, event->tgid_);
             }
             ProtoReaderDealEvent(event);
-            eventItor->reset();
+            eventIter->reset();
         }
         htraceEventList_.erase(htraceEventList_.begin(), endOfList);
     }
@@ -853,9 +969,9 @@ void HtraceEventParser::ProtoReaderDealEvent(EventInfo* eventInfo)
 void HtraceEventParser::Clear()
 {
     const_cast<TraceStreamerFilters*>(streamFilters_)->FilterClear();
-    streamFilters_->symbolsFilter_->Clear();
     streamFilters_->sysEventMemMeasureFilter_->Clear();
     streamFilters_->sysEventVMemMeasureFilter_->Clear();
+    traceDataCache_->GetMeasureData()->ClearRowMap();
     printEventParser_.Finish();
 }
 } // namespace TraceStreamer

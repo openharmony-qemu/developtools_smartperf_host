@@ -66,6 +66,8 @@ public:
     };
 
 private:
+    uint32_t ParseSmapsPathTypeBySuffix(bool hasX, const std::string& path, const bool hasAppName) const;
+    uint32_t ParseSmapsPathTypeByPrefix(bool hasX, const std::string& path, const bool hasAppName) const;
     void ParseProcessInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseMemInfoEasy(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
@@ -77,7 +79,7 @@ private:
     uint32_t ParseSmapsBlockType(ProtoReader::SmapsInfo_Reader& smapsInfo) const;
     uint32_t ParseSmapsBlockDetail(ProtoReader::SmapsInfo_Reader& smapsInfo,
                                    const std::string& path,
-                                   const bool hasAppNmae) const;
+                                   const bool hasAppName) const;
     void ParseAshmemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseDmaMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseGpuProcessMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
@@ -90,6 +92,12 @@ private:
     void ParseCpuDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseProfileMemInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
     void ParseRSImageDumpInfo(const ProtoReader::MemoryData_Reader* tracePacket, uint64_t timeStamp) const;
+
+    void SpecialDataAddition(ProtoReader::ProcessMemoryInfo_Reader& processMemoryInfo,
+                             uint64_t timeStamp,
+                             uint32_t ipid,
+                             uint32_t hasValue) const;
+
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
     std::map<uint32_t, DataIndex> sysMemNameDictMap_ = {};
     std::map<uint32_t, DataIndex> sysVMemNameDictMap_ = {};

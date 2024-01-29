@@ -22,6 +22,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "sqlite3.h"
 #include "sqllite_prepar_cache_data.h"
@@ -71,11 +72,19 @@ public:
 public:
     sqlite3* db_;
 
+protected:
+    std::unordered_map<std::string, size_t> tableToCompletedSize_;
+
 private:
     void ExecuteSql(const std::string_view& sql);
     void SendDatabase(ResultCallBack resultCallBack);
+    void ParseCommandLine(std::string& option, std::string line, std::vector<std::string>& values);
+    void PrintSearchResult(std::string line, bool printResult);
+    int32_t HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
+    int32_t HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
     static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
     static void SqliteFinalize(sqlite3_stmt* ptr);
+    void InitTableToCompletedSize();
 
 private:
     std::list<std::string> internalTables_ = {};
@@ -84,8 +93,9 @@ private:
     bool cancelQuery_ = false;
     std::string wasmDBName_;
     SqllitePreparCacheData sqlPreparCacheData_;
-    std::set<std::string> needClearTable_ = {"data_type", "device_info", "data_dict", "meta",        "stat",
-                                             "symbols",   "thread",      "process",   "trace_range", "args_view"};
+    std::set<std::string> needClearTable_ = {"data_type", "device_info",  "data_dict", "meta",    "clock_snapshot",
+                                             "callstack", "thread_state", "stat",      "symbols", "thread",
+                                             "process",   "trace_range",  "args_view"};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

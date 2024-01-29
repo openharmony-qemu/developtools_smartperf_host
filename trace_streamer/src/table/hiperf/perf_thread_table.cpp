@@ -31,22 +31,22 @@ PerfThreadTable::~PerfThreadTable() {}
 
 void PerfThreadTable::FilterByConstraint(FilterConstraints& threadfc,
                                          double& threadfilterCost,
-                                         size_t threadrowCount,
+                                         size_t threadRowCnt,
                                          uint32_t threadcurrenti)
 {
-    const auto& threadc = threadfc.GetConstraints()[threadcurrenti];
-    switch (static_cast<Index>(threadc.col)) {
+    const auto& perfThreadc = threadfc.GetConstraints()[threadcurrenti];
+    switch (static_cast<Index>(perfThreadc.col)) {
         case Index::ID: {
-            if (CanFilterId(threadc.op, threadrowCount)) {
+            if (CanFilterId(perfThreadc.op, threadRowCnt)) {
                 threadfc.UpdateConstraint(threadcurrenti, true);
                 threadfilterCost += 1; // id can position by 1 step
             } else {
-                threadfilterCost += threadrowCount; // scan all rows
+                threadfilterCost += threadRowCnt; // scan all rows
             }
             break;
         }
-        default:                                // other column
-            threadfilterCost += threadrowCount; // scan all rows
+        default:                              // other column
+            threadfilterCost += threadRowCnt; // scan all rows
             break;
     }
 }
@@ -73,11 +73,11 @@ int32_t PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         return SQLITE_OK;
     }
 
-    auto cs = fc.GetConstraints();
+    auto perfThreadCs = fc.GetConstraints();
     std::set<uint32_t> sId = {static_cast<uint32_t>(Index::ID)};
-    SwapIndexFront(cs, sId);
-    for (size_t i = 0; i < cs.size(); i++) {
-        const auto& c = cs[i];
+    SwapIndexFront(perfThreadCs, sId);
+    for (size_t i = 0; i < perfThreadCs.size(); i++) {
+        const auto& c = perfThreadCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
                 FilterId(c.op, argv[i]);
@@ -93,12 +93,12 @@ int32_t PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         }
     }
 
-    auto orderbys = fc.GetOrderBys();
-    for (auto i = orderbys.size(); i > 0;) {
+    auto perfThreadOrderbys = fc.GetOrderBys();
+    for (auto i = perfThreadOrderbys.size(); i > 0;) {
         i--;
-        switch (static_cast<Index>(orderbys[i].iColumn)) {
+        switch (static_cast<Index>(perfThreadOrderbys[i].iColumn)) {
             case Index::ID:
-                indexMap_->SortBy(orderbys[i].desc);
+                indexMap_->SortBy(perfThreadOrderbys[i].desc);
                 break;
             default:
                 break;

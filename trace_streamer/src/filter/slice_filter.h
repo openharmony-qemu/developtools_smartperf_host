@@ -91,6 +91,10 @@ public:
     void SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     void SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
     void Clear();
+    void UpdateReadySize()
+    {
+        UpdateIrqReadySize();
+    }
 
 private:
     struct StackInfo {
@@ -111,6 +115,8 @@ private:
     void CloseUnMatchedSlice(int64_t ts, SlicesStack& stack, InternalTid itid);
     int32_t MatchingIncompleteSliceIndex(const SlicesStack& stack, DataIndex category, DataIndex name);
     uint8_t CurrentDepth(InternalTid internalTid);
+    void HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo);
+    bool UpdateIrqReadySize();
 
 private:
     // The parameter list is tid, cookid, functionName, asyncCallId.
@@ -122,8 +128,8 @@ private:
         uint64_t ts;
         size_t row;
     };
-    std::unordered_map<uint32_t, IrqRecords> irqEventMap_ = {};
-    std::unordered_map<uint32_t, IrqRecords> ipiEventMap_ = {};
+    std::unordered_map<uint32_t /* cpu */, IrqRecords> irqEventMap_ = {};
+    std::unordered_map<uint32_t /* cpu */, IrqRecords> ipiEventMap_ = {};
     //  irq map, key1 is cpu, key2
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
@@ -132,10 +138,9 @@ private:
     std::unordered_map<InternalTid, StackOnDepth> depthHolder_ = {};
     std::unordered_map<uint32_t, uint32_t> pidTothreadGroupId_ = {};
     uint64_t asyncEventSize_ = 0;
-    uint64_t asyncEventDisMatchCount = 0;
-    uint64_t callEventDisMatchCount = 0;
+    uint64_t asyncEventDisMatchCount_ = 0;
+    uint64_t callEventDisMatchCount_ = 0;
     std::unordered_map<uint32_t, uint32_t> sliceRowToArgsSetId_ = {};
-    std::unordered_map<uint32_t, uint32_t> argsSetIdToSliceRow_ = {};
     std::unordered_map<uint32_t, uint32_t> tidToArgsSetId_ = {};
     struct SliceInfo {
         uint32_t row;
@@ -145,7 +150,7 @@ private:
     DataIndex asyncBeginCountId_ = traceDataCache_->GetDataIndex("legacy_unnestable_begin_count");
     DataIndex asyncBeginTsId_ = traceDataCache_->GetDataIndex("legacy_unnestable_last_begin_ts");
     DataIndex ipiId_ = traceDataCache_->GetDataIndex("IPI");
-    std::map<uint32_t, uint32_t> irqDataLinker_ = {};
+    std::map<uint32_t /* cpu */, uint32_t> irqDataLinker_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

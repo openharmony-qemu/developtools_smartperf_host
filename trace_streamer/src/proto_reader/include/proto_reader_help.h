@@ -22,6 +22,7 @@
 
 namespace SysTuning {
 namespace ProtoReader {
+constexpr int DATA_AREA_ID = 3;
 class BytesView {
 public:
     BytesView() : data_(nullptr), size_(0) {}
@@ -72,7 +73,7 @@ enum class ProtoWireType : uint8_t {
 
 inline uint32_t CreateTagVarInt(uint32_t DataAreaId)
 {
-    return (DataAreaId << 3) | static_cast<uint32_t>(ProtoWireType::kVarInt);
+    return (DataAreaId << DATA_AREA_ID) | static_cast<uint32_t>(ProtoWireType::kVarInt);
 }
 
 inline char Lowercase(char c)

@@ -33,16 +33,33 @@
 #include "string_help.h"
 #include "ts_common.h"
 
+namespace {
+const std::string UPDATE_MEM_PROC_NAME =
+    "update process set name = (select name from thread t where t.ipid = process.id and t.name is not null and "
+    "is_main_thread = 1)";
+const std::string CREATE_MEM_ARGS_VIEW =
+    "create view args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+    "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on "
+    "(D.typeId "
+    "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
+// notice 'systuning_export' is 'ATTACH DATABASE name'
+const std::string CREATE_EXPORT_DB_ARGS_VIEW =
+    "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+    "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on (D.typeId "
+    "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
+const std::string CREATE_BATCH_EXPORT_DB_ARGS_VIEW =
+    "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+    "A.datatype==1 then V.data else A.value end) as strValue from args_ as A left join data_type_ as D on "
+    "(D.typeId "
+    "= A.datatype) left join data_dict_ as V on V.id = A.value left join data_dict_ as V2 on V2.id = A.key";
+} // namespace
+
 namespace SysTuning {
 namespace TraceStreamer {
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
 constexpr int32_t DEFAULT_LEN_ROW_STRING = 1024;
 
 enum class DBFiledType : uint8_t { INT = 0, TEXT };
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
 using namespace SysTuning::base;
 
 TraceDataDB::TraceDataDB() : db_(nullptr)
@@ -61,8 +78,12 @@ TraceDataDB::TraceDataDB() : db_(nullptr)
         TS_LOGF("open :memory db failed");
     }
     ts_create_extend_function(db_);
+    InitTableToCompletedSize();
 }
-
+void TraceDataDB::InitTableToCompletedSize()
+{
+    tableToCompletedSize_.insert({"measure", 0});
+}
 TraceDataDB::~TraceDataDB()
 {
     sqlite3_close(db_);
@@ -98,7 +119,7 @@ void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
         resultCallBack(std::string((char*)data, DATABASE_BASE), SEND_CONTINUE);
     }
     close(fd);
-    remove(wasmDBName_.c_str());
+    (void)remove(wasmDBName_.c_str());
     wasmDBName_.clear();
 }
 int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
@@ -110,7 +131,7 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string& outputName)
             return 1;
         }
         auto ret = ftruncate(fd, 0);
-        UNUSED(ret);
+        Unused(ret);
         close(fd);
     }
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
@@ -139,6 +160,9 @@ void TraceDataDB::CloseBatchDB()
 }
 int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
 {
+    // for update mem db
+    ExecuteSql(UPDATE_MEM_PROC_NAME);
+    // for drop mem db to disk db
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
     if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
@@ -154,20 +178,17 @@ int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
                 std::string clearSql("DELETE FROM systuning_export." + (*itor) + "_");
                 ExecuteSql(clearSql);
             }
-            std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
-            ExecuteSql(exportSql);
+            if (tableToCompletedSize_.count(*itor)) {
+                std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor +
+                                      " LIMIT " + std::to_string(tableToCompletedSize_.at(*itor)));
+                ExecuteSql(exportSql);
+            } else {
+                std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
+                ExecuteSql(exportSql);
+            }
         }
     }
-    std::string createArgsView =
-        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
-        "A.datatype==1 then V.data else A.value end) as strValue from args_ as A left join data_type_ as D on "
-        "(D.typeId "
-        "= A.datatype) left join data_dict_ as V on V.id = A.value left join data_dict_ as V2 on V2.id = A.key";
-    ExecuteSql(createArgsView);
-    std::string updateProcessName =
-        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not null and "
-        "is_main_thread = 1)";
-    ExecuteSql(updateProcessName);
+    ExecuteSql(CREATE_BATCH_EXPORT_DB_ARGS_VIEW);
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
     return 0;
@@ -201,10 +222,11 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
             return 1;
         }
         auto ret = ftruncate(fd, 0);
-        UNUSED(ret);
+        Unused(ret);
         close(fd);
     }
 
+    ExecuteSql(UPDATE_MEM_PROC_NAME);
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
     if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
@@ -212,7 +234,6 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
     }
 #endif
     ExecuteSql(attachSql);
-
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
@@ -221,15 +242,7 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
             ExecuteSql(exportSql);
         }
     }
-    std::string createArgsView =
-        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
-        "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on (D.typeId "
-        "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
-    ExecuteSql(createArgsView);
-    std::string updateProcessName =
-        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not null and "
-        "is_main_thread = 1)";
-    ExecuteSql(updateProcessName);
+    ExecuteSql(CREATE_EXPORT_DB_ARGS_VIEW);
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
 
@@ -250,18 +263,8 @@ void TraceDataDB::Prepare()
         "update thread set ipid = \
         (select id from process where \
         thread.tid = process.pid) where thread.ipid is null;");
-    std::string createArgsView =
-        "create view args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
-        "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on "
-        "(D.typeId "
-        "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
-    ExecuteSql(createArgsView);
-
-    std::string updateProcessNewName =
-        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not "
-        "null and "
-        "is_main_thread = 1)";
-    ExecuteSql(updateProcessNewName);
+    ExecuteSql(CREATE_MEM_ARGS_VIEW);
+    ExecuteSql(UPDATE_MEM_PROC_NAME);
 }
 void TraceDataDB::ExecuteSql(const std::string_view& sql)
 {
@@ -296,17 +299,7 @@ std::vector<std::string> TraceDataDB::SearchData()
         }
         values.clear();
         std::string option = "";
-        size_t pos = std::string::npos;
-        if ((pos = line.find(" ")) != std::string::npos) {
-            option = line.substr(0, pos);
-            auto left = line.substr(pos + 1);
-            while ((pos = left.find(",")) != std::string::npos) {
-                values.push_back(left.substr(0, pos + 1));
-                left = left.substr(pos + 1);
-            }
-            values.push_back(left);
-        }
-        printf("option:%s\n", option.c_str());
+        ParseCommandLine(option, line, values);
         if (!line.compare("-q") || !line.compare("-quit")) {
             break;
         } else if (!line.compare("-e")) {
@@ -336,14 +329,31 @@ std::vector<std::string> TraceDataDB::SearchData()
             }
             continue;
         }
-
-        using namespace std::chrono;
-        const auto start = steady_clock::now();
-        int32_t rowCount = SearchDatabase(line, printResult);
-        std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
-        printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
+        PrintSearchResult(line, printResult);
     }
     return values;
+}
+void TraceDataDB::ParseCommandLine(std::string& option, std::string line, std::vector<std::string>& values)
+{
+    size_t pos = std::string::npos;
+    if ((pos = line.find(" ")) != std::string::npos) {
+        option = line.substr(0, pos);
+        auto left = line.substr(pos + 1);
+        while ((pos = left.find(",")) != std::string::npos) {
+            values.push_back(left.substr(0, pos + 1));
+            left = left.substr(pos + 1);
+        }
+        values.push_back(left);
+    }
+    printf("option:%s\n", option.c_str());
+}
+void TraceDataDB::PrintSearchResult(std::string line, bool printResult)
+{
+    using namespace std::chrono;
+    const auto start = steady_clock::now();
+    int32_t rowCount = SearchDatabase(line, printResult);
+    std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
+    printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
 }
 int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
 {
@@ -525,13 +535,13 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     sqlite3_stmt* stmt = nullptr;
     std::unique_ptr<sqlite3_stmt, void (*)(sqlite3_stmt*)> stmtLocal(stmt, SqliteFinalize);
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
-    stmtLocal.reset(stmt);
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
         return -1;
     }
-    char* res = reinterpret_cast<char*>(out);
+    stmtLocal.reset(stmt);
     std::string snprintfInfo("ok");
+    char* res = reinterpret_cast<char*>(out);
     int32_t retSnprintf = snprintf_s(res, outLen, snprintfInfo.size(), snprintfInfo.data());
     if (retSnprintf < 0) {
         return -1;
@@ -541,8 +551,17 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
     if (colCount == 0) {
         return pos;
     }
-    snprintfInfo = "{\"columns\":[";
-    retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), "%s", snprintfInfo.c_str());
+    auto returnvalue = HandleColumnNames(stmt, res, outLen, pos, colCount);
+    if (returnvalue == -1) {
+        return -1;
+    }
+    pos = returnvalue;
+    return HandleRowData(stmt, res, outLen, pos, colCount);
+}
+int32_t TraceDataDB::HandleColumnNames(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount)
+{
+    std::string snprintfInfo = "{\"columns\":[";
+    int32_t retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), "%s", snprintfInfo.c_str());
     if (retSnprintf < 0) {
         return -1;
     }
@@ -555,13 +574,19 @@ int32_t TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int32_
         }
         pos += retSnprintf;
     }
-    pos--; // rmove the last ','
+    pos--; // Remove the last ','
     snprintfInfo = "],\"values\":[";
     retSnprintf = snprintf_s(res + pos, outLen - pos, snprintfInfo.size(), snprintfInfo.data());
     if (retSnprintf < 0) {
         return -1;
     }
     pos += retSnprintf;
+    return pos;
+}
+int32_t TraceDataDB::HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount)
+{
+    std::string snprintfInfo;
+    int32_t retSnprintf;
     bool hasRow = false;
     std::string row;
     row.reserve(DEFAULT_LEN_ROW_STRING);
