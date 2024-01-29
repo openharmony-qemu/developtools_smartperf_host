@@ -88,6 +88,7 @@ export class ThreadStruct extends BaseThreadStruct {
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
+  static firstselectThreadStruct: ThreadStruct | undefined;  
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
