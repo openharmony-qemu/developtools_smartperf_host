@@ -461,47 +461,36 @@ export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<
   }
 }
 
-function jankPoint(
-  endRowStruct: any,
-  data: any,
-  sp: SpSystemTrace,
-  selectThreadStruct: ThreadStruct,
-  startRow: any,
-  endParentRow: any
-): void {
-  if (endRowStruct) {
-    let findJankEntry = endRowStruct!.dataListCache!.find(
-      (dat: any) => dat.startTime == data.startTime && dat.dur! > 0
+
+function jankPoint(endRowStruct: any, selectThreadStruct: ThreadStruct, startRow: any, endParentRow: any, sp: SpSystemTrace) {
+  let findJankEntry = endRowStruct!.fixedList[0];
+  let ts: number = 0;
+  if (findJankEntry) {
+    ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct);
+    const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
+    sp.addPointPair(
+      sp.makePoint(
+        ns2xByTimeShaft(ts, sp.timerShaftEL!),
+        ts,
+        startY,
+        startRowEl!,
+        startOffSetY,
+        'thread',
+        LineType.straightLine,
+        selectThreadStruct.startTime == ts
+      ),
+      sp.makePoint(
+        ns2xByTimeShaft(findJankEntry.startTime!, sp.timerShaftEL!),
+        findJankEntry.startTime!,
+        endY,
+        endRowEl,
+        endOffSetY,
+        'thread',
+        LineType.straightLine,
+        true
+      )
     );
-    let ts: number = 0;
-    if (findJankEntry) {
-      ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
-      const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct);
-      const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
-      sp.addPointPair(
-        sp.makePoint(
-          ns2xByTimeShaft(ts, sp.timerShaftEL!),
-          ts,
-          startY,
-          startRowEl!,
-          startOffSetY,
-          'thread',
-          LineType.straightLine,
-          selectThreadStruct.startTime == ts
-        ),
-        sp.makePoint(
-          ns2xByTimeShaft(findJankEntry.startTime!, sp.timerShaftEL!),
-          findJankEntry.startTime!,
-          endY,
-          endRowEl,
-          endOffSetY,
-          'thread',
-          LineType.straightLine,
-          true
-        )
-      );
-      sp.refreshCanvas(true);
-    }
   }
 }
 
@@ -511,22 +500,29 @@ export function spSystemTraceDrawThreadLine(
   selectThreadStruct: ThreadStruct | undefined,
   data: any
 ): void {
-  const collectList = sp.favoriteChartListEL!.getCollectRows();
-  if (!selectThreadStruct) {
+  let collectList = sp.favoriteChartListEL!.getCollectRows();
+  if (selectThreadStruct == undefined || selectThreadStruct == null) {
     return;
   }
-  const selectRowId = selectThreadStruct?.tid;
+  let selectRowId = selectThreadStruct?.tid;
   let startRow = sp.getStartRow(selectRowId, collectList);
-  if (!endParentRow) {
-    return;
+
+  if (endParentRow) {
+    endParentRow.expansion = true;
+    let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      `trace-row[row-id='${data.tid}'][row-type='thread']`
+    );
+    if (!endRowStruct) {
+      endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
+        return item.rowId === `${data.tid}` && item.rowType === 'thread';
+      });
+    }
+    if (endRowStruct) {
+      if (endRowStruct.isComplete) {
+        jankPoint(endRowStruct, selectThreadStruct, startRow, endParentRow, sp);
+      }
+    }
   }
-  let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-    `trace-row[row-id='${data.tid}'][row-type='thread']`
-  );
-  if (!endRowStruct) {
-    endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
-      return item.rowId === `${data.tid}` && item.rowType === 'thread';
-    });
-  }
-  jankPoint(endParentRow, data, sp, selectThreadStruct, startRow, endParentRow);
 }
+
+

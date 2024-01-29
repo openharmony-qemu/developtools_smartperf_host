@@ -50,10 +50,10 @@ export class RequestMessage {
   totalNS: any;
   slicesTime:
     | {
-    startTime: number | null;
-    endTime: number | null;
-    color: string | null;
-  }
+      startTime: number | null;
+      endTime: number | null;
+      color: string | null;
+    }
     | undefined;
   range: any;
   scale: any;
@@ -66,9 +66,9 @@ export class RequestMessage {
   id: any;
   postMessage:
     | {
-    (message: any, targetOrigin: string, transfer?: Transferable[]): void;
-    (message: any, options?: WindowPostMessageOptions): void;
-  }
+      (message: any, targetOrigin: string, transfer?: Transferable[]): void;
+      (message: any, options?: WindowPostMessageOptions): void;
+    }
     | undefined;
 }
 
@@ -99,10 +99,10 @@ export function ns2Timestamp(ns: number): string {
   let microsecond = Math.floor((ns % 1000000) / 1000);
   let nanosecond = ns % 1000;
   return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second
-  .toString()
-  .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
-  .toString()
-  .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
+    .toString()
+    .padStart(2, '0')}:${millisecond.toString().padStart(3, '0')}:${microsecond
+      .toString()
+      .padStart(3, '0')}:${nanosecond.toString().padStart(3, '0')}`;
 }
 
 const offsetX = 5;
@@ -560,10 +560,10 @@ export function drawFlagLine(
   frame: any,
   slicesTime:
     | {
-    startTime: number | null | undefined;
-    endTime: number | null | undefined;
-    color: string | null | undefined;
-  }
+      startTime: number | null | undefined;
+      endTime: number | null | undefined;
+      color: string | null | undefined;
+    }
     | undefined
 ) {
   if (commonCtx) {
@@ -787,8 +787,18 @@ function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any
     TraceRow.range?.endNS ?? 0,
     TraceRow.range?.totalNS ?? 0,
     selectParams.frame
-  )) - textWidth / TEXT_WIDTH_HALF; //根据帧率范围的中间值计算文本的起始x坐标
-  const textY = selectParams.frame.y + 10;
+  )) - textWidth / TEXT_WIDTH_HALF; //根据帧率范围的中间值转换文本的起始x坐标
+  let textY = selectParams.frame.y + 10;
+  if (selectParams.hitchTimeData?.length) {
+    textY = selectParams.frame.y + 10;
+  } else {
+    // 展开时显示在第二行，折叠显示第一行
+    if (selectParams.funcExpand) {
+      textY = selectParams.frame.y + 28;
+    } else {
+      textY = selectParams.frame.y + 10;
+    }
+  }
   return [textX, textY];
 }
 
@@ -905,7 +915,7 @@ function calculateAvgRate(arr: Array<number>, selectParams: TraceRow<any>) {
     let sum: number = selectParams.hitchTimeData.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
     let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
     let avgHitchTime: string = (Number(hitchRate) * 100).toFixed(2) + '%';
-    avgRate = avgRate + 'fps' + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1)+ 'ms' + ' ' + ',' + ' ' + avgHitchTime;
+    avgRate = avgRate + 'fps' + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + avgHitchTime;
   } else {
     avgRate = avgRate + 'fps';
   }
@@ -1710,25 +1720,25 @@ export class HiPerfStruct extends BaseStruct {
 
 function filterGroupArray(groupArray: Array<any>, maxEventCount: number, usage?: boolean, event?: number) {
   return groupArray
-  .map((it) => {
-    it.timestamp_group = Math.trunc(it.startNS / 10_000_000) * 10_000_000;
-    return it;
-  })
-  .reduce((pre: any, current) => {
-    if (usage || current.event_type_id === event || event === -1) {
-      if (pre[current['timestamp_group']]) {
-        pre[current['timestamp_group']].sampleCount += 1;
-        pre[current['timestamp_group']].eventCount += current.event_count;
-      } else {
-        pre[current['timestamp_group']] = {
-          sampleCount: 1,
-          eventCount: current.event_count,
-        };
+    .map((it) => {
+      it.timestamp_group = Math.trunc(it.startNS / 10_000_000) * 10_000_000;
+      return it;
+    })
+    .reduce((pre: any, current) => {
+      if (usage || current.event_type_id === event || event === -1) {
+        if (pre[current['timestamp_group']]) {
+          pre[current['timestamp_group']].sampleCount += 1;
+          pre[current['timestamp_group']].eventCount += current.event_count;
+        } else {
+          pre[current['timestamp_group']] = {
+            sampleCount: 1,
+            eventCount: current.event_count,
+          };
+        }
+        maxEventCount = Math.max(pre[current['timestamp_group']].eventCount, maxEventCount);
       }
-      maxEventCount = Math.max(pre[current['timestamp_group']].eventCount, maxEventCount);
-    }
-    return pre;
-  }, {});
+      return pre;
+    }, {});
 }
 
 function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {

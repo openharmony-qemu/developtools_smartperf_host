@@ -553,7 +553,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
-    callback: ((data: Array<any>) => void) | undefined = undefined
+    callback?: ((data: Array<any>, str:string) => void)
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
