@@ -182,7 +182,7 @@ export class SpRecordTrace extends BaseElement {
               option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
               this.deviceSelect!.appendChild(option);
             }
-            if (len === 0) {
+            if (len === 0 && res) {
               option.selected = true;
               this.recordButton!.hidden = false;
               this.disconnectButton!.hidden = false;
