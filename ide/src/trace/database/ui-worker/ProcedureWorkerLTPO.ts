@@ -92,6 +92,7 @@ export class LtpoStruct extends BaseStruct {
         let drawHeight: number = Math.floor(
           ((Number(data.value) || 0) * (data.frame.height || 0) * 1.0) / LtpoStruct.maxVal!
         );
+        drawHeight = data.value! < 1 ? 0.5 : drawHeight;
         drawHeight = drawHeight < 1 ? 1 : drawHeight
         ctx.globalAlpha = 1.0;
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
@@ -101,7 +102,8 @@ export class LtpoStruct extends BaseStruct {
       } else {
         ctx.globalAlpha = 0.6;
         let drawHeight: number = Math.floor(((Number(data.value) || 0) * (data.frame.height || 0)) / LtpoStruct.maxVal!);
-        drawHeight = drawHeight < 1 ? 1 : drawHeight
+        drawHeight = data.value! < 1 ? 0.5 : drawHeight;
+        drawHeight = drawHeight < 1 ? 0.5 : drawHeight
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)
       }
 
