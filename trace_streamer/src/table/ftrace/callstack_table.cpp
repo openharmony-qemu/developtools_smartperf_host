@@ -122,7 +122,7 @@ int32_t CallStackTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
                 indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), slicesObj_.CallIds());
                 break;
             case Index::COOKIES_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), slicesObj_.Cookies());
+                indexMap_->MixRange(c.op, static_cast<int64_t>(sqlite3_value_int64(argv[i])), slicesObj_.Cookies());
                 break;
             default:
                 break;
@@ -182,7 +182,7 @@ void CallStackTable::Cursor::HandleTypeColumns(int32_t col) const
             SetTypeColumnInt64(slicesObj_.Depths()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::COOKIES_ID:
-            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_INT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {

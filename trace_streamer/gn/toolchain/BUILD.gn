@@ -39,11 +39,17 @@ toolchain("wasm") {
   # emsdk_dir and em_config are defined in wasm.gni.
   print("use gcc_like_chain wasm")
   if (!is_mac) {
-    ar = "$emsdk_dir/emscripten/emar --em-config $em_config"
+    ar = "emar"
   }
-  cc = "$emsdk_dir/emscripten/emcc --em-config $em_config"
-  cxx = "$emsdk_dir/emscripten/em++ --em-config $em_config"
-
+  cc = "emcc"
+  cxx = "em++"
+  if (!use_local_emsdk){
+    if (!is_mac) {
+      ar = "$emsdk_dir/emscripten/emar --em-config $em_config"
+    }
+    cc = "$emsdk_dir/emscripten/emcc --em-config $em_config"
+    cxx = "$emsdk_dir/emscripten/em++ --em-config $em_config"
+  }
   lib_switch = "-l"
   ld_arg = ""
   lib_dir_switch = "-L"

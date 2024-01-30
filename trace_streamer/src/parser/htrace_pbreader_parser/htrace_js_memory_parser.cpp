@@ -51,11 +51,13 @@ struct Snapshot {
     int32_t edgeCount;
     int32_t traceFunctionCount;
 };
+int32_t g_nodesSingleLength = 0;
 void from_json(const json& j, Meta& v)
 {
     for (size_t i = 0; i < j["node_fields"].size(); i++) {
         v.nodeFields.emplace_back(j["node_fields"][i]);
     }
+    g_nodesSingleLength = j["node_fields"].size();
     for (size_t i = 0; i < j["node_types"].size(); i++) {
         std::vector<std::string> nodeTypes;
         if (j["node_types"][i].is_array()) {
@@ -114,24 +116,23 @@ struct Nodes {
     std::vector<uint32_t> traceNodeIds;
     std::vector<uint32_t> detachedness;
 };
-const int32_t NODES_SINGLE_LENGTH = 7;
 std::vector<uint32_t> g_fromNodeIds;
 std::vector<uint32_t> g_ids;
 void from_json(const json& j, Nodes& v)
 {
     int32_t edgeIndex = 0;
-    for (size_t i = 0; i < j.size() / NODES_SINGLE_LENGTH; i++) {
-        v.types.emplace_back(j[i * NODES_SINGLE_LENGTH]);
-        v.names.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FIRST]);
-        v.ids.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SECOND]);
-        v.selfSizes.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_THIRD]);
-        v.edgeCounts.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FOURTH]);
+    for (size_t i = 0; i < j.size() / g_nodesSingleLength; i++) {
+        v.types.emplace_back(j[i * g_nodesSingleLength]);
+        v.names.emplace_back(j[i * g_nodesSingleLength + OFFSET_FIRST]);
+        v.ids.emplace_back(j[i * g_nodesSingleLength + OFFSET_SECOND]);
+        v.selfSizes.emplace_back(j[i * g_nodesSingleLength + OFFSET_THIRD]);
+        v.edgeCounts.emplace_back(j[i * g_nodesSingleLength + OFFSET_FOURTH]);
         for (size_t m = edgeIndex; m < edgeIndex + v.edgeCounts.at(i); m++) {
-            g_fromNodeIds.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SECOND]);
+            g_fromNodeIds.emplace_back(j[i * g_nodesSingleLength + OFFSET_SECOND]);
         }
         edgeIndex += v.edgeCounts.at(i);
-        v.traceNodeIds.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FIFTH]);
-        v.detachedness.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SIXTH]);
+        v.traceNodeIds.emplace_back(j[i * g_nodesSingleLength + OFFSET_FIFTH]);
+        v.detachedness.emplace_back(j[i * g_nodesSingleLength + OFFSET_SIXTH]);
     }
     for (size_t m = 0; m < j.size(); m++) {
         g_ids.emplace_back(j[m]);

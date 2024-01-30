@@ -22,6 +22,7 @@ gn_path="$5"
 gn="$6"
 ninja="$7"
 target_operator="$8"
+use_local_emsdk="$9"
 if [ "$#" -ge "7" ];then
     if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
         [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
@@ -77,7 +78,7 @@ if [ "$is_clean" == "true" ];then
     prebuilts/"$gn_path"/"$gn" gen "$out_dir" --clean
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir" -t clean
 else
-    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'
+    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'' use_local_emsdk='"$use_local_emsdk"
     echo "begin to build ..."
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
 fi

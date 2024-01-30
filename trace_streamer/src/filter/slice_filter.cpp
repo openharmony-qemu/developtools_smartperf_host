@@ -433,7 +433,7 @@ std::tuple<uint64_t, uint32_t> SliceFilter::AddArgs(uint32_t tid, DataIndex key1
 uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       uint32_t pid,
                                       uint32_t threadGroupId,
-                                      uint64_t cookie,
+                                      int64_t cookie,
                                       DataIndex nameIndex)
 {
     Unused(pid);
@@ -461,7 +461,7 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
 uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
                                        uint32_t pid,
                                        uint32_t threadGroupId,
-                                       uint64_t cookie,
+                                       int64_t cookie,
                                        DataIndex nameIndex)
 {
     Unused(pid);

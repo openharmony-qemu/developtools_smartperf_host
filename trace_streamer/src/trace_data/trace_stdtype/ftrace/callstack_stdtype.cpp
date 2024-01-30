@@ -23,7 +23,7 @@ size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
                                            uint16_t nameIdentify,
                                            DataIndex name,
                                            uint8_t depth,
-                                           uint64_t cookid,
+                                           int64_t cookid,
                                            const std::optional<uint64_t>& parentId)
 {
     AppendCommonInfo(startT, durationNs, internalTid);
@@ -158,7 +158,7 @@ const std::deque<uint8_t>& CallStack::Depths() const
 {
     return depths_;
 }
-const std::deque<uint64_t>& CallStack::Cookies() const
+const std::deque<int64_t>& CallStack::Cookies() const
 {
     return cookies_;
 }

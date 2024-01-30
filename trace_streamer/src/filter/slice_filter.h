@@ -77,11 +77,11 @@ public:
                     DataIndex category = INVALID_UINT64,
                     DataIndex name = INVALID_UINT64);
     uint64_t
-        StartAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
+        StartAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
     uint64_t FinishAsyncSlice(uint64_t timeStamp,
                               uint32_t pid,
                               uint32_t threadGroupId,
-                              uint64_t cookie,
+                              int64_t cookie,
                               DataIndex nameIndex);
     void IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet& args);
@@ -120,7 +120,7 @@ private:
 
 private:
     // The parameter list is tid, cookid, functionName, asyncCallId.
-    TripleMap<uint32_t, uint64_t, DataIndex, uint64_t> asyncEventMap_;
+    TripleMap<uint32_t, int64_t, DataIndex, uint64_t> asyncEventMap_;
     // this is only used to calc the layer of the async event in same time range
     std::map<uint32_t, int8_t> asyncNoEndingEventMap_ = {};
     //  irq map, key1 is cpu, key2

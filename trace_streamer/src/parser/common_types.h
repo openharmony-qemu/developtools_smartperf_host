@@ -113,7 +113,7 @@ public:
     char phase_ = '\0';
     uint32_t tgid_ = 0;
     std::string name_ = "";
-    uint64_t value_ = 0;
+    int64_t value_ = 0;
     std::string categoryGroup_ = "";
     // Distributed Data
     std::string chainId_ = "";

@@ -440,7 +440,7 @@ bool TraceStreamerSelector::LoadQueryFile(const std::string& sqlOperator, std::v
             }
             sqlString.append(buffer);
 
-            if (EndWith(line, ";") || EndWith(line, ";\r\n")) {
+            if (EndWith(line, ";\n") || EndWith(line, ";\r\n")) {
                 break;
             }
         }

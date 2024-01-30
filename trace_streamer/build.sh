@@ -25,6 +25,7 @@ is_clean="false"
 target="trace_streamer"
 gn="gn"
 ninja="ninja"
+use_local_emsdk="false"
 case "$OSTYPE" in
   solaris*) echo "SOLARIS" ;;
   darwin*)  gn_path="macx" target_os="macx" ;;
@@ -65,11 +66,15 @@ if [ "$1" == "windows" ];then
     touch out/windows/trace_streamer.exe
     exit
 fi
-
 if [ "$#" -ne "0" ];then
-    if [ "$1" == "wasm" ];then
-        ./dl_emsdk.sh
-        target="wasm"
+    if [ "$1" == "wasm" ] || [ "$1" == "sdkdemo" ];then
+        if command -v em++ &> /dev/null; then
+            use_local_emsdk="true"
+        else
+            ./dl_emsdk.sh
+            use_local_emsdk="false"
+        fi
+        target="$1"
     fi
     if [ "$1" == "test" ];then
         target="test"
@@ -79,9 +84,6 @@ if [ "$#" -ne "0" ];then
     fi
     if [ "$1" == "protoc" ];then
         target="protoc"
-    fi
-    if [ "$1" == "sdkdemo" ];then
-        target="sdkdemo"
     fi
     if [ "$1" == "sdkdemotest" ];then
         target="sdkdemotest"
@@ -95,4 +97,4 @@ if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
     exit
 fi
-./build_operator.sh $is_debug $target $target_os $is_clean $gn_path $gn $ninja "$target_operator"
+./build_operator.sh $is_debug "$target" $target_os $is_clean $gn_path $gn $ninja "$target_operator" $use_local_emsdk

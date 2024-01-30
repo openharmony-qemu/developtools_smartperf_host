@@ -13,9 +13,13 @@
 
 import("./wasm_vars.gni")
 
-em_config = rebase_path(".emscripten", "")
-emsdk_dir = rebase_path("//prebuilts/emsdk/emsdk", "")
-
+declare_args() {
+  use_local_emsdk = false
+}
+if (!use_local_emsdk) {
+  em_config = rebase_path("//tools/emsdk/.emscripten", "")
+  emsdk_dir = rebase_path("//tools/emsdk/upstream", "")
+}
 template("wasm_lib") {
   _exports = "['ccall', 'callMain', 'addFunction', 'FS']"
   print(invoker.name)
@@ -44,8 +48,6 @@ template("wasm_lib") {
     "EXPORT_NAME=${target_name}",
     "-s",
     "MODULARIZE=1",
-    "-s",
-    "USE_ZLIB=1",
     "-lworkerfs.js",  # For FS.filesystems.WORKERFS
     "-s",
     "ASSERTIONS=1",
