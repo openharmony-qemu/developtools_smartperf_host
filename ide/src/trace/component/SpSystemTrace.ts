@@ -1480,11 +1480,9 @@ export class SpSystemTrace extends BaseElement {
     if (rootRow && rootRow!.collect) {
       this.favoriteAreaSearchHandler(rootRow);
       rootRow.expandFunc();
-      this.favoriteChartListEL!.scroll({
-        top: (rootRow?.offsetTop || 0) - this.favoriteChartListEL!.getCanvas()!.offsetHeight + (++depth * 20 || 0),
-        left: 0,
-        behavior: smooth ? 'smooth' : undefined,
-      });
+      setTimeout(() => {
+        rootRow!.scrollIntoView({behavior: "smooth", block: "center"});
+      }, 300);
     } else {
       let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row && !row.expansion) {
@@ -1494,14 +1492,9 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc();
       }
       if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        // let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0);
-        let top = rootRow?.offsetTop + (++depth * 20 || 0);
-        rootRow.scrollIntoView({behavior: "smooth", block: "center"});
-        // this.rowsPaneEL!.scroll({
-        //   top: top,
-        //   left: 0,
-        //   behavior: smooth ? 'smooth' : undefined,
-        // });
+        setTimeout(() => {
+          rootRow!.scrollIntoView({behavior: "smooth", block: "center"});
+        }, 300);
       }
     }
   }
@@ -1822,7 +1815,7 @@ export class SpSystemTrace extends BaseElement {
   moveRangeToLeft(startTime: number, dur: number) {
     let startNS = this.timerShaftEL?.getRange()?.startNS || 0;
     let endNS = this.timerShaftEL?.getRange()?.endNS || 0;
-    let harfDur = Math.trunc((endNS - startNS) / 2 - dur / 2);
+    let harfDur = Math.trunc((endNS - startNS) - dur / 2);
     let leftNs = startTime;
     let rightNs = startTime + dur + harfDur;
     if (startTime - harfDur < 0) {

@@ -718,7 +718,7 @@ export function spSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, curr
     return findIndex;
 }
 function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
-    if (SpSystemTrace.currentStartTime === 0 && !retargetIndex) {
+    if (TraceRow.range!.startNS > SpSystemTrace.currentStartTime && !retargetIndex) {
         SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
     }
     let findIndex = -1;
@@ -742,13 +742,14 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean,
     } else {
         if (SpSystemTrace.currentStartTime > TraceRow.range!.startNS) {
             SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
-            currentIndex = -1;
-          }
+            if (structs[currentIndex].startTime < TraceRow.range!.startNS || structs[currentIndex].startTime! + structs[currentIndex].dur! > TraceRow.range!.endNS) {
+                currentIndex = -1;
+            }
+        }
         if (SpSystemTrace.currentStartTime !== 0 && SpSystemTrace.currentStartTime < TraceRow.range!.startNS) {
             SpSystemTrace.currentStartTime = 0;
             SpSystemTrace.retargetIndex = 0;
         }
-
         findIndex = structs.findIndex((it, idx) => {
             return (
                 idx > currentIndex &&
