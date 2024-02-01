@@ -62,6 +62,7 @@ import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
 import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
+import { SampleRender } from './ProcedureWorkerSample';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -121,6 +122,7 @@ export let renders: any = {
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
   'freq-extend': new FreqExtendRender(),
+  sample: new SampleRender(),
 };
 
 function match(type: string, req: RequestMessage): void {

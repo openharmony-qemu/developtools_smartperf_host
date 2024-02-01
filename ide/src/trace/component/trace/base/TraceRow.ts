@@ -129,6 +129,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PURGEABLE_TOTAL_VM = 'purgeable-total-vm';
   static ROW_TYPE_PURGEABLE_PIN_VM = 'purgeable-pin-vm';
   static ROW_TYPE_LOGS = 'logs';
+  static ROW_TYPE_SAMPLE = 'sample';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
@@ -195,6 +196,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   _frameRateList: Array<number> | undefined; //存储平均帧率数据
   _hitchTimeData: Array<number> | undefined;//存储hitch time
   public folderIcon: LitIcon | null | undefined;
+  private sampleUploadEl: HTMLDivElement | null | undefined;
+  private jsonFileEl: HTMLInputElement | null | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
@@ -258,6 +261,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-list',
       'row-setting-popover-direction',
     ];
+  }
+
+  get uploadEl() {
+    return this.sampleUploadEl;
   }
 
   get frameRateList(): Array<number> | undefined {
@@ -608,6 +615,33 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       child.rowHidden = false;
       this.fragment.appendChild(child);
     }
+  }
+
+  addRowSampleUpload(): void {
+    this.sampleUploadEl = document.createElement('div');
+    this.sampleUploadEl!.className = 'upload';
+    this.sampleUploadEl!.innerHTML = `
+      <input id="file" class="file" accept="application/json"  type="file" style="display:none;pointer-events:none"/>
+      <label for="file" style="cursor:pointer">
+        <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
+      </label>
+    `
+    this.jsonFileEl = this.sampleUploadEl!.querySelector('.file') as HTMLInputElement;
+    this.sampleUploadEl!.addEventListener('change', () => {
+      let files = this.jsonFileEl!.files;
+      if (files && files.length > 0) {
+        this.sampleUploadEl!.dispatchEvent(
+          new CustomEvent('sample-file-change', {
+            detail: files[0]
+          })
+        )
+        if (this.jsonFileEl) this.jsonFileEl.value = '';
+      }
+    })
+    this.sampleUploadEl!.addEventListener('click', (e) => {
+      e.stopPropagation();
+    })
+    this.describeEl?.appendChild(this.sampleUploadEl!);
   }
 
   addChildTraceRowSpecifyLocation(child: TraceRow<any>, index: number) {

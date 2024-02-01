@@ -51,6 +51,7 @@ import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLi
 import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
 import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
+import { SpSampleChart } from './SpSampleChart';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -76,6 +77,7 @@ export class SpChartManager {
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
+  private spSampleChart: SpSampleChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -99,6 +101,7 @@ export class SpChartManager {
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
     this.SpLtpoChart = new SpLtpoChart(trace);
+    this.spSampleChart = new SpSampleChart(trace);
   }
 
   async init(progress: Function) {
@@ -125,6 +128,7 @@ export class SpChartManager {
     progress('cpu', 70);
     await this.cpu.init();
     info('initData cpu Data initialized');
+    await this.spSampleChart.init(null);
     progress('process/thread state', 73);
     await this.cpu.initProcessThreadStateData(progress);
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
@@ -191,6 +195,11 @@ export class SpChartManager {
     progress('display', 95);
   }
 
+  async initSample(ev: File) {
+    await this.initSampleTime();
+    await this.spSampleChart.init(ev);
+  }
+
   async importSoFileUpdate() {
     SpSystemTrace.DATA_DICT.clear();
     let dict = await queryDataDICT();
@@ -230,6 +239,21 @@ export class SpChartManager {
       window.recordStartNS = startNS;
       window.recordEndNS = endNS;
       window.totalNS = total;
+      this.trace.timerShaftEL.loadComplete = true;
+    }
+  };
+
+  initSampleTime = async () => {
+    if (this.trace.timerShaftEL) {
+      let total = 30_000_000_000;
+      let startNS = 0;
+      let endNS = 30_000_000_000;
+      this.trace.timerShaftEL.totalNS = total;
+      this.trace.timerShaftEL.getRangeRuler()!.drawMark = true;
+      this.trace.timerShaftEL.setRangeNS(0, total);
+      (window as any).recordStartNS = startNS;
+      (window as any).recordEndNS = endNS;
+      (window as any).totalNS = total;
       this.trace.timerShaftEL.loadComplete = true;
     }
   };

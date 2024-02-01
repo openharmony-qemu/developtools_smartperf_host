@@ -82,6 +82,8 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
+import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerSample';
+import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -103,6 +105,8 @@ export class TraceSheet extends BaseElement {
   private fragment: DocumentFragment | undefined;
   private lastSelectIPid: number = -1;
   private lastProcessSet: Set<number> = new Set<number>();
+  private optionsDiv: LitPopover | undefined | null;
+  private optionsSettingTree: LitTree | undefined | null;
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -131,6 +135,7 @@ export class TraceSheet extends BaseElement {
       this.showUploadSoBt(this.selection);
       this.showSwitchProcessBt(this.selection);
     } else {
+      this.showOptionsBt(null);
       this.showUploadSoBt(null);
       this.showSwitchProcessBt(null);
     }
@@ -163,6 +168,18 @@ export class TraceSheet extends BaseElement {
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.switchDiv = this.shadowRoot?.querySelector('#select-process');
     this.processTree = this.shadowRoot?.querySelector('#processTree');
+    this.optionsDiv = this.shadowRoot?.querySelector('#options');
+    this.optionsSettingTree = this.shadowRoot?.querySelector('#optionsSettingTree');
+    this.optionsSettingTree!.onChange = (e: any): void => {
+      const select = this.optionsSettingTree!.getCheckdKeys();
+      document.dispatchEvent(
+        new CustomEvent('sample-popver-change', {
+          detail: {
+            select: select[0]
+          }
+        })
+      )
+    }
     this.processTree!.onChange = (e: any): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
@@ -519,10 +536,23 @@ export class TraceSheet extends BaseElement {
                   align-items: center;
                   margin-right: 10px;
                   z-index: 2;
-              }
+                }
+                .option {
+                  display: flex;
+                  margin-right: 10px;
+                  cursor: pointer;
+                }
             </style>
             <div id="vessel" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
+                    <div class="option" slot="options">
+                      <lit-popover placement="bottom" class="popover" haveRadio="true" trigger="click" id="options">
+                        <div slot="content">
+                          <lit-tree id="optionsSettingTree" checkable="true"></lit-tree>
+                        </div>
+                        <lit-icon name="setting" size="21" id="setting"></lit-icon>
+                      </lit-popover>
+                    </div>
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
                         <lit-popover placement="bottomRight" class="popover" haveRadio="true" trigger="click" id="select-process">
                               <div slot="content">
@@ -776,12 +806,19 @@ export class TraceSheet extends BaseElement {
       }
     }
   };
+  displaySampleData = (data: SampleStruct, reqProperty: any): void => {
+    this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
+    this.optionsDiv!.style.display = "flex";
+    const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
+    this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
+  }
 
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
     this.exportBt!.style.display = 'flex';
     this.showUploadSoBt(selection);
     this.showSwitchProcessBt(selection);
+    this.showOptionsBt(selection);
     Reflect.ownKeys(tabConfig)
       .reverse()
       .forEach((id) => {
@@ -811,6 +848,16 @@ export class TraceSheet extends BaseElement {
         this.setMode('hidden');
         return false;
       }
+    }
+  }
+
+  showOptionsBt(selection: SelectionParam | null | undefined): void {
+    if (selection && selection.sampleData.length > 0) {
+      this.optionsDiv!.style.display = 'flex';
+      const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
+      this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
+    } else {
+      this.optionsDiv!.style.display = 'none';
     }
   }
 

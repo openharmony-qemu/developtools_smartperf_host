@@ -30,6 +30,7 @@ import { SoStructOnClick } from "../database/ui-worker/ProcedureWorkerSoInit";
 import { FrameAnimationStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameAnimation";
 import { FrameDynamicStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameDynamic";
 import { FrameSpacingStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameSpacing";
+import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerSample";
 import { SportRuler } from "./trace/timer-shaft/SportRuler";
 import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil";
 import { LitSearch } from "./trace/search/Search";
@@ -312,6 +313,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => FrameAnimationStructOnClick(clickRowType, sp, row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
+    .then(() => sampleStructOnClick(clickRowType, sp))
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');

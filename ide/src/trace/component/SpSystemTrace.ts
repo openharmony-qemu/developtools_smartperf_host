@@ -120,6 +120,7 @@ import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnMouseOut,
   spSystemTraceDocumentOnMouseUp,
 } from './SpSystemTrace.event';
+import { SampleStruct } from '../database/ui-worker/ProcedureWorkerSample';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1009,6 +1010,7 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.hoverJsCpuProfilerStruct = undefined;
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
+    SampleStruct.hoverSampleStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1038,6 +1040,7 @@ export class SpSystemTrace extends BaseElement {
     AllAppStartupStruct.selectStartupStruct = undefined;
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
+    SampleStruct.selectSampleStruct = undefined;
     return this;
   }
 
@@ -1192,6 +1195,7 @@ export class SpSystemTrace extends BaseElement {
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [TraceRow.ROW_TYPE_LOGS, () => LogStruct.hoverLogStruct !== null && LogStruct.hoverLogStruct !== undefined],
+    [TraceRow.ROW_TYPE_SAMPLE, () => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined],
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {
@@ -1490,12 +1494,14 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc();
       }
       if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0);
-        this.rowsPaneEL!.scroll({
-          top: top,
-          left: 0,
-          behavior: smooth ? 'smooth' : undefined,
-        });
+        // let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0);
+        let top = rootRow?.offsetTop + (++depth * 20 || 0);
+        rootRow.scrollIntoView({behavior: "smooth", block: "center"});
+        // this.rowsPaneEL!.scroll({
+        //   top: top,
+        //   left: 0,
+        //   behavior: smooth ? 'smooth' : undefined,
+        // });
       }
     }
   }
@@ -1605,6 +1611,28 @@ export class SpSystemTrace extends BaseElement {
         });
       }
     });
+  }
+
+  loadSample = async (ev: File) => {
+    this.observerScrollHeightEnable = false;
+    await this.initSample(ev);
+    this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
+    window.publish(window.SmartEvent.UI.MouseEventEnable, {
+      mouseEnable: true,
+    });
+  }
+
+  initSample = async (ev: File) => {
+    this.rowsPaneEL!.scroll({
+      top: 0,
+      left: 0,
+    });
+    this.chartManager?.initSample(ev).then(() => {
+      this.loadTraceCompleted = true;
+      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+        this.intersectionObserver?.observe(it);
+      })
+    })
   }
 
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<any>) => boolean): TraceRow<any>[] {
