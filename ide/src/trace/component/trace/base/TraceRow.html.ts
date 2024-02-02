@@ -263,9 +263,15 @@ export const TraceRowHtml = `
         :host([row-setting='checkFile']) #myfolder{
           color:#4b5766;
         }
+        .upload {
+            position: absolute;
+            color: var(--dark-icon,#333333);
+            right: 5px;
+            margin-top: 4px;
+        } 
         </style>
         <div class="root">
-            <div class="describe flash" style="position: inherit">
+            <div class="describe flash" style="position: relative">
                 <label class="name"></label>
                 <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
                 <lit-check-box class="lit-check-box"></lit-check-box>

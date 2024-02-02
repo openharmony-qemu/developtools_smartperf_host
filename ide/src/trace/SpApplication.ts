@@ -67,6 +67,8 @@ import {
   readTraceFileBuffer,
 } from './SpApplicationPublicFunc';
 import { queryExistFtrace } from './database/sql/SqlLite.sql';
+import { SpThirdParty } from './component/SpThirdParty';
+import './component/SpThirdParty';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -124,6 +126,7 @@ export class SpApplication extends BaseElement {
   private customColor: CustomThemeColor | undefined | null;
   private filterConfig: LitIcon | undefined | null;
   private configClose: LitIcon | undefined | null;
+  private spThirdParty: SpThirdParty | undefined | null;
   // 关键路径标识
   private importConfigDiv: HTMLInputElement | undefined | null;
   private closeKeyPath: HTMLDivElement | undefined | null;
@@ -268,6 +271,7 @@ export class SpApplication extends BaseElement {
     this.longTracePage = this.shadowRoot!.querySelector('.long_trace_page') as HTMLDivElement;
     this.customColor = this.shadowRoot?.querySelector('.custom-color') as CustomThemeColor;
     this.filterConfig = this.shadowRoot?.querySelector('.filter-config') as LitIcon;
+    this.spThirdParty = this.shadowRoot!.querySelector('#sp-third-party') as SpThirdParty;
     this.configClose = this.shadowRoot
       ?.querySelector<HTMLElement>('.chart-filter')!
       .shadowRoot?.querySelector<LitIcon>('.config-close');
@@ -310,6 +314,7 @@ export class SpApplication extends BaseElement {
       this.spRecordTemplate,
       this.spFlags,
       this.spKeyboard,
+      this.spThirdParty,
     ];
   }
 
@@ -648,6 +653,12 @@ export class SpApplication extends BaseElement {
   }
 
   private initDocumentListener(): void {
+    document.addEventListener('file-error', () => {
+      this.litSearch!.setPercent('This File is Error!', -1);
+    });
+    document.addEventListener('file-correct', () => {
+      this.litSearch!.setPercent('', 101);
+    });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         this.validateFileCacheLost();
@@ -783,6 +794,14 @@ export class SpApplication extends BaseElement {
               });
             },
           },
+          {
+            title: '第三方文件',
+            icon: 'file-fill',
+            clickHandler: (item: MenuItem): void => {
+              this.search = false;
+              this.showContent(this.spThirdParty!);
+            },
+          },
         ],
       },
     ];
@@ -827,33 +846,44 @@ export class SpApplication extends BaseElement {
 
   private handleWasmMode(ev: any, showFileName: string, fileSize: number, fileName: string): void {
     let that = this;
-    let fileSizeStr = (fileSize / 1048576).toFixed(1);
-    postLog(fileName, fileSizeStr);
-    document.title = `${showFileName} (${fileSizeStr}M)`;
-    info('Parse trace using wasm mode ');
     this.litSearch!.setPercent('', 1);
-    let completeHandler = async (res: any): Promise<void> => {
-      await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName);
-    };
-    threadPool.init('wasm').then((res) => {
-      let reader: FileReader | null = new FileReader();
-      reader.readAsArrayBuffer(ev as any);
-      reader.onloadend = function (ev): void {
-        info('read file onloadend');
-        that.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
-        let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
-        SpApplication.loadingProgress = 0;
-        SpApplication.progressStep = 3;
-        let data = this.result as ArrayBuffer;
-        info('initData start Parse Data');
-        that.spSystemTrace!.loadDatabaseArrayBuffer(
-          data,
-          wasmUrl,
-          (command: string, _: number) => that.setProgress(command),
-          completeHandler
-        );
+    if (fileName.endsWith('.json')) {
+      that.progressEL!.loading = true;
+      that.spSystemTrace!.loadSample(ev).then(() => {
+        that.showContent(that.spSystemTrace!);
+        that.litSearch!.setPercent('', 101);
+        that.freshMenuDisable(false);
+        that.chartFilter!.setAttribute('mode', '');
+        that.progressEL!.loading = false;
+      })
+    } else {
+      let fileSizeStr = (fileSize / 1048576).toFixed(1);
+      postLog(fileName, fileSizeStr);
+      document.title = `${showFileName} (${fileSizeStr}M)`;
+      info('Parse trace using wasm mode ');
+      let completeHandler = async (res: any): Promise<void> => {
+        await this.traceLoadCompleteHandler(res, fileSizeStr, showFileName, fileName);
       };
-    });
+      threadPool.init('wasm').then((res) => {
+        let reader: FileReader | null = new FileReader();
+        reader.readAsArrayBuffer(ev as any);
+        reader.onloadend = function (ev): void {
+          info('read file onloadend');
+          that.litSearch!.setPercent('ArrayBuffer loaded  ', 2);
+          let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`;
+          SpApplication.loadingProgress = 0;
+          SpApplication.progressStep = 3;
+          let data = this.result as ArrayBuffer;
+          info('initData start Parse Data');
+          that.spSystemTrace!.loadDatabaseArrayBuffer(
+            data,
+            wasmUrl,
+            (command: string, _: number) => that.setProgress(command),
+            completeHandler
+          );
+        };
+      });
+    }
   }
 
   private async traceLoadCompleteHandler(

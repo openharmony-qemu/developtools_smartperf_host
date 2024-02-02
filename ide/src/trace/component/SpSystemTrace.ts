@@ -120,6 +120,7 @@ import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnMouseOut,
   spSystemTraceDocumentOnMouseUp,
 } from './SpSystemTrace.event';
+import { SampleStruct } from '../database/ui-worker/ProcedureWorkerSample';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1009,6 +1010,7 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.hoverJsCpuProfilerStruct = undefined;
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
+    SampleStruct.hoverSampleStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1038,6 +1040,7 @@ export class SpSystemTrace extends BaseElement {
     AllAppStartupStruct.selectStartupStruct = undefined;
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
+    SampleStruct.selectSampleStruct = undefined;
     return this;
   }
 
@@ -1192,6 +1195,7 @@ export class SpSystemTrace extends BaseElement {
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [TraceRow.ROW_TYPE_LOGS, () => LogStruct.hoverLogStruct !== null && LogStruct.hoverLogStruct !== undefined],
+    [TraceRow.ROW_TYPE_SAMPLE, () => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined],
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {
@@ -1476,11 +1480,9 @@ export class SpSystemTrace extends BaseElement {
     if (rootRow && rootRow!.collect) {
       this.favoriteAreaSearchHandler(rootRow);
       rootRow.expandFunc();
-      this.favoriteChartListEL!.scroll({
-        top: (rootRow?.offsetTop || 0) - this.favoriteChartListEL!.getCanvas()!.offsetHeight + (++depth * 20 || 0),
-        left: 0,
-        behavior: smooth ? 'smooth' : undefined,
-      });
+      setTimeout(() => {
+        rootRow!.scrollIntoView({behavior: "smooth", block: "center"});
+      }, 300);
     } else {
       let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row && !row.expansion) {
@@ -1490,12 +1492,9 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc();
       }
       if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0);
-        this.rowsPaneEL!.scroll({
-          top: top,
-          left: 0,
-          behavior: smooth ? 'smooth' : undefined,
-        });
+        setTimeout(() => {
+          rootRow!.scrollIntoView({behavior: "smooth", block: "center"});
+        }, 300);
       }
     }
   }
@@ -1605,6 +1604,28 @@ export class SpSystemTrace extends BaseElement {
         });
       }
     });
+  }
+
+  loadSample = async (ev: File) => {
+    this.observerScrollHeightEnable = false;
+    await this.initSample(ev);
+    this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
+    window.publish(window.SmartEvent.UI.MouseEventEnable, {
+      mouseEnable: true,
+    });
+  }
+
+  initSample = async (ev: File) => {
+    this.rowsPaneEL!.scroll({
+      top: 0,
+      left: 0,
+    });
+    this.chartManager?.initSample(ev).then(() => {
+      this.loadTraceCompleted = true;
+      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
+        this.intersectionObserver?.observe(it);
+      })
+    })
   }
 
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<any>) => boolean): TraceRow<any>[] {
@@ -1724,9 +1745,9 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
+      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
       FuncStruct.hoverFuncStruct = entry;
       FuncStruct.selectFuncStruct = entry;
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
       this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
     }
   };
@@ -1794,7 +1815,7 @@ export class SpSystemTrace extends BaseElement {
   moveRangeToLeft(startTime: number, dur: number) {
     let startNS = this.timerShaftEL?.getRange()?.startNS || 0;
     let endNS = this.timerShaftEL?.getRange()?.endNS || 0;
-    let harfDur = Math.trunc((endNS - startNS) / 2 - dur / 2);
+    let harfDur = Math.trunc((endNS - startNS) - dur / 2);
     let leftNs = startTime;
     let rightNs = startTime + dur + harfDur;
     if (startTime - harfDur < 0) {

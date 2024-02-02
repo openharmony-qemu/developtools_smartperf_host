@@ -33,6 +33,7 @@ import { HeapDataInterface } from '../../js-heap/HeapDataInterface';
 import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
+import { SampleStruct } from '../database/ui-worker/ProcedureWorkerSample';
 
 export class SelectionParam {
   recordStartNs: number = 0;
@@ -129,6 +130,24 @@ export class SelectionParam {
   sysAllEventsData: Array<HiSysEventStruct> = [];
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
+  sampleData: Array<any> = [];
+
+  pushSampleData(it: TraceRow<any>) {
+    if (it.rowType == TraceRow.ROW_TYPE_SAMPLE) {
+      let dataList: SampleStruct[] = JSON.parse(JSON.stringify(it.dataList));
+      dataList.forEach(
+        SampleStruct => {
+          SampleStruct.property = SampleStruct.property!.filter((i : any) => 
+            ((i.begin! - i.startTs!) ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+            ((i.end! - i.startTs!) ?? 0) <= TraceRow.rangeSelectObject!.endNS!)
+        }
+      )
+      if (dataList[0].property!.length !== 0) {
+        this.sampleData.push(...dataList);
+      }
+    }
+  }
+
   pushCpus(it: TraceRow<any>) {
     if (it.rowType == TraceRow.ROW_TYPE_CPU) {
       this.cpus.push(parseInt(it.rowId!));
@@ -995,6 +1014,7 @@ export class SelectionParam {
     this.pushPugreable(it, sp);
     this.pushLogs(it, sp);
     this.pushHiSysEvent(it, sp);
+    this.pushSampleData(it);
   }
 }
 
