@@ -21,6 +21,7 @@ import {
   Rect,
   drawString,
   isFrameContainPoint,
+  drawLoadingFrame
 } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { SpSystemTrace } from "../../component/SpSystemTrace";
@@ -54,16 +55,15 @@ export class SampleRender extends Render {
       row.frame,
       req.useCache || TraceRow.range!.refresh
     );
+    drawLoadingFrame(req.context, sampleFilter, row, true);
     req.context.beginPath();
     let find = false;
-    for ( let re of sampleFilter) {
-      if (row.isHover) {
-        if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
-          SampleStruct.hoverSampleStruct = re;
-          find = true;
-        }
-      }
+    for (let re of sampleFilter) {
       SampleStruct.draw(req.context, re);
+      if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+        SampleStruct.hoverSampleStruct = re;
+        find = true;
+      }
     }
     if (!find && row.isHover) SampleStruct.hoverSampleStruct = undefined;
     req.context.closePath();
@@ -125,16 +125,16 @@ function setSampleFilter(
 }
 
 export function sampleStructOnClick(clickRowType: string, sp: SpSystemTrace) {
-  return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct) {
-      SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
-      sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
-      sp.timerShaftEL?.modifyFlagList(undefined);
-      reject(new Error());
-    }else{
-      resolve(null);
-    }
-  });
+    return new Promise((resolve, reject) => {
+      if (clickRowType === TraceRow.ROW_TYPE_SAMPLE && SampleStruct.hoverSampleStruct) { 
+        SampleStruct.selectSampleStruct = SampleStruct.hoverSampleStruct;
+        sp.traceSheetEL?.displaySampleData(SampleStruct.selectSampleStruct, SampleStruct.reqProperty);
+        sp.timerShaftEL?.modifyFlagList(undefined);
+        reject(new Error());
+      }else{
+        resolve(null);
+      }
+    });
 }
 
 export class SampleStruct extends BaseStruct {

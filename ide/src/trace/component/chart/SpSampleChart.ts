@@ -43,9 +43,14 @@ export class SpSampleChart {
     traceRow.index = 0;
     traceRow.rowType = TraceRow.ROW_TYPE_SAMPLE;
     traceRow.rowParentId = '';
+    traceRow.folder = false;
     traceRow.style.height = '40px';
     traceRow.name = 'Sample';
+    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    traceRow.findHoverStruct = () => {
+      SampleStruct.hoverSampleStruct = traceRow.getHoverStruct();
+    };
     //添加上传按钮
     traceRow.addRowSampleUpload();
     this.addTraceRowEventListener(traceRow, start_ts);
@@ -64,7 +69,12 @@ export class SpSampleChart {
             resolve(sampleProperty)
           })
         traceRow.onThreadHandler = (useCache) => {
-          const context = this.trace.canvasPanelCtx!;
+          let context: CanvasRenderingContext2D;
+          if (traceRow.currentContext) {
+            context = traceRow.currentContext;
+          } else {
+            context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
           traceRow.canvasSave(context);
           (renders.sample as SampleRender).renderMainThread(
             {
@@ -106,7 +116,12 @@ export class SpSampleChart {
             resolve(sampleProperty)
           })
           row.onThreadHandler = (useCache) => {
-          const context = this.trace.canvasPanelCtx!;
+          let context: CanvasRenderingContext2D;
+          if (row.currentContext) {
+            context = row.currentContext;
+          } else {
+            context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+          }
           row.canvasSave(context);
           (renders.sample as SampleRender).renderMainThread(
             {
