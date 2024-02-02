@@ -1745,9 +1745,9 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
+      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
       FuncStruct.hoverFuncStruct = entry;
       FuncStruct.selectFuncStruct = entry;
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
       this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
     }
   };
