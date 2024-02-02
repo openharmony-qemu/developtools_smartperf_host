@@ -336,6 +336,7 @@ export default function spSystemTraceOnClickHandler(sp: SpSystemTrace, clickRowT
   }
   if (!sp.loadTraceCompleted) return;
   sp.queryAllTraceRow().forEach((it) => (it.rangeSelect = false));
+  sp.selectStructNull();
   // 判断点击的线程是否在唤醒树内
   timeoutJudge(sp);
   allStructOnClick(clickRowType, sp, row);
