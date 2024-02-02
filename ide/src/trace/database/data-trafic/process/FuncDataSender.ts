@@ -26,6 +26,7 @@ export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStru
       argsetid: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       depth: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       id: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      nofinish: new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
   }
   return new Promise((resolve, reject): void => {
@@ -60,6 +61,7 @@ function arrayBufferHandler(buffers: any, len: number): FuncStruct[] {
   let argsetid = new Int32Array(buffers.argsetid);
   let depth = new Int32Array(buffers.depth);
   let id = new Int32Array(buffers.id);
+  let nofinish = new Uint8Array(buffers.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
       startTs: startTs[i],
@@ -67,6 +69,7 @@ function arrayBufferHandler(buffers: any, len: number): FuncStruct[] {
       argsetid: argsetid[i],
       depth: depth[i],
       id: id[i],
+      nofinish: nofinish[i] === 1 ? true : false
     } as FuncStruct);
   }
   return outArr;
