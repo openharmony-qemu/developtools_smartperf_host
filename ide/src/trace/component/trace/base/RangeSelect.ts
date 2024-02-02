@@ -50,11 +50,11 @@ export class RangeSelect {
   }
 
   isInRowsEl(ev: MouseEvent): boolean {
-    return this.rowsPaneEL!.containPoint(ev, {left: 248});
+    return this.rowsPaneEL!.containPoint(ev, { left: 248 });
   }
 
   isInSpacerEL(ev: MouseEvent): boolean {
-    return this.trace!.favoriteChartListEL!.containPoint(ev, {left: 248});
+    return this.trace!.favoriteChartListEL!.containPoint(ev, { left: 248 });
   }
 
   mouseDown(eventDown: MouseEvent): void {
@@ -87,7 +87,7 @@ export class RangeSelect {
         ) {
           this.handleFrameRateData(this.rangeTraceRow!, 'render_service', 'H:RSMainThread::DoComposition');
           this.handleFrameRateData(this.rangeTraceRow!, 'RSHardwareThrea', 'H:Repaint');
-          this.handleFrameRateData(this.rangeTraceRow!, 'Present Fence', 'H:Waiting for Present Fence');
+          this.handleFrameRateData(this.rangeTraceRow!, 'Present', 'H:Waiting for Present Fence');
         }
       }
     }
@@ -114,7 +114,7 @@ export class RangeSelect {
             }
           });
         }
-        if (rowName === 'Present Fence' && rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
+        if (rowName.startsWith('Present') && rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
           this.handlePresentData(rowList[i], funcName);
         }
         if (dataList.length) {
