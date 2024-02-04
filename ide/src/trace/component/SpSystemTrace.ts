@@ -1480,9 +1480,11 @@ export class SpSystemTrace extends BaseElement {
     if (rootRow && rootRow!.collect) {
       this.favoriteAreaSearchHandler(rootRow);
       rootRow.expandFunc();
-      setTimeout(() => {
-        rootRow!.scrollIntoView({behavior: "smooth", block: "center"});
-      }, 300);
+      if (!this.isInViewport(rootRow)) {
+        setTimeout(() => {
+          rootRow!.scrollIntoView({ behavior: "smooth"})
+        }, 500);
+      }
     } else {
       let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row && !row.expansion) {
@@ -1492,11 +1494,26 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc();
       }
       if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        setTimeout(() => {
-          rootRow!.scrollIntoView({behavior: "smooth", block: "center"});
-        }, 300);
+        if (!this.isInViewport(rootRow)) {
+          let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + rootRow.offsetHeight / 2 + (++depth * 20);
+          this.rowsPaneEL!.scrollTo({
+            top: top,
+            left: 0,
+            behavior: smooth ? 'smooth' : undefined,
+          });
+        }
       }
     }
+  }
+
+  isInViewport(e: any) {
+    const rect = e.getBoundingClientRect();
+    return (
+      rect.top >=0 &&
+      rect.left >=0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    )
   }
 
   scrollToFunction(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true) {
