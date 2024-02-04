@@ -50,6 +50,7 @@ struct ParserConfig {
     int32_t aniConfigValue;
     int32_t binderConfigValue;
     int32_t ffrtConvertConfigValue;
+    int32_t HMKernelConfigValue;
 };
 void from_json(const json& j, ParserConfig& v)
 {
@@ -58,6 +59,7 @@ void from_json(const json& j, ParserConfig& v)
     j.at("AnimationAnalysis").get_to(v.aniConfigValue);
     j.at("BinderRunnable").get_to(v.binderConfigValue);
     j.at("FfrtConvert").get_to(v.ffrtConvertConfigValue);
+    j.at("HMKernel").get_to(v.HMKernelConfigValue);
 }
 } // namespace jsonns
 #if IS_WASM
@@ -699,6 +701,7 @@ bool RpcServer::ParserConfig(std::string parserConfigJson)
     ts_->UpdateAnimationTraceStatus(parserConfig.aniConfigValue);
     ts_->UpdateTaskPoolTraceStatus(parserConfig.taskConfigValue);
     ts_->UpdateBinderRunnableTraceStatus(parserConfig.binderConfigValue);
+    ts_->UpdateHMKernelTraceStatus(parserConfig.HMKernelConfigValue);
     ffrtConvertEnabled_ = parserConfig.ffrtConvertConfigValue;
     startParseTime_ =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
