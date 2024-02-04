@@ -36,7 +36,6 @@ public:
     SliceData* GetSliceTableData();
     MetaData* GetMetaData();
     void MixTraceTime(uint64_t timestampMin, uint64_t timestampMax);
-    // ThreadState* GetThreadStateData();
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

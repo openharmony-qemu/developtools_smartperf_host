@@ -47,7 +47,7 @@ size_t CallStack::AppendInternalSlice(uint64_t startT,
     AppendCallStack(cat, name, depth, parentId);
     identifys_.emplace_back(nameIdentify + depth);
     ids_.emplace_back(id_++);
-    cookies_.emplace_back(INVALID_UINT64);
+    cookies_.emplace_back(INVALID_INT64);
     AppendDistributeInfo();
     return Size() - 1;
 }

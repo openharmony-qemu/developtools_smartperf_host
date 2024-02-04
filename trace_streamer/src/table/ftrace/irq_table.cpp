@@ -166,7 +166,7 @@ void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::COOKIE_ID:
-            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_INT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {

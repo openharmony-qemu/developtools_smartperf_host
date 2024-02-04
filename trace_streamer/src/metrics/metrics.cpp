@@ -19,8 +19,12 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-const uint32_t EXTRA_CHAR = 4;
-const uint32_t SEND_FINISH = 1;
+constexpr uint32_t EXTRA_CHAR = 4;
+constexpr uint32_t SEND_FINISH = 1;
+constexpr uint32_t FUNCTION_ITEM_DUR_MIN = 1;
+constexpr uint32_t FUNCTION_ITEM_DUR_MAX = 2;
+constexpr uint32_t FUNCTION_ITEM_DUR_AVG = 3;
+constexpr uint32_t FUNCTION_ITEM_FUNCTION_NAME = 4;
 Metrics ::Metrics()
 {
     metricsFunction_ = {
@@ -167,16 +171,18 @@ void Metrics::InitTraceMetaDataStrategy(const std::string& result)
 void Metrics::InitSysCallStrategy(const std::string& result)
 {
     json jMessage = json::parse(result);
-    const uint32_t FUNCTION_ITEM_DUR_MIN = 1;
-    const uint32_t FUNCTION_ITEM_DUR_MAX = 2;
-    const uint32_t FUNCTION_ITEM_DUR_AVG = 3;
-    const uint32_t FUNCTION_ITEM_FUNCTION_NAME = 4;
     for (int i = 0; i < jMessage.at("values").size(); i++) {
         FunctionItem functionItem;
         functionItem.functionName = jMessage.at("values")[i].at(FUNCTION_ITEM_FUNCTION_NAME);
-        functionItem.durMax = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MAX);
-        functionItem.durMin = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MIN);
-        functionItem.durAvg = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_AVG);
+        if (!jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MAX).is_null()) {
+            functionItem.durMax = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MAX);
+        }
+        if (!jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MIN).is_null()) {
+            functionItem.durMin = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_MIN);
+        }
+        if (!jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_AVG).is_null()) {
+            functionItem.durAvg = jMessage.at("values")[i].at(FUNCTION_ITEM_DUR_AVG);
+        }
         sysCallStrategy_.emplace_back(functionItem);
     }
     return;

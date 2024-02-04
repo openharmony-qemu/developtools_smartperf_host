@@ -23,9 +23,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 struct FunctionItem {
     std::string functionName;
-    uint32_t durMax;
-    int32_t durMin;
-    uint32_t durAvg;
+    int32_t durMax = -1;
+    int32_t durMin = -1;
+    int32_t durAvg = -1;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
