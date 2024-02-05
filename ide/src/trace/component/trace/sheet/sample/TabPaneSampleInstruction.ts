@@ -38,7 +38,7 @@ export class TabPaneSampleInstruction extends BaseElement {
   private hintContent = ""; //悬浮框内容
   private floatHint!: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
-  private hoverSampleStruct: SampleStruct | undefined;
+  private hoverSampleStruct: any | undefined;
   private isChecked: boolean = false;
   private maxDepth = 0;
 
@@ -219,9 +219,7 @@ export class TabPaneSampleInstruction extends BaseElement {
       return;
     }
     this.hintContent = `<span class="text">${hoverNode.detail}(${hoverNode.name})</span></br>
-      <span class="text">${ this.isChecked ? 
-        hoverNode.cycles === 1 ? 0 : hoverNode.cycles : 
-        hoverNode.instructions === 1 ? 0 : hoverNode.instructions}
+      <span class="text">${ this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
       </span>
     `;
   }
@@ -384,27 +382,38 @@ export class TabPaneSampleInstruction extends BaseElement {
     propertyData.forEach((property: any) => {
       const relation = knownRelation.find(relation => relation['name'] === property['func_name']);
       relation['instructions'] = property['instructions'] === 0 ? 1 : Math.ceil(property['instructions']);
+      relation['hoverInstructions'] = Math.ceil(property['instructions']);
       relation['cycles'] = property['cycles'] === 0 ? 1 : Math.ceil(property['cycles']);
+      relation['hoverCycles'] = Math.ceil(property['cycles']);
       this.maxDepth = Math.max(this.maxDepth, relation['depth']);
     })
     //获取所有unknown数据
     let instructionSum = 0;
     let cyclesSum = 0;
+    let hoverInstructionsSum= 0;
+    let hoverCyclesSum = 0;
     const unknownRelation = relationData.filter(relation => relation['name'].indexOf('unknown') > -1);
     if (unknownRelation.length > 0) {
       unknownRelation.forEach(unknownItem => {
         instructionSum = 0;
         cyclesSum = 0;
+        hoverInstructionsSum = 0;
+        hoverCyclesSum = 0;
         const children = unknownItem['children'];
         for (const key in children) {
           const it = relationData.find(relation => relation['name'] === key);
-          instructionSum += it['instructions'] ?? 0;
+          instructionSum += it['instructions'] == 1.5 ? 0 : it['instructions'];
           cyclesSum += it['cycles'] ?? 0;
+          hoverInstructionsSum += it['hoverInstructions'] ?? 0;
+          hoverCyclesSum += it['hoverCycles'] ?? 0;
         }
         unknownItem['instructions'] = instructionSum;
+        unknownItem['hoverInstructions'] = hoverInstructionsSum;
         unknownItem['cycles'] = cyclesSum;
+        unknownItem['hoverCycles'] = hoverCyclesSum;
       })
     }
+    console.log(unknownRelation);
   }
 
   /**

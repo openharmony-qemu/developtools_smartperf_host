@@ -383,8 +383,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     const length = instructionData[0].property.length;
     const knowData = instructionData.filter(instruction => instruction["name"].indexOf("unknown") < 0);
     knowData.forEach(instruction => {
-      const totalInstruction = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + (cur["instructions"]! === 0 ? 1 : cur["instructions"]!), 0);
-      const totalCycles = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + (cur["cycles"]! === 0 ? 1 : cur["cycles"]!), 0);
+      const totalInstruction = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + (cur["instructions"]! === 0 ? 1 : Math.ceil(cur["instructions"]!)), 0);
+      const totalCycles = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + (cur["cycles"]! === 0 ? 1 : Math.ceil(cur["cycles"]!)), 0);
       instruction["instructions"] = Math.ceil(totalInstruction / length);
       instruction["cycles"] = Math.ceil(totalCycles / length);
       this.maxDepth = Math.max(this.maxDepth, instruction["depth"]);
@@ -397,7 +397,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       cyclesSum = 0;
       for (const key in unknown["children"]) {
         const child = instructionData.find(instruction => instruction["name"] === key);
-        instructionSum += child['instructions'];
+        instructionSum +=  child['instructions'];
         cyclesSum += child["cycles"];
       }
       unknown["instructions"] = instructionSum;
