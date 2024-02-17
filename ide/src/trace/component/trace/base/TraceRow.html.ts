@@ -243,7 +243,7 @@ export const TraceRowHtml = `
             color: #00a3f5;
         }
         .lit-check-box{
-          margin-right: 15px;
+            margin-right: 25px;
         }
         :host([row-setting='enable'][check-type]) .lit-check-box{
             margin-right: 25px;

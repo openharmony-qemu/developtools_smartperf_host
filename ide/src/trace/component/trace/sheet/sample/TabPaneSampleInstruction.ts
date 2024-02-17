@@ -381,9 +381,9 @@ export class TabPaneSampleInstruction extends BaseElement {
     const knownRelation = relationData.filter(relation => relation['name'].indexOf('unknown') < 0);
     propertyData.forEach((property: any) => {
       const relation = knownRelation.find(relation => relation['name'] === property['func_name']);
-      relation['instructions'] = property['instructions'] === 0 ? 1 : Math.ceil(property['instructions']);
+      relation['instructions'] = Math.ceil(property['instructions']) || 1;
       relation['hoverInstructions'] = Math.ceil(property['instructions']);
-      relation['cycles'] = property['cycles'] === 0 ? 1 : Math.ceil(property['cycles']);
+      relation['cycles'] = Math.ceil(property['cycles']) || 1;
       relation['hoverCycles'] = Math.ceil(property['cycles']);
       this.maxDepth = Math.max(this.maxDepth, relation['depth']);
     })
@@ -402,7 +402,7 @@ export class TabPaneSampleInstruction extends BaseElement {
         const children = unknownItem['children'];
         for (const key in children) {
           const it = relationData.find(relation => relation['name'] === key);
-          instructionSum += it['instructions'] == 1.5 ? 0 : it['instructions'];
+          instructionSum += it['instructions'] ?? 0;
           cyclesSum += it['cycles'] ?? 0;
           hoverInstructionsSum += it['hoverInstructions'] ?? 0;
           hoverCyclesSum += it['hoverCycles'] ?? 0;
@@ -413,7 +413,6 @@ export class TabPaneSampleInstruction extends BaseElement {
         unknownItem['hoverCycles'] = hoverCyclesSum;
       })
     }
-    console.log(unknownRelation);
   }
 
   /**
