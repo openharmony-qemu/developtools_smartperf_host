@@ -755,6 +755,11 @@ export class SpSystemTrace extends BaseElement {
         this.currentSlicesTime.startTime = JankStruct.selectJankStruct.ts;
         this.currentSlicesTime.endTime = JankStruct.selectJankStruct.ts + JankStruct.selectJankStruct.dur;
       }
+    } else if (SampleStruct.selectSampleStruct) {
+      if (SampleStruct.selectSampleStruct.begin && SampleStruct.selectSampleStruct.end) {
+        this.currentSlicesTime.startTime = SampleStruct.selectSampleStruct.begin - SampleStruct.selectSampleStruct.startTs!;
+        this.currentSlicesTime.endTime = SampleStruct.selectSampleStruct.end - SampleStruct.selectSampleStruct.startTs!;
+      }
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -773,6 +778,7 @@ export class SpSystemTrace extends BaseElement {
       SoStruct.selectSoStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
+      SampleStruct.selectSampleStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
@@ -781,9 +787,16 @@ export class SpSystemTrace extends BaseElement {
 
   private calculateSlicesTime(selectedStruct: any, shiftKey: boolean): void {
     if (selectedStruct) {
-      const startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || 0;
-      const dur = selectedStruct.dur || selectedStruct.totalTime || (selectedStruct.endNS - selectedStruct.startNS) || 0;
-      this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
+      let startTs = 0;
+      if (selectedStruct.begin && selectedStruct.end) {
+        startTs = selectedStruct.begin - selectedStruct.startTs;
+        let end = selectedStruct.end - selectedStruct.startTs;
+        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
+      } else {
+        startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || 0;
+        let dur = selectedStruct.dur || selectedStruct.totalTime || (selectedStruct.endNS - selectedStruct.startNS) || 0;
+        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
+      }
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
     }
@@ -1084,6 +1097,10 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_FUNC,
       (): boolean => FuncStruct.hoverFuncStruct !== null && FuncStruct.hoverFuncStruct !== undefined,
     ],
+    [ 
+      TraceRow.ROW_TYPE_SAMPLE, 
+      (): boolean => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined
+    ],
     [
       TraceRow.ROW_TYPE_CPU_FREQ,
       (): boolean => CpuFreqStruct.hoverCpuFreqStruct !== null && CpuFreqStruct.hoverCpuFreqStruct !== undefined,
@@ -1195,7 +1212,6 @@ export class SpSystemTrace extends BaseElement {
       () => SnapshotStruct.hoverSnapshotStruct !== null && SnapshotStruct.hoverSnapshotStruct !== undefined,
     ],
     [TraceRow.ROW_TYPE_LOGS, () => LogStruct.hoverLogStruct !== null && LogStruct.hoverLogStruct !== undefined],
-    [TraceRow.ROW_TYPE_SAMPLE, () => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined],
   ]);
 
   onClickHandler(clickRowType: string, row?: TraceRow<any>) {

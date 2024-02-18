@@ -38,7 +38,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   private hintContent = ""; //悬浮框内容
   private floatHint: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
-  private hoverSampleStruct: SampleStruct | undefined;
+  private hoverSampleStruct: any | undefined;
   private isChecked: boolean = false;
   private maxDepth = 0;
 
@@ -210,6 +210,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     this.floatHint!.style.transform = `translate(${x}px, ${y}px)`;
   }
 
+
   /**
    * 更新悬浮框内容
    * @returns 
@@ -220,9 +221,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       return;
     }
     this.hintContent = `<span class="text">${hoverNode.detail}(${hoverNode.name})</span></br>
-      <span class="text">${ this.isChecked ? 
-        hoverNode.cycles === 1 ? 0 : hoverNode.cycles : 
-        hoverNode.instructions === 1 ? 0 : hoverNode.instructions}
+      <span class="text">${ this.isChecked ? hoverNode.hoverCycles : hoverNode.hoverInstructions}
       </span>
     `;
   }
@@ -383,25 +382,37 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     const length = instructionData[0].property.length;
     const knowData = instructionData.filter(instruction => instruction["name"].indexOf("unknown") < 0);
     knowData.forEach(instruction => {
-      const totalInstruction = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + (cur["instructions"]! === 0 ? 1 : Math.ceil(cur["instructions"]!)), 0);
-      const totalCycles = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + (cur["cycles"]! === 0 ? 1 : Math.ceil(cur["cycles"]!)), 0);
-      instruction["instructions"] = Math.ceil(totalInstruction / length);
-      instruction["cycles"] = Math.ceil(totalCycles / length);
-      this.maxDepth = Math.max(this.maxDepth, instruction["depth"]);
+      if (instruction.property.length > 0) {
+        const totalInstruction = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + Math.ceil(cur["instructions"]!), 0);
+        const totalCycles = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + Math.ceil(cur["cycles"]!), 0);
+        instruction["instructions"] = Math.ceil(totalInstruction / length) || 1;
+        instruction["cycles"] = Math.ceil(totalCycles / length) || 1;
+        instruction['hoverInstructions'] = Math.ceil(totalInstruction / length);
+        instruction['hoverCycles'] = Math.ceil(totalCycles / length);
+        this.maxDepth = Math.max(this.maxDepth, instruction["depth"]);
+      }
     })
     const unknownData = instructionData.filter(instruction  => instruction["name"].indexOf("unknown") > -1);
     let instructionSum = 0;
     let cyclesSum = 0;
+    let hoverInstructionsSum= 0;
+    let hoverCyclesSum = 0;
     unknownData.forEach(unknown => {
       instructionSum = 0;
       cyclesSum = 0;
+      hoverInstructionsSum= 0;
+      hoverCyclesSum = 0;
       for (const key in unknown["children"]) {
         const child = instructionData.find(instruction => instruction["name"] === key);
-        instructionSum +=  child['instructions'];
-        cyclesSum += child["cycles"];
+        instructionSum +=  child['instructions'] ?? 0;
+        cyclesSum += child["cycles"] ?? 0;
+        hoverInstructionsSum += child['hoverInstructions'] ?? 0;
+        hoverCyclesSum += child['hoverCycles'] ?? 0;
       }
       unknown["instructions"] = instructionSum;
       unknown["cycles"] = cyclesSum;
+      unknown['hoverInstructions'] = hoverInstructionsSum;
+      unknown['hoverCycles'] = hoverCyclesSum;
     })
     return instructionData;
   }
