@@ -86,14 +86,15 @@ export class HitchTimeStruct extends BaseStruct {
   pid: number | undefined;
   itid: number | undefined;
   startTime: number | undefined;
+  signaled: number | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: HitchTimeStruct): void {
     if (data.frame) {
       ctx.fillStyle = '#9933FA';
       if (data === HitchTimeStruct.hoverHitchTimeStruct || data === HitchTimeStruct.selectHitchTimeStruct) {
-        let drawHeight: number = Math.round(
+        let drawHeight: number = HitchTimeStruct.maxVal !== 0 ? Math.round(
           ((Number(data.value) || 0) * (data.frame.height || 0) * 1.0) / HitchTimeStruct.maxVal!
-        );
+        ):0;
         drawHeight = data.name ==='0'? 0 : drawHeight;
         drawHeight = drawHeight < 1 ? 1 : drawHeight;
         ctx.globalAlpha = 1.0;
@@ -103,7 +104,10 @@ export class HitchTimeStruct extends BaseStruct {
         ctx.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)
       } else {
         ctx.globalAlpha = 0.6;
-        let drawHeight: number = Math.round(((Number(data.value) || 0) * (data.frame.height || 0)) / HitchTimeStruct.maxVal!);
+        let drawHeight: number = 0;
+        if(HitchTimeStruct.maxVal! !== 0){
+          drawHeight = Math.round(((Number(data.value) || 0) * (data.frame.height || 0)) / HitchTimeStruct.maxVal!);
+        }
         drawHeight = data.name ==='0' ? 0 : drawHeight;
         drawHeight = drawHeight < 1 ? 1 : drawHeight;
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)

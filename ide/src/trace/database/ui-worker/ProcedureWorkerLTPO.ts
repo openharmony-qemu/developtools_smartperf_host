@@ -84,15 +84,15 @@ export class LtpoStruct extends BaseStruct {
   pid: number | undefined;
   itid: number | undefined;
   startTime: number | undefined;
+  signaled: number | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: LtpoStruct): void {
     if (data.frame) {
       ctx.fillStyle = '#9933FA';
       if (data === LtpoStruct.hoverLtpoStruct || data === LtpoStruct.selectLtpoStruct) {
-        let drawHeight: number = Math.floor(
+        let drawHeight: number = LtpoStruct.maxVal !== 0 ? Math.floor(
           ((Number(data.value) || 0) * (data.frame.height || 0) * 1.0) / LtpoStruct.maxVal!
-        );
-        drawHeight = data.value! < 1 ? 0.5 : drawHeight;
+        ): 0;
         drawHeight = drawHeight < 1 ? 1 : drawHeight
         ctx.globalAlpha = 1.0;
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight);
@@ -101,9 +101,11 @@ export class LtpoStruct extends BaseStruct {
         ctx.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)
       } else {
         ctx.globalAlpha = 0.6;
-        let drawHeight: number = Math.floor(((Number(data.value) || 0) * (data.frame.height || 0)) / LtpoStruct.maxVal!);
-        drawHeight = data.value! < 1 ? 0.5 : drawHeight;
-        drawHeight = drawHeight < 1 ? 0.5 : drawHeight
+        let drawHeight: number = 0;
+        if(LtpoStruct.maxVal !== 0){
+          drawHeight = Math.floor(((Number(data.value) || 0) * (data.frame.height || 0)) / LtpoStruct.maxVal!);
+        }
+        drawHeight = drawHeight < 1 ? 1 : drawHeight
         ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, data.frame.width, drawHeight)
       }
 
