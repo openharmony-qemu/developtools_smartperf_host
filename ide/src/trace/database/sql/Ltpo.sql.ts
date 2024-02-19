@@ -39,5 +39,5 @@ export const queryRealFpsList = ():Promise<Array<LtpoStruct>> =>
   query(
     'queryRealFpsList',
     `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%'))
-  AND name LIKE('H:RSHardwareThread::CommitAndReleaseLayers SetScreenRefreshRate:%')`
+  AND name LIKE('H:RSHardwareThread::PerformSetActiveMode%')`
   )
