@@ -168,6 +168,10 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
+          this.hintEl!.textContent = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。';
+          if (!this.showHint) {
+            this.showHint = true;
+          }
         }
         let optionNum = 0;
         for (let len = 0; len < devs.length; len++) {
@@ -186,7 +190,9 @@ export class SpRecordTrace extends BaseElement {
               option.selected = true;
               this.recordButton!.hidden = false;
               this.disconnectButton!.hidden = false;
+              this.showHint = false;
               this.devicePrompt!.innerText = '';
+              this.hintEl!.textContent = '';
               SpRecordTrace.serialNumber = option.value;
               this.refreshDeviceVersion(option);
             }
@@ -200,6 +206,10 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
+          this.hintEl!.textContent = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。';
+          if (!this.showHint) {
+            this.showHint = true;
+          }
         }
       });
     }
@@ -372,11 +382,11 @@ export class SpRecordTrace extends BaseElement {
     if (this.deviceSelect.options && this.deviceSelect.options.length > 0) {
       this.disconnectButton!.hidden = false;
       this.recordButton.hidden = false;
-      this.devicePrompt.innerText = '';
+      this.devicePrompt.innerText = ''; 
     } else {
       this.disconnectButton!.hidden = true;
       this.recordButton.hidden = true;
-      this.devicePrompt.innerText = 'Device not connected';
+      this.devicePrompt.innerText = 'Device not connected'; 
     }
   }
 
