@@ -135,15 +135,17 @@ export class SelectionParam {
   pushSampleData(it: TraceRow<any>) {
     if (it.rowType == TraceRow.ROW_TYPE_SAMPLE) {
       let dataList: SampleStruct[] = JSON.parse(JSON.stringify(it.dataList));
-      dataList.forEach(
-        SampleStruct => {
-          SampleStruct.property = SampleStruct.property!.filter((i : any) => 
-            ((i.begin! - i.startTs!) ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
-            ((i.end! - i.startTs!) ?? 0) <= TraceRow.rangeSelectObject!.endNS!)
+      if (dataList.length > 0) {
+        dataList.forEach(
+          SampleStruct => {
+            SampleStruct.property = SampleStruct.property!.filter((i : any) => 
+              ((i.begin! - i.startTs!) ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              ((i.end! - i.startTs!) ?? 0) <= TraceRow.rangeSelectObject!.endNS!)
+          }
+        )
+        if (dataList[0].property!.length !== 0) {
+          this.sampleData.push(...dataList);
         }
-      )
-      if (dataList[0].property!.length !== 0) {
-        this.sampleData.push(...dataList);
       }
     }
   }
