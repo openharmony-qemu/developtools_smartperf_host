@@ -132,10 +132,6 @@ const config = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: './bin/lib',
-          to: 'lib',
-        },
-        {
           from: './src/figures',
           to: 'figures',
         },
