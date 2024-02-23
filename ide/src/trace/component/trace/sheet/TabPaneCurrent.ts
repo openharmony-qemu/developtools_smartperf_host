@@ -185,8 +185,7 @@ export class TabPaneCurrent extends BaseElement {
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
     tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
-    this.trClickEvent(tr);
-    this.panelTableClick(tr);
+    this.trClickEvent(tr); 
 
     //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicesTimeList数组的第一个对应……，所以i从1开始，在this.slicesTimeList数组中取值时用i-1
     for (let i = 1; i < tr.length; i++) {
@@ -194,7 +193,6 @@ export class TabPaneCurrent extends BaseElement {
       tr[i].querySelector<HTMLInputElement>('#color-input')!.value = this.slicesTimeList[i - 1].color;
       //  点击色块修改颜色
       this.trChangeEvent(tr, i);
-
       // 修改备注
       tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
       // //  点击色块修改颜色
@@ -210,7 +208,6 @@ export class TabPaneCurrent extends BaseElement {
             enable: true,
           });
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
-
           this.systemTrace?.refreshCanvas(true);
         }
         event.stopPropagation();
@@ -232,9 +229,12 @@ export class TabPaneCurrent extends BaseElement {
         }
         event.stopPropagation();
       });
+
       this.trFocusEvent(tr, i);
       this.removeButtonClickEvent(tr, i);
     }
+
+   // this.panelTableClick(tr);
   }
 
   private trChangeEvent(tr: NodeListOf<HTMLDivElement>, i: number): void {
@@ -314,8 +314,8 @@ export class TabPaneCurrent extends BaseElement {
           //   旗子颜色改变时，重绘泳道图
           this.systemTrace?.refreshCanvas(true);
         }
-      }
-    });
+      } 
+    },{capture: true});
   }
 
   /**
