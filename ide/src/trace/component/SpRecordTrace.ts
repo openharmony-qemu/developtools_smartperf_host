@@ -168,7 +168,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.hintEl!.textContent = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。';
+          this.hintEl!.textContent = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。若还没有效果，请重新插拔一下手机。';
           if (!this.showHint) {
             this.showHint = true;
           }
@@ -206,7 +206,7 @@ export class SpRecordTrace extends BaseElement {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.hintEl!.textContent = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。';
+          this.hintEl!.textContent = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill，然后重新添加设备。若还没有效果，请重新插拔一下手机。';
           if (!this.showHint) {
             this.showHint = true;
           }
