@@ -13,17 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawLoadingFrame,
-  drawSelection,
-  PerfRender,
-  Rect,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, drawLoadingFrame, PerfRender, Rect, RequestMessage } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EBPFRender extends PerfRender {
@@ -168,8 +158,10 @@ function setFrameByArr(
       it.frame = {};
       it.frame.y = y;
     }
-    EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
-    eBPFFilters.push(it);
+    if (it.size > 0) {
+      EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
+      eBPFFilters.push(it);
+    }
   });
 }
 

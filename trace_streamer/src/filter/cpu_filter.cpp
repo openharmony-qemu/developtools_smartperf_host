@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,11 +68,9 @@ void CpuFilter::ProcPrevPidSwitchEvent(uint64_t ts,
         auto lastCpu = traceDataCache_->GetConstThreadStateData().CpusData()[lastRow];
         auto lastState = traceDataCache_->GetConstThreadStateData().StatesData()[lastRow];
         auto lastStartTs = traceDataCache_->GetConstThreadStateData().TimeStampData()[lastRow];
-       if ((cpu != lastCpu) && (lastState == TASK_RUNNING)){
-           if (traceDataCache_->HMKernelTraceEnabled() || (ts == lastStartTs)) {  
-               isChangeCpu = true;  
-            }  
-        } 
+        if ((cpu != lastCpu) && (lastState == TASK_RUNNING) && (ts == lastStartTs)) {
+            isChangeCpu = true;
+        }
         if (!isChangeCpu) {
             CheckWakeupEvent(prevPid);
             traceDataCache_->GetThreadStateData()->UpdateDuration(static_cast<TableRowId>(lastRow), ts);
@@ -101,14 +99,14 @@ void CpuFilter::ProcPrevPidSwitchEvent(uint64_t ts,
 void CpuFilter::InsertSwitchEvent(uint64_t ts,
                                   uint64_t cpu,
                                   uint32_t prevPid,
-                                  uint64_t prevPior,
+                                  int32_t prevPrio,
                                   uint64_t prevState,
                                   uint32_t nextPid,
-                                  uint64_t nextPior,
+                                  int32_t nextPrio,
                                   DataIndex nextInfo)
 {
     BinderTransactionInfo btInfo = {prevPid, nextPid, INVALID_UINT64, INVALID_UINT64};
-    auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, INVALID_UINT64, cpu, nextPid, 0, nextPior);
+    auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, INVALID_UINT64, cpu, nextPid, 0, nextPrio);
     auto prevTidOnCpu = cpuToRowSched_.find(cpu);
     if (prevTidOnCpu != cpuToRowSched_.end()) {
         traceDataCache_->GetSchedSliceData()->Update(prevTidOnCpu->second.row, ts, prevState);

@@ -491,7 +491,9 @@ function resizeObserverHandler(sp:SpSystemTrace) {
         if (sp.traceSheetEL!.getAttribute('mode') == 'hidden') {
             sp.timerShaftEL?.removeTriangle('triangle');
         }
-        sp.refreshFavoriteCanvas();
+        if(sp.favoriteChartListEL?.style.display === 'flex'){
+            sp.refreshFavoriteCanvas();
+        }
         sp.refreshCanvas(true);
     }).observe(sp.rowsPaneEL!);
 }
@@ -896,6 +898,7 @@ export async function spSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuf
         }
         if (sp.loadTraceCompleted) {
             sp.traceSheetEL?.displaySystemLogsData();
+            sp.traceSheetEL?.displaySystemStatesData();
         }
         sp.intersectionObserver?.observe(it);
     });

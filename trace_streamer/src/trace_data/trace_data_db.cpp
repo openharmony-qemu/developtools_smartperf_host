@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -361,10 +361,7 @@ int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
     int32_t rowCount = 0;
     sqlite3_stmt* stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
-    if (sql.back() != '\n') {
-        sql += "\r\n";
-    }
-    printf("Executing sql: %s", sql.c_str());
+    printf("Executing sql: %s\n", sql.c_str());
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
         return 0;

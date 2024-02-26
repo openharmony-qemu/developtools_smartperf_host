@@ -1115,6 +1115,8 @@ export function drawLinkLines(
 function setLinkLinesNodes(nodes: any, isFav: any, favH: number, max: number, context: any, perc: number): void {
   for (let i = 0; i < nodes.length; i++) {
     let it = nodes[i];
+    it[0].y = it[0].rowEL.translateY + it[0].offsetY;
+    it[1].y = it[1].rowEL.translateY + it[1].offsetY;
     let newFirstNode = new PairPoint(
       it[0].rowEL,
       it[0].x,

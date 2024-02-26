@@ -594,16 +594,20 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.frameChart?.calculateChartData();
         }
+        let headLineHeight = 0;
+        if (this.fileSystemHeadLine?.isShow) {
+          headLineHeight = this.fileSystemHeadLine!.clientHeight;
+        }
         if (this.fsCallTreeTbl) {
           // @ts-ignore
           this.fsCallTreeTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 35 + 'px';
+            this.parentElement!.clientHeight - 10 - 35 - headLineHeight + 'px';
           this.fsCallTreeTbl.reMeauseHeight();
         }
         if (this.fsCallTreeTbr) {
           // @ts-ignore
           this.fsCallTreeTbr.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 45 - 21 + 'px';
+            this.parentElement!.clientHeight - 45 - 21 - headLineHeight + 'px';
           this.fsCallTreeTbr.reMeauseHeight();
         }
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';

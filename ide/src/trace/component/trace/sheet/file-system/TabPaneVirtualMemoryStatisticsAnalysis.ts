@@ -830,7 +830,9 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       for (let item of value) {
         vmThreadDur += item.dur;
         tName = item.threadName =
-          item.threadName === null || item.threadName === undefined ? `Thread(${item.tid})` : `${item.threadName}`;
+          item.threadName === null || item.threadName === undefined
+            ? `Thread(${item.tid})`
+            : `${item.threadName}(${item.tid})`;
       }
       const threadData = {
         tableName: tName,

@@ -662,7 +662,6 @@ export const getCpuLimitFreqBoxSelect = (
     and ts - T.start_ts < ${rightNS} 
   group by ts
   `;
-  console.log(sql);
   return query('getCpuLimitFreqBoxSelect', sql, {});
 };
 export const getCpuLimitFreq = (maxId: number, minId: number, cpu: number): Promise<Array<CpuFreqLimitsStruct>> =>

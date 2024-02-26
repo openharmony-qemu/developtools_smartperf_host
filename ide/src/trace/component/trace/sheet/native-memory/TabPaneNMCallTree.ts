@@ -699,17 +699,21 @@ export class TabpaneNMCalltree extends BaseElement {
           this.nmCallTreeFrameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.nmCallTreeFrameChart?.calculateChartData();
         }
+        let headLineHeight = 0;
+        if (this.headLine?.isShow) {
+          headLineHeight = this.headLine!.clientHeight;
+        }
         if (this.nmCallTreeTbl) {
           // @ts-ignore
           this.nmCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 35
+            this.parentElement!.clientHeight - 10 - 35 - headLineHeight
           }px`;
         }
         this.nmCallTreeTbl?.reMeauseHeight();
         if (this.filesystemTbr) {
           // @ts-ignore
           this.filesystemTbr.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 45 - 21
+            this.parentElement!.clientHeight - 45 - 21 - headLineHeight
           }px`;
         }
         this.filesystemTbr?.reMeauseHeight();

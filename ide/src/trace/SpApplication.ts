@@ -67,6 +67,7 @@ import {
   readTraceFileBuffer,
 } from './SpApplicationPublicFunc';
 import { queryExistFtrace } from './database/sql/SqlLite.sql';
+import '../base-ui/chart/scatter/LitChartScatter';
 import { SpThirdParty } from './component/SpThirdParty';
 import './component/SpThirdParty';
 

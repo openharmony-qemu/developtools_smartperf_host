@@ -21,7 +21,7 @@ import { getProbablyTime } from '../../../../database/logic-worker/ProcedureLogi
 import { resizeObserver } from '../SheetUtils';
 import { Utils } from '../../base/Utils';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
-import {queryGpuDataTab} from "../../../../database/sql/Gpu.sql";
+import { queryGpuDataTab } from '../../../../database/sql/Gpu.sql';
 
 interface GL {
   startTs: number;
@@ -72,6 +72,9 @@ export class TabPaneGpuGL extends BaseElement {
   initElements(): void {
     this.glTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gl');
     this.range = this.shadowRoot?.querySelector('#gl-time-range');
+    this.glTbl!.addEventListener('column-click', (evt: any) => {
+      this.sortByColumn(evt.detail);
+    });
   }
 
   connectedCallback(): void {
@@ -97,13 +100,26 @@ export class TabPaneGpuGL extends BaseElement {
             <label id="gl-time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
         </div>
         <div style="overflow: auto">
-            <lit-table id="tb-gl" style="height: auto" tree>
-                <lit-table-column width="600px" title="Timestamp"  data-index="startTsStr" key="startTsStr"  align="flex-start" >
+            <lit-table id="tb-gl" style="height: auto">
+                <lit-table-column width="600px" title="Timestamp"  data-index="startTsStr" key="startTsStr"  align="flex-start" order>
                 </lit-table-column>
-                <lit-table-column width="200px" title="GL_PSS" data-index="sizeStr" key="sizeStr"  align="flex-start">
+                <lit-table-column width="200px" title="GL_PSS" data-index="sizeStr" key="sizeStr"  align="flex-start" order>
                 </lit-table-column>
             </lit-table>
         </div>
         `;
+  }
+  sortByColumn(detail: { key: string; sort: number }): void {
+    this.glSource.sort((gpuA, gpuB) => {
+      if (detail.sort === 0) {
+        return gpuA.startTs - gpuB.startTs;
+      } else {
+        let key = detail.key.replace('Str', '');
+        let valueA = (gpuA as any)[key];
+        let valueB = (gpuB as any)[key];
+        return detail.sort === 1 ? valueA - valueB : valueB - valueA;
+      }
+    });
+    this.glTbl!.recycleDataSource = this.glSource;
   }
 }

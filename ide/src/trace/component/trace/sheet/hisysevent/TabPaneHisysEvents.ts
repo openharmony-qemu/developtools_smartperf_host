@@ -197,7 +197,9 @@ export class TabPaneHisysEvents extends BaseElement {
     if (this.hiSysEventTable && this.hiSysEventTable.currentRecycleList.length > 0) {
       let startDataIndex = this.hiSysEventTable.startSkip + 1;
       let endDataIndex = startDataIndex;
-      if (height < firstRowHeight * 0.3) {
+      let crossTopHeight = tbl!.scrollTop % firstRowHeight;
+      let topShowHeight = crossTopHeight === 0 ? 0 : firstRowHeight - crossTopHeight;
+      if (topShowHeight < firstRowHeight * 0.3) {
         startDataIndex++;
       }
       let tableHeight = Number(tbl!.style.height.replace('px', '')) - tableHeadHeight;
@@ -208,7 +210,7 @@ export class TabPaneHisysEvents extends BaseElement {
         height += firstRowHeight;
         endDataIndex++;
       }
-      if (tableHeight - height > firstRowHeight * 0.3) {
+      if (tableHeight - height - topShowHeight > firstRowHeight * 0.3) {
         endDataIndex++;
       }
       if (endDataIndex >= this.filterDataList.length) {

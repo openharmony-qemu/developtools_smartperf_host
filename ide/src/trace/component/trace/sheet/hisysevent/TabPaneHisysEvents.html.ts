@@ -121,12 +121,12 @@ export const TabPaneHiSysEventsHtml = `
                    <div style="display: flex;">
                      <div id="domainTagFilter" style='display: flex;width: auto; height: 100%;flex-wrap: wrap;'>
                      </div>
-                     <input type="text" id="domain-filter" class="filter-input" placeholder="Filter by Domain...">
+                     <input type="text" id="domain-filter" class="filter-input" placeholder="Filter by Domain…">
                   </div>
                    <div style="display: flex;">
                     <div id="eventNameTagFilter" style='display: flex;width: auto; height: 100%;flex-wrap: wrap;'>
                     </div>
-                    <input type="text" id="event-name-filter" class="filter-input" placeholder="Filter by eventname...">
+                    <input type="text" id="event-name-filter" class="filter-input" placeholder="Filter by eventname…">
                   </div>
                    <div class="level-content">
                        <select id="level-filter">
@@ -135,7 +135,7 @@ export const TabPaneHiSysEventsHtml = `
                         <option>CRITICAL</option>
                        </select>
                     </div>
-                   <input type="text" id="contents-filter" class="filter-input" placeholder="Filter by contents...">
+                   <input type="text" id="contents-filter" class="filter-input" placeholder="Filter by contents…">
                 </div>
             </div>
         <lit-page-table id="tb-hisysevent" style="height: auto">

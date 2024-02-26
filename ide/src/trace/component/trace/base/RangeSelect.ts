@@ -50,11 +50,11 @@ export class RangeSelect {
   }
 
   isInRowsEl(ev: MouseEvent): boolean {
-    return this.rowsPaneEL!.containPoint(ev, { left: 248 });
+    return this.rowsPaneEL!.containPoint(ev, {left: 248});
   }
 
   isInSpacerEL(ev: MouseEvent): boolean {
-    return this.trace!.favoriteChartListEL!.containPoint(ev, { left: 248 });
+    return this.trace!.favoriteChartListEL!.containPoint(ev, {left: 248});
   }
 
   mouseDown(eventDown: MouseEvent): void {
@@ -114,7 +114,7 @@ export class RangeSelect {
             }
           });
         }
-        if (rowName.startsWith('Present') && rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
+        if (rowName === 'Present' && rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
           this.handlePresentData(rowList[i], funcName);
         }
         if (dataList.length) {

@@ -74,7 +74,7 @@ export class TabPanePerfAnalysis extends BaseElement {
       for (let table of this.tableArray) {
         initSort(table!, this.sortColumn, this.sortType);
       }
-    } 
+    }
     this.currentSelection = val;
     this.tabName!.textContent = '';
     this.hideProcessCheckBox!.checked = false;
@@ -86,7 +86,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     )} ms`;
     if (!this.callChainMap) {
       this.getCallChainDataFromWorker(val);
-    } 
+    }
   }
 
   private initPerfTableListener(): void {
@@ -221,7 +221,7 @@ export class TabPanePerfAnalysis extends BaseElement {
           table.style.display = 'grid';
           table!.removeAttribute('hideDownload');
         } else {
-          table!.style.display = 'none'; 
+          table!.style.display = 'none';
           table.setAttribute('hideDownload', '');
         }
       }
@@ -755,9 +755,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         libMap.set(`${itemData.libId}-${itemData.libName}`, dataArray);
       }
     }
-    if (!item) {
-      parentEventCount = allEventCount;
-    }
+    item ? (parentEventCount = item.eventCount) : (parentEventCount = allEventCount);
     this.soData = [];
     libMap.forEach((arr: Array<any>) => {
       let libCount = 0;

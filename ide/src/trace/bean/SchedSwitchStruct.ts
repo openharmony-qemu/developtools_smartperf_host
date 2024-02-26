@@ -13,9 +13,58 @@
  * limitations under the License.
  */
 
+export class ThreadInitConfig {
+  endTs: number = 0;
+  pid: number = -1;
+  state: string = '';
+  tid: number = -1;
+  ts: number = -1;
+  dur: number = -1;
+  duration: number = -1;
+  cycleStartTime: number = -1;
+  cycleEndTime: number = -1;
+}
+export class SchedSwitchCountBean {
+  nodeFlag: string | undefined;
+  startNS: number;
+  cycleStartTime: string = '';
+  dur: number | string;
+  duration: number | string;
+  cycle: number = -1;
+  title: string = '';
+  value: number = 0;
+  level: string = '';
+  colorIndex: number = -1;
+  children: Array<SchedSwitchCountBean> = [];
+  constructor(
+    nodeFlag: string | undefined,
+    startNS: number,
+    cycleStartTime: string,
+    dur: number | string,
+    duration: number | string,
+    cycle: number,
+    title: string,
+    value: number,
+    level: string,
+    colorIndex: number,
+    children: Array<SchedSwitchCountBean>
+  ) {
+    this.nodeFlag = nodeFlag;
+    this.startNS = startNS;
+    this.cycleStartTime = cycleStartTime;
+    this.dur = dur;
+    this.duration = duration;
+    this.cycle = cycle;
+    this.title = title;
+    this.value = value;
+    this.level = level;
+    this.colorIndex = colorIndex;
+    this.children = children
+  }
+}
 export class TreeSwitchConfig {
-  count: number = 0;
-  cycleNum: number = 1;
+  value: number = 0;
+  dur!: number | string | undefined;
   duration!: number | string | undefined;
   isHover?: boolean = false;
   isSelected?: boolean = false;
@@ -23,47 +72,30 @@ export class TreeSwitchConfig {
   level: string = '';
   pid: number = -1;
   process: string | undefined;
-  state?: string = '';
   status?: boolean = false;
   thread: string | undefined;
   tid: number = -1;
   title: string = '';
-  ts?: string = '';
   cycleStartTime!: number | string | undefined;
   children: Array<TreeSwitchConfig> = [];
 }
-
 export class HistogramSourceConfig {
   average: number = 0;
   color: string = '';
-  count: number = 0;
+  value: number = 0;
   cycleNum: number = 0;
   isHover: boolean = false;
   size: string = '';
 }
-
-export class ThreadInitConfig {
-  dur: number = 0;
-  endTs: number = 0;
-  id: number = 0;
+export class CutDataObjConfig {
+  cyclesArr: Array<SchedSwitchCountBean> = [];
   pid: number = -1;
-  state: string = '';
   tid: number = -1;
-  ts: number = -1;
-  type: string = '';
+  process: string | undefined;
+  thread: string | undefined;
+  processTitle: string = '';
+  threadTitle: string = '';
+  threadCountTotal: number = 0;
+  threadDurTotal!: number | string
 }
 
-export class SchedThreadCutConfig {
-  cycleEndTime: number = 0;
-  cycleStartTime: number = 0;
-  funId: number = 0;
-  name: string = '';
-  pid: number = -1;
-  runningCnt: number = 0;
-  state: string = '';
-  tid: number = -1;
-  process?: string = '';
-  thread?: string = '';
-  dur?: number = 0;
-  leftNS?: number = 0;
-}

@@ -241,6 +241,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
       for (let kst of ioTierChildMap.keys()) {
         if (kst.startsWith(ks + '_')) {
           let spt = ioTierChildMap.get(kst);
+          spt.avgDuration = spt.allDuration / spt.count;
           let data = this.getInitData(spt!, 'pname', 'pid');
           data.path = {
             tier: ioTierNode.tier,

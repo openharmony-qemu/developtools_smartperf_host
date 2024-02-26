@@ -44,8 +44,6 @@ let css = `
        :host(:not([mask])) .bg{
           display: none;
        }
-       
-       
        .title{
           display: flex;
           justify-content: space-between;
@@ -218,7 +216,7 @@ const initHtmlStyle = (padding: string, width: string) => {
 @element('lit-drawer')
 export class LitDrawer extends BaseElement {
   static get observedAttributes() {
-    return ['title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
+    return ['drawer-title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
   }
 
   initHtml(): string {
@@ -256,12 +254,12 @@ export class LitDrawer extends BaseElement {
   set placement(value: any) {
     this.setAttribute('placement', value);
   }
-  get title() {
-    return this.getAttribute('title') || '';
+  get drawerTitle() {
+    return this.getAttribute('drawer-title') || '';
   }
-  set title(value) {
+  set drawerTitle(value) {
     this.shadowRoot!.querySelector('#drawer-tittle-text')!.textContent = value;
-    this.setAttribute('title', value);
+    this.setAttribute('drawer-title', value);
   }
   get visible() {
     return this.getAttribute('visible') !== null;

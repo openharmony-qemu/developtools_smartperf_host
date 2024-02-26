@@ -173,7 +173,6 @@ export class LitTable extends HTMLElement {
         this.tableElement!.scrollLeft = 0;
       } else {
         this.tableElement!.scrollTop = 0;
-        this.tableElement!.scrollLeft = 0;
       }
       if (this.hasAttribute('tree') && this.querySelector('lit-table-column')?.hasAttribute('retract')) {
         if ((value.length === 0 || this.value.length !== 0) && value !== this.value && !this._isSearch) {
@@ -572,6 +571,13 @@ export class LitTable extends HTMLElement {
           this.gridTemplateColumns[i] = `${node.clientWidth}px`;
         }
         this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
+        let lastNode = header.childNodes.item(header.childNodes.length - 1) as HTMLDivElement;
+        let totalWidth = 0;
+        this.gridTemplateColumns.forEach((it) => {
+          totalWidth += parseInt(it);
+        });
+        totalWidth = Math.max(totalWidth, this.shadowRoot!.querySelector<HTMLDivElement>('.table')!.scrollWidth);
+        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft - 1}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
         preNode.style.width = `${preWidth}px`;
@@ -928,6 +934,7 @@ export class LitTable extends HTMLElement {
     rowTreeElement.onmouseup = (e: MouseEvent) => {
       let indexOf = this.currentRecycleList.indexOf(rowTreeElement);
       this.dispatchRowClickEvent(rowData, [this.treeElement?.children[indexOf] as HTMLElement, rowTreeElement], e);
+      e.stopPropagation();
     };
   }
 
@@ -1000,6 +1007,7 @@ export class LitTable extends HTMLElement {
     td.onmouseup = (e: MouseEvent) => {
       let indexOf = this.currentTreeDivList.indexOf(td);
       this.dispatchRowClickEvent(rowData, [td, tr], e);
+      e.stopPropagation();
     };
   }
 
@@ -1040,6 +1048,7 @@ export class LitTable extends HTMLElement {
     });
     newTableElement.onmouseup = (e: MouseEvent) => {
       this.dispatchRowClickEvent(rowData, [newTableElement], e);
+      e.stopPropagation();
     };
     newTableElement.onmouseenter = () => {
       this.dispatchRowHoverEvent(rowData, [newTableElement]);
@@ -1219,7 +1228,8 @@ export class LitTable extends HTMLElement {
   }
 
   reMeauseHeight(): void {
-    if (this.currentRecycleList.length === 0) {
+    if (this.currentRecycleList.length === 0 && this.ds.length !== 0) {
+      this.recycleDataSource = this.ds;
       return;
     }
     let totalHeight = 0;
@@ -1372,6 +1382,7 @@ export class LitTable extends HTMLElement {
 
   renderTableRowElementEvent(tblRowElement: HTMLDivElement, rowData: any): void {
     tblRowElement.onmouseup = (e: MouseEvent) => {
+      e.stopPropagation();
       this.dispatchEvent(
         new CustomEvent('row-click', {
           detail: {
@@ -1388,6 +1399,7 @@ export class LitTable extends HTMLElement {
           composed: true,
         })
       );
+      e.stopPropagation();
     };
   }
 
@@ -1446,6 +1458,7 @@ export class LitTable extends HTMLElement {
       } else {
         this.dispatchRowClickEvent(rowObject, [element], e);
       }
+      e.stopPropagation();
     };
     element.onmouseenter = () => {
       this.dispatchRowHoverEvent(rowObject, [element]);
@@ -1513,6 +1526,7 @@ export class LitTable extends HTMLElement {
       }
       firstElement.onmouseup = (e: MouseEvent) => {
         this.dispatchRowClickEvent(rowObject, [firstElement, element], e);
+        e.stopPropagation();
       };
       firstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`;
       if (rowObject.data.isSelected !== undefined) {
@@ -1526,14 +1540,16 @@ export class LitTable extends HTMLElement {
   setSelectedRow(isSelected: boolean, rows: any[]): void {
     if (isSelected) {
       rows.forEach((row) => {
-        if (row.classList.contains('mouse-in')) {
-          row.classList.remove('mouse-in');
+        if (row.classList) {
+          if (row.classList.contains('mouse-in')) {
+            row.classList.remove('mouse-in');
+          }
+          row.classList.add('mouse-select');
         }
-        row.classList.add('mouse-select');
       });
     } else {
       rows.forEach((row) => {
-        row.classList.remove('mouse-select');
+        row.classList && row.classList.remove('mouse-select');
       });
     }
   }
@@ -1733,6 +1749,7 @@ export class LitTable extends HTMLElement {
         composed: true,
       })
     );
+    event.stopPropagation();
   }
 
   dispatchRowHoverEvent(rowObject: any, elements: any[]): void {

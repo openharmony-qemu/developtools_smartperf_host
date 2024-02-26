@@ -84,6 +84,7 @@ import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerSample';
 import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
+import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -813,6 +814,14 @@ export class TraceSheet extends BaseElement {
     this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
   }
 
+  displaySystemStatesData = (): void => {
+    let tblStatesPanel = this.shadowRoot?.querySelector<TabPaneFreqStatesDataCut>("tabpane-states-datacut");
+    if (tblStatesPanel) {
+      tblStatesPanel.initTabSheetEl(this);
+      
+    }
+
+  };
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
     this.exportBt!.style.display = 'flex';

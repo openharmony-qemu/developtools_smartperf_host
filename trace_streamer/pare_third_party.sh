@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -49,18 +49,15 @@ if [ ! -f "zlib/BUILD.gn" ];then
         $cp ../prebuilts/patch_zlib/zlibbuild.gn zlib/BUILD.gn
     fi
 fi
-# if [ ! -f "googletest/BUILD.gn" ];then
-#     rm -rf googletest
-#     git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git
-#     if [ -d "third_party_googletest" ];then
-#         mv third_party_googletest googletest
-#         $cp ../prebuilts/patch_googletest/googletestbuild.gn ../third_party/googletest/BUILD.gn
-#         $patch -p0 ../third_party/googletest/googletest/include/gtest/internal/gtest-internal.h ../prebuilts/patch_googletest/gtest_internal.h.patch
-#         $patch -p0 ../third_party/googletest/googletest/include/gtest/internal/gtest-port.h ../prebuilts/patch_googletest/gtest_port.h.patch
-#         $patch -p0 ../third_party/googletest/googletest/include/gtest/gtest-message.h ../prebuilts/patch_googletest/gtest-message.h.patch
-#         $sed -i "/using ::std::string/s/^\(.*\)$/\/\/\1/g" ../third_party/googletest/googletest/include/gtest/hwext/gtest-tag.h
-#     fi
-# fi
+if [ ! -f "googletest/BUILD.gn" ];then
+    rm -rf googletest
+    git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git
+    if [ -d "third_party_googletest" ];then
+        mv third_party_googletest googletest
+        $cp ../prebuilts/patch_googletest/googletestbuild.gn ../third_party/googletest/BUILD.gn
+        $patch -p1 < ../prebuilts/patch_googletest/gtest.patch
+    fi
+fi
 
 if [ ! -f "json/BUILD.gn" ];then
     rm -rf json

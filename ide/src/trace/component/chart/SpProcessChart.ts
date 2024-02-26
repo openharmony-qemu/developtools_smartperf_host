@@ -87,7 +87,7 @@ export class SpProcessChart {
     info('AsyncFuncData Count is: ', asyncFuncList!.length);
     this.processAsyncFuncArray = asyncFuncList;
     this.processAsyncFuncMap = Utils.groupBy(asyncFuncList, 'pid');
-  }; 
+  };
 
   initDeliverInputEvent = async (): Promise<void> => {
     let row = TraceRow.skeleton();
@@ -137,9 +137,13 @@ export class SpProcessChart {
                 createDepth(++currentDepth, index);
               }
             };
-            res.forEach((it, i, arr) => {
+            res.forEach((it, i) => {
               res[i].funName = this.funcNameMap.get(res[i].id!);
               res[i].threadName = this.threadNameMap.get(res[i].tid!);
+              if (it.dur == -1 || it.dur === null || it.dur === undefined) {
+                it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+                it.flag = 'Did not end';
+              }
               createDepth(0, i);
             });
             if (funcRow && !funcRow.isComplete) {
@@ -779,7 +783,8 @@ export class SpProcessChart {
       }
       threadRow.supplierFrame = (): Promise<Array<ThreadStruct>> => {
         return threadDataSender(thread.tid || 0, it.pid || 0, threadRow).then((res) => {
-          if (res === true) { 
+          if (res === true) {
+            // threadRow.rowDiscard = true;
             return [];
           } else {
             let rs = res as ThreadStruct[];
@@ -856,10 +861,16 @@ export class SpProcessChart {
               } else {
                 let funs = rs as FuncStruct[];
                 if (funs.length > 0) {
-                  funs.forEach((fun, index, arr) => {
+                  funs.forEach((fun, index) => {
                     funs[index].itid = thread.utid;
                     funs[index].ipid = thread.upid;
                     funs[index].funName = this.funcNameMap.get(funs[index].id!);
+                    if (Utils.isBinder(fun)) {
+                    } else {
+                      if (fun.nofinish) {
+                        fun.flag = 'Did not end';
+                      }
+                    }
                   });
                 } else {
                   this.trace.refreshCanvas(true);
@@ -987,7 +998,11 @@ export class SpProcessChart {
         let isIntersect = (a: any, b: any): boolean =>
           Math.max(a.startTs + a.dur, b.startTs + b.dur) - Math.min(a.startTs, b.startTs) < a.dur + b.dur;
         let depthArray: any = [];
-        asyncFunctions.forEach((it, i, arr) => {
+        asyncFunctions.forEach((it, i) => {
+          if (it.dur === -1 || it.dur === null || it.dur === undefined) {
+            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+            it.flag = 'Did not end';
+          }
           let currentDepth = 0;
           let index = i;
           while (

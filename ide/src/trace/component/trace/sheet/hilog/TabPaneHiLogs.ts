@@ -200,7 +200,9 @@ export class TabPaneHiLogs extends BaseElement {
     if (this.hiLogsTbl && this.hiLogsTbl.currentRecycleList.length > 0) {
       let startDataIndex = this.hiLogsTbl.startSkip + 1;
       let endDataIndex = startDataIndex;
-      if (height < firstRowHeight * 0.3) {
+      let crossTopHeight = tbl!.scrollTop % firstRowHeight;
+      let topShowHeight = crossTopHeight === 0 ? 0 : firstRowHeight - crossTopHeight;
+      if (topShowHeight < firstRowHeight * 0.3) {
         startDataIndex++;
       }
       let tableHeight = Number(tbl!.style.height.replace('px', '')) - tableHeadHeight;
@@ -211,7 +213,7 @@ export class TabPaneHiLogs extends BaseElement {
         height += firstRowHeight;
         endDataIndex++;
       }
-      if (tableHeight - height > firstRowHeight * 0.3) {
+      if (tableHeight - height - topShowHeight > firstRowHeight * 0.3) {
         endDataIndex++;
       }
       if (endDataIndex >= this.filterData.length) {
@@ -241,8 +243,8 @@ export class TabPaneHiLogs extends BaseElement {
 
   tagFilterKeyEvent = (e: KeyboardEvent): void => {
     let inputValue = this.tagFilterInput!.value.trim();
-    if (e.code === 'Enter') {
-      if (inputValue !== '' && !this.allowTag.has(inputValue.toLowerCase())) {
+    if (e.key === 'Enter') {
+      if (inputValue !== '' && !this.allowTag.has(inputValue.toLowerCase()) && this.allowTag.size < 10) {
         let tagElement = document.createElement('div');
         tagElement.className = 'tagElement';
         tagElement.id = inputValue;
@@ -259,7 +261,7 @@ export class TabPaneHiLogs extends BaseElement {
         this.tagFilterInput!.value = '';
         this.tagFilterInput!.placeholder = 'Filter by tag...';
       }
-    } else if (e.code === 'Backspace') {
+    } else if (e.key === 'Backspace') {
       let index = this.tagFilterDiv!.childNodes.length - defaultIndex;
       if (index >= 0 && inputValue === '') {
         let childNode = this.tagFilterDiv!.childNodes[index];

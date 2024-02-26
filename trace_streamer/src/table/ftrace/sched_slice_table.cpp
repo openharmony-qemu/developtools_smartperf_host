@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,18 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t {
-    ID = 0,
-    TS,
-    DUR,
-    TS_END,
-    CPU,
-    INTERNAL_TID,
-    INTERNAL_PID,
-    END_STATE,
-    PRIORITY,
-    ARGSETID
-};
+enum class Index : int32_t { ID = 0, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END_STATE, PRIORITY, ARGSETID };
 SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -200,7 +189,7 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
             break;
         }
         case Index::PRIORITY:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.PriorityData()[CurrentRow()]));
+            sqlite3_result_int(context_, schedSliceObj_.PriorityData()[CurrentRow()]);
             break;
         case Index::ARGSETID: {
             const uint32_t& argSetId = schedSliceObj_.ArgSetData()[CurrentRow()];

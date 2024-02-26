@@ -587,15 +587,19 @@ export class TabpanePerfProfile extends BaseElement {
           this.perfProfileFrameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.perfProfileFrameChart?.calculateChartData();
         }
+        let headLineHeight = 0;
+        if (this.headLine?.isShow) {
+          headLineHeight = this.headLine!.clientHeight;
+        }
         // @ts-ignore
         this.perfProfilerTbl?.shadowRoot.querySelector('.table').style.height =
           // @ts-ignore
-          `${this.parentElement.clientHeight - 10 - 35}px`;
+          `${this.parentElement.clientHeight - 10 - 35 - headLineHeight}px`;
         this.perfProfilerTbl?.reMeauseHeight();
         // @ts-ignore
         this.perfProfilerList?.shadowRoot.querySelector('.table').style.height =
           // @ts-ignore
-          `${this.parentElement.clientHeight - 45 - 21}px`;
+          `${this.parentElement.clientHeight - 45 - 21 - headLineHeight}px`;
         this.perfProfilerList?.reMeauseHeight();
         this.perfProfileLoadingPage.style.height = `${this.parentElement!.clientHeight - 24}px`;
       }

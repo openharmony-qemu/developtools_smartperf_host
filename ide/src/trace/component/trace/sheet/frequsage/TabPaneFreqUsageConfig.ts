@@ -96,3 +96,35 @@ export class TabPaneCpuFreqConfig {
     this.dur = dur;
   }
 }
+
+export interface RunningData {
+  pid: number;
+  tid: number;
+  cpu: number;
+  dur: number;
+  ts: number;
+}
+
+export interface CpuFreqData {
+  ts: number;
+  cpu: number;
+  value: number;
+  dur: number;
+}
+
+export interface RunningFreqData {
+  thread?: string;
+  cpu: number;
+  dur: number;
+  consumption: number;
+  frequency: number | string;
+  percent: number;
+  children?: Array<RunningFreqData>;
+}
+
+export interface CpuFreqTd {
+  startNS: number;
+  filter_id: number;
+  value: number;
+  dur: number;
+}

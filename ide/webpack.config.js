@@ -46,9 +46,9 @@ function cpFile(sourcePath, targetPath) {
       return;
     }
     files.forEach((file) => {
-      if (file !== 'lib') {
-        const source = `${sourcePath}/${file}`;
-        const target = `${targetPath}/${file}`;
+      const source = `${sourcePath}/${file}`;
+      const target = `${targetPath}/${file}`;
+      if (fs.lstatSync(source).isFile()) {
         fs.copyFile(source, target, (err) => {
           if (err) {
             console.error('无法复制文件', err);

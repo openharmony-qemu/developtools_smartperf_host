@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -123,7 +123,7 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
                                     uint64_t cpu,
                                     uint32_t internalTid,
                                     uint64_t endState,
-                                    uint64_t priority)
+                                    int32_t priority)
 {
     ids_.emplace_back(id_++);
     timeStamps_.emplace_back(ts);

@@ -62,6 +62,7 @@ import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
 import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
+import { BinderRender } from './procedureWorkerBinder';
 import { SampleRender } from './ProcedureWorkerSample';
 
 let dataList: any = {};
@@ -122,6 +123,7 @@ export let renders: any = {
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
   'freq-extend': new FreqExtendRender(),
+  binder: new BinderRender(),
   sample: new SampleRender(),
 };
 

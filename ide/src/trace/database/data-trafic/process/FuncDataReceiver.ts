@@ -66,10 +66,10 @@ export function funcDataReceiver(data: any, proc: Function):void {
       let list = proc(chartFuncDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
         if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
-         list[i].nofinish = 1;
-         list[i].dur = data.params.endNS - list[i].startTs;
+          list[i].nofinish = 1;
+          list[i].dur = data.params.endNS - list[i].startTs;
         } else {
-         list[i].nofinish = 0;
+          list[i].nofinish = 0;
         }
       }
       threadCallStackList.set(key, list);
@@ -93,7 +93,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean,isEmpty:boo
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   let argsetid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argsetid);
   let depth = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
-  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);  
+  let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let nofinish = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.nofinish);
   res.forEach((it, i) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processFuncData);
@@ -115,7 +115,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean,isEmpty:boo
             argsetid: argsetid.buffer,
             depth: depth.buffer,
             id: id.buffer,
-            nofinish: nofinish.buffer,
+            nofinish: nofinish.buffer
           }
         : {},
       len: res.length,

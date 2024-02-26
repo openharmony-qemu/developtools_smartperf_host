@@ -589,7 +589,6 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
 
   private fileSoLevelClickEvent(it: any): void {
     this.reset(this.fileStatisticsAnalysisTableFunction!, true);
-    // this.getFilesystemFunction(it);
     this.fileStatisticsAnalysisProgressEL!.loading = true;
     this.shadowRoot!.querySelector<HTMLDivElement>('.fs-subheading')!.textContent = 'Statistic By Function AllDuration';
     if (!this.fileStatisticsAnalysisProcessData || this.fileStatisticsAnalysisProcessData.length === 0) {
@@ -905,7 +904,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         tName = fileSysStatThreadItem.threadName =
           fileSysStatThreadItem.threadName === null || fileSysStatThreadItem.threadName === undefined
             ? `Thread(${fileSysStatThreadItem.tid})`
-            : `${fileSysStatThreadItem.threadName}`;
+            : `${fileSysStatThreadItem.threadName}(${fileSysStatThreadItem.tid})`;
       }
       const threadData = {
         tableName: tName,
