@@ -125,8 +125,8 @@ import { TabPaneFreqDataCut } from '../sheet/frequsage/TabPaneFreqDataCut';
 import { TabPaneSchedSwitch } from '../sheet/schedswitch/TabPaneSchedSwitch';
 import { TabPaneBinderDataCut } from '../sheet/binder/TabPaneBinderDataCut';
 import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
-import { TabPaneGpufreq } from '../sheet/gpufreq/tabPaneGpufreqUsage';
-import { TabPaneGpufreqDataCut } from '../sheet/gpufreq/tabPaneGpufreqDataCut';
+import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
+import { TabPaneGpufreqDataCut } from '../sheet/gpufreq/TabPaneGpufreqDataCut';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut'
 import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
 import { TabPaneSampleInstructionDistributions } from '../sheet/sample/TabPaneSampleInstructionDistributions';
