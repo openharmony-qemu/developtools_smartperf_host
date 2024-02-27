@@ -178,7 +178,7 @@ export class TabCpuAnalysis extends BaseElement {
       if (this.loadingUsage || this.loadingPieData) {
         return;
       }
-      this.drawer!.title = `CPU: ${cpu}`;
+      this.drawer!.drawerTitle = `CPU: ${cpu}`;
       this.drawer!.visible = true;
       this.drawerCpuTabs!.init(cpu, this.schedulingSelect!.value);
     });

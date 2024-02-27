@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneGpuMemorySelectAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneGpuMemorySelectAbility';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const abilitySqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
@@ -31,7 +31,7 @@ window.ResizeObserver = window.ResizeObserver ||
 
 describe('TabPaneGpuMemorySelectAbility Test', () => {
     let tabPaneGpuMemorySelectAbility = new TabPaneGpuMemorySelectAbility();
-    let getTabGpuSelectionData = sqlite.getTabGpuMemoryAbilityClickData;
+    let getTabGpuSelectionData = abilitySqlite.getTabGpuMemoryAbilityClickData;
     let gpuSelectionData = [
         {
             startNs: 0,

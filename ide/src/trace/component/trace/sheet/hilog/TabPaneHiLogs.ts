@@ -46,19 +46,24 @@ export class TabPaneHiLogs extends BaseElement {
   private allowTag: Set<string> = new Set();
   private ONE_DAY_NS = 86400000000000;
   private progressEL: LitProgressBar | null | undefined;
+  private timeOutId: number | undefined;
 
   set data(systemLogParam: SelectionParam) {
     if (this.hiLogsTbl) {
       this.hiLogsTbl.recycleDataSource = [];
       this.filterData = [];
     }
+    window.clearTimeout(this.timeOutId);
     let oneDayTime = (window as any).recordEndNS - this.ONE_DAY_NS;
     if (systemLogParam && systemLogParam.hiLogs.length > 0) {
       this.progressEL!.loading = true;
       queryLogAllData(oneDayTime, systemLogParam.leftNs, systemLogParam.rightNs).then((res) => {
+        if (res.length === 0) {
+          this.progressEL!.loading = false;
+        }
         systemLogParam.sysAlllogsData = res;
         this.systemLogSource = res;
-        this.tableTimeHandle?.();
+        this.refreshTable();
       });
     }
   }
@@ -146,8 +151,10 @@ export class TabPaneHiLogs extends BaseElement {
         this.hiLogsTbl.shadowRoot.querySelector('.table').style.height =
           this.parentElement!.clientHeight - 20 - 45 + 'px';
       }
-      this.tableTimeHandle?.();
-      this.tableTitleTimeHandle?.();
+      if (this.filterData.length > 0) {
+        this.refreshTable();
+        this.tableTitleTimeHandle?.();
+      }
     }).observe(this.parentElement!);
   }
 
@@ -193,7 +200,9 @@ export class TabPaneHiLogs extends BaseElement {
     if (this.hiLogsTbl && this.hiLogsTbl.currentRecycleList.length > 0) {
       let startDataIndex = this.hiLogsTbl.startSkip + 1;
       let endDataIndex = startDataIndex;
-      if (height < firstRowHeight * 0.3) {
+      let crossTopHeight = tbl!.scrollTop % firstRowHeight;
+      let topShowHeight = crossTopHeight === 0 ? 0 : firstRowHeight - crossTopHeight;
+      if (topShowHeight < firstRowHeight * 0.3) {
         startDataIndex++;
       }
       let tableHeight = Number(tbl!.style.height.replace('px', '')) - tableHeadHeight;
@@ -204,7 +213,7 @@ export class TabPaneHiLogs extends BaseElement {
         height += firstRowHeight;
         endDataIndex++;
       }
-      if (tableHeight - height > firstRowHeight * 0.3) {
+      if (tableHeight - height - topShowHeight > firstRowHeight * 0.3) {
         endDataIndex++;
       }
       if (endDataIndex >= this.filterData.length) {
@@ -217,7 +226,9 @@ export class TabPaneHiLogs extends BaseElement {
     } else {
       this.logTableTitle!.textContent = 'Hilogs [0, 0] / 0';
     }
-    this.progressEL!.loading = false;
+    if (this.hiLogsTbl!.recycleDataSource.length > 0) {
+      this.progressEL!.loading = false;
+    }
   }
 
   initTabSheetEl(traceSheet: TraceSheet): void {
@@ -232,8 +243,8 @@ export class TabPaneHiLogs extends BaseElement {
 
   tagFilterKeyEvent = (e: KeyboardEvent): void => {
     let inputValue = this.tagFilterInput!.value.trim();
-    if (e.code === 'Enter') {
-      if (inputValue !== '' && !this.allowTag.has(inputValue.toLowerCase())) {
+    if (e.key === 'Enter') {
+      if (inputValue !== '' && !this.allowTag.has(inputValue.toLowerCase()) && this.allowTag.size < 10) {
         let tagElement = document.createElement('div');
         tagElement.className = 'tagElement';
         tagElement.id = inputValue;
@@ -250,7 +261,7 @@ export class TabPaneHiLogs extends BaseElement {
         this.tagFilterInput!.value = '';
         this.tagFilterInput!.placeholder = 'Filter by tag...';
       }
-    } else if (e.code === 'Backspace') {
+    } else if (e.key === 'Backspace') {
       let index = this.tagFilterDiv!.childNodes.length - defaultIndex;
       if (index >= 0 && inputValue === '') {
         let childNode = this.tagFilterDiv!.childNodes[index];
@@ -303,10 +314,9 @@ export class TabPaneHiLogs extends BaseElement {
   }
 
   private delayedRefresh(optionFn: Function, dur: number = tableTimeOut): () => void {
-    let timeOutId: number;
     return (...args: []): void => {
-      window.clearTimeout(timeOutId);
-      timeOutId = window.setTimeout((): void => {
+      window.clearTimeout(this.timeOutId);
+      this.timeOutId = window.setTimeout((): void => {
         optionFn.apply(this, ...args);
       }, dur);
     };

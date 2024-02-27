@@ -12,20 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
 import { SpAbilityMonitorChart } from '../../../../src/trace/component/chart/SpAbilityMonitorChart';
 import '../../../../src/trace/component/chart/SpAbilityMonitorChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+const sqlit = require('../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../src/trace/database/sql/Ability.sql');
+const MemorySqlite = require('../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../src/trace/database/sql/Memory.sql');
+const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/component/chart/SpNativeMemoryChart', () => {
   return {};
 });
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+jest.mock('../../../../src/trace/component/trace/base/TraceSheet', () => {
+  return true;
+});
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
@@ -66,15 +71,14 @@ describe('SpAbilityMonitorChart Test', () => {
       systemLoad: 1,
     },
   ]);
-  let memorydata = sqlit.queryMemoryMaxData;
+  let memorydata = MemorySqlite.queryMemoryMaxData;
   memorydata.mockResolvedValue([
     {
       maxValue: 1,
       filter_id: 1,
     },
   ]);
-
-  let queryDiskIo = sqlit.queryDiskIoMaxData;
+  let queryDiskIo = sqlite.queryDiskIoMaxData;
   queryDiskIo.mockResolvedValue([
     {
       bytesRead: 1,
@@ -84,7 +88,7 @@ describe('SpAbilityMonitorChart Test', () => {
     },
   ]);
 
-  let netWorkDiskIo = sqlit.queryNetWorkMaxData;
+  let netWorkDiskIo = sqlite.queryNetWorkMaxData;
   netWorkDiskIo.mockResolvedValue([
     {
       maxIn: 1,
@@ -146,14 +150,9 @@ describe('SpAbilityMonitorChart Test', () => {
       value: 0,
     },
   ]);
-  let manager = new SpChartManager();
-  let trace = new SpAbilityMonitorChart(manager);
   it('SpAbilityMonitorChart01', function () {
-    trace.init();
-    expect(trace).toBeDefined();
-  });
-  it('SpAbilityMonitorChart02', function () {
-    let traceRow = new TraceRow();
-    expect(trace.initNetworkAbility(traceRow)).toBeDefined();
+    let spAbilityMonitor = new SpAbilityMonitorChart(SpSystemTrace);
+    spAbilityMonitor.init();
+    expect(spAbilityMonitor).toBeDefined();
   });
 });

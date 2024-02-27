@@ -440,8 +440,8 @@ export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: numbe
        round(avg(dur),2)    as avgDuration,
        type
     from file_system_sample
-    where start_ts >= $leftNs
-    and end_ts <= $rightNs;
+    where start_ts <= $rightNs
+    and end_ts >= $leftNs;
 `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
@@ -463,8 +463,8 @@ export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number, 
        max(dur) as maxDuration,
        avg(dur) as avgDuration
     from file_system_sample as f left join process as p on f.ipid=p.ipid
-    where end_ts >= $leftNs
-    and end_ts <= $rightNs
+    where f.end_ts >= $leftNs
+    and f.start_ts <= $rightNs
     and f.type in (${types.join(',')})
     group by f.type,f.ipid
     order by f.type;
@@ -495,7 +495,7 @@ export const getTabPaneIOTierStatisticsData = (
        max(latency_dur) as maxDuration,
        avg(latency_dur) as avgDuration
     from bio_latency_sample as i left join process as p on i.ipid=p.ipid
-    where i.start_ts+latency_dur >= $leftNs
+    where i.end_ts+latency_dur >= $leftNs
     and i.start_ts+latency_dur <= $rightNs
     ${str}
     group by i.tier,i.ipid,i.path_id
@@ -837,7 +837,8 @@ export const getTabIoCompletionTimesType = (startTime: number, endTime: number):
     'getTabIoCompletionTimesType',
     `
     SELECT tier from bio_latency_sample s,trace_range t
-     WHERE s.start_ts + s.latency_dur between $startTime + t.start_ts and $endTime + t.start_ts group by tier`,
+     WHERE s.start_ts + s.latency_dur >= $startTime + t.start_ts 
+     and s.start_ts <= $endTime + t.start_ts group by tier`,
     { $startTime: startTime, $endTime: endTime },
     'exec'
   );

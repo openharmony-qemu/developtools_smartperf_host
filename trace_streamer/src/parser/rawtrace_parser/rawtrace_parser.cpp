@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,9 +36,11 @@ void RawTraceParser::ParseTraceDataItem(const std::string& buffer) {}
 void RawTraceParser::WaitForParserEnd()
 {
     cpuDetailParser_->FilterAllEvents(*cpuDetail_.get(), true);
+    cpuDetailParser_->FinishCpuDetailParser();
     UpdateTraceMinRange();
     restCommDataCnt_ = 0;
     hasGotHeader_ = false;
+    curCpuCoreNum_ = 0;
     TS_LOGI("Parser raw trace end!");
 }
 void RawTraceParser::UpdateTraceMinRange()
@@ -46,9 +48,9 @@ void RawTraceParser::UpdateTraceMinRange()
     auto schedSlice = traceDataCache_->GetConstSchedSliceData();
     std::set<uint32_t> uniqueCpuIdSet;
     uint64_t cpuRunningStatMinTime = INVALID_TIME;
-    for (size_t i = 0; i < schedSlice.Size() && uniqueCpuIdSet.size() <= cpuCoreMax_; i++) {
-        auto itor = uniqueCpuIdSet.find(schedSlice.CpusData()[i]);
-        if (itor != uniqueCpuIdSet.end()) {
+    for (size_t i = 0; i < schedSlice.Size() && uniqueCpuIdSet.size() <= curCpuCoreNum_; i++) {
+        auto iter = uniqueCpuIdSet.find(schedSlice.CpusData()[i]);
+        if (iter != uniqueCpuIdSet.end()) {
             continue;
         }
         uniqueCpuIdSet.emplace(schedSlice.CpusData()[i]);
@@ -88,10 +90,13 @@ bool RawTraceParser::InitEventFormats(const std::string& buffer)
 }
 bool RawTraceParser::UpdateCpuCoreMax(uint32_t cpuId)
 {
-    if (cpuId >= cpuCoreMax_) {
-        cpuCoreMax_++;
-        TS_LOGD("cpuId=%u, cpuCoreMax_=%u", cpuId, cpuCoreMax_);
+    if (cpuId >= curCpuCoreNum_) {
+        curCpuCoreNum_++;
+        TS_LOGI("cpuId=%u, curCpuCoreNum_=%u", cpuId, curCpuCoreNum_);
         return false;
+    }
+    if (cpuDetailParser_->cpuCoreMax_ == CPU_CORE_MAX) {
+        cpuDetailParser_->ResizeStandAloneCpuEventList(curCpuCoreNum_);
     }
     return true;
 }
@@ -107,7 +112,9 @@ bool RawTraceParser::ParseCpuRawData(uint32_t cpuId, const std::string& buffer)
         TS_CHECK_TRUE(ftraceProcessor_->HandlePage(*cpuDetail_.get(), *cpuDetailParser_.get(), page), false,
                       "handle page failed!");
     }
-    cpuDetailParser_->FilterAllEvents(*cpuDetail_.get());
+    if (cpuDetailParser_->cpuCoreMax_ != CPU_CORE_MAX) {
+        cpuDetailParser_->FilterAllEvents(*cpuDetail_.get());
+    }
     return true;
 }
 

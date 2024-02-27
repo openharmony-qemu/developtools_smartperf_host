@@ -23,8 +23,11 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
+const abilitySqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
+
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
@@ -38,7 +41,7 @@ describe('TabPaneMemoryAbility Test', () => {
     },
   ]);
 
-  let queryMemoryAbilityData = sqlit.getTabMemoryAbilityData;
+  let queryMemoryAbilityData = abilitySqlite.getTabMemoryAbilityData;
   queryMemoryAbilityData.mockResolvedValue([
     {
       startTime: 0,

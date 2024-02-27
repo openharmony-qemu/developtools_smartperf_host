@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ size_t FrameSlice::AppendFrame(uint64_t ts, uint32_t ipid, uint32_t itid, uint32
     callStackIds_.emplace_back(callStackSliceId);
     endTss_.emplace_back(INVALID_UINT64);
     dsts_.emplace_back(INVALID_UINT64);
-    ids_.emplace_back(ids_.size());
+    ids_.emplace_back(id_++);
     durs_.emplace_back(INVALID_UINT64);
     types_.emplace_back(0);
     flags_.emplace_back(INVALID_UINT8);
@@ -92,14 +92,14 @@ void FrameSlice::SetType(uint64_t row, uint8_t type)
 }
 void FrameSlice::SetDst(uint64_t row, uint64_t dst)
 {
-    dsts_[row] = dst;
+    dsts_[row] = diskTableSize_ + dst;
 }
 
 void FrameSlice::SetSrcs(uint64_t row, const std::vector<uint64_t>& fromSlices)
 {
     std::string s = "";
     for (auto&& i : fromSlices) {
-        s += std::to_string(i) + ",";
+        s += std::to_string(diskTableSize_ + i) + ",";
     }
     s.pop_back();
     srcs_[row] = s;
@@ -172,6 +172,7 @@ void FrameSlice::Erase(uint64_t row)
 
 size_t GPUSlice::AppendNew(uint32_t frameRow, uint64_t dur)
 {
+    ids_.emplace_back(id_++);
     frameRows_.emplace_back(frameRow);
     durs_.emplace_back(dur);
     return Size() - 1;
@@ -184,17 +185,13 @@ const std::deque<uint64_t>& GPUSlice::Durs() const
 {
     return durs_;
 }
-size_t GPUSlice::Size() const
-{
-    return durs_.size();
-}
 
 size_t FrameMaps::AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst)
 {
     timeStamps_.emplace_back(0);
-    ids_.emplace_back(ids_.size());
-    srcs_.emplace_back(src);
-    dsts_.emplace_back(dst);
+    ids_.emplace_back(id_++);
+    srcs_.emplace_back(frameSlice->diskTableSize_ + src);
+    dsts_.emplace_back(frameSlice->diskTableSize_ + dst);
     if (frameSlice->Types().at(dst) == FrameSlice::EXPECT_SLICE) {
         uint64_t expRsStartTime = frameSlice->TimeStampData().at(dst);
         uint64_t expUiEndTime = frameSlice->TimeStampData().at(src) + frameSlice->Durs().at(src);

@@ -14,8 +14,8 @@
  */
 import { TabPanePurgTotal } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgTotal';
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });

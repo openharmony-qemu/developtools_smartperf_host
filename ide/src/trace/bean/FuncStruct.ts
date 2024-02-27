@@ -36,6 +36,7 @@ export class FuncStruct extends BaseStruct {
   ipid: number | undefined;
   identify: number | undefined;
   track_id: number | undefined;
+  nofinish: boolean = false;
 
   static draw(funcBeanStructCanvasCtx: CanvasRenderingContext2D, funcBeanStruct: FuncStruct) {
     if (funcBeanStruct.frame) {

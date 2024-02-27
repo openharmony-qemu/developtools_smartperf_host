@@ -15,8 +15,8 @@
 
 import { SpQuerySQL } from '../../../src/trace/component/SpQuerySQL';
 import { SpStatisticsHttpUtil } from '../../../src/statistics/util/SpStatisticsHttpUtil';
-const sqlite = require('../../../src/trace/database/SqlLite');
-jest.mock('../../../src/trace/database/SqlLite');
+const sqlite = require('../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../src/trace/database/sql/SqlLite.sql');
 
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),

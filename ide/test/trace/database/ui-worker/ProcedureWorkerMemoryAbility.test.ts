@@ -22,7 +22,9 @@ import {
   MemoryAbilityMonitorStruct,
   MemoryAbilityRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerMemoryAbility';
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerMemoryAbility Test', () => {
   let frame = {
     x: 0,
@@ -117,7 +119,7 @@ describe('ProcedureWorkerMemoryAbility Test', () => {
       height: 140,
     };
     window.postMessage = jest.fn(() => true);
-    expect(memoryAbilityRender.render(memoryAbilityReq, [], [])).toBeUndefined();
+    expect(memoryAbilityRender.renderMainThread(memoryAbilityReq, new TraceRow())).toBeUndefined();
   });
   it('ProcedureWorkerMemoryAbilityTest04', function () {
     let memoryAbilityRender = new MemoryAbilityRender();

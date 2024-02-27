@@ -16,7 +16,10 @@
 jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 import {
   proc,
   ProcessStruct,
@@ -111,54 +114,5 @@ describe(' ProcessTest', () => {
       height: 100,
     };
     expect(ProcessStruct.setFrame(node, 1, 1, 1, frame)).toBeUndefined();
-  });
-
-  it('ProcessTest06', function () {
-    let processRender = new ProcessRender();
-    let processReq = {
-      lazyRefresh: true,
-      type: '',
-      startNS: 15,
-      endNS: 16,
-      totalNS: 1,
-      frame: {
-        x: 55,
-        y: 55,
-        width: 125,
-        height: 105,
-      },
-      useCache: false,
-      range: {
-        refresh: '',
-      },
-      canvas: 'a',
-      context: {
-        font: '11px sans-serif',
-        fillStyle: '#26e2c5',
-        globalAlpha: 0.7,
-        clearRect: jest.fn(() => true),
-        beginPath: jest.fn(() => false),
-        closePath: jest.fn(() => true),
-        measureText: jest.fn(() => true),
-        fillRect: jest.fn(() => true),
-        stroke: jest.fn(() => []),
-        fill: jest.fn(() => true),
-      },
-      lineColor: '#a50101',
-      isHover: '',
-      hoverX: 34,
-      params: '',
-      wakeupBean: undefined,
-      flagMoveInfo: '',
-      flagSelectedInfo: '',
-      slicesTime: 55,
-      id: 1,
-      x: 20,
-      y: 20,
-      width: 123,
-      height: 123,
-    };
-    window.postMessage = jest.fn(() => true);
-    expect(processRender.render(processReq, [], [])).toBeUndefined();
   });
 });

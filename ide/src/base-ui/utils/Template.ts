@@ -102,3 +102,11 @@ function escape2Html(str: string) {
     return arrEntities[t];
   });
 }
+
+export function replacePlaceholders(str: string, ...args: string[]): string {
+  return str.replace(/\{(\d+)\}/g, (match, placeholderIndex) => {
+    const argIndex = parseInt(placeholderIndex, 10);
+    const replacement = args[argIndex - 1];
+    return replacement || match;
+  });
+}

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,6 +22,7 @@ gn_path="$5"
 gn="$6"
 ninja="$7"
 target_operator="$8"
+use_local_emsdk="$9"
 if [ "$#" -ge "7" ];then
     if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
         [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
@@ -61,7 +62,7 @@ if [ "$is_debug" != "false" ];then
     ext="_debug"
 fi
 
-if [ "$target" == "test" ] || [ "$target" == "fuzz" ] || [ "$target"="wasm" ] || [ "$target"="sdkdemo" ] || [ "$target"="sdkdemotest" ];then
+if [ "$target" == "test" ] || [ "$target" == "fuzz" ] || [ "$target" == "wasm" ] || [ "$target" == "sdkdemo" ] || [ "$target" == "sdkdemotest" ];then
     target_dir=$target
 else
     target_dir=$target_os
@@ -69,15 +70,19 @@ fi
 if [ "$target" == "trace_streamer" ] || [ "$target" == "trace" ] || [ "$target" == "spb" ] || [ "$target" == "protoc" ];then
     target_dir=$target_os
 fi
-echo "target_dir:" $target_dir
-echo "target:" $target
+echo "target_dir:" "$target_dir"
+echo "target:" "$target"
 
 out_dir=out/$target_dir$ext
-if [ "$is_clean" == "true"  ];then
-    prebuilts/$gn_path/$gn gen $out_dir --clean
-    prebuilts/$gn_path/$ninja -C $out_dir -t clean
+if [ "$is_clean" == "true" ];then
+    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --clean
+    prebuilts/"$gn_path"/"$ninja" -C "$out_dir" -t clean
 else
-    prebuilts/$gn_path/$gn gen $out_dir --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'
+    prebuilts/"$gn_path"/"$gn" gen "$out_dir" --args='is_debug='"$is_debug"' target="'"$target"'" target_os="'"$target_os"'" is_independent_compile=true'' use_local_emsdk='"$use_local_emsdk"
     echo "begin to build ..."
-    prebuilts/$gn_path/$ninja -C $out_dir
+    prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
+fi
+
+if [ "$target_os" == "macx" ];then
+    ./mac_depend.sh
 fi

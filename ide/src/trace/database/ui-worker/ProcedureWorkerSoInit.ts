@@ -114,7 +114,7 @@ export function SoStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollT
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
       sp.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

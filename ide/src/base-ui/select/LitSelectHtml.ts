@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-let listHeight = '';
+import { replacePlaceholders } from '../utils/Template';
+
 let css = `
 <style>
       :host{
@@ -142,7 +143,7 @@ let css = `
           width: 100%;
       }
       .body{
-          max-height: ${listHeight};
+          max-height: {1};
           overflow: auto;
           border-radius: 2px;
           box-shadow: 0 5px 15px 0px #00000033;
@@ -211,8 +212,7 @@ let css = `
 `;
 
 export const selectHtmlStr = (height: string): string => {
-  listHeight = height;
-  return css;
+  return replacePlaceholders(css, height);
 };
 
 export const selectVHtmlStr = `

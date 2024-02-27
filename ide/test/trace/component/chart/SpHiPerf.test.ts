@@ -14,19 +14,17 @@
  */
 
 import { SpHiPerf } from '../../../../src/trace/component/chart/SpHiPerf';
-import {
-  queryHiPerfCpuMergeData2,
-  queryHiPerfEventList,
-  queryPerfThread,
-} from '../../../../src/trace/database/SqlLite';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-import { queryPerfEventType } from '../../../../src/trace/database/SqlLite';
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlit = require('../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../src/trace/database/sql/Perf.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -128,14 +126,9 @@ describe('SpHiPerf Test', () => {
     id:1,
     report_value:'sched:sched_waking',
   }])
-  let ss = new SpChartManager();
-  let spHiPerf = new SpHiPerf(ss);
+  let spHiPerf = new SpHiPerf(new SpSystemTrace());
   it('SpHiPerf01', function () {
     spHiPerf.init();
     expect(spHiPerf).toBeDefined();
-  });
-  it('SpHiPerf02', function () {
-    ss.displayTip = jest.fn(()=>true);
-    expect(spHiPerf.hoverTip()).toBeUndefined();
   });
 });

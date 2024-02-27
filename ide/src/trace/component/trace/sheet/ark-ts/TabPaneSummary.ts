@@ -617,7 +617,8 @@ export class TabPaneSummary extends BaseElement {
     } else {
       this.tbs!.snapshotDataSource = [];
     }
-    this.tblSummaryRowClickExtend(data);
+    //@ts-ignore
+    this.tblSummaryRowClickExtend(evt.detail);
   };
 
   private initRetainsData(data: ConstructorItem): void {
@@ -637,9 +638,9 @@ export class TabPaneSummary extends BaseElement {
     });
   }
 
-  private tblSummaryRowClickExtend(data: ConstructorItem): void {
+  private tblSummaryRowClickExtend(detail: any): void {
     if (this.file!.name.includes('Timeline')) {
-      this.stackData = HeapDataInterface.getInstance().getAllocationStackData(data);
+      this.stackData = HeapDataInterface.getInstance().getAllocationStackData(detail.data);
       if (this.stackData.length > 0) {
         this.stackTable!.recycleDataSource = this.stackData;
         this.stackText!.textContent = '';
@@ -670,10 +671,8 @@ export class TabPaneSummary extends BaseElement {
       this.stackTable!.style.height = 'calc(100% - 30px)';
       this.stackTable!.reMeauseHeight();
     }).observe(this.parentElement!);
-    // @ts-ignore
-    if ((evt.detail as any).callBack) {
-      // @ts-ignore
-      (evt.detail as any).callBack(true);
+    if (detail.callBack) {
+      detail.callBack(true);
     }
   }
 

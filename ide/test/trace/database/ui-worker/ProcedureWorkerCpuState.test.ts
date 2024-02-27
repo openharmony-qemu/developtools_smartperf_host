@@ -22,8 +22,10 @@ import {
   CpuStateRender,
   CpuStateStruct,
   cpuState,
-} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuState';
-
+} from '../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCpuState';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerCpuState Test', () => {
   it('ProcedureWorkerCpuStateTest01', function () {
     let node = {

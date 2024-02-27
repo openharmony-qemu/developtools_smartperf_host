@@ -73,7 +73,7 @@ export function ThreadStructOnClick(clickRowType:string,sp:SpSystemTrace,threadC
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
       sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }
@@ -88,29 +88,42 @@ export class ThreadStruct extends BaseThreadStruct {
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
+  static firstselectThreadStruct: ThreadStruct | undefined;  
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
+  static startCycleTime: number = 0;
+  static endTime: number = 0;
 
   static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct) {
     if (data.frame) {
-      threadContext.globalAlpha = 1;
-      let stateText = ThreadStruct.getEndState(data.state || '');
-      threadContext.fillStyle = Utils.getStateColor(data.state || '');
-      if ('S' === data.state) {
+      if (data.name === 'all-state') {
+        threadContext.globalAlpha = 0.8;
+      } else {
+        threadContext.globalAlpha = 1;
+      };
+      if (!ThreadStruct.selectThreadStruct && data.start_ts! + data.dur! > ThreadStruct.startCycleTime && data.start_ts! + data.dur! < ThreadStruct.endTime) {
+        threadContext.globalAlpha = 1;
+      };
+      let stateText = ThreadStruct.getEndState(data.state === 'S' && data.name === 'Sleeping' ? data.name : data.state || '');
+      if (data.name === 'all-state' && data.state === 'S') {
+        stateText = 'Sleeping';
+      };
+      threadContext.fillStyle = Utils.getStateColor(data.state === 'S' && data.name === 'all-state' ? 'Sleeping' : data.state || '');
+      if ('S' === data.state && data.name !== 'all-state') {
         threadContext.globalAlpha = 0.2;
-      }
-      threadContext.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2);
+      };
+      threadContext.fillRect(data.frame.x, data.frame.y + padding, data.frame.width > 1 ? data.frame.width : 1, data.frame.height - padding * 2);
       threadContext.fillStyle = '#fff';
       threadContext.textBaseline = 'middle';
       threadContext.font = '8px sans-serif';
-      if ('S' !== data.state) {
+      if ('S' !== data.state || (data.name === 'all-state' && data.state === 'S')) {
         data.frame.width > 7 && drawString(threadContext, stateText, 2, data.frame, data);
-      }
+      };
       if (
         ThreadStruct.selectThreadStruct &&
         ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) &&
-        ThreadStruct.selectThreadStruct.state != 'S'
+        (ThreadStruct.selectThreadStruct.state !== 'S'|| data.name === 'all-state')
       ) {
         threadContext.strokeStyle = '#232c5d';
         threadContext.lineWidth = 2;

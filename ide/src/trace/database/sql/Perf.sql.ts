@@ -16,6 +16,7 @@ import { PerfCmdLine, PerfFile, PerfSample, PerfStack, PerfThread } from '../../
 import { query } from '../SqlLite';
 import { HiSysEventStruct } from '../ui-worker/ProcedureWorkerHiSysEvent';
 import { TaskTabStruct } from '../../component/trace/sheet/task/TabPaneTaskFrames';
+import { GpuCountBean, SearchGpuFuncBean } from '../../bean/GpufreqBean.js';
 
 export const queryPerfFiles = (): Promise<Array<PerfFile>> =>
   query('queryPerfFiles', `select file_id as fileId,symbol,path from perf_files`, {});
@@ -233,6 +234,114 @@ from perf_sample sp,
 where tid = ${tid} and sp.thread_id != 0 ;`,
     { $tid: tid }
   );
+
+export const getGpufreqDataCut = (
+  tIds: string,
+  funcName: string,
+  leftNS: number,
+  rightNS: number,
+  single: boolean,
+  loop: boolean
+): Promise<Array<SearchGpuFuncBean>> => {
+  let queryCondition: string = '';
+  if (single) {
+    queryCondition += `select s.funName,s.startTime,s.dur,s.startTime+s.dur as endTime,s.tid,s.threadName,s.pid from state s 
+            where endTime between ${leftNS} and ${rightNS}`;
+  }
+  if (loop) {
+    queryCondition += `select s.funName,s.startTime,s.loopEndTime-s.startTime as dur,s.loopEndTime as endTime,s.tid,s.threadName,s.pid from state s 
+            where endTime between ${leftNS} and ${rightNS} `;
+  }
+  return query(
+    'getGpufreqDataCut',
+    `
+            with state as
+              (select 
+                 * 
+              from
+                 (select
+                    c.name as funName,
+                    c.ts - r.start_ts as startTime,
+                    c.dur,
+                    lead(c.ts - r.start_ts, 1, null) over( order by c.ts - r.start_ts) loopEndTime,
+                    t.tid,
+                    t.name as threadName,
+                    p.pid
+                 from 
+                    callstack c 
+                 left join 
+                    thread t on c.callid = t.id 
+                 left join 
+                    process p on t.ipid = p.id
+                 left join 
+                    trace_range r
+                 where 
+                    c.name like '${funcName}%'
+                 and 
+                    tid = '${tIds}' 
+                 and 
+                    startTime between ${leftNS} and ${rightNS}))
+             ${queryCondition}  
+          `,
+    { $search: funcName }
+  );
+};
+export const getGpufreqData = (leftNS: number, rightNS: number, earliest: boolean): Promise<Array<GpuCountBean>> => {
+  let queryCondition: string = '';
+  if (!earliest) {
+    queryCondition += ` where  not  ((s.ts - r.start_ts + ifnull(s.dur,0) < ${leftNS}) or (s.ts - r.start_ts > ${rightNS}))`;
+  }
+  return query(
+    'getGpufreqData',
+    `
+            with state as 
+              (select 
+                 name,
+                 filter_id, 
+                 ts, 
+                 endts, 
+                 endts-ts as dur, 
+                 value as val
+               from
+                  (select 
+                     measure.filter_id,
+                     clock_event_filter.name, 
+                     measure.ts, 
+                     lead(ts, 1, null) over( order by measure.ts) endts, 
+                     measure.value 
+                  from 
+                     clock_event_filter,
+                     trace_range
+                  left join 
+                     measure
+                  where 
+                     clock_event_filter.name = 'gpufreq' 
+                  and 
+                     clock_event_filter.type = 'clock_set_rate' 
+                  and
+                     clock_event_filter.id = measure.filter_id
+                  order by measure.ts)
+               where 
+                  endts is not null
+               )
+            select 
+                s.name as thread,
+                s.val/1000000 as freq,
+                s.val*s.dur as value,
+                s.val,
+                s.ts-r.start_ts as startNS,
+                s.dur,
+                s.endts- r.start_ts as endTime
+            from 
+                state s,
+                trace_range r 
+            ${queryCondition} 
+            order by ts
+          `,
+    { $leftNS: leftNS, $rightNS: rightNS }
+  );
+};
+
 export const queryHiSysEventTabData = (leftNs: number, rightNs: number): Promise<Array<HiSysEventStruct>> =>
   query(
     'queryHiSysEventTabData',

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -138,7 +138,6 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->processFilter_ = std::make_unique<ProcessFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->clockFilter_ = std::make_unique<ClockFilterEx>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->filterFilter_ = std::make_unique<FilterFilter>(traceDataCache_.get(), streamFilters_.get());
-
     streamFilters_->cpuMeasureFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CPU_MEASURE_FILTER);
     streamFilters_->processMeasureFilter_ =
@@ -225,6 +224,7 @@ bool TraceStreamerSelector::BatchParseTraceDataSegment(std::unique_ptr<uint8_t[]
             return false;
         }
         htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
+        htraceParser_->EnableOnlyParseFtrace();
     }
     htraceParser_->ParseTraceDataSegment(std::move(data), size);
     return true;
@@ -425,33 +425,25 @@ void TraceStreamerSelector::UpdateAppStartTraceStatus(bool status)
 }
 bool TraceStreamerSelector::LoadQueryFile(const std::string& sqlOperator, std::vector<std::string>& sqlStrings)
 {
-    auto fd = fopen(sqlOperator.c_str(), "r");
-    if (!fd) {
+    std::ifstream file(sqlOperator);
+    if (!file.is_open()) {
         TS_LOGE("open file failed!");
-        return false;
     }
-    char buffer[CHUNK_SIZE];
-    while (!feof(fd)) {
-        std::string sqlString;
-        while (fgets(buffer, sizeof(buffer), fd)) {
-            std::string line = buffer;
-            if (line == "\n" || line == "\r\n") {
-                break;
-            }
-            sqlString.append(buffer);
-
-            if (EndWith(line, ";") || EndWith(line, ";\r\n")) {
-                break;
+    std::string sqlString;
+    std::string line;
+    while (std::getline(file, line)) {
+        sqlString += line;
+    }
+    if (!sqlString.empty()) {
+        auto strVec = SplitStringToVec(sqlString, ";");
+        for (auto str : strVec) {
+            auto result = TrimInvisibleCharacters(str);
+            if (!result.empty()) {
+                sqlStrings.push_back(result);
             }
         }
-
-        if (sqlString.empty()) {
-            continue;
-        }
-        sqlStrings.push_back(sqlString);
     }
-    (void)fclose(fd);
-    fd = nullptr;
+    file.close();
     return true;
 }
 bool TraceStreamerSelector::ReadSqlFileAndPrintResult(const std::string& sqlOperator)

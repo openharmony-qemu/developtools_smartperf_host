@@ -696,8 +696,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     sampleArray.forEach((sample: PerfCallChainMerageData): void => {
       if ((sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) || parentSearch) {
         sample.searchShow = true;
-        let parentNode = sample.parent;
         sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
+        let parentNode = sample.parent;
         while (parentNode !== undefined && !parentNode.searchShow) {
           parentNode.searchShow = true;
           parentNode = parentNode.parent;
@@ -1132,7 +1132,7 @@ export class PerfCallChainMerageData extends ChartStruct {
       } else {
         symbolName = callChain.name;
       }
-      currentNode.symbol = `${symbolName}  ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
+      currentNode.symbol = `${symbolName} ${callChain.fileName ? `(${callChain.fileName})` : ''}`;
       currentNode.symbolName = symbolName;
       currentNode.pid = sample.pid;
       currentNode.tid = sample.tid;

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneVirtualMemoryEvents } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVMEvents';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../../../src/trace/database/sql/Memory.sql');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

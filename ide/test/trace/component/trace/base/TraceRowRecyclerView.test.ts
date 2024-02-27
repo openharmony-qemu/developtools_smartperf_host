@@ -14,12 +14,17 @@
  */
 
 import { TraceRowRecyclerView } from '../../../../../src/trace/component/trace/base/TraceRowRecyclerView';
+import { TraceRowObject } from "../../../../../src/trace/component/trace/base/TraceRowObject";
 
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
-
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 describe('TraceRow Test', () => {
   beforeAll(() => {});
 
@@ -36,7 +41,8 @@ describe('TraceRow Test', () => {
   it('Test03', function () {
     let traceRow = new TraceRowRecyclerView();
     traceRow.measureHeight = jest.fn(() => true);
-    traceRow.dataSource = true;
+    let obj = new TraceRowObject();
+    traceRow.dataSource = [obj];
     expect(traceRow.dataSource).toBeTruthy();
   });
 
@@ -47,8 +53,8 @@ describe('TraceRow Test', () => {
 
   it('Test05', function () {
     let traceRow = new TraceRowRecyclerView();
-    traceRow.renderType = false;
-    expect(traceRow.renderType).toBeFalsy();
+    traceRow.renderType = 'type'
+    expect(traceRow.renderType).toEqual('type');
   });
 
   it('Test06', function () {

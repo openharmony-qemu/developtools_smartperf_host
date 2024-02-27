@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -77,12 +77,9 @@ public:
                     DataIndex category = INVALID_UINT64,
                     DataIndex name = INVALID_UINT64);
     uint64_t
-        StartAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
-    uint64_t FinishAsyncSlice(uint64_t timeStamp,
-                              uint32_t pid,
-                              uint32_t threadGroupId,
-                              uint64_t cookie,
-                              DataIndex nameIndex);
+        StartAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
+    uint64_t
+        FinishAsyncSlice(uint64_t timeStamp, uint32_t pid, uint32_t threadGroupId, int64_t cookie, DataIndex nameIndex);
     void IrqHandlerEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet& args);
     void IrqHandlerExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
@@ -91,6 +88,10 @@ public:
     void SoftIrqEntry(uint64_t timeStamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     void SoftIrqExit(uint64_t timeStamp, uint32_t cpu, ArgsSet args);
     void Clear();
+    void UpdateReadySize()
+    {
+        UpdateIrqReadySize();
+    }
 
 private:
     struct StackInfo {
@@ -112,10 +113,11 @@ private:
     int32_t MatchingIncompleteSliceIndex(const SlicesStack& stack, DataIndex category, DataIndex name);
     uint8_t CurrentDepth(InternalTid internalTid);
     void HandleAsyncEventAndOther(ArgsSet args, CallStack* slices, uint64_t lastRow, StackOfSlices& stackInfo);
+    bool UpdateIrqReadySize();
 
 private:
     // The parameter list is tid, cookid, functionName, asyncCallId.
-    TripleMap<uint32_t, uint64_t, DataIndex, uint64_t> asyncEventMap_;
+    TripleMap<uint32_t, int64_t, DataIndex, uint64_t> asyncEventMap_;
     // this is only used to calc the layer of the async event in same time range
     std::map<uint32_t, int8_t> asyncNoEndingEventMap_ = {};
     //  irq map, key1 is cpu, key2
@@ -123,8 +125,8 @@ private:
         uint64_t ts;
         size_t row;
     };
-    std::unordered_map<uint32_t, IrqRecords> irqEventMap_ = {};
-    std::unordered_map<uint32_t, IrqRecords> ipiEventMap_ = {};
+    std::unordered_map<uint32_t /* cpu */, IrqRecords> irqEventMap_ = {};
+    std::unordered_map<uint32_t /* cpu */, IrqRecords> ipiEventMap_ = {};
     //  irq map, key1 is cpu, key2
     std::unordered_map<uint32_t, IrqRecords> softIrqEventMap_ = {};
     std::map<uint64_t, AsyncEvent> asyncEventFilterMap_ = {};
@@ -136,7 +138,6 @@ private:
     uint64_t asyncEventDisMatchCount_ = 0;
     uint64_t callEventDisMatchCount_ = 0;
     std::unordered_map<uint32_t, uint32_t> sliceRowToArgsSetId_ = {};
-    std::unordered_map<uint32_t, uint32_t> argsSetIdToSliceRow_ = {};
     std::unordered_map<uint32_t, uint32_t> tidToArgsSetId_ = {};
     struct SliceInfo {
         uint32_t row;
@@ -146,7 +147,7 @@ private:
     DataIndex asyncBeginCountId_ = traceDataCache_->GetDataIndex("legacy_unnestable_begin_count");
     DataIndex asyncBeginTsId_ = traceDataCache_->GetDataIndex("legacy_unnestable_last_begin_ts");
     DataIndex ipiId_ = traceDataCache_->GetDataIndex("IPI");
-    std::map<uint32_t, uint32_t> irqDataLinker_ = {};
+    std::map<uint32_t /* cpu */, uint32_t> irqDataLinker_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

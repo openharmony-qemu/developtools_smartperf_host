@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -71,7 +71,6 @@ config("default") {
   }
   if (target_os == "windows") {
     cflags += [ "-D target_cpu_x86_64" ]
-    libs += [ "z" ]
   } else if (is_linux || is_mac) {
     cflags += [
       "-Wa,--noexecstack",
@@ -89,7 +88,6 @@ config("default") {
         "-DHAVE_CONFIG_H",
         "-DCC_IS_CLANG",
       ]
-      libs += [ "z" ]
     }
     if (!use_wasm && !is_win && !is_mac && !is_test && !is_mingw) {
       cflags += [ "-D HAVE_LIBUNWIND" ]

@@ -20,7 +20,9 @@ jest.mock('../../../../../src/trace/component/trace/base/TraceRow', () => {
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
-
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 import { TabPaneFlag } from '../../../../../src/trace/component/trace/timer-shaft/TabPaneFlag';
 
 describe('TabPaneFlag Test', () => {

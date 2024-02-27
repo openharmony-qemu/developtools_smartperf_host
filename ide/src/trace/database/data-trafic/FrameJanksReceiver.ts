@@ -13,6 +13,7 @@
 
 import { TraficEnum } from './utils/QueryEnum';
 import { JanksStruct } from '../../bean/JanksStruct';
+import { processFrameList } from './utils/AllMemoryCache';
 
 export const frameJankDataSql = (args: any, configure: any): string => {
   let timeLimit: string = '';
@@ -94,14 +95,14 @@ function setFrameJanksSql(args: any, timeLimit: string, flag: string, fsType: nu
         ${fsFlag} ${timeLimit}
         ORDER by ts`;
 }
-let frameDepthList: Map<string, number> = new Map();
 
 export function frameExpectedReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    frameDepthList = new Map<string, number>();
-    let sql = frameJankDataSql(data.params, 'ExepectMemory');
-    let res = proc(sql);
-    frameJanksReceiver(data, res, 'expect', true);
+    if (!processFrameList.has(`FrameTimeLine_expected`)) {
+      let sql = frameJankDataSql(data.params, 'ExepectMemory');
+      processFrameList.set(`FrameTimeLine_expected`, proc(sql));
+    }
+    frameJanksReceiver(data, processFrameList.get(`FrameTimeLine_expected`)!, 'expected', true);
   } else {
     let sql = frameJankDataSql(data.params, 'ExpectedData');
     let res = proc(sql);
@@ -111,9 +112,11 @@ export function frameExpectedReceiver(data: any, proc: Function): void {
 
 export function frameActualReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    let sql = frameJankDataSql(data.params, 'ActualMemoryData');
-    let res = proc(sql);
-    frameJanksReceiver(data, res, 'actual', true);
+    if (!processFrameList.has(`FrameTimeLine_actual`)) {
+      let sql = frameJankDataSql(data.params, 'ActualMemoryData');
+      processFrameList.set(`FrameTimeLine_actual`, proc(sql));
+    }
+    frameJanksReceiver(data, processFrameList.get(`FrameTimeLine_actual`)!, 'actual', true);
   } else {
     let sql = frameJankDataSql(data.params, 'ActualData');
     let res = proc(sql);
@@ -125,48 +128,36 @@ let isIntersect = (leftData: JanksStruct, rightData: JanksStruct): boolean =>
   leftData.dur! + rightData.dur!;
 function frameJanksReceiver(data: any, res: any[], type: string, transfer: boolean): void {
   let frameJanks = new FrameJanks(data, transfer, res.length);
-  if (data.params.trafic === TraficEnum.Memory) {
-    let unitIndex: number = 1;
-    let depths: any[] = [];
-    for (let index = 0; index < res.length; index++) {
-      let item = res[index];
-      data.params.trafic === TraficEnum.ProtoBuffer && (item = item.frameData);
-      if (!item.dur || item.dur < 0) {
-        continue;
-      }
-      if (depths.length === 0) {
-        item.depth = 0;
-        depths[0] = item;
-      } else {
-        let depthIndex: number = 0;
-        let isContinue: boolean = true;
-        while (isContinue) {
-          if (isIntersect(depths[depthIndex], item)) {
-            if (depths[depthIndex + unitIndex] === undefined || !depths[depthIndex + unitIndex]) {
-              item.depth = depthIndex + unitIndex;
-              depths[depthIndex + unitIndex] = item;
-              isContinue = false;
-            }
-          } else {
-            item.depth = depthIndex;
-            depths[depthIndex] = item;
+  let unitIndex: number = 1;
+  let depths: any[] = [];
+  for (let index = 0; index < res.length; index++) {
+    let item = res[index];
+    data.params.trafic === TraficEnum.ProtoBuffer && (item = item.frameData);
+    if (!item.dur || item.dur < 0) {
+      continue;
+    }
+    if (depths.length === 0) {
+      item.depth = 0;
+      depths[0] = item;
+    } else {
+      let depthIndex: number = 0;
+      let isContinue: boolean = true;
+      while (isContinue) {
+        if (isIntersect(depths[depthIndex], item)) {
+          if (depths[depthIndex + unitIndex] === undefined || !depths[depthIndex + unitIndex]) {
+            item.depth = depthIndex + unitIndex;
+            depths[depthIndex + unitIndex] = item;
             isContinue = false;
           }
-          depthIndex++;
+        } else {
+          item.depth = depthIndex;
+          depths[depthIndex] = item;
+          isContinue = false;
         }
-      }
-      setFrameJanks(frameJanks, item, index);
-      frameDepthList.set(`${type}_${item.id}_${item.ipid}_${item.name}`, item.depth);
-    }
-  } else {
-    for (let index = 0; index < res.length; index++) {
-      let itemData = res[index];
-      data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameData);
-      setFrameJanks(frameJanks, itemData, index);
-      if (frameDepthList.has(`${type}_${itemData.id}_${itemData.ipid}_${itemData.name}`)) {
-        frameJanks.depth[index] = frameDepthList.get(`${type}_${itemData.id}_${itemData.ipid}_${itemData.name}`)!;
+        depthIndex++;
       }
     }
+    setFrameJanks(frameJanks, item, index);
   }
   postFrameJanksMessage(data, transfer, frameJanks, res.length);
 }

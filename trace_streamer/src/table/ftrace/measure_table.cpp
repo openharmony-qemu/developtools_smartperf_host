@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,19 +38,17 @@ std::unique_ptr<TableBase::Cursor> MeasureTable::CreateCursor()
 }
 
 MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(
-          dataCache,
-          table,
-          static_cast<uint32_t>(table->name_ == "measure" || table->name_ == "_measure"
-                                    ? dataCache->GetConstMeasureData().Size()
-                                    : (table->name_ == "process_measure" || table->name_ == "_process_measure"
-                                           ? dataCache->GetConstProcessMeasureData().Size()
-                                           : dataCache->GetConstSysMemMeasureData().Size()))),
-      measureObj(table->name_ == "measure" || table->name_ == "_measure"
+    : TableBase::Cursor(dataCache,
+                        table,
+                        static_cast<uint32_t>(table->name_ == "measure"
+                                                  ? dataCache->GetConstMeasureData().Size()
+                                                  : (table->name_ == "process_measure"
+                                                         ? dataCache->GetConstProcessMeasureData().Size()
+                                                         : dataCache->GetConstSysMemMeasureData().Size()))),
+      measureObj(table->name_ == "measure"
                      ? dataCache->GetConstMeasureData()
-                     : (table->name_ == "process_measure" || table->name_ == "_process_measure"
-                            ? dataCache->GetConstProcessMeasureData()
-                            : dataCache->GetConstSysMemMeasureData()))
+                     : (table->name_ == "process_measure" ? dataCache->GetConstProcessMeasureData()
+                                                          : dataCache->GetConstSysMemMeasureData()))
 {
 }
 

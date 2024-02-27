@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,11 +32,11 @@ bool BytraceParserFuzzTest(const uint8_t* data, size_t size)
     TraceStreamerSelector stream_ = {};
     stream_.SetDataType(TRACE_FILETYPE_BY_TRACE);
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(size);
-    if ((void)memcpy_s(buf.get(), size, data, size)) {
+    if (memcpy_s(buf.get(), size, data, size) != EOK) {
         return false;
     }
     stream_.SetCleanMode(true);
-    stream_.ParseTraceDataSegment(std::move(buf), size);
+    stream_.ParseTraceDataSegment(std::move(buf), size, false, false);
     stream_.WaitForParserEnd();
     return true;
 }

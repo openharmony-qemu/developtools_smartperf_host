@@ -162,7 +162,7 @@ export class RangeRuler extends Graph {
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
     for (let index = 0; index < this._cpuUsage.length; index++) {
       let cpuUsageItem = this._cpuUsage[index];
-      const color = interpolateColorBrightness(ColorUtils.MD_PALETTE[cpuUsageItem.cpu], cpuUsageItem.rate);
+      const color = interpolateColorBrightness(ColorUtils.FUNC_COLOR_B[cpuUsageItem.cpu % ColorUtils.FUNC_COLOR_B.length], cpuUsageItem.rate);
       this.context2D.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       this.context2D.globalAlpha = cpuUsageItem.rate;
       this.context2D.fillRect(
@@ -515,6 +515,10 @@ export class RangeRuler extends Graph {
       if (currentSlicesTime) {
         this.currentSlicesTime = currentSlicesTime;
       }
+      this.isMouseDown = false;
+      this.isMovingRange = false;
+      this.isNewRange = false;
+      this.movingMark = null;
       this.cancelPressFrame();
       this.cancelUpFrame();
       this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
@@ -567,6 +571,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f; //reg
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -591,6 +596,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -615,6 +621,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -640,6 +647,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);

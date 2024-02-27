@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -134,13 +134,6 @@ ohos_source_set("trace_streamer_source") {
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
   ]
-  if (use_wasm) {
-    include_dirs +=
-        [ "../prebuilts/emsdk/emsdk/emscripten/cache/sysroot/include" ]
-  }
-  if (is_test) {
-    include_dirs += [ "../prebuilts/emsdk/emsdk/emscripten/system/include" ]
-  }
 
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]

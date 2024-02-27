@@ -82,6 +82,8 @@ export enum QueryEnum {
   HeapSnapshotData = 161,
   CpuProfilerData = 162,
   SearchCpuData = 163,
+  LostFrameData = 164,
+  HitchTime = 165,
 }
 export const MAX_COUNT = 2000;
 export enum TraficEnum {

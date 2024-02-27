@@ -129,7 +129,9 @@ export const getTabVirtualMemoryType = (startTime: number, endTime: number): Pro
     'getTabVirtualMemoryType',
     `
     SELECT type from paged_memory_sample s,trace_range t
-     WHERE s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts group by type`,
+     WHERE s.end_ts >= $startTime + t.start_ts 
+     and s.start_ts <= $endTime + t.start_ts 
+     group by type`,
     { $startTime: startTime, $endTime: endTime },
     'exec'
   );
@@ -352,7 +354,7 @@ export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: n
        avg(dur) as avgDuration
     from paged_memory_sample as f left join process as p on f.ipid=p.ipid left join thread as t on f.itid=t.itid
     where f.end_ts >= $leftNs
-    and f.end_ts <= $rightNs
+    and f.start_ts <= $rightNs
     group by f.type,f.ipid,f.itid
     order by f.type;
 `,

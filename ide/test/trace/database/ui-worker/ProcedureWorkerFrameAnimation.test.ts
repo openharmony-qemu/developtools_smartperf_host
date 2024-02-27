@@ -22,6 +22,9 @@ import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { FrameAnimationStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameAnimation';
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('FrameAnimation Test', () => {
   let frameAnimationRender = new FrameAnimationRender();
   let rect = new Rect(341, 2, 10, 10);

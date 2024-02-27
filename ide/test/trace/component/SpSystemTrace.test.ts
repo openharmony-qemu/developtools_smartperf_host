@@ -16,9 +16,12 @@
 import { SpSystemTrace } from '../../../src/trace/component/SpSystemTrace';
 import { TraceRow } from '../../../src/trace/component/trace/base/TraceRow';
 import { procedurePool } from '../../../src/trace/database/Procedure';
+import { RangeSelect } from '../../../src/trace/component/trace/base/RangeSelect';
+
 jest.mock('../../../src/base-ui/table/lit-table', () => {
   return {
-    recycleDataSource: () => {},
+    recycleDataSource: () => {
+    },
   };
 });
 jest.mock('../../../src/js-heap/logic/HeapLoader', () => {
@@ -95,11 +98,11 @@ describe('SpSystemTrace Test', () => {
   });
 
   it('SpSystemTraceTest08', function () {
-    expect(spSystemTrace.hoverStructNull('')).toBeUndefined();
+    expect(spSystemTrace.hoverStructNull()).not.toBeUndefined();
   });
 
   it('SpSystemTraceTest09', function () {
-    expect(spSystemTrace.selectStructNull('')).toBeUndefined();
+    expect(spSystemTrace.selectStructNull()).not.toBeUndefined();
   });
 
   it('SpSystemTraceTest11', function () {
@@ -120,7 +123,13 @@ describe('SpSystemTrace Test', () => {
     spSystemTrace.rowsPaneEL.scrollTo = jest.fn(() => offset);
     spSystemTrace.rowsPaneEL.removeEventListener = jest.fn(() => true);
     spSystemTrace.rowsPaneEL.addEventListener = jest.fn(() => true);
-    expect(spSystemTrace.scrollToActFunc(offset, callback)).toBeUndefined();
+    let funcStract = {
+      dur: 152,
+      totalNS: 4252,
+      startTs: 522,
+      flag: ''
+    }
+    expect(spSystemTrace.scrollToActFunc(funcStract, true)).toBeUndefined();
   });
 
   it('SpSystemTraceTest16', function () {
@@ -164,6 +173,8 @@ describe('SpSystemTrace Test', () => {
     spSystemTrace.traceSheetEL = jest.fn(() => true);
     spSystemTrace.traceSheetEL.clearMemory = jest.fn(() => true);
     spSystemTrace.traceSheetEL.setAttribute = jest.fn(() => true);
+    spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
+    spSystemTrace.rangeSelect = new RangeSelect(new SpSystemTrace());
     expect(spSystemTrace.reset()).toBeUndefined();
   });
   it('SpSystemTraceTest23', function () {
@@ -237,7 +248,7 @@ describe('SpSystemTrace Test', () => {
       contextId: '2d',
       isOffScreen: true,
     });
-    expect(spSystemTrace.expansionAllParentRow({ id: 1 })).toBeUndefined();
+    expect(spSystemTrace.expansionAllParentRow({id: 1})).toBeUndefined();
   });
   it('SpSystemTraceTest30', function () {
     let spSystemTrace = new SpSystemTrace<any>({
@@ -295,6 +306,8 @@ describe('SpSystemTrace Test', () => {
       contextId: '2d',
       isOffScreen: true,
     });
+    spSystemTrace.rangeSelect = new RangeSelect(new SpSystemTrace());
+    spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
     expect(spSystemTrace.clickEmptyArea()).toBeUndefined();
   });
   it('SpSystemTraceTest34', function () {
@@ -346,6 +359,8 @@ describe('SpSystemTrace Test', () => {
       maxDuration: 1,
       timestamp: '',
     };
+    spSystemTrace.rangeSelect = new RangeSelect(new SpSystemTrace());
+    spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
     expect(spSystemTrace.sliceMarkEventHandler(ev)).toBeUndefined();
   });
   it('SpSystemTraceTest37', function () {

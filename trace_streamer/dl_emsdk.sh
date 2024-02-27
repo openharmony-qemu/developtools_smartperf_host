@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
-if [ -d "prebuilts/emsdk" ] && [ ! -d "prebuilts/emsdk/emsdk/emscripten" ];then
-    rm -rf prebuilts/emsdk
-fi
-if [ ! -d "prebuilts/emsdk" ];then
+if [ ! -d "tools/emsdk" ];then
     echo "you need emsdk to compile wasm"
     if [ ! -d "tools" ];then
         mkdir tools
@@ -29,15 +26,4 @@ if [ ! -d "prebuilts/emsdk" ];then
         ./emsdk activate 3.1.12
         cd ../../
     fi
-    if [ ! -d "prebuilts/emsdk" ];then
-        mkdir prebuilts/emsdk
-    fi
-    if [ ! -d "prebuilts/emsdk/emsdk" ];then
-        mkdir prebuilts/emsdk/emsdk
-    fi
-    if [ ! -d "prebuilts/emsdk/node" ];then
-        mkdir prebuilts/emsdk/node
-    fi
-    mv tools/emsdk/upstream/* prebuilts/emsdk/emsdk
-    mv tools/emsdk/node/* prebuilts/emsdk/node
 fi

@@ -12,7 +12,7 @@
 - Open trace file：导入离线 trace 文件入口。
 - Open long trace file：导入大文件入口。
 - Record new trace：抓取新的 trace 文件入口。
-- Record template：抓取指定模块的 trace 入口。
+- Record template：抓取指定模块的 trace 文件入口。
 
 ## 导入 trace 文件后显示页面
 
@@ -128,7 +128,7 @@ Thread States、Thread Switches 的 2 个 Tab 页，点击移动到某一行，�
 
 ### Tab 页信息和泳道图可跳转(点击和框选场景,框选类似搜索)
 
-泳道图高亮场景：框选 Cpu Frequency 或者 Cpu State 泳道图后，弹出 Cpu Frequency 或 Cpu State Tab 页，在点击 Tab 页表格的行时，框选范围泳道图的当前行的 Value 值一样的部分上方会出现一条以圆点开头颜色比趋势图颜色同色但稍深的粗线条，如下图:
+泳道图高亮场景：框选 Cpu Frequency 或者 Cpu State 泳道图后，弹出 Cpu Frequency 或 Cpu State Tab 页，点击 Tab 页表格中行某一行数据时，会在框选范围泳道内出现一个以圆形开头的图标，表示当前所点击的数据，如下图:
 ![GitHub Logo](../../figures/Web/Tabskill.jpg)
 搜索场景：框选函数调用栈的泳道图，弹出 Slices Tab 页，点击表格行，会跳转到框选范围内的第一条调用栈的位置，点击下图 Slices Tab 页的 Background concurrent copying GC 调用栈。
 ![GitHub Logo](../../figures/Web/Tabskillcalltack.jpg)

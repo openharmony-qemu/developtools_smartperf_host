@@ -56,6 +56,10 @@ export const TabPaneVirtualMemoryStatisticsAnalysisHtml = `
             left: 0;
             position: absolute;
         }
+        #filter{
+            position: absolute;
+            bottom: 0px;
+        }
         </style>
         <label id="time-range" style="text-align: end;font-size: 10pt;margin-bottom: 5px;width: 100%;height: 20px;">Selected range:0.0 ms</label> 
         <div style="display: flex;flex-direction: row;"class="d-box">

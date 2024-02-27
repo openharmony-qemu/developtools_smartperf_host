@@ -108,8 +108,8 @@ function handleBusyTimeLogic(initFreqResult: Array<any>, initStateResult: Array<
 }
 
 self.onmessage = (e: MessageEvent) => {
-  let leftStartNs = e.data.frqSampleParam.leftNs + e.data.frqSampleParam.recordStartNs;
-  let rightEndNs = e.data.frqSampleParam.rightNs + e.data.frqSampleParam.recordStartNs;
+  let leftStartNs = e.data.timeParam.leftNs + e.data.timeParam.recordStartNs;
+  let rightEndNs = e.data.timeParam.rightNs + e.data.timeParam.recordStartNs;
   e.data.cpuFiliterOrder.forEach((a: number) => {
     getBusyTime(
       e.data.result.filter((f: any) => f.cpu == a),

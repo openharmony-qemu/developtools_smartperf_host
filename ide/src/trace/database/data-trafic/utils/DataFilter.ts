@@ -146,7 +146,7 @@ export function filterDataByGroupLayer(
   arr = arr.map((it) => {
     it.px = Math.floor(it[startKey] / ((endNS - startNS) / width) + it[layerKey] * width);
     //设置临时变量durTmp 用于参与计算，分组后有dur为-1的数据按最长宽度显示
-    it.durTmp = it[durKey] === -1 ? (endNS - it[startKey]) : it[durKey];
+    it.durTmp = (it[durKey] === -1 || it[durKey] === null || it[durKey] === undefined) ? (endNS - it[startKey]) : it[durKey];
     return it;
   });
   let group = groupBy(arr, 'px');

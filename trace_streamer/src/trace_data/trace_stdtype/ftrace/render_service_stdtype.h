@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -83,15 +83,20 @@ private:
     const uint8_t flagValue_ = 2;
 };
 
-class GPUSlice : public BatchCacheBase {
+class GPUSlice : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNew(uint32_t frameRow, uint64_t dur);
     const std::deque<uint32_t>& FrameRows() const;
     const std::deque<uint64_t>& Durs() const;
-    size_t Size() const;
+    void Clear() override
+    {
+        CacheBase::Clear();
+        frameRows_.clear();
+        durs_.clear();
+    }
     void ClearExportedData() override
     {
-        EraseElements(frameRows_, durs_);
+        EraseElements(ids_, frameRows_, durs_);
     }
 
 private:
@@ -99,11 +104,15 @@ private:
     std::deque<uint64_t> durs_ = {};
 };
 
-class FrameMaps : public CacheBase {
+class FrameMaps : public CacheBase, public BatchCacheBase {
 public:
     size_t AppendNew(FrameSlice* frameSlice, uint64_t src, uint64_t dst);
     const std::deque<uint64_t>& SrcIndexs() const;
     const std::deque<uint64_t>& DstIndexs() const;
+    void ClearExportedData() override
+    {
+        EraseElements(timeStamps_, ids_, srcs_, dsts_);
+    }
 
 private:
     std::deque<uint64_t> srcs_ = {};

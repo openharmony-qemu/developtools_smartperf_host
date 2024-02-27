@@ -14,8 +14,8 @@
  */
 
 import { BaseElement, element } from '../BaseElement';
+import { replacePlaceholders } from '../utils/Template';
 
-let listHeight = '';
 let css = `
 <style>
       :host{
@@ -63,7 +63,7 @@ let css = `
           -moz-user-select:none;
       }
        .body{
-          max-height: ${listHeight};
+          max-height: {1};
           width: 100%;
           display: block;
           overflow: auto;
@@ -103,8 +103,7 @@ let css = `
       </style>
 `;
 const initHtmlStyle = (height: string): string => {
-  listHeight = height;
-  return css;
+  return replacePlaceholders(css, height);
 };
 
 @element('lit-allocation-select')

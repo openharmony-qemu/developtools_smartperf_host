@@ -14,8 +14,11 @@
  */
 import { TabPanePurgPinSelection } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgPinSelection';
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
+
+const processSqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
@@ -45,7 +48,7 @@ describe('TabPanePurgPin Test', () => {
       name: '24.00MB',
     },
   ]);
-  let queryProcessPurgeableSelectionTab = sqlit.queryProcessPurgeableSelectionTab;
+  let queryProcessPurgeableSelectionTab = processSqlite.queryProcessPurgeableSelectionTab;
   queryProcessPurgeableSelectionTab.mockResolvedValue([
     {
       value: 25165824,
