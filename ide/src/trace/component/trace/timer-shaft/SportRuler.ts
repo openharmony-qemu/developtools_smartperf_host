@@ -193,7 +193,7 @@ export class SportRuler extends Graph {
     });
   }
 
-  draBasicsRuler(): void{
+  draBasicsRuler(): void {
     this.rulerW = this.canvas!.offsetWidth;
     this.context2D.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height + 1);
     this.context2D.beginPath();
@@ -257,7 +257,7 @@ export class SportRuler extends Graph {
     }
   }
 
-  drawRangeSelect(): void{
+  drawRangeSelect(): void {
     this.initRangeSelect();
     if (this.timeArray.length > 0 && TraceRow.rangeSelectObject) {
       // 页面可视框选区域的宽度
@@ -286,12 +286,12 @@ export class SportRuler extends Graph {
       let sectionTime = (endNS - startNS) / section;
       let countArr = new Uint32Array(section);
       let count: number = 0; //某段时间的调用栈数量
-      const useIndex: number[] = [];
       const isEbpf = this.durArray && this.durArray.length > 0;
+      const processTimeArray = new Array<Boolean>(this.timeArray.length).fill(false);
       for (let i = 1; i <= section; i++) {
         count = 0;
         for (let j = 0; j < this.timeArray.length; j++) {
-          if (isEbpf && useIndex.includes(j)) {
+          if (processTimeArray[j]){
             continue;
           }
           let inRange = this.freshInRange(j, startNS, sectionTime, i);
@@ -303,8 +303,8 @@ export class SportRuler extends Graph {
             } else {
               count++;
             }
-            useIndex.push(j);
             countArr[i - 1] = count;
+            processTimeArray[j] = true;
           } else {
             // 如果遇到大于分割点的时间，就跳过该分割点，计算下一个分割点的时间点数量
             continue;
@@ -317,7 +317,7 @@ export class SportRuler extends Graph {
     this.context2D.closePath();
   }
 
-  private drawRangeSelectFillText(rangeSelectWidth: number, section: number, i: number, countArr: Uint32Array){
+  private drawRangeSelectFillText(rangeSelectWidth: number, section: number, i: number, countArr: Uint32Array) {
     let x = TraceRow.rangeSelectObject!.startX! + (rangeSelectWidth / section) * i;
     if (i !== section) {
       this.context2D.moveTo(x, this.frame.y + 22);
@@ -446,7 +446,9 @@ export class SportRuler extends Graph {
     }
   }
 
-  setSlicesMark( startTime: number | null = null, endTime: number | null = null,
+  setSlicesMark(
+    startTime: number | null = null,
+    endTime: number | null = null,
     shiftKey: boolean | null = null
   ): SlicesTime | null {
     let findSlicesTime = this.slicesTimeList.find((it) => it.startTime === startTime && it.endTime === endTime);

@@ -68,7 +68,7 @@ export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
       sp.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,8 @@
 
 #include "codec_cov.h"
 #include "file.h"
+#include "filter/cpu_filter.h"
+#include "filter/frame_filter.h"
 #include "filter/slice_filter.h"
 #include "log.h"
 #include "metrics.h"
@@ -80,15 +82,14 @@ void ShowHelpInfo(const char* argv)
         " -c    command line mode.\n"
         " -D    Specify the directory path with multiple long trace files"
         " -d    dump perf/hook/ebpf readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
-        " -h    start HTTP server.\n"
         " -l <level>, --level=<level>\n"
         "       Show specific level/levels logs with format: level1,level2,level3\n"
         "       Long level string coule be: DEBUG/INFO/WARN/ERROR/FATAL/OFF.\n"
         "       Short level string coule be: D/I/W/E/F/O.\n"
         "       Default level is OFF.\n"
+        " -lnc  long trace no clear the db cache.\n"
         " -o    set dump file path.\n"
         " -s    separate arkts-plugin data, and save it in current dir with default filename.\n"
-        " -p    Specify the port of HTTP server, default is 9001.\n"
         " -q    select sql from file.\n"
         " -m    Perform operations that query metrics through linux,supports querying multiple metrics items.For "
         "example:-m x,y,z.\n"
@@ -254,6 +255,7 @@ struct TraceExportOption {
     bool separateFile = false;
     bool closeMutiThread = false;
     uint8_t parserThreadNum = INVALID_UINT8;
+    bool needClearLongTraceCache = true;
 };
 bool CheckFinal(char** argv, TraceExportOption& traceExportOption)
 {
@@ -342,10 +344,13 @@ bool CheckAndSetLongTraceDir(TraceExportOption& traceExportOption, int argc, cha
     traceExportOption.longTraceDir = std::string(argv[index]);
     return true;
 }
-bool ParseOtherArgs(int argc, char** argv, TraceExportOption& traceExportOption, int i)
+bool ParseOtherArgs(int argc, char** argv, TraceExportOption& traceExportOption, int& i)
 {
     if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
         PrintInformation();
+    } else if (!strcmp(argv[i], "-lnc")) {
+        traceExportOption.needClearLongTraceCache = false;
+        return true;
     } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
         TS_CHECK_TRUE_RET(CheckAndSetLogLevel(argc, argv, i), false);
         return true;
@@ -478,36 +483,41 @@ bool OpenAndParserLongTraceFile(TraceStreamerSelector& ts, const std::string& tr
     close(fd);
     return true;
 }
-void ParseLongTrace(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
+bool ParseLongTrace(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
 {
     std::map<int, std::string> seqToFilePathMap;
-    if (traceExportOption.sqliteFilePath.empty()) {
-        return;
-    }
-    if (!GetLongTraceFilePaths(traceExportOption, seqToFilePathMap)) {
-        return;
-    }
+    TS_CHECK_TRUE(!traceExportOption.sqliteFilePath.empty(), false, "sqliteFilePath is empty");
+    TS_CHECK_TRUE(GetLongTraceFilePaths(traceExportOption, seqToFilePathMap), false, "GetLongTraceFilePaths err!");
     ts.CreatEmptyBatchDB(traceExportOption.sqliteFilePath);
+    ts.GetTraceDataCache()->supportThread_ = false;
     for (auto itor = seqToFilePathMap.begin(); itor != seqToFilePathMap.end(); itor++) {
-        ts.GetTraceDataCache()->UpdateAllPrevSize();
         if (!OpenAndParserLongTraceFile(ts, itor->second)) {
             break;
         }
-        if (std::distance(itor, seqToFilePathMap.end()) == 1) {
+        if (itor == std::prev(seqToFilePathMap.end())) {
             ts.WaitForParserEnd();
+            if (!traceExportOption.needClearLongTraceCache) {
+                TS_CHECK_TRUE(ExportDatabase(ts, traceExportOption.sqliteFilePath) == 0, false, "ExportDatabase Err!");
+            }
         }
-        ts.GetTraceDataCache()->ClearAllPrevCacheData();
-        ts.GetStreamFilter()->FilterClear();
-        if (!LongTraceExportDatabase(ts, traceExportOption.sqliteFilePath)) {
-            return;
+        if (!traceExportOption.needClearLongTraceCache) {
+            continue;
         }
-        if (std::distance(itor, seqToFilePathMap.end()) == 1) {
+        ts.GetStreamFilter()->sliceFilter_->UpdateReadySize(); // for irq_
+        ts.GetStreamFilter()->frameFilter_->UpdateReadySize(); // for frameSliceRow_
+        ts.GetStreamFilter()->cpuFilter_->UpdateReadySize();   // for sched_slice
+        ts.GetTraceDataCache()->UpdateAllReadySize();
+        TS_CHECK_TRUE(LongTraceExportDatabase(ts, traceExportOption.sqliteFilePath), false,
+                      "LongTraceExportDatabase Err!");
+        ts.GetTraceDataCache()->ClearAllExportedCacheData();
+        if (itor == std::prev(seqToFilePathMap.end())) {
             ts.RevertTableName(traceExportOption.sqliteFilePath);
         }
     }
     if (!traceExportOption.sqliteFilePath.empty()) {
         ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
     }
+    return true;
 }
 void ExportReadableText(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
 {

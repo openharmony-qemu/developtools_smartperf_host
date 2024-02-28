@@ -43,7 +43,7 @@ export class TabPaneStaticInit extends BaseElement {
       (result: SoStruct[]) => {
         this.staticinitTbl!.loading = false;
         if (result !== null && result.length > 0) {
-          log(`getTabStaticInit  result size : ${  result.length}`);
+          log(`getTabStaticInit  result size : ${result.length}`);
           let map: Map<number, SoTreeItem> = new Map<number, SoTreeItem>();
           result.forEach((item) => {
             let so: SoTreeItem = {
@@ -73,7 +73,7 @@ export class TabPaneStaticInit extends BaseElement {
           soArr.forEach((it) => {
             it.durStr = getProbablyTime(it.dur);
             it.children!.forEach((child) => {
-              child.ratio = `${((child.dur * 100) / it.dur).toFixed(2)  }%`;
+              child.ratio = `${((child.dur * 100) / it.dur).toFixed(2)}%`;
             });
           });
           this.staticinitSource = soArr;
@@ -92,10 +92,12 @@ export class TabPaneStaticInit extends BaseElement {
     }
     this.currentSelectionParam = staticParam;
     //@ts-ignore
-    this.staticinitTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 45  }px`;
-    this.range!.textContent =
-      `Selected range: ${  ((staticParam.rightNs - staticParam.leftNs) / 1000000.0).toFixed(5)  } ms`;
+    this.staticinitTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
+      this.parentElement!.clientHeight - 45
+    }px`;
+    this.range!.textContent = `Selected range: ${((staticParam.rightNs - staticParam.leftNs) / 1000000.0).toFixed(
+      5
+    )} ms`;
     this.staticinitTbl!.loading = true;
   }
 
@@ -134,7 +136,7 @@ export class TabPaneStaticInit extends BaseElement {
         <div style="overflow: auto">
             <lit-table id="tb-staticinit" style="height: auto" tree>
                 <lit-table-column width="700px" title="Process / Lib"  data-index="name" 
-                key="name"  align="flex-start" order>
+                key="name"  align="flex-start" retract order>
                 </lit-table-column>
                 <lit-table-column width="200px" title="Duration" data-index="durStr" 
                 key="durStr"  align="flex-start" order >

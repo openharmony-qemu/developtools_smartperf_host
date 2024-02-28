@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@
 
 #ifndef CALLSTACK_STDTYPE_H
 #define CALLSTACK_STDTYPE_H
+#include <optional>
 #include "base_stdtype.h"
 
 namespace SysTuning {
@@ -28,7 +29,7 @@ public:
                                     uint16_t nameIdentify,
                                     DataIndex name,
                                     uint8_t depth,
-                                    uint64_t cookid,
+                                    int64_t cookid,
                                     const std::optional<uint64_t>& parentId);
     size_t AppendInternalSlice(uint64_t startT,
                                uint64_t durationNs,
@@ -83,7 +84,7 @@ public:
     const std::deque<DataIndex>& CatsData() const;
     const std::deque<DataIndex>& NamesData() const;
     const std::deque<uint8_t>& Depths() const;
-    const std::deque<uint64_t>& Cookies() const;
+    const std::deque<int64_t>& Cookies() const;
     const std::deque<uint32_t>& CallIds() const;
     const std::deque<uint16_t>& IdentifysData() const;
     const std::deque<std::string>& ChainIds() const;
@@ -100,7 +101,7 @@ private:
 private:
     std::deque<std::optional<uint64_t>> parentIds_;
     std::deque<DataIndex> cats_ = {};
-    std::deque<uint64_t> cookies_ = {};
+    std::deque<int64_t> cookies_ = {};
     std::deque<uint32_t> callIds_ = {};
     std::deque<uint16_t> identifys_ = {};
     std::deque<DataIndex> names_ = {};

@@ -22,7 +22,7 @@ import { compare, CompareStruct, resizeObserverFromMemory } from '../SheetUtils'
 import '../TabPaneJsMemoryFilter';
 import { type TabPaneJsMemoryFilter } from '../TabPaneJsMemoryFilter';
 import { TabPaneGpuClickSelect } from './TabPaneGpuClickSelect';
-import {queryGpuDataByTs} from "../../../../database/sql/Gpu.sql";
+import { queryGpuDataByTs } from '../../../../database/sql/Gpu.sql';
 interface GpuTreeItem {
   name: string;
   id: number;

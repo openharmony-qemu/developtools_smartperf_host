@@ -67,16 +67,14 @@ describe('SpWebHdcShell Test', () => {
   it('SpWebHdcShell Test03', function () {
     let arrayBufferA = new Uint8Array(1);
     arrayBufferA.set([1]);
-    let arrayBufferB = new Uint8Array(1);
-    arrayBufferB.set([1]);
-    expect(spWebHdcShell.arrayBufferCompare(arrayBufferA, arrayBufferB)).toBeTruthy();
+    let arrayBufferB = [1, 2];
+    expect(spWebHdcShell.arrayBufferCompare(arrayBufferA, arrayBufferB)).toBeFalsy();
   });
 
   it('SpWebHdcShell Test05', function () {
     let arrayBufferA = new Uint8Array(1);
     arrayBufferA.set([2]);
-    let arrayBufferB = new Uint8Array(1);
-    arrayBufferB.set([1]);
+    let arrayBufferB = [1, 2];
     expect(spWebHdcShell.arrayBufferCompare(arrayBufferA, arrayBufferB)).toBeFalsy();
   });
 

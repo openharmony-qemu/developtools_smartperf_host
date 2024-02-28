@@ -14,19 +14,34 @@
  */
 
 import { SpHiSysEventChart } from '../../../../src/trace/component/chart/SpHiSysEventChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-const sqlite = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
 describe('SpHiSysEventChart Test', () => {
-  let spHiSysEvent = new SpHiSysEventChart(new SpChartManager());
+  let spHiSysEvent = new SpHiSysEventChart(new SpSystemTrace());
   let hiSysEventList = sqlite.queryHiSysEventData;
   let hiSysEventListData = [{
     id: 1,
-    domain:'STARTUP',
+    domain: 'STARTUP',
     eventName: 'PROCESS_EXIT',
     eventType: '4',
     ts: 1,
@@ -40,7 +55,7 @@ describe('SpHiSysEventChart Test', () => {
     contents: 'APP_PID',
     dur: 1,
     depth: 1,
-  }]
+  }];
   hiSysEventList.mockResolvedValue(hiSysEventListData);
   it('SpHiSysEventChart01', function () {
     expect(spHiSysEvent.init()).toBeTruthy();

@@ -44,10 +44,10 @@ export class TabPaneStartup extends BaseElement {
     }
     this.currentSelectionParam = startupParam;
     //@ts-ignore
-    this.startupTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 45  }px`;
-    this.range!.textContent =
-      `Selected range: ${  ((startupParam.rightNs - startupParam.leftNs) / 1000000.0).toFixed(5)  } ms`;
+    this.startupTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${this.parentElement!.clientHeight - 45}px`;
+    this.range!.textContent = `Selected range: ${((startupParam.rightNs - startupParam.leftNs) / 1000000.0).toFixed(
+      5
+    )} ms`;
     this.startupTbl!.loading = true;
     getTabStartups(startupParam.processIds, startupParam.leftNs, startupParam.rightNs).then(
       (result: AppStartupStruct[]) => {
@@ -146,9 +146,9 @@ export class TabPaneStartup extends BaseElement {
             Selected range:0.0 ms</label>
         </div>
         <div style="overflow: auto">
-            <lit-table id="tb-startup" style="height: auto" tree>
+            <lit-table id="tb-startup" style="height: auto" tree >
                 <lit-table-column width="600px" title="Process / Startup"  data-index="name" 
-                key="name"  align="flex-start" >
+                key="name"  align="flex-start" retract>
                 </lit-table-column>
                 <lit-table-column width="200px" title="Duration" data-index="durStr" 
                 key="durStr"  align="flex-start" order >

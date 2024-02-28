@@ -34,7 +34,6 @@ import { TraceSheet } from './trace/base/TraceSheet';
 import { TimerShaftElement } from './trace/TimerShaftElement';
 import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
-
 function rightButtonOnClick(sp: SpSystemTrace,rightStar: HTMLElementAlias) {
     Object.assign(sp, {
         ext(): string {
@@ -192,7 +191,7 @@ function flagChangeHandler(sp: SpSystemTrace) {
                     showTab = showTab.filter((it) => it !== 'box-flag');
                     sp.traceSheetEL?.displayTab(...showTab);
                 } else {
-                    sp.traceSheetEL?.setAttribute('mode', 'hidden');
+                    sp.traceSheetEL?.setMode('hidden');
                 }
             }
             sp.refreshCanvas(true);
@@ -210,7 +209,7 @@ function slicesChangeHandler(sp:SpSystemTrace) {
                    showTab = showTab.filter((it) => it !== 'tabpane-current');
                    sp.traceSheetEL?.displayTab(...showTab);
                } else {
-                   sp.traceSheetEL?.setAttribute('mode', 'hidden');
+                   sp.traceSheetEL?.setMode('hidden');
                }
            }
            sp.refreshCanvas(true);
@@ -391,15 +390,21 @@ function selectHandler(sp: SpSystemTrace) {
             }
             sp.refreshCanvas(true);
             if (!SportRuler.isMouseInSportRuler) {
-                sp.traceSheetEL?.setAttribute('mode', 'hidden');
+                sp.traceSheetEL?.setMode('hidden');
             }
             return;
         }
-        selectHandlerRefreshCheckBox(sp,rows, refreshCheckBox);
+        let checkRows = rows;
+        if (!refreshCheckBox) {
+            checkRows = [
+              ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+              ...sp.favoriteChartListEL!.getAllSelectCollectRows()]
+        }
+        selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
         if (!sp.isSelectClick) {
             sp.rangeTraceRow = [];
         }
-        selectHandlerRows(sp, rows);
+        selectHandlerRows(sp, checkRows);
     };
 }
 function selectHandlerRefreshCheckBox(sp: SpSystemTrace, rows: Array<TraceRow<any>>, refreshCheckBox: boolean) {
@@ -486,7 +491,9 @@ function resizeObserverHandler(sp:SpSystemTrace) {
         if (sp.traceSheetEL!.getAttribute('mode') == 'hidden') {
             sp.timerShaftEL?.removeTriangle('triangle');
         }
-        sp.refreshFavoriteCanvas();
+        if(sp.favoriteChartListEL?.style.display === 'flex'){
+            sp.refreshFavoriteCanvas();
+        }
         sp.refreshCanvas(true);
     }).observe(sp.rowsPaneEL!);
 }
@@ -531,10 +538,12 @@ function intersectionObserverHandler(sp: SpSystemTrace) {
               sp.visibleRows
                 .filter((vr) => vr.expansion)
                 .forEach((vr) => {
-                    vr.sticky = sp.visibleRows.some((vro) => vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0);
+                    vr.sticky = sp.visibleRows.some((vro) =>{
+                        vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0;
+                    });
                 });
               sp.visibleRows
-                .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion)
+                .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion && !vr.collect)
                 .forEach((vr) => (vr.parentRowEl!.sticky = true));
               if (sp.handler) {
                   clearTimeout(sp.handler);
@@ -560,7 +569,7 @@ function windowKeyDownHandler(sp: SpSystemTrace) {
             sp.rangeSelect.rangeTraceRow = [];
             sp.selectStructNull();
             sp.timerShaftEL?.setSlicesMark();
-            sp.traceSheetEL?.setAttribute('mode', 'hidden');
+            sp.traceSheetEL?.setMode('hidden');
             sp.removeLinkLinesByBusinessType('janks', 'task');
         }
     }
@@ -661,7 +670,9 @@ export function spSystemTraceInitElement(sp:SpSystemTrace){
 }
 
 function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any) {
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
+    if (findEntry.startTime > TraceRow.range!.endNS || (findEntry.startTime + findEntry.dur) < TraceRow.range!.startNS) {
+        sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
+    }
     sp.queryAllTraceRow().forEach((item) => {
         item.highlight = false;
     });
@@ -709,15 +720,21 @@ export function spSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, curr
     return findIndex;
 }
 function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
+    if (TraceRow.range!.startNS > SpSystemTrace.currentStartTime && !retargetIndex) {
+        SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+    }
     let findIndex = -1;
     if (previous) {
         if (retargetIndex) {
             findIndex = retargetIndex - 1;
+            SpSystemTrace.retargetIndex = findIndex;
         } else {
             for (let i = structs.length - 1; i >= 0; i--) {
                 let it = structs[i];
                 if (
-                  i < currentIndex
+                    i < currentIndex &&
+                    it.startTime! >= TraceRow.range!.startNS &&
+                    it.startTime! + it.dur! <= TraceRow.range!.endNS
                 ) {
                     findIndex = i;
                     break;
@@ -725,15 +742,23 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean,
             }
         }
     } else {
-        if (currentIndex == -1) {
-            findIndex = 0;
-        } else {
-            findIndex = structs.findIndex((it, idx) => {
-                return (
-                  idx > currentIndex
-                );
-            });
+        if (SpSystemTrace.currentStartTime > TraceRow.range!.startNS) {
+            SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+            if (structs[currentIndex].startTime < TraceRow.range!.startNS || structs[currentIndex].startTime! + structs[currentIndex].dur! > TraceRow.range!.endNS) {
+                currentIndex = -1;
+            }
         }
+        if (SpSystemTrace.currentStartTime !== 0 && SpSystemTrace.currentStartTime < TraceRow.range!.startNS) {
+            SpSystemTrace.currentStartTime = 0;
+            SpSystemTrace.retargetIndex = 0;
+        }
+        findIndex = structs.findIndex((it, idx) => {
+            return (
+                idx > currentIndex &&
+                it.startTime! >= TraceRow.range!.startNS &&
+                it.startTime! + it.dur! <= TraceRow.range!.endNS
+            );
+        });
     }
     return findIndex;
 }
@@ -756,7 +781,6 @@ function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any) {
 }
 function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any) {
     sp.observerScrollHeightEnable = true;
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
     sp.scrollToActFunc(
       {
           startTs: findEntry.startTime,
@@ -874,6 +898,7 @@ export async function spSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuf
         }
         if (sp.loadTraceCompleted) {
             sp.traceSheetEL?.displaySystemLogsData();
+            sp.traceSheetEL?.displaySystemStatesData();
         }
         sp.intersectionObserver?.observe(it);
     });

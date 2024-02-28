@@ -58,6 +58,7 @@ export class FuncRender extends Render {
         if (re.dur == 0 || re.dur == null || re.dur == undefined) {
           if (
             re.frame &&
+            re.itid &&
             row.hoverX >= re.frame.x - 5 &&
             row.hoverX <= re.frame.x + 5 &&
             row.hoverY >= re.frame.y &&
@@ -67,7 +68,7 @@ export class FuncRender extends Render {
             funcFind = true;
           }
         } else {
-          if (re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+          if (re.frame && re.itid && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
             FuncStruct.hoverFuncStruct = re;
             funcFind = true;
           }
@@ -145,7 +146,7 @@ export function FuncStructOnClick(clickRowType: string, sp:any,row:TraceRow<any>
       }
       sp.traceSheetEL?.displayFuncData(showTabArray, FuncStruct.selectFuncStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     } else {
       resolve(null);
     }
@@ -223,8 +224,36 @@ export class FuncStruct extends BaseFuncStruct {
         if (flagConfig!.TaskPool === 'Enabled' && data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
           FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 20, 10, data!);
         }
+        // 如果该函数没有结束时间，则绘制锯齿。
+        if (data.nofinish && data.frame!.width > 4) {
+          FuncStruct.drawRupture(ctx, data.frame.x, data.frame.y , data.frame.width, data.frame.height );
+        }
       }
     }
+  }
+
+  /**
+   * 绘制锯齿
+   * @param ctx 绘图上下文环境
+   * @param x 水平坐标
+   * @param y 垂直坐标
+   * @param width 函数矩形框的宽度
+   * @param height 函数矩形框的高度
+   */
+  static drawRupture(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
+    ctx.fillStyle = '#fff'; // 白色: '#fff' , 红色: '#FF0000';
+    let ruptureWidth = 5;
+    let ruptureNode = height / ruptureWidth;
+    let len = height / ruptureNode;
+    ctx.moveTo(x + width - 1, y);
+    for (let i = 1; i <= ruptureNode; i++) {
+      ctx.lineTo(
+        x + width - 1 - (i % 2 == 0 ? 0 : ruptureWidth),
+        y + len * i - 2
+      );
+    }
+    ctx.closePath();
+    ctx.fill();
   }
 
   static drawTaskPoolUnSuccessFlag(

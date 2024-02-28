@@ -55,6 +55,7 @@ export class TabPaneHisysEvents extends BaseElement {
   tableTitleTimeHandle: (() => void) | undefined;
   private currentDetailList: Array<{ key: string; value: string }> = [];
   private realTime: number = -1;
+  private bootTime: number = -1;
   private baseTime: string = '';
 
   set data(systemEventParam: SelectionParam) {
@@ -71,7 +72,13 @@ export class TabPaneHisysEvents extends BaseElement {
     this.initTabSheetEl();
     queryRealTime().then((result) => {
       if (result && result.length > 0) {
-        this.realTime = Math.floor(result[0].ts / millisecond);
+        result.forEach(item => {
+          if (item.name === 'realtime') {
+            this.realTime = item.ts;
+          } else {
+            this.bootTime = item.ts;
+          }
+        });
       }
       queryHiSysEventTabData(systemEventParam.leftNs, systemEventParam.rightNs).then((res) => {
         this.currentSelection = systemEventParam;
@@ -106,6 +113,16 @@ export class TabPaneHisysEvents extends BaseElement {
     this.eventTableTitle = this.shadowRoot?.querySelector<HTMLLabelElement>('#event-title');
     this.tableTitleTimeHandle = this.delayedRefresh(this.refreshEventsTitle);
     this.initHiSysEventListener();
+  }
+
+  /**
+   * 按ns去补0
+   *
+   * @param timestamp
+   * @private
+   */
+  private timestampToNS(timestamp: string): number {
+    return Number(timestamp.toString().padEnd(19, '0'));
   }
 
   private initHiSysEventListener(): void {
@@ -180,7 +197,9 @@ export class TabPaneHisysEvents extends BaseElement {
     if (this.hiSysEventTable && this.hiSysEventTable.currentRecycleList.length > 0) {
       let startDataIndex = this.hiSysEventTable.startSkip + 1;
       let endDataIndex = startDataIndex;
-      if (height < firstRowHeight * 0.3) {
+      let crossTopHeight = tbl!.scrollTop % firstRowHeight;
+      let topShowHeight = crossTopHeight === 0 ? 0 : firstRowHeight - crossTopHeight;
+      if (topShowHeight < firstRowHeight * 0.3) {
         startDataIndex++;
       }
       let tableHeight = Number(tbl!.style.height.replace('px', '')) - tableHeadHeight;
@@ -191,7 +210,7 @@ export class TabPaneHisysEvents extends BaseElement {
         height += firstRowHeight;
         endDataIndex++;
       }
-      if (tableHeight - height > firstRowHeight * 0.3) {
+      if (tableHeight - height - topShowHeight > firstRowHeight * 0.3) {
         endDataIndex++;
       }
       if (endDataIndex >= this.filterDataList.length) {
@@ -403,7 +422,7 @@ export class TabPaneHisysEvents extends BaseElement {
         let contentValue = value;
         if (key.endsWith('_TIME')) {
           if (!isNaN(Number(value))) {
-            contentValue = ((Number(value) - this.realTime) * millisecond).toString();
+            contentValue = ((this.timestampToNS(value) - this.realTime) + this.bootTime).toString();
             if (this.realTime < 0) {
               contentValue = value;
             }

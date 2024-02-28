@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-let inputPlace = '';
+import { replacePlaceholders } from '../../../../base-ui/utils/Template';
 
 let html = `
 <style>
@@ -256,7 +256,7 @@ margin-left: 15px;
 </style>
 <lit-icon name="menu" class="spacing" id="icon" size="20"></lit-icon>
 <span class="describe left-text spacing">Input Filter</span>
-<input id="pane-filter-input" class="spacing" placeholder="${inputPlace}"/>
+<input id="pane-filter-input" class="spacing" placeholder={1}/>
 <button id="mark" class="spacing">Mark Snapshot</button>
 <div id="load" style="display: flex">
 
@@ -323,6 +323,5 @@ margin-left: 15px;
 </div>
 `
 export const TabPaneFilterHtml = (input: string): string => {
-  inputPlace = input;
-  return html;
+  return replacePlaceholders(html, input);
 }

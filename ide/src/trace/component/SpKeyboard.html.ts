@@ -34,7 +34,7 @@ export const SpKeyboardHtml = `
 .body{
   width: 50%;
   background-color: #fff;
-  padding: 30px;
+  padding: 0 30px 30px;
   z-index: 9000;
   max-height: 600px;
   overflow-y: scroll;
@@ -44,10 +44,11 @@ export const SpKeyboardHtml = `
   position:absolute;
 }
 header {
-  position: relative;
-  width: 100%;
-  height: 31px;
-  line-height: 31px;
+  position: fixed;
+  width: 50%;
+  height: 50px;
+  line-height: 50px;
+  background-color: #fff;
 }
 .close-icon{
   cursor: pointer;
@@ -93,7 +94,7 @@ table{
 <div class='shadow-box'></div>
  <div class="body">
   <header style="display">
-    <h2 class="title">SmartPerf help</h3>
+    <h2 class="title">SmartPerf Help</h3>
     <a class="close-icon"> ✕ </a>
   </header>
   <main>

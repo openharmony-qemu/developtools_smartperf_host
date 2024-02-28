@@ -17,11 +17,20 @@ import { TabPaneFrequencySample } from '../../../../../../src/trace/component/tr
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {}
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -102,8 +111,8 @@ describe('TabPaneFrequencySample Test', () => {
   };
 
   it('TabPaneCounterSampleTest01', function () {
-    let getTabPaneFrequencySampleData = sqlit.getTabPaneFrequencySampleData;
-    getTabPaneFrequencySampleData.mockResolvedValue([
+    let sampleData = sqlit.getTabPaneFrequencySampleData;
+    sampleData.mockResolvedValue([
       {
         value: 'process',
         filterId: 1,

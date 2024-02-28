@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -512,8 +512,8 @@ bool HtraceEventParser::SchedSwitchEvent(const EventInfo& event)
 {
     ProtoReader::SchedSwitchFormat_Reader msg(event.detail_);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
-    uint32_t prevPrioValue = msg.prev_prio();
-    uint32_t nextPrioValue = msg.next_prio();
+    int32_t prevPrioValue = msg.prev_prio();
+    int32_t nextPrioValue = msg.next_prio();
     uint32_t prevPidValue = msg.prev_pid();
     uint32_t nextPidValue = msg.next_pid();
     if (!tids_.count(prevPidValue)) {
@@ -530,9 +530,8 @@ bool HtraceEventParser::SchedSwitchEvent(const EventInfo& event)
         streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.timeStamp_, nextPidValue, nextCommStr);
     auto uprevtid =
         streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.timeStamp_, prevPidValue, prevCommStr);
-    streamFilters_->cpuFilter_->InsertSwitchEvent(event.timeStamp_, event.cpu_, uprevtid,
-                                                  static_cast<uint64_t>(prevPrioValue), prevState, nextInternalTid,
-                                                  static_cast<uint64_t>(nextPrioValue), INVALID_DATAINDEX);
+    streamFilters_->cpuFilter_->InsertSwitchEvent(event.timeStamp_, event.cpu_, uprevtid, prevPrioValue, prevState,
+                                                  nextInternalTid, nextPrioValue, INVALID_DATAINDEX);
     return true;
 }
 bool HtraceEventParser::SchedBlockReasonEvent(const EventInfo& event)
@@ -971,6 +970,7 @@ void HtraceEventParser::Clear()
     const_cast<TraceStreamerFilters*>(streamFilters_)->FilterClear();
     streamFilters_->sysEventMemMeasureFilter_->Clear();
     streamFilters_->sysEventVMemMeasureFilter_->Clear();
+    traceDataCache_->GetMeasureData()->ClearRowMap();
     printEventParser_.Finish();
 }
 } // namespace TraceStreamer

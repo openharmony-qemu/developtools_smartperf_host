@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +19,10 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, TYPE, NAME, INTERNAL_PID };
+enum class Index : int32_t { ID = 0, NAME, INTERNAL_PID };
 ProcessMeasureFilterTable::ProcessMeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
     tablePriKey_.push_back("id");
@@ -139,9 +138,6 @@ int32_t ProcessMeasureFilterTable::Cursor::Column(int32_t col) const
         case Index::ID:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
                                                dataCache_->GetConstProcessMeasureFilterData().IdsData()[CurrentRow()]));
-            break;
-        case Index::TYPE:
-            sqlite3_result_text(context_, "process_measure_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case Index::NAME: {
             size_t strId =

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,14 +29,12 @@
 #include "ftrace_event_processor.h"
 #include "string_to_numerical.h"
 
-namespace {
-constexpr uint64_t FILTER_MAX_SIZE = 3000000;
-}
 namespace SysTuning {
 namespace TraceStreamer {
 CpuDetailParser::CpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
     : streamFilters_(ctx), traceDataCache_(dataCache), printEventParser_(dataCache, ctx)
 {
+    standAloneCpuEventList_.resize(CPU_CORE_MAX);
     printEventParser_.SetTraceType(TRACE_FILETYPE_RAW_TRACE);
     printEventParser_.SetTraceClockId(clock_);
     eventToFunctionMap_ = {
@@ -148,12 +146,44 @@ void CpuDetailParser::VoltageEventInitialization()
         config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
         std::bind(&CpuDetailParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1));
 }
-
-void CpuDetailParser::EventAppend(std::unique_ptr<RawTraceEventInfo> event)
+void CpuDetailParser::EventAppend(std::shared_ptr<RawTraceEventInfo> event)
 {
-    rawTraceEventList_.emplace_back(std::move(event));
+    standAloneCpuEventList_[event->cpuId].emplace(std::move(event));
+    curRawTraceEventNum_++;
 }
-bool CpuDetailParser::FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFinished)
+void CpuDetailParser::ResizeStandAloneCpuEventList(uint32_t cpuNum)
+{
+    cpuCoreMax_ = cpuNum;
+    standAloneCpuEventList_.resize(cpuNum);
+}
+bool CpuDetailParser::SortStandAloneCpuEventList(bool isFinished)
+{
+    while (curRawTraceEventNum_ > 0) {
+        uint32_t minTimeCpuId = 0;
+        uint64_t curMinTs = INVALID_UINT64;
+        // select a min time from one of the cpu caches
+        for (int curCpuId = 0; curCpuId < cpuCoreMax_; curCpuId++) {
+            if (!isFinished && standAloneCpuEventList_[curCpuId].empty()) {
+                return true;
+            } else if (standAloneCpuEventList_[curCpuId].empty()) {
+                continue;
+            }
+            uint64_t ts = standAloneCpuEventList_[curCpuId].front()->msgPtr->timestamp();
+            if (ts < curMinTs) {
+                curMinTs = ts;
+                minTimeCpuId = curCpuId;
+            }
+        }
+        rawTraceEventList_.emplace_back(std::move(standAloneCpuEventList_[minTimeCpuId].front()));
+        standAloneCpuEventList_[minTimeCpuId].pop();
+        curRawTraceEventNum_--;
+        if (!isFinished && standAloneCpuEventList_[minTimeCpuId].empty()) {
+            break;
+        }
+    }
+    return true;
+}
+void CpuDetailParser::UpdateCpuOverwrite(FtraceCpuDetailMsg& cpuDetail)
 {
     if (cpuDetail.overwrite()) {
         if (!lastOverwrite_) {
@@ -165,16 +195,12 @@ bool CpuDetailParser::FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFini
         }
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
     }
-    if (!isFinished && rawTraceEventList_.size() < FILTER_MAX_SIZE) {
-        return false;
-    }
-    auto cmp = [](const std::unique_ptr<RawTraceEventInfo>& a, const std::unique_ptr<RawTraceEventInfo>& b) {
-        return a->msgPtr->timestamp() < b->msgPtr->timestamp();
-    };
-    std::stable_sort(rawTraceEventList_.begin(), rawTraceEventList_.end(), cmp);
-    if (rawTraceEventList_.empty()) {
-        return false;
-    }
+}
+bool CpuDetailParser::FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFinished)
+{
+    UpdateCpuOverwrite(cpuDetail);
+    SortStandAloneCpuEventList(isFinished);
+    TS_CHECK_TRUE_RET(!rawTraceEventList_.empty(), true);
     traceDataCache_->UpdateTraceTime(rawTraceEventList_.front()->msgPtr->timestamp());
     traceDataCache_->UpdateTraceTime(rawTraceEventList_.back()->msgPtr->timestamp());
     for (size_t i = 0; i < rawTraceEventList_.size(); i++) {
@@ -183,11 +209,23 @@ bool CpuDetailParser::FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFini
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventPid_, eventPid_);
         }
         DealEvent(*rawTraceEventList_[i].get());
+        rawTraceEventList_[i].reset();
     }
-    TS_LOGI("event_size=%d, rawTraceEventList_.size=%zu", cpuDetail.event().size(), rawTraceEventList_.size());
+    TS_LOGI("deal rawTraceEventList_.size=%zu", rawTraceEventList_.size());
     rawTraceEventList_.clear();
     cpuDetail.Clear();
-    TS_CHECK_TRUE_RET(isFinished, true);
+    return true;
+}
+void CpuDetailParser::Clear()
+{
+    cpuCoreMax_ = CPU_CORE_MAX;
+    const_cast<TraceStreamerFilters*>(streamFilters_)->FilterClear();
+    streamFilters_->sysEventMemMeasureFilter_->Clear();
+    streamFilters_->sysEventVMemMeasureFilter_->Clear();
+    printEventParser_.Finish();
+}
+void CpuDetailParser::FinishCpuDetailParser()
+{
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
@@ -195,14 +233,7 @@ bool CpuDetailParser::FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFini
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     }
     Clear();
-    return true;
-}
-void CpuDetailParser::Clear()
-{
-    const_cast<TraceStreamerFilters*>(streamFilters_)->FilterClear();
-    streamFilters_->sysEventMemMeasureFilter_->Clear();
-    streamFilters_->sysEventVMemMeasureFilter_->Clear();
-    printEventParser_.Finish();
+    traceDataCache_->GetThreadStateData()->SortAllRowByTs();
 }
 void CpuDetailParser::DealEvent(const RawTraceEventInfo& event)
 {
@@ -232,9 +263,9 @@ bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo& event)
     auto uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
         event.msgPtr->timestamp(), schedSwitchMsg.prev_pid(), schedSwitchMsg.prev_comm());
 
-    streamFilters_->cpuFilter_->InsertSwitchEvent(
-        event.msgPtr->timestamp(), event.cpuId, uprevtid, static_cast<uint64_t>(schedSwitchMsg.prev_prio()),
-        schedSwitchPrevState, nextInternalTid, static_cast<uint64_t>(schedSwitchMsg.next_prio()), INVALID_DATAINDEX);
+    streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
+                                                  schedSwitchMsg.prev_prio(), schedSwitchPrevState, nextInternalTid,
+                                                  schedSwitchMsg.next_prio(), INVALID_DATAINDEX);
     return true;
 }
 bool CpuDetailParser::SchedBlockReasonEvent(const RawTraceEventInfo& event)

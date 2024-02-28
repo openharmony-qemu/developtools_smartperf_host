@@ -33,7 +33,7 @@ export class TabPaneMemoryAbility extends BaseElement {
   set data(memoryAbilityValue: SelectionParam | any) {
     if (this.memoryAbilityTbl) {
       // @ts-ignore
-      this.memoryAbilityTbl.shadowRoot.querySelector('.table').style.height =
+      this.memoryAbilityTbl.shadowRoot?.querySelector('.table').style.height =
         this.parentElement!.clientHeight - 45 + 'px';
     }
     this.queryDataByDB(memoryAbilityValue);

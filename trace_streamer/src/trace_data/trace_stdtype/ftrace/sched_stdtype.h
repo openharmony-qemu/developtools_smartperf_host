@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
-class ThreadStateData : public BatchCacheBase {
+class ThreadStateData : public CacheBase, public BatchCacheBase {
 public:
     TableRowId
         AppendThreadState(InternalTime ts, InternalTime dur, InternalCpu cpu, InternalTid itid, TableRowId idState);
@@ -32,9 +32,9 @@ public:
     void UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid);
     TableRowId UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState);
     void SortAllRowByTs();
-    void Clear()
+    void Clear() override
     {
-        timeStamps_.clear();
+        CacheBase::Clear();
         durations_.clear();
         itids_.clear();
         tids_.clear();
@@ -44,16 +44,7 @@ public:
     }
     void ClearExportedData() override
     {
-        EraseElements(timeStamps_, durations_, itids_, tids_, pids_, states_, cpus_);
-    }
-    uint32_t Size() const
-    {
-        return itids_.size();
-    }
-
-    const std::deque<InternalTime>& TimeStamsData() const
-    {
-        return timeStamps_;
+        EraseElements(ids_, timeStamps_, durations_, itids_, tids_, pids_, states_, cpus_, argSetIds_);
     }
     const std::deque<InternalTime>& DursData() const
     {
@@ -85,7 +76,6 @@ public:
     }
 
 private:
-    std::deque<InternalTime> timeStamps_;
     std::deque<InternalTime> durations_;
     std::deque<InternalTid> itids_;
     std::deque<InternalTid> tids_;
@@ -102,7 +92,7 @@ public:
                             uint64_t cpu,
                             uint32_t internalTid,
                             uint64_t endState,
-                            uint64_t priority);
+                            int32_t priority);
     void SetDuration(size_t index, uint64_t duration);
     void Update(uint64_t index, uint64_t ts, uint64_t state);
     void UpdateEndState(uint64_t index, uint64_t state);
@@ -113,7 +103,7 @@ public:
         return endStates_;
     }
 
-    const std::deque<uint64_t>& PriorityData() const
+    const std::deque<int32_t>& PriorityData() const
     {
         return priority_;
     }
@@ -147,14 +137,15 @@ public:
     }
     void ClearExportedData() override
     {
-        EraseElements(internalTids_, timeStamps_, durs_, cpus_, endStates_, priority_, internalPids_, tsEnds_);
+        EraseElements(ids_, internalTids_, timeStamps_, durs_, cpus_, endStates_, priority_, internalPids_, tsEnds_,
+                      argSets_);
     }
 
 private:
     std::deque<InternalPid> internalPids_ = {};
     std::deque<uint64_t> tsEnds_ = {};
     std::deque<uint64_t> endStates_ = {};
-    std::deque<uint64_t> priority_ = {};
+    std::deque<int32_t> priority_ = {};
     std::deque<uint32_t> argSets_ = {};
 };
 class Raw : public CacheBase, public BatchCacheBase {

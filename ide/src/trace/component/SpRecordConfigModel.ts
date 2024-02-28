@@ -634,6 +634,9 @@ function initHiPerfConfig(
   if (perfConfig.isOffCpu) {
     recordArgs = `${recordArgs} --offcpu`;
   }
+  if (perfConfig?.isKernelChain) {
+    recordArgs = `${recordArgs} --kernel-chain`;
+  }
   if (perfConfig.noInherit) {
     recordArgs = `${recordArgs} --no-inherit`;
   }

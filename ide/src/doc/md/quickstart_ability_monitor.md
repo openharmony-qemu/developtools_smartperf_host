@@ -15,7 +15,7 @@
 ![GitHub Logo](../../figures/AbilityMonitor/abilitysetting.jpg)
 点击 Trace command，就会根据上面的配置生成抓取命令，点击复制按钮，会将命令行复制。
 ![GitHub Logo](../../figures/AbilityMonitor/abilitycommand.jpg)
-输入 hdc_shell，进入设备，执行命令。
+输入 hdc shell，进入设备，执行命令。
 ![GitHub Logo](../../figures/AbilityMonitor/abilityexcutecommand.jpg)
 进入指定目录，cd /data/local/tmp 进入到目录，会看到生成的 trace 文件。
 ![GitHub Logo](../../figures/AbilityMonitor/abilityhtrace.jpg)
@@ -43,6 +43,10 @@ Ability Monitor 展开就可以看到泳道图，包括 CPU，内存，磁盘 IO
 -     Network Bytes Out/Sec： 每秒发送的网络数据字节数。
 -     Network Packets In/Sec：每秒接收的网络数据包数。
 -     Network Packets Out/Sec： 每秒发送的网络数据包数。
+-     Purgeable Total： 可清除总量。
+-     Purgeable Pin：可清除编码。
+-     DMA：直接内存存取。
+-     Skia Gpu Memory：Skia显存。
 
 ### Ability Monitor 泳道图的框选功能
 

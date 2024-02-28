@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -82,36 +82,44 @@ public:
         PrepMixRange(remove);
         switch (op) {
             case SQLITE_INDEX_CONSTRAINT_EQ:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] == value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] == value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_NE:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] != value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] != value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_ISNULL:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] == invalidValue; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] != invalidValue; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_GT:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] <= value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] > value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] <= value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] > value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_GE:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] < value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] >= value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] < value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] >= value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_LE:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] > value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] <= value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] > value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] <= value; });
                 break;
             case SQLITE_INDEX_CONSTRAINT_LT:
-                ProcessData(dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] >= value; },
-                            [&](TableRowId id) -> bool { return dataQueue[id] < value; });
+                ProcessData(
+                    dataQueue, remove, [&](TableRowId id) -> bool { return dataQueue[id] >= value; },
+                    [&](TableRowId id) -> bool { return dataQueue[id] < value; });
                 break;
             default:
                 break;

@@ -14,8 +14,8 @@
  */
 import { TabPaneGpuMemoryAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneGpuMemoryAbility';
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const gpuSqlit = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
     return {}
 });
@@ -33,7 +33,7 @@ window.ResizeObserver = window.ResizeObserver ||
 
 describe('TabPaneGpuMemoryAbility Test', () => {
     let tabPaneGpuMemoryAbility = new TabPaneGpuMemoryAbility();
-    let getTabGpuMemoryAbilityData = sqlit.getTabGpuMemoryAbilityData;
+    let getTabGpuMemoryAbilityData = gpuSqlit.getTabGpuMemoryAbilityData;
     getTabGpuMemoryAbilityData.mockResolvedValue([
         {
             avgSize: 711756458.666667,

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -676,7 +676,7 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
             std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
             ftraceEvent->set_timestamp(event->timeStampOffset + timeStampBase);
             HandleFtraceEvent(*ftraceEvent, reinterpret_cast<uint8_t*>(header), evtSize, format);
-            std::unique_ptr<RawTraceEventInfo> eventInfo = std::make_unique<RawTraceEventInfo>();
+            std::shared_ptr<RawTraceEventInfo> eventInfo = std::make_shared<RawTraceEventInfo>();
             eventInfo->cpuId = cpuMsg.cpu();
             eventInfo->eventId = eventId;
             eventInfo->msgPtr = std::move(ftraceEvent);

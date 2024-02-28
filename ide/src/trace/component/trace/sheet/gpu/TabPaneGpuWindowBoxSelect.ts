@@ -22,7 +22,7 @@ import { resizeObserver } from '../SheetUtils';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { MemoryConfig } from '../../../../bean/MemoryConfig';
 import { Utils } from '../../base/Utils';
-import {queryGpuDataByRange} from "../../../../database/sql/Gpu.sql";
+import { queryGpuDataByRange } from '../../../../database/sql/Gpu.sql';
 
 interface Gpu {
   startTs: number;
@@ -113,7 +113,7 @@ export class TabPaneGpuWindowBoxSelect extends BaseElement {
             <label id="gpu-box-time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
         </div>
         <div style="overflow: auto">
-            <lit-table id="tb-gpu-box" style="height: auto" tree>
+            <lit-table id="tb-gpu-box" style="height: auto">
                 </lit-table-column>
                 <lit-table-column width="500px" title="Window / Module / Category" data-index="gpuName" key="gpuName"  align="flex-start">
                 </lit-table-column>

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
                                            uint16_t nameIdentify,
                                            DataIndex name,
                                            uint8_t depth,
-                                           uint64_t cookid,
+                                           int64_t cookid,
                                            const std::optional<uint64_t>& parentId)
 {
     AppendCommonInfo(startT, durationNs, internalTid);
@@ -47,7 +47,7 @@ size_t CallStack::AppendInternalSlice(uint64_t startT,
     AppendCallStack(cat, name, depth, parentId);
     identifys_.emplace_back(nameIdentify + depth);
     ids_.emplace_back(id_++);
-    cookies_.emplace_back(INVALID_UINT64);
+    cookies_.emplace_back(INVALID_INT64);
     AppendDistributeInfo();
     return Size() - 1;
 }
@@ -158,7 +158,7 @@ const std::deque<uint8_t>& CallStack::Depths() const
 {
     return depths_;
 }
-const std::deque<uint64_t>& CallStack::Cookies() const
+const std::deque<int64_t>& CallStack::Cookies() const
 {
     return cookies_;
 }

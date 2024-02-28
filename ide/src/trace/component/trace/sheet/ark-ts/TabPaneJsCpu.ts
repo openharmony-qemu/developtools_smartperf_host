@@ -87,7 +87,7 @@ export class TabPaneJsCpuCallTree extends BaseElement {
   }
 
   private setCallTreeTableData(results: Array<JsCpuProfilerTabStruct>): void {
-    this.clearTab();
+    this.stackTable!.recycleDataSource = [];
     const callTreeMap = new Map<number, JsCpuProfilerTabStruct>();
     const setTabData = (data: Array<JsCpuProfilerTabStruct>): void => {
       data.forEach((item) => {
@@ -98,13 +98,15 @@ export class TabPaneJsCpuCallTree extends BaseElement {
         }
         item.name = SpSystemTrace.DATA_DICT.get(item.nameId) || '';
         callTreeMap.set(item.id, item);
-        if (item.scriptName === 'unknown') {
-          item.symbolName = item.name;
-        } else {
-          item.symbolName = `${item.name  } ${item.scriptName}`;
+        if (item.symbolName.length < 0) {
+          if (item.scriptName === 'unknown') {
+            item.symbolName = item.name;
+          } else {
+            item.symbolName = `${item.name} ${item.scriptName}`;
+          }
         }
-        item.totalTimePercent = `${((item.totalTime / this.totalNs) * 100).toFixed(1)  }%`;
-        item.selfTimePercent = `${((item.selfTime / this.totalNs) * 100).toFixed(1)  }%`;
+        item.totalTimePercent = `${((item.totalTime / this.totalNs) * 100).toFixed(1)}%`;
+        item.selfTimePercent = `${((item.selfTime / this.totalNs) * 100).toFixed(1)}%`;
         item.selfTimeStr = ns2s(item.selfTime);
         item.totalTimeStr = ns2s(item.totalTime);
         item.parent = callTreeMap.get(item.parentId!);
@@ -196,12 +198,14 @@ export class TabPaneJsCpuCallTree extends BaseElement {
     super.connectedCallback();
     new ResizeObserver(() => {
       // @ts-ignore
-      this.callTreeTable?.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 32  }px`;
+      this.callTreeTable?.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 32
+      }px`;
       this.callTreeTable?.reMeauseHeight();
       // @ts-ignore
-      this.stackTable?.shadowRoot.querySelector('.table').style.height =
-        `${this.parentElement!.clientHeight - 32 - 22  }px`;
+      this.stackTable?.shadowRoot.querySelector('.table').style.height = `${
+        this.parentElement!.clientHeight - 32 - 22
+      }px`;
       this.stackTable?.reMeauseHeight();
     }).observe(this.parentElement!);
   }
@@ -228,9 +232,9 @@ export class TabPaneJsCpuCallTree extends BaseElement {
         if (this.sortType === 0) {
           return defaultSort(callTreeLeftData, callTreeRightData);
         } else if (this.sortType === 1) {
-          return (`${callTreeLeftData.symbolName  }`).localeCompare(`${callTreeRightData.symbolName  }`);
+          return `${callTreeLeftData.symbolName}`.localeCompare(`${callTreeRightData.symbolName}`);
         } else {
-          return (`${callTreeRightData.symbolName  }`).localeCompare(`${callTreeLeftData.symbolName  }`);
+          return `${callTreeRightData.symbolName}`.localeCompare(`${callTreeLeftData.symbolName}`);
         }
       } else {
         if (this.sortType === 0) {

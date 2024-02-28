@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -99,7 +99,6 @@ private:
                      uint32_t& symbolStart,
                      std::shared_ptr<FrameInfo>& frameInfo,
                      std::shared_ptr<ProtoReader::SymbolTable_Reader>& symbolTable);
-    const uint64_t usefulIpMask_ = 0xffffff0000000000;
     uint64_t vmStart_ = INVALID_UINT64;
     uint64_t vmOffset_ = INVALID_UINT64;
 };

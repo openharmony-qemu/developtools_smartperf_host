@@ -443,13 +443,13 @@ export class TabPaneFilter extends BaseElement {
     let checkList = [];
     for (let index = 0; index < 5; index++) {
       if (idx === index) {
-        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked)
-      } else {
         checkList.push(check);
+      } else {
+        checkList.push(row[index].querySelector<LitCheckBox>('lit-check-box')!.checked)
       }
     }
     this.getCallTree!({
-      checks: [checkList[0], checkList[1], checkList[2], checkList[3], checkList[4]],
+      checks: checkList,
       value: idx,
     });
   }

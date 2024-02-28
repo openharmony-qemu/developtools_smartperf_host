@@ -39,6 +39,7 @@ export class TabPaneClockCounter extends BaseElement {
     let dataSource: Array<SelectionData> = [];
     let collect = clockCounterValue.clockMapData;
     let sumCount = 0;
+    this.clockCounterTbl!.loading = true;
     for (let key of collect.keys()) {
       let counters = collect.get(key);
       let res = await counters?.({ startNS: clockCounterValue.leftNs, endNS: clockCounterValue.rightNs, queryAll: true });
@@ -50,6 +51,7 @@ export class TabPaneClockCounter extends BaseElement {
     sumData.count = sumCount.toString();
     sumData.process = ' ';
     dataSource.splice(0, 0, sumData);
+    this.clockCounterTbl!.loading = false;
     this.clockCounterSource = dataSource;
     this.clockCounterTbl!.recycleDataSource = dataSource;
   }

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneFps } from '../../../../../../src/trace/component/trace/sheet/fps/TabPaneFps';
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
 
 jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};

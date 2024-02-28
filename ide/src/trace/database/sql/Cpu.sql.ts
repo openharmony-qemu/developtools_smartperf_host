@@ -205,8 +205,8 @@ export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS:
     `
     select
       B.pid as pid,
-      sum(B.dur) as wallDuration,
-      avg(B.dur) as avgDuration,
+      sum(iif(B.dur = -1 or B.dur is null, 0, B.dur)) as wallDuration,
+      avg(iif(B.dur = -1 or B.dur is null, 0, B.dur)) as avgDuration,
       count(B.tid) as occurrences
     from
       thread_state AS B
@@ -215,7 +215,7 @@ export const getTabCpuByProcess = (cpus: Array<number>, leftNS: number, rightNS:
     where
       B.cpu in (${cpus.join(',')})
     and
-      not ((B.ts - TR.start_ts + B.dur < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
+      not ((B.ts - TR.start_ts + iif(B.dur = -1 or B.dur is null, 0, B.dur) < $leftNS) or (B.ts - TR.start_ts > $rightNS ))
     group by
       B.pid
     order by
@@ -230,7 +230,7 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
       TS.pid as pid,
       TS.tid as tid,
       TS.cpu,
-      sum( min(${rightNS},(TS.ts - TR.start_ts + TS.dur)) - max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
+      sum( min(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur))) - max(${leftNS},TS.ts - TR.start_ts)) wallDuration,
       count(TS.tid) as occurrences
     from
       thread_state AS TS
@@ -239,7 +239,7 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
     where
       TS.cpu in (${cpus.join(',')})
     and
-      not ((TS.ts - TR.start_ts + TS.dur < $leftNS) or (TS.ts - TR.start_ts > $rightNS))
+      not ((TS.ts - TR.start_ts + iif(TS.dur = -1 or TS.dur is null, 0, TS.dur) < $leftNS) or (TS.ts - TR.start_ts > $rightNS))
     group by
       TS.cpu,
       TS.pid,
@@ -662,7 +662,6 @@ export const getCpuLimitFreqBoxSelect = (
     and ts - T.start_ts < ${rightNS} 
   group by ts
   `;
-  console.log(sql);
   return query('getCpuLimitFreqBoxSelect', sql, {});
 };
 export const getCpuLimitFreq = (maxId: number, minId: number, cpu: number): Promise<Array<CpuFreqLimitsStruct>> =>

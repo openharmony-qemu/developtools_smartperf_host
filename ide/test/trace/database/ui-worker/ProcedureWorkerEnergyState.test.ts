@@ -13,17 +13,27 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
-
 import {
   state,
   EnergyStateStruct,
   EnergyStateRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerEnergyState';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
+jest.mock('../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerEnergyState Test', () => {
+  let energyStateRender: EnergyStateRender;
+  beforeEach(() => {
+    energyStateRender = new EnergyStateRender();
+  });
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
   it('ProcedureWorkerEnergyStateTest01', function () {
     let frame = {
       x: 40,
@@ -36,10 +46,10 @@ describe('ProcedureWorkerEnergyState Test', () => {
       startNS: 0,
       dur: 20,
       length: 51,
-      frame: { x: 0, y: 9, width: 105, height: 110 },
+      frame: {x: 0, y: 9, width: 105, height: 110},
     });
-    energyStateDataList.push({ startNS: 1, dur: 42, length: 32 });
-    state(energyStateDataList, [{ length: 1 }], 1, 3, 2, frame, true);
+    energyStateDataList.push({startNS: 1, dur: 42, length: 32});
+    state(energyStateDataList, [{length: 1}], 1, 3, 2, frame, true);
   });
 
   it('ProcedureWorkerEnergyStateTest02', function () {
@@ -54,18 +64,21 @@ describe('ProcedureWorkerEnergyState Test', () => {
       startNS: 0,
       dur: 10,
       length: 15,
-      frame: { x: 50, y: 59, width: 177, height: 70 },
+      frame: {x: 50, y: 59, width: 177, height: 70},
     });
-    energyStateDataList.push({ startNS: 15, dur: 23, length: 17 });
-    state(energyStateDataList, [{ length: 0 }], 1, 3, 2, frame, false);
+    energyStateDataList.push({startNS: 15, dur: 23, length: 17});
+    state(energyStateDataList, [{length: 0}], 1, 3, 2, frame, false);
   });
 
   it('ProcedureWorkerEnergyStateTest03', function () {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
-    const ctx = canvas.getContext('2d');
-
+    const ctx = {
+      globalAlpha: 0.5,
+      fillStyle: '#666666',
+      fillRect: jest.fn(() => true),
+    };
     const data = {
       type: '',
       value: 0,
@@ -113,7 +126,7 @@ describe('ProcedureWorkerEnergyState Test', () => {
   });
 
   it('ProcedureWorkerEnergyStateTest12', function () {
-    let energyStateRender = new EnergyStateRender();
+    let row = new TraceRow<EnergyStateStruct>();
     let energyStateReq = {
       lazyRefresh: true,
       type: '',
@@ -147,10 +160,10 @@ describe('ProcedureWorkerEnergyState Test', () => {
         stroke: jest.fn(() => true),
         closePath: jest.fn(() => true),
         beginPath: jest.fn(() => true),
-        arc:jest.fn(() => true),
-        fill:jest.fn(() => true),
-        moveTo:jest.fn(() => true),
-        lineTo:jest.fn(() => true),
+        arc: jest.fn(() => true),
+        fill: jest.fn(() => true),
+        moveTo: jest.fn(() => true),
+        lineTo: jest.fn(() => true),
       },
       lineColor: '#1a4dff',
       isHover: '',
@@ -173,6 +186,8 @@ describe('ProcedureWorkerEnergyState Test', () => {
       },
     };
     window.postMessage = jest.fn(() => true);
-    expect(energyStateRender.render(energyStateReq, [{}], [])).toBeUndefined();
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range.startNS = jest.fn(() => 1);
+    expect(energyStateRender.renderMainThread(energyStateReq, row)).toBeUndefined();
   });
 });

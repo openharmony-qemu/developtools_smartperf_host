@@ -13,36 +13,70 @@
  * limitations under the License.
  */
 import { TraficEnum } from './utils/QueryEnum';
+import { hiSysEventList } from './utils/AllMemoryCache';
+import { filterDataByGroupLayer } from './utils/DataFilter';
 
 export const chartHiSysEventDataSql = (args: any): string => {
   return `
       SELECT S.id,
-       (S.ts - ${args.recordStartNS}) AS startNs,
-       pid,
-       tid,
-       uid,
-       seq,
-       CASE
-          WHEN S.level = 'MINOR' THEN 0
-          WHEN S.level = 'CRITICAL' THEN 1
-      END
-      AS depth,
-      1 AS dur,
-      ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) + (CASE
-      WHEN S.level = 'MINOR' THEN 0
-      WHEN S.level = 'CRITICAL' THEN 1
-      END * ${args.width}) AS px
+             (S.ts - ${args.recordStartNS})                                                                                 AS startNs,
+             pid,
+             tid,
+             uid,
+             seq,
+             CASE
+                 WHEN S.level = 'MINOR' THEN 0
+                 WHEN S.level = 'CRITICAL' THEN 1
+                 END
+                                                                                                                            AS depth,
+             1                                                                                                              AS dur,
+             ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) + (CASE
+                                                                                                                 WHEN S.level = 'MINOR'
+                                                                                                                     THEN 0
+                                                                                                                 WHEN S.level = 'CRITICAL'
+                                                                                                                     THEN 1
+                                                                                                                 END *
+                                                                                                             ${args.width}) AS px
       FROM hisys_all_event AS S
       where S.id is not null
-      and    startNs + dur >= ${Math.floor(args.startNS)}
-      and    startNs <= ${Math.floor(args.endNS)}
+        and startNs + dur >= ${Math.floor(args.startNS)}
+        and startNs <= ${Math.floor(args.endNS)}
       group by px`;
 };
 
+export const chartHiSysEventSql = (args: any): string => {
+  return `
+     SELECT S.id,
+             (S.ts - ${args.recordStartNS})                                                                                 AS startNs,
+             pid,
+             tid,
+             uid,
+             seq,
+             CASE
+                 WHEN S.level = 'MINOR' THEN 0
+                 WHEN S.level = 'CRITICAL' THEN 1
+                 END
+                                                                                                                            AS depth,
+             1                                                                                                              AS dur
+      FROM hisys_all_event AS S
+      where S.id is not null
+      ORDER BY S.id`;
+};
+
 export function hiSysEventDataReceiver(data: any, proc: Function) {
-  let sql = chartHiSysEventDataSql(data.params);
-  let res = proc(sql);
-  arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    if (!hiSysEventList.has(data.params.id)) {
+      let sql = chartHiSysEventSql(data.params);
+      hiSysEventList.set(data.params.id, proc(sql));
+    }
+    let list = hiSysEventList.get(data.params.id) || [];
+    let res = filterDataByGroupLayer(list || [], 'depth','startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  } else {
+    let sql = chartHiSysEventDataSql(data.params);
+    let res = proc(sql);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
@@ -58,7 +92,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.hiSysEventData);
     uid[index] = it.uid;
     id[index] = it.id;
-    ts[index] = it.ts;
+    ts[index] = it.startNs || it.ts;
     pid[index] = it.pid;
     tid[index] = it.tid;
     seq[index] = it.seq;
@@ -71,15 +105,15 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-            uid: uid.buffer,
-            id: id.buffer,
-            ts: ts.buffer,
-            pid: pid.buffer,
-            tid: tid.buffer,
-            seq: seq.buffer,
-            dur: dur.buffer,
-            depth: depth.buffer,
-          }
+          uid: uid.buffer,
+          id: id.buffer,
+          ts: ts.buffer,
+          pid: pid.buffer,
+          tid: tid.buffer,
+          seq: seq.buffer,
+          dur: dur.buffer,
+          depth: depth.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

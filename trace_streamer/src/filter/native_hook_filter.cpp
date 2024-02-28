@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -820,6 +820,37 @@ void NativeHookFilter::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStam
     }
     lastAnyEventRaw = row;
 }
+
+void NativeHookFilter::UpdateSymbolIdsForCallChainIdLastCallStack(size_t index)
+{
+    auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[index];
+    uint32_t ipBitOperation = ip & IP_BIT_OPERATION;
+    std::ostringstream newSymbol;
+    newSymbol << "alloc size(" << base::number(ipBitOperation, base::INTEGER_RADIX_TYPE_DEC) << "bytes)"
+              << "0x" << base::number(ip, base::INTEGER_RADIX_TYPE_HEX);
+    traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
+        index, traceDataCache_->dataDict_.GetStringIndex(newSymbol.str()));
+}
+
+void NativeHookFilter::UpdateSymbolIdsForFilePathIndexFailedInvalid(size_t index)
+{
+    auto callChainId = traceDataCache_->GetNativeHookFrameData()->CallChainIds()[index];
+    auto size = traceDataCache_->GetNativeHookFrameData()->Size();
+    if (index < (size - 1)) {
+        auto nextcallChainId = traceDataCache_->GetNativeHookFrameData()->CallChainIds()[index + 1];
+        if (nextcallChainId != callChainId) {
+            UpdateSymbolIdsForCallChainIdLastCallStack(index);
+        } else {
+            auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[index];
+            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
+                index, traceDataCache_->dataDict_.GetStringIndex("unknown 0x" +
+                                                                 base::number(ip, base::INTEGER_RADIX_TYPE_HEX)));
+        }
+    } else {
+        UpdateSymbolIdsForCallChainIdLastCallStack(index);
+    }
+}
+
 // when symbolization failed, use filePath + vaddr as symbol name
 void NativeHookFilter::UpdateSymbolIdsForSymbolizationFailed()
 {
@@ -836,10 +867,8 @@ void NativeHookFilter::UpdateSymbolIdsForSymbolizationFailed()
             traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
                 i, traceDataCache_->dataDict_.GetStringIndex(filePathStr + "+" + vaddrStr));
         } else {
-            auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[i];
-            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
-                i, traceDataCache_->dataDict_.GetStringIndex("unknown 0x" +
-                                                             base::number(ip, base::INTEGER_RADIX_TYPE_HEX)));
+            // when symbolization failed，filePath and symbolNameIndex invalid
+            UpdateSymbolIdsForFilePathIndexFailedInvalid(i);
         }
     }
 }
@@ -925,7 +954,7 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
         }
     }
 }
-// Called When isCallStackCompressedMode_ is false.
+// Called When isCallStackCompressedMode_ is false
 void NativeHookFilter::ParseFramesWithOutCallStackCompressedMode()
 {
     for (auto itor = callChainIdToStackHashValueMap_.begin(); itor != callChainIdToStackHashValueMap_.end(); itor++) {
@@ -1009,6 +1038,7 @@ void NativeHookFilter::UpdateLastCallerPathAndSymbolIndexs()
 }
 void NativeHookFilter::GetCallIdToLastLibId()
 {
+    callIdToLastCallerPathIndex_.clear();
     auto size = static_cast<int64_t>(traceDataCache_->GetNativeHookFrameData()->Size());
     uint32_t lastCallChainId = INVALID_UINT32;
     bool foundLast = false;
@@ -1044,22 +1074,6 @@ void NativeHookFilter::GetCallIdToLastLibId()
             }
         }
     }
-}
-bool NativeHookFilter::GetIpsWitchNeedResymbolization(uint64_t ipid, DataIndex filePathId, std::set<uint64_t>& ips)
-{
-    bool value = false;
-    auto ipToFrameInfoPtr = ipidToIpToFrameInfo_.Find(ipid);
-    for (auto itor = ipToFrameInfoPtr->begin(); itor != ipToFrameInfoPtr->end(); itor++) {
-        if (!itor->second) {
-            TS_LOGI("ip :%" PRIu64 " can not symbolization! FrameInfo is nullptr", itor->first);
-            continue;
-        }
-        if (itor->second->filePathId_ == filePathId) {
-            ips.insert(itor->first);
-            value = true;
-        }
-    }
-    return value;
 }
 
 template <class T>
@@ -1101,6 +1115,7 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::uni
             }
         }
     }
+    UpdateLastCallerPathAndSymbolIndexs();
     return true;
 }
 void NativeHookFilter::UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex)

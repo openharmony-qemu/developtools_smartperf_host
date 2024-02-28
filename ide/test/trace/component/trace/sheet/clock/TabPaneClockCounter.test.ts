@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import { TabPaneClockCounter } from '../../../../../../src/trace/component/trace/sheet/clock/TabPaneClockCounter';
-jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

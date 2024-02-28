@@ -12,24 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpFrameTimeChart } from '../../../../src/trace/component/chart/SpFrameTimeChart';
 import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { FlagsConfig } from '../../../../src/trace/component/SpFlags';
 
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
-
-const sqlite = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+const jankSqlite = require('../../../../src/trace/database/sql/Janks.sql');
+jest.mock('../../../../src/trace/database/sql/Janks.sql');
+const processSqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -39,9 +44,7 @@ window.ResizeObserver =
   }));
 
 describe('SpFrameTimeChart Test', () => {
-  let trace = new SpSystemTrace();
-  let manager = new SpChartManager(trace);
-  let spFrameTimeChart = new SpFrameTimeChart(manager);
+  let spFrameTimeChart = new SpFrameTimeChart(new SpSystemTrace());
 
   let queryFrameTime = sqlite.queryFrameTimeData;
   let queryFrameTimeData = [
@@ -51,7 +54,7 @@ describe('SpFrameTimeChart Test', () => {
   ];
   queryFrameTime.mockResolvedValue(queryFrameTimeData);
 
-  let queryExpectedFrame = sqlite.queryExpectedFrameDate;
+  let queryExpectedFrame = jankSqlite.queryExpectedFrameDate;
   let queryExpectedFrameDate = [
     {
       dur: 2585,
@@ -64,7 +67,7 @@ describe('SpFrameTimeChart Test', () => {
   ];
   queryExpectedFrame.mockResolvedValue(queryExpectedFrameDate);
 
-  let queryActualFrame = sqlite.queryActualFrameDate;
+  let queryActualFrame = jankSqlite.queryActualFrameDate;
   let queryActualFrameDate = [
     {
       dur: 6878,
@@ -93,7 +96,7 @@ describe('SpFrameTimeChart Test', () => {
 
   let frameAnimation = sqlite.queryFrameAnimationData;
   let frameAnimationData = [
-    { animationId: 1, dynamicEndTs: 4774481414, dynamicStartTs: 4091445476, ts: 4091445476 },
+    {animationId: 1, dynamicEndTs: 4774481414, dynamicStartTs: 4091445476, ts: 4091445476},
     {
       animationId: 2,
       dynamicEndTs: 8325095997,
@@ -103,11 +106,11 @@ describe('SpFrameTimeChart Test', () => {
   ];
   frameAnimation.mockResolvedValue(frameAnimationData);
 
-  let allProcessNames = sqlite.queryAllProcessNames;
+  let allProcessNames = processSqlite.queryAllProcessNames;
   let allProcessNameData = [
     {
       id: 12,
-      name: "test name",
+      name: 'test name',
       pid: 255
     }
   ];
@@ -117,7 +120,7 @@ describe('SpFrameTimeChart Test', () => {
   let data = [
     {
       id: 12,
-      appName: "name"
+      appName: 'name'
     }
   ];
   dynamicIdAndName.mockResolvedValue(data);
@@ -125,7 +128,7 @@ describe('SpFrameTimeChart Test', () => {
   let animationTimeRange = sqlite.queryAnimationTimeRangeData;
   let rangeData = [
     {
-      status: "Response delay",
+      status: 'Response delay',
       startTs: 225,
       endTs: 6355
     }
@@ -137,15 +140,15 @@ describe('SpFrameTimeChart Test', () => {
   let animationIdAndNameData = [
     {
       id: 12,
-      name: "test",
-      info: "{}"
+      name: 'test',
+      info: '{}'
     }
   ];
   animationIdAndName.mockResolvedValue(animationIdAndNameData);
 
   let frameDynamic = sqlite.queryFrameDynamicData;
   let frameDynamicData = [
-    { alpha: '1.00', appName: 'test0', height: 2772, id: 74, ts: 28565790, width: 1344, x: 0, y: 0 },
+    {alpha: '1.00', appName: 'test0', height: 2772, id: 74, ts: 28565790, width: 1344, x: 0, y: 0},
     {
       alpha: '1.00',
       appName: 'test0',
@@ -191,7 +194,7 @@ describe('SpFrameTimeChart Test', () => {
   frameSpacing.mockResolvedValue(frameSpacingData);
 
   let physical = sqlite.queryPhysicalData;
-  let physicalData = [{ physicalFrameRate: 90, physicalHeight: 2772, physicalWidth: 1344 }];
+  let physicalData = [{physicalFrameRate: 90, physicalHeight: 2772, physicalWidth: 1344}];
   physical.mockResolvedValue(physicalData);
 
   it('TabPaneFramesTest01', function () {

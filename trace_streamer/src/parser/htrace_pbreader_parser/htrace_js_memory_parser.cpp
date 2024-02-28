@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,11 +51,13 @@ struct Snapshot {
     int32_t edgeCount;
     int32_t traceFunctionCount;
 };
+int32_t g_nodesSingleLength = 0;
 void from_json(const json& j, Meta& v)
 {
     for (size_t i = 0; i < j["node_fields"].size(); i++) {
         v.nodeFields.emplace_back(j["node_fields"][i]);
     }
+    g_nodesSingleLength = j["node_fields"].size();
     for (size_t i = 0; i < j["node_types"].size(); i++) {
         std::vector<std::string> nodeTypes;
         if (j["node_types"][i].is_array()) {
@@ -114,24 +116,23 @@ struct Nodes {
     std::vector<uint32_t> traceNodeIds;
     std::vector<uint32_t> detachedness;
 };
-const int32_t NODES_SINGLE_LENGTH = 7;
 std::vector<uint32_t> g_fromNodeIds;
 std::vector<uint32_t> g_ids;
 void from_json(const json& j, Nodes& v)
 {
     int32_t edgeIndex = 0;
-    for (size_t i = 0; i < j.size() / NODES_SINGLE_LENGTH; i++) {
-        v.types.emplace_back(j[i * NODES_SINGLE_LENGTH]);
-        v.names.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FIRST]);
-        v.ids.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SECOND]);
-        v.selfSizes.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_THIRD]);
-        v.edgeCounts.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FOURTH]);
+    for (size_t i = 0; i < j.size() / g_nodesSingleLength; i++) {
+        v.types.emplace_back(j[i * g_nodesSingleLength]);
+        v.names.emplace_back(j[i * g_nodesSingleLength + OFFSET_FIRST]);
+        v.ids.emplace_back(j[i * g_nodesSingleLength + OFFSET_SECOND]);
+        v.selfSizes.emplace_back(j[i * g_nodesSingleLength + OFFSET_THIRD]);
+        v.edgeCounts.emplace_back(j[i * g_nodesSingleLength + OFFSET_FOURTH]);
         for (size_t m = edgeIndex; m < edgeIndex + v.edgeCounts.at(i); m++) {
-            g_fromNodeIds.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SECOND]);
+            g_fromNodeIds.emplace_back(j[i * g_nodesSingleLength + OFFSET_SECOND]);
         }
         edgeIndex += v.edgeCounts.at(i);
-        v.traceNodeIds.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_FIFTH]);
-        v.detachedness.emplace_back(j[i * NODES_SINGLE_LENGTH + OFFSET_SIXTH]);
+        v.traceNodeIds.emplace_back(j[i * g_nodesSingleLength + OFFSET_FIFTH]);
+        v.detachedness.emplace_back(j[i * g_nodesSingleLength + OFFSET_SIXTH]);
     }
     for (size_t m = 0; m < j.size(); m++) {
         g_ids.emplace_back(j[m]);
@@ -460,13 +461,9 @@ void HtraceJSMemoryParser::ParseSnapshotOrTimeLineEnd(const std::string& result,
                                                       uint64_t ts)
 {
     std::string fileName = "";
-    std::regex strEscapeInvalid("\\\\n");
-    std::regex strInvalid("\\\\\"");
-    auto strEscape = std::regex_replace(jsMemoryString_, strEscapeInvalid, "");
-    auto str = std::regex_replace(strEscape, strInvalid, "\"");
     if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_SNAPSHOT) {
         fileName = "Snapshot" + std::to_string(fileId_);
-        ParseSnapshot(tracePacket, profilerPluginData, str, ts);
+        ParseSnapshot(tracePacket, profilerPluginData, jsMemoryString_, ts);
     } else if (type_ == ProtoReader::ArkTSConfig_HeapType::ArkTSConfig_HeapType_TIMELINE) {
         if (result == snapshotEnd_) {
             ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
@@ -475,7 +472,7 @@ void HtraceJSMemoryParser::ParseSnapshotOrTimeLineEnd(const std::string& result,
             return;
         }
         fileName = "Timeline";
-        ParseTimeLine(profilerPluginData, str);
+        ParseTimeLine(profilerPluginData, jsMemoryString_);
     }
     ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
@@ -501,10 +498,7 @@ void HtraceJSMemoryParser::ParseJsCpuProfiler(const std::string& result,
     curTypeIsCpuProfile_ = true;
     auto jsCpuProfilerString =
         result.substr(jsCpuProfilerPos + PROFILE_POS, result.size() - jsCpuProfilerPos - PROFILE_POS - END_PROFILE_POS);
-    std::regex strEscapeInvalid("\\\\n");
-    std::regex strInvalid("\\\\\"");
-    auto strEscape = std::regex_replace(jsCpuProfilerString, strEscapeInvalid, "");
-    auto str = std::regex_replace(strEscape, strInvalid, "\"");
+
     ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
     UpdatePluginTimeRange(TS_CLOCK_REALTIME, ts, ts);
     if (enableFileSave_) {
@@ -514,11 +508,11 @@ void HtraceJSMemoryParser::ParseJsCpuProfiler(const std::string& result,
             exit(-1);
         }
         (void)ftruncate(fd, 0);
-        (void)write(fd, str.data(), str.size());
+        (void)write(fd, jsCpuProfilerString.data(), jsCpuProfilerString.size());
         close(fd);
         fd = 0;
     }
-    jsCpuProfilerParser_->ParseJsCpuProfiler(str, traceDataCache_->SplitFileMinTime(),
+    jsCpuProfilerParser_->ParseJsCpuProfiler(jsCpuProfilerString, traceDataCache_->SplitFileMinTime(),
                                              traceDataCache_->SplitFileMaxTime());
     if (traceDataCache_->isSplitFile_) {
         cpuProfilerSplitFileData_ = jsCpuProfilerParser_->GetUpdateJson().dump();
@@ -550,8 +544,10 @@ void HtraceJSMemoryParser::Parse(ProtoReader::BytesView tracePacket,
             startTime_ = ts;
             isFirst_ = false;
         }
-        auto resultJson = result.substr(pos + CHUNK_POS, result.size() - pos - CHUNK_POS - END_POS);
-        jsMemoryString_ += resultJson;
+        auto jMessage = json::parse(result);
+        if (jMessage.contains("params") && jMessage["params"].contains("chunk")) {
+            jsMemoryString_ += jMessage["params"]["chunk"];
+        }
         curTypeIsCpuProfile_ = false;
     } else {
         ParseJsCpuProfiler(result, profilerPluginData, ts);
@@ -789,6 +785,7 @@ void HtraceJSMemoryParser::ParseSnapshot(ProtoReader::BytesView& tracePacket,
         (void)write(jsFileId_, jsonString.data(), jsonString.size());
         close(jsFileId_);
         jsFileId_ = 0;
+        return;
     }
     json jMessage = json::parse(jsonString);
     ParserJSSnapInfo(fileId_, jMessage);

@@ -13,17 +13,7 @@
  * limitations under the License.
  */
 
-import {
-  BaseStruct,
-  drawFlagLine,
-  drawLines,
-  drawLoading,
-  drawLoadingFrame,
-  drawSelection,
-  PerfRender,
-  Rect,
-  RequestMessage,
-} from './ProcedureWorkerCommon';
+import { BaseStruct, drawLoadingFrame, PerfRender, Rect, RequestMessage } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class EBPFRender extends PerfRender {
@@ -124,7 +114,7 @@ function setFrameGroupBy10MS(eBPFFilters: Array<any>, startNS: number, endNS: nu
   let y = frame.y;
   for (let i = 0; i < eBPFFilters.length; i++) {
     let it = eBPFFilters[i];
-    if ((it.startNS || 0) + (it.size || 0) > startNS && (it.startNS || 0) < endNS) {
+    if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
       if (!it.frame) {
         it.frame = {};
         it.frame.y = y;
@@ -168,8 +158,10 @@ function setFrameByArr(
       it.frame = {};
       it.frame.y = y;
     }
-    EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
-    eBPFFilters.push(it);
+    if (it.size > 0) {
+      EBPFChartStruct.setFrame(it, pns, startNS, endNS, frame, false);
+      eBPFFilters.push(it);
+    }
   });
 }
 

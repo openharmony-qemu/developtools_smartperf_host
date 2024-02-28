@@ -23,8 +23,9 @@ import {
   diskIoAbility,
   DiskIoAbilityRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerDiskIoAbility';
-import { Rect } from '../../../src/trace/database/ProcedureWorkerCommon';
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerDiskIoAbility Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 6;
@@ -139,7 +140,7 @@ describe('ProcedureWorkerDiskIoAbility Test', () => {
       height: 100,
     };
     window.postMessage = jest.fn(() => true);
-    expect(diskIoAbilityRender.render(diskIoReq, [], [])).toBeUndefined();
+    expect(diskIoAbilityRender.renderMainThread(diskIoReq, new TraceRow())).toBeUndefined();
   });
   it('CpuAbilityMonitorStructTest05', function () {
     let diskIoAbilityRender = new DiskIoAbilityRender();

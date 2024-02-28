@@ -207,7 +207,7 @@ export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHan
         cpuClickHandler
       );
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }
