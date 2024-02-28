@@ -30,7 +30,7 @@ import { SoStructOnClick } from "../database/ui-worker/ProcedureWorkerSoInit";
 import { FrameAnimationStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameAnimation";
 import { FrameDynamicStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameDynamic";
 import { FrameSpacingStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameSpacing";
-import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerSample";
+import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerBpftrace";
 import { SportRuler } from "./trace/timer-shaft/SportRuler";
 import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil";
 import { LitSearch } from "./trace/search/Search";

@@ -16,28 +16,27 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { debounce } from '../../../Utils';
-
 const paddingLeft = 100;
 const paddingBottom = 15;
-const xStart = 50; // x轴起始位置
+const xStep = 50; // x轴间距
 const barWidth = 2 // 柱子宽度
-const millisecond = 1_000_000;
 
-@element('tab-sample-instructions-totaltime-selection')
-export class TabPaneSampleInstructionTotalTime extends BaseElement {
+@element('tab-sample-instructions-distrubtions-chart')
+export class TabPaneSampleInstructionDistributions extends BaseElement {
   private instructionChartEle: HTMLCanvasElement | undefined | null;
-  private ctx: CanvasRenderingContext2D| undefined | null;
+  private ctx: CanvasRenderingContext2D | undefined | null;
+  private onReadableData: Array<any> = [];
+  private hintContent = ""; //悬浮框内容
+  private floatHint!: HTMLDivElement | undefined | null; //悬浮框
+  private canvasScrollTop = 0; // tab页上下滚动位置
+  private isUpdateCanvas = false;
   private cacheData: Array<any> = [];
   private canvasX = -1; // 鼠标当前所在画布x坐标
   private canvasY = -1; // 鼠标当前所在画布y坐标
   private startX = 0; // 画布相对于整个界面的x坐标
   private startY = 0; // 画布相对于整个界面的y坐标
   private hoverBar: any;
-  private onReadableData: Array<any> = [];
-  private hintContent = ""; //悬浮框内容
-  private floatHint: HTMLDivElement | undefined | null; //悬浮框
-  private canvasScrollTop = 0; // tab页上下滚动位置
-  private isUpdateCanvas = false;
+  private isChecked: boolean = false;
   private xCount = 0; //x轴刻度个数
   private xMaxValue = 0; //x轴上数据最大值
   private xSpacing = 50; //x轴间距
@@ -49,6 +48,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
       <style>
         :host {
           display: flex;
+          position: relative;
         }
         .frame-tip {
           position: absolute;
@@ -61,7 +61,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
           padding: 2px 10px;
           box-sizing: border-box;
           display: none;
-          max-width: 200px;
+          max-width: 250px;
         }
         .title {
           font-size: 14px;
@@ -84,7 +84,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
 
   set data(SampleParam: SelectionParam) {
     this.onReadableData = SampleParam.sampleData[0].property;
-    this.calInstructionRangeCount();
+    this.calInstructionRangeCount(this.isChecked);
   }
 
   connectedCallback(): void {
@@ -104,6 +104,11 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
     this.instructionChartEle!.onmouseleave = () => {
       this.hideTip();
     }
+    document.addEventListener('sample-popver-change', (e: any) => {
+      const select = Number(e.detail.select);
+      this.isChecked = Boolean(select);
+      this.calInstructionRangeCount(this.isChecked);
+    })
     this.listenerResize();
   }
 
@@ -129,15 +134,15 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    * @param canvasY 
    * @returns 
    */
-    searchDataByCoord(nodes: any, canvasX: number, canvasY: number) {
-      for (let i = 0; i < nodes.length; i++) {
-        const element = nodes[i];
-        if (this.isContains(element, canvasX, canvasY)) {
-          return element;
-        }
+  searchDataByCoord(nodes: any, canvasX: number, canvasY: number) {
+    for (let i = 0; i < nodes.length; i++) {
+      const element = nodes[i];
+      if (this.isContains(element, canvasX, canvasY)) {
+        return element;
       }
-      return null;
     }
+    return null;
+  }
 
   /**
    * 鼠标移动
@@ -172,25 +177,26 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
   /**
    * 显示悬浮框
    */
-    showTip(): void {
-      this.floatHint!.innerHTML = this.hintContent;
-      this.floatHint!.style.display = 'block';
-      this.instructionChartEle!.style.cursor = 'pointer';
-      let x = this.canvasX;
-      let y = this.canvasY - this.canvasScrollTop;
-      //右边的函数悬浮框显示在左侧
-      if (this.canvasX + this.floatHint!.clientWidth > (this.instructionChartEle!.clientWidth || 0)) {
-        x -= this.floatHint!.clientWidth - 1;
-      } else {
-        x += 30;
-      }
-      //最下边的函数悬浮框显示在上方
-      y -= this.floatHint!.clientHeight - 1;
-      this.floatHint!.style.transform = `translate(${x}px, ${y}px)`;
+  showTip(): void {
+    this.floatHint!.innerHTML = this.hintContent;
+    this.floatHint!.style.display = 'block';
+    this.instructionChartEle!.style.cursor = 'pointer';
+    let x = this.canvasX;
+    let y = this.canvasY - this.canvasScrollTop;
+    //右边的函数悬浮框显示在左侧
+    if (this.canvasX + this.floatHint!.clientWidth > (this.instructionChartEle!.clientWidth  || 0)) {
+      x -= this.floatHint!.clientWidth - 1;
+    } else {
+      x += 20;
     }
+    //最下边的函数悬浮框显示在上方
+    y -= this.floatHint!.clientHeight - 1;
+    this.floatHint!.style.transform = `translate(${x}px, ${y}px)`;
+  }
 
   /**
    * 更新悬浮框内容
+   * @returns 
    */
   updateTipContent(): void {
     const hoverNode = this.hoverBar;
@@ -211,35 +217,42 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    * @param y 
    * @returns 
    */
-    isContains(point: any, x: number, y: number): boolean {
-      return x >= point.x && x <= point.x + 2 && point.y <= y && y <= point.y + point.height;
-    }
+  isContains(point: any, x: number, y: number): boolean {
+    return x >= point.x && x <= point.x + 2 && point.y <= y && y <= point.y + point.height;
+  }
 
   /**
-   * 统计onReadable数据各指令数个数
+   * 统计onReadable数据各指令的个数
+   * @param isCycles 
    */
-  calInstructionRangeCount() {
+  calInstructionRangeCount(isCycles: boolean) {
     if (this.onReadableData.length === 0) return;
     this.cacheData.length = 0;
     const count = this.onReadableData.length;
-    const onReadableData = this.onReadableData;
-    const instructionArray = onReadableData.reduce((pre: any, current: any) => {
-      const dur = ((current.end - current.begin) / millisecond).toFixed(1);
-      (pre[dur] = pre[dur] || []).push(current);
-      return pre;
-    }, {});
+    let instructions = {};
+    if (isCycles) {
+      instructions = this.onReadableData.reduce((pre: any, current: any) => {
+        (pre[`${Math.ceil(current.cycles)}`] = pre[`${Math.ceil(current.cycles)}`] || []).push(current);
+        return pre;
+      }, {})
+    } else {
+      instructions = this.onReadableData.reduce((pre: any, current: any) => {
+        (pre[`${Math.ceil(current.instructions)}`] = pre[`${Math.ceil(current.instructions)}`] || []).push(current);
+        return pre;
+      }, {})
+    }
     this.ctx!.clearRect(0, 0, this.instructionChartEle!.width, this.instructionChartEle!.height);
     this.instructionChartEle!.width = this.clientWidth;
 
-    this.xMaxValue = Object.keys(instructionArray).map(i => Number(i)).reduce((pre, cur) => Math.max(pre, cur), 0) + 5;
-    const yMaxValue = Object.values(instructionArray).reduce((pre: number, cur: any) => Math.max(pre, Number((cur.length / count).toFixed(2))), 0);
-    this.yAvg = Number(((yMaxValue / 5) * 1.5).toFixed(2));
+    this.xMaxValue = Object.keys(instructions).map(i => Number(i)).reduce((pre, cur) => Math.max(pre, cur), 0) + 10;
+    const yMaxValue = Object.values(instructions).reduce((pre: number, cur: any) => Math.max(pre, Number((cur.length / count).toFixed(2))), 0);
+    this.yAvg = Number((yMaxValue / 5 * 1.5).toFixed(2)) || yMaxValue;
     const height = this.instructionChartEle!.height;
     const width = this.instructionChartEle!.width;
-    this.drawLineLabelMarkers(width, height);
-    this.drawBar(instructionArray, height, count);
+    this.drawLineLabelMarkers(width, height, isCycles);
+    this.drawBar(instructions, height, count);
   }
-  
+
   /**
    * 绘制柱状图
    * @param instructionData 
@@ -251,7 +264,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
     const interval = Math.floor((height - paddingBottom) / 6);
     for (const x in instructionData) {
       const xNum = Number(x);
-      const xPosition = xStart + ( xNum / (this.xCount * this.xAvg) ) * (this.xCount * this.xSpacing) - (barWidth / 2);
+      const xPosition = xStep + (xNum / (this.xCount * this.xAvg)) * (this.xCount * this.xSpacing) - (barWidth / 2);
       const yNum = Number((instructionData[x].length / count).toFixed(3));
       const percent = Number((yNum / yTotal).toFixed(2));
       const barHeight = (height - paddingBottom - interval) * percent;
@@ -263,7 +276,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
           x: xPosition,
           y: height - paddingBottom - barHeight,
           height: barHeight,
-          heightPer: yNum
+          heightPer: parseFloat((yNum * 100).toFixed(2))
         })
       } else {
         existX.x = xPosition;
@@ -275,19 +288,23 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    * 绘制x y轴
    * @param width 
    * @param height 
+   * @param isCycles 
    */
-  drawLineLabelMarkers(width: number, height: number) {
+  drawLineLabelMarkers(width: number, height: number, isCycles: boolean) {
     this.ctx!.font = "12px Arial";
     this.ctx!.lineWidth = 1;
-    this.ctx!.fillStyle = "#333";    
+    this.ctx!.fillStyle = "#333";
     this.ctx!.strokeStyle = "#ccc";
-
-    this.ctx!.fillText('时长 / ms', width - paddingLeft, height - paddingBottom);
+    if (isCycles) {
+      this.ctx!.fillText('cycles数(1e5)', width - paddingLeft + 10, height - paddingBottom);
+    } else {
+      this.ctx!.fillText('指令数(1e5)', width - paddingLeft + 10, height - paddingBottom);
+    }
 
     //绘制x轴
-    this.drawLine(xStart, height - paddingBottom, width - paddingLeft, height - paddingBottom);
+    this.drawLine(xStep, height - paddingBottom, width - paddingLeft, height - paddingBottom);
     //绘制y轴
-    this.drawLine(xStart, 5, xStart, height - paddingBottom);
+    this.drawLine(xStep, 5, xStep, height - paddingBottom);
     //绘制标记
     this.drawMarkers(width, height)
   }
@@ -299,7 +316,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
    * @param X 
    * @param Y 
    */
-  drawLine(x:number, y: number, X: number, Y: number) {
+  drawLine(x: number, y: number, X: number, Y: number) {
     this.ctx!.beginPath;
     this.ctx!.moveTo(x, y);
     this.ctx!.lineTo(X, Y);
@@ -316,7 +333,7 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
     this.xCount = 0;
     //绘制x轴锯齿
     let serrateX = 50;
-    let yHeight = height - paddingBottom;
+    let y = height - paddingBottom;
     const clientWidth = width - paddingLeft - 50;
     if (clientWidth > this.xMaxValue) {
       this.xSpacing = Math.floor(clientWidth / 20)
@@ -328,27 +345,29 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
     while (serrateX <= clientWidth) {
       this.xCount++;
       serrateX += this.xSpacing;
-      this.drawLine(serrateX, yHeight, serrateX, yHeight + 5);
+      this.drawLine(serrateX, y, serrateX, y + 5);
     }
     //绘制x轴刻度
     this.ctx!.textAlign = "center";
     for (let i = 0; i <= this.xCount; i++) {
-      const x = xStart + (i * this.xSpacing);
+      const x = xStep + (i * this.xSpacing);
       this.ctx!.fillText(`${i * this.xAvg}`, x, height);
     }
     //绘制y轴刻度
     this.ctx!.textAlign = "center";
     const yPadding = Math.floor((height - paddingBottom) / 6);
     for (let i = 0; i < 6; i++) {
-      const y = (height - paddingBottom) - (i * yPadding);
       if (i === 0) {
         this.ctx!.fillText(`${i}%`, 30, y);
       } else {
-        this.drawLine(xStart, y, width - paddingLeft, y);
-        this.ctx!.fillText(`${parseFloat((i * this.yAvg).toFixed(2))}%`, 30, y);
+        const y = (height - paddingBottom) - (i * yPadding);
+        this.drawLine(xStep, y, width - paddingLeft, y);
+        this.ctx!.fillText(`${parseFloat((i * this.yAvg).toFixed(2)) * 100}%`, 30, y);
       }
     }
   }
+
+
 
   /**
    * 监听页面size变化
@@ -359,9 +378,9 @@ export class TabPaneSampleInstructionTotalTime extends BaseElement {
         const box = this.instructionChartEle!.getBoundingClientRect();
         const element = this.parentElement!;
         this.startX = box.left + Math.max(element.scrollLeft, document.body.scrollLeft) - element.clientLeft;
-        this.startY = 
+        this.startY =
           box.top + Math.max(element.scrollTop, document.body.scrollTop) - element.clientTop + this.canvasScrollTop;
-        this.calInstructionRangeCount();
+        this.calInstructionRangeCount(this.isChecked);
       }
     }, 100)).observe(this.parentElement!)
   }

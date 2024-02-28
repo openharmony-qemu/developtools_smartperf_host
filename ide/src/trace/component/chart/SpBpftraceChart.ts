@@ -16,10 +16,10 @@
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
-import { SampleStruct, SampleRender } from '../../database/ui-worker/ProcedureWorkerSample';
+import { SampleStruct, SampleRender } from '../../database/ui-worker/ProcedureWorkerBpftrace';
 import { queryStartTime } from '../../database/sql/SqlLite.sql';
 
-export class SpSampleChart {
+export class SpBpftraceChart {
   private trace: SpSystemTrace;
   
   constructor(trace: SpSystemTrace) {
@@ -39,13 +39,13 @@ export class SpSampleChart {
 
   async initSample(start_ts: number, file: any): Promise<TraceRow<SampleStruct>> {
     let traceRow =  TraceRow.skeleton<SampleStruct>();
-    traceRow.rowId = 'Sample';
+    traceRow.rowId = 'bpftrace';
     traceRow.index = 0;
     traceRow.rowType = TraceRow.ROW_TYPE_SAMPLE;
     traceRow.rowParentId = '';
     traceRow.folder = false;
     traceRow.style.height = '40px';
-    traceRow.name = 'Sample';
+    traceRow.name = 'bpftrace';
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.findHoverStruct = () => {
@@ -80,7 +80,7 @@ export class SpSampleChart {
             {
               context: context,
               useCache: useCache,
-              type: 'sample',
+              type: 'bpftrace',
               start_ts: startTS,
               uniqueProperty: uniqueProperty,
               flattenTreeArray: flattenTreeArray
@@ -102,8 +102,8 @@ export class SpSampleChart {
    */
   addTraceRowEventListener(row: TraceRow<any>, start_ts: number) {
     row.uploadEl?.addEventListener('sample-file-change', (e: any) => {
-      this.resetChartData(row);
       this.getJsonData(e).then((res: any) => {
+        this.resetChartData(row);
         const propertyData = res.data;
         const treeNodes = res.relation.children || [res.relation.RS.children[0]];
         const uniqueProperty = this.removeDuplicates(propertyData);
@@ -127,7 +127,7 @@ export class SpSampleChart {
             {
               context: context,
               useCache: useCache,
-              type: 'sample',
+              type: 'bpftrace',
               start_ts: startTS,
               uniqueProperty: uniqueProperty,
               flattenTreeArray: flattenTreeArray
