@@ -1447,6 +1447,28 @@ export function drawString(ctx: CanvasRenderingContext2D, str: string, textPaddi
   }
 }
 
+export function drawFunString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect, data: any) {
+  if (data.textMetricsWidth === undefined) {
+    data.textMetricsWidth = ctx.measureText(str).width;
+  }
+  let charWidth = Math.round(data.textMetricsWidth / str.length);
+  let fillTextWidth = frame.width - textPadding * 2;
+  if (data.textMetricsWidth < fillTextWidth) {
+    let x2 = Math.floor(frame.width / 2 - data.textMetricsWidth / 2 + frame.x + textPadding);
+    ctx.fillText(str, x2, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
+  } else {
+    if (fillTextWidth >= charWidth) {
+      let chatNum = fillTextWidth / charWidth;
+      let x1 = frame.x + textPadding;
+      if (chatNum < 2) {
+        ctx.fillText(str.substring(0, 1), x1, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
+      } else {
+        ctx.fillText(str.substring(0, chatNum - 1) + '...', x1, Math.floor(data.frame.height * (data.depth! + 0.5) + 3), fillTextWidth);
+      }
+    }
+  }
+}
+
 export function drawString2Line(
   ctx: CanvasRenderingContext2D,
   str1: string,
