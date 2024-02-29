@@ -14,29 +14,29 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
-import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Rect, drawString } from '../../../../database/ui-worker/ProcedureWorkerCommon';
 import { ColorUtils } from '../../base/ColorUtils';
-import { SampleStruct } from '../../../../database/ui-worker/ProcedureWorkerSample';
+import { SampleStruct } from '../../../../database/ui-worker/ProcedureWorkerBpftrace';
 import { SpApplication } from '../../../../SpApplication';
 
 const SAMPLE_STRUCT_HEIGHT = 30;
 const Y_PADDING = 4;
 
-@element('tab-sample-instruction-selection')
-export class TabPaneSampleInstructionSelection extends BaseElement {
+@element('tab-sample-instruction')
+export class TabPaneSampleInstruction extends BaseElement {
   private instructionEle: HTMLCanvasElement | undefined | null;
   private ctx: CanvasRenderingContext2D| undefined | null;
   private textEle: HTMLSpanElement | undefined | null;
   private instructionArray: Array<any> = [];
   private instructionData: Array<any> = [];
+  private flattenTreeData: Array<any> = [];
   private isUpdateCanvas = false;
   private canvasX = -1; // 鼠标当前所在画布x坐标
   private canvasY = -1; // 鼠标当前所在画布y坐标
   private startX = 0; // 画布相对于整个界面的x坐标
   private startY = 0; // 画布相对于整个界面的y坐标
   private hintContent = ""; //悬浮框内容
-  private floatHint: HTMLDivElement | undefined | null; //悬浮框
+  private floatHint!: HTMLDivElement | undefined | null; //悬浮框
   private canvasScrollTop = 0; // tab页上下滚动位置
   private hoverSampleStruct: any | undefined;
   private isChecked: boolean = false;
@@ -84,8 +84,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
         }
       </style>
       <div class="root">
-        <canvas id="instruct-select-canvas"></canvas>
-        <div id="select_float_hint" class="frame-tip"></div>
+        <canvas id="instruct-canvas"></canvas>
+        <div id="float_hint" class="frame-tip"></div>
         <div class="tip">
           <span class="headline">指令数数据流</span>
         </div>
@@ -94,20 +94,10 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   }
 
   initElements(): void {
-    this.instructionEle = this.shadowRoot?.querySelector('#instruct-select-canvas');
+    this.instructionEle = this.shadowRoot?.querySelector('#instruct-canvas');
     this.textEle = this.shadowRoot?.querySelector('.headline');
     this.ctx = this.instructionEle?.getContext('2d');
-    this.floatHint = this.shadowRoot?.querySelector('#select_float_hint');
-  }
-
-  set data(SampleParam: SelectionParam) {
-    this.hoverSampleStruct = undefined;
-    this.instructionData = SampleParam.sampleData;
-    this.getAvgInstructionData(this.instructionData);
-    queueMicrotask(() => {
-      this.updateCanvas(this.clientWidth);
-      this.drawInstructionData(this.isChecked);
-    })
+    this.floatHint = this.shadowRoot?.querySelector('#float_hint');
   }
 
   connectedCallback(): void {
@@ -129,13 +119,12 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     }
     document.addEventListener('sample-popver-change', (e: any) => {
       const select = Number(e.detail.select);
-      this.hoverSampleStruct = undefined;
       this.isChecked = Boolean(select);
+      this.hoverSampleStruct = undefined;
       this.drawInstructionData(this.isChecked);
     })
     this.listenerResize();
   }
-
   /**
    * 初始化窗口大小
    * @param newWidth 
@@ -150,7 +139,17 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
         this.instructionEle.width = this.instructionEle.clientWidth;
       }
       this.instructionEle.height = (this.maxDepth + 1) * SAMPLE_STRUCT_HEIGHT;
+      this.updateCanvasCoord();
     }
+  }
+
+  setSampleInstructionData(clickData: SampleStruct, reqProperty: any): void {
+    this.hoverSampleStruct = undefined;
+    this.instructionData = reqProperty.uniqueProperty;
+    this.flattenTreeData = reqProperty.flattenTreeArray;
+    this.setRelationDataProperty(this.flattenTreeData, clickData);
+    this.updateCanvas(this.clientWidth);
+    this.drawInstructionData(this.isChecked);
   }
 
   /**
@@ -210,7 +209,6 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     this.floatHint!.style.transform = `translate(${x}px, ${y}px)`;
   }
 
-
   /**
    * 更新悬浮框内容
    * @returns 
@@ -261,8 +259,8 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     this.isChecked ? this.textEle!.innerText = "cycles数据流" : this.textEle!.innerText = "instructions数据流";
     const clientWidth = this.instructionEle!.width;
     //将数据转换为层级结构
-    const instructionArray = this.instructionData
-    .filter((item: any) => isCycles ? item.cycles : item.instructions)
+    const instructionArray = this.flattenTreeData
+    .filter((item: SampleStruct) => isCycles ? item.cycles : item.instructions)
     .reduce((pre: any, cur: any) => {
       (pre[`${cur.depth}`] = pre[`${cur.depth}`] || []).push(cur);
       return pre;
@@ -295,12 +293,11 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
       }
     }
     this.instructionArray = instructionArray;
-
     this.ctx!.clearRect(0, 0, this.instructionEle!.width, this.instructionEle!.height);
     this.ctx!.beginPath();
-    for (const key in instructionArray) {
-      for (let i = 0; i < instructionArray[key].length; i++) {
-        const cur = instructionArray[key][i];
+    for (const key in this.instructionArray) {
+      for (let i = 0; i < this.instructionArray[key].length; i++) {
+        const cur = this.instructionArray[key][i];
         this.draw(this.ctx!, cur)
       }
     }
@@ -374,47 +371,48 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
   }
 
   /**
-   * 统计框选指令数的平均值
-   * @param instructionData 
-   * @returns 
+   * 关系树节点赋值
+   * @param relationData 
+   * @param clickData 
    */
-  getAvgInstructionData(instructionData: Array<any>) {
-    const length = instructionData[0].property.length;
-    const knowData = instructionData.filter(instruction => instruction["name"].indexOf("unknown") < 0);
-    knowData.forEach(instruction => {
-      if (instruction.property.length > 0) {
-        const totalInstruction = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + Math.ceil(cur["instructions"]!), 0);
-        const totalCycles = instruction["property"].reduce((pre: number, cur: SampleStruct) => pre + Math.ceil(cur["cycles"]!), 0);
-        instruction["instructions"] = Math.ceil(totalInstruction / length) || 1;
-        instruction["cycles"] = Math.ceil(totalCycles / length) || 1;
-        instruction['hoverInstructions'] = Math.ceil(totalInstruction / length);
-        instruction['hoverCycles'] = Math.ceil(totalCycles / length);
-        this.maxDepth = Math.max(this.maxDepth, instruction["depth"]);
-      }
+  setRelationDataProperty(relationData: Array<any>, clickData: SampleStruct): void {
+    const propertyData = this.instructionData.find((subArr: any) => subArr.some((obj: SampleStruct) => obj.begin === clickData.begin));
+    //获取非unknown数据
+    const knownRelation = relationData.filter(relation => relation['name'].indexOf('unknown') < 0);
+    propertyData.forEach((property: any) => {
+      const relation = knownRelation.find(relation => relation['name'] === property['func_name']);
+      relation['instructions'] = Math.ceil(property['instructions']) || 1;
+      relation['hoverInstructions'] = Math.ceil(property['instructions']);
+      relation['cycles'] = Math.ceil(property['cycles']) || 1;
+      relation['hoverCycles'] = Math.ceil(property['cycles']);
+      this.maxDepth = Math.max(this.maxDepth, relation['depth']);
     })
-    const unknownData = instructionData.filter(instruction  => instruction["name"].indexOf("unknown") > -1);
+    //获取所有unknown数据
     let instructionSum = 0;
     let cyclesSum = 0;
     let hoverInstructionsSum= 0;
     let hoverCyclesSum = 0;
-    unknownData.forEach(unknown => {
-      instructionSum = 0;
-      cyclesSum = 0;
-      hoverInstructionsSum= 0;
-      hoverCyclesSum = 0;
-      for (const key in unknown["children"]) {
-        const child = instructionData.find(instruction => instruction["name"] === key);
-        instructionSum +=  child['instructions'] ?? 0;
-        cyclesSum += child["cycles"] ?? 0;
-        hoverInstructionsSum += child['hoverInstructions'] ?? 0;
-        hoverCyclesSum += child['hoverCycles'] ?? 0;
-      }
-      unknown["instructions"] = instructionSum;
-      unknown["cycles"] = cyclesSum;
-      unknown['hoverInstructions'] = hoverInstructionsSum;
-      unknown['hoverCycles'] = hoverCyclesSum;
-    })
-    return instructionData;
+    const unknownRelation = relationData.filter(relation => relation['name'].indexOf('unknown') > -1);
+    if (unknownRelation.length > 0) {
+      unknownRelation.forEach(unknownItem => {
+        instructionSum = 0;
+        cyclesSum = 0;
+        hoverInstructionsSum = 0;
+        hoverCyclesSum = 0;
+        const children = unknownItem['children'];
+        for (const key in children) {
+          const it = relationData.find(relation => relation['name'] === key);
+          instructionSum += it['instructions'] ?? 0;
+          cyclesSum += it['cycles'] ?? 0;
+          hoverInstructionsSum += it['hoverInstructions'] ?? 0;
+          hoverCyclesSum += it['hoverCycles'] ?? 0;
+        }
+        unknownItem['instructions'] = instructionSum;
+        unknownItem['hoverInstructions'] = hoverInstructionsSum;
+        unknownItem['cycles'] = cyclesSum;
+        unknownItem['hoverCycles'] = hoverCyclesSum;
+      })
+    }
   }
 
   /**
@@ -424,7 +422,7 @@ export class TabPaneSampleInstructionSelection extends BaseElement {
     new ResizeObserver(() => {
       if (this.instructionEle!.getBoundingClientRect()) {
         const box = this.instructionEle!.getBoundingClientRect();
-        const element = document.documentElement;
+        const element = this.parentElement!;
         this.startX = box.left + Math.max(element.scrollLeft, document.body.scrollLeft) - element.clientLeft;
         this.startY = 
           box.top + Math.max(element.scrollTop, document.body.scrollTop) - element.clientTop + this.canvasScrollTop;

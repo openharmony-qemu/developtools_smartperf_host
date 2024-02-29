@@ -128,10 +128,10 @@ import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
 import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
 import { TabPaneGpufreqDataCut } from '../sheet/gpufreq/TabPaneGpufreqDataCut';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut'
-import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
-import { TabPaneSampleInstructionDistributions } from '../sheet/sample/TabPaneSampleInstructionDistributions';
-import { TabPaneSampleInstructionTotalTime } from '../sheet/sample/TabPaneSampleInstructionSelectionTotalTime';
-import { TabPaneSampleInstructionSelection } from '../sheet/sample/TabPaneSampleInstructionSelection';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
+import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPaneSampleInstructionDistributions';
+import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
+import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 
 
 export let tabConfig: any = {
