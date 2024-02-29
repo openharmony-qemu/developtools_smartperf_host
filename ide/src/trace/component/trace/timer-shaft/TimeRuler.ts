@@ -51,6 +51,8 @@ export class TimeRuler extends Graph {
         this.context2D.lineTo(x + Math.floor(innerIndex * this.stepSmall), this.frame.height / 4);
       }
       this.context2D.fillStyle = '#999';
+      // ------------------修改刻度尺文字------------------------
+      this.context2D.font = '8px sans-serif';
       this.context2D.fillText(`${ns2s(index * this.stepNS)}`, x + 5, this.frame.height - 1);
     }
     this.context2D.stroke();
