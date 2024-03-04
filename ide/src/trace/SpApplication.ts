@@ -1958,6 +1958,12 @@ export class SpApplication extends BaseElement {
         if (cutIndex !== -1) {
           traceName = traceName.substring(0, cutIndex);
         }
+        if (cutBuffer !== undefined && cutBuffer.byteLength <= 12) {
+          this.litSearch!.setPercent('The cut is empty data. Select a time range for valid data!', -1);
+          this.progressEL!.loading = false;
+          this.freshMenuDisable(false);
+          return;
+        }
         let blobUrl = URL.createObjectURL(new Blob([cutBuffer!]));
         window.open(
           `index.html?link=true&local=true&traceName=${traceName}_cut_${cutLeftTs}${fileType}&trace=${encodeURIComponent(

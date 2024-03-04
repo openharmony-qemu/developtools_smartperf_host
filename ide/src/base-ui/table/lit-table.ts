@@ -817,7 +817,7 @@ export class LitTable extends HTMLElement {
           return !item.rowHidden;
         });
         let top = this.tableElement!.scrollTop;
-        this.treeElement!.style.transform = `translateY(${top}px)`;
+        this.treeElement && (this.treeElement!.style.transform = `translateY(${top}px)`);
         let skip = 0;
         for (let index = 0; index < visibleObjects.length; index++) {
           if (visibleObjects[index].top <= top && visibleObjects[index].top + visibleObjects[index].height >= top) {
@@ -1089,7 +1089,10 @@ export class LitTable extends HTMLElement {
     //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
     //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下
     if (column.template) {
-      if (dataIndex === 'color' && rowData.data.colorEl === undefined) {
+      if (
+        (dataIndex === 'color' && rowData.data.colorEl === undefined) ||
+        (dataIndex === 'text' && rowData.data.text === undefined)
+      ) {
         td.innerHTML = '';
         td.template = '';
       } else if (dataIndex === 'operate' && rowData.data.operate && rowData.data.operate.innerHTML === 'RemoveAll') {
@@ -1240,36 +1243,39 @@ export class LitTable extends HTMLElement {
       }
     });
     this.tbodyElement && (this.tbodyElement.style.height = totalHeight + (this.isScrollXOutSide ? 0 : 0) + 'px');
-    this.treeElement!.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px';
+    this.treeElement &&
+      (this.treeElement.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px');
     let visibleObjects = this.recycleDs.filter((item) => {
       return !item.rowHidden;
     });
-    let top = this.tableElement!.scrollTop;
-    let skip = 0;
-    for (let i = 0; i < visibleObjects.length; i++) {
-      if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
-        skip = i;
-        break;
+    if (this.tableElement) {
+      let top = this.tableElement!.scrollTop;
+      let skip = 0;
+      for (let i = 0; i < visibleObjects.length; i++) {
+        if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
+          skip = i;
+          break;
+        }
       }
-    }
-    let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
-    if (reduce === 0) {
-      return;
-    }
-    while (reduce <= this.tableElement!.clientHeight + 1) {
-      let isTree = this.hasAttribute('tree');
-      let newTableElement = this.addTableElement(visibleObjects[skip], isTree, isTree, false);
-      reduce += newTableElement.clientHeight;
-    }
-    for (let i = 0; i < this.currentRecycleList.length; i++) {
-      if (this.hasAttribute('tree')) {
-        this.freshCurrentLine(
-          this.currentRecycleList[i],
-          visibleObjects[i + skip],
-          this.treeElement?.children[i] as HTMLElement
-        );
-      } else {
-        this.freshLineHandler(i, skip, visibleObjects);
+      let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+      if (reduce === 0) {
+        return;
+      }
+      while (reduce <= this.tableElement!.clientHeight + 1) {
+        let isTree = this.hasAttribute('tree');
+        let newTableElement = this.addTableElement(visibleObjects[skip], isTree, isTree, false);
+        reduce += newTableElement.clientHeight;
+      }
+      for (let i = 0; i < this.currentRecycleList.length; i++) {
+        if (this.hasAttribute('tree')) {
+          this.freshCurrentLine(
+            this.currentRecycleList[i],
+            visibleObjects[i + skip],
+            this.treeElement?.children[i] as HTMLElement
+          );
+        } else {
+          this.freshLineHandler(i, skip, visibleObjects);
+        }
       }
     }
   }

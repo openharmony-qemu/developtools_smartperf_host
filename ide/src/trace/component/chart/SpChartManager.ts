@@ -52,7 +52,7 @@ import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLi
 import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
 import { queryMemoryConfig } from '../../database/sql/Memory.sql';
 import { SpLtpoChart } from './SpLTPO';
-import { SpBpftraceChart } from './SpBpftraceChart';
+import { SpSampleChart } from './SpSampleChart';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -79,7 +79,7 @@ export class SpChartManager {
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
   private spSegmentationChart: SpSegmentationChart;
-  private spBpftraceChart: SpBpftraceChart;
+  private spSampleChart: SpSampleChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -104,7 +104,7 @@ export class SpChartManager {
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
     this.SpLtpoChart = new SpLtpoChart(trace);
     this.spSegmentationChart = new SpSegmentationChart(trace);
-    this.spBpftraceChart = new SpBpftraceChart(trace);
+    this.spSampleChart = new SpSampleChart(trace);
   }
 
   async init(progress: Function) {
@@ -131,9 +131,7 @@ export class SpChartManager {
     progress('cpu', 70);
     await this.cpu.init();
     info('initData cpu Data initialized');
-    if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
-      await this.spBpftraceChart.init(null);
-    }
+    await this.spSampleChart.init(null);
     progress('process/thread state', 73);
     await this.cpu.initProcessThreadStateData(progress);
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
@@ -205,7 +203,7 @@ export class SpChartManager {
 
   async initSample(ev: File) {
     await this.initSampleTime();
-    await this.spBpftraceChart.init(ev);
+    await this.spSampleChart.init(ev);
   }
 
   async importSoFileUpdate() {

@@ -61,14 +61,17 @@ config("default") {
   if (is_debug && is_win) {
     ldflags += [ "-fstack-protector" ]
   }
-  if (is_debug && is_linux && !use_wasm) {
-    cflags += [
-      "-g",
-      "-fno-omit-frame-pointer",
-      "-fstandalone-debug",
-    ]
-    ldflags += [ "-fsanitize=address" ]
+  if (is_debug && !use_wasm) {
+    cflags += [ "-g" ]
+    if (is_linux) {
+      cflags += [
+        "-fno-omit-frame-pointer",
+        "-fstandalone-debug",
+      ]
+      ldflags += [ "-fsanitize=address" ]
+    }
   }
+
   if (target_os == "windows") {
     cflags += [ "-D target_cpu_x86_64" ]
   } else if (is_linux || is_mac) {

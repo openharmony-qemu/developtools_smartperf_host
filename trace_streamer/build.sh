@@ -58,7 +58,7 @@ if [ $target_os == "windows" ];then
 else
     cp .gn_unix .gn
 fi
-if [ "$1" == "windows" ];then
+if [ "$1" == "windows" ] && [ "$2" == "release" ];then
     echo "gn only support linux and wasm build currently"
     if [ ! -d "out/windows" ];then
         mkdir out/windows

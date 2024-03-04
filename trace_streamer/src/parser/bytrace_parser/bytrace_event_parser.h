@@ -41,7 +41,6 @@ private:
 public:
     BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     void ParseDataItem(const BytraceLine& line);
-    void FilterAllEventsTemp();
     void FilterAllEvents();
     void BeginFilterEvents(EventInfo* event);
     void Clear();
@@ -95,7 +94,7 @@ private:
     const uint32_t MIN_CPU_IDLE_ARGS_COUNT = 2;
     const uint32_t MIN_CPU_FREQUENCY_ARGS_COUNT = 2;
     const uint32_t MIN_PROCESS_EXIT_ARGS_COUNT = 2;
-    const uint32_t MIN_CLOCK_SET_RATE_ARGS_COUNT = 2;
+    const uint32_t MIN_CLOCK_SET_RATE_ARGS_COUNT = 3;
     const uint32_t MIN_CLOCK_ENABLE_ARGS_COUNT = 3;
     const uint32_t MIN_CLOCK_DISABLE_ARGS_COUNT = 3;
     const uint32_t MIN_IRQ_HANDLER_ENTRY_ARGS_COUNT = 2;

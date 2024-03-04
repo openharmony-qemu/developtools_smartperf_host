@@ -69,6 +69,10 @@ public:
     {
         return bytraceParser_.get();
     }
+    auto GetRawtraceData()
+    {
+        return rawTraceParser_.get();
+    }
     auto GetHtraceData()
     {
         return htraceParser_.get();

@@ -162,7 +162,7 @@ export class RangeRuler extends Graph {
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
     for (let index = 0; index < this._cpuUsage.length; index++) {
       let cpuUsageItem = this._cpuUsage[index];
-      const color = interpolateColorBrightness(ColorUtils.FUNC_COLOR_B[cpuUsageItem.cpu % ColorUtils.FUNC_COLOR_B.length], cpuUsageItem.rate);
+      const color = interpolateColorBrightness(ColorUtils.MD_PALETTE[cpuUsageItem.cpu], cpuUsageItem.rate);
       this.context2D.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       this.context2D.globalAlpha = cpuUsageItem.rate;
       this.context2D.fillRect(

@@ -27,6 +27,7 @@
 #include "htrace_parser.h"
 #include "json.hpp"
 #include "log.h"
+#include "rawtrace_parser.h"
 #include "string_help.h"
 #include "trace_streamer_selector.h"
 #include "ts_common.h"
@@ -40,6 +41,7 @@ const size_t PACKET_HEADER_LENGTH = 1024;
 const std::string VALUE = "{\"value\":[";
 const std::string OFFSET = "{\"offset\":";
 const std::string SIZE = ",\"size\":";
+const std::string TYPE = ",\"type\":";
 const std::string EMPTY_VALUE = "{\"value\":[]}";
 
 using json = nlohmann::json;
@@ -292,6 +294,34 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     return true;
 }
 
+bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
+{
+    const auto& mTraceRawCpuData = ts_->GetRawtraceData()->GetRawtraceCpuData();
+    const auto& mTraceRawCommData = ts_->GetRawtraceData()->GetRawtraceCommData();
+    std::string result = VALUE;
+
+    for (size_t commDataIndex = 0; commDataIndex < mTraceRawCommData.size(); commDataIndex++) {
+        result += OFFSET + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataOffset_);
+        result += SIZE + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataSize_);
+        result += TYPE + std::to_string(mTraceRawCommData.at(commDataIndex).splitType_);
+        result += "},";
+    }
+
+    for (size_t cpuDataIndex = 0; cpuDataIndex < mTraceRawCpuData.size(); cpuDataIndex++) {
+        result += OFFSET + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitDataOffset_);
+        result += SIZE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitDataSize_);
+        result += TYPE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitType_);
+        result += "},";
+    }
+    if (result != VALUE && !ts_->GetRawtraceData()->GetRawtraceCommData().empty()) {
+        result.pop_back();
+        result += "]}\r\n";
+        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
+    }
+    TS_LOGI("mTraceRawCpuData.size()= %lu, mTraceRawCommData.size()=%lu\n result=%s\n", mTraceRawCpuData.size(),
+            mTraceRawCommData.size(), result.data());
+    return true;
+}
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
                                    size_t len,
                                    int32_t isFinish,
@@ -310,6 +340,13 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         SendBytraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
         ts_->GetBytraceData()->ClearByTraceData();
+        ts_->GetTraceDataCache()->isSplitFile_ = false;
+        return true;
+    }
+    if (ts_->GetFileType() == TRACE_FILETYPE_RAW_TRACE) {
+        SendRawtraceSplitFileData(splitFileCallBack, 0);
+        splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
+        ts_->GetRawtraceData()->ClearRawTraceData();
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }

@@ -127,11 +127,11 @@ import { TabPaneBinderDataCut } from '../sheet/binder/TabPaneBinderDataCut';
 import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
 import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
 import { TabPaneGpufreqDataCut } from '../sheet/gpufreq/TabPaneGpufreqDataCut';
-import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut'
-import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
-import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPaneSampleInstructionDistributions';
-import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
-import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
+import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
+import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
+import { TabPaneSampleInstructionDistributions } from '../sheet/sample/TabPaneSampleInstructionDistributions';
+import { TabPaneSampleInstructionTotalTime } from '../sheet/sample/TabPaneSampleInstructionSelectionTotalTime';
+import { TabPaneSampleInstructionSelection } from '../sheet/sample/TabPaneSampleInstructionSelection';
 
 
 export let tabConfig: any = {
@@ -182,7 +182,7 @@ export let tabConfig: any = {
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
   'box-thread-states': {
-    title: 'Thread by State',
+    title: 'Thread States',
     type: TabPaneThreadStates,
     require: (param: SelectionParam) => param.threadIds.length > 0,
   },

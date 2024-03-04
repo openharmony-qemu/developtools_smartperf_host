@@ -127,7 +127,8 @@ public:
                                     DataIndex symbolName,
                                     DataIndex filePath,
                                     uint64_t offset,
-                                    uint64_t symbolOffset);
+                                    uint64_t symbolOffset,
+                                    uint32_t realStack = 1);
     size_t AppendNewNativeHookFrame(uint32_t callChainId,
                                     uint16_t depth,
                                     uint64_t ip,
@@ -135,7 +136,8 @@ public:
                                     DataIndex filePath,
                                     uint64_t offset,
                                     uint64_t symbolOffset,
-                                    const std::string& vaddr);
+                                    const std::string& vaddr,
+                                    uint32_t realStack = 1);
     void UpdateFrameInfo(size_t row,
                          DataIndex symbolIndex,
                          DataIndex filePathIndex,
@@ -154,6 +156,7 @@ public:
     const std::deque<uint64_t>& Offsets() const;
     const std::deque<uint64_t>& SymbolOffsets() const;
     const std::deque<std::string>& Vaddrs() const;
+    const std::deque<uint32_t>& realStack() const;
     size_t Size() const
     {
         return callChainIds_.size();
@@ -168,6 +171,7 @@ public:
         offsets_.clear();
         symbolOffsets_.clear();
         vaddrs_.clear();
+        realStack_.clear();
     }
 
 private:
@@ -179,6 +183,7 @@ private:
     std::deque<uint64_t> offsets_ = {};
     std::deque<uint64_t> symbolOffsets_ = {};
     std::deque<std::string> vaddrs_ = {};
+    std::deque<uint32_t> realStack_ = {};
     std::map<uint32_t, uint64_t> symbolIdToSymbolName_ = {};
 };
 

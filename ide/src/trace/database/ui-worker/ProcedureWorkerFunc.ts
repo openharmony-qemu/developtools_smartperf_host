@@ -23,7 +23,6 @@ import {
   Render,
   RequestMessage,
   drawString,
-  drawFunString,
   drawLoadingFrame,
 } from './ProcedureWorkerCommon';
 import { FuncStruct as BaseFuncStruct } from '../../bean/FuncStruct';
@@ -178,9 +177,9 @@ export class FuncStruct extends BaseFuncStruct {
     }
     let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
     funcNode.frame.x = Math.floor(x1);
-    funcNode.frame.y = funcNode.depth * 18 + 3;
+    funcNode.frame.y = funcNode.depth * 20;
     funcNode.frame.width = Math.ceil(getV);
-    funcNode.frame.height = 18;
+    funcNode.frame.height = 20;
   }
 
   static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
@@ -191,21 +190,24 @@ export class FuncStruct extends BaseFuncStruct {
         ctx.globalAlpha = 1;
         ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
         let textColor = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];
+        let miniHeight = 20;
         if (FuncStruct.hoverFuncStruct && data.funName == FuncStruct.hoverFuncStruct.funName) {
           ctx.globalAlpha = 0.7;
         }
-        ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
+        ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
         if (data.frame.width > 10) {
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
           ctx.fillStyle = ColorUtils.funcTextColor(textColor);
-          ctx.textBaseline = 'middle';
-          drawFunString(ctx, `${data.funName || ''}`, 5, data.frame, data);
+          drawString(ctx, `${data.funName || ''}`, 5, data.frame, data);
         }
         if (data.callid == FuncStruct.selectFuncStruct?.callid&&
           data.startTs == FuncStruct.selectFuncStruct?.startTs&&
           data.depth == FuncStruct.selectFuncStruct?.depth) {
           ctx.strokeStyle = '#000';
           ctx.lineWidth = 2;
-          ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, data.frame.height - 2);
+          ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, miniHeight - padding * 2 - 2);
         }
         let flagConfig = FlagsConfig.getFlagsConfig('TaskPool');
         if (
@@ -214,13 +216,13 @@ export class FuncStruct extends BaseFuncStruct {
           data.funName!.indexOf('Successful') < 0
         ) {
           if (data.frame!.width < 10) {
-            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 3, data!);
+            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 20, 3, data!);
           } else {
-            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 6, data!);
+            FuncStruct.drawTaskPoolUnSuccessFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 20, 6, data!);
           }
         }
         if (flagConfig!.TaskPool === 'Enabled' && data.funName!.indexOf('H:Thread Timeout Exit') >= 0) {
-          FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 18, 10, data!);
+          FuncStruct.drawTaskPoolTimeOutFlag(ctx, data.frame!.x, (data.depth! + 0.5) * 20, 10, data!);
         }
         // 如果该函数没有结束时间，则绘制锯齿。
         if (data.nofinish && data.frame!.width > 4) {
@@ -300,3 +302,5 @@ export class FuncStruct extends BaseFuncStruct {
     );
   }
 }
+
+const padding = 1;

@@ -46,7 +46,7 @@ export class ThreadRender extends Render {
       endNS: TraceRow.range?.endNS ?? 0,
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
-      paddingTop: 3,
+      paddingTop: 5,
       useCache: threadReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
     drawLoadingFrame(threadReq.context, threadFilter, row);
@@ -64,6 +64,7 @@ export class ThreadRender extends Render {
   render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) {}
 }
 
+const padding = 3;
 export function ThreadStructOnClick(clickRowType:string,sp:SpSystemTrace,threadClickHandler:any,cpuClickHandler:any){
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
@@ -112,7 +113,7 @@ export class ThreadStruct extends BaseThreadStruct {
       if ('S' === data.state && data.name !== 'all-state') {
         threadContext.globalAlpha = 0.2;
       };
-      threadContext.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
+      threadContext.fillRect(data.frame.x, data.frame.y + padding, data.frame.width > 1 ? data.frame.width : 1, data.frame.height - padding * 2);
       threadContext.fillStyle = '#fff';
       threadContext.textBaseline = 'middle';
       threadContext.font = '8px sans-serif';
@@ -128,9 +129,9 @@ export class ThreadStruct extends BaseThreadStruct {
         threadContext.lineWidth = 2;
         threadContext.strokeRect(
           data.frame.x,
-          data.frame.y,
+          data.frame.y + padding,
           data.frame.width - 2,
-          data.frame.height
+          data.frame.height - padding * 2
         );
       }
     }

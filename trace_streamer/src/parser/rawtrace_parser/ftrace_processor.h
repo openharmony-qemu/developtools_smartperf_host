@@ -32,7 +32,7 @@ constexpr uint32_t FTRACE_PAGE_SIZE = 4096;
 constexpr uint32_t RMQ_ENTRY_ALIGN_MASK = (1 << 2) - 1;
 class FtraceProcessor {
 public:
-    FtraceProcessor();
+    FtraceProcessor(TraceDataCache* traceDataCache);
     ~FtraceProcessor();
 
     bool SetupEvent(const std::string& desc);
@@ -40,9 +40,26 @@ public:
     bool HandlePage(FtraceCpuDetailMsg& cpuMsg,
                     CpuDetailParser& cpuDetailParser,
                     uint8_t page[],
+                    bool& haveSplitSeg,
                     size_t size = FTRACE_PAGE_SIZE);
-    bool HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParser& cpuDetailParser, uint8_t*& data);
-
+    bool IsSplitCpuTimeStampData(uint64_t CurTimeStamp, bool& haveSplitSeg)
+    {
+        if (traceDataCache_->SplitFileMinTime() <= CurTimeStamp &&
+            traceDataCache_->SplitFileMaxTime() >= CurTimeStamp) {
+            haveSplitSeg = true;
+            return true;
+        }
+        return false;
+    }
+    void HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
+                                      uint64_t timeStampBase,
+                                      FtraceCpuDetailMsg& cpuMsg,
+                                      CpuDetailParser& cpuDetailParser,
+                                      bool& haveSplitSeg);
+    bool HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
+                         CpuDetailParser& cpuDetailParser,
+                         uint8_t*& data,
+                         bool& haveSplitSeg);
     bool HandleTgids(const std::string& tgids);
     bool HandleCmdlines(const std::string& cmdlines);
 
@@ -90,6 +107,7 @@ private:
     std::unordered_map<int32_t, int32_t> tgidDict_ = {};
     // first is pid, second is taskName
     std::unordered_map<int32_t, std::string> taskNameDict_ = {};
+    TraceDataCache* traceDataCache_ = nullptr;
 
     const std::string nameLinePrefix_ = "name:";
     const std::string idLinePrefix_ = "ID:";
