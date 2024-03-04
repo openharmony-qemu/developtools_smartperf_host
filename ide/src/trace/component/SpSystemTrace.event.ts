@@ -40,6 +40,7 @@ import { enableVSync } from "./chart/VSync";
 import { CpuStruct, CpuStructOnClick } from "../database/ui-worker/cpu/ProcedureWorkerCPU";
 import { CpuStateStructOnClick } from "../database/ui-worker/cpu/ProcedureWorkerCpuState";
 import { CpuFreqLimitsStructOnClick } from "../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits";
+import { FlagsConfig } from "./SpFlags";
 
 function timeoutJudge(sp: SpSystemTrace) {
   let timeoutJudge = setTimeout(() => {
@@ -620,7 +621,11 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
       .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
   }
   if (!sp.loadTraceCompleted) return;
-  sp.keyboardEnable && enableVSync(false, ev, () => sp.refreshCanvas(true));
+  let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+  let flagsItemJson = JSON.parse(flagsItem!);
+  if (flagsItemJson.VSync === 'Enabled') {
+    sp.keyboardEnable && enableVSync(false, ev, () => sp.refreshCanvas(true));
+  }
   let keyPress = ev.key.toLocaleLowerCase();
   if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
     sp.keyPressMap.set(keyPress, false);
