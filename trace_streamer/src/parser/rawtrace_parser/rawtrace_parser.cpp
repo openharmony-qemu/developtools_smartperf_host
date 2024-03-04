@@ -236,7 +236,6 @@ bool RawTraceParser::ProcessRawTraceContent(std::string& bufferLine, uint8_t cur
             TS_CHECK_TRUE(HmParseCpuRawData(bufferLine, curType), false, "hm raw trace parse failed");
         }
         if (traceDataCache_->isSplitFile_) {
-            // exactly uint32_t curSegSize = sizeof(type) + sizeof(len) + bufferLine.size();
             curFileOffset_ += sizeof(uint32_t) + sizeof(uint32_t) + bufferLine.size();
         }
     } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_EVENTS_FORMAT)) {
