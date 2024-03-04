@@ -132,7 +132,7 @@ export class TraceSheet extends BaseElement {
 
   displayTab<T>(...names: string[]): T {
     this.setMode('max');
-    if (names.includes('box-flag')) {
+    if (names.includes('box-flag') || names.includes('tabpane-current')) {
       this.showUploadSoBt(this.selection);
       this.showSwitchProcessBt(this.selection);
     } else {

@@ -168,7 +168,8 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
                                                  DataIndex filePath,
                                                  uint64_t offset,
                                                  uint64_t symbolOffset,
-                                                 const std::string& vaddr)
+                                                 const std::string& vaddr,
+                                                 uint32_t realStack)
 {
     callChainIds_.emplace_back(callChainId);
     ips_.emplace_back(ip);
@@ -178,6 +179,7 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
     offsets_.emplace_back(offset);
     symbolOffsets_.emplace_back(symbolOffset);
     vaddrs_.emplace_back(vaddr);
+    realStack_.emplace_back(realStack);
     return Size() - 1;
 }
 size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
@@ -186,7 +188,8 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
                                                  DataIndex symbolName,
                                                  DataIndex filePath,
                                                  uint64_t offset,
-                                                 uint64_t symbolOffset)
+                                                 uint64_t symbolOffset,
+                                                 uint32_t realStack)
 {
     callChainIds_.emplace_back(callChainId);
     ips_.emplace_back(ip);
@@ -195,6 +198,7 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint32_t callChainId,
     filePaths_.emplace_back(filePath);
     offsets_.emplace_back(offset);
     symbolOffsets_.emplace_back(symbolOffset);
+    realStack_.emplace_back(realStack);
     return Size() - 1;
 }
 void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId)
@@ -282,6 +286,10 @@ const std::deque<uint64_t>& NativeHookFrame::SymbolOffsets() const
 const std::deque<std::string>& NativeHookFrame::Vaddrs() const
 {
     return vaddrs_;
+}
+const std::deque<uint32_t>& NativeHookFrame::realStack() const
+{
+    return realStack_;
 }
 
 size_t NativeHookStatistic::AppendNewNativeHookStatistic(uint32_t ipid,

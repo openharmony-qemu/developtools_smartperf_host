@@ -62,11 +62,16 @@ public:
     void UpdateTaskPoolTraceStatus(bool status);
     void UpdateAppStartTraceStatus(bool status);
     void UpdateBinderRunnableTraceStatus(bool status);
+    void UpdateHMKernelTraceStatus(bool status);
     void InitMetricsMap(std::map<std::string, std::string>& metricsMap);
     const std::string MetricsSqlQuery(const std::string& metrics);
     auto GetBytraceData()
     {
         return bytraceParser_.get();
+    }
+    auto GetRawtraceData()
+    {
+        return rawTraceParser_.get();
     }
     auto GetHtraceData()
     {

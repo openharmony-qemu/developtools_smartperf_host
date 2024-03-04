@@ -1273,7 +1273,7 @@ export const queryBySelectExecute = (
                 FROM task_pool
                        LEFT JOIN callstack ON callstack.id = task_pool.allocation_task_row
                        LEFT JOIN thread ON thread.id = callstack.callid
-                WHERE task_pool.execute_id = $executeId AND task_pool.execute_itid = $itid;
+                WHERE task_pool.task_id = $executeId AND task_pool.execute_itid = $itid;
     `;
   return query('queryBySelectExecute', sqlStr, { $executeId: executeId, $itid: itid });
 };

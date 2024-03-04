@@ -25,7 +25,8 @@ NativeHookFilter::NativeHookFilter(TraceDataCache* dataCache, const TraceStreame
       hookPluginData_(std::make_unique<ProfilerPluginData>()),
       ipidToSymIdToSymIndex_(INVALID_UINT64),
       ipidToFilePathIdToFileIndex_(INVALID_UINT64),
-      ipidToFrameIdToFrameBytes_(nullptr)
+      ipidToFrameIdToFrameBytes_(nullptr),
+      stackIdToFramesMapIdAndIdDown_(nullptr)
 {
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/libc++.so"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libc++.so"));
@@ -65,7 +66,11 @@ void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView& protoData)
     }
     return;
 }
-void NativeHookFilter::AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t>& frames)
+void NativeHookFilter::AppendStackMaps(
+    uint32_t ipid,
+    uint32_t stackid,
+    std::vector<uint64_t>& frames,
+    std::map<uint32_t, std::shared_ptr<std::multiset<uint64_t>>>& frameIdAndIdDownInfo)
 {
     uint64_t ipidWithStackIdIndex = 0;
     // the last element is ipid for this batch of frames/ips
@@ -81,6 +86,13 @@ void NativeHookFilter::AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vec
     // allStackIdToFramesMap_ save all offline symbolic call stack
     if (isOfflineSymbolizationMode_) {
         allStackIdToFramesMap_.emplace(std::make_pair(ipidWithStackIdIndex, framesSharedPtr));
+        if (frameIdAndIdDownInfo.size()) {
+            for (auto frameIdAndIdItor = frameIdAndIdDownInfo.begin(); frameIdAndIdItor != frameIdAndIdDownInfo.end();
+                 frameIdAndIdItor++) {
+                stackIdToFramesMapIdAndIdDown_.Insert(ipidWithStackIdIndex, frameIdAndIdItor->first,
+                                                      std::move(frameIdAndIdItor->second));
+            }
+        }
     }
 }
 void NativeHookFilter::AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView& bytesView)
@@ -606,6 +618,36 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     return std::make_tuple(start, end);
 }
 
+// Offline Symbolization Analysis of Virtual Stacks
+void NativeHookFilter::ParseOfflineSymbolVirtualStacks(uint64_t curStackId,
+                                                       uint64_t curPid,
+                                                       uint16_t& depth,
+                                                       uint32_t frameMapIdLoc)
+{
+    if (isOfflineSymbolizationMode_ && !stackIdToFramesMapIdAndIdDown_.Empty()) {
+        // Only for offline symbolization of stackmap, containing frame_map_id and frame_map_id_down
+        auto frameMapId = stackIdToFramesMapIdAndIdDown_.Find(curStackId, frameMapIdLoc);
+        if (nullptr == frameMapId) {
+            TS_LOGE("Can not find frame_map_id or frame_map_id_down!!!");
+        } else {
+            for (auto frameIdsItor = frameMapId->begin(); frameIdsItor != frameMapId->end(); frameIdsItor++) {
+                auto frameBytesPtr = ipidToFrameIdToFrameBytes_.Find(curPid, *frameIdsItor);
+                if (frameBytesPtr == nullptr) {
+                    TS_LOGE("Can not find Frame by frame_map_id or frame_map_id_down!!!");
+                    continue;
+                }
+                ProtoReader::Frame_Reader reader(*frameBytesPtr);
+                if (!reader.has_symbol_name()) {
+                    TS_LOGE("Data exception, frames should has symbol_name_name!!!");
+                    continue;
+                }
+                auto symbolIndex = traceDataCache_->dataDict_.GetStringIndex(reader.symbol_name().ToStdString());
+                traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
+                    callChainId_, depth++, reader.ip(), symbolIndex, MAX_UINT64, MAX_UINT64, MAX_UINT64, "", 0);
+            }
+        }
+    }
+}
 void NativeHookFilter::FillOfflineSymbolizationFrames(
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
 {
@@ -616,6 +658,7 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
     if (isSingleProcData_) {
         curCacheIpid = SINGLE_PROC_IPID;
     }
+    ParseOfflineSymbolVirtualStacks(mapItor->first, curCacheIpid, depth, 0);
     uint64_t filePathIndex;
     for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
         // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
@@ -628,6 +671,7 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
             frameInfo->symbolOffset_, vaddr);
         UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
     }
+    ParseOfflineSymbolVirtualStacks(mapItor->first, curCacheIpid, depth, 1);
 }
 
 void NativeHookFilter::ReparseStacksWithDifferentMeans()

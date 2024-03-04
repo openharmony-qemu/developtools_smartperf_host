@@ -279,6 +279,15 @@ void TraceDataCache::UpdateBinderRunnableTraceStatus(bool status)
 {
     binderRunnableTraceEnabled_ = status;
 }
+bool TraceDataCache::HMKernelTraceEnabled() const
+{
+    return HMKernelTraceEnabled_;
+}
+
+void TraceDataCache::UpdateHMKernelTraceStatus(bool status)
+{
+    HMKernelTraceEnabled_ = status;
+}
 uint64_t TraceDataCache::SplitFileMaxTime()
 {
     return splitFileMaxTs_;

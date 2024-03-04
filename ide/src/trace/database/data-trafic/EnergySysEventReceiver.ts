@@ -91,7 +91,7 @@ export const queryPowerValueSql = (args: any): string => {
       ORDER BY eventName;`;
 };
 
-export const queryStateDataMemSql = (args: any): string => {
+export const queryStateDataSql = (args: any): string => {
   return `
       select S.id,
              S.ts - ${args.recordStartNS} as startNs,
@@ -105,25 +105,6 @@ export const queryStateDataMemSql = (args: any): string => {
       where (case when 'SENSOR_STATE'== '${args.eventName}' then D.data like '%SENSOR%' else D.data = '${args.eventName}' end)
         and D2.data in ('BRIGHTNESS', 'STATE', 'VALUE', 'LEVEL', 'VOLUME', 'OPER_TYPE', 'VOLUME')
       group by S.serial, APP.app_key, D.data, D2.data;`;
-};
-
-export const queryStateDataSql = (args: any): string => {
-  return `
-      select S.id,
-             S.ts - ${args.recordStartNS}                                                                                               as startNs,
-             D.data                                                                                                                     as eventName,
-             D2.data                                                                                                                    as appKey,
-             S.int_value                                                                                                                as eventValue,
-             (S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}) + (S.int_value * ${args.width}) AS px
-      from hisys_event_measure as S
-               left join data_dict as D on D.id = S.name_id
-               left join app_name as APP on APP.id = S.key_id
-               left join data_dict as D2 on D2.id = APP.app_key
-      where (case when 'SENSOR_STATE'== '${args.eventName}' then D.data like '%SENSOR%' else D.data = '${args.eventName}' end)
-        and D2.data in ('BRIGHTNESS', 'STATE', 'VALUE', 'LEVEL', 'VOLUME', 'OPER_TYPE', 'VOLUME')
-        and (S.ts - ${args.recordStartNS}) >= ${Math.floor(args.startNS)}
-        and (S.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
-      group by S.serial, APP.app_key, D.data, D2.data, px;`;
 };
 
 export const queryStateProtoDataSql = (args: any): string => {
@@ -191,7 +172,7 @@ export function hiSysEnergyStateReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
     let res: any[], list: any[];
     if (!energyList.has(data.params.eventName)) {
-      list = proc(queryStateDataMemSql(data.params));
+      list = proc(queryStateDataSql(data.params));
       energyList.set(data.params.eventName, list);
     } else {
       list = energyList.get(data.params.eventName) || [];

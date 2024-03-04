@@ -778,6 +778,7 @@ export class SpSystemTrace extends BaseElement {
       SoStruct.selectSoStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
+      SampleStruct.selectSampleStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
@@ -1343,7 +1344,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('click', this.documentOnClick);
     this.addEventListener('mousedown', this.documentOnMouseDown);
     this.addEventListener('mouseup', this.documentOnMouseUp);
-    this.addEventListener('mouseout', this.documentOnMouseOut);
+    this.addEventListener('mouseout', this.documentOnMouseOut);  
 
     document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);

@@ -184,7 +184,6 @@ export class TabPaneCurrent extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
-    tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
     this.trClickEvent(tr);
 
     //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicesTimeList数组的第一个对应……，所以i从1开始，在this.slicesTimeList数组中取值时用i-1

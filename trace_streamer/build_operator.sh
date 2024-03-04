@@ -83,6 +83,6 @@ else
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
 fi
 
-if [ "$target_os" == "macx" ];then
+if [ "$out_dir" == "macx" ];then
     ./mac_depend.sh
 fi

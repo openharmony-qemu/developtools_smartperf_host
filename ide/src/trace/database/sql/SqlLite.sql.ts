@@ -1083,7 +1083,7 @@ export const queryBySelectAllocationOrReturn = (
                 FROM task_pool
                        LEFT JOIN callstack ON callstack.id = task_pool.execute_task_row
                        LEFT JOIN thread ON thread.id = callstack.callid
-                WHERE task_pool.execute_task_row IS NOT NULL AND task_pool.execute_id = $executeId
+                WHERE task_pool.execute_task_row IS NOT NULL AND task_pool.task_id = $executeId
                 AND task_pool.allocation_itid = $itid;
     `;
   return query('queryBySelectAllocationOrReturn', sqlStr, { $executeId: executeId, $itid: itid });
@@ -1098,12 +1098,12 @@ export const queryTaskListByExecuteTaskIds = (
            task_pool.allocation_task_row AS allocationTaskRow,
            task_pool.execute_task_row    AS executeTaskRow,
            task_pool.return_task_row     AS returnTaskRow,
-           task_pool.execute_id          AS executeId,
+           task_pool.task_id          AS executeId,
            task_pool.priority
     FROM task_pool
            LEFT JOIN callstack ON callstack.id = task_pool.allocation_task_row
            LEFT JOIN thread ON thread.id = callstack.callid
-    WHERE task_pool.execute_id IN (${executeTaskIds.join(',')})
+    WHERE task_pool.task_id IN (${executeTaskIds.join(',')})
       AND thread.ipid = $ipid
       AND task_pool.execute_task_row IS NOT NULL;
     `;
@@ -1124,7 +1124,7 @@ export const queryTaskPoolTotalNum = (itid: number) =>
          WHERE ipid in (SELECT thread.ipid
                        FROM thread
                        WHERE thread.itid = $itid)
-           AND thread.name = 'TaskWorkThread'
+           AND thread.name LIKE '%TaskWork%'
          GROUP BY thread.tid;`,
     { $itid: itid }
   );

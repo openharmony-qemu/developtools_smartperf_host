@@ -48,6 +48,7 @@ private:
     void ParseSymbolEvent(const ProtoReader::BytesView& bytesView);
     void ParseThreadEvent(const ProtoReader::BytesView& bytesView);
     void ParseFrameMap(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData);
+    bool ParseStackMapOfflineOrOnline(const ProtoReader::BytesView& bytesView);
     bool ParseStackMap(const ProtoReader::BytesView& bytesView);
     void SplitHookData(std::unique_ptr<NativeHookMetaData>& nativeHookMetaData, bool& haveSplitSeg);
 

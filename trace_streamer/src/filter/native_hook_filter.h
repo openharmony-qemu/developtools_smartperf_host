@@ -25,6 +25,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint64_t IP_BIT_OPERATION = 0xFFFFFFFFFF;
+constexpr uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
 using namespace OHOS::Developtools::HiPerf;
 class NativeHookFrameInfo {
 public:
@@ -73,7 +74,10 @@ public:
 public:
     void MaybeParseNativeHookMainEvent(uint64_t timeStamp, std::unique_ptr<NativeHookMetaData> nativeHookMetaData);
     void ParseConfigInfo(ProtoReader::BytesView& protoData);
-    void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t>& frames);
+    void AppendStackMaps(uint32_t ipid,
+                         uint32_t stackid,
+                         std::vector<uint64_t>& frames,
+                         std::map<uint32_t, std::shared_ptr<std::multiset<uint64_t>>>& frameIdAndIdDownInfo);
     void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView& bytesView);
     void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex);
     void AppendSymbolMap(uint32_t ipid, uint32_t symId, uint64_t symbolIndex);
@@ -89,6 +93,11 @@ public:
     const bool IsSingleProcData()
     {
         return isSingleProcData_;
+    }
+
+    bool GetOfflineSymbolizationMode()
+    {
+        return isOfflineSymbolizationMode_;
     }
 
 private:
@@ -121,6 +130,7 @@ private:
     void UpdateSymbolIdsForCallChainIdLastCallStack(size_t index);
     void UpdateSymbolIdsForFilePathIndexFailedInvalid(size_t index);
     void UpdateSymbolIdsForSymbolizationFailed();
+    void ParseOfflineSymbolVirtualStacks(uint64_t curStackId, uint64_t curPid, uint16_t& depth, uint32_t frameMapIdLoc);
     void ParseFramesInOfflineSymbolizationMode();
     void ParseFramesInCallStackCompressedMode();
     void ParseFramesWithOutCallStackCompressedMode();
@@ -158,6 +168,8 @@ private:
         {};
     std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> allStackIdToFramesMap_ = {};
     std::map<uint64_t /* ipidWithStackIdIndex */, std::shared_ptr<std::vector<uint64_t>>> stackIdToFramesMap_ = {};
+    // first key is stackId, second key is framemap_id_loc, value is set<uint64_t> framemap_id/framemap_down
+    DoubleMap<uint64_t, uint32_t, std::shared_ptr<std::multiset<uint64_t>>> stackIdToFramesMapIdAndIdDown_;
     std::map<uint32_t, uint64_t> callChainIdToStackHashValueMap_ = {};
     std::unordered_map<uint64_t, std::vector<uint64_t>> stackHashValueToFramesHashMap_ = {};
     std::unordered_map<uint64_t, std::unique_ptr<NativeHookFrameInfo>> frameHashToFrameInfoMap_ = {};
