@@ -182,7 +182,7 @@ export let tabConfig: any = {
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
   'box-thread-states': {
-    title: 'Thread States',
+    title: 'Thread by State',
     type: TabPaneThreadStates,
     require: (param: SelectionParam) => param.threadIds.length > 0,
   },
