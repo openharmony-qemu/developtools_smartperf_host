@@ -68,8 +68,10 @@ void CpuFilter::ProcPrevPidSwitchEvent(uint64_t ts,
         auto lastCpu = traceDataCache_->GetConstThreadStateData().CpusData()[lastRow];
         auto lastState = traceDataCache_->GetConstThreadStateData().StatesData()[lastRow];
         auto lastStartTs = traceDataCache_->GetConstThreadStateData().TimeStampData()[lastRow];
-        if ((cpu != lastCpu) && (lastState == TASK_RUNNING) && (ts == lastStartTs)) {
-            isChangeCpu = true;
+        if ((cpu != lastCpu) && (lastState == TASK_RUNNING)) {
+            if (traceDataCache_->HMKernelTraceEnabled() || (ts == lastStartTs)) {
+                isChangeCpu = true;
+            }
         }
         if (!isChangeCpu) {
             CheckWakeupEvent(prevPid);

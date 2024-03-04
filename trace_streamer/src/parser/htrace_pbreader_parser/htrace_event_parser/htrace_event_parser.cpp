@@ -200,10 +200,10 @@ void HtraceEventParser::ParserCpuEvent(HtraceDataSegment& tracePacket,
         eventInfo->cpu_ = msg.cpu();
         auto pos = (const char*)detaiBytesView.Data() - tracePacket.seg->data();
         eventInfo->detail_ = std::move(tracePacket.seg->substr(pos, detaiBytesView.Size()));
+        eventInfo->taskNameIndex_ = traceDataCache_->GetDataIndex(ftraceEvent.comm().ToStdString());
 #ifdef SUPPORTTHREAD
         std::lock_guard<std::mutex> muxLockGuard(mutex_);
 #endif
-        eventInfo->taskNameIndex_ = traceDataCache_->GetDataIndex(ftraceEvent.comm().ToStdString());
         htraceEventList_.emplace_back(std::move(eventInfo));
     }
 }

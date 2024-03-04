@@ -33,6 +33,54 @@ HtraceNativeHookParser::~HtraceNativeHookParser()
             static_cast<unsigned long long>(MaxTs()));
 }
 
+bool HtraceNativeHookParser::ParseStackMapOfflineOrOnline(const ProtoReader::BytesView& bytesView)
+{
+    ProtoReader::StackMap_Reader stackMapReader(bytesView);
+    auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(stackMapReader.pid(), "");
+    // stores frames info. if offlineSymbolization is true, storing ips data, else storing FrameMap id.
+    std::vector<uint64_t> frames;
+    // Defining multiset to solve the problem of if frame_map_id is equal to frame_map_id_down
+    std::map<uint32_t, std::shared_ptr<std::multiset<uint64_t>>> frameIdAndIdDownInfo;
+    std::shared_ptr<std::multiset<uint64_t>> frameIdAndIdDown = std::make_shared<std::multiset<uint64_t>>();
+    bool parseError = false;
+    if (!nativeHookFilter_->GetOfflineSymbolizationMode()) {
+        auto itor = stackMapReader.frame_map_id(&parseError);
+        TS_CHECK_TRUE(!parseError, false, "Parse packed varInt in ParseStackMap function failed!!!");
+        while (itor) {
+            frames.emplace_back(*itor);
+            itor++;
+        }
+    } else {
+        auto itor = stackMapReader.ip(&parseError);
+        TS_CHECK_TRUE(!parseError, false, "Parse packed varInt in ParseStackMap function failed!!!");
+        // OfflineSymbolization use ipidToStartAddrToMapsInfoMap_ Multi-process differentiation
+        while (itor) {
+            frames.emplace_back(*itor);
+            itor++;
+        }
+        if (stackMapReader.has_frame_map_id()) {
+            bool parseFrameMapid = false;
+            auto frameMapIdItor = stackMapReader.frame_map_id(&parseFrameMapid);
+            while (frameMapIdItor) {
+                frameIdAndIdDown->emplace(*frameMapIdItor);
+                frameMapIdItor++;
+            }
+            frameIdAndIdDownInfo.emplace(std::make_pair(0, frameIdAndIdDown));
+        }
+        if (stackMapReader.has_frame_map_id_down()) {
+            frameIdAndIdDown->clear();
+            bool parseFrameMapIdDown = false;
+            auto frameMapIdDownItor = stackMapReader.frame_map_id_down(&parseFrameMapIdDown);
+            while (frameMapIdDownItor) {
+                frameIdAndIdDown->emplace(*frameMapIdDownItor);
+                frameMapIdDownItor++;
+            }
+            frameIdAndIdDownInfo.emplace(std::make_pair(1, frameIdAndIdDown));
+        }
+    }
+    nativeHookFilter_->AppendStackMaps(ipid, stackMapReader.id(), frames, frameIdAndIdDownInfo);
+    return true;
+}
 bool HtraceNativeHookParser::ParseStackMap(const ProtoReader::BytesView& bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
@@ -42,28 +90,9 @@ bool HtraceNativeHookParser::ParseStackMap(const ProtoReader::BytesView& bytesVi
         nativeHookFilter_->GetCommHookData().size += bytesView.Size();
         return false;
     }
-    ProtoReader::StackMap_Reader stackMapReader(bytesView);
-    bool parseError = false;
-    auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(stackMapReader.pid(), "");
-    // stores frames info. if offlineSymbolization is true, storing ips data, else storing FrameMap id.
-    std::vector<uint64_t> frames;
-    if (stackMapReader.has_frame_map_id()) {
-        auto itor = stackMapReader.frame_map_id(&parseError);
-        TS_CHECK_TRUE(!parseError, false, "Parse packed varInt in ParseStackMap function failed!!!");
-        while (itor) {
-            frames.emplace_back(*itor);
-            itor++;
-        }
-    } else if (stackMapReader.has_ip()) {
-        auto itor = stackMapReader.ip(&parseError);
-        TS_CHECK_TRUE(!parseError, false, "Parse packed varInt in ParseStackMap function failed!!!");
-        // OfflineSymbolization use ipidToStartAddrToMapsInfoMap_ Multi-process differentiation
-        while (itor) {
-            frames.emplace_back(*itor);
-            itor++;
-        }
+    if (!ParseStackMapOfflineOrOnline(bytesView)) {
+        return false;
     }
-    nativeHookFilter_->AppendStackMaps(ipid, stackMapReader.id(), frames);
     return true;
 }
 

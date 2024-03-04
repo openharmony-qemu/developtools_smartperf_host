@@ -494,22 +494,24 @@ void HtraceParser::ParseFtrace(HtraceDataSegment& dataSeg)
     dataSeg.clockId = clock_;
     if (tracePluginResult.has_ftrace_cpu_detail()) {
         htraceCpuDetailParser_->Parse(dataSeg, tracePluginResult, haveSplitSeg);
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
     }
     if (tracePluginResult.has_symbols_detail()) {
         htraceSymbolsDetailParser_->Parse(dataSeg.protoData); // has Event
         haveSplitSeg = true;
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
     }
     if (tracePluginResult.has_clocks_detail()) {
         htraceClockDetailParser_->Parse(dataSeg.protoData); // has Event
         haveSplitSeg = true;
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
     }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
         mTraceDataHtrace_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
-    dataSeg.status = TS_PARSE_STATUS_INVALID;
+    if (tracePluginResult.has_ftrace_cpu_detail() || tracePluginResult.has_clocks_detail() ||
+        tracePluginResult.has_symbols_detail()) {
+        dataSeg.status = TS_PARSE_STATUS_PARSED;
+    } else {
+        dataSeg.status = TS_PARSE_STATUS_INVALID;
+    }
 }
 
 void HtraceParser::ParseFPS(HtraceDataSegment& dataSeg)

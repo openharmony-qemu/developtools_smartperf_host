@@ -437,14 +437,14 @@ export const queryConcurrencyTask = (
             task_pool.allocation_task_row AS allocationTaskRow,
             task_pool.execute_task_row    AS executeTaskRow,
             task_pool.return_task_row     AS returnTaskRow,
-            task_pool.execute_id          AS executeId
+            task_pool.task_id             AS executeId
      FROM thread
             LEFT JOIN callstack ON thread.id = callstack.callid
             LEFT JOIN task_pool ON callstack.id = task_pool.execute_task_row
      WHERE ipid in (SELECT thread.ipid
                    FROM thread
                    WHERE thread.itid = $itid)
-       AND thread.name = 'TaskWorkThread'
+       AND thread.name LIKE '%TaskWork%'
        AND callstack.name LIKE 'H:Task Perform:%'
        AND -- 左包含
            (($selectStartTime <= callstack.ts AND $selectEndTime > callstack.ts)

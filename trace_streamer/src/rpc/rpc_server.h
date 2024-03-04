@@ -69,6 +69,8 @@ public:
         return ffrtConvertEnabled_;
     };
     bool DetermineSystrace(const uint8_t* data, size_t len);
+
+    bool SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 #ifdef IS_WASM
     bool SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool ReadAndParseData(const std::string& filePath);
