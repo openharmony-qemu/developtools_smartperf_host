@@ -74,7 +74,7 @@ export class SpRecordTrace extends BaseElement {
   public static selectVersion: string | null;
   public static isVscode = false;
   public static cancelRecord = false;
-  static supportVersions = ['3.2', '4.0+'];
+  static supportVersions = ['3.2', '4.0+','5.0+'];
   public deviceSelect: HTMLSelectElement | undefined;
   public deviceVersion: HTMLSelectElement | undefined;
   private _menuItems: Array<MenuItem> | undefined;
@@ -283,8 +283,8 @@ export class SpRecordTrace extends BaseElement {
       return '3.2';
     } else if (version.indexOf('4.') !== -1) {
       return '4.0+';
-    }else if(version.indexOf('5.') !== -1){
-      return '5.0+';
+    }else if (version.indexOf('5.') !== -1) {
+      return '5.0+'
     }
     return '3.2';
   }

@@ -13,57 +13,58 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler,drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class hitchTimeRender {
   renderMainThread(
     req: {
-      appStartupContext: CanvasRenderingContext2D;
+      hitchTimeContext: CanvasRenderingContext2D;
       useCache: boolean;
       type: string;
     },
-    ltpoRow: TraceRow<HitchTimeStruct>
+    hitchTimeRow: TraceRow<HitchTimeStruct>
   ): void {
-    let list = ltpoRow.dataListCache;
+    let list = hitchTimeRow.dataListCache;
     HitchTimeStruct.maxVal = 0;
     for (let i = 0; i < list.length; i++) {
       if (Number(list[i].value) > HitchTimeStruct.maxVal) {
         HitchTimeStruct.maxVal = Number(list[i].value)
       };
     }
-    let filter = ltpoRow.dataListCache;
+    let filter = hitchTimeRow.dataListCache;
     dataFilterHandler(list, filter, {
       startKey: 'startTs',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
       endNS: TraceRow.range?.endNS ?? 0,
       totalNS: TraceRow.range?.totalNS ?? 0,
-      frame: ltpoRow.frame,
+      frame: hitchTimeRow.frame,
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.appStartupContext.globalAlpha = 0.6;
+    req.hitchTimeContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
+    drawLoadingFrame(req.hitchTimeContext,filter,hitchTimeRow)
     for (let re of filter) {
-      if (ltpoRow.isHover) {
+      if (hitchTimeRow.isHover) {
         if (
           re.frame &&
-          ltpoRow.hoverX >= re.frame.x - offset &&
-          ltpoRow.hoverX <= re.frame.x + re.frame.width + offset
+          hitchTimeRow.hoverX >= re.frame.x - offset &&
+          hitchTimeRow.hoverX <= re.frame.x + re.frame.width + offset
         ) {
           HitchTimeStruct.hoverHitchTimeStruct = re;
           find = true;
         }
       }
-      if (!ltpoRow.isHover) HitchTimeStruct.hoverHitchTimeStruct = undefined
-      if (!find && ltpoRow.isHover) {
+      if (!hitchTimeRow.isHover) HitchTimeStruct.hoverHitchTimeStruct = undefined
+      if (!find && hitchTimeRow.isHover) {
         HitchTimeStruct.hoverHitchTimeStruct = undefined;
       }
-      req.appStartupContext.beginPath()
-      HitchTimeStruct.draw(req.appStartupContext, re);
-      req.appStartupContext.closePath()
+      req.hitchTimeContext.beginPath()
+      HitchTimeStruct.draw(req.hitchTimeContext, re);
+      req.hitchTimeContext.closePath()
     }
   }
 }
@@ -87,6 +88,9 @@ export class HitchTimeStruct extends BaseStruct {
   itid: number | undefined;
   startTime: number | undefined;
   signaled: number | undefined;
+  nowTime: number | undefined;
+  cutTime: number | undefined;
+  cutSendDur: number | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: HitchTimeStruct): void {
     if (data.frame) {
