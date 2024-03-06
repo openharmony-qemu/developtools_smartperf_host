@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler,drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 
 export class LtpoRender {
   renderMainThread(
     req: {
-      appStartupContext: CanvasRenderingContext2D;
+      ltpoContext: CanvasRenderingContext2D;
       useCache: boolean;
       type: string;
     },
@@ -41,9 +41,10 @@ export class LtpoRender {
       paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
-    req.appStartupContext.globalAlpha = 0.6;
+    req.ltpoContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
+    drawLoadingFrame(req.ltpoContext,filter,ltpoRow);
     for (let re of filter) {
       if (ltpoRow.isHover) {
         if (
@@ -59,9 +60,9 @@ export class LtpoRender {
       if (!find && ltpoRow.isHover) {
         LtpoStruct.hoverLtpoStruct = undefined;
       }
-      req.appStartupContext.beginPath()
-      LtpoStruct.draw(req.appStartupContext, re);
-      req.appStartupContext.closePath()
+      req.ltpoContext.beginPath()
+      LtpoStruct.draw(req.ltpoContext, re);
+      req.ltpoContext.closePath()
     }
   }
 }
@@ -85,6 +86,9 @@ export class LtpoStruct extends BaseStruct {
   itid: number | undefined;
   startTime: number | undefined;
   signaled: number | undefined;
+  nowTime: number | undefined;
+  cutTime: number | undefined;
+  cutSendDur: number | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: LtpoStruct): void {
     if (data.frame) {
