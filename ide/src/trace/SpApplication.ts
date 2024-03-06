@@ -90,14 +90,14 @@ export class SpApplication extends BaseElement {
 
   longTraceTypeMessageMap:
     | Map<
-        number,
-        Array<{
-          fileType: string;
-          startIndex: number;
-          endIndex: number;
-          size: number;
-        }>
-      >
+      number,
+      Array<{
+        fileType: string;
+        startIndex: number;
+        endIndex: number;
+        size: number;
+      }>
+    >
     | undefined
     | null;
   static skinChange: Function | null | undefined = null;
@@ -1458,15 +1458,15 @@ export class SpApplication extends BaseElement {
   private initSlideMenuEvents(): void {
     //打开侧边栏
     this.sidebarButton!.onclick = (e): void => {
-      if (this.mainMenu) {
-        this.mainMenu.style.width = '248px';
-        this.mainMenu.style.zIndex = '2000';
-        this.mainMenu.style.display = 'flex';
-      }
       if (this.sidebarButton) {
         this.sidebarButton.style.width = '0px';
         this.importConfigDiv!.style.left = '5px';
         this.closeKeyPath!.style.left = '25px';
+      }
+      if (this.mainMenu) {
+        this.mainMenu.style.width = '248px';
+        this.mainMenu.style.zIndex = '2000';
+        this.mainMenu.style.display = 'flex';
       }
     };
     let icon: HTMLDivElement | undefined | null = this.mainMenu?.shadowRoot?.querySelector('div.header > div');

@@ -283,6 +283,8 @@ export class SpRecordTrace extends BaseElement {
       return '3.2';
     } else if (version.indexOf('4.') !== -1) {
       return '4.0+';
+    }else if(version.indexOf('5.') !== -1){
+      return '5.0+';
     }
     return '3.2';
   }
