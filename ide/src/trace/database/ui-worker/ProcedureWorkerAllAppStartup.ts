@@ -17,6 +17,7 @@ import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerComm
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {querySingleAppStartupsName} from "../sql/ProcessThread.sql";
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class AllAppStartupRender {
   renderMainThread(
@@ -60,14 +61,31 @@ export class AllAppStartupRender {
     }
   }
 }
-
+export function AllAppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,scrollToFuncHandler:any) {
+  return new Promise((resolve,reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_ALL_APPSTARTUPS && AllAppStartupStruct.hoverStartupStruct) {
+      AllAppStartupStruct.selectStartupStruct = AllAppStartupStruct.hoverStartupStruct;
+      sp.traceSheetEL?.displayAllStartupData(AllAppStartupStruct.selectStartupStruct, scrollToFuncHandler);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    }else{
+      resolve(null);
+    }
+  });
+}
 
 export class AllAppStartupStruct extends BaseStruct {
   static hoverStartupStruct: AllAppStartupStruct | undefined;
   static selectStartupStruct: AllAppStartupStruct | undefined;
-  dur: number | undefined;
   startTs: number | undefined;
   startName: number | undefined;
+  dur: number | undefined;
+  value: string | undefined;
+  pid: number | undefined;
+  process: string | undefined;
+  tid: number | undefined;
+  itid: number | undefined;
+  endItid: number | undefined;
   stepName: string | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: AllAppStartupStruct): void {

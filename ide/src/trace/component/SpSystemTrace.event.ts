@@ -26,6 +26,7 @@ import { IrqStructOnClick } from "../database/ui-worker/ProcedureWorkerIrq";
 import { HeapStructOnClick } from "../database/ui-worker/ProcedureWorkerHeap";
 import { JsCpuProfilerStructOnClick } from "../database/ui-worker/ProcedureWorkerCpuProfiler";
 import { AppStartupStructOnClick } from "../database/ui-worker/ProcedureWorkerAppStartup";
+import { AllAppStartupStructOnClick } from "../database/ui-worker/ProcedureWorkerAllAppStartup";
 import { SoStructOnClick } from "../database/ui-worker/ProcedureWorkerSoInit";
 import { FrameAnimationStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameAnimation";
 import { FrameDynamicStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameDynamic";
@@ -310,6 +311,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => HeapSnapshotStructOnClick(clickRowType, sp, row!, snapshotClickHandlerFunc(sp)))
     .then(() => JsCpuProfilerStructOnClick(clickRowType, sp, row!))
     .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
+    .then(() => AllAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => FrameAnimationStructOnClick(clickRowType, sp, row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
