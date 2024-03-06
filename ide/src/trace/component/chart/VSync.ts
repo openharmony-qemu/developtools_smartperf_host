@@ -14,6 +14,7 @@
  */
 import { query } from '../../database/SqlLite';
 import { TraceRow } from '../trace/base/TraceRow';
+import { FlagsConfig } from '../../component/SpFlags';
 interface VSyncData {
   startTime: number;
   dur: number;
@@ -49,18 +50,28 @@ export const querySfVSyncData = (): Promise<Array<VSyncData>> =>
                              })`
   );
 
-export const querySingleVSyncData = (): Promise<Array<VSyncData>> =>
-  query(
-    'querySingleVSyncData',
-    `SELECT c.ts - tb.start_ts startTime
+  export const querySingleVSyncData = (): Promise<Array<VSyncData>> => {
+    let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+    let flagsItemJson = JSON.parse(flagsItem!);
+    let vsyncValue = flagsItemJson.vsyncValue;  
+    let vsyncCondition = '';
+    if (vsyncValue === 'H:VsyncGenerator' || vsyncValue === '') {
+      vsyncCondition = ` AND (callstack.name like 'H:GenerateVsyncCount%' or callstack.name like 'H:VSyncGenerator::ThreadLoop::Continue%'))`;
+    } else {
+      vsyncCondition = ` AND callstack.name like '${vsyncValue}%' )`;
+    }
+  
+    let sql =
+      `SELECT c.ts - tb.start_ts startTime
      FROM callstack c,
           trace_range tb
      WHERE c.id IN (SELECT callstack.id AS trackId
                     FROM callstack
                              JOIN process
-                    WHERE process.name = 'render_service'
-                      AND (callstack.name like 'H:GenerateVsyncCount%' or callstack.name like 'H:VSyncGenerator::ThreadLoop::Continue%'))`
-  );
+                    WHERE process.name = 'render_service'`
+      + vsyncCondition;
+    return query('querySingleVSyncData', sql);
+  }
 
 /**
  * load single vsync data
