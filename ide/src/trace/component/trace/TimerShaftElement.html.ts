@@ -91,7 +91,7 @@ export const TimerShaftElementHtml = `
 </style>
 <div class="root">
     <div class="total">
-        <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6)"></div>
+        <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6);line-height:100px;" class="cpu-usage"></div>
         <div class="time-div">
             <span class="time-total">10</span>
             <span class="time-offset">0</span>

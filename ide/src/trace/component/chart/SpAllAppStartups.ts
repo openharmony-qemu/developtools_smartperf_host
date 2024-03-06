@@ -98,6 +98,12 @@ export class SpAllAppStartupsChart {
           translateY: undefined,
           frame: undefined,
           isHover: false,
+          value: undefined,
+          pid: undefined,
+          process: undefined,
+          tid: undefined,
+          itid: undefined,
+          endItid: undefined
         });
       }
       return sendRes;

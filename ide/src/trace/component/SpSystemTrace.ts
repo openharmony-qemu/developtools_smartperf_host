@@ -202,6 +202,7 @@ export class SpSystemTrace extends BaseElement {
   collapseAll: boolean = false;
   currentCollectGroup: string = '1';
   private _list: Array<SlicesTime> = [];
+  static isHiddenMenu: boolean = false;
   expandRowList: Array<TraceRow<any>> = [];
   _slicesList: Array<SlicesTime> = [];
   _flagList: Array<any> = [];
@@ -260,7 +261,11 @@ export class SpSystemTrace extends BaseElement {
 
   addPointPair(startPoint: PairPoint, endPoint: PairPoint): void {
     if (startPoint.rowEL.collect) {
-      startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195;
+      if (this.timerShaftEL?._checkExpand) {
+        startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
+      } else {
+        startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195;
+      }
     } else {
       startPoint.rowEL.translateY = startPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
     }
@@ -501,12 +506,20 @@ export class SpSystemTrace extends BaseElement {
   rowsElOnScroll = (e: any): void => {
     this.linkNodes.forEach((itln) => {
       if (itln[0].rowEL.collect) {
-        itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+        if (this.timerShaftEL?._checkExpand) {
+          itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
+        } else {
+          itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+        }
       } else {
         itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
       }
       if (itln[1].rowEL.collect) {
-        itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+        if (this.timerShaftEL?._checkExpand) {
+          itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
+        } else {
+          itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+        }
       } else {
         itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -559,7 +572,20 @@ export class SpSystemTrace extends BaseElement {
     //draw trace row
     this.visibleRows.forEach((v, i) => {
       if (v.collect) {
-        v.translateY = v.getBoundingClientRect().top - 195;
+        if (this.timerShaftEL?._checkExpand) {
+          if (SpSystemTrace.isHiddenMenu) {
+            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight! + 48;
+          } else {
+            v.translateY = v.getBoundingClientRect().top - 195 + this.timerShaftEL.usageFoldHeight!;
+          }
+        }
+        else {
+          if (SpSystemTrace.isHiddenMenu) {
+            v.translateY = v.getBoundingClientRect().top - 195 + 48;
+          } else {
+            v.translateY = v.getBoundingClientRect().top - 195;
+          }
+        }
       } else {
         v.translateY = v.offsetTop - this.rowsPaneEL!.scrollTop;
       }
@@ -1097,8 +1123,8 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_FUNC,
       (): boolean => FuncStruct.hoverFuncStruct !== null && FuncStruct.hoverFuncStruct !== undefined,
     ],
-    [ 
-      TraceRow.ROW_TYPE_SAMPLE, 
+    [
+      TraceRow.ROW_TYPE_SAMPLE,
       (): boolean => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined
     ],
     [
@@ -1440,7 +1466,7 @@ export class SpSystemTrace extends BaseElement {
   private scrollH: number = 0;
 
   subscribeBottomTabVisibleEvent(): void {
-    window.subscribe(window.SmartEvent.UI.ShowBottomTab, (data: { show: number, delta: number}) => {
+    window.subscribe(window.SmartEvent.UI.ShowBottomTab, (data: { show: number, delta: number }) => {
       if (data.show === 1) {
         //显示底部tab
         this.scrollH = this.rowsEL!.scrollHeight;
@@ -1498,7 +1524,7 @@ export class SpSystemTrace extends BaseElement {
       rootRow.expandFunc();
       if (!this.isInViewport(rootRow)) {
         setTimeout(() => {
-          rootRow!.scrollIntoView({ behavior: "smooth"})
+          rootRow!.scrollIntoView({ behavior: "smooth" })
         }, 500);
       }
     } else {
@@ -1525,8 +1551,8 @@ export class SpSystemTrace extends BaseElement {
   isInViewport(e: any) {
     const rect = e.getBoundingClientRect();
     return (
-      rect.top >=0 &&
-      rect.left >=0 &&
+      rect.top >= 0 &&
+      rect.left >= 0 &&
       rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     )
@@ -1937,9 +1963,9 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
-    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => {});
+    procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: any) => { });
     if (threadPool) {
-      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => {});
+      threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: any, len: number): void => { });
     }
     this.times.clear();
     resetVSync();

@@ -26,6 +26,7 @@ import { IrqStructOnClick } from "../database/ui-worker/ProcedureWorkerIrq";
 import { HeapStructOnClick } from "../database/ui-worker/ProcedureWorkerHeap";
 import { JsCpuProfilerStructOnClick } from "../database/ui-worker/ProcedureWorkerCpuProfiler";
 import { AppStartupStructOnClick } from "../database/ui-worker/ProcedureWorkerAppStartup";
+import { AllAppStartupStructOnClick } from "../database/ui-worker/ProcedureWorkerAllAppStartup";
 import { SoStructOnClick } from "../database/ui-worker/ProcedureWorkerSoInit";
 import { FrameAnimationStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameAnimation";
 import { FrameDynamicStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameDynamic";
@@ -41,6 +42,7 @@ import { CpuStruct, CpuStructOnClick } from "../database/ui-worker/cpu/Procedure
 import { CpuStateStructOnClick } from "../database/ui-worker/cpu/ProcedureWorkerCpuState";
 import { CpuFreqLimitsStructOnClick } from "../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits";
 import { FlagsConfig } from "./SpFlags";
+import { LitMainMenu } from "../../base-ui/menu/LitMainMenu";
 
 function timeoutJudge(sp: SpSystemTrace) {
   let timeoutJudge = setTimeout(() => {
@@ -310,6 +312,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => HeapSnapshotStructOnClick(clickRowType, sp, row!, snapshotClickHandlerFunc(sp)))
     .then(() => JsCpuProfilerStructOnClick(clickRowType, sp, row!))
     .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
+    .then(() => AllAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => FrameAnimationStructOnClick(clickRowType, sp, row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
@@ -465,7 +468,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   }
 }
 
-export function SpSystemTraceDocumentOnKeyPress(sp: SpSystemTrace, ev: KeyboardEvent) {
+export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent) {
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -658,6 +661,46 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
 }
 
 function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace) {
+  if (keyPress === 'b') {
+    let menuBox = document.querySelector('body > sp-application')!.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
+    let searchBox = document.querySelector('body > sp-application')
+      ?.shadowRoot?.querySelector('div > div.search-vessel') as HTMLDivElement;
+    let appContent = document.querySelector('body > sp-application')
+      ?.shadowRoot?.querySelector('div > #app-content') as HTMLDivElement;
+    let rowPane = appContent?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > div.rows-pane') as HTMLDivElement;
+    let timerShaft = appContent?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > timer-shaft-element') as HTMLDivElement;
+    let spChartList = appContent?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > sp-chart-list') as HTMLDivElement;
+    let canvasEle = spChartList.shadowRoot?.querySelector('canvas') as unknown as HTMLDivElement;
+    let sidebarButton = searchBox!.querySelector('div > div.sidebar-button') as HTMLDivElement;
+    let importConfigDiv = searchBox!.querySelector('div > #import-key-path') as HTMLDivElement;
+    if (menuBox.style.zIndex! === '2000' || searchBox!.style.display !== 'none') {
+      SpSystemTrace.isHiddenMenu = true;
+      menuBox.style.width = '0px';
+      menuBox.style.display = 'flex';
+      menuBox.style.zIndex = '0';
+      sidebarButton.style.width = '48px';
+      importConfigDiv!.style.left = '45px';
+      searchBox!.style.display = 'none';
+      if (timerShaft.style.height === '91.75px') {
+        rowPane.style.maxHeight = '900px'
+      } else {
+        rowPane.style.maxHeight = '797px'
+      }
+    } else {
+      SpSystemTrace.isHiddenMenu = false;
+      menuBox.style.width = '248px';
+      menuBox.style.zIndex = '2000';
+      menuBox.style.display = 'flex';
+      sidebarButton.style.width = '0px';
+      importConfigDiv!.style.left = '5px';
+      searchBox!.style.display = '';
+      if (timerShaft.style.height === '91.75px') {
+        rowPane.style.maxHeight = '905.25px';
+      } else {
+        rowPane.style.maxHeight = '849px';
+      };
+    }
+  }
   if (keyPress === '[' && sp._slicesList.length > 1) {
     sp.MarkJump(sp._slicesList, 'slice', 'previous');
   } else if (keyPress === ',' && sp._flagList.length > 1) {

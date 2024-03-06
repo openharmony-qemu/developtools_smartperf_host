@@ -168,6 +168,13 @@ table{
         </tr>
         <tr>
           <td>
+            <div class="keycap">ctr</div> +
+            <div class="keycap">b</div> 
+          </td>
+          <td class="describe-td">隐藏/显示菜单和搜索框</td>
+        </tr>
+        <tr>
+          <td>
             <div class="keycap">Ctrl</div> +
             <div class="keycap">,</div> /
             <div class="keycap">.</div>
