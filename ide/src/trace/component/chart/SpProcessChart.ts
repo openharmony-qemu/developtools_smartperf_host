@@ -758,7 +758,7 @@ export class SpProcessChart {
       threadRow.rowParentId = `${it.pid}`;
       threadRow.rowHidden = !processRow.expansion;
       threadRow.index = j;
-      threadRow.style.height = '30px';
+      threadRow.style.height = '18px';
       threadRow.style.width = '100%';
       threadRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
       threadRow.namePrefix = `${thread.threadName || 'Thread'}`;
@@ -839,7 +839,7 @@ export class SpProcessChart {
       }
       if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) != undefined) {
         let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
-        let maxHeight = max * 20;
+        let maxHeight = max * 18 + 6;
         let funcRow = TraceRow.skeleton<FuncStruct>();
         funcRow.rowId = `${thread.tid}`;
         funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
