@@ -191,7 +191,7 @@ table{
         </tr>
         <tr>
           <td>
-            <div class="keycap">?</div>
+            <div class="keycap">/</div>
           </td>
           <td class="describe-td">展示快捷方式</td>
         </tr>
