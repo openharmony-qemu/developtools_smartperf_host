@@ -151,6 +151,7 @@ export class SpSystemTrace extends BaseElement {
   static sliceRangeMark: any;
   static wakeupList: Array<WakeupBean> = [];
   static keyPathList: Array<CpuStruct> = [];
+  static keyboardFlar: Boolean = true;
   static jsProfilerMap: Map<number, any> = new Map<number, any>();
   times: Set<number> = new Set<number>();
   currentSlicesTime: CurrentSlicesTime = new CurrentSlicesTime();

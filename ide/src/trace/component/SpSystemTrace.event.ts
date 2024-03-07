@@ -619,9 +619,16 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
       clearTimeout(timerId);
     }
   }
-  if (ev.key.toLocaleLowerCase() === '?') {
-    document.querySelector('body > sp-application')!
-      .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
+  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+    if (SpSystemTrace.keyboardFlar) {
+      document.querySelector('body > sp-application')!
+        .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
+      SpSystemTrace.keyboardFlar = false;
+    } else {
+      document.querySelector('body > sp-application')!
+        .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
+        SpSystemTrace.keyboardFlar = true;
+    }
   }
   if (!sp.loadTraceCompleted) return;
   let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
