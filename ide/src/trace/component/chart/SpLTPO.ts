@@ -235,8 +235,10 @@ export class SpLtpoChart {
             cutTimeSum = 0;
             tempFps = 0;
           }
-        } else if (SpLtpoChart.skipDataList[skipIndex].ts! < SpLtpoChart.tempRsNowTimeList[nowTimeIndex].ts! && nowTimeIndex > 0) {
-          cutTimeSum += tempFps ? (1000 / tempFps) : (1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!);
+        } else if (SpLtpoChart.skipDataList[skipIndex].ts! < SpLtpoChart.tempRsNowTimeList[nowTimeIndex].ts!) {
+          if(nowTimeIndex > 0){
+            cutTimeSum += tempFps ? (1000 / tempFps) : (1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!);
+          }
           skipIndex++;
         }
       } else {
