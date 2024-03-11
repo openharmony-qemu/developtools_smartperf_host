@@ -194,7 +194,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public loadingFrame: boolean = false; //实时查询,正在查询中
   public needRefresh: boolean = true;
   _frameRateList: Array<number> | undefined; //存储平均帧率数据
-  _hitchTimeData: Array<number> | undefined;//存储hitch time
+  _avgRateTxt: string | undefined | null;//存储帧率显示文字
   public folderIcon: LitIcon | null | undefined;
   private sampleUploadEl: HTMLDivElement | null | undefined;
   private jsonFileEl: HTMLInputElement | null | undefined;
@@ -275,12 +275,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this._frameRateList = value;
   }
 
-  get hitchTimeData(): Array<number> | undefined {
-    return this._hitchTimeData;
+  get avgRateTxt(): string | undefined | null {
+    return this._avgRateTxt;
   }
 
-  set hitchTimeData(value: Array<number> | undefined) {
-    this._hitchTimeData = value;
+  set avgRateTxt(value: string | undefined | null) {
+    this._avgRateTxt = value;
   }
 
   get funcExpand(): boolean {
