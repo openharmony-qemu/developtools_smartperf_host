@@ -100,7 +100,7 @@ export class SpSampleChart {
       traceRow.onThreadHandler = (useCache) => {
         let context = this.trace.canvasPanelCtx!;
         traceRow.canvasSave(context);
-        (renders.bpFtrace as SampleRender).renderMainThread(
+        (renders.sample as SampleRender).renderMainThread(
           {
             context: context,
             useCache: useCache,
