@@ -92,6 +92,27 @@ export class SpSampleChart {
         };
         traceRow.style.height = `${ height }px`;
       })
+    } else {
+      traceRow.supplier = () =>
+        new Promise((resolve): void => {
+          resolve([])
+        })
+      traceRow.onThreadHandler = (useCache) => {
+        let context = this.trace.canvasPanelCtx!;
+        traceRow.canvasSave(context);
+        (renders.bpFtrace as SampleRender).renderMainThread(
+          {
+            context: context,
+            useCache: useCache,
+            type: 'sample',
+            start_ts: 0,
+            uniqueProperty: [],
+            flattenTreeArray: []
+          },
+          traceRow
+        );
+        traceRow.canvasRestore(context)
+      };
     }
     return traceRow;
   }
