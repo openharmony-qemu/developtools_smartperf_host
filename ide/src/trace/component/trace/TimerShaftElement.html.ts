@@ -48,6 +48,15 @@ export const TimerShaftElementHtml = `
     overflow: visible;
     background-color: var(--dark-background4,#ffffff);
 }
+.cpu-usage{
+    color: var(--dark-color1,#4b5766);
+    font-size: 0.9rem;
+    text-align: left !important;
+    padding-left: 10px;
+    width: 100%;
+    background: var(--dark-background4,#F6F6F6);
+    box-sizing: border-box;
+}
 .time-div{
     box-sizing: border-box;
     width: 100%;
@@ -91,7 +100,7 @@ export const TimerShaftElementHtml = `
 </style>
 <div class="root">
     <div class="total">
-        <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6);line-height:100px;" class="cpu-usage"></div>
+        <div class="cpu-usage"></div>
         <div class="time-div">
             <span class="time-total">10</span>
             <span class="time-offset">0</span>

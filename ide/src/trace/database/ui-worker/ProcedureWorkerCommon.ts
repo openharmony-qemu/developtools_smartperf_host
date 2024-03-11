@@ -751,7 +751,7 @@ export function drawSelectionRange(context: any, params: TraceRow<any>) {
       context.globalAlpha = 1;
     }
     // 绘制线程中方法平均帧率的箭头指示线条
-    if (params.frameRateList && params.frameRateList.length) {
+    if (params.avgRateTxt && params.frameRateList && params.frameRateList.length) {
       drawAvgFrameRate(params.frameRateList, context, params);
     }
   }
@@ -776,30 +776,6 @@ function setStartXEndX(params: TraceRow<any>) {
       params.frame
     )
   );
-}
-
-// 处理文字坐标
-function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any>, textWidth: number) {
-  const TEXT_WIDTH_HALF = 2;
-  let textX = Math.floor(ns2x(
-    (arrList[0]! + arrList[arrList.length - 1]!) / 2,
-    TraceRow.range?.startNS ?? 0,
-    TraceRow.range?.endNS ?? 0,
-    TraceRow.range?.totalNS ?? 0,
-    selectParams.frame
-  )) - textWidth / TEXT_WIDTH_HALF; //根据帧率范围的中间值转换文本的起始x坐标
-  let textY = selectParams.frame.y + 10;
-  if (selectParams.hitchTimeData?.length) {
-    textY = selectParams.frame.y + 10;
-  } else {
-    // 展开时显示在第二行，折叠显示第一行
-    if (selectParams.funcExpand) {
-      textY = selectParams.frame.y + 28;
-    } else {
-      textY = selectParams.frame.y + 10;
-    }
-  }
-  return [textX, textY];
 }
 
 function setAvgRateStartXEndX(rateList: number[], params: TraceRow<any>) {
@@ -893,7 +869,6 @@ function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any
       selectParams.frame
     )
   );// 起始坐标
-
   let avgRateEndX = Math.floor(
     ns2x(
       arrList[arrList.length - 1]!,
@@ -906,33 +881,41 @@ function changeFrameRatePoint(arrList: Array<number>, selectParams: TraceRow<any
   return [avgRateStartX, avgRateEndX];
 }
 
-// 计算平均帧率
-function calculateAvgRate(arr: Array<number>, selectParams: TraceRow<any>) {
-  const CONVERT_SECONDS = 1000000000;
-  let cutres: number = (arr[arr.length - 1]! - arr[0]!); // 结束时间-开始时间
-  let avgRate: string = ((arr.length - 1) / cutres * CONVERT_SECONDS).toFixed(1); // 帧数/时间差 * 1000000000
-  if (selectParams.hitchTimeData?.length) {
-    let sum: number = selectParams.hitchTimeData.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-    let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
-    let avgHitchTime: string = (Number(hitchRate) * 100).toFixed(2) + '%';
-    avgRate = avgRate + 'fps' + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + avgHitchTime;
+// 处理文字坐标
+function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any>, textWidth: number) {
+  const TEXT_WIDTH_HALF = 2;
+  let textX = Math.floor(ns2x(
+    (arrList[0]! + arrList[arrList.length - 1]!) / 2,
+    TraceRow.range?.startNS ?? 0,
+    TraceRow.range?.endNS ?? 0,
+    TraceRow.range?.totalNS ?? 0,
+    selectParams.frame
+  )) - textWidth / TEXT_WIDTH_HALF; //根据帧率范围的中间值转换文本的起始x坐标
+  let textY = selectParams.frame.y + 10;
+  if (selectParams.avgRateTxt?.includes('HitchTime')) {
+    textY = selectParams.frame.y + 10;
   } else {
-    avgRate = avgRate + 'fps';
+    // 展开时显示在第二行，折叠显示第一行
+    if (selectParams.funcExpand) {
+      textY = selectParams.frame.y + 28;
+    } else {
+      textY = selectParams.frame.y + 10;
+    }
   }
-  return avgRate;
+  return [textX, textY];
 }
 
 // 绘制平均帧率箭头指示线条
 function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams: TraceRow<any>): void {
   let rateList: Array<number> = [...new Set(arrList)];
-  let avgFrameRate: string = calculateAvgRate(rateList, selectParams);
   let startX = changeFrameRatePoint(rateList, selectParams)[0];
   let endX = changeFrameRatePoint(rateList, selectParams)[1];
-  const textWidth = ctx.measureText(avgFrameRate).width; // 测量文本的宽度
+  const textWidth = ctx.measureText(selectParams.avgRateTxt).width;
+
   const textHeight = 25;
   const padding = 5;
-  let textX = handleTextCoordinate(rateList, selectParams, textWidth)[0]; //文本横向起始坐标
-  let textY = handleTextCoordinate(rateList, selectParams, textWidth)[1];//文本纵向坐标
+  let textX = handleTextCoordinate(rateList, selectParams, textWidth)[0];
+  let textY = handleTextCoordinate(rateList, selectParams, textWidth)[1];
   //左移到边界，不画线和文字
   startX = startX <= 0 ? -100 : startX;
   endX = endX <= 0 ? -100 : endX;
@@ -970,7 +953,7 @@ function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams: TraceR
   ctx.fillRect(textX - padding, textY - textHeight / TEXT_RECT_PADDING + padding, textWidth + padding * TEXT_RECT_PADDING, textHeight - padding * TEXT_RECT_PADDING);
 
   ctx.fillStyle = 'white';
-  ctx.fillText(avgFrameRate, textX, textY + 4);
+  ctx.fillText(selectParams.avgRateTxt, textX, textY + 4);
 }
 
 function drawAvgFrameRateArrow(

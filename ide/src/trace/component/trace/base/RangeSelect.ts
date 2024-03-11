@@ -50,11 +50,11 @@ export class RangeSelect {
   }
 
   isInRowsEl(ev: MouseEvent): boolean {
-    return this.rowsPaneEL!.containPoint(ev, {left: 248});
+    return this.rowsPaneEL!.containPoint(ev, { left: 248 });
   }
 
   isInSpacerEL(ev: MouseEvent): boolean {
-    return this.trace!.favoriteChartListEL!.containPoint(ev, {left: 248});
+    return this.trace!.favoriteChartListEL!.containPoint(ev, { left: 248 });
   }
 
   mouseDown(eventDown: MouseEvent): void {
@@ -80,79 +80,81 @@ export class RangeSelect {
       }
       //查询render_service数据
       if (this.rangeTraceRow?.length) {
-        // 如果框选的第一行和最后一行的父节点名称都以render_service开头
-        if (
-          this.rangeTraceRow[0]!.parentRowEl?.getAttribute('name')?.startsWith('render_service') &&
-          this.rangeTraceRow[this.rangeTraceRow.length - 1].parentRowEl?.getAttribute('name')?.startsWith('render_service')
-        ) {
-          this.handleFrameRateData(this.rangeTraceRow!, 'render_service', 'H:RSMainThread::DoComposition');
-          this.handleFrameRateData(this.rangeTraceRow!, 'RSHardwareThrea', 'H:Repaint');
-          this.handleFrameRateData(this.rangeTraceRow!, 'Present', 'H:Waiting for Present Fence');
-        }
+        this.checkRowsName(this.rangeTraceRow)
       }
     }
     this.isMouseDown = false;
   }
 
-  // 根据框选行和方法名查询数据
-  handleFrameRateData(rowList: Array<TraceRow<any>>, rowName: string, funcName: string): void {
-    let dataList: Array<number> = [];
-    for (let i = 0; i < rowList.length; i++) {
-      if (rowList[i].getAttribute('row-type') === 'func') {
-        if (rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
-          queryFuncRowData(
-            funcName,
-            Number(rowList[i]?.getAttribute('row-id')),
-            TraceRow.rangeSelectObject!.startNS!,
-            TraceRow.rangeSelectObject!.endNS!,
-          ).then((res) => {
-            if (res.length >= 2) {
-              res.forEach((item) => {
-                dataList.push(item.startTime!);
-              });
-              rowList[i].frameRateList = dataList;
-            }
-          });
-        }
-        if (rowName === 'Present' && rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
-          this.handlePresentData(rowList[i], funcName);
-        }
-        if (dataList.length) {
-          break;
+  // 判断框选的线程行类型和名称
+  checkRowsName(rowList: Array<TraceRow<any>>) {
+    rowList.forEach((row) => {
+      if (row.getAttribute('row-type') === 'func' && row.parentRowEl?.getAttribute('name')?.startsWith('render_service')) {
+        if (row.getAttribute('name')?.startsWith('render_service')) {
+          this.handleFrameRateData(row, 'H:RSMainThread::DoComposition');
+        } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
+          this.handleFrameRateData(row, 'H:Repaint');
+        } else if (row.getAttribute('name')?.startsWith('Present')) {
+          this.handlePresentData(row, 'H:Waiting for Present Fence');
         }
       }
-    }
+    })
   }
 
-  // 处理框选时Present Fence线程的数据
-  handlePresentData(currentRow: TraceRow<any>, funcName: string): void {
-    let dataList: Array<number> = [];
-    fuzzyQueryFuncRowData(
+  // 查询DoComposition方法和Repaint方法的数据  
+  handleFrameRateData(row: TraceRow<any>, funcName: string): void {
+    let dataList: Array<number> = []
+    queryFuncRowData(
       funcName,
-      Number(currentRow?.getAttribute('row-id')),
+      Number(row?.getAttribute('row-id')),
       TraceRow.rangeSelectObject!.startNS!,
       TraceRow.rangeSelectObject!.endNS!,
     ).then((res) => {
       if (res.length >= 2) {
         res.forEach((item) => {
-          dataList.push(item.endTime!);
+          dataList?.push(item.startTime!);
         });
-        currentRow.frameRateList = dataList;
-        if (currentRow.frameRateList.length >= 2) {
-          let hitchTimeList: Array<number> = [];
-          for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
-            if (SpLtpoChart.sendHitchDataArr[i].startTs! >= dataList[0]
-              &&
-              SpLtpoChart.sendHitchDataArr[i].startTs! < dataList[dataList.length - 1]) {
-              hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
-            } else if (
-              SpLtpoChart.sendHitchDataArr[i].startTs! >= dataList[dataList.length - 1]
-            ) {
-              break;
-            }
+        row.frameRateList = dataList;
+        const CONVERT_SECONDS = 1000000000;
+        let cutres: number = (dataList[dataList.length - 1] - dataList[0]);
+        row.avgRateTxt = ((dataList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+      }
+    });
+  }
+
+  // 查询H:Waiting for Present Fence方法数据
+  handlePresentData(row: TraceRow<any>, funcName: string): void {
+    let dataList: Array<number> = []
+    fuzzyQueryFuncRowData(
+      funcName,
+      Number(row?.getAttribute('row-id')),
+      TraceRow.rangeSelectObject!.startNS!,
+      TraceRow.rangeSelectObject!.endNS!,
+    ).then((res) => {
+      if (res.length >= 2) {
+        res.forEach((item) => {
+          dataList?.push(item.endTime!);
+        });
+        row.frameRateList = dataList;
+        let hitchTimeList: Array<number> = [];
+        for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
+          if (SpLtpoChart.sendHitchDataArr[i].startTs! >= res[0].endTime!
+            &&
+            SpLtpoChart.sendHitchDataArr[i].startTs! < res[res.length - 1].endTime!) {
+            hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
+          } else if (
+            SpLtpoChart.sendHitchDataArr[i].startTs! >= res[res.length - 1].endTime!
+          ) {
+            break;
           }
-          currentRow.hitchTimeData = hitchTimeList;
         }
+        const CONVERT_SECONDS = 1000000000;
+        let cutres: number = (dataList[dataList.length - 1] - dataList[0]);
+        let avgRate: string = ((dataList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
+        let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
+        let perHitchRate: string = (Number(hitchRate) * 100).toFixed(2) + '%';
+        row.avgRateTxt = avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
       }
     });
   }
@@ -256,7 +258,7 @@ export class RangeSelect {
       if (this.rangeTraceRow[0].parentRowEl) {
         for (let i = 0; i < this.rangeTraceRow[0].parentRowEl.childrenList.length; i++) {
           this.rangeTraceRow[0].parentRowEl.childrenList[i].frameRateList = [];
-          this.rangeTraceRow[0].parentRowEl.childrenList[i].hitchTimeData = [];
+          this.rangeTraceRow[0].parentRowEl.childrenList[i].avgRateTxt = null;
         }
       }
     }

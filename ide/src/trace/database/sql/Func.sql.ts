@@ -156,7 +156,7 @@ export const getFunDataByTid = (tid: number, ipid: number): Promise<Array<FuncSt
 from thread A,trace_range D
 left join callstack C on A.id = C.callid
 where startTs not null and c.cookie is null and tid = $tid and A.ipid = $ipid`,
-    {$tid: tid, $ipid: ipid}
+    { $tid: tid, $ipid: ipid }
   );
 export const getMaxDepthByTid = (): Promise<Array<any>> =>
   query(
@@ -228,13 +228,13 @@ export const queryFuncRowData = (
           left join 
             trace_range r
           where 
-            c.name like '${funcName}' 
+            c.name like '${funcName}%' 
           and 
             t.tid = ${tIds} 
           and
             not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
       `,
-    {$search: funcName}
+    { $search: funcName }
   );
 
 export const fuzzyQueryFuncRowData = (
@@ -309,7 +309,7 @@ export const getTabSlicesAsyncFunc = (
       c.name
     order by
       wallDuration desc;`,
-    {$leftNS: leftNS, $rightNS: rightNS}
+    { $leftNS: leftNS, $rightNS: rightNS }
   );
 export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> =>
   query(
@@ -330,7 +330,7 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
    left join trace_range r 
    where c.name like '%${search}%' and startTime > 0;
     `,
-    {$search: search}
+    { $search: search }
   );
 
 export const querySceneSearchFunc = (search: string, processList: Array<string>): Promise<Array<SearchFuncBean>> =>
@@ -352,7 +352,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
    left join trace_range r
    where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')});
     `,
-    {$search: search}
+    { $search: search }
   );
 export const queryHeapFunction = (fileId: number): Promise<Array<HeapTraceFunctionInfo>> =>
   query(
@@ -415,7 +415,7 @@ export const queryTaskPoolOtherRelationData = (
                 from thread A,trace_range D
                                   left join callstack C on A.id = C.callid
                 where startTs not null and c.cookie is null and tid = $tid and c.id in (${ids.join(',')})`;
-  return query('queryTaskPoolOtherRelationData', sqlStr, {$ids: ids, $tid: tid});
+  return query('queryTaskPoolOtherRelationData', sqlStr, { $ids: ids, $tid: tid });
 };
 
 export const queryTaskPoolRelationData = (
@@ -483,15 +483,15 @@ export const queryStatesCut = (
     }
   );
 
-  export const queryLoopFuncNameCycle = (
-    funcName: string,
-    tIds: string,
-    leftNS: number,
-    rightNS: number
-  ): Promise<Array<FuncNameCycle>> =>
-    query(
-      'queryLoopFuncNameCycle',
-      `
+export const queryLoopFuncNameCycle = (
+  funcName: string,
+  tIds: string,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<FuncNameCycle>> =>
+  query(
+    'queryLoopFuncNameCycle',
+    `
         SELECT 
             c.name AS funcName,
             c.ts - r.start_ts AS cycleStartTime,
@@ -518,23 +518,23 @@ export const queryStatesCut = (
             OR  
               (cycleStartTime > ${rightNS})) 
           `,
-      {
-        $funcName: funcName,
-        $tIds: tIds,
-        $leftNS: leftNS,
-        $rightNS: rightNS,
-      }
-    );
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS,
+    }
+  );
 
-    export const querySingleFuncNameCycleStates = (
-      funcName: string,
-      tIds: string,
-      leftNS: number,
-      rightNS: number
-    ): Promise<Array<FuncNameCycle>> =>
-      query(
-        'querySingleFuncNameCycle',
-        `
+export const querySingleFuncNameCycleStates = (
+  funcName: string,
+  tIds: string,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<FuncNameCycle>> =>
+  query(
+    'querySingleFuncNameCycle',
+    `
           SELECT 
                 c.name AS funcName, 
                 c.ts - r.start_ts AS cycleStartTime, 
@@ -562,11 +562,10 @@ export const queryStatesCut = (
               OR 
                   (endTime > ${rightNS}))
             `,
-        {
-          $funcName: funcName,
-          $tIds: tIds,
-          $leftNS: leftNS,
-          $rightNS: rightNS,
-        }
-      );
-    
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS,
+    }
+  );
