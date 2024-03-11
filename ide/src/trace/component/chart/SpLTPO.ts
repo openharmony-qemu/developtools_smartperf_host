@@ -72,6 +72,29 @@ export class SpLtpoChart {
         SpLtpoChart.fanceNameList.splice(0, 1);
       }
     }
+    if (SpLtpoChart.fanceNameList!.length && SpLtpoChart.fpsnameList.length !== SpLtpoChart.fanceNameList.length) {
+      let fpsIndex = 0;
+      let fanceIndex = 0;
+      while (fpsIndex < SpLtpoChart.fpsnameList!.length) {
+        if (SpLtpoChart.fanceNameList[fanceIndex] && SpLtpoChart.fpsnameList[fpsIndex]) {
+          if (SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! && 
+            SpLtpoChart.fanceNameList[fanceIndex].ts! < SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!) {
+            fpsIndex++;
+            fanceIndex++;
+          } else if (SpLtpoChart.fanceNameList[fanceIndex].ts! < SpLtpoChart.fpsnameList[fpsIndex].ts!) {
+            SpLtpoChart.fanceNameList.splice(fanceIndex, 1);
+          } else if (SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!) {
+            SpLtpoChart.fpsnameList.splice(fpsIndex, 1);
+          }
+        } else if (SpLtpoChart.fanceNameList[fanceIndex] && !SpLtpoChart.fpsnameList[fpsIndex]) {
+          SpLtpoChart.fanceNameList.splice(fanceIndex);
+        } else if (!SpLtpoChart.fanceNameList[fanceIndex] && SpLtpoChart.fpsnameList[fpsIndex]) {
+          SpLtpoChart.fpsnameList.splice(fpsIndex)
+        } else {
+          return
+        }
+      }
+    }
     if (SpLtpoChart.fanceNameList!.length && SpLtpoChart.fpsnameList.length === SpLtpoChart.fanceNameList.length) {
       for (let i = 0; i < SpLtpoChart.fanceNameList.length; i++) {
         let tmpFps = SpLtpoChart.fpsnameList[i]!.fps ? Number(SpLtpoChart.fpsnameList[i]!.fps) : 60;
@@ -236,7 +259,7 @@ export class SpLtpoChart {
             tempFps = 0;
           }
         } else if (SpLtpoChart.skipDataList[skipIndex].ts! < SpLtpoChart.tempRsNowTimeList[nowTimeIndex].ts!) {
-          if(nowTimeIndex > 0){
+          if (nowTimeIndex > 0) {
             cutTimeSum += tempFps ? (1000 / tempFps) : (1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!);
           }
           skipIndex++;
