@@ -246,13 +246,12 @@ export class TimerShaftElement extends BaseElement {
       }
       sessionStorage.setItem('expand', String(this._checkExpand))
       this.usageEL!.innerHTML = '';
-      this.usageEL!.style.textAlign = 'center';
       this.usageEL!.style.height = `${100 - 56.25}px`;
       this.usageEL!.style.lineHeight = `${100 - 56.25}px`;
       this.timerShaftEL!.style.height = `${146 - 56.25 + 2}px`;
       this.canvas!.style.height = `${146 - 56.25}px`;
       this.canvas!.height = 146 - 56.25;
-      this.rowsPaneEL!.style.maxHeight = `${this.rowsPaneEL!.clientHeight + 200}px`;
+      this.rowsPaneEL!.style.maxHeight = `100%`;
       this._rangeRuler.frame.height = 18.75;
       this._sportRuler.frame.y = 43.75;
 
