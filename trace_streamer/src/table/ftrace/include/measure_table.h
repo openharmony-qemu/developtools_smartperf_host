@@ -37,7 +37,6 @@ private:
                             double& measurefilterCost,
                             size_t measurerowCount,
                             uint32_t measurecurrenti) override;
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
 
     class Cursor : public TableBase::Cursor {
     public:

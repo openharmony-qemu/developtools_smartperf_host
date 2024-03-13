@@ -37,8 +37,6 @@ private:
                             double& eventfilterCost,
                             size_t eventrowCount,
                             uint32_t eventcurrenti) override;
-    // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
 
     class Cursor : public TableBase::Cursor {
     public:

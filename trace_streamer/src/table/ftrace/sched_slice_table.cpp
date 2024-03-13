@@ -71,24 +71,6 @@ void SchedSliceTable::FilterByConstraint(FilterConstraints& schedfc,
     }
 }
 
-bool SchedSliceTable::CanFilterSorted(const char op, size_t& schedRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            schedRowCnt = schedRowCnt / log2(schedRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            schedRowCnt = (schedRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<TableBase::Cursor> SchedSliceTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);

@@ -127,9 +127,10 @@ input::-webkit-input-placeholder{
 #two_kb{
     background-color:var(--dark-background5, #FFFFFF)
 }
-.processSelect {
-  border-radius: 15px;
-  width: 84%;
+.processSelect, .packageSelect {
+    border-radius: 15px;
+    width: 84%;
+    height: 27px;
 }
 .value-range {
   opacity: 0.6;
@@ -220,6 +221,9 @@ lit-switch {
      <lit-select-v class="processSelect" rounded mode="multiple" default-value="" id="pid" 
      placement="bottom" title="process" placeholder="please select process">
      </lit-select-v>
+     <lit-select default-value="" rounded="" class="packageSelect" canInsert="" id="packageName"
+     title="package" rounded placement = "bottom" placeholder="please select package" showSearchInput>
+     </lit-select>
   </div>
   <div class="allocation-application">
     <span class="allocation-inner-font-style" >Max unwind level</span>

@@ -568,7 +568,7 @@ void Init(TraceStreamerSelector& ts, const TraceExportOption& traceExportOption)
     if (traceExportOption.closeMutiThread) {
         ts.GetTraceDataCache()->supportThread_ = false;
     }
-    if (traceExportOption.parserThreadNum != INVALID_UINT8 && traceExportOption.parserThreadNum > PARSER_THREAD_MIN &&
+    if (traceExportOption.parserThreadNum != INVALID_UINT8 && traceExportOption.parserThreadNum >= PARSER_THREAD_MIN &&
         traceExportOption.parserThreadNum <= PARSER_THREAD_MAX) {
         ts.GetTraceDataCache()->parserThreadNum_ = traceExportOption.parserThreadNum;
     }

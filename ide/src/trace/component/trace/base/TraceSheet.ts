@@ -82,8 +82,8 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
-import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerSample';
-import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
+import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 
 @element('trace-sheet')

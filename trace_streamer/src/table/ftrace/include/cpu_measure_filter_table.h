@@ -37,8 +37,6 @@ private:
                             double& cpufilterCost,
                             size_t cpurowCount,
                             uint32_t cpucurrenti) override;
-    // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
 
     class Cursor : public TableBase::Cursor {
     public:

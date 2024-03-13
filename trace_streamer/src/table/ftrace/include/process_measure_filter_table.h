@@ -37,8 +37,6 @@ private:
                             double& filterfilterCost,
                             size_t filterrowCount,
                             uint32_t filtercurrenti) override;
-    // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
 
     class Cursor : public TableBase::Cursor {
     public:

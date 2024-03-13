@@ -77,7 +77,8 @@ private:
     std::map<DataIndex, FrameFuncCall> eventToFrameFunctionMap_ = {};
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
-    const DataIndex rsOnDoCompositionEvent_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
+    const std::string rsOnDoCompositionStr_ = "H:RSMainThread::DoComposition";
+    DataIndex rsOnDoCompositionEvent_ = INVALID_DATAINDEX;
     const std::string onFrameQueeuStartEvent_ = "H:M: Frame queued";
     const std::string onAnimationProcEvent_ = "render_service";
     const DataIndex marshRwTransactionData_ = traceDataCache_->GetDataIndex("H:MarshRSTransactionData");

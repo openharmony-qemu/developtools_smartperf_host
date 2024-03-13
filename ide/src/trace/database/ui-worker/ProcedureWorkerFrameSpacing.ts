@@ -301,7 +301,7 @@ export class FrameSpacingRender extends Render {
 export function FrameSpacingStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
   return new Promise((resolve,reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
-      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct();
+      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct(false, true);
       if (FrameSpacingStruct.selectFrameSpacingStruct) {
         sp.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
         sp.timerShaftEL?.modifyFlagList(undefined);

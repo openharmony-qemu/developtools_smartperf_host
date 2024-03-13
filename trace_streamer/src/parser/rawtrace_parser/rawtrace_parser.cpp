@@ -59,15 +59,17 @@ void RawTraceParser::UpdateTraceMinRange()
         cpuRunningStatMinTime = schedSlice.TimeStampData()[i];
         TS_LOGW("curCpuId=%u, cpuRunningStatMinTime=%" PRIu64 "", schedSlice.CpusData()[i], cpuRunningStatMinTime);
     }
-    traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
+    if (cpuRunningStatMinTime != INVALID_TIME) {
+        traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
+    }
 }
 bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter)
 {
     TS_CHECK_TRUE(packagesBuffer_.size() >= sizeof(RawTraceFileHeader), false,
                   "buffer size less than rawtrace file header");
     RawTraceFileHeader header;
-    auto ret = memcpy_s(&header, sizeof(RawTraceFileHeader), &(*packagesBuffer_.begin()), sizeof(RawTraceFileHeader));
-    TS_CHECK_TRUE(ret == EOK, false, "Memcpy FAILED!Error code is %d, data size is %zu.", ret, packagesBuffer_.size());
+    std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + sizeof(RawTraceFileHeader),
+              reinterpret_cast<uint8_t*>(&header));
     TS_LOGI("magicNumber=%d fileType=%d", header.magicNumber, header.fileType);
 
     fileType_ = header.fileType;
