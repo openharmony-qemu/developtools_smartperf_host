@@ -188,8 +188,12 @@ export class SpApplication extends BaseElement {
     return this.hasAttribute('wasm');
   }
 
-  set wasm(d: any) {
-    this.setAttribute('wasm', '');
+  set wasm(isWasm: boolean) {
+    if (isWasm) {
+      this.setAttribute('wasm', '');
+    } else {
+      this.hasAttribute('wasm') && this.removeAttribute('wasm');
+    }
   }
 
   get server(): boolean {
@@ -247,6 +251,7 @@ export class SpApplication extends BaseElement {
   }
 
   initElements(): void {
+    this.wasm = true;
     this.initPlugin();
     this.querySql = true;
     this.rootEL = this.shadowRoot!.querySelector<HTMLDivElement>('.root');
@@ -320,6 +325,7 @@ export class SpApplication extends BaseElement {
   }
 
   private openLongTraceFile(ev: any, isRecordTrace: boolean = false) {
+    this.wasm = true;
     this.openFileInit();
     let detail = (ev as any).detail;
     let initRes = this.longTraceFileInit(isRecordTrace, detail);
@@ -530,13 +536,20 @@ export class SpApplication extends BaseElement {
     this.traceFileName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
     TraceRow.rangeSelectObject = undefined;
-    if (this.sqlite) {
-      info('Parse trace using sql mode');
-      this.handleSqliteMode(ev, showFileName, (ev as any).size, fileName);
-    }
-    if (this.wasm) {
-      info('Parse trace using wasm mode ');
-      this.handleWasmMode(ev, showFileName, (ev as any).size, fileName);
+    let typeHeader = (ev as any).slice(0, 6);
+    let reader: FileReader | null = new FileReader();
+    reader.readAsText(typeHeader);
+    reader.onloadend = (event): void => {
+      let headerStr: string = `${reader?.result}`;
+      if (headerStr.indexOf('SQLite') === 0) {
+        info('Parse trace headerStr sql mode');
+        this.wasm = false;
+        this.handleSqliteMode(ev, showFileName, (ev as any).size, fileName);
+      } else {
+        info('Parse trace using wasm mode ');
+        this.wasm = true;
+        this.handleWasmMode(ev, showFileName, (ev as any).size, fileName);
+      }
     }
   }
 
@@ -545,8 +558,11 @@ export class SpApplication extends BaseElement {
     this.openMenu(false);
     let downloadLineFile = urlParams.get('local') ? false : true;
     this.setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
+    let traceReg = /trace=([^&]*)/;
+    let matchUrl = traceReg.exec(window.location.href as string);
+    let hrefUrl = matchUrl && matchUrl[1];
     this.downloadOnLineFile(
-      urlParams.get('trace') as string,
+      hrefUrl!,
       downloadLineFile,
       (arrayBuf, fileName, showFileName, fileSize) => {
         this.handleWasmMode(new File([arrayBuf], fileName), showFileName, fileSize, fileName);
@@ -775,6 +791,7 @@ export class SpApplication extends BaseElement {
           {
             title: 'Flags',
             icon: 'menu',
+            // fileModel: this.wasm ? 'wasm' : 'db',
             clickHandler: (item: MenuItem): void => {
               this.search = false;
               this.showContent(this.spFlags!);
@@ -798,6 +815,7 @@ export class SpApplication extends BaseElement {
           {
             title: '第三方文件',
             icon: 'file-fill',
+            fileModel: this.wasm ? 'wasm' : 'db',
             clickHandler: (item: MenuItem): void => {
               this.search = false;
               this.showContent(this.spThirdParty!);
@@ -833,12 +851,22 @@ export class SpApplication extends BaseElement {
               second: false,
               icon: '',
               describe: 'Actions on the current trace',
-              children: that.getTraceOptionMenus(showFileName, fileSizeStr, fileName, false),
+              children: that.getTraceOptionMenus(showFileName, fileSizeStr, fileName, true),
+            });
+            that.mainMenu!.menus!.splice(2, 1, {
+              collapsed: false,
+              title: 'Support',
+              second: false,
+              icon: '',
+              describe: 'Support',
+              children: that.getTraceSupportMenus(),
             });
             that.litSearch!.setPercent('', 101);
             that.chartFilter!.setAttribute('mode', '');
             that.progressEL!.loading = false;
             that.freshMenuDisable(false);
+            that.spInfoAndStats!.initInfoAndStatsData();
+            that.cutTraceFile!.style.display = 'none';
           }
         );
       };
@@ -1390,6 +1418,7 @@ export class SpApplication extends BaseElement {
       {
         title: 'Download File',
         icon: 'download',
+        fileModel: this.wasm ? 'wasm' : 'db',
         clickHandler: (): void => {
           this.download(this.mainMenu!, fileName, isServer, dbName);
           SpStatisticsHttpUtil.addOrdinaryVisitAction({
@@ -1397,10 +1426,10 @@ export class SpApplication extends BaseElement {
             action: 'download',
           });
         },
-      },
-      {
+      }, {
         title: 'Download Database',
         icon: 'download',
+        fileModel: this.wasm ? 'wasm' : 'db',
         clickHandler: (): void => {
           this.downloadDB(this.mainMenu!, fileName);
           SpStatisticsHttpUtil.addOrdinaryVisitAction({
@@ -1408,13 +1437,63 @@ export class SpApplication extends BaseElement {
             action: 'download',
           });
         },
-      },
+      }
     ];
     this.getTraceQuerySqlMenus(menus);
     if ((window as any).cpuCount === 0 || !FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
       menus.splice(1, 1);
     }
     return menus;
+  }
+
+  private getTraceSupportMenus(): Array<any> {
+    return [
+      {
+        title: 'Help Documents',
+        icon: 'smart-help',
+        clickHandler: (item: MenuItem): void => {
+          this.spHelp!.dark = this.dark;
+          this.search = false;
+          this.showContent(this.spHelp!);
+          SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'help_page',
+            action: 'help_doc',
+          });
+        },
+      },
+      {
+        title: 'Flags',
+        icon: 'menu',
+        fileModel: this.wasm ? 'wasm' : 'db',
+        clickHandler: (item: MenuItem): void => {
+          this.search = false;
+          this.showContent(this.spFlags!);
+          SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'flags',
+            action: 'flags',
+          });
+        },
+      },
+      {
+        title: 'Keyboard Shortcuts',
+        icon: 'smart-help',
+        clickHandler: (item: MenuItem): void => {
+          document.querySelector('body > sp-application')!.shadowRoot!.querySelector<HTMLDivElement>('#sp-keyboard')!.style.visibility = 'visible';
+          SpStatisticsHttpUtil.addOrdinaryVisitAction({
+            event: 'Keyboard Shortcuts',
+            action: 'Keyboard Shortcuts',
+          });
+        },
+      },
+      {
+        title: '第三方文件',
+        icon: 'file-fill',
+        fileModel: this.wasm ? 'wasm' : 'db',
+        clickHandler: (item: MenuItem): void => {
+          this.search = false;
+          this.showContent(this.spThirdParty!);
+        },
+      }]
   }
 
   private getTraceQuerySqlMenus(menus: Array<any>): void {
@@ -1434,6 +1513,7 @@ export class SpApplication extends BaseElement {
         menus.push({
           title: 'Metrics',
           icon: 'metric',
+          fileModel: this.wasm ? 'wasm' : 'db',
           clickHandler: () => {
             this.showContent(this.spMetrics!);
           },
@@ -1966,7 +2046,7 @@ export class SpApplication extends BaseElement {
         }
         let blobUrl = URL.createObjectURL(new Blob([cutBuffer!]));
         window.open(
-          `index.html?link=true&local=true&traceName=${traceName}_cut_${cutLeftTs}${fileType}&trace=${encodeURIComponent(
+          `index.html?link=true&local=true&traceName=${encodeURIComponent(traceName)}_cut_${cutLeftTs}${fileType}&trace=${encodeURIComponent(
             blobUrl
           )}`
         );

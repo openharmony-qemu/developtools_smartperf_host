@@ -13,4 +13,4 @@
  * limitations under the License.
  */
 import './trace/SpApplication';
-document.body.innerHTML = '<sp-application wasm query-sql></sp-application>';
+document.body.innerHTML = '<sp-application query-sql></sp-application>';

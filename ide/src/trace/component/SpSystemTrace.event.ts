@@ -30,7 +30,7 @@ import { SoStructOnClick } from "../database/ui-worker/ProcedureWorkerSoInit";
 import { FrameAnimationStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameAnimation";
 import { FrameDynamicStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameDynamic";
 import { FrameSpacingStructOnClick } from "../database/ui-worker/ProcedureWorkerFrameSpacing";
-import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerSample";
+import { sampleStructOnClick } from "../database/ui-worker/ProcedureWorkerBpftrace";
 import { SportRuler } from "./trace/timer-shaft/SportRuler";
 import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil";
 import { LitSearch } from "./trace/search/Search";
@@ -677,7 +677,13 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     if (JankStruct.delJankLineFlag) {
       sp.removeLinkLinesByBusinessType('janks');
     }
-    if (rows && rows[0] && rows[0].getHoverStruct()) {
+    let strict = true;
+    let offset = false;
+    if (rows[0].rowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC || rows[0].rowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
+      strict = false;
+      offset = true;
+    }
+    if (rows && rows[0] && rows[0].getHoverStruct(strict, offset)) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0]);
       sp.documentOnMouseMove(ev);
     } else {

@@ -44,7 +44,8 @@ public:
         dataCache->AppendNewTable(tableName);
     }
     std::string CreateTableSql() const;
-    virtual bool CanFilterId(const char op, size_t& rowCount);
+    bool CanFilterId(const char op, size_t& rowCount);
+    bool CanFilterSorted(const char op, size_t& rowCount);
 
     class Cursor : public sqlite3_vtab_cursor {
     public:

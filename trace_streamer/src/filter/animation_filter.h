@@ -54,7 +54,7 @@ private:
     const std::string frameCountCmd_ = "H:Repaint";
     const std::string frameBeginPrefix_ = "H:RSUniRender::Process:[";
     const std::string screenSizeCmd_ = "H:RSUniRender::Process:[SCBDesktop";
-    const DataIndex frameEndTimeCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
+    const std::string frameEndTimeCmd_ = "H:RSMainThread::DoComposition";
     std::unordered_set<DataIndex> onAnimationStartEvents_ = {};
     // for update dynamicFrameInfo at the end, first is callStackRow, second is dynamicFramRow
     std::map<uint64_t, uint64_t> callStackRowMap_ = {};

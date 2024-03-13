@@ -35,7 +35,7 @@ public:
     TaskPoolFilter& operator=(const TaskPoolFilter&) = delete;
     ~TaskPoolFilter() override;
     uint32_t GetIpId(uint32_t index);
-    uint32_t CheckTheSameTask(uint64_t executeId, uint32_t index);
+    uint32_t CheckTheSameTask(uint64_t taskId, uint32_t index);
     bool TaskPoolEvent(const std::string& taskPoolStr, uint32_t index);
     void TaskPoolFieldSegmentation(const std::string& taskPoolStr, std::unordered_map<std::string, std::string>& args);
     bool UpdateAssignData(const std::unordered_map<std::string, std::string>& args, uint32_t index);

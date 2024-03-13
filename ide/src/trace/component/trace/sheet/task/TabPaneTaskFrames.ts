@@ -64,6 +64,7 @@ export class TabPaneTaskFrames extends BaseElement {
       this.taskFramesTbl!!.recycleDataSource = [];
       this.taskFramesSource = [];
       this.taskFramesGroupSource = [];
+      this.progressEL!.loading = false;
       return;
     } else {
       let allocationTime = 0;
@@ -149,10 +150,12 @@ export class TabPaneTaskFrames extends BaseElement {
     let groups = new Map();
     framesParam.taskFramesData.forEach((obj) => {
       const key = obj.ipid;
-      if (!groups.has(key)) {
-        groups.set(key, []);
+      if (key) {
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(obj);
       }
-      groups.get(key).push(obj);
     });
     for (let [key, groupsValue] of groups) {
       let tempTableList: TaskTabStruct[] = [];

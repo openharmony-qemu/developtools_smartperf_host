@@ -148,7 +148,7 @@ export class SpProcessChart {
             });
             if (funcRow && !funcRow.isComplete) {
               let max = Math.max(...asyncFuncGroups.map((it) => it.depth || 0)) + 1;
-              let maxHeight = max * 20;
+              let maxHeight = max * 18 + 6;
               funcRow.style.height = `${maxHeight}px`;
               funcRow.setAttribute('height', `${maxHeight}`);
             }
@@ -758,7 +758,7 @@ export class SpProcessChart {
       threadRow.rowParentId = `${it.pid}`;
       threadRow.rowHidden = !processRow.expansion;
       threadRow.index = j;
-      threadRow.style.height = '30px';
+      threadRow.style.height = '18px';
       threadRow.style.width = '100%';
       threadRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
       threadRow.namePrefix = `${thread.threadName || 'Thread'}`;
@@ -839,7 +839,7 @@ export class SpProcessChart {
       }
       if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) != undefined) {
         let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
-        let maxHeight = max * 20;
+        let maxHeight = max * 18 + 6;
         let funcRow = TraceRow.skeleton<FuncStruct>();
         funcRow.rowId = `${thread.tid}`;
         funcRow.rowType = TraceRow.ROW_TYPE_FUNC;
@@ -987,6 +987,17 @@ export class SpProcessChart {
       }
     });
   }
+  private calMaxHeight(asyncFunctions: any[]) : number{
+    let max = 0;
+    asyncFunctions.forEach((it) => {
+      const depth = it.depth || 0;
+      if (depth > max) {
+        max = depth;
+      }
+    });
+    max += 1;
+    return max * 18 + 6;;
+  }
 
   //Async Function
   addAsyncFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>) {
@@ -1014,8 +1025,7 @@ export class SpProcessChart {
           asyncFunctions[index].depth = currentDepth;
           depthArray[currentDepth] = asyncFunctions[index];
         });
-        let max = Math.max(...asyncFunctions.map((it) => it.depth || 0)) + 1;
-        let maxHeight = max * 20;
+        const maxHeight = this.calMaxHeight(asyncFunctions);
         let funcRow = TraceRow.skeleton<FuncStruct>();
         funcRow.rowId = `${asyncFunctions[0].funName}-${it.pid}`;
         funcRow.asyncFuncName = asyncFunctions[0].funName;

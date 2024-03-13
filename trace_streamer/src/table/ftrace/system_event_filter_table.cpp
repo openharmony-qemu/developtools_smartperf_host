@@ -53,24 +53,6 @@ void SystemEventFilterTable::FilterByConstraint(FilterConstraints& eventfc,
     }
 }
 
-bool SystemEventFilterTable::CanFilterSorted(const char op, size_t& sysRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            sysRowCnt = sysRowCnt / log2(sysRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            sysRowCnt = (sysRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<TableBase::Cursor> SystemEventFilterTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);

@@ -57,7 +57,7 @@ self.onmessage = async (e: MessageEvent) => {
     let traceAllData = new Uint8Array(e.data.buffer);
     let isRawTraceConvert = isRawTrace(e.data);
     if (isRawTraceConvert) {
-      [totalSize, currentPosition] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
+      [totalSize, currentPosition, traceAllData] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
     } else {
       handleHTrace(fileData, dataHeader, traceInsPtr);
     }
@@ -107,7 +107,7 @@ function handleRowTrace(
   currentPosition: number,
   traceAllData: Uint8Array,
   totalSize: number
-): [number, number] {
+): [number, number, Uint8Array] {
   let uint8Array = new Uint8Array(fileData.slice(0, 12));
   convertModule.HEAPU8.set(uint8Array, dataHeader);
   convertModule._SendRawFileHeader(dataHeader, 12, traceInsPtr);
@@ -129,7 +129,7 @@ function handleRowTrace(
   traceAllData.set(commonTotalData, currentPosition);
   traceAllData.set(allRowTraceData.slice(currentPosition), commonTotalData.length + currentPosition);
   totalSize += commonTotalData.length;
-  return [totalSize, currentPosition];
+  return [totalSize, currentPosition, traceAllData];
 }
 
 function setCommonDataOffsetList(

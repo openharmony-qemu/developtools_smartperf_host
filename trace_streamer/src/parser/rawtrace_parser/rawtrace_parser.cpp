@@ -59,15 +59,17 @@ void RawTraceParser::UpdateTraceMinRange()
         cpuRunningStatMinTime = schedSlice.TimeStampData()[i];
         TS_LOGW("curCpuId=%u, cpuRunningStatMinTime=%" PRIu64 "", schedSlice.CpusData()[i], cpuRunningStatMinTime);
     }
-    traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
+    if (cpuRunningStatMinTime != INVALID_TIME) {
+        traceDataCache_->UpdateTraceMinTime(cpuRunningStatMinTime);
+    }
 }
 bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter)
 {
     TS_CHECK_TRUE(packagesBuffer_.size() >= sizeof(RawTraceFileHeader), false,
                   "buffer size less than rawtrace file header");
     RawTraceFileHeader header;
-    auto ret = memcpy_s(&header, sizeof(RawTraceFileHeader), &(*packagesBuffer_.begin()), sizeof(RawTraceFileHeader));
-    TS_CHECK_TRUE(ret == EOK, false, "Memcpy FAILED!Error code is %d, data size is %zu.", ret, packagesBuffer_.size());
+    std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + sizeof(RawTraceFileHeader),
+              reinterpret_cast<uint8_t*>(&header));
     TS_LOGI("magicNumber=%d fileType=%d", header.magicNumber, header.fileType);
 
     fileType_ = header.fileType;
@@ -236,6 +238,7 @@ bool RawTraceParser::ProcessRawTraceContent(std::string& bufferLine, uint8_t cur
             TS_CHECK_TRUE(HmParseCpuRawData(bufferLine, curType), false, "hm raw trace parse failed");
         }
         if (traceDataCache_->isSplitFile_) {
+            // exactly uint32_t curSegSize = sizeof(type) + sizeof(len) + bufferLine.size();
             curFileOffset_ += sizeof(uint32_t) + sizeof(uint32_t) + bufferLine.size();
         }
     } else if (curType == static_cast<uint8_t>(RawTraceContentType::CONTENT_TYPE_EVENTS_FORMAT)) {

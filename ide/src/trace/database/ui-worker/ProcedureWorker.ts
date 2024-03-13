@@ -63,7 +63,7 @@ import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
 import { hitchTimeRender } from './ProcedureWorkerHitchTime';
 import { LtpoRender } from './ProcedureWorkerLTPO';
 import { BinderRender } from './procedureWorkerBinder';
-import { SampleRender } from './ProcedureWorkerSample';
+import { SampleRender } from './ProcedureWorkerBpftrace';
 
 let dataList: any = {};
 let dataList2: any = {};

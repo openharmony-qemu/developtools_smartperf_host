@@ -120,7 +120,7 @@ import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnMouseOut,
   spSystemTraceDocumentOnMouseUp,
 } from './SpSystemTrace.event';
-import { SampleStruct } from '../database/ui-worker/ProcedureWorkerSample';
+import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -206,7 +206,6 @@ export class SpSystemTrace extends BaseElement {
   _slicesList: Array<SlicesTime> = [];
   _flagList: Array<any> = [];
   static currentStartTime: number = 0;
-  static retargetIndex: number = 0;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -776,9 +775,9 @@ export class SpSystemTrace extends BaseElement {
       JankStruct.selectJankStruct ||
       AppStartupStruct.selectStartupStruct ||
       SoStruct.selectSoStruct ||
+      SampleStruct.selectSampleStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
-      SampleStruct.selectSampleStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
@@ -1344,7 +1343,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('click', this.documentOnClick);
     this.addEventListener('mousedown', this.documentOnMouseDown);
     this.addEventListener('mouseup', this.documentOnMouseUp);
-    this.addEventListener('mouseout', this.documentOnMouseOut);  
+    this.addEventListener('mouseout', this.documentOnMouseOut);
 
     document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
@@ -1778,7 +1777,9 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
+      setTimeout(() => {
+        this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
+      }, 0)
       FuncStruct.hoverFuncStruct = entry;
       FuncStruct.selectFuncStruct = entry;
       this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);

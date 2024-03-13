@@ -38,9 +38,9 @@ uint32_t TaskPoolFilter::GetIpId(uint32_t index)
     return thread->internalPid_;
 }
 
-uint32_t TaskPoolFilter::CheckTheSameTask(uint64_t executeId, uint32_t index)
+uint32_t TaskPoolFilter::CheckTheSameTask(uint64_t taskId, uint32_t index)
 {
-    return IpidExecuteMap_.Find(GetIpId(index), executeId);
+    return IpidExecuteMap_.Find(GetIpId(index), taskId);
 }
 
 void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,

@@ -21,20 +21,13 @@ import LitSwitch from '../../../base-ui/switch/lit-switch';
 import { LitSlider } from '../../../base-ui/slider/LitSlider';
 import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { SpAllocationHtml } from './SpAllocation.html';
-import {
-  NUM_16384,
-  NUM_1800,
-  NUM_30,
-  NUM_300,
-  NUM_3600,
-  NUM_450,
-  NUM_60,
-  NUM_600
-} from '../../bean/NumBean';
+import { NUM_16384, NUM_1800, NUM_30, NUM_300, NUM_3600, NUM_450, NUM_60, NUM_600 } from '../../bean/NumBean';
+import { LitSelect } from '../../../base-ui/select/LitSelect';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
   private processId: LitSelectV | null | undefined;
+  private packageName: LitSelect | null | undefined;
   private unwindEL: HTMLInputElement | null | undefined;
   private shareMemory: HTMLInputElement | null | undefined;
   private shareMemoryUnit: HTMLSelectElement | null | undefined;
@@ -64,17 +57,17 @@ export class SpAllocations extends BaseElement {
   }
 
   get appProcess(): string {
-    return this.processId!.value || '';
+    return this.processId!.value || this.packageName!.value || '';
   }
 
   get unwind(): number {
-    log(`unwind value is :${  this.unwindEL!.value}`);
+    log(`unwind value is :${this.unwindEL!.value}`);
     return Number(this.unwindEL!.value);
   }
 
   get shared(): number {
     let value = this.shareMemory?.value || '';
-    log(`shareMemory value is :${  value}`);
+    log(`shareMemory value is :${value}`);
     if (value !== '') {
       return Number(this.shareMemory?.value) || NUM_16384;
     }
@@ -83,7 +76,7 @@ export class SpAllocations extends BaseElement {
 
   get filter(): number {
     let value = this.filterMemory?.value || '';
-    log(`filter value is :${  value}`);
+    log(`filter value is :${value}`);
     if (value !== '') {
       return Number(value);
     }
@@ -153,7 +146,7 @@ export class SpAllocations extends BaseElement {
 
   get expandPids(): number[] {
     let allPidList: number[] = [];
-    if (this.processId?.value.length > 0) {
+    if (this.processId!.value.length > 0) {
       let result = this.processId?.value.match(/\((.+?)\)/g);
       if (result) {
         for (let index = 0; index < result.length; index++) {
@@ -180,9 +173,10 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider?.addEventListener('input', this.statisticsSliderInputHandler);
     this.intervalResultInput?.addEventListener('input', this.intervalResultInputHandler);
     this.intervalResultInput?.addEventListener('focusout', this.intervalResultFocusOutHandler);
-    this.statisticsSlider?.shadowRoot?.querySelector<HTMLElement>('#slider')!.
-      addEventListener('mouseup', this.statisticsSliderMouseupHandler);
-    this.startupMode?.addEventListener('change',this.startupModeChangeHandler);
+    this.statisticsSlider?.shadowRoot
+      ?.querySelector<HTMLElement>('#slider')!
+      .addEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.addEventListener('change', this.startupModeChangeHandler);
   }
 
   disconnectedCallback(): void {
@@ -195,9 +189,10 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider?.removeEventListener('input', this.statisticsSliderInputHandler);
     this.intervalResultInput?.removeEventListener('input', this.intervalResultInputHandler);
     this.intervalResultInput?.removeEventListener('focusout', this.intervalResultFocusOutHandler);
-    this.statisticsSlider?.shadowRoot?.querySelector<HTMLElement>('#slider')!.
-      removeEventListener('mouseup', this.statisticsSliderMouseupHandler);
-    this.startupMode?.removeEventListener('change',this.startupModeChangeHandler);
+    this.statisticsSlider?.shadowRoot
+      ?.querySelector<HTMLElement>('#slider')!
+      .removeEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.removeEventListener('change', this.startupModeChangeHandler);
   }
 
   handleInputChange = (ev: KeyboardEvent): void => {
@@ -210,9 +205,15 @@ export class SpAllocations extends BaseElement {
   initElements(): void {
     this.filterSize = this.shadowRoot?.querySelector('#filterSized');
     this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
+    this.packageName = this.shadowRoot?.getElementById('packageName') as LitSelect;
+    this.packageName.style.display = 'none';
     let process = this.processId.shadowRoot?.querySelector('input') as HTMLInputElement;
     process!.addEventListener('mousedown', () => {
       this.processMouseDownHandler(process);
+    });
+    let packageInput = this.packageName.shadowRoot?.querySelector('input') as HTMLInputElement;
+    packageInput!.addEventListener('mousedown', () => {
+      this.packageMouseDownHandler(packageInput);
     });
     this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
     this.shareMemory = this.shadowRoot?.getElementById('shareMemory') as HTMLInputElement;
@@ -252,16 +253,40 @@ export class SpAllocations extends BaseElement {
         this.disable();
       }
     });
+    this.initProcessInputStatus();
     this.disable();
+  }
+
+  private initProcessInputStatus(): void {
+    this.packageName!.style.display = 'none';
+    this.processId!.style.display = 'block';
+    let process = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
+    if (process) {
+      process.style.width = 'auto';
+    }
   }
 
   startupModeChangeHandler = (): void => {
     let process = this.processId?.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let processDiv = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
     process.value = '';
+    let packageInput = this.packageName?.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let packageDiv = this.packageName?.shadowRoot?.querySelector('.root') as HTMLDivElement;
+    packageInput.value = '';
     if (this.startup_mode) {
-      process!.placeholder = 'please input process';
+      this.packageName!.showItem = '';
+      this.packageName!.style.display = 'block';
+      this.processId!.style.display = 'none';
+      packageDiv.style.width = 'auto';
+      packageInput!.placeholder = 'please select package';
+      this.processId!.dataSource([], '');
     } else {
+      this.processId!.showItems = [];
+      this.packageName!.style.display = 'none';
+      this.processId!.style.display = 'block';
+      processDiv.style.width = 'auto';
       process!.placeholder = 'please select process';
+      this.packageName!.dataSource = [];
     }
   };
 
@@ -270,8 +295,8 @@ export class SpAllocations extends BaseElement {
       let percentValue = this.recordStatisticsResult!.getAttribute('percent');
       let index = Math.round(Number(percentValue) / NUM_450);
       index = index < 1 ? 0 : index;
-      this.intervalResultInput!.value = `${stepValue[index]  }`;
-      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]  }`);
+      this.intervalResultInput!.value = `${stepValue[index]}`;
+      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]}`);
     });
   };
 
@@ -308,16 +333,16 @@ export class SpAllocations extends BaseElement {
   };
 
   private processMouseDownHandler(process: HTMLInputElement): void {
-    if (this.startSamp) {
-      process.readOnly = false;
+    if (this.startSamp && !this.startup_mode) {
       Cmd.getProcess().then((processList) => {
         this.processId?.dataSource(processList, '');
-        if (processList.length > 0 && !this.startup_mode) {
+        if (processList.length > 0) {
           this.processId?.dataSource(processList, 'ALL-Process');
         } else {
           this.processId?.dataSource([], '');
         }
       });
+      process.readOnly = false;
     } else {
       process.readOnly = true;
       return;
@@ -325,6 +350,21 @@ export class SpAllocations extends BaseElement {
     if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
       this.processId?.dataSource([], '');
     } else {
+    }
+  }
+  private packageMouseDownHandler(packageInput: HTMLInputElement): void {
+    if (this.startSamp && this.startup_mode) {
+      Cmd.getPackage().then((packageList) => {
+        if (packageList.length > 0) {
+          this.packageName!.dataSource = packageList;
+        } else {
+          this.packageName!.dataSource = [];
+        }
+      });
+      packageInput.readOnly = false;
+    } else {
+      packageInput.readOnly = true;
+      return;
     }
   }
 
@@ -341,8 +381,10 @@ export class SpAllocations extends BaseElement {
       parentElement.setAttribute('percent', '3600');
       return;
     }
-    if (Number(this.intervalResultInput!.value) < this.statisticsSlider!.sliderStyle.minRange ||
-      Number(this.intervalResultInput!.value) > this.statisticsSlider!.sliderStyle.maxRange) {
+    if (
+      Number(this.intervalResultInput!.value) < this.statisticsSlider!.sliderStyle.minRange ||
+      Number(this.intervalResultInput!.value) > this.statisticsSlider!.sliderStyle.maxRange
+    ) {
       this.intervalResultInput!.style.color = 'red';
       parentElement.setAttribute('percent', '3600');
     } else {
@@ -398,11 +440,15 @@ export class SpAllocations extends BaseElement {
     if (this.sampleInterval) {
       this.sampleInterval.disabled = false;
     }
-    this.processId!.removeAttribute('disabled');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
     inputBoxes!.forEach((item) => {
       item.disabled = false;
     });
+    if (this.startup_mode) {
+      this.packageName!.removeAttribute('disabled');
+    } else {
+      this.processId!.removeAttribute('disabled');
+    }
     this.statisticsSlider!.disabled = false;
   }
 
@@ -431,6 +477,11 @@ export class SpAllocations extends BaseElement {
     inputBoxes!.forEach((item) => {
       item.disabled = true;
     });
+    if (this.startup_mode) {
+      this.packageName!.setAttribute('disabled', '');
+    } else {
+      this.processId!.setAttribute('disabled', '');
+    }
     this.statisticsSlider!.disabled = true;
   }
 

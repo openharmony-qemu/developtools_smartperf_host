@@ -561,12 +561,15 @@ export class TraceRowConfig extends BaseElement {
           });
         }
       }
+      let subsystemList = [];
       for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
         let currentSystemData = subsystemsData[subIndex];
-        if(!currentSystemData.hasOwnProperty('subsystem') || Array.isArray(currentSystemData.subsystem)) {
+        if(!currentSystemData.hasOwnProperty('subsystem') || currentSystemData.subsystem === '' ||
+          subsystemList.indexOf(currentSystemData.subsystem) > -1 || Array.isArray(currentSystemData.subsystem)) {
           continue;
         }
         let currentSubName = currentSystemData.subsystem;
+        subsystemList.push(currentSystemData.subsystem);
         id++;
         let subsystemStruct: SubsystemNode = {
           id: id,
@@ -583,7 +586,8 @@ export class TraceRowConfig extends BaseElement {
           }
           for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
             let currentCompDate = currentCompDates[compIndex];
-            if(!currentCompDate.hasOwnProperty('component') && !currentCompDate.hasOwnProperty('charts')) {
+            if(!currentCompDate.hasOwnProperty('component') || currentCompDate.component === '' ||
+              !currentCompDate.hasOwnProperty('charts')) {
               continue;
             }
             let currentCompName = currentCompDate.component;
@@ -619,18 +623,21 @@ export class TraceRowConfig extends BaseElement {
                     chartId = match[0].trim();
                     name = item.name.split(match[0])[0];
                     if (name !== 'Cpu') {
-                      if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
+                      if ((currentChartName !== undefined && currentChartName !== '' &&
+                        name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
                         scene.push(...item.templateType);
                         findChartNames.push(item.name);
                       }
                     } else {
-                      if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
+                      if ((currentChartName !== undefined && currentChartName !== '' &&
+                        name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
                         scene.push(...item.templateType);
                         findChartNames.push(item.name);
                       }
                     }
                   } else {
-                    if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
+                    if ((currentChartName !== undefined && currentChartName !== '' &&
+                      name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
                       scene.push(...item.templateType);
                       findChartNames.push(item.name);
                     }
