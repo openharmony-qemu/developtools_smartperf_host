@@ -1536,16 +1536,19 @@ export class SpSystemTrace extends BaseElement {
       if (rootRow) {
         rootRow.expandFunc();
       }
-      if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        if (!this.isInViewport(rootRow)) {
-          let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + rootRow.offsetHeight / 2 + (++depth * 20);
-          this.rowsPaneEL!.scrollTo({
-            top: top,
-            left: 0,
-            behavior: smooth ? 'smooth' : undefined,
-          });
-        }
-      }
+      setTimeout(() => {
+        rootRow!.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 500);
+      // if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
+      //   if (!this.isInViewport(rootRow)) {
+      //     let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + rootRow.offsetHeight / 2 + (++depth * 20);
+      //     this.rowsPaneEL!.scrollTo({
+      //       top: top,
+      //       left: 0,
+      //       behavior: smooth ? 'smooth' : undefined,
+      //     });
+      //   }
+      // }
     }
   }
 
@@ -1581,13 +1584,14 @@ export class SpSystemTrace extends BaseElement {
       if (row && !row.expansion) {
         row.expansion = true;
       }
-      if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        this.rowsPaneEL!.scroll({
-          top: (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + 20,
-          left: 0,
-          behavior: smooth ? 'smooth' : undefined,
-        });
-      }
+      
+      // if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
+      //   this.rowsPaneEL!.scroll({
+      //     top: (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + 20,
+      //     left: 0,
+      //     behavior: smooth ? 'smooth' : undefined,
+      //   });
+      // }
     }
   }
 
@@ -1805,10 +1809,13 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
-      FuncStruct.hoverFuncStruct = entry;
-      FuncStruct.selectFuncStruct = entry;
-      this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+
+      setTimeout(() => {
+        FuncStruct.hoverFuncStruct = entry;
+        FuncStruct.selectFuncStruct = entry;
+        this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
+        this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+      }, 0);
     }
   };
 
