@@ -396,7 +396,7 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
     ev.preventDefault();
     return;
   }
-  if (ev.ctrlKey && ev.button === 0 && sp.isMouseLeftDown) {
+  if (ev.ctrlKey && ev.button === 0 && SpSystemTrace.isMouseLeftDown) {
     sp.translateByMouseMove(ev);
   }
   sp.inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
@@ -410,7 +410,9 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   if (sp.timerShaftEL?.isScaling()) {
     return;
   }
+  
   sp.timerShaftEL?.documentOnMouseMove(ev, sp);
+
   if (isMouseInTimeShaft) {
     return;
   }
@@ -458,7 +460,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
     return;
   }
   TraceRow.isUserInteraction = false;
-  sp.isMouseLeftDown = false;
+  SpSystemTrace.isMouseLeftDown = false
   if (sp.isMouseInSheet(ev)) {
     return;
   }
@@ -513,7 +515,7 @@ export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev
   }
 }
 
-export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) { 
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
@@ -523,15 +525,15 @@ export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEve
     return;
   }
   if (ev.button === 0) {
-    sp.isMouseLeftDown = true;
+    SpSystemTrace.isMouseLeftDown = true;
     if (ev.ctrlKey) {
       ev.preventDefault();
       sp.style.cursor = 'move';
       sp.mouseCurrentPosition = ev.clientX;
       return;
     }
-  }
-
+ }
+ 
   TraceRow.isUserInteraction = true;
   if (sp.isMouseInSheet(ev)) {
     return;
@@ -578,7 +580,8 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace) {
   }
 }
 
-export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {
+export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {  
+   
   if ((window as any).collectResize) {
     return;
   }
@@ -590,7 +593,7 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
     ev.stopPropagation();
     return;
   }
-  sp.isMouseLeftDown = false;
+  SpSystemTrace.isMouseLeftDown = false;  
   if (ev.ctrlKey) {
     ev.preventDefault();
     sp.offsetMouse = 0;
@@ -662,6 +665,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
     }
     document.addEventListener('keydown', sp.documentOnKeyDown);
   }
+
   if (ev.ctrlKey) {
     spSystemTraceDocumentOnKeyUpCtrlKey(keyPress, sp);
   }

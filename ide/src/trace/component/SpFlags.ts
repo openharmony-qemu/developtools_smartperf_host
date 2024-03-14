@@ -337,7 +337,7 @@ export class FlagsConfig {
     {
       title: 'VSync',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
-      describeContent: '',
+      describeContent: 'VSync Signal drawing',
     },
   ];
 

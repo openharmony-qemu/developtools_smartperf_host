@@ -139,7 +139,7 @@ type SlicesTimeAlias = SlicesTime | undefined | null;
 export class SpSystemTrace extends BaseElement {
   mouseCurrentPosition = 0;
   offsetMouse = 0;
-  isMouseLeftDown = false;
+  static isMouseLeftDown = false;
   static scrollViewWidth = 0;
   static isCanvasOffScreen = true;
   static DATA_DICT: Map<number, string> = new Map<number, string>();
