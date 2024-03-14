@@ -890,23 +890,24 @@ function handleTextCoordinate(arrList: Array<number>, selectParams: TraceRow<any
     TraceRow.range?.endNS ?? 0,
     TraceRow.range?.totalNS ?? 0,
     selectParams.frame
-  )) - textWidth / TEXT_WIDTH_HALF; //根据帧率范围的中间值转换文本的起始x坐标
-  let textY = selectParams.frame.y + 10;
+  )); //根据帧率范围的中间值转换文本的起始x坐标
+  textX = textX <= textWidth / TEXT_WIDTH_HALF ? textX : textX - textWidth / TEXT_WIDTH_HALF;
+  let textY = selectParams.frame.y + 11;
   if (selectParams.avgRateTxt?.includes('HitchTime')) {
-    textY = selectParams.frame.y + 10;
+    textY = selectParams.frame.y + 11;
   } else {
     // 展开时显示在第二行，折叠显示第一行
     if (selectParams.funcExpand) {
-      textY = selectParams.frame.y + 28;
+      textY = selectParams.frame.y + 29;
     } else {
-      textY = selectParams.frame.y + 10;
+      textY = selectParams.frame.y + 11;
     }
   }
   return [textX, textY];
 }
 
 // 绘制平均帧率箭头指示线条
-function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams: TraceRow<any>): void {
+export function drawAvgFrameRate(arrList: Array<number>, ctx: any, selectParams: TraceRow<any>): void {
   let rateList: Array<number> = [...new Set(arrList)];
   let startX = changeFrameRatePoint(rateList, selectParams)[0];
   let endX = changeFrameRatePoint(rateList, selectParams)[1];
