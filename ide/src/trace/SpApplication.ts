@@ -1542,7 +1542,8 @@ export class SpApplication extends BaseElement {
   }
 
   private initEvents(): void {
-    this.addEventListener('copy', function (event) {
+    this.addEventListener('copy', function (event) {          
+      SpSystemTrace.isMouseLeftDown = false;
       let clipdata = event.clipboardData;
       let value = clipdata!.getData('text/plain');
       let searchValue = value.toString().trim();
@@ -1550,7 +1551,8 @@ export class SpApplication extends BaseElement {
     });
     this.initSearchEvents();
     this.initSystemTraceEvents();
-    this.filterConfig!.addEventListener('click', (ev) => {
+    this.filterConfig!.addEventListener('click', (ev) => {    
+      SpSystemTrace.isMouseLeftDown = false;
       if (this!.hasAttribute('chart_filter')) {
         this!.removeAttribute('chart_filter');
         this.chartFilter!.setAttribute('hidden', '');
@@ -1562,12 +1564,13 @@ export class SpApplication extends BaseElement {
         this.chartFilter!.removeAttribute('hidden');
       }
     });
-    this.configClose!.addEventListener('click', (ev) => {
+    this.configClose!.addEventListener('click', (ev) => {     
       if (this.hasAttribute('chart_filter')) {
         this!.removeAttribute('chart_filter');
       }
     });
-    this.cutTraceFile!.addEventListener('click', () => {
+    this.cutTraceFile!.addEventListener('click', (ev) => {     
+      SpSystemTrace.isMouseLeftDown = false;
       this.croppingFile(this.progressEL!, this.litSearch!);
     });
   }
