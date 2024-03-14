@@ -630,7 +630,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
     } else {
       document.querySelector('body > sp-application')!
         .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'hidden';
-        SpSystemTrace.keyboardFlar = true;
+      SpSystemTrace.keyboardFlar = true;
     }
   }
   if (!sp.loadTraceCompleted) return;
@@ -692,11 +692,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
       sidebarButton.style.width = '48px';
       importConfigDiv!.style.left = '45px';
       searchBox!.style.display = 'none';
-      if (timerShaft.style.height === '91.75px') {
-        rowPane.style.maxHeight = '900px'
-      } else {
-        rowPane.style.maxHeight = '797px'
-      }
+      rowPane.style.maxHeight = `100%`;
     } else {
       SpSystemTrace.isHiddenMenu = false;
       menuBox.style.width = '248px';
@@ -705,11 +701,7 @@ function spSystemTraceDocumentOnKeyUpCtrlKey(keyPress: string, sp: SpSystemTrace
       sidebarButton.style.width = '0px';
       importConfigDiv!.style.left = '5px';
       searchBox!.style.display = '';
-      if (timerShaft.style.height === '91.75px') {
-        rowPane.style.maxHeight = '905.25px';
-      } else {
-        rowPane.style.maxHeight = '849px';
-      };
+      rowPane.style.maxHeight = `100%`;
     }
   }
   if (keyPress === '[' && sp._slicesList.length > 1) {
