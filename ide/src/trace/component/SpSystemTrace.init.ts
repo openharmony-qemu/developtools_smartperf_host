@@ -750,15 +750,17 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace, previous: boolean, 
             }
         }
     } else {
-        if (SpSystemTrace.currentStartTime > TraceRow.range!.startNS) {
-            SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
-            if (structs[currentIndex].startTime < TraceRow.range!.startNS || structs[currentIndex].startTime! + structs[currentIndex].dur! > TraceRow.range!.endNS) {
-                currentIndex = -1;
+        if (currentIndex > 0) {
+            if (SpSystemTrace.currentStartTime > TraceRow.range!.startNS) {
+                SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+                if (structs[currentIndex].startTime < TraceRow.range!.startNS || structs[currentIndex].startTime! + structs[currentIndex].dur! > TraceRow.range!.endNS) {
+                    currentIndex = -1;
+                }
             }
-        }
-        if (SpSystemTrace.currentStartTime !== 0 && SpSystemTrace.currentStartTime < TraceRow.range!.startNS) {
-            SpSystemTrace.currentStartTime = 0;
-            SpSystemTrace.retargetIndex = 0;
+            if (SpSystemTrace.currentStartTime !== 0 && SpSystemTrace.currentStartTime < TraceRow.range!.startNS) {
+                SpSystemTrace.currentStartTime = 0;
+                SpSystemTrace.retargetIndex = 0;
+            }
         }
         findIndex = structs.findIndex((it, idx) => {
             return (

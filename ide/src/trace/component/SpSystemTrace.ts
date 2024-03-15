@@ -1371,7 +1371,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('click', this.documentOnClick);
     this.addEventListener('mousedown', this.documentOnMouseDown);
     this.addEventListener('mouseup', this.documentOnMouseUp);
-    this.addEventListener('mouseout', this.documentOnMouseOut);  
+    this.addEventListener('mouseout', this.documentOnMouseOut);
 
     document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
@@ -1539,16 +1539,6 @@ export class SpSystemTrace extends BaseElement {
       setTimeout(() => {
         rootRow!.scrollIntoView({ behavior: "smooth", block: "center" })
       }, 500);
-      // if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-      //   if (!this.isInViewport(rootRow)) {
-      //     let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + rootRow.offsetHeight / 2 + (++depth * 20);
-      //     this.rowsPaneEL!.scrollTo({
-      //       top: top,
-      //       left: 0,
-      //       behavior: smooth ? 'smooth' : undefined,
-      //     });
-      //   }
-      // }
     }
   }
 
@@ -1584,7 +1574,7 @@ export class SpSystemTrace extends BaseElement {
       if (row && !row.expansion) {
         row.expansion = true;
       }
-      
+
       // if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
       //   this.rowsPaneEL!.scroll({
       //     top: (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + 20,
@@ -1809,7 +1799,6 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-
       setTimeout(() => {
         FuncStruct.hoverFuncStruct = entry;
         FuncStruct.selectFuncStruct = entry;

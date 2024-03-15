@@ -1576,32 +1576,36 @@ export class SpApplication extends BaseElement {
   }
 
   private initSearchChangeEvents(): void {
-    this.litSearch!.valueChangeHandler = (value: string): void => {
-      this.litSearch!.isClearValue = false;
-      if (value.length > 0) {
-        let list: any[] = [];
-        this.progressEL!.loading = true;
-        this.spSystemTrace!.searchCPU(value).then((cpus) => {
-          list = cpus;
-          this.spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
-            if (this.litSearch!.searchValue !== '') {
-              this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);
-              this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
-            }
-            this.progressEL!.loading = false;
+    let timer: any = null;
+    this.litSearch!.valueChangeHandler = (value: string) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        this.litSearch!.isClearValue = false;
+        if (value.length > 0) {
+          let list: any[] = [];
+          this.progressEL!.loading = true;
+          this.spSystemTrace!.searchCPU(value).then((cpus) => {
+            list = cpus;
+            this.spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
+              if (this.litSearch!.searchValue !== '') {
+                this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);
+                this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
+              }
+              this.progressEL!.loading = false;
+            });
           });
-        });
-      } else {
-        let indexEL = this.litSearch!.shadowRoot!.querySelector<HTMLSpanElement>('#index');
-        indexEL!.textContent = '0';
-        this.litSearch!.list = [];
-        this.spSystemTrace?.visibleRows.forEach((it) => {
-          it.highlight = false;
-          it.draw();
-        });
-        this.spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
-      }
-    };
+        } else {
+          let indexEL = this.litSearch!.shadowRoot!.querySelector<HTMLSpanElement>('#index');
+          indexEL!.textContent = '0';
+          this.litSearch!.list = [];
+          this.spSystemTrace?.visibleRows.forEach((it) => {
+            it.highlight = false;
+            it.draw();
+          });
+          this.spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+        }
+      }, 1000)
+    }
   }
   private initSearchEvents(): void {
     this.litSearch!.addEventListener('focus', () => {
