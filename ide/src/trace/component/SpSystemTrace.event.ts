@@ -619,7 +619,8 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
       clearTimeout(timerId);
     }
   }
-  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47)) {
+  let flag: boolean = sp.parentElement?.querySelector('sp-record-trace')!.shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!.hasAttribute('back')!;
+  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag) {
     if (SpSystemTrace.keyboardFlar) {
       document.querySelector('body > sp-application')!
         .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!.style.visibility = 'visible';
