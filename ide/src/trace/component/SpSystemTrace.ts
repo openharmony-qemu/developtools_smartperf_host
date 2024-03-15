@@ -1574,14 +1574,13 @@ export class SpSystemTrace extends BaseElement {
       if (row && !row.expansion) {
         row.expansion = true;
       }
-
-      // if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-      //   this.rowsPaneEL!.scroll({
-      //     top: (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + 20,
-      //     left: 0,
-      //     behavior: smooth ? 'smooth' : undefined,
-      //   });
-      // }
+      if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
+        this.rowsPaneEL!.scroll({
+          top: (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + 20,
+          left: 0,
+          behavior: smooth ? 'smooth' : undefined,
+        });
+      }
     }
   }
 
