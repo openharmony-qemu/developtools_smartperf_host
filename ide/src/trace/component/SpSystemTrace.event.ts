@@ -397,7 +397,17 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
     return;
   }
   if (ev.ctrlKey && ev.button === 0 && SpSystemTrace.isMouseLeftDown) {
-    sp.translateByMouseMove(ev);
+    // 计算当前tab组件的高度
+    let tabHeight: number = sp.shadowRoot?.querySelector(`trace-sheet`)!.shadowRoot?.querySelector('lit-tabs')!.clientHeight! + 1;
+    // 计算当前屏幕内高与鼠标位置坐标高度的差值
+    let diffHeight: number = window.innerHeight - ev.clientY;
+    // 如果差值大于面板高度，意味着鼠标位于泳道区域，可以通过ctrl+鼠标左键移动。否则不予生效
+    if (diffHeight > tabHeight) {
+      sp.translateByMouseMove(ev);
+    } else {
+      // 若鼠标位于tab面板区，则将其中标志位置成false
+      SpSystemTrace.isMouseLeftDown = false;
+    }
   }
   sp.inFavoriteArea = sp.favoriteChartListEL?.containPoint(ev);
   if ((window as any).isSheetMove || sp.isMouseInSheet(ev)) {
