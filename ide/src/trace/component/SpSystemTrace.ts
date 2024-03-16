@@ -1371,7 +1371,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('click', this.documentOnClick);
     this.addEventListener('mousedown', this.documentOnMouseDown);
     this.addEventListener('mouseup', this.documentOnMouseUp);
-    this.addEventListener('mouseout', this.documentOnMouseOut);  
+    this.addEventListener('mouseout', this.documentOnMouseOut);
 
     document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
@@ -1536,16 +1536,9 @@ export class SpSystemTrace extends BaseElement {
       if (rootRow) {
         rootRow.expandFunc();
       }
-      if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        if (!this.isInViewport(rootRow)) {
-          let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + rootRow.offsetHeight / 2 + (++depth * 20);
-          this.rowsPaneEL!.scrollTo({
-            top: top,
-            left: 0,
-            behavior: smooth ? 'smooth' : undefined,
-          });
-        }
-      }
+      setTimeout(() => {
+        rootRow!.scrollIntoView({ behavior: "smooth", block: "center" })
+      }, 500);
     }
   }
 
@@ -1805,10 +1798,12 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
-      FuncStruct.hoverFuncStruct = entry;
-      FuncStruct.selectFuncStruct = entry;
-      this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+      setTimeout(() => {
+        FuncStruct.hoverFuncStruct = entry;
+        FuncStruct.selectFuncStruct = entry;
+        this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
+        this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+      }, 0);
     }
   };
 
