@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
+// @ts-ignore
+
 import {
   TabPaneSmapsComparison,
+  SmapsCompareStruct,
 } from '../../../../../../src/trace/component/trace/sheet/smaps/TabPaneSmapsComparison';
-import { Smaps } from '../../../../../../src/trace/bean/SmapsStruct';
-const sqlit = require('../../../../../../src/trace/database/sql/Smaps.sql');
-jest.mock('../../../../../../src/trace/database/sql/Smaps.sql');
+import { Smaps, SmapsTreeObj } from '../../../../../../src/trace/bean/SmapsStruct';
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
     snapshotDataSource: () => {},

@@ -18,9 +18,7 @@ import { SdkSliceRender, SdkSliceStruct } from '../../../../src/trace/database/u
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProduceWorkerSdkSlice Test', () => {
   it('ProduceWorkerSdkSliceTest01', function () {
     let sdkSliceRender = new SdkSliceRender();
@@ -175,7 +173,7 @@ describe('ProduceWorkerSdkSlice Test', () => {
       height: 15,
     };
     window.postMessage = jest.fn(() => true);
-    expect(sdkSliceRender.renderMainThread(sdkSliceReq, new TraceRow())).toBeUndefined();
+    expect(sdkSliceRender.render(sdkSliceReq, [], [])).toBeUndefined();
   });
   it('ProduceWorkerSdkSliceTest07', function () {
     let sdkSliceRender = new SdkSliceRender();

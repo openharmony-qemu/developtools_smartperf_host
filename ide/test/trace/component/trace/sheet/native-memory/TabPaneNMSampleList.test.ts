@@ -12,23 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
+
 import { TabPaneNMSampleList } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
 import { NativeHookSamplerInfo, NativeMemory } from '../../../../../../src/trace/bean/NativeHook';
 import { NativeHookSampleQueryInfo } from '../../../../../../src/trace/bean/NativeHook';
-import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-const sqlit = require('../../../../../../src/trace/database/sql/NativeHook.sql');
-jest.mock('../../../../../../src/trace/database/sql/NativeHook.sql');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -37,8 +30,8 @@ window.ResizeObserver = window.ResizeObserver ||
     observe: jest.fn(),
   }));
 describe('TabPaneNMSampleList Test', () => {
-  let tabPaneNMSampleList = new TabPaneNMSampleList();
-  tabPaneNMSampleList.sampleTbl = new LitTable();
+  document.body.innerHTML = '<tabpane-native-sample id="ddt"></tabpane-native-sample>';
+  let tabPaneNMSampleList = document.querySelector<TabPaneNMSampleList>('#ddt');
   TabPaneNMSampleList.samplerInfoSource = [
     {
       current: '',

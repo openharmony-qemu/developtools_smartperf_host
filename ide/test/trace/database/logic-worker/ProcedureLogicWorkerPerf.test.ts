@@ -596,12 +596,12 @@ describe('ProcedureLogicWorkerPerf Test', () => {
     let params = [
       {
         length: 2,
+        funcName: 'resotreAllNode',
         funcArgs: [
           {
             forEach: jest.fn(() => true),
           },
         ],
-        funcName: 'resotreAllNode',
       },
     ];
     window.postMessage = jest.fn(() => true);
@@ -612,12 +612,12 @@ describe('ProcedureLogicWorkerPerf Test', () => {
     let params = [
       {
         length: 2,
+        funcName: 'clearSplitMapData',
         funcArgs: [
           {
             forEach: jest.fn(() => true),
           },
         ],
-        funcName: 'clearSplitMapData',
       },
     ];
     window.postMessage = jest.fn(() => true);

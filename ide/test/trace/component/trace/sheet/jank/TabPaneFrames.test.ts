@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-const sqlite = require('../../../../../../src/trace/database/sql/Janks.sql');
-jest.mock('../../../../../../src/trace/database/sql/Janks.sql');
 jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
@@ -146,22 +144,6 @@ describe('TabPaneFrames Test', () => {
       ],
     ],
   };
-  let rangeData = sqlite.querySelectRangeData;
-  rangeData.mockResolvedValue([
-    {
-      id: 12,
-      startTs: 2563,
-      name: '',
-      type: '',
-      dur: 256,
-      src_slice: '253',
-      jank_tag: 1,
-      dst_slice: '633',
-      pid: 52,
-      cmdline: 'render_service',
-      frame_type: 'render_service'
-    }
-  ]);
 
   it('TabPaneFramesTest01', function () {
     tabPaneFrames.data = frameData;

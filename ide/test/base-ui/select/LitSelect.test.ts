@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { LitSelect } from '../../../src/base-ui/select/LitSelect';
+import { LitButton, LitSelect } from '../../../src/base-ui/select/LitSelect';
+import { LitSelectOption } from '../../../src/base-ui/select/LitSelectOption';
 
 describe('LitSelect Test', () => {
   it('LitSelectTest01', function () {
@@ -74,6 +75,7 @@ describe('LitSelect Test', () => {
   it('LitSelectTest10', function () {
     document.body.innerHTML = `<lit-select id="litSelect" allow-clear></lit-select>`;
     let select = document.querySelector('#litSelect') as LitSelect;
+    // select.inputElement.value = '3333';
     select.click();
     expect(select.focused).toBe(true);
   });

@@ -27,12 +27,9 @@ window.ResizeObserver =
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+
 describe('TabPanePowerBattery Test', () => {
   it('TabPaneEnergyAnomalyTest01', function () {
     let tabPaneEnergyAnomaly = new TabPaneEnergyAnomaly();

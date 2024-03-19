@@ -128,14 +128,10 @@ export class TabPaneCpuByThread extends BaseElement {
   private updateCpuValues(e: any, cpuByThreadValue: any, cpuByThreadObject: any): void {
     cpuByThreadObject[`cpu${e.cpu}`] = e.wallDuration || 0;
     cpuByThreadObject[`cpu${e.cpu}TimeStr`] = getProbablyTime(e.wallDuration || 0);
-    let ratio = (
+    cpuByThreadObject[`cpu${e.cpu}Ratio`] = (
       (100.0 * (e.wallDuration || 0)) /
       (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)
     ).toFixed(2);
-    if (ratio === '0.00') {
-      ratio = '0';
-    }
-    cpuByThreadObject[`cpu${e.cpu}Ratio`] = ratio;
   }
 
   private calculateCount(map: Map<string, any>, sumWall: number, sumOcc: number): void {

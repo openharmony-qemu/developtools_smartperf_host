@@ -17,12 +17,8 @@ import {
   getTimeString,
   TabPaneCurrentSelection,
 } from '../../../../../src/trace/component/trace/sheet/TabPaneCurrentSelection';
-const processSqlite = require('../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../src/trace/database/sql/ProcessThread.sql');
-const sqlite = require('../../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../../src/trace/database/sql/SqlLite.sql');
-const gpuSqlite = require('../../../../../src/trace/database/sql/Gpu.sql');
-jest.mock('../../../../../src/trace/database/sql/Gpu.sql');
+const sqlite = require('../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../src/trace/database/SqlLite');
 
 describe('TabPaneCurrentSelection Test', () => {
   let tabPaneCurrentSelection = new TabPaneCurrentSelection();
@@ -230,7 +226,7 @@ describe('TabPaneCurrentSelection Test', () => {
   tabPaneCurrentSelection.queryWakeUpData = jest.fn(() => 'WakeUpData');
   tabPaneCurrentSelection.queryWakeUpData.wb = jest.fn(() => null);
   tabPaneCurrentSelection.setCpuData(cpuData, undefined, 1);
-  let argsetTest = processSqlite.queryBinderArgsByArgset;
+  let argsetTest = sqlite.queryBinderArgsByArgset;
   let argsetIdTest = sqlite.queryBinderByArgsId;
   let argsetData = [
     {
@@ -261,7 +257,7 @@ describe('TabPaneCurrentSelection Test', () => {
   argsetTest.mockResolvedValue(argsetData);
   argsetIdTest.mockResolvedValue(argsetIdData);
 
-  let gpuDur = gpuSqlite.queryGpuDur;
+  let gpuDur = sqlite.queryGpuDur;
   let gpuDurData = [
     {
       gpu_dur: 1528,

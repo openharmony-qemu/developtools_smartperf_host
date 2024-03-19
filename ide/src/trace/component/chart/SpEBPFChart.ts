@@ -343,7 +343,7 @@ export class SpEBPFChart {
     vmTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
     vmTraceRow.focusHandler = () => this.focusHandler(vmTraceRow);
     vmTraceRow.findHoverStruct = () => {
-      EBPFChartStruct.hoverEBPFStruct = vmTraceRow.getHoverStruct(false, false, 'size');
+      EBPFChartStruct.hoverEBPFStruct = vmTraceRow.getHoverStruct(false);
     };
     vmTraceRow.onThreadHandler = (useCache) => {
       let context: CanvasRenderingContext2D;

@@ -885,7 +885,7 @@ Advance Options：更多的抓取配置项。
       <h3 class="mume-header fontColor">HiPerf泳道图的框选功能</h3>
 
       <p class="fontColor">
-        可以对CPU使用量区，线程和进程区数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有四个tab页。<br />
+        可以对CPU使用量区，线程和进程区数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，总共有两个tab页。<br />
         Perf Profile的Tab页如图：<br />
         <img src="../figures/perf/PerfProfile.jpg" alt="GitHub Logo" />
       </p>
@@ -904,13 +904,7 @@ Local：为该调用方法自身占用的CPU时间。
         </li>
         <li>
           <pre class="smartperf-text fontColor light">
-Sample Count：采样数量。
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text fontColor light">
-Event Count：事件数量。
+Weight：调用方法的执行次数和占比。
 </pre
           >
         </li>
@@ -960,7 +954,7 @@ Backtrace：栈顶的调用栈名称。
       <h3 class="mume-header fontColor">HiPerf支持多种Options展示风格</h3>
 
       <p class="fontColor">
-        点击Perf Profile的Tab页底部的Options，会有四个CheckBox复选框。<br />
+        点击Perf Profile的Tab页底部的Options，会有两个CheckBox复选框。<br />
         <img src="../figures/perf/Options.jpg" alt="GitHub Logo" />
       </p>
       <ul class="fontColor">
@@ -976,23 +970,11 @@ Hide System so：隐藏系统库文件。
 </pre
           >
         </li>
-        <li>
-          <pre class="smartperf-text fontColor light">
-Hide Thread：隐藏线程。
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text fontColor light">
-Hide Thread State：隐藏线程状态。
-</pre
-          >
-        </li>
       </ul>
       <h3 class="mume-header fontColor">HiPerf支持过滤调用栈调用次数的展示风格</h3>
 
       <p class="fontColor">
-        点击Perf Profile的Tab页底部的Sample Count Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。<br />
+        点击Perf Profile的Tab页底部的Sample Counter Filter，可以填上区间值。过滤出符合该区间值调用次数的调用栈信息。<br />
         <img src="../figures/perf/samplecounter.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor">HiPerf功能的调用栈Group展示-数据分析支持剪裁功能</h3>

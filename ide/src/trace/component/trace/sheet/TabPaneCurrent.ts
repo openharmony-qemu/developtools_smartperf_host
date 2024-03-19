@@ -103,7 +103,7 @@ export class TabPaneCurrent extends BaseElement {
         }
         event.stopPropagation();
       },
-      { capture: true }
+      {capture: true}
     );
   }
 
@@ -184,7 +184,9 @@ export class TabPaneCurrent extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
+    tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
     this.trClickEvent(tr);
+    this.panelTableClick(tr);
 
     //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicesTimeList数组的第一个对应……，所以i从1开始，在this.slicesTimeList数组中取值时用i-1
     for (let i = 1; i < tr.length; i++) {
@@ -243,7 +245,7 @@ export class TabPaneCurrent extends BaseElement {
       ) {
         this.systemTrace!.slicesList = this.slicesTimeList || [];
         this.slicesTimeList[i - 1].color = event?.target.value;
-        document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
+        document.dispatchEvent(new CustomEvent('slices-change', {detail: this.slicesTimeList[i - 1]}));
         //   卡尺颜色改变时，重绘泳道图
         this.systemTrace?.refreshCanvas(true);
       }
@@ -271,7 +273,7 @@ export class TabPaneCurrent extends BaseElement {
       let slicesTimeList = [...this.slicesTimeList];
       for (let i = 0; i < slicesTimeList.length; i++) {
         slicesTimeList[i].hidden = true;
-        document.dispatchEvent(new CustomEvent('slices-change', { detail: slicesTimeList[i] }));
+        document.dispatchEvent(new CustomEvent('slices-change', {detail: slicesTimeList[i]}));
       }
       this.slicesTimeList = [];
       return;
@@ -287,11 +289,32 @@ export class TabPaneCurrent extends BaseElement {
       ) {
         this.slicesTimeList[i - 1].hidden = true;
         this.systemTrace!.slicesList = this.slicesTimeList || [];
-        document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
+        document.dispatchEvent(new CustomEvent('slices-change', {detail: this.slicesTimeList[i - 1]}));
         //   移除时更新表格内容
         this.setTableData();
       }
       event.stopPropagation();
+    });
+  }
+
+  private panelTableClick(tr: NodeListOf<HTMLDivElement>): void {
+    // 更新备注信息
+    this.panelTable!.addEventListener('click', (event: any) => {
+      if (this.slicesTimeList.length === 0) {
+        return;
+      }
+      for (let i = 1; i < tr.length; i++) {
+        let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
+        if (
+          this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&
+          this.tableDataSource[i].endTime === this.slicesTimeList[i - 1].endTime
+        ) {
+          this.slicesTimeList[i - 1].text = inputValue;
+          document.dispatchEvent(new CustomEvent('slices-change', {detail: this.slicesTimeList[i - 1]}));
+          //   旗子颜色改变时，重绘泳道图
+          this.systemTrace?.refreshCanvas(true);
+        }
+      }
     });
   }
 

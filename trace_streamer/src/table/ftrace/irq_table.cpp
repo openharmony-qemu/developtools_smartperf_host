@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +46,6 @@ IrqTable::IrqTable(const TraceDataCache* dataCache) : TableBase(dataCache)
     tableColumn_.emplace_back(TableBase::ColumnInfo("cookie", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
-    tableColumn_.emplace_back(TableBase::ColumnInfo("chainId", "TEXT"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("spanId", "TEXT"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
     tableColumn_.emplace_back(TableBase::ColumnInfo("flag", "TEXT"));
@@ -135,7 +134,7 @@ int32_t IrqTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.IdsData()[CurrentRow()]));
+            sqlite3_result_int64(context_, CurrentRow());
             break;
         case Index::TS:
             SetTypeColumnInt64(slicesObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
@@ -166,7 +165,7 @@ void IrqTable::Cursor::HandleTypeColumns(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::COOKIE_ID:
-            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_INT64);
+            SetTypeColumnInt64(slicesObj_.Cookies()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::PARENT_ID: {
             if (slicesObj_.ParentIdData()[CurrentRow()].has_value()) {

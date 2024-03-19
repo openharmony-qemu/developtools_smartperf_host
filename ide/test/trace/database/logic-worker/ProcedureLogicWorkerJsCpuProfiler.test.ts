@@ -89,10 +89,10 @@ describe('ProcedureLogicWorkerJsCpuProfiler Test', () => {
       type: 'jsCpuProfiler-bottom-up',
       params: [
         {
-          children: [],
-          samplesIds: [],
           startTime: 0,
           endTime: 0,
+          children: [],
+          samplesIds: [],
           isSelect: false,
         },
       ],

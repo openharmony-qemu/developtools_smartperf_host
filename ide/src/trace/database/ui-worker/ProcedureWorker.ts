@@ -60,10 +60,6 @@ import { HiperfProcessRender2 } from './hiperf/ProcedureWorkerHiPerfProcess2';
 import { HiperfThreadRender2 } from './hiperf/ProcedureWorkerHiPerfThread2';
 import { AllAppStartupRender } from './ProcedureWorkerAllAppStartup';
 import { FreqExtendRender } from './ProcedureWorkerFreqExtend';
-import { hitchTimeRender } from './ProcedureWorkerHitchTime';
-import { LtpoRender } from './ProcedureWorkerLTPO';
-import { BinderRender } from './procedureWorkerBinder';
-import { SampleRender } from './ProcedureWorkerBpftrace';
 
 let dataList: any = {};
 let dataList2: any = {};
@@ -84,8 +80,6 @@ export let renders: any = {
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),
-  'ltpo-present': new LtpoRender(),
-  'hitch': new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   'heap-timeline': new HeapTimelineRender(),
@@ -123,13 +117,11 @@ export let renders: any = {
   logs: new LogRender(),
   hiSysEvent: new HiSysEventRender(),
   'freq-extend': new FreqExtendRender(),
-  binder: new BinderRender(),
-  sample: new SampleRender(),
 };
 
 function match(type: string, req: RequestMessage): void {
   Reflect.ownKeys(renders).filter((it) => {
-    if (type && type.startsWith(it as string)) {
+    if (type.startsWith(it as string)) {
       if (dataList[type]) {
         req.lazyRefresh = dataList[type].length > 20000;
       }
@@ -181,7 +173,6 @@ self.onmessage = (e: any): void => {
 
   match(req.type!, req);
 };
-
 function clear(e: any) {
   if (e.data.type && (e.data.type as string).startsWith('clear')) {
     dataList = {};
@@ -198,7 +189,6 @@ function clear(e: any) {
     return;
   }
 }
-
 function setReq(req: RequestMessage, e: any) {
   req.canvas = canvasList[e.data.type];
   req.context = contextList[e.data.type];
@@ -242,6 +232,4 @@ function setReq(req: RequestMessage, e: any) {
     }
   }
 }
-
-self.onmessageerror = function (e: any): void {
-};
+self.onmessageerror = function (e: any): void {};

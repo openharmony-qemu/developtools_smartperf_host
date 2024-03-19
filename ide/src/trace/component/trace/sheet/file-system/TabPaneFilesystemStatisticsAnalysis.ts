@@ -97,11 +97,10 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         },
         {
           funcName: 'getCurrentDataFromDb',
-          funcArgs: [{ queryFuncName: 'fileSystem', ...val }],
+          funcArgs: [{queryFuncName: 'fileSystem', ...val}],
         },
       ],
       (results: any[]) => {
-        this.disableCheckBox(results);
         this.getFilesystemProcess(results);
       }
     );
@@ -151,15 +150,6 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     addRowClickEventListener(this.fileStatisticsAnalysisTableType!, this.fileTypeLevelClickEvent.bind(this));
     addRowClickEventListener(this.fileStatisticsAnalysisTableThread!, this.fileThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.fileStatisticsAnalysisTableSo!, this.fileSoLevelClickEvent.bind(this));
-  }
-  private disableCheckBox(results: Array<any>): void {
-    if (results.length === 0) {
-      this.hideProcessCheckBox?.setAttribute('disabled', 'disabled');
-      this.hideThreadCheckBox?.setAttribute('disabled', 'disabled');
-    } else {
-      this.hideProcessCheckBox?.removeAttribute('disabled');
-      this.hideThreadCheckBox?.removeAttribute('disabled');
-    }
   }
 
   private checkBoxListener(box: LitCheckBox): void {
@@ -890,11 +880,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     this.threadPieChart();
   }
 
-  private updateThreadData(
-    threadMap: Map<string, Array<number | string>>,
-    fileSysStatThreadItem: any,
-    allDur: number
-  ): void {
+  private updateThreadData(threadMap: Map<string, Array<number | string>>, fileSysStatThreadItem: any, allDur: number): void {
     this.fileStatisticsAnalysisThreadData = [];
     threadMap.forEach((value: Array<any>, key: string) => {
       let dur = 0;
@@ -904,7 +890,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
         tName = fileSysStatThreadItem.threadName =
           fileSysStatThreadItem.threadName === null || fileSysStatThreadItem.threadName === undefined
             ? `Thread(${fileSysStatThreadItem.tid})`
-            : `${fileSysStatThreadItem.threadName}(${fileSysStatThreadItem.tid})`;
+            : `${fileSysStatThreadItem.threadName}`;
       }
       const threadData = {
         tableName: tName,
@@ -956,16 +942,16 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       return false;
     }
     if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-      return itemData.pid !== item.pid || itemData.tid !== item.tid || itemData.type !== item.type;
+      return (itemData.pid !== item.pid || itemData.tid !== item.tid || itemData.type !== item.type);
     }
     if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-      return itemData.pid !== item.pid || itemData.type !== item.type;
+      return (itemData.pid !== item.pid || itemData.type !== item.type);
     }
     if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-      return itemData.tid !== item.tid || itemData.type !== item.type;
+      return (itemData.tid !== item.tid || itemData.type !== item.type);
     }
     if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-      return itemData.type !== item.type;
+      return (itemData.type !== item.type);
     }
     return false;
   }
@@ -1027,21 +1013,16 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
       return false;
     }
     if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-      return (
-        fsProcessData.pid !== pid ||
-        fsProcessData.tid !== tid ||
-        fsProcessData.type !== type ||
-        fsProcessData.libId !== libId
-      );
+      return (fsProcessData.pid !== pid || fsProcessData.tid !== tid || fsProcessData.type !== type || fsProcessData.libId !== libId);
     }
     if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-      return fsProcessData.pid !== pid || fsProcessData.type !== type || fsProcessData.libId !== libId;
+      return (fsProcessData.pid !== pid || fsProcessData.type !== type || fsProcessData.libId !== libId);
     }
     if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-      return fsProcessData.tid !== tid || fsProcessData.type !== type || fsProcessData.libId !== libId;
+      return (fsProcessData.tid !== tid || fsProcessData.type !== type || fsProcessData.libId !== libId);
     }
     if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
-      return fsProcessData.type !== type || fsProcessData.libId !== libId;
+      return (fsProcessData.type !== type || fsProcessData.libId !== libId);
     }
     return false;
   }
@@ -1131,7 +1112,7 @@ export class TabPaneFilesystemStatisticsAnalysis extends BaseElement {
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-action',
-      { args, callType: 'fileSystem', isAnalysis: true },
+      {args, callType: 'fileSystem', isAnalysis: true},
       undefined,
       (results: any) => {
         handler(results);

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +32,7 @@ constexpr uint32_t FTRACE_PAGE_SIZE = 4096;
 constexpr uint32_t RMQ_ENTRY_ALIGN_MASK = (1 << 2) - 1;
 class FtraceProcessor {
 public:
-    FtraceProcessor(TraceDataCache* traceDataCache);
+    FtraceProcessor();
     ~FtraceProcessor();
 
     bool SetupEvent(const std::string& desc);
@@ -40,26 +40,9 @@ public:
     bool HandlePage(FtraceCpuDetailMsg& cpuMsg,
                     CpuDetailParser& cpuDetailParser,
                     uint8_t page[],
-                    bool& haveSplitSeg,
                     size_t size = FTRACE_PAGE_SIZE);
-    bool IsSplitCpuTimeStampData(uint64_t CurTimeStamp, bool& haveSplitSeg)
-    {
-        if (traceDataCache_->SplitFileMinTime() <= CurTimeStamp &&
-            traceDataCache_->SplitFileMaxTime() >= CurTimeStamp) {
-            haveSplitSeg = true;
-            return true;
-        }
-        return false;
-    }
-    void HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
-                                      uint64_t timeStampBase,
-                                      FtraceCpuDetailMsg& cpuMsg,
-                                      CpuDetailParser& cpuDetailParser,
-                                      bool& haveSplitSeg);
-    bool HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
-                         CpuDetailParser& cpuDetailParser,
-                         uint8_t*& data,
-                         bool& haveSplitSeg);
+    bool HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParser& cpuDetailParser, uint8_t*& data);
+
     bool HandleTgids(const std::string& tgids);
     bool HandleCmdlines(const std::string& cmdlines);
 
@@ -107,7 +90,6 @@ private:
     std::unordered_map<int32_t, int32_t> tgidDict_ = {};
     // first is pid, second is taskName
     std::unordered_map<int32_t, std::string> taskNameDict_ = {};
-    TraceDataCache* traceDataCache_ = nullptr;
 
     const std::string nameLinePrefix_ = "name:";
     const std::string idLinePrefix_ = "ID:";

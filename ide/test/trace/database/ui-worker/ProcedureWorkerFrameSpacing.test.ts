@@ -16,9 +16,7 @@
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import {
   FrameSpacingRender,
@@ -76,19 +74,19 @@ describe('FrameSpacing Test', () => {
       y: 4,
     },
     {
-      frameSpacingResult: 0.1,
-      groupId: 11095334538,
       currentFrameHeight: 2755,
       currentFrameWidth: 1340,
       currentTs: 11640114746,
       frame: new Rect(),
-      x: 0,
-      y: 4,
+      frameSpacingResult: 0.1,
+      groupId: 11095334538,
       id: 710,
       nameId: 'test',
       preFrameHeight: 2753,
       preFrameWidth: 1339,
       preTs: 11629160579,
+      x: 0,
+      y: 4,
     },
   ];
   it('FrameSpacingTest01', function () {

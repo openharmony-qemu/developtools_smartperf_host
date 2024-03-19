@@ -34,7 +34,7 @@ export class TabPanePurgTotal extends BaseElement {
   set data(selection: SelectionParam) {
     if (this.purgeableTotalTable) {
       //@ts-ignore
-      this.purgeableTotalTable.shadowRoot?.querySelector('.table').style.height = `${
+      this.purgeableTotalTable.shadowRoot.querySelector('.table').style.height = `${
         this.parentElement!.clientHeight - 45
       }px`;
     }

@@ -14,12 +14,7 @@
  */
 
 import { TabPaneCounter } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneCounter';
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
+
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -28,8 +23,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../src/trace/database/sql/Cpu.sql');
-jest.mock('../../../../../../src/trace/database/sql/Cpu.sql');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
@@ -86,23 +81,19 @@ describe('TabPaneCounter Test', () => {
   });
 
   it('TabPaneCounterTest04', function () {
-    document.body.innerHTML = `<div><tabpane-counter id="count"></tabpane-counter></div>`;
-    let tableCount = document.querySelector<TabPaneCounter>('#count');
     let mockgetTabCounters = sqlit.getTabCounters;
     mockgetTabCounters.mockResolvedValue(
       { trackId: 11, name: 'test', value: 111, startTime: 142445 },
       { trackId: 11, name: 'test', value: 222, startTime: 142446 }
     );
     let a = { rightNs: 1, trackIds: [11, 12, 13] };
-    expect((tableCount.data = a)).toBeTruthy();
+    expect((tabPaneCounter.data = a)).toBeTruthy();
   });
 
   it('TabPaneCounterTest05', function () {
-    document.body.innerHTML = `<div><tabpane-counter id="count"></tabpane-counter></div>`;
-    let tableCount = document.querySelector<TabPaneCounter>('#count');
     let mockgetTabCounters = sqlit.getTabCounters;
     mockgetTabCounters.mockResolvedValue([]);
     let a = { rightNs: 1, trackIds: [11, 12, 13] };
-    expect((tableCount.data = a)).toBeTruthy();
+    expect((tabPaneCounter.data = a)).toBeTruthy();
   });
 });

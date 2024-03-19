@@ -303,16 +303,14 @@ export class TimerShaftElement extends BaseElement {
           xsTxt: [],
         },
         (a) => {
-          if (a.startNS >= 0 && a.endNS >= 0) {
-            if (this._sportRuler) {
-              this._sportRuler.range = a;
-            }
-            if (this.timeOffsetEL && this._rangeRuler) {
-              this.timeOffsetEL.textContent = ns2UnitS(a.startNS, this._rangeRuler.getScale());
-            }
-            if (this.loadComplete) {
-              this.rangeChangeHandler?.(a);
-            }
+          if (this._sportRuler) {
+            this._sportRuler.range = a;
+          }
+          if (this.timeOffsetEL && this._rangeRuler) {
+            this.timeOffsetEL.textContent = ns2UnitS(a.startNS, this._rangeRuler.getScale());
+          }
+          if (this.loadComplete) {
+            this.rangeChangeHandler?.(a);
           }
         }
       );

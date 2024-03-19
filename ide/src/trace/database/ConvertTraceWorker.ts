@@ -38,11 +38,6 @@ function initConvertWASM() {
   });
 }
 
-function isRawTrace(uint8Array: Uint8Array): boolean {
-  let rowTraceStr = Array.from(new Uint16Array(uint8Array.buffer.slice(0, 2)));
-  return rowTraceStr[0] === 57161;
-}
-
 const ARRAY_BUF_SIZE = 2 * 1024 * 1024;
 self.onmessage = async (e: MessageEvent) => {
   if (e.data.action === 'getConvertData') {
@@ -52,14 +47,16 @@ self.onmessage = async (e: MessageEvent) => {
     let totalSize = fileData.byteLength;
     let traceInsPtr = convertModule._GetTraceConverterIns(); // 获取TraceConverter 实例
     convertModule._SetDebugFlag(false, traceInsPtr); // 设置是否为debug模式
+    let uint8Array = new Uint8Array(fileData.slice(0, 8)); // 获取前8个字节，用来判断文件是htrace还是raw trace
+    let enc = new TextDecoder();
+    let headerStr = enc.decode(uint8Array);
     let currentPosition = 1024;
     let dataHeader = convertModule._malloc(1100);
     let traceAllData = new Uint8Array(e.data.buffer);
-    let isRawTraceConvert = isRawTrace(e.data);
-    if (isRawTraceConvert) {
-      [totalSize, currentPosition, traceAllData] = handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
-    } else {
+    if (headerStr.indexOf('OHOSPROF') === 0) {
       handleHTrace(fileData, dataHeader, traceInsPtr);
+    } else {
+      handleRowTrace(e, fileData, dataHeader, traceInsPtr, currentPosition, traceAllData, totalSize);
     }
     let dataPtr = convertModule._malloc(stepSize);
     let arrayBufferPtr = convertModule._malloc(ARRAY_BUF_SIZE);
@@ -73,7 +70,7 @@ self.onmessage = async (e: MessageEvent) => {
     };
     let bodyFn = convertModule.addFunction(callback, 'vii');
     convertModule._SetCallback(bodyFn, traceInsPtr);
-    convertData(currentPosition, traceAllData, arrayBufferPtr, dataPtr, traceInsPtr, isRawTraceConvert, stepSize, totalSize);
+    convertData(currentPosition, traceAllData, arrayBufferPtr, dataPtr, traceInsPtr, headerStr, stepSize, totalSize);
     convertModule._GetRemainingData(traceInsPtr);
     let headerData: string[] = [];
     let headerCallback = (heapPtr: number, size: number) => {
@@ -92,13 +89,11 @@ self.onmessage = async (e: MessageEvent) => {
     postMessage(e, allDataStr);
   }
 };
-
 function handleHTrace(fileData: Array<any>, dataHeader: any, traceInsPtr: any) {
   let uint8Array = new Uint8Array(fileData.slice(0, 1024));
   convertModule.HEAPU8.set(uint8Array, dataHeader);
   convertModule._SendFileHeader(dataHeader, 1024, traceInsPtr);
 }
-
 function handleRowTrace(
   e: MessageEvent,
   fileData: Array<any>,
@@ -107,17 +102,18 @@ function handleRowTrace(
   currentPosition: number,
   traceAllData: Uint8Array,
   totalSize: number
-): [number, number, Uint8Array] {
+): void {
   let uint8Array = new Uint8Array(fileData.slice(0, 12));
   convertModule.HEAPU8.set(uint8Array, dataHeader);
   convertModule._SendRawFileHeader(dataHeader, 12, traceInsPtr);
   currentPosition = 12;
   let allRowTraceData = new Uint8Array(e.data.buffer);
   let commonDataOffsetList: Array<{
-    startOffset: number
-    endOffset: number
+    startOffset: number;
+    endOffset: number;
   }> = [];
-  let commonTotalLength = setCommonDataOffsetList(e, allRowTraceData, commonDataOffsetList);
+  let commonTotalLength = 0;
+  setCommonDataOffsetList(e, allRowTraceData, commonTotalLength, commonDataOffsetList);
   let commonTotalOffset = 0;
   let commonTotalData = new Uint8Array(commonTotalLength);
   commonDataOffsetList.forEach((item) => {
@@ -129,15 +125,13 @@ function handleRowTrace(
   traceAllData.set(commonTotalData, currentPosition);
   traceAllData.set(allRowTraceData.slice(currentPosition), commonTotalData.length + currentPosition);
   totalSize += commonTotalData.length;
-  return [totalSize, currentPosition, traceAllData];
 }
-
 function setCommonDataOffsetList(
   e: MessageEvent,
   allRowTraceData: Uint8Array,
+  commonTotalLength: number,
   commonDataOffsetList: Array<any>
-): number {
-  let commonTotalLength: number = 0;
+): void {
   let commonOffset = 12;
   let tlvTypeLength = 4;
   while (commonOffset < allRowTraceData.length) {
@@ -158,16 +152,14 @@ function setCommonDataOffsetList(
       commonDataOffsetList.push(commonDataOffset);
     }
   }
-  return commonTotalLength;
 }
-
 function convertData(
   currentPosition: number,
   traceAllData: Uint8Array,
   arrayBufferPtr: any,
   dataPtr: any,
   traceInsPtr: any,
-  isRawTraceConvert: boolean = false,
+  headerStr: string,
   stepSize: number,
   totalSize: number
 ): void {
@@ -188,10 +180,12 @@ function convertData(
       let subArrayBuffer = convertModule.HEAPU8.subarray(blockPtr, blockPtr + blockSize);
       convertModule.HEAPU8.set(subArrayBuffer, arrayBufferPtr);
       // 调用分片转换接口
-      if (isRawTraceConvert) {
-        convertModule._ConvertRawBlockData(arrayBufferPtr, subArrayBuffer.length, traceInsPtr); // raw trace
+      if (headerStr.indexOf('OHOSPROF') === 0) {
+        // htrace
+        convertModule._ConvertBlockData(arrayBufferPtr, subArrayBuffer.length, traceInsPtr);
       } else {
-        convertModule._ConvertBlockData(arrayBufferPtr, subArrayBuffer.length, traceInsPtr); // htrace
+        // raw trace
+        convertModule._ConvertRawBlockData(arrayBufferPtr, subArrayBuffer.length, traceInsPtr);
       }
       processedLen = processedLen + blockSize;
       blockPtr = dataPtr + processedLen;
@@ -200,14 +194,13 @@ function convertData(
     currentPosition = endPosition;
   }
 }
-
 function postMessage(e: MessageEvent, allDataStr: Array<string>): void {
   self.postMessage(
     {
       id: e.data.id,
       action: 'convert',
       status: true,
-      results: new Blob(allDataStr, {type: 'text/plain'}),
+      results: new Blob(allDataStr, { type: 'text/plain' }),
       buffer: e.data.buffer,
     },
     // @ts-ignore

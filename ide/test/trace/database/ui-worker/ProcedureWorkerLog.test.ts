@@ -12,18 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
-jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
 import { LogStruct, LogRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerLog';
@@ -33,98 +25,89 @@ describe('ProcedureWorkerLog Test', () => {
   canvas.width = 12;
   canvas.height = 12;
   const ctx = canvas.getContext('2d');
-  let data = {
-    id: 5230,
-    startTs: 27351020209,
-    level: 'E',
-    depth: 3,
-    tag: 'C01510/BinderInvoker1',
-    context: '124: SendRequest: handle=0 result = 2',
-    time: 15020293020884055,
-    pid: 577,
-    tid: 967,
-    processName: 'distributeddata',
-    dur: 1,
-    frame: {
-      x: 1385,
-      y: 22,
-      width: 1,
-      height: 7,
-    },
-  };
   it('ProcedureWorkerLog01', () => {
+    let data = {
+      id: 5230,
+      startTs: 27351020209,
+      level: 'E',
+      depth: 3,
+      tag: 'C01510/BinderInvoker1',
+      context: '124: SendRequest: handle=0 result = 2',
+      time: 15020293020884055,
+      pid: 577,
+      tid: 967,
+      processName: 'distributeddata',
+      dur: 1,
+      frame: {
+        x: 1385,
+        y: 22,
+        width: 1,
+        height: 7,
+      },
+    };
     expect(LogStruct.draw(ctx!, data)).toBeUndefined();
   });
+
   it('ProcedureWorkerLog02', () => {
-    let logRender = new LogRender();
-    let logReq = {
-      lazyRefresh: true,
-      type: 'log',
-      startNS: 5,
-      endNS: 9,
-      totalNS: 3,
+    let data = {
+      id: 36,
+      startTs: 76402676,
+      level: 'W',
+      depth: 2,
+      tag: 'C01300/AbilityManagerService2',
+      context: '[ability_manager_service.cpp(UpdateCallerInfo:6178)]UpdateCallerInfo.',
+      time: 15020292748137880,
+      pid: 559,
+      tid: 559,
+      processName: 'foundation',
+      dur: 1,
       frame: {
-        x: 32,
-        y: 20,
-        width: 130,
-        height: 180,
+        x: 3,
+        y: 16,
+        width: 1,
+        height: 7,
       },
-      useCache: true,
-      range: {
-        refresh: '',
-      },
-      canvas: 'a',
-      context: {
-        font: '12px sans-serif',
-        fillStyle: '#a1697d',
-        globalAlpha: 0.3,
-        measureText: jest.fn(() => true),
-        clearRect: jest.fn(() => true),
-        stroke: jest.fn(() => true),
-        closePath: jest.fn(() => false),
-        beginPath: jest.fn(() => true),
-        fillRect: jest.fn(() => false),
-        fillText: jest.fn(() => true),
-      },
-      lineColor: '',
-      isHover: 'true',
-      hoverX: 0,
-      params: '',
-      wakeupBean: undefined,
-      flagMoveInfo: '',
-      flagSelectedInfo: '',
-      slicesTime: 4,
-      id: 1,
-      x: 24,
-      y: 24,
-      width: 100,
-      height: 100
     };
-    window.postMessage = jest.fn(() => true);
-    TraceRow.range = jest.fn(() => true);
-    TraceRow.range.startNS = jest.fn(() => 1);
-    expect(logRender.renderMainThread(logReq, new TraceRow()));
+    expect(LogStruct.draw(ctx!, data)).toBeUndefined();
   });
-  it('ProcedureWorkerLog03 ', function () {
-    let logNode = {
+
+  it('ProcedureWorkerLog03', () => {
+    let data = {
+      id: 3,
+      startTs: 1,
+      level: 'I',
+      depth: 1,
+      tag: 'C02d0c/Hiprofiler1',
+      context: 'ParseTimeExtend: update ts with 0 to 337274',
+      time: 15020292747373852,
+      pid: 1119,
+      tid: 1172,
+      processName: 'hiprofiler_plug',
+      dur: 1,
       frame: {
-        x: 60,
-        y: 24,
-        width: 430,
-        height: 460,
+        x: 0,
+        y: 8,
+        width: 1,
+        height: 7,
       },
-      startNS: 100,
-      value: 980,
-      startTs: 53,
-      dur: 21,
-      height: 222,
     };
-    let frame = {
-      x: 2,
-      y: 20,
-      width: 15,
-      height: 84,
+    expect(LogStruct.draw(ctx!, data)).toBeUndefined();
+  });
+
+  it('ProcedureWorkerLog04', () => {
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    let data = {
+      context: context!,
+      useCache: true,
+      type: 'logs',
+      traceRange: [],
     };
-    expect(LogStruct.setLogFrame(logNode,1,1,1,1,frame)).toBeUndefined()
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range!.startNS = jest.fn(() => 0);
+    TraceRow.range!.endNS = jest.fn(() => 27763331331);
+    TraceRow.range!.totalNS = jest.fn(() => 27763331331);
+    let logRender = new LogRender();
+    expect(logRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

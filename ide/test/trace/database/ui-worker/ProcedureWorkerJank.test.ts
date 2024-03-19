@@ -14,12 +14,12 @@
  */
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { jank, JankRender, JankStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerJank';
+import { ColorUtils } from '../../../../src/trace/component/trace/base/ColorUtils';
+
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerJank Test', () => {
   const jankData = {
     frame: {

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,6 +41,7 @@ private:
 public:
     BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     void ParseDataItem(const BytraceLine& line);
+    void FilterAllEventsTemp();
     void FilterAllEvents();
     void BeginFilterEvents(EventInfo* event);
     void Clear();
@@ -94,7 +95,7 @@ private:
     const uint32_t MIN_CPU_IDLE_ARGS_COUNT = 2;
     const uint32_t MIN_CPU_FREQUENCY_ARGS_COUNT = 2;
     const uint32_t MIN_PROCESS_EXIT_ARGS_COUNT = 2;
-    const uint32_t MIN_CLOCK_SET_RATE_ARGS_COUNT = 2;
+    const uint32_t MIN_CLOCK_SET_RATE_ARGS_COUNT = 3;
     const uint32_t MIN_CLOCK_ENABLE_ARGS_COUNT = 3;
     const uint32_t MIN_CLOCK_DISABLE_ARGS_COUNT = 3;
     const uint32_t MIN_IRQ_HANDLER_ENTRY_ARGS_COUNT = 2;

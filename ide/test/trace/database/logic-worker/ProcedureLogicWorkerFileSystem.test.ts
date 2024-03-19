@@ -471,7 +471,7 @@ describe('ProcedureLogicWorkerFileSystem Test', () => {
         join: jest.fn(() => true),
       },
       fileSystemType: {
-        length: 2,
+        length: 1,
         join: jest.fn(() => true),
       },
     };
@@ -486,14 +486,14 @@ describe('ProcedureLogicWorkerFileSystem Test', () => {
   it('procedureLogicWorkerFileSystemTest59', function () {
     let handlerMap = procedureLogicWorkerF.handlerMap.get('fileSystem');
     let selectionParam = {
+      diskIOipids: {
+        length: 1,
+        join: jest.fn(() => true),
+      },
       fileSystemType: {
         length: 1,
         join: jest.fn(() => true),
       },
-      diskIOipids: {
-        length: 1,
-        join: jest.fn(() => true),
-      },  
     };
     window.postMessage = jest.fn(() => true);
     expect(handlerMap.queryPageFaultSamples(selectionParam)).toBeUndefined();
@@ -534,11 +534,11 @@ describe('ProcedureLogicWorkerFileSystem Test', () => {
   it('procedureLogicWorkerFileSystemTest64', function () {
     let handlerMap = procedureLogicWorkerF.handlerMap.get('virtualMemory');
     let selectionParam = {
-      diskIOReadIds: {
+      diskIOipids: {
         length: 3,
         join: jest.fn(() => true),
       },
-      diskIOipids: {
+      diskIOReadIds: {
         length: 3,
         join: jest.fn(() => true),
       },

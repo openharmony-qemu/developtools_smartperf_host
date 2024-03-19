@@ -14,8 +14,9 @@
  */
 
 import { BaseElement, element } from '../BaseElement';
-import { replacePlaceholders } from '../utils/Template';
 
+let colorStr: string | null = '';
+let colorText: string | null = '';
 let css = `
 <style>
       /*
@@ -74,7 +75,7 @@ let css = `
           background: rgba(0,0,0,0.1);
           height: 10px;
           border-radius:2px;
-          background: -webkit-linear-gradient(right, {1}, {2}) no-repeat;
+          background: -webkit-linear-gradient(right, ${colorStr}, ${colorText}) no-repeat;
       }
       
       /*
@@ -116,7 +117,9 @@ let css = `
       </style>
 `;
 const initHtmlStyle = (str: string | null, text: string | null) => {
-  return replacePlaceholders(css, str!, text!);
+  colorStr = str;
+  colorText = text;
+  return css;
 };
 
 @element('lit-slider')

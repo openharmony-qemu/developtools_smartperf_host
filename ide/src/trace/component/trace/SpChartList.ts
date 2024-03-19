@@ -248,19 +248,17 @@ export class SpChartList extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    const vessel = this.parentNode as HTMLDivElement
-    vessel.addEventListener('mousedown', this.onMouseDown);
-    vessel.addEventListener('mouseup', this.onMouseUp);
-    vessel.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mousedown', this.onMouseDown);
+    window.addEventListener('mouseup', this.onMouseUp);
+    window.addEventListener('mousemove', this.onMouseMove);
     this.addEventListener('scroll', this.onScroll, { passive: true });
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    const vessel = this.parentNode as HTMLDivElement
-    vessel.removeEventListener('mousedown', this.onMouseDown);
-    vessel.removeEventListener('mouseup', this.onMouseUp);
-    vessel.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mousedown', this.onMouseDown);
+    window.removeEventListener('mouseup', this.onMouseUp);
+    window.removeEventListener('mousemove', this.onMouseMove);
     this.removeEventListener('scroll', this.onScroll);
   }
 
@@ -335,9 +333,7 @@ export class SpChartList extends BaseElement {
     this.canResize = false;
     this.style.cursor = 'default';
     (window as any).collectResize = false;
-    if(this.style.display === 'flex'){
-      this.refreshFavoriteCanvas();
-    }
+    this.refreshFavoriteCanvas();
   };
 
   insertRow(row: TraceRow<any>, group: string, updateGroup: boolean): void {
@@ -529,7 +525,7 @@ export class SpChartList extends BaseElement {
         width: 100%;
         height: auto;
         overflow-anchor: none;
-        z-index: 3;
+        z-index: 1;
         box-shadow: 0 10px 10px #00000044;
         position: relative;
         overflow: auto;

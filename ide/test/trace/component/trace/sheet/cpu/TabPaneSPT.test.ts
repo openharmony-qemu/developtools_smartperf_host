@@ -17,7 +17,9 @@ import { TabPaneSPT } from '../../../../../../src/trace/component/trace/sheet/cp
 import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });

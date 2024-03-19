@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
+// @ts-ignore
+// import { it } from "mocha"
 import { TabPaneBoxChild } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneBoxChild';
-const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
+const sqlit = require('../../../../../../src/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/trace/database/SqlLite.js');
+jest.mock('../../../../../../src/trace/bean/NativeHook.js', () => {
   return {};
 });
 

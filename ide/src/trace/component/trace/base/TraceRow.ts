@@ -27,10 +27,7 @@ import '../../../../base-ui/tree/LitTree';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { info } from '../../../../log/Log';
 import { ColorUtils } from './ColorUtils';
-import {
-  drawSelectionRange,
-  isFrameContainPoint
-} from '../../../database/ui-worker/ProcedureWorkerCommon';
+import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
 import { TraceRowConfig } from './TraceRowConfig';
 import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
@@ -129,7 +126,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PURGEABLE_TOTAL_VM = 'purgeable-total-vm';
   static ROW_TYPE_PURGEABLE_PIN_VM = 'purgeable-pin-vm';
   static ROW_TYPE_LOGS = 'logs';
-  static ROW_TYPE_SAMPLE = 'sample';
   static ROW_TYPE_ALL_APPSTARTUPS = 'all-appstartups';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
@@ -193,18 +189,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public getCacheData: ((arg: any) => Promise<Array<any>> | undefined) | undefined; //实时查询
   public loadingFrame: boolean = false; //实时查询,正在查询中
   public needRefresh: boolean = true;
-  _frameRateList: Array<number> | undefined; //存储平均帧率数据
-  _hitchTimeData: Array<number> | undefined;//存储hitch time
+  _docompositionList: Array<number> | undefined;
   public folderIcon: LitIcon | null | undefined;
-  private sampleUploadEl: HTMLDivElement | null | undefined;
-  private jsonFileEl: HTMLInputElement | null | undefined;
 
   focusHandler?: (ev: MouseEvent) => void | undefined;
   findHoverStruct?: () => void | undefined;
   public funcMaxHeight: number = 0;
   currentContext: CanvasRenderingContext2D | undefined | null;
-  static ROW_TYPE_LTPO: string | null | undefined;
-  static ROW_TYPE_HITCH_TIME: string | null | undefined;
 
   constructor(
     args: {
@@ -223,7 +214,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   ) {
     super();
     this.args = args;
-    this.attachShadow({mode: 'open'}).innerHTML = this.initHtml();
+    this.attachShadow({ mode: 'open' }).innerHTML = this.initHtml();
     this.initElements();
   }
 
@@ -262,25 +253,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       'row-setting-popover-direction',
     ];
   }
-
-  get uploadEl() {
-    return this.sampleUploadEl;
+  get docompositionList(): Array<number> | undefined {
+    return this._docompositionList;
   }
 
-  get frameRateList(): Array<number> | undefined {
-    return this._frameRateList;
-  }
-
-  set frameRateList(value: Array<number> | undefined) {
-    this._frameRateList = value;
-  }
-
-  get hitchTimeData(): Array<number> | undefined {
-    return this._hitchTimeData;
-  }
-
-  set hitchTimeData(value: Array<number> | undefined) {
-    this._hitchTimeData = value;
+  set docompositionList(value: Array<number> | undefined) {
+    this._docompositionList = value;
   }
 
   get funcExpand(): boolean {
@@ -290,11 +268,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   set funcExpand(b: boolean) {
     this.setAttribute('func-expand', b ? 'true' : 'false');
   }
-
   get sticky(): boolean {
     return this.hasAttribute('sticky');
   }
-
   set sticky(fixed: boolean) {
     if (fixed) {
       this.setAttribute('sticky', '');
@@ -302,7 +278,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.removeAttribute('sticky');
     }
   }
-
   get hasParentRowEl(): boolean {
     return this.parentRowEl !== undefined;
   }
@@ -415,14 +390,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   set rowParentId(val) {
     this.setAttribute('row-parent-id', val || '');
-  }
-
-  get namePrefix(): string | undefined | null {
-    return this.getAttribute('name-prefix');
-  }
-
-  set namePrefix(val) {
-    this.setAttribute('name-prefix', val || '');
   }
 
   set rowHidden(val: boolean) {
@@ -561,7 +528,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   getHoverStruct(strict: boolean = true, offset: boolean = false, maxKey: string | undefined = undefined): T | undefined {
     if (this.isHover) {
       if (maxKey) {
-        let arr = this.dataListCache.filter(
+        let arr =  this.dataListCache.filter(
           (re) => re.frame && isFrameContainPoint(re.frame, this.hoverX, this.hoverY, strict, offset)
         ).sort((targetA, targetB) => (targetB as any)[maxKey] - (targetA as any)[maxKey]);
         return arr[0];
@@ -617,33 +584,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
   }
 
-  addRowSampleUpload(): void {
-    this.sampleUploadEl = document.createElement('div');
-    this.sampleUploadEl!.className = 'upload';
-    this.sampleUploadEl!.innerHTML = `
-      <input id="file" class="file" accept="application/json"  type="file" style="display:none;pointer-events:none"/>
-      <label for="file" style="cursor:pointer">
-        <lit-icon class="folder" name="copy-csv" size="19"></lit-icon>
-      </label>
-    `
-    this.jsonFileEl = this.sampleUploadEl!.querySelector('.file') as HTMLInputElement;
-    this.sampleUploadEl!.addEventListener('change', () => {
-      let files = this.jsonFileEl!.files;
-      if (files && files.length > 0) {
-        this.sampleUploadEl!.dispatchEvent(
-          new CustomEvent('sample-file-change', {
-            detail: files[0]
-          })
-        )
-        if (this.jsonFileEl) this.jsonFileEl.value = '';
-      }
-    })
-    this.sampleUploadEl!.addEventListener('click', (e) => {
-      e.stopPropagation();
-    })
-    this.describeEl?.appendChild(this.sampleUploadEl!);
-  }
-
   addChildTraceRowSpecifyLocation(child: TraceRow<any>, index: number) {
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
@@ -663,40 +603,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       }
     }
   }
-
-  sortRenderServiceData(child: TraceRow<BaseStruct>, targetRow: TraceRow<BaseStruct>, threadRowArr: Array<TraceRow<BaseStruct>>, flag: boolean) {
-    if (child.rowType === 'thread') {
-      threadRowArr.push(child);
-    } else {
-      let index: number = threadRowArr.indexOf(targetRow);
-      if (index !== -1) {
-        threadRowArr.splice(index + 1, 0, child);
-      } else {
-        threadRowArr.push(child);
-      }
-    }
-    if (flag) {
-      let order: string[] = ['VSyncGenerator', 'VSync-rs', 'VSync-app', 'render_service', 'Acquire Fence', 'RSHardwareThrea', 'Present Fence'];
-      let filterOrderArr: Array<TraceRow<BaseStruct>> = [];
-      let filterNotOrderArr: Array<TraceRow<BaseStruct>> = [];
-      for (let i = 0; i < threadRowArr.length; i++) {
-        const element: TraceRow<any> = threadRowArr[i];
-        let renderFlag: boolean = element.name.startsWith('render_service') && element.rowId === element.rowParentId ? true : false;
-        if (renderFlag) {
-          filterOrderArr.push(element);
-        } else if (order.includes(element.namePrefix!) && !(element.name.startsWith('render_service'))) {
-          filterOrderArr.push(element);
-        } else if (!(order.includes(element.namePrefix!)) || !renderFlag) {
-          filterNotOrderArr.push(element);
-        }
-      }
-      filterOrderArr.sort((star, next) => {
-        return order.indexOf(star.namePrefix!) - order.indexOf(next.namePrefix!);
-      });
-      let combinedArr = [...filterOrderArr, ...filterNotOrderArr];
-      combinedArr.forEach((item) => { this.addChildTraceRow(item) })
-    }
-  }  
 
   set tip(value: string) {
     if (this.tipEL) {
@@ -975,7 +881,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   initCanvas(list: Array<HTMLCanvasElement>): void {
     let timerShaftEL = document!
-    .querySelector('body > sp-application')!
+      .querySelector('body > sp-application')!
       .shadowRoot!.querySelector('#sp-system-trace')!
       .shadowRoot!.querySelector('div > timer-shaft-element');
     let timerShaftCanvas = timerShaftEL!.shadowRoot!.querySelector<HTMLCanvasElement>('canvas');
@@ -1183,8 +1089,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   loadingPin1: number = 0;
   loadingPin2: number = 0;
-  static currentActiveRows: Array<string> = [];
-
+  static currentActiveRows:Array<string> = [];
   drawFrame(): void {
     if (!this.hasAttribute('row-hidden')) {
       if (!this.loadingFrame || window.isLastFrame || !this.isComplete) {
@@ -1203,16 +1108,16 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             this.dataListCache.push(...this.fixedList);
             this.isComplete = true;
             this.loadingFrame = false;
-            let idx = TraceRow.currentActiveRows.findIndex(it => it === `${this.rowType}-${this.rowId}`);
-            if (idx != -1) {
+            let idx = TraceRow.currentActiveRows.findIndex(it=> it === `${ this.rowType }-${ this.rowId }`)
+            if (idx!=-1){
               TraceRow.currentActiveRows.splice(idx, 1);
             }
             requestAnimationFrame(() => {
               this.onThreadHandler?.(true, null);
-              if (TraceRow.currentActiveRows.isEmpty()) {
-                window.publish(window.SmartEvent.UI.LoadFinish, '');
+              if (TraceRow.currentActiveRows.isEmpty()){
+                window.publish(window.SmartEvent.UI.LoadFinish,"");
               }
-              window.publish(window.SmartEvent.UI.LoadFinishFrame, '');
+              window.publish(window.SmartEvent.UI.LoadFinishFrame,"");
             });
           });
         } else if (this.fixedList.length > 0 && !this.dataListCache.includes(this.fixedList[0])) {
@@ -1222,7 +1127,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.onThreadHandler?.(true, null);
     }
   }
-
   draw(useCache: boolean = false) {
     this.dpr = window.devicePixelRatio || 1;
     if (this.sleeping) {

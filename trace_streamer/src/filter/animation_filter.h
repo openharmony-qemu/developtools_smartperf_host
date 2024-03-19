@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,7 +54,7 @@ private:
     const std::string frameCountCmd_ = "H:Repaint";
     const std::string frameBeginPrefix_ = "H:RSUniRender::Process:[";
     const std::string screenSizeCmd_ = "H:RSUniRender::Process:[SCBDesktop";
-    const std::string frameEndTimeCmd_ = "H:RSMainThread::DoComposition";
+    const DataIndex frameEndTimeCmd_ = traceDataCache_->GetDataIndex("H:RSMainThread::DoComposition");
     std::unordered_set<DataIndex> onAnimationStartEvents_ = {};
     // for update dynamicFrameInfo at the end, first is callStackRow, second is dynamicFramRow
     std::map<uint64_t, uint64_t> callStackRowMap_ = {};

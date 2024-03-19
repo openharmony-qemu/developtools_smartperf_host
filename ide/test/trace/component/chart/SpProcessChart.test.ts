@@ -12,22 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
-import { SpProcessChart } from '../../../../src/trace/component/chart/SpProcessChart';
-import { TraceRow } from "../../../../src/trace/component/trace/base/TraceRow";
-import { ProcessStruct } from "../../../../src/trace/database/ui-worker/ProcedureWorkerProcess";
 
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
-const sqlit = require('../../../../src/trace/database/sql/Func.sql');
-jest.mock('../../../../src/trace/database/sql/Func.sql');
-const processSqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
-const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
-const jankSqlite = require('../../../../src/trace/database/sql/Janks.sql');
-jest.mock('../../../../src/trace/database/sql/Janks.sql');
-const memSqlite = require('../../../../src/trace/database/sql/Memory.sql');
-jest.mock('../../../../src/trace/database/sql/Memory.sql');
+import { SpProcessChart } from '../../../../src/trace/component/chart/SpProcessChart';
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
@@ -36,6 +25,7 @@ const intersectionObserverMock = () => ({
   observe: () => null,
 });
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
@@ -64,7 +54,7 @@ describe('SpProcessChart Test', () => {
       argsetid: 6,
     },
   ]);
-  let processContentCount = processSqlite.queryProcessContentCount;
+  let processContentCount = sqlit.queryProcessContentCount;
   processContentCount.mockResolvedValue([
     {
       pid: 1,
@@ -74,9 +64,9 @@ describe('SpProcessChart Test', () => {
       mem_count: 5,
     },
   ]);
-  let queryProcessThreads = processSqlite.queryProcessThreads;
+  let queryProcessThreads = sqlit.queryProcessThreads;
   queryProcessThreads.mockResolvedValue([]);
-  let queryProcessThreadsByTable = processSqlite.queryProcessThreadsByTable;
+  let queryProcessThreadsByTable = sqlit.queryProcessThreadsByTable;
   queryProcessThreadsByTable.mockResolvedValue([
     {
       pid: 1,
@@ -85,7 +75,7 @@ describe('SpProcessChart Test', () => {
       threadName: 'thread',
     },
   ]);
-  let queryProcessMem = processSqlite.queryProcessMem;
+  let queryProcessMem = sqlit.queryProcessMem;
   queryProcessMem.mockResolvedValue([
     {
       trackId: 1,
@@ -95,14 +85,14 @@ describe('SpProcessChart Test', () => {
       processName: 'processName',
     },
   ]);
-  let queryEventCountMap = sqlite.queryEventCountMap;
+  let queryEventCountMap = sqlit.queryEventCountMap;
   queryEventCountMap.mockResolvedValue([
     {
       eventName: 'eventName',
       count: 1,
     },
   ]);
-  let queryProcess = processSqlite.queryProcess;
+  let queryProcess = sqlit.queryProcess;
   queryProcess.mockResolvedValue([
     {
       pid: 1,
@@ -110,7 +100,7 @@ describe('SpProcessChart Test', () => {
     },
   ]);
 
-  let queryProcessByTable = processSqlite.queryProcessByTable;
+  let queryProcessByTable = sqlit.queryProcessByTable;
   queryProcessByTable.mockResolvedValue([
     {
       pid: 2,
@@ -129,14 +119,14 @@ describe('SpProcessChart Test', () => {
       maxDepth: 2,
     },
   ]);
-  let queryAllJankProcess = jankSqlite.queryAllJankProcess;
+  let queryAllJankProcess = sqlit.queryAllJankProcess;
   queryAllJankProcess.mockResolvedValue([
     {
       pid: 1,
     },
   ]);
 
-  let queryAllExpectedData = sqlite.queryAllExpectedData;
+  let queryAllExpectedData = sqlit.queryAllExpectedData;
   queryAllExpectedData.mockResolvedValue([
     {
       id: 41,
@@ -158,7 +148,7 @@ describe('SpProcessChart Test', () => {
     },
   ]);
 
-  let queryAllActualData = jankSqlite.queryAllActualData;
+  let queryAllActualData = sqlit.queryAllActualData;
   queryAllActualData.mockResolvedValue([
     {
       id: 40,
@@ -188,7 +178,7 @@ describe('SpProcessChart Test', () => {
     },
   ]);
 
-  let queryProcessStartup = processSqlite.queryProcessStartup;
+  let queryProcessStartup = sqlit.queryProcessStartup;
   queryProcessStartup.mockResolvedValue([
     {
       'pid': 3913,
@@ -294,7 +284,7 @@ describe('SpProcessChart Test', () => {
     }
   ]);
 
-  let queryProcessSoInitData = processSqlite.queryProcessSoInitData;
+  let queryProcessSoInitData = sqlit.queryProcessSoInitData;
   queryProcessSoInitData.mockResolvedValue([
     {
       'pid': 3913,
@@ -507,7 +497,7 @@ describe('SpProcessChart Test', () => {
       }
     }
   ]);
-  let processData = processSqlite.queryProcessData;
+  let processData = sqlit.queryProcessData;
   processData.mockResolvedValue([
     {
       cpu: 0, dur: 199000, startTime: 259730000
@@ -516,24 +506,24 @@ describe('SpProcessChart Test', () => {
       cpu: 2, dur: 147000, startTime: 307742000
     }
   ]);
-  let processMemData = processSqlite.queryProcessMemData;
+  let processMemData = sqlit.queryProcessMemData;
   processMemData.mockResolvedValue([
     {
       startTime: 593015789,
-      track_id: 153,
-      ts: 30150767408970,
-      type: 'measure',
-      value: 0
+      track_id : 153,
+      ts : 30150767408970,
+      type : "measure",
+      value : 0
     },
     {
       startTime: 593360060,
-      track_id: 153,
-      ts: 30150767753241,
-      type: 'measure',
-      value: 1
+      track_id : 153,
+      ts : 30150767753241,
+      type : "measure",
+      value : 1
     }
   ]);
-  let maxValue = memSqlite.queryMemFilterIdMaxValue;
+  let maxValue = sqlit.queryMemFilterIdMaxValue;
   maxValue.mockResolvedValue([
     {
       filterId: 1,
@@ -548,40 +538,40 @@ describe('SpProcessChart Test', () => {
   funcNames.mockResolvedValue([
     {
       id: 0,
-      name: 'test'
+      name: "test"
     }
   ]);
 
-  let soInitNames = sqlite.queryAllSoInitNames;
+  let soInitNames = sqlit.queryAllSoInitNames;
   soInitNames.mockResolvedValue([
     {
       id: 1,
-      name: 'soInitName'
+      name: "soInitName"
     }
   ]);
 
-  let allProcessNames = processSqlite.queryAllProcessNames;
+  let allProcessNames = sqlit.queryAllProcessNames;
   allProcessNames.mockResolvedValue([
     {
       id: 2,
-      name: 'processName',
+      name: "processName",
       pid: 256
     }
   ]);
 
-  let srcSlices = sqlite.queryAllSrcSlices;
+  let srcSlices = sqlit.queryAllSrcSlices;
   srcSlices.mockResolvedValue([
     {
       id: 3,
-      src: 'src'
+      src: "src"
     }
   ]);
 
-  let threadNames = processSqlite.queryAllThreadName;
+  let threadNames = sqlit.queryAllThreadName;
   threadNames.mockResolvedValue([
     {
       tid: 4,
-      name: 'threadName'
+      name: "threadName"
     }
   ]);
 
@@ -603,14 +593,12 @@ describe('SpProcessChart Test', () => {
   });
 
   it('SpProcessChart04', function () {
-    let row = new TraceRow<ProcessStruct>();
-    let startUpRow = spProcessChart.addStartUpRow(row);
+    let startUpRow = spProcessChart.addStartUpRow(spProcessChart);
     expect(startUpRow).not.toBeUndefined();
   });
 
   it('SpProcessChart05', function () {
-    let row = new TraceRow<ProcessStruct>();
-    let soInitRow = spProcessChart.addSoInitRow(row, 1);
+    let soInitRow = spProcessChart.addSoInitRow(spProcessChart, 1);
     expect(soInitRow).not.toBeUndefined();
   });
 });

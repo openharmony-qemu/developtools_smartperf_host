@@ -38,7 +38,7 @@ export class TabPanePurgTotalComparisonAbility extends BaseElement {
   public totalData(purgeTotalComParam: SelectionParam | any, dataList: any): void {
     if (this.purgeableTotalTable) {
       //@ts-ignore
-      this.purgeableTotalTable.shadowRoot?.querySelector('.table').style.height = `${
+      this.purgeableTotalTable.shadowRoot.querySelector('.table').style.height = `${
         this.parentElement!.clientHeight - 45
       }px`;
     }

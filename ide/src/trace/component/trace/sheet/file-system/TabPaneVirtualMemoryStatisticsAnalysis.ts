@@ -100,11 +100,10 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
         },
         {
           funcName: 'getCurrentDataFromDb',
-          funcArgs: [{ queryFuncName: 'virtualMemory', ...vmStatisticsAnalysisSelection }],
+          funcArgs: [{queryFuncName: 'virtualMemory', ...vmStatisticsAnalysisSelection}],
         },
       ],
       (results: any[]) => {
-        this.disableCheckBox(results);
         this.getVirtualMemoryProcess(results);
       }
     );
@@ -155,15 +154,6 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     addRowClickEventListener(this.vmStatisticsAnalysisTableType!, this.vmTypeLevelClickEvent.bind(this));
     addRowClickEventListener(this.vmStatisticsAnalysisTableThread!, this.vmThreadLevelClickEvent.bind(this));
     addRowClickEventListener(this.vmStatisticsAnalysisTableSo!, this.vmSoLevelClickEvent.bind(this));
-  }
-  private disableCheckBox(results: Array<any>): void {
-    if (results.length === 0) {
-      this.hideProcessCheckBox?.setAttribute('disabled', 'disabled');
-      this.hideThreadCheckBox?.setAttribute('disabled', 'disabled');
-    } else {
-      this.hideProcessCheckBox?.removeAttribute('disabled');
-      this.hideThreadCheckBox?.removeAttribute('disabled');
-    }
   }
 
   private columnClickEvent(vmTable: LitTable): void {
@@ -541,7 +531,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   private setVmPieChartConfig(): void {
     this.vmPieChart!.config = {
       appendPadding: 0,
-      data: this.getVmPieChartData(this.vmStatisticsAnalysisFunctionData),
+      data: this.getVmPieChartData(this.vmStatisticsAnalysisSoData),
       angleField: 'duration',
       colorField: 'tableName',
       radius: 1,
@@ -830,9 +820,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
       for (let item of value) {
         vmThreadDur += item.dur;
         tName = item.threadName =
-          item.threadName === null || item.threadName === undefined
-            ? `Thread(${item.tid})`
-            : `${item.threadName}(${item.tid})`;
+          item.threadName === null || item.threadName === undefined ? `Thread(${item.tid})` : `${item.threadName}`;
       }
       const threadData = {
         tableName: tName,
@@ -962,7 +950,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
   private setVmPieConfig() {
     this.vmPieChart!.config = {
       appendPadding: 0,
-      data: this.getVmPieChartData(this.vmStatisticsAnalysisSoData),
+      data: this.getVmPieChartData(this.vmStatisticsAnalysisFunctionData),
       angleField: 'duration',
       colorField: 'tableName',
       radius: 1,
@@ -994,12 +982,8 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
 
   private vmFunctionIsAccumulationData(vmProcessData: any, tid: number, pid: number, type: string, libId: number) {
     if (!this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
-      return (
-        vmProcessData.pid !== pid ||
-        vmProcessData.tid !== tid ||
-        vmProcessData.type !== type ||
-        vmProcessData.libId !== libId
-      );
+      return vmProcessData.pid !== pid || vmProcessData.tid !== tid || vmProcessData.type !== type ||
+        vmProcessData.libId !== libId;
     } else if (!this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
       return vmProcessData.pid !== pid || vmProcessData.type !== type || vmProcessData.libId !== libId;
     } else if (this.hideProcessCheckBox?.checked && !this.hideThreadCheckBox?.checked) {
@@ -1092,7 +1076,7 @@ export class TabPaneVirtualMemoryStatisticsAnalysis extends BaseElement {
     procedurePool.submitWithName(
       'logic0',
       'fileSystem-action',
-      { args, callType: 'virtualMemory', isAnalysis: true },
+      {args, callType: 'virtualMemory', isAnalysis: true},
       undefined,
       (results: any) => {
         handler(results);

@@ -13,6 +13,13 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {});
+jest.mock('../../../../src/trace/component/trace/base/TraceSheet', () => {});
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {
+    CurrentSlicesTime: () => {},
+  };
+});
 import {
   drawFlagLine,
   drawLines,
@@ -48,15 +55,10 @@ declare global {
         TimeRange: string; //Set the timeline range
       };
     };
-
     subscribeOnce(evt: string, fn: (b: any) => void): void;
-
     clearTraceRowComplete(): void;
-
     unsubscribe(evt: string, fn: (b: any) => void): void;
-
     publish(evt: string, data: any): void;
-
     subscribe(evt: string, fn: (b: any) => void): void;
   }
 }
@@ -75,19 +77,7 @@ Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);
 Window.prototype.publish = (ev, data) => EventCenter.publish(ev, data);
 Window.prototype.subscribeOnce = (ev, data) => EventCenter.subscribeOnce(ev, data);
 Window.prototype.clearTraceRowComplete = () => EventCenter.clearTraceRowComplete();
-jest.mock('../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  TraceRow:{
-    range:{
-      startNS: 64;
-      endNS: 25453;
-      totalNS: 333;
-    }
-    ;
-  }
-});
+
 describe('ProcedureWorkerCommon Test', () => {
   let rect = new Rect();
   let fullData = [
@@ -116,7 +106,7 @@ describe('ProcedureWorkerCommon Test', () => {
       cpu: 0,
       dur: 69444,
       end_state: 'sR',
-      frame: {y: 15, height: 10, x: 13, width: 34},
+      frame: { y: 15, height: 10, x: 13, width: 34 },
       id: 4,
       name: 'test',
       priority: 23,
@@ -137,12 +127,16 @@ describe('ProcedureWorkerCommon Test', () => {
     startNS: 20,
     endNS: 1000,
     totalNS: 2000,
-    frame: {x: 10, y: 10},
+    frame: { x: 10, y: 10 },
     paddingTop: 5,
     useCache: true,
   };
 
   let timerShaftElement = document.createElement('timer-shaft-element');
+  timerShaftElement.totalNS = 1000;
+  timerShaftElement.startNS = 1000;
+  timerShaftElement.endNS = 2000;
+  timerShaftElement.setRangeNS(1522, 5222);
   timerShaftElement.getBoundingClientRect = jest.fn(() => {
     return {
       width: 648,
@@ -246,11 +240,11 @@ describe('ProcedureWorkerCommon Test', () => {
   });
 
   it('ProcedureWorkerCommon26', function () {
-    expect(ns2x(10, 1, 0, 1, {width: 2})).toBe(2);
+    expect(ns2x(10, 1, 0, 1, { width: 2 })).toBe(2);
   });
 
   it('ProcedureWorkerCommon27', function () {
-    expect(ns2x(-10, 1, 0, 1, {width: 2})).toBe(0);
+    expect(ns2x(-10, 1, 0, 1, { width: 2 })).toBe(0);
   });
 
   it('ProcedureWorkerCommon28', function () {
@@ -317,7 +311,7 @@ describe('ProcedureWorkerCommon Test', () => {
         cpu: 3,
         dur: 9031110,
         end_state: 'R',
-        frame: {y: 0, height: 60, x: 31, width: 3},
+        frame: { y: 0, height: 60, x: 31, width: 3 },
         id: 9,
         name: 'test',
         priority: 120,
@@ -352,12 +346,105 @@ describe('ProcedureWorkerCommon Test', () => {
       startNS: 20,
       endNS: 1000,
       totalNS: 2000,
-      frame: {x: 10, y: 10},
+      frame: { x: 10, y: 10 },
       paddingTop: 5,
       useCache: false,
     };
     let dataFilter = dataFilterHandler(fullData, filterData, condition);
     expect(dataFilter).toBeUndefined();
+  });
+
+  it('ProcedureWorkerCommon34', function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    const hoverFlag = {
+      x: 300,
+      y: 300,
+      width: 1300,
+      height: 1030,
+      time: 2550,
+      color: 'red',
+      selected: false,
+      text: 'test',
+      hidden: false,
+      type: 'type',
+    };
+    const selectFlag = {
+      x: 180,
+      y: 180,
+      width: 800,
+      height: 80,
+      time: 258,
+      color: 'green',
+      selected: false,
+      text: 'test',
+      hidden: false,
+      type: 'type',
+    };
+    TraceRow.range = {
+      startNS: 64,
+      endNS: 25453,
+      totalNS: 333,
+    };
+    let data = {
+      sportRuler: {
+        slicesTimeList: [
+          {
+            startTime: 11,
+            endTime: 22,
+            color: '#dadada',
+          },
+          {
+            startTime: 33,
+            endTime: 66,
+            color: '#dadada',
+          },
+        ],
+      },
+    };
+    expect(
+      drawFlagLineSegment(
+        ctx,
+        hoverFlag,
+        selectFlag,
+        {
+          y: 15,
+          height: 10,
+          x: 11,
+          width: 53,
+        },
+        data
+      )
+    ).toBeUndefined();
+  });
+
+  it('ProcedureWorkerCommon35', function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d');
+    let params = {
+      rangeSelect: true,
+      rangeSelectObject: {
+        startX: 71,
+        endX: 100,
+        startNS: 61,
+        endNS: 100,
+      },
+      startNS: 401,
+      endNS: 190,
+      totalNS: 999,
+      frame: {
+        y: 3,
+      },
+    };
+    TraceRow.rangeSelectObject = {
+      startX: 125,
+      endX: 25226,
+    };
+    expect(drawSelectionRange(context, params)).toBeUndefined();
   });
   it('ProcedureWorkerCommon37', function () {
     const canvas = document.createElement('canvas');
@@ -365,17 +452,17 @@ describe('ProcedureWorkerCommon Test', () => {
     canvas.height = 1;
     const context = canvas.getContext('2d');
     let tm = {
-      getRange: jest.fn(() => true),
-      getBoundingClientRect: jest.fn(() => true),
+      getRange:jest.fn(()=>true),
+      getBoundingClientRect:jest.fn(()=>true),
     };
-    expect(drawLinkLines(context, [], tm, true)).toBeUndefined();
+    expect(drawLinkLines(context,[],tm,true)).toBeUndefined();
   });
   it('ProcedureWorkerCommon38', function () {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
     const context = canvas.getContext('2d');
-    expect(drawString2Line(context, [], [], 2, [], [])).toBeUndefined();
+    expect(drawString2Line(context,[],[],2,[],[])).toBeUndefined();
   });
   it('ProcedureWorkerCommon39', function () {
     const canvas = document.createElement('canvas');
@@ -383,9 +470,9 @@ describe('ProcedureWorkerCommon Test', () => {
     canvas.height = 1;
     const context = canvas.getContext('2d');
     let wake = {
-      wakeupTime: 23,
+      wakeupTime:23,
     };
     let frame = new Rect(20, 30, 10, 30);
-    expect(drawWakeUpList(context, wake, 0, 1000, 1000, frame, true, undefined, false)).toBeUndefined();
+    expect(drawWakeUpList(context,wake,0,1000,1000,frame,true,undefined,false)).toBeUndefined();
   });
 });

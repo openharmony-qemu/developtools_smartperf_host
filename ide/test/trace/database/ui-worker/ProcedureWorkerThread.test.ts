@@ -20,9 +20,8 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 });
 
 import { thread, ThreadStruct, ThreadRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerThread';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+
 describe('ProcedureWorkerThread Test', () => {
   let frame = {
     x: 0,

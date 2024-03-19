@@ -13,17 +13,10 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
 
-jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
 import {
   EnergyPowerStruct,
   EnergyPowerRender,
@@ -60,10 +53,6 @@ describe('ProcedureWorkerEnergyPower Test', () => {
     let row = { frame: 20 };
     EnergyPowerStruct.drawHistogram = jest.fn(() => true);
     EnergyPowerStruct.drawPolyline = jest.fn(() => true);
-    TraceRow.range = jest.fn(() => true);
-    TraceRow.range!.startNS = jest.fn(() => 0);
-    TraceRow.range!.endNS = jest.fn(() => 27763331331);
-    TraceRow.range!.totalNS = jest.fn(() => 27763331331);
     expect(EnergyPowerStruct.draw(req, 3, data, row)).toBeUndefined();
   });
 
@@ -146,6 +135,58 @@ describe('ProcedureWorkerEnergyPower Test', () => {
   });
 
   it('ProcedureWorkerEnergyPowerTest14', function () {
+    let energyPowerRender = new EnergyPowerRender();
+    let energyPowerReq = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 1,
+      endNS: 8,
+      totalNS: 7,
+      frame: {
+        x: 90,
+        y: 20,
+        width: 1011,
+        height: 100,
+      },
+      useCache: false,
+      range: {
+        refresh: '',
+      },
+      canvas: 'c',
+      context: {
+        font: '10px sans-serif',
+        fillStyle: '#ec407a',
+        globalAlpha: 0.8,
+        canvas: {
+          clientWidth: 14,
+        },
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        fillRect: jest.fn(() => false),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+      },
+      lineColor: '#ffffff',
+      isHover: '',
+      hoverX: 1,
+      params: '21',
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 5,
+      id: 1,
+      x: 20,
+      y: 20,
+      width: 80,
+      height: 80,
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(energyPowerRender.render(energyPowerReq, [], [])).toBeUndefined();
+  });
+
+  it('ProcedureWorkerEnergyPowerTest15', function () {
     let frame = {
       x: 50,
       y: 33,
@@ -163,7 +204,7 @@ describe('ProcedureWorkerEnergyPower Test', () => {
     power(energyPowerDataList, [{ length: 1 }], 1, 3, 2, frame, true, '');
   });
 
-  it('ProcedureWorkerEnergyPowerTest15', function () {
+  it('ProcedureWorkerEnergyPowerTest16', function () {
     let frame = {
       x: 98,
       y: 90,

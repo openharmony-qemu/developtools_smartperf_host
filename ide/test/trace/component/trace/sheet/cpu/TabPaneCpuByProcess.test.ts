@@ -14,6 +14,8 @@
  */
 
 import { TabPaneCpuByProcess } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneCpuByProcess';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -22,15 +24,9 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
-  return {};
-});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });

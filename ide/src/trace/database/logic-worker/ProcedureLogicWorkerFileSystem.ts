@@ -356,9 +356,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             from file_system_sample A, trace_range B
             left join process C on A.ipid = C.id
             left join thread D on A.itid = D.id
-            where A.type in (${types}) 
-            and (A.end_ts - B.start_ts) >= $leftNS 
-            and (A.start_ts - B.start_ts) <= $rightNS
+            where A.type in (${types}) and( (A.end_ts - B.start_ts) between $leftNS and $rightNS )
             order by A.end_ts;`;
   }
   private queryFileSysEventsSQL2(types: string): string {
@@ -371,9 +369,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
                     ifnull(C.name,'Process') || '[' || C.pid || ']' as process
             from file_system_sample A, trace_range B
             left join process C on A.ipid = C.id
-            where A.type in (${types}) and fd not null 
-            and (A.start_ts - B.start_ts) <= $rightNS 
-            and (A.end_ts - B.start_ts) >= $leftNS 
+            where A.type in (${types}) and fd not null and( (A.start_ts - B.start_ts) between $leftNS and $rightNS )
             order by A.end_ts;`;
   }
   private queryFileSysEventsSQL3(rightNs: number): string {
@@ -389,10 +385,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
                     max(case when type = 0 then A.end_ts else 0 end) as openTs,
                     max(case when type = 1 then A.end_ts else 0 end) as closeTs
                 from file_system_sample A
-                where type in (0, 1) 
-                and A.end_ts >= $leftNS
-                and A.start_ts <= $rightNS
-                group by fd, ipid
+                where type in (0, 1) and A.end_ts between $leftNS and $rightNS group by fd, ipid
                 ) TA
             left join file_system_sample TB on TA.fd = TB.fd and TA.ipid = TB.ipid and TA.openTs = TB.end_ts
             left join process TC on TB.ipid = TC.ipid
@@ -416,7 +409,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             left join process C on A.ipid = C.id
             left join thread T on T.id = A.itid 
             where (
-                (A.end_ts - B.start_ts) >= $leftNS and (A.start_ts - B.start_ts) <= $rightNS
+                (A.end_ts - B.start_ts) between $leftNS and $rightNS
             );`;
     this.queryData(this.currentEventId, 'fileSystem-queryVMEvents', sql, {
       $leftNS: leftNs,
@@ -447,7 +440,7 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
             left join process C on A.ipid = C.id
             left join thread T on T.id = A.itid 
             where (
-                (A.end_ts - B.start_ts) >= $leftNS and (A.start_ts - B.start_ts) <= $rightNS
+                (A.end_ts - B.start_ts) between $leftNS and $rightNS
             ) ${ipidsSql};`;
     this.queryData(this.currentEventId, 'fileSystem-queryIOEvents', sql, {
       $leftNS: leftNs,
@@ -692,9 +685,7 @@ class FileSystemCallTreeHandler {
       `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from file_system_sample s,trace_range t 
 left join process p on p.id = s.ipid  
 left join thread h on h.id = s.itid 
-where s.end_ts >= ${selectionParam.leftNs} + t.start_ts 
-and s.start_ts <= ${selectionParam.rightNs} + t.start_ts 
-${sqlFilter} and callchain_id != -1;`,
+where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -728,10 +719,7 @@ ${sqlFilter} and callchain_id != -1;`,
       `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.latency_dur as dur,s.type,p.pid,p.name as processName from bio_latency_sample s,trace_range t
 left join process p on p.id = s.ipid
 left join thread h on h.id = s.itid
-where s.end_ts >= ${selectionParam.leftNs} + t.start_ts 
-and s.start_ts <= ${selectionParam.rightNs} + t.start_ts 
-${sqlFilter} 
-and callchain_id != -1;`,
+where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -758,8 +746,7 @@ and callchain_id != -1;`,
       `select s.start_ts - t.start_ts as ts, s.callchain_id as callChainId,h.tid,h.name as threadName,s.dur,s.type,p.pid,p.name as processName from paged_memory_sample s,trace_range t 
 left join process p on p.id = s.ipid  
 left join thread h on h.id = s.itid 
-where s.end_ts >= ${selectionParam.leftNs} + t.start_ts 
-and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
+where s.end_ts between ${selectionParam.leftNs} + t.start_ts and ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callchain_id != -1;`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -776,18 +763,11 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
     samples.forEach((sample: FileSample): void => {
       totalCount += sample.dur;
       let callChains = this.createThreadAndType(sample);
-      let minDepth = 2;
-      if (this.isHideEvent){
-        minDepth--;
-      }
-      if (this.isHideThread){
-        minDepth--;
-      }
-      if (callChains.length === minDepth) {
+      if (callChains.length === 2) {
         return;
       }
       let topIndex = isTopDown ? 0 : callChains.length - 1;
-      if (callChains.length > 0) {
+      if (callChains.length > 1) {
         let root =
           this.currentTreeMapData[callChains[topIndex].symbolsId + '' + callChains[topIndex].pathId + sample.pid];
         if (root === undefined) {
@@ -797,9 +777,7 @@ and s.start_ts <= ${selectionParam.rightNs} + t.start_ts ${sqlFilter} and callch
           this.currentTreeList.push(root);
         }
         FileMerageBean.merageCallChainSample(root, callChains[topIndex], sample, false);
-        if (callChains.length > 1){
-          this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
-        }
+        this.merageChildrenByIndex(root, callChains, topIndex, sample, isTopDown);
       }
     });
     let rootMerageMap = this.mergeNodeData(totalCount);
@@ -1083,7 +1061,7 @@ export class FileMerageBean extends MerageBean {
       currentNode.canCharge = true;
       currentNode.pathId = callChain.pathId;
       currentNode.symbolsId = callChain.symbolsId;
-      currentNode.processName = `${sample.processName || 'Process'} (${sample.pid})`;
+      currentNode.processName = `${sample.processName || 'Process'} ${sample.pid})`;
     }
     if (isEnd) {
       currentNode.selfDur += sample.dur;

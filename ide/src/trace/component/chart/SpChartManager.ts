@@ -41,18 +41,15 @@ import { FlagsConfig } from '../SpFlags';
 import { SpLogChart } from './SpLogChart';
 import { SpHiSysEventChart } from './SpHiSysEventChart';
 import { SpAllAppStartupsChart } from './SpAllAppStartups';
-import { procedurePool } from '../../database/Procedure';
-import { SpSegmentationChart } from './SpSegmentationChart';
+import {procedurePool} from "../../database/Procedure";
 import {
   queryAppStartupProcessIds,
   queryDataDICT,
   queryThreadAndProcessName
-} from '../../database/sql/ProcessThread.sql';
-import { queryTaskPoolCallStack, queryTotalTime } from '../../database/sql/SqlLite.sql';
-import { getCpuUtilizationRate } from '../../database/sql/Cpu.sql';
-import { queryMemoryConfig } from '../../database/sql/Memory.sql';
-import { SpLtpoChart } from './SpLTPO';
-import { SpBpftraceChart } from './SpBpftraceChart';
+} from "../../database/sql/ProcessThread.sql";
+import {queryTaskPoolCallStack, queryTotalTime} from "../../database/sql/SqlLite.sql";
+import {getCpuUtilizationRate} from "../../database/sql/Cpu.sql";
+import {queryMemoryConfig} from "../../database/sql/Memory.sql";
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -73,13 +70,10 @@ export class SpChartManager {
   private clockChart: SpClockChart;
   private irqChart: SpIrqChart;
   private spAllAppStartupsChart!: SpAllAppStartupsChart;
-  private SpLtpoChart!: SpLtpoChart;
   frameTimeChart: SpFrameTimeChart;
   public arkTsChart: SpArkTsChart;
   private logChart: SpLogChart;
   private spHiSysEvent: SpHiSysEventChart;
-  private spSegmentationChart: SpSegmentationChart;
-  private spBpftraceChart: SpBpftraceChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -102,9 +96,6 @@ export class SpChartManager {
     this.logChart = new SpLogChart(trace);
     this.spHiSysEvent = new SpHiSysEventChart(trace);
     this.spAllAppStartupsChart = new SpAllAppStartupsChart(trace);
-    this.SpLtpoChart = new SpLtpoChart(trace);
-    this.spSegmentationChart = new SpSegmentationChart(trace);
-    this.spBpftraceChart = new SpBpftraceChart(trace);
   }
 
   async init(progress: Function) {
@@ -131,9 +122,6 @@ export class SpChartManager {
     progress('cpu', 70);
     await this.cpu.init();
     info('initData cpu Data initialized');
-    if (FlagsConfig.getFlagsConfigEnableStatus('Bpftrace')) {
-      await this.spBpftraceChart.init(null);
-    }
     progress('process/thread state', 73);
     await this.cpu.initProcessThreadStateData(progress);
     if (FlagsConfig.getFlagsConfigEnableStatus('SchedulingAnalysis')) {
@@ -158,9 +146,6 @@ export class SpChartManager {
     progress('Irq init', 84);
     await this.irqChart.init();
     info('initData Irq Data initialized');
-    progress('SpSegmentationChart inin', 84.5);
-    await this.spSegmentationChart.init();
-    info('initData Segmentation initialized');
     await this.virtualMemChart.init();
     info('initData virtualMemChart initialized');
     progress('fps', 85);
@@ -191,21 +176,15 @@ export class SpChartManager {
     progress('ark ts', 90);
     await this.arkTsChart.initFolder();
     info('initData ark ts initialized');
-    await this.spAllAppStartupsChart.init();
-    await this.SpLtpoChart.init();
     await this.frameTimeChart.init();
     info('initData frameTimeLine initialized');
+    await this.spAllAppStartupsChart.init();
     progress('process', 92);
     await this.process.initAsyncFuncData();
     await this.process.initDeliverInputEvent();
     await this.process.init();
     info('initData Process Data initialized');
     progress('display', 95);
-  }
-
-  async initSample(ev: File) {
-    await this.initSampleTime();
-    await this.spBpftraceChart.init(ev);
   }
 
   async importSoFileUpdate() {
@@ -251,21 +230,6 @@ export class SpChartManager {
     }
   };
 
-  initSampleTime = async () => {
-    if (this.trace.timerShaftEL) {
-      let total = 30_000_000_000;
-      let startNS = 0;
-      let endNS = 30_000_000_000;
-      this.trace.timerShaftEL.totalNS = total;
-      this.trace.timerShaftEL.getRangeRuler()!.drawMark = true;
-      this.trace.timerShaftEL.setRangeNS(0, total);
-      (window as any).recordStartNS = startNS;
-      (window as any).recordEndNS = endNS;
-      (window as any).totalNS = total;
-      this.trace.timerShaftEL.loadComplete = true;
-    }
-  };
-
   initCpuRate = async () => {
     let rates = await getCpuUtilizationRate(0, this.trace.timerShaftEL?.totalNS || 0);
     if (this.trace.timerShaftEL) this.trace.timerShaftEL.cpuUsage = rates;
@@ -282,11 +246,11 @@ export class SpChartManager {
   };
 
   async cacheDataDictToWorker(): Promise<void> {
-    return new Promise((resolve) => {
+    return  new Promise((resolve) => {
       procedurePool.submitWithName(
         'logic0',
         'cache-data-dict',
-        {dataDict: SpSystemTrace.DATA_DICT},
+        { dataDict: SpSystemTrace.DATA_DICT },
         undefined,
         (res: any) => {
           resolve();

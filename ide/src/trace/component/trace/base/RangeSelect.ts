@@ -19,8 +19,7 @@ import { TimerShaftElement } from '../TimerShaftElement';
 import { info } from '../../../../log/Log';
 import './Extension';
 import { SpSystemTrace } from '../../SpSystemTrace';
-import { fuzzyQueryFuncRowData, queryFuncRowData } from '../../../database/sql/Func.sql';
-import { SpLtpoChart } from '../../chart/SpLTPO';
+import {querySearchRowFuncData} from "../../../database/sql/Func.sql";
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
@@ -50,11 +49,11 @@ export class RangeSelect {
   }
 
   isInRowsEl(ev: MouseEvent): boolean {
-    return this.rowsPaneEL!.containPoint(ev, {left: 248});
+    return this.rowsPaneEL!.containPoint(ev, { left: 248 });
   }
 
   isInSpacerEL(ev: MouseEvent): boolean {
-    return this.trace!.favoriteChartListEL!.containPoint(ev, {left: 248});
+    return this.trace!.favoriteChartListEL!.containPoint(ev, { left: 248 });
   }
 
   mouseDown(eventDown: MouseEvent): void {
@@ -69,92 +68,40 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
   }
 
-  mouseUp(mouseEventUp?: MouseEvent): void {
-    if (mouseEventUp) {
-      this.endPageX = mouseEventUp.pageX;
-      this.endPageY = mouseEventUp.pageY;
-    }
+  mouseUp(mouseEventUp: MouseEvent): void {
+    this.endPageX = mouseEventUp.pageX;
+    this.endPageY = mouseEventUp.pageY;
     if (this.drag) {
       if (this.selectHandler) {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }
-      //查询render_service数据
-      if (this.rangeTraceRow?.length) {
-        // 如果框选的第一行和最后一行的父节点名称都以render_service开头
+      //如果只框选了一条泳道，查询H:RSMainThread::DoComposition数据
+      let docompositionData: Array<number> = [];
+      if (this.rangeTraceRow) {
+        this.rangeTraceRow.forEach((row) => {
+          row.docompositionList = [];
+        });
+        docompositionData = [];
         if (
-          this.rangeTraceRow[0]!.parentRowEl?.getAttribute('name')?.startsWith('render_service') &&
-          this.rangeTraceRow[this.rangeTraceRow.length - 1].parentRowEl?.getAttribute('name')?.startsWith('render_service')
+          this.rangeTraceRow.length === 1 &&
+          this.rangeTraceRow[0]?.getAttribute('row-type') === 'func' &&
+          this.rangeTraceRow[0]?.getAttribute('name')?.startsWith('render_service')
         ) {
-          this.handleFrameRateData(this.rangeTraceRow!, 'render_service', 'H:RSMainThread::DoComposition');
-          this.handleFrameRateData(this.rangeTraceRow!, 'RSHardwareThrea', 'H:Repaint');
-          this.handleFrameRateData(this.rangeTraceRow!, 'Present', 'H:Waiting for Present Fence');
+          querySearchRowFuncData(
+            'H:RSMainThread::DoComposition',
+            Number(this.rangeTraceRow[0]?.getAttribute('row-id')),
+            TraceRow.rangeSelectObject!.startNS!,
+            TraceRow.rangeSelectObject!.endNS!
+          ).then((res) => {
+            res.forEach((item) => {
+              docompositionData.push(item.startTime!);
+            });
+            this.rangeTraceRow![0].docompositionList = docompositionData;
+          });
         }
       }
     }
     this.isMouseDown = false;
-  }
-
-  // 根据框选行和方法名查询数据
-  handleFrameRateData(rowList: Array<TraceRow<any>>, rowName: string, funcName: string): void {
-    let dataList: Array<number> = [];
-    for (let i = 0; i < rowList.length; i++) {
-      if (rowList[i].getAttribute('row-type') === 'func') {
-        if (rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
-          queryFuncRowData(
-            funcName,
-            Number(rowList[i]?.getAttribute('row-id')),
-            TraceRow.rangeSelectObject!.startNS!,
-            TraceRow.rangeSelectObject!.endNS!,
-          ).then((res) => {
-            if (res.length >= 2) {
-              res.forEach((item) => {
-                dataList.push(item.startTime!);
-              });
-              rowList[i].frameRateList = dataList;
-            }
-          });
-        }
-        if (rowName === 'Present' && rowList[i]?.getAttribute('name')?.startsWith(rowName)) {
-          this.handlePresentData(rowList[i], funcName);
-        }
-        if (dataList.length) {
-          break;
-        }
-      }
-    }
-  }
-
-  // 处理框选时Present Fence线程的数据
-  handlePresentData(currentRow: TraceRow<any>, funcName: string): void {
-    let dataList: Array<number> = [];
-    fuzzyQueryFuncRowData(
-      funcName,
-      Number(currentRow?.getAttribute('row-id')),
-      TraceRow.rangeSelectObject!.startNS!,
-      TraceRow.rangeSelectObject!.endNS!,
-    ).then((res) => {
-      if (res.length >= 2) {
-        res.forEach((item) => {
-          dataList.push(item.endTime!);
-        });
-        currentRow.frameRateList = dataList;
-        if (currentRow.frameRateList.length >= 2) {
-          let hitchTimeList: Array<number> = [];
-          for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
-            if (SpLtpoChart.sendHitchDataArr[i].startTs! >= dataList[0]
-              &&
-              SpLtpoChart.sendHitchDataArr[i].startTs! < dataList[dataList.length - 1]) {
-              hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
-            } else if (
-              SpLtpoChart.sendHitchDataArr[i].startTs! >= dataList[dataList.length - 1]
-            ) {
-              break;
-            }
-          }
-          currentRow.hitchTimeData = hitchTimeList;
-        }
-      }
-    });
   }
 
   isDrag(): boolean {
@@ -214,7 +161,7 @@ export class RangeSelect {
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
     this.rangeTraceRow = rows.filter((it) => {
       let domRect = it.getBoundingClientRect();
-      let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
+      let itRect = {x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height};
       if (itRect.y < favoriteLimit && !it.collect) {
         let offset = favoriteLimit - itRect.y;
         itRect.y = itRect.y + offset;
@@ -253,12 +200,9 @@ export class RangeSelect {
       }
     });
     if (this.rangeTraceRow && this.rangeTraceRow.length) {
-      if (this.rangeTraceRow[0].parentRowEl) {
-        for (let i = 0; i < this.rangeTraceRow[0].parentRowEl.childrenList.length; i++) {
-          this.rangeTraceRow[0].parentRowEl.childrenList[i].frameRateList = [];
-          this.rangeTraceRow[0].parentRowEl.childrenList[i].hitchTimeData = [];
-        }
-      }
+      this.rangeTraceRow!.forEach((row) => {
+        row.docompositionList = [];
+      });
     }
   }
 
@@ -314,7 +258,7 @@ export class RangeSelect {
       ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
         (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
-    this.mark = { startMark: x1, endMark: x2 };
+    this.mark = {startMark: x1, endMark: x2};
     let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;
     if (mouseX > x1 - 5 && mouseX < x1 + 5) {
       this.isHover = true;

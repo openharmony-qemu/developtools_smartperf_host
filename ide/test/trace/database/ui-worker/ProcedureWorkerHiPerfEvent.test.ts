@@ -15,7 +15,7 @@
 import {
   HiPerfEventStruct,
   HiperfEventRender,
-} from '../../../../src/trace/database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfEvent';
 import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
@@ -130,15 +130,15 @@ describe('ProcedureWorkerHiPerfEvent Test', () => {
         stroke: jest.fn(() => true),
         closePath: jest.fn(() => true),
       },
+      lineColor: '',
       isHover: '',
       hoverX: 1,
-      id: 1,
       params: '',
       wakeupBean: undefined,
       flagMoveInfo: '',
       flagSelectedInfo: '',
       slicesTime: 3,
-      lineColor: '',
+      id: 1,
       x: 20,
       y: 20,
       width: 100,
@@ -151,10 +151,10 @@ describe('ProcedureWorkerHiPerfEvent Test', () => {
   it('ProcedureWorkerHiPerfEventTest09', function () {
     let dataList = new Array();
     dataList.push({
-      length: 1,
-      dur: 10,
-      frame: { x: 0, y: 9, width: 10, height: 10 },
       startNS: 0,
+      dur: 10,
+      length: 1,
+      frame: { x: 0, y: 9, width: 10, height: 10 },
     });
     dataList.push({ startNS: 1, dur: 2, length: 1 });
     hiPerf(dataList, [{ length: 0 }], dataList, 8, 3, '', false, 1, false);

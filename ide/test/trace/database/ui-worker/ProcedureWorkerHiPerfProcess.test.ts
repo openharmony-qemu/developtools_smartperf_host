@@ -19,12 +19,10 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 });
 import {
   HiPerfProcessStruct,
-  HiperfProcessRender2,
-} from '../../../../src/trace/database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
+  HiperfProcessRender,
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfProcess';
 import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerHiPerfProcess Test', () => {
   it('ProcedureWorkerHiPerfProcessTest01', () => {
     const data = {
@@ -71,7 +69,7 @@ describe('ProcedureWorkerHiPerfProcess Test', () => {
   });
 
   it('ProcedureWorkerHiPerfProcessTest05', function () {
-    let hiperfProcessRender = new HiperfProcessRender2();
+    let hiperfProcessRender = new HiperfProcessRender();
     let hiperfProcessReq = {
       lazyRefresh: true,
       type: '',
@@ -121,7 +119,7 @@ describe('ProcedureWorkerHiPerfProcess Test', () => {
     expect(hiperfProcessRender.render(hiperfProcessReq, [], [], [])).toBeUndefined();
   });
   it('ProcedureWorkerHiPerfProcessTest06', function () {
-    let hiperfProcessRender = new HiperfProcessRender2();
+    let hiperfProcessRender = new HiperfProcessRender();
     let canvas = document.createElement('canvas') as HTMLCanvasElement;
     let context = canvas.getContext('2d');
     const data = {

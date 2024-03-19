@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,27 +33,6 @@
 #include "string_help.h"
 #include "ts_common.h"
 
-namespace {
-const std::string UPDATE_MEM_PROC_NAME =
-    "update process set name = (select name from thread t where t.ipid = process.id and t.name is not null and "
-    "is_main_thread = 1)";
-const std::string CREATE_MEM_ARGS_VIEW =
-    "create view args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
-    "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on "
-    "(D.typeId "
-    "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
-// notice 'systuning_export' is 'ATTACH DATABASE name'
-const std::string CREATE_EXPORT_DB_ARGS_VIEW =
-    "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
-    "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on (D.typeId "
-    "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
-const std::string CREATE_BATCH_EXPORT_DB_ARGS_VIEW =
-    "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
-    "A.datatype==1 then V.data else A.value end) as strValue from args_ as A left join data_type_ as D on "
-    "(D.typeId "
-    "= A.datatype) left join data_dict_ as V on V.id = A.value left join data_dict_ as V2 on V2.id = A.key";
-} // namespace
-
 namespace SysTuning {
 namespace TraceStreamer {
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
@@ -78,12 +57,8 @@ TraceDataDB::TraceDataDB() : db_(nullptr)
         TS_LOGF("open :memory db failed");
     }
     ts_create_extend_function(db_);
-    InitTableToCompletedSize();
 }
-void TraceDataDB::InitTableToCompletedSize()
-{
-    tableToCompletedSize_.insert({"measure", 0});
-}
+
 TraceDataDB::~TraceDataDB()
 {
     sqlite3_close(db_);
@@ -160,9 +135,6 @@ void TraceDataDB::CloseBatchDB()
 }
 int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
 {
-    // for update mem db
-    ExecuteSql(UPDATE_MEM_PROC_NAME);
-    // for drop mem db to disk db
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
     if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
@@ -178,17 +150,20 @@ int32_t TraceDataDB::BatchExportDatabase(const std::string& outputName)
                 std::string clearSql("DELETE FROM systuning_export." + (*itor) + "_");
                 ExecuteSql(clearSql);
             }
-            if (tableToCompletedSize_.count(*itor)) {
-                std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor +
-                                      " LIMIT " + std::to_string(tableToCompletedSize_.at(*itor)));
-                ExecuteSql(exportSql);
-            } else {
-                std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
-                ExecuteSql(exportSql);
-            }
+            std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
         }
     }
-    ExecuteSql(CREATE_BATCH_EXPORT_DB_ARGS_VIEW);
+    std::string createArgsView =
+        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+        "A.datatype==1 then V.data else A.value end) as strValue from args_ as A left join data_type_ as D on "
+        "(D.typeId "
+        "= A.datatype) left join data_dict_ as V on V.id = A.value left join data_dict_ as V2 on V2.id = A.key";
+    ExecuteSql(createArgsView);
+    std::string updateProcessName =
+        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not null and "
+        "is_main_thread = 1)";
+    ExecuteSql(updateProcessName);
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
     return 0;
@@ -226,7 +201,6 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
         close(fd);
     }
 
-    ExecuteSql(UPDATE_MEM_PROC_NAME);
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
 #ifdef _WIN32
     if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
@@ -234,6 +208,7 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
     }
 #endif
     ExecuteSql(attachSql);
+
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
@@ -242,7 +217,15 @@ int32_t TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBac
             ExecuteSql(exportSql);
         }
     }
-    ExecuteSql(CREATE_EXPORT_DB_ARGS_VIEW);
+    std::string createArgsView =
+        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+        "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on (D.typeId "
+        "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
+    ExecuteSql(createArgsView);
+    std::string updateProcessName =
+        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not null and "
+        "is_main_thread = 1)";
+    ExecuteSql(updateProcessName);
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
 
@@ -263,8 +246,18 @@ void TraceDataDB::Prepare()
         "update thread set ipid = \
         (select id from process where \
         thread.tid = process.pid) where thread.ipid is null;");
-    ExecuteSql(CREATE_MEM_ARGS_VIEW);
-    ExecuteSql(UPDATE_MEM_PROC_NAME);
+    std::string createArgsView =
+        "create view args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+        "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on "
+        "(D.typeId "
+        "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
+    ExecuteSql(createArgsView);
+
+    std::string updateProcessNewName =
+        "update process set name =  (select name from thread t where t.ipid = process.id and t.name is not "
+        "null and "
+        "is_main_thread = 1)";
+    ExecuteSql(updateProcessNewName);
 }
 void TraceDataDB::ExecuteSql(const std::string_view& sql)
 {
@@ -361,7 +354,10 @@ int32_t TraceDataDB::SearchDatabase(std::string& sql, bool print)
     int32_t rowCount = 0;
     sqlite3_stmt* stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
-    printf("Executing sql: %s\n", sql.c_str());
+    if (sql.back() != '\n') {
+        sql += "\r\n";
+    }
+    printf("Executing sql: %s", sql.c_str());
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
         return 0;

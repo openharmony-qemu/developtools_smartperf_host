@@ -67,7 +67,12 @@ export class TabPanePTS extends BaseElement {
             this.ptsTbl!.setStatus(data, false);
             this.ptsTbl!.recycleDs = this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('Thread') && i === 1) {
-            this.ptsTbl!.setStatus(data, false, 0, 1);
+            for (let item of data) {
+              item.status = true;
+              if (item.children != undefined && item.children.length > 0) {
+                this.ptsTbl!.setStatus(item.children, false);
+              }
+            }
             this.ptsTbl!.recycleDs = this.ptsTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
           } else if (label.includes('State') && i === 2) {
             this.ptsTbl!.setStatus(data, true);

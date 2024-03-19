@@ -14,11 +14,11 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
-import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
-import { getTabPaneFilesystemStatistics } from '../../../../database/sql/SqlLite.sql';
+import {getTabPaneFilesystemStatistics} from "../../../../database/sql/SqlLite.sql";
 
 @element('tabpane-file-statistics')
 export class TabPaneFileStatistics extends BaseElement {
@@ -54,9 +54,11 @@ export class TabPaneFileStatistics extends BaseElement {
       this.fileStatisticsSortKey = evt.detail.key;
       // @ts-ignore
       this.fileStatisticsSortType = evt.detail.sort;
-      if (this.fileStatisticsSortType != 0 && this.fileStatisticsSource.length > 0)
-        this.sortTable(this.fileStatisticsSource[0], this.fileStatisticsSortKey);
-      this.fileStatisticsTbl!.recycleDataSource = this.fileStatisticsSource;
+
+      let newSource = JSON.parse(JSON.stringify(this.fileStatisticsSource));
+      if (this.fileStatisticsSortType != 0 && newSource.length > 0)
+        this.sortTable(newSource[0], this.fileStatisticsSortKey);
+      this.fileStatisticsTbl!.recycleDataSource = newSource;
     });
   }
 
@@ -130,34 +132,11 @@ export class TabPaneFileStatistics extends BaseElement {
       fileStatisticsAllNode = this.getInitData(fileStatisticsAllNode);
       fileStatisticsAllNode.title = 'All';
       this.fileStatisticsSource = result.length > 0 ? [fileStatisticsAllNode] : [];
+      let newSource = JSON.parse(JSON.stringify(this.fileStatisticsSource));
       if (this.fileStatisticsSortType != 0 && result.length > 0)
-        this.sortTable(this.fileStatisticsSource[0], this.fileStatisticsSortKey);
-      this.theadClick(this.fileStatisticsSource);
-      this.fileStatisticsTbl!.recycleDataSource = this.fileStatisticsSource;
+        this.sortTable(newSource[0], this.fileStatisticsSortKey);
+      this.fileStatisticsTbl!.recycleDataSource = newSource;
     });
-  }
-  private theadClick(res: Array<any>): void {
-    let labels = this.fileStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
-    if (labels) {
-      for (let i = 0; i < labels.length; i++) {
-        let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
-          if (label.includes('Syscall') && i === 0) {
-            this.fileStatisticsTbl!.setStatus(res, false, 0, 1);
-            this.fileStatisticsTbl!.recycleDs = this.fileStatisticsTbl!.meauseTreeRowElement(
-              res,
-              RedrawTreeForm.Retract
-            );
-          } else if (label.includes('Process') && i === 1) {
-            this.fileStatisticsTbl!.setStatus(res, true);
-            this.fileStatisticsTbl!.recycleDs = this.fileStatisticsTbl!.meauseTreeRowElement(
-              res,
-              RedrawTreeForm.Retract
-            );
-          }
-        });
-      }
-    }
   }
 
   private handleResult(result: Array<any>, fileStatisticsFatherMap: Map<any, any>, fileStatisticsAllNode: any): void {
@@ -191,7 +170,9 @@ export class TabPaneFileStatistics extends BaseElement {
         fileStatisticsAllNode.minDuration = item.minDuration;
       } else {
         fileStatisticsAllNode.minDuration =
-          fileStatisticsAllNode.minDuration <= item.minDuration ? fileStatisticsAllNode.minDuration : item.minDuration;
+          fileStatisticsAllNode.minDuration <= item.minDuration
+            ? fileStatisticsAllNode.minDuration
+            : item.minDuration;
       }
       fileStatisticsAllNode.count += item.count;
       fileStatisticsAllNode.logicalReads += item.logicalReads;

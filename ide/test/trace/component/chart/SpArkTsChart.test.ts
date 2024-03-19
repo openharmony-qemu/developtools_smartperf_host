@@ -13,27 +13,14 @@
  * limitations under the License.
  */
 import { SpArkTsChart } from '../../../../src/trace/component/chart/SpArkTsChart';
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
-const sqlite = require('../../../../src/trace/database/sql/Cpu.sql');
-jest.mock('../../../../src/trace/database/sql/Cpu.sql');
-const JsMemory = require('../../../../src/trace/database/sql/Memory.sql');
-jest.mock('../../../../src/trace/database/sql/Memory.sql');
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
-const intersectionObserverMock = () => ({
-  observe: () => null,
-});
-window.ResizeObserver =
-  window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-  }));
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
-describe('SpArkTsChart Test', () => {
-  let arkTsChart = new SpArkTsChart(new SpSystemTrace());
+describe('SpClockChart Test', () => {
+  let arkTsChart = new SpArkTsChart(new SpChartManager());
+
   let jsCpuProfilerConfig = sqlite.queryJsCpuProfilerConfig;
   let cpuProfilerConfigData = [
     {
@@ -52,17 +39,17 @@ describe('SpArkTsChart Test', () => {
   ];
   jsCpuProfiler.mockResolvedValue(cpuProfilerData);
 
-  let jsMemory = JsMemory.queryJsMemoryData;
+  let jsMemory = sqlite.queryJsMemoryData;
   let jsMemoryData = [{}];
   jsMemory.mockResolvedValue(jsMemoryData);
 
-  it('SpArkTsChart01', function () {
+  it('SpClockChart01', function () {
     expect(arkTsChart.initFolder()).not.toBeUndefined();
   });
-  it('SpArkTsChart02', function () {
+  it('SpClockChart02', function () {
     expect(arkTsChart.initTimelineChart()).not.toBeUndefined();
   });
-  it('SpArkTsChart03', function () {
+  it('SpClockChart03', function () {
     expect(arkTsChart.initSnapshotChart()).not.toBeUndefined();
   });
 });

@@ -15,8 +15,8 @@
 import { TabPanePurgTotalComparisonVM } from '../../../../../../src/trace/component/trace/sheet/vmtracker/TabPanePurgTotalComparisonVM';
 import '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgPinComparisonAbility';
 
-const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });
@@ -81,6 +81,9 @@ describe('TabPanePurgTotalComparisonVM Test', () => {
   it('TabPanePurgPinComparisonAbility01', function () {
     tabPanePurgTotalComparisonVM.initSelect = jest.fn(() => true);
     expect(tabPanePurgTotalComparisonVM.totalData(data, datalist)).toBeUndefined();
+  });
+  it('TabPanePurgTotalComparisonVM01', function () {
+    expect(tabPanePurgTotalComparisonVM.updateComparisonData(0, 1000)).toBeTruthy();
   });
   it('TabPanePurgTotalComparisonVM02', function () {
     expect(tabPanePurgTotalComparisonVM.queryTotalVMData(0, 1000)).toBeTruthy();

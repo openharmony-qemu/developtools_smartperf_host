@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 import { TabPaneHisysEvents } from '../../../../../../src/trace/component/trace/sheet/hisysevent/TabPaneHisysEvents';
-import { LitPageTable } from '../../../../../../src/base-ui/table/LitPageTable';
 
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-const sqlite = require('../../../../../../src/trace/database/sql/Perf.sql');
-jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
-const clockSqlite = require('../../../../../../src/trace/database/sql/Clock.sql');
-jest.mock('../../../../../../src/trace/database/sql/Clock.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -52,20 +49,14 @@ describe('TabPaneHisysEvents Test', () => {
     },
   ];
   hiSysEvent.mockResolvedValue(eventTabData);
-  let MockRealTime = clockSqlite.queryRealTime;
-  let Realtime = [
-    {
-      ts: 1000,
-      clock_name: 'realtime',
-    },
-    {
-      ts: 2000,
-      clock_name: 'boottime',
-    }];
-  MockRealTime.mockResolvedValue(Realtime);
 
   it('TabPaneHisysEvents01 ', function () {
     let tabPaneHisysEvents = new TabPaneHisysEvents();
+    let MockRealTime = sqlite.queryRealTime;
+    let Realtime = [{
+      ts: 1000,
+      clock_name: '',
+    }];
     let tabData = {
       hiSysEvents: [{
         id: 1,
@@ -85,7 +76,7 @@ describe('TabPaneHisysEvents Test', () => {
         depth: 0,
       }]
     };
-    tabPaneHisysEvents.hiSysEventTable = new LitPageTable();
+    MockRealTime.mockResolvedValue(Realtime);
     tabPaneHisysEvents.data = tabData.hiSysEvents;
     expect(tabPaneHisysEvents.data).toBeUndefined();
   });
@@ -117,21 +108,21 @@ describe('TabPaneHisysEvents Test', () => {
   it('TabPaneHisysEvents06', () => {
     let tabPaneHisysEvents = new TabPaneHisysEvents();
     let hisysEventSource = [
-      {key: 'A', sort: 1},
-      {key: 'B', sort: 2},
-      {key: 'C', sort: 3},
+      { key: 'A', sort: 1 },
+      { key: 'B', sort: 2 },
+      { key: 'C', sort: 3 },
     ]
-    let hiSysEventTable = {recycleDataSource: []};
-    tabPaneHisysEvents.sortByColumn.call({hisysEventSource, hiSysEventTable}, {key: 'key', sort: 1, type: 'number'});
+    let hiSysEventTable = { recycleDataSource: [] };
+    tabPaneHisysEvents.sortByColumn.call({ hisysEventSource, hiSysEventTable }, { key: 'key', sort: 1, type: 'number' });
     expect(hisysEventSource).toEqual([
-      {key: 'A', sort: 1},
-      {key: 'B', sort: 2},
-      {key: 'C', sort: 3},
+      { key: 'A', sort: 1 },
+      { key: 'B', sort: 2 },
+      { key: 'C', sort: 3 },
     ]);
     expect(hiSysEventTable.recycleDataSource).toEqual([
-      {key: 'A', sort: 1},
-      {key: 'B', sort: 2},
-      {key: 'C', sort: 3},
+      { key: 'A', sort: 1 },
+      { key: 'B', sort: 2 },
+      { key: 'C', sort: 3 },
     ]);
   });
   it('TabPaneHisysEvents07', () => {
@@ -155,17 +146,17 @@ describe('TabPaneHisysEvents Test', () => {
       })
     };
     tabPaneHisysEvents.convertData(data);
-    expect(tabPaneHisysEvents.baseTime).toBe('1234567890000000000');
-    expect(tabPaneHisysEvents.changeInput.value).toBe('1234567890000000000');
+    expect(tabPaneHisysEvents.baseTime).toBe('1234567890000000');
+    expect(tabPaneHisysEvents.changeInput.value).toBe('1234567890000000');
     expect(tabPaneHisysEvents.slicerTrack.style.visibility).toBe('visible');
     expect(tabPaneHisysEvents.detailsTbl.style.paddingLeft).toBe('20px');
     expect(tabPaneHisysEvents.boxDetails.style.width).toBe('65%');
     expect(tabPaneHisysEvents.detailbox.style.display).toBe('block');
     expect(tabPaneHisysEvents.detailsTbl.recycleDataSource).toEqual([
-      {key: 'key', value: 'value'},
-      {key: 'key1', value: 'value1'},
-      {key: 'key2', value: 'value2'},
-      {key: 'INPUT_TIME', value: '1234567890000000000'}
+      { key: 'key', value: 'value' },
+      { key: 'key1', value: 'value1' },
+      { key: 'key2', value: 'value2' },
+      { key: 'INPUT_TIME', value: '1234567890000000' }
     ]);
   });
   it('TabPaneHisysEvents08 ', function () {
@@ -175,7 +166,7 @@ describe('TabPaneHisysEvents Test', () => {
     };
     let mockUpdateDetail = jest.fn();
     changeInput.value = 'abc';
-    tabPaneHisysEvents.changeInputEvent.call({changeInput: changeInput, updateDetail: mockUpdateDetail});
+    tabPaneHisysEvents.changeInputEvent.call({ changeInput: changeInput, updateDetail: mockUpdateDetail });
     expect(changeInput.value).toEqual('abc');
   });
 });

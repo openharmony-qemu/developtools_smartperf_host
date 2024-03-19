@@ -72,7 +72,7 @@ export function ClockStructOnClick(clickRowType: string, sp: SpSystemTrace) {
       ClockStruct.selectClockStruct = ClockStruct.hoverClockStruct;
       sp.traceSheetEL?.displayClockData(ClockStruct.selectClockStruct);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject(new Error());
+      reject();
     }else{
       resolve(null);
     }

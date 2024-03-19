@@ -35,7 +35,7 @@ export class TabPanePurgPin extends BaseElement {
   set data(selection: SelectionParam) {
     if (this.purgeablePinTable) {
       //@ts-ignore
-      this.purgeablePinTable.shadowRoot?.querySelector('.table').style.height = `${
+      this.purgeablePinTable.shadowRoot.querySelector('.table').style.height = `${
         this.parentElement!.clientHeight - 45
       }px`;
     }

@@ -16,9 +16,9 @@
 import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpClockChart } from '../../../../src/trace/component/chart/SpClockChart';
 
-const sqlite = require('../../../../src/trace/database/sql/Clock.sql');
-jest.mock('../../../../src/trace/database/sql/Clock.sql');
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

@@ -34,7 +34,7 @@ import {
   addCopyEventListener,
   addSelectAllBox,
   fixed,
-  formatName,
+  formatName
 } from './LitTableHtml';
 
 @element('lit-table')
@@ -173,19 +173,26 @@ export class LitTable extends HTMLElement {
         this.tableElement!.scrollLeft = 0;
       } else {
         this.tableElement!.scrollTop = 0;
+        this.tableElement!.scrollLeft = 0;
       }
-      if (this.hasAttribute('tree') && this.querySelector('lit-table-column')?.hasAttribute('retract')) {
-        if ((value.length === 0 || this.value.length !== 0) && value !== this.value && !this._isSearch) {
-          if (this.shadowRoot!.querySelector<LitIcon>('.top')) {
+      if (this.hasAttribute('tree')) {
+        if (value.length === 0) {
+          this.value = [];
+          this.recycleDs = this.meauseTreeRowElement(value);
+        } else {
+          if (
+            value !== this.value &&
+            this.value.length !== 0 &&
+            !this._isSearch &&
+            this.querySelector('lit-table-column')?.hasAttribute('retract')
+          ) {
             this.shadowRoot!.querySelector<LitIcon>('.top')!.name = 'up';
-          }
-          if (this.shadowRoot!.querySelector<LitIcon>('.bottom')) {
             this.shadowRoot!.querySelector<LitIcon>('.bottom')!.name = 'down';
           }
+          this._isSearch = false;
+          this.value = value;
+          this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
         }
-        this.value = value;
-        this._isSearch = false;
-        this.recycleDs = this.meauseTreeRowElement(value, RedrawTreeForm.Retract);
       } else {
         this.recycleDs = this.meauseAllRowHeight(value);
       }
@@ -267,14 +274,8 @@ export class LitTable extends HTMLElement {
       }
     });
   }
-  /**
-   * 设置表格每条数据的展开/收起状态
-   * @param list 表格数据
-   * @param status 展开/收起状态
-   * @param depth 展开深度，用来实现和图标的联动
-   * @param profundity 展开深度，用来实现逐级展开
-   */
-  public setStatus(list: any, status: boolean, depth: number = 0, profundity?: number): void {
+
+  setStatus(list: any, status: boolean, depth: number = 0): void {
     this.tableElement!.scrollTop = 0;
     // 添加depth参数，让切换图标的代码在递归中只走一遍
     if (depth === 0) {
@@ -287,19 +288,9 @@ export class LitTable extends HTMLElement {
       }
     }
     for (let item of list) {
-      if (profundity) {
-        if (depth < profundity) {
-          item.status = true;
-          status = true;
-        } else {
-          item.status = false;
-          status = false;
-        }
-      } else {
-        item.status = status;
-      }
+      item.status = status;
       if (item.children !== undefined && item.children.length > 0) {
-        this.setStatus(item.children, status, depth + 1, profundity);
+        this.setStatus(item.children, status, depth + 1);
       }
     }
   }
@@ -393,7 +384,7 @@ export class LitTable extends HTMLElement {
         rowElement.append(head);
       }
     });
-  }
+  };
 
   resolvingAreaColumn(rowElement: HTMLDivElement, column: any, index: number, key: string): HTMLDivElement {
     let head: any = document.createElement('div');
@@ -465,7 +456,7 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  resolvingAreaColumnOrder(column: any, index: number, key: string, columnHead: any): void {
+  resolvingAreaColumnOrder(column: any, index: number, key: string,columnHead: any): void {
     if (column.hasAttribute('order')) {
       (columnHead as any).sortType = 0;
       columnHead.classList.add('td-order');
@@ -521,7 +512,7 @@ export class LitTable extends HTMLElement {
   private beforeResizeWidth: number = 0;
 
   resizeEventHandler(header: HTMLDivElement, element: HTMLDivElement, index: number): void {
-    this.resizeMouseMoveEventHandler(header);
+   this.resizeMouseMoveEventHandler(header);
     header.addEventListener('mouseup', (event) => {
       if (!this.columnResizeEnable) return;
       this.isResize = false;
@@ -565,19 +556,11 @@ export class LitTable extends HTMLElement {
         let width = event.clientX - this.resizeDownX;
         header.style.cursor = 'col-resize';
         let preWidth = Math.max(this.beforeResizeWidth + width, this.columnMinWidth);
-        this.gridTemplateColumns[header.childNodes.length - 1] = '1fr';
         for (let i = 0; i < header.childNodes.length; i++) {
           let node = header.childNodes.item(i) as HTMLDivElement;
           this.gridTemplateColumns[i] = `${node.clientWidth}px`;
         }
         this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${preWidth}px`;
-        let lastNode = header.childNodes.item(header.childNodes.length - 1) as HTMLDivElement;
-        let totalWidth = 0;
-        this.gridTemplateColumns.forEach((it) => {
-          totalWidth += parseInt(it);
-        });
-        totalWidth = Math.max(totalWidth, this.shadowRoot!.querySelector<HTMLDivElement>('.table')!.scrollWidth);
-        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft - 1}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
         preNode.style.width = `${preWidth}px`;
@@ -640,7 +623,7 @@ export class LitTable extends HTMLElement {
         Math.max(totalHeight, this.tableElement!.scrollTop + headHeight) <=
         Math.min(totalHeight + height, this.tableElement!.scrollTop + this.tableElement!.clientHeight + headHeight)
       ) {
-        let newTableElement = this.addTableElement(tableRowObject, false, false, true, totalHeight);
+        let newTableElement = this.addTableElement(tableRowObject, false,false, true, totalHeight);
         let td = newTableElement?.querySelectorAll('.td');
         if (tableRowObject.data.rowName === 'cpu-profiler') {
           td[0].innerHTML = '';
@@ -690,7 +673,7 @@ export class LitTable extends HTMLElement {
           return;
         }
         while (reduce <= this.tableElement!.clientHeight) {
-          let newTableElement = this.addTableElement(visibleObjects[skip], false, false, false);
+          let newTableElement = this.addTableElement(visibleObjects[skip], false,false, false);
           reduce += newTableElement.clientHeight;
         }
         for (let i = 0; i < this.currentRecycleList.length; i++) {
@@ -700,7 +683,7 @@ export class LitTable extends HTMLElement {
     return visibleObjects;
   }
 
-  freshLineHandler(index: number, skip: number, visibleObjects: TableRowObject[]) {
+  freshLineHandler(index: number, skip: number, visibleObjects: TableRowObject[]){
     this.freshCurrentLine(this.currentRecycleList[index], visibleObjects[index + skip]);
     if (visibleObjects[index + skip]) {
       if (visibleObjects[index + skip].data.rowName === 'cpu-profiler') {
@@ -728,11 +711,10 @@ export class LitTable extends HTMLElement {
     visibleObjects: TableRowObject[],
     parentNode?: TableRowObject,
     form?: RedrawTreeForm
-  ): number {
-    let th = totalHeight;
+  ) {
     let headHeight = this.theadElement?.clientHeight || 0;
     list.forEach((item) => {
-      let tableRowObject = this.newTableRowObject(item, th, depth, parentNode);
+      let tableRowObject = this.newTableRowObject(item, totalHeight, depth, parentNode);
       if (this._mode === TableMode.Expand && form === RedrawTreeForm.Retract && !item.status) {
         tableRowObject.expanded = false;
       } else if (this._mode === TableMode.Expand && form === RedrawTreeForm.Default) {
@@ -744,23 +726,22 @@ export class LitTable extends HTMLElement {
       ) {
         tableRowObject.expanded = false;
         if (item.children != undefined && item.children.length > 0) {
-          this.newTableRowObject(item, th, depth, tableRowObject);
+          this.newTableRowObject(item, totalHeight, depth, tableRowObject);
         }
       }
       if (
-        Math.max(th, this.tableElement!.scrollTop) <=
+        Math.max(totalHeight, this.tableElement!.scrollTop) <=
         Math.min(
-          th + tableRowObject.height,
+          totalHeight + tableRowObject.height,
           this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight
         )
       ) {
-        this.addTableElement(tableRowObject, true, false, true, th);
+        this.addTableElement(tableRowObject,true, false, true, totalHeight);
       }
-      th += tableRowObject.height;
+      totalHeight += tableRowObject.height;
       visibleObjects.push(tableRowObject);
-      th = this.resetAllHeightChildrenHandler(item, depth, th, visibleObjects, tableRowObject, form);
+      this.resetAllHeightChildrenHandler(item, depth, totalHeight, visibleObjects, tableRowObject, form);
     });
-    return th;
   }
 
   resetAllHeightChildrenHandler(
@@ -770,14 +751,13 @@ export class LitTable extends HTMLElement {
     visibleObjects: TableRowObject[],
     tableRowObject?: TableRowObject,
     form?: RedrawTreeForm
-  ): number {
-    let th = totalHeight;
+  ) {
     if (item.hasNext) {
       // js memory的表格
       if (item.parents != undefined && item.parents.length > 0 && item.status) {
-        th = this.resetAllHeight(item.parents, depth + 1, totalHeight, visibleObjects, tableRowObject);
+        this.resetAllHeight(item.parents, depth + 1, totalHeight, visibleObjects, tableRowObject);
       } else if (item.children != undefined && item.children.length > 0 && item.status) {
-        th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
+        this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
       }
     } else {
       // 其他数据
@@ -788,12 +768,11 @@ export class LitTable extends HTMLElement {
         this._mode === TableMode.Expand
       ) {
         item.status = true;
-        th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
+        this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
       } else if (item.children != undefined && item.children.length > 0 && item.status) {
-        th = this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
+        this.resetAllHeight(item.children, depth + 1, totalHeight, visibleObjects, tableRowObject);
       }
     }
-    return th;
   }
 
   measureReset(): void {
@@ -808,7 +787,7 @@ export class LitTable extends HTMLElement {
     this.measureReset();
     let visibleObjects: TableRowObject[] = [];
     let totalHeight = 0;
-    totalHeight = this.resetAllHeight(list, 0, totalHeight, visibleObjects);
+    this.resetAllHeight(list,0, totalHeight, visibleObjects);
     this.tbodyElement && (this.tbodyElement.style.height = totalHeight + 'px');
     this.treeElement!.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px';
     this.tableElement &&
@@ -817,7 +796,7 @@ export class LitTable extends HTMLElement {
           return !item.rowHidden;
         });
         let top = this.tableElement!.scrollTop;
-        this.treeElement && (this.treeElement!.style.transform = `translateY(${top}px)`);
+        this.treeElement!.style.transform = `translateY(${top}px)`;
         let skip = 0;
         for (let index = 0; index < visibleObjects.length; index++) {
           if (visibleObjects[index].top <= top && visibleObjects[index].top + visibleObjects[index].height >= top) {
@@ -920,8 +899,8 @@ export class LitTable extends HTMLElement {
       this.currentTreeDivList.forEach((row) => {
         row.classList.remove('mouse-in');
       });
-      if (indexOf >= 0 && indexOf < this.currentTreeDivList.length) {
-        this.setMouseIn(true, [this.currentTreeDivList[indexOf]]);
+      if (indexOf >= 0 && indexOf < this.treeElement!.children.length) {
+        this.setMouseIn(true, [this.treeElement?.children[indexOf] as HTMLElement]);
       }
     };
     rowTreeElement.onmouseleave = () => {
@@ -934,7 +913,6 @@ export class LitTable extends HTMLElement {
     rowTreeElement.onmouseup = (e: MouseEvent) => {
       let indexOf = this.currentRecycleList.indexOf(rowTreeElement);
       this.dispatchRowClickEvent(rowData, [this.treeElement?.children[indexOf] as HTMLElement, rowTreeElement], e);
-      e.stopPropagation();
     };
   }
 
@@ -979,7 +957,6 @@ export class LitTable extends HTMLElement {
     td.style.position = 'absolute';
     td.style.top = '0px';
     td.style.left = '0px';
-    td.style.height = `${row.height}px`;
     this.addFirstElementEvent(td, tr, row);
     this.setHighLight(row.data.isSearch, td);
     this.treeElement!.style.width = column.getAttribute('width');
@@ -1007,7 +984,6 @@ export class LitTable extends HTMLElement {
     td.onmouseup = (e: MouseEvent) => {
       let indexOf = this.currentTreeDivList.indexOf(td);
       this.dispatchRowClickEvent(rowData, [td, tr], e);
-      e.stopPropagation();
     };
   }
 
@@ -1048,7 +1024,6 @@ export class LitTable extends HTMLElement {
     });
     newTableElement.onmouseup = (e: MouseEvent) => {
       this.dispatchRowClickEvent(rowData, [newTableElement], e);
-      e.stopPropagation();
     };
     newTableElement.onmouseenter = () => {
       this.dispatchRowHoverEvent(rowData, [newTableElement]);
@@ -1089,10 +1064,7 @@ export class LitTable extends HTMLElement {
     //  但是对于Current Selection tab页来说，表格前两列是时间，第三列是input标签，第四列是button标签
     //  而第一行的数据只有第四列一个button，和模板中的数据并不一样，所以要特别处理一下
     if (column.template) {
-      if (
-        (dataIndex === 'color' && rowData.data.colorEl === undefined) ||
-        (dataIndex === 'text' && rowData.data.text === undefined)
-      ) {
+      if (dataIndex === 'color' && rowData.data.colorEl === undefined) {
         td.innerHTML = '';
         td.template = '';
       } else if (dataIndex === 'operate' && rowData.data.operate && rowData.data.operate.innerHTML === 'RemoveAll') {
@@ -1179,7 +1151,7 @@ export class LitTable extends HTMLElement {
     }
   };
 
-  setChildrenStatus(rowData: any, data: any) {
+  setChildrenStatus(rowData:any, data: any) {
     for (let d of data) {
       if (rowData.data === d) {
         d.status = false;
@@ -1231,8 +1203,7 @@ export class LitTable extends HTMLElement {
   }
 
   reMeauseHeight(): void {
-    if (this.currentRecycleList.length === 0 && this.ds.length !== 0) {
-      this.recycleDataSource = this.ds;
+    if (this.currentRecycleList.length === 0) {
       return;
     }
     let totalHeight = 0;
@@ -1243,39 +1214,36 @@ export class LitTable extends HTMLElement {
       }
     });
     this.tbodyElement && (this.tbodyElement.style.height = totalHeight + (this.isScrollXOutSide ? 0 : 0) + 'px');
-    this.treeElement &&
-      (this.treeElement.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px');
+    this.treeElement!.style.height = this.tableElement!.clientHeight - this.theadElement!.clientHeight + 'px';
     let visibleObjects = this.recycleDs.filter((item) => {
       return !item.rowHidden;
     });
-    if (this.tableElement) {
-      let top = this.tableElement!.scrollTop;
-      let skip = 0;
-      for (let i = 0; i < visibleObjects.length; i++) {
-        if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
-          skip = i;
-          break;
-        }
+    let top = this.tableElement!.scrollTop;
+    let skip = 0;
+    for (let i = 0; i < visibleObjects.length; i++) {
+      if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
+        skip = i;
+        break;
       }
-      let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
-      if (reduce === 0) {
-        return;
-      }
-      while (reduce <= this.tableElement!.clientHeight + 1) {
-        let isTree = this.hasAttribute('tree');
-        let newTableElement = this.addTableElement(visibleObjects[skip], isTree, isTree, false);
-        reduce += newTableElement.clientHeight;
-      }
-      for (let i = 0; i < this.currentRecycleList.length; i++) {
-        if (this.hasAttribute('tree')) {
-          this.freshCurrentLine(
-            this.currentRecycleList[i],
-            visibleObjects[i + skip],
-            this.treeElement?.children[i] as HTMLElement
-          );
-        } else {
-          this.freshLineHandler(i, skip, visibleObjects);
-        }
+    }
+    let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+    if (reduce === 0) {
+      return;
+    }
+    while (reduce <= this.tableElement!.clientHeight + 1) {
+      let isTree = this.hasAttribute('tree');
+      let newTableElement = this.addTableElement(visibleObjects[skip], isTree, isTree, false);
+      reduce += newTableElement.clientHeight;
+    }
+    for (let i = 0; i < this.currentRecycleList.length; i++) {
+      if (this.hasAttribute('tree')) {
+        this.freshCurrentLine(
+          this.currentRecycleList[i],
+          visibleObjects[i + skip],
+          this.treeElement?.children[i] as HTMLElement
+        );
+      } else {
+        this.freshLineHandler(i, skip, visibleObjects);
       }
     }
   }
@@ -1349,12 +1317,7 @@ export class LitTable extends HTMLElement {
     }
   }
 
-  renderTableRowColumnElement(
-    tblColumn: LitTableColumn,
-    tblRowElement: HTMLDivElement,
-    dataIndex: string,
-    rowData: any
-  ): void {
+  renderTableRowColumnElement(tblColumn: LitTableColumn, tblRowElement: HTMLDivElement, dataIndex: string, rowData: any): void {
     if (tblColumn.template) {
       // If you customize the rendering, you get the nodes from the template
       // @ts-ignore
@@ -1388,7 +1351,6 @@ export class LitTable extends HTMLElement {
 
   renderTableRowElementEvent(tblRowElement: HTMLDivElement, rowData: any): void {
     tblRowElement.onmouseup = (e: MouseEvent) => {
-      e.stopPropagation();
       this.dispatchEvent(
         new CustomEvent('row-click', {
           detail: {
@@ -1405,7 +1367,6 @@ export class LitTable extends HTMLElement {
           composed: true,
         })
       );
-      e.stopPropagation();
     };
   }
 
@@ -1464,20 +1425,10 @@ export class LitTable extends HTMLElement {
       } else {
         this.dispatchRowClickEvent(rowObject, [element], e);
       }
-      e.stopPropagation();
     };
     element.onmouseenter = () => {
       this.dispatchRowHoverEvent(rowObject, [element]);
-      if ((element as any).data.isSelected) return;
-      let indexOf = this.currentRecycleList.indexOf(element as HTMLDivElement);
-      this.currentTreeDivList.forEach((row) => {
-        row.classList.remove('mouse-in');
-      });
-      if (indexOf >= 0 && indexOf < this.currentTreeDivList.length) {
-        this.setMouseIn(true, [this.currentTreeDivList[indexOf]]);
-      }
     };
-
     (element as any).data = rowObject.data;
     if (rowObject.data.isSelected !== undefined) {
       this.setSelectedRow(rowObject.data.isSelected, [element]);
@@ -1532,7 +1483,6 @@ export class LitTable extends HTMLElement {
       }
       firstElement.onmouseup = (e: MouseEvent) => {
         this.dispatchRowClickEvent(rowObject, [firstElement, element], e);
-        e.stopPropagation();
       };
       firstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`;
       if (rowObject.data.isSelected !== undefined) {
@@ -1546,16 +1496,14 @@ export class LitTable extends HTMLElement {
   setSelectedRow(isSelected: boolean, rows: any[]): void {
     if (isSelected) {
       rows.forEach((row) => {
-        if (row.classList) {
-          if (row.classList.contains('mouse-in')) {
-            row.classList.remove('mouse-in');
-          }
-          row.classList.add('mouse-select');
+        if (row.classList.contains('mouse-in')) {
+          row.classList.remove('mouse-in');
         }
+        row.classList.add('mouse-select');
       });
     } else {
       rows.forEach((row) => {
-        row.classList && row.classList.remove('mouse-select');
+        row.classList.remove('mouse-select');
       });
     }
   }
@@ -1755,7 +1703,6 @@ export class LitTable extends HTMLElement {
         composed: true,
       })
     );
-    event.stopPropagation();
   }
 
   dispatchRowHoverEvent(rowObject: any, elements: any[]): void {

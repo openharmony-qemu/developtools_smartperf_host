@@ -14,8 +14,9 @@
  */
 
 import { BaseElement, element } from '../BaseElement';
-import { replacePlaceholders } from '../utils/Template';
 
+let contentPadding = '';
+let contentWidth = '';
 let css = `
 <style>
       :host{
@@ -44,6 +45,8 @@ let css = `
        :host(:not([mask])) .bg{
           display: none;
        }
+       
+       
        .title{
           display: flex;
           justify-content: space-between;
@@ -55,7 +58,7 @@ let css = `
           color: var(--dark-color1,#262626);
        }
        slot{
-          padding: {1};
+          padding: ${contentPadding};
           display: block;
        }
        :host([visible]) .bg{
@@ -73,7 +76,7 @@ let css = `
        */
        :host(:not([placement])) .drawer,
        :host([placement='right']) .drawer{
-          width: {2};
+          width: ${contentWidth};
           box-sizing: border-box;
           position: absolute;
           display: flex;
@@ -105,7 +108,7 @@ let css = `
           左边
        */
        :host([placement='left']) .drawer{
-          width: {2};
+          width: ${contentWidth};
           box-sizing: border-box;
           position: absolute;
           display: flex;
@@ -210,13 +213,15 @@ let css = `
 `;
 
 const initHtmlStyle = (padding: string, width: string) => {
-  return replacePlaceholders(css, padding, width);
+  contentPadding = padding;
+  contentWidth = width;
+  return css;
 };
 
 @element('lit-drawer')
 export class LitDrawer extends BaseElement {
   static get observedAttributes() {
-    return ['drawer-title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
+    return ['title', 'visible', 'placement', 'mask', 'mask-closable', 'closeable', 'content-padding', 'content-width'];
   }
 
   initHtml(): string {
@@ -254,12 +259,12 @@ export class LitDrawer extends BaseElement {
   set placement(value: any) {
     this.setAttribute('placement', value);
   }
-  get drawerTitle() {
-    return this.getAttribute('drawer-title') || '';
+  get title() {
+    return this.getAttribute('title') || '';
   }
-  set drawerTitle(value) {
+  set title(value) {
     this.shadowRoot!.querySelector('#drawer-tittle-text')!.textContent = value;
-    this.setAttribute('drawer-title', value);
+    this.setAttribute('title', value);
   }
   get visible() {
     return this.getAttribute('visible') !== null;

@@ -17,7 +17,6 @@ export class CmdConstant {
   static CMD_TRACE_FILE_SIZE = 'hdc_std shell  stat --format=%s ';
   static CMD_SHELL = 'hdc_std shell ';
   static CMD_MOUNT = 'hdc_std shell mount -o remount,rw /';
-  static CMD_GET_PACKAGE = 'hdc_std shell bm dump -a';
   static CMD_GET_PROCESS = 'hdc_std shell ps -A -opid,cmd';
   static CMD_GET_APP_NMAE = 'hdc_std shell ps -A -ocmd';
   static CMD_GET_CPU_COUNT = "hdc_std shell grep -c 'processor' /proc/cpuinfo";

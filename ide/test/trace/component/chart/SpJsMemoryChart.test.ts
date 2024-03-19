@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-const sqlite = require('../../../../src/trace/database/sql/Irq.sql');
-jest.mock('../../../../src/trace/database/sql/Irq.sql');
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -26,6 +26,7 @@ window.ResizeObserver =
   }));
 
 import { SpArkTsChart } from '../../../../src/trace/component/chart/SpArkTsChart';
+import { SpIrqChart } from '../../../../src/trace/component/chart/SpIrqChart';
 
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};

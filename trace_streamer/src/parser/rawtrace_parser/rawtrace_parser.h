@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,27 +30,12 @@ public:
     ~RawTraceParser();
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish = false) override;
     void WaitForParserEnd();
-    void ClearRawTraceData()
-    {
-        rawTraceSplitCpuData_.clear();
-        rawTraceSplitCommData_.clear();
-        curFileOffset_ = 0;
-    }
-    const auto& GetRawtraceCpuData()
-    {
-        return rawTraceSplitCpuData_;
-    }
-    const auto& GetRawtraceCommData()
-    {
-        return rawTraceSplitCommData_;
-    }
 
 private:
     bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesCurIter);
-    bool ProcessRawTraceContent(std::string& bufferLine, uint8_t curType);
     void ParseTraceDataItem(const std::string& buffer) override;
-    bool ParseCpuRawData(uint32_t cpuId, const std::string& buffer, uint32_t curType);
-    bool HmParseCpuRawData(const std::string& buffer, uint32_t curType);
+    bool ParseCpuRawData(uint32_t cpuId, const std::string& buffer);
+    bool HmParseCpuRawData(const std::string& buffer);
     bool ParseLastCommData(uint8_t type, const std::string& buffer);
     bool InitRawTraceFileHeader(std::deque<uint8_t>::iterator& packagesCurIter);
     bool InitEventFormats(const std::string& buffer);
@@ -62,26 +47,12 @@ private:
     std::unique_ptr<CpuDetailParser> cpuDetailParser_ = nullptr;
     std::unique_ptr<FtraceProcessor> ftraceProcessor_ = nullptr;
     std::unique_ptr<KernelSymbolsProcessor> ksymsProcessor_ = nullptr;
-    TraceDataCache* traceDataCache_ = nullptr;
+    TraceDataCache* traceDataCache_;
     bool hasGotHeader_ = false;
     uint8_t fileType_ = 0;
     uint8_t restCommDataCnt_ = 0;
-    uint32_t curCpuCoreNum_ = 0;
+    uint32_t cpuCoreMax_ = 0;
     const std::string eventEndCmd_ = "print fmt:";
-
-    uint32_t curFileOffset_ = 0;
-    // Store 4k types and data sizes each time
-    struct SpliteDataInfo {
-        uint32_t splitDataOffset_ = 0;
-        uint32_t splitDataSize_ = 0;
-        uint32_t splitType_ = 0;
-        SpliteDataInfo(uint32_t splitDataOffset, uint32_t splitDataSize, uint32_t splitType = 0)
-            : splitDataOffset_(splitDataOffset), splitDataSize_(splitDataSize), splitType_(splitType)
-        {
-        }
-    };
-    std::deque<SpliteDataInfo> rawTraceSplitCpuData_ = {};
-    std::deque<SpliteDataInfo> rawTraceSplitCommData_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

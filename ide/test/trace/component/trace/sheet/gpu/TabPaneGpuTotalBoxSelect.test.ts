@@ -17,14 +17,11 @@ import { TabPaneGpuTotalBoxSelect } from '../../../../../../src/trace/component/
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
-  return {};
-});
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-const sqlite = require('../../../../../../src/trace/database/sql/Gpu.sql');
-jest.mock('../../../../../../src/trace/database/sql/Gpu.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 // @ts-ignore
 window.ResizeObserver =

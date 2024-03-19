@@ -21,7 +21,7 @@ import { BaseStruct } from '../../../../../src/trace/bean/BaseStruct';
 import '../../../../../src/trace/bean/BaseStruct';
 import { LitCheckBox } from "../../../../../src/base-ui/checkbox/LitCheckBox";
 
-jest.mock('../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {
   return {
     CpuStruct: {
       wakeupBean: undefined
@@ -115,6 +115,7 @@ describe('TraceRowConfig Test', () => {
       scene: []
     }
     traceRowConfig.displayRow(node, checkBox);
+    console.log('traceRowConfig.subsystemSelectList',traceRowConfig.subsystemSelectList)
     expect(traceRowConfig.subsystemSelectList.length).toBe(2)
   });
   it('TraceRowConfig Test03', () => {

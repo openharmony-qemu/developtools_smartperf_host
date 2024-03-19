@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,7 @@
 #include "raw_table.h"
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, TS, NAME, CPU, INTERNAL_TID };
+enum class Index : int32_t { ID = 0, TYPE, TS, NAME, CPU, INTERNAL_TID };
 enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
 uint32_t GetNameIndex(const std::string& name)
 {
@@ -33,6 +33,7 @@ uint32_t GetNameIndex(const std::string& name)
 RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
@@ -132,7 +133,10 @@ int32_t RawTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(rawObj_.IdsData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
+            break;
+        case Index::TYPE:
+            sqlite3_result_text(context_, "raw", STR_DEFAULT_LEN, nullptr);
             break;
         case Index::TS:
             sqlite3_result_int64(context_, static_cast<int64_t>(rawObj_.TimeStampData()[CurrentRow()]));

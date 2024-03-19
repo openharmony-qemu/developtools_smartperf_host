@@ -201,7 +201,7 @@ export class TabPaneFrequencySample extends BaseElement {
         stateFiliterIds
       );
       let msg = {
-        timeParam: { leftNs: frqSampleParam.leftNs, rightNs: frqSampleParam.rightNs, recordStartNs: frqSampleParam.recordStartNs },
+        frqSampleParam,
         result,
         sampleMap,
         res,

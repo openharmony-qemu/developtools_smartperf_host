@@ -95,13 +95,3 @@ export function parseKeyPathJson(content: string): Array<KeyPathStruct> {
   }
   return parseResult;
 }
-
-export function debounce(func: any, delay: number) {
-  let timer: any = null;
-  return function() {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      func();
-    }, delay)
-  }
-}

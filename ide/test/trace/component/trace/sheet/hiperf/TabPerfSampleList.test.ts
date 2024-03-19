@@ -13,22 +13,13 @@
  * limitations under the License.
  */
 
-import {
-  TabPanePerfSample
-} from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfSampleList';
+import { TabPerfSampleList } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfSampleList';
 import '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfSampleList';
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-const sqlite = require('../../../../../../src/trace/database/sql/Perf.sql');
-jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -37,7 +28,7 @@ window.ResizeObserver = window.ResizeObserver ||
 
 describe('TabPerfSampleList Test', () => {
   document.body.innerHTML = `<tabpane-perf-sample id="sampleList"></tabpane-perf-sample>`;
-  let sampleList = document.querySelector('#sampleList') as TabPanePerfSample;
+  let sampleList = document.querySelector('#sampleList') as TabPerfSampleList;
   let sampleListData = {
     leftNs: 1222,
     rightNs: 5286,

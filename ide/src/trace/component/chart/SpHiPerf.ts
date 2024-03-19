@@ -22,8 +22,10 @@ import {
   HiPerfCallChartRender,
   HiPerfCallChartStruct,
 } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfCallChart';
-import { HiPerfThreadStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
-import { HiPerfProcessStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
+import {  HiPerfThreadStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
+import {
+  HiPerfProcessStruct,
+} from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
 import { info } from '../../../log/Log';
 import { HiPerfEventStruct } from '../../database/ui-worker/hiperf/ProcedureWorkerHiPerfEvent';
 import { perfDataQuery } from './PerfDataQuery';
@@ -499,7 +501,6 @@ export class SpHiPerf {
           return hiperfProcessDataSender(
             process.pid,
             row.drawType,
-            this.maxCpuId + 1,
             SpHiPerf.stringResult?.fValue || 1,
             TraceRow.range?.scale || 50,
             row
@@ -555,7 +556,6 @@ export class SpHiPerf {
             return hiperfThreadDataSender(
               thObj.tid,
               thread.drawType,
-              this.maxCpuId + 1,
               SpHiPerf.stringResult?.fValue || 1,
               TraceRow.range?.scale || 50,
               thread
@@ -661,24 +661,22 @@ export class SpHiPerf {
     if (struct) {
       if (groupBy10MS) {
         if (row.drawType === -2) {
-          let num: number | string = 0;
+          let num = 0;
           if (struct instanceof HiPerfEventStruct) {
             num = Math.trunc(((struct.sum || 0) / (struct.max || 0)) * 100);
           } else {
-            let interval = SpHiPerf.stringResult?.fValue || 1;
-            num = ((struct.sampleCount! / (10 / interval)) * 100).toFixed(2);
+            num = Math.trunc(((struct.height || 0) / 40) * 100);
           }
-          tip = `<span>${num}% (10.00ms)</span>`;
+          if (num > 0) {
+            tip = `<span>${num * (this.maxCpuId + 1)}% (10.00ms)</span>`;
+          }
         } else {
           tip = `<span>${struct.event_count || struct.eventCount} (10.00ms)</span>`;
         }
       } else {
         let perfCall = perfDataQuery.callChainMap.get(struct.callchain_id || 0);
         if (perfCall) {
-          let perfName;
-          typeof perfCall.name === 'number'
-            ? (perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name)))
-            : (perfName = perfCall.name);
+          let perfName = SpSystemTrace.DATA_DICT.get(parseInt(perfCall.name));
           tip = `<span>${perfCall ? perfName : ''} (${perfCall ? perfCall.depth : '0'} other frames)</span>`;
         }
       }

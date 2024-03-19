@@ -35,36 +35,74 @@ describe('SpAllocations Test', () => {
     spEle.filterMemoryUnit = jest.fn(() => true);
     spEle.filterMemoryUnit.value = jest.fn(() => true);
     expect(spEle.pid).toEqual(undefined);
-    expect(spEle.unwind).toBeUndefined();
-    expect(spEle.shared).toBeUndefined();
-    expect(spEle.filter).toBeUndefined();
-  });
-  it('SpAllocations test01', function () {
-    let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.appProcess).toBeUndefined();
+    expect(spEle.unwind).toBeNaN();
+    expect(spEle.shared).toBe(16384);
+    expect(spEle.filter).toBeNaN();
   });
 
-  it('SpAllocations test02', function () {
-    let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.fp_unwind).toBeUndefined();
+  it(' SpAllocations set  attrValue', function () {
+    let spEle = document.querySelector('#sp') as SpAllocations;
+    spEle.unwindEL.value = '111';
+    spEle.shareMemory.value = '222';
+    spEle.shareMemoryUnit.value = 'MB';
+    spEle.filterMemory.value = '111';
+    spEle.filterMemoryUnit.value = 'MB';
+    expect(spEle.pid).toEqual(undefined);
+    expect(spEle.unwind).toEqual(111);
+    expect(spEle.shared).toEqual(222);
+    expect(spEle.filter).toEqual(111);
   });
-  it('SpAllocations test03', function () {
-    let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.record_accurately).toBeUndefined();
+
+  it(' SpAllocations set  attrValue2', function () {
+    let spEle = document.querySelector('#sp') as SpAllocations;
+    spEle.unwindEL.value = '1121';
+    spEle.shareMemory!.value = '222';
+    spEle.shareMemoryUnit.value = 'KB';
+    spEle.filterMemory.value = '111';
+    spEle.filterMemoryUnit.value = 'KB';
+    expect(spEle.pid).toEqual(undefined);
+    expect(spEle.unwind).toEqual(1121);
+    expect(spEle.shared).toEqual(222);
+    expect(spEle.filter).toEqual(111);
   });
-  it('SpAllocations test04', function () {
-    let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.offline_symbolization).toBeUndefined();
+
+  it(' SpAllocations set  attrValue03', function () {
+    let spEle = new SpAllocations();
+    spEle.unwindEL.value = '1121';
+    spEle.shareMemory.value = '222';
+    spEle.filterMemory.value = '111';
+    expect(spEle.pid).toEqual(undefined);
+    expect(spEle.unwind).toEqual(1121);
+    expect(spEle.shared).toEqual(222);
+    expect(spEle.filter).toEqual(111);
   });
+
   it('SpAllocations test05', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.record_statistics).toBeUndefined();
+    expect(spAllocations.appProcess).toBe('');
   });
-  it('SpAllocations test06', function () {
+
+  it('SpAllocations test09', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;
-    expect(spAllocations.statistics_interval).toBeUndefined();
+    expect(spAllocations.fp_unwind).toBeTruthy();
   });
-  it('SpAllocations test07', function () {
+  it('SpAllocations test10', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.record_accurately).toBeTruthy();
+  });
+  it('SpAllocations test11', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.offline_symbolization).toBeTruthy();
+  });
+  it('SpAllocations test12', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.record_statistics).toBeTruthy();
+  });
+  it('SpAllocations test13', function () {
+    let spAllocations = document.querySelector('#sp') as SpAllocations;
+    expect(spAllocations.statistics_interval).toEqual(10);
+  });
+  it('SpAllocations test14', function () {
     let spAllocations = document.querySelector('#sp') as SpAllocations;
     expect(spAllocations.startup_mode).toBeFalsy();
   });

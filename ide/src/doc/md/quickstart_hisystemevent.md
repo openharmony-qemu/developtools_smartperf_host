@@ -27,7 +27,7 @@ HiSystemEvent 应用功耗模块主要是展示应用的各个子类别功耗占
 
 -     Anomaly Event泳道： 显示系统异常和应用异常的ToolTip。
 -     System Event泳道： 以条状图显示，红色代表后台任务(WORKSCHEDULER)，黄色代表应用锁(POWER)，蓝色代表GPS定位(LOCATION)。
--     Power泳道：应用各个子类的功耗柱状图、折线图以及应用各个子类绘制的图例，鼠标的悬浮可以显示出各个子类功耗的具体值。
+-     Power泳道：应用各个子类的功耗柱状图、折现图以及应用各个子类绘制的图例，鼠标的悬浮可以显示出各个子类功耗的具体值。
 -     Brightness Nit泳道：鼠标悬浮可以显示屏幕亮度值。
 -     Wifi Event Received泳道：鼠标悬浮可以显示WiFi信号强度值。
 -     Audio Stream Change泳道：鼠标悬浮可以显示Audio状态(AUDIO_STREAM_CHANGE事件)。

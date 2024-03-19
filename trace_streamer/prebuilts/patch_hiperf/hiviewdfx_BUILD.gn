@@ -47,6 +47,10 @@ ohos_source_set("hiviewdfx_source") {
     cflags += [ "-includeMingW64Fix.h" ]
     include_dirs += [ "${THIRD_PARTY}/libunwind/include/mingw" ]
   }
+  if (use_wasm) {
+    include_dirs +=
+        [ "${PREBUILTS}/emsdk/emsdk/emscripten/cache/sysroot/include/" ]
+  }
   sources += [
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_elf.cpp",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_elf_parser.cpp",
@@ -56,7 +60,7 @@ ohos_source_set("hiviewdfx_source") {
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_mmap.cpp",
     "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_symbols.cpp",
   ]
-  if (is_debug && is_linux) {
+  if (is_debug) {
     sources += [ "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/dfx_accessors.cpp" ]
   }
 }

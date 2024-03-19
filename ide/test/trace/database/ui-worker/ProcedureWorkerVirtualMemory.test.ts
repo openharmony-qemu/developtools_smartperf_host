@@ -14,14 +14,18 @@
  */
 
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+
 import {
+  setMemFrame,
   VirtualMemoryStruct,
   VirtualMemoryRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerVirtualMemory';
 import { mem } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerVirtualMemory Test', () => {
   it('ProcedureWorkerVirtualMemoryTest01', function () {
     let frame = {
@@ -124,7 +128,7 @@ describe('ProcedureWorkerVirtualMemory Test', () => {
       height: 121,
     };
     window.postMessage = jest.fn(() => true);
-    expect(virtualMemoryRender.renderMainThread(virtualMemoryReq, new TraceRow<VirtualMemoryStruct>())).toBeUndefined();
+    expect(virtualMemoryRender.render(virtualMemoryReq, [], [])).toBeUndefined();
   });
   it('ProcedureWorkerVirtualMemoryTest05', function () {
     let virtualMemoryRender = new VirtualMemoryRender();

@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import {
   AppStartupRender,
   AppStartupStruct,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerAppStartup';
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 
@@ -55,5 +54,16 @@ describe('ProcedureWorkerAppStartup Test', () => {
   });
   it('AppStartupStructTest03', () => {
     expect(AppStartupStruct).not.toBeUndefined();
+  });
+  it('AppStartupStructTest04', () => {
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      useCache: true,
+      appStartupContext: context,
+      type: '',
+    };
+    let appStartupRender = new AppStartupRender();
+    expect(appStartupRender.renderMainThread(data, new TraceRow())).toBeUndefined();
   });
 });

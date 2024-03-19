@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneCpuAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneCpuAbility';
-const abilitySqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
-jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
@@ -37,7 +37,7 @@ describe('TabPaneCpuAbility Test', () => {
       leftNs:0,
     }
   ];
-  let getTabCpuData = abilitySqlite.getTabCpuAbilityData;
+  let getTabCpuData = sqlite.getTabCpuAbilityData;
   let cpuData = [
     {
       startTime: 0,

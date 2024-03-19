@@ -20,9 +20,7 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 });
 
 import { SdkCounterRender, CounterStruct } from '../../../../src/trace/database/ui-worker/ProduceWorkerSdkCounter';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProduceWorkerSdkCounter Test', () => {
   it('ProduceWorkerSdkCounterTest01', function () {
     let sdkCounterRender = new SdkCounterRender();
@@ -192,7 +190,7 @@ describe('ProduceWorkerSdkCounter Test', () => {
       height: 135,
     };
     window.postMessage = jest.fn(() => true);
-    expect(sdkCounterRender.renderMainThread(sdkCounterReq, new TraceRow())).toBeUndefined();
+    expect(sdkCounterRender.render(sdkCounterReq, [], [])).toBeUndefined();
   });
   it('ProduceWorkerSdkCounterTest06', function () {
     let sdkCounterRender = new SdkCounterRender();

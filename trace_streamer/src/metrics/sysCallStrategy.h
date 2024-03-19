@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,9 +23,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 struct FunctionItem {
     std::string functionName;
-    int32_t durMax = -1;
-    int32_t durMin = -1;
-    int32_t durAvg = -1;
+    uint32_t durMax;
+    int32_t durMin;
+    uint32_t durAvg;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -14,7 +14,6 @@
  */
 
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
@@ -22,11 +21,8 @@ import {
   CpuAbilityMonitorStruct,
   CpuAbilityRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuAbility';
-import { dataFilterHandler } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+import { dataFilterHandler } from "../../../../src/trace/database/ui-worker/ProcedureWorkerCommon";
 
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
 describe('CpuAbilityMonitorStruct Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 14;
@@ -72,10 +68,10 @@ describe('CpuAbilityMonitorStruct Test', () => {
     dataList.push({
       startNs: 0,
       dur: 10,
-      frame: {x: 0, y: 9, width: 10, height: 10},
+      frame: { x: 0, y: 9, width: 10, height: 10 },
     });
-    dataList.push({startNs: 1, dur: 111});
-    dataFilterHandler(dataList, [{length: 0}], {
+    dataList.push({ startNs: 1, dur: 111 });
+    dataFilterHandler(dataList, [{ length: 0 }], {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,

@@ -14,6 +14,7 @@
  */
 
 import {
+  PerfCallChainThread,
   PerfCallChainPool,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerPerfCallchains';
 

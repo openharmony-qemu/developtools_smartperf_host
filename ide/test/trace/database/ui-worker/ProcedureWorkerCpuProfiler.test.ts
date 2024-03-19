@@ -23,9 +23,7 @@ import {
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerCpuProfiler Test', () => {
   let jsCpuProfilerRender = new JsCpuProfilerRender();
   let traceRow = new TraceRow();
@@ -75,19 +73,19 @@ describe('ProcedureWorkerCpuProfiler Test', () => {
 
   it('JsCpuProfilerStructTest01', () => {
     const data = {
+      cpu: 1,
+      startNs: 1,
+      value: 1,
       frame: {
         x: 20,
         y: 20,
-        width: 101,
-        height: 101,
+        width: 100,
+        height: 100,
       },
-      filterID: 2,   
-      startNs: 1,
-      value: 1,
       maxValue: undefined,
       startTime: 1,
+      filterID: 2,
       size: 102,
-      cpu: 1,
     };
     const canvas = document.createElement('canvas');
     canvas.width = 1;

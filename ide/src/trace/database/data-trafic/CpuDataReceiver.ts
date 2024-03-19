@@ -55,7 +55,7 @@ export function cpuDataReceiver(data: any, proc: Function): void {
     if (!cpuList.has(data.params.cpu)) {
       list = proc(chartCpuDataProtoSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
-        if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
+        if (list[i].dur == -1) {
           list[i].nofinish = 1;
           if (i === list.length - 1) {
             list[i].dur = data.params.endNS - list[i].startTime;
@@ -123,12 +123,11 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
             processId: processId.buffer,
             cpu: cpu.buffer,
             argSetID: argSetId.buffer,
-            nofinish: nofinish.buffer,
           }
         : {},
       len: res.length,
       transfer: transfer,
     },
-    transfer ? [startTime.buffer, dur.buffer, tid.buffer, id.buffer, processId.buffer, cpu.buffer, argSetId.buffer, nofinish.buffer] : []
+    transfer ? [startTime.buffer, dur.buffer, tid.buffer, id.buffer, processId.buffer, cpu.buffer, argSetId.buffer] : []
   );
 }

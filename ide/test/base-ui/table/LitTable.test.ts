@@ -139,17 +139,17 @@ describe('LitTable Test', () => {
     expect(litTable.renderTable()).toBeUndefined();
   });
 
-  it('LitTableTest03', () => {
+  it('LitTableTest04', () => {
     litTable.switch = document.querySelector('#switch') as HTMLInputElement;
     expect(litTable.connectedCallback()).toBeUndefined();
   });
 
-  it('LitTableTest04', () => {
+  it('LitTableTest05', () => {
     let rowLength = litTable.getCheckRows().length == 0;
     expect(rowLength).toBeTruthy();
   });
 
-  it('LitTableTest05', () => {
+  it('LitTableTest06', () => {
     expect(
       litTable.deleteRowsCondition(() => {
         return true;
@@ -157,36 +157,44 @@ describe('LitTable Test', () => {
     ).toBeUndefined();
   });
 
-  it('LitTableTest06', () => {
+  it('LitTableTest07', () => {
     expect(litTable.selectable).not.toBeUndefined();
   });
 
-  it('LitTableTest07', () => {
+  it('LitTableTest08', () => {
     litTable.selectable = true;
     expect(litTable.selectable).toBeTruthy();
   });
 
-  it('LitTableTest08', () => {
+  it('LitTableTest09', () => {
     expect(litTable.scrollY).not.toBeUndefined();
   });
 
-  it('LitTableTest09', () => {
+  it('LitTableTest10', () => {
     expect(litTable.dataSource).not.toBeUndefined();
   });
 
-  it('LitTableTest10', () => {
+  it('LitTableTest11', () => {
     expect(litTable.recycleDataSource).not.toBeUndefined();
   });
 
-  it('LitTableTest11', () => {
-    expect(litTable.meauseElementHeight()).toBe(27);
-  });
-
   it('LitTableTest12', () => {
-    expect(litTable.meauseTreeElementHeight()).toBe(27);
+    expect(litTable.fixed(td, placement)).toBeUndefined();
   });
 
   it('LitTableTest13', () => {
+    expect(litTable.fixed(td, 'right')).toBe(undefined);
+  });
+
+  it('LitTableTest14', () => {
+    expect(litTable.meauseElementHeight()).toBe(27);
+  });
+
+  it('LitTableTest15', () => {
+    expect(litTable.meauseTreeElementHeight()).toBe(27);
+  });
+
+  it('LitTableTest16', () => {
     document.body.innerHTML = "<lit-table id='tab' tree></lit-table>";
     let table = document.querySelector('#tab') as LitTable;
     let htmlElement = document.createElement('lit-table-column') as LitTableColumn;
@@ -211,11 +219,11 @@ describe('LitTable Test', () => {
     }, 20);
   });
 
-  it('LitTableTest14', () => {
+  it('LitTableTest18', () => {
     expect(litTable.createExpandBtn({ expanded: false, data: { status: true } })).not.toBeUndefined();
   });
 
-  it('LitTableTest15', () => {
+  it('LitTableTest19', () => {
     let newTableElement = document.createElement('div');
     newTableElement.classList.add('tr');
     newTableElement.style.cursor = 'pointer';
@@ -232,7 +240,7 @@ describe('LitTable Test', () => {
     expect(litTable.reMeauseHeight()).toBeUndefined();
   });
 
-  it('LitTableTest15', () => {
+  it('LitTableTest20', () => {
     const rowData = {
       data: [
         {
@@ -244,7 +252,7 @@ describe('LitTable Test', () => {
     expect(litTable.createNewTableElement(rowData)).not.toBeUndefined();
   });
 
-  it('LitTableTest16', () => {
+  it('LitTableTest21', () => {
     let element = document.createElement('div');
     let ch = document.createElement('div');
     element.appendChild(ch);
@@ -266,13 +274,13 @@ describe('LitTable Test', () => {
     expect(litTable.freshCurrentLine(element, rowObject)).toBeUndefined();
   });
 
-  it('LitTableTest16', () => {
+  it('LitTableTest22', () => {
     litTable.recycleDs.length = 1;
     litTable.setCurrentSelection = jest.fn(() => true);
     expect(litTable.scrollToData()).toBeUndefined();
   });
 
-  it('LitTableTest17', () => {
+  it('LitTableTest23', () => {
     litTable.recycleDs = [{ rowHidden: false, data: { isSearch: true } }];
     let dataSource = [
       {
@@ -287,15 +295,15 @@ describe('LitTable Test', () => {
     expect(litTable.expandList(dataSource)).toBeUndefined();
   });
 
-  it('LitTableTest18', () => {
+  it('LitTableTest24', () => {
     expect(litTable.clearAllSelection()).toBeUndefined();
   });
 
-  it('LitTableTest19', () => {
+  it('LitTableTest25', () => {
     expect(litTable.dispatchRowClickEvent({ data: { isSelected: '' } }, [], {button: ''})).toBeUndefined();
   });
 
-  it('LitTableTest20', () => {
+  it('LitTableTest26', () => {
     litTable.treeElement = jest.fn(() => undefined);
     litTable.treeElement.children = jest.fn(() => [1]);
     litTable.columns.forEach = jest.fn(() => true);
@@ -304,25 +312,25 @@ describe('LitTable Test', () => {
     expect(litTable.createNewTreeTableElement({ data: '' })).not.toBeUndefined();
   });
 
-  it('LitTableTest21', () => {
+  it('LitTableTest27', () => {
     litTable.tableElement = jest.fn(() => undefined);
     litTable.tableElement.scrollTop = jest.fn(() => 1);
     expect(litTable.move1px()).toBeUndefined();
   });
 
-  it('LitTableTest22', () => {
+  it('LitTableTest28', () => {
     document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
     let litTable = document.querySelector('#aaa') as LitTable;
     expect(litTable.setMouseIn(true, [])).toBeUndefined();
   });
 
-  it('LitTableTest23', () => {
+  it('LitTableTest29', () => {
     let tableIcon = document.createElement('lit-icon') as LitIcon;
     let mouseClickEvent: MouseEvent = new MouseEvent('click', <MouseEventInit>{ movementX: 1, movementY: 2 });
     tableIcon.dispatchEvent(mouseClickEvent);
   });
 
-  it('LitTableTest24', () => {
+  it('LitTableTest30', () => {
     document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
     let litTable = document.querySelector('#aaa') as LitTable;
     const data = {
@@ -331,18 +339,22 @@ describe('LitTable Test', () => {
     expect(litTable.setCurrentSelection(data)).toBeUndefined();
   });
 
-  it('LitTableTest25', () => {
+  it('LitTableTest31', () => {
     document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
     let litTable = document.querySelector('#aaa') as LitTable;
     litTable.formatName = true;
     expect(litTable.formatName).toBeTruthy();
   });
+  it('LitTableTest32', () => {
+    let litTable = new LitTable();
+    expect(litTable.formatName()).toBe('');
+  });
 
-  it('LitTableTest26', () => {
+  it('LitTableTest33', () => {
     let litTable = new LitTable();
     expect(litTable.dataExportInit()).toBeUndefined();
   });
-  it('LitTableTest27', () => {
+  it('LitTableTest34', () => {
     let litTable = new LitTable();
     let htmlElement = document.createElement('lit-table-column') as LitTableColumn;
     htmlElement.setAttribute('title', '41');
@@ -357,34 +369,34 @@ describe('LitTable Test', () => {
     expect(litTable.exportData()).toBeUndefined();
   });
 
-  it('LitTableTest28', () => {
+  it('LitTableTest35', () => {
     expect(litTable.formatExportData()).not.toBeUndefined();
   });
 
-  it('LitTableTest29', () => {
+  it('LitTableTest36', () => {
     expect(litTable.setSelectedRow(true, [])).toBeUndefined();
   });
 
-  it('LitTableTest30', () => {
+  it('LitTableTest37', () => {
     document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
     let litTable = document.querySelector('#aaa') as LitTable;
     litTable.setAttribute('tree', true);
     expect(litTable.dataSource).toStrictEqual([]);
   });
 
-  it('LitTableTest31', () => {
+  it('LitTableTest38', () => {
     document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
     let litTable = document.querySelector('#aaa') as LitTable;
     litTable.rememberScrollTop = true;
     expect(litTable.recycleDataSource).toStrictEqual([]);
   });
 
-  it('LitTableTest32', () => {
+  it('LitTableTest39', () => {
     let litTable = new LitTable();
     expect(litTable.dataExportInit()).toBeUndefined();
   });
 
-  it('LitTableTest33', () => {
+  it('LitTableTest40', () => {
     let tableColmn = document.createElement('lit-table-column') as LitTableColumn;
     tableColmn.setAttribute('title', '21');
     tableColmn.setAttribute('data-index', '13');
@@ -418,7 +430,7 @@ describe('LitTable Test', () => {
     expect(litTable.formatExportData(dataSource)).toBeTruthy();
   });
 
-  it('LitTableTest34', () => {
+  it('LitTableTest41', () => {
     let list = [
       {
         memoryTap: 'All Heap',
@@ -475,7 +487,7 @@ describe('LitTable Test', () => {
     expect(litTable.meauseTreeRowElement(list)).toBeTruthy();
   });
 
-  it('LitTableTest35', () => {
+  it('LitTableTest42', () => {
     let list = [
       {
         memoryTap: 'All Heap',
@@ -521,7 +533,7 @@ describe('LitTable Test', () => {
     expect(litTable.meauseAllRowHeight(list)).toBeTruthy();
   });
 
-  it('LitTableTest36', () => {
+  it('LitTableTest43', () => {
     let tableColmn = document.createElement('lit-table-column') as LitTableColumn;
     tableColmn.setAttribute('data-index', '14');
     tableColmn.setAttribute('key', '141');
@@ -554,7 +566,7 @@ describe('LitTable Test', () => {
     expect(litTable.formatExportCsvData(dataSource)).toBeTruthy();
   });
 
-  it('LitTableTest37', () => {
+  it('LitTableTest44', () => {
     let element = document.createElement('div');
     litTable.tableElement = document.createElement('div');
     let firstElement = document.createElement('div');
@@ -577,25 +589,25 @@ describe('LitTable Test', () => {
     litTable.columns = [tableColmn, tableColmn1];
     expect(litTable.freshCurrentLine(element, rowObject, firstElement)).toBeUndefined();
   });
-  it('LitTableTest38', () => {
+  it('LitTableTest45', () => {
     litTable.hideDownload = true;
     expect(litTable.hideDownload).toBeTruthy();
   });
-  it('LitTableTest39', () => {
+  it('LitTableTest46', () => {
     litTable.hideDownload = false;
     expect(litTable.hideDownload).not.toBeUndefined();
   });
-  it('LitTableTest40', () => {
+  it('LitTableTest47', () => {
     expect(litTable.createBtn({ expanded: false, data: { status: true } })).not.toBeUndefined();
   });
-  it('LitTableTest41', () => {
+  it('LitTableTest48', () => {
     expect(litTable.mouseOut()).toBeUndefined();
   });
-  it('LitTableTest42', () => {
+  it('LitTableTest49', () => {
     litTable.isRecycleList = true;
     expect(litTable.setCurrentHover({})).toBeUndefined();
   });
-  it('LitTableTest43', () => {
+  it('LitTableTest50', () => {
     expect(litTable.clearAllHover({})).toBeUndefined();
   });
 });

@@ -447,6 +447,8 @@ export class SpHelp extends BaseElement {
         .body{
             width: 90%;
             margin-left: 3%;
+            margin-top: 2%;
+            margin-bottom: 2%;
             display: grid;
             grid-template-columns: min-content  1fr;
             background-color: var(--dark-background3,#FFFFFF);

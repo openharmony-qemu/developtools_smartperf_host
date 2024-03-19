@@ -14,10 +14,8 @@
  */
 import { TabPanePurgTotalSelection } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgTotalSelection';
 
-const sqlit = require('../../../../../../src/trace/database/sql/Ability.sql');
-jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
-const processSqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
     return {};
 });
@@ -46,7 +44,7 @@ describe('TabPanePurgTotalSelection Test', () => {
             name: "34.47MB",
         },
     ]);
-    let queryProcessPurgeableSelectionTab = processSqlite.queryProcessPurgeableSelectionTab;
+    let queryProcessPurgeableSelectionTab = sqlit.queryProcessPurgeableSelectionTab;
     queryProcessPurgeableSelectionTab.mockResolvedValue([
         {
             value: 15445,

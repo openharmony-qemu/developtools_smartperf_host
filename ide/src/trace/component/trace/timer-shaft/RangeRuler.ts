@@ -515,10 +515,6 @@ export class RangeRuler extends Graph {
       if (currentSlicesTime) {
         this.currentSlicesTime = currentSlicesTime;
       }
-      this.isMouseDown = false;
-      this.isMovingRange = false;
-      this.isNewRange = false;
-      this.movingMark = null;
       this.cancelPressFrame();
       this.cancelUpFrame();
       this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
@@ -571,7 +567,6 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f; //reg
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -596,7 +591,6 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -621,7 +615,6 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -647,7 +640,6 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
-      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);

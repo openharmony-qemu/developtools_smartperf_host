@@ -12,15 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const sqlite = require('../../../../../../src/trace/database/sql/Gpu.sql');
-jest.mock('../../../../../../src/trace/database/sql/Gpu.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 import { TabPaneGpuWindowBoxSelect } from '../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuWindowBoxSelect';
 
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
 });
 

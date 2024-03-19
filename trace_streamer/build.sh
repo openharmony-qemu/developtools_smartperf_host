@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Copyright (C) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,19 +13,19 @@
 # limitations under the License.
 set -e
 PARAMS=$*
-echo "$PARAMS"
+echo $PARAMS
 echo "begin to check input"
 SOURCE="${BASH_SOURCE[0]}"
-cd "$(dirname "${SOURCE}")"
+cd $(dirname ${SOURCE})
 ./pare_third_party.sh
 target_os="linux"
+target_dir="linux"
 gn_path="linux"
 is_debug="false"
 is_clean="false"
 target="trace_streamer"
 gn="gn"
 ninja="ninja"
-use_local_emsdk="false"
 case "$OSTYPE" in
   solaris*) echo "SOLARIS" ;;
   darwin*)  gn_path="macx" target_os="macx" ;;
@@ -34,23 +34,24 @@ case "$OSTYPE" in
   msys*)    gn_path="windows" target_os="windows" gn="gn.exe" ninja="ninja.exe"  ;;
   *)        echo "unknown: $OSTYPE" ;;
 esac
+usage="Usage: $basename $0 wasm/test/fuzz/protoc debug/release/clean"
 
 ./dl_tools.sh $gn_path
 
-if [ "$#" -ne 0 ] && { [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; };then
+if { [ "$1" == "sdkdemo" ] || [ "$1" == "wasm" ] || [ "$1" == "test" ] || [ "$1" == "fuzz" ]; } && [ "$#" -ne 0 ];then
     TARGET_DIR=$1
     if [[ $PARAMS == *"debug"* ]]; then
         TARGET_DIR=$1"_debug"
     fi
-    if [ ! -f "out/$TARGET_DIR/protoc" ];then
+    if [ ! -f "out/$TARGET_DIR/protoc" ] && [ "$1" != "protoc" ];then
         ./build.sh protoc
-        mkdir -p out/"$TARGET_DIR"
-        cp out/$target_os/protoc out/"$TARGET_DIR"/protoc
+        mkdir -p out/$TARGET_DIR
+        cp out/$target_os/protoc out/$TARGET_DIR/protoc
     fi
-    if [ ! -f "out/$TARGET_DIR/protoreader_plugin" ] && [ -f "out/$TARGET_DIR/protoc" ];then
+    if [ ! -f "out/$TARGET_DIR/protoreader_plugin" ] && [ "$1" != "spb" ] && [ -f "out/$TARGET_DIR/protoc" ];then
         ./build.sh spb
-        mkdir -p out/"$TARGET_DIR"
-        cp out/$target_os/protoreader_plugin out/"$TARGET_DIR"/protoreader_plugin
+        mkdir -p out/$TARGET_DIR
+        cp out/$target_os/protoreader_plugin out/$TARGET_DIR/protoreader_plugin
     fi
 fi
 if [ $target_os == "windows" ];then
@@ -58,7 +59,7 @@ if [ $target_os == "windows" ];then
 else
     cp .gn_unix .gn
 fi
-if [ "$1" == "windows" ] && [ "$2" == "release" ];then
+if [ "$1" == "windows" ];then
     echo "gn only support linux and wasm build currently"
     if [ ! -d "out/windows" ];then
         mkdir out/windows
@@ -66,15 +67,11 @@ if [ "$1" == "windows" ] && [ "$2" == "release" ];then
     touch out/windows/trace_streamer.exe
     exit
 fi
+
 if [ "$#" -ne "0" ];then
-    if [ "$1" == "wasm" ] || [ "$1" == "sdkdemo" ];then
-        if command -v em++ &> /dev/null; then
-            use_local_emsdk="true"
-        else
-            ./dl_emsdk.sh
-            use_local_emsdk="false"
-        fi
-        target="$1"
+    if [ "$1" == "wasm" ];then
+        ./dl_emsdk.sh
+        target="wasm"
     fi
     if [ "$1" == "test" ];then
         target="test"
@@ -84,6 +81,9 @@ if [ "$#" -ne "0" ];then
     fi
     if [ "$1" == "protoc" ];then
         target="protoc"
+    fi
+    if [ "$1" == "sdkdemo" ];then
+        target="sdkdemo"
     fi
     if [ "$1" == "sdkdemotest" ];then
         target="sdkdemotest"
@@ -97,4 +97,4 @@ if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
     exit
 fi
-./build_operator.sh $is_debug "$target" $target_os $is_clean $gn_path $gn $ninja "$target_operator" $use_local_emsdk
+./build_operator.sh $is_debug $target $target_os $is_clean $gn_path $gn $ninja $target_operator

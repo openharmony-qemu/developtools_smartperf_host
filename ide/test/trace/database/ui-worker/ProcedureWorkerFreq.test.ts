@@ -20,9 +20,7 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 });
 import { CpuFreqStruct, FreqRender, freq } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFreq';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('freqTest', () => {
   it('freqTest01', () => {
     const canvas = document.createElement('canvas');

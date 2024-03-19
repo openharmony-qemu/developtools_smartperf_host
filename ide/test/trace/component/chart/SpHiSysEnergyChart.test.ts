@@ -12,15 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import '../../../../src/trace/component/chart/SpHiSysEnergyChart';
 import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-import { SpHiSysEnergyChart } from '../../../../src/trace/component/chart/SpHiSysEnergyChart';
+import '../../../../src/trace/component/chart/SpChartManager';
+import '../../../../src/trace/component/SpSystemTrace';
 import { LitPopover } from '../../../../src/base-ui/popover/LitPopoverV';
-jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
-  return {};
-});
+import { SpHiSysEnergyChart } from '../../../../src/trace/component/chart/SpHiSysEnergyChart';
+
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
+
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -29,10 +32,9 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
-const processSqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+
 describe('SpHiSysEnergyChart Test', () => {
   let ss = new SpChartManager();
   let spHiSysEnergyChart = new SpHiSysEnergyChart(ss);
@@ -55,17 +57,9 @@ describe('SpHiSysEnergyChart Test', () => {
     },
   ];
   maxStateValue.mockResolvedValue(max);
-
-  let stateInitData = sqlite.queryStateInitValue;
-  let stateInitInit = [{
-    eventName: '',
-    keyName: '',
-  }];
-  stateInitData.mockResolvedValue(stateInitInit);
-
   let MockExits = sqlite.queryEnergyEventExits;
   MockExits.mockResolvedValue(['trace_hisys_event']);
-  let powerData = processSqlite.queryPowerData;
+  let powerData = sqlite.queryPowerData;
   let power = [
     {
       startNS: 5999127351,
@@ -92,7 +86,6 @@ describe('SpHiSysEnergyChart Test', () => {
     },
   ];
   sysEventAppName.mockResolvedValue(appName);
-
 
   let querySystemLocationData = sqlite.querySystemLocationData;
   let querySystemLockData = sqlite.querySystemLockData;
@@ -197,11 +190,11 @@ describe('SpHiSysEnergyChart Test', () => {
         eventValue: '375,475,255,963',
       },
     ];
-    expect(spHiSysEnergyChart.getPowerData(result)).toBeTruthy();
+    expect(spHiSysEnergyChart.getPowerData(result)).toStrictEqual(Promise.resolve());
   });
 
   it('SpHiSysEnergyChartTest05', function () {
-    expect(spHiSysEnergyChart.getPowerData([])).toBeTruthy();
+    expect(spHiSysEnergyChart.getPowerData([])).toStrictEqual(Promise.resolve());
   });
 
   it('SpHiSysEnergyChartTest6', function () {
