@@ -24,11 +24,9 @@ interface VSyncData {
 let vSyncDataList: VSyncData[] = [];
 let vSyncEnable = false;
 let isSingle = false;
-let isQuery = false;
 
 export function resetVSync(): void {
   vSyncEnable = false;
-  isQuery = false;
 }
 
 export const querySfVSyncData = (): Promise<Array<VSyncData>> =>
@@ -90,7 +88,6 @@ export async function setVSyncData(): Promise<void> {
     }
   });
   vSyncDataList = sfvSyncData;
-  isQuery = true;
 }
 
 /**
@@ -134,12 +131,10 @@ export function drawVSync(ctx: CanvasRenderingContext2D, width: number, height: 
  * enable/disable SingleVSync
  */
 export function enableVSync(press: boolean, ev: KeyboardEvent, handler?: Function): void {
-  if (!isQuery) {
+  if (ev.key.toLocaleLowerCase() === 'v' && !ev.ctrlKey) {
     window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Query VSync' });
     setVSyncData();
     window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Query VSync' });
-  }
-  if (ev.key.toLocaleLowerCase() === 'v' && !ev.ctrlKey) {
     vSyncEnable = !vSyncEnable;
     handler?.();
   }
