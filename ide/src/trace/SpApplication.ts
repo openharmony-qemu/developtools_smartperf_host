@@ -292,8 +292,25 @@ export class SpApplication extends BaseElement {
     let urlParams = new URL(window.location.href).searchParams;
     if (urlParams && urlParams.get('trace') && urlParams.get('link')) {
       this.openLineFileHandler(urlParams);
+    } else if (urlParams && urlParams.get('action')) {
+      this.helpClick(urlParams!)
     } else {
       this.openMenu(true);
+    }
+  }
+
+  private helpClick(urlParams:URLSearchParams) {
+    if(urlParams.get('action')=== 'help'){
+      SpStatisticsHttpUtil.addOrdinaryVisitAction({
+        event: 'help_page',
+        action: 'help_doc',
+      });
+      this.search = false;
+      this.spHelp!.dark = this.dark;
+      this.showContent(this.spHelp!);
+    }
+    else if(urlParams.get('action')!.length > 4){
+      this.showContent(this.spHelp!);
     }
   }
 
@@ -320,6 +337,7 @@ export class SpApplication extends BaseElement {
   }
 
   private openLongTraceFile(ev: any, isRecordTrace: boolean = false) {
+    this.returnOriginalUrl();
     this.openFileInit();
     let detail = (ev as any).detail;
     let initRes = this.longTraceFileInit(isRecordTrace, detail);
@@ -515,6 +533,7 @@ export class SpApplication extends BaseElement {
   }
 
   private openTraceFile(ev: any, isClickHandle?: boolean) {
+    this.returnOriginalUrl();
     this.removeAttribute('custom-color');
     this.customColor!.setAttribute('hidden', '');
     this.longTracePage!.style.display = 'none';
@@ -733,6 +752,7 @@ export class SpApplication extends BaseElement {
             title: 'Record new trace',
             icon: 'copyhovered',
             clickHandler: (item: MenuItem): void => {
+              this.returnOriginalUrl();
               this.spRecordTrace!.synchronizeDeviceList();
               this.spRecordTemplate!.record_template = false;
               this.spRecordTrace!.refreshConfig(true);
@@ -743,6 +763,7 @@ export class SpApplication extends BaseElement {
             title: 'Record template',
             icon: 'copyhovered',
             clickHandler: (item: MenuItem): void => {
+              this.returnOriginalUrl();
               this.spRecordTemplate!.refreshHint();
               this.spRecordTemplate!.record_template = true;
               this.spRecordTemplate!.refreshConfig(false);
@@ -770,12 +791,14 @@ export class SpApplication extends BaseElement {
                 event: 'help_page',
                 action: 'help_doc',
               });
+              this.changeUrl();
             },
           },
           {
             title: 'Flags',
             icon: 'menu',
             clickHandler: (item: MenuItem): void => {
+              this.returnOriginalUrl();
               this.search = false;
               this.showContent(this.spFlags!);
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
@@ -788,6 +811,7 @@ export class SpApplication extends BaseElement {
             title: 'Keyboard Shortcuts',
             icon: 'smart-help',
             clickHandler: (item: MenuItem): void => {
+              this.returnOriginalUrl();
               document.querySelector('body > sp-application')!.shadowRoot!.querySelector<HTMLDivElement>('#sp-keyboard')!.style.visibility = 'visible';
               SpSystemTrace.keyboardFlar = false;
               SpStatisticsHttpUtil.addOrdinaryVisitAction({
@@ -800,6 +824,7 @@ export class SpApplication extends BaseElement {
             title: '第三方文件',
             icon: 'file-fill',
             clickHandler: (item: MenuItem): void => {
+              this.returnOriginalUrl();
               this.search = false;
               this.showContent(this.spThirdParty!);
             },
@@ -807,6 +832,23 @@ export class SpApplication extends BaseElement {
         ],
       },
     ];
+  }
+
+  private changeUrl() {
+    let url = new URL(window.location.href);
+    let actionParam = url.searchParams.get("action");
+    let newActionValue = "help";
+    if (actionParam) {
+      url.searchParams.set("action", newActionValue);
+    } else {
+      url.searchParams.append("action", newActionValue);
+    }
+    let newURL = url.href;
+    history.pushState({}, "", newURL);
+  }
+
+  private returnOriginalUrl(){
+    history.pushState({}, "", window.location.origin + window.location.pathname);
   }
 
   private handleSqliteMode(ev: any, showFileName: string, fileSize: number, fileName: string): void {
