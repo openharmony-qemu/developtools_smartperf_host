@@ -79,7 +79,7 @@ export const TabCpuAnalysisHtml = `
             </div>
             <div class="grid_usage" id="cpu_usage_chart"></div>
         </div>
-        <lit-drawer id="drawer-right" drawer-title="CPU：0" content-width="65vw" placement="right" style="position: fixed" fixed mask mask-closeable closeable content-padding="0">
+        <lit-drawer id="drawer-right" title="CPU：0" content-width="65vw" placement="right" style="position: fixed" fixed mask mask-closeable closeable content-padding="0">
             <drawer-cpu-tabs id="drawer-cpu-tabs"></drawer-cpu-tabs>
         </lit-drawer>
         `;

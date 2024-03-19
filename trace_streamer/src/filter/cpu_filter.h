@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,10 +41,10 @@ public:
     void InsertSwitchEvent(uint64_t ts,
                            uint64_t cpu,
                            uint32_t prevPid,
-                           int32_t prevPrio,
+                           uint64_t prevPior,
                            uint64_t prevState,
                            uint32_t nextPid,
-                           int32_t nextPrio,
+                           uint64_t nextPior,
                            DataIndex nextInfo);
     bool InsertBlockedReasonEvent(uint64_t ts,
                                   uint64_t cpu,
@@ -59,18 +59,6 @@ public:
     void InsertRunnableBinderRecvEvent(uint32_t transactionId, uint32_t iTid);
     void Finish() const;
     void Clear();
-    void UpdateProcessData(bool isFinish = false) const;
-    void UpdateReadySize()
-    {
-        UpdateProcessData();
-        uint64_t minSchedSliceRowToBeUpdated = INVALID_UINT64;
-        for (const auto& [_, binderTransactionInfo] : transactionIdToInfo_) {
-            if (minSchedSliceRowToBeUpdated > binderTransactionInfo.schedSliceRow) {
-                minSchedSliceRowToBeUpdated = binderTransactionInfo.schedSliceRow;
-            }
-        }
-        UpdateSchedSliceReadySize(minSchedSliceRowToBeUpdated);
-    }
 
 private:
     struct BinderTransactionInfo {
@@ -91,9 +79,6 @@ private:
                                 uint32_t prevPid,
                                 uint64_t prevState,
                                 BinderTransactionInfo& btInfo);
-    bool UpdateSchedSliceReadySize(uint64_t minSchedSliceRowToBeUpdated = INVALID_UINT64);
-
-private:
     std::map<uint64_t, uint64_t> cpuToRowThreadState_ = {};
     typedef struct {
         uint32_t iTid;

@@ -20,7 +20,7 @@ Cpuprofiler 模板帮助 ArkTs 开发和测试分析虚拟机层执行开销大�
 ![GitHub Logo](../../figures/arkts/cpuprofilertip.jpg)
 
 -     Name : 函数名。
--     Self Time : 函数自身执行时间(不包含其调用者)。
+-     Self Time: 函数自身执行时间(不包含其调用者)。
 -     Total Time : 函数自身及调用者的调用时间总和。
 -     Url : 函数所在的文件名称。
 
@@ -38,13 +38,13 @@ Js Profiler Statistics 的 Tab 页显示数据的维度信息，以饼图和 Tab
   ![GitHub Logo](../../figures/arkts/cpuprofilerselectc.jpg)
   ![GitHub Logo](../../figures/arkts/cpuprofilerdragc.jpg)
 -     Symbol : 函数名。
--     Self Time : 函数自身执行时间(不包含其调用者)。
+-     Self Time: 函数自身执行时间(不包含其调用者)。
 -     Total Time : 函数自身及调用者的调用时间总和。
   Js Profiler BottomUp 的 Tab 页把 name，url，depth，parent 相同的函数合并，构建成一个 bottom up 的树结构，以树形表格的形式显示，只不过作为根节点的是被调用者，表格中显示函数被调用关系，如下图：
   ![GitHub Logo](../../figures/arkts/cpuprofilerselectb.jpg)
   ![GitHub Logo](../../figures/arkts/cpuprofilerdragb.jpg)
 -     Symbol : 函数名。
--     Self Time : 函数自身执行时间(不包含其调用者)。
+-     Self Time: 函数自身执行时间(不包含其调用者)。
 -     Total Time : 函数自身及调用者的调用时间总和。
 
 ### Cpuprofiler 的 Heaviest Stack 功能

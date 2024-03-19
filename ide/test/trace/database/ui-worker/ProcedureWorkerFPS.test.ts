@@ -30,7 +30,7 @@ describe(' FPSTest', () => {
     dataList.push({
       startTime: 0,
       dur: 10,
-      frame: { x: 0, y: 10, width: 10, height: 10 },
+      frame: { x: 0, y: 9, width: 10, height: 10 },
     });
     dataList.push({ startTime: 1, dur: 111 });
     let rect = new Rect(0, 10, 10, 10);
@@ -112,5 +112,62 @@ describe(' FPSTest', () => {
       value: 550,
     };
     expect(FpsStruct.draw(ctx, Sourcedate)).toBeUndefined();
+  });
+
+  it('FpsTest06', function () {
+    let fpsRender = new FpsRender();
+    let fpsReq = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 1,
+      endNS: 32,
+      totalNS: 31,
+      frame: {
+        x: 54,
+        y: 50,
+        width: 133,
+        height: 133,
+      },
+      useCache: false,
+      range: {
+        refresh: '',
+      },
+      canvas: 'a',
+      context: {
+        font: '12px sans-serif',
+        fillStyle: '#af919b',
+        globalAlpha: 0.56,
+        height: 120,
+        width: 100,
+        clearRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        fillRect: jest.fn(() => []),
+        fillText: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+      },
+      lineColor: '',
+      isHover: '',
+      hoverX: 21,
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 34,
+      id: 1,
+      x: 220,
+      y: 203,
+      width: 1030,
+      height: 890,
+      params: {
+        isLive: false,
+        maxHeight: 52,
+        dpr: 41,
+        hoverFuncStruct: '',
+        selectFuncStruct: undefined,
+      },
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(fpsRender.render(fpsReq, [], [])).toBeUndefined();
   });
 });

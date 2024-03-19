@@ -14,12 +14,12 @@
 import { TraceRow } from '../../../component/trace/base/TraceRow';
 import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
 import { threadPool } from '../../SqlLite';
+import { HiPerfCpuStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
 import { HiPerfProcessStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerfProcess2';
 
 export function hiperfProcessDataSender(
   pid: number,
   drawType: number,
-  maxCpu: number,
   intervalPerf: number,
   scale: number,
   row: TraceRow<any>
@@ -49,7 +49,7 @@ export function hiperfProcessDataSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         pid: pid,
-        maxCpuCount: maxCpu,
+        maxCpuCount: -1,
         scale: scale,
         drawType: drawType,
       },

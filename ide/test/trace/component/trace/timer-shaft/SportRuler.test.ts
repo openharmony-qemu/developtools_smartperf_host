@@ -27,7 +27,9 @@ jest.mock('../../../../../src/trace/component/SpSystemTrace', () => {
 });
 
 import { SportRuler } from '../../../../../src/trace/component/trace/timer-shaft/SportRuler';
+import { TimerShaftElement } from '../../../../../src/trace/component/trace/TimerShaftElement';
 import { Flag } from '../../../../../src/trace/component/trace/timer-shaft/Flag';
+import { TraceRow, RangeSelectStruct } from '../../../../../src/trace/component/trace/base/TraceRow';
 
 const intersectionObserverMock = () => ({
   observe: () => null,

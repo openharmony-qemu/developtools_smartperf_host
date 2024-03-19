@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-import { IrqRender, IrqStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerIrq';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
+
+import { IrqRender, IrqStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerIrq';
+
 describe('ProcedureWorkerIrq Test', () => {
   it('ProcedureWorkerIrq01', () => {
     const canvas = document.createElement('canvas');
@@ -61,55 +62,5 @@ describe('ProcedureWorkerIrq Test', () => {
         data
       )
     ).toBeUndefined();
-  });
-  it('ProcedureWorkerIrq03', () => {
-    let irqRender = new IrqRender();
-    let req = {
-      lazyRefresh: true,
-      type: '',
-      startNS: 5,
-      endNS: 9,
-      totalNS: 4,
-      frame: {
-        x: 32,
-        y: 20,
-        width: 170,
-        height: 180,
-      },
-      useCache: true,
-      range: {
-        refresh: '',
-      },
-      canvas: 'b',
-      context: {
-        font: '12px sans-serif',
-        fillStyle: '#a1697d',
-        globalAlpha: 0.5,
-        measureText: jest.fn(() => true),
-        clearRect: jest.fn(() => true),
-        stroke: jest.fn(() => true),
-        closePath: jest.fn(() => false),
-        beginPath: jest.fn(() => true),
-        fillRect: jest.fn(() => false),
-        fillText: jest.fn(() => true),
-      },
-      lineColor: '',
-      isHover: 'true',
-      hoverX: 0,
-      params: '',
-      wakeupBean: undefined,
-      flagMoveInfo: '',
-      flagSelectedInfo: '',
-      slicesTime: 4,
-      id: 1,
-      x: 24,
-      y: 24,
-      width: 100,
-      height: 100,
-    };
-    window.postMessage = jest.fn(() => true);
-    TraceRow.range = jest.fn(() => true);
-    TraceRow.range.startNS = jest.fn(() => 1);
-    expect(irqRender.renderMainThread(req,new TraceRow<IrqStruct>()));
   });
 });

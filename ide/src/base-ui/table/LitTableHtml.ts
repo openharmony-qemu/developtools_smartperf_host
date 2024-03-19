@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { JSONToCSV } from '../utils/CSVFormater';
+import {JSONToCSV} from "../utils/CSVFormater";
 
 export const iconWidth = 20;
 export const iconPadding = 5;
@@ -37,7 +37,6 @@ export const litPageTableHtml = `
         }
         .tr{
             background-color: var(--dark-background,#FFFFFF);
-            line-height: 27px;
         }
         .tr:hover{
             background-color: var(--dark-background6,#DEEDFF);
@@ -56,7 +55,6 @@ export const litPageTableHtml = `
             align-items: center;
             width: 100%;
             height: auto;
-            line-height: 21px;
             cursor: pointer;
         }
         .td label{
@@ -549,7 +547,7 @@ export function createDownUpSvg(index: number, head: any) {
   downSvg.style.display = 'none';
   head.appendChild(upSvg);
   head.appendChild(downSvg);
-  return { upSvg, downSvg };
+  return {upSvg, downSvg}
 }
 
 export function exportData(that: any): void {

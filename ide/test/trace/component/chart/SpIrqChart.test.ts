@@ -15,9 +15,8 @@
 
 import { SpSystemTrace } from "../../../../src/trace/component/SpSystemTrace";
 
-const sqlite = require('../../../../src/trace/database/sql/Irq.sql');
-jest.mock('../../../../src/trace/database/sql/Irq.sql');
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -31,11 +30,12 @@ const intersectionObserverMock = () => ({
   observe: () => null,
 });
 
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpIrqChart } from '../../../../src/trace/component/chart/SpIrqChart';
 
 describe('SpIrqChart Test', () => {
   let trace = new SpSystemTrace();
-  let irqChart = new SpIrqChart(trace);
+  let irqChart = new SpIrqChart(new SpChartManager(trace));
   let irqList = sqlite.queryIrqList;
   let irqListData = [
     {

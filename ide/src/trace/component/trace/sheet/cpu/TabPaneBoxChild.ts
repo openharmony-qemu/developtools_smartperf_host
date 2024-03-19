@@ -30,7 +30,7 @@ export class TabPaneBoxChild extends BaseElement {
   set data(boxChildValue: BoxJumpParam) {
     if (this.boxChildTbl) {
       // @ts-ignore
-      this.boxChildTbl.shadowRoot?.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
+      this.boxChildTbl.shadowRoot.querySelector('.table').style.height = this.parentElement!.clientHeight - 45 + 'px';
     }
     this.boxChildRange!.textContent =
       'Selected range: ' + parseFloat(((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5)) + ' ms';

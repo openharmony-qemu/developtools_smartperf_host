@@ -87,7 +87,7 @@ export function CpuFreqLimitsStructOnClick(clickRowType: string, sp: SpSystemTra
         CpuFreqLimitsStruct.selectCpuFreqLimitsStruct = CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct;
         sp.traceSheetEL?.displayFreqLimitData();
         sp.timerShaftEL?.modifyFlagList(undefined);
-        reject(new Error());
+        reject();
       }else{
         resolve(null);
       }

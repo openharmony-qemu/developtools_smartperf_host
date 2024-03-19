@@ -52,67 +52,86 @@ describe('spApplication Test', () => {
     });
 
     it('spApplicationTest03', function () {
+        spApplication.vs = true;
+        expect(spApplication.vs).toBeTruthy();
+    });
+
+    it('spApplicationTest04', function () {
+        spApplication.vs = false;
+        expect(spApplication.vs).toBeTruthy();
+    });
+
+    it('spApplicationTest05', function () {
         spApplication.server = true;
         expect(spApplication.server).toBeTruthy();
     });
 
-    it('spApplicationTest04', function () {
+    it('spApplicationTest06', function () {
         spApplication.server = false;
         expect(spApplication.server).toBeFalsy();
     });
 
-    it('spApplicationTest05', function () {
+    it('spApplicationTest07', function () {
         spApplication.querySql = true;
         expect(spApplication.querySql).toBeTruthy();
     });
 
-    it('spApplicationTest06', function () {
+    it('spApplicationTest08', function () {
         spApplication.querySql = false;
         expect(spApplication.querySql).toBeFalsy();
     });
 
-    it('spApplicationTest07', function () {
+    it('spApplicationTest09', function () {
         spApplication.search = true;
         expect(spApplication.search).toBeTruthy();
     });
 
-    it('spApplicationTest08', function () {
+    it('spApplicationTest10', function () {
         spApplication.search = false;
         expect(spApplication.search).toBeFalsy();
     });
 
-    it('spApplicationTest09', function () {
+    it('spApplicationTest11', function () {
         expect(spApplication.removeSkinListener([])).toBeUndefined();
     });
 
-    it('spApplicationTest10', function () {
-        expect(spApplication.freshMenuDisable(true)).toBeUndefined();
+    it('spApplicationTest15', function () {
+        expect(spApplication.freshMenuDisable()).toBeUndefined();
     });
 
-    it('spApplicationTest11', function () {
+    it('spApplicationTest16', function () {
         expect(spApplication.addSkinListener()).toBeUndefined();
     });
 
-    it('spApplicationTest12', function () {
+    it('spApplicationTest17', function () {
         expect(spApplication.removeSkinListener()).toBeUndefined();
     });
 
-    it('spApplicationTest13', function () {
+    it('spApplicationTest18', function () {
         spApplication.dispatchEvent(new Event('dragleave'));
     });
 
-    it('spApplicationTest14', function () {
+    it('spApplicationTest19', function () {
         spApplication.dispatchEvent(new Event('drop'));
         spApplication.removeSkinListener = jest.fn(() => undefined);
         expect(spApplication.removeSkinListener({})).toBeUndefined();
     });
+    it('spApplicationTest21', function () {
+        expect(spApplication.vsDownload()).toBeUndefined();
+    });
 
-    it('spApplicationTest15', function () {
+    it('spApplicationTest22', function () {
+        spApplication.showConten = false;
+        expect(spApplication.showContent).toBeFalsy();
+    });
+
+    it('spApplicationTest26', function () {
         spApplication.dark = false;
+        spApplication.skinChangeArray = ['value'];
         expect(spApplication.dark).toBeFalsy();
     });
 
-    it('spApplicationTest16', function () {
+    it('spApplicationTest29', function () {
         spApplication.querySql = false;
         expect(spApplication.querySql).toBeFalsy();
     });

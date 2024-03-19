@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneHistoryProcesses } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneHistoryProcesses';
-const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });

@@ -699,21 +699,17 @@ export class TabpaneNMCalltree extends BaseElement {
           this.nmCallTreeFrameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.nmCallTreeFrameChart?.calculateChartData();
         }
-        let headLineHeight = 0;
-        if (this.headLine?.isShow) {
-          headLineHeight = this.headLine!.clientHeight;
-        }
         if (this.nmCallTreeTbl) {
           // @ts-ignore
           this.nmCallTreeTbl.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 10 - 35 - headLineHeight
+            this.parentElement!.clientHeight - 10 - 35
           }px`;
         }
         this.nmCallTreeTbl?.reMeauseHeight();
         if (this.filesystemTbr) {
           // @ts-ignore
           this.filesystemTbr.shadowRoot.querySelector('.table').style.height = `${
-            this.parentElement!.clientHeight - 45 - 21 - headLineHeight
+            this.parentElement!.clientHeight - 45 - 21
           }px`;
         }
         this.filesystemTbr?.reMeauseHeight();
@@ -733,18 +729,24 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   filesystemTbrRowClickHandler = (event: any): void => {
-    let data = event.detail.data as FileMerageBean;
+    // @ts-ignore
+    let data = evt.detail.data as FileMerageBean;
     this.nmCallTreeTbl?.clearAllSelection(data);
     (data as any).isSelected = true;
     this.nmCallTreeTbl!.scrollToData(data);
-    if ((event.detail as any).callBack) {
-      (event.detail as any).callBack(true);
+    // @ts-ignore
+    if ((evt.detail as any).callBack) {
+      // @ts-ignore
+      (evt.detail as any).callBack(true);
     }
   };
 
   nmCallTreeTblColumnClickHandler = (event: any): void => {
-    this.sortKey = event.detail.key;
-    this.sortType = event.detail.sort;
+    // @ts-ignore
+    this.sortKey = evt.detail.key;
+    // @ts-ignore
+    this.sortType = evt.detail.sort;
+    // @ts-ignore
     this.setLTableData(this.nmCallTreeSource, true);
     this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
   };

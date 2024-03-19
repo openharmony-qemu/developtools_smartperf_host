@@ -610,13 +610,13 @@ describe('ProcedureLogicWorkerNativeNemory Test', () => {
     let params = [
       {
         length: 1,
+        funcName: 'splitAllProcess',
         funcArgs: [
           {
             get: jest.fn(() => true),
             forEach: jest.fn(() => true),
           },
         ],
-        funcName: 'splitAllProcess',
       },
     ];
     expect(procedureLogicWorkerNativeMemory.resolvingNMCallAction(params)).toStrictEqual([]);

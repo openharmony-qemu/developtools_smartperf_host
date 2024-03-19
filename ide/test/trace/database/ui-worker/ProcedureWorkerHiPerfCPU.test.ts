@@ -13,18 +13,19 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow.js';
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+
 import {
   HiPerfCpuStruct,
-  HiperfCpuRender2,
-} from '../../../../src/trace/database/ui-worker/hiperf/ProcedureWorkerHiPerfCPU2';
+  HiperfCpuRender,
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfCPU';
 import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerHiPerfCPU Test', () => {
   let frame = {
     x: 0,
@@ -91,20 +92,20 @@ describe('ProcedureWorkerHiPerfCPU Test', () => {
       },
       lineColor: '',
       isHover: '',
+      hoverX: 1,
       params: '',
       wakeupBean: undefined,
       flagMoveInfo: '',
-      width: 100,
       flagSelectedInfo: '',
       slicesTime: 3,
       id: 1,
       x: 20,
       y: 20,
+      width: 100,
       height: 100,
       scale: 100_000_001,
-      hoverX: 1,
     };
-    let hiperfCpuRender = new HiperfCpuRender2();
+    let hiperfCpuRender = new HiperfCpuRender();
     window.postMessage = jest.fn(() => true);
     expect(hiperfCpuRender.render(req, [], [], [])).toBeUndefined();
   });
@@ -112,60 +113,11 @@ describe('ProcedureWorkerHiPerfCPU Test', () => {
     let dataList = new Array();
     dataList.push({
       startNS: 0,
+      dur: 10,
       length: 1,
       frame: { x: 0, y: 9, width: 10, height: 10 },
-      dur: 10,
     });
     dataList.push({ startNS: 1, dur: 2, length: 1 });
     hiPerf(dataList, [{ length: 0 }], dataList, 8, 3, '', true, 1, true);
-  });
-  it('ProcedureWorkerHiPerfCPUTest09 ', function () {
-    let req = {
-      lazyRefresh: true,
-      type: 'a',
-      startNS: 1,
-      endNS: 1,
-      totalNS: 1,
-      frame: {
-        x: 20,
-        y: 20,
-        width: 100,
-        height: 300,
-      },
-      useCache: false,
-      range: {
-        refresh: '',
-      },
-      canvas: 'a',
-      context: {
-        font: '11px sans-serif',
-        fillStyle: '#ec407a',
-        globalAlpha: 0.7,
-        fill: jest.fn(() => true),
-        clearRect: jest.fn(() => true),
-        beginPath: jest.fn(() => true),
-        stroke: jest.fn(() => true),
-        closePath: jest.fn(() => true),
-        measureText: jest.fn(() => true),
-        fillRect: jest.fn(() => true),
-      },
-      lineColor: '',
-      isHover: '',
-      params: '',
-      wakeupBean: undefined,
-      flagMoveInfo: '',
-      width: 100,
-      flagSelectedInfo: '',
-      slicesTime: 3,
-      id: 1,
-      x: 20,
-      y: 20,
-      height: 100,
-      scale: 100_000_001,
-      hoverX: 1,
-    };
-    let hiperfCpuRender = new HiperfCpuRender2();
-    window.postMessage = jest.fn(() => true);
-    expect(hiperfCpuRender.renderMainThread(req,new TraceRow<HiPerfCpuStruct>()))
   });
 });

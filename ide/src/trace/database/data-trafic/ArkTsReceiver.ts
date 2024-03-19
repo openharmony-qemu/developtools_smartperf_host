@@ -88,13 +88,15 @@ export function cpuProfilerDataReceiver(data: any, proc: Function): void {
   if (res.length > 0) {
     if (!dataCache.jsCallChain || dataCache.jsCallChain.length === 0) {
       dataCache.jsCallChain = res;
-      createCallChain(data.params.trafic);
+      createCallChain();
     }
     let sql = queryChartDataSqlMem(data.params);
     let chartData = proc(sql);
     if (chartData.length > 0) {
       samples = convertJSON(chartData);
-      arrayBufferHandler(data, samples, true);
+      if (data.params.trafic === TraficEnum.ProtoBuffer) {
+        arrayBufferHandler(data, samples, true);
+      }
     }
   }
 }
@@ -102,12 +104,11 @@ export function cpuProfilerDataReceiver(data: any, proc: Function): void {
 /**
  * 建立callChain每个函数的联系，设置depth跟children
  */
-function createCallChain(trafic: TraficEnum): void {
+function createCallChain(): void {
   const jsSymbolMap = dataCache.jsSymbolMap;
   const symbol = new JsProfilerSymbol();
-  for (let data of dataCache.jsCallChain!) {
-    let sample = (trafic !== TraficEnum.Memory ? data.cpuProfilerData : data) || symbol;
-    let item = data.cpuProfilerData || data;
+  for (const data of dataCache.jsCallChain!) {
+    let item = data.cpuProfilerData || symbol;
     if (!item.childrenString) {
       item.childrenString = '';
     }
@@ -133,11 +134,11 @@ function createCallChain(trafic: TraficEnum): void {
   }
 }
 
-function combineChartData(res: Array<JsCpuProfilerSample>, trafic: TraficEnum): Array<JsCpuProfilerChartFrame> {
+function combineChartData(res: Array<JsCpuProfilerSample>): Array<JsCpuProfilerChartFrame> {
   const combineSample = new Array<JsCpuProfilerChartFrame>();
   const symbol = new JsCpuProfilerSample();
   for (let data of res) {
-    let sample = (trafic !== TraficEnum.Memory ? data.cpuProfilerData : data) || symbol;
+    let sample = data.cpuProfilerData || symbol;
     const stackTopSymbol = dataCache.jsSymbolMap.get(sample.functionId);
     // root 节点不需要显示
     if (stackTopSymbol?.id === ROOT_ID) {
@@ -276,7 +277,7 @@ function combineCallChain(lastCallTree: JsCpuProfilerChartFrame, sample: JsCpuPr
 }
 
 function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
-  let result = combineChartData(res, data.params.trafic);
+  let result = combineChartData(res);
   clearJsCacheData();
   const getArrayData = (combineData: Array<any>): void => {
     for (let item of combineData) {

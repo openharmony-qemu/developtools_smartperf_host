@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../BaseElement';
-import { replacePlaceholders } from '../utils/Template';
+let width = '';
 let css = `
 <style>
     :host{ 
@@ -42,7 +42,7 @@ let css = `
     }
     /*通用*/
     .popover{
-        width: {1};
+        width: ${width};
         min-width: 160px;
         display: flex;
         flex-direction: column;
@@ -362,7 +362,8 @@ let css = `
     </style>
 `
 const initHtmlStyle = (wid: string) => {
-  return replacePlaceholders(css,wid);
+  width = wid;
+  return css;
 };
 
 @element('lit-popover')

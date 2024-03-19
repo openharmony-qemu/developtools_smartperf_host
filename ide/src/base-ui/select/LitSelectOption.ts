@@ -16,7 +16,7 @@
 import { BaseElement } from '../BaseElement';
 import '../icon/LitIcon';
 
-const initHtmlStyle: string = `
+const initHtmlStyle:string = `
     <style>
         :host{ 
             display: flex;

@@ -440,8 +440,8 @@ export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: numbe
        round(avg(dur),2)    as avgDuration,
        type
     from file_system_sample
-    where start_ts <= $rightNs
-    and end_ts >= $leftNs;
+    where start_ts >= $leftNs
+    and end_ts <= $rightNs;
 `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
@@ -463,8 +463,8 @@ export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number, 
        max(dur) as maxDuration,
        avg(dur) as avgDuration
     from file_system_sample as f left join process as p on f.ipid=p.ipid
-    where f.end_ts >= $leftNs
-    and f.start_ts <= $rightNs
+    where end_ts >= $leftNs
+    and end_ts <= $rightNs
     and f.type in (${types.join(',')})
     group by f.type,f.ipid
     order by f.type;
@@ -495,7 +495,7 @@ export const getTabPaneIOTierStatisticsData = (
        max(latency_dur) as maxDuration,
        avg(latency_dur) as avgDuration
     from bio_latency_sample as i left join process as p on i.ipid=p.ipid
-    where i.end_ts+latency_dur >= $leftNs
+    where i.start_ts+latency_dur >= $leftNs
     and i.start_ts+latency_dur <= $rightNs
     ${str}
     group by i.tier,i.ipid,i.path_id
@@ -837,8 +837,7 @@ export const getTabIoCompletionTimesType = (startTime: number, endTime: number):
     'getTabIoCompletionTimesType',
     `
     SELECT tier from bio_latency_sample s,trace_range t
-     WHERE s.start_ts + s.latency_dur >= $startTime + t.start_ts 
-     and s.start_ts <= $endTime + t.start_ts group by tier`,
+     WHERE s.start_ts + s.latency_dur between $startTime + t.start_ts and $endTime + t.start_ts group by tier`,
     { $startTime: startTime, $endTime: endTime },
     'exec'
   );
@@ -1083,7 +1082,7 @@ export const queryBySelectAllocationOrReturn = (
                 FROM task_pool
                        LEFT JOIN callstack ON callstack.id = task_pool.execute_task_row
                        LEFT JOIN thread ON thread.id = callstack.callid
-                WHERE task_pool.execute_task_row IS NOT NULL AND task_pool.task_id = $executeId
+                WHERE task_pool.execute_task_row IS NOT NULL AND task_pool.execute_id = $executeId
                 AND task_pool.allocation_itid = $itid;
     `;
   return query('queryBySelectAllocationOrReturn', sqlStr, { $executeId: executeId, $itid: itid });
@@ -1098,12 +1097,12 @@ export const queryTaskListByExecuteTaskIds = (
            task_pool.allocation_task_row AS allocationTaskRow,
            task_pool.execute_task_row    AS executeTaskRow,
            task_pool.return_task_row     AS returnTaskRow,
-           task_pool.task_id          AS executeId,
+           task_pool.execute_id          AS executeId,
            task_pool.priority
     FROM task_pool
            LEFT JOIN callstack ON callstack.id = task_pool.allocation_task_row
            LEFT JOIN thread ON thread.id = callstack.callid
-    WHERE task_pool.task_id IN (${executeTaskIds.join(',')})
+    WHERE task_pool.execute_id IN (${executeTaskIds.join(',')})
       AND thread.ipid = $ipid
       AND task_pool.execute_task_row IS NOT NULL;
     `;
@@ -1124,7 +1123,7 @@ export const queryTaskPoolTotalNum = (itid: number) =>
          WHERE ipid in (SELECT thread.ipid
                        FROM thread
                        WHERE thread.itid = $itid)
-           AND thread.name LIKE '%TaskWork%'
+           AND thread.name = 'TaskWorkThread'
          GROUP BY thread.tid;`,
     { $itid: itid }
   );

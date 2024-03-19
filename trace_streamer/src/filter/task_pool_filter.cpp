@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,9 +38,9 @@ uint32_t TaskPoolFilter::GetIpId(uint32_t index)
     return thread->internalPid_;
 }
 
-uint32_t TaskPoolFilter::CheckTheSameTask(uint64_t taskId, uint32_t index)
+uint32_t TaskPoolFilter::CheckTheSameTask(uint32_t executeId, uint32_t index)
 {
-    return IpidExecuteMap_.Find(GetIpId(index), taskId);
+    return IpidExecuteMap_.Find(GetIpId(index), executeId);
 }
 
 void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,
@@ -51,9 +51,9 @@ void TaskPoolFilter::TaskPoolFieldSegmentation(const std::string& taskPoolStr,
         std::string value;
         for (base::PartingString inner(ss.GetCur(), ':'); inner.Next();) {
             if (key.empty()) {
-                key = TrimInvisibleCharacters(inner.GetCur());
+                key = inner.GetCur();
             } else {
-                value = TrimInvisibleCharacters(inner.GetCur());
+                value = inner.GetCur();
             }
         }
         args.emplace(std::move(key), std::move(value));
@@ -85,32 +85,22 @@ bool TaskPoolFilter::TaskPoolEvent(const std::string& taskPoolStr, uint32_t inde
     }
     return false;
 }
-// The old business is run in three phases by associating the application with the executeId,New business runs in three
-// phases by associating an application with the taskid
-auto TaskPoolFilter::GetExecuteIdOrTaskId(const std::unordered_map<std::string, std::string>& args)
-{
-    std::optional<uint64_t> id;
-    if (args.find("executeId") != args.end()) {
-        id = base::StrToInt<uint64_t>(args.at("executeId"));
-    } else {
-        id = base::StrToInt<uint64_t>(args.at("taskId"));
-    }
-    return id;
-}
+
 bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std::string>& args, uint32_t index)
 {
     if (index >= traceDataCache_->GetConstInternalSlicesData().CallIds().size()) {
         return false;
     }
     auto allocItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
-    auto priority = base::StrToInt<uint32_t>(args.at("priority"));
-    auto executeState = base::StrToInt<uint32_t>(args.at("executeState"));
-    auto id = GetExecuteIdOrTaskId(args);
-    uint32_t returnValue = CheckTheSameTask(id.value(), index);
+    auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
+    auto priority = base::StrToInt<uint32_t>(args.at(" priority "));
+    auto executeState = base::StrToInt<uint32_t>(args.at(" executeState "));
+
+    uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {
         uint32_t taskIndex = traceDataCache_->GetTaskPoolData()->AppendAllocationTaskData(
-            index, allocItid, id.value(), priority.value(), executeState.value());
-        IpidExecuteMap_.Insert(GetIpId(index), id.value(), taskIndex);
+            index, allocItid, executeId.value(), priority.value(), executeState.value());
+        IpidExecuteMap_.Insert(GetIpId(index), executeId.value(), taskIndex);
     } else {
         traceDataCache_->GetTaskPoolData()->UpdateAllocationTaskData(returnValue, index, allocItid, priority.value(),
                                                                      executeState.value());
@@ -124,11 +114,13 @@ bool TaskPoolFilter::UpdateExecuteData(const std::unordered_map<std::string, std
         return false;
     }
     auto executeItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
-    auto id = GetExecuteIdOrTaskId(args);
-    uint32_t returnValue = CheckTheSameTask(id.value(), index);
+    auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
+
+    uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {
-        uint32_t taskIndex = traceDataCache_->GetTaskPoolData()->AppendExecuteTaskData(index, executeItid, id.value());
-        IpidExecuteMap_.Insert(GetIpId(index), id.value(), taskIndex);
+        uint32_t taskIndex =
+            traceDataCache_->GetTaskPoolData()->AppendExecuteTaskData(index, executeItid, executeId.value());
+        IpidExecuteMap_.Insert(GetIpId(index), executeId.value(), taskIndex);
         timeoutMap_.emplace(executeItid, taskIndex);
         if (timeoutMap_.at(executeItid) < taskIndex) {
             timeoutMap_.at(executeItid) = taskIndex;
@@ -149,14 +141,15 @@ bool TaskPoolFilter::UpdateReturnData(const std::unordered_map<std::string, std:
         return false;
     }
     auto returnItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
-    auto id = GetExecuteIdOrTaskId(args);
-    auto returnStr_ = std::string_view(args.at("performResult"));
-    uint32_t returnState = returnStr_.compare("Successful") ? 0 : 1;
-    uint32_t returnValue = CheckTheSameTask(id.value(), index);
+    auto executeId = base::StrToInt<uint32_t>(args.at(" executeId "));
+    auto returnStr_ = std::string_view(args.at(" performResult "));
+    uint32_t returnState = returnStr_.compare(" Successful") ? 0 : 1;
+
+    uint32_t returnValue = CheckTheSameTask(executeId.value(), index);
     if (returnValue == INVALID_INT32) {
         uint32_t taskIndex =
-            traceDataCache_->GetTaskPoolData()->AppendReturnTaskData(index, returnItid, id.value(), returnState);
-        IpidExecuteMap_.Insert(GetIpId(index), id.value(), taskIndex);
+            traceDataCache_->GetTaskPoolData()->AppendReturnTaskData(index, returnItid, executeId.value(), returnState);
+        IpidExecuteMap_.Insert(GetIpId(index), executeId.value(), taskIndex);
     } else {
         traceDataCache_->GetTaskPoolData()->UpdateReturnTaskData(returnValue, index, returnItid, returnState);
     }

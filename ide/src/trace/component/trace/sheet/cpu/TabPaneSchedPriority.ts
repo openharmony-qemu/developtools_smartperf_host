@@ -20,7 +20,7 @@ import { resizeObserver } from '../SheetUtils';
 import { procedurePool } from '../../../../database/Procedure';
 import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
-import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
+import {queryThreadStateArgsByName} from "../../../../database/sql/ProcessThread.sql";
 
 @element('tabpane-sched-priority')
 export class TabPaneSchedPriority extends BaseElement {
@@ -97,12 +97,8 @@ export class TabPaneSchedPriority extends BaseElement {
     );
   }
 
-  private fetchData(
-    item: any,
-    setPriority: (item: Priority, strArg: string[]) => void,
-    resultData: Array<Priority>,
-    runnableMap: Map<string, Priority>
-  ) {
+  private fetchData(item: any, setPriority: (item: Priority, strArg: string[]) => void,
+    resultData: Array<Priority>, runnableMap: Map<string, Priority>) {
     let strArg: string[] = [];
     const args = this.strValueMap.get(item.argSetID);
     if (args) {

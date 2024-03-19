@@ -82,9 +82,6 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
-import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
-import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
-import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -106,8 +103,6 @@ export class TraceSheet extends BaseElement {
   private fragment: DocumentFragment | undefined;
   private lastSelectIPid: number = -1;
   private lastProcessSet: Set<number> = new Set<number>();
-  private optionsDiv: LitPopover | undefined | null;
-  private optionsSettingTree: LitTree | undefined | null;
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -131,15 +126,9 @@ export class TraceSheet extends BaseElement {
   }
 
   displayTab<T>(...names: string[]): T {
-    this.setMode('max');
-    if (names.includes('box-flag') || names.includes('tabpane-current')) {
-      this.showUploadSoBt(this.selection);
-      this.showSwitchProcessBt(this.selection);
-    } else {
-      this.showOptionsBt(null);
-      this.showUploadSoBt(null);
-      this.showSwitchProcessBt(null);
-    }
+    this.setAttribute('mode', 'max');
+    this.showUploadSoBt(null);
+    this.showSwitchProcessBt(null);
     this.shadowRoot
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
@@ -169,18 +158,6 @@ export class TraceSheet extends BaseElement {
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.switchDiv = this.shadowRoot?.querySelector('#select-process');
     this.processTree = this.shadowRoot?.querySelector('#processTree');
-    this.optionsDiv = this.shadowRoot?.querySelector('#options');
-    this.optionsSettingTree = this.shadowRoot?.querySelector('#optionsSettingTree');
-    this.optionsSettingTree!.onChange = (e: any): void => {
-      const select = this.optionsSettingTree!.getCheckdKeys();
-      document.dispatchEvent(
-        new CustomEvent('sample-popver-change', {
-          detail: {
-            select: select[0]
-          }
-        })
-      )
-    }
     this.processTree!.onChange = (e: any): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
@@ -355,9 +332,7 @@ export class TraceSheet extends BaseElement {
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       if (tabsPackUp!.name == 'down') {
-        let beforeHeight = this.clientHeight;
         this.tabs!.style.height = this.navRoot!.offsetHeight + 'px';
-        window.publish(window.SmartEvent.UI.ShowBottomTab, { show: 2 , delta: beforeHeight - this.clientHeight })
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
         tabsPackUp!.title = 'Reset Tab';
@@ -400,9 +375,6 @@ export class TraceSheet extends BaseElement {
     that: this, tabsPackUp: LitIcon, borderTop: number): void {
     let preY = event.pageY;
     let preHeight = this.tabs!.offsetHeight;
-    let scrollH = that.rowsPaneEL!.scrollHeight;
-    let scrollT = that.rowsPaneEL!.scrollTop;
-    let ch = that.clientHeight;
     document.onmousemove = function (event): void {
       let moveY: number = preHeight - (event.pageY - preY);
       litTabpane!.forEach((node: HTMLDivElement) => {
@@ -444,10 +416,6 @@ export class TraceSheet extends BaseElement {
           tabsPackUp!.name = 'down';
         }
       });
-      let currentSH = that.rowsPaneEL!.scrollHeight;
-      if (currentSH > scrollH && currentSH > that.rowsPaneEL!.scrollTop + that.clientHeight) {
-        that.rowsPaneEL!.scrollTop = scrollT - (ch - that.clientHeight);
-      }
     };
   }
 
@@ -537,23 +505,10 @@ export class TraceSheet extends BaseElement {
                   align-items: center;
                   margin-right: 10px;
                   z-index: 2;
-                }
-                .option {
-                  display: flex;
-                  margin-right: 10px;
-                  cursor: pointer;
-                }
+              }
             </style>
             <div id="vessel" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
-                    <div class="option" slot="options">
-                      <lit-popover placement="bottom" class="popover" haveRadio="true" trigger="click" id="options">
-                        <div slot="content">
-                          <lit-tree id="optionsSettingTree" checkable="true"></lit-tree>
-                        </div>
-                        <lit-icon name="setting" size="21" id="setting"></lit-icon>
-                      </lit-popover>
-                    </div>
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
                         <lit-popover placement="bottomRight" class="popover" haveRadio="true" trigger="click" id="select-process">
                               <div slot="content">
@@ -584,7 +539,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
-    callback?: ((data: Array<any>, str:string) => void)
+    callback: ((data: Array<any>) => void) | undefined = undefined
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
@@ -807,27 +762,12 @@ export class TraceSheet extends BaseElement {
       }
     }
   };
-  displaySampleData = (data: SampleStruct, reqProperty: any): void => {
-    this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
-    this.optionsDiv!.style.display = "flex";
-    const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
-    this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
-  }
 
-  displaySystemStatesData = (): void => {
-    let tblStatesPanel = this.shadowRoot?.querySelector<TabPaneFreqStatesDataCut>("tabpane-states-datacut");
-    if (tblStatesPanel) {
-      tblStatesPanel.initTabSheetEl(this);
-      
-    }
-
-  };
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
     this.exportBt!.style.display = 'flex';
     this.showUploadSoBt(selection);
     this.showSwitchProcessBt(selection);
-    this.showOptionsBt(selection);
     Reflect.ownKeys(tabConfig)
       .reverse()
       .forEach((id) => {
@@ -840,10 +780,10 @@ export class TraceSheet extends BaseElement {
     if (restore) {
       if (this.litTabs?.activekey) {
         this.loadTabPaneData(this.litTabs?.activekey);
-        this.setMode('max');
+        this.setAttribute('mode', 'max');
         return true;
       } else {
-        this.setMode('hidden');
+        this.setAttribute('mode', 'hidden');
         return false;
       }
     } else {
@@ -851,22 +791,12 @@ export class TraceSheet extends BaseElement {
       if (firstPane) {
         this.litTabs?.activeByKey(firstPane.key);
         this.loadTabPaneData(firstPane.key);
-        this.setMode('max');
+        this.setAttribute('mode', 'max');
         return true;
       } else {
-        this.setMode('hidden');
+        this.setAttribute('mode', 'hidden');
         return false;
       }
-    }
-  }
-
-  showOptionsBt(selection: SelectionParam | null | undefined): void {
-    if (selection && selection.sampleData.length > 0) {
-      this.optionsDiv!.style.display = 'flex';
-      const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
-      this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
-    } else {
-      this.optionsDiv!.style.display = 'none';
     }
   }
 
@@ -979,16 +909,6 @@ export class TraceSheet extends BaseElement {
         this.selection.isRowClick = false;
       }
     }
-  }
-
-  setMode(mode: string): void {
-    let delta = this.clientHeight;
-    let show = mode === 'max' ? 1 : -1;
-    this.setAttribute('mode', mode);
-    if (mode === 'hidden') {
-      this.selection = undefined;
-    }
-    window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show , delta: delta});
   }
 
   rowClickHandler(e: any): void {

@@ -157,7 +157,7 @@ describe('TabPaneFilesystemStatisticsAnalysis Test', () => {
   });
 
   it('systemStatisticsAnalysis06', function () {
-    tabPane.fileStatisticsAnalysisFunctionData = processData;
+    tabPane.fileStatisticsAnalysisProcessData = processData;
     tabPane.getFilesystemFunction(item, param);
     expect(tabPane.currentLevel).toEqual(4);
   });

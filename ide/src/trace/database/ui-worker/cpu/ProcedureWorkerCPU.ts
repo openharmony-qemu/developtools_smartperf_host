@@ -83,7 +83,7 @@ export class CpuRender {
       endNS: endNS,
       totalNS: totalNS,
       frame: row.frame,
-      paddingTop: 3,
+      paddingTop: 5,
       useCache: req.useCache || !(TraceRow.range?.refresh ?? false),
     });
     drawLoadingFrame(req.ctx, cpuFilter, row);
@@ -207,7 +207,7 @@ export function CpuStructOnClick(rowType: string, sp: SpSystemTrace, cpuClickHan
         cpuClickHandler
       );
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject(new Error());
+      reject();
     }else{
       resolve(null);
     }

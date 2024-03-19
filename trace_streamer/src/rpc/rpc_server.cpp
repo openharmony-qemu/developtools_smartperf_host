@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +27,6 @@
 #include "htrace_parser.h"
 #include "json.hpp"
 #include "log.h"
-#include "rawtrace_parser.h"
 #include "string_help.h"
 #include "trace_streamer_selector.h"
 #include "ts_common.h"
@@ -41,7 +40,6 @@ const size_t PACKET_HEADER_LENGTH = 1024;
 const std::string VALUE = "{\"value\":[";
 const std::string OFFSET = "{\"offset\":";
 const std::string SIZE = ",\"size\":";
-const std::string TYPE = ",\"type\":";
 const std::string EMPTY_VALUE = "{\"value\":[]}";
 
 using json = nlohmann::json;
@@ -52,7 +50,6 @@ struct ParserConfig {
     int32_t aniConfigValue;
     int32_t binderConfigValue;
     int32_t ffrtConvertConfigValue;
-    int32_t HMKernelConfigValue;
 };
 void from_json(const json& j, ParserConfig& v)
 {
@@ -61,7 +58,6 @@ void from_json(const json& j, ParserConfig& v)
     j.at("AnimationAnalysis").get_to(v.aniConfigValue);
     j.at("BinderRunnable").get_to(v.binderConfigValue);
     j.at("FfrtConvert").get_to(v.ffrtConvertConfigValue);
-    j.at("HMKernel").get_to(v.HMKernelConfigValue);
 }
 } // namespace jsonns
 #if IS_WASM
@@ -294,34 +290,6 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     return true;
 }
 
-bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
-{
-    const auto& mTraceRawCpuData = ts_->GetRawtraceData()->GetRawtraceCpuData();
-    const auto& mTraceRawCommData = ts_->GetRawtraceData()->GetRawtraceCommData();
-    std::string result = VALUE;
-
-    for (size_t commDataIndex = 0; commDataIndex < mTraceRawCommData.size(); commDataIndex++) {
-        result += OFFSET + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataOffset_);
-        result += SIZE + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataSize_);
-        result += TYPE + std::to_string(mTraceRawCommData.at(commDataIndex).splitType_);
-        result += "},";
-    }
-
-    for (size_t cpuDataIndex = 0; cpuDataIndex < mTraceRawCpuData.size(); cpuDataIndex++) {
-        result += OFFSET + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitDataOffset_);
-        result += SIZE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitDataSize_);
-        result += TYPE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitType_);
-        result += "},";
-    }
-    if (result != VALUE && !ts_->GetRawtraceData()->GetRawtraceCommData().empty()) {
-        result.pop_back();
-        result += "]}\r\n";
-        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
-    }
-    TS_LOGI("mTraceRawCpuData.size()= %lu, mTraceRawCommData.size()=%lu\n result=%s\n", mTraceRawCpuData.size(),
-            mTraceRawCommData.size(), result.data());
-    return true;
-}
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
                                    size_t len,
                                    int32_t isFinish,
@@ -340,13 +308,6 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
         SendBytraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
         ts_->GetBytraceData()->ClearByTraceData();
-        ts_->GetTraceDataCache()->isSplitFile_ = false;
-        return true;
-    }
-    if (ts_->GetFileType() == TRACE_FILETYPE_RAW_TRACE) {
-        SendRawtraceSplitFileData(splitFileCallBack, 0);
-        splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-        ts_->GetRawtraceData()->ClearRawTraceData();
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
@@ -738,7 +699,6 @@ bool RpcServer::ParserConfig(std::string parserConfigJson)
     ts_->UpdateAnimationTraceStatus(parserConfig.aniConfigValue);
     ts_->UpdateTaskPoolTraceStatus(parserConfig.taskConfigValue);
     ts_->UpdateBinderRunnableTraceStatus(parserConfig.binderConfigValue);
-    ts_->UpdateHMKernelTraceStatus(parserConfig.HMKernelConfigValue);
     ffrtConvertEnabled_ = parserConfig.ffrtConvertConfigValue;
     startParseTime_ =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))

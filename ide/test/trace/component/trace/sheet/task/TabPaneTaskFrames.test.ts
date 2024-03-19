@@ -14,22 +14,17 @@
  */
 
 import { TabPaneTaskFrames } from '../../../../../../src/trace/component/trace/sheet/task/TabPaneTaskFrames';
+import { FuncStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerFunc';
 import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { queryTaskListByExecuteTaskIds } from '../../../../../../src/trace/database/SqlLite';
 
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-const sqlite = require('../../../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
-const perfSqlite = require('../../../../../../src/trace/database/sql/Perf.sql');
-jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
+
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -53,7 +48,7 @@ describe('TabPaneTaskFrames Test', () => {
     },
   ]);
 
-  let mockQueryConcurrencyTask = perfSqlite.queryConcurrencyTask;
+  let mockQueryConcurrencyTask = sqlite.queryConcurrencyTask;
   mockQueryConcurrencyTask.mockResolvedValue([
     {
       tid: 28573,

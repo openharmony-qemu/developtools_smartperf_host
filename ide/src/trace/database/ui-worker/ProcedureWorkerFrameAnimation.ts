@@ -106,15 +106,13 @@ export class FrameAnimationRender extends Render {
     }
   }
 }
-export function FrameAnimationStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
+export function FrameAnimationStructOnClick(clickRowType: string, sp: SpSystemTrace) {
   return new Promise((resolve,reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION) {
-      FrameAnimationStruct.selectFrameAnimationStruct = FrameAnimationStruct.hoverFrameAnimationStruct || row.getHoverStruct();
-      if (FrameAnimationStruct.selectFrameAnimationStruct) {
-        sp.traceSheetEL?.displayFrameAnimationData(FrameAnimationStruct.selectFrameAnimationStruct);
-        sp.timerShaftEL?.modifyFlagList(undefined);
-      }
-      reject(new Error());
+    if (clickRowType === TraceRow.ROW_TYPE_FRAME_ANIMATION && FrameAnimationStruct.hoverFrameAnimationStruct) {
+      FrameAnimationStruct.selectFrameAnimationStruct = FrameAnimationStruct.hoverFrameAnimationStruct;
+      sp.traceSheetEL?.displayFrameAnimationData(FrameAnimationStruct.selectFrameAnimationStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
     }else{
       resolve(null);
     }

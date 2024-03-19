@@ -369,7 +369,8 @@ self.onmessage = async (e: MessageEvent) => {
     }
     let wrSize = 0;
     let r2 = -1;
-    if (isRawTrace(e.data)) {
+    let rowTraceStr = Array.from(new Uint16Array(e.data.buffer.slice(0, 2)));
+    if (rowTraceStr[0] === 57161) {
       let commonDataOffsetList: Array<{
         startOffset: number;
         endOffset: number;
@@ -1051,60 +1052,18 @@ enum FileTypeEnum {
   json,
 }
 
-function isRawTrace(uint8Array: Uint8Array): boolean {
-  let rowTraceStr = Array.from(new Uint16Array(uint8Array.buffer.slice(0, 2)));
-  return rowTraceStr[0] === 57161;
-}
-
 function cutFileBufferByOffSet(out: Uint8Array, uint8Array: Uint8Array) {
   let jsonStr: string = dec.decode(out);
   let jsonObj = JSON.parse(jsonStr);
-  let valueArray: Array<{ type: number; offset: number; size: number }> = jsonObj.value;
-  let cutBuffer: Uint8Array;
-  if (isRawTrace(uint8Array)) {
-    let commDataSize = 0;
-    let otherDataSize = 0;
-    valueArray.forEach(item => {
-      const type = item.type;
-      if (type === 0) {
-        commDataSize += item.size;
-      } else {
-        otherDataSize += item.size;
-        otherDataSize += 8;
-      }
-    });
-    cutBuffer = new Uint8Array(commDataSize + otherDataSize);
-    let commOffset = 0;
-    let tlvOffset = commDataSize;
-    valueArray.forEach((item) => {
-      if (item.type !== 0) {
-        let typeArray = new Uint32Array(1);
-        typeArray[0] = item.type;
-        cutBuffer.set(new Uint8Array(typeArray.buffer), tlvOffset);
-        tlvOffset += typeArray.byteLength;
-        let lengthArray = new Uint32Array(1);
-        lengthArray[0] = item.size;
-        cutBuffer.set(new Uint8Array(lengthArray.buffer), tlvOffset);
-        tlvOffset += typeArray.byteLength;
-        const dataSlice = uint8Array.subarray(item.offset, item.offset + item.size);
-        cutBuffer.set(dataSlice, tlvOffset);
-        tlvOffset += item.size;
-      } else {
-        const dataSlice = uint8Array.subarray(item.offset, item.offset + item.size);
-        cutBuffer.set(dataSlice, commOffset);
-        commOffset += item.size;
-      }
-    });
-  } else {
-    const sum = valueArray.reduce((total, obj) => total + obj.size, 0);
-    cutBuffer = new Uint8Array(sum);
-    let offset = 0;
-    valueArray.forEach((item, index) => {
-      const dataSlice = uint8Array.subarray(item.offset, item.offset + item.size);
-      cutBuffer.set(dataSlice, offset);
-      offset += item.size;
-    });
-  }
+  let valueArray: Array<{ offset: number; size: number }> = jsonObj.value;
+  const sum = valueArray.reduce((total, obj) => total + obj.size, 0);
+  let cutBuffer = new Uint8Array(sum);
+  let offset = 0;
+  valueArray.forEach((item, index) => {
+    const dataSlice = uint8Array.subarray(item.offset, item.offset + item.size);
+    cutBuffer.set(dataSlice, offset);
+    offset += item.size;
+  });
   return cutBuffer;
 }
 

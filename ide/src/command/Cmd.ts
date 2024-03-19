@@ -196,13 +196,6 @@ export class Cmd {
     }
     return processData;
   }
-  static convertOutPackageList(res: string): string[] {
-    let packageData: string[] = [];
-    res ? (packageData = res.replace(/\r\n/g, '\r').replace(/\n\t/g, '\r').split(/\r/)) : [];
-    packageData.shift();
-    return packageData;
-  }
-
   static getDebugProcess(): Promise<string[]> {
     return new Promise((resolve, reject) => {
       if (SpRecordTrace.isVscode) {
@@ -242,19 +235,6 @@ export class Cmd {
           }
         });
       }
-    });
-  }
-  static getPackage(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
-        if (conn) {
-          HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PACKAGE, false).then((res) => {
-            resolve(Cmd.convertOutPackageList(res));
-          });
-        } else {
-          reject(-1);
-        }
-      });
     });
   }
 }

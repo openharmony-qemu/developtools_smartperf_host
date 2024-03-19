@@ -12,26 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+      disconnect: jest.fn(), observe: jest.fn(), unobserve: jest.fn(),
+    }));
 import { SpVirtualMemChart } from '../../../../src/trace/component/chart/SpVirtualMemChart';
 import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-// @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(), observe: jest.fn(), unobserve: jest.fn(),
-  }));
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
-const memorySqlite = require('../../../../src/trace/database/sql/Memory.sql');
-jest.mock('../../../../src/trace/database/sql/Memory.sql');
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+
 describe('SpVirtualMemChart Test', () => {
   let manager = new SpChartManager();
   let spVirtualMemChart = new SpVirtualMemChart(manager);
-  let MockVirtualMemory = memorySqlite.queryVirtualMemory;
+  let MockVirtualMemory = sqlit.queryVirtualMemory;
   MockVirtualMemory.mockResolvedValue([
     {
       id: 0,
@@ -39,7 +43,7 @@ describe('SpVirtualMemChart Test', () => {
     },
   ]);
 
-  let MockVirtualMemoryData = memorySqlite.queryVirtualMemoryData;
+  let MockVirtualMemoryData = sqlit.queryVirtualMemoryData;
   MockVirtualMemoryData.mockResolvedValue([
     {
       startTime: 0,

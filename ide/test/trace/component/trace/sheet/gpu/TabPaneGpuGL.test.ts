@@ -14,8 +14,8 @@
  */
 import { TabPaneGpuGL } from '../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuGL';
 
-const sqlite = require('../../../../../../src/trace/database/sql/Gpu.sql');
-jest.mock('../../../../../../src/trace/database/sql/Gpu.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};

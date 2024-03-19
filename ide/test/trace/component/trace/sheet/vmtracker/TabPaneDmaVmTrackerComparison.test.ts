@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneDmaVmTrackerComparison } from '../../../../../../src/trace/component/trace/sheet/vmtracker/TabPaneDmaVmTrackerComparison';
-const sqlite = require('../../../../../../src/trace/database/sql/Dma.sql');
-jest.mock('../../../../../../src/trace/database/sql/Dma.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

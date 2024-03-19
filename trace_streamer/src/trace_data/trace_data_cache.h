@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +39,6 @@ public:
     void UpdateAppStartTraceStatus(bool status);
     bool BinderRunnableTraceEnabled() const;
     void UpdateBinderRunnableTraceStatus(bool status);
-    bool HMKernelTraceEnabled() const;
-    void UpdateHMKernelTraceStatus(bool status);
     uint64_t SplitFileMaxTime();
     uint64_t SplitFileMinTime();
     void SetSplitFileMaxTime(uint64_t maxTs);
@@ -50,8 +48,8 @@ public:
     int32_t ExportPerfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportHookReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportEbpfReadableText(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    void ClearAllExportedCacheData();
-    void UpdateAllReadySize();
+    void ClearAllPrevCacheData();
+    void UpdateAllPrevSize();
 
 private:
     void InitDB();
@@ -87,7 +85,6 @@ private:
     bool taskPoolTraceEnabled_ = false;
     bool appStartTraceEnabled_ = false;
     bool binderRunnableTraceEnabled_ = false;
-    bool HMKernelTraceEnabled_ = false;
     uint64_t splitFileMinTs_ = INVALID_UINT64;
     uint64_t splitFileMaxTs_ = INVALID_UINT64;
     std::deque<std::unique_ptr<std::string>> hookCommProtos_;

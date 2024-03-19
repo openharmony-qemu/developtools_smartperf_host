@@ -14,6 +14,7 @@
  */
 
 import { TabPaneThreadUsage } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneThreadUsage';
+import sqlite, { getTabRunningPersent } from "../../../../../../src/trace/database/SqlLite";
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -23,12 +24,12 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-jest.mock('../../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerCPU', () => {
   return {
     CpuStruct: {
       cpuCount: 0,

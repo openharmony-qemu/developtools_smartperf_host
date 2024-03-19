@@ -79,15 +79,15 @@ describe('ProcedureLogicWorkerCommon Test', () => {
   });
 
   it('MerageBeanTest30', function () {
-    expect(getByteWithUnit(-1_000_000_001)).toBe('-953.67 MB');
+    expect(getByteWithUnit(-1_000_000_001)).toBe('-953.67 Mb');
   });
 
   it('MerageBeanTest08', function () {
-    expect(getByteWithUnit(1_000_000_001)).toBe('953.67 MB');
+    expect(getByteWithUnit(1_000_000_001)).toBe('953.67 Mb');
   });
 
   it('MerageBeanTest09', function () {
-    expect(getByteWithUnit(1_000_001)).toBe('976.56 KB');
+    expect(getByteWithUnit(1_000_001)).toBe('976.56 Kb');
   });
 
   it('MerageBeanTest10', function () {
@@ -95,7 +95,7 @@ describe('ProcedureLogicWorkerCommon Test', () => {
   });
 
   it('MerageBeanTest11', function () {
-    expect(getByteWithUnit(1_000_000_000_1)).toBe('9.31 GB');
+    expect(getByteWithUnit(1_000_000_000_1)).toBe('9.31 Gb');
   });
 
   it('MerageBeanTest12', function () {

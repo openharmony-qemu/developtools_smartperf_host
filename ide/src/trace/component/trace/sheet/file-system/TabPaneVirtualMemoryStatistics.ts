@@ -14,14 +14,14 @@
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
-import { LitTable, RedrawTreeForm } from '../../../../../base-ui/table/lit-table';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { TabPaneFilter } from '../TabPaneFilter';
 import '../TabPaneFilter';
 import { VM_TYPE_MAP } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
-import { getTabPaneVirtualMemoryStatisticsData } from '../../../../database/sql/Memory.sql';
+import {getTabPaneVirtualMemoryStatisticsData} from "../../../../database/sql/Memory.sql";
 
 @element('tabpane-virtual-memory-statistics')
 export class TabPaneVirtualMemoryStatistics extends BaseElement {
@@ -58,9 +58,11 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
       this.vmStatisticsSortKey = evt.detail.key;
       // @ts-ignore
       this.vmStatisticsSortType = evt.detail.sort;
-      if (this.vmStatisticsSortType != 0 && this.vmStatisticsSource.length > 0)
-        this.sortVmStatisticsTable(this.vmStatisticsSource[0], this.vmStatisticsSortKey);
-      this.vmStatisticsTbl!.recycleDataSource = this.vmStatisticsSource;
+
+      let newSource = JSON.parse(JSON.stringify(this.vmStatisticsSource));
+      if (this.vmStatisticsSortType != 0 && newSource.length > 0)
+        this.sortVmStatisticsTable(newSource[0], this.vmStatisticsSortKey);
+      this.vmStatisticsTbl!.recycleDataSource = newSource;
     });
     this.vmStatisticsFilter = this.shadowRoot!.querySelector<TabPaneFilter>('#filter');
     this.vmStatisticsFilter!.getStatisticsTypeData((type) => {
@@ -152,37 +154,13 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     vmMemoryStatAllNode.title = 'All';
     vmMemoryStatAllNode.path = { type: null, tid: null, pid: null, value: 'All' };
     this.vmStatisticsSource = result.length > 0 ? [vmMemoryStatAllNode] : [];
+    let newSource = JSON.parse(JSON.stringify(this.vmStatisticsSource));
     if (this.vmStatisticsSortType != 0 && result.length > 0)
-      this.sortVmStatisticsTable(this.vmStatisticsSource[0], this.vmStatisticsSortKey);
-    this.theadClick(this.vmStatisticsSource);
-    this.vmStatisticsTbl!.recycleDataSource = this.vmStatisticsSource;
+      this.sortVmStatisticsTable(newSource[0], this.vmStatisticsSortKey);
+    this.vmStatisticsTbl!.recycleDataSource = newSource;
   }
-  private theadClick(res: Array<any>): void {
-    let labels = this.vmStatisticsTbl?.shadowRoot?.querySelector('.th > .td')!.querySelectorAll('label');
-    if (labels) {
-      for (let i = 0; i < labels.length; i++) {
-        let label = labels[i].innerHTML;
-        labels[i].addEventListener('click', (e) => {
-          if (label.includes('Operation') && i === 0) {
-            this.vmStatisticsTbl!.setStatus(res, false, 0, 1);
-            this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
-          } else if (label.includes('Process') && i === 1) {
-            this.vmStatisticsTbl!.setStatus(res, false, 0, 2);
-            this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Retract);
-          } else if (label.includes('Thread') && i === 2) {
-            this.vmStatisticsTbl!.setStatus(res, true);
-            this.vmStatisticsTbl!.recycleDs = this.vmStatisticsTbl!.meauseTreeRowElement(res, RedrawTreeForm.Expand);
-          }
-        });
-      }
-    }
-  }
-  private handleFatherMap(
-    vmMemoryStatFatherMap: Map<any, any>,
-    firstLevel: string,
-    vmMemoryStatChildMap: Map<any, any>,
-    vmMemoryStatAllNode: any
-  ): void {
+
+  private handleFatherMap(vmMemoryStatFatherMap: Map<any, any>, firstLevel: string, vmMemoryStatChildMap: Map<any, any>, vmMemoryStatAllNode: any): void {
     for (let ks of vmMemoryStatFatherMap.keys()) {
       let sp = vmMemoryStatFatherMap.get(ks);
       sp!.children = [];
@@ -200,13 +178,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     }
   }
 
-  private handleChildMap(
-    vmMemoryStatChildMap: Map<any, any>,
-    ks: any,
-    firstLevel: string,
-    vmMemoryStatNode: any,
-    sp: any
-  ): void {
+  private handleChildMap(vmMemoryStatChildMap: Map<any, any>, ks: any, firstLevel: string, vmMemoryStatNode: any, sp: any): void {
     for (let kst of vmMemoryStatChildMap.keys()) {
       if (kst.startsWith(ks + '_')) {
         let spt = vmMemoryStatChildMap.get(kst);
@@ -261,12 +233,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
     }
   }
 
-  private processChildMap(
-    vmMemoryStatChildMap: Map<any, any>,
-    item: any,
-    firstLevel: string,
-    secondLevel: string
-  ): void {
+  private processChildMap(vmMemoryStatChildMap: Map<any, any>, item: any, firstLevel: string, secondLevel: string): void {
     if (vmMemoryStatChildMap.has(item[firstLevel] + '_' + item[secondLevel])) {
       let vmMemoryStatChildObj = vmMemoryStatChildMap.get(item[firstLevel] + '_' + item[secondLevel]);
       vmMemoryStatChildObj.count += item.count;

@@ -15,15 +15,11 @@
 
 import { BaseElement, element } from '../BaseElement';
 import { selectHtmlStr } from './LitSelectHtml';
-import { LitSelectOption } from './LitSelectOption';
 
 @element('lit-select')
 export class LitSelect extends BaseElement {
   private focused: any;
   private selectInputEl: any;
-  private selectSearchInputEl: HTMLInputElement | null | undefined;
-  private selectOptions: HTMLDivElement | null | undefined;
-  private selectItem: string = '';
   private selectClearEl: any;
   private selectIconEl: any;
   private bodyEl: any;
@@ -42,7 +38,6 @@ export class LitSelect extends BaseElement {
       'list-height',
       'border',
       'mode',
-      'showSearchInput',
     ];
   }
 
@@ -145,70 +140,19 @@ export class LitSelect extends BaseElement {
     }
   }
 
-  get showSearchInput() {
-    return this.hasAttribute('showSearchInput');
-  }
-
-  set showSearchInput(isHide: boolean) {
-    if (isHide) {
-      this.setAttribute('showSearchInput', '');
-    } else {
-      this.removeAttribute('showSearchInput');
-    }
-  }
-
-  set showItem(item: string) {
-    this.selectItem = item;
-  }
-
   set dataSource(selectDataSource: any) {
-    this.innerHTML = `<slot></slot><slot name="footer"></slot>`;
-    if (selectDataSource.length > 0) {
-      this.bodyEl!.style.display = 'flex';
-      selectDataSource.forEach((dateSourceBean: any) => {
-        let selectOption = document.createElement('lit-select-option');
-        if (dateSourceBean.name) {
-          selectOption.textContent = dateSourceBean.name;
-          selectOption.setAttribute('value', dateSourceBean.name);
-        } else if (dateSourceBean) {
-          selectOption.textContent = dateSourceBean;
-          selectOption.setAttribute('value', dateSourceBean);
-          if (
-            this.selectItem !== '' &&
-            this.selectItem === this.value &&
-            this.selectItem === selectOption.textContent
-          ) {
-            selectOption.setAttribute('selected', '');
-          }
-          this.selectInputEl!.value = '';
-        }
-        this.append(selectOption);
-      });
-      this.initOptions();
-    } else {
-      this.bodyEl!.style.display = 'none';
-    }
+    selectDataSource.forEach((dateSourceBean: any) => {
+      let selectOption = document.createElement('lit-select-option');
+      if (dateSourceBean.name) {
+        selectOption.textContent = dateSourceBean.name;
+        selectOption.setAttribute('value', dateSourceBean.name);
+      }
+      this.append(selectOption);
+    });
+    this.initOptions();
   }
 
-  initElements(): void {
-    if (this.showSearchInput) {
-      this.shadowRoot!.querySelector<HTMLDivElement>('.body-select')!.style.display = 'block';
-      this.selectSearchInputEl = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
-      this.selectSearchInputEl?.addEventListener('keyup', (evt) => {
-        let options = [];
-        options = [...this.querySelectorAll<LitSelectOption>('lit-select-option')];
-        options.filter((a: LitSelectOption) => {
-          if (a.textContent!.indexOf(this.selectSearchInputEl!.value) <= -1) {
-            a.style.display = 'none';
-          } else {
-            a.style.display = 'flex';
-          }
-        });
-        evt.preventDefault();
-        evt.stopPropagation();
-      });
-    }
-  }
+  initElements(): void {}
 
   initHtml() {
     return `
@@ -224,13 +168,8 @@ export class LitSelect extends BaseElement {
             <lit-icon class="search" name='search'></lit-icon>
         </div>
         <div class="body">
-            <div class="body-select" style="display: none;">
-                <input id="search-input" placeholder="Search">
-            </div>
-            <div class="body-opt">
-                <slot></slot>
-                <slot name="footer"></slot>
-            </div>
+            <slot></slot>
+            <slot name="footer"></slot>
         </div>
         `;
   }
@@ -275,7 +214,6 @@ export class LitSelect extends BaseElement {
     this.selectIconEl = this.shadowRoot!.querySelector('.icon');
     this.selectSearchEl = this.shadowRoot!.querySelector('.search');
     this.selectMultipleRootEl = this.shadowRoot!.querySelector('.multipleRoot');
-    this.selectOptions = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
     this.setEventClick();
     this.setEvent();
     this.selectInputEl.onblur = (ev: any) => {
@@ -300,14 +238,14 @@ export class LitSelect extends BaseElement {
     this.setOnkeydown();
   }
 
-  setOninput(): void {
+  setOninput():void{
     this.selectInputEl.oninput = (ev: any) => {
       let els: Element[] = [...this.querySelectorAll('lit-select-option')];
       if (this.hasAttribute('show-search')) {
         if (!ev.target.value) {
           els.forEach((a: any) => (a.style.display = 'flex'));
         } else {
-          this.setSelectItem(els, ev);
+          this.setSelectItem(els,ev)
         }
       } else {
         this.value = ev.target.value;
@@ -315,7 +253,7 @@ export class LitSelect extends BaseElement {
     };
   }
 
-  setSelectItem(els: Element[], ev: any): void {
+  setSelectItem(els:Element[],ev:any):void{
     els.forEach((a: any) => {
       let value = a.getAttribute('value');
       if (
@@ -329,7 +267,7 @@ export class LitSelect extends BaseElement {
     });
   }
 
-  setEventClick(): void {
+  setEventClick():void{
     this.selectClearEl.onclick = (ev: any) => {
       if (this.isMultiple()) {
         let delNodes: Array<any> = [];
@@ -360,15 +298,17 @@ export class LitSelect extends BaseElement {
         if (this.focused === false) {
           this.selectInputEl.focus();
           this.focused = true;
-          this.bodyEl!.style.display = 'flex';
+          this.bodyEl!.style.display = 'block';
         } else {
+          this.blur();
+          this.bodyEl!.style.display = 'none';
           this.focused = false;
         }
       }
     };
   }
 
-  setEvent(): void {
+  setEvent():void{
     this.onmouseover = this.onfocus = (ev) => {
       if (this.focused === false && this.hasAttribute('adaptive-expansion')) {
         if (this.parentElement!.offsetTop < this.bodyEl!.clientHeight) {
@@ -411,7 +351,7 @@ export class LitSelect extends BaseElement {
     };
   }
 
-  setOnkeydown(): void {
+  setOnkeydown():void{
     this.selectInputEl.onkeydown = (ev: any) => {
       if (ev.key === 'Backspace') {
         if (this.isMultiple()) {
@@ -482,7 +422,7 @@ export class LitSelect extends BaseElement {
     });
   }
 
-  onSelectedEvent(a: Element): void {
+  onSelectedEvent(a:Element):void{
     a.addEventListener('onSelected', (e: any) => {
       if (this.isMultiple()) {
         if (a.hasAttribute('selected')) {
@@ -514,7 +454,6 @@ export class LitSelect extends BaseElement {
         a.removeAttribute('selected');
       } else {
         a.setAttribute('selected', '');
-        this.selectItem = a.textContent!;
       }
       // @ts-ignore
       this.value = e.detail.value;

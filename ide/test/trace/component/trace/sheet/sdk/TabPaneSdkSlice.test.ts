@@ -18,7 +18,6 @@ import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
 
 import { TabUtil } from '../../../../../../src/trace/component/trace/sheet/sdk/TabUtil';
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -28,10 +27,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
-const sdkSqlite = require('../../../../../../src/trace/database/sql/Sdk.sql');
-jest.mock('../../../../../../src/trace/database/sql/Sdk.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPaneSdkSlice Test', () => {
   let tabPaneSdkSlice = new TabPaneSdkSlice();
@@ -54,7 +51,7 @@ describe('TabPaneSdkSlice Test', () => {
       },
     ];
     totalTime.mockResolvedValue(totalData);
-    let mockSdkSliceData = sdkSqlite.getTabSdkSliceData;
+    let mockSdkSliceData = sqlite.getTabSdkSliceData;
     let sliceData = [
       {
         start_ts: 1000,

@@ -14,6 +14,7 @@
  */
 
 import { TabpanePerfBottomUp } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfBottomUp';
+import { showButtonMenu } from '../../../../../../src/trace/component/trace/sheet/SheetUtils';
 
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};

@@ -32,10 +32,11 @@ window.ResizeObserver =
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-const cpuSqlite = require('../../../../../../src/trace/database/sql/Cpu.sql');
-jest.mock('../../../../../../src/trace/database/sql/Cpu.sql');
-const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 describe('TabPaneFreqUsage Test', () => {
   let tabPaneFreqUsage = new TabPaneFreqUsage();
   let data = {
@@ -54,12 +55,12 @@ describe('TabPaneFreqUsage Test', () => {
       ts: 1,
     }
   ]);
-  let queryCpuFreqFilterId = cpuSqlite.queryCpuFreqFilterId;
+  let queryCpuFreqFilterId = sqlite.queryCpuFreqFilterId;
   queryCpuFreqFilterId.mockResolvedValue([{
     id: 1,
     cpu: 0,
   }]);
-  let queryCpuFreqUsageData = cpuSqlite.queryCpuFreqUsageData;
+  let queryCpuFreqUsageData = sqlite.queryCpuFreqUsageData;
   queryCpuFreqUsageData.mockResolvedValue([{
     value: '',
     dur: '',

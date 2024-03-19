@@ -18,15 +18,13 @@ import { Smaps, SmapsTreeObj } from '../../../../../../src/trace/bean/SmapsStruc
 jest.mock('../../../../../../src/trace/component/trace/sheet/smaps/TabPaneSmapsComparison', () => {
   return {};
 });
-const sqlit = require('../../../../../../src/trace/database/sql/Smaps.sql');
-jest.mock('../../../../../../src/trace/database/sql/Smaps.sql');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {};
 });
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-jest.mock('.../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
+
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

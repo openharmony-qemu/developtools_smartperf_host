@@ -87,135 +87,75 @@ export const abilityPacketsOutDataSql = (args: any): string => {
 export const cpuAbilityMonitorDataProtoSql = (args: any): string => {
   return `select 
         (t.total_load) as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from cpu_usage t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from cpu_usage t`;
 };
 export const cpuAbilityUserDataProtoSql = (args: any): string => {
   return `select 
         t.user_load as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from cpu_usage t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from cpu_usage t`;
 };
 export const cpuAbilitySystemDataProtoSql = (args: any): string => {
   return `select 
         t.system_load as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from cpu_usage t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from cpu_usage t`;
 };
 export const abilityMemoryDataProtoSql = (args: any): string => {
   return `select 
         t.value as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        t.dur as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
+        (t.ts - ${args.recordStartNS} ) as startNs
         from sys_mem_measure t 
-        where t.filter_id = ${args.id}
-        and startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        where t.filter_id = ${args.id}`;
 };
 export const abilityBytesReadDataProtoSql = (args: any): string => {
   return `select 
         t.rd_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from diskio t`;
 };
 export const abilityBytesWrittenDataProtoSql = (args: any): string => {
   return `select 
         t.wr_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from diskio t`;
 };
 export const abilityReadOpsDataProtoSql = (args: any): string => {
   return `select 
         t.rd_count_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from diskio t`;
 };
 export const abilityWrittenOpsDataProtoSql = (args: any): string => {
   return `select 
         t.wr_count_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from diskio t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from diskio t`;
 };
 export const abilityBytesInTraceDataProtoSql = (args: any): string => {
   return `select 
         t.tx_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        t.dur as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from network t`;
 };
 export const abilityBytesOutTraceDataProtoSql = (args: any): string => {
   return `select 
         t.rx_speed as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from network t`;
 };
 export const abilityPacketInDataProtoSql = (args: any): string => {
   return `select 
         t.packet_in_sec as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from network t`;
 };
 export const abilityPacketsOutDataProtoSql = (args: any): string => {
   return `select 
         t.packet_out_sec as value,
-        (t.ts - ${args.recordStartNS} ) as startNs,
-        max(ifnull(t.dur, ${args.recordEndNS} - t.ts)) as dur,
-        ((t.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) as px
-        from network t 
-        where startNs + (ifnull(dur,0)) >= ${Math.floor(args.startNS)}
-        and startNs <= ${Math.floor(args.endNS)}
-        group by px`;
+        (t.ts - ${args.recordStartNS} ) as startNs
+        from network t`;
 };
 
 let totalList: Array<any> = [];
@@ -285,7 +225,7 @@ export function cpuAbilitySystemDataReceiver(data: any, proc: Function): void {
   } else {
     let sql = cpuAbilitySystemDataProtoSql(data.params);
     let res = proc(sql);
-    cpuArrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 export function abilityMemoryUsedDataReceiver(data: any, proc: Function): void {

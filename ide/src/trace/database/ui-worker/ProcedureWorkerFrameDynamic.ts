@@ -287,13 +287,11 @@ export class FrameDynamicRender extends Render {
 }
 export function FrameDynamicStructOnClick(clickRowType: string, sp: SpSystemTrace, row: undefined | TraceRow<any>) {
   return new Promise((resolve,reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC) {
-      FrameDynamicStruct.selectFrameDynamicStruct = FrameDynamicStruct.hoverFrameDynamicStruct || row?.getHoverStruct(false, true);
-      if (FrameDynamicStruct.selectFrameDynamicStruct) {
-        sp.traceSheetEL?.displayFrameDynamicData(row!, FrameDynamicStruct.selectFrameDynamicStruct);
-        sp.timerShaftEL?.modifyFlagList(undefined);
-      }
-      reject(new Error());
+    if (clickRowType === TraceRow.ROW_TYPE_FRAME_DYNAMIC && FrameDynamicStruct.hoverFrameDynamicStruct) {
+      FrameDynamicStruct.selectFrameDynamicStruct = FrameDynamicStruct.hoverFrameDynamicStruct;
+      sp.traceSheetEL?.displayFrameDynamicData(row!, FrameDynamicStruct.selectFrameDynamicStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
     }else{
       resolve(null);
     }

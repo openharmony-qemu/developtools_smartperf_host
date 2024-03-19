@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,18 +17,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t {
-    ID = 0,
-    CALLCHAIN_ID,
-    DEPTH,
-    IP,
-    SYMBOL_ID,
-    FILE_ID,
-    OFFSET,
-    SYMBOL_OFFSET,
-    VADDR,
-    REAL_STACK
-};
+enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET, VADDR };
 NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -40,7 +29,6 @@ NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : Ta
     tableColumn_.push_back(TableBase::ColumnInfo("offset", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("vaddr", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("real_stack", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -164,10 +152,6 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t nativeHookFrameCol) const
         case Index::VADDR: {
             SetTypeColumnTextNotEmpty(nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].empty(),
                                       nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].c_str());
-            break;
-        }
-        case Index::REAL_STACK: {
-            SetTypeColumnInt32(nativeHookFrameInfoObj_.realStack()[CurrentRow()], INVALID_UINT32);
             break;
         }
         default:

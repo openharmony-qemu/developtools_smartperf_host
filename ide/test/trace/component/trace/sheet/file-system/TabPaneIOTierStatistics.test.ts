@@ -15,9 +15,10 @@
 
 import { TabPaneIOTierStatistics } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIOTierStatistics';
 import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIOTierStatistics';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
-import { LitTable } from "../../../../../../src/base-ui/table/lit-table";
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
+import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+import { getTabPaneIOTierStatisticsData } from '../../../../../../src/trace/database/SqlLite';
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -27,8 +28,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 Object.defineProperty(global.self, 'crypto', {
   value: {
@@ -39,7 +40,6 @@ Object.defineProperty(global.self, 'crypto', {
 describe('TabPaneIOTierStatistics Test', () => {
   document.body.innerHTML = '<tabpane-io-tier-statistics id="io-tier-statistics"></tabpane-io-tier-statistics>';
   let tabPane = document.querySelector<TabPaneIOTierStatistics>('#io-tier-statistics');
-  tabPane.ioTierStatisticsTbl = new LitTable();
 
   let param = {
     anomalyEnergy: [],
@@ -137,7 +137,6 @@ describe('TabPaneIOTierStatistics Test', () => {
         avgDuration: 4625375.71428571,
       },
     ]);
-    tabPane.theadClick = jest.fn(() => true);
     tabPane.data = param;
     expect(tabPane.ioTierStatisticsSelectionParam).not.toBeUndefined();
   });

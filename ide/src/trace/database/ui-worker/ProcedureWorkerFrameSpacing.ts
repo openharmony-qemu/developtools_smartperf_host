@@ -298,15 +298,13 @@ export class FrameSpacingRender extends Render {
     return [min, max];
   }
 }
-export function FrameSpacingStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
+export function FrameSpacingStructOnClick(clickRowType: string, sp: SpSystemTrace) {
   return new Promise((resolve,reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING) {
-      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct || row.getHoverStruct(false, true);
-      if (FrameSpacingStruct.selectFrameSpacingStruct) {
-        sp.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
-        sp.timerShaftEL?.modifyFlagList(undefined);
-      }
-      reject(new Error());
+    if (clickRowType === TraceRow.ROW_TYPE_FRAME_SPACING && FrameSpacingStruct.hoverFrameSpacingStruct) {
+      FrameSpacingStruct.selectFrameSpacingStruct = FrameSpacingStruct.hoverFrameSpacingStruct;
+      sp.traceSheetEL?.displayFrameSpacingData(FrameSpacingStruct.selectFrameSpacingStruct);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject();
     }else{
       resolve(null);
     }

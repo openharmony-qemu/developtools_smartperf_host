@@ -64,24 +64,20 @@ export function HeapSnapshot(
   }
 }
 const padding = 3;
-export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,snapshotClickHandler: any) {
+export function HeapSnapshotStructOnClick(clickRowType: string, sp: SpSystemTrace, snapshotClickHandler: any) {
   return new Promise((resolve, reject) => {
-    if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT) {
-      if (row.findHoverStruct) {
-        row.findHoverStruct();
-      }else {
-        HeapSnapshotStruct.hoverSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct || row.getHoverStruct();
-      }
-      if (HeapSnapshotStruct.hoverSnapshotStruct) {
-        HeapSnapshotStruct.selectSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct;
-        sp.traceSheetEL?.displaySnapshotData(
-          HeapSnapshotStruct.selectSnapshotStruct!,
-          row!.dataListCache,
-          snapshotClickHandler
-        );
-      }
-      reject(new Error());
-    } else {
+    if (clickRowType === TraceRow.ROW_TYPE_HEAP_SNAPSHOT && HeapSnapshotStruct.hoverSnapshotStruct) {
+      let snapshotRow = sp.shadowRoot?.querySelector<TraceRow<HeapSnapshotStruct>>(
+        `trace-row[row-id='heapsnapshot']`
+      );
+      HeapSnapshotStruct.selectSnapshotStruct = HeapSnapshotStruct.hoverSnapshotStruct;
+      sp.traceSheetEL?.displaySnapshotData(
+        HeapSnapshotStruct.selectSnapshotStruct!,
+        snapshotRow!.dataListCache,
+        snapshotClickHandler
+      );
+      reject();
+    }else{
       resolve(null);
     }
   });

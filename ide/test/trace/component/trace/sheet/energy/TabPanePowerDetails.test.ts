@@ -29,12 +29,9 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
+const sqlit = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
+
 describe('TabPanePowerDetails Test', () => {
   document.body.innerHTML = `<lit-table id="tb-power-details-energy"></lit-table>`;
   let litTable = document.querySelector('#tb-power-details-energy') as LitTable;

@@ -13,21 +13,22 @@
  * limitations under the License.
  */
 
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+
 import { ProcessMemStruct, MemRender } from '../../../../src/trace/database/ui-worker/ProcedureWorkerMem';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import { mem } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
-jest.mock('../../../../src/trace/component/SpSystemTrace',()=>{
-  return {}
-})
+
 describe(' Test', () => {
+  let frame = {
+    x: 0,
+    y: 9,
+    width: 10,
+    height: 10,
+  };
   it('MemTest01', () => {
-    let frame = {
-      x: 0,
-      y: 9,
-      width: 10,
-      height: 10,
-    };
     let memDataList = new Array();
     memDataList.push({
       startTime: 10,
@@ -44,12 +45,6 @@ describe(' Test', () => {
   });
 
   it('MemTest02', () => {
-    let frame = {
-      x: 0,
-      y: 9,
-      width: 10,
-      height: 10,
-    };
     let memDataList = new Array();
     memDataList.push({
       startTime: 0,
@@ -130,10 +125,6 @@ describe(' Test', () => {
       height: 100,
     };
     window.postMessage = jest.fn(() => true);
-    TraceRow.range = jest.fn(() => true);
-    TraceRow.range!.startNS = jest.fn(() => 0);
-    TraceRow.range!.endNS = jest.fn(() => 27763331331);
-    TraceRow.range!.totalNS = jest.fn(() => 27763331331);
-    expect(memRender.renderMainThread(memReq,new TraceRow<ProcessMemStruct>())).toBeUndefined();
+    expect(memRender.render(memReq, [], [])).toBeUndefined();
   });
 });

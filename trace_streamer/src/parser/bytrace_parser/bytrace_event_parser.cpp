@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -216,8 +216,9 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
     } else {
         uprevtid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, prevPidValue.value());
     }
-    streamFilters_->cpuFilter_->InsertSwitchEvent(line.ts, line.cpu, uprevtid, prevPrioValue.value(), prevState,
-                                                  nextInternalTid, nextPrioValue.value(), nextInfo);
+    streamFilters_->cpuFilter_->InsertSwitchEvent(
+        line.ts, line.cpu, uprevtid, static_cast<uint64_t>(prevPrioValue.value()), prevState, nextInternalTid,
+        static_cast<uint64_t>(nextPrioValue.value()), nextInfo);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
     return true;
 }
@@ -707,22 +708,6 @@ bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap& args, con
 void BytraceEventParser::ParseDataItem(const BytraceLine& line)
 {
     eventList_.push_back(std::make_unique<EventInfo>(line.ts, std::move(line)));
-    size_t maxBuffSize = 1000 * 1000;
-    size_t maxQueue = 2;
-    if (eventList_.size() < maxBuffSize * maxQueue) {
-        return;
-    }
-    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
-        return a->eventTimestamp < b->eventTimestamp;
-    };
-    std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
-    auto endOfList = eventList_.begin() + maxBuffSize;
-    for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
-        EventInfo* event = itor->get();
-        BeginFilterEvents(event);
-        itor->reset();
-    }
-    eventList_.erase(eventList_.begin(), endOfList);
     return;
 }
 void BytraceEventParser::GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uint32_t& tgid) const
@@ -752,6 +737,25 @@ void BytraceEventParser::GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uin
         }
         args.emplace(std::move(key), std::move(value));
     }
+}
+void BytraceEventParser::FilterAllEventsTemp()
+{
+    size_t maxBuffSize = 1000 * 1000;
+    size_t maxQueue = 2;
+    if (eventList_.size() < maxBuffSize * maxQueue) {
+        return;
+    }
+    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
+        return a->eventTimestamp < b->eventTimestamp;
+    };
+    std::stable_sort(eventList_.begin(), eventList_.end(), cmp);
+    auto endOfList = eventList_.begin() + maxBuffSize;
+    for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
+        EventInfo* event = itor->get();
+        BeginFilterEvents(event);
+        itor->reset();
+    }
+    eventList_.erase(eventList_.begin(), endOfList);
 }
 
 void BytraceEventParser::FilterAllEvents()

@@ -21,10 +21,7 @@ import { SpSystemTrace } from '../../../../../src/trace/component/SpSystemTrace'
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {});
-jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
+
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -62,7 +59,7 @@ describe('RangeRuler Test', () => {
     },
     () => {}
   );
-  let mark = new Mark(canvas, 'name',ctx, {
+  let mark = new Mark(canvas, ctx, '', {
     x: 20,
     y: 20,
     width: 100,
@@ -78,10 +75,7 @@ describe('RangeRuler Test', () => {
   ];
 
   mark.isHover = true;
-  let currentSlicesTime = {
-    startTime: 1,
-    endTime: 200
-  }
+
   it('RangeRulerTest01', function () {
     expect(rangeRuler.drawCpuUsage()).toBeUndefined();
   });
@@ -116,7 +110,7 @@ describe('RangeRuler Test', () => {
     expect(
       rangeRuler.keyPress({
         key: 'w',
-      }, currentSlicesTime)
+      })
     ).toBeUndefined();
   });
 
@@ -124,7 +118,7 @@ describe('RangeRuler Test', () => {
     expect(
       rangeRuler.keyPress({
         key: 's',
-      }, currentSlicesTime)
+      })
     ).toBeUndefined();
   });
 
@@ -193,8 +187,21 @@ describe('RangeRuler Test', () => {
   });
 
   it('RangeRulerTest13', function () {
+    rangeRuler.markA = jest.fn(() => true);
     rangeRuler.rangeRect = jest.fn(() => true);
     rangeRuler.rangeRect.containsWithPadding = jest.fn(() => true);
+
+    rangeRuler.markA = jest.fn(() => {
+      return {
+        frame: {
+          x: 20,
+        },
+      };
+    });
+    rangeRuler.markA.isHover = jest.fn(() => true);
+    rangeRuler.markA.frame = jest.fn(() => []);
+    rangeRuler.markA.frame.x = jest.fn(() => true);
+
     expect(
       rangeRuler.mouseDown({
         key: '',
@@ -203,11 +210,18 @@ describe('RangeRuler Test', () => {
   });
 
   it('RangeRulerTest14', function () {
+    rangeRuler.markA = jest.fn(() => true);
     rangeRuler.rangeRect = jest.fn(() => true);
     rangeRuler.rangeRect.containsWithPadding = jest.fn(() => false);
     rangeRuler.frame = jest.fn(() => false);
     rangeRuler.frame.containsWithMargin = jest.fn(() => true);
     rangeRuler.rangeRect.containsWithMargin = jest.fn(() => false);
+    rangeRuler.markB = jest.fn(() => {
+      return {};
+    });
+    rangeRuler.markB.isHover = jest.fn(() => true);
+    rangeRuler.markB.frame = jest.fn(() => true);
+    rangeRuler.markB.frame.x = jest.fn(() => true);
     expect(
       rangeRuler.mouseDown({
         key: '',
@@ -216,6 +230,12 @@ describe('RangeRuler Test', () => {
   });
 
   it('RangeRulerTest15', function () {
+    rangeRuler.markA = jest.fn(() => true);
+    rangeRuler.markA.inspectionFrame = jest.fn(() => true);
+    rangeRuler.markA.inspectionFrame.contains = jest.fn(() => true);
+    rangeRuler.markA.frame = jest.fn(() => true);
+    rangeRuler.markA.frame.x = jest.fn(() => true);
+    rangeRuler.markA.draw = jest.fn(() => true);
     rangeRuler.centerXPercentage = jest.fn(() => -1);
     expect(
       rangeRuler.mouseMove({
@@ -225,6 +245,12 @@ describe('RangeRuler Test', () => {
   });
 
   it('RangeRulerTest16', () => {
+    rangeRuler.markA = jest.fn(() => false);
+    rangeRuler.markA.draw = jest.fn(() => true);
+    rangeRuler.markA.frame = jest.fn(() => true);
+    rangeRuler.markA.frame.x = jest.fn(() => true);
+    rangeRuler.markA.inspectionFrame = jest.fn(() => false);
+    rangeRuler.markA.inspectionFrame.contains = jest.fn(() => false);
     rangeRuler.movingMark = jest.fn(() => false);
     rangeRuler.movingMark.frame = jest.fn(() => false);
     rangeRuler.movingMark.frame.x = jest.fn(() => false);
@@ -252,6 +278,7 @@ describe('RangeRuler Test', () => {
     expect(mark.isHover).toBeTruthy();
   });
   it('RangeRulerTest19', function () {
+    rangeRuler.clearRect = jest.fn(() => true);
     expect(rangeRuler.draw()).toBeUndefined();
   });
 
@@ -267,9 +294,12 @@ describe('RangeRuler Test', () => {
     expect(rangeRuler.keyPressF()).toBeUndefined();
   });
   it('RangeRulerTest27', function () {
-    expect(Mark.draw).toBeUndefined();
+    expect(rangeRuler.zoomFit('100', '200')).toBeUndefined();
   });
   it('RangeRulerTest28', function () {
+    expect(Mark.draw).toBeUndefined();
+  });
+  it('RangeRulerTest29', function () {
     expect(rangeRuler.drawSelectionRange()).toBeUndefined();
   });
 });

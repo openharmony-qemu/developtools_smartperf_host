@@ -14,12 +14,8 @@
  */
 
 import { TraceSheet } from '../../../../../src/trace/component/trace/base/TraceSheet';
-jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
-  return {};
-});
-jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
-  return {};
-});
+const sqlit = require('../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../src/trace/database/SqlLite');
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -34,6 +30,54 @@ window.ResizeObserver =
 
 describe('TraceSheet Test', () => {
   beforeAll(() => {});
+  let val = {
+    hasFps: 1,
+    cpus: { length: 1 },
+    threadIds: [{ length: 2 }],
+    funTids: { length: 1 },
+    trackIds: { length: 1 },
+    heapIds: { length: 1 },
+    nativeMemory: { length: 1 },
+    cpuAbilityIds: { length: 1 },
+    memoryAbilityIds: { length: 1 },
+    diskAbilityIds: { length: 1 },
+    networkAbilityIds: { length: 1 },
+  };
+  let e = {
+    detail: {
+      title: 1,
+      state: 0,
+      threadId: 1,
+      processId: 2,
+    },
+  };
+  let selection = {
+    hasFps: 1,
+    cpus: { length: 1 },
+    threadIds: [{ length: 2 }],
+    funTids: { length: 1 },
+    trackIds: { length: 1 },
+    heapIds: { length: 1 },
+    nativeMemory: { length: 1 },
+    cpuAbilityIds: { length: 0 },
+    memoryAbilityIds: { length: 0 },
+    diskAbilityIds: { length: 0 },
+    networkAbilityIds: { length: 0 },
+    perfSampleIds: { length: 0 },
+    processTrackIds: { length: 0 },
+    fileSystemType: { length: 0 },
+    virtualTrackIds: { length: 0 },
+    sdkCounterIds: [
+      {
+        length: 0,
+      },
+    ],
+    sdkSliceIds: [
+      {
+        length: 0,
+      },
+    ],
+  };
   document.body.innerHTML = '<sp-system-trace style="visibility:visible;" id="sp-system-trace"></sp-system-trace>';
   it('TraceSheet Test01', () => {
     let traceSheet = new TraceSheet();
@@ -46,7 +90,7 @@ describe('TraceSheet Test', () => {
   });
   it('TraceSheet Test09', () => {
     let traceSheet = new TraceSheet();
-    expect(traceSheet.loadTabPaneData('key')).toBeUndefined();
+    expect(traceSheet.loadTabPaneData()).toBeUndefined();
   });
 
   it('TraceSheet Test10', () => {

@@ -15,6 +15,7 @@
 
 import crypto from 'crypto';
 import { TabPaneNMStatisticAnalysis } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMStatisticAnalysis';
+import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 window.ResizeObserver =
   window.ResizeObserver ||

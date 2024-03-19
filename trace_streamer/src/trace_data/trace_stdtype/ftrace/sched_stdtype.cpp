@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,6 @@ TableRowId ThreadStateData::AppendThreadState(InternalTime ts,
                                               InternalTid itid,
                                               TableRowId idState)
 {
-    ids_.emplace_back(id_++);
     timeStamps_.emplace_back(ts);
     durations_.emplace_back(dur);
     itids_.emplace_back(itid);
@@ -31,7 +30,7 @@ TableRowId ThreadStateData::AppendThreadState(InternalTime ts,
     states_.emplace_back(idState);
     cpus_.emplace_back(cpu);
     argSetIds_.emplace_back(INVALID_UINT32);
-    return Size() - 1;
+    return itids_.size() - 1;
 }
 
 void ThreadStateData::SetDuration(TableRowId index, InternalTime dur)
@@ -123,9 +122,8 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
                                     uint64_t cpu,
                                     uint32_t internalTid,
                                     uint64_t endState,
-                                    int32_t priority)
+                                    uint64_t priority)
 {
-    ids_.emplace_back(id_++);
     timeStamps_.emplace_back(ts);
     durs_.emplace_back(dur);
     cpus_.emplace_back(cpu);

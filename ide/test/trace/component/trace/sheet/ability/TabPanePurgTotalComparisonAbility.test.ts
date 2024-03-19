@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPanePurgTotalComparisonAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPanePurgTotalComparisonAbility';
-const sqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
-jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

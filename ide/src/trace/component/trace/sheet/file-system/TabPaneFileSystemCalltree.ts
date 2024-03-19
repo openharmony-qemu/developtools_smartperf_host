@@ -332,10 +332,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       }
     }
     this.performDataProcessing(fsCallTreeFuncArgs);
-  }
+  };
 
   private handleSymbolCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.symbolName }, data.item);
+    this.fsCallTreeFilter!.addDataMining({name: this.fsCallTreeCurrentSelectedData.symbolName}, data.item);
     fsCallTreeFuncArgs.push({
       funcName: 'splitTree',
       funcArgs: [this.fsCallTreeCurrentSelectedData.symbolName, false, true],
@@ -343,7 +343,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   private handleLibraryCase(data: any, fsCallTreeFuncArgs: any[]): void {
-    this.fsCallTreeFilter!.addDataMining({ name: this.fsCallTreeCurrentSelectedData.libName }, data.item);
+    this.fsCallTreeFilter!.addDataMining({name: this.fsCallTreeCurrentSelectedData.libName}, data.item);
     fsCallTreeFuncArgs.push({
       funcName: 'splitTree',
       funcArgs: [this.fsCallTreeCurrentSelectedData.libName, false, false],
@@ -364,9 +364,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
 
   private handleFilterData(): void {
     this.fsCallTreeFilter!.getFilterData((data: FilterData): void => {
-      if ((this.isChartShow && data.icon === 'tree') || (!this.isChartShow && data.icon === 'block')) {
-        this.switchFlameChart(data);
-      } else if (this.searchValue != this.fsCallTreeFilter!.filterValue) {
+      if (this.searchValue != this.fsCallTreeFilter!.filterValue) {
         this.searchValue = this.fsCallTreeFilter!.filterValue;
         let fileArgs = [
           {
@@ -559,7 +557,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
       let data = evt.detail.data as FileMerageBean;
       document.dispatchEvent(
         new CustomEvent('number_calibration', {
-          detail: { time: data.tsArray, durations: data.durArray },
+          detail: {time: data.tsArray, durations: data.durArray},
         })
       );
       this.setRightTableData(data);
@@ -594,22 +592,18 @@ export class TabpaneFilesystemCalltree extends BaseElement {
           this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
           this.frameChart?.calculateChartData();
         }
-        let headLineHeight = 0;
-        if (this.fileSystemHeadLine?.isShow) {
-          headLineHeight = this.fileSystemHeadLine!.clientHeight;
-        }
         if (this.fsCallTreeTbl) {
           // @ts-ignore
           this.fsCallTreeTbl.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 10 - 35 - headLineHeight + 'px';
+            this.parentElement!.clientHeight - 10 - 35 + 'px';
           this.fsCallTreeTbl.reMeauseHeight();
         }
-        if (this.fsCallTreeTbr) {
-          // @ts-ignore
-          this.fsCallTreeTbr.shadowRoot.querySelector('.table').style.height =
-            this.parentElement!.clientHeight - 45 - 21 - headLineHeight + 'px';
-          this.fsCallTreeTbr.reMeauseHeight();
-        }
+       if (this.fsCallTreeTbr) {
+         // @ts-ignore
+         this.fsCallTreeTbr.shadowRoot.querySelector('.table').style.height =
+           this.parentElement!.clientHeight - 45 - 21 + 'px';
+         this.fsCallTreeTbr.reMeauseHeight();
+       }
         this.loadingPage.style.height = this.parentElement!.clientHeight - 24 + 'px';
       }
     }).observe(this.parentElement!);
@@ -646,12 +640,12 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     let isHideEvent: boolean = filterData.callTree[2];
     let isHideThread: boolean = filterData.callTree[3];
     let list = filterData.dataMining.concat(filterData.dataLibrary);
-    fileSysCallTreeArgs.push({ funcName: 'hideThread', funcArgs: [isHideThread] });
-    fileSysCallTreeArgs.push({ funcName: 'hideEvent', funcArgs: [isHideEvent] });
-    fileSysCallTreeArgs.push({ funcName: 'getCallChainsBySampleIds', funcArgs: [isTopDown, 'fileSystem'] });
+    fileSysCallTreeArgs.push({funcName: 'hideThread', funcArgs: [isHideThread],});
+    fileSysCallTreeArgs.push({funcName: 'hideEvent', funcArgs: [isHideEvent],});
+    fileSysCallTreeArgs.push({funcName: 'getCallChainsBySampleIds', funcArgs: [isTopDown, 'fileSystem'],});
     this.fsCallTreeTbr!.recycleDataSource = [];
     if (isHideSystemLibrary) {
-      fileSysCallTreeArgs.push({ funcName: 'hideSystemLibrary', funcArgs: [] });
+      fileSysCallTreeArgs.push({funcName: 'hideSystemLibrary', funcArgs: [],});
     }
     if (filterData.callTreeConstraints.checked) {
       fileSysCallTreeArgs.push({
@@ -659,8 +653,8 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]],
       });
     }
-    fileSysCallTreeArgs.push({ funcName: 'splitAllProcess', funcArgs: [list] });
-    fileSysCallTreeArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
+    fileSysCallTreeArgs.push({funcName: 'splitAllProcess', funcArgs: [list],});
+    fileSysCallTreeArgs.push({funcName: 'resetAllNode', funcArgs: [],});
     if (this._fsRowClickData && this._fsRowClickData.libId !== undefined && this._currentFsCallTreeLevel === 3) {
       fileSysCallTreeArgs.push({
         funcName: 'showLibLevelData',

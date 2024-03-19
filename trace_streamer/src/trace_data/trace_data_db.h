@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,7 +22,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include "sqlite3.h"
 #include "sqllite_prepar_cache_data.h"
@@ -72,9 +71,6 @@ public:
 public:
     sqlite3* db_;
 
-protected:
-    std::unordered_map<std::string, size_t> tableToCompletedSize_;
-
 private:
     void ExecuteSql(const std::string_view& sql);
     void SendDatabase(ResultCallBack resultCallBack);
@@ -84,7 +80,6 @@ private:
     int32_t HandleRowData(sqlite3_stmt* stmt, char* res, int32_t outLen, int32_t pos, int32_t colCount);
     static void GetRowString(sqlite3_stmt* stmt, int32_t colCount, std::string& rowStr);
     static void SqliteFinalize(sqlite3_stmt* ptr);
-    void InitTableToCompletedSize();
 
 private:
     std::list<std::string> internalTables_ = {};
@@ -93,9 +88,8 @@ private:
     bool cancelQuery_ = false;
     std::string wasmDBName_;
     SqllitePreparCacheData sqlPreparCacheData_;
-    std::set<std::string> needClearTable_ = {"data_type", "device_info",  "data_dict", "meta",    "clock_snapshot",
-                                             "callstack", "thread_state", "stat",      "symbols", "thread",
-                                             "process",   "trace_range",  "args_view"};
+    std::set<std::string> needClearTable_ = {"data_type", "device_info", "data_dict", "meta",        "stat",
+                                             "symbols",   "thread",      "process",   "trace_range", "args_view"};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

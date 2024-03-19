@@ -79,7 +79,7 @@ function arrayBufferHandler(res: any, len: number): CpuStruct[] {
       dur: dur[i],
       startTime: startTime[i],
       argSetID: argSetID[i],
-      nofinish: nofinish[i] === 1 ? true : false
+      nofinish: nofinish[i] == 1 ? true : false
     } as CpuStruct);
   }
   return outArr;
@@ -94,7 +94,6 @@ function searchArrayBufferHandler(res: any, len: number): CpuStruct[] {
   let tid = new Uint16Array(res.tid);
   let cpu = new Uint8Array(res.cpu);
   let argSetID = new Int8Array(res.argSetID);
-  let nofinish = new Uint8Array(res.nofinish);
   for (let i = 0; i < len; i++) {
     outArr.push({
       processId: processId[i],
@@ -105,7 +104,6 @@ function searchArrayBufferHandler(res: any, len: number): CpuStruct[] {
       startTime: startTime[i],
       type: 'cpu',
       argSetID: -1,
-      nofinish: nofinish[i] === 1 ? true : false
     } as CpuStruct);
   }
   return outArr;

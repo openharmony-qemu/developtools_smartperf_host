@@ -383,7 +383,7 @@ export class TraceRowConfig extends BaseElement {
   clearSearchAndFlag(): void {
     let traceSheet = this.spSystemTrace!.shadowRoot?.querySelector('.trace-sheet') as TraceSheet;
     if (traceSheet) {
-      traceSheet!.setMode('hidden');
+      traceSheet!.setAttribute('mode', 'hidden');
     }
     let search = document.querySelector('sp-application')!.shadowRoot?.querySelector('#lit-search') as LitSearch;
     if (search) {
@@ -521,6 +521,7 @@ export class TraceRowConfig extends BaseElement {
       let subsystemsKey: string = 'subsystems';
       if (configJson[subsystemsKey]) {
         isTrulyJson = true;
+        window.localStorage.setItem(LOCAL_STORAGE_JSON, text);
         this.tempString = text;
         this.openFileIcon!.style.display = 'block';
       }
@@ -531,13 +532,7 @@ export class TraceRowConfig extends BaseElement {
       return;
     }
     let id = 0;
-    try {
-      this.treeNodes = this.buildSubSystemTreeData(id, configJson);
-    } catch (e) {
-      this.loadTempConfig(window.localStorage.getItem(LOCAL_STORAGE_JSON)!);
-      return;
-    }
-    window.localStorage.setItem(LOCAL_STORAGE_JSON, text);
+    this.treeNodes = this.buildSubSystemTreeData(id, configJson);
     this.buildTempOtherList(id);
     this.setAttribute('temp_config', '');
     this.expandedNodeList.clear();
@@ -561,15 +556,12 @@ export class TraceRowConfig extends BaseElement {
           });
         }
       }
-      let subsystemList = [];
       for (let subIndex = 0; subIndex < subsystemsData.length; subIndex++) {
         let currentSystemData = subsystemsData[subIndex];
-        if(!currentSystemData.hasOwnProperty('subsystem') || currentSystemData.subsystem === '' ||
-          subsystemList.indexOf(currentSystemData.subsystem) > -1 || Array.isArray(currentSystemData.subsystem)) {
+        if(!currentSystemData.hasOwnProperty('subsystem')) {
           continue;
         }
         let currentSubName = currentSystemData.subsystem;
-        subsystemList.push(currentSystemData.subsystem);
         id++;
         let subsystemStruct: SubsystemNode = {
           id: id,
@@ -581,13 +573,12 @@ export class TraceRowConfig extends BaseElement {
         };
         if (subSystems.indexOf(subsystemStruct) < 0) {
           let currentCompDates = currentSystemData.components;
-          if (!currentCompDates || !Array.isArray(currentCompDates)) {
+          if (!currentCompDates) {
             continue;
           }
           for (let compIndex = 0; compIndex < currentCompDates.length; compIndex++) {
             let currentCompDate = currentCompDates[compIndex];
-            if(!currentCompDate.hasOwnProperty('component') || currentCompDate.component === '' ||
-              !currentCompDate.hasOwnProperty('charts')) {
+            if(!currentCompDate.hasOwnProperty('component') && !currentCompDate.hasOwnProperty('charts')) {
               continue;
             }
             let currentCompName = currentCompDate.component;
@@ -604,11 +595,10 @@ export class TraceRowConfig extends BaseElement {
             };
             for (let chartIndex = 0; chartIndex < currentChartDates.length; chartIndex++) {
               let currentChartDate = currentChartDates[chartIndex];
-              if((!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId'))
-                || Array.isArray(currentChartDate.chartName)) {
+              if(!currentChartDate.hasOwnProperty('chartName') && !currentChartDate.hasOwnProperty('chartId')) {
                 continue;
               }
-              let currentChartName = `${ currentChartDate.chartName}`;
+              let currentChartName = currentChartDate.chartName;
               let currentChartId = currentChartDate.chartId;
               let findChartNames: Array<string> | undefined = [];
               let scene: string[] = [];
@@ -623,21 +613,18 @@ export class TraceRowConfig extends BaseElement {
                     chartId = match[0].trim();
                     name = item.name.split(match[0])[0];
                     if (name !== 'Cpu') {
-                      if ((currentChartName !== undefined && currentChartName !== '' &&
-                        name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
+                      if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase())) || currentChartId === chartId) {
                         scene.push(...item.templateType);
                         findChartNames.push(item.name);
                       }
                     } else {
-                      if ((currentChartName !== undefined && currentChartName !== '' &&
-                        name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
+                      if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
                         scene.push(...item.templateType);
                         findChartNames.push(item.name);
                       }
                     }
                   } else {
-                    if ((currentChartName !== undefined && currentChartName !== '' &&
-                      name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
+                    if ((currentChartName !== undefined && name.toLowerCase().endsWith(currentChartName.toLowerCase()))) {
                       scene.push(...item.templateType);
                       findChartNames.push(item.name);
                     }

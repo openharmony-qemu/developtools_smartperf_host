@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,23 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, ITID, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD, SWITCH_COUNT };
+enum class Index : int32_t {
+    ID = 0,
+    ITID,
+    TYPE,
+    TID,
+    NAME,
+    START_TS,
+    END_TS,
+    INTERNAL_PID,
+    IS_MAIN_THREAD,
+    SWITCH_COUNT
+};
 ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
@@ -291,6 +303,10 @@ int32_t ThreadTable::Cursor::Column(int32_t col) const
         case Index::ID:
         case Index::ITID: {
             sqlite3_result_int64(context_, CurrentRow());
+            break;
+        }
+        case Index::TYPE: {
+            sqlite3_result_text(context_, "thread", strlen("thread"), nullptr);
             break;
         }
         case Index::TID: {

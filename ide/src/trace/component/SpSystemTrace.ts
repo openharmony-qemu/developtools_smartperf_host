@@ -120,7 +120,6 @@ import spSystemTraceOnClickHandler, {
   spSystemTraceDocumentOnMouseOut,
   spSystemTraceDocumentOnMouseUp,
 } from './SpSystemTrace.event';
-import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -205,7 +204,6 @@ export class SpSystemTrace extends BaseElement {
   expandRowList: Array<TraceRow<any>> = [];
   _slicesList: Array<SlicesTime> = [];
   _flagList: Array<any> = [];
-  static currentStartTime: number = 0;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -754,11 +752,6 @@ export class SpSystemTrace extends BaseElement {
         this.currentSlicesTime.startTime = JankStruct.selectJankStruct.ts;
         this.currentSlicesTime.endTime = JankStruct.selectJankStruct.ts + JankStruct.selectJankStruct.dur;
       }
-    } else if (SampleStruct.selectSampleStruct) {
-      if (SampleStruct.selectSampleStruct.begin && SampleStruct.selectSampleStruct.end) {
-        this.currentSlicesTime.startTime = SampleStruct.selectSampleStruct.begin - SampleStruct.selectSampleStruct.startTs!;
-        this.currentSlicesTime.endTime = SampleStruct.selectSampleStruct.end - SampleStruct.selectSampleStruct.startTs!;
-      }
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -775,7 +768,6 @@ export class SpSystemTrace extends BaseElement {
       JankStruct.selectJankStruct ||
       AppStartupStruct.selectStartupStruct ||
       SoStruct.selectSoStruct ||
-      SampleStruct.selectSampleStruct ||
       AllAppStartupStruct.selectStartupStruct ||
       FrameAnimationStruct.selectFrameAnimationStruct ||
       JsCpuProfilerStruct.selectJsCpuProfilerStruct;
@@ -786,16 +778,9 @@ export class SpSystemTrace extends BaseElement {
 
   private calculateSlicesTime(selectedStruct: any, shiftKey: boolean): void {
     if (selectedStruct) {
-      let startTs = 0;
-      if (selectedStruct.begin && selectedStruct.end) {
-        startTs = selectedStruct.begin - selectedStruct.startTs;
-        let end = selectedStruct.end - selectedStruct.startTs;
-        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, end, shiftKey);
-      } else {
-        startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || 0;
-        let dur = selectedStruct.dur || selectedStruct.totalTime || (selectedStruct.endNS - selectedStruct.startNS) || 0;
-        this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
-      }
+      const startTs = selectedStruct.startTs || selectedStruct.startTime || selectedStruct.startNS || 0;
+      const dur = selectedStruct.dur || selectedStruct.totalTime || selectedStruct.endNS || 0;
+      this.slicestime = this.timerShaftEL?.setSlicesMark(startTs, startTs + dur, shiftKey);
     } else {
       this.slicestime = this.timerShaftEL?.setSlicesMark();
     }
@@ -1022,7 +1007,6 @@ export class SpSystemTrace extends BaseElement {
     JsCpuProfilerStruct.hoverJsCpuProfilerStruct = undefined;
     SnapshotStruct.hoverSnapshotStruct = undefined;
     HiPerfCallChartStruct.hoverPerfCallCutStruct = undefined;
-    SampleStruct.hoverSampleStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1052,7 +1036,6 @@ export class SpSystemTrace extends BaseElement {
     AllAppStartupStruct.selectStartupStruct = undefined;
     LtpoStruct.selectLtpoStruct = undefined;
     HitchTimeStruct.selectHitchTimeStruct = undefined;
-    SampleStruct.selectSampleStruct = undefined;
     return this;
   }
 
@@ -1078,7 +1061,7 @@ export class SpSystemTrace extends BaseElement {
     this.timerShaftEL?.removeTriangle('inverted');
     //   如果鼠标在SportRuler区域不隐藏tab页
     if (!SportRuler.isMouseInSportRuler) {
-      this.traceSheetEL?.setMode('hidden');
+      this.traceSheetEL?.setAttribute('mode', 'hidden');
     }
     this.removeLinkLinesByBusinessType('task', 'thread');
     this.refreshCanvas(true);
@@ -1096,10 +1079,6 @@ export class SpSystemTrace extends BaseElement {
       TraceRow.ROW_TYPE_FUNC,
       (): boolean => FuncStruct.hoverFuncStruct !== null && FuncStruct.hoverFuncStruct !== undefined,
     ],
-    [ 
-      TraceRow.ROW_TYPE_SAMPLE, 
-      (): boolean => SampleStruct.hoverSampleStruct !== null && SampleStruct.hoverSampleStruct !== undefined
-    ],
     [
       TraceRow.ROW_TYPE_CPU_FREQ,
       (): boolean => CpuFreqStruct.hoverCpuFreqStruct !== null && CpuFreqStruct.hoverCpuFreqStruct !== undefined,
@@ -1111,8 +1090,8 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_CPU_FREQ_LIMIT,
       (): boolean =>
-        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct !== null &&
-        CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct !== undefined,
+        CpuFreqLimitsStruct.selectCpuFreqLimitsStruct !== null &&
+        CpuFreqLimitsStruct.selectCpuFreqLimitsStruct !== undefined,
     ],
     [
       TraceRow.ROW_TYPE_CLOCK,
@@ -1433,23 +1412,6 @@ export class SpSystemTrace extends BaseElement {
       });
     });
     window.subscribe(window.SmartEvent.UI.HoverNull, () => this.hoverStructNull());
-    this.subscribeBottomTabVisibleEvent();
-  }
-
-  private scrollH: number = 0;
-
-  subscribeBottomTabVisibleEvent(): void {
-    window.subscribe(window.SmartEvent.UI.ShowBottomTab, (data: { show: number, delta: number}) => {
-      if (data.show === 1) {
-        //显示底部tab
-        this.scrollH = this.rowsEL!.scrollHeight;
-      } else {
-        // 底部 tab 为 最小化 或者隐藏 时候
-        if (this.rowsEL!.scrollHeight > this.scrollH) {
-          this.rowsEL!.scrollTop = this.rowsEL!.scrollTop - data.delta;
-        }
-      }
-    });
   }
 
   favoriteAreaSearchHandler(row: TraceRow<any>): void {
@@ -1495,11 +1457,11 @@ export class SpSystemTrace extends BaseElement {
     if (rootRow && rootRow!.collect) {
       this.favoriteAreaSearchHandler(rootRow);
       rootRow.expandFunc();
-      if (!this.isInViewport(rootRow)) {
-        setTimeout(() => {
-          rootRow!.scrollIntoView({ behavior: "smooth"})
-        }, 500);
-      }
+      this.favoriteChartListEL!.scroll({
+        top: (rootRow?.offsetTop || 0) - this.favoriteChartListEL!.getCanvas()!.offsetHeight + (++depth * 20 || 0),
+        left: 0,
+        behavior: smooth ? 'smooth' : undefined,
+      });
     } else {
       let row = this.rowsEL!.querySelector<TraceRow<any>>(`trace-row[row-id='${rowParentId}'][folder]`);
       if (row && !row.expansion) {
@@ -1509,26 +1471,14 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc();
       }
       if (rootRow && rootRow.offsetTop >= 0 && rootRow.offsetHeight >= 0) {
-        if (!this.isInViewport(rootRow)) {
-          let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + rootRow.offsetHeight / 2 + (++depth * 20);
-          this.rowsPaneEL!.scrollTo({
-            top: top,
-            left: 0,
-            behavior: smooth ? 'smooth' : undefined,
-          });
-        }
+        let top = (rootRow?.offsetTop || 0) - this.canvasPanel!.offsetHeight + (++depth * 20 || 0);
+        this.rowsPaneEL!.scroll({
+          top: top,
+          left: 0,
+          behavior: smooth ? 'smooth' : undefined,
+        });
       }
     }
-  }
-
-  isInViewport(e: any) {
-    const rect = e.getBoundingClientRect();
-    return (
-      rect.top >=0 &&
-      rect.left >=0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    )
   }
 
   scrollToFunction(rowId: string, rowParentId: string, rowType: string, smooth: boolean = true) {
@@ -1598,7 +1548,7 @@ export class SpSystemTrace extends BaseElement {
     this.rangeSelect.rangeTraceRow = [];
     this.selectStructNull();
     this.wakeupListNull();
-    this.traceSheetEL?.setMode('hidden');
+    this.traceSheetEL?.setAttribute('mode', 'hidden');
     this.removeLinkLinesByBusinessType('janks');
     TraceRow.range!.refresh = true;
     this.refreshCanvas(false);
@@ -1636,28 +1586,6 @@ export class SpSystemTrace extends BaseElement {
         });
       }
     });
-  }
-
-  loadSample = async (ev: File) => {
-    this.observerScrollHeightEnable = false;
-    await this.initSample(ev);
-    this.rowsEL?.querySelectorAll('trace-row').forEach((it: any) => this.observer.observe(it));
-    window.publish(window.SmartEvent.UI.MouseEventEnable, {
-      mouseEnable: true,
-    });
-  }
-
-  initSample = async (ev: File) => {
-    this.rowsPaneEL!.scroll({
-      top: 0,
-      left: 0,
-    });
-    this.chartManager?.initSample(ev).then(() => {
-      this.loadTraceCompleted = true;
-      this.rowsEL!.querySelectorAll<TraceRow<any>>('trace-row').forEach((it) => {
-        this.intersectionObserver?.observe(it);
-      })
-    })
   }
 
   queryAllTraceRow<T>(selectors?: string, filter?: (row: TraceRow<any>) => boolean): TraceRow<any>[] {
@@ -1777,11 +1705,9 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-      setTimeout(() => {
-        this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
-      }, 0)
       FuncStruct.hoverFuncStruct = entry;
       FuncStruct.selectFuncStruct = entry;
+      this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
       this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
     }
   };
@@ -1844,21 +1770,6 @@ export class SpSystemTrace extends BaseElement {
         row.expansion = false;
       }
     });
-  }
-
-  moveRangeToLeft(startTime: number, dur: number) {
-    let startNS = this.timerShaftEL?.getRange()?.startNS || 0;
-    let endNS = this.timerShaftEL?.getRange()?.endNS || 0;
-    let harfDur = Math.trunc((endNS - startNS) - dur / 2);
-    let leftNs = startTime;
-    let rightNs = startTime + dur + harfDur;
-    if (startTime - harfDur < 0) {
-      leftNs = 0;
-      rightNs += harfDur - startTime;
-    }
-    this.timerShaftEL?.setRangeNS(leftNs, rightNs);
-    TraceRow.range!.refresh = true;
-    this.refreshCanvas(true);
   }
 
   moveRangeToCenter(startTime: number, dur: number) {
@@ -1930,7 +1841,7 @@ export class SpSystemTrace extends BaseElement {
     this.selectStructNull();
     this.hoverStructNull();
     this.wakeupListNull();
-    this.traceSheetEL?.setMode('hidden');
+    this.traceSheetEL?.setAttribute('mode', 'hidden');
     progress?.('rest timershaft', 8);
     this.timerShaftEL?.reset();
     progress?.('clear cache', 10);
@@ -1996,16 +1907,12 @@ export class SpSystemTrace extends BaseElement {
     }
     if (this.tipEL) {
       this.tipEL.innerHTML = html;
-      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART || row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
+      if (row.rowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER || row.rowType === TraceRow.ROW_TYPE_PERF_CALLCHART) {
         this.tipEL.style.maxWidth = row.clientWidth / 3 + 'px';
         this.tipEL.style.wordBreak = ' break-all';
         this.tipEL.style.height = 'unset';
         this.tipEL.style.display = 'block';
         y = y + struct.depth * 20;
-        if (row.rowType === TraceRow.ROW_TYPE_BINDER_COUNT) {
-          this.tipEL.style.height = '40px';
-          y = row.hoverY + row.getBoundingClientRect().top - this.getBoundingClientRect().top;
-        }
       } else {
         this.tipEL.style.display = 'flex';
         this.tipEL.style.height = row.style.height;

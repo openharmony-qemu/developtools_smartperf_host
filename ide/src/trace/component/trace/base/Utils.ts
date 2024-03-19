@@ -250,11 +250,11 @@ export class Utils {
     let gb1 = ((1 << 10) << 10) << 10; // 1 gb
     let res = '';
     if (currentByte > gb1) {
-      res += (currentByte / gb1).toFixed(2) + ' GB';
+      res += (currentByte / gb1).toFixed(2) + ' Gb';
     } else if (currentByte > mb1) {
-      res += (currentByte / mb1).toFixed(2) + ' MB';
+      res += (currentByte / mb1).toFixed(2) + ' Mb';
     } else if (currentByte > kb1) {
-      res += (currentByte / kb1).toFixed(2) + ' KB';
+      res += (currentByte / kb1).toFixed(2) + ' Kb';
     } else {
       res += Math.round(currentByte) + ' byte';
     }

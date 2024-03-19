@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,8 +25,7 @@ NativeHookFilter::NativeHookFilter(TraceDataCache* dataCache, const TraceStreame
       hookPluginData_(std::make_unique<ProfilerPluginData>()),
       ipidToSymIdToSymIndex_(INVALID_UINT64),
       ipidToFilePathIdToFileIndex_(INVALID_UINT64),
-      ipidToFrameIdToFrameBytes_(nullptr),
-      stackIdToFramesMapIdAndIdDown_(nullptr)
+      ipidToFrameIdToFrameBytes_(nullptr)
 {
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/libc++.so"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libc++.so"));
@@ -66,11 +65,7 @@ void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView& protoData)
     }
     return;
 }
-void NativeHookFilter::AppendStackMaps(
-    uint32_t ipid,
-    uint32_t stackid,
-    std::vector<uint64_t>& frames,
-    std::map<uint32_t, std::shared_ptr<std::multiset<uint64_t>>>& frameIdAndIdDownInfo)
+void NativeHookFilter::AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t>& frames)
 {
     uint64_t ipidWithStackIdIndex = 0;
     // the last element is ipid for this batch of frames/ips
@@ -86,13 +81,6 @@ void NativeHookFilter::AppendStackMaps(
     // allStackIdToFramesMap_ save all offline symbolic call stack
     if (isOfflineSymbolizationMode_) {
         allStackIdToFramesMap_.emplace(std::make_pair(ipidWithStackIdIndex, framesSharedPtr));
-        if (frameIdAndIdDownInfo.size()) {
-            for (auto frameIdAndIdItor = frameIdAndIdDownInfo.begin(); frameIdAndIdItor != frameIdAndIdDownInfo.end();
-                 frameIdAndIdItor++) {
-                stackIdToFramesMapIdAndIdDown_.Insert(ipidWithStackIdIndex, frameIdAndIdItor->first,
-                                                      std::move(frameIdAndIdItor->second));
-            }
-        }
     }
 }
 void NativeHookFilter::AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView& bytesView)
@@ -618,36 +606,6 @@ std::tuple<uint64_t, uint64_t> NativeHookFilter::GetNeedUpdateProcessMapsAddrRan
     return std::make_tuple(start, end);
 }
 
-// Offline Symbolization Analysis of Virtual Stacks
-void NativeHookFilter::ParseOfflineSymbolVirtualStacks(uint64_t curStackId,
-                                                       uint64_t curPid,
-                                                       uint16_t& depth,
-                                                       uint32_t frameMapIdLoc)
-{
-    if (isOfflineSymbolizationMode_ && !stackIdToFramesMapIdAndIdDown_.Empty()) {
-        // Only for offline symbolization of stackmap, containing frame_map_id and frame_map_id_down
-        auto frameMapId = stackIdToFramesMapIdAndIdDown_.Find(curStackId, frameMapIdLoc);
-        if (nullptr == frameMapId) {
-            TS_LOGE("Can not find frame_map_id or frame_map_id_down!!!");
-        } else {
-            for (auto frameIdsItor = frameMapId->begin(); frameIdsItor != frameMapId->end(); frameIdsItor++) {
-                auto frameBytesPtr = ipidToFrameIdToFrameBytes_.Find(curPid, *frameIdsItor);
-                if (frameBytesPtr == nullptr) {
-                    TS_LOGE("Can not find Frame by frame_map_id or frame_map_id_down!!!");
-                    continue;
-                }
-                ProtoReader::Frame_Reader reader(*frameBytesPtr);
-                if (!reader.has_symbol_name()) {
-                    TS_LOGE("Data exception, frames should has symbol_name_name!!!");
-                    continue;
-                }
-                auto symbolIndex = traceDataCache_->dataDict_.GetStringIndex(reader.symbol_name().ToStdString());
-                traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                    callChainId_, depth++, reader.ip(), symbolIndex, MAX_UINT64, MAX_UINT64, MAX_UINT64, "", 0);
-            }
-        }
-    }
-}
 void NativeHookFilter::FillOfflineSymbolizationFrames(
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
 {
@@ -658,7 +616,6 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
     if (isSingleProcData_) {
         curCacheIpid = SINGLE_PROC_IPID;
     }
-    ParseOfflineSymbolVirtualStacks(mapItor->first, curCacheIpid, depth, 0);
     uint64_t filePathIndex;
     for (auto itor = framesInfo->rbegin(); itor != framesInfo->rend(); itor++) {
         // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
@@ -671,7 +628,6 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
             frameInfo->symbolOffset_, vaddr);
         UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
     }
-    ParseOfflineSymbolVirtualStacks(mapItor->first, curCacheIpid, depth, 1);
 }
 
 void NativeHookFilter::ReparseStacksWithDifferentMeans()
@@ -864,37 +820,6 @@ void NativeHookFilter::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStam
     }
     lastAnyEventRaw = row;
 }
-
-void NativeHookFilter::UpdateSymbolIdsForCallChainIdLastCallStack(size_t index)
-{
-    auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[index];
-    uint32_t ipBitOperation = ip & IP_BIT_OPERATION;
-    std::ostringstream newSymbol;
-    newSymbol << "alloc size(" << base::number(ipBitOperation, base::INTEGER_RADIX_TYPE_DEC) << "bytes)"
-              << "0x" << base::number(ip, base::INTEGER_RADIX_TYPE_HEX);
-    traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
-        index, traceDataCache_->dataDict_.GetStringIndex(newSymbol.str()));
-}
-
-void NativeHookFilter::UpdateSymbolIdsForFilePathIndexFailedInvalid(size_t index)
-{
-    auto callChainId = traceDataCache_->GetNativeHookFrameData()->CallChainIds()[index];
-    auto size = traceDataCache_->GetNativeHookFrameData()->Size();
-    if (index < (size - 1)) {
-        auto nextcallChainId = traceDataCache_->GetNativeHookFrameData()->CallChainIds()[index + 1];
-        if (nextcallChainId != callChainId) {
-            UpdateSymbolIdsForCallChainIdLastCallStack(index);
-        } else {
-            auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[index];
-            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
-                index, traceDataCache_->dataDict_.GetStringIndex("unknown 0x" +
-                                                                 base::number(ip, base::INTEGER_RADIX_TYPE_HEX)));
-        }
-    } else {
-        UpdateSymbolIdsForCallChainIdLastCallStack(index);
-    }
-}
-
 // when symbolization failed, use filePath + vaddr as symbol name
 void NativeHookFilter::UpdateSymbolIdsForSymbolizationFailed()
 {
@@ -911,8 +836,10 @@ void NativeHookFilter::UpdateSymbolIdsForSymbolizationFailed()
             traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
                 i, traceDataCache_->dataDict_.GetStringIndex(filePathStr + "+" + vaddrStr));
         } else {
-            // when symbolization failed，filePath and symbolNameIndex invalid
-            UpdateSymbolIdsForFilePathIndexFailedInvalid(i);
+            auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[i];
+            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId(
+                i, traceDataCache_->dataDict_.GetStringIndex("unknown 0x" +
+                                                             base::number(ip, base::INTEGER_RADIX_TYPE_HEX)));
         }
     }
 }
@@ -998,7 +925,7 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
         }
     }
 }
-// Called When isCallStackCompressedMode_ is false
+// Called When isCallStackCompressedMode_ is false.
 void NativeHookFilter::ParseFramesWithOutCallStackCompressedMode()
 {
     for (auto itor = callChainIdToStackHashValueMap_.begin(); itor != callChainIdToStackHashValueMap_.end(); itor++) {
@@ -1082,7 +1009,6 @@ void NativeHookFilter::UpdateLastCallerPathAndSymbolIndexs()
 }
 void NativeHookFilter::GetCallIdToLastLibId()
 {
-    callIdToLastCallerPathIndex_.clear();
     auto size = static_cast<int64_t>(traceDataCache_->GetNativeHookFrameData()->Size());
     uint32_t lastCallChainId = INVALID_UINT32;
     bool foundLast = false;
@@ -1118,6 +1044,22 @@ void NativeHookFilter::GetCallIdToLastLibId()
             }
         }
     }
+}
+bool NativeHookFilter::GetIpsWitchNeedResymbolization(uint64_t ipid, DataIndex filePathId, std::set<uint64_t>& ips)
+{
+    bool value = false;
+    auto ipToFrameInfoPtr = ipidToIpToFrameInfo_.Find(ipid);
+    for (auto itor = ipToFrameInfoPtr->begin(); itor != ipToFrameInfoPtr->end(); itor++) {
+        if (!itor->second) {
+            TS_LOGI("ip :%" PRIu64 " can not symbolization! FrameInfo is nullptr", itor->first);
+            continue;
+        }
+        if (itor->second->filePathId_ == filePathId) {
+            ips.insert(itor->first);
+            value = true;
+        }
+    }
+    return value;
 }
 
 template <class T>
@@ -1159,7 +1101,6 @@ bool NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::uni
             }
         }
     }
-    UpdateLastCallerPathAndSymbolIndexs();
     return true;
 }
 void NativeHookFilter::UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex)

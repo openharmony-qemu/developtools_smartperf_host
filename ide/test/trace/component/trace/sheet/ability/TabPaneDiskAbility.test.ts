@@ -16,8 +16,8 @@ import { TabPaneDiskAbility } from '../../../../../../src/trace/component/trace/
 jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
-const abilitySqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
-jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -35,7 +35,7 @@ describe('TabPaneDiskAbility Test', () => {
       leftNs:0,
     }
   ];
-  let getTabDiskAbilityData = abilitySqlite.getTabDiskAbilityData;
+  let getTabDiskAbilityData = sqlite.getTabDiskAbilityData;
   let diskAbilityData = [
     {
       startTime: 0,

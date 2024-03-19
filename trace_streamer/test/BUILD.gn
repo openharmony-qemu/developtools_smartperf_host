@@ -1,4 +1,4 @@
-# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Copyright (C) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -117,6 +117,7 @@ if (is_test) {
       "../src/proto_reader",
       "../src/proto_reader/include",
       "../src/table/base/include",
+      "../prebuilts/emsdk/emsdk/emscripten/system/include",
       "..",
       "unittest/base",
       "${THIRD_PARTY}/googletest/googletest/include/gtest",

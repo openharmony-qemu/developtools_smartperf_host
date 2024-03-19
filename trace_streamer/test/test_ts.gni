@@ -1,4 +1,4 @@
-# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Copyright (C) 2021 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,7 +14,6 @@ OHOS_PROTO_DIR = ""
 kernel_version = "."
 THIRD_PARTY = "//third_party"
 PREBUILTS = "//prebuilts"
-TRACE_STDTYPE = "//src/trace_data/trace_stdtype"
 if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
   if (is_test) {
     enable_ts_utest = true

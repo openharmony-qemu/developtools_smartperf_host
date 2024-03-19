@@ -29,7 +29,7 @@ export const chartFuncDataSql = (args: any):string => {
     from (
       select c.ts - ${args.recordStartNS} as startTs,
              c.dur as dur,
-             case when (c.dur=-1 or c.dur is null ) then ${args.recordEndNS} else c.dur end                   as dur2,
+             case when (c.dur=-1 ) then ${args.recordEndNS} else c.dur end                   as dur2,
              c.argsetid,
              c.depth,
              c.id                         as id
@@ -65,7 +65,7 @@ export function funcDataReceiver(data: any, proc: Function):void {
     if (!threadCallStackList.has(key)) {
       let list = proc(chartFuncDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
-        if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined) {
+        if (list[i].dur == -1) {
           list[i].nofinish = 1;
           list[i].dur = data.params.endNS - list[i].startTs;
         } else {
@@ -80,7 +80,7 @@ export function funcDataReceiver(data: any, proc: Function):void {
       'depth',
       'startTs',
       'dur', data.params.startNS, data.params.endNS, data.params.width);
-      arrayBufferHandler(data, res, true,array.length === 0);
+      arrayBufferHandler(data, res, true,array.length===0);
   } else {
     let sql = chartFuncDataSql(data.params);
     let res = proc(sql);
@@ -94,7 +94,6 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean,isEmpty:boo
   let argsetid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.argsetid);
   let depth = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.depth);
   let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
-  let nofinish = new Uint8Array(transfer ? res.length : data.params.sharedArrayBuffers.nofinish);
   res.forEach((it, i) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.processFuncData);
     startTs[i] = it.startTs;
@@ -102,7 +101,6 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean,isEmpty:boo
     argsetid[i] = it.argsetid;
     depth[i] = it.depth;
     id[i] = it.id;
-    nofinish[i] = it.nofinish;
   });
   (self as unknown as Worker).postMessage(
     {
@@ -115,13 +113,12 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean,isEmpty:boo
             argsetid: argsetid.buffer,
             depth: depth.buffer,
             id: id.buffer,
-            nofinish: nofinish.buffer
           }
         : {},
       len: res.length,
       transfer: transfer,
       isEmpty:isEmpty,
     },
-    transfer ? [startTs.buffer, dur.buffer, argsetid.buffer, depth.buffer, id.buffer, nofinish.buffer] : []
+    transfer ? [startTs.buffer, dur.buffer, argsetid.buffer, depth.buffer, id.buffer] : []
   );
 }

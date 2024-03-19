@@ -19,7 +19,6 @@ import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTra
 
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import {TabUtil} from "../../../../../../src/trace/component/trace/sheet/sdk/TabUtil.js";
-jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -29,10 +28,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sdkSqlite = require('../../../../../../src/trace/database/sql/Sdk.sql');
-jest.mock('../../../../../../src/trace/database/sql/Sdk.sql');
-const sqlite = require('../../../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 
 describe('TabPaneSdkCounter Test', () => {
   document.body.innerHTML = `<lit-table id="tb-counter"></lit-table>`;
@@ -66,7 +63,7 @@ describe('TabPaneSdkCounter Test', () => {
     ];
     startTime.mockResolvedValue(dataTime);
 
-    let tabSdkCounterLeftData = sdkSqlite.getTabSdkCounterLeftData;
+    let tabSdkCounterLeftData = sqlite.getTabSdkCounterLeftData;
     let data = [
       {
         max_value: 1000,
@@ -80,7 +77,7 @@ describe('TabPaneSdkCounter Test', () => {
     ];
     tabSdkCounterLeftData.mockResolvedValue(data);
 
-    let tabSdkCounterData = sdkSqlite.getTabSdkCounterData;
+    let tabSdkCounterData = sqlite.getTabSdkCounterData;
     let counter = [
       {
         ts: 1000,

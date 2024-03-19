@@ -38,7 +38,7 @@ export class TabPanePurgPinComparisonAbility extends BaseElement {
   public totalData(purgePinComParam: SelectionParam | any, dataList: any): void {
     if (this.purgeablePinTable) {
       //@ts-ignore
-      this.purgeablePinTable.shadowRoot?.querySelector('.table').style.height = `${
+      this.purgeablePinTable.shadowRoot.querySelector('.table').style.height = `${
         this.parentElement!.clientHeight - 45
       }px`;
     }

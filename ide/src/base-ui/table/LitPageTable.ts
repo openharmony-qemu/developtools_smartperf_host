@@ -22,13 +22,12 @@ import {
   addCopyEventListener,
   addSelectAllBox,
   createDownUpSvg,
-  exportData,
-  fixed,
+  exportData, fixed,
   formatExportData,
   formatName,
   iconPadding,
   iconWidth,
-  litPageTableHtml,
+  litPageTableHtml
 } from './LitTableHtml';
 
 @element('lit-page-table')
@@ -200,6 +199,7 @@ export class LitPageTable extends BaseElement {
       this.tableElement!.scrollLeft = 0;
     } else {
       this.tableElement!.scrollTop = 0;
+      this.tableElement!.scrollLeft = 0;
     }
   }
 
@@ -321,9 +321,9 @@ export class LitPageTable extends BaseElement {
         rowElement.append(h);
       }
     });
-  }
+  };
 
-  resolvingAreaColumnOrder(column: any, index: number, key: string, head: any): void {
+  resolvingAreaColumnOrder(column: any, index: number, key: string,head: any): void {
     if (column.hasAttribute('order')) {
       (head as any).sortType = 0;
       head.classList.add('td-order');
@@ -389,13 +389,6 @@ export class LitPageTable extends BaseElement {
           this.gridTemplateColumns[i] = `${node.clientWidth}px`;
         }
         this.gridTemplateColumns[this.resizeColumnIndex - 1] = `${prePageWidth}px`;
-        let lastNode = header.childNodes.item(header.childNodes.length - 1) as HTMLDivElement;
-        let totalWidth = 0;
-        this.gridTemplateColumns.forEach((it) => {
-          totalWidth += parseInt(it);
-        });
-        totalWidth = Math.max(totalWidth, this.shadowRoot!.querySelector<HTMLDivElement>('.table')!.scrollWidth);
-        this.gridTemplateColumns[this.gridTemplateColumns.length - 1] = `${totalWidth - lastNode.offsetLeft - 1}px`;
         header.style.gridTemplateColumns = this.gridTemplateColumns.join(' ');
         let preNode = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
         preNode.style.width = `${prePageWidth}px`;
@@ -431,14 +424,12 @@ export class LitPageTable extends BaseElement {
       header.style.cursor = 'pointer';
     });
     element.addEventListener('mousedown', (event) => {
-      if (event.button === 0) {
-        this.resizeColumnIndex = index;
-        this.isResize = true;
-        this.resizeDownX = event.clientX;
-        let pre = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
-        this.beforeResizeWidth = pre.clientWidth;
-        event.stopPropagation();
-      }
+      this.resizeColumnIndex = index;
+      this.isResize = true;
+      this.resizeDownX = event.clientX;
+      let pre = header.childNodes.item(this.resizeColumnIndex - 1) as HTMLDivElement;
+      this.beforeResizeWidth = pre.clientWidth;
+      event.stopPropagation();
     });
     element.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -509,36 +500,36 @@ export class LitPageTable extends BaseElement {
 
   addOnScrollListener(visibleObjList: TableRowObject[]): void {
     this.tableElement &&
-      (this.tableElement.onscroll = (event) => {
-        let tblScrollTop = this.tableElement!.scrollTop;
-        let skip = 0;
-        for (let i = 0; i < visibleObjList.length; i++) {
-          if (
-            visibleObjList[i].top <= tblScrollTop &&
-            visibleObjList[i].top + visibleObjList[i].height >= tblScrollTop
-          ) {
-            skip = i;
-            break;
-          }
-        }
-        let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
-        if (reduce == 0) {
-          return;
-        }
-        while (
-          reduce <= this.tableElement!.clientHeight &&
-          this.currentRecycleList.length + skip < visibleObjList.length
+    (this.tableElement.onscroll = (event) => {
+      let tblScrollTop = this.tableElement!.scrollTop;
+      let skip = 0;
+      for (let i = 0; i < visibleObjList.length; i++) {
+        if (
+          visibleObjList[i].top <= tblScrollTop &&
+          visibleObjList[i].top + visibleObjList[i].height >= tblScrollTop
         ) {
-          let newTableElement = this.createNewTableElement(visibleObjList[skip]);
-          this.tbodyElement?.append(newTableElement);
-          this.currentRecycleList.push(newTableElement);
-          reduce += newTableElement.clientHeight;
+          skip = i;
+          break;
         }
-        this.startSkip = skip;
-        for (let i = 0; i < this.currentRecycleList.length; i++) {
-          this.freshCurrentLine(this.currentRecycleList[i], visibleObjList[i + skip]);
-        }
-      });
+      }
+      let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+      if (reduce == 0) {
+        return;
+      }
+      while (
+        reduce <= this.tableElement!.clientHeight &&
+        this.currentRecycleList.length + skip < visibleObjList.length
+        ) {
+        let newTableElement = this.createNewTableElement(visibleObjList[skip]);
+        this.tbodyElement?.append(newTableElement);
+        this.currentRecycleList.push(newTableElement);
+        reduce += newTableElement.clientHeight;
+      }
+      this.startSkip = skip;
+      for (let i = 0; i < this.currentRecycleList.length; i++) {
+        this.freshCurrentLine(this.currentRecycleList[i], visibleObjList[i + skip]);
+      }
+    });
   }
 
   measureReset(): void {
@@ -602,40 +593,40 @@ export class LitPageTable extends BaseElement {
 
   addTreeRowScrollListener(): void {
     this.tableElement &&
-      (this.tableElement.onscroll = (event) => {
-        let visibleObjs = this.recycleDs.filter((item) => {
-          return !item.rowHidden;
-        });
-        let top = this.tableElement!.scrollTop;
-        this.treeElement!.style.transform = `translateY(${top}px)`;
-        let skip = 0;
-        for (let index = 0; index < visibleObjs.length; index++) {
-          if (visibleObjs[index].top <= top && visibleObjs[index].top + visibleObjs[index].height >= top) {
-            skip = index;
-            break;
-          }
-        }
-        let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
-        if (reduce == 0) {
-          return;
-        }
-        while (reduce <= this.tableElement!.clientHeight) {
-          let newTableElement = this.createNewTreeTableElement(visibleObjs[skip]);
-          this.tbodyElement?.append(newTableElement);
-          if (this.treeElement?.lastChild) {
-            (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjs[skip].height + 'px';
-          }
-          this.currentRecycleList.push(newTableElement);
-          reduce += newTableElement.clientHeight;
-        }
-        for (let i = 0; i < this.currentRecycleList.length; i++) {
-          this.freshCurrentLine(
-            this.currentRecycleList[i],
-            visibleObjs[i + skip],
-            this.treeElement?.children[i] as HTMLElement
-          );
-        }
+    (this.tableElement.onscroll = (event) => {
+      let visibleObjs = this.recycleDs.filter((item) => {
+        return !item.rowHidden;
       });
+      let top = this.tableElement!.scrollTop;
+      this.treeElement!.style.transform = `translateY(${top}px)`;
+      let skip = 0;
+      for (let index = 0; index < visibleObjs.length; index++) {
+        if (visibleObjs[index].top <= top && visibleObjs[index].top + visibleObjs[index].height >= top) {
+          skip = index;
+          break;
+        }
+      }
+      let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+      if (reduce == 0) {
+        return;
+      }
+      while (reduce <= this.tableElement!.clientHeight) {
+        let newTableElement = this.createNewTreeTableElement(visibleObjs[skip]);
+        this.tbodyElement?.append(newTableElement);
+        if (this.treeElement?.lastChild) {
+          (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjs[skip].height + 'px';
+        }
+        this.currentRecycleList.push(newTableElement);
+        reduce += newTableElement.clientHeight;
+      }
+      for (let i = 0; i < this.currentRecycleList.length; i++) {
+        this.freshCurrentLine(
+          this.currentRecycleList[i],
+          visibleObjs[i + skip],
+          this.treeElement?.children[i] as HTMLElement
+        );
+      }
+    });
   }
 
   createNewTreeTableElement(rowData: TableRowObject): any {
@@ -889,7 +880,7 @@ export class LitPageTable extends BaseElement {
     if (reduce === 0) {
       return;
     }
-    while (reduce <= this.tableElement!.clientHeight + 1) {
+    while (reduce <= this.tableElement!.clientHeight) {
       let rowElement;
       if (this.hasAttribute('tree')) {
         rowElement = this.createNewTreeTableElement(visibleObjs[skip]);
@@ -926,7 +917,7 @@ export class LitPageTable extends BaseElement {
       let td: any;
       td = document.createElement('div');
       td.classList.add('td');
-      td.style.overflow = 'hidden';
+      td.style.overflow = 'scroll hidden';
       td.style.textOverflow = 'ellipsis';
       td.style.whiteSpace = 'nowrap';
       td.dataIndex = dataIndex;
@@ -956,7 +947,6 @@ export class LitPageTable extends BaseElement {
     rowElement.style.position = 'absolute';
     rowElement.style.top = '0px';
     rowElement.style.left = '0px';
-    rowElement.style.height = `${rowData.height}px`;
     if (this.getItemTextColor) {
       rowElement.style.color = this.getItemTextColor(rowData.data);
     }

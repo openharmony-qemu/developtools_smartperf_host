@@ -12,11 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 import { SpFpsChart } from '../../../../src/trace/component/chart/SpFpsChart';
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
-const sqlit = require('../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });

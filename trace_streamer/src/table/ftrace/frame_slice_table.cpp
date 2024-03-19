@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -163,7 +163,7 @@ int32_t FrameSliceTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.IdsData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
         case Index::TS:
             SetTypeColumnInt64(frameSliceObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);

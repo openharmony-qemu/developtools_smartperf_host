@@ -21,12 +21,9 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 import {
   CpuFreqLimitRender,
   CpuFreqLimitsStruct,
-} from '../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
-import { dataFilterHandler } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuFreqLimits';
+import { dataFilterHandler } from "../../../../src/trace/database/ui-worker/ProcedureWorkerCommon";
 
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
 describe('ProcedureWorkerCpuFreqLimits Test', () => {
   let cpuFreqLimits = {
     frame: {
@@ -136,7 +133,7 @@ describe('ProcedureWorkerCpuFreqLimits Test', () => {
       width: 100,
       height: 100,
     };
-    expect(dataFilterHandler(req, [{length: 0}], {
+    expect(dataFilterHandler(req, [{ length: 0 }], {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,

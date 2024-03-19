@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneGpuClickSelectComparison } from '../../../../../../src/trace/component/trace/sheet/gpu/TabPaneGpuClickSelectComparison';
-const sqlite = require('../../../../../../src/trace/database/sql/Gpu.sql');
-jest.mock('../../../../../../src/trace/database/sql/Gpu.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

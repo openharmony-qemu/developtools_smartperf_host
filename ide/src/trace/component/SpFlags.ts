@@ -258,16 +258,6 @@ export class FlagsConfig {
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Ffrt Convert templates',
     },
-    {
-      title: 'Bpftrace',
-      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
-      describeContent: '',
-    },
-    {
-      title: 'HMKernel',
-      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
-      describeContent: '',
-    },
   ];
 
   static getAllFlagConfig(): Array<FlagConfigItem> {

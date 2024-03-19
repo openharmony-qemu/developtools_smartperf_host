@@ -16,10 +16,14 @@
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
 import {
+  cpu,
   CpuStruct,
   CpuRender,
+  rtCpu,
   EmptyRender,
-} from '../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU';
+} from '../../../../src/trace/database/ui-worker/ProcedureWorkerCPU';
+import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
+import { drawWakeUp } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 
 jest.mock('../../../../src/trace/component/trace/timer-shaft/RangeRuler', () => {
   return {};
@@ -27,9 +31,7 @@ jest.mock('../../../../src/trace/component/trace/timer-shaft/RangeRuler', () => 
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe(' Test', () => {
   const dataSource = {
     frame: {
@@ -50,13 +52,13 @@ describe(' Test', () => {
 
     const data = {
       frame: {
-        x: 205,
-        y: 205,
-        width: 101,
-        height: 101,
+        x: 203,
+        y: 203,
+        width: 100,
+        height: 100,
       },
-      startNS: 201,
-      value: 51,
+      startNS: 200,
+      value: 50,
     };
     expect(CpuStruct.draw(ctx, data)).toBeUndefined();
   });
@@ -236,7 +238,56 @@ describe(' Test', () => {
     window.postMessage = jest.fn(() => true);
     expect(emptyRender.render(req, [], [])).toBeUndefined();
   });
+
   it('CPUTest11', function () {
+    let cpuRender = new CpuRender();
+    let cpuReq = {
+      lazyRefresh: true,
+      type: '1',
+      startNS: 1,
+      endNS: 4,
+      totalNS: 3,
+      frame: {
+        x: 334,
+        y: 442,
+        width: 230,
+        height: 330,
+      },
+      useCache: false,
+      range: {
+        refresh: '',
+      },
+      canvas: 'a',
+      context: {
+        font: '11px sans-serif',
+        fillStyle: '#221786',
+        globalAlpha: 0.6,
+        closePath: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        measureText: jest.fn(() => true),
+        clearRect: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+        fillRect: jest.fn(() => true),
+      },
+      lineColor: '#112d7d',
+      isHover: '',
+      hoverX: 1,
+      params: '',
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 1113,
+      id: 111,
+      x: 212,
+      y: 2230,
+      width: 156,
+      height: 600,
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(cpuRender.render(cpuReq, [], [])).toBeUndefined();
+  });
+  it('CPUTest12', function () {
     let emptyRender = new EmptyRender();
     let canvas = document.createElement('canvas') as HTMLCanvasElement;
     let context = canvas.getContext('2d');

@@ -185,21 +185,6 @@ export class FrameChart extends BaseElement {
 
       this.setParentDisplayInfo(node, module, true);
       this.setChildrenDisplayInfo(node);
-      this.clearOtherDisplayInfo(this.rootNode);
-    }
-  }
-
-  private clearOtherDisplayInfo(node: ChartStruct): void{
-    for(const children of node.children){
-      if (children.isChartSelect){
-        this.clearOtherDisplayInfo(children);
-        continue;
-      }
-      children.drawCount = 0;
-      children.drawEventCount = 0;
-      children.drawSize = 0;
-      children.drawDur = 0;
-      this.clearOtherDisplayInfo(children);
     }
   }
 

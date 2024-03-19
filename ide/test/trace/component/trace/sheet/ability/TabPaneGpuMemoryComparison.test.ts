@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneGpuMemoryComparison } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneGpuMemoryComparison';
-const abilitySqlite = require('../../../../../../src/trace/database/sql/Ability.sql');
-jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
     return {};
 });
@@ -39,7 +39,7 @@ jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
 
 describe('TabPaneGpuMemoryComparison Test', () => {
     let tabPaneGpuMemoryComparison = new TabPaneGpuMemoryComparison();
-    let getTabGpuMemoryComparisonData = abilitySqlite.getTabGpuMemoryComparisonData;
+    let getTabGpuMemoryComparisonData = sqlite.getTabGpuMemoryComparisonData;
     let gpuMemoryComparisonData = [
         {
             startNs: 0,

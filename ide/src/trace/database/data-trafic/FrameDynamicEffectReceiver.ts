@@ -46,7 +46,7 @@ export const chartFrameAnimationDataProtoSql = (args: any): string => {
           animation AS a;`;
 };
 
-export const chartFrameDynamicDataMemSql = (args: any): string => {
+export const chartFrameDynamicDataProtoSql = (args: any): string => {
   return `
         SELECT
            dy.id,
@@ -56,14 +56,15 @@ export const chartFrameDynamicDataMemSql = (args: any): string => {
            dy.height,
            dy.alpha,
            (dy.end_time - ${args.recordStartNS}) AS ts,
-           dy.name as appName
+           dy.name as appName,
+           ((dy.end_time - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
         FROM 
             dynamic_frame AS dy
         WHERE ts >= ${Math.floor(args.startNS)}
           and ts <= ${Math.floor(args.endNS)}`;
 };
 
-export const chartFrameSpacingDataMemSql = (args: any): string => {
+export const chartFrameSpacingDataProtoSql = (args: any): string => {
   return `
       SELECT
           d.id,
@@ -72,11 +73,13 @@ export const chartFrameSpacingDataMemSql = (args: any): string => {
           d.width AS currentFrameWidth,
           d.height AS currentFrameHeight,
           (d.end_time - ${args.recordStartNS}) AS currentTs,
-          d.name AS nameId
+          d.name AS nameId,
+          ((d.end_time - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) AS px
       FROM
           dynamic_frame AS d
       WHERE currentTs >= ${Math.floor(args.startNS)}
-          and currentTs <= ${Math.floor(args.endNS)};`;
+          and currentTs <= ${Math.floor(args.endNS)}
+      group by px;`;
 };
 
 export function frameAnimationReceiver(data: any, proc: Function): void {
@@ -172,26 +175,18 @@ class FrameAnimation {
   }
 }
 
-let frameSpacingList: Array<any> = [];
-let frameDynamic: Array<any> = [];
-export function resetDynamicEffect(): void {
-  frameSpacingList = [];
-  frameDynamic = [];
-}
 export function frameDynamicReceiver(data: any, proc: Function): void {
-  if (frameDynamic.length === 0) {
-    frameDynamic = proc(chartFrameDynamicDataMemSql(data.params));
-  }
+  let res = proc(chartFrameDynamicDataProtoSql(data.params));
   let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer;
-  let id = new Uint16Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.id);
-  let x = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.x);
-  let y = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.y);
-  let width = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.width);
-  let height = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.height);
-  let alpha = new Float32Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.alpha);
-  let ts = new Float64Array(transfer ? frameDynamic.length : data.params.sharedArrayBuffers.ts);
-  for (let index: number = 0; index < frameDynamic.length; index++) {
-    let itemData = frameDynamic[index];
+  let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
+  let x = new Float32Array(transfer ? res.length : data.params.sharedArrayBuffers.x);
+  let y = new Float32Array(transfer ? res.length : data.params.sharedArrayBuffers.y);
+  let width = new Float32Array(transfer ? res.length : data.params.sharedArrayBuffers.width);
+  let height = new Float32Array(transfer ? res.length : data.params.sharedArrayBuffers.height);
+  let alpha = new Float32Array(transfer ? res.length : data.params.sharedArrayBuffers.alpha);
+  let ts = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.ts);
+  for (let index: number = 0; index < res.length; index++) {
+    let itemData = res[index];
     data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameDynamicData);
     id[index] = itemData.id;
     x[index] = Number(itemData.x);
@@ -216,21 +211,20 @@ export function frameDynamicReceiver(data: any, proc: Function): void {
             ts: ts.buffer,
           }
         : {},
-      len: frameDynamic.length,
+      len: res.length,
       transfer: transfer,
     },
     transfer ? [id.buffer, x.buffer, y.buffer, width.buffer, height.buffer, alpha.buffer, ts.buffer] : []
   );
 }
+
 export function frameSpacingReceiver(data: any, proc: Function): void {
-  if (frameSpacingList.length === 0) {
-    frameSpacingList = proc(chartFrameSpacingDataMemSql(data.params));
-  }
+  let res = proc(chartFrameSpacingDataProtoSql(data.params));
   let transfer = data.params.trafic !== TraficEnum.SharedArrayBuffer;
-  let frameSpacing = new FrameSpacing(data, frameSpacingList, transfer);
+  let frameSpacing = new FrameSpacing(data, res.length, transfer);
   let nameDataMap: Map<string, Array<FrameSpacingStruct>> = new Map();
-  for (let index: number = 0; index < frameSpacingList.length; index++) {
-    let itemData = frameSpacingList[index];
+  for (let index: number = 0; index < res.length; index++) {
+    let itemData = res[index];
     data.params.trafic === TraficEnum.ProtoBuffer && (itemData = itemData.frameSpacingData);
     if (nameDataMap.has(itemData.nameId)) {
       setSpacingStructs(nameDataMap, itemData, data);
@@ -250,7 +244,7 @@ export function frameSpacingReceiver(data: any, proc: Function): void {
     frameSpacing.preX[index] = Number(itemData.preX);
     frameSpacing.preY[index] = Number(itemData.preY);
   }
-  postFrameSpacingMessage(data, transfer, frameSpacing, frameSpacingList.length);
+  postFrameSpacingMessage(data, transfer, frameSpacing, res.length);
 }
 function postFrameSpacingMessage(data: any, transfer: boolean, frameSpacing: FrameSpacing, len: number) {
   (self as unknown as Worker).postMessage(

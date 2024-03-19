@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
+jest.mock('../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+
 import { FpsStruct } from '../../../src/trace/bean/FpsStruct';
 
-jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {
-});
 jest.mock('../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });

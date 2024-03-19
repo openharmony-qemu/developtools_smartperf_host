@@ -23,9 +23,7 @@ import {
   NetworkAbilityMonitorStruct,
   NetworkAbilityRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerNetworkAbility';
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerNetworkAbility Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 1;

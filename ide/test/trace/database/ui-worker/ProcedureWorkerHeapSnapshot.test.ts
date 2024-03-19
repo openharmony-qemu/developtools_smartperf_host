@@ -23,9 +23,7 @@ import {
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
-  return {};
-});
+
 describe('ProcedureWorkerHeapTimeline Test', () => {
   it('HeapSnapshotTest', () => {
     const canvas = document.createElement('canvas');
@@ -35,34 +33,34 @@ describe('ProcedureWorkerHeapTimeline Test', () => {
     let dataList = new Array();
     dataList.push({
       startTime: 0,
-      frame: { x: 0, y: 9, width: 10, height: 10 },
       dur: 10,
+      frame: { x: 0, y: 9, width: 10, height: 10 },
     });
     dataList.push({ startTime: 1, dur: 111 });
     let rect = new Rect(0, 10, 10, 10);
     let filter = [
       {
-        frame: { x: 0, y: 0, width: 25, height: 40 },
         end_time: 50,
         end_ts: 1520000,
         file_name: 'Snapshot0',
-        start_ts: 88473061693464,
-        start_time: 0,
+        frame: { x: 0, y: 0, width: 25, height: 40 },
         id: 0,
         pid: 4243,
+        start_time: 0,
+        start_ts: 88473061693464,
         textMetricsWidth: 50.5810546875,
       },
     ];
     let list = [
       {
-        file_name: 'Snapshot0',
-        frame: { x: 0, y: 0, width: 6222, height: 62222 },
+        end_time: 50,
+        end_ts: 1520000,
         pid: 4243,
         start_time: 0,
         start_ts: 88473061693464,
         textMetricsWidth: 50.5810546875,
-        end_time: 50,
-        end_ts: 1520000,
+        file_name: 'Snapshot0',
+        frame: { x: 0, y: 0, width: 6222, height: 62222 },
         id: 0,
       },
     ];

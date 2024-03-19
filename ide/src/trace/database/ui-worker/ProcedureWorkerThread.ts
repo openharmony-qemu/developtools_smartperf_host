@@ -46,7 +46,7 @@ export class ThreadRender extends Render {
       endNS: TraceRow.range?.endNS ?? 0,
       totalNS: TraceRow.range?.totalNS ?? 0,
       frame: row.frame,
-      paddingTop: 3,
+      paddingTop: 5,
       useCache: threadReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
     drawLoadingFrame(threadReq.context, threadFilter, row);
@@ -64,6 +64,7 @@ export class ThreadRender extends Render {
   render(threadReq: RequestMessage, threadList: Array<any>, threadFilter: Array<any>) {}
 }
 
+const padding = 3;
 export function ThreadStructOnClick(clickRowType:string,sp:SpSystemTrace,threadClickHandler:any,cpuClickHandler:any){
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_THREAD && ThreadStruct.hoverThreadStruct) {
@@ -72,7 +73,7 @@ export function ThreadStructOnClick(clickRowType:string,sp:SpSystemTrace,threadC
       sp.timerShaftEL?.drawTriangle(ThreadStruct.selectThreadStruct!.startTime || 0, 'inverted');
       sp.traceSheetEL?.displayThreadData(ThreadStruct.selectThreadStruct, threadClickHandler, cpuClickHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject(new Error());
+      reject();
     }else{
       resolve(null);
     }
@@ -87,50 +88,37 @@ export class ThreadStruct extends BaseThreadStruct {
   static hoverThreadStruct: ThreadStruct | undefined;
   static selectThreadStruct: ThreadStruct | undefined;
   static selectThreadStructList: Array<ThreadStruct> = new Array<ThreadStruct>();
-  static firstselectThreadStruct: ThreadStruct | undefined;  
   argSetID: number | undefined;
   translateY: number | undefined;
   textMetricsWidth: number | undefined;
-  static startCycleTime: number = 0;
-  static endTime: number = 0;
 
   static drawThread(threadContext: CanvasRenderingContext2D, data: ThreadStruct) {
     if (data.frame) {
-      if (data.name === 'all-state') {
-        threadContext.globalAlpha = 0.8;
-      } else {
-        threadContext.globalAlpha = 1;
-      };
-      if (!ThreadStruct.selectThreadStruct && data.start_ts! + data.dur! > ThreadStruct.startCycleTime && data.start_ts! + data.dur! < ThreadStruct.endTime) {
-        threadContext.globalAlpha = 1;
-      };
-      let stateText = ThreadStruct.getEndState(data.state === 'S' && data.name === 'Sleeping' ? data.name : data.state || '');
-      if (data.name === 'all-state' && data.state === 'S') {
-        stateText = 'Sleeping';
-      };
-      threadContext.fillStyle = Utils.getStateColor(data.state === 'S' && data.name === 'all-state' ? 'Sleeping' : data.state || '');
-      if ('S' === data.state && data.name !== 'all-state') {
+      threadContext.globalAlpha = 1;
+      let stateText = ThreadStruct.getEndState(data.state || '');
+      threadContext.fillStyle = Utils.getStateColor(data.state || '');
+      if ('S' === data.state) {
         threadContext.globalAlpha = 0.2;
-      };
-      threadContext.fillRect(data.frame.x, data.frame.y, data.frame.width, data.frame.height);
+      }
+      threadContext.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2);
       threadContext.fillStyle = '#fff';
       threadContext.textBaseline = 'middle';
       threadContext.font = '8px sans-serif';
-      if ('S' !== data.state || (data.name === 'all-state' && data.state === 'S')) {
+      if ('S' !== data.state) {
         data.frame.width > 7 && drawString(threadContext, stateText, 2, data.frame, data);
-      };
+      }
       if (
         ThreadStruct.selectThreadStruct &&
         ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) &&
-        (ThreadStruct.selectThreadStruct.state !== 'S'|| data.name === 'all-state')
+        ThreadStruct.selectThreadStruct.state != 'S'
       ) {
         threadContext.strokeStyle = '#232c5d';
         threadContext.lineWidth = 2;
         threadContext.strokeRect(
           data.frame.x,
-          data.frame.y,
+          data.frame.y + padding,
           data.frame.width - 2,
-          data.frame.height
+          data.frame.height - padding * 2
         );
       }
     }

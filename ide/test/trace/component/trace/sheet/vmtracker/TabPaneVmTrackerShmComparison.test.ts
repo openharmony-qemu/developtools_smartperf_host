@@ -14,8 +14,8 @@
  */
 import { TabPaneVmTrackerShmComparison } from '../../../../../../src/trace/component/trace/sheet/vmtracker/TabPaneVmTrackerShmComparison';
 
-const sqlite = require('../../../../../../src/trace/database/sql/Memory.sql');
-jest.mock('../../../../../../src/trace/database/sql/Memory.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

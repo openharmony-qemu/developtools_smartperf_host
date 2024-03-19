@@ -65,19 +65,19 @@ describe('Utils Test', () => {
   });
 
   it('Utils Test11', () => {
-    expect(Utils.getByteWithUnit(2_000_000_000)).toBe('1.86 GB');
+    expect(Utils.getByteWithUnit(2_000_000_000)).toBe('1.86 Gb');
   });
 
   it('Utils Test12', () => {
-    expect(Utils.getByteWithUnit(1_000_000_000)).toBe('953.67 MB');
+    expect(Utils.getByteWithUnit(1_000_000_000)).toBe('953.67 Mb');
   });
 
   it('Utils Test13', () => {
-    expect(Utils.getByteWithUnit(1000_000)).toBe('976.56 KB');
+    expect(Utils.getByteWithUnit(1000_000)).toBe('976.56 Kb');
   });
 
   it('Utils Test23', () => {
-    expect(Utils.getByteWithUnit(-2_000)).toBe('-1.95 KB');
+    expect(Utils.getByteWithUnit(-2_000)).toBe('-1.95 Kb');
   });
 
   it('Utils Test14', () => {

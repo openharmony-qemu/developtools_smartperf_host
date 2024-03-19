@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPanePurgPinComparisonVM } from '../../../../../../src/trace/component/trace/sheet/vmtracker/TabPanePurgPinComparisonVM';
-const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlite = require('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

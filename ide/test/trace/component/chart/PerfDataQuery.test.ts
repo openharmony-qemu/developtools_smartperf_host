@@ -15,9 +15,6 @@
 
 import { perfDataQuery } from '../../../../src/trace/component/chart/PerfDataQuery';
 
-jest.mock('../../../../src/trace/component/chart/SpHiPerf', () => {
-  return true;
-});
 jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
   return {}
 });

@@ -18,6 +18,9 @@ import { JanksStruct } from '../../bean/JanksStruct';
 
 export function frameJanksSender(queryEnum: number, row: TraceRow<JanksStruct>): Promise<JanksStruct[]> {
   let transferJankDataType: number = TraficEnum.Memory;
+  if (row.isComplete) {
+    transferJankDataType = TraficEnum.ProtoBuffer;
+  }
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if ((transferJankDataType === TraficEnum.SharedArrayBuffer) && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {

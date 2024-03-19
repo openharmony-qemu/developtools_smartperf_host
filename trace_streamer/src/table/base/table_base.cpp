@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,6 @@
 #include "table_base.h"
 
 #include <cctype>
-#include <cmath>
 #include <cstring>
 
 #include "log.h"
@@ -240,24 +239,6 @@ bool TableBase::CanFilterId(const char op, size_t& rowCount)
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
             // assume filter out a half of rows
-            rowCount = (rowCount >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
-bool TableBase::CanFilterSorted(const char op, size_t& rowCount)
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
             rowCount = (rowCount >> 1);
             break;
         default:

@@ -12,17 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
 import { SpEBPFChart } from '../../../../src/trace/component/chart/SpEBPFChart';
-jest.mock('../../../../src/js-heap/model/DatabaseStruct');
-const sqlit = require('../../../../src/trace/database/sql/Memory.sql');
-jest.mock('../../../../src/trace/database/sql/Memory.sql');
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+const sqlit = require('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/trace/database/SqlLite');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
-jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -40,14 +39,7 @@ describe('SpFileSystemChart Test', () => {
       ioCount: 2,
     },
   ]);
-  let getDiskIOProcess = sqlite.getDiskIOProcess;
-  getDiskIOProcess.mockResolvedValue([
-    {
-      name: 'kworker/u8:4',
-      ipid: 2,
-      pid: 186,
-    }
-  ]);
+
   let ss = new SpChartManager();
   let spEBPFChart = new SpEBPFChart(ss);
   spEBPFChart.initFileCallchain = jest.fn(() => true);

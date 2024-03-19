@@ -1,10 +1,10 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,7 +74,6 @@ public:
     {
         deq.erase(deq.begin(), deq.begin() + readySize_);
         EraseElements(args...);
-        diskTableSize_ += readySize_;
         readySize_ = 0;
     }
     template <typename T1>
@@ -85,7 +84,6 @@ public:
 
 public:
     size_t readySize_ = 0;
-    size_t diskTableSize_ = 0;
 };
 } // namespace TraceStdtype
 } // namespace SysTuning

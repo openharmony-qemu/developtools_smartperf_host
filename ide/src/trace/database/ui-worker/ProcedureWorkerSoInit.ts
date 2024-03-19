@@ -15,15 +15,7 @@
 
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import {
-  BaseStruct,
-  isFrameContainPoint,
-  ns2x,
-  Render,
-  RequestMessage,
-  drawString,
-  drawLoadingFrame
-} from './ProcedureWorkerCommon';
+import { BaseStruct, isFrameContainPoint, ns2x, Render, RequestMessage, drawString } from './ProcedureWorkerCommon';
 import {SpSystemTrace} from "../../component/SpSystemTrace";
 
 export class SoRender extends Render {
@@ -46,7 +38,6 @@ export class SoRender extends Render {
       row.frame,
       req.useCache || !TraceRow.range!.refresh
     );
-    drawLoadingFrame(req.context, row.dataListCache, row);
     req.context.beginPath();
     let soFind = false;
     for (let so of soFilter) {
@@ -123,7 +114,7 @@ export function SoStructOnClick(clickRowType: string, sp: SpSystemTrace, scrollT
       SoStruct.selectSoStruct = SoStruct.hoverSoStruct;
       sp.traceSheetEL?.displayStaticInitData(SoStruct.selectSoStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject(new Error());
+      reject();
     }else{
       resolve(null);
     }
