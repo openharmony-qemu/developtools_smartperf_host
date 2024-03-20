@@ -461,7 +461,6 @@ export const queryStatesCut = (
     B.id,
     B.pid,
     B.tid,
-    B.type,
     B.dur,
     B.cpu,
     B.state,

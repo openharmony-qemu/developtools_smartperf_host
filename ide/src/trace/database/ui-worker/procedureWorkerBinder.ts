@@ -16,7 +16,10 @@
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { BaseStruct, dataFilterHandler, isFrameContainPoint, Render, RequestMessage } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { drawString, Rect } from './ProcedureWorkerCommon';
+import { drawString, Rect, ns2x } from './ProcedureWorkerCommon';
+import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
+import { Flag } from '../../component/trace/timer-shaft/Flag';
+import { CpuFreqExtendStruct } from './ProcedureWorkerFreqExtend';
 export class BinderRender extends Render {
   renderMainThread(
     freqReq: {
@@ -39,7 +42,7 @@ export class BinderRender extends Render {
       useCache: freqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
     freqReq.context.beginPath();
-    for (let re of binderFilter) {
+    for (let re of binderList) {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         BinderStruct.hoverCpuFreqStruct = re;
       }
@@ -49,6 +52,18 @@ export class BinderRender extends Render {
       BinderStruct.draw(freqReq.context, re);
     }
     freqReq.context.closePath();
+    if (!BinderStruct.isTabHover && 
+      !BinderStruct.hoverCpuFreqStruct && 
+      !BinderStruct.selectCpuFreqStruct && 
+      !CpuFreqExtendStruct.isTabHover && 
+      !CpuFreqExtendStruct.hoverCpuFreqStruct && 
+      !CpuFreqExtendStruct.selectCpuFreqStruct) {
+      SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
+    }
+    if (!SpSegmentationChart.trace.isMousePointInSheet) {
+      BinderStruct.hoverCycle = -1;
+      BinderStruct.isTabHover = false;
+    }
   }
 }
 export class BinderStruct extends BaseStruct {
@@ -56,9 +71,10 @@ export class BinderStruct extends BaseStruct {
   static selectCpuFreqStruct: BinderStruct | undefined;
   static maxHeight: number = 0;
   static hoverCycle: number = -1;
+  static isTabHover: boolean = false;
   value: number = 0;
   cycle: number = 0;
-  startNS: number | undefined;
+  startNS: number = 0;
   dur: number | undefined; //自补充，数据库没有返回
   name: string | undefined;
   depth: number = 0;
@@ -83,14 +99,34 @@ export class BinderStruct extends BaseStruct {
         data === BinderStruct.selectCpuFreqStruct ||
         data.cycle === BinderStruct.hoverCycle
       ) {
-        freqContext.globalAlpha = 1;
-        freqContext.lineWidth = 1;
-        freqContext.fillRect(
-          data.frame.x,
-          BinderStruct.maxHeight * 20 - data.depth * 20 + 20,
-          data.frame.width,
-          data.value * 20
+        let pointX: number = ns2x(
+          data.startNS || 0,
+          TraceRow.range!.startNS,
+          TraceRow.range!.endNS,
+          TraceRow.range!.totalNS,
+          new Rect(0, 0, TraceRow.FRAME_WIDTH, 0)
         );
+        if (BinderStruct.isTabHover || data === BinderStruct.hoverCpuFreqStruct) {
+          SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = new Flag(
+            Math.floor(pointX),
+            0,
+            0,
+            0,
+            data.startNS,
+            '#999999',
+            '',
+            true,
+            ''
+          );
+          freqContext.globalAlpha = 1;
+          freqContext.lineWidth = 1;
+          freqContext.fillRect(
+            data.frame.x,
+            BinderStruct.maxHeight * 20 - data.depth * 20 + 20,
+            data.frame.width,
+            data.value * 20
+          );
+        }
       } else {
         freqContext.globalAlpha = 0.6;
         freqContext.lineWidth = 1;

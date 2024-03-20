@@ -537,6 +537,9 @@ export class RangeRuler extends Graph {
       this.pressedKeys.length == 0 ||
       this.pressedKeys[this.pressedKeys.length - 1] !== keyboardEvent.key.toLocaleLowerCase()
     ) {
+      this.pressedKeys = this.pressedKeys.filter(v => {
+        return v !== keyboardEvent.key.toLocaleLowerCase();
+      })
       this.setCacheInterval();
       this.range.refresh = this.cacheInterval.flag;
       if (currentSlicesTime) {

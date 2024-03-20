@@ -138,6 +138,7 @@ type SlicesTimeAlias = SlicesTime | undefined | null;
 @element('sp-system-trace')
 export class SpSystemTrace extends BaseElement {
   mouseCurrentPosition = 0;
+  static isKeyUp: boolean = true;
   offsetMouse = 0;
   static isMouseLeftDown = false;
   static scrollViewWidth = 0;
