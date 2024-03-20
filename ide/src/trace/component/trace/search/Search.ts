@@ -307,6 +307,7 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
+        e.target.blur();
       }
       e.stopPropagation();
     });
