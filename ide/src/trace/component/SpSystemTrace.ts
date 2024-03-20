@@ -797,9 +797,9 @@ export class SpSystemTrace extends BaseElement {
     const selectedStruct: any =
       CpuStruct.selectCpuStruct ||
       ThreadStruct.selectThreadStruct ||
+      TraceRow.rangeSelectObject ||
       FuncStruct.selectFuncStruct ||
       IrqStruct.selectIrqStruct ||
-      TraceRow.rangeSelectObject ||
       JankStruct.selectJankStruct ||
       AppStartupStruct.selectStartupStruct ||
       SoStruct.selectSoStruct ||
@@ -1798,12 +1798,15 @@ export class SpSystemTrace extends BaseElement {
       this.hoverStructNull();
       this.selectStructNull();
       this.wakeupListNull();
-      setTimeout(() => {
-        FuncStruct.hoverFuncStruct = entry;
-        FuncStruct.selectFuncStruct = entry;
+      FuncStruct.hoverFuncStruct = entry;
+      FuncStruct.selectFuncStruct = entry;
+      // 鼠标左键点击不需要触发点击事件
+      if (FuncStruct.funcSelect) {
         this.onClickHandler(TraceRow.ROW_TYPE_FUNC);
-        this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
-      }, 0);
+      }
+      this.scrollToDepth(`${funcRowID}`, `${funcStract.pid}`, 'func', true, entry.depth || 0);
+      // 执行完成后将其置为默认的true值
+      FuncStruct.funcSelect = true;
     }
   };
 

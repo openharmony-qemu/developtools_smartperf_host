@@ -23,6 +23,7 @@ import { LitSearch } from '../../search/Search';
 import { resizeObserver } from '../SheetUtils';
 import { getTabSlicesAsyncFunc } from '../../../../database/sql/Func.sql';
 import { getTabSlices } from '../../../../database/sql/ProcessThread.sql';
+import { FuncStruct } from '.././../../../database/ui-worker/ProcedureWorkerFunc';
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {
@@ -30,7 +31,6 @@ export class TabPaneSlices extends BaseElement {
   private slicesRange: HTMLLabelElement | null | undefined;
   private slicesSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
-  private flag: boolean = false;
 
   set data(slicesParam: SelectionParam | any) {
     if (this.currentSelectionParam === slicesParam) {
@@ -85,53 +85,62 @@ export class TabPaneSlices extends BaseElement {
       this.sortByColumn(evt.detail);
     });
     // @ts-ignore
-    let testData;
-    this.slicesTbl!.addEventListener('contextmenu', async (evt) => {
-      let spApplication = document.querySelector('body > sp-application') as SpAllocations;
-      let spSystemTrace = spApplication?.shadowRoot?.querySelector(
-        'div > div.content > sp-system-trace'
-      ) as SpSystemTrace;
-      let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
-      spSystemTrace?.visibleRows.forEach((it) => {
-        it.highlight = false;
-        it.draw();
-      });
-      spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+    let data;
+    this.slicesTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
-      await spSystemTrace!.searchFunction([], testData.name).then((mixedResults) => {
-        if (mixedResults && mixedResults.length === 0) {
-          return;
-        }
-        // @ts-ignore
-        search.list = mixedResults.filter((item) => item.funName === testData.name);
-        const sliceRowList: Array<TraceRow<any>> = [];
-        // 框选的slice泳道
-        for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
-          if (row.rowType === 'func') {
-            sliceRowList.push(row);
-          }
-          if (row.childrenList) {
-            for (const childrenRow of row.childrenList) {
-              if (childrenRow.rowType === 'func') {
-                sliceRowList.push(childrenRow);
-              }
-            }
-          }
-        }
-        if (sliceRowList.length === 0) {
-          return;
-        }
-        // @ts-ignore
-        this.slicesTblFreshSearchSelect(search, sliceRowList, testData, spSystemTrace);
-      });
+      data = evt.detail.data;  
     });
-    this.slicesTbl!.addEventListener('row-click', async (evt) => {
+    this.slicesTbl!.addEventListener('click', () => {
+      FuncStruct.funcSelect = false;
       // @ts-ignore
-      testData = evt.detail.data;  
+      this.orgnazitionData(data);
+    });
+    this.slicesTbl!.addEventListener('contextmenu', () => {
+      FuncStruct.funcSelect = true;
+      // @ts-ignore
+      this.orgnazitionData(data);
     });
     this.shadowRoot?.querySelector('#filterName')?.addEventListener('input', (e) => {
       // @ts-ignore
       this.findName(e.target.value);
+    });
+  }
+  async orgnazitionData(data: Object): Promise<void> {
+    let spApplication = document.querySelector('body > sp-application') as SpAllocations;
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
+    let search = spApplication.shadowRoot?.querySelector('#lit-search') as LitSearch;
+    spSystemTrace?.visibleRows.forEach((it) => {
+      it.highlight = false;
+      it.draw();
+    });
+    spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
+    // @ts-ignore
+    await spSystemTrace!.searchFunction([], data.name).then((mixedResults) => {
+      if (mixedResults && mixedResults.length === 0) {
+        return;
+      }
+      // @ts-ignore
+      search.list = mixedResults.filter((item) => item.funName === data.name);
+      const sliceRowList: Array<TraceRow<any>> = [];
+      // 框选的slice泳道
+      for (let row of spSystemTrace.rangeSelect.rangeTraceRow!) {
+        if (row.rowType === 'func') {
+          sliceRowList.push(row);
+        }
+        if (row.childrenList) {
+          for (const childrenRow of row.childrenList) {
+            if (childrenRow.rowType === 'func') {
+              sliceRowList.push(childrenRow);
+            }
+          }
+        }
+      }
+      if (sliceRowList.length === 0) {
+        return;
+      }
+      this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
     });
   }
 
