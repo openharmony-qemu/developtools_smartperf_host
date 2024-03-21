@@ -623,8 +623,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
   displayIrqData = (data: IrqStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setIrqData(data);
-  displayStartupData = (data: AppStartupStruct, scrollCallback: Function): void =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback);
+  displayStartupData = (data: AppStartupStruct, scrollCallback: Function,rowData:any): void =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setStartupData(data, scrollCallback,rowData);
   displayAllStartupData = (data: AllAppStartupStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
@@ -718,8 +718,8 @@ export class TraceSheet extends BaseElement {
   displayFreqLimitData = (): CpuFreqLimitsStruct | undefined =>
     (this.displayTab<TabPaneCurrentSelection>('box-freq-limit').data = CpuFreqLimitsStruct.selectCpuFreqLimitsStruct);
 
-  displayFrameAnimationData = (data: FrameAnimationStruct): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setFrameAnimationData(data);
+  displayFrameAnimationData = (data: FrameAnimationStruct,scrollCallback: Function): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setFrameAnimationData(data,scrollCallback);
   displayFrameDynamicData = (row: TraceRow<FrameDynamicStruct>, data: FrameDynamicStruct): void =>
     this.displayTab<TabPaneFrameDynamic>('box-frame-dynamic').buildDynamicTable([data], true);
   displayFrameSpacingData = (data: FrameSpacingStruct): void =>

@@ -314,7 +314,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => AppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => AllAppStartupStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
     .then(() => SoStructOnClick(clickRowType, sp, scrollToFuncHandlerFunc(sp)))
-    .then(() => FrameAnimationStructOnClick(clickRowType, sp, row!))
+    .then(() => FrameAnimationStructOnClick(clickRowType, sp,scrollToFuncHandlerFunc(sp), row!))
     .then(() => FrameDynamicStructOnClick(clickRowType, sp, row))
     .then(() => FrameSpacingStructOnClick(clickRowType, sp, row!))
     .then(() => sampleStructOnClick(clickRowType, sp))
