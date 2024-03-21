@@ -509,7 +509,7 @@ export const queryLoopFuncNameCycle = (
             ON 
               t.ipid = p.id  
           WHERE 
-              c.name = '${funcName}' 
+              c.name like '${funcName}%'  
             AND 
               t.tid = ${tIds}
             AND NOT 
@@ -553,7 +553,7 @@ export const querySingleFuncNameCycleStates = (
               ON
                   t.ipid = p.id  
               WHERE 
-                  c.name = '${funcName}'
+                  c.name like '${funcName}%' 
               AND 
                   t.tid = ${tIds} 
               AND NOT 

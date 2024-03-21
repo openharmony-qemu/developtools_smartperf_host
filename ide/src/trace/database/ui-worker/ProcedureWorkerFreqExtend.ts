@@ -20,6 +20,8 @@ import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { ns2x, Rect } from './ProcedureWorkerCommon';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { BinderStruct } from './procedureWorkerBinder';
+import { ThreadStruct } from './ProcedureWorkerThread';
+import { TabPaneFreqStatesDataCut } from '../../component/trace/sheet/states/TabPaneFreqStatesDataCut';
 export class FreqExtendRender extends Render {
   renderMainThread(
     freqReq: {
@@ -64,7 +66,9 @@ export class FreqExtendRender extends Render {
       CpuFreqExtendStruct.selectCpuFreqStruct === undefined && 
       !BinderStruct.isTabHover &&
       !BinderStruct.selectCpuFreqStruct &&
-      !BinderStruct.hoverCpuFreqStruct){
+      !BinderStruct.hoverCpuFreqStruct &&
+      !ThreadStruct.hoverThreadStruct && 
+      !TabPaneFreqStatesDataCut.isStateTabHover){
       SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     }
     // 鼠标不在tab页内，取消所有tab页联动的参数

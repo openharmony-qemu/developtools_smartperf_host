@@ -20,6 +20,8 @@ import { drawString, Rect, ns2x } from './ProcedureWorkerCommon';
 import { SpSegmentationChart } from '../../component/chart/SpSegmentationChart';
 import { Flag } from '../../component/trace/timer-shaft/Flag';
 import { CpuFreqExtendStruct } from './ProcedureWorkerFreqExtend';
+import { ThreadStruct } from './ProcedureWorkerThread';
+import { TabPaneFreqStatesDataCut } from '../../component/trace/sheet/states/TabPaneFreqStatesDataCut';
 export class BinderRender extends Render {
   renderMainThread(
     freqReq: {
@@ -46,7 +48,7 @@ export class BinderRender extends Render {
       if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
         BinderStruct.hoverCpuFreqStruct = re;
       }
-      if (!row.isHover) {
+if (!row.isHover) {
         BinderStruct.hoverCpuFreqStruct = undefined;
       }
       BinderStruct.draw(freqReq.context, re);
@@ -57,7 +59,9 @@ export class BinderRender extends Render {
       !BinderStruct.selectCpuFreqStruct && 
       !CpuFreqExtendStruct.isTabHover && 
       !CpuFreqExtendStruct.hoverCpuFreqStruct && 
-      !CpuFreqExtendStruct.selectCpuFreqStruct) {
+      !CpuFreqExtendStruct.selectCpuFreqStruct &&
+      !ThreadStruct.hoverThreadStruct &&
+      !TabPaneFreqStatesDataCut.isStateTabHover) {
       SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
     }
     if (!SpSegmentationChart.trace.isMousePointInSheet) {
