@@ -28,6 +28,7 @@ import {
 import { LtpoRender, LtpoStruct } from '../../database/ui-worker/ProcedureWorkerLTPO'
 import { HitchTimeStruct, hitchTimeRender } from '../../database/ui-worker/ProcedureWorkerHitchTime';
 import { lostFrameSender } from '../../database/data-trafic/LostFrameSender';
+import { fps } from '../../database/ui-worker/ProcedureWorkerFPS';
 
 export class SpLtpoChart {
   private readonly trace: SpSystemTrace | undefined;
@@ -77,7 +78,7 @@ export class SpLtpoChart {
       let fanceIndex = 0;
       while (fpsIndex < SpLtpoChart.fpsnameList!.length) {
         if (SpLtpoChart.fanceNameList[fanceIndex] && SpLtpoChart.fpsnameList[fpsIndex]) {
-          if (SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! && 
+          if (SpLtpoChart.fanceNameList[fanceIndex].ts! > SpLtpoChart.fpsnameList[fpsIndex].ts! &&
             SpLtpoChart.fanceNameList[fanceIndex].ts! < SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!) {
             fpsIndex++;
             fanceIndex++;
@@ -295,17 +296,40 @@ export class SpLtpoChart {
     let sendDataArr: LtpoStruct[] = [];
     let ltpoDataIndex = 0;
     let tempRsNowTimeIndex = 0;
+    let presentIndex = 0;
+    let ltpoIndex = 0;
     //当有present缺失时：
     this.deleteUselessFence(presentArr, ltpoDataArr);
-    if (presentArr!.length && presentArr!.length === ltpoDataArr!.length) {
-      for (let i = 0; i < presentArr!.length; i++) {
-        ltpoDataArr[i].startTs = Number(presentArr[i].startTime) - (window as any).recordStartNS;
-        ltpoDataArr[i].dur = presentArr[i].dur;
-        ltpoDataArr[i].nextStartTs = presentArr[i + 1] ? Number(presentArr[i + 1].startTime) - (window as any).recordStartNS : '';
-        ltpoDataArr[i].nextDur = presentArr[i + 1] ? presentArr[i + 1].dur : 0;
+    // if (presentArr!.length && presentArr!.length === ltpoDataArr!.length) {
+    //   for (let i = 0; i < presentArr!.length; i++) {
+    //     ltpoDataArr[i].startTs = Number(presentArr[i].startTime) - (window as any).recordStartNS;
+    //     ltpoDataArr[i].dur = presentArr[i].dur;
+    //     ltpoDataArr[i].nextStartTs = presentArr[i + 1] ? Number(presentArr[i + 1].startTime) - (window as any).recordStartNS : '';
+    //     ltpoDataArr[i].nextDur = presentArr[i + 1] ? presentArr[i + 1].dur : 0;
+    //   }
+    // } else {
+    //   return sendDataArr;
+    // }
+    while (presentIndex < presentArr.length) {
+      if (presentArr[presentIndex] && ltpoDataArr[ltpoIndex]) {
+        if ((presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as any).recordStartNS) === TraceRow.range!.totalNS) {
+          presentArr.splice(presentIndex, 1)
+        }
+        if (presentArr[presentIndex].presentId === ltpoDataArr[ltpoIndex].fanceId) {
+          ltpoDataArr[ltpoIndex].startTs = Number(presentArr[presentIndex].startTime) - (window as any).recordStartNS;
+          ltpoDataArr[ltpoIndex].dur = presentArr[presentIndex].dur;
+          ltpoDataArr[ltpoIndex].nextStartTs = presentArr[presentIndex + 1] ? Number(presentArr[presentIndex + 1].startTime) - (window as any).recordStartNS : '';
+          ltpoDataArr[ltpoIndex].nextDur = presentArr[presentIndex + 1] ? presentArr[presentIndex + 1].dur : 0;
+          presentIndex++;
+          ltpoIndex++;
+        } else if (presentArr[presentIndex].presentId! < ltpoDataArr[ltpoIndex].fanceId!) {
+          presentArr.splice(presentIndex, 1);
+        } else if (presentArr[presentIndex].presentId! > ltpoDataArr[ltpoIndex].fanceId!) {
+          ltpoDataArr.splice(ltpoIndex, 1);
+        }
+      } else {
+        break;
       }
-    } else {
-      return sendDataArr;
     }
     while (ltpoDataIndex < ltpoDataArr.length) {
       let sendStartTs: number | undefined = 0;
@@ -363,17 +387,21 @@ export class SpLtpoChart {
     //当有present缺失时：
     let presentIndex = 0;
     let fpsIndex = 0;
-    while (presentIndex < presentArr.length) {//遍历present，把ltpoDataArr中不包含present中presentFance的item舍弃掉
-      if (Number(presentArr[presentIndex].presentId) < Number(ltpoDataArr[fpsIndex].fanceId)) {
-        presentArr.splice(presentIndex, 1);
-      } else if (Number(presentArr[presentIndex].presentId) > Number(ltpoDataArr[fpsIndex].fanceId)) {
-        ltpoDataArr.splice(fpsIndex, 1);
-      } else {
-        if (presentIndex === presentArr.length - 1 && fpsIndex < ltpoDataArr.length - 1) {//此时present已经遍历到最后一项，如果ltpoDataArr还没有遍历到最后一项，就把后面的舍弃掉
-          ltpoDataArr.splice(fpsIndex);
+    while (fpsIndex < ltpoDataArr.length) {//遍历present，把ltpoDataArr中不包含present中presentFance的item舍弃掉
+      if (presentArr[presentIndex] && ltpoDataArr[fpsIndex]) {
+        if (Number(presentArr[presentIndex].presentId) < Number(ltpoDataArr[fpsIndex].fanceId)) {
+          presentArr.splice(presentIndex, 1);
+        } else if (Number(presentArr[presentIndex].presentId) > Number(ltpoDataArr[fpsIndex].fanceId)) {
+          ltpoDataArr.splice(fpsIndex, 1);
+        } else {
+          if (presentIndex === presentArr.length - 1 && fpsIndex < ltpoDataArr.length - 1) {//此时present已经遍历到最后一项，如果ltpoDataArr还没有遍历到最后一项，就把后面的舍弃掉
+            ltpoDataArr.splice(fpsIndex);
+          }
+          presentIndex++;
+          fpsIndex++;
         }
-        presentIndex++;
-        fpsIndex++;
+      } else {
+        return;
       }
     };
   }
