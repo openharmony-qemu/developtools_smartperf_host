@@ -474,14 +474,12 @@ export class TimerShaftElement extends BaseElement {
   };
 
   documentOnKeyPress = (ev: KeyboardEvent, currentSlicesTime?: CurrentSlicesTime): void => {
-    if ((window as any).isSheetMove) return;
     if ((window as any).flagInputFocus) return;
     this._rangeRuler?.keyPress(ev, currentSlicesTime);
     this.sportRuler?.clearHoverFlag();
   };
 
   documentOnKeyUp = (ev: KeyboardEvent): void => {
-    if ((window as any).isSheetMove) return;
     if ((window as any).flagInputFocus) return;
     this._rangeRuler?.keyUp(ev);
   };

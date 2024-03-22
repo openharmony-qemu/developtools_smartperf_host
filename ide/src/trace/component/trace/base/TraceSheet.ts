@@ -85,6 +85,7 @@ import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
 import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerSample';
 import { TabPaneSampleInstruction } from '../sheet/sample/TabPaneSampleInstruction';
 import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
+import { SpSystemTrace } from '../../SpSystemTrace';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -378,6 +379,8 @@ export class TraceSheet extends BaseElement {
     let that = this;
     // 节点挂载时给Tab面板绑定鼠标按下事件
     this.nav!.onmousedown = (event): void => {
+      if (SpSystemTrace.isKeyUp === false) 
+      { return };
       (window as any).isSheetMove = true;
       // 获取所有标签页的节点数组
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =

@@ -23,6 +23,7 @@ import { queryIrqList } from '../../database/sql/Irq.sql';
 import { type BaseStruct } from '../../bean/BaseStruct';
 import { type ThreadRender, ThreadStruct } from '../../database/ui-worker/ProcedureWorkerThread';
 import { StateGroup } from '../../bean/StateModle';
+import { queryAllFuncNames } from '../../database/sql/Func.sql';
 const UNIT_HEIGHT: number = 20;
 const MS_TO_US: number = 1000000;
 const MIN_HEIGHT: number = 2;
@@ -76,8 +77,8 @@ export class SpSegmentationChart {
     SpSegmentationChart.trace.refreshCanvas(false);
   };
 
-   // binder联动调用
-   static setBinderChartData(data: Array<Array<FreqChartDataStruct>>): void {
+  // binder联动调用
+  static setBinderChartData(data: Array<Array<FreqChartDataStruct>>): void {
     BinderStruct.maxHeight = 0;
     SpSegmentationChart.binderRow!.dataList = [];
     SpSegmentationChart.binderRow!.dataListCache = [];
@@ -121,53 +122,70 @@ export class SpSegmentationChart {
   static tabHover(type: string, tableIsHover: boolean = false, cycle: number = -1): void {
     CpuFreqExtendStruct.isTabHover = tableIsHover;
     if (type === 'CPU-FREQ' || type === 'GPU-FREQ' || type === 'SCHED-SWITCH') {
-      CpuFreqExtendStruct.hoverType = type
-      if (tableIsHover) {
-        if (type === 'CPU-FREQ') {
-          CpuFreqExtendStruct.cpuCycle = cycle;
-          SpSegmentationChart.cpuRow!.isHover = false;
-          CpuFreqExtendStruct.gpuCycle = -1;
-          CpuFreqExtendStruct.schedCycle = -1;
-        } else if (type === 'GPU-FREQ') {
-          CpuFreqExtendStruct.gpuCycle = cycle;
-          SpSegmentationChart.GpuRow!.isHover = false;
-          CpuFreqExtendStruct.cpuCycle = -1;
+      // 竖线显示处理
+      if (type === 'SCHED-SWITCH') {
+        CpuFreqExtendStruct.cpuCycle = -1;
+        CpuFreqExtendStruct.gpuCycle = -1;
+        if (cycle === CpuFreqExtendStruct.schedCycle) {
+          CpuFreqExtendStruct.isTabHover = false;
           CpuFreqExtendStruct.schedCycle = -1;
         } else {
+          CpuFreqExtendStruct.isTabHover = true;
           CpuFreqExtendStruct.schedCycle = cycle;
-          SpSegmentationChart.schedRow!.isHover = false;
-          CpuFreqExtendStruct.gpuCycle = -1;
-          CpuFreqExtendStruct.cpuCycle = -1;
+          BinderStruct.isTabHover = false;
         }
-      } else {
-        if (type === 'CPU-FREQ') {
+      } else if (type === 'CPU-FREQ') {
+        CpuFreqExtendStruct.gpuCycle = -1;
+        CpuFreqExtendStruct.schedCycle = -1;
+        if (cycle === CpuFreqExtendStruct.cpuCycle) {
+          CpuFreqExtendStruct.isTabHover = false;
           CpuFreqExtendStruct.cpuCycle = -1;
-        } else if (type === 'GPU-FREQ') {
-          CpuFreqExtendStruct.gpuCycle = -1;
         } else {
-          CpuFreqExtendStruct.schedCycle = -1;
+          CpuFreqExtendStruct.isTabHover = true;
+          CpuFreqExtendStruct.cpuCycle = cycle;
+          BinderStruct.isTabHover = false;
         }
-        CpuFreqExtendStruct.hoverCpuFreqStruct = undefined;
+      } else if (type === 'GPU-FREQ') {
+        CpuFreqExtendStruct.cpuCycle = -1;
+        CpuFreqExtendStruct.schedCycle = -1;
+        if (cycle === CpuFreqExtendStruct.gpuCycle) {
+          CpuFreqExtendStruct.gpuCycle = -1;
+          CpuFreqExtendStruct.isTabHover = false;
+        } else {
+          CpuFreqExtendStruct.gpuCycle = cycle;
+          CpuFreqExtendStruct.isTabHover = true;
+          BinderStruct.isTabHover = false;
+        }
+
       }
+      CpuFreqExtendStruct.hoverType = type
     } else if (type === 'BINDER') {
-      if (tableIsHover) {
-        BinderStruct.hoverCycle = cycle;
-      } else {
+      if (cycle === BinderStruct.hoverCycle) {
         BinderStruct.hoverCycle = -1;
+        BinderStruct.isTabHover = false;
+        CpuFreqExtendStruct.isTabHover = false;
+      } else {
+        BinderStruct.hoverCycle = cycle;
+        BinderStruct.isTabHover = true;
       }
     }
-    SpSegmentationChart.trace.refreshCanvas(true, 'flagChange');
+    SpSegmentationChart.trace.refreshCanvas(false);
   }
   constructor(trace: SpSystemTrace) {
     SpSegmentationChart.trace = trace;
   }
   async init() {
-    await this.initFolder();
-    await this.initCpuFreq();
-    await this.initGpuTrace();
-    await this.initSchedTrace();
-    await this.initAllStates();
-    await this.initBinderTrace();
+    let funArr = await queryAllFuncNames();
+    if (funArr.length > 0) {
+      await this.initFolder();
+      await this.initCpuFreq();
+      await this.initGpuTrace();
+      await this.initSchedTrace();
+      await this.initBinderTrace();
+      await this.initAllStates();
+    } else {
+      return
+    }
   }
   async initFolder() {
     let row = TraceRow.skeleton();

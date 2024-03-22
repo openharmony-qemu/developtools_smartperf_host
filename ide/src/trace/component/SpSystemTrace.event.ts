@@ -420,7 +420,7 @@ export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEve
   if (sp.timerShaftEL?.isScaling()) {
     return;
   }
-  
+
   sp.timerShaftEL?.documentOnMouseMove(ev, sp);
 
   if (isMouseInTimeShaft) {
@@ -481,6 +481,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
 }
 
 export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev: KeyboardEvent) {
+  SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted) {
     return;
   }
@@ -525,7 +526,7 @@ export function SpSystemTraceDocumentOnKeyPress(this: any, sp: SpSystemTrace, ev
   }
 }
 
-export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) { 
+export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEvent) {
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
@@ -542,8 +543,8 @@ export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEve
       sp.mouseCurrentPosition = ev.clientX;
       return;
     }
- }
- 
+  }
+
   TraceRow.isUserInteraction = true;
   if (sp.isMouseInSheet(ev)) {
     return;
@@ -590,8 +591,8 @@ function handleTimerShaftActions(ev: MouseEvent, sp: SpSystemTrace) {
   }
 }
 
-export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {  
-   
+export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent) {
+
   if ((window as any).collectResize) {
     return;
   }
@@ -603,7 +604,7 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
     ev.stopPropagation();
     return;
   }
-  SpSystemTrace.isMouseLeftDown = false;  
+  SpSystemTrace.isMouseLeftDown = false;
   if (ev.ctrlKey) {
     ev.preventDefault();
     sp.offsetMouse = 0;
@@ -627,6 +628,7 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
 }
 
 export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent) {
+  SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
       clearTimeout(timerId);
