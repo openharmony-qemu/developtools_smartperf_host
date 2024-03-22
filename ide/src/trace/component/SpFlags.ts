@@ -162,7 +162,25 @@ export class SpFlags extends BaseElement {
     });
     configSelect.addEventListener('change', () => {
       let title = configSelect.getAttribute('title');
-      FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);
+      FlagsConfig.updateFlagsConfig(title!, configSelect.selectedOptions[0].value);    
+      if (title === 'VSync' && configSelect.selectedOptions[0].value === 'Enabled') {
+        let vsyncSelect = this.shadowRoot?.querySelector('#vsyncSelect');
+        vsyncSelect?.removeAttribute('disabled');
+      }
+      if (title === 'VSync' && configSelect.selectedOptions[0].value === 'Disabled') {
+        let vsyncSelect = this.shadowRoot?.querySelector('#vsyncSelect');
+        vsyncSelect?.childNodes.forEach((child: ChildNode) => {
+          let selectEl = child as HTMLOptionElement;
+          if (child.textContent === 'VsyncGenerator') {
+            selectEl.selected = true;
+            FlagsConfig.updateFlagsConfig('vsyncValue', selectEl.value);
+          } else {
+            selectEl.selected = false;
+          }
+        });
+
+        vsyncSelect?.setAttribute('disabled', 'disabled');
+      }
     });
     let description = document.createElement('div');
     description.className = 'flag-des-div';
@@ -215,8 +233,61 @@ export class SpFlags extends BaseElement {
         configFooterDiv.appendChild(deviceHeightEl);
         configDiv.appendChild(configFooterDiv);
       }
+
+      if(config.title === 'VSync'){  
+         let configFooterDiv = this.createVsyncOption();
+         configDiv.appendChild(configFooterDiv); 
+      }
+
       this.bodyEl!.appendChild(configDiv);
     });
+  }
+
+  private createVsyncOption(): HTMLDivElement {
+    let configFooterDiv = document.createElement('div');
+    configFooterDiv.className = 'config_footer';
+    let vsyncLableEl = document.createElement("lable");
+    vsyncLableEl.className = 'vsync_lable';
+    let vsyncTypeEl = document.createElement("select");
+    vsyncTypeEl.setAttribute("id", "vsyncSelect");
+    vsyncTypeEl.className = 'flag-select';
+    let vsyncGenOption = document.createElement('option'); // VsyncGeneratior = H:VsyncGenerator
+    vsyncGenOption.value = 'H:VsyncGenerator';
+    vsyncGenOption.textContent = 'VsyncGenerator';
+    vsyncGenOption.selected = true;
+    vsyncTypeEl.appendChild(vsyncGenOption);
+
+    let vsyncRsOption = document.createElement('option'); // Vsync-rs = H:rs_SendVsync
+    vsyncRsOption.value = 'H:rs_SendVsync';
+    vsyncRsOption.textContent = 'Vsync-rs';
+    vsyncTypeEl.appendChild(vsyncRsOption);
+
+    let vsyncAppOption = document.createElement('option'); // Vsync-app = H:app_SendVsync
+    vsyncAppOption.value = 'H:app_SendVsync';
+    vsyncAppOption.textContent = 'Vsync-app';
+    vsyncTypeEl.appendChild(vsyncAppOption);
+
+    FlagsConfig.updateFlagsConfig('vsyncValue', vsyncGenOption.value);
+    vsyncTypeEl.addEventListener('change', function () {
+      let selectValue = this.selectedOptions[0].value;
+      console.log(this);
+      console.log(this.selectedOptions[0]);
+      console.log(this.selectedOptions[0].value);
+      FlagsConfig.updateFlagsConfig('vsyncValue', selectValue);
+    });
+
+    let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+    let flagsItemJson = JSON.parse(flagsItem!);
+    let vsync = flagsItemJson.VSync;
+    if (vsync === 'Enabled') {
+      vsyncTypeEl.removeAttribute('disabled');
+    } else {
+      vsyncTypeEl.setAttribute('disabled', 'disabled');
+      FlagsConfig.updateFlagsConfig('vsyncValue', vsyncGenOption.value);
+    }
+    configFooterDiv.appendChild(vsyncLableEl);
+    configFooterDiv.appendChild(vsyncTypeEl);
+    return configFooterDiv;
   }
 }
 
@@ -257,6 +328,21 @@ export class FlagsConfig {
       title: 'FfrtConvert',
       switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
       describeContent: 'Ffrt Convert templates',
+    },
+    {
+      title: 'Bpftrace',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: '',
+    },
+    {
+      title: 'HMKernel',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: '',
+    },
+    {
+      title: 'VSync',
+      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
+      describeContent: '',
     },
   ];
 

@@ -19,7 +19,8 @@ import { TimerShaftElement } from '../TimerShaftElement';
 import { info } from '../../../../log/Log';
 import './Extension';
 import { SpSystemTrace } from '../../SpSystemTrace';
-import {querySearchRowFuncData} from "../../../database/sql/Func.sql";
+import { fuzzyQueryFuncRowData, queryFuncRowData } from '../../../database/sql/Func.sql';
+import { SpLtpoChart } from '../../chart/SpLTPO';
 
 export class RangeSelect {
   private rowsEL: HTMLDivElement | undefined | null;
@@ -68,40 +69,94 @@ export class RangeSelect {
     TraceRow.rangeSelectObject = undefined;
   }
 
-  mouseUp(mouseEventUp: MouseEvent): void {
-    this.endPageX = mouseEventUp.pageX;
-    this.endPageY = mouseEventUp.pageY;
+  mouseUp(mouseEventUp?: MouseEvent): void {
+    if (mouseEventUp) {
+      this.endPageX = mouseEventUp.pageX;
+      this.endPageY = mouseEventUp.pageY;
+    }
     if (this.drag) {
       if (this.selectHandler) {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }
-      //如果只框选了一条泳道，查询H:RSMainThread::DoComposition数据
-      let docompositionData: Array<number> = [];
-      if (this.rangeTraceRow) {
-        this.rangeTraceRow.forEach((row) => {
-          row.docompositionList = [];
-        });
-        docompositionData = [];
-        if (
-          this.rangeTraceRow.length === 1 &&
-          this.rangeTraceRow[0]?.getAttribute('row-type') === 'func' &&
-          this.rangeTraceRow[0]?.getAttribute('name')?.startsWith('render_service')
-        ) {
-          querySearchRowFuncData(
-            'H:RSMainThread::DoComposition',
-            Number(this.rangeTraceRow[0]?.getAttribute('row-id')),
-            TraceRow.rangeSelectObject!.startNS!,
-            TraceRow.rangeSelectObject!.endNS!
-          ).then((res) => {
-            res.forEach((item) => {
-              docompositionData.push(item.startTime!);
-            });
-            this.rangeTraceRow![0].docompositionList = docompositionData;
-          });
-        }
+      //查询render_service数据
+      if (this.rangeTraceRow?.length) {
+        this.checkRowsName(this.rangeTraceRow)
       }
     }
     this.isMouseDown = false;
+  }
+
+  // 判断框选的线程行类型和名称
+  checkRowsName(rowList: Array<TraceRow<any>>) {
+    rowList.forEach((row) => {
+      if (row.getAttribute('row-type') === 'func' && row.parentRowEl?.getAttribute('name')?.startsWith('render_service')) {
+        if (row.getAttribute('name')?.startsWith('render_service')) {
+          this.handleFrameRateData(row, 'H:RSMainThread::DoComposition');
+        } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
+          this.handleFrameRateData(row, 'H:Repaint');
+        } else if (row.getAttribute('name')?.startsWith('Present')) {
+          this.handlePresentData(row, 'H:Waiting for Present Fence');
+        }
+      }
+    })
+  }
+
+  // 查询DoComposition方法和Repaint方法的数据  
+  handleFrameRateData(row: TraceRow<any>, funcName: string): void {
+    let dataList: Array<number> = []
+    queryFuncRowData(
+      funcName,
+      Number(row?.getAttribute('row-id')),
+      TraceRow.rangeSelectObject!.startNS!,
+      TraceRow.rangeSelectObject!.endNS!,
+    ).then((res) => {
+      if (res.length >= 2) {
+        res.forEach((item) => {
+          dataList?.push(item.startTime!);
+        });
+        row.frameRateList = dataList;
+        const CONVERT_SECONDS = 1000000000;
+        let cutres: number = (dataList[dataList.length - 1] - dataList[0]);
+        row.avgRateTxt = ((dataList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+      }
+    });
+  }
+
+  // 查询H:Waiting for Present Fence方法数据
+  handlePresentData(row: TraceRow<any>, funcName: string): void {
+    let dataList: Array<number> = []
+    fuzzyQueryFuncRowData(
+      funcName,
+      Number(row?.getAttribute('row-id')),
+      TraceRow.rangeSelectObject!.startNS!,
+      TraceRow.rangeSelectObject!.endNS!,
+    ).then((res) => {
+      if (res.length >= 2) {
+        res.forEach((item) => {
+          dataList?.push(item.endTime!);
+        });
+        row.frameRateList = dataList;
+        let hitchTimeList: Array<number> = [];
+        for (let i = 0; i < SpLtpoChart.sendHitchDataArr.length; i++) {
+          if (SpLtpoChart.sendHitchDataArr[i].startTs! >= res[0].endTime!
+            &&
+            SpLtpoChart.sendHitchDataArr[i].startTs! < res[res.length - 1].endTime!) {
+            hitchTimeList.push(SpLtpoChart.sendHitchDataArr[i].value!);
+          } else if (
+            SpLtpoChart.sendHitchDataArr[i].startTs! >= res[res.length - 1].endTime!
+          ) {
+            break;
+          }
+        }
+        const CONVERT_SECONDS = 1000000000;
+        let cutres: number = (dataList[dataList.length - 1] - dataList[0]);
+        let avgRate: string = ((dataList.length - 1) / cutres * CONVERT_SECONDS).toFixed(1) + 'fps';
+        let sum: number = hitchTimeList.reduce((accumulator, currentValue) => accumulator + currentValue, 0); // ∑hitchTimeData
+        let hitchRate: number = (sum / ((TraceRow.rangeSelectObject!.endNS! - TraceRow.rangeSelectObject!.startNS!) / 1000000));
+        let perHitchRate: string = (Number(hitchRate) * 100).toFixed(2) + '%';
+        row.avgRateTxt = avgRate + ' ' + ',' + ' ' + 'HitchTime:' + ' ' + sum.toFixed(1) + 'ms' + ' ' + ',' + ' ' + perHitchRate;
+      }
+    });
   }
 
   isDrag(): boolean {
@@ -161,7 +216,7 @@ export class RangeSelect {
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
     this.rangeTraceRow = rows.filter((it) => {
       let domRect = it.getBoundingClientRect();
-      let itRect = {x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height};
+      let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
       if (itRect.y < favoriteLimit && !it.collect) {
         let offset = favoriteLimit - itRect.y;
         itRect.y = itRect.y + offset;
@@ -200,9 +255,12 @@ export class RangeSelect {
       }
     });
     if (this.rangeTraceRow && this.rangeTraceRow.length) {
-      this.rangeTraceRow!.forEach((row) => {
-        row.docompositionList = [];
-      });
+      if (this.rangeTraceRow[0].parentRowEl) {
+        for (let i = 0; i < this.rangeTraceRow[0].parentRowEl.childrenList.length; i++) {
+          this.rangeTraceRow[0].parentRowEl.childrenList[i].frameRateList = [];
+          this.rangeTraceRow[0].parentRowEl.childrenList[i].avgRateTxt = null;
+        }
+      }
     }
   }
 
@@ -258,7 +316,7 @@ export class RangeSelect {
       ((TraceRow.rangeSelectObject!.endNS! - TraceRow.range!.startNS) *
         (this.timerShaftEL?.canvas?.clientWidth || 0)) /
       (TraceRow.range!.endNS - TraceRow.range!.startNS);
-    this.mark = {startMark: x1, endMark: x2};
+    this.mark = { startMark: x1, endMark: x2 };
     let mouseX = ev.pageX - this.rowsPaneEL!.getBoundingClientRect().left - 248;
     if (mouseX > x1 - 5 && mouseX < x1 + 5) {
       this.isHover = true;

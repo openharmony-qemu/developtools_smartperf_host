@@ -21,20 +21,13 @@ import LitSwitch from '../../../base-ui/switch/lit-switch';
 import { LitSlider } from '../../../base-ui/slider/LitSlider';
 import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { SpAllocationHtml } from './SpAllocation.html';
-import {
-  NUM_16384,
-  NUM_1800,
-  NUM_30,
-  NUM_300,
-  NUM_3600,
-  NUM_450,
-  NUM_60,
-  NUM_600
-} from '../../bean/NumBean';
+import { NUM_16384, NUM_1800, NUM_30, NUM_300, NUM_3600, NUM_450, NUM_60, NUM_600 } from '../../bean/NumBean';
+import { LitSelect } from '../../../base-ui/select/LitSelect';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
   private processId: LitSelectV | null | undefined;
+  private packageName: LitSelect | null | undefined;
   private unwindEL: HTMLInputElement | null | undefined;
   private shareMemory: HTMLInputElement | null | undefined;
   private shareMemoryUnit: HTMLSelectElement | null | undefined;
@@ -45,11 +38,14 @@ export class SpAllocations extends BaseElement {
   private recordAccurately: LitSwitch | null | undefined;
   private offlineSymbol: LitSwitch | null | undefined;
   private startupMode: LitSwitch | null | undefined;
+  private jsStackModel: LitSwitch | null | undefined;
   private responseLibMode: LitSwitch | null | undefined;
   private recordStatisticsResult: HTMLDivElement | null | undefined;
   private sampleInterval: HTMLInputElement | null | undefined;
 
   private filterSize: HTMLInputElement | null | undefined;
+  private napiName: HTMLInputElement | null | undefined;
+  private jsStackDepth: HTMLInputElement | null | undefined;
 
   set startSamp(allocationStart: boolean) {
     if (allocationStart) {
@@ -64,17 +60,17 @@ export class SpAllocations extends BaseElement {
   }
 
   get appProcess(): string {
-    return this.processId!.value || '';
+    return this.processId!.value || this.packageName!.value || '';
   }
 
   get unwind(): number {
-    log(`unwind value is :${  this.unwindEL!.value}`);
+    log(`unwind value is :${this.unwindEL!.value}`);
     return Number(this.unwindEL!.value);
   }
 
   get shared(): number {
     let value = this.shareMemory?.value || '';
-    log(`shareMemory value is :${  value}`);
+    log(`shareMemory value is :${value}`);
     if (value !== '') {
       return Number(this.shareMemory?.value) || NUM_16384;
     }
@@ -83,7 +79,7 @@ export class SpAllocations extends BaseElement {
 
   get filter(): number {
     let value = this.filterMemory?.value || '';
-    log(`filter value is :${  value}`);
+    log(`filter value is :${value}`);
     if (value !== '') {
       return Number(value);
     }
@@ -151,9 +147,23 @@ export class SpAllocations extends BaseElement {
     }
   }
 
+  get recordJsStack(): boolean {
+    let value = this.jsStackModel?.checked;
+    if (value !== undefined) {
+      return value;
+    }
+    return false;
+  }
+
+  set recordJsStack(value: boolean) {
+    if (this.jsStackModel) {
+      this.jsStackModel.checked = value;
+    }
+  }
+
   get expandPids(): number[] {
     let allPidList: number[] = [];
-    if (this.processId?.value.length > 0) {
+    if (this.processId!.value.length > 0) {
       let result = this.processId?.value.match(/\((.+?)\)/g);
       if (result) {
         for (let index = 0; index < result.length; index++) {
@@ -170,6 +180,20 @@ export class SpAllocations extends BaseElement {
     return Number(this.sampleInterval!.value);
   }
 
+  get filter_napi_name(): string {
+    if (this.jsStackModel?.checked) {
+      return this.napiName!.value || '';
+    }
+    return '';
+  }
+
+  get max_js_stack_depth(): number {
+    if (this.jsStackModel?.checked) {
+      return Number(this.jsStackDepth!.value);
+    }
+    return 0;
+  }
+
   connectedCallback(): void {
     this.unwindEL?.addEventListener('keydown', this.handleInputChange);
     this.shareMemory?.addEventListener('keydown', this.handleInputChange);
@@ -180,9 +204,11 @@ export class SpAllocations extends BaseElement {
     this.statisticsSlider?.addEventListener('input', this.statisticsSliderInputHandler);
     this.intervalResultInput?.addEventListener('input', this.intervalResultInputHandler);
     this.intervalResultInput?.addEventListener('focusout', this.intervalResultFocusOutHandler);
-    this.statisticsSlider?.shadowRoot?.querySelector<HTMLElement>('#slider')!.
-      addEventListener('mouseup', this.statisticsSliderMouseupHandler);
-    this.startupMode?.addEventListener('change',this.startupModeChangeHandler);
+    this.statisticsSlider?.shadowRoot
+      ?.querySelector<HTMLElement>('#slider')!
+      .addEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.addEventListener('change', this.startupModeChangeHandler);
+    this.jsStackModel?.addEventListener('change', this.jsStackModelChangeHandler);
   }
 
   disconnectedCallback(): void {
@@ -194,10 +220,12 @@ export class SpAllocations extends BaseElement {
     this.filterSize?.removeEventListener('keydown', this.handleInputChange);
     this.statisticsSlider?.removeEventListener('input', this.statisticsSliderInputHandler);
     this.intervalResultInput?.removeEventListener('input', this.intervalResultInputHandler);
-    this.intervalResultInput?.removeEventListener('focusout', this.intervalResultFocusOutHandler);
-    this.statisticsSlider?.shadowRoot?.querySelector<HTMLElement>('#slider')!.
-      removeEventListener('mouseup', this.statisticsSliderMouseupHandler);
-    this.startupMode?.removeEventListener('change',this.startupModeChangeHandler);
+    this.intervalResultInput?.removeEventListener('focusout', this.jsStackModelChangeHandler);
+    this.statisticsSlider?.shadowRoot
+      ?.querySelector<HTMLElement>('#slider')!
+      .removeEventListener('mouseup', this.statisticsSliderMouseupHandler);
+    this.startupMode?.removeEventListener('change', this.startupModeChangeHandler);
+    this.jsStackModel?.removeEventListener('change', this.startupModeChangeHandler);
   }
 
   handleInputChange = (ev: KeyboardEvent): void => {
@@ -210,9 +238,15 @@ export class SpAllocations extends BaseElement {
   initElements(): void {
     this.filterSize = this.shadowRoot?.querySelector('#filterSized');
     this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
+    this.packageName = this.shadowRoot?.getElementById('packageName') as LitSelect;
+    this.packageName.style.display = 'none';
     let process = this.processId.shadowRoot?.querySelector('input') as HTMLInputElement;
     process!.addEventListener('mousedown', () => {
       this.processMouseDownHandler(process);
+    });
+    let packageInput = this.packageName.shadowRoot?.querySelector('input') as HTMLInputElement;
+    packageInput!.addEventListener('mousedown', () => {
+      this.packageMouseDownHandler(packageInput);
     });
     this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
     this.shareMemory = this.shadowRoot?.getElementById('shareMemory') as HTMLInputElement;
@@ -222,8 +256,11 @@ export class SpAllocations extends BaseElement {
     this.recordAccurately = this.shadowRoot?.getElementById('use_record_accurately') as LitSwitch;
     this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
     this.startupMode = this.shadowRoot?.getElementById('use_startup_mode') as LitSwitch;
+    this.jsStackModel = this.shadowRoot?.getElementById('use_js-stack') as LitSwitch;
     this.responseLibMode = this.shadowRoot?.getElementById('response_lib_mode') as LitSwitch;
     this.sampleInterval = this.shadowRoot?.getElementById('sample-interval-input') as HTMLInputElement;
+    this.napiName = this.shadowRoot?.getElementById('napiName') as HTMLInputElement;
+    this.jsStackDepth = this.shadowRoot?.getElementById('jsStackDepth') as HTMLInputElement;
     this.statisticsSlider = this.shadowRoot?.querySelector<LitSlider>('#interval-slider') as LitSlider;
     this.recordStatisticsResult = this.shadowRoot?.querySelector<HTMLDivElement>(
       '.record-statistics-result'
@@ -252,16 +289,52 @@ export class SpAllocations extends BaseElement {
         this.disable();
       }
     });
+    this.initProcessInputStatus();
     this.disable();
+  }
+
+  private initProcessInputStatus(): void {
+    this.packageName!.style.display = 'none';
+    this.processId!.style.display = 'block';
+    let process = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
+    if (process) {
+      process.style.width = 'auto';
+    }
   }
 
   startupModeChangeHandler = (): void => {
     let process = this.processId?.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let processDiv = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
     process.value = '';
+    let packageInput = this.packageName?.shadowRoot?.querySelector('input') as HTMLInputElement;
+    let packageDiv = this.packageName?.shadowRoot?.querySelector('.root') as HTMLDivElement;
+    packageInput.value = '';
     if (this.startup_mode) {
-      process!.placeholder = 'please input process';
+      this.packageName!.showItem = '';
+      this.packageName!.style.display = 'block';
+      this.processId!.style.display = 'none';
+      packageDiv.style.width = 'auto';
+      packageInput!.placeholder = 'please select package';
+      this.processId!.dataSource([], '');
     } else {
+      this.processId!.showItems = [];
+      this.packageName!.style.display = 'none';
+      this.processId!.style.display = 'block';
+      processDiv.style.width = 'auto';
       process!.placeholder = 'please select process';
+      this.packageName!.dataSource = [];
+    }
+  };
+
+  jsStackModelChangeHandler = (): void => {
+    let napiRecordName = this.shadowRoot?.querySelector('#napi-div') as HTMLDivElement;
+    let jsStackRecordDepth = this.shadowRoot?.querySelector('#js-stack-depth-div') as HTMLDivElement;
+    if (this.recordJsStack) {
+      napiRecordName.style.display = 'flex';
+      jsStackRecordDepth.style.display = 'flex';
+    } else {
+      napiRecordName.style.display = 'none';
+      jsStackRecordDepth.style.display = 'none';
     }
   };
 
@@ -270,8 +343,8 @@ export class SpAllocations extends BaseElement {
       let percentValue = this.recordStatisticsResult!.getAttribute('percent');
       let index = Math.round(Number(percentValue) / NUM_450);
       index = index < 1 ? 0 : index;
-      this.intervalResultInput!.value = `${stepValue[index]  }`;
-      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]  }`);
+      this.intervalResultInput!.value = `${stepValue[index]}`;
+      this.recordStatisticsResult!.setAttribute('percentValue', `${stepValue[index]}`);
     });
   };
 
@@ -308,16 +381,16 @@ export class SpAllocations extends BaseElement {
   };
 
   private processMouseDownHandler(process: HTMLInputElement): void {
-    if (this.startSamp) {
-      process.readOnly = false;
+    if (this.startSamp && !this.startup_mode) {
       Cmd.getProcess().then((processList) => {
         this.processId?.dataSource(processList, '');
-        if (processList.length > 0 && !this.startup_mode) {
+        if (processList.length > 0) {
           this.processId?.dataSource(processList, 'ALL-Process');
         } else {
           this.processId?.dataSource([], '');
         }
       });
+      process.readOnly = false;
     } else {
       process.readOnly = true;
       return;
@@ -325,6 +398,21 @@ export class SpAllocations extends BaseElement {
     if (this.startSamp && (SpRecordTrace.serialNumber === '' || this.startup_mode)) {
       this.processId?.dataSource([], '');
     } else {
+    }
+  }
+  private packageMouseDownHandler(packageInput: HTMLInputElement): void {
+    if (this.startSamp && this.startup_mode) {
+      Cmd.getPackage().then((packageList) => {
+        if (packageList.length > 0) {
+          this.packageName!.dataSource = packageList;
+        } else {
+          this.packageName!.dataSource = [];
+        }
+      });
+      packageInput.readOnly = false;
+    } else {
+      packageInput.readOnly = true;
+      return;
     }
   }
 
@@ -341,8 +429,10 @@ export class SpAllocations extends BaseElement {
       parentElement.setAttribute('percent', '3600');
       return;
     }
-    if (Number(this.intervalResultInput!.value) < this.statisticsSlider!.sliderStyle.minRange ||
-      Number(this.intervalResultInput!.value) > this.statisticsSlider!.sliderStyle.maxRange) {
+    if (
+      Number(this.intervalResultInput!.value) < this.statisticsSlider!.sliderStyle.minRange ||
+      Number(this.intervalResultInput!.value) > this.statisticsSlider!.sliderStyle.maxRange
+    ) {
       this.intervalResultInput!.style.color = 'red';
       parentElement.setAttribute('percent', '3600');
     } else {
@@ -392,6 +482,9 @@ export class SpAllocations extends BaseElement {
     if (this.startupMode) {
       this.startupMode.disabled = false;
     }
+    if (this.jsStackModel) {
+      this.jsStackModel.disabled = false;
+    }
     if (this.responseLibMode) {
       this.responseLibMode.disabled = false;
     }
@@ -403,6 +496,11 @@ export class SpAllocations extends BaseElement {
     inputBoxes!.forEach((item) => {
       item.disabled = false;
     });
+    if (this.startup_mode) {
+      this.packageName!.removeAttribute('disabled');
+    } else {
+      this.processId!.removeAttribute('disabled');
+    }
     this.statisticsSlider!.disabled = false;
   }
 
@@ -416,6 +514,9 @@ export class SpAllocations extends BaseElement {
     }
     if (this.startupMode) {
       this.startupMode.disabled = true;
+    }
+    if (this.jsStackModel) {
+      this.jsStackModel.disabled = true;
     }
     if (this.offlineSymbol) {
       this.offlineSymbol.disabled = true;
@@ -431,6 +532,11 @@ export class SpAllocations extends BaseElement {
     inputBoxes!.forEach((item) => {
       item.disabled = true;
     });
+    if (this.startup_mode) {
+      this.packageName!.setAttribute('disabled', '');
+    } else {
+      this.processId!.setAttribute('disabled', '');
+    }
     this.statisticsSlider!.disabled = true;
   }
 

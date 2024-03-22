@@ -107,8 +107,15 @@ export function jsCpuProfiler(
 }
 
 const padding = 1;
-export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTrace) {
+export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>) {
   return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER) {
+      if (row.findHoverStruct) {
+        row.findHoverStruct();
+      }else {
+        JsCpuProfilerStruct.hoverJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct || row.getHoverStruct();
+      }
+    }
     if (clickRowType === TraceRow.ROW_TYPE_JS_CPU_PROFILER && JsCpuProfilerStruct.hoverJsCpuProfilerStruct) {
       JsCpuProfilerStruct.selectJsCpuProfilerStruct = JsCpuProfilerStruct.hoverJsCpuProfilerStruct;
       let selectStruct = JsCpuProfilerStruct.selectJsCpuProfilerStruct;
@@ -117,7 +124,7 @@ export function JsCpuProfilerStructOnClick(clickRowType: string, sp: SpSystemTra
       let that = sp;
       getTopJsCpuProfilerStruct(selectStruct.parentId, selectStruct, that, dataArr, parentIdArr);
       that.traceSheetEL?.displayJsProfilerData(dataArr);
-      reject();
+      reject(new Error());
     } else {
       resolve(null);
     }

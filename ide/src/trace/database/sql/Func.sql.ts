@@ -17,6 +17,95 @@ import { FuncStruct } from '../ui-worker/ProcedureWorkerFunc';
 import { SearchFuncBean } from '../../bean/SearchFuncBean';
 import { SelectionData } from '../../bean/BoxSelection';
 import { HeapTraceFunctionInfo } from '../../../js-heap/model/DatabaseStruct';
+import { FunctionItem } from '../../bean/BinderProcessThread';
+import { StateGroup } from '../../bean/StateModle';
+import { FuncNameCycle } from '../../bean/BinderProcessThread';
+
+export const queryFuncNameCycle = (
+  funcName: string,
+  tIds: string,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<FunctionItem>> =>
+  query(
+    'queryFuncNameCycle',
+    `
+        SELECT  
+              c.ts - r.start_ts AS cycleStartTime, 
+              c.dur,
+              c.id,
+              t.tid,
+              p.pid
+            FROM 
+                callstack c, trace_range r 
+            LEFT JOIN 
+                thread t 
+            ON 
+                c.callid = t.id 
+            LEFT JOIN
+                process p 
+            ON
+                t.ipid = p.id  
+            WHERE 
+                c.name like '${funcName}%' 
+            AND 
+                t.tid = ${tIds} 
+            AND NOT 
+                ((cycleStartTime < ${leftNS}) 
+            OR 
+                ((c.ts - r.start_ts + c.dur) > ${rightNS}))
+          `,
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS,
+    }
+  );
+
+export const querySingleFuncNameCycle = (
+  funcName: string,
+  tIds: string,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<FunctionItem>> =>
+  query(
+    'querySingleFuncNameCycle',
+    `
+      SELECT 
+            c.name AS funcName, 
+            c.ts - r.start_ts AS cycleStartTime, 
+            c.dur AS cycleDur,
+            c.id,
+            t.tid,
+            p.pid,
+            c.ts - r.start_ts + c.dur AS endTime
+          FROM 
+              callstack c, trace_range r 
+          LEFT JOIN 
+              thread t 
+          ON 
+              c.callid = t.id 
+          LEFT JOIN
+              process p 
+          ON
+              t.ipid = p.id  
+          WHERE 
+              c.name = '${funcName}'
+          AND 
+              t.tid = ${tIds} 
+          AND NOT 
+              ((cycleStartTime < ${leftNS}) 
+          OR 
+              (endTime > ${rightNS}))
+        `,
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS,
+    }
+  );
 
 export const queryAllFuncNames = (): Promise<Array<any>> => {
   return query(
@@ -114,21 +203,18 @@ export const querySearchFuncData = (
           not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
     `
   );
-export const querySearchRowFuncData = (
+export const queryFuncRowData = (
   funcName: string,
   tIds: number,
   leftNS: number,
   rightNS: number
 ): Promise<Array<SearchFuncBean>> =>
   query(
-    'querySearchRowFuncData',
+    'queryFuncRowData',
     `
           select 
             c.name as funName,
-            c.ts - r.start_ts as startTime,
-            t.tid,
-            t.name as threadName,
-            'func' as type 
+            c.ts - r.start_ts as startTime
           from 
             callstack c 
           left join 
@@ -142,7 +228,7 @@ export const querySearchRowFuncData = (
           left join 
             trace_range r
           where 
-            c.name like '${funcName}' 
+            c.name like '${funcName}%' 
           and 
             t.tid = ${tIds} 
           and
@@ -150,6 +236,42 @@ export const querySearchRowFuncData = (
       `,
     { $search: funcName }
   );
+
+export const fuzzyQueryFuncRowData = (
+  funcName: string,
+  tIds: number,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<SearchFuncBean>> =>
+  query(
+    'fuzzyQueryFuncRowData',
+    `
+          select 
+            c.name as funName,
+            c.ts - r.start_ts as startTime,
+            c.ts - r.start_ts + c.dur as endTime
+          from 
+            callstack c 
+          left join 
+            thread t 
+          on 
+            c.callid = t.id 
+          left join 
+            process p 
+          on 
+            t.ipid = p.id
+          left join 
+            trace_range r
+          where 
+            c.name like '%${funcName}%' 
+          and 
+            t.tid = ${tIds} 
+          and
+            not ((endTime < ${leftNS}) or (endTime > ${rightNS}));
+      `,
+    { $search: funcName }
+  );
+
 export const getTabSlicesAsyncFunc = (
   asyncNames: Array<string>,
   asyncPid: Array<number>,
@@ -292,16 +414,6 @@ export const queryTaskPoolOtherRelationData = (ids: Array<number>, tid: number):
 };
 
 export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number>): Promise<Array<FuncStruct>> => {
-  const sqlArray: Array<string> = [];
-  if (ids.length > 0) {
-    for (let index = 0; index < ids.length; index++) {
-      if (index !== 0) {
-        sqlArray.push(`or`);
-      }
-      sqlArray.push(`( tid = ${tids[index]} and c.id = ${ids[index]})`);
-    }
-  }
-  let sql = sqlArray.join(' ');
   let sqlStr = `select
                     c.ts-D.start_ts as startTs,
                     c.dur,
@@ -313,6 +425,124 @@ export const queryTaskPoolRelationData = (ids: Array<number>, tids: Array<number
                     A.ipid as ipid
                 from thread A,trace_range D
                                   left join callstack C on A.id = C.callid
-                where startTs not null and c.cookie is null and (${sql})`;
-  return query('queryTaskPoolRelationData', sqlStr);
+                where startTs not null and c.cookie is null and c.id in (${ids.join(',')}) and tid in (${tids.join(
+    ','
+  )})`;
+  return query('queryTaskPoolRelationData', sqlStr, { $ids: ids, $tids: tids });
 };
+
+export const queryStatesCut = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<StateGroup>> =>
+  query<StateGroup>(
+    'queryBinderByThreadId',
+    `
+    select
+    B.id,
+    B.pid,
+    B.tid,
+    B.dur,
+    B.cpu,
+    B.state,
+    B.ts - C.start_ts AS ts,
+    B.dur + B.ts as endTs
+  from
+    thread_state AS B,trace_range AS C
+  where
+    B.tid in (${tIds.join(',')})
+  and
+    not ((B.ts + + ifnull(B.dur,0) < ($leftStartNs + C.start_ts)) or (B.ts + B.dur > ($rightEndNs + C.start_ts)))
+  order by
+    B.pid;
+        `,
+    {
+      $tIds: tIds,
+      $leftStartNs: leftNS,
+      $rightEndNs: rightNS,
+    }
+  );
+
+export const queryLoopFuncNameCycle = (
+  funcName: string,
+  tIds: string,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<FuncNameCycle>> =>
+  query(
+    'queryLoopFuncNameCycle',
+    `
+        SELECT 
+            c.name AS funcName,
+            c.ts - r.start_ts AS cycleStartTime,
+            0 AS cycleDur,
+            c.id,
+            t.tid,
+            p.pid
+          FROM
+              callstack c, trace_range r 
+            LEFT JOIN 
+              thread t 
+            ON 
+              c.callid = t.id 
+            LEFT JOIN  
+              process p 
+            ON 
+              t.ipid = p.id  
+          WHERE 
+              c.name = '${funcName}' 
+            AND 
+              t.tid = ${tIds}
+            AND NOT 
+              ((cycleStartTime < ${leftNS}) 
+            OR  
+              (cycleStartTime > ${rightNS})) 
+          `,
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS,
+    }
+  );
+
+export const querySingleFuncNameCycleStates = (
+  funcName: string,
+  tIds: string,
+  leftNS: number,
+  rightNS: number
+): Promise<Array<FuncNameCycle>> =>
+  query(
+    'querySingleFuncNameCycle',
+    `
+          SELECT 
+                c.name AS funcName, 
+                c.ts - r.start_ts AS cycleStartTime, 
+                c.dur AS cycleDur,
+                c.id,
+                t.tid,
+                p.pid,
+                c.ts - r.start_ts + c.dur AS endTime
+              FROM 
+                  callstack c, trace_range r 
+              LEFT JOIN 
+                  thread t 
+              ON 
+                  c.callid = t.id 
+              LEFT JOIN
+                  process p 
+              ON
+                  t.ipid = p.id  
+              WHERE 
+                  c.name = '${funcName}'
+              AND 
+                  t.tid = ${tIds} 
+              AND NOT 
+                  ((cycleStartTime < ${leftNS}) 
+              OR 
+                  (endTime > ${rightNS}))
+            `,
+    {
+      $funcName: funcName,
+      $tIds: tIds,
+      $leftNS: leftNS,
+      $rightNS: rightNS,
+    }
+  );

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -97,21 +97,23 @@ int32_t PerfSampleTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         const auto& c = perfSampleCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     perfSampleObj_.SampleIds());
                 break;
             case Index::THREAD_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfSampleObj_.Tids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    perfSampleObj_.Tids());
                 break;
             case Index::EVENT_TYPE_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     perfSampleObj_.EventTypeIds());
                 break;
             case Index::CPU_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfSampleObj_.CpuIds());
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    perfSampleObj_.CpuIds());
                 break;
             default:
                 break;

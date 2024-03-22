@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -43,9 +43,23 @@ config("rawtrace_parser_comm") {
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
   ]
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
 }
 
-ohos_source_set("rawtrace_parser_src") {
+ohos_static_library("rawtrace_parser") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   sources = [
@@ -66,29 +80,11 @@ ohos_source_set("rawtrace_parser_src") {
   if (is_mingw) {
     cflags = [ "-includeMingW64Fix.h" ]
   }
-  if (enable_ts_utest && !use_wasm) {
-    cflags = [
-      "-fprofile-arcs",
-      "-ftest-coverage",
-    ]
-    ldflags = [
-      "-fprofile-arcs",
-      "-ftest-coverage",
-      "--coverage",
-    ]
-    if (is_test) {
-      cflags += [ "-D IS_UT" ]
-    }
-  }
+
   public_deps = []
   deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ts_ftrace_data_cpp",
-  ]
-}
-group("rawtrace_parser") {
-  deps = [
-    ":rawtrace_parser_src",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
   ]

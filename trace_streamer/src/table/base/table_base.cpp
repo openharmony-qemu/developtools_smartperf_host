@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
 #include "table_base.h"
 
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 #include "log.h"
@@ -100,7 +101,6 @@ void TableBase::SetModuleCallbacks(sqlite3_module& module, const std::string& ta
         delete static_cast<Cursor*>(vc);
         return SQLITE_OK;
     };
-
     module.xBestIndex = [](sqlite3_vtab* pVTab, sqlite3_index_info* idxInfo) {
         TS_LOGD("xBestIndex: %s %d", static_cast<TableBase*>(pVTab)->name_.c_str(), idxInfo->nConstraint);
         return static_cast<TableBase*>(pVTab)->BestIndex(idxInfo);
@@ -181,7 +181,6 @@ int32_t TableBase::BestIndex(sqlite3_index_info* idxInfo)
 
     EstimatedIndexInfo estimate = {idxInfo->estimatedRows, idxInfo->estimatedCost, false};
     EstimateFilterCost(filterConstraints, estimate);
-
     idxInfo->orderByConsumed = estimate.isOrdered;
     idxInfo->estimatedCost = estimate.estimatedCost;
     idxInfo->estimatedRows = estimate.estimatedRows;
@@ -239,6 +238,24 @@ bool TableBase::CanFilterId(const char op, size_t& rowCount)
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
             // assume filter out a half of rows
+            rowCount = (rowCount >> 1);
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+
+bool TableBase::CanFilterSorted(const char op, size_t& rowCount)
+{
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            rowCount = log2(rowCount);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+        case SQLITE_INDEX_CONSTRAINT_GE:
+        case SQLITE_INDEX_CONSTRAINT_LE:
+        case SQLITE_INDEX_CONSTRAINT_LT:
             rowCount = (rowCount >> 1);
             break;
         default:
@@ -359,8 +376,6 @@ void TableBase::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei
         ei.isOrdered = true;
 
         GetOrbyes(fc, ei);
-    } else {
-        return;
     }
 }
 

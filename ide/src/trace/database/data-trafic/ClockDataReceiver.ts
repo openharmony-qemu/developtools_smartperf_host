@@ -101,7 +101,7 @@ export function clockDataReceiver(data: any, proc: Function): void {
     }
     if (data.params.queryAll) {
       //框选时候取数据，只需要根据时间过滤数据
-      res = (list || []).filter(it => it.startNs + it.dur >= data.params.startNS && it.startNs <= data.params.endNS);
+      res = (list || []).filter(it => it.startNs + it.dur >= data.params.selectStartNS && it.startNs <= data.params.selectEndNS);
     } else {
       res = filterDataByGroup(list || [], 'startNs', 'dur', data.params.startNS, data.params.endNS, data.params.width, "value");
     }

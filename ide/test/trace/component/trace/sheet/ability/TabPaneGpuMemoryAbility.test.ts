@@ -14,8 +14,8 @@
  */
 import { TabPaneGpuMemoryAbility } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneGpuMemoryAbility';
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const gpuSqlit = require('../../../../../../src/trace/database/sql/Ability.sql');
+jest.mock('../../../../../../src/trace/database/sql/Ability.sql');
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
     return {}
 });
@@ -33,7 +33,7 @@ window.ResizeObserver = window.ResizeObserver ||
 
 describe('TabPaneGpuMemoryAbility Test', () => {
     let tabPaneGpuMemoryAbility = new TabPaneGpuMemoryAbility();
-    let getTabGpuMemoryAbilityData = sqlit.getTabGpuMemoryAbilityData;
+    let getTabGpuMemoryAbilityData = gpuSqlit.getTabGpuMemoryAbilityData;
     getTabGpuMemoryAbilityData.mockResolvedValue([
         {
             avgSize: 711756458.666667,
@@ -59,9 +59,9 @@ describe('TabPaneGpuMemoryAbility Test', () => {
             maxSizes: "884.00KB",
             minSize: 905216,
             minSizes: "884.00KB",
-            process: "/system/bin/aosp_graphic_temp_service(609)",
+            process: "/system/bin/temp_service(609)",
             processId: 609,
-            processName: "/system/bin/aosp_graphic_temp_service",
+            processName: "/system/bin/temp_service",
             startNs: 4568285416,
             sumSize: 2715648,
             sumSizes: "2.59MB",

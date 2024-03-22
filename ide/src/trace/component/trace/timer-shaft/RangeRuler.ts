@@ -121,6 +121,7 @@ export class RangeRuler extends Graph {
   private scale: number = 0;
   private delayTimer: any = null;
   private rulerW = 0;
+  _cpuCountData: number | undefined;
 
   //缩放级别
   private scales: Array<number> = [
@@ -156,13 +157,30 @@ export class RangeRuler extends Graph {
     this.draw();
   }
 
+  get cpuCountData(): number | undefined {
+    return this._cpuCountData;
+  }
+
+  set cpuCountData(value: number | undefined) {
+    this._cpuCountData = value;
+  }
+
   drawCpuUsage(): void {
     this.context2D.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
     let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount); //每格高度
     let miniWidth = Math.ceil(this.frame.width / 100); //每格宽度
+    this._cpuCountData = CpuStruct.cpuCount;
+    if (sessionStorage.getItem('expand') === 'true') {//展开
+      miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount);
+    } else if (sessionStorage.getItem('expand') === 'false') {
+      miniHeight = Math.round(this.frame.height / 2);
+    }
     for (let index = 0; index < this._cpuUsage.length; index++) {
       let cpuUsageItem = this._cpuUsage[index];
-      const color = interpolateColorBrightness(ColorUtils.MD_PALETTE[cpuUsageItem.cpu], cpuUsageItem.rate);
+      const color = interpolateColorBrightness(
+        ColorUtils.FUNC_COLOR_B[cpuUsageItem.cpu % ColorUtils.FUNC_COLOR_B.length],
+        cpuUsageItem.rate
+      );
       this.context2D.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       this.context2D.globalAlpha = cpuUsageItem.rate;
       this.context2D.fillRect(
@@ -271,13 +289,30 @@ export class RangeRuler extends Graph {
     this.context2D.globalAlpha = 1;
     this.context2D.globalAlpha = 0.5;
     this.context2D.fillStyle = '#999999';
-    this.context2D.fillRect(this.frame.x, this.frame.y, this.rangeRect.x, this.rangeRect.height);
-    this.context2D.fillRect(
-      this.rangeRect.x + this.rangeRect.width,
-      this.frame.y,
-      this.frame.width - this.rangeRect.width,
-      this.rangeRect.height
-    );
+    // -----------------------绘制选择的阴影高度---------------------
+    if (sessionStorage.getItem('expand') === 'true') {
+      //展开
+      this.context2D.fillRect(
+        this.frame.x,
+        this.frame.y,
+        this.rangeRect.x,
+        this.rangeRect.height + Number(sessionStorage.getItem('foldHeight'))
+      );
+      this.context2D.fillRect(
+        this.rangeRect.x + this.rangeRect.width,
+        this.frame.y,
+        this.frame.width - this.rangeRect.width,
+        this.rangeRect.height + Number(sessionStorage.getItem('foldHeight'))
+      );
+    } else if (sessionStorage.getItem('expand') === 'false') {
+      this.context2D.fillRect(this.frame.x, this.frame.y, this.rangeRect.x, this.rangeRect.height);
+      this.context2D.fillRect(
+        this.rangeRect.x + this.rangeRect.width,
+        this.frame.y,
+        this.frame.width - this.rangeRect.width,
+        this.rangeRect.height
+      );
+    }
     this.context2D.globalAlpha = 1;
     this.context2D.closePath();
     this.markAObj.draw();
@@ -392,12 +427,7 @@ export class RangeRuler extends Graph {
     }
   }
 
-  private handleMovingMark(
-    move_x: number,
-    move_y: number,
-    maxX: number,
-    trace: SpSystemTrace
-  ): void {
+  private handleMovingMark(move_x: number, move_y: number, maxX: number, trace: SpSystemTrace): void {
     if (this.movingMark) {
       let result = move_x - this.mouseDownOffsetX + this.mouseDownMovingMarkX;
       if (result >= 0 && result <= maxX) {
@@ -515,6 +545,10 @@ export class RangeRuler extends Graph {
       if (currentSlicesTime) {
         this.currentSlicesTime = currentSlicesTime;
       }
+      this.isMouseDown = false;
+      this.isMovingRange = false;
+      this.isNewRange = false;
+      this.movingMark = null;
       this.cancelPressFrame();
       this.cancelUpFrame();
       this.pressedKeys.push(keyboardEvent.key.toLocaleLowerCase());
@@ -544,7 +578,7 @@ export class RangeRuler extends Graph {
       let startX = midX - 150;
       let endX = midX + 150;
       this.range.startNS = (endX * startTime - startX * endTime) / (endX - startX);
-      this.range.endNS = ((this.rulerW * (endTime - this.range.startNS)) + this.range.startNS * endX) / endX;
+      this.range.endNS = (this.rulerW * (endTime - this.range.startNS) + this.range.startNS * endX) / endX;
       this.fillX();
       this.draw();
       this.range.refresh = true;
@@ -567,6 +601,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f; //reg
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -591,6 +626,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -615,6 +651,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) {
         this.currentDuration = this.fixReg;
@@ -640,6 +677,7 @@ export class RangeRuler extends Graph {
         this.range.refresh = false;
         return;
       }
+      this.animaStartTime = this.animaStartTime || Date.now();
       this.currentDuration = (Date.now() - this.animaStartTime!) / this.f;
       if (this.currentDuration >= this.fixReg) this.currentDuration = this.fixReg;
       let bb = Math.tan((Math.PI / 180) * this.currentDuration);

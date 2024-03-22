@@ -15,7 +15,7 @@
 
 import { ColorUtils } from '../component/trace/base/ColorUtils';
 import { BaseStruct } from './BaseStruct';
-import { CpuStruct } from '../database/ui-worker/ProcedureWorkerCPU';
+import { CpuStruct } from '../database/ui-worker/cpu/ProcedureWorkerCPU';
 
 const padding = 1;
 

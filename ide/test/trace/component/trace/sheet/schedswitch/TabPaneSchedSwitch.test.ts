@@ -14,22 +14,34 @@
  */
 
 import '../../../../../../src/base-ui/table/lit-table';
+import '../../../../../../src/trace/component/trace/sheet/schedswitch/TabPaneSchedSwitch';
 import { TabPaneSchedSwitch } from '../../../../../../src/trace/component/trace/sheet/schedswitch/TabPaneSchedSwitch';
+import { SpSegmentationChart } from '../../../../../../src/trace/component/chart/SpSegmentationChart';
+import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
+import { TraceRow } from '../../../../../../src/trace/component/trace/base/TraceRow';
+import { CpuFreqExtendStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerFreqExtend';
+import { Utils } from '../../../../../../src/trace/component/trace/base/Utils';
 
 jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
   return {};
 });
-
-window.ResizeObserver =
-  window.ResizeObserver ||
-  jest.fn().mockImplementation(() => ({
-    disconnect: jest.fn(),
-    observe: jest.fn(),
-    unobserve: jest.fn(),
-  }));
-
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/trace/base/TraceSheet', () => {
+  return {};
+});
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
+  disconnect: jest.fn(),
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+}));
+const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 
 describe('TabPaneSchedSwitch Test', () => {
   let threadStatesParam = {
@@ -87,12 +99,26 @@ describe('TabPaneSchedSwitch Test', () => {
     }
   ];
   loopCut.mockResolvedValue(loopCutData);
-
+  Utils.PROCESS_MAP.set(15, '');
+  Utils.THREAD_MAP.set(589, '');
   let tabPaneSchedSwitch = new TabPaneSchedSwitch();
-  tabPaneSchedSwitch.schedSwitchTbl = jest.fn(() => {
-    return new LitTable();
-  });
+  tabPaneSchedSwitch.schedSwitchTbl.exportProgress = {
+    loading: ''
+  }
+  tabPaneSchedSwitch.chartTotal.offset = jest.fn(() => ({ x: 60, y: 20 }));
+  tabPaneSchedSwitch.selectionParam = {
+    rightNs: 1000,
+    recordStartNs: 200,
+    leftNs: 0
+  };
+  SpSegmentationChart.trace = new SpSystemTrace();
+  SpSegmentationChart.schedRow = new TraceRow<CpuFreqExtendStruct>();
+  tabPaneSchedSwitch.clickTableLabel = jest.fn();
   it('TabPaneSchedSwitchTest01', function () {
+    let htmlDivElement = document.createElement('div');
+    htmlDivElement.appendChild(tabPaneSchedSwitch);
+    SpSegmentationChart.setChartData = jest.fn();
+    SpSegmentationChart.tabHover = jest.fn();
     tabPaneSchedSwitch.data = threadStatesParam;
     expect(tabPaneSchedSwitch.schedSwitchTbl.loading).toBeFalsy();
   });
@@ -122,8 +148,6 @@ describe('TabPaneSchedSwitch Test', () => {
       cancelable: true,
       detail: {data: data}
     });
-    tabPaneSchedSwitch.schedSwitchTbl.clearAllSelection = jest.fn();
-    tabPaneSchedSwitch.schedSwitchTbl.setCurrentSelection = jest.fn();
     tabPaneSchedSwitch.clickTreeRowEvent(customEvent);
     expect(tabPaneSchedSwitch.cycleALeftInput.value).toEqual('');
   });
@@ -136,56 +160,102 @@ describe('TabPaneSchedSwitch Test', () => {
     let thirdInput = document.createElement('input');
     let fourInput = document.createElement('input');
     tabPaneSchedSwitch.checkInputRangeFn(firstInput, secondInput, thirdInput, fourInput, '2', '36');
-    expect(tabPaneSchedSwitch.getAttribute('isQueryButton')).toEqual('');
+    expect(tabPaneSchedSwitch.getAttribute('query-button')).toEqual('');
   });
 
   it('TabPaneSchedSwitchTest05', function () {
-    tabPaneSchedSwitch.data = threadStatesParam;
     tabPaneSchedSwitch.queryCutInfoFn('Single');
     expect(tabPaneSchedSwitch.threadIdInput.getAttribute('placeholder')).toEqual('Please input thread id');
   });
 
   it('TabPaneSchedSwitchTest06', function () {
-    tabPaneSchedSwitch.data = threadStatesParam;
     tabPaneSchedSwitch.threadIdInput.value = '12';
     tabPaneSchedSwitch.funcNameInput.value = 'name';
     tabPaneSchedSwitch.queryCutInfoFn('Single');
-    expect(tabPaneSchedSwitch.getAttribute('isSingleButton')).toEqual('');
+    expect(tabPaneSchedSwitch.getAttribute('isSingleButton')).toBeNull();
   });
 
   it('TabPaneSchedSwitchTest07', function () {
-    tabPaneSchedSwitch.data = threadStatesParam;
     tabPaneSchedSwitch.threadIdInput.value = '12';
     tabPaneSchedSwitch.funcNameInput.value = 'name';
     tabPaneSchedSwitch.queryCutInfoFn('Loop');
-    expect(tabPaneSchedSwitch.getAttribute('isLoopButton')).toEqual('');
+    expect(tabPaneSchedSwitch.getAttribute('isLoopButton')).toBeNull();
   });
 
   it('TabPaneSchedSwitchTest08', function () {
-    let groupItem = [{
-      count: 0,
-      cycleNum: 1,
-      duration: 125,
-      isHover: false,
-      isSelected: false,
-      cycle: 0,
-      level: '',
-      pid: -1,
-      process: '',
-      state: '',
-      status: false,
-      thread: '',
-      tid: -1,
-      title: '',
-      ts: '',
-      cycleStartTime: 152,
-      children: []
-    }];
-    expect(tabPaneSchedSwitch.addCycleNumber(groupItem)).toBeUndefined();
+    let firstInput = document.createElement('input');
+    firstInput.value = '11';
+    let secondInput = document.createElement('input');
+    secondInput.value = '22';
+    let thirdInput = document.createElement('input');
+    let fourInput = document.createElement('input');
+    tabPaneSchedSwitch.checkInputRangeFn(firstInput, secondInput, thirdInput, fourInput, '36', '2');
+    expect(tabPaneSchedSwitch.queryButton.style.pointerEvents).toEqual('none');
   });
 
   it('TabPaneSchedSwitchTest09', function () {
-    let data = [{
+    let firstInput = document.createElement('input');
+    firstInput.value = '';
+    let secondInput = document.createElement('input');
+    secondInput.value = '22';
+    let thirdInput = document.createElement('input');
+    let fourInput = document.createElement('input');
+    tabPaneSchedSwitch.checkInputRangeFn(firstInput, secondInput, thirdInput, fourInput, '36', '2');
+    expect(tabPaneSchedSwitch.queryButton.style.pointerEvents).toEqual('none');
+  });
+
+  it('TabPaneSchedSwitchTest10', function () {
+    let firstInput = document.createElement('input');
+    firstInput.value = '';
+    let secondInput = document.createElement('input');
+    secondInput.value = '';
+    let thirdInput = document.createElement('input');
+    thirdInput.value = 'third';
+    let fourInput = document.createElement('input');
+    fourInput.value = 'four';
+    tabPaneSchedSwitch.checkInputRangeFn(firstInput, secondInput, thirdInput, fourInput, '36', '2');
+    expect(tabPaneSchedSwitch.queryButton.style.pointerEvents).toEqual('auto');
+  });
+
+  it('TabPaneSchedSwitchTest11', function () {
+    let firstInput = document.createElement('input');
+    firstInput.value = '';
+    let secondInput = document.createElement('input');
+    secondInput.value = '';
+    let thirdInput = document.createElement('input');
+    thirdInput.value = '';
+    let fourInput = document.createElement('input');
+    fourInput.value = 'four';
+    tabPaneSchedSwitch.checkInputRangeFn(firstInput, secondInput, thirdInput, fourInput, '36', '2');
+    expect(tabPaneSchedSwitch.queryButton.style.pointerEvents).toEqual('none');
+  });
+
+  it('TabPaneSchedSwitchTest12', function () {
+    let data = {
+      title: 'title',
+      count: 6,
+      cycleNum: 1,
+      state: 'state',
+      tid: 122,
+      pid: 58,
+      thread: 'thread',
+      process: 'process',
+      cycleStartTime: 254,
+      duration: 2573,
+      level: 'process',
+      children: [],
+    };
+    let customEvent = new CustomEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      detail: {data: data}
+    });
+    tabPaneSchedSwitch.clickTreeRowEvent(customEvent);
+    expect(tabPaneSchedSwitch.cycleALeftInput.value).toEqual('');
+  });
+
+  it('TabPaneSchedSwitchTest12', function () {
+    let data = {
       title: 'title',
       count: 6,
       cycleNum: 1,
@@ -198,7 +268,13 @@ describe('TabPaneSchedSwitch Test', () => {
       duration: 2573,
       level: 'cycle',
       children: [],
-    }];
-    expect(tabPaneSchedSwitch.clickTreeTitleFn(data)).toBeUndefined();
+    };
+    let customEvent = new CustomEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      detail: {data: data}
+    });
+    tabPaneSchedSwitch.clickTreeRowEvent(customEvent);
+    expect(tabPaneSchedSwitch.cycleALeftInput.value).toEqual('');
   });
 });

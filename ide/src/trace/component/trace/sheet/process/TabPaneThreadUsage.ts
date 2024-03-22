@@ -63,7 +63,7 @@ export class TabPaneThreadUsage extends BaseElement {
     }
     //@ts-ignore
     this.threadUsageTbl?.shadowRoot?.querySelector('.table')?.style?.height =
-      `${this.parentElement!.clientHeight - 45  }px`;
+      `${this.parentElement!.clientHeight - 45}px`;
     // 框选区域内running的时间
     getTabRunningPersent(threadUsageParam.threadIds, threadUsageParam.leftNs, threadUsageParam.rightNs).then(
       (result) => {
@@ -72,8 +72,8 @@ export class TabPaneThreadUsage extends BaseElement {
         let leftStartNs = threadUsageParam.leftNs + threadUsageParam.recordStartNs;
         // 结束的时间rightEndNs
         let rightEndNs = threadUsageParam.rightNs + threadUsageParam.recordStartNs;
-        let sum = judgement(result, leftStartNs, rightEndNs);
-        this.range!.textContent = `Selected range: ${  (sum / 1000000.0).toFixed(5)  } ms`;
+        let sum = rightEndNs - leftStartNs;
+        this.range!.textContent = `Selected range: ${(sum / 1000000.0).toFixed(5)} ms`;
       }
     );
     this.threadUsageTbl!.loading = true;
@@ -85,20 +85,20 @@ export class TabPaneThreadUsage extends BaseElement {
     );
   }
 
-  private threadStatesCpuDataHandler(result: any[], threadUsageParam: SelectionParam | any): void{
+  private threadStatesCpuDataHandler(result: any[], threadUsageParam: SelectionParam | any): void {
     if (result !== null && result.length > 0) {
-      log(`getTabThreadStates result size : ${  result.length}`);
+      log(`getTabThreadStates result size : ${result.length}`);
       let filterArr = result.filter((it) => threadUsageParam.processIds.includes(it.pid));
+      let totalDurtion = 0;
+      filterArr.forEach((item) => {
+        totalDurtion = totalDurtion + item.wallDuration;
+      });
       let map: Map<number, any> = new Map<number, any>();
       for (let resultEl of filterArr) {
         if (threadUsageParam.processIds.includes(resultEl.pid)) {
           if (map.has(resultEl.tid)) {
             map.get(resultEl.tid)[`cpu${resultEl.cpu}`] = resultEl.wallDuration || 0;
             map.get(resultEl.tid)[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);
-            map.get(resultEl.tid)[`cpu${resultEl.cpu}Ratio`] = (
-              (100.0 * (resultEl.wallDuration || 0)) /
-              (threadUsageParam.rightNs - threadUsageParam.leftNs)
-            ).toFixed(2);
             map.get(resultEl.tid).wallDuration =
               map.get(resultEl.tid).wallDuration + (resultEl.wallDuration || 0);
             map.get(resultEl.tid).wallDurationTimeStr = getProbablyTime(map.get(resultEl.tid).wallDuration);
@@ -120,14 +120,15 @@ export class TabPaneThreadUsage extends BaseElement {
             }
             threadStatesStruct[`cpu${resultEl.cpu}`] = resultEl.wallDuration || 0;
             threadStatesStruct[`cpu${resultEl.cpu}TimeStr`] = getProbablyTime(resultEl.wallDuration || 0);
-            threadStatesStruct[`cpu${resultEl.cpu}Ratio`] = (
-              (100.0 * (resultEl.wallDuration || 0)) /
-              (threadUsageParam.rightNs - threadUsageParam.leftNs)
-            ).toFixed(2);
             map.set(resultEl.tid, threadStatesStruct);
           }
         }
       }
+      map.forEach((val) => {
+        for (let i = 0; i < this.cpuCount; i++){
+          val[`cpu${i}Ratio`] = (100.0 *val[`cpu${i}`]/val.wallDuration).toFixed(2);
+        }
+      })
       this.threadUsageSource = Array.from(map.values());
       this.threadUsageTbl!.recycleDataSource = this.threadUsageSource;
     } else {
@@ -230,7 +231,7 @@ export class TabPaneThreadUsage extends BaseElement {
 export function judgement(result: Array<any>, leftStart: any, rightEnd: any): number {
   let sum = 0;
   if (result !== null && result.length > 0) {
-    log(`getTabRunningTime result size : ${  result.length}`);
+    log(`getTabRunningTime result size : ${result.length}`);
     let rightEndNs = rightEnd;
     let leftStartNs = leftStart;
     // 尾部running的结束时间

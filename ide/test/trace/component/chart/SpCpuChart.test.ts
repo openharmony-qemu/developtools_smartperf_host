@@ -13,13 +13,19 @@
  * limitations under the License.
  */
 
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpCpuChart } from '../../../../src/trace/component/chart/SpCpuChart';
 import { HeapNode } from '../../../../src/js-heap/model/DatabaseStruct';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
-
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlit = require('../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../src/trace/database/sql/Cpu.sql');
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -30,12 +36,13 @@ window.ResizeObserver =
 
 jest.mock('../../../../src/js-heap/utils/Utils', () => {
   return {
-    HeapNodeToConstructorItem: (node: HeapNode) => {},
+    HeapNodeToConstructorItem: (node: HeapNode) => {
+    },
   };
 });
 describe('SpCpuChart Test', () => {
   let MockqueryCpuMax = sqlit.queryCpuMax;
-  MockqueryCpuMax.mockResolvedValue([{ cpu: 1 }]);
+  MockqueryCpuMax.mockResolvedValue([{cpu: 1}]);
 
   let mockCpuSlice = sqlit.queryCpuSchedSlice;
   mockCpuSlice.mockResolvedValue([]);
@@ -46,8 +53,8 @@ describe('SpCpuChart Test', () => {
       cpu: 3,
     },
   ]);
-  let ss = new SpChartManager();
-  let trace = new SpCpuChart(ss);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let trace = new SpCpuChart(htmlElement);
   it('SpMpsChart01', async function () {
     await trace.init();
     expect(trace).toBeDefined();

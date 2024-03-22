@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
-
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import {
   HeapTimelineRender,
   HeapTimelineStruct,
   HeapTimeline,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerHeapTimeline';
-
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerHeapTimeline Test', () => {
   it('HeapTimelineTest', () => {
     const heapTimelineCanvas = document.createElement('canvas');
@@ -83,5 +84,32 @@ describe('ProcedureWorkerHeapTimeline Test', () => {
       height: 100,
     };
     expect(HeapTimelineStruct.setFrame(1, 2, 1, data, 0, 2, 2, frame)).toBeUndefined();
+  });
+  it('HeapTimelineStructTest03 ', function () {
+    let heapTimelineRender = new HeapTimelineRender();
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const data = {
+      frame: {
+        x: 240,
+        y: 230,
+        width: 100,
+        height: 110,
+      },
+      context: {
+        globalAlpha: 0.6,
+        measureText: jest.fn(() => true),
+        clearRect: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => false),
+        beginPath: jest.fn(() => true),
+        fillRect: jest.fn(() => false),
+        fillText: jest.fn(() => true),
+      },
+      startNS: 200,
+      value: 50,
+    };
+    expect(heapTimelineRender.renderMainThread(data,new TraceRow<HeapTimelineStruct>())).toBeUndefined()
   });
 });

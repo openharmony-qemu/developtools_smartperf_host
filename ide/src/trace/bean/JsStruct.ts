@@ -46,7 +46,7 @@ export class JsCpuProfilerUIStruct {
     this.urlId = urlId;
     this.line = line;
     this.column = column;
-    this.scriptName = '';
+    this.scriptName = 'unknown';
   }
 }
 
@@ -113,7 +113,7 @@ export class JsCpuProfilerTabStruct extends JsCpuProfilerUIStruct {
     super(id, nameId, depth, selfTime, totalTime, urlId, line, column);
     this.chartFrameChildren = new Array<JsCpuProfilerChartFrame>();
     this.children = new Array<JsCpuProfilerTabStruct>();
-    this.scriptName = scriptName;
+    this.scriptName = scriptName || 'unknown';
   }
 }
 

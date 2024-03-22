@@ -118,8 +118,9 @@ export function jank(
   }
 }
 
-export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, jankClickHandler: any) {
+export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, row: TraceRow<any>,jankClickHandler: any) {
   return new Promise((resolve, reject) => {
+    JankStruct.hoverJankStruct = JankStruct.hoverJankStruct || row.getHoverStruct();
     if (clickRowType === TraceRow.ROW_TYPE_JANK && JankStruct.hoverJankStruct) {
       JankStruct.selectJankStructList.length = 0;
       sp.removeLinkLinesByBusinessType('janks');
@@ -142,7 +143,7 @@ export function JankStructOnClick(clickRowType: string, sp: SpSystemTrace, jankC
         },
         jankClickHandler
       );
-      reject();
+      reject(new Error());
     } else {
       resolve(null);
     }

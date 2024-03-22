@@ -15,8 +15,8 @@
 
 import { TabPaneDmaVmTracker } from '../../../../../../src/trace/component/trace/sheet/vmtracker/TabPaneDmaVmTracker';
 
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Dma.sql');
+jest.mock('../../../../../../src/trace/database/sql/Dma.sql');
 
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 

@@ -274,7 +274,11 @@ function taskPoolOtherRelationData(
   relationDataList: FuncStruct[],
   res: any
 ): void {
+  sp.clearPointPair();
   selectRow!.fixedList = relationDataList;
+  if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
+    return;
+  }
   relationDataList.forEach((value) => {
     TabPaneTaskFrames.TaskArray.push(value);
     // allocation to execute
@@ -283,7 +287,6 @@ function taskPoolOtherRelationData(
     const selectRowY = selectRow?.translateY!;
     const selectStartTs = FuncStruct.selectFuncStruct!.startTs!;
     const selectDur = FuncStruct.selectFuncStruct!.dur!;
-
     if (value.id === res[0].allocation_task_row) {
       sp.addPointPair(
         sp.makePoint(value.startTs!, 0, selectRowY, selectRow, offSetY, 'task', LineType.bezierCurve, true),
@@ -306,6 +309,10 @@ function taskPoolRelationDataAllocation(
   relationDataList: FuncStruct[],
   res: any
 ): void {
+  sp.clearPointPair();
+  if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
+    return;
+  }
   let executeStruct = relationDataList.filter((item) => item.id === res[0].execute_task_row)[0];
   relationDataList.forEach((value) => {
     const selectY = (FuncStruct.selectFuncStruct!.depth! + 0.5) * 20;
@@ -344,6 +351,10 @@ function taskPoolRelationDataPerformTask(
   relationDataList: FuncStruct[],
   res: any
 ): void {
+  sp.clearPointPair();
+  if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
+    return;
+  }
   let executeStruct = relationDataList.filter((item) => item.id === res[0].execute_task_row)[0];
   relationDataList.forEach((value) => {
     const executeRowY = executeRow?.translateY!;
@@ -378,7 +389,11 @@ function taskPoolRelationDataPerformTask(
 
 function taskAllocationOrPerformTask(sp: SpSystemTrace, row: TraceRow<any>, executeID: string): void {
   TabPaneTaskFrames.IsShowConcurrency = false;
+  sp.clearPointPair();
   queryBySelectAllocationOrReturn(executeID, FuncStruct.selectFuncStruct!.itid!).then((res) => {
+    if (!FuncStruct.selectFuncStruct) {
+      return;
+    }
     if (FuncStruct.selectFuncStruct!.funName!.indexOf('H:Task Allocation:') >= 0 && res.length > 0) {
       let executeRow = sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
         `trace-row[row-id='${res[0].tid}'][row-type='func']`
@@ -422,14 +437,17 @@ function taskAllocationOrPerformTask(sp: SpSystemTrace, row: TraceRow<any>, exec
 }
 
 export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<any>): void {
-  let executeID = TabPaneTaskFrames.getExecuteId(FuncStruct.selectFuncStruct!.funName!);
+  if (FuncStruct.selectFuncStruct === undefined || FuncStruct.selectFuncStruct === null) {
+    return;
+  }
+  let relationId = TabPaneTaskFrames.getRelationId(FuncStruct.selectFuncStruct!.funName!);
   TabPaneTaskFrames.TaskArray.push(FuncStruct.selectFuncStruct!);
   if (!row) {
     return;
   }
   if (FuncStruct.selectFuncStruct!.funName!.indexOf('H:Task Perform:') >= 0) {
     TabPaneTaskFrames.IsShowConcurrency = true;
-    queryBySelectExecute(executeID, FuncStruct.selectFuncStruct!.itid!).then((res) => {
+    queryBySelectExecute(relationId, FuncStruct.selectFuncStruct!.itid!).then((res) => {
       if (res.length === 1) {
         let allocationRowId = res[0].tid;
         let selectRow = sp.shadowRoot?.querySelector<TraceRow<FuncStruct>>(
@@ -457,51 +475,40 @@ export function spSystemTraceDrawTaskPollLine(sp: SpSystemTrace, row?: TraceRow<
       }
     });
   } else {
-    taskAllocationOrPerformTask(sp, row, executeID);
+    taskAllocationOrPerformTask(sp, row, relationId);
   }
 }
 
-function jankPoint(
-  endRowStruct: any,
-  data: any,
-  sp: SpSystemTrace,
-  selectThreadStruct: ThreadStruct,
-  startRow: any,
-  endParentRow: any
-): void {
-  if (endRowStruct) {
-    let findJankEntry = endRowStruct!.dataListCache!.find(
-      (dat: any) => dat.startTime == data.startTime && dat.dur! > 0
+
+function jankPoint(endRowStruct: any, selectThreadStruct: ThreadStruct, startRow: any, endParentRow: any, sp: SpSystemTrace) {
+  let findJankEntry = endRowStruct!.fixedList[0];
+  let ts: number = 0;
+  if (findJankEntry) {
+    ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct);
+    const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
+    sp.addPointPair(
+      sp.makePoint(
+        ns2xByTimeShaft(ts, sp.timerShaftEL!),
+        ts,
+        startY,
+        startRowEl!,
+        startOffSetY,
+        'thread',
+        LineType.straightLine,
+        selectThreadStruct.startTime == ts
+      ),
+      sp.makePoint(
+        ns2xByTimeShaft(findJankEntry.startTime!, sp.timerShaftEL!),
+        findJankEntry.startTime!,
+        endY,
+        endRowEl,
+        endOffSetY,
+        'thread',
+        LineType.straightLine,
+        true
+      )
     );
-    let ts: number = 0;
-    if (findJankEntry) {
-      ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
-      const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct);
-      const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
-      sp.addPointPair(
-        sp.makePoint(
-          ns2xByTimeShaft(ts, sp.timerShaftEL!),
-          ts,
-          startY,
-          startRowEl!,
-          startOffSetY,
-          'thread',
-          LineType.straightLine,
-          selectThreadStruct.startTime == ts
-        ),
-        sp.makePoint(
-          ns2xByTimeShaft(findJankEntry.startTime!, sp.timerShaftEL!),
-          findJankEntry.startTime!,
-          endY,
-          endRowEl,
-          endOffSetY,
-          'thread',
-          LineType.straightLine,
-          true
-        )
-      );
-      sp.refreshCanvas(true);
-    }
   }
 }
 
@@ -511,22 +518,29 @@ export function spSystemTraceDrawThreadLine(
   selectThreadStruct: ThreadStruct | undefined,
   data: any
 ): void {
-  const collectList = sp.favoriteChartListEL!.getCollectRows();
-  if (!selectThreadStruct) {
+  let collectList = sp.favoriteChartListEL!.getCollectRows();
+  if (selectThreadStruct == undefined || selectThreadStruct == null) {
     return;
   }
-  const selectRowId = selectThreadStruct?.tid;
+  let selectRowId = selectThreadStruct?.tid;
   let startRow = sp.getStartRow(selectRowId, collectList);
-  if (!endParentRow) {
-    return;
+
+  if (endParentRow) {
+    endParentRow.expansion = true;
+    let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+      `trace-row[row-id='${data.tid}'][row-type='thread']`
+    );
+    if (!endRowStruct) {
+      endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
+        return item.rowId === `${data.tid}` && item.rowType === 'thread';
+      });
+    }
+    if (endRowStruct) {
+      if (endRowStruct.isComplete) {
+        jankPoint(endRowStruct, selectThreadStruct, startRow, endParentRow, sp);
+      }
+    }
   }
-  let endRowStruct: any = sp.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-    `trace-row[row-id='${data.tid}'][row-type='thread']`
-  );
-  if (!endRowStruct) {
-    endRowStruct = endParentRow.childrenList.find((item: TraceRow<ThreadStruct>) => {
-      return item.rowId === `${data.tid}` && item.rowType === 'thread';
-    });
-  }
-  jankPoint(endParentRow, data, sp, selectThreadStruct, startRow, endParentRow);
 }
+
+

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneDmaAbilityComparison } from '../../../../../../src/trace/component/trace/sheet/ability/TabPaneDmaAbilityComparison';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const dmaSqlite = require('../../../../../../src/trace/database/sql/Dma.sql');
+jest.mock('../../../../../../src/trace/database/sql/Dma.sql');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
     return {};
 });
@@ -41,7 +41,7 @@ window.ResizeObserver =
 
 describe('TabPaneDmaAbilityComparison Test', () => {
     let tabPaneDmaComparisonAbility = new TabPaneDmaAbilityComparison();
-    let getTabDmaAbilityComparisonData = sqlite.getTabDmaAbilityComparisonData;
+    let getTabDmaAbilityComparisonData = dmaSqlite.getTabDmaAbilityComparisonData;
     let dmaSelectionData = [
         {
             startNs: 0,

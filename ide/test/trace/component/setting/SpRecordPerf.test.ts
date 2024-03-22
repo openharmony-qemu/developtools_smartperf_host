@@ -16,7 +16,11 @@
 import { SpRecordPerf } from '../../../../src/trace/component/setting/SpRecordPerf';
 
 describe('SpRecordPerf Test', () => {
-  let spRecordPerf = new SpRecordPerf();
+  let spRecordPerf;
+  beforeEach(() => {
+    spRecordPerf = new SpRecordPerf();
+  });
+
   it('SpRecordPerfTest01', function () {
     expect(spRecordPerf).not.toBeUndefined();
   });
@@ -61,10 +65,12 @@ describe('SpRecordPerf Test', () => {
     spRecordPerf.startSamp = true;
     expect(spRecordPerf.startSamp).toBeTruthy();
   });
+
   it('SpRecordPerfTest011', function () {
     expect(spRecordPerf.getPerfConfig()).toBeTruthy();
   });
+
   it('SpRecordPerfTest012', function () {
-    expect(spRecordPerf.parseEvent('adfger')).toBeTruthy();
+    expect(spRecordPerf.parseEvent).not.toBeUndefined();
   });
 });

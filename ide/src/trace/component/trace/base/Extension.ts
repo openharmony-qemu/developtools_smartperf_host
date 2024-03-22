@@ -68,6 +68,7 @@ declare global {
         KeyPath: string;
         LoadFinish: string;
         LoadFinishFrame: string;
+        ShowBottomTab: string;
       };
     };
 
@@ -127,6 +128,7 @@ window.SmartEvent = {
     KeyPath: 'SmartEvent-UI-UploadKeyPath',
     LoadFinish: 'SmartEvent-UI-LoadFinish',//所有泳道刷新完成触发
     LoadFinishFrame: 'SmartEvent-UI-LoadFinishFrame',//单个泳道刷新完成触发
+    ShowBottomTab: 'SmartEvent-UI-ShowBottomTab',// 显示底部 tab
   },
 };
 Window.prototype.subscribe = (ev, fn) => EventCenter.subscribe(ev, fn);

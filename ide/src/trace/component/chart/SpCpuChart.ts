@@ -55,7 +55,7 @@ export class SpCpuChart {
           traceRow.rowId = `${cpuId}`;
           traceRow.rowType = TraceRow.ROW_TYPE_CPU;
           traceRow.rowParentId = '';
-          traceRow.style.height = '40px';
+          traceRow.style.height = '30px';
           traceRow.name = `Cpu ${cpuId}`;
           traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
           traceRow.selectChangeHandler = this.trace.selectChangeHandler;

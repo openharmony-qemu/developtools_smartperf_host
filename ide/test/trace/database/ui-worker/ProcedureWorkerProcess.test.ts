@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
   return {};
 });
-
 import {
   proc,
   ProcessStruct,
@@ -112,53 +114,19 @@ describe(' ProcessTest', () => {
     };
     expect(ProcessStruct.setFrame(node, 1, 1, 1, frame)).toBeUndefined();
   });
-
-  it('ProcessTest06', function () {
+  it('ProcessTest06 ', function () {
     let processRender = new ProcessRender();
-    let processReq = {
-      lazyRefresh: true,
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
       type: '',
-      startNS: 15,
-      endNS: 16,
-      totalNS: 1,
-      frame: {
-        x: 55,
-        y: 55,
-        width: 125,
-        height: 105,
-      },
-      useCache: false,
-      range: {
-        refresh: '',
-      },
-      canvas: 'a',
-      context: {
-        font: '11px sans-serif',
-        fillStyle: '#26e2c5',
-        globalAlpha: 0.7,
-        clearRect: jest.fn(() => true),
-        beginPath: jest.fn(() => false),
-        closePath: jest.fn(() => true),
-        measureText: jest.fn(() => true),
-        fillRect: jest.fn(() => true),
-        stroke: jest.fn(() => []),
-        fill: jest.fn(() => true),
-      },
-      lineColor: '#a50101',
-      isHover: '',
-      hoverX: 34,
-      params: '',
-      wakeupBean: undefined,
-      flagMoveInfo: '',
-      flagSelectedInfo: '',
-      slicesTime: 55,
-      id: 1,
-      x: 20,
-      y: 20,
-      width: 123,
-      height: 123,
+      traceRange: [],
     };
     window.postMessage = jest.fn(() => true);
-    expect(processRender.render(processReq, [], [])).toBeUndefined();
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range.startNS = jest.fn(() => 2);
+    expect(processRender.renderMainThread(data,new TraceRow<ProcessStruct>()))
   });
 });

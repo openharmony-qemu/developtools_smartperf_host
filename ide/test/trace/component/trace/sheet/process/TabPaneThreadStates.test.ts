@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import { TabPaneThreadStates } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneThreadStates';
 
 window.ResizeObserver =
@@ -24,8 +23,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });

@@ -13,14 +13,30 @@
  * limitations under the License.
  */
 import { SpArkTsChart } from '../../../../src/trace/component/chart/SpArkTsChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 
-const sqlite = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../src/trace/database/sql/Cpu.sql');
+const JsMemory = require('../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../src/trace/database/sql/Memory.sql');
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
 
-describe('SpClockChart Test', () => {
-  let arkTsChart = new SpArkTsChart(new SpChartManager());
-
+describe('SpArkTsChart Test', () => {
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let arkTsChart = new SpArkTsChart(htmlElement);
   let jsCpuProfilerConfig = sqlite.queryJsCpuProfilerConfig;
   let cpuProfilerConfigData = [
     {
@@ -39,17 +55,17 @@ describe('SpClockChart Test', () => {
   ];
   jsCpuProfiler.mockResolvedValue(cpuProfilerData);
 
-  let jsMemory = sqlite.queryJsMemoryData;
+  let jsMemory = JsMemory.queryJsMemoryData;
   let jsMemoryData = [{}];
   jsMemory.mockResolvedValue(jsMemoryData);
 
-  it('SpClockChart01', function () {
+  it('SpArkTsChart01', function () {
     expect(arkTsChart.initFolder()).not.toBeUndefined();
   });
-  it('SpClockChart02', function () {
+  it('SpArkTsChart02', function () {
     expect(arkTsChart.initTimelineChart()).not.toBeUndefined();
   });
-  it('SpClockChart03', function () {
+  it('SpArkTsChart03', function () {
     expect(arkTsChart.initSnapshotChart()).not.toBeUndefined();
   });
 });

@@ -12,14 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
 jest.mock('../../../../src/trace/component/trace/base/ColorUtils', () => {
   return {};
 });
-
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
 import { TimerShaftElement, ns2s, ns2x } from '../../../../src/trace/component/trace/TimerShaftElement';
 import { Rect } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 

@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,26 @@
  * limitations under the License.
  */
 
-import { queryCpuCount } from '../../../../src/trace/database/SqlLite';
-
-window.ResizeObserver = window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-    }));
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+ jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+   return {};
+ });
 import { SpFreqChart } from '../../../../src/trace/component/chart/SpFreqChart';
-
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlit = require('../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../src/trace/database/sql/Cpu.sql');
+ const intersectionObserverMock = () => ({
+   observe: () => null,
+ });
+ window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+ window.ResizeObserver = window.ResizeObserver ||
+   jest.fn().mockImplementation(() => ({
+     disconnect: jest.fn(),
+     observe: jest.fn(),
+     unobserve: jest.fn(),
+   }));
 describe('spFpsChart Test', () => {
-  let spFpsChart = new SpFreqChart(new SpChartManager());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spFpsChart = new SpFreqChart(htmlElement);
 
   let mockGetCpuLimitFreq = sqlit.getCpuLimitFreq;
   mockGetCpuLimitFreq.mockResolvedValue([

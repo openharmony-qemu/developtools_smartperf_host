@@ -15,8 +15,8 @@
 
 import { TabPaneVirtualMemoryStatistics } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics';
 import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVirtualMemoryStatistics';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../../../src/trace/database/sql/Memory.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -57,6 +57,7 @@ describe('TabPaneVirtualMemoryStatistics Test', () => {
     expect(tabPaneVirtualMemoryStatistics).toBeDefined();
   });
   it('TabPaneVirtualMemoryStatisticsTest02', function () {
+    tabPaneVirtualMemoryStatistics.theadClick = jest.fn(() => true);
     expect(tabPaneVirtualMemoryStatistics.queryDataByDB(val)).toBeUndefined();
   });
 });

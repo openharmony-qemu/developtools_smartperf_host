@@ -17,22 +17,21 @@ import crypto from 'crypto';
 
 import {
   TabPaneNMemory,
-  initFilterTypes,
 } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMemory';
 import { TabPaneNMSampleList } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMSampleList';
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
-import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
-import {
-  queryNativeHookEventTid,
-  queryNativeHookSnapshotTypes,
-} from '../../../../../../src/trace/database/SqlLite';
-
+const sqlit = require('../../../../../../src/trace/database/sql/NativeHook.sql');
+jest.mock('../../../../../../src/trace/database/sql/NativeHook.sql');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 Object.defineProperty(global.self, 'crypto', {
   value: {
     getRandomValues: (arr: string | any[]) => crypto.randomBytes(arr.length),
@@ -69,7 +68,6 @@ describe('TabPaneNMemory Test', () => {
         subType: '',
       },
     ]);
-    let tab = new TabPaneNMSampleList();
     tabPaneNMemory.startWorker = jest.fn(() => true);
     expect(tabPaneNMemory.initFilterTypes()).toBeUndefined();
   });

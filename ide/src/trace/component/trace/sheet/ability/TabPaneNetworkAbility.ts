@@ -34,7 +34,7 @@ export class TabPaneNetworkAbility extends BaseElement {
   set data(networkAbilityValue: SelectionParam | any) {
     if (this.networkAbilityTbl) {
       // @ts-ignore
-      this.networkAbilityTbl.shadowRoot.querySelector('.table').style.height =
+      this.networkAbilityTbl.shadowRoot?.querySelector('.table').style.height =
         this.parentElement!.clientHeight - 45 + 'px';
     }
     this.queryDataByDB(networkAbilityValue);

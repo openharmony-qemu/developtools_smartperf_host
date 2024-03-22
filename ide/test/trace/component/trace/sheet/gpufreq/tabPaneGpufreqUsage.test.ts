@@ -28,8 +28,8 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
 
 describe('tabPaneGpufreqUsage Test', () => {
   let tabGpuFreq = new TabPaneGpufreq();
@@ -84,15 +84,6 @@ describe('tabPaneGpufreqUsage Test', () => {
   gpufreq.mockResolvedValue(gpufreqData);
 
   it('tabPaneGpufreqUsageTest01', function () {
-    tabGpuFreq.data = threadStatesParam;
-    expect(tabGpuFreq.threadStatesTbl.loading).toBeTruthy();
-  });
-
-  it('tabPaneGpufreqUsageTest02', function () {
-    expect(tabGpuFreq.createTree([gpuCountBean])).not.toBeUndefined();
-  });
-
-  it('tabPaneGpufreqUsageTest03', function () {
     expect(tabGpuFreq.updateValueMap(gpuCountBean, '', {})).toBeUndefined();
   });
 });

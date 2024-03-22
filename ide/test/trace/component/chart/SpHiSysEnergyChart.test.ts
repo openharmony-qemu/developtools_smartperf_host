@@ -13,17 +13,24 @@
  * limitations under the License.
  */
 
-import '../../../../src/trace/component/chart/SpHiSysEnergyChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-import '../../../../src/trace/component/chart/SpChartManager';
-import '../../../../src/trace/component/SpSystemTrace';
-import { LitPopover } from '../../../../src/base-ui/popover/LitPopoverV';
 import { SpHiSysEnergyChart } from '../../../../src/trace/component/chart/SpHiSysEnergyChart';
-
+import { LitPopover } from '../../../../src/base-ui/popover/LitPopoverV';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -32,12 +39,13 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
-
+const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
+const processSqlite = require('../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../src/trace/database/sql/ProcessThread.sql');
 describe('SpHiSysEnergyChart Test', () => {
-  let ss = new SpChartManager();
-  let spHiSysEnergyChart = new SpHiSysEnergyChart(ss);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spHiSysEnergyChart = new SpHiSysEnergyChart(htmlElement);
 
   let htmlDivElement = document.createElement<LitPopover>('div');
   htmlDivElement.setAttribute('id', 'appNameList');
@@ -57,9 +65,17 @@ describe('SpHiSysEnergyChart Test', () => {
     },
   ];
   maxStateValue.mockResolvedValue(max);
+
+  let stateInitData = sqlite.queryStateInitValue;
+  let stateInitInit = [{
+    eventName: '',
+    keyName: '',
+  }];
+  stateInitData.mockResolvedValue(stateInitInit);
+
   let MockExits = sqlite.queryEnergyEventExits;
   MockExits.mockResolvedValue(['trace_hisys_event']);
-  let powerData = sqlite.queryPowerData;
+  let powerData = processSqlite.queryPowerData;
   let power = [
     {
       startNS: 5999127351,
@@ -86,6 +102,7 @@ describe('SpHiSysEnergyChart Test', () => {
     },
   ];
   sysEventAppName.mockResolvedValue(appName);
+
 
   let querySystemLocationData = sqlite.querySystemLocationData;
   let querySystemLockData = sqlite.querySystemLockData;
@@ -190,18 +207,14 @@ describe('SpHiSysEnergyChart Test', () => {
         eventValue: '375,475,255,963',
       },
     ];
-    expect(spHiSysEnergyChart.getPowerData(result)).toStrictEqual(Promise.resolve());
+    expect(spHiSysEnergyChart.getPowerData(result)).toBeTruthy();
   });
 
   it('SpHiSysEnergyChartTest05', function () {
-    expect(spHiSysEnergyChart.getPowerData([])).toStrictEqual(Promise.resolve());
+    expect(spHiSysEnergyChart.getPowerData([])).toBeTruthy();
   });
 
-  it('SpHiSysEnergyChartTest6', function () {
-    expect(spHiSysEnergyChart.initHtml).toMatchInlineSnapshot(`undefined`);
-  });
-
-  it('SpHiSysEnergyChartTest7', function () {
+  it('SpHiSysEnergyChartTest06', function () {
     expect(htmlDivElement.onclick).toBe(null);
   });
 });

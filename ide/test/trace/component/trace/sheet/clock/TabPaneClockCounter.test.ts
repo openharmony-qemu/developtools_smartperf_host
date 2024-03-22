@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 import { TabPaneClockCounter } from '../../../../../../src/trace/component/trace/sheet/clock/TabPaneClockCounter';
-jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -28,7 +29,6 @@ window.ResizeObserver =
   }));
 
 describe('TabPaneClockCounter Test', () => {
-  let clockCounter = null;
   let map = new Map();
   map.set('clock', [
     {
@@ -44,10 +44,8 @@ describe('TabPaneClockCounter Test', () => {
     rightNs: 1252,
     clockMapData: map,
   };
-  beforeEach(() => {
-    document.body.innerHTML = `<lit-table id="tb-counter"></lit-table>`;
-    clockCounter = document.querySelector('#tb-counter') as TabPaneClockCounter;
-  });
+  document.body.innerHTML = `<lit-table id="tb-counter"></lit-table>`;
+  let clockCounter = document.querySelector('#tb-counter') as TabPaneClockCounter;
 
   it('TabPaneClockCounterTest01', function () {
     clockCounter.data = clockCounterData;

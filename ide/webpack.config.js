@@ -25,6 +25,8 @@ const childProcess = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
 
+const supportPlatform = ['windows', 'linux', 'darwin'];
+
 function runCommand(command) {
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, stderr) => {
@@ -46,12 +48,14 @@ function cpFile(sourcePath, targetPath) {
     files.forEach((file) => {
       const source = `${sourcePath}/${file}`;
       const target = `${targetPath}/${file}`;
-      fs.copyFile(source, target, (err) => {
-        if (err) {
-          console.error('无法复制文件', err);
-          return;
-        }
-      });
+      if (fs.lstatSync(source).isFile()) {
+        fs.copyFile(source, target, (err) => {
+          if (err) {
+            console.error('无法复制文件', err);
+            return;
+          }
+        });
+      }
     });
   });
 }
@@ -67,9 +71,27 @@ function clearDirectory(directoryPath) {
       if (fs.lstatSync(filePath).isDirectory()) {
         return;
       } else {
-        fs.unlinkSync(filePath); // 删除文件
+        try {
+          fs.unlinkSync(filePath); // 删除文件
+        } catch {
+          console.log(`can't del file ${filePath}`);
+        }
       }
     });
+  }
+}
+
+function buildMultiPlatform() {
+  const outPath = path.normalize(path.join(__dirname, '/', 'dist'));
+  const serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
+  for (const platform of supportPlatform) {
+    const generateFile = platform === 'windows' ?
+        path.normalize(path.join(outPath, '/', `main.exe`)) :
+        path.normalize(path.join(outPath, '/', `main_${platform}`));
+    const setEnv = `go env -w CGO_ENABLED=0 && go env -w GOOS=${platform} && go env -w GOARCH=amd64`;
+    const buildCmd = `${setEnv} && go build -o ${generateFile} ${serverSrc}`;
+    console.log(`compile ${platform} server ...`);
+    childProcess.execSync(buildCmd);
   }
 }
 
@@ -81,27 +103,12 @@ const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader
   }
   console.log('start compile server');
   let outPath = path.normalize(path.join(__dirname, '/', 'dist'));
-  let serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
   let binPath = path.normalize(path.join(__dirname, '/', 'bin'));
   clearDirectory(outPath);
   cpFile(binPath, outPath);
   const protoPath = './src/trace/proto/';
   runCommand(`pbjs -t static-module -w commonjs -o ${protoPath}SphBaseData.js  ${protoPath}SphBaseData.proto`);
-  let rs;
-  if (os.type() === 'Windows_NT') {
-    rs = childProcess.spawnSync('go', ['build', '-o', outPath, serverSrc], {
-      encoding: 'utf-8',
-    });
-  } else {
-    rs = childProcess.spawnSync('go', ['build', '-o', outPath + '/main', serverSrc], {
-      encoding: 'utf-8',
-    });
-  }
-  if (rs.status === 0) {
-    console.log('compile server success');
-  } else {
-    console.error('compile server failed', rs);
-  }
+  buildMultiPlatform();
 })(true);
 const config = {
   entry: './src/index.ts',
@@ -159,6 +166,10 @@ const config = {
         {
           from: './server/wasm.json',
           to: 'wasm.json',
+        },
+        {
+          from: './server/server-config.txt',
+          to: 'server-config.txt',
         },
       ],
     }),

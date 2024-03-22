@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,17 +23,17 @@ class TaskPoolInfo : public CacheBase {
 public:
     size_t AppendAllocationTaskData(uint32_t allocationTaskRow,
                                     uint32_t allocationItid,
-                                    uint32_t executeId,
+                                    uint64_t taskIds,
                                     uint32_t priority,
                                     uint32_t executeState);
-    size_t AppendExecuteTaskData(uint32_t executeTaskRow, uint32_t executeItid, uint32_t executeId);
-    size_t AppendReturnTaskData(uint32_t returnTaskRow, uint32_t returnItid, uint32_t executeId, uint32_t returnState);
+    size_t AppendExecuteTaskData(uint32_t executeTaskRow, uint32_t executeItid, uint64_t taskIds);
+    size_t AppendReturnTaskData(uint32_t returnTaskRow, uint32_t returnItid, uint64_t taskIds, uint32_t returnState);
     void UpdateAllocationTaskData(uint32_t index,
                                   uint32_t allocationTaskRow,
                                   uint32_t allocationItid,
                                   uint32_t priority,
                                   uint32_t executeState);
-    void UpdateExecuteTaskData(uint32_t index, uint32_t executeTaskRow, uint32_t executeItid);
+    void UpdateExecuteTaskData(uint32_t index, uint32_t executeTaskRow, uint64_t executeItid);
     void UpdateReturnTaskData(uint32_t index, uint32_t returnTaskRow, uint32_t returnItid, uint32_t returnState);
     void AppendTimeoutRow(uint32_t index, uint32_t timeoutRow);
 
@@ -43,7 +43,7 @@ public:
     const std::deque<uint32_t>& AllocationItids() const;
     const std::deque<uint32_t>& ExecuteItids() const;
     const std::deque<uint32_t>& ReturnItids() const;
-    const std::deque<uint32_t>& ExecuteIds() const;
+    const std::deque<uint64_t>& TaskIds() const;
     const std::deque<uint32_t>& Prioritys() const;
     const std::deque<uint32_t>& ExecuteStates() const;
     const std::deque<uint32_t>& ReturnStates() const;
@@ -57,7 +57,7 @@ public:
         allocationItids_.clear();
         executeItids_.clear();
         returnItids_.clear();
-        executeIds_.clear();
+        taskIds_.clear();
         prioritys_.clear();
         executeStates_.clear();
         returnStates_.clear();
@@ -71,7 +71,7 @@ private:
     std::deque<uint32_t> allocationItids_ = {};
     std::deque<uint32_t> executeItids_ = {};
     std::deque<uint32_t> returnItids_ = {};
-    std::deque<uint32_t> executeIds_ = {};
+    std::deque<uint64_t> taskIds_ = {};
     std::deque<uint32_t> prioritys_ = {};
     std::deque<uint32_t> executeStates_ = {};
     std::deque<uint32_t> returnStates_ = {};

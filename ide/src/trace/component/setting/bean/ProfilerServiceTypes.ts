@@ -458,6 +458,9 @@ export interface NativeHookConfig {
   sampleInterval?: number;
   expandPids?: number[];
   responseLibraryMode?: boolean;
+  jsStackReport?: boolean;
+  maxJsStackDepth?: number;
+  filterNapiName?: string;
 }
 
 export interface FpsConfig {

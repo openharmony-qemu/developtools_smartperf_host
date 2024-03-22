@@ -142,7 +142,7 @@ export function HeapStructOnClick(clickRowType: string, sp: SpSystemTrace, row: 
       }
       sp.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct, row.rowId!, ipid);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

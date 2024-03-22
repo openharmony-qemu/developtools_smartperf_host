@@ -1032,10 +1032,30 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
     }
   }
+
+  private extractSymbolAndPath(node: NativeHookCallInfo, str?: string): void {
+    node.symbol = 'unknown';
+    if (!str) {
+      return;
+    }
+    const match = str.match(/^([^\[:]+):\[url:(.+)\]$/);
+    if (!match) {
+      return;
+    }
+    node.symbol = match[1].trim();
+    node.path = match[2].replace(/^url:/, '');
+  }
+
   setMerageName(currentNode: NativeHookCallInfo): void {
-    currentNode.symbol =
-      this.groupCutFilePath(currentNode.symbolId, this.dataCache.dataDict.get(currentNode.symbolId) || '') ?? 'unknown';
     currentNode.path = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';
+    if (currentNode.path.endsWith('.hap')) {
+      const fullName = this.dataCache.dataDict.get(currentNode.symbolId);
+      this.extractSymbolAndPath(currentNode, fullName);
+    } else {
+      currentNode.symbol =
+        this.groupCutFilePath(currentNode.symbolId, this.dataCache.dataDict.get(currentNode.symbolId) || '') ??
+        'unknown';
+    }
     currentNode.libName = setFileName(currentNode.path);
     currentNode.lib = currentNode.path;
     currentNode.symbolName = `[${currentNode.symbol}] ${currentNode.libName}`;

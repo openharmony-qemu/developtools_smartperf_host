@@ -19,11 +19,13 @@ jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
 import {
-  HiperfThreadRender,
+  HiperfThreadRender2,
   HiPerfThreadStruct,
-} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfThread';
+} from '../../../../src/trace/database/ui-worker/hiperf/ProcedureWorkerHiPerfThread2';
 import { hiPerf } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerHiPerfThread Test', () => {
   let res = [
     {
@@ -94,7 +96,7 @@ describe('ProcedureWorkerHiPerfThread Test', () => {
   });
 
   it('ProcedureWorkerHiPerfThreadTest05', function () {
-    let hiperfThreadRender = new HiperfThreadRender();
+    let hiperfThreadRender = new HiperfThreadRender2();
     let hiperfThreadReq = {
       lazyRefresh: true,
       type: '',
@@ -165,7 +167,7 @@ describe('ProcedureWorkerHiPerfThread Test', () => {
     expect(hiperfThreadRender.render(hiperfThreadReq, [], [], [])).toBeUndefined();
   });
   it('ProcedureWorkerHiPerfThreadTest06', function () {
-    let hiperfThreadRender = new HiperfThreadRender();
+    let hiperfThreadRender = new HiperfThreadRender2();
     window.postMessage = jest.fn(() => true);
     let canvas = document.createElement('canvas') as HTMLCanvasElement;
     let context = canvas.getContext('2d');

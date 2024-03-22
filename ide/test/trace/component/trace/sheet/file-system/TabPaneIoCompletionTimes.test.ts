@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneIoCompletionTimes } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneIoCompletionTimes';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });

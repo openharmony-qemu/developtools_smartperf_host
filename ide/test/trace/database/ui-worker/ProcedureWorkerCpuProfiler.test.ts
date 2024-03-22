@@ -23,25 +23,27 @@ import {
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerCpuProfiler Test', () => {
   let jsCpuProfilerRender = new JsCpuProfilerRender();
   let traceRow = new TraceRow();
-  traceRow.frame = { height: 40, width: 1407, x: 0, y: 0 };
+  traceRow.frame = {height: 40, width: 1407, x: 0, y: 0};
   it('jsCpuProfilerTest', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
     let traceRow = new TraceRow();
-    traceRow.frame = { height: 40, width: 1407, x: 0, y: 0 };
+    traceRow.frame = {height: 40, width: 1407, x: 0, y: 0};
     let rect = new Rect(0, 10, 10, 10);
     let filter = [
       {
         startTime: 50,
         endTime: 1520000,
         name: 'Snapshot2',
-        frame: { x: 0, y: 0, width: 25, height: 40 },
+        frame: {x: 0, y: 0, width: 25, height: 40},
         id: 0,
         depth: 1,
         selfTime: 0,
@@ -57,7 +59,7 @@ describe('ProcedureWorkerCpuProfiler Test', () => {
         startTime: 250,
         endTime: 2333333,
         name: 'Snapshot0',
-        frame: { x: 0, y: 0, width: 25, height: 20 },
+        frame: {x: 0, y: 0, width: 25, height: 20},
         id: 32,
         depth: 21,
         selfTime: 34,
@@ -73,19 +75,19 @@ describe('ProcedureWorkerCpuProfiler Test', () => {
 
   it('JsCpuProfilerStructTest01', () => {
     const data = {
-      cpu: 1,
-      startNs: 1,
-      value: 1,
       frame: {
         x: 20,
         y: 20,
-        width: 100,
-        height: 100,
+        width: 101,
+        height: 101,
       },
+      filterID: 2,
+      startNs: 1,
+      value: 1,
       maxValue: undefined,
       startTime: 1,
-      filterID: 2,
       size: 102,
+      cpu: 1,
     };
     const canvas = document.createElement('canvas');
     canvas.width = 1;
@@ -99,7 +101,7 @@ describe('ProcedureWorkerCpuProfiler Test', () => {
       startTime: 150,
       endTime: 122000,
       name: 'Snapshot1',
-      frame: { x: 1, y: 2, width: 25, height: 40 },
+      frame: {x: 1, y: 2, width: 25, height: 40},
       id: 12,
       depth: 1,
       selfTime: 1243,
@@ -113,5 +115,20 @@ describe('ProcedureWorkerCpuProfiler Test', () => {
   });
   it('JsCpuProfilerStructTest04', () => {
     expect(JsCpuProfilerStruct).not.toBeUndefined();
+  });
+  it('JsCpuProfilerStructTest05 ', function () {
+    let jsCpuProfilerRender = new JsCpuProfilerRender();
+    let canvas = document.createElement('canvas') as HTMLCanvasElement;
+    let context = canvas.getContext('2d');
+    const data = {
+      context: context!,
+      useCache: true,
+      type: '',
+      traceRange: [],
+    };
+    window.postMessage = jest.fn(() => true);
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range.startNS = jest.fn(() => 1);
+    expect(jsCpuProfilerRender.renderMainThread(data, new TraceRow<JsCpuProfilerStruct>())).toBeUndefined();
   });
 });

@@ -33,6 +33,7 @@ import { HeapDataInterface } from '../../js-heap/HeapDataInterface';
 import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
+import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 
 export class SelectionParam {
   recordStartNs: number = 0;
@@ -129,6 +130,26 @@ export class SelectionParam {
   sysAllEventsData: Array<HiSysEventStruct> = [];
   sysAlllogsData: Array<LogStruct> = [];
   hiSysEvents: Array<string> = [];
+  sampleData: Array<any> = [];
+
+  pushSampleData(it: TraceRow<any>) {
+    if (it.rowType == TraceRow.ROW_TYPE_SAMPLE) {
+      let dataList: SampleStruct[] = JSON.parse(JSON.stringify(it.dataList));
+      if (dataList.length > 0) {
+        dataList.forEach(
+          SampleStruct => {
+            SampleStruct.property = SampleStruct.property!.filter((i : any) => 
+              ((i.begin! - i.startTs!) ?? 0) >= TraceRow.rangeSelectObject!.startNS! &&
+              ((i.end! - i.startTs!) ?? 0) <= TraceRow.rangeSelectObject!.endNS!)
+          }
+        )
+        if (dataList[0].property!.length !== 0) {
+          this.sampleData.push(...dataList);
+        }
+      }
+    }
+  }
+
   pushCpus(it: TraceRow<any>) {
     if (it.rowType == TraceRow.ROW_TYPE_CPU) {
       this.cpus.push(parseInt(it.rowId!));
@@ -137,15 +158,29 @@ export class SelectionParam {
   }
 
   pushCpuStateFilterIds(it: TraceRow<any>) {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_STATE_ALL) {
+      it.childrenList.forEach(child => {
+        child.rangeSelect = true;
+        child.checkType = '2';
+        this.pushCpuStateFilterIds(child);
+      });
+    }
     if (it.rowType == TraceRow.ROW_TYPE_CPU_STATE) {
       let filterId = parseInt(it.rowId!);
-      if (this.cpuStateFilterIds.indexOf(filterId) == -1) {
+      if (this.cpuStateFilterIds.indexOf(filterId) === -1) {
         this.cpuStateFilterIds.push(filterId);
       }
     }
   }
 
   pushCpuFreqFilter(it: TraceRow<any>) {
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_ALL) {
+      it.childrenList.forEach(child => {
+        child.rangeSelect = true;
+        child.checkType = '2';
+        this.pushCpuFreqFilter(child);
+      });
+    }
     if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ) {
       let filterId = parseInt(it.rowId!);
       let filterName = it.name!;
@@ -159,12 +194,21 @@ export class SelectionParam {
   }
 
   pushCpuFreqLimit(it: TraceRow<any>) {
-    if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ_LIMIT) {
-      this.cpuFreqLimit.push({
-        maxFilterId: it.getAttribute('maxFilterId'),
-        minFilterId: it.getAttribute('minFilterId'),
-        cpu: it.getAttribute('cpu'),
+    if (it.rowType === TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL) {
+      it.childrenList.forEach(child => {
+        child.rangeSelect = true;
+        child.checkType = '2';
+        this.pushCpuFreqLimit(child);
       });
+    }
+    if (it.rowType == TraceRow.ROW_TYPE_CPU_FREQ_LIMIT) {
+      if (!this.cpuFreqLimit.includes((item: any) => item.cpu === it.getAttribute('cpu'))) {
+        this.cpuFreqLimit.push({
+          maxFilterId: it.getAttribute('maxFilterId'),
+          minFilterId: it.getAttribute('minFilterId'),
+          cpu: it.getAttribute('cpu'),
+        });
+      }
     }
   }
 
@@ -509,8 +553,8 @@ export class SelectionParam {
         this.jankFramesData = [];
         it.childrenList.forEach((child) => {
           if (child.rowType == TraceRow.ROW_TYPE_JANK && child.name == 'Actual Timeline') {
-            if (it.rowParentId === 'frameTime') {
-              it.dataListCache.forEach((jankData: any) => {
+            if (child.rowParentId === 'frameTime') {
+              child.dataListCache.forEach((jankData: any) => {
                 if (isIntersect(jankData, TraceRow.rangeSelectObject!)) {
                   this.jankFramesData.push(jankData);
                 }
@@ -527,8 +571,8 @@ export class SelectionParam {
   pushHeapTimeline(it: TraceRow<any>, sp: SpSystemTrace) {
     if (it.rowType == TraceRow.ROW_TYPE_HEAP_TIMELINE) {
       const [rangeStart, rangeEnd] = [TraceRow.range?.startNS, TraceRow.range?.endNS];
-      const endNS = TraceRow.rangeSelectObject?.endNS || rangeStart;
-      const startNS = TraceRow.rangeSelectObject?.startNS || rangeEnd;
+      const startNS = TraceRow.rangeSelectObject?.startNS || rangeStart;
+      const endNS = TraceRow.rangeSelectObject?.endNS || rangeEnd;
       let minNodeId, maxNodeId;
       if (!it.dataListCache || it.dataListCache.length === 0) {
         return;
@@ -679,12 +723,24 @@ export class SelectionParam {
     }
   }
 
-  pushIrq(it: TraceRow<any>, sp: SpSystemTrace) {
+  pushIrq(it: TraceRow<any>) {
+    if (it.rowType === TraceRow.ROW_TYPE_IRQ_GROUP) {
+      it.childrenList.forEach(child => {
+        child.rangeSelect = true;
+        child.checkType = '2';
+        this.pushIrq(child);
+      });
+    }
     if (it.rowType == TraceRow.ROW_TYPE_IRQ) {
+      let filterId = parseInt(it.getAttribute('callId') || '-1');
       if (it.getAttribute('cat') === 'irq') {
-        this.irqCallIds.push(parseInt(it.getAttribute('callId') || '-1'));
+        if (this.irqCallIds.indexOf(filterId) === -1) {
+          this.irqCallIds.push(filterId);
+        }
       } else {
-        this.softIrqCallIds.push(parseInt(it.getAttribute('callId') || '-1'));
+        if (this.softIrqCallIds.indexOf(filterId) === -1) {
+          this.softIrqCallIds.push(filterId);
+        }
       }
     }
   }
@@ -885,6 +941,13 @@ export class SelectionParam {
   }
 
   pushClock(it: TraceRow<any>, sp: SpSystemTrace) {
+    if (it.rowType === TraceRow.ROW_TYPE_CLOCK_GROUP) {
+      it.childrenList.forEach(it => {
+        it.rangeSelect = true;
+        it.checkType = '2';
+        this.clockMapData.set(it.rowId || '', it.getCacheData);
+      });
+    }
     if (it.rowType == TraceRow.ROW_TYPE_CLOCK) {
       this.clockMapData.set(it.rowId || '', it.getCacheData);
     }
@@ -965,7 +1028,7 @@ export class SelectionParam {
     this.pushSysMemoryGpu(it, sp);
     this.pushSDK(it, sp);
     this.pushVmTrackerSmaps(it, sp);
-    this.pushIrq(it, sp);
+    this.pushIrq(it);
     this.pushSysMemoryGpuGl(it, sp);
     this.pushFrameDynamic(it, sp);
     this.pushFrameSpacing(it);
@@ -995,6 +1058,7 @@ export class SelectionParam {
     this.pushPugreable(it, sp);
     this.pushLogs(it, sp);
     this.pushHiSysEvent(it, sp);
+    this.pushSampleData(it);
   }
 }
 

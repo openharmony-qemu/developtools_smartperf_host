@@ -118,7 +118,7 @@ export const TraceRowHtml = `
         :host([sticky]) {
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 1;
         }
         :host([expansion]) {
             background-color: var(--bark-expansion,#0C65D1);
@@ -174,12 +174,12 @@ export const TraceRowHtml = `
         }
         :host([collect-type][row-setting='enable']:not([row-type='hiperf-callchart'])) .setting{
             position:fixed;
-            z-index:1003;
+            z-index:0;
             left: 473px;
         }
         :host([collect-type][row-setting='enable'][row-type='hiperf-callchart'][func-expand='false']) .setting{
             position:fixed;
-            z-index:1003;
+            z-index:0;
             left: 473px;
         }
         :host(:not([collect-type])) {
@@ -243,7 +243,7 @@ export const TraceRowHtml = `
             color: #00a3f5;
         }
         .lit-check-box{
-          margin-right: 15px;
+            margin-right: 25px;
         }
         :host([row-setting='enable'][check-type]) .lit-check-box{
             margin-right: 25px;
@@ -263,9 +263,15 @@ export const TraceRowHtml = `
         :host([row-setting='checkFile']) #myfolder{
           color:#4b5766;
         }
+        .upload {
+            position: absolute;
+            color: var(--dark-icon,#333333);
+            right: 5px;
+            margin-top: 4px;
+        } 
         </style>
         <div class="root">
-            <div class="describe flash" style="position: inherit">
+            <div class="describe flash" style="position: relative">
                 <label class="name"></label>
                 <lit-icon class="collect" name="star-fill" size="19"></lit-icon>
                 <lit-check-box class="lit-check-box"></lit-check-box>

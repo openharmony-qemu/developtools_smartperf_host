@@ -56,7 +56,7 @@ export function cpuStateReceiver(data: any, proc: Function): void {
     if (!cpuStateList.has(data.params.filterId)) {
       list = proc(chartCpuStateDataSqlMem(data.params));
       for (let i = 0; i < list.length; i++) {
-        if (list[i].dur===-1 || list[i].dur===null || list[i].dur === undefined){
+        if (list[i].dur === -1 || list[i].dur === null || list[i].dur === undefined){
           list[i].dur = data.params.recordEndNS - data.params.recordStartNS - list[i].startTs;
         }
       }

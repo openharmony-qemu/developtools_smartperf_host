@@ -25,6 +25,7 @@ const filterPixel = 2; // 过滤像素
 const textMaxWidth = 50;
 const scaleRatio = 0.2; // 缩放比例
 const ms10 = 10_000_000;
+const jsStackPath = ['.ts', '.ets', '.js'];
 
 class NodeValue {
   size: number;
@@ -185,6 +186,21 @@ export class FrameChart extends BaseElement {
 
       this.setParentDisplayInfo(node, module, true);
       this.setChildrenDisplayInfo(node);
+      this.clearOtherDisplayInfo(this.rootNode);
+    }
+  }
+
+  private clearOtherDisplayInfo(node: ChartStruct): void {
+    for (const children of node.children) {
+      if (children.isChartSelect) {
+        this.clearOtherDisplayInfo(children);
+        continue;
+      }
+      children.drawCount = 0;
+      children.drawEventCount = 0;
+      children.drawSize = 0;
+      children.drawDur = 0;
+      this.clearOtherDisplayInfo(children);
     }
   }
 
@@ -216,6 +232,20 @@ export class FrameChart extends BaseElement {
   }
 
   /**
+   * 判断lib中是否包含.ts .ets .js .hap
+   * @param str node.lib
+   * @returns 是否包含
+   */
+  private isJsStack(str: string): boolean {
+    for (const format of jsStackPath) {
+      if (str.indexOf(format) > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * 计算调用栈最大深度，计算每个node显示大小
    * @param node 函数块
    * @param depth 当前递归深度
@@ -224,6 +254,12 @@ export class FrameChart extends BaseElement {
   private initData(node: ChartStruct, depth: number, calDisplay: boolean): void {
     node.depth = depth;
     depth++;
+    if (this.isJsStack(node.lib)) {
+      node.isJsStack = true;
+    } else {
+      node.isJsStack = false;
+    }
+
     //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值
     this.clearDisplayInfo(node);
     if (node.isSearch && calDisplay) {

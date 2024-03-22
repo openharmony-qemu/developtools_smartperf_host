@@ -16,30 +16,25 @@
 import { HdcClient } from '../../../src/hdc/hdcclient/HdcClient';
 
 describe('HdcClient Test', () => {
+  let hdcClient = new HdcClient();
   it('HdcClientTest01', function () {
-    let hdcClient = new HdcClient();
     expect(hdcClient.bindStream()).toBeUndefined();
   });
   it('HdcClientTest02', function () {
-    let hdcClient = new HdcClient();
     expect(hdcClient.unbindStream()).toBeTruthy();
   });
   it('HdcClientTest03', function () {
-    let hdcClient = new HdcClient();
     expect(hdcClient.unbindStopStream()).toBeTruthy();
   });
 
   it('HdcClientTest04', async () => {
-    let hdcClient = new HdcClient();
     await expect(hdcClient.connectDevice()).rejects.not.toBeUndefined();
   });
 
   it('HdcClientTest05', async () => {
-    let hdcClient = new HdcClient();
     await expect(hdcClient.disconnect()).not;
   });
   it('HdcClientTest06', function () {
-    let hdcClient = new HdcClient();
     let data = {
       getChannelId: jest.fn(() => -1),
     };

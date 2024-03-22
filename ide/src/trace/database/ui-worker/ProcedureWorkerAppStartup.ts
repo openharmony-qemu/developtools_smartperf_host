@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { BaseStruct, dataFilterHandler, drawString } from './ProcedureWorkerCommon';
+import { BaseStruct, dataFilterHandler, drawLoadingFrame, drawString } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import {SpSystemTrace} from "../../component/SpSystemTrace";
@@ -39,6 +39,7 @@ export class AppStartupRender {
       paddingTop: 5,
       useCache: appStartReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
+    drawLoadingFrame(appStartReq.appStartupContext, appStartUpRow.dataListCache, appStartUpRow);
     appStartReq.appStartupContext.globalAlpha = 0.6;
     let find = false;
     let offset = 3;
@@ -68,7 +69,7 @@ export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
       sp.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

@@ -53,7 +53,6 @@
     "@babel/plugin-proposal-decorators": "^7.17.2",
     "@babel/preset-env": "^7.23.2",
     "@babel/preset-typescript": "*",
-    "@types/google-protobuf": "^3.15.9",
     "@types/jest": "*",
     "@types/node": "^17.0.10",
     "typescript": "^5.2.2",

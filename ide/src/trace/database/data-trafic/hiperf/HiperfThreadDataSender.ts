@@ -19,6 +19,7 @@ import { HiPerfThreadStruct } from '../../ui-worker/hiperf/ProcedureWorkerHiPerf
 export function hiperfThreadDataSender(
   tid: number,
   drawType: number,
+  maxCpu: number,
   intervalPerf: number,
   scale: number,
   row: TraceRow<any>
@@ -50,7 +51,7 @@ export function hiperfThreadDataSender(
         trafic: trafic,
         sharedArrayBuffers: row.sharedArrayBuffers,
         tid: tid,
-        maxCpuCount: -1,
+        maxCpuCount: maxCpu,
       },
       (res: any, len: number, transfer: boolean): void => {
         resolve(arrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));

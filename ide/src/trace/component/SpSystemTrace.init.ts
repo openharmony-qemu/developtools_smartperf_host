@@ -13,29 +13,28 @@
  * limitations under the License.
  */
 
-import {SpSystemTrace} from './SpSystemTrace';
+import { SpSystemTrace } from './SpSystemTrace';
 import { TabPaneFrequencySample } from "./trace/sheet/cpu/TabPaneFrequencySample";
 import { TabPaneCounterSample } from "./trace/sheet/cpu/TabPaneCounterSample";
 import { RangeSelect } from "./trace/base/RangeSelect";
 import { TraceRow } from "./trace/base/TraceRow";
 import { SportRuler } from "./trace/timer-shaft/SportRuler";
 import { SelectionParam } from "../bean/BoxSelection";
-import {error, info} from "../../log/Log";
+import { error, info } from "../../log/Log";
 import { SpStatisticsHttpUtil } from "../../statistics/util/SpStatisticsHttpUtil";
 import { queryEbpfSamplesCount } from "../database/sql/Memory.sql";
 import { SpChartManager } from "./chart/SpChartManager";
-import {ThreadStruct} from "../database/ui-worker/ProcedureWorkerThread";
-import {FlagsConfig} from "./SpFlags";
-import {threadPool} from "../database/SqlLite";
-import {JankStruct} from "../database/ui-worker/ProcedureWorkerJank";
-import {CpuStruct} from "../database/ui-worker/cpu/ProcedureWorkerCPU";
-import {PairPoint} from "../database/ui-worker/ProcedureWorkerCommon";
+import { ThreadStruct } from "../database/ui-worker/ProcedureWorkerThread";
+import { FlagsConfig } from "./SpFlags";
+import { threadPool } from "../database/SqlLite";
+import { JankStruct } from "../database/ui-worker/ProcedureWorkerJank";
+import { CpuStruct } from "../database/ui-worker/cpu/ProcedureWorkerCPU";
+import { PairPoint } from "../database/ui-worker/ProcedureWorkerCommon";
 import { TraceSheet } from './trace/base/TraceSheet';
 import { TimerShaftElement } from './trace/TimerShaftElement';
 import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
-
-function rightButtonOnClick(sp: SpSystemTrace,rightStar: HTMLElementAlias) {
+function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias) {
     Object.assign(sp, {
         ext(): string {
             return "Handle the right button click event";
@@ -78,45 +77,45 @@ function rightButtonOnClick(sp: SpSystemTrace,rightStar: HTMLElementAlias) {
         }, 2000);
     }
 }
-function rightStarOnClick(sp:SpSystemTrace) {
-   return function (ev:any){
-       let wakeupLists = [];
-       wakeupLists.push(CpuStruct.selectCpuStruct?.cpu);
-       for (let wakeupBean of SpSystemTrace.wakeupList) {
-           wakeupLists.push(wakeupBean.cpu);
-       }
-       let wakeupCpuLists = Array.from(new Set(wakeupLists)).sort();
-       for (let wakeupCpu of wakeupCpuLists) {
-           let cpuFavoriteRow: any = sp.shadowRoot?.querySelector<TraceRow<any>>(
-             `trace-row[row-type='cpu-data'][row-id='${wakeupCpu}']`
-           );
-           if (cpuFavoriteRow === null || cpuFavoriteRow === undefined) {
-               continue;
-           }
-           cpuFavoriteRow!.setAttribute('collect-type', '');
-           let replaceRow = document.createElement('div');
-           replaceRow.setAttribute('row-id', cpuFavoriteRow.rowId + '-' + cpuFavoriteRow.rowType);
-           replaceRow.setAttribute('type', 'replaceRow');
-           replaceRow.setAttribute('row-parent-id', cpuFavoriteRow.rowParentId);
-           replaceRow.style.display = 'none';
-           cpuFavoriteRow.rowHidden = !cpuFavoriteRow.hasAttribute('scene');
-           if (sp.rowsEL!.contains(cpuFavoriteRow)) {
-               sp.rowsEL!.replaceChild(replaceRow, cpuFavoriteRow);
-           }
-           cpuFavoriteRow.tampName = cpuFavoriteRow.name;
-           sp.favoriteChartListEL!.insertRow(cpuFavoriteRow, sp.currentCollectGroup, true);
-           sp.collectRows.push(cpuFavoriteRow);
-           sp.timerShaftEL?.displayCollect(sp.collectRows.length !== 0);
-           sp.currentClickRow = null;
-           cpuFavoriteRow.setAttribute('draggable', 'true');
-           cpuFavoriteRow.addEventListener('dragstart', cpuFavoriteRowDragStart(sp,cpuFavoriteRow));
-           cpuFavoriteRow.addEventListener('dragover', cpuFavoriteRowDragOver(sp));
-           cpuFavoriteRow.addEventListener('drop', cpuFavoriteRowDropHandler(sp,cpuFavoriteRow));
-           cpuFavoriteRow.addEventListener('dragend', cpuFavoriteRowDragendHandler(sp));
-       }
-       sp.refreshFavoriteCanvas();
-       sp.refreshCanvas(true);
-   }
+function rightStarOnClick(sp: SpSystemTrace) {
+    return function (ev: any) {
+        let wakeupLists = [];
+        wakeupLists.push(CpuStruct.selectCpuStruct?.cpu);
+        for (let wakeupBean of SpSystemTrace.wakeupList) {
+            wakeupLists.push(wakeupBean.cpu);
+        }
+        let wakeupCpuLists = Array.from(new Set(wakeupLists)).sort();
+        for (let wakeupCpu of wakeupCpuLists) {
+            let cpuFavoriteRow: any = sp.shadowRoot?.querySelector<TraceRow<any>>(
+                `trace-row[row-type='cpu-data'][row-id='${wakeupCpu}']`
+            );
+            if (cpuFavoriteRow === null || cpuFavoriteRow === undefined) {
+                continue;
+            }
+            cpuFavoriteRow!.setAttribute('collect-type', '');
+            let replaceRow = document.createElement('div');
+            replaceRow.setAttribute('row-id', cpuFavoriteRow.rowId + '-' + cpuFavoriteRow.rowType);
+            replaceRow.setAttribute('type', 'replaceRow');
+            replaceRow.setAttribute('row-parent-id', cpuFavoriteRow.rowParentId);
+            replaceRow.style.display = 'none';
+            cpuFavoriteRow.rowHidden = !cpuFavoriteRow.hasAttribute('scene');
+            if (sp.rowsEL!.contains(cpuFavoriteRow)) {
+                sp.rowsEL!.replaceChild(replaceRow, cpuFavoriteRow);
+            }
+            cpuFavoriteRow.tampName = cpuFavoriteRow.name;
+            sp.favoriteChartListEL!.insertRow(cpuFavoriteRow, sp.currentCollectGroup, true);
+            sp.collectRows.push(cpuFavoriteRow);
+            sp.timerShaftEL?.displayCollect(sp.collectRows.length !== 0);
+            sp.currentClickRow = null;
+            cpuFavoriteRow.setAttribute('draggable', 'true');
+            cpuFavoriteRow.addEventListener('dragstart', cpuFavoriteRowDragStart(sp, cpuFavoriteRow));
+            cpuFavoriteRow.addEventListener('dragover', cpuFavoriteRowDragOver(sp));
+            cpuFavoriteRow.addEventListener('drop', cpuFavoriteRowDropHandler(sp, cpuFavoriteRow));
+            cpuFavoriteRow.addEventListener('dragend', cpuFavoriteRowDragendHandler(sp));
+        }
+        sp.refreshFavoriteCanvas();
+        sp.refreshCanvas(true);
+    }
 }
 function cpuFavoriteRowDragStart(sp: SpSystemTrace, cpuFavoriteRow: any) {
     return function () {
@@ -124,17 +123,17 @@ function cpuFavoriteRowDragStart(sp: SpSystemTrace, cpuFavoriteRow: any) {
     }
 }
 function cpuFavoriteRowDragOver(sp: SpSystemTrace) {
-    return function (ev:any){
+    return function (ev: any) {
         ev.preventDefault();
         ev.dataTransfer.dropEffect = 'move';
     }
 }
 function cpuFavoriteRowDropHandler(sp: SpSystemTrace, cpuFavoriteRow: any) {
-    return function (ev:any){
+    return function (ev: any) {
         if (
-          sp.favoriteChartListEL != null &&
-          sp.currentClickRow != null &&
-          sp.currentClickRow !== cpuFavoriteRow
+            sp.favoriteChartListEL != null &&
+            sp.currentClickRow != null &&
+            sp.currentClickRow !== cpuFavoriteRow
         ) {
             let rect = cpuFavoriteRow.getBoundingClientRect();
             if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {
@@ -149,7 +148,7 @@ function cpuFavoriteRowDropHandler(sp: SpSystemTrace, cpuFavoriteRow: any) {
     }
 }
 function cpuFavoriteRowDragendHandler(sp: SpSystemTrace) {
-    return function(){
+    return function () {
         sp.linkNodes.forEach((itln) => {
             if (itln[0].rowEL.collect) {
                 itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
@@ -167,8 +166,8 @@ function cpuFavoriteRowDragendHandler(sp: SpSystemTrace) {
         sp.currentClickRow = null;
     }
 }
-function triangleFlagHandler(sp:SpSystemTrace) {
-    return function (event:any) {
+function triangleFlagHandler(sp: SpSystemTrace) {
+    return function (event: any) {
         let temporaryTime = sp.timerShaftEL?.drawTriangle(event.detail.time, event.detail.type);
         if (event.detail.timeCallback && temporaryTime) event.detail.timeCallback(temporaryTime);
     };
@@ -192,38 +191,38 @@ function flagChangeHandler(sp: SpSystemTrace) {
                     showTab = showTab.filter((it) => it !== 'box-flag');
                     sp.traceSheetEL?.displayTab(...showTab);
                 } else {
-                    sp.traceSheetEL?.setAttribute('mode', 'hidden');
+                    sp.traceSheetEL?.setMode('hidden');
                 }
             }
             sp.refreshCanvas(true);
         }
     }
 }
-function slicesChangeHandler(sp:SpSystemTrace) {
-   return function (event: any) {
-       sp.timerShaftEL?.modifySlicesList(event.detail);
-       if (event.detail.hidden) {
-           sp.slicestime = null;
-           if (sp._slicesList.length <= 0) {
-               if (TraceRow.rangeSelectObject) {
-                   let showTab = sp.getShowTab();
-                   showTab = showTab.filter((it) => it !== 'tabpane-current');
-                   sp.traceSheetEL?.displayTab(...showTab);
-               } else {
-                   sp.traceSheetEL?.setAttribute('mode', 'hidden');
-               }
-           }
-           sp.refreshCanvas(true);
-       }
-   }
+function slicesChangeHandler(sp: SpSystemTrace) {
+    return function (event: any) {
+        sp.timerShaftEL?.modifySlicesList(event.detail);
+        if (event.detail.hidden) {
+            sp.slicestime = null;
+            if (sp._slicesList.length <= 0) {
+                if (TraceRow.rangeSelectObject) {
+                    let showTab = sp.getShowTab();
+                    showTab = showTab.filter((it) => it !== 'tabpane-current');
+                    sp.traceSheetEL?.displayTab(...showTab);
+                } else {
+                    sp.traceSheetEL?.setMode('hidden');
+                }
+            }
+            sp.refreshCanvas(true);
+        }
+    }
 }
 function collectHandler(sp: SpSystemTrace) {
     return function (event: any) {
         let currentRow = event.detail.row;
         if (currentRow.collect) {
-            collectHandlerYes(sp,currentRow,event);
+            collectHandlerYes(sp, currentRow, event);
         } else {
-            collectHandlerNo(sp,currentRow,event);
+            collectHandlerNo(sp, currentRow, event);
         }
         sp.timerShaftEL?.displayCollect(sp.collectRows.length !== 0);
         sp.refreshFavoriteCanvas();
@@ -255,7 +254,7 @@ function collectHandler(sp: SpSystemTrace) {
             ev.preventDefault();
             ev.dataTransfer.dropEffect = 'move';
         });
-        currentRow.addEventListener('drop', collectHandlerDrop(sp,currentRow));
+        currentRow.addEventListener('drop', collectHandlerDrop(sp, currentRow));
         currentRow.addEventListener('dragend', collectHandlerDragEnd(sp));
     };
 }
@@ -285,7 +284,7 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: any, event: any) {
     }
     allowExpansionRow.length = 0;
     let replaceRow = sp.rowsEL!.querySelector<HTMLCanvasElement>(
-      `div[row-id='${currentRow.rowId}-${currentRow.rowType}']`
+        `div[row-id='${currentRow.rowId}-${currentRow.rowType}']`
     );
     // 取消收藏时，删除父亲ID
     currentRow.name = currentRow.tampName;
@@ -294,11 +293,11 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: any, event: any) {
         currentRow.style.boxShadow = `0 10px 10px #00000000`;
     }
 }
-function collectHandlerYes(sp: SpSystemTrace, currentRow: any, event: any){
+function collectHandlerYes(sp: SpSystemTrace, currentRow: any, event: any) {
     if (
-      !sp.collectRows.find((find) => {
-          return find === currentRow;
-      })
+        !sp.collectRows.find((find) => {
+            return find === currentRow;
+        })
     ) {
         sp.collectRows.push(currentRow);
     }
@@ -319,12 +318,12 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: any, event: any){
         let parentRows = sp.shadowRoot?.querySelectorAll<TraceRow<any>>(`trace-row[row-id='${rowParentId}']`);
         parentRows?.forEach((parentRow) => {
             if (
-              parentRow?.name &&
-              parentRow?.name != currentRow.name &&
-              !parentRow.rowType!.startsWith('cpu') &&
-              !parentRow.rowType!.startsWith('thread') &&
-              !parentRow.rowType!.startsWith('func') &&
-              !currentRow.name.includes(parentRow.name)
+                parentRow?.name &&
+                parentRow?.name != currentRow.name &&
+                !parentRow.rowType!.startsWith('cpu') &&
+                !parentRow.rowType!.startsWith('thread') &&
+                !parentRow.rowType!.startsWith('func') &&
+                !currentRow.name.includes(parentRow.name)
             ) {
                 currentRow.name += '(' + parentRow.name + ')';
             }
@@ -335,8 +334,8 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: any, event: any){
     }
     sp.favoriteChartListEL?.insertRow(currentRow, sp.currentCollectGroup, event.detail.type !== 'auto-collect');
 }
-function collectHandlerDrop(sp: SpSystemTrace, currentRow: HTMLDivElement|undefined|null) {
-    return function (ev:any) {
+function collectHandlerDrop(sp: SpSystemTrace, currentRow: HTMLDivElement | undefined | null) {
+    return function (ev: any) {
         if (sp.favoriteChartListEL !== null && sp.currentClickRow !== null && sp.currentClickRow !== currentRow) {
             let rect = currentRow!.getBoundingClientRect();
             if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {
@@ -351,15 +350,23 @@ function collectHandlerDrop(sp: SpSystemTrace, currentRow: HTMLDivElement|undefi
     };
 }
 function collectHandlerDragEnd(sp: SpSystemTrace) {
-    return function (ev:any) {
+    return function (ev: any) {
         sp.linkNodes.forEach((itln) => {
             if (itln[0].rowEL.collect) {
-                itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+                if (sp.timerShaftEL?._checkExpand) {
+                    itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195 + sp.timerShaftEL._usageFoldHeight!;
+                } else {
+                    itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
+                }
             } else {
                 itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - sp.rowsPaneEL!.scrollTop;
             }
             if (itln[1].rowEL.collect) {
-                itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+                if (sp.timerShaftEL?._checkExpand) {
+                    itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195 + sp.timerShaftEL._usageFoldHeight!;
+                } else {
+                    itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
+                }
             } else {
                 itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - sp.rowsPaneEL!.scrollTop;
             }
@@ -391,15 +398,21 @@ function selectHandler(sp: SpSystemTrace) {
             }
             sp.refreshCanvas(true);
             if (!SportRuler.isMouseInSportRuler) {
-                sp.traceSheetEL?.setAttribute('mode', 'hidden');
+                sp.traceSheetEL?.setMode('hidden');
             }
             return;
         }
-        selectHandlerRefreshCheckBox(sp,rows, refreshCheckBox);
+        let checkRows = rows;
+        if (!refreshCheckBox) {
+            checkRows = [
+                ...sp.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']"),
+                ...sp.favoriteChartListEL!.getAllSelectCollectRows()]
+        }
+        selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
         if (!sp.isSelectClick) {
             sp.rangeTraceRow = [];
         }
-        selectHandlerRows(sp, rows);
+        selectHandlerRows(sp, checkRows);
     };
 }
 function selectHandlerRefreshCheckBox(sp: SpSystemTrace, rows: Array<TraceRow<any>>, refreshCheckBox: boolean) {
@@ -441,17 +454,17 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<any>>) {
     });
     if (selection.diskIOipids.length > 0 && !selection.diskIOLatency) {
         selection.promiseList.push(
-          queryEbpfSamplesCount(
-            TraceRow.rangeSelectObject?.startNS || 0,
-            TraceRow.rangeSelectObject?.endNS || 0,
-            selection.diskIOipids
-          ).then((res) => {
-              if (res.length > 0) {
-                  selection.fsCount = res[0].fsCount;
-                  selection.vmCount = res[0].vmCount;
-              }
-              return new Promise((resolve) => resolve(1));
-          })
+            queryEbpfSamplesCount(
+                TraceRow.rangeSelectObject?.startNS || 0,
+                TraceRow.rangeSelectObject?.endNS || 0,
+                selection.diskIOipids
+            ).then((res) => {
+                if (res.length > 0) {
+                    selection.fsCount = res[0].fsCount;
+                    selection.vmCount = res[0].vmCount;
+                }
+                return new Promise((resolve) => resolve(1));
+            })
         );
     }
     sp.rangeTraceRow = rows;
@@ -469,7 +482,7 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<any>>) {
     sp.timerShaftEL!.selectionList.push(selection); // 保持选中对象，为后面的再次选中该框选区域做准备。
     sp.selectionParam = selection;
 }
-function resizeObserverHandler(sp:SpSystemTrace) {
+function resizeObserverHandler(sp: SpSystemTrace) {
     // @ts-ignore
     new ResizeObserver((entries) => {
         TraceRow.FRAME_WIDTH = sp.clientWidth - 249 - sp.getScrollWidth();
@@ -486,7 +499,9 @@ function resizeObserverHandler(sp:SpSystemTrace) {
         if (sp.traceSheetEL!.getAttribute('mode') == 'hidden') {
             sp.timerShaftEL?.removeTriangle('triangle');
         }
-        sp.refreshFavoriteCanvas();
+        if (sp.favoriteChartListEL?.style.display === 'flex') {
+            sp.refreshFavoriteCanvas();
+        }
         sp.refreshCanvas(true);
     }).observe(sp.rowsPaneEL!);
 }
@@ -497,9 +512,9 @@ function mutationObserverHandler(sp: SpSystemTrace) {
                 if (sp.style.visibility === 'visible') {
                     if (TraceRow.rangeSelectObject && SpSystemTrace.sliceRangeMark) {
                         sp.timerShaftEL?.setSlicesMark(
-                          TraceRow.rangeSelectObject.startNS || 0,
-                          TraceRow.rangeSelectObject.endNS || 0,
-                          false
+                            TraceRow.rangeSelectObject.startNS || 0,
+                            TraceRow.rangeSelectObject.endNS || 0,
+                            false
                         );
                         SpSystemTrace.sliceRangeMark = undefined;
                         window.publish(window.SmartEvent.UI.RefreshCanvas, {});
@@ -515,34 +530,36 @@ function mutationObserverHandler(sp: SpSystemTrace) {
 }
 function intersectionObserverHandler(sp: SpSystemTrace) {
     sp.intersectionObserver = new IntersectionObserver(
-      (entries) => {
-          entries.forEach((it) => {
-              let tr = it.target as TraceRow<any>;
-              tr.intersectionRatio = it.intersectionRatio;
-              if (!it.isIntersecting) {
-                  tr.sleeping = true;
-                  sp.invisibleRows.indexOf(tr) == -1 && sp.invisibleRows.push(tr);
-                  sp.visibleRows = sp.visibleRows.filter((it) => !it.sleeping);
-              } else {
-                  tr.sleeping = false;
-                  sp.visibleRows.indexOf(tr) == -1 && sp.visibleRows.push(tr);
-                  sp.invisibleRows = sp.invisibleRows.filter((it) => it.sleeping);
-              }
-              sp.visibleRows
-                .filter((vr) => vr.expansion)
-                .forEach((vr) => {
-                    vr.sticky = sp.visibleRows.some((vro) => vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0);
-                });
-              sp.visibleRows
-                .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion)
-                .forEach((vr) => (vr.parentRowEl!.sticky = true));
-              if (sp.handler) {
-                  clearTimeout(sp.handler);
-              }
-              sp.handler = setTimeout(() => sp.refreshCanvas(false), 100);
-          });
-      },
-      { threshold: [0, 0.01, 0.99, 1] }
+        (entries) => {
+            entries.forEach((it) => {
+                let tr = it.target as TraceRow<any>;
+                tr.intersectionRatio = it.intersectionRatio;
+                if (!it.isIntersecting) {
+                    tr.sleeping = true;
+                    sp.invisibleRows.indexOf(tr) == -1 && sp.invisibleRows.push(tr);
+                    sp.visibleRows = sp.visibleRows.filter((it) => !it.sleeping);
+                } else {
+                    tr.sleeping = false;
+                    sp.visibleRows.indexOf(tr) == -1 && sp.visibleRows.push(tr);
+                    sp.invisibleRows = sp.invisibleRows.filter((it) => it.sleeping);
+                }
+                sp.visibleRows
+                    .filter((vr) => vr.expansion)
+                    .forEach((vr) => {
+                        vr.sticky = sp.visibleRows.some((vro) => {
+                            vr.childrenList.filter((it) => !it.collect).indexOf(vro) >= 0;
+                        });
+                    });
+                sp.visibleRows
+                    .filter((vr) => !vr.folder && vr.parentRowEl && vr.parentRowEl.expansion && !vr.collect)
+                    .forEach((vr) => (vr.parentRowEl!.sticky = true));
+                if (sp.handler) {
+                    clearTimeout(sp.handler);
+                }
+                sp.handler = setTimeout(() => sp.refreshCanvas(false), 100);
+            });
+        },
+        { threshold: [0, 0.01, 0.99, 1] }
     );
 }
 function observerHandler(sp: SpSystemTrace) {
@@ -560,14 +577,14 @@ function windowKeyDownHandler(sp: SpSystemTrace) {
             sp.rangeSelect.rangeTraceRow = [];
             sp.selectStructNull();
             sp.timerShaftEL?.setSlicesMark();
-            sp.traceSheetEL?.setAttribute('mode', 'hidden');
+            sp.traceSheetEL?.setMode('hidden');
             sp.removeLinkLinesByBusinessType('janks', 'task');
         }
     }
 }
 function smartEventSubscribe(sp: SpSystemTrace) {
     window.subscribe(window.SmartEvent.UI.SliceMark, (data) => sp.sliceMarkEventHandler(data));
-    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => {});
+    window.subscribe(window.SmartEvent.UI.TraceRowComplete, (tr) => { });
     window.subscribe(window.SmartEvent.UI.RefreshCanvas, () => sp.refreshCanvas(false));
     window.subscribe(window.SmartEvent.UI.KeyboardEnable, (tr) => {
         sp.keyboardEnable = tr.enable;
@@ -579,7 +596,7 @@ function smartEventSubscribe(sp: SpSystemTrace) {
         if (!collapse) {
             // 一键折叠之前，记录当前打开的泳道图
             sp.expandRowList =
-              Array.from(sp.rowsEL!.querySelectorAll<TraceRow<any>>(`trace-row[folder][expansion]`)) || [];
+                Array.from(sp.rowsEL!.querySelectorAll<TraceRow<any>>(`trace-row[folder][expansion]`)) || [];
         }
         sp.collapseAll = true;
         sp.setAttribute('disable', '');
@@ -599,7 +616,7 @@ function smartEventSubscribe(sp: SpSystemTrace) {
     window.subscribe(window.SmartEvent.UI.CollectGroupChange, (group: string) => sp.currentCollectGroup = group);
 }
 
-export function documentInitEvent(sp:SpSystemTrace) : void{
+export function documentInitEvent(sp: SpSystemTrace): void {
     if (!document) {
         return
     }
@@ -621,31 +638,31 @@ export function documentInitEvent(sp:SpSystemTrace) : void{
     document.addEventListener('collect', collectHandler(sp));
 }
 
-export function spSystemTraceInitElement(sp:SpSystemTrace){
+export function spSystemTraceInitElement(sp: SpSystemTrace) {
     window.subscribe(window.SmartEvent.UI.LoadFinishFrame, () => sp.drawAllLines());
     sp.traceSheetEL = sp.shadowRoot?.querySelector<TraceSheet>('.trace-sheet');
-    if (!sp || !sp.shadowRoot || !sp.traceSheetEL){
+    if (!sp || !sp.shadowRoot || !sp.traceSheetEL) {
         return;
     }
     let rightButton: HTMLElement | null | undefined = sp.traceSheetEL.shadowRoot
-      ?.querySelector('#current-selection > tabpane-current-selection')
-      ?.shadowRoot?.querySelector('#rightButton');
-    let rightStar: HTMLElement | null | undefined =sp.traceSheetEL.shadowRoot
-      ?.querySelector('#current-selection > tabpane-current-selection')
-      ?.shadowRoot?.querySelector('#right-star');
+        ?.querySelector('#current-selection > tabpane-current-selection')
+        ?.shadowRoot?.querySelector('#rightButton');
+    let rightStar: HTMLElement | null | undefined = sp.traceSheetEL.shadowRoot
+        ?.querySelector('#current-selection > tabpane-current-selection')
+        ?.shadowRoot?.querySelector('#right-star');
     sp.tipEL = sp.shadowRoot.querySelector<HTMLDivElement>('.tip');
     sp.rowsPaneEL = sp.shadowRoot.querySelector<HTMLDivElement>('.rows-pane');
     sp.rowsEL = sp.rowsPaneEL;
     sp.spacerEL = sp.shadowRoot.querySelector<HTMLDivElement>('.spacer');
     sp.timerShaftEL = sp.shadowRoot.querySelector<TimerShaftElement>('.timer-shaft');
     sp.favoriteChartListEL = sp.shadowRoot.querySelector<SpChartList>('#favorite-chart-list');
-    if (!sp.traceSheetEL.shadowRoot){
+    if (!sp.traceSheetEL.shadowRoot) {
         return;
     }
     sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
     sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
     sp.rangeSelect = new RangeSelect(sp);
-    rightButton?.addEventListener('click', rightButtonOnClick(sp,rightStar));
+    rightButton?.addEventListener('click', rightButtonOnClick(sp, rightStar));
     rightStar?.addEventListener('click', rightStarOnClick(sp));
     documentInitEvent(sp);
     SpSystemTrace.scrollViewWidth = sp.getScrollWidth();
@@ -661,7 +678,9 @@ export function spSystemTraceInitElement(sp:SpSystemTrace){
 }
 
 function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any) {
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
+    if (findEntry.startTime > TraceRow.range!.endNS || (findEntry.startTime + findEntry.dur) < TraceRow.range!.startNS) {
+        sp.moveRangeToLeft(findEntry.startTime!, findEntry.dur!);
+    }
     sp.queryAllTraceRow().forEach((item) => {
         item.highlight = false;
     });
@@ -677,38 +696,20 @@ function moveRangeToCenterAndHighlight(sp: SpSystemTrace, findEntry: any) {
     sp.timerShaftEL?.drawTriangle(findEntry.startTime || 0, 'inverted');
 }
 
-export function spSystemTraceShowStruct(sp:SpSystemTrace,previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number){
+export function spSystemTraceShowStruct(sp: SpSystemTrace, previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex?: number) {
     if (structs.length == 0) {
         return 0;
     }
-    let findIndex = spSystemTraceShowStructFindIndex(sp,previous,currentIndex,structs,retargetIndex);
+    let findIndex = spSystemTraceShowStructFindIndex(sp, previous, currentIndex, structs, retargetIndex);
     let findEntry: any;
-    if (findIndex >= 0) {
-        findEntry = structs[findIndex];
-    } else {
-        if (previous) {
-            for (let i = structs.length - 1; i >= 0; i--) {
-                let it = structs[i];
-                if (it.startTime! + it.dur! < TraceRow.range!.startNS) {
-                    findIndex = i;
-                    break;
-                }
-            }
-            if (findIndex == -1) {
-                findIndex = structs.length - 1;
-            }
-        } else {
-            findIndex = structs.findIndex((it) => it.startTime! > TraceRow.range!.endNS);
-            if (findIndex == -1) {
-                findIndex = 0;
-            }
-        }
-        findEntry = structs[findIndex];
-    }
+    findEntry = structs[findIndex];
     moveRangeToCenterAndHighlight(sp, findEntry);
     return findIndex;
 }
-function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
+function spSystemTraceShowStructFindIndex(sp: SpSystemTrace, previous: boolean, currentIndex: number, structs: Array<any>, retargetIndex: number | undefined) {
+    if (TraceRow.range!.startNS > SpSystemTrace.currentStartTime && !retargetIndex) {
+        SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+    }
     let findIndex = -1;
     if (previous) {
         if (retargetIndex) {
@@ -717,23 +718,45 @@ function spSystemTraceShowStructFindIndex(sp: SpSystemTrace,  previous: boolean,
             for (let i = structs.length - 1; i >= 0; i--) {
                 let it = structs[i];
                 if (
-                  i < currentIndex
+                    i < currentIndex &&
+                    it.startTime! >= TraceRow.range!.startNS &&
+                    it.startTime! + it.dur! <= TraceRow.range!.endNS
                 ) {
                     findIndex = i;
                     break;
                 }
+                if (it.startTime! + it.dur! <= TraceRow.range!.startNS) {
+                    findIndex = i;
+                    break;
+                }
+            }
+            if (findIndex == -1) {
+                findIndex = structs.length - 1;
             }
         }
     } else {
-        if (currentIndex == -1) {
-            findIndex = 0;
-        } else {
-            findIndex = structs.findIndex((it, idx) => {
-                return (
-                  idx > currentIndex
-                );
-            });
+        //左滑
+        if (SpSystemTrace.currentStartTime > TraceRow.range!.startNS) {
+            SpSystemTrace.currentStartTime = TraceRow.range!.startNS;
+            if (structs[currentIndex].startTime < TraceRow.range!.startNS || structs[currentIndex].startTime! + structs[currentIndex].dur! > TraceRow.range!.endNS) {
+                currentIndex = -1;
+            }
         }
+        findIndex = structs.findIndex((it, idx) => {
+            if (idx > currentIndex &&
+                it.startTime! >= TraceRow.range!.startNS &&
+                it.startTime! + it.dur! <= TraceRow.range!.endNS
+            ) {
+                return true;
+            }
+            if (it.startTime! >= TraceRow.range!.endNS) {
+                return true
+            }
+        });
+        if (findIndex == -1) {
+            findIndex = 0;
+        }
+
     }
     return findIndex;
 }
@@ -743,8 +766,8 @@ function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any) {
     sp.queryAllTraceRow(`trace-row[row-type='cpu-data']`, (row) => row.rowType === 'cpu-data').forEach((item) => {
         if (item.rowId === `${findEntry.cpu}`) {
             sp.rechargeCpuData(
-              findEntry,
-              item.dataListCache.find((it) => it.startTime > findEntry.startTime)
+                findEntry,
+                item.dataListCache.find((it) => it.startTime > findEntry.startTime)
             );
             item.fixedList = [findEntry];
         }
@@ -756,26 +779,25 @@ function findEntryTypeCpu(sp: SpSystemTrace, findEntry: any) {
 }
 function findEntryTypeFunc(sp: SpSystemTrace, findEntry: any) {
     sp.observerScrollHeightEnable = true;
-    sp.moveRangeToCenter(findEntry.startTime!, findEntry.dur!);
     sp.scrollToActFunc(
-      {
-          startTs: findEntry.startTime,
-          dur: findEntry.dur,
-          tid: findEntry.tid,
-          pid: findEntry.pid,
-          depth: findEntry.depth,
-          argsetid: findEntry.argsetid,
-          funName: findEntry.funName,
-          cookie: findEntry.cookie,
-      },
-      true
+        {
+            startTs: findEntry.startTime,
+            dur: findEntry.dur,
+            tid: findEntry.tid,
+            pid: findEntry.pid,
+            depth: findEntry.depth,
+            argsetid: findEntry.argsetid,
+            funName: findEntry.funName,
+            cookie: findEntry.cookie,
+        },
+        true
     );
 }
 function findEntryTypeThreadProcess(sp: SpSystemTrace, findEntry: any) {
     let threadProcessRow = sp.rowsEL?.querySelectorAll<TraceRow<ThreadStruct>>('trace-row')[0];
     if (threadProcessRow) {
         let filterRow = threadProcessRow.childrenList.filter(
-          (row) => row.rowId === findEntry.rowId && row.rowId === findEntry.rowType
+            (row) => row.rowId === findEntry.rowId && row.rowId === findEntry.rowType
         )[0];
         filterRow!.highlight = true;
         sp.closeAllExpandRows(findEntry.rowParentId);
@@ -797,7 +819,7 @@ function findEntryTypeSdk(sp: SpSystemTrace, findEntry: any) {
     let parentRow = sp.shadowRoot!.querySelector<TraceRow<any>>(`trace-row[row-type='sdk'][folder]`);
     if (parentRow) {
         let sdkRow = parentRow.childrenList.filter(
-          (child) => child.rowId === findEntry.rowId && child.rowType === findEntry.rowType
+            (child) => child.rowId === findEntry.rowId && child.rowType === findEntry.rowType
         )[0];
         sdkRow!.highlight = true;
     }
@@ -808,7 +830,7 @@ function findEntryTypeSdk(sp: SpSystemTrace, findEntry: any) {
     sp.closeAllExpandRows(findEntry.rowParentId);
     sp.scrollToProcess(`${findEntry.rowId}`, `${findEntry.rowParentId}`, findEntry.rowType, true);
 }
-async function spSystemTraceInitBuffer(sp:SpSystemTrace,param:{buf?:ArrayBuffer;Url?:string},wasmConfigUri:string,progress:Function) {
+async function spSystemTraceInitBuffer(sp: SpSystemTrace, param: { buf?: ArrayBuffer; Url?: string }, wasmConfigUri: string, progress: Function) {
     if (param.buf) {
         let configJson = '';
         try {
@@ -823,30 +845,30 @@ async function spSystemTraceInitBuffer(sp:SpSystemTrace,param:{buf?:ArrayBuffer;
         }
         SpSystemTrace.SDK_CONFIG_MAP = sdkConfigMap == undefined ? undefined : sdkConfigMap;
         return null
-    }else{
+    } else {
         return null;
     }
 }
-async function spSystemTraceInitUrl(sp:SpSystemTrace,param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
+async function spSystemTraceInitUrl(sp: SpSystemTrace, param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
     if (param.url) {
         let { status, msg } = await threadPool.initServer(param.url, progress);
         if (!status) {
             return { status: false, msg: msg };
-        }else{
+        } else {
             return null;
         }
-    }else{
+    } else {
         return null;
     }
 }
-export async function spSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
+export async function spSystemTraceInit(sp: SpSystemTrace, param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) {
     progress('Load database', 6);
-    sp.rowsPaneEL!.scroll({top: 0, left: 0});
-    let rsBuf = await spSystemTraceInitBuffer(sp,param,wasmConfigUri,progress);
+    sp.rowsPaneEL!.scroll({ top: 0, left: 0 });
+    let rsBuf = await spSystemTraceInitBuffer(sp, param, wasmConfigUri, progress);
     if (rsBuf) {
         return rsBuf;
     }
-    let rsUrl = await spSystemTraceInitUrl(sp,param,wasmConfigUri,progress);
+    let rsUrl = await spSystemTraceInitUrl(sp, param, wasmConfigUri, progress);
     if (rsUrl) {
         return rsUrl;
     }
@@ -870,10 +892,11 @@ export async function spSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuf
         }
         if (it.folder) {
             let offsetYTimeOut: any = undefined;
-            it.addEventListener('expansion-change', expansionChangeHandler(sp,offsetYTimeOut));
+            it.addEventListener('expansion-change', expansionChangeHandler(sp, offsetYTimeOut));
         }
         if (sp.loadTraceCompleted) {
             sp.traceSheetEL?.displaySystemLogsData();
+            sp.traceSheetEL?.displaySystemStatesData();
         }
         sp.intersectionObserver?.observe(it);
     });
@@ -882,7 +905,7 @@ export async function spSystemTraceInit(sp:SpSystemTrace,param: { buf?: ArrayBuf
 function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: any) {
     return function (event: any) {
         let max = [...sp.rowsPaneEL!.querySelectorAll('trace-row')].reduce(
-          (pre, cur) => pre + cur.clientHeight!, 0);
+            (pre, cur) => pre + cur.clientHeight!, 0);
         let offset = sp.rowsPaneEL!.scrollHeight - max;
         sp.rowsPaneEL!.scrollTop = sp.rowsPaneEL!.scrollTop - offset;
         JankStruct.delJankLineFlag = false;
@@ -915,7 +938,7 @@ function expansionChangeHandler(sp: SpSystemTrace, offsetYTimeOut: any) {
         }, 360);
     }
 }
-function linkNodeHandler(linkNode: PairPoint[], sp: SpSystemTrace){
+function linkNodeHandler(linkNode: PairPoint[], sp: SpSystemTrace) {
     if (linkNode[0].rowEL.collect) {
         linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
     } else {

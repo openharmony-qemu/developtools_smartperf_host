@@ -38,9 +38,14 @@ export class FreqExtendRender extends Render {
       paddingTop: 5,
       useCache: freqReq.useCache || !(TraceRow.range?.refresh ?? false),
     });
-
     if (row.isHover) {
-      CpuFreqExtendStruct.cycle = -1;
+      if (freqReq.type === 'cpu-freq') {
+        CpuFreqExtendStruct.cpuCycle = -1;
+      } else if (freqReq.type === 'gpu-freq') {
+        CpuFreqExtendStruct.gpuCycle = -1;
+      } else {
+        CpuFreqExtendStruct.schedCycle = -1
+      }
       CpuFreqExtendStruct.isTabHover = false;
     }
     freqReq.context.beginPath();
@@ -49,52 +54,52 @@ export class FreqExtendRender extends Render {
         CpuFreqExtendStruct.hoverCpuFreqStruct = re;
       }
       if (!row.isHover && !CpuFreqExtendStruct.isTabHover) CpuFreqExtendStruct.hoverCpuFreqStruct = undefined;
-      CpuFreqExtendStruct.draw(freqReq.context, re);
+      CpuFreqExtendStruct.draw(freqReq.context, re, freqReq.type);
     }
     freqReq.context.closePath();
   }
 }
 
 export class CpuFreqExtendStruct extends BaseStruct {
-  static maxValue: number = 0;
-  static cycle: number = -1;
+  static cpuMaxValue: number = 0;
+  static gpuMaxValue: number = 0;
+  static schedMaxValue: number = 0;
+  static cpuCycle: number = -1;
+  static gpuCycle: number = -1;
+  static schedCycle: number = -1;
   static isTabHover: boolean = false;
+  static hoverType: string = '';
   static hoverCpuFreqStruct: CpuFreqExtendStruct | undefined;
-  freq: number = 0;
   static selectCpuFreqStruct: CpuFreqExtendStruct | undefined;
-  cpu: number | undefined;
   value: number = 0;
   startNS: number | undefined;
   dur: number | undefined; //自补充，数据库没有返回
   cycle: number | undefined;
-  type: string | undefined;
-  count: number = 0;
+  colorIndex: number = 0;
 
-  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct) {
+  static draw(freqContext: CanvasRenderingContext2D, data: CpuFreqExtendStruct, type: string) {
     if (data.frame) {
       let width = data.frame.width || 0;
-      let index = data.cpu || 0;
+      let index = data.colorIndex || 0;
       index += 2;
       let color = ColorUtils.colorForTid(index);
       freqContext.fillStyle = color;
-      freqContext.strokeStyle = color;
       if (
         data === CpuFreqExtendStruct.hoverCpuFreqStruct ||
         data === CpuFreqExtendStruct.selectCpuFreqStruct ||
-        data === CpuFreqExtendStruct.selectCpuFreqStruct ||
-        (data.cycle === CpuFreqExtendStruct.cycle && CpuFreqExtendStruct.cycle !== -1)
+        (type === CpuFreqExtendStruct.hoverType &&
+          ((data.cycle === CpuFreqExtendStruct.cpuCycle && CpuFreqExtendStruct.cpuCycle !== -1) ||
+            (data.cycle === CpuFreqExtendStruct.gpuCycle && CpuFreqExtendStruct.gpuCycle !== -1) ||
+            (data.cycle === CpuFreqExtendStruct.schedCycle && CpuFreqExtendStruct.schedCycle !== -1)))
       ) {
         freqContext.fillStyle = '#ff0000';
         freqContext.strokeStyle = '#ff0000';
         freqContext.lineWidth = 3;
         freqContext.globalAlpha = 0.6;
-        if (data.type === 'SCHED-SWITCH' || data.type === 'GPU-FREQ') {
-          freqContext.globalAlpha = 1;
-          freqContext.fillStyle = color;
-          freqContext.strokeStyle = color;
-        }
         let drawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0) * 1.0) / CpuFreqExtendStruct.maxValue
+          ((data.value || 0) * (data.frame.height || 0) * 1.0) / (type === 'CPU-FREQ'
+            ? CpuFreqExtendStruct.cpuMaxValue : type === 'GPU-FREQ'
+              ? CpuFreqExtendStruct.gpuMaxValue : CpuFreqExtendStruct.schedMaxValue)
         );
         if (drawHeight < 1) {
           drawHeight = 1;
@@ -106,7 +111,9 @@ export class CpuFreqExtendStruct extends BaseStruct {
         freqContext.globalAlpha = 0.6;
         freqContext.lineWidth = 1;
         let drawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0)) / CpuFreqExtendStruct.maxValue
+          ((data.value || 0) * (data.frame.height || 0)) / (type === 'CPU-FREQ'
+            ? CpuFreqExtendStruct.cpuMaxValue : type === 'GPU-FREQ'
+              ? CpuFreqExtendStruct.gpuMaxValue : CpuFreqExtendStruct.schedMaxValue)
         );
         if (drawHeight < 1) {
           drawHeight = 1;

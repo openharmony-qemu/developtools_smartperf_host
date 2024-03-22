@@ -15,6 +15,9 @@
 
 importScripts('sql-wasm.js');
 import { temp_init_sql_list } from './TempSql';
+import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
+import { TraficEnum } from './data-trafic/utils/QueryEnum';
+
 let conn: any = null;
 let encoder = new TextEncoder();
 function initIndexedDB() {
@@ -123,5 +126,21 @@ self.onmessage = async (e: any) => {
         error: err.message,
       });
     }
+  } else if (e.data.action === 'exec-proto') {
+    e.data.params.trafic = TraficEnum.Memory;
+    execProtoForWorker(e.data, (sql: string) => {
+      try {
+        const stmt = conn.prepare(sql);
+        let res = [];
+        while (stmt.step()) {
+          res.push(stmt.getAsObject());
+        }
+        stmt.free();
+        return res;
+      } catch (err: any) {
+        console.log(err);
+        return [];
+      }
+    });
   }
 };

@@ -15,6 +15,7 @@
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { SpKeyboardHtml } from './SpKeyboard.html';
+import { SpSystemTrace } from './SpSystemTrace';
 
 @element('sp-keyboard')
 export class SpKeyboard extends BaseElement {
@@ -25,17 +26,14 @@ export class SpKeyboard extends BaseElement {
     let keyboardDiv = document
     .querySelector('body > sp-application')!
       .shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard')!;
-    let welcomeDiv = document
-    .querySelector('body > sp-application')!
-      .shadowRoot!.querySelector<SpKeyboard>('#sp-welcome')!;
     let shadow_box = this.shadowRoot?.querySelector('.shadow-box')!;
     closeWindow!.addEventListener('click', () => {
       keyboardDiv.style.visibility = 'hidden';
-      welcomeDiv.style.visibility = 'visible';
+      SpSystemTrace.keyboardFlar = true;
     });
     shadow_box!.addEventListener('click', () => {
       keyboardDiv.style.visibility = 'hidden';
-      welcomeDiv.style.visibility = 'visible';
+      SpSystemTrace.keyboardFlar = true;
     });
   }
 
