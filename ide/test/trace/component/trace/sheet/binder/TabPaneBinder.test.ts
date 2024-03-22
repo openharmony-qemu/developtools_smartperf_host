@@ -15,7 +15,6 @@
 
 import { TabPaneBinders } from '../../../../../../src/trace/component/trace/sheet/binder/TabPaneBinders';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
-import { queryBinderByThreadId } from '../../../../../../src/trace/database/SqlLite';
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -23,43 +22,58 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
 jest.mock('../../../../../../src/base-ui/table/lit-table');
 describe('TabPaneBinders Test', () => {
-  let tabPaneBinders;
-  let threadBindersTbl;
-  beforeEach(() => {
-    jest.clearAllMocks();
-    tabPaneBinders = new TabPaneBinders();
-    threadBindersTbl = new LitTable();
-    tabPaneBinders['threadBindersTbl'] = threadBindersTbl;
-  });
+  let tabPaneBinders = new TabPaneBinders();
+  let threadBindersTbl = new LitTable();
+  jest.clearAllMocks();
+  tabPaneBinders['threadBindersTbl'] = threadBindersTbl;
+  const data = [
+    {
+      pid: 1,
+      tid: 2,
+      title: 'P-Render',
+      totalCount: 3,
+      children: [
+        {
+          binderAsyncRcvCount: 2,
+          binderReplyCount: 2,
+          binderTransactionAsyncCount: 2,
+          binderTransactionCount: 2,
+          pid: 1,
+          tid: 2,
+          title: 'T-Render',
+          totalCount: 1
+        }
+      ]
+    },{
+      pid: 1,
+      tid: 2,
+      title: 'P-Service',
+      totalCount: 1,
+      children: [
+        {
+          binderAsyncRcvCount: 1,
+          binderReplyCount: 1,
+          binderTransactionAsyncCount: 1,
+          binderTransactionCount: 1,
+          pid: 1,
+          tid: 2,
+          title: 'T-Service',
+          totalCount: 2
+        }
+      ]
+    }
+  ];
+
   it('TabPaneBindersTest01', () => {
-    const data = [
-      {
-        pid: undefined,
-        tid: undefined,
-        title: 'P-undefined',
-        totalCount: undefined,
-        children: [
-          {
-            binderAsyncRcvCount: 0,
-            binderReplyCount: 0,
-            binderTransactionAsyncCount: 0,
-            binderTransactionCount: 0,
-            pid: undefined,
-            tid: undefined,
-            title: 'T-undefined',
-            totalCount: undefined
-          }
-        ]
-      }
-    ];
-    queryBinderByThreadId.mockResolvedValue(data);
+    let binder = sqlite.queryBinderByThreadId;
+    binder.mockResolvedValue(data);
     const threadStatesParam = {
       threadIds: [1, 2],
       processIds: [1, 2],
@@ -69,9 +83,21 @@ describe('TabPaneBinders Test', () => {
     tabPaneBinders.initBinderData(threadStatesParam);
     tabPaneBinders.data = data;
     expect(tabPaneBinders.data).toBeUndefined();
-    expect(queryBinderByThreadId).toHaveBeenCalledWith([1, 2], [1, 2], 0, 100);
     expect(threadBindersTbl.recycleDataSource).toEqual([]);
     expect(tabPaneBinders['threadBindersTblSource']).toEqual([]);
+    expect(threadBindersTbl.loading).toBe(true);
+  });
+
+  it('TabPaneBindersTest02', () => {
+    let binder = sqlite.queryBinderByThreadId;
+    binder.mockResolvedValue([]);
+    const threadStatesParam = {
+      threadIds: [1, 2],
+      processIds: [1, 2],
+      leftNs: 0,
+      rightNs: 100
+    };
+    tabPaneBinders.initBinderData(threadStatesParam);
     expect(threadBindersTbl.loading).toBe(true);
   });
 });

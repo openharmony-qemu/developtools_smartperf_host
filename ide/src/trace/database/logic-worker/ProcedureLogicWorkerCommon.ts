@@ -425,11 +425,11 @@ export let getByteWithUnit = (bytes: number): string => {
   let gb = ((1 << 10) << 10) << 10; // 1 gb
   let res = '';
   if (currentBytes > gb) {
-    res += (currentBytes / gb).toFixed(2) + ' Gb';
+    res += (currentBytes / gb).toFixed(2) + ' GB';
   } else if (currentBytes > mb) {
-    res += (currentBytes / mb).toFixed(2) + ' Mb';
+    res += (currentBytes / mb).toFixed(2) + ' MB';
   } else if (currentBytes > kb1) {
-    res += (currentBytes / kb1).toFixed(2) + ' Kb';
+    res += (currentBytes / kb1).toFixed(2) + ' KB';
   } else {
     res += Math.round(currentBytes) + ' byte';
   }

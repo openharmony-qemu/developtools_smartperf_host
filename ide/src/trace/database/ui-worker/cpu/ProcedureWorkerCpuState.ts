@@ -171,7 +171,7 @@ export function CpuStateStructOnClick(clickRowType: string, sp: SpSystemTrace) {
       CpuStateStruct.selectStateStruct = CpuStateStruct.hoverStateStruct;
       sp.traceSheetEL?.displayCpuStateData();
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

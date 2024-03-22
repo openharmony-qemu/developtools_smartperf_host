@@ -15,7 +15,6 @@
 
 import { TabPanePTS } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPanePTS';
 import { SpSystemTrace } from '../../../../../../src/trace/component/SpSystemTrace';
-import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 window.ResizeObserver =

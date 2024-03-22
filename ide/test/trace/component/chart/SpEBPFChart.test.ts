@@ -14,14 +14,26 @@
  */
 
 import { SpEBPFChart } from '../../../../src/trace/component/chart/SpEBPFChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlit = require('../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../src/trace/database/sql/Memory.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
+import { EBPFChartStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerEBPF';
+const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -39,16 +51,23 @@ describe('SpFileSystemChart Test', () => {
       ioCount: 2,
     },
   ]);
-
-  let ss = new SpChartManager();
-  let spEBPFChart = new SpEBPFChart(ss);
+  let getDiskIOProcess = sqlite.getDiskIOProcess;
+  getDiskIOProcess.mockResolvedValue([
+    {
+      name: 'kworker/u8:4',
+      ipid: 2,
+      pid: 186,
+    }
+  ]);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spEBPFChart = new SpEBPFChart(htmlElement);
   spEBPFChart.initFileCallchain = jest.fn(() => true);
   it('SpMpsChart01', function () {
     spEBPFChart.init();
     expect(spEBPFChart).toBeDefined();
   });
   it('SpMpsChart02', function () {
-    ss.displayTip = jest.fn(() => true);
-    expect(spEBPFChart.focusHandler(TraceRow)).toBeUndefined();
+    spEBPFChart.trace.displayTip = jest.fn();
+    expect(spEBPFChart.focusHandler(new TraceRow<EBPFChartStruct>())).toBeUndefined();
   });
 });

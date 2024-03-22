@@ -535,6 +535,11 @@ export function createNativePluginConfig(
       if (spAllocations!.sample_interval) {
         nativeConfig.sampleInterval = spAllocations!.sample_interval;
       }
+      nativeConfig.jsStackReport = spAllocations!.recordJsStack;
+      if (spAllocations!.recordJsStack) {
+        nativeConfig.maxJsStackDepth = spAllocations!.max_js_stack_depth;
+        nativeConfig.filterNapiName = spAllocations!.filter_napi_name;
+      }
     }
     if (spAllocations!.expandPids.length > 1) {
       nativeConfig.expandPids = spAllocations!.expandPids.splice(0, maxProcessSize);
@@ -633,6 +638,9 @@ function initHiPerfConfig(
   }
   if (perfConfig.isOffCpu) {
     recordArgs = `${recordArgs} --offcpu`;
+  }
+  if (perfConfig?.isKernelChain) {
+    recordArgs = `${recordArgs} --kernel-chain`;
   }
   if (perfConfig.noInherit) {
     recordArgs = `${recordArgs} --no-inherit`;

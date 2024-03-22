@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,9 +60,10 @@ bool ReadInfo(uint8_t* startPtr[], uint8_t* endPtr, void* outData, size_t outSiz
 
 namespace SysTuning {
 namespace TraceStreamer {
-FtraceProcessor::FtraceProcessor()
+FtraceProcessor::FtraceProcessor(TraceDataCache* traceDataCache)
     : fixedCharArrayRegex_(std::regex(R"(char \w+\[\d+\])")),
-      flexDataLocArrayRegex_(std::regex(R"(__data_loc [a-zA-Z_0-9 ]+\[\] \w+)"))
+      flexDataLocArrayRegex_(std::regex(R"(__data_loc [a-zA-Z_0-9 ]+\[\] \w+)")),
+      traceDataCache_(traceDataCache)
 {
 }
 
@@ -529,7 +530,6 @@ bool FtraceProcessor::HandleTimeExtend(const FtraceEventHeader& eventHeader)
 {
     uint32_t deltaExt = 0;
     TS_CHECK_TRUE(ReadInfo(&curPos_, endPosOfData_, &deltaExt, sizeof(deltaExt)), false, "read time delta failed!");
-
     curTimestamp_ += TimestampIncrements(deltaExt);
     TS_LOGD("HandleTimeExtend: update ts with %u to %" PRIu64, deltaExt, curTimestamp_);
     return true;
@@ -577,6 +577,10 @@ bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader& eventHeader,
     }
     TS_LOGD("HandleDataRecord: eventId = %u, name = %s", eventId, format.eventName.c_str());
 
+    if (traceDataCache_->isSplitFile_) {
+        curPos_ = eventEnd;
+        return true;
+    }
     if (FtraceEventProcessor::GetInstance().IsSupported(format.eventId)) {
         std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
         ftraceEvent->set_timestamp(curTimestamp_);
@@ -596,25 +600,22 @@ bool FtraceProcessor::HandleDataRecord(const FtraceEventHeader& eventHeader,
 bool FtraceProcessor::HandlePage(FtraceCpuDetailMsg& cpuMsg,
                                  CpuDetailParser& cpuDetailParser,
                                  uint8_t page[],
+                                 bool& haveSplitSeg,
                                  size_t size)
 {
     curPos_ = page;
     curPage_ = page;
     endPosOfPage_ = page + size;
-
     HandlePageHeader();
     TS_LOGD("HandlePage: %" PRIu64 " bytes event data in page!", curPageHeader_.size);
     cpuMsg.set_overwrite(curPageHeader_.overwrite);
-
     curTimestamp_ = curPageHeader_.timestamp;
     endPosOfData_ = curPageHeader_.endpos;
     while (curPos_ < curPageHeader_.endpos) {
         FtraceEventHeader eventHeader = {};
         TS_CHECK_TRUE(ReadInfo(&curPos_, endPosOfData_, &eventHeader, sizeof(FtraceEventHeader)), false,
                       "read EventHeader fail!");
-
         curTimestamp_ += eventHeader.timeDelta;
-
         bool retval = false;
         switch (eventHeader.typeLen) {
             case BUFFER_TYPE_PADDING:
@@ -634,6 +635,9 @@ bool FtraceProcessor::HandlePage(FtraceCpuDetailMsg& cpuMsg,
                 TS_CHECK_TRUE(retval, false, "parse record data failed!");
                 break;
         }
+        if (traceDataCache_->isSplitFile_ && IsSplitCpuTimeStampData(curTimestamp_, haveSplitSeg)) {
+            return true;
+        }
         TS_LOGD("parsed %ld bytes of page data.", static_cast<long>(curPos_ - curPage_));
     }
     return true;
@@ -644,18 +648,15 @@ static inline int RmqEntryTotalSize(unsigned int size)
     return sizeof(struct RmqEntry) + ((size + RMQ_ENTRY_ALIGN_MASK) & (~RMQ_ENTRY_ALIGN_MASK));
 }
 
-bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParser& cpuDetailParser, uint8_t*& data)
+void FtraceProcessor::HmProcessPageTraceDataEvents(RmqConsumerData* rmqData,
+                                                   uint64_t timeStampBase,
+                                                   FtraceCpuDetailMsg& cpuMsg,
+                                                   CpuDetailParser& cpuDetailParser,
+                                                   bool& haveSplitSeg)
 {
-    RmqConsumerData* rmqData = reinterpret_cast<struct RmqConsumerData*>(data);
-    uint64_t timeStampBase = rmqData->timeStamp;
     RmqEntry* event;
     HmTraceHeader* header;
-
     EventFormat format = {};
-
-    cpuMsg.set_cpu(rmqData->coreId);
-    cpuMsg.set_overwrite(0);
-
     auto curPtr = rmqData->data;
     auto endPtr = rmqData->data + rmqData->length;
     while (curPtr < endPtr) {
@@ -664,19 +665,24 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
         if (evtSize == 0U) {
             break;
         }
-
         header = reinterpret_cast<struct HmTraceHeader*>(event->data);
         auto eventId = header->commonType;
+        curPtr += RmqEntryTotalSize(evtSize);
         if (!GetEventFormatById(eventId, format)) {
-            curPtr += RmqEntryTotalSize(evtSize);
             TS_LOGD("mark.debug. evtId = %u evtSize = %u", eventId, evtSize);
+            continue;
+        }
+        if (traceDataCache_->isSplitFile_) {
+            if (IsSplitCpuTimeStampData(event->timeStampOffset + timeStampBase, haveSplitSeg)) {
+                return;
+            }
             continue;
         }
         if (FtraceEventProcessor::GetInstance().IsSupported(format.eventId)) {
             std::unique_ptr<FtraceEvent> ftraceEvent = std::make_unique<FtraceEvent>();
             ftraceEvent->set_timestamp(event->timeStampOffset + timeStampBase);
             HandleFtraceEvent(*ftraceEvent, reinterpret_cast<uint8_t*>(header), evtSize, format);
-            std::unique_ptr<RawTraceEventInfo> eventInfo = std::make_unique<RawTraceEventInfo>();
+            std::shared_ptr<RawTraceEventInfo> eventInfo = std::make_shared<RawTraceEventInfo>();
             eventInfo->cpuId = cpuMsg.cpu();
             eventInfo->eventId = eventId;
             eventInfo->msgPtr = std::move(ftraceEvent);
@@ -687,10 +693,18 @@ bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg, CpuDetailParse
                 "format.eventName = %s format.eventType = %s",
                 eventId, evtSize, format.eventId, format.eventSize, format.eventName.c_str(), format.eventType.c_str());
         }
-        curPtr += RmqEntryTotalSize(evtSize);
     }
-
-    data += FTRACE_PAGE_SIZE;
+}
+bool FtraceProcessor::HmParsePageData(FtraceCpuDetailMsg& cpuMsg,
+                                      CpuDetailParser& cpuDetailParser,
+                                      uint8_t*& data,
+                                      bool& haveSplitSeg)
+{
+    RmqConsumerData* rmqData = reinterpret_cast<struct RmqConsumerData*>(data);
+    uint64_t timeStampBase = rmqData->timeStamp;
+    cpuMsg.set_cpu(rmqData->coreId);
+    cpuMsg.set_overwrite(0);
+    HmProcessPageTraceDataEvents(rmqData, timeStampBase, cpuMsg, cpuDetailParser, haveSplitSeg);
     return true;
 }
 

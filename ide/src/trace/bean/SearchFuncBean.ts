@@ -19,6 +19,7 @@ export class SearchFuncBean {
   funName: string | undefined; //"binder transaction"
   id: number | undefined; // 92749
   startTime: number | undefined; // 9729867000
+  endTime: number | undefined;
   tid: number | undefined; //
   pid: number | undefined; // 2785
   type: string | undefined;

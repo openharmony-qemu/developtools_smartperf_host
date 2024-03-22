@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneGpuMemoryVmTrackerComparison } from '../../../../../../src/trace/component/trace/sheet/vmtracker/TabPaneGpuMemoryVmTrackerComparison';
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../../../src/trace/database/sql/Memory.sql');
 jest.mock('../../../../../../src/base-ui/select/LitSelect', () => {
   return {};
 });
@@ -66,12 +66,9 @@ describe('TabPaneGpuMemoryVmTrackerComparison Test', () => {
     expect(tabPaneGpuMemoryVmTrackerComparison.queryDataByDB(10)).toBeTruthy();
   });
   it('TabPaneGpuMemoryVmTrackerComparison02', function () {
-    expect(tabPaneGpuMemoryVmTrackerComparison.getComparisonData(10)).toBeTruthy();
-  });
-  it('TabPaneGpuMemoryVmTrackerComparison03', function () {
     expect(tabPaneGpuMemoryVmTrackerComparison.sortGpuMemoryByColumn(0, '')).toBeUndefined();
   });
-  it('TabPaneGpuMemoryVmTrackerComparison04', function () {
+  it('TabPaneGpuMemoryVmTrackerComparison03', function () {
     expect(tabPaneGpuMemoryVmTrackerComparison.sortGpuMemoryByColumn(1, 'thread')).toBeUndefined();
   });
 });

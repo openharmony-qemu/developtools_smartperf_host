@@ -79,20 +79,6 @@ describe('PlugConvertUtils Test', () => {
     reportAppMemByMemoryService: false,
     pid: [],
   };
-
-  SpRecordTrace.MEM_INFO.forEach((va: any) => {
-    memoryconfig.sysMeminfoCounters.push(sysMeminfoTypeFromJSON(va));
-  });
-  SpRecordTrace.VMEM_INFO.forEach((me: any) => {
-    memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me));
-  });
-  SpRecordTrace.VMEM_INFO_SECOND.forEach((me: any) => {
-    memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me));
-  });
-  SpRecordTrace.VMEM_INFO_THIRD.forEach((me: any) => {
-    memoryconfig.sysVmeminfoCounters.push(sysVMeminfoTypeFromJSON(me));
-  });
-
   let request = {
     requestId: 1,
     sessionConfig: sessionConfig,

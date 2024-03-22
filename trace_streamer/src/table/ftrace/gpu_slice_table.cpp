@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -81,13 +81,15 @@ int32_t GPUSliceTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value
         const auto& c = gpuSliceTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::FRAME_ROW:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), gpuSliceObj_.FrameRows());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
+                                    gpuSliceObj_.FrameRows());
                 break;
             case Index::DUR:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), gpuSliceObj_.Durs());
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    gpuSliceObj_.Durs());
                 break;
             default:
                 break;
@@ -113,7 +115,7 @@ int32_t GPUSliceTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
         case Index::ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
+            sqlite3_result_int64(context_, static_cast<int32_t>(gpuSliceObj_.IdsData()[CurrentRow()]));
             break;
         case Index::FRAME_ROW:
             sqlite3_result_int64(context_, static_cast<int32_t>(gpuSliceObj_.FrameRows()[CurrentRow()]));

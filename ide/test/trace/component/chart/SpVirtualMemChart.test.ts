@@ -12,30 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-window.ResizeObserver = window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(), observe: jest.fn(), unobserve: jest.fn(),
-    }));
-import { SpVirtualMemChart } from '../../../../src/trace/component/chart/SpVirtualMemChart';
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+import { SpVirtualMemChart } from '../../../../src/trace/component/chart/SpVirtualMemChart';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
-
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+// @ts-ignore
+window.ResizeObserver = window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(), observe: jest.fn(), unobserve: jest.fn(),
+  }));
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+const memorySqlite = require('../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../src/trace/database/sql/Memory.sql');
 describe('SpVirtualMemChart Test', () => {
-  let manager = new SpChartManager();
-  let spVirtualMemChart = new SpVirtualMemChart(manager);
-  let MockVirtualMemory = sqlit.queryVirtualMemory;
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spVirtualMemChart = new SpVirtualMemChart(htmlElement);
+  let MockVirtualMemory = memorySqlite.queryVirtualMemory;
   MockVirtualMemory.mockResolvedValue([
     {
       id: 0,
@@ -43,7 +47,7 @@ describe('SpVirtualMemChart Test', () => {
     },
   ]);
 
-  let MockVirtualMemoryData = sqlit.queryVirtualMemoryData;
+  let MockVirtualMemoryData = memorySqlite.queryVirtualMemoryData;
   MockVirtualMemoryData.mockResolvedValue([
     {
       startTime: 0,
@@ -62,9 +66,9 @@ describe('SpVirtualMemChart Test', () => {
       canvasNumber: 1,
       alpha: false,
       contextId: '2d',
-      isOffScreen: SpSystemTrace.isCanvasOffScreen,
+      isOffScreen: htmlElement.isCanvasOffScreen,
     });
-    spVirtualMemChart.initVirtualMemoryRow(folder, 2, 'name', 2);
+    spVirtualMemChart.initVirtualMemoryRow(folder, 2, 'name');
     expect(spVirtualMemChart).toBeDefined();
   });
 });

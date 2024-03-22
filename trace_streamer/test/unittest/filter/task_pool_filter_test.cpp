@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,9 +46,9 @@ HWTEST_F(TaskPoolFilterTest, CheckTheSameTaskTest, TestSize.Level1)
 {
     TS_LOGI("test37-1");
     DoubleMap<InternalPid, uint32_t, uint32_t> executeMap(INVALID_INT32);
-    int32_t executeId = 0;
+    int64_t taskId = 0;
     uint32_t index = 0;
-    uint32_t res = stream_.streamFilters_->taskPoolFilter_->CheckTheSameTask(executeId, index);
+    uint32_t res = stream_.streamFilters_->taskPoolFilter_->CheckTheSameTask(taskId, index);
     EXPECT_EQ(res, INVALID_INT32);
 }
 class TaskPoolData {
@@ -56,14 +56,14 @@ public:
     TaskPoolData(InternalTid expectAllocationItid,
                  InternalTid expectExecuteItid,
                  InternalTid expectReturnItid,
-                 uint32_t executeId,
+                 uint64_t taskId,
                  uint32_t priority,
                  uint32_t executeState,
                  uint32_t returnState)
         : expectAllocationItid_(expectAllocationItid),
           expectExecuteItid_(expectExecuteItid),
           expectReturnItid_(expectReturnItid),
-          executeId_(executeId),
+          taskId_(taskId),
           priority_(priority),
           executeState_(executeState),
           returnState_(returnState){};
@@ -71,7 +71,7 @@ public:
         : expectAllocationItid_(taskpool->allocationItids_[index]),
           expectExecuteItid_(taskpool->executeItids_[index]),
           expectReturnItid_(taskpool->returnItids_[index]),
-          executeId_(taskpool->executeIds_[index]),
+          taskId_(taskpool->taskIds_[index]),
           priority_(taskpool->prioritys_[index]),
           executeState_(taskpool->executeStates_[index]),
           returnState_(taskpool->returnStates_[index]){};
@@ -81,7 +81,7 @@ private:
     InternalTid expectAllocationItid_;
     InternalTid expectExecuteItid_;
     InternalTid expectReturnItid_;
-    uint32_t executeId_;
+    uint32_t taskId_;
     uint32_t priority_;
     uint32_t executeState_;
     uint32_t returnState_;
@@ -98,7 +98,7 @@ bool operator==(const TaskPoolData& first, const TaskPoolData& second)
     if (first.expectReturnItid_ != second.expectReturnItid_) {
         return false;
     }
-    if (first.executeId_ != second.executeId_) {
+    if (first.taskId_ != second.taskId_) {
         return false;
     }
     if (first.priority_ != second.priority_) {
@@ -112,6 +112,10 @@ bool operator==(const TaskPoolData& first, const TaskPoolData& second)
     }
     return true;
 }
+
+// The old business is run in three phases by associating the application with the executeId,New business runs in three
+// phases by associating an application with the taskid. TaskPoolEventTest1 to TaskPoolEventTest3 The test is the old
+// business, TaskPoolEventTest4 to TaskPoolEventTest6 the test is the new business.
 /**
  * @tc.name: TaskPoolEventTest1
  * @tc.desc: TaskPoolEvent function Test
@@ -220,6 +224,120 @@ HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest3, TestSize.Level1)
 
     comm = "TaskWorkThread";
     taskPoolStr = "B|16502|H:Thread Timeout Exit";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    auto res = stream_.traceDataCache_->GetTaskPoolData()->timeoutRows_[0];
+    EXPECT_EQ(res, 3);
+}
+
+/**
+ * @tc.name: TaskPoolEventTest4
+ * @tc.desc: TaskPoolEvent function Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest4, TestSize.Level1)
+{
+    TS_LOGI("test37-5");
+    std::string comm("e.myapplication");
+    uint64_t ts = 106614622041;
+    uint32_t pid = 8821;
+    std::string taskPoolStr("B|8821|H:Task Allocation: taskId : 544997587840, priority : 1, executeState : 1");
+    BytraceLine line;
+    stream_.traceDataCache_->taskPoolTraceEnabled_ = true;
+    PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+
+    TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData firstExpect(1, INVALID_INT32, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    EXPECT_TRUE(firstResult == firstExpect);
+
+    comm = "e.myapplication";
+    taskPoolStr = "B|8821|H:Task Perform: taskId : 544997587840";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+
+    TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData secondExpect(1, 1, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    EXPECT_TRUE(secondResult == secondExpect);
+
+    comm = "TaskWorkThread";
+    taskPoolStr = "H:Task PerformTask End: taskId : 544997587840, performResult : IsCanceled";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData thirdExpect(1, 1, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    EXPECT_TRUE(thirdResult == thirdExpect);
+}
+
+/**
+ * @tc.name: TaskPoolEventTest5
+ * @tc.desc: TaskPoolEvent function Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest5, TestSize.Level1)
+{
+    TS_LOGI("test37-6");
+    std::string comm("e.myapplication");
+    uint64_t ts = 106614622041;
+    uint32_t pid = 8821;
+    std::string taskPoolStr("B|8821|H:Task Perform: taskId : 544997587840");
+    BytraceLine line;
+    stream_.traceDataCache_->taskPoolTraceEnabled_ = true;
+    PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData firstExpect(INVALID_INT32, 1, INVALID_INT32, 544997587840, INVALID_INT32, INVALID_INT32,
+                             INVALID_INT32);
+    EXPECT_TRUE(firstResult == firstExpect);
+
+    comm = "e.myapplication";
+    taskPoolStr = "B|8821|H:Task Allocation: taskId : 544997587840, priority : 1, executeState : 1";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData secondExpect(1, 1, INVALID_INT32, 544997587840, 1, 1, INVALID_INT32);
+    EXPECT_TRUE(secondResult == secondExpect);
+
+    comm = "TaskWorkThread";
+    taskPoolStr = "B|8821|H:Task PerformTask End: taskId : 544997587840, performResult : IsCanceled";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData thirdExpect(1, 1, 1, 544997587840, 1, 1, 0);
+    EXPECT_TRUE(thirdResult == thirdExpect);
+}
+
+/**
+ * @tc.name: TaskPoolEventTest6
+ * @tc.desc: TaskPoolEvent function Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(TaskPoolFilterTest, TaskPoolEventTest6, TestSize.Level1)
+{
+    TS_LOGI("test37-7");
+    std::string comm("e.myapplication");
+    uint64_t ts = 106614622041;
+    uint32_t pid = 8821;
+    std::string taskPoolStr("B|8821|H:Task PerformTask End: taskId : 544997587840, performResult : Successful");
+    BytraceLine line;
+    stream_.traceDataCache_->taskPoolTraceEnabled_ = true;
+    PrintEventParser printEvent(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData firstResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData firstExpect(INVALID_INT32, INVALID_INT32, 1, 544997587840, INVALID_INT32, INVALID_INT32, 1);
+    EXPECT_TRUE(firstResult == firstExpect);
+
+    comm = "e.myapplication";
+    taskPoolStr = "B|8821|H:Task Allocation: taskId : 544997587840, priority : 1, executeState : 1";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData secondResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData secondExpect(1, INVALID_INT32, 1, 544997587840, 1, 1, 1);
+    EXPECT_TRUE(secondResult == secondExpect);
+
+    comm = "TaskWorkThread";
+    taskPoolStr = "B|8821|H:Task Perform: taskId : 544997587840";
+    printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
+    TaskPoolData thirdResult(0, stream_.traceDataCache_->GetTaskPoolData());
+    TaskPoolData thirdExpect(1, 1, 1, 544997587840, 1, 1, 1);
+    EXPECT_TRUE(thirdResult == thirdExpect);
+
+    comm = "TaskWorkThread";
+    taskPoolStr = "B|8821|H:Thread Timeout Exit";
     printEvent.ParsePrintEvent(comm, ts, pid, taskPoolStr, line);
     auto res = stream_.traceDataCache_->GetTaskPoolData()->timeoutRows_[0];
     EXPECT_EQ(res, 3);

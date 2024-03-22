@@ -12,16 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
-
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import {
   eBPFChart,
-  EBPFChartStruct,
+  EBPFChartStruct, EBPFRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerEBPF';
-
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('ProcedureWorkerFileSystem Test', () => {
   it('ProcedureWorkerFileSystemTest01', function () {
     let frame = {
@@ -46,8 +47,8 @@ describe('ProcedureWorkerFileSystem Test', () => {
   it('ProcedureWorkerFileSystemTest03', function () {
     let frame = {
       x: 40,
-      y: 24,
       width: 440,
+      y: 24,
       height: 500,
     };
     let fileSystemDataList = new Array();
@@ -134,5 +135,50 @@ describe('ProcedureWorkerFileSystem Test', () => {
       },
       { dur: 0, group10Ms: false, height: 0, size: 0, startNS: 10 },
     ]);
+  });
+  it('ProcedureWorkerFileSystemTest07 ', function () {
+    let eBPFRender = new EBPFRender();
+    let eBPFReq = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 2,
+      endNS: 3,
+      totalNS: 1,
+      frame: {
+        x: 11,
+        y: 11,
+        width: 70,
+        height: 90,
+      },
+      useCache: false,
+      range: {
+        refresh: 'refresh',
+      },
+      canvas: '',
+      context: {
+        font: '12px sans-serif',
+        fillStyle: '#a1697d',
+        globalAlpha: 0,
+        measureText: jest.fn(() => true),
+        clearRect: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => false),
+        beginPath: jest.fn(() => true),
+        fillRect: jest.fn(() => false),
+        fillText: jest.fn(() => true),
+      },
+      isHover: '',
+      hoverX: 0,
+      params: '',
+      wakeupBean: undefined,
+      id: 1,
+      x: 12,
+      y: 11,
+      width: 102,
+      height: 102,
+    };
+    window.postMessage = jest.fn(() => true);
+    expect(eBPFRender.renderMainThread(eBPFReq,new TraceRow<EBPFChartStruct>())).toBeUndefined()
+    expect(eBPFRender.render(eBPFReq,[],[])).toBeUndefined()
   });
 });

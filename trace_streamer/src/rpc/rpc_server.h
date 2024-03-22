@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -55,8 +55,12 @@ public:
     int32_t WasmExportDatabase(ResultCallBack resultCallBack);
     bool ParserConfig(std::string parserConfigJson);
     bool SplitFile(std::string timeSnaps);
+#ifdef ENABLE_NATIVE_HOOK
     void ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack);
+#endif
+#ifdef ENABLE_EBPF
     void ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+#endif
     bool GetLongTraceTimeSnap(std::string dataString);
     bool LongTraceSplitFile(const uint8_t* data,
                             size_t len,
@@ -69,6 +73,10 @@ public:
         return ffrtConvertEnabled_;
     };
     bool DetermineSystrace(const uint8_t* data, size_t len);
+
+#ifdef ENABLE_RAWTRACE
+    bool SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
+#endif
 #ifdef IS_WASM
     bool SaveAndParseFfrtData(const uint8_t* data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool ReadAndParseData(const std::string& filePath);
@@ -86,7 +94,9 @@ public:
     std::map<int32_t, std::string> g_thirdPartyConfig;
 
 private:
+#ifdef ENABLE_HIPERF
     void ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast);
+#endif
     void ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack);
     bool SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish);
 

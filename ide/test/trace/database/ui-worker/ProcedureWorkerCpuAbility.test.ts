@@ -14,6 +14,7 @@
  */
 
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
@@ -21,8 +22,11 @@ import {
   CpuAbilityMonitorStruct,
   CpuAbilityRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuAbility';
-import { dataFilterHandler } from "../../../../src/trace/database/ui-worker/ProcedureWorkerCommon";
+import { dataFilterHandler } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('CpuAbilityMonitorStruct Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 14;
@@ -68,10 +72,10 @@ describe('CpuAbilityMonitorStruct Test', () => {
     dataList.push({
       startNs: 0,
       dur: 10,
-      frame: { x: 0, y: 9, width: 10, height: 10 },
+      frame: {x: 0, y: 9, width: 10, height: 10},
     });
-    dataList.push({ startNs: 1, dur: 111 });
-    dataFilterHandler(dataList, [{ length: 0 }], {
+    dataList.push({startNs: 1, dur: 111});
+    dataFilterHandler(dataList, [{length: 0}], {
       startKey: 'startNS',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
@@ -136,5 +140,27 @@ describe('CpuAbilityMonitorStruct Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(cpuAbilityRender.renderMainThread(data, new TraceRow())).toBeUndefined();
+  });
+  it('CpuAbilityMonitorStructTest08 ', function () {
+    let cpuAbilityNode = {
+      frame: {
+        x: 9,
+        y: 87,
+        width: 878,
+        height: 80,
+      },
+      startNS: 700,
+      length: 135,
+      height: 40,
+      startTime: 450,
+      dur: 9,
+    };
+    let frame = {
+      x: 2,
+      y: 4,
+      width: 87,
+      height: 80,
+    };
+    expect(CpuAbilityMonitorStruct.setCpuAbilityFrame(cpuAbilityNode, 1, 1, 1, 1, frame)).toBeUndefined();
   });
 });

@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-let listHeight = '';
+import { replacePlaceholders } from '../utils/Template';
+
 let css = `
 <style>
       :host{
@@ -32,6 +33,7 @@ let css = `
           border: 1px solid var(--bark-prompt,#dcdcdc);
       }
       input{
+          width: 100%;
           border: 0;
           outline: none;
           background-color: transparent;
@@ -53,7 +55,7 @@ let css = `
       }
       .root{
           position: relative;
-          padding: 3px 6px;
+          padding: 1px 8px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -140,10 +142,10 @@ let css = `
       }
       :host(:not([mode]))  input{
           width: 100%;
+          padding: 6px 0px;
       }
       .body{
-          max-height: ${listHeight};
-          overflow: auto;
+          max-height: 286px;
           border-radius: 2px;
           box-shadow: 0 5px 15px 0px #00000033;
       }
@@ -173,6 +175,7 @@ let css = `
           display: none;
       }
       .multipleRoot{
+          width:100%;
           display: flex;
           align-items: center;
           flex-flow: wrap;
@@ -207,12 +210,45 @@ let css = `
           color: #999999;
           margin-left: 0px;
       }
+      #search-input {
+        outline: none;
+        border: none;
+        margin-left: 15px;
+      }
+      .body-select {
+        margin-top: 3px;
+        background-color: var(--dark-background4,#fff);
+        width: 100%;
+        border-bottom: none;
+     }
+     .body-opt{
+        width: 100%;
+        max-height: 256px;
+        border-top: none;
+        overflow: auto;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        background-color: var(--dark-background4,#fff);
+    }
+    input::-webkit-input-placeholder {
+        color: var(--dark-color,#aab2bd);
+    }
+    /*Define the height, width and background of the scroll bar*/
+    ::-webkit-scrollbar{
+        width: 8px;
+        border-radius: 10px;
+        background-color: var(--dark-background3,#FFFFFF);
+    }
+    /*define slider*/
+    ::-webkit-scrollbar-thumb{
+        border-radius: 6px;
+        background-color: var(--dark-background7,rgba(0,0,0,0.1));
+    }
       </style>
 `;
 
 export const selectHtmlStr = (height: string): string => {
-  listHeight = height;
-  return css;
+  return replacePlaceholders(css, height);
 };
 
 export const selectVHtmlStr = `

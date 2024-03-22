@@ -76,7 +76,7 @@ export function IrqStructOnClick(clickRowType: string,sp:SpSystemTrace) {
       IrqStruct.selectIrqStruct = IrqStruct.hoverIrqStruct;
       sp.traceSheetEL?.displayIrqData(IrqStruct.selectIrqStruct);
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

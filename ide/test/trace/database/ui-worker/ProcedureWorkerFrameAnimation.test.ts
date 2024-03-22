@@ -22,6 +22,9 @@ import { Rect } from '../../../../src/trace/component/trace/timer-shaft/Rect';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { FrameAnimationStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameAnimation';
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('FrameAnimation Test', () => {
   let frameAnimationRender = new FrameAnimationRender();
   let rect = new Rect(341, 2, 10, 10);
@@ -78,5 +81,53 @@ describe('FrameAnimation Test', () => {
       ts: 4091445476,
     };
     expect(FrameAnimationStruct.draw(ctx!, 1, node, TraceRow.skeleton())).toBeUndefined();
+  });
+  it('FrameAnimationTest02 ', function () {
+    let frameAnimationRender = new FrameAnimationRender();
+    let frameAnimationReq = {
+      lazyRefresh: true,
+      type: '',
+      startNS: 5,
+      endNS: 9,
+      totalNS: 4,
+      frame: {
+        x: 32,
+        y: 20,
+        width: 180,
+        height: 180,
+      },
+      useCache: true,
+      range: {
+        refresh: '',
+      },
+      canvas: 'a',
+      context: {
+        font: '12px sans-serif',
+        fillStyle: '#a1697d',
+        globalAlpha: 0.3,
+        measureText: jest.fn(() => true),
+        clearRect: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        closePath: jest.fn(() => false),
+        beginPath: jest.fn(() => true),
+        fillRect: jest.fn(() => false),
+        fillText: jest.fn(() => true),
+      },
+      lineColor: '',
+      isHover: 'true',
+      hoverX: 0,
+      params: '',
+      wakeupBean: undefined,
+      flagMoveInfo: '',
+      flagSelectedInfo: '',
+      slicesTime: 4,
+      id: 1,
+      x: 24,
+      y: 24,
+      width: 100,
+      height: 100,
+    }
+    window.postMessage = jest.fn(() => true);
+    expect(frameAnimationRender.renderMainThread(frameAnimationReq,new TraceRow<FrameAnimationStruct>())).toBeUndefined()
   });
 });

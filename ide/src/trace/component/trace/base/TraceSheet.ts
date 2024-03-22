@@ -82,6 +82,10 @@ import { type LitPageTable } from '../../../../base-ui/table/LitPageTable';
 import '../../../../base-ui/popover/LitPopoverV';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { LitTree, TreeItemData } from '../../../../base-ui/tree/LitTree';
+import { SampleStruct } from '../../../database/ui-worker/ProcedureWorkerBpftrace';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
+import { TabPaneFreqStatesDataCut } from '../sheet/states/TabPaneFreqStatesDataCut';
+import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -103,6 +107,9 @@ export class TraceSheet extends BaseElement {
   private fragment: DocumentFragment | undefined;
   private lastSelectIPid: number = -1;
   private lastProcessSet: Set<number> = new Set<number>();
+  private optionsDiv: LitPopover | undefined | null;
+  private optionsSettingTree: LitTree | undefined | null;
+  private tabPaneHeight: string = '';
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -126,9 +133,15 @@ export class TraceSheet extends BaseElement {
   }
 
   displayTab<T>(...names: string[]): T {
-    this.setAttribute('mode', 'max');
-    this.showUploadSoBt(null);
-    this.showSwitchProcessBt(null);
+    this.setMode('max');
+    if (names.includes('box-flag') || names.includes('tabpane-current')) {
+      this.showUploadSoBt(this.selection);
+      this.showSwitchProcessBt(this.selection);
+    } else {
+      this.showOptionsBt(null);
+      this.showUploadSoBt(null);
+      this.showSwitchProcessBt(null);
+    }
     this.shadowRoot
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
@@ -158,6 +171,18 @@ export class TraceSheet extends BaseElement {
     this.importDiv = this.shadowRoot?.querySelector('#import_div');
     this.switchDiv = this.shadowRoot?.querySelector('#select-process');
     this.processTree = this.shadowRoot?.querySelector('#processTree');
+    this.optionsDiv = this.shadowRoot?.querySelector('#options');
+    this.optionsSettingTree = this.shadowRoot?.querySelector('#optionsSettingTree');
+    this.optionsSettingTree!.onChange = (e: any): void => {
+      const select = this.optionsSettingTree!.getCheckdKeys();
+      document.dispatchEvent(
+        new CustomEvent('sample-popver-change', {
+          detail: {
+            select: select[0]
+          }
+        })
+      )
+    }
     this.processTree!.onChange = (e: any): void => {
       const select = this.processTree!.getCheckdKeys();
       const selectIPid = Number(select[0]);
@@ -332,7 +357,9 @@ export class TraceSheet extends BaseElement {
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       if (tabsPackUp!.name == 'down') {
+        let beforeHeight = this.clientHeight;
         this.tabs!.style.height = this.navRoot!.offsetHeight + 'px';
+        window.publish(window.SmartEvent.UI.ShowBottomTab, { show: 2 , delta: beforeHeight - this.clientHeight })
         litTabpane!.forEach((node: HTMLDivElement) => (node!.style.height = '0px'));
         tabsPackUp!.name = 'up';
         tabsPackUp!.title = 'Reset Tab';
@@ -350,54 +377,80 @@ export class TraceSheet extends BaseElement {
 
   private initNavElements(tabsPackUp: LitIcon, borderTop: number, initialHeight: { node: string; tabs: string }): void {
     let that = this;
+    // 节点挂载时给Tab面板绑定鼠标按下事件
     this.nav!.onmousedown = (event): void => {
       (window as any).isSheetMove = true;
+      // 获取所有标签页的节点数组
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
-      this.navMouseMove(event, litTabpane!, that, tabsPackUp, borderTop);
+      // 获取当前选中面板的key值，后续用来确定当前面板是哪一个。 对于用户来说，直观看到的只有当前面板，其他面板可以在拖动完成后一次性设置好新的高度
+      // @ts-ignore
+      let litTabNavKey: string = this.nav!.querySelector('.nav-item[data-selected=true]').dataset.key;
+      let currentPane: HTMLDivElement = this.shadowRoot?.querySelector('#tabs > lit-tabpane[key="' + litTabNavKey + '"]')!;
+      // 原函数 绑定鼠标移动事件，动态获取鼠标位置信息
+      this.navMouseMove(event, currentPane!, that, tabsPackUp, borderTop);
       document.onmouseup = function (): void {
         setTimeout(() => {
           (window as any).isSheetMove = false;
         }, 100);
         litTabpane!.forEach((node: HTMLDivElement): void => {
-          if (node!.style.height !== '0px' && that.tabs!.style.height !== '') {
-            initialHeight.node = node!.style.height;
-            initialHeight.tabs = that.tabs!.style.height;
-          }
+          node!.style.height = that.tabPaneHeight;
         });
+        if (that.tabPaneHeight !== '0px' && that.tabs!.style.height !== '') {
+          // 每次都会重新记录上次拖动完成后的面板高度，下次重新显示tab页时，会以上次拖动后的高度显示
+          initialHeight.node = that.tabPaneHeight;
+          initialHeight.tabs = that.tabs!.style.height;
+        }
+        // 将绑定的事件置空，需要时重新绑定
         this.onmousemove = null;
         this.onmouseup = null;
       };
     };
   }
 
-  private navMouseMove(event: MouseEvent, litTabpane: NodeListOf<HTMLDivElement>,
+  private navMouseMove(event: MouseEvent, litTabpane: HTMLDivElement,
     that: this, tabsPackUp: LitIcon, borderTop: number): void {
-    let preY = event.pageY;
-    let preHeight = this.tabs!.offsetHeight;
-    document.onmousemove = function (event): void {
-      let moveY: number = preHeight - (event.pageY - preY);
-      litTabpane!.forEach((node: HTMLDivElement) => {
+      // 鼠标移动前记录此时的鼠标位置信息，后续根据新值与前次值作比对
+      let preY = event.pageY;
+      // 获取此时tab组件的偏移高度 需要包含水平滚动条的高度等
+      let preHeight = this.tabs!.offsetHeight;
+      // 获取此时整个滚动区域高度
+      let scrollH = that.rowsPaneEL!.scrollHeight;
+      // 获取此时滚动区域上方被隐藏的高度
+      let scrollT = that.rowsPaneEL!.scrollTop;
+      // 获取当前内容区高度加上上下内边距高度，即面板组件高度
+      let ch = that.clientHeight;
+      // 鼠标移动事件
+      document.onmousemove = function (event): void {
+        // 移动前的面板高度 - 移动前后鼠标的坐标差值 = 新的面板高度
+        let newHeight: number = preHeight - (event.pageY - preY);
+        // that指向的是tracesheet节点 spacer为垫片  rowsPaneEl为泳道   tabs为tab页组件  
+        // litTabpane为当前面板 navRoot为面板头部区的父级容器  search为顶部搜索区整个区域
+        // 这四个判断条件中，第一个尚未找到触发条件 后续和润和确认是否会触发
         if (that.spacer!.offsetHeight > that.rowsPaneEL!.offsetHeight) {
-          that.tabs!.style.height = moveY + 'px';
-          node!.style.height = moveY - that.navRoot!.offsetHeight + 'px';
+          that.tabs!.style.height = newHeight + 'px';
+          litTabpane!.style.height = newHeight - that.navRoot!.offsetHeight + 'px';
+          // 设置右上角面板大小化的箭头样式，面板在移动到最底部时，箭头向上，其余情况箭头向下
           tabsPackUp!.name = 'down';
         } else if (
-          that.navRoot!.offsetHeight <= moveY &&
+          // 只要没有移动到边界区域都会进入该条件
+          that.navRoot!.offsetHeight <= newHeight &&
           that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-          window.innerHeight - moveY
+          window.innerHeight - newHeight
         ) {
-          that.tabs!.style.height = moveY + 'px';
-          node!.style.height = moveY - that.navRoot!.offsetHeight + 'px';
+          that.tabs!.style.height = newHeight + 'px';
+          litTabpane!.style.height = newHeight - that.navRoot!.offsetHeight + 'px';
           tabsPackUp!.name = 'down';
-        } else if (that.navRoot!.offsetHeight >= moveY) {
+        } else if (that.navRoot!.offsetHeight >= newHeight) {
+          // 该条件在面板置底时触发
           that.tabs!.style.height = that.navRoot!.offsetHeight + 'px';
-          node!.style.height = '0px';
+          litTabpane!.style.height = '0px';
           tabsPackUp!.name = 'up';
         } else if (
           that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight >=
-          window.innerHeight - moveY
+          window.innerHeight - newHeight
         ) {
+          // 该条件在面板高度置顶时触发
           that.tabs!.style.height =
             window.innerHeight -
             that.search!.offsetHeight -
@@ -405,7 +458,7 @@ export class TraceSheet extends BaseElement {
             borderTop -
             that.spacer!.offsetHeight +
             'px';
-          node!.style.height =
+          litTabpane!.style.height =
             window.innerHeight -
             that.search!.offsetHeight -
             that.timerShaft!.offsetHeight -
@@ -415,8 +468,13 @@ export class TraceSheet extends BaseElement {
             'px';
           tabsPackUp!.name = 'down';
         }
-      });
-    };
+        that.tabPaneHeight = litTabpane!.style.height;
+        let currentSH = that.rowsPaneEL!.scrollHeight;
+        // 第一个判断条件尚未确定如何触发,currentSH与scrollH始终相等
+        if (currentSH > scrollH && currentSH > that.rowsPaneEL!.scrollTop + that.clientHeight) {
+          that.rowsPaneEL!.scrollTop = scrollT - (ch - that.clientHeight);
+        }
+      };
   }
 
   private importClickEvent(): void {
@@ -505,10 +563,23 @@ export class TraceSheet extends BaseElement {
                   align-items: center;
                   margin-right: 10px;
                   z-index: 2;
-              }
+                }
+                .option {
+                  display: flex;
+                  margin-right: 10px;
+                  cursor: pointer;
+                }
             </style>
             <div id="vessel" style="border-top: 1px solid var(--dark-border1,#D5D5D5);">
                 <lit-tabs id="tabs" position="top-left" activekey="1" mode="card" >
+                    <div class="option" slot="options">
+                      <lit-popover placement="bottom" class="popover" haveRadio="true" trigger="click" id="options">
+                        <div slot="content">
+                          <lit-tree id="optionsSettingTree" checkable="true"></lit-tree>
+                        </div>
+                        <lit-icon name="setting" size="21" id="setting"></lit-icon>
+                      </lit-popover>
+                    </div>
                     <div slot="right" style="margin: 0 10px; color: var(--dark-icon,#606060);display: flex;align-items: center;">
                         <lit-popover placement="bottomRight" class="popover" haveRadio="true" trigger="click" id="select-process">
                               <div slot="content">
@@ -539,7 +610,7 @@ export class TraceSheet extends BaseElement {
     data: ThreadStruct,
     scrollCallback: ((e: ThreadStruct) => void) | undefined,
     scrollWakeUp: (d: any) => void | undefined,
-    callback: ((data: Array<any>) => void) | undefined = undefined
+    callback?: ((data: Array<any>, str:string) => void)
   ) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setThreadData(
       data,
@@ -762,12 +833,29 @@ export class TraceSheet extends BaseElement {
       }
     }
   };
+  displaySampleData = (data: SampleStruct, reqProperty: any): void => {
+    this.displayTab<TabPaneSampleInstruction>('box-sample-instruction').setSampleInstructionData(data, reqProperty);
+    this.optionsDiv!.style.display = "flex";
+    const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
+    this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
+  }
 
+  displaySystemStatesData = (): void => {
+    let dataCutPane = this.shadowRoot?.querySelector<TabPaneDataCut>("tabpane-datacut");
+    if (dataCutPane) {
+      dataCutPane.initTabSheetEl(this);
+    }
+    let tblStatesPanel = this.shadowRoot?.querySelector<TabPaneFreqStatesDataCut>("tabpane-states-datacut");
+    if (tblStatesPanel) {
+      tblStatesPanel.initTabSheetEl(this);
+    }
+  };
   rangeSelect(selection: SelectionParam, restore = false): boolean {
     this.selection = selection;
     this.exportBt!.style.display = 'flex';
     this.showUploadSoBt(selection);
     this.showSwitchProcessBt(selection);
+    this.showOptionsBt(selection);
     Reflect.ownKeys(tabConfig)
       .reverse()
       .forEach((id) => {
@@ -780,10 +868,10 @@ export class TraceSheet extends BaseElement {
     if (restore) {
       if (this.litTabs?.activekey) {
         this.loadTabPaneData(this.litTabs?.activekey);
-        this.setAttribute('mode', 'max');
+        this.setMode('max');
         return true;
       } else {
-        this.setAttribute('mode', 'hidden');
+        this.setMode('hidden');
         return false;
       }
     } else {
@@ -791,12 +879,22 @@ export class TraceSheet extends BaseElement {
       if (firstPane) {
         this.litTabs?.activeByKey(firstPane.key);
         this.loadTabPaneData(firstPane.key);
-        this.setAttribute('mode', 'max');
+        this.setMode('max');
         return true;
       } else {
-        this.setAttribute('mode', 'hidden');
+        this.setMode('hidden');
         return false;
       }
+    }
+  }
+
+  showOptionsBt(selection: SelectionParam | null | undefined): void {
+    if (selection && selection.sampleData.length > 0) {
+      this.optionsDiv!.style.display = 'flex';
+      const select = this.optionsSettingTree!.getCheckdKeys().length === 0 ? ['0'] : this.optionsSettingTree!.getCheckdKeys();
+      this.optionsSettingTree!.treeData = [{key: '0', title: 'instruction', checked: select[0] === '0'}, {key: '1', title: 'cycles', checked: select[0] === '1'}];
+    } else {
+      this.optionsDiv!.style.display = 'none';
     }
   }
 
@@ -909,6 +1007,16 @@ export class TraceSheet extends BaseElement {
         this.selection.isRowClick = false;
       }
     }
+  }
+
+  setMode(mode: string): void {
+    let delta = this.clientHeight;
+    let show = mode === 'max' ? 1 : -1;
+    this.setAttribute('mode', mode);
+    if (mode === 'hidden') {
+      this.selection = undefined;
+    }
+    window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show , delta: delta});
   }
 
   rowClickHandler(e: any): void {

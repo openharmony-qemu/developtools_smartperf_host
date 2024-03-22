@@ -94,7 +94,7 @@ export class TabPaneThreadStates extends BaseElement {
           map.get(`${pre.state}-${mapKey}`).wallDuration += pre.dur;
           durExceptionDataMap['delete'](mapKey);
         }
-        if (current.dur === -1) {
+        if (current.dur === null || current.dur === undefined || current.dur === -1) {
           //如果出现dur 为-1的数据，dur先以0计算,在后续循环中碰到相同线程数据，则补上dur的值
           current.dur = 0;
           durExceptionDataMap.set(mapKey, current);

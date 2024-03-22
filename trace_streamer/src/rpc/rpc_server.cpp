@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,11 +22,12 @@
 #include <filesystem>
 #endif
 #include "common_types.h"
-#include "bytrace_hilog_parser.h"
-#include "bytrace_parser.h"
-#include "htrace_parser.h"
+#include "hilog_parser/ptreader_hilog_parser.h"
+#include "ptreader_parser.h"
+#include "pbreader_parser.h"
 #include "json.hpp"
 #include "log.h"
+#include "rawtrace_parser.h"
 #include "string_help.h"
 #include "trace_streamer_selector.h"
 #include "ts_common.h"
@@ -40,6 +41,7 @@ const size_t PACKET_HEADER_LENGTH = 1024;
 const std::string VALUE = "{\"value\":[";
 const std::string OFFSET = "{\"offset\":";
 const std::string SIZE = ",\"size\":";
+const std::string TYPE = ",\"type\":";
 const std::string EMPTY_VALUE = "{\"value\":[]}";
 
 using json = nlohmann::json;
@@ -50,6 +52,7 @@ struct ParserConfig {
     int32_t aniConfigValue;
     int32_t binderConfigValue;
     int32_t ffrtConvertConfigValue;
+    int32_t HMKernelConfigValue;
 };
 void from_json(const json& j, ParserConfig& v)
 {
@@ -58,6 +61,7 @@ void from_json(const json& j, ParserConfig& v)
     j.at("AnimationAnalysis").get_to(v.aniConfigValue);
     j.at("BinderRunnable").get_to(v.binderConfigValue);
     j.at("FfrtConvert").get_to(v.ffrtConvertConfigValue);
+    j.at("HMKernel").get_to(v.HMKernelConfigValue);
 }
 } // namespace jsonns
 #if IS_WASM
@@ -262,7 +266,7 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     int32_t lastPos = ts_->GetBytraceData()->MaxSplitPos();
     TS_CHECK_TRUE(firstPos != INVALID_INT32 && lastPos != INVALID_INT32 && lastPos >= firstPos, false,
                   "firstPos(%d) or lastPos(%d) is INVALID_INT32!", firstPos, lastPos);
-    const auto& mTraceDataBytrace = ts_->GetBytraceData()->GetTraceDataBytrace();
+    const auto& mTraceDataBytrace = ts_->GetBytraceData()->GetPtreaderSplitData();
     // for 10% data
     int32_t tenPercentDataNum = 0.1 * (lastPos - firstPos);
     firstPos -= tenPercentDataNum;
@@ -279,7 +283,7 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
         result += SIZE + std::to_string(mTraceDataBytrace[index].second);
         result += "},";
     }
-    if (result != VALUE && !ts_->GetBytraceData()->GetTraceDataBytrace().empty()) {
+    if (result != VALUE && !ts_->GetBytraceData()->GetPtreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
@@ -290,6 +294,36 @@ bool RpcServer::SendBytraceSplitFileData(SplitFileCallBack splitFileCallBack, in
     return true;
 }
 
+#ifdef ENABLE_RAWTRACE
+bool RpcServer::SendRawtraceSplitFileData(SplitFileCallBack splitFileCallBack, int32_t isFinish)
+{
+    const auto& mTraceRawCpuData = ts_->GetRawtraceData()->GetRawtraceCpuData();
+    const auto& mTraceRawCommData = ts_->GetRawtraceData()->GetRawtraceCommData();
+    std::string result = VALUE;
+
+    for (size_t commDataIndex = 0; commDataIndex < mTraceRawCommData.size(); commDataIndex++) {
+        result += OFFSET + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataOffset_);
+        result += SIZE + std::to_string(mTraceRawCommData.at(commDataIndex).splitDataSize_);
+        result += TYPE + std::to_string(mTraceRawCommData.at(commDataIndex).splitType_);
+        result += "},";
+    }
+
+    for (size_t cpuDataIndex = 0; cpuDataIndex < mTraceRawCpuData.size(); cpuDataIndex++) {
+        result += OFFSET + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitDataOffset_);
+        result += SIZE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitDataSize_);
+        result += TYPE + std::to_string(mTraceRawCpuData.at(cpuDataIndex).splitType_);
+        result += "},";
+    }
+    if (result != VALUE && !ts_->GetRawtraceData()->GetRawtraceCommData().empty()) {
+        result.pop_back();
+        result += "]}\r\n";
+        splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, isFinish);
+    }
+    TS_LOGI("mTraceRawCpuData.size()= %lu, mTraceRawCommData.size()=%lu\n result=%s\n", mTraceRawCpuData.size(),
+            mTraceRawCommData.size(), result.data());
+    return true;
+}
+#endif
 bool RpcServer::ParseSplitFileData(const uint8_t* data,
                                    size_t len,
                                    int32_t isFinish,
@@ -307,19 +341,32 @@ bool RpcServer::ParseSplitFileData(const uint8_t* data,
          ts_->GetFileType() == TRACE_FILETYPE_HI_SYSEVENT)) {
         SendBytraceSplitFileData(splitFileCallBack, 0);
         splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-        ts_->GetBytraceData()->ClearByTraceData();
+        ts_->GetBytraceData()->ClearPtreaderSplitData();
         ts_->GetTraceDataCache()->isSplitFile_ = false;
         return true;
     }
+#ifdef ENABLE_RAWTRACE
+    if (ts_->GetFileType() == TRACE_FILETYPE_RAW_TRACE) {
+        SendRawtraceSplitFileData(splitFileCallBack, 0);
+        splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
+        ts_->GetRawtraceData()->ClearRawTraceData();
+        ts_->GetTraceDataCache()->isSplitFile_ = false;
+        return true;
+    }
+#endif
     if (ts_->GetFileType() == TRACE_FILETYPE_H_TRACE) {
         ProcHtraceSplitResult(splitFileCallBack);
     }
+#ifdef ENABLE_HIPERF
     if (ts_->GetFileType() == TRACE_FILETYPE_PERF) {
         ProcPerfSplitResult(splitFileCallBack, true);
     }
+#endif
     splitFileCallBack(EMPTY_VALUE, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 1);
-    ts_->GetHtraceData()->ClearTraceDataHtrace();
+    ts_->GetHtraceData()->ClearPbreaderSplitData();
+#ifdef ENABLE_ARKTS
     ts_->GetHtraceData()->GetJsMemoryData()->ClearArkTsSplitFileData();
+#endif
     ts_->GetTraceDataCache()->isSplitFile_ = false;
     return true;
 }
@@ -327,8 +374,10 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
 {
     uint64_t dataSize = 0;
     std::string result = VALUE;
+#ifdef ENABLE_NATIVE_HOOK
     ts_->GetHtraceData()->ClearNativehookData();
-    for (const auto& itemHtrace : ts_->GetHtraceData()->GetTraceDataHtrace()) {
+#endif
+    for (const auto& itemHtrace : ts_->GetHtraceData()->GetPbreaderSplitData()) {
         dataSize += itemHtrace.second;
         result += OFFSET + std::to_string(itemHtrace.first);
         result += SIZE + std::to_string(itemHtrace.second);
@@ -336,32 +385,45 @@ void RpcServer::ProcHtraceSplitResult(SplitFileCallBack splitFileCallBack)
     }
     auto dataSourceType = ts_->GetHtraceData()->GetDataSourceType();
     auto profilerHeader = ts_->GetHtraceData()->GetProfilerHeader();
+#ifdef ENABLE_ARKTS
     if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
         dataSize +=
             ts_->GetHtraceData()->GetArkTsConfigData().size() + ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSize();
     }
+#endif
+#ifdef ENABLE_NATIVE_HOOK
     for (auto& commProto : ts_->GetTraceDataCache()->HookCommProtos()) {
         dataSize += (sizeof(uint32_t) + commProto->size());
     }
+#endif
     // Send Header
     profilerHeader.data.length = PACKET_HEADER_LENGTH + dataSize;
     std::string buffer(reinterpret_cast<char*>(&profilerHeader), sizeof(profilerHeader));
     splitFileCallBack(buffer, (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
     // Send Datas
+#ifdef ENABLE_NATIVE_HOOK
     ProcHookCommSplitResult(splitFileCallBack);
-    if (result != VALUE && !ts_->GetHtraceData()->GetTraceDataHtrace().empty()) {
+#endif
+    if (result != VALUE && !ts_->GetHtraceData()->GetPbreaderSplitData().empty()) {
         result.pop_back();
         result += "]}\r\n";
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
+#ifdef ENABLE_ARKTS
     if (dataSourceType == DATA_SOURCE_TYPE_JSMEMORY) {
         splitFileCallBack(ts_->GetHtraceData()->GetArkTsConfigData() +
                               ts_->GetHtraceData()->GetJsMemoryData()->GetArkTsSplitFileData(),
                           (int32_t)SplitDataDataType::SPLIT_FILE_DATA, 0);
     }
+#endif
+#ifdef ENABLE_HIPERF
     ProcPerfSplitResult(splitFileCallBack, true);
+#endif
+#ifdef ENABLE_EBPF
     ProcEbpfSplitResult(splitFileCallBack, true);
+#endif
 }
+#ifdef ENABLE_NATIVE_HOOK
 void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
 {
     std::string lenBuffer(sizeof(uint32_t), 0);
@@ -373,6 +435,8 @@ void RpcServer::ProcHookCommSplitResult(SplitFileCallBack splitFileCallBack)
     }
     ts_->GetTraceDataCache()->ClearHookCommProtos();
 }
+#endif
+#ifdef ENABLE_EBPF
 void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto ebpfSplitResult = ts_->GetHtraceData()->GetEbpfDataParser()->GetEbpfSplitResult();
@@ -399,6 +463,8 @@ void RpcServer::ProcEbpfSplitResult(SplitFileCallBack splitFileCallBack, bool is
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
 }
+#endif
+#ifdef ENABLE_HIPERF
 void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool isLast)
 {
     auto perfSplitResult = ts_->GetHtraceData()->GetPerfSplitResult();
@@ -426,6 +492,7 @@ void RpcServer::ProcPerfSplitResult(SplitFileCallBack splitFileCallBack, bool is
         splitFileCallBack(result, (int32_t)SplitDataDataType::SPLIT_FILE_JSON, 0);
     }
 }
+#endif
 
 int32_t RpcServer::UpdateTraceTime(const uint8_t* data, int32_t len)
 {
@@ -699,6 +766,7 @@ bool RpcServer::ParserConfig(std::string parserConfigJson)
     ts_->UpdateAnimationTraceStatus(parserConfig.aniConfigValue);
     ts_->UpdateTaskPoolTraceStatus(parserConfig.taskConfigValue);
     ts_->UpdateBinderRunnableTraceStatus(parserConfig.binderConfigValue);
+    ts_->UpdateHMKernelTraceStatus(parserConfig.HMKernelConfigValue);
     ffrtConvertEnabled_ = parserConfig.ffrtConvertConfigValue;
     startParseTime_ =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))

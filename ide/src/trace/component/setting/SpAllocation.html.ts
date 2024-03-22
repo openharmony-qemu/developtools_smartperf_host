@@ -127,9 +127,10 @@ input::-webkit-input-placeholder{
 #two_kb{
     background-color:var(--dark-background5, #FFFFFF)
 }
-.processSelect {
-  border-radius: 15px;
-  width: 84%;
+.processSelect, .packageSelect {
+    border-radius: 15px;
+    width: 84%;
+    height: 27px;
 }
 .value-range {
   opacity: 0.6;
@@ -220,6 +221,9 @@ lit-switch {
      <lit-select-v class="processSelect" rounded mode="multiple" default-value="" id="pid" 
      placement="bottom" title="process" placeholder="please select process">
      </lit-select-v>
+     <lit-select default-value="" rounded="" class="packageSelect" canInsert="" id="packageName"
+     title="package" rounded placement = "bottom" placeholder="please select package" showSearchInput>
+     </lit-select>
   </div>
   <div class="allocation-application">
     <span class="allocation-inner-font-style" >Max unwind level</span>
@@ -254,10 +258,6 @@ lit-switch {
          <span>Byte</span>
     </div>
   </div>
-  <div class="allocation-switchstyle">
-      <span class="allocation-inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
-      <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
-  </div>
   <div class="allocation-switchstyle version-controller" style="flex-wrap: wrap;grid-gap: 15px;">
     <span class="allocation-inner-font-style" >Sample Interval (Available on recent OpenHarmony 4.0)</span>
     <span class="value-range">Max Sample Interval Rang is 0 - 65535, default 0</span>
@@ -266,6 +266,29 @@ lit-switch {
     oninput="if(this.value > 65535){this.value = '65535'} if(this.value < 0 && 
     this.value.toString().startsWith('0')){ this.value = '1'}"  
     onkeyup="this.value=this.value.replace(/\\D/g,'')" value="0">
+  </div>
+  <div id="napi-div" class="allocation-application" style="display: none">
+    <span class="allocation-inner-font-style" >Filter Napi Name </span>
+    <span class="value-range">Record napi name</span> 
+    <div>
+         <input id = "napiName" class="allocation-inputstyle inputBoxes" type="text" 
+         placeholder="enter the napi name" value="">
+    </div>
+  </div>
+  <div id="js-stack-depth-div" class="allocation-application" style="display: none">
+    <span class="allocation-inner-font-style" >Max Js Stack Depth </span>
+    <span class="value-range">js stack max depth Range</span> 
+    <div>
+         <input id = "jsStackDepth" class="allocation-inputstyle inputBoxes" type="text" 
+         placeholder="0" 
+         oninput="if(this.value > 128){this.value = '128'} if(this.value > 0 && 
+         this.value.toString().startsWith('0')){ this.value = Number(this.value) }" 
+         onkeyup="this.value=this.value.replace(/\\D/g,'')" value="0">
+    </div>
+  </div>
+  <div class="allocation-switchstyle">
+      <span class="allocation-inner-font-style" id="fp-unwind">Use Fp Unwind</span>               
+      <lit-switch class="lts" id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
   </div>
   <div class="allocation-switchstyle version-controller">
       <span class="allocation-inner-font-style" id="record_accurately ">
@@ -287,8 +310,12 @@ lit-switch {
       Use Response Lib Mode (Available on recent OpenHarmony 4.0)</span> 
       <lit-switch class="lts" id="response_lib_mode" title="response_lib_mode"></lit-switch>
   </div>
+    <div class="allocation-switchstyle">
+      <span class="allocation-inner-font-style" id="record-js-stack">Record Js Stack</span>               
+      <lit-switch class="lts" id="use_js-stack" title="js stack"></lit-switch>
+  </div>
   <div class="allocation-switchstyle record-statistics-result version-controller" 
-  style="grid-row: 8; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;
+  style="grid-row: 10; grid-column: 1 / 3;height: min-content;display: grid;grid-template-rows: 1fr;
   grid-template-columns: 1fr min-content;">
     <div class="record-title">
         <span class="record-mode">Use Record Statistics (Available on recent OpenHarmony 4.0)</span> 

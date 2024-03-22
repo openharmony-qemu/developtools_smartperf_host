@@ -131,7 +131,6 @@ export class TabPaneFlag extends BaseElement {
    */
   private eventHandler(): void {
     let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
-    tr[0].querySelector<HTMLInputElement>('#text-input')!.disabled = true;
     tr[0].querySelector('.removeAll')!.addEventListener('click', () => {
       this.systemTrace!.flagList = [];
       let flagList = [...this.flagList];
@@ -141,23 +140,6 @@ export class TabPaneFlag extends BaseElement {
       }
       this.flagList = [];
       return;
-    });
-
-    // 更新备注信息
-    this.panelTable!.addEventListener('click', (event: any) => {
-      if (this.flagList.length === 0) {
-        return;
-      }
-      for (let i = 1; i < tr.length; i++) {
-        let inputValue = tr[i].querySelector<HTMLInputElement>('#text-input')!.value;
-        if (this.tableDataSource[i].startTime === this.flagList[i - 1].time) {
-          this.flagList[i - 1].text = inputValue;
-          document.dispatchEvent(new CustomEvent('flag-change', { detail: this.flagList[i - 1] }));
-          //   旗子颜色改变时，重绘泳道图
-          this.systemTrace?.refreshCanvas(true);
-        }
-      }
-      event.stopPropagation();
     });
 
     //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.flagList数组的第一个对应……，所以i从1开始，在this.flagList数组中取值时用i-1

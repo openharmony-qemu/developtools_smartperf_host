@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { HeapNodeToConstructorItem } from "../../../src/js-heap/utils/Utils.js";
-import {HeapNode} from "../../../src/js-heap/model/DatabaseStruct.js";
+import { HeapNodeToConstructorItem } from '../../../src/js-heap/utils/Utils';
 jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {});
 
 jest.mock('../../../src/js-heap/HeapDataInterface', () => {

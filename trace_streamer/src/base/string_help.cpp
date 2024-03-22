@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -61,6 +61,18 @@ std::vector<std::string> SplitStringToVec(const std::string& str, const std::str
     }
 
     return result;
+}
+std::string TrimInvisibleCharacters(const std::string& str)
+{
+    size_t start = 0;
+    size_t end = str.length() - 1;
+    while (start <= end && !std::isgraph(str[start])) {
+        start++;
+    }
+    while (end >= start && !std::isgraph(str[end])) {
+        end--;
+    }
+    return str.substr(start, end - start + 1);
 }
 
 std::string FormatString(const char* p)

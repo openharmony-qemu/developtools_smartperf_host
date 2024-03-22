@@ -42,6 +42,7 @@ export class SpRecordPerf extends BaseElement {
   private frequencySetInput: HTMLInputElement | undefined | null;
   private recordProcessInput: HTMLInputElement | undefined | null;
   private offCPUSwitch: LitSwitch | undefined | null;
+  private kernelChainSwitch: LitSwitch | undefined | null;
   private callSelect: LitSelect | undefined | null;
   private sp: SpApplication | undefined;
   private recordPerfSearch: LitSearch | undefined;
@@ -87,6 +88,7 @@ export class SpRecordPerf extends BaseElement {
       period: 1,
       isOffCpu: true,
       noInherit: false,
+      isKernelChain: true,
       callStack: 'dwarf',
       branch: 'none',
       mmap: 256,
@@ -126,6 +128,9 @@ export class SpRecordPerf extends BaseElement {
         break;
       case 'Off CPU':
         perfConfig.isOffCpu = (value as LitSwitch).checked;
+        break;
+      case 'Kernel Chain':
+        perfConfig.isKernelChain = (value as LitSwitch).checked;
         break;
       case 'No Inherit':
         perfConfig.noInherit = (value as LitSwitch).checked;
@@ -346,7 +351,7 @@ export class SpRecordPerf extends BaseElement {
   eventSelectClickHandler = (): void => {
     let that = this;
     if (SpRecordTrace.serialNumber === '') {
-      this.eventSelect?.dataSource(eventSelect,'');
+      this.eventSelect?.dataSource(eventSelect, '');
     } else {
       if (this.sp!.search) {
         this.sp!.search = false;
@@ -411,6 +416,7 @@ export class SpRecordPerf extends BaseElement {
       }
     };
     this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>('lit-switch[title=\'Off CPU\']');
+    this.kernelChainSwitch = this.shadowRoot?.querySelector<LitSwitch>("lit-switch[title='Kernel Chain']");
     this.callSelect = this.shadowRoot?.querySelector<LitSelect>('lit-select[title=\'Call Stack\']');
     this.addOptionButton!.addEventListener('click', () => {
       if (!this.startSamp) {
@@ -488,7 +494,7 @@ type="text" value = '    ${defaultValue} ${config.litSliderStyle.resultUnit}' ><
     maplitSlider!.sliderStyle = config.litSliderStyle;
   }
 
-  private configTypeByLitSlider(config: any, recordPerfDiv: HTMLDivElement): void{
+  private configTypeByLitSlider(config: any, recordPerfDiv: HTMLDivElement): void {
     let sliderEl = `
 <div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" 
 class="silderclass config" title="${config.title}"></lit-slider><input readonly class="sliderInput" 
@@ -572,6 +578,9 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
     if (this.offCPUSwitch) {
       this.offCPUSwitch!.disabled = false;
     }
+    if (this.kernelChainSwitch) {
+      this.kernelChainSwitch!.disabled = false;
+    }
     if (this.callSelect) {
       this.callSelect!.removeAttribute('disabled');
     }
@@ -589,6 +598,9 @@ mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom
     }
     if (this.offCPUSwitch) {
       this.offCPUSwitch!.disabled = true;
+    }
+    if (this.kernelChainSwitch) {
+      this.kernelChainSwitch!.disabled = true;
     }
     if (this.callSelect) {
       this.callSelect!.setAttribute('disabled', '');
@@ -640,6 +652,7 @@ export interface PerfConfig {
   branch: string;
   mmap: number;
   clockType: string;
+  isKernelChain: boolean;
 }
 
 const eventSelect = [
@@ -728,7 +741,14 @@ const perfConfigList = [
     des: 'Trace when threads are scheduled off cpu',
     hidden: false,
     type: 'switch',
-    value: true,
+    value: false,
+  },
+  {
+    title: 'Kernel Chain',
+    des: '',
+    hidden: false,
+    type: 'switch',
+    value: false,
   },
   {
     title: 'No Inherit',

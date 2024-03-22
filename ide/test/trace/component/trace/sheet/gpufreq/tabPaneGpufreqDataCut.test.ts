@@ -17,12 +17,23 @@ import { TabPaneGpufreqDataCut } from '../../../../../../src/trace/component/tra
 import '../../../../../../src/trace/component/trace/sheet/gpufreq/tabPaneGpufreqDataCut';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import '../../../../../../src/base-ui/table/lit-table';
-import { SpSegmentationChart } from "../../../../../../src/trace/component/chart/SpSegmentationChart";
+import { SpSegmentationChart } from '../../../../../../src/trace/component/chart/SpSegmentationChart';
+import { TraceRow } from "../../../../../../src/trace/component/trace/base/TraceRow";
+import { CpuFreqExtendStruct } from "../../../../../../src/trace/database/ui-worker/ProcedureWorkerFreqExtend";
 
-jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
+jest.mock('../../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/trace/timer-shaft/RangeRuler', () => {
+  return {};
+});
+const intersectionObserverMock = () => ({
+  observe: () => null,
+});
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -31,10 +42,10 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 
-const sqlite = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlite = require('../../../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
 
-describe('TabPaneSchedSwitch Test', () => {
+describe('TabPaneGpufreqDataCut.test Test', () => {
   let threadStatesParam = {
     cpus: [],
     threadIds: [1, 2, 3],
@@ -102,13 +113,16 @@ describe('TabPaneSchedSwitch Test', () => {
     pid: 5256
   }];
   dataFreqCut.mockResolvedValue(gpufreqCut);
-
+  SpSegmentationChart.trace = jest.fn(()=>{});
+  SpSegmentationChart.trace.refreshCanvas = jest.fn(()=>{});
   let gpufreqDataCut = new TabPaneGpufreqDataCut();
   gpufreqDataCut.threadStatesTbl = jest.fn(() => {
     return new LitTable();
   });
   it('TabPaneSchedSwitchTest01', function () {
+    SpSegmentationChart.GpuRow = new TraceRow<CpuFreqExtendStruct>;
     gpufreqDataCut.data = threadStatesParam;
+
     expect(gpufreqDataCut.threadStatesTbl.loading).toBeTruthy();
   });
 
@@ -121,30 +135,25 @@ describe('TabPaneSchedSwitch Test', () => {
   it('TabPaneSchedSwitchTest03', function () {
     gpufreqDataCut.data = threadStatesParam;
     gpufreqDataCut.validationFun('1', 'name', '1px solid red', '1px solid green', 'placeholder', 'placeholder', 'single');
-    expect(gpufreqDataCut._threadId.getAttribute('placeholder')).toEqual('placeholder');
+    expect(gpufreqDataCut._threadId.getAttribute('placeholder')).toEqual('Please input thread id');
   });
 
   it('TabPaneSchedSwitchTest04', function () {
     gpufreqDataCut.data = threadStatesParam;
     gpufreqDataCut.validationFun('1', 'name', '1px solid red', '1px solid green', 'placeholder', 'thread function placeholder', 'loop');
-    expect(gpufreqDataCut._threadFunc.getAttribute('placeholder')).toEqual('thread function placeholder');
+    expect(gpufreqDataCut._threadFunc.getAttribute('placeholder')).toEqual('Please input function name');
   });
 
   it('TabPaneSchedSwitchTest05', function () {
-    gpufreqDataCut.filterData(initData, dataCut, initData);
-    expect(gpufreqDataCut.threadStatesTbl.loading).toBeFalsy();
-  });
-
-  it('TabPaneSchedSwitchTest06', function () {
     expect(gpufreqDataCut.segmentationData(initData[0], dataCut,1).length).toBe(0);
   });
 
-  it('TabPaneSchedSwitchTest07', function () {
-    SpSegmentationChart.setChartData = jest.fn();
+  it('TabPaneSchedSwitchTest06', function () {
+    gpufreqDataCut.RetainDecimals = jest.fn(() => true);
     expect(gpufreqDataCut.createTree(initData)).not.toBeUndefined();
   });
 
-  it('TabPaneSchedSwitchTest08', function () {
+  it('TabPaneSchedSwitchTest07', function () {
     expect(gpufreqDataCut.updateValueMap(initData[0], 0, '', {}, 1)).toBeUndefined();
   });
 });

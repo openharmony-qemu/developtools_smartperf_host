@@ -143,14 +143,6 @@ export class JSONToCSV {
       ? (type.ie = has[1])
       : (has = agent.match(/msie ([\d.]+)/))
       ? (type.ie = has[1])
-      : (has = agent.match(/firefox\/([\d.]+)/))
-      ? (type.firefox = has[1])
-      : (has = agent.match(/chrome\/([\d.]+)/))
-      ? (type.chrome = has[1])
-      : (has = agent.match(/opera.([\d.]+)/))
-      ? (type.opera = has[1])
-      : (has = agent.match(/version\/([\d.]+).*safari/))
-      ? (type.safari = has[1])
       : 0;
     return type;
   }

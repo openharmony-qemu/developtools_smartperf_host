@@ -13,13 +13,23 @@
  * limitations under the License.
  */
 
-import { VmTrackerChart } from '../../../../src/trace/component/chart/SpVmTrackerChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-const sqlite = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
+import { VmTrackerChart } from '../../../../src/trace/component/chart/SpVmTrackerChart';
+import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
+
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/sql/Dma.sql');
+jest.mock('../../../../src/trace/database/sql/Dma.sql');
+const memorySqlite = require('../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../src/trace/database/sql/Memory.sql');
+const smapsSql = require('../../../../src/trace/database/sql/Smaps.sql');
+jest.mock('../../../../src/trace/database/sql/Smaps.sql');
+const gpuSql = require('../../../../src/trace/database/sql/Gpu.sql');
+jest.mock('../../../../src/trace/database/sql/Gpu.sql');
+jest.mock('../../../../src/trace/component/chart/SpHiPerf');
+
 
 // @ts-ignore
 window.ResizeObserver =
@@ -31,15 +41,6 @@ window.ResizeObserver =
   }));
 
 describe('SpVmTrackerChart Test', () => {
-  let smapsData = sqlite.querySmapsData;
-  let smapsSixData = [
-    {
-      startNs: 0,
-      value: 1024,
-      name: 'dirty',
-    },
-  ];
-  smapsData.mockResolvedValue(smapsSixData);
   let dmaSmapsData = sqlite.queryDmaSampsData;
   let smapsDmaData = [
     {
@@ -51,7 +52,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   dmaSmapsData.mockResolvedValue(smapsDmaData);
-  let gpuMemoryData = sqlite.queryGpuMemoryData;
+  let gpuMemoryData = memorySqlite.queryGpuMemoryData;
   let gpuData = [
     {
       startNs: 0,
@@ -60,14 +61,14 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuMemoryData.mockResolvedValue(gpuData);
-  let smapsExits = sqlite.querySmapsExits;
+  let smapsExits = smapsSql.querySmapsExits;
   let exits = [
     {
       event_name: 'trace_smaps',
     },
   ];
   smapsExits.mockResolvedValue(exits);
-  let vmTrackerShmData = sqlite.queryVmTrackerShmData;
+  let vmTrackerShmData = memorySqlite.queryVmTrackerShmData;
   let shmData = [
     {
       startNs: 0,
@@ -75,7 +76,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   vmTrackerShmData.mockResolvedValue(shmData);
-  let purgeableProcessData = sqlite.queryPurgeableProcessData;
+  let purgeableProcessData = memorySqlite.queryPurgeableProcessData;
   let processData = [
     {
       startNs: 0,
@@ -83,7 +84,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   purgeableProcessData.mockResolvedValue(processData);
-  let gpuGlData = sqlite.queryGpuData;
+  let gpuGlData = gpuSql.queryGpuData;
   let glData = [
     {
       startNs: 0,
@@ -91,7 +92,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuGlData.mockResolvedValue(glData);
-  let gpuTotalData = sqlite.queryGpuTotalData;
+  let gpuTotalData = gpuSql.queryGpuTotalData;
   let totalData = [
     {
       startNs: 0,
@@ -99,7 +100,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuTotalData.mockResolvedValue(totalData);
-  let gpuTotalType = sqlite.queryGpuTotalType;
+  let gpuTotalType = gpuSql.queryGpuTotalType;
   let totalType = [
     {
       id: 1,
@@ -107,7 +108,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuTotalType.mockResolvedValue(totalType);
-  let gpuWindowData = sqlite.queryGpuWindowData;
+  let gpuWindowData = gpuSql.queryGpuWindowData;
   let windowsData = [
     {
       startNs: 0,
@@ -115,7 +116,7 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuWindowData.mockResolvedValue(windowsData);
-  let gpuWindowType = sqlite.queryGpuWindowType;
+  let gpuWindowType = gpuSql.queryGpuWindowType;
   let windowsType = [
     {
       id: 1,
@@ -124,8 +125,9 @@ describe('SpVmTrackerChart Test', () => {
     },
   ];
   gpuWindowType.mockResolvedValue(windowsType);
-  let manager = new SpChartManager();
-  let spVmTrackerChart = new VmTrackerChart(manager);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let manager = new SpChartManager(htmlElement);
+  let spVmTrackerChart = new VmTrackerChart(htmlElement);
   let memoryData = [
     {
       startNs: 0,

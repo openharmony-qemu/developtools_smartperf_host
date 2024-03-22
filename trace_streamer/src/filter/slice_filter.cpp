@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -327,7 +327,6 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
         } else {
             argSetId = streamFilters_->argsFilter_->NewArgs(args);
             sliceRowToArgsSetId_[index] = argSetId;
-            argsSetIdToSliceRow_[argSetId] = static_cast<uint32_t>(index);
             args.argSetId_ = argSetId;
             args.inserted_ = true;
         }
@@ -434,7 +433,7 @@ std::tuple<uint64_t, uint32_t> SliceFilter::AddArgs(uint32_t tid, DataIndex key1
 uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
                                       uint32_t pid,
                                       uint32_t threadGroupId,
-                                      uint64_t cookie,
+                                      int64_t cookie,
                                       DataIndex nameIndex)
 {
     Unused(pid);
@@ -462,7 +461,7 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
 uint64_t SliceFilter::FinishAsyncSlice(uint64_t timeStamp,
                                        uint32_t pid,
                                        uint32_t threadGroupId,
-                                       uint64_t cookie,
+                                       int64_t cookie,
                                        DataIndex nameIndex)
 {
     Unused(pid);
@@ -494,6 +493,43 @@ size_t
     return CompleteSlice(timeStamp, pid, threadGroupId, category, name);
 }
 
+bool SliceFilter::UpdateIrqReadySize()
+{
+    CallStack* irqDatas = traceDataCache_->GetIrqData();
+    irqDatas->UpdateReadySize(irqDatas->Size());
+    uint64_t minIrqRowToBeUpdated = INVALID_UINT64;
+    for (const auto& [_, irqRecord] : irqEventMap_) {
+        if (minIrqRowToBeUpdated > irqRecord.row) {
+            minIrqRowToBeUpdated = irqRecord.row;
+        }
+    }
+    for (const auto& [_, softIrqRecord] : softIrqEventMap_) {
+        if (minIrqRowToBeUpdated > softIrqRecord.row) {
+            minIrqRowToBeUpdated = softIrqRecord.row;
+        }
+    }
+    for (const auto& [_, ipiRecord] : ipiEventMap_) {
+        if (minIrqRowToBeUpdated > ipiRecord.row) {
+            minIrqRowToBeUpdated = ipiRecord.row;
+        }
+    }
+    // the ready size isn't all
+    TS_CHECK_TRUE_RET(minIrqRowToBeUpdated != INVALID_UINT64, true);
+    irqDatas->UpdateReadySize(minIrqRowToBeUpdated);
+    TS_LOGI("minIrqRowToBeUpdated=%" PRIu64 ", size=%zu, ready.size=%zu\n", minIrqRowToBeUpdated, irqDatas->Size(),
+            irqDatas->readySize_);
+    for (auto& [_, irqRecord] : irqEventMap_) {
+        irqRecord.row -= irqDatas->readySize_;
+    }
+    for (auto& [_, ipiRecord] : ipiEventMap_) {
+        ipiRecord.row -= irqDatas->readySize_;
+    }
+    for (auto& [_, softIrqRecord] : softIrqEventMap_) {
+        softIrqRecord.row -= irqDatas->readySize_;
+    }
+    return true;
+}
+
 void SliceFilter::Clear()
 {
     asyncEventMap_.Clear();
@@ -504,8 +540,6 @@ void SliceFilter::Clear()
     sliceStackMap_.clear();
     depthHolder_.clear();
     sliceRowToArgsSetId_.clear();
-    argsSetIdToSliceRow_.clear();
-    argsSetIdToSliceRow_.clear();
     argsSet_.clear();
 }
 } // namespace TraceStreamer

@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -39,11 +39,17 @@ toolchain("wasm") {
   # emsdk_dir and em_config are defined in wasm.gni.
   print("use gcc_like_chain wasm")
   if (!is_mac) {
-    ar = "$emsdk_dir/emscripten/emar --em-config $em_config"
+    ar = "emar"
   }
-  cc = "$emsdk_dir/emscripten/emcc --em-config $em_config"
-  cxx = "$emsdk_dir/emscripten/em++ --em-config $em_config"
-
+  cc = "emcc"
+  cxx = "em++"
+  if (!use_local_emsdk) {
+    if (!is_mac) {
+      ar = "$emsdk_dir/emscripten/emar --em-config $em_config"
+    }
+    cc = "$emsdk_dir/emscripten/emcc --em-config $em_config"
+    cxx = "$emsdk_dir/emscripten/em++ --em-config $em_config"
+  }
   lib_switch = "-l"
   ld_arg = ""
   lib_dir_switch = "-L"
@@ -168,6 +174,9 @@ toolchain("gcc_like") {
     } else {
       rspfile_content = "{{inputs}}"  # this must be defined
       command = "rm -f {{output}} && $ar rcsD {{output}} @$rspfile"
+      if (is_mingw) {
+        command = "$ar rcsD {{output}} @$rspfile"
+      }
     }
     outputsfiles = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     outputs = [ outputsfiles ]

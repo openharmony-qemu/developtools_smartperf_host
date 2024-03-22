@@ -13,15 +13,25 @@
  * limitations under the License.
  */
 
-import { SpSystemTrace } from '../../../../src/trace/component/SpSystemTrace';
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpNativeMemoryChart } from '../../../../src/trace/component/chart/SpNativeMemoryChart';
-import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
-const sqlit = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
-window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlit = require('../../../../src/trace/database/sql/NativeHook.sql');
+jest.mock('../../../../src/trace/database/sql/NativeHook.sql');
+const memSqlite = require('../../../../src/trace/database/sql/Memory.sql');
+jest.mock('../../../../src/trace/database/sql/Memory.sql');
+const clockSqlite = require('../../../../src/trace/database/sql/Clock.sql');
+jest.mock('../../../../src/trace/database/sql/Clock.sql');
+const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
+
 // @ts-ignore
 window.ResizeObserver = window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -30,8 +40,8 @@ window.ResizeObserver = window.ResizeObserver ||
     observe: jest.fn(),
   }));
 describe('SpNativeMemoryChart Test', () => {
-  let chartManager = new SpSystemTrace();
-  let spNativeMemoryChart = new SpNativeMemoryChart(chartManager);
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let spNativeMemoryChart = new SpNativeMemoryChart(htmlElement);
 
   let queryNativeHookStatisticsCount = sqlit.queryNativeHookStatisticsCount;
   queryNativeHookStatisticsCount.mockResolvedValue([
@@ -40,7 +50,7 @@ describe('SpNativeMemoryChart Test', () => {
     },
   ]);
 
-  let queryNativeMemoryRealTime = sqlit.queryNativeMemoryRealTime;
+  let queryNativeMemoryRealTime = memSqlite.queryNativeMemoryRealTime;
   queryNativeMemoryRealTime.mockResolvedValue([
     {
       ts: 1502013097360370200,
@@ -48,7 +58,7 @@ describe('SpNativeMemoryChart Test', () => {
     },
   ]);
 
-  let queryBootTime = sqlit.queryBootTime;
+  let queryBootTime = clockSqlite.queryBootTime;
   queryBootTime.mockResolvedValue([
     {
       ts: -557295431,
@@ -65,7 +75,7 @@ describe('SpNativeMemoryChart Test', () => {
     },
   ]);
 
-  let heapGroupByEvent = sqlit.queryHeapGroupByEvent;
+  let heapGroupByEvent = sqlite.queryHeapGroupByEvent;
   heapGroupByEvent.mockResolvedValue([
     {
       eventType: 'AllocEvent',

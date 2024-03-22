@@ -15,8 +15,6 @@
 
 import { TabPaneSystemDetails } from '../../../../../../src/trace/component/trace/sheet/energy/TabPaneSystemDetails';
 import '../../../../../../src/trace/component/trace/sheet/energy/TabPaneSystemDetails';
-
-import { querySysLocationDetailsData, querySysLockDetailsData } from '../../../../../../src/trace/database/SqlLite';
 import { SpHiSysEventChart } from '../../../../../../src/trace/component/chart/SpHiSysEventChart';
 import '../../../../../../src/trace/component/chart/SpHiSysEventChart';
 
@@ -26,11 +24,15 @@ window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(()
     unobserve: jest.fn(),
     disconnect: jest.fn(),
   }));
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
-jest.mock('../../../../../../src/trace/database/SqlLite');
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {});
 
 describe('TabPanePowerBattery Test', () => {
   it('TabPaneSystemDetailsTest01', function () {

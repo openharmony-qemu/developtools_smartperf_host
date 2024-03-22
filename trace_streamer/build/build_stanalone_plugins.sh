@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+set -e
+. build/build_base.sh
+function check_plugin_true {
+    if [ $1 == "false" ];then
+        echo "Current plugins haven't '$2'!Please check!"
+        exit
+    fi
+}
+function enable_plugin {
+    check_params $1
+    set_enable_plugin_array "false"
+    flag="false"
+    IFS=','
+    read -ra plugins <<< "$1"
+    for plugin in "${plugins[@]}"; do
+        for enable_plugin in "${enable_plugin_array[@]}"; do
+            if [[ $enable_plugin == *$plugin ]]; then
+                eval "$enable_plugin=\"true\""
+                echo "$enable_plugin=${!enable_plugin}"
+                flag="true"
+            fi
+        done
+        check_plugin_true $flag $plugin
+        flag="false"
+    done
+}
+function enable_extend_plugin {
+    check_params $1
+    set_enable_extend_plugin_array "false"
+    flag="false"
+    IFS=','
+    read -ra plugins <<< "$1"
+    for plugin in "${plugins[@]}"; do
+        for enable_extend_plugin in "${enable_extend_plugin_array[@]}"; do
+            if [[ $enable_extend_plugin == *$plugin ]]; then
+                eval "$enable_extend_plugin=\"true\""
+                echo "$enable_extend_plugin=${!enable_extend_plugin}"
+                flag="true"
+            fi
+        done
+        check_plugin_true $flag $plugin
+        flag="false"
+    done
+}

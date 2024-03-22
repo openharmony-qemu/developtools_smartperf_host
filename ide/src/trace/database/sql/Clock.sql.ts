@@ -78,5 +78,14 @@ export const queryScreenState = (): Promise<Array<ClockStruct>> =>
 export const queryRealTime = (): Promise<
   Array<{
     ts: number;
+    name: string
   }>
-> => query('queryRealTime', `select CS.ts as ts from clock_snapshot as CS where clock_name = 'realtime';`);
+> => query('queryRealTime', `SELECT
+  ( CASE WHEN CS.clock_name = 'realtime' THEN CS.ts ELSE CS.ts - TR.start_ts END ) AS ts,
+  CS.clock_name AS name 
+  FROM
+  clock_snapshot AS CS,
+  trace_range AS TR 
+  WHERE
+  CS.clock_name = 'realtime' 
+  OR CS.clock_name = 'boottime';`);

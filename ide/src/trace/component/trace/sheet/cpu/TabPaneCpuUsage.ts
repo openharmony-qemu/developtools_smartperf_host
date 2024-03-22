@@ -193,15 +193,15 @@ export class TabPaneCpuUsage extends BaseElement {
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Usage" data-index="usageStr" key="usageStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top1(M)" data-index="top1" key="top1" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top1(K)" data-index="top1" key="top1" align="flex-start" >
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Top1 percent(%)" data-index="top1PercentStr" key="top1PercentStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top2(M)" data-index="top2" key="top2" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top2(K)" data-index="top2" key="top2" align="flex-start" >
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Top2 percent(%)" data-index="top2PercentStr" key="top2PercentStr" align="flex-start" >
             </lit-table-column>
-            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top3(M)" data-index="top3" key="top3" align="flex-start" >
+            <lit-table-column class="cpu-usage-column" order width="1fr" title="CPU Freq Top3(K)" data-index="top3" key="top3" align="flex-start" >
             </lit-table-column>
             <lit-table-column class="cpu-usage-column" order width="1fr" title="Top3 percent(%)" data-index="top3PercentStr" key="top3PercentStr" align="flex-start" >
             </lit-table-column>

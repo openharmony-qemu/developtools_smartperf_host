@@ -14,8 +14,8 @@
  */
 
 import { SpInfoAndStats } from '../../../src/trace/component/SpInfoAndStas';
-const sqlit = require('../../../src/trace/database/SqlLite');
-jest.mock('../../../src/trace/database/SqlLite');
+const sqlit = require('../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../src/trace/database/sql/SqlLite.sql');
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

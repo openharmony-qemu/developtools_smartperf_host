@@ -14,128 +14,176 @@
  */
 
 import { TraficEnum } from './utils/QueryEnum';
+import { energyList } from './utils/AllMemoryCache';
 
 export const systemDataSql = (args: any): string => {
   return `SELECT S.id,
-                 S.ts - ${args.recordStartNS} AS startNs,
-                 D.data                       AS eventName,
+                 S.ts - ${args.recordStartNS}                                                                   AS startNs,
+                 D.data                                                                                         AS eventName,
                  (case when D.data == 'POWER_RUNNINGLOCK' then 1 when D.data == 'GNSS_STATE' then 2 else 0 end) AS appKey,
-                 contents                     AS eventValue
+                 contents                                                                                       AS eventValue,
+                 ((S.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)}))   as px
           FROM hisys_all_event AS S
                    LEFT JOIN data_dict AS D ON S.event_name_id = D.id
                    LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
-          WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
+          WHERE eventName IN ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD')
+            and startNs >= ${Math.floor(args.startNS)}
+            and startNs <= ${Math.floor(args.endNS)}
+          group by px;`;
+};
+
+export const systemDataMemSql = (args: any): string => {
+  return `SELECT S.id,
+                 S.ts - ${args.recordStartNS}                                                                         AS startNs,
+                 D.data                                                                                               AS eventName,
+                 (case when D.data == 'POWER_RUNNINGLOCK' then '1' when D.data == 'GNSS_STATE' then '2' else '0' end) AS appKey,
+                 contents                                                                                             AS eventValue
+          FROM hisys_all_event AS S
+                   LEFT JOIN data_dict AS D ON S.event_name_id = D.id
+                   LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
+          WHERE eventName IN
+                ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_START', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD');`;
 };
 
 export const chartEnergyAnomalyDataSql = (args: any): string => {
   return `
       select S.id,
-             S.ts - ${args.recordStartNS} as startNs,
-             D.data                       as eventName,
-             D2.data                      as appKey,
+             S.ts - ${args.recordStartNS}                  as startNs,
+             D.data                                        as eventName,
+             D2.data                                       as appKey,
              (case
                   when S.type==1 then group_concat(S.string_value, ',')
                   else group_concat(S.int_value, ',') end) as eventValue
       from hisys_event_measure as S
-          left join data_dict as D
-      on D.id=S.name_id
-          left join app_name as APP on APP.id=S.key_id
-          left join data_dict as D2 on D2.id=APP.app_key
-      where D.data in ('ANOMALY_SCREEN_OFF_ENERGY'
-          , 'ANOMALY_KERNEL_WAKELOCK'
-          , 'ANOMALY_CPU_HIGH_FREQUENCY'
-          , 'ANOMALY_WAKEUP')
-         or (D.data in ('ANOMALY_RUNNINGLOCK'
-          , 'ANORMALY_APP_ENERGY'
-          , 'ANOMALY_GNSS_ENERGY'
-          , 'ANOMALY_CPU_ENERGY'
-          , 'ANOMALY_ALARM_WAKEUP')
-        and D2.data in ('APPNAME'))
+               left join data_dict as D
+                         on D.id = S.name_id
+               left join app_name as APP on APP.id = S.key_id
+               left join data_dict as D2 on D2.id = APP.app_key
+      where D.data in
+            ('ANOMALY_SCREEN_OFF_ENERGY', 'ANOMALY_KERNEL_WAKELOCK', 'ANOMALY_CPU_HIGH_FREQUENCY', 'ANOMALY_WAKEUP')
+         or (D.data in ('ANOMALY_RUNNINGLOCK', 'ANORMALY_APP_ENERGY', 'ANOMALY_GNSS_ENERGY', 'ANOMALY_CPU_ENERGY',
+                        'ANOMALY_ALARM_WAKEUP')
+          and D2.data in ('APPNAME'))
       group by S.serial, D.data`;
 };
 export const queryPowerValueSql = (args: any): string => {
   return `
-      SELECT
-          S.id,
-          S.ts - ${args.recordStartNS} as startNs,
-          D.data AS eventName,
-          D2.data AS appKey,
-          group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS eventValue
-      FROM
-          hisys_event_measure AS S
-              LEFT JOIN data_dict AS D
-                        ON D.id = S.name_id
-              LEFT JOIN app_name AS APP
-                        ON APP.id = S.key_id
-              LEFT JOIN data_dict AS D2
-                        ON D2.id = APP.app_key
-      where
-              D.data in ('POWER_IDE_CPU','POWER_IDE_LOCATION','POWER_IDE_GPU','POWER_IDE_DISPLAY','POWER_IDE_CAMERA','POWER_IDE_BLUETOOTH','POWER_IDE_FLASHLIGHT','POWER_IDE_AUDIO','POWER_IDE_WIFISCAN')
-        and
-              D2.data in ('BACKGROUND_ENERGY','FOREGROUND_ENERGY','SCREEN_ON_ENERGY','SCREEN_OFF_ENERGY','ENERGY','APPNAME')
-      GROUP BY
-          S.serial,
-          APP.app_key,
-          D.data,
-          D2.data
-      ORDER BY
-          eventName;`;
+      SELECT S.id,
+             S.ts - ${args.recordStartNS}                                                        as startNs,
+             D.data                                                                              AS eventName,
+             D2.data                                                                             AS appKey,
+             group_concat((CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END), ',') AS eventValue
+      FROM hisys_event_measure AS S
+               LEFT JOIN data_dict AS D
+                         ON D.id = S.name_id
+               LEFT JOIN app_name AS APP
+                         ON APP.id = S.key_id
+               LEFT JOIN data_dict AS D2
+                         ON D2.id = APP.app_key
+      where D.data in ('POWER_IDE_CPU', 'POWER_IDE_LOCATION', 'POWER_IDE_GPU', 'POWER_IDE_DISPLAY', 'POWER_IDE_CAMERA',
+                       'POWER_IDE_BLUETOOTH', 'POWER_IDE_FLASHLIGHT', 'POWER_IDE_AUDIO', 'POWER_IDE_WIFISCAN')
+        and D2.data in
+            ('BACKGROUND_ENERGY', 'FOREGROUND_ENERGY', 'SCREEN_ON_ENERGY', 'SCREEN_OFF_ENERGY', 'ENERGY', 'APPNAME')
+      GROUP BY S.serial,
+               APP.app_key,
+               D.data,
+               D2.data
+      ORDER BY eventName;`;
 };
+
 export const queryStateDataSql = (args: any): string => {
   return `
-      select
-          S.id,
-          S.ts - ${args.recordStartNS} as startNs,
-          D.data as eventName,
-          D2.data as appKey,
-          S.int_value as eventValue
+      select S.id,
+             S.ts - ${args.recordStartNS} as startNs,
+             D.data                       as eventName,
+             D2.data                      as appKey,
+             S.int_value                  as eventValue
       from hisys_event_measure as S
-          left join data_dict as D on D.id=S.name_id
-          left join app_name as APP on APP.id=S.key_id
-          left join data_dict as D2 on D2.id=APP.app_key
+               left join data_dict as D on D.id = S.name_id
+               left join app_name as APP on APP.id = S.key_id
+               left join data_dict as D2 on D2.id = APP.app_key
       where (case when 'SENSOR_STATE'== '${args.eventName}' then D.data like '%SENSOR%' else D.data = '${args.eventName}' end)
-        and D2.data in ('BRIGHTNESS','STATE','VALUE','LEVEL','VOLUME','OPER_TYPE','VOLUME')
-      group by S.serial,APP.app_key,D.data,D2.data;`;
+        and D2.data in ('BRIGHTNESS', 'STATE', 'VALUE', 'LEVEL', 'VOLUME', 'OPER_TYPE', 'VOLUME')
+      group by S.serial, APP.app_key, D.data, D2.data;`;
 };
 
 export const queryStateProtoDataSql = (args: any): string => {
   return `
-      SELECT
-          S.id,
-          S.ts - ${args.recordStartNS} AS startNs,
-          D.data AS eventName,
-          '' AS appKey,
-          contents AS eventValue
-      FROM
-          hisys_all_event AS S
-              LEFT JOIN data_dict AS D ON S.event_name_id = D.id
-              LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
-      WHERE
-          eventName = ${args.eventName}`;
+      SELECT S.id,
+             S.ts - ${args.recordStartNS} AS startNs,
+             D.data                       AS eventName,
+             ''                           AS appKey,
+             contents                     AS eventValue
+      FROM hisys_all_event AS S
+               LEFT JOIN data_dict AS D ON S.event_name_id = D.id
+               LEFT JOIN data_dict AS D2 ON S.domain_id = D2.id
+      WHERE eventName = ${args.eventName}`;
 };
+let systemList: Array<any> = [];
+let anomalyList: Array<any> = [];
+let powerList: Array<any> = [];
+
+export function resetEnergyEvent(): void {
+  systemList = [];
+  anomalyList = [];
+  powerList = [];
+}
 
 export function energySysEventReceiver(data: any, proc: Function) {
-  let sql = systemDataSql(data.params);
-  let res = proc(sql);
-  systemBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    if (systemList.length === 0) {
+      systemList = proc(systemDataMemSql(data.params));
+    }
+    systemBufferHandler(data, systemList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  } else if (data.params.trafic === TraficEnum.ProtoBuffer) {
+    let sql = systemDataSql(data.params);
+    let res = proc(sql);
+    systemBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
 
 export function hiSysEnergyAnomalyDataReceiver(data: any, proc: Function) {
-  let sql = chartEnergyAnomalyDataSql(data.params);
-  let res = proc(sql);
-  anomalyBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    if (anomalyList.length === 0) {
+      anomalyList = proc(chartEnergyAnomalyDataSql(data.params));
+    }
+    anomalyBufferHandler(data, anomalyList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  } else if (data.params.trafic === TraficEnum.ProtoBuffer) {
+    let sql = chartEnergyAnomalyDataSql(data.params);
+    let res = proc(sql);
+    anomalyBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
 
 export function hiSysEnergyPowerReceiver(data: any, proc: Function): void {
-  let sql = queryPowerValueSql(data.params);
-  let res = proc(sql);
-  powerBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    if (powerList.length === 0) {
+      powerList = proc(queryPowerValueSql(data.params));
+    }
+    powerBufferHandler(data, powerList, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  } else if (data.params.trafic === TraficEnum.ProtoBuffer) {
+    let sql = queryPowerValueSql(data.params);
+    let res = proc(sql);
+    powerBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
 
 export function hiSysEnergyStateReceiver(data: any, proc: Function): void {
-  let stateDataSql = queryStateDataSql(data.params);
-  let stateDataRes = proc(stateDataSql);
-  stateBufferHandler(data, stateDataRes, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    let res: any[], list: any[];
+    if (!energyList.has(data.params.eventName)) {
+      list = proc(queryStateDataSql(data.params));
+      energyList.set(data.params.eventName, list);
+    } else {
+      list = energyList.get(data.params.eventName) || [];
+    }
+    res = list;
+    stateBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  } else if (data.params.trafic === TraficEnum.ProtoBuffer) {
+    let stateDataSql = queryStateDataSql(data.params);
+    let stateDataRes = proc(stateDataSql);
+    stateBufferHandler(data, stateDataRes, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
 
 function systemBufferHandler(data: any, res: any[], transfer: boolean) {
@@ -145,8 +193,14 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
   let nameIdMap: Map<string, Array<any>> = new Map<string, []>();
   res.forEach((it, index) => {
     data.params.trafic === TraficEnum.ProtoBuffer && (it = it.energyData);
-    let parseData = JSON.parse(it.eventValue);
-    it.eventValue = parseData;
+    let parsedData = it.eventValue;
+    if (typeof it.eventValue === 'string') {
+      try {
+        parsedData = JSON.parse(it.eventValue);
+      } catch (error) {
+      }
+    }
+    it.eventValue = parsedData;
     let beanData: any = {};
     if (it.appKey === '1') {
       eventNameWithPowerRunninglock(beanData, it, systemDataList);
@@ -175,6 +229,7 @@ function systemBufferHandler(data: any, res: any[], transfer: boolean) {
   });
   postMessage(data, transfer, hiSysEnergy, res.length);
 }
+
 function eventNameWithPowerRunninglock(beanData: any, it: any, systemDataList: Array<any>): void {
   let lockCount = 0;
   let tokedIds: Array<string> = [];
@@ -203,6 +258,7 @@ function eventNameWithPowerRunninglock(beanData: any, it: any, systemDataList: A
     }
   }
 }
+
 function eventNameWithGnssState(beanData: any, it: any, systemDataList: Array<any>): void {
   let locationIndex = -1;
   let locationCount = 0;
@@ -227,6 +283,7 @@ function eventNameWithGnssState(beanData: any, it: any, systemDataList: Array<an
   beanData.type = 2;
   systemDataList.push(beanData);
 }
+
 function eventNameWithWorkStart(
   nameIdMap: Map<string, Array<any>>,
   beanData: any,
@@ -254,6 +311,7 @@ function eventNameWithWorkStart(
   beanData.type = 0;
   systemDataList.push(beanData);
 }
+
 function eventNameWithWorkStop(
   nameIdMap: Map<string, Array<any>>,
   beanData: any,
@@ -276,6 +334,7 @@ function eventNameWithWorkStop(
     }
   }
 }
+
 function postMessage(data: any, transfer: boolean, hiSysEnergy: HiSysEnergy, len: number): void {
   (self as unknown as Worker).postMessage(
     {
@@ -283,26 +342,26 @@ function postMessage(data: any, transfer: boolean, hiSysEnergy: HiSysEnergy, len
       action: data.action,
       results: transfer
         ? {
-            id: hiSysEnergy.id.buffer,
-            startNs: hiSysEnergy.startNs.buffer,
-            count: hiSysEnergy.count.buffer,
-            type: hiSysEnergy.type.buffer,
-            token: hiSysEnergy.token.buffer,
-            dataType: hiSysEnergy.dataType.buffer,
-          }
+          id: hiSysEnergy.id.buffer,
+          startNs: hiSysEnergy.startNs.buffer,
+          count: hiSysEnergy.count.buffer,
+          type: hiSysEnergy.type.buffer,
+          token: hiSysEnergy.token.buffer,
+          dataType: hiSysEnergy.dataType.buffer,
+        }
         : {},
       len: len,
       transfer: transfer,
     },
     transfer
       ? [
-          hiSysEnergy.id.buffer,
-          hiSysEnergy.startNs.buffer,
-          hiSysEnergy.count.buffer,
-          hiSysEnergy.type.buffer,
-          hiSysEnergy.token.buffer,
-          hiSysEnergy.dataType.buffer,
-        ]
+        hiSysEnergy.id.buffer,
+        hiSysEnergy.startNs.buffer,
+        hiSysEnergy.count.buffer,
+        hiSysEnergy.type.buffer,
+        hiSysEnergy.token.buffer,
+        hiSysEnergy.dataType.buffer,
+      ]
       : []
   );
 }
@@ -339,9 +398,9 @@ function anomalyBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-          }
+          id: id.buffer,
+          startNs: startNs.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,
@@ -364,9 +423,9 @@ function powerBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-          }
+          id: id.buffer,
+          startNs: startNs.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,
@@ -400,10 +459,10 @@ function stateBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startNs: startNs.buffer,
-            eventValue: eventValue.buffer,
-          }
+          id: id.buffer,
+          startNs: startNs.buffer,
+          eventValue: eventValue.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

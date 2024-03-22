@@ -15,8 +15,6 @@
 
 import { TabPanePerfAnalysis } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPanePerfAnalysis';
 import crypto from 'crypto';
-import { queryHiPerfProcessCount } from '../../../../../../src/trace/database/SqlLite';
-import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
 import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
@@ -44,8 +42,8 @@ jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {};
 });
 
-const sqlit = require('../../../../../../src/trace/database/SqlLite');
-jest.mock('../../../../../../src/trace/database/SqlLite');
+const sqlit = require('../../../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
 });
@@ -286,6 +284,33 @@ describe('TabPanePerfAnalysis Test', () => {
       perfThread: [4, 5, 6],
       perfProcess: [4, 5, 6],
     };
+    let processArr = [
+      {
+        pid: 233,
+        time: 7978660718,
+        threadName: 'hilogd',
+        tid: 235,
+        id: 19165,
+        callchain_id: 7492,
+      },
+      {
+        pid: 233,
+        time: 8092040146,
+        threadName: 'hilogd',
+        tid: 235,
+        id: 19408,
+        callchain_id: 7578,
+      },
+      {
+        pid: 233,
+        time: 8117205732,
+        threadName: 'hilogd',
+        tid: 235,
+        id: 19496,
+        callchain_id: 7618,
+      },
+    ];
+    tabPanePerfAnalysis.processData = processArr;
     tabPanePerfAnalysis.perfTableProcess.reMeauseHeight = jest.fn(() => true);
     tabPanePerfAnalysis.getHiperfProcess(para);
     expect(tabPanePerfAnalysis.clearData()).toBeUndefined();

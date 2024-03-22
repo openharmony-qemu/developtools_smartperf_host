@@ -72,7 +72,6 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | perf_sample | 记录Hiperf工具的采样信息|
 | perf_thread | 记录Hiperf工具采集到的进程和线程数据|
 | process | 记录所有的进程信息|
-| process_filter | 过滤进程|
 | process_measure | 保存进程的所有计量值|
 | process_measure_filter | 将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id|
 | raw | 此数据结构主要作为ThreadState的上下文使用，这张表是sched_waking,sched_wakup, cpu_idle事件的原始记录|
@@ -86,7 +85,6 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | sys_mem_measure | 记录了所有的系统内存相关的测量信息|
 | task_pool | 记录任务池相关数据，与callstack表相关联|
 | thread | 记录所有的线程信息|
-| thread_filter | 过滤线程|
 | thread_state | 记录线程状态信息|
 | trace_config | 记录trace数据源，proto的事件-plugin与其process_name|
 | trace_range | 记录ftrace数据与其他类型数据的时间交集，供前端展示数据时使用|
@@ -150,7 +148,6 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |perf_sample           |    -         |    -              |perf数据（非插件模式） |
 |perf_thread           |    -         |    -              |perf数据（非插件模式） |
 |process               |    -         |ftrace-plugin      |进程信息               |
-|process_filter        |    -         |ftrace-plugin      |进程计量表的辅助表     |
 |process_measure       |    -         |ftrace-plugin      |进程内存               |
 |process_measure_filter|    -         |ftrace-plugin      |process_measure的辅助表|
 |raw                   |    -         |ftrace-plugin      |线程唤醒信息           |
@@ -165,7 +162,6 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |thread_state          |  通用的      |ftrace-plugin      |线程调度图（常用）      |
 |trace_config          |  通用的      |hisysevent-plugin  |记录trace数据源         |
 |trace_range           |  通用的      |    -              |trace数据的时长         |
-|thread_filter         |  通用的      |ftrace-plugin      |线程计量跟踪表（比较少用）|
 |clock_snapshot        |  通用的      |通用的            |时钟号和时间，时钟名的映射表|
 |datasource_clockid    |  通用的      |通用的             |数据源和时钟号的映射表|
 |task_pool             |    -         |    -             |任务池数据              |

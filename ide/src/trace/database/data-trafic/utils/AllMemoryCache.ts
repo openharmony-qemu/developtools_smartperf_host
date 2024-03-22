@@ -16,6 +16,8 @@ import { resetVmTracker } from '../VmTrackerDataReceiver';
 import { resetVM } from '../VirtualMemoryDataReceiver';
 import { resetAbilityMonitor } from '../AbilityMonitorReceiver';
 import { resetAbility } from '../VmTrackerDataReceiver';
+import { resetDynamicEffect } from '../FrameDynamicEffectReceiver';
+import { resetEnergyEvent } from '../EnergySysEventReceiver';
 //cpu 泳道 memory 缓存
 export const cpuList: Map<number, Array<any>> = new Map();
 //clock 泳道 memory 模式缓存
@@ -30,6 +32,10 @@ export const cpuStateList: Map<number, Array<any>> = new Map();
 export const threadCallStackList: Map<string, Array<any>> = new Map();
 //irq 泳道图 memory 模式缓存
 export const lrqList: Map<string, Array<any>> = new Map();
+//Lost Frame 泳道图 memory 模式缓存
+export const lostFrameList: Map<number, Array<any>> = new Map();
+//Hitch Time 泳道图 memory 模式缓存
+export const hitchTimeList: Map<number, Array<any>> = new Map();
 //进程 泳道图 memory 模式缓存
 export const processList: Map<number, Array<any>> = new Map();
 //进程内存 泳道图 memory 模式缓存数据
@@ -38,6 +44,13 @@ export const memList: Map<number, Array<any>> = new Map();
 export const threadStateList: Map<string, Array<any>> = new Map();
 //进程下卡顿丢帧 泳道图 memory 模式缓存
 export const processFrameList: Map<string, Array<any>> = new Map();
+//hiSysEvent 泳道图 memory 模式缓存
+export const hiSysEventList: Map<string, Array<any>> = new Map();
+//hiLog 泳道图 memory 模式缓存
+export const hiLogList: Map<string, Array<any>> = new Map();
+
+//energy 泳道图 memory 模式缓存
+export const energyList: Map<string, Array<any>> = new Map();
 export function clearMemoryCache(data: any, proc: Function) {
   cpuList.clear();
   clockList.clear();
@@ -50,12 +63,19 @@ export function clearMemoryCache(data: any, proc: Function) {
   memList.clear();
   threadStateList.clear();
   processFrameList.clear();
+  lostFrameList.clear();
+  hitchTimeList.clear();
+  hiSysEventList.clear();
+  hiLogList.clear();
+  energyList.clear();
   hiPerfCallChartClearCache(true);
   nativeMemoryCacheClear();
   resetVmTracker();
   resetAbilityMonitor();
   resetAbility();
   resetVM();
+  resetDynamicEffect();
+  resetEnergyEvent();
   (self as unknown as Worker).postMessage(
     {
       id: data.id,

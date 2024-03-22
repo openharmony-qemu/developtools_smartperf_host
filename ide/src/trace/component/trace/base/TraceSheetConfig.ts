@@ -121,6 +121,14 @@ import { TabPaneGpuGraph } from '../sheet/gpu/TabPaneGraph';
 import { TabPaneFreqUsage } from '../sheet/frequsage/TabPaneFreqUsage';
 import { TabPaneHisysEvents } from '../sheet/hisysevent/TabPaneHisysEvents';
 import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventSummary';
+import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
+import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
+import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
+import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPaneSampleInstructionDistributions';
+import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
+import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
+import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
+
 
 export let tabConfig: any = {
   'current-selection': {
@@ -170,7 +178,7 @@ export let tabConfig: any = {
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
   'box-thread-states': {
-    title: 'Thread States',
+    title: 'Thread by State',
     type: TabPaneThreadStates,
     require: (param: SelectionParam) => param.threadIds.length > 0,
   },
@@ -643,5 +651,40 @@ export let tabConfig: any = {
     title: 'Statistics',
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
+  },
+  'tabpane-binders': {
+    title: 'Thread Binders',
+    type: TabPaneBinders,
+    require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'tabpane-gpufreq': {
+    title: 'Gpufreq Usage',
+    type: TabPaneGpufreq,
+    require: (param: SelectionParam) => param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true,
+  },
+  'tabpane-datacut': {
+    title: 'Data Cut',
+    type: TabPaneDataCut,
+    require: (param: SelectionParam) => param.threadIds.length > 0 ||
+      (param.clockMapData.size === 1 && param.clockMapData.has('gpufreq Frequency') === true),
+  },
+  'box-sample-instruction-selection': {
+    title: 'Data Selection',
+    type: TabPaneSampleInstructionSelection,
+    require: (param: SelectionParam) => param.sampleData.length > 0
+  },
+  'box-sample-instruction-distribution-selection': {
+    title: 'Data Distribution',
+    type: TabPaneSampleInstructionDistributions,
+    require: (param: SelectionParam) => param.sampleData.length > 0
+  },
+  'box-sample-instruction-totaltime-selection': {
+    title: 'Total Duration',
+    type: TabPaneSampleInstructionTotalTime,
+    require: (param: SelectionParam) => param.sampleData.length > 0
+  },
+  'box-sample-instruction': {
+    title: 'Data Flow',
+    type: TabPaneSampleInstruction,
   },
 };

@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,34 +14,7 @@
 import("//build/ohos.gni")
 import("../../build/ts.gni")
 
-ohos_source_set("parser") {
-  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
-  part_name = "${OHOS_PROFILER_PART_NAME}"
-  sources = [
-    "bytrace_parser/bytrace_event_parser.cpp",
-    "bytrace_parser/bytrace_hilog_parser.cpp",
-    "bytrace_parser/bytrace_hisysevent_parser.cpp",
-    "bytrace_parser/bytrace_parser.cpp",
-    "event_parser_base.cpp",
-    "print_event_parser.cpp",
-    "thread_state_flag.cpp",
-  ]
-  deps = [
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/cpu_data:cpu_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/diskio_data:diskio_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hidump_data:hidump_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hilog_data:hilog_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hisysevent_data:hisysevent_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:js_memory_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/native_hook:native_hook_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/network_data:network_data_reader",
-    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/process_data:process_data_reader",
-    "ebpf_parser:ebpf_parser",
-  ]
-  deps += [ "htrace_pbreader_parser:htrace_pbreader_parser" ]
-  deps += [ "rawtrace_parser:rawtrace_parser" ]
-
+config("parser_base_cfg") {
   include_dirs = [
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/sqlite/include",
@@ -53,11 +26,26 @@ ohos_source_set("parser") {
     "${SRC}/filter",
     "${SRC}",
     ".",
-    "htrace_pbreader_parser",
+    "pbreader_parser",
+    "pbreader_parser/htrace_parser",
     "rawtrace_parser",
     "../proto_reader/include",
     "${THIRD_PARTY}/bounds_checking_function/include",
     "${THIRD_PARTY}/json/single_include/nlohmann",
+  ]
+  include_dirs += [
+    "${PERF_DIR}/hiperf/include/nonlinux/linux",
+    "${PERF_DIR}/hiperf/include/nonlinux",
+    "${PERF_DIR}/hiperf/include",
+    "${THIRD_PARTY}/perf_include",
+    "${THIRD_PARTY}/perf_include/libbpf",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
   ]
   include_dirs += [
     "${SRC}/trace_data/trace_stdtype",
@@ -86,4 +74,52 @@ ohos_source_set("parser") {
       cflags += [ "-D IS_UT" ]
     }
   }
+}
+
+config("hilog_parser_cfg") {
+  include_dirs = [
+    "pbreader_parser",
+    "pbreader_parser/hilog_parser",
+    "ptreader_parser/hilog_parser",
+  ]
+}
+
+config("hisysevent_parser_cfg") {
+  include_dirs = [
+    "pbreader_parser",
+    "pbreader_parser/hisysevent_parser",
+    "ptreader_parser/hisysevent_parser",
+  ]
+}
+
+ohos_source_set("parser") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "event_parser_base.cpp",
+    "print_event_parser.cpp",
+    "thread_state_flag.cpp",
+  ]
+
+  deps = [
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/cpu_data:cpu_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/diskio_data:diskio_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hidump_data:hidump_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:js_memory_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/network_data:network_data_reader",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/process_data:process_data_reader",
+  ]
+  deps += [ "pbreader_parser:pbreader_parser" ]
+  deps += [ "ptreader_parser:ptreader_parser_src" ]
+  if (enable_rawtrace) {
+    deps += [ "rawtrace_parser:rawtrace_parser" ]
+  }
+
+  # for hook,perf,ebpf
+  deps += [ "${PERF_DIR}/hiperf:hiperf_platform_common" ]
+  if (enable_ebpf) {
+    deps += [ "ebpf_parser:ebpf_parser" ]
+  }
+  public_configs = [ ":parser_base_cfg" ]
 }

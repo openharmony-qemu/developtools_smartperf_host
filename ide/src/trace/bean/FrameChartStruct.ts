@@ -63,6 +63,7 @@ export class ChartStruct extends BaseStruct {
   durArray: Array<number> = [];
   isThread: boolean = false;
   isProcess: boolean = false;
+  isJsStack: boolean = false;
 }
 
 export enum ChartMode {
@@ -143,13 +144,18 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
       canvasCtx.strokeStyle = '#000';
     }
   } else {
-    if (spApplication.dark) {
-      canvasCtx.strokeStyle = '#000';
+    if (node.isJsStack) {
+      canvasCtx.lineWidth = 0.6;
+      canvasCtx.strokeStyle = `rgb(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b})`;
     } else {
-      canvasCtx.strokeStyle = '#fff';
+      if (spApplication.dark) {
+        canvasCtx.strokeStyle = '#000';
+      } else {
+        canvasCtx.strokeStyle = '#fff';
+      }
     }
   }
-  canvasCtx.strokeRect(node.frame.x, node.frame.y, node.frame.width, drawHeight);
+  canvasCtx.strokeRect(node.frame.x, node.frame.y, node.frame.width - canvasCtx.lineWidth, drawHeight);
   //文字
   if (node.frame.width > 10) {
     if (node.percent > 0.6 || node.isSearch) {

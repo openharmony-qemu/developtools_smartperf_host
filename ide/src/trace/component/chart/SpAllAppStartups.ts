@@ -61,6 +61,7 @@ export class SpAllAppStartupsChart {
     row.folder = false;
     row.style.height = '40px';
     row.name = `All App Startups`;
+    row.addTemplateTypes('AppStartup');
     row.selectChangeHandler = SpAllAppStartupsChart.trace.selectChangeHandler;
     row.favoriteChangeHandler = SpAllAppStartupsChart.trace.favoriteChangeHandler;
     row.supplier = async (): Promise<Array<AllAppStartupStruct>> => {
@@ -97,6 +98,12 @@ export class SpAllAppStartupsChart {
           translateY: undefined,
           frame: undefined,
           isHover: false,
+          value: undefined,
+          pid: undefined,
+          process: undefined,
+          tid: undefined,
+          itid: undefined,
+          endItid: undefined
         });
       }
       return sendRes;

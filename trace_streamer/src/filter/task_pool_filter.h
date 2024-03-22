@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,7 +35,7 @@ public:
     TaskPoolFilter& operator=(const TaskPoolFilter&) = delete;
     ~TaskPoolFilter() override;
     uint32_t GetIpId(uint32_t index);
-    uint32_t CheckTheSameTask(uint32_t executeId, uint32_t index);
+    uint32_t CheckTheSameTask(uint64_t taskId, uint32_t index);
     bool TaskPoolEvent(const std::string& taskPoolStr, uint32_t index);
     void TaskPoolFieldSegmentation(const std::string& taskPoolStr, std::unordered_map<std::string, std::string>& args);
     bool UpdateAssignData(const std::unordered_map<std::string, std::string>& args, uint32_t index);
@@ -44,10 +44,11 @@ public:
     bool AppendTimeoutRow(uint32_t index);
 
 private:
-    const std::string targetStr_ = "H:Task ";
-    const std::string allocationStr_ = "H:Task Allocation: ";
-    const std::string executeStr_ = "H:Task Perform: ";
-    const std::string returnStr_ = "H:Task PerformTask End: ";
+    auto GetExecuteIdOrTaskId(const std::unordered_map<std::string, std::string>& args);
+    const std::string targetStr_ = "H:Task";
+    const std::string allocationStr_ = "H:Task Allocation:";
+    const std::string executeStr_ = "H:Task Perform:";
+    const std::string returnStr_ = "H:Task PerformTask End:";
     const std::string timeoutStr_ = "H:Thread Timeout Exit";
     DoubleMap<InternalPid, uint32_t, uint32_t> IpidExecuteMap_;
     std::unordered_map<uint32_t, uint32_t> timeoutMap_;

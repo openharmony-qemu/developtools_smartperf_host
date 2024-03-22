@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@ namespace TraceStreamer {
 enum class Index : int32_t {
     ID = 0,
     IPID,
-    TYPE,
     PID,
     NAME,
     START_TS,
@@ -34,7 +33,6 @@ ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCach
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
@@ -130,10 +128,10 @@ int32_t ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
             case Index::IPID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::PID:
-                FilterIndex(c.col, c.op, argv[i]);
+                FilterIndex(c.col, c.op, argv[c.idxInaConstraint]);
                 break;
             default:
                 break;
@@ -163,9 +161,6 @@ int32_t ProcessTable::Cursor::Column(int32_t col) const
         case Index::ID:
         case Index::IPID:
             sqlite3_result_int64(context_, CurrentRow());
-            break;
-        case Index::TYPE:
-            sqlite3_result_text(context_, "process", STR_DEFAULT_LEN, nullptr);
             break;
         case Index::PID:
             sqlite3_result_int64(context_, process.pid_);

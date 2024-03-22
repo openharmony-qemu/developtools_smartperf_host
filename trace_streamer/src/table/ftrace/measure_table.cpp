@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,19 +38,17 @@ std::unique_ptr<TableBase::Cursor> MeasureTable::CreateCursor()
 }
 
 MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(
-          dataCache,
-          table,
-          static_cast<uint32_t>(table->name_ == "measure" || table->name_ == "_measure"
-                                    ? dataCache->GetConstMeasureData().Size()
-                                    : (table->name_ == "process_measure" || table->name_ == "_process_measure"
-                                           ? dataCache->GetConstProcessMeasureData().Size()
-                                           : dataCache->GetConstSysMemMeasureData().Size()))),
-      measureObj(table->name_ == "measure" || table->name_ == "_measure"
+    : TableBase::Cursor(dataCache,
+                        table,
+                        static_cast<uint32_t>(table->name_ == "measure"
+                                                  ? dataCache->GetConstMeasureData().Size()
+                                                  : (table->name_ == "process_measure"
+                                                         ? dataCache->GetConstProcessMeasureData().Size()
+                                                         : dataCache->GetConstSysMemMeasureData().Size()))),
+      measureObj(table->name_ == "measure"
                      ? dataCache->GetConstMeasureData()
-                     : (table->name_ == "process_measure" || table->name_ == "_process_measure"
-                            ? dataCache->GetConstProcessMeasureData()
-                            : dataCache->GetConstSysMemMeasureData()))
+                     : (table->name_ == "process_measure" ? dataCache->GetConstProcessMeasureData()
+                                                          : dataCache->GetConstSysMemMeasureData()))
 {
 }
 
@@ -81,24 +79,6 @@ void MeasureTable::FilterByConstraint(FilterConstraints& measurefc,
     }
 }
 
-bool MeasureTable::CanFilterSorted(const char op, size_t& measureRowCnt) const
-{
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            measureRowCnt = measureRowCnt / log2(measureRowCnt);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-        case SQLITE_INDEX_CONSTRAINT_GE:
-        case SQLITE_INDEX_CONSTRAINT_LE:
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            measureRowCnt = (measureRowCnt >> 1);
-            break;
-        default:
-            return false;
-    }
-    return true;
-}
-
 int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset
@@ -114,10 +94,11 @@ int32_t MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
         const auto& c = measureTabCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::TS:
-                FilterTS(c.op, argv[i], measureObj.TimeStampData());
+                FilterTS(c.op, argv[c.idxInaConstraint], measureObj.TimeStampData());
                 break;
             case Index::FILTER_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), measureObj.FilterIdData());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[c.idxInaConstraint])),
+                                    measureObj.FilterIdData());
                 break;
             default:
                 break;

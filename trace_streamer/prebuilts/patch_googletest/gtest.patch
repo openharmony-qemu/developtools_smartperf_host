@@ -1,0 +1,79 @@
+--- third_party/googletest/googletest/include/gtest/gtest-message.h
++++ third_party/googletest/googletest/include/gtest/gtest-message.h
+@@ -51,7 +51,11 @@
+ #include <limits>
+ #include <memory>
+ #include <ostream>
++#undef private
++#define private private
+ #include <sstream>
++#undef private
++#define private public
+ #include <string>
+ 
+ #include "gtest/internal/gtest-port.h"
+--- third_party/googletest/googletest/include/gtest/gtest.h
++++ third_party/googletest/googletest/include/gtest/gtest.h
+@@ -56,12 +56,20 @@
+ 
+ #include <cstddef>
+ #include <cstdint>
++#undef private
++#define private private
+ #include <iomanip>
++#undef private
++#define private public
+ #include <limits>
+ #include <memory>
+ #include <ostream>
+ #include <set>
++#undef private
++#define private private
+ #include <sstream>
++#undef private
++#define private public
+ #include <string>
+ #include <type_traits>
+ #include <vector>
+--- third_party/googletest/googletest/include/gtest/internal/gtest-internal.h
++++ third_party/googletest/googletest/include/gtest/internal/gtest-internal.h
+@@ -58,7 +58,11 @@
+ 
+ #include <cstdint>
+ #include <functional>
++#undef private
++#define private private
+ #include <iomanip>
++#undef private
++#define private public
+ #include <limits>
+ #include <map>
+ #include <set>
+--- third_party/googletest/googletest/include/gtest/internal/gtest-port.h
++++ third_party/googletest/googletest/include/gtest/internal/gtest-port.h
+@@ -2356,7 +2356,11 @@ using Any = ::absl::any;
+ // Otherwise for C++17 and higher use std::any for UniversalPrinter<>
+ // specializations.
+ #define GTEST_INTERNAL_HAS_ANY 1
++#undef private
++#define private private
+ #include <any>
++#undef private
++#define private public
+ namespace testing {
+ namespace internal {
+ using Any = ::std::any;
+--- third_party/googletest/googletest/include/gtest/internal/gtest-string.h
++++ third_party/googletest/googletest/include/gtest/internal/gtest-string.h
+@@ -51,7 +51,11 @@
+ #include <string.h>
+ 
+ #include <cstdint>
++#undef private
++#define private private
+ #include <sstream>
++#undef private
++#define private public
+ #include <string>
+ 
+ #include "gtest/internal/gtest-port.h"

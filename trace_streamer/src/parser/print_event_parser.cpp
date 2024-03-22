@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,6 +26,7 @@ const uint8_t MAX_POINT_LENGTH = 2;
 PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
     : EventParserBase(dataCache, filter)
 {
+    rsOnDoCompositionEvent_ = traceDataCache_->GetDataIndex(rsOnDoCompositionStr_);
     eventToFrameFunctionMap_ = {
         {recvievVsync_, bind(&PrintEventParser::ReciveVsync, this, std::placeholders::_1, std::placeholders::_2,
                              std::placeholders::_3)},
@@ -125,7 +126,7 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
                                        const TracePoint& point,
                                        const BytraceLine& line)
 {
-    auto cookie = static_cast<uint64_t>(point.value_);
+    auto cookie = static_cast<int64_t>(point.value_);
     auto index = streamFilters_->sliceFilter_->StartAsyncSlice(ts, pid, point.tgid_, cookie,
                                                                traceDataCache_->GetDataIndex(point.name_));
     if (point.name_ == onFrameQueeuStartEvent_ && index != INVALID_UINT64) {
@@ -137,7 +138,7 @@ void PrintEventParser::ParseStartEvent(const std::string& comm,
 }
 void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePoint& point, const BytraceLine& line)
 {
-    auto cookie = static_cast<uint64_t>(point.value_);
+    auto cookie = static_cast<int64_t>(point.value_);
     auto index = streamFilters_->sliceFilter_->FinishAsyncSlice(ts, pid, point.tgid_, cookie,
                                                                 traceDataCache_->GetDataIndex(point.name_));
     HandleFrameQueueEndEvent(ts, point.tgid_, point.tgid_, index);
@@ -273,6 +274,9 @@ bool PrintEventParser::HandleFrameSliceBeginEvent(DataIndex eventName,
     auto it = eventToFrameFunctionMap_.find(eventName);
     if (it != eventToFrameFunctionMap_.end()) {
         it->second(callStackRow, args, line);
+        return true;
+    } else if (StartWith(traceDataCache_->GetDataFromDict(eventName), rsOnDoCompositionStr_)) {
+        RSReciveOnDoComposition(callStackRow, args, line);
         return true;
     }
     return false;
@@ -445,11 +449,11 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint& 
     }
 
     std::string valueStr(pointStr.data() + valueIndex, valueLen);
-    if (!base::StrToInt<uint64_t>(valueStr).has_value()) {
+    if (!base::StrToInt<int64_t>(valueStr).has_value()) {
         TS_LOGD("point value is error!");
         return PARSE_ERROR;
     }
-    outPoint.value_ = base::StrToInt<uint64_t>(valueStr).value();
+    outPoint.value_ = base::StrToInt<int64_t>(valueStr).value();
 
     size_t valuePipe = pointStr.find('|', valueIndex);
     if (valuePipe != std::string_view::npos) {

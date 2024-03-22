@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,7 @@ enum class Index : int32_t {
     ALLOCATION_ITID,
     EXECUTE_ITID,
     RETURN_ITID,
-    EXECUTE_ID,
+    TASK_ID,
     PRIORITY,
     EXECUTE_STATE,
     RETURN_STATE,
@@ -40,7 +40,7 @@ TaskPoolTable::TaskPoolTable(const TraceDataCache* dataCache) : TableBase(dataCa
     tableColumn_.push_back(TableBase::ColumnInfo("allocation_itid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("execute_itid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("return_itid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("execute_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("task_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("priority", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("execute_state", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("return_state", "INTEGER"));
@@ -114,10 +114,10 @@ void TaskPoolTable::Cursor::HandleTypeColumns(int32_t taskPoolTabColumn) const
                                                    dataCache_->GetConstTaskPoolData().ReturnItids()[CurrentRow()]));
             }
             break;
-        case Index::EXECUTE_ID:
-            if (taskPoolObj_.ExecuteIds()[CurrentRow()] != INVALID_INT32) {
-                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
-                                                   dataCache_->GetConstTaskPoolData().ExecuteIds()[CurrentRow()]));
+        case Index::TASK_ID:
+            if (taskPoolObj_.TaskIds()[CurrentRow()] != INVALID_INT64) {
+                sqlite3_result_int64(
+                    context_, static_cast<sqlite3_int64>(dataCache_->GetConstTaskPoolData().TaskIds()[CurrentRow()]));
             }
             break;
         case Index::PRIORITY:

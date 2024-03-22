@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,7 @@
  */
 #ifndef CPU_DETAIL_PARSER_H
 #define CPU_DETAIL_PARSER_H
+#include <queue>
 #include "print_event_parser.h"
 #include "trace_data_cache.h"
 #include "trace_plugin_result.pb.h"
@@ -21,6 +22,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+constexpr uint32_t CPU_CORE_MAX = 30;
 struct RawTraceEventInfo {
     uint8_t cpuId = INVALID_UINT8;
     uint32_t eventId = INVALID_UINT32;
@@ -30,11 +32,15 @@ class CpuDetailParser {
 public:
     CpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~CpuDetailParser() = default;
-    void EventAppend(std::unique_ptr<RawTraceEventInfo> event);
+    void EventAppend(std::shared_ptr<RawTraceEventInfo> event);
+    void ResizeStandAloneCpuEventList(uint32_t cpuNum);
     bool FilterAllEvents(FtraceCpuDetailMsg& cpuDetail, bool isFinished = false);
+    void FinishCpuDetailParser();
     void Clear();
 
 private:
+    bool SortStandAloneCpuEventList(bool isFinished = false);
+    void UpdateCpuOverwrite(FtraceCpuDetailMsg& cpuDetail);
     void DealEvent(const RawTraceEventInfo& event);
     bool SchedSwitchEvent(const RawTraceEventInfo& event);
     bool SchedBlockReasonEvent(const RawTraceEventInfo& event);
@@ -81,6 +87,9 @@ private:
     void StackEventsInitialization();
     void VoltageEventInitialization();
 
+public:
+    uint32_t cpuCoreMax_ = CPU_CORE_MAX;
+
 private:
     using FuncCall = std::function<bool(const RawTraceEventInfo& event)>;
     const TraceStreamerFilters* streamFilters_;
@@ -91,7 +100,9 @@ private:
     uint32_t eventTid_ = INVALID_UINT32;
     uint64_t lastOverwrite_ = 0;
 
-    std::deque<std::unique_ptr<RawTraceEventInfo>> rawTraceEventList_ = {};
+    uint64_t curRawTraceEventNum_ = 0;
+    std::deque<std::shared_ptr<RawTraceEventInfo>> rawTraceEventList_ = {};
+    std::vector<std::queue<std::shared_ptr<RawTraceEventInfo>>> standAloneCpuEventList_ = {};
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
 
     TraceStreamerConfig config_{};

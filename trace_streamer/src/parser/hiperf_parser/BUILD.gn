@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,9 +13,8 @@
 
 import("//build/ohos.gni")
 import("../../../build/ts.gni")
-ohos_source_set("hiperf_parser_src") {
-  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
-  part_name = "${OHOS_PROFILER_PART_NAME}"
+
+config("hiperf_parser_cfg") {
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
   }
@@ -33,7 +32,6 @@ ohos_source_set("hiperf_parser_src") {
       cflags += [ "-D IS_UT" ]
     }
   }
-  sources = [ "perf_data_parser.cpp" ]
   include_dirs = [
     ".",
     "../../base",
@@ -46,23 +44,10 @@ ohos_source_set("hiperf_parser_src") {
     "../../trace_streamer",
     "../../proto_reader/include",
     "${THIRD_PARTY}/bounds_checking_function/include",
-    "${PERF_DIR}/hiperf/include/nonlinux/linux",
-    "${PERF_DIR}/hiperf/include/nonlinux",
-    "${PERF_DIR}/hiperf/include",
     "${THIRD_PARTY}/sqlite/include",
     "${THIRD_PARTY}/protobuf/src",
-    "${THIRD_PARTY}/perf_include",
-    "${THIRD_PARTY}/perf_include/libbpf",
     "${COMMON_LIBRARY}/c_utils/base/include",
     "${THIRD_PARTY}/googletest/googletest/include",
-  ]
-  include_dirs += [
-    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
   ]
   include_dirs += [
     "${SRC}/trace_data/trace_stdtype",
@@ -74,6 +59,31 @@ ohos_source_set("hiperf_parser_src") {
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
   ]
+  include_dirs += [
+    "${THIRD_PARTY}/libunwind/include",
+    "${THIRD_PARTY}/libunwind/src",
+    "${PERF_DIR}/hiperf/include",
+    "${PERF_DIR}/hiperf/include/nonlinux/linux",
+    "${PERF_DIR}/hiperf/include/nonlinux",
+    "${THIRD_PARTY}/googletest/googletest/include",
+    "${THIRD_PARTY}/perf_include/libbpf",
+    "${THIRD_PARTY}/perf_include/include",
+    "${THIRD_PARTY}/perf_include",
+    "${THIRD_PARTY}/perf_include/linux",
+    "../hiperf_parser",
+    "../hiperf_parser/include",
+    "${COMMON_LIBRARY}/c_utils/base/include",
+    "${THIRD_PARTY}/sqlite",
+  ]
+  include_dirs += [
+    "${THIRD_PARTY}/perf_include/hiviewdfx/hilog/include",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/cutil",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxlog",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/common/dfxutil",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/common",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
+    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
+  ]
   include_dirs += [ "${THIRD_PARTY}/libunwind/include" ]
   if (is_mingw || is_mac) {
     include_dirs += [ "${THIRD_PARTY}/libbpf/include/uapi" ]
@@ -83,9 +93,12 @@ ohos_source_set("hiperf_parser_src") {
   }
 }
 
-group("hiperf_parser") {
+ohos_static_library("hiperf_parser") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [ "perf_data_parser.cpp" ]
+  public_configs = [ ":hiperf_parser_cfg" ]
   deps = [
-    ":hiperf_parser_src",
     "${PERF_DIR}/hiperf:hiperf_platform_common",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",

@@ -19,7 +19,9 @@ import { snapshot, SnapshotRender, SnapshotStruct} from '../../../../src/trace/d
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
     return {};
 });
-
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+    return {};
+});
 describe('ProcedureWorkerSnapshot Test', () => {
     it('HeapSnapshotTest', () => {
         const snapshotCanvas = document.createElement('canvas');

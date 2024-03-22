@@ -707,7 +707,7 @@ where cpu not null
       let threads = arr.filter((f) => Math.min(f.ts + f.dur, freqEndTs) - Math.max(f.ts, it.ts) > 0);
       for (let tf of threads) {
         let tfEndTs = tf.ts + tf.dur;
-        let dur = Math.min(tfEndTs, tfEndTs) - Math.max(it.ts, tf.ts);
+        let dur = Math.min(freqEndTs, tfEndTs) - Math.max(it.ts, tf.ts);
         if (map.has(tf.tid)) {
           map.get(tf.tid)!.dur = map.get(tf.tid)!.dur + dur;
           map.get(tf.tid)!.durStr = getProbablyTime(map.get(tf.tid)!.dur);

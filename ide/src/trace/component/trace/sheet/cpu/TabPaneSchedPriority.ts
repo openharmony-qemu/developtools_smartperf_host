@@ -20,7 +20,8 @@ import { resizeObserver } from '../SheetUtils';
 import { procedurePool } from '../../../../database/Procedure';
 import { Utils } from '../../base/Utils';
 import { Priority } from '../../../../bean/StateProcessThread';
-import {queryThreadStateArgsByName} from "../../../../database/sql/ProcessThread.sql";
+import { queryThreadStateArgsByName } from '../../../../database/sql/ProcessThread.sql';
+import { FlagsConfig } from '../../../../component/SpFlags';
 
 @element('tabpane-sched-priority')
 export class TabPaneSchedPriority extends BaseElement {
@@ -61,19 +62,31 @@ export class TabPaneSchedPriority extends BaseElement {
     const filterList = ['0', '0x0']; //next_info第2字段不为0 || next_info第3字段不为0
     // 通过priority与next_info结合判断优先级等级
     function setPriority(item: Priority, strArg: string[]) {
-      if (item.priority >= 0 && item.priority <= 88) {
-        item.priorityType = 'RT';
-      } else if (item.priority >= 89 && item.priority <= 99) {
-        item.priorityType = 'VIP2.0';
-      } else if (
-        item.priority >= 100 &&
-        strArg.length > 1 &&
-        (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
-      ) {
-        item.priorityType = 'STATIC_VIP';
+      let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
+      let flagsItemJson = JSON.parse(flagsItem!);
+      let hmKernel = flagsItemJson.HMKernel; 
+      if (hmKernel === "Enabled") {
+        if (item.priority >= 0 && item.priority <= 40) {
+          item.priorityType = 'CFS';
+        } else {
+          item.priorityType = 'RT';
+        }
       } else {
-        item.priorityType = 'CFS';
+        if (item.priority >= 0 && item.priority <= 88) {
+          item.priorityType = 'RT';
+        } else if (item.priority >= 89 && item.priority <= 99) {
+          item.priorityType = 'VIP2.0';
+        } else if (
+          item.priority >= 100 &&
+          strArg.length > 1 &&
+          (!filterList.includes(strArg[1]) || !filterList.includes(strArg[2]))
+        ) {
+          item.priorityType = 'STATIC_VIP';
+        } else {
+          item.priorityType = 'CFS';
+        }
       }
+      
     }
     // thread_state表中runnable数据的Map
     const runnableMap = new Map<string, Priority>();
@@ -97,8 +110,12 @@ export class TabPaneSchedPriority extends BaseElement {
     );
   }
 
-  private fetchData(item: any, setPriority: (item: Priority, strArg: string[]) => void,
-    resultData: Array<Priority>, runnableMap: Map<string, Priority>) {
+  private fetchData(
+    item: any,
+    setPriority: (item: Priority, strArg: string[]) => void,
+    resultData: Array<Priority>,
+    runnableMap: Map<string, Priority>
+  ) {
     let strArg: string[] = [];
     const args = this.strValueMap.get(item.argSetID);
     if (args) {

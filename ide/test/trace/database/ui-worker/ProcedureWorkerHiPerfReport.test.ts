@@ -21,9 +21,9 @@ import {
   HiPerfReport,
   HiPerfReportStruct,
   HiperfReportRender,
-} from '../../../../src/trace/database/ui-worker/ProcedureWorkerHiPerfReport';
+} from '../../../../src/trace/database/ui-worker/hiperf/ProcedureWorkerHiPerfReport';
 import { Rect } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
-import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+
 
 describe('ProcedureWorkerHiPerfReport Test', () => {
   it('ProcedureWorkerHiPerfReportTest01', () => {
@@ -212,18 +212,18 @@ describe('ProcedureWorkerHiPerfReport Test', () => {
         measureText: jest.fn(() => true),
       },
       lineColor: '',
-      isHover: '',
       hoverX: 1,
       params: '',
-      wakeupBean: undefined,
+      isHover: '',
       flagMoveInfo: '',
+      height: 100,
       flagSelectedInfo: '',
       slicesTime: 3,
       id: 1,
       x: 20,
       y: 20,
       width: 100,
-      height: 100,
+      wakeupBean: undefined,
       scale: 100_000_001,
     };
     window.postMessage = jest.fn(() => true);

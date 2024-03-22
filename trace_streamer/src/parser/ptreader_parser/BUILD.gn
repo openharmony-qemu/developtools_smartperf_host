@@ -1,0 +1,31 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//build/ohos.gni")
+import("../../../build/ts.gni")
+
+ohos_source_set("ptreader_parser_src") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [ "ptreader_parser.cpp" ]
+  public_configs = [ "../:parser_base_cfg" ]
+  public_deps = []
+  if (enable_hilog) {
+    public_deps += [ "hilog_parser:ptreader_hilog_parser" ]
+  }
+  if (enable_hisysevent) {
+    public_deps += [ "hisysevent_parser:ptreader_hisysevent_parser" ]
+  }
+  if (enable_bytrace) {
+    public_deps += [ "bytrace_parser:ptreader_bytrace_parser" ]
+  }
+}

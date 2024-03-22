@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -85,18 +85,18 @@ int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite
         const auto& c = nativeHookFrameCs[i];
         switch (static_cast<Index>(c.col)) {
             case Index::ID:
-                FilterId(c.op, argv[i]);
+                FilterId(c.op, argv[c.idxInaConstraint]);
                 break;
             case Index::CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     nativeHookFrameInfoObj_.CallChainIds());
                 break;
             case Index::SYMBOL_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     nativeHookFrameInfoObj_.SymbolNames());
                 break;
             case Index::FILE_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     nativeHookFrameInfoObj_.FilePaths());
                 break;
             default:
@@ -142,11 +142,11 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t nativeHookFrameCol) const
             break;
         }
         case Index::OFFSET: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Offsets()[CurrentRow()]));
+            SetTypeColumnInt64(nativeHookFrameInfoObj_.Offsets()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::SYMBOL_OFFSET: {
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolOffsets()[CurrentRow()]));
+            SetTypeColumnInt64(nativeHookFrameInfoObj_.SymbolOffsets()[CurrentRow()], INVALID_UINT64);
             break;
         }
         case Index::VADDR: {

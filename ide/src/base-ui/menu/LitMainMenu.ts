@@ -129,6 +129,9 @@ export class LitMainMenu extends BaseElement {
       let groupDescribe: LitMainMenuGroup = group!.shadowRoot!.querySelector('.group-describe') as LitMainMenuGroup;
       menuBody?.appendChild(group);
       it.children?.forEach((item: any) => {
+        if (item.fileModel !== undefined && item.fileModel === 'db') {
+          return;
+        }
         if (item.children && item.children.length > 0) {
           let secondGroup: LitMainMenuGroup = new LitMainMenuGroup();
           secondGroup.setAttribute('title', item.title || '');
@@ -273,6 +276,7 @@ export interface MenuGroup {
 export interface MenuItem {
   icon: string;
   title: string;
+  fileModel?: string;
   disabled?: boolean;
   fileChoose?: boolean;
   clickHandler?: Function;

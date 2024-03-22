@@ -13,11 +13,15 @@
  * limitations under the License.
  */
 
+jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 import { SpChartManager } from '../../../../src/trace/component/chart/SpChartManager';
 import { SpLogChart } from '../../../../src/trace/component/chart/SpLogChart';
 
-const sqlite = require('../../../../src/trace/database/SqlLite');
-jest.mock('../../../../src/trace/database/SqlLite');
+jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlite = require('../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../src/trace/database/sql/SqlLite.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -28,7 +32,8 @@ window.ResizeObserver =
   }));
 
 describe('SpLogChart Test', () => {
-  let logChart = new SpLogChart(new SpChartManager());
+  let htmlElement: any = document.createElement('sp-system-trace');
+  let logChart = new SpLogChart(new SpChartManager(htmlElement));
   let queryLog = sqlite.queryLogData;
   let queryLogData = [
     {

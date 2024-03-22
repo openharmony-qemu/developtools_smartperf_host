@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -278,6 +278,15 @@ bool TraceDataCache::BinderRunnableTraceEnabled() const
 void TraceDataCache::UpdateBinderRunnableTraceStatus(bool status)
 {
     binderRunnableTraceEnabled_ = status;
+}
+bool TraceDataCache::HMKernelTraceEnabled() const
+{
+    return HMKernelTraceEnabled_;
+}
+
+void TraceDataCache::UpdateHMKernelTraceStatus(bool status)
+{
+    HMKernelTraceEnabled_ = status;
 }
 uint64_t TraceDataCache::SplitFileMaxTime()
 {
@@ -629,41 +638,50 @@ void TraceDataCache::ExportEbpfCallChaninText(uint32_t callChainId, std::string&
     }
     bufferLine.append("\r\n");
 }
-void TraceDataCache::ClearAllPrevCacheData()
+void TraceDataCache::ClearAllExportedCacheData()
 {
     // ftrace plugin
-    rawData_.ClearExportedData();
-    threadStateData_.ClearExportedData();
-    instantsData_.ClearExportedData();
+    argSet_.ClearExportedData();
     filterData_.ClearExportedData();
-    processMeasureFilterData_.ClearExportedData();
-    clockEventFilterData_.ClearExportedData();
     clkEventFilterData_.ClearExportedData();
+    measureData_.ClearExportedData();
+    clockEventFilterData_.ClearExportedData();
+    processMeasureData_.ClearExportedData();
+    processMeasureFilterData_.ClearExportedData();
+    cpuMeasureData_.ClearExportedData();
+    rawData_.ClearExportedData();
+    instantsData_.ClearExportedData();
     schedSliceData_.ClearExportedData();
     irqData_.ClearExportedData();
-    measureData_.ClearExportedData();
     sysMemMeasureData_.ClearExportedData();
-    processMeasureData_.ClearExportedData();
-    cpuMeasureData_.ClearExportedData();
     sysCallData_.ClearExportedData();
+    frameSliceData_.ClearExportedData();
+    frameMapsData_.ClearExportedData();
+    gpuSliceData_.ClearExportedData();
 }
-void TraceDataCache::UpdateAllPrevSize()
+void TraceDataCache::UpdateAllReadySize()
 {
-    // ftrace plugin
-    rawData_.UpdateReadySize(rawData_.Size());
-    threadStateData_.UpdateReadySize(threadStateData_.Size());
-    instantsData_.UpdateReadySize(instantsData_.Size());
-    filterData_.UpdateReadySize(filterData_.Size());
-    processMeasureFilterData_.UpdateReadySize(processMeasureFilterData_.Size());
-    clockEventFilterData_.UpdateReadySize(clockEventFilterData_.Size());
-    clkEventFilterData_.UpdateReadySize(clkEventFilterData_.Size());
-    schedSliceData_.UpdateReadySize(schedSliceData_.Size());
-    irqData_.UpdateReadySize(irqData_.Size());
+    // ftrace plugin datacache
     measureData_.UpdateReadySize(measureData_.Size());
-    sysMemMeasureData_.UpdateReadySize(sysMemMeasureData_.Size());
     processMeasureData_.UpdateReadySize(processMeasureData_.Size());
+    tableToCompletedSize_["measure"] = measureData_.readySize_;
+    tableToCompletedSize_["process_measure"] = processMeasureData_.readySize_;
+    tableToCompletedSize_["frame_slice"] = frameSliceData_.readySize_;
+    tableToCompletedSize_["sched_slice"] = schedSliceData_.readySize_;
+    tableToCompletedSize_["irq"] = irqData_.readySize_;
+
+    argSet_.UpdateReadySize(argSet_.Size());
+    filterData_.UpdateReadySize(filterData_.Size());
+    clkEventFilterData_.UpdateReadySize(clkEventFilterData_.Size());
+    clockEventFilterData_.UpdateReadySize(clockEventFilterData_.Size());
+    processMeasureFilterData_.UpdateReadySize(processMeasureFilterData_.Size());
     cpuMeasureData_.UpdateReadySize(cpuMeasureData_.Size());
+    rawData_.UpdateReadySize(rawData_.Size());
+
+    instantsData_.UpdateReadySize(instantsData_.Size());
     sysCallData_.UpdateReadySize(sysCallData_.Size());
+    frameMapsData_.UpdateReadySize(frameMapsData_.Size());
+    gpuSliceData_.UpdateReadySize(gpuSliceData_.Size());
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

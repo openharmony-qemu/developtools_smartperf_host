@@ -13,51 +13,83 @@
  * limitations under the License.
  */
 import { TraficEnum } from './utils/QueryEnum';
+import { hiLogList } from './utils/AllMemoryCache';
+import { filterDataByGroupLayer } from './utils/DataFilter';
 
 export const chartLogDataSql = (args: any): string => {
-  return `SELECT
-              l.seq AS id,
-              l.pid,
-              l.tid,
-              CASE
-                  WHEN l.ts < ${args.oneDayTime} THEN 0
-                  ELSE (l.ts - ${args.recordStartNS})
-                  END AS startTs,
-              CASE
-                  WHEN l.level = 'D' THEN 0
-                  WHEN l.level = 'I' THEN 1
-                  WHEN l.level = 'W' THEN 2
-                  WHEN l.level = 'E' THEN 3
-                  WHEN l.level = 'F' THEN 4
-                  END AS depth,
-              1 AS dur,
-              ((l.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) +
-              CASE
-                  WHEN l.level = 'D' THEN 0
-                  WHEN l.level = 'I' THEN 1
-                  WHEN l.level = 'W' THEN 2
-                  WHEN l.level = 'E' THEN 3
-                  WHEN l.level = 'F' THEN 4
-                  END * ${args.width} AS px
-          FROM
-                  (SELECT DISTINCT seq FROM log) AS inner_log
-                      JOIN log AS l ON l.seq = inner_log.seq
-          WHERE
-                      (CASE
-                           WHEN l.ts < ${args.oneDayTime} THEN 0
-                           ELSE (l.ts - ${args.recordStartNS})
-                          END) + 1 >= ${Math.floor(args.startNS)}
+  return `SELECT l.seq                   AS id,
+                 l.pid,
+                 l.tid,
+                 CASE
+                     WHEN l.ts < ${args.oneDayTime} THEN 0
+                     ELSE (l.ts - ${args.recordStartNS})
+                     END                 AS startTs,
+                 CASE
+                     WHEN l.level = 'D' THEN 0
+                     WHEN l.level = 'I' THEN 1
+                     WHEN l.level = 'W' THEN 2
+                     WHEN l.level = 'E' THEN 3
+                     WHEN l.level = 'F' THEN 4
+                     END                 AS depth,
+                 1                       AS dur,
+                 ((l.ts - ${args.recordStartNS}) / (${Math.floor((args.endNS - args.startNS) / args.width)})) +
+                 CASE
+                     WHEN l.level = 'D' THEN 0
+                     WHEN l.level = 'I' THEN 1
+                     WHEN l.level = 'W' THEN 2
+                     WHEN l.level = 'E' THEN 3
+                     WHEN l.level = 'F' THEN 4
+                     END * ${args.width} AS px
+          FROM (SELECT DISTINCT seq FROM log) AS inner_log
+                   JOIN log AS l ON l.seq = inner_log.seq
+          WHERE (CASE
+                     WHEN l.ts < ${args.oneDayTime} THEN 0
+                     ELSE (l.ts - ${args.recordStartNS})
+              END) + 1 >= ${Math.floor(args.startNS)}
             AND (CASE
                      WHEN l.ts < ${args.oneDayTime} THEN 0
                      ELSE (l.ts - ${args.recordStartNS})
               END) <= ${Math.floor(args.endNS)}
           GROUP BY px`;
 };
+
+export const chartLogDataMemorySql = (args: any): string => {
+  return `SELECT l.seq                   AS id,
+                 l.pid,
+                 l.tid,
+                 CASE
+                     WHEN l.ts < ${args.oneDayTime} THEN 0
+                     ELSE (l.ts - ${args.recordStartNS})
+                     END                 AS startTs,
+                 CASE
+                     WHEN l.level = 'D' THEN 0
+                     WHEN l.level = 'I' THEN 1
+                     WHEN l.level = 'W' THEN 2
+                     WHEN l.level = 'E' THEN 3
+                     WHEN l.level = 'F' THEN 4
+                     END                 AS depth,
+                 1                       AS dur
+          FROM (SELECT DISTINCT seq FROM log) AS inner_log
+                   JOIN log AS l ON l.seq = inner_log.seq
+          ORDER BY l.seq`;
+};
+
 export function logDataReceiver(data: any, proc: Function) {
-  let sql = chartLogDataSql(data.params);
-  let res = proc(sql);
-  arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  if (data.params.trafic === TraficEnum.Memory) {
+    if (!hiLogList.has(data.params.id)) {
+      let sql = chartLogDataMemorySql(data.params);
+      hiLogList.set(data.params.id, proc(sql));
+    }
+    let list = hiLogList.get(data.params.id) || [];
+    let res = filterDataByGroupLayer(list || [], 'depth','startTs', 'dur', data.params.startNS, data.params.endNS, data.params.width);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  } else {
+    let sql = chartLogDataSql(data.params);
+    let res = proc(sql);
+    arrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+  }
 }
+
 function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
   let id = new Uint16Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   let startTs = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTs);
@@ -81,13 +113,13 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean) {
       action: data.action,
       results: transfer
         ? {
-            id: id.buffer,
-            startTs: startTs.buffer,
-            pid: pid.buffer,
-            tid: tid.buffer,
-            dur: dur.buffer,
-            depth: depth.buffer,
-          }
+          id: id.buffer,
+          startTs: startTs.buffer,
+          pid: pid.buffer,
+          tid: tid.buffer,
+          dur: dur.buffer,
+          depth: depth.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

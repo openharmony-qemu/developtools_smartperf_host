@@ -75,7 +75,7 @@ export function CpuFreqStructOnClick(clickRowType: string, sp: SpSystemTrace) {
       CpuFreqStruct.selectCpuFreqStruct = CpuFreqStruct.hoverCpuFreqStruct;
       sp.traceSheetEL?.displayFreqData();
       sp.timerShaftEL?.modifyFlagList(undefined);
-      reject();
+      reject(new Error());
     }else{
       resolve(null);
     }

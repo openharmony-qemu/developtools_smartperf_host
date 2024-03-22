@@ -66,13 +66,15 @@ import {
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 
+const DEVICE_NOT_CONNECT = '设备未连接，请使用系统管理员权限打开cmd窗口，并执行hdc kill,然后重新添加设备。若还没有效果，请重新插拔一下手机。'
+
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
   public static serialNumber: string = '';
   public static selectVersion: string | null;
   public static isVscode = false;
   public static cancelRecord = false;
-  static supportVersions = ['3.2', '4.0+'];
+  static supportVersions = ['3.2', '4.0+','5.0+'];
   public deviceSelect: HTMLSelectElement | undefined;
   public deviceVersion: HTMLSelectElement | undefined;
   private _menuItems: Array<MenuItem> | undefined;
@@ -157,40 +159,63 @@ export class SpRecordTrace extends BaseElement {
     return clearFlag;
   }
 
-  private refreshDeviceList(): void {
+  private async refreshDeviceList(): Promise<void> {
     if (this.vs) {
       this.refreshDeviceListByVs();
     } else {
       this.deviceSelect!.innerHTML = '';
       // @ts-ignore
-      HdcDeviceManager.getDevices().then((devs: USBDevice[]) => {
+      HdcDeviceManager.getDevices().then(async (devs: USBDevice[]) => {
         if (devs.length === 0) {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
+          this.hintEl!.textContent = DEVICE_NOT_CONNECT;
+          if (!this.showHint) {
+            this.showHint = true;
+          }
         }
+        let optionNum = 0;
         for (let len = 0; len < devs.length; len++) {
           let dev = devs[len];
           let option = document.createElement('option');
           option.className = 'select';
           if (typeof dev.serialNumber === 'string') {
-            option.value = dev.serialNumber;
+            let res = await HdcDeviceManager.connect(dev.serialNumber);
+            if (res) {
+              optionNum++;
+              option.value = dev.serialNumber;
+              option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
+              this.deviceSelect!.appendChild(option);
+            }
+            if (len === 0 && res) {
+              option.selected = true;
+              this.recordButton!.hidden = false;
+              this.disconnectButton!.hidden = false;
+              this.showHint = false;
+              this.devicePrompt!.innerText = '';
+              this.hintEl!.textContent = '';
+              SpRecordTrace.serialNumber = option.value;
+              this.refreshDeviceVersion(option);
+            }
           }
-          option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
-          this.deviceSelect!.appendChild(option);
-          if (len === 0) {
-            option.selected = true;
-            this.recordButton!.hidden = false;
-            this.disconnectButton!.hidden = false;
-            this.devicePrompt!.innerText = '';
-            SpRecordTrace.serialNumber = option.value;
-            this.refreshDeviceVersion(option);
+        };
+        if(!optionNum){
+          this.deviceSelect!.style!.border = '2px solid red';
+          setTimeout(() => {
+            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+          },3000);
+          this.recordButton!.hidden = true;
+          this.disconnectButton!.hidden = true;
+          this.devicePrompt!.innerText = 'Device not connected';
+          this.hintEl!.textContent = DEVICE_NOT_CONNECT;
+          if (!this.showHint) {
+            this.showHint = true;
           }
         }
       });
     }
   }
-
   private refreshDeviceVersion(option: HTMLOptionElement): void {
     HdcDeviceManager.connect(option.value).then((result) => {
       if (result) {
@@ -220,7 +245,6 @@ export class SpRecordTrace extends BaseElement {
       }
     });
   }
-
   private refreshDeviceListByVs(): void {
     Cmd.execHdcCmd(CmdConstant.CMD_HDC_DEVICES, (res: string) => {
       let devs: string[] = res.trim().replace(/\r\n/g, '\r').replace(/\n/g, '\r').split(/\r/);
@@ -259,6 +283,8 @@ export class SpRecordTrace extends BaseElement {
       return '3.2';
     } else if (version.indexOf('4.') !== -1) {
       return '4.0+';
+    }else if (version.indexOf('5.') !== -1) {
+      return '5.0+'
     }
     return '3.2';
   }
@@ -333,6 +359,7 @@ export class SpRecordTrace extends BaseElement {
     if (parentElement) {
       parentElement.style.overflow = 'hidden';
     }
+    this.sp = document.querySelector('sp-application') as SpApplication;
     if (!this.shadowRoot || !this.sp){
       return;
     }
@@ -345,7 +372,6 @@ export class SpRecordTrace extends BaseElement {
     this.recordButton = this.shadowRoot.querySelector('.record') as LitButton;
     this.recordButtonText = this.shadowRoot.querySelector('.record_text') as HTMLSpanElement;
     this.cancelButton = this.shadowRoot.querySelector('.cancel') as LitButton;
-    this.sp = document.querySelector('sp-application') as SpApplication;
     this.progressEL = this.sp.shadowRoot?.querySelector('.progress') as LitProgressBar;
     this.litSearch = this.sp.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
     this.menuGroup = this.shadowRoot.querySelector('#menu-group') as LitMainMenuGroup;
@@ -360,11 +386,11 @@ export class SpRecordTrace extends BaseElement {
     if (this.deviceSelect.options && this.deviceSelect.options.length > 0) {
       this.disconnectButton!.hidden = false;
       this.recordButton.hidden = false;
-      this.devicePrompt.innerText = '';
+      this.devicePrompt.innerText = ''; 
     } else {
       this.disconnectButton!.hidden = true;
       this.recordButton.hidden = true;
-      this.devicePrompt.innerText = 'Device not connected';
+      this.devicePrompt.innerText = 'Device not connected'; 
     }
   }
 
@@ -506,6 +532,7 @@ export class SpRecordTrace extends BaseElement {
     let versionItem = this.deviceVersion!.options[this.deviceVersion!.selectedIndex];
     SpRecordTrace.selectVersion = versionItem.getAttribute('device-version');
     this.spAllocations!.startup_mode = false;
+    this.spAllocations!.recordJsStack = false;
     this.nativeMemoryHideBySelectVersion();
     this.traceCommand!.hdcCommon = PluginConvertUtils.createHdcCmd(
       PluginConvertUtils.BeanToCmdTxt(this.makeRequest(), false),

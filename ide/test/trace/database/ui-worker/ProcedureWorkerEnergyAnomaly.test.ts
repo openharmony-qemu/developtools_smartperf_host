@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-jest.mock('../../../../src/trace/component/trace/base/TraceRow', () => {
-  return {};
-});
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
 import {
   anomaly,
@@ -23,6 +21,15 @@ import {
   EnergyAnomalyRender,
 } from '../../../../src/trace/database/ui-worker/ProcedureWorkerEnergyAnomaly';
 
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
 describe('ProcedureWorkerEnergyAnomaly Test', () => {
   it('ProcedureWorkerEnergyAnomalyTest01', function () {
     let frame = {
@@ -36,10 +43,10 @@ describe('ProcedureWorkerEnergyAnomaly Test', () => {
       startNS: 111,
       dur: 40,
       length: 23,
-      frame: { x: 0, y: 29, width: 22, height: 101 },
+      frame: {x: 0, y: 29, width: 22, height: 101},
     });
-    energyAnomalyDataList.push({ startNS: 11, dur: 21, length: 10 });
-    anomaly(energyAnomalyDataList, [{ length: 1 }], 1, 3, 2, frame, '', true);
+    energyAnomalyDataList.push({startNS: 11, dur: 21, length: 10});
+    anomaly(energyAnomalyDataList, [{length: 1}], 1, 3, 2, frame, '', true);
   });
 
   it('ProcedureWorkerEnergyAnomalyTest02', function () {
@@ -54,10 +61,10 @@ describe('ProcedureWorkerEnergyAnomaly Test', () => {
       startNS: 22,
       dur: 30,
       length: 25,
-      frame: { x: 0, y: 19, width: 32, height: 102 },
+      frame: {x: 0, y: 19, width: 32, height: 102},
     });
-    energyAnomalyDataList.push({ startNS: 12, dur: 22, length: 12 });
-    anomaly(energyAnomalyDataList, [{ length: 0 }], 1, 3, 2, frame, '', false);
+    energyAnomalyDataList.push({startNS: 12, dur: 22, length: 12});
+    anomaly(energyAnomalyDataList, [{length: 0}], 1, 3, 2, frame, '', false);
   });
 
   it('ProcedureWorkerEnergyAnomalyTest03', function () {
@@ -174,5 +181,52 @@ describe('ProcedureWorkerEnergyAnomaly Test', () => {
     };
     window.postMessage = jest.fn(() => true);
     expect(energyAnomalyRender.render(energyAnomalyReq, [], [])).toBeUndefined();
+  });
+  it('ProcedureWorkerEnergyAnomalyTest07 ', function () {
+    let req;
+    let row;
+    let dataList;
+    let dataListCache;
+    let context;
+    let spApplication;
+    req = {
+      useCache: true,
+      context: {
+        font: '13px sans-serif',
+        fillStyle: '#e00f55',
+        globalAlpha: 0.4,
+        canvas: {
+          clientWidth: 12,
+        },
+        clearRect: jest.fn(() => true),
+        closePath: jest.fn(() => true),
+        measureText: jest.fn(() => false),
+        fillRect: jest.fn(() => true),
+        beginPath: jest.fn(() => true),
+        stroke: jest.fn(() => true),
+        fillText: jest.fn(() => true),
+      },
+      type: 'testType',
+      appName: 'testAppName',
+      canvasWidth: 800,
+    };
+    dataList = [];
+    dataListCache = [];
+    row = {
+      dataList: dataList,
+      dataListCache: dataListCache,
+      frame: 'testFrame',
+      isHover: true,
+      hoverX: 100,
+      hoverY: 100,
+    };
+    spApplication = {
+      hasAttribute: jest.fn().mockReturnValue(true),
+    };
+    let energyAnomalyRender = new EnergyAnomalyRender();
+    global.document.getElementsByTagName = jest.fn().mockReturnValue([spApplication]);
+    TraceRow.range = jest.fn(() => true);
+    TraceRow.range.startNS = jest.fn(() => 1);
+    expect(energyAnomalyRender.renderMainThread(req, row)).toBeUndefined();
   });
 });
