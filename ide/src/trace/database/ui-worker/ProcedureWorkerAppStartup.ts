@@ -66,7 +66,7 @@ export function AppStartupStructOnClick(clickRowType: string, sp: SpSystemTrace,
   return new Promise((resolve,reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_APP_STARTUP && AppStartupStruct.hoverStartupStruct) {
       AppStartupStruct.selectStartupStruct = AppStartupStruct.hoverStartupStruct;
-      sp.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler);
+      sp.traceSheetEL?.displayStartupData(AppStartupStruct.selectStartupStruct, scrollToFuncHandler, sp.currentRow!.dataListCache);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     }else{
@@ -88,7 +88,7 @@ export class AppStartupStruct extends BaseStruct {
     'First Frame - Render Phase',
   ];
   startTs: number | undefined;
-  startName: number | undefined;
+  startName: number = 0;
   dur: number | undefined;
   value: string | undefined;
   pid: number | undefined;
@@ -97,6 +97,8 @@ export class AppStartupStruct extends BaseStruct {
   itid: number | undefined;
   endItid: number | undefined;
   stepName: string | undefined;
+  StartSlice: string | undefined;
+  EndSlice: string | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: AppStartupStruct): void {
     if (data.frame) {

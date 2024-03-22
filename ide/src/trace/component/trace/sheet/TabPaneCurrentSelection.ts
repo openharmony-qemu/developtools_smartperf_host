@@ -43,7 +43,8 @@ import {
   queryBinderBySliceId,
   queryFlowsData,
   queryPrecedingData,
-  queryThreadByItid
+  queryThreadByItid,
+  queryFpsSourceList
 } from '../../../database/sql/SqlLite.sql';
 import {
   queryBinderArgsByArgset,
@@ -110,6 +111,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   // @ts-ignore
   private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
   private wakeUp: string = '';
+  private isFpsAvailable: boolean = true;
 
   set data(currentSelectionValue: any) {
     if (
@@ -992,7 +994,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
   }
 
-  setStartupData(data: AppStartupStruct, scrollCallback: Function): void {
+  setStartupData(data: AppStartupStruct, scrollCallback: Function, rowData: any): void {
     this.setTableHeight('550px');
     this.initCanvas();
     this.setStartUpStyle();
@@ -1033,6 +1035,12 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
     }
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    rowData.forEach((item: any, index: number) => {
+      if (item.startName === data.startName) {
+        list.push({ name: 'StartSlice', value: index === 0 ? 'NULL' : `${AppStartupStruct.getStartupName(rowData[index - 1].startName)}     ${getTimeString(rowData[index - 1].startTs + rowData[index - 1].dur)}` });
+        list.push({ name: 'EndSlice', value: index === rowData.length - 1 ? 'NULL' : `${AppStartupStruct.getStartupName(rowData[index + 1].startName)}      ${getTimeString(rowData[index + 1].startTs)}` });
+      }
+    })
     this.currentSelectionTbl!.dataSource = list;
     this.attachScrollHandlers(data, scrollCallback);
   }
@@ -1158,7 +1166,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
   }
 
-  async setFrameAnimationData(data: FrameAnimationStruct): Promise<void> {
+  async setFrameAnimationData(data: FrameAnimationStruct, scrollCallback: Function): Promise<void> {
     this.setTableHeight('550px');
     this.tabCurrentSelectionInit('Animation Details');
     let list = [];
@@ -1182,7 +1190,15 @@ export class TabPaneCurrentSelection extends BaseElement {
       let frameFpsMessage = data.frameInfo?.split(':');
       if (frameFpsMessage) {
         if (frameFpsMessage[1] !== '0') {
-          list.push({ name: 'FPS', value: `${frameFpsMessage[1]}` });
+          if (this.isFpsAvailable) {
+            list.push({
+              name: 'FPS', value: `<div style="white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap">${frameFpsMessage[1]}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="fps-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+            </div>` });
+          } else {
+            list.push({ name: 'FPS', value: `${frameFpsMessage[1]}` });
+          }
         } else {
           let fixedNumber: number = 2;
           let fpsValue: number = Number(frameFpsMessage[0]) / (data.dur / 1000_000_000);
@@ -1191,6 +1207,39 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
     }
     this.currentSelectionTbl!.dataSource = list;
+    this.fpsClickEvent(data, scrollCallback);
+  }
+
+  private fpsClickEvent(data: FrameAnimationStruct, scrollCallback: Function): void {
+    let queryJoinName = `${data.frameInfo?.split(':')[1]}: ${data.name?.split(':')![1]}`;
+    let recordNs: number = (window as any).recordStartNS;
+    this.currentSelectionTbl?.shadowRoot?.querySelector('#fps-jump')?.addEventListener('click', () => {
+      queryFpsSourceList(data.inputTime, data.endTime, queryJoinName).then((result) => {
+        if (result.length > 0) {
+          this.isFpsAvailable = true;
+          let pt: {
+            pid: number;
+            tid: number;
+            name: string;
+            ts: number;
+            dur: number;
+            depth: number
+          } = result[0];
+          scrollCallback({
+            pid: pt.tid,
+            tid: pt.tid,
+            dur: pt.dur,
+            type: 'func',
+            depth: pt.depth,
+            funName: pt.name,
+            startTs: pt.ts - recordNs,
+            keepOpen: true,
+          });
+        } else {
+          this.isFpsAvailable = false;
+        }
+      });
+    })
   }
 
   private setJankType(data: JankStruct, list: any[]): void {
