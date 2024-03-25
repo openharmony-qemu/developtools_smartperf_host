@@ -203,72 +203,67 @@ export const querySearchFuncData = (
           not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
     `
   );
+
 export const queryFuncRowData = (
   funcName: string,
-  tIds: number,
-  leftNS: number,
-  rightNS: number
+  tIds: number
 ): Promise<Array<SearchFuncBean>> =>
   query(
     'queryFuncRowData',
     `
-          select 
-            c.name as funName,
-            c.ts - r.start_ts as startTime
-          from 
-            callstack c 
-          left join 
-            thread t 
-          on 
-            c.callid = t.id 
-          left join 
-            process p 
-          on 
-            t.ipid = p.id
-          left join 
-            trace_range r
-          where 
-            c.name like '${funcName}%' 
-          and 
-            t.tid = ${tIds} 
-          and
-            not ((startTime < ${leftNS}) or (startTime > ${rightNS}));
-      `,
+                select 
+                  c.name as funName,
+                  c.ts - r.start_ts as startTime,
+                  t.tid as tid
+                from 
+                  callstack c 
+                left join 
+                  thread t 
+                on 
+                  c.callid = t.id 
+                left join 
+                  process p 
+                on 
+                  t.ipid = p.id
+                left join 
+                  trace_range r
+                where 
+                  c.name like '${funcName}%' 
+                and 
+                  t.tid = ${tIds} 
+            `,
     { $search: funcName }
   );
 
 export const fuzzyQueryFuncRowData = (
   funcName: string,
-  tIds: number,
-  leftNS: number,
-  rightNS: number
+  tIds: number
 ): Promise<Array<SearchFuncBean>> =>
   query(
     'fuzzyQueryFuncRowData',
     `
-          select 
-            c.name as funName,
-            c.ts - r.start_ts as startTime,
-            c.ts - r.start_ts + c.dur as endTime
-          from 
-            callstack c 
-          left join 
-            thread t 
-          on 
-            c.callid = t.id 
-          left join 
-            process p 
-          on 
-            t.ipid = p.id
-          left join 
-            trace_range r
-          where 
-            c.name like '%${funcName}%' 
-          and 
-            t.tid = ${tIds} 
-          and
-            not ((endTime < ${leftNS}) or (endTime > ${rightNS}));
-      `,
+                select 
+                  c.name as funName,
+                  c.ts - r.start_ts as startTime,
+                  c.ts - r.start_ts + c.dur as endTime,
+                  t.tid as tid
+                from 
+                  callstack c 
+                left join 
+                  thread t 
+                on 
+                  c.callid = t.id 
+                left join 
+                  process p 
+                on 
+                  t.ipid = p.id
+                left join 
+                  trace_range r
+                where 
+                  c.name like '%${funcName}%' 
+                and 
+                  t.tid = ${tIds} 
+            `,
     { $search: funcName }
   );
 
