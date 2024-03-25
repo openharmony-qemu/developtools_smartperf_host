@@ -111,7 +111,6 @@ export class SpFreqChart {
           );
           traceRow.canvasRestore(context, this.trace);
         };
-        this.trace.rowsEL?.appendChild(traceRow);
         this.folderRow!.addChildTraceRow(traceRow);
       }
     }
