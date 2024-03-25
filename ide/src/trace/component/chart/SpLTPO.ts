@@ -254,12 +254,12 @@ export class SpLtpoChart {
             cutTimeSum += 1000 / tempFps;
             SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].cutTime = cutTimeSum;
             SpLtpoChart.tempRsNowTimeList.splice(nowTimeIndex, 1);
-          } else if (!SpLtpoChart.tempRsNowTimeList[nowTimeIndex].signaled) {
+          } else {
             nowTimeIndex++;
             cutTimeSum = 0;
             tempFps = 0;
           }
-        } else if (SpLtpoChart.skipDataList[skipIndex].ts! < SpLtpoChart.tempRsNowTimeList[nowTimeIndex].ts!) {
+        } else if (SpLtpoChart.skipDataList[skipIndex].ts! <= SpLtpoChart.tempRsNowTimeList[nowTimeIndex].ts!) {
           if (nowTimeIndex > 0) {
             cutTimeSum += tempFps ? (1000 / tempFps) : (1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!);
           }
