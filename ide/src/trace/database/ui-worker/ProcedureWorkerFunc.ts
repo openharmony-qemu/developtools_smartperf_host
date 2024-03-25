@@ -160,7 +160,7 @@ export class FuncStruct extends BaseFuncStruct {
   static selectFuncStruct: FuncStruct | undefined;
   flag: string | undefined; // 570000
   textMetricsWidth: number | undefined;
-  static funcSelect: boolean;
+  static funcSelect: boolean = true;
   static setFuncFrame(funcNode: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
     let x1: number, x2: number;
     if ((funcNode.startTs || 0) > startNS && (funcNode.startTs || 0) <= endNS) {
