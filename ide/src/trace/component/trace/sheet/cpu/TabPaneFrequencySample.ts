@@ -210,9 +210,7 @@ export class TabPaneFrequencySample extends BaseElement {
       this.worker!.postMessage(msg);
       this.worker!.onmessage = (event: MessageEvent) => {
         sampleMap = event.data;
-        sampleMap.forEach((value) => {
-          this.freqBusyDataList.push(value);
-        });
+        this.freqBusyDataList = [...sampleMap.values()];
         this.busyTimeLoadingHide = true;
         //当busyTimebutton的状态为true但busyTime的计算未完成时
         if (this.frequencySampleClickType) {
@@ -289,12 +287,10 @@ export class TabPaneFrequencySample extends BaseElement {
             return frequencySampleRightData.time - frequencySampleLeftData.time;
           }
         } else if (key === 'counter') {
-          if (frequencySampleLeftData.counter > frequencySampleRightData.counter) {
-            return type === 2 ? -1 : 1;
-          } else if (frequencySampleLeftData.counter === frequencySampleRightData.counter) {
-            return 0;
+          if (type === 1) {
+            return frequencySampleLeftData.cpu - frequencySampleRightData.cpu;
           } else {
-            return type === 2 ? 1 : -1;
+            return frequencySampleRightData.cpu - frequencySampleLeftData.cpu;
           }
         } else if (key === 'valueStr') {
           if (type === 1) {
