@@ -54,12 +54,12 @@ export class Mark extends Graph {
     this.context2D.strokeStyle = '#999999';
     this.context2D.lineWidth = 7;
     this.context2D.moveTo(this.frame.x, this.frame.y);
-    this.context2D.lineTo(this.frame.x, this.frame.y + this.frame.height / 3);
+    this.context2D.lineTo(this.frame.x, this.frame.y + 75 / 3);
     this.context2D.stroke();
     this.context2D.strokeStyle = '#999999';
     this.context2D.lineWidth = 1;
     this.context2D.moveTo(this.frame.x, this.frame.y);
-    this.context2D.lineTo(this.frame.x, this.frame.y + this.frame.height);
+    this.context2D.lineTo(this.frame.x, this.frame.y + 75);
     this.context2D.stroke();
     this.context2D.closePath();
   }

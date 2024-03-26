@@ -373,7 +373,7 @@ export class TimerShaftElement extends BaseElement {
     if (!this._rangeRuler) {
       this._rangeRuler = new RangeRuler(
         this,
-        new Rect(0, 25, width, 75),
+        new Rect(0, 25, width, 75 - this._usageFoldHeight),
         {
           slicesTime: {
             startTime: null,
