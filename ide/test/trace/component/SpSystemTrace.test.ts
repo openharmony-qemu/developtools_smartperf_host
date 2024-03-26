@@ -158,10 +158,7 @@ describe('SpSystemTrace Test', () => {
   });
 
   it('SpSystemTraceTest22', function () {
-    // procedurePool.clearCache = jest.fn(() => true);
-    // spSystemTrace.traceSheetEL = jest.fn(() => true);
     spSystemTrace.traceSheetEL!.clearMemory = jest.fn(() => true);
-    // spSystemTrace.traceSheetEL.setAttribute = jest.fn(() => true);
     spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
     spSystemTrace.rangeSelect = new RangeSelect(spSystemTrace);
     spSystemTrace.timerShaftEL!.displayCollect = jest.fn(() => true);
@@ -242,7 +239,6 @@ describe('SpSystemTrace Test', () => {
   });
   it('SpSystemTraceTest33', function () {
     spSystemTrace.rangeSelect = new RangeSelect(spSystemTrace);
-    // spSystemTrace.traceSheetEL.setMode = jest.fn(() => true);
     spSystemTrace.timerShaftEL.removeTriangle = jest.fn(()=>{})
     expect(spSystemTrace.clickEmptyArea()).toBeUndefined();
   });
