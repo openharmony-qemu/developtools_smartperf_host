@@ -300,16 +300,6 @@ export class SpLtpoChart {
     let ltpoIndex = 0;
     //当有present缺失时：
     this.deleteUselessFence(presentArr, ltpoDataArr);
-    // if (presentArr!.length && presentArr!.length === ltpoDataArr!.length) {
-    //   for (let i = 0; i < presentArr!.length; i++) {
-    //     ltpoDataArr[i].startTs = Number(presentArr[i].startTime) - (window as any).recordStartNS;
-    //     ltpoDataArr[i].dur = presentArr[i].dur;
-    //     ltpoDataArr[i].nextStartTs = presentArr[i + 1] ? Number(presentArr[i + 1].startTime) - (window as any).recordStartNS : '';
-    //     ltpoDataArr[i].nextDur = presentArr[i + 1] ? presentArr[i + 1].dur : 0;
-    //   }
-    // } else {
-    //   return sendDataArr;
-    // }
     while (presentIndex < presentArr.length) {
       if (presentArr[presentIndex] && ltpoDataArr[ltpoIndex]) {
         if ((presentArr[presentIndex].startTime! + presentArr[presentIndex].dur! - (window as any).recordStartNS) === TraceRow.range!.totalNS) {
@@ -410,12 +400,17 @@ export class SpLtpoChart {
     if (num < 0) {
       return 0;
     } else {
-      let tempNum = Number(num.toString().split('.')[1].charAt(0));
-      if (tempNum > 6) {
-        return Math.ceil(num);
+      if (!num.toString().split('.')[1]) {
+        return num;
       } else {
-        return Math.floor(num);
+        let tempNum = Number(num.toString().split('.')[1].charAt(0));
+        if (tempNum > 6) {
+          return Math.ceil(num);
+        } else {
+          return Math.floor(num);
+        }
       }
+
     }
 
   }
