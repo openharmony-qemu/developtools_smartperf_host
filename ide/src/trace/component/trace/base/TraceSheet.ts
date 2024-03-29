@@ -656,7 +656,7 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneGpuClickSelect>('gpu-click-select', 'gpu-click-select-comparison').gpuClickData(dataObject);
   };
 
-  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): void =>
+  displayFuncData = (names: string[], data: FuncStruct, scrollCallback: Function): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, scrollCallback);
   displayCpuData = (
     data: CpuStruct,

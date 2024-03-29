@@ -1970,6 +1970,7 @@ export class SpSystemTrace extends BaseElement {
     this.times.clear();
     resetVSync();
     SpSystemTrace.keyPathList = [];
+    TabPaneCurrentSelection.isTransformed = false;
   }
 
   init = async (param: { buf?: ArrayBuffer; url?: string }, wasmConfigUri: string, progress: Function) => {

@@ -57,6 +57,7 @@ import {
 import { queryGpuDur } from '../../../database/sql/Gpu.sql';
 import { queryWakeupListPriority } from '../../../database/sql/Cpu.sql';
 import { TabPaneCurrentSelectionHtml } from './TabPaneCurrentSelection.html';
+import {queryRealTime} from "../../../database/sql/Clock.sql";
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -102,6 +103,7 @@ export function getTimeString(ns: number): string {
 
 @element('tabpane-current-selection')
 export class TabPaneCurrentSelection extends BaseElement {
+  static isTransformed : boolean = false;
   weakUpBean: WakeupBean | null | undefined;
   selectWakeupBean: any;
   private currentSelectionTbl: LitTable | null | undefined;
@@ -112,6 +114,8 @@ export class TabPaneCurrentSelection extends BaseElement {
   private dpr: any = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
   private wakeUp: string = '';
   private isFpsAvailable: boolean = true;
+  private realTime: number = 0;
+  private bootTime: number = 0;
 
   set data(currentSelectionValue: any) {
     if (
@@ -253,8 +257,20 @@ export class TabPaneCurrentSelection extends BaseElement {
     list.push({ name: 'End State', value: state });
   }
 
-  setFunctionData(data: FuncStruct, scrollCallback: Function): void {
-    //方法信息
+  async setFunctionData(data: FuncStruct, scrollCallback: Function): Promise<void> {
+    //方法信息     
+    await queryRealTime().then((result) => {
+      if (result && result.length > 0) {
+        result.forEach(item => {
+          if (item.name === 'realtime') {
+            this.realTime = item.ts;
+          } else {
+            this.bootTime = item.ts;
+          }
+        });
+      }
+    }); 
+
     this.tabCurrentSelectionInit('Slice Details');
     let list: any[] = [];
     let name = this.transferString(data.funName ?? '');
@@ -272,13 +288,31 @@ export class TabPaneCurrentSelection extends BaseElement {
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
+      let timeStr: string = '';
+      let startTimeValue: string = '';
+      let startTimeAbsolute = (data.startTs || 0) + (window as any).recordStartNS;
+
+      if (this.realTime > 0) {
+        if (TabPaneCurrentSelection.isTransformed) {
+          timeStr = this.getRealTimeStr(startTimeAbsolute);
+        } else {
+          timeStr = startTimeAbsolute / 1000000000 + 's';
+        }
+        startTimeValue = `<div style="white-space: nowrap;display: flex;align-items: center">
+                              <div id="startTimeAbsalute" style="white-space:pre-wrap" >${timeStr}</div>                             
+                              <lit-icon id="transfBtn" class="temp-icon" title="Convert to realtime" name="restore" size="30" 
+                                    style="position: relative; top: 5px; left: 10px;"></lit-icon>
+                          </div>`;
+      } else {
+        startTimeValue = startTimeAbsolute / 1000000000 + 's';
+      }
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
       });
       list.push({
         name: 'StartTime(Absolute)',
-        value: ((data.startTs || 0) + (window as any).recordStartNS) / 1000000000 + 's',
+        value: startTimeValue,
       });
       list.push({
         name: 'Duration',
@@ -286,7 +320,34 @@ export class TabPaneCurrentSelection extends BaseElement {
       });
       list.push({ name: 'depth', value: data.depth });
       this.currentSelectionTbl!.dataSource = list;
+      let transfBtn = this.currentSelectionTbl?.shadowRoot?.querySelector('#transfBtn');
+      transfBtn?.addEventListener('click', () => {
+        let startTimeAbsalute = this.currentSelectionTbl?.shadowRoot?.querySelector('#startTimeAbsalute');
+        if (startTimeAbsalute) {
+          if (TabPaneCurrentSelection.isTransformed) {
+            startTimeAbsalute!.innerHTML = startTimeAbsolute / 1000000000 + 's';
+            TabPaneCurrentSelection.isTransformed = false;
+          } else {
+            startTimeAbsalute!.innerHTML = this.getRealTimeStr(startTimeAbsolute);
+            TabPaneCurrentSelection.isTransformed = true;
+          }
+        }
+      });
     }
+  }
+
+  // 计算真实时间
+  private getRealTimeStr(startTs: number): string { 
+    let time = (startTs || 0) + (window as any).recordStartNS - this.bootTime + this.realTime;    
+    const formateDateStr = this.getDate(parseInt(time.toString().substring(0, 13)));    
+    return formateDateStr;
+  }
+
+  // 格式化时间戳为字符串格式 yyyy/mm/dd hh:mi:ss
+  private getDate(timestamp: number): string { 
+    let date = new Date(timestamp);   
+    let gmt = date.toLocaleString();
+    return gmt;
   }
 
   private handleNonBinder(data: FuncStruct, list: any[], name: string): void {
